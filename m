@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + delete-unused-header-file-linux-awe_voiceh.patch added to -mm tree
-Date: Sat, 24 Mar 2007 23:52:06 -0800
-Message-ID: <200703250752.l2P7q62b023177@shell0.pdx.osdl.net>
+Subject: + delete-unused-header-file-linux-sdla_frh.patch added to -mm tree
+Date: Sat, 24 Mar 2007 23:52:56 -0800
+Message-ID: <200703250752.l2P7qu8k023194@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35422 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35443 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753247AbXCYHwL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 03:52:11 -0400
+	id S1753488AbXCYHxC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 03:53:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rpjday@mindspring.com
 
 
 The patch titled
-     Delete unused header file linux/awe_voice.h
+     Delete unused header file linux/sdla_fr.h.
 has been added to the -mm tree.  Its filename is
-     delete-unused-header-file-linux-awe_voiceh.patch
+     delete-unused-header-file-linux-sdla_frh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,547 +25,660 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Delete unused header file linux/awe_voice.h
+Subject: Delete unused header file linux/sdla_fr.h.
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Delete the unreferenced header file include/linux/awe_voice.h.
+Delete the unreferenced header file include/linux/sdla_fr.h.
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/awe_voice.h |  525 ------------------------------------
- 1 file changed, 525 deletions(-)
+ include/linux/sdla_fr.h |  638 --------------------------------------
+ 1 file changed, 638 deletions(-)
 
-diff -puN include/linux/awe_voice.h~delete-unused-header-file-linux-awe_voiceh /dev/null
---- a/include/linux/awe_voice.h
+diff -puN include/linux/sdla_fr.h~delete-unused-header-file-linux-sdla_frh /dev/null
+--- a/include/linux/sdla_fr.h
 +++ /dev/null
-@@ -1,525 +0,0 @@
--/*
-- * include/linux/awe_voice.h
+@@ -1,638 +0,0 @@
+-/*****************************************************************************
+-* sdla_fr.h	Sangoma frame relay firmware API definitions.
+-*
+-* Author:       Gideon Hack  	
+-*		Nenad Corbic <ncorbic@sangoma.com> 	
+-*
+-* Copyright:	(c) 1995-2000 Sangoma Technologies Inc.
+-*
+-*		This program is free software; you can redistribute it and/or
+-*		modify it under the terms of the GNU General Public License
+-*		as published by the Free Software Foundation; either version
+-*		2 of the License, or (at your option) any later version.
+-* ============================================================================
+-* Oct 04, 1999  Gideon Hack     Updated API structures
+-* Jun 02, 1999  Gideon Hack 	Modifications for S514 support
+-* Oct 12, 1997	Jaspreet Singh	Added FR_READ_DLCI_IB_MAPPING
+-* Jul 21, 1997 	Jaspreet Singh	Changed FRRES_TOO_LONG and FRRES_TOO_MANY to 
+-*				0x05 and 0x06 respectively.
+-* Dec 23, 1996	Gene Kozin	v2.0
+-* Apr 29, 1996	Gene Kozin	v1.0 (merged version S502 & S508 definitions).
+-* Sep 26, 1995	Gene Kozin	Initial version.
+-*****************************************************************************/
+-#ifndef	_SDLA_FR_H
+-#define	_SDLA_FR_H
+-
+-/*----------------------------------------------------------------------------
+- * Notes:
+- * ------
+- * 1. All structures defined in this file are byte-alined.  
 - *
-- * Voice information definitions for the low level driver for the 
-- * AWE32/SB32/AWE64 wave table synth.
-- *   version 0.4.4; Jan. 4, 2000
-- *
-- * Copyright (C) 1996-2000 Takashi Iwai
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *	Compiler	Platform
+- *	--------	--------
+- *	GNU C		Linux
 - */
 -
--#ifndef AWE_VOICE_H
--#define AWE_VOICE_H
+-#ifndef	PACKED
+-#    define	PACKED	__attribute__((packed))
+-#endif	/* PACKED */
 -
--#ifndef SAMPLE_TYPE_AWE32
--#define SAMPLE_TYPE_AWE32	0x20
--#endif
+-/* Adapter memory layout */
+-#define	FR_MB_VECTOR	0xE000	/* mailbox window vector */
+-#define	FR502_RX_VECTOR	0xA000	/* S502 direct receive window vector */
+-#define	FR502_MBOX_OFFS	0xF60	/* S502 mailbox offset */
+-#define	FR508_MBOX_OFFS	0	/* S508 mailbox offset */
+-#define	FR502_FLAG_OFFS	0x1FF0	/* S502 status flags offset */
+-#define	FR508_FLAG_OFFS	0x1000	/* S508 status flags offset */
+-#define	FR502_RXMB_OFFS	0x900	/* S502 direct receive mailbox offset */
+-#define	FR508_TXBC_OFFS	0x1100	/* S508 Tx buffer info offset */
+-#define	FR508_RXBC_OFFS	0x1120	/* S508 Rx buffer info offset */
 -
--#define _LINUX_PATCHKEY_H_INDIRECT
--#include <linux/patchkey.h>
--#undef _LINUX_PATCHKEY_H_INDIRECT
+-/* Important constants */
+-#define FR502_MAX_DATA	4096	/* maximum data buffer length */
+-#define FR508_MAX_DATA	4080	/* maximum data buffer length */
+-#define MIN_LGTH_FR_DATA_CFG         300     /* min Information frame length
+-(for configuration purposes) */
+-#define FR_MAX_NO_DATA_BYTES_IN_FRAME  15354 	/* max Information frame length */
+- 
+-#define HIGHEST_VALID_DLCI	991
 -
--/*----------------------------------------------------------------
-- * patch information record
-- *----------------------------------------------------------------*/
+-/****** Data Structures *****************************************************/
 -
--/* patch interface header: 16 bytes */
--typedef struct awe_patch_info {
--	short key;			/* use AWE_PATCH here */
--#define AWE_PATCH	_PATCHKEY(0x07)
+-/*----------------------------------------------------------------------------
+- * Frame relay command block.
+- */
+-typedef struct fr_cmd
+-{
+-	unsigned char  command	PACKED;	/* command code */
+-	unsigned short length	PACKED;	/* length of data buffer */
+-	unsigned char  result	PACKED;	/* return code */
+-	unsigned short dlci	PACKED;	/* DLCI number */
+-	unsigned char  attr	PACKED;	/* FECN, BECN, DE and C/R bits */
+-	unsigned short rxlost1	PACKED;	/* frames discarded at int. level */
+-	unsigned long  rxlost2	PACKED;	/* frames discarded at app. level */
+-	unsigned char  rsrv[2]	PACKED;	/* reserved for future use */
+-} fr_cmd_t;
 -
--	short device_no;		/* synthesizer number */
--	unsigned short sf_id;		/* file id (should be zero) */
--	short optarg;			/* optional argument */
--	int len;			/* data length (without this header) */
+-/* 'command' field defines */
+-#define	FR_WRITE		0x01
+-#define	FR_READ			0x02
+-#define	FR_ISSUE_IS_FRAME	0x03
+-#define FR_SET_CONFIG		0x10
+-#define FR_READ_CONFIG		0x11
+-#define FR_COMM_DISABLE		0x12
+-#define FR_COMM_ENABLE		0x13
+-#define FR_READ_STATUS		0x14
+-#define FR_READ_STATISTICS	0x15
+-#define FR_FLUSH_STATISTICS	0x16
+-#define	FR_LIST_ACTIVE_DLCI	0x17
+-#define FR_FLUSH_DATA_BUFFERS	0x18
+-#define FR_READ_ADD_DLC_STATS	0x19
+-#define	FR_ADD_DLCI		0x20
+-#define	FR_DELETE_DLCI		0x21
+-#define	FR_ACTIVATE_DLCI	0x22
+-#define	FR_DEACTIVATE_DLCI	0x22
+-#define FR_READ_MODEM_STATUS	0x30
+-#define FR_SET_MODEM_STATUS	0x31
+-#define FR_READ_ERROR_STATS	0x32
+-#define FR_FLUSH_ERROR_STATS	0x33
+-#define FR_READ_DLCI_IB_MAPPING 0x34
+-#define FR_READ_CODE_VERSION	0x40
+-#define	FR_SET_INTR_MODE	0x50
+-#define	FR_READ_INTR_MODE	0x51
+-#define FR_SET_TRACE_CONFIG	0x60
+-#define FR_FT1_STATUS_CTRL 	0x80
+-#define FR_SET_FT1_MODE		0x81
 -
--	short type;			/* patch operation type */
--#define AWE_LOAD_INFO		0	/* awe_voice_rec */
--#define AWE_LOAD_DATA		1	/* awe_sample_info */
--#define AWE_OPEN_PATCH		2	/* awe_open_parm */
--#define AWE_CLOSE_PATCH		3	/* none */
--#define AWE_UNLOAD_PATCH	4	/* none */
--#define AWE_REPLACE_DATA	5	/* awe_sample_info (optarg=#channels)*/
--#define AWE_MAP_PRESET		6	/* awe_voice_map */
--/*#define AWE_PROBE_INFO	7*/	/* awe_voice_map (pat only) */
--#define AWE_PROBE_DATA		8	/* optarg=sample */
--#define AWE_REMOVE_INFO		9	/* optarg=(bank<<8)|instr */
--#define AWE_LOAD_CHORUS_FX	0x10	/* awe_chorus_fx_rec (optarg=mode) */
--#define AWE_LOAD_REVERB_FX	0x11	/* awe_reverb_fx_rec (optarg=mode) */
+-/* Special UDP drivers management commands */
+-#define FPIPE_ENABLE_TRACING          	0x41
+-#define FPIPE_DISABLE_TRACING		0x42
+-#define FPIPE_GET_TRACE_INFO            0x43
+-#define FPIPE_FT1_READ_STATUS           0x44
+-#define FPIPE_DRIVER_STAT_IFSEND        0x45
+-#define FPIPE_DRIVER_STAT_INTR          0x46
+-#define FPIPE_DRIVER_STAT_GEN           0x47
+-#define FPIPE_FLUSH_DRIVER_STATS        0x48
+-#define FPIPE_ROUTER_UP_TIME            0x49
 -
--	short reserved;			/* word alignment data */
+-/* 'result' field defines */
+-#define FRRES_OK		0x00	/* command executed successfully */
+-#define	FRRES_DISABLED		0x01	/* communications not enabled */
+-#define	FRRES_INOPERATIVE	0x02	/* channel inoperative */
+-#define	FRRES_DLCI_INACTIVE	0x03	/* DLCI is inactive */
+-#define	FRRES_DLCI_INVALID	0x04	/* DLCI is not configured */
+-#define	FRRES_TOO_LONG		0x05
+-#define	FRRES_TOO_MANY		0x06
+-#define	FRRES_CIR_OVERFLOW	0x07	/* Tx throughput has exceeded CIR */
+-#define	FRRES_BUFFER_OVERFLOW	0x08
+-#define	FRRES_MODEM_FAILURE	0x10	/* DCD and/or CTS dropped */
+-#define	FRRES_CHANNEL_DOWN	0x11	/* channel became inoperative */
+-#define	FRRES_CHANNEL_UP	0x12	/* channel became operative */
+-#define	FRRES_DLCI_CHANGE	0x13	/* DLCI status (or number) changed */
+-#define	FRRES_DLCI_MISMATCH	0x14
+-#define	FRRES_INVALID_CMD	0x1F	/* invalid command */
 -
--	/* the actual patch data begins after this */
--#if defined(AWE_COMPAT_030) && AWE_COMPAT_030
--	char data[0];
--#endif
--} awe_patch_info;
+-/* 'attr' field defines */
+-#define	FRATTR_
 -
--/*#define AWE_PATCH_INFO_SIZE	16*/
--#define AWE_PATCH_INFO_SIZE	sizeof(awe_patch_info)
+-/*----------------------------------------------------------------------------
+- * Frame relay mailbox.
+- *	This structure is located at offset FR50?_MBOX_OFFS into FR_MB_VECTOR.
+- *	For S502 it is also located at offset FR502_RXMB_OFFS into
+- *	FR502_RX_VECTOR.
+- */
+-typedef struct fr_mbox
+-{
+-	unsigned char opflag	PACKED;	/* 00h: execution flag */
+-	fr_cmd_t cmd		PACKED;	/* 01h: command block */
+-	unsigned char data[1]	PACKED;	/* 10h: variable length data buffer */
+-} fr_mbox_t;
 -
+-/*----------------------------------------------------------------------------
+- * S502 frame relay status flags.
+- *	This structure is located at offset FR502_FLAG_OFFS into FR_MB_VECTOR.
+- */
+-typedef struct	fr502_flags
+-{	
+-	unsigned char rsrv1[1]	PACKED;	/* 00h: */
+-	unsigned char tx_ready	PACKED;	/* 01h: Tx buffer available */
+-	unsigned char rx_ready	PACKED;	/* 02h: Rx frame available */
+-	unsigned char event	PACKED;	/* 03h: asynchronous event */
+-	unsigned char mstatus	PACKED;	/* 04h: modem status */
+-	unsigned char rsrv2[8]	PACKED;	/* 05h: */
+-	unsigned char iflag	PACKED;	/* 0Dh: interrupt flag */
+-	unsigned char imask	PACKED;	/* 0Eh: interrupt mask */
+-} fr502_flags_t;
 -
--/*----------------------------------------------------------------
-- * open patch
-- *----------------------------------------------------------------*/
+-/*----------------------------------------------------------------------------
+- * S508 frame relay status flags.
+- *	This structure is located at offset FR508_FLAG_OFFS into FR_MB_VECTOR.
+- */
+-typedef struct	fr508_flags
+-{
+-	unsigned char rsrv1[3]	PACKED;	/* 00h: reserved */
+-	unsigned char event	PACKED;	/* 03h: asynchronous event */
+-	unsigned char mstatus	PACKED;	/* 04h: modem status */
+-	unsigned char rsrv2[11]	PACKED;	/* 05h: reserved */
+-	unsigned char iflag	PACKED;	/* 10h: interrupt flag */
+-	unsigned char imask	PACKED;	/* 11h: interrupt mask */
+-	unsigned long tse_offs	PACKED;	/* 12h: Tx status element */
+-	unsigned short dlci	PACKED; /* 16h: DLCI NUMBER */
+-} fr508_flags_t;
 -
--#define AWE_PATCH_NAME_LEN	32
+-/* 'event' field defines */
+-#define	FR_EVENT_STATUS		0x01	/* channel status change */
+-#define	FR_EVENT_DLC_STATUS	0x02	/* DLC status change */
+-#define	FR_EVENT_BAD_DLCI	0x04	/* FSR included wrong DLCI */
+-#define	FR_EVENT_LINK_DOWN	0x40	/* DCD or CTS low */
 -
--typedef struct _awe_open_parm {
--	unsigned short type;		/* sample type */
--#define AWE_PAT_TYPE_MISC	0
--#define AWE_PAT_TYPE_GM		1
--#define AWE_PAT_TYPE_GS		2
--#define AWE_PAT_TYPE_MT32	3
--#define AWE_PAT_TYPE_XG		4
--#define AWE_PAT_TYPE_SFX	5
--#define AWE_PAT_TYPE_GUS	6
--#define AWE_PAT_TYPE_MAP	7
+-/* 'mstatus' field defines */
+-#define	FR_MDM_DCD		0x08	/* mdm_status: DCD */
+-#define	FR_MDM_CTS		0x20	/* mdm_status: CTS */
 -
--#define AWE_PAT_LOCKED		0x100	/* lock the samples */
--#define AWE_PAT_SHARED		0x200	/* sample is shared */
--
--	short reserved;
--	char name[AWE_PATCH_NAME_LEN];
--} awe_open_parm;
--
--/*#define AWE_OPEN_PARM_SIZE	28*/
--#define AWE_OPEN_PARM_SIZE	sizeof(awe_open_parm)
--
--
--/*----------------------------------------------------------------
-- * raw voice information record
-- *----------------------------------------------------------------*/
--
--/* wave table envelope & effect parameters to control EMU8000 */
--typedef struct _awe_voice_parm {
--	unsigned short moddelay;	/* modulation delay (0x8000) */
--	unsigned short modatkhld;	/* modulation attack & hold time (0x7f7f) */
--	unsigned short moddcysus;	/* modulation decay & sustain (0x7f7f) */
--	unsigned short modrelease;	/* modulation release time (0x807f) */
--	short modkeyhold, modkeydecay;	/* envelope change per key (not used) */
--	unsigned short voldelay;	/* volume delay (0x8000) */
--	unsigned short volatkhld;	/* volume attack & hold time (0x7f7f) */
--	unsigned short voldcysus;	/* volume decay & sustain (0x7f7f) */
--	unsigned short volrelease;	/* volume release time (0x807f) */
--	short volkeyhold, volkeydecay;	/* envelope change per key (not used) */
--	unsigned short lfo1delay;	/* LFO1 delay (0x8000) */
--	unsigned short lfo2delay;	/* LFO2 delay (0x8000) */
--	unsigned short pefe;		/* modulation pitch & cutoff (0x0000) */
--	unsigned short fmmod;		/* LFO1 pitch & cutoff (0x0000) */
--	unsigned short tremfrq;		/* LFO1 volume & freq (0x0000) */
--	unsigned short fm2frq2;		/* LFO2 pitch & freq (0x0000) */
--	unsigned char cutoff;		/* initial cutoff (0xff) */
--	unsigned char filterQ;		/* initial filter Q [0-15] (0x0) */
--	unsigned char chorus;		/* chorus send (0x00) */
--	unsigned char reverb;		/* reverb send (0x00) */
--	unsigned short reserved[4];	/* not used */
--} awe_voice_parm;
--
--typedef struct _awe_voice_parm_block {
--	unsigned short moddelay;	/* modulation delay (0x8000) */
--	unsigned char modatk, modhld;
--	unsigned char moddcy, modsus;
--	unsigned char modrel, moddummy;
--	short modkeyhold, modkeydecay;	/* envelope change per key (not used) */
--	unsigned short voldelay;	/* volume delay (0x8000) */
--	unsigned char volatk, volhld;
--	unsigned char voldcy, volsus;
--	unsigned char volrel, voldummy;
--	short volkeyhold, volkeydecay;	/* envelope change per key (not used) */
--	unsigned short lfo1delay;	/* LFO1 delay (0x8000) */
--	unsigned short lfo2delay;	/* LFO2 delay (0x8000) */
--	unsigned char env1fc, env1pit;
--	unsigned char lfo1fc, lfo1pit;
--	unsigned char lfo1freq, lfo1vol;
--	unsigned char lfo2freq, lfo2pit;
--	unsigned char cutoff;		/* initial cutoff (0xff) */
--	unsigned char filterQ;		/* initial filter Q [0-15] (0x0) */
--	unsigned char chorus;		/* chorus send (0x00) */
--	unsigned char reverb;		/* reverb send (0x00) */
--	unsigned short reserved[4];	/* not used */
--} awe_voice_parm_block;
--
--#define AWE_VOICE_PARM_SIZE	48
+-/* 'iflag' & 'imask' fields defines */
+-#define	FR_INTR_RXRDY		0x01	/* Rx ready */
+-#define	FR_INTR_TXRDY		0x02	/* Tx ready */
+-#define	FR_INTR_MODEM		0x04	/* modem status change (DCD, CTS) */
+-#define	FR_INTR_READY		0x08	/* interface command completed */
+-#define	FR_INTR_DLC		0x10	/* DLC status change */
+-#define	FR_INTR_TIMER		0x20	/* millisecond timer */
+-#define FR_INTR_TX_MULT_DLCIs	0x80	/* Tx interrupt on multiple DLCIs */
 -
 -
--/* wave table parameters: 92 bytes */
--typedef struct _awe_voice_info {
--	unsigned short sf_id;		/* file id (should be zero) */
--	unsigned short sample;		/* sample id */
--	int start, end;			/* sample offset correction */
--	int loopstart, loopend;		/* loop offset correction */
--	short rate_offset;		/* sample rate pitch offset */
--	unsigned short mode;		/* sample mode */
--#define AWE_MODE_ROMSOUND		0x8000
--#define AWE_MODE_STEREO			1
--#define AWE_MODE_LOOPING		2
--#define AWE_MODE_NORELEASE		4	/* obsolete */
--#define AWE_MODE_INIT_PARM		8
+-/*----------------------------------------------------------------------------
+- * Receive Buffer Configuration Info. S508 only!
+- *	This structure is located at offset FR508_RXBC_OFFS into FR_MB_VECTOR.
+- */
+-typedef struct	fr_buf_info
+-{
+-	unsigned short rse_num	PACKED;	/* 00h: number of status elements */
+-	unsigned long rse_base	PACKED;	/* 02h: receive status array base */
+-	unsigned long rse_next	PACKED;	/* 06h: next status element */
+-	unsigned long buf_base	PACKED;	/* 0Ah: rotational buffer base */
+-	unsigned short reserved	PACKED;	/* 0Eh:  */
+-	unsigned long buf_top	PACKED;	/* 10h: rotational buffer top */
+-} fr_buf_info_t;
 -
--	short root;			/* midi root key */
--	short tune;			/* pitch tuning (in cents) */
--	signed char low, high;		/* key note range */
--	signed char vellow, velhigh;	/* velocity range */
--	signed char fixkey, fixvel;	/* fixed key, velocity */
--	signed char pan, fixpan;	/* panning, fixed panning */
--	short exclusiveClass;		/* exclusive class (0 = none) */
--	unsigned char amplitude;	/* sample volume (127 max) */
--	unsigned char attenuation;	/* attenuation (0.375dB) */
--	short scaleTuning;		/* pitch scale tuning(%), normally 100 */
--	awe_voice_parm parm;		/* voice envelope parameters */
--	short index;			/* internal index (set by driver) */
--} awe_voice_info;
+-/*----------------------------------------------------------------------------
+- * Buffer Status Element. S508 only!
+- *	Array of structures of this type is located at offset defined by the
+- *	'rse_base' field of the frBufInfo_t structure into absolute adapter
+- *	memory address space.
+- */
+-typedef struct	fr_rx_buf_ctl
+-{
+-	unsigned char flag	PACKED;	/* 00h: ready flag */
+-	unsigned short length	PACKED;	/* 01h: frame length */
+-	unsigned short dlci	PACKED;	/* 03h: DLCI */
+-	unsigned char attr	PACKED;	/* 05h: FECN/BECN/DE/CR */
+-	unsigned short tmstamp	PACKED;	/* 06h: time stamp */
+-	unsigned short rsrv[2]	PACKED; /* 08h:  */
+-	unsigned long offset	PACKED;	/* 0Ch: buffer absolute address */
+-} fr_rx_buf_ctl_t;
 -
--/*#define AWE_VOICE_INFO_SIZE	92*/
--#define AWE_VOICE_INFO_SIZE	sizeof(awe_voice_info)
+-typedef struct  fr_tx_buf_ctl
+-{
+-        unsigned char flag      PACKED; /* 00h: ready flag */
+-	unsigned short rsrv0[2]	PACKED;	/* 01h: */
+-        unsigned short length   PACKED; /* 05h: frame length */
+-        unsigned short dlci     PACKED; /* 07h: DLCI */
+-        unsigned char attr      PACKED; /* 09h: FECN/BECN/DE/CR */
+-        unsigned short rsrv1 	PACKED; /* 0Ah:  */
+-        unsigned long offset    PACKED; /* 0Ch: buffer absolute address */
+-} fr_tx_buf_ctl_t;
 -
--/*----------------------------------------------------------------*/
+-/*----------------------------------------------------------------------------
+- * Global Configuration Block. Passed to FR_SET_CONFIG command when dlci == 0.
+- */
+-typedef struct	fr_conf
+-{
+-	unsigned short station	PACKED;	/* 00h: CPE/Node */
+-	unsigned short options	PACKED;	/* 02h: configuration options */
+-	unsigned short kbps	PACKED;	/* 04h: baud rate in kbps */
+-	unsigned short port	PACKED;	/* 06h: RS-232/V.35 */
+-	unsigned short mtu	PACKED;	/* 08h: max. transmit length */
+-	unsigned short t391	PACKED;	/* 0Ah:  */
+-	unsigned short t392	PACKED;	/* 0Ch:  */
+-	unsigned short n391	PACKED;	/* 0Eh:  */
+-	unsigned short n392	PACKED;	/* 10h:  */
+-	unsigned short n393	PACKED;	/* 12h:  */
+-	unsigned short cir_fwd	PACKED;	/* 14h:  */
+-	unsigned short bc_fwd	PACKED;	/* 16h:  */
+-	unsigned short be_fwd	PACKED;	/* 18h:  */
+-	unsigned short cir_bwd	PACKED;	/* 1Ah:  */
+-	unsigned short bc_bwd	PACKED;	/* 1Ch:  */
+-	unsigned short be_bwd	PACKED;	/* 1Eh:  */
+-	unsigned short dlci[0]	PACKED;	/* 20h:  */
+-} fr_conf_t;
 -
--/* The info entry of awe_voice_rec is changed from 0 to 1
-- * for some compilers refusing zero size array.
-- * Due to this change, sizeof(awe_voice_rec) becomes different
-- * from older versions.
-- * Use AWE_VOICE_REC_SIZE instead.
+-/* 'station_type' defines */
+-#define	FRCFG_STATION_CPE	0
+-#define	FRCFG_STATION_NODE	1
+-
+-/* 'conf_flags' defines */
+-#define	FRCFG_IGNORE_TX_CIR	0x0001
+-#define	FRCFG_IGNORE_RX_CIR	0x0002
+-#define	FRCFG_DONT_RETRANSMIT	0x0004
+-#define	FRCFG_IGNORE_CBS	0x0008
+-#define	FRCFG_THROUGHPUT	0x0010	/* enable throughput calculation */
+-#define	FRCFG_DIRECT_RX		0x0080	/* enable direct receive buffer */
+-#define	FRCFG_AUTO_CONFIG	0x8000	/* enable  auto DLCI configuration */
+-
+-/* 'baud_rate' defines */
+-#define	FRCFG_BAUD_1200		12
+-#define	FRCFG_BAUD_2400		24
+-#define	FRCFG_BAUD_4800		48
+-#define	FRCFG_BAUD_9600		96
+-#define	FRCFG_BAUD_19200	19
+-#define	FRCFG_BAUD_38400	38
+-#define	FRCFG_BAUD_56000	56
+-#define	FRCFG_BAUD_64000	64
+-#define	FRCFG_BAUD_128000	128
+-
+-/* 'port_mode' defines */
+-#define	FRCFG_MODE_EXT_CLK	0x0000
+-#define	FRCFG_MODE_INT_CLK	0x0001
+-#define	FRCFG_MODE_V35		0x0000	/* S508 only */
+-#define	FRCFG_MODE_RS232	0x0002	/* S508 only */
+-
+-/* defines for line tracing */
+-
+-/* the line trace status element presented by the frame relay code */
+-typedef struct {
+-        unsigned char flag      PACKED; /* ready flag */
+-        unsigned short length   PACKED; /* trace length */
+-        unsigned char rsrv0[2]  PACKED; /* reserved */
+-        unsigned char attr      PACKED; /* trace attributes */
+-        unsigned short tmstamp  PACKED; /* time stamp */
+-        unsigned char rsrv1[4]  PACKED; /* reserved */
+-        unsigned long offset    PACKED; /* buffer absolute address */
+-} fr_trc_el_t;
+-
+-typedef struct {
+-        unsigned char status    	PACKED; /* status flag */
+-	unsigned char data_passed	PACKED;	/* 0 if no data passed, 1 if */
+-						/* data passed */
+-        unsigned short length   	PACKED; /* frame length */
+-        unsigned short tmstamp  	PACKED; /* time stamp */
+-} fpipemon_trc_hdr_t;
+-
+-typedef struct {
+-	fpipemon_trc_hdr_t fpipemon_trc_hdr			PACKED;
+-        unsigned char data[FR_MAX_NO_DATA_BYTES_IN_FRAME]	PACKED;
+-} fpipemon_trc_t;
+-
+-/* bit settings for the 'status' byte  - note that bits 1, 2 and 3 are used */
+-/* for returning the number of frames being passed to fpipemon */
+-#define TRC_OUTGOING_FRM	0x01
+-#define TRC_ABORT_ERROR         0x10
+-#define TRC_CRC_ERROR           0x20
+-#define TRC_OVERRUN_ERROR       0x40
+-#define MORE_TRC_DATA		0x80
+-
+-#define MAX_FRMS_TRACED		0x07
+-
+-#define NO_TRC_ELEMENTS_OFF		0x9000
+-#define BASE_TRC_ELEMENTS_OFF		0x9002
+-#define TRC_ACTIVE			0x01
+-#define FLUSH_TRC_BUFFERS 		0x02
+-#define FLUSH_TRC_STATISTICS		0x04
+-#define TRC_SIGNALLING_FRMS		0x10
+-#define TRC_INFO_FRMS			0x20
+-#define ACTIVATE_TRC	(TRC_ACTIVE | TRC_SIGNALLING_FRMS | TRC_INFO_FRMS)
+-#define RESET_TRC	(FLUSH_TRC_BUFFERS | FLUSH_TRC_STATISTICS)
+-
+-/*----------------------------------------------------------------------------
+- * Channel configuration.
+- *	This structure is passed to the FR_SET_CONFIG command when dlci != 0.
+- */
+-typedef struct	fr_dlc_conf
+-{
+-	unsigned short conf_flags	PACKED;	/* 00h: configuration bits */
+-	unsigned short cir_fwd		PACKED;	/* 02h:  */
+-	unsigned short bc_fwd		PACKED;	/* 04h:  */
+-	unsigned short be_fwd		PACKED;	/* 06h:  */
+-	unsigned short cir_bwd		PACKED;	/* 08h:  */
+-	unsigned short bc_bwd		PACKED;	/* 0Ah:  */
+-	unsigned short be_bwd		PACKED;	/* 0Ch:  */
+-} fr_dlc_conf_t;
+-
+-/*----------------------------------------------------------------------------
+- * S502 interrupt mode control block.
+- *	This structure is passed to the FR_SET_INTR_FLAGS and returned by the
+- *	FR_READ_INTR_FLAGS commands.
+- */
+-typedef struct fr502_intr_ctl
+-{
+-	unsigned char mode	PACKED;	/* 00h: interrupt enable flags */
+-	unsigned short tx_len	PACKED;	/* 01h: required Tx buffer size */
+-} fr502_intr_ctl_t;
+-
+-/*----------------------------------------------------------------------------
+- * S508 interrupt mode control block.
+- *	This structure is passed to the FR_SET_INTR_FLAGS and returned by the
+- *	FR_READ_INTR_FLAGS commands.
+- */
+-typedef struct fr508_intr_ctl
+-{
+-	unsigned char mode	PACKED;	/* 00h: interrupt enable flags */
+-	unsigned short tx_len	PACKED;	/* 01h: required Tx buffer size */
+-	unsigned char irq	PACKED;	/* 03h: IRQ level to activate */
+-	unsigned char flags	PACKED;	/* 04h: ?? */
+-	unsigned short timeout	PACKED;	/* 05h: ms, for timer interrupt */
+-} fr508_intr_ctl_t;
+-
+-/*----------------------------------------------------------------------------
+- * Channel status.
+- *	This structure is returned by the FR_READ_STATUS command.
+- */
+-typedef struct	fr_dlc_Status
+-{
+-	unsigned char status		PACKED;	/* 00h: link/DLCI status */
+-	struct
+-	{
+-		unsigned short dlci	PACKED;	/* 01h: DLCI number */
+-		unsigned char status	PACKED;	/* 03h: DLCI status */
+-	} circuit[1]			PACKED;
+-} fr_dlc_status_t;
+-
+-/* 'status' defines */
+-#define	FR_LINK_INOPER	0x00		/* for global status (DLCI == 0) */
+-#define	FR_LINK_OPER	0x01
+-#define	FR_DLCI_DELETED	0x01		/* for circuit status (DLCI != 0) */
+-#define	FR_DLCI_ACTIVE	0x02
+-#define	FR_DLCI_WAITING	0x04
+-#define	FR_DLCI_NEW	0x08
+-#define	FR_DLCI_REPORT	0x40
+-
+-/*----------------------------------------------------------------------------
+- * Global Statistics Block.
+- *	This structure is returned by the FR_READ_STATISTICS command when
+- *	dcli == 0.
+- */
+-typedef struct	fr_link_stat
+-{
+-	unsigned short rx_too_long	PACKED;	/* 00h:  */
+-	unsigned short rx_dropped	PACKED;	/* 02h:  */
+-	unsigned short rx_dropped2	PACKED;	/* 04h:  */
+-	unsigned short rx_bad_dlci	PACKED;	/* 06h:  */
+-	unsigned short rx_bad_format	PACKED;	/* 08h:  */
+-	unsigned short retransmitted	PACKED;	/* 0Ah:  */
+-	unsigned short cpe_tx_FSE	PACKED;	/* 0Ch:  */
+-	unsigned short cpe_tx_LIV	PACKED;	/* 0Eh:  */
+-	unsigned short cpe_rx_FSR	PACKED;	/* 10h:  */
+-	unsigned short cpe_rx_LIV	PACKED;	/* 12h:  */
+-	unsigned short node_rx_FSE	PACKED;	/* 14h:  */
+-	unsigned short node_rx_LIV	PACKED;	/* 16h:  */
+-	unsigned short node_tx_FSR	PACKED;	/* 18h:  */
+-	unsigned short node_tx_LIV	PACKED;	/* 1Ah:  */
+-	unsigned short rx_ISF_err	PACKED;	/* 1Ch:  */
+-	unsigned short rx_unsolicited	PACKED;	/* 1Eh:  */
+-	unsigned short rx_SSN_err	PACKED;	/* 20h:  */
+-	unsigned short rx_RSN_err	PACKED;	/* 22h:  */
+-	unsigned short T391_timeouts	PACKED;	/* 24h:  */
+-	unsigned short T392_timeouts	PACKED;	/* 26h:  */
+-	unsigned short N392_reached	PACKED;	/* 28h:  */
+-	unsigned short cpe_SSN_RSN	PACKED;	/* 2Ah:  */
+-	unsigned short current_SSN	PACKED;	/* 2Ch:  */
+-	unsigned short current_RSN	PACKED;	/* 2Eh:  */
+-	unsigned short curreny_T391	PACKED;	/* 30h:  */
+-	unsigned short current_T392	PACKED;	/* 32h:  */
+-	unsigned short current_N392	PACKED;	/* 34h:  */
+-	unsigned short current_N393	PACKED;	/* 36h:  */
+-} fr_link_stat_t;
+-
+-/*----------------------------------------------------------------------------
+- * DLCI statistics.
+- *	This structure is returned by the FR_READ_STATISTICS command when
+- *	dlci != 0.
+- */
+-typedef struct	fr_dlci_stat
+-{
+-	unsigned long tx_frames		PACKED;	/* 00h:  */
+-	unsigned long tx_bytes		PACKED;	/* 04h:  */
+-	unsigned long rx_frames		PACKED;	/* 08h:  */
+-	unsigned long rx_bytes		PACKED;	/* 0Ch:  */
+-	unsigned long rx_dropped	PACKED;	/* 10h:  */
+-	unsigned long rx_inactive	PACKED;	/* 14h:  */
+-	unsigned long rx_exceed_CIR	PACKED;	/* 18h:  */
+-	unsigned long rx_DE_set		PACKED;	/* 1Ch:  */
+-	unsigned long tx_throughput	PACKED;	/* 20h:  */
+-	unsigned long tx_calc_timer	PACKED;	/* 24h:  */
+-	unsigned long rx_throughput	PACKED;	/* 28h:  */
+-	unsigned long rx_calc_timer	PACKED;	/* 2Ch:  */
+-} fr_dlci_stat_t;
+-
+-/*----------------------------------------------------------------------------
+- * Communications error statistics.
+- *	This structure is returned by the FR_READ_ERROR_STATS command.
+- */
+-typedef struct	fr_comm_stat
+-{
+-	unsigned char rx_overruns	PACKED;	/* 00h:  */
+-	unsigned char rx_bad_crc	PACKED;	/* 01h:  */
+-	unsigned char rx_aborts		PACKED;	/* 02h:  */
+-	unsigned char rx_too_long	PACKED;	/* 03h:  */
+-	unsigned char tx_aborts		PACKED;	/* 04h:  */
+-	unsigned char tx_underruns	PACKED;	/* 05h:  */
+-	unsigned char tx_missed_undr	PACKED;	/* 06h:  */
+-	unsigned char dcd_dropped	PACKED;	/* 07h:  */
+-	unsigned char cts_dropped	PACKED;	/* 08h:  */
+-} fr_comm_stat_t;
+-
+-/*----------------------------------------------------------------------------
+- * Defines for the FR_ISSUE_IS_FRAME command.
+- */
+-#define	FR_ISF_LVE	2		/* issue Link Verification Enquiry */
+-#define	FR_ISF_FSE	3		/* issue Full Status Enquiry */
+-
+-/*----------------------------------------------------------------------------
+- * Frame Relay ARP Header -- Used for Dynamic route creation with InvARP 
 - */
 -
--/* instrument info header: 4 bytes */
--typedef struct _awe_voice_rec_hdr {
--	unsigned char bank;		/* midi bank number */
--	unsigned char instr;		/* midi preset number */
--	char nvoices;			/* number of voices */
--	char write_mode;		/* write mode; normally 0 */
--#define AWE_WR_APPEND		0	/* append anyway */
--#define AWE_WR_EXCLUSIVE	1	/* skip if already exists */
--#define AWE_WR_REPLACE		2	/* replace if already exists */
--} awe_voice_rec_hdr;
+-typedef struct arphdr_fr
+-	{
+-	unsigned short ar_hrd PACKED;		/* format of hardware addr */
+-	unsigned short ar_pro PACKED;		/* format of protocol addr */
+-	unsigned char  ar_hln PACKED;		/* length of hardware addr */	
+-	unsigned char  ar_pln PACKED;		/* length of protocol addr */
+-	unsigned short ar_op  PACKED;		/* ARP opcode		   */
+-	unsigned short ar_sha PACKED;		/* Sender DLCI addr 2 bytes */
+-	unsigned long  ar_sip PACKED;		/* Sender IP   addr 4 bytes */
+-	unsigned short ar_tha PACKED;		/* Target DLCI addr 2 bytes */
+-	unsigned long  ar_tip PACKED;		/* Target IP   addr 4 bytes */
+-	} arphdr_fr_t;
 -
--/*#define AWE_VOICE_REC_SIZE	4*/
--#define AWE_VOICE_REC_SIZE	sizeof(awe_voice_rec_hdr)
+-/*----------------------------------------------------------------------------
+- * Frame Relay RFC 1490 SNAP Header -- Used to check for ARP packets
+- */
+-typedef struct arphdr_1490
+-	{
+-	unsigned char control PACKED;		/* UI, etc...  */
+-	unsigned char pad     PACKED;		/* Pad */
+-	unsigned char NLPID   PACKED;		/* SNAP */
+-	unsigned char OUI[3]  PACKED;		/* Ethertype, etc... */
+-	unsigned short PID    PACKED;		/* ARP, IP, etc... */
+-	}  arphdr_1490_t;
 -
--/* the standard patch structure for one sample */
--typedef struct _awe_voice_rec_patch {
--	awe_patch_info		patch;
--	awe_voice_rec_hdr	hdr;
--	awe_voice_info		info;
--} awe_voice_rec_patch;
+-/* UDP/IP packet (for UDP management) layout */
+-
+-/* The embedded control block for UDP mgmt
+-   This is essentially a mailbox structure, without the large data field */
+-
+-typedef struct {
+-        unsigned char  opp_flag PACKED; /* the opp flag */
+-        unsigned char  command  PACKED; /* command code */
+-        unsigned short length   PACKED; /* length of data buffer */
+-        unsigned char  result   PACKED; /* return code */
+-        unsigned short dlci     PACKED; /* DLCI number */
+-        unsigned char  attr     PACKED; /* FECN, BECN, DE and C/R bits */
+-        unsigned short rxlost1  PACKED; /* frames discarded at int. level */
+-        unsigned long  rxlost2  PACKED; /* frames discarded at app. level */
+-        unsigned char  rsrv[2]  PACKED; /* reserved for future use */
+-} cblock_t;
 -
 -
--/* obsolete data type */
--#if defined(AWE_COMPAT_030) && AWE_COMPAT_030
--#define AWE_INFOARRAY_SIZE	0
--#else
--#define AWE_INFOARRAY_SIZE	1
+-/* UDP management packet layout (data area of ip packet) */
+-
+-typedef struct {
+-        unsigned char   control                 PACKED;
+-        unsigned char   NLPID                   PACKED;
+-} fr_encap_hdr_t;
+-
+-typedef struct {
+-//	fr_encap_hdr_t 		fr_encap_hdr	PACKED;
+-	ip_pkt_t 		ip_pkt		PACKED;
+-	udp_pkt_t		udp_pkt		PACKED;
+-	wp_mgmt_t 		wp_mgmt       	PACKED;
+-        cblock_t                cblock          PACKED;
+-        unsigned char           data[4080]      PACKED;
+-} fr_udp_pkt_t;
+-
+-
+-/* valid ip_protocol for UDP management */
+-#define UDPMGMT_UDP_PROTOCOL 0x11
+-
+-#define UDPMGMT_FPIPE_SIGNATURE         "FPIPE8ND"
+-#define UDPMGMT_DRVRSTATS_SIGNATURE     "DRVSTATS"
+-
+-/* values for request/reply byte */
+-#define UDPMGMT_REQUEST	0x01
+-#define UDPMGMT_REPLY	0x02
+-#define UDP_OFFSET	12
+-
+-typedef struct {
+-        unsigned long if_send_entry;
+-        unsigned long if_send_skb_null;
+-        unsigned long if_send_broadcast;
+-        unsigned long if_send_multicast;
+-        unsigned long if_send_critical_ISR;
+-        unsigned long if_send_critical_non_ISR;
+-        unsigned long if_send_busy;
+-        unsigned long if_send_busy_timeout;
+-	unsigned long if_send_DRVSTATS_request;
+-        unsigned long if_send_FPIPE_request;
+-        unsigned long if_send_wan_disconnected;
+-        unsigned long if_send_dlci_disconnected;
+-        unsigned long if_send_no_bfrs;
+-        unsigned long if_send_adptr_bfrs_full;
+-        unsigned long if_send_bfrs_passed_to_adptr;
+-	unsigned long if_send_consec_send_fail;
+-} drvstats_if_send_t; 
+-
+-typedef struct {
+-        unsigned long rx_intr_no_socket;
+-        unsigned long rx_intr_dev_not_started;
+-        unsigned long rx_intr_DRVSTATS_request;
+-        unsigned long rx_intr_FPIPE_request;
+-        unsigned long rx_intr_bfr_not_passed_to_stack;
+-        unsigned long rx_intr_bfr_passed_to_stack;
+- } drvstats_rx_intr_t;
+-
+-typedef struct {
+-        unsigned long UDP_FPIPE_mgmt_kmalloc_err;
+-        unsigned long UDP_FPIPE_mgmt_direction_err;
+-        unsigned long UDP_FPIPE_mgmt_adptr_type_err;
+-        unsigned long UDP_FPIPE_mgmt_adptr_cmnd_OK;
+-        unsigned long UDP_FPIPE_mgmt_adptr_cmnd_timeout;
+-        unsigned long UDP_FPIPE_mgmt_adptr_send_passed;
+-        unsigned long UDP_FPIPE_mgmt_adptr_send_failed;
+-        unsigned long UDP_FPIPE_mgmt_not_passed_to_stack;
+-        unsigned long UDP_FPIPE_mgmt_passed_to_stack;
+-        unsigned long UDP_FPIPE_mgmt_no_socket;
+-        unsigned long UDP_DRVSTATS_mgmt_kmalloc_err;
+-        unsigned long UDP_DRVSTATS_mgmt_adptr_cmnd_OK;
+-        unsigned long UDP_DRVSTATS_mgmt_adptr_cmnd_timeout;
+-        unsigned long UDP_DRVSTATS_mgmt_adptr_send_passed;
+-        unsigned long UDP_DRVSTATS_mgmt_adptr_send_failed;
+-        unsigned long UDP_DRVSTATS_mgmt_not_passed_to_stack;
+-        unsigned long UDP_DRVSTATS_mgmt_passed_to_stack;
+-        unsigned long UDP_DRVSTATS_mgmt_no_socket;
+-} drvstats_gen_t;
+-
+-typedef struct {
+-        unsigned char   attr      	PACKED;
+-        unsigned short  time_stamp      PACKED;
+-        unsigned char   reserved[13]    PACKED;
+-} api_rx_hdr_t;
+-
+-typedef struct {
+-        api_rx_hdr_t    api_rx_hdr      PACKED;
+-        void *          data            PACKED;
+-} api_rx_element_t;
+-
+-typedef struct {
+-        unsigned char   attr            PACKED;
+-        unsigned char   reserved[15]    PACKED;
+-} api_tx_hdr_t;
+-
+-typedef struct {
+-        api_tx_hdr_t    api_tx_hdr      PACKED;
+-        void *          data            PACKED;
+-} api_tx_element_t;
+-
+-#ifdef		_MSC_
+-#  pragma	pack()
 -#endif
+-#endif	/* _SDLA_FR_H */
 -
--typedef struct _awe_voice_rec {
--	unsigned char bank;		/* midi bank number */
--	unsigned char instr;		/* midi preset number */
--	short nvoices;			/* number of voices */
--	/* voice information follows here */
--	awe_voice_info info[AWE_INFOARRAY_SIZE];
--} awe_voice_rec;
--
--
--/*----------------------------------------------------------------
-- * sample wave information
-- *----------------------------------------------------------------*/
--
--/* wave table sample header: 32 bytes */
--typedef struct awe_sample_info {
--	unsigned short sf_id;		/* file id (should be zero) */
--	unsigned short sample;		/* sample id */
--	int start, end;			/* start & end offset */
--	int loopstart, loopend;		/* loop start & end offset */
--	int size;			/* size (0 = ROM) */
--	short checksum_flag;		/* use check sum = 1 */
--	unsigned short mode_flags;	/* mode flags */
--#define AWE_SAMPLE_8BITS	1	/* wave data is 8bits */
--#define AWE_SAMPLE_UNSIGNED	2	/* wave data is unsigned */
--#define AWE_SAMPLE_NO_BLANK	4	/* no blank loop is attached */
--#define AWE_SAMPLE_SINGLESHOT	8	/* single-shot w/o loop */
--#define AWE_SAMPLE_BIDIR_LOOP	16	/* bidirectional looping */
--#define AWE_SAMPLE_STEREO_LEFT	32	/* stereo left sound */
--#define AWE_SAMPLE_STEREO_RIGHT	64	/* stereo right sound */
--#define AWE_SAMPLE_REVERSE_LOOP 128	/* reverse looping */
--	unsigned int checksum;		/* check sum */
--#if defined(AWE_COMPAT_030) && AWE_COMPAT_030
--	unsigned short data[0];		/* sample data follows here */
--#endif
--} awe_sample_info;
--
--/*#define AWE_SAMPLE_INFO_SIZE	32*/
--#define AWE_SAMPLE_INFO_SIZE	sizeof(awe_sample_info)
--
--
--/*----------------------------------------------------------------
-- * voice preset mapping
-- *----------------------------------------------------------------*/
--
--typedef struct awe_voice_map {
--	int map_bank, map_instr, map_key;	/* key = -1 means all keys */
--	int src_bank, src_instr, src_key;
--} awe_voice_map;
--
--#define AWE_VOICE_MAP_SIZE	sizeof(awe_voice_map)
--
--
--/*----------------------------------------------------------------
-- * awe hardware controls
-- *----------------------------------------------------------------*/
--
--#define _AWE_DEBUG_MODE			0x00
--#define _AWE_REVERB_MODE		0x01
--#define _AWE_CHORUS_MODE		0x02
--#define _AWE_REMOVE_LAST_SAMPLES	0x03
--#define _AWE_INITIALIZE_CHIP		0x04
--#define _AWE_SEND_EFFECT		0x05
--#define _AWE_TERMINATE_CHANNEL		0x06
--#define _AWE_TERMINATE_ALL		0x07
--#define _AWE_INITIAL_VOLUME		0x08
--#define _AWE_INITIAL_ATTEN	_AWE_INITIAL_VOLUME
--#define _AWE_RESET_CHANNEL		0x09
--#define _AWE_CHANNEL_MODE		0x0a
--#define _AWE_DRUM_CHANNELS		0x0b
--#define _AWE_MISC_MODE			0x0c
--#define _AWE_RELEASE_ALL		0x0d
--#define _AWE_NOTEOFF_ALL		0x0e
--#define _AWE_CHN_PRESSURE		0x0f
--/*#define _AWE_GET_CURRENT_MODE		0x10*/
--#define _AWE_EQUALIZER			0x11
--/*#define _AWE_GET_MISC_MODE		0x12*/
--/*#define _AWE_GET_FONTINFO		0x13*/
--
--#define _AWE_MODE_FLAG			0x80
--#define _AWE_COOKED_FLAG		0x40	/* not supported */
--#define _AWE_MODE_VALUE_MASK		0x3F
--
--/*----------------------------------------------------------------*/
--
--#define _AWE_SET_CMD(p,dev,voice,cmd,p1,p2) \
--{((char*)(p))[0] = SEQ_PRIVATE;\
-- ((char*)(p))[1] = dev;\
-- ((char*)(p))[2] = _AWE_MODE_FLAG|(cmd);\
-- ((char*)(p))[3] = voice;\
-- ((unsigned short*)(p))[2] = p1;\
-- ((unsigned short*)(p))[3] = p2;}
--
--/* buffered access */
--#define _AWE_CMD(dev, voice, cmd, p1, p2) \
--{_SEQ_NEEDBUF(8);\
-- _AWE_SET_CMD(_seqbuf + _seqbufptr, dev, voice, cmd, p1, p2);\
-- _SEQ_ADVBUF(8);}
--
--/* direct access */
--#define _AWE_CMD_NOW(seqfd,dev,voice,cmd,p1,p2) \
--{struct seq_event_rec tmp;\
-- _AWE_SET_CMD(&tmp, dev, voice, cmd, p1, p2);\
-- ioctl(seqfd, SNDCTL_SEQ_OUTOFBAND, &tmp);}
--
--/*----------------------------------------------------------------*/
--
--/* set debugging mode */
--#define AWE_DEBUG_MODE(dev,p1)	_AWE_CMD(dev, 0, _AWE_DEBUG_MODE, p1, 0)
--/* set reverb mode; from 0 to 7 */
--#define AWE_REVERB_MODE(dev,p1)	_AWE_CMD(dev, 0, _AWE_REVERB_MODE, p1, 0)
--/* set chorus mode; from 0 to 7 */
--#define AWE_CHORUS_MODE(dev,p1)	_AWE_CMD(dev, 0, _AWE_CHORUS_MODE, p1, 0)
--
--/* reset channel */
--#define AWE_RESET_CHANNEL(dev,ch) _AWE_CMD(dev, ch, _AWE_RESET_CHANNEL, 0, 0)
--#define AWE_RESET_CONTROL(dev,ch) _AWE_CMD(dev, ch, _AWE_RESET_CHANNEL, 1, 0)
--
--/* send an effect to all layers */
--#define AWE_SEND_EFFECT(dev,voice,type,value) _AWE_CMD(dev,voice,_AWE_SEND_EFFECT,type,value)
--#define AWE_ADD_EFFECT(dev,voice,type,value) _AWE_CMD(dev,voice,_AWE_SEND_EFFECT,((type)|0x80),value)
--#define AWE_UNSET_EFFECT(dev,voice,type) _AWE_CMD(dev,voice,_AWE_SEND_EFFECT,((type)|0x40),0)
--/* send an effect to a layer */
--#define AWE_SEND_LAYER_EFFECT(dev,voice,layer,type,value) _AWE_CMD(dev,voice,_AWE_SEND_EFFECT,((layer+1)<<8|(type)),value)
--#define AWE_ADD_LAYER_EFFECT(dev,voice,layer,type,value) _AWE_CMD(dev,voice,_AWE_SEND_EFFECT,((layer+1)<<8|(type)|0x80),value)
--#define AWE_UNSET_LAYER_EFFECT(dev,voice,layer,type) _AWE_CMD(dev,voice,_AWE_SEND_EFFECT,((layer+1)<<8|(type)|0x40),0)
--
--/* terminate sound on the channel/voice */
--#define AWE_TERMINATE_CHANNEL(dev,voice) _AWE_CMD(dev,voice,_AWE_TERMINATE_CHANNEL,0,0)
--/* terminate all sounds */
--#define AWE_TERMINATE_ALL(dev) _AWE_CMD(dev, 0, _AWE_TERMINATE_ALL, 0, 0)
--/* release all sounds (w/o sustain effect) */
--#define AWE_RELEASE_ALL(dev) _AWE_CMD(dev, 0, _AWE_RELEASE_ALL, 0, 0)
--/* note off all sounds (w sustain effect) */
--#define AWE_NOTEOFF_ALL(dev) _AWE_CMD(dev, 0, _AWE_NOTEOFF_ALL, 0, 0)
--
--/* set initial attenuation */
--#define AWE_INITIAL_VOLUME(dev,atten) _AWE_CMD(dev, 0, _AWE_INITIAL_VOLUME, atten, 0)
--#define AWE_INITIAL_ATTEN  AWE_INITIAL_VOLUME
--/* relative attenuation */
--#define AWE_SET_ATTEN(dev,atten)  _AWE_CMD(dev, 0, _AWE_INITIAL_VOLUME, atten, 1)
--
--/* set channel playing mode; mode=0/1/2 */
--#define AWE_SET_CHANNEL_MODE(dev,mode) _AWE_CMD(dev, 0, _AWE_CHANNEL_MODE, mode, 0)
--#define AWE_PLAY_INDIRECT	0	/* indirect voice mode (default) */
--#define AWE_PLAY_MULTI		1	/* multi note voice mode */
--#define AWE_PLAY_DIRECT		2	/* direct single voice mode */
--#define AWE_PLAY_MULTI2		3	/* sequencer2 mode; used internally */
--
--/* set drum channel mask; channels is 32bit long value */
--#define AWE_DRUM_CHANNELS(dev,channels) _AWE_CMD(dev, 0, _AWE_DRUM_CHANNELS, ((channels) & 0xffff), ((channels) >> 16))
--
--/* set bass and treble control; values are from 0 to 11 */
--#define AWE_EQUALIZER(dev,bass,treble) _AWE_CMD(dev, 0, _AWE_EQUALIZER, bass, treble)
--
--/* remove last loaded samples */
--#define AWE_REMOVE_LAST_SAMPLES(seqfd,dev) _AWE_CMD_NOW(seqfd, dev, 0, _AWE_REMOVE_LAST_SAMPLES, 0, 0)
--/* initialize emu8000 chip */
--#define AWE_INITIALIZE_CHIP(seqfd,dev) _AWE_CMD_NOW(seqfd, dev, 0, _AWE_INITIALIZE_CHIP, 0, 0)
--
--/* set miscellaneous modes; meta command */
--#define AWE_MISC_MODE(dev,mode,value) _AWE_CMD(dev, 0, _AWE_MISC_MODE, mode, value)
--/* exclusive sound off; 1=off */
--#define AWE_EXCLUSIVE_SOUND(dev,mode) AWE_MISC_MODE(dev,AWE_MD_EXCLUSIVE_SOUND,mode)
--/* default GUS bank number */
--#define AWE_SET_GUS_BANK(dev,bank) AWE_MISC_MODE(dev,AWE_MD_GUS_BANK,bank)
--/* change panning position in realtime; 0=don't 1=do */
--#define AWE_REALTIME_PAN(dev,mode) AWE_MISC_MODE(dev,AWE_MD_REALTIME_PAN,mode)
--
--/* extended pressure controls; not portable with other sound drivers */
--#define AWE_KEY_PRESSURE(dev,ch,note,vel) SEQ_START_NOTE(dev,ch,(note)+128,vel)
--#define AWE_CHN_PRESSURE(dev,ch,vel) _AWE_CMD(dev,ch,_AWE_CHN_PRESSURE,vel,0)
--
--/*----------------------------------------------------------------*/
--
--/* reverb mode parameters */
--#define	AWE_REVERB_ROOM1	0
--#define AWE_REVERB_ROOM2	1
--#define	AWE_REVERB_ROOM3	2
--#define	AWE_REVERB_HALL1	3
--#define	AWE_REVERB_HALL2	4
--#define	AWE_REVERB_PLATE	5
--#define	AWE_REVERB_DELAY	6
--#define	AWE_REVERB_PANNINGDELAY 7
--#define AWE_REVERB_PREDEFINED	8
--/* user can define reverb modes up to 32 */
--#define AWE_REVERB_NUMBERS	32
--
--typedef struct awe_reverb_fx_rec {
--	unsigned short parms[28];
--} awe_reverb_fx_rec;
--
--/*----------------------------------------------------------------*/
--
--/* chorus mode parameters */
--#define AWE_CHORUS_1		0
--#define	AWE_CHORUS_2		1
--#define	AWE_CHORUS_3		2
--#define	AWE_CHORUS_4		3
--#define	AWE_CHORUS_FEEDBACK	4
--#define	AWE_CHORUS_FLANGER	5
--#define	AWE_CHORUS_SHORTDELAY	6
--#define	AWE_CHORUS_SHORTDELAY2	7
--#define AWE_CHORUS_PREDEFINED	8
--/* user can define chorus modes up to 32 */
--#define AWE_CHORUS_NUMBERS	32
--
--typedef struct awe_chorus_fx_rec {
--	unsigned short feedback;	/* feedback level (0xE600-0xE6FF) */
--	unsigned short delay_offset;	/* delay (0-0x0DA3) [1/44100 sec] */
--	unsigned short lfo_depth;	/* LFO depth (0xBC00-0xBCFF) */
--	unsigned int delay;	/* right delay (0-0xFFFFFFFF) [1/256/44100 sec] */
--	unsigned int lfo_freq;		/* LFO freq LFO freq (0-0xFFFFFFFF) */
--} awe_chorus_fx_rec;
--
--/*----------------------------------------------------------------*/
--
--/* misc mode types */
--enum {
--/* 0*/	AWE_MD_EXCLUSIVE_OFF,	/* obsolete */
--/* 1*/	AWE_MD_EXCLUSIVE_ON,	/* obsolete */
--/* 2*/	AWE_MD_VERSION,		/* read only */
--/* 3*/	AWE_MD_EXCLUSIVE_SOUND,	/* 0/1: exclusive note on (default=1) */
--/* 4*/	AWE_MD_REALTIME_PAN,	/* 0/1: do realtime pan change (default=1) */
--/* 5*/	AWE_MD_GUS_BANK,	/* bank number for GUS patches (default=0) */
--/* 6*/	AWE_MD_KEEP_EFFECT,	/* 0/1: keep effect values, (default=0) */
--/* 7*/	AWE_MD_ZERO_ATTEN,	/* attenuation of max volume (default=32) */
--/* 8*/	AWE_MD_CHN_PRIOR,	/* 0/1: set MIDI channel priority mode (default=1) */
--/* 9*/	AWE_MD_MOD_SENSE,	/* integer: modwheel sensitivity (def=18) */
--/*10*/	AWE_MD_DEF_PRESET,	/* integer: default preset number (def=0) */
--/*11*/	AWE_MD_DEF_BANK,	/* integer: default bank number (def=0) */
--/*12*/	AWE_MD_DEF_DRUM,	/* integer: default drumset number (def=0) */
--/*13*/	AWE_MD_TOGGLE_DRUM_BANK, /* 0/1: toggle drum flag with bank# (def=0) */
--/*14*/	AWE_MD_NEW_VOLUME_CALC,	/* 0/1: volume calculation mode (def=1) */
--/*15*/	AWE_MD_CHORUS_MODE,	/* integer: chorus mode (def=2) */
--/*16*/	AWE_MD_REVERB_MODE,	/* integer: chorus mode (def=4) */
--/*17*/	AWE_MD_BASS_LEVEL,	/* integer: bass level (def=5) */
--/*18*/	AWE_MD_TREBLE_LEVEL,	/* integer: treble level (def=9) */
--/*19*/	AWE_MD_DEBUG_MODE,	/* integer: debug level (def=0) */
--/*20*/	AWE_MD_PAN_EXCHANGE,	/* 0/1: exchange panning direction (def=0) */
--	AWE_MD_END,
--};
--
--/*----------------------------------------------------------------*/
--
--/* effect parameters */
--enum {
--
--/* modulation envelope parameters */
--/* 0*/	AWE_FX_ENV1_DELAY,	/* WORD: ENVVAL */
--/* 1*/	AWE_FX_ENV1_ATTACK,	/* BYTE: up ATKHLD */
--/* 2*/	AWE_FX_ENV1_HOLD,	/* BYTE: lw ATKHLD */
--/* 3*/	AWE_FX_ENV1_DECAY,	/* BYTE: lw DCYSUS */
--/* 4*/	AWE_FX_ENV1_RELEASE,	/* BYTE: lw DCYSUS */
--/* 5*/	AWE_FX_ENV1_SUSTAIN,	/* BYTE: up DCYSUS */
--/* 6*/	AWE_FX_ENV1_PITCH,	/* BYTE: up PEFE */
--/* 7*/	AWE_FX_ENV1_CUTOFF,	/* BYTE: lw PEFE */
--
--/* volume envelope parameters */
--/* 8*/	AWE_FX_ENV2_DELAY,	/* WORD: ENVVOL */
--/* 9*/	AWE_FX_ENV2_ATTACK,	/* BYTE: up ATKHLDV */
--/*10*/	AWE_FX_ENV2_HOLD,	/* BYTE: lw ATKHLDV */
--/*11*/	AWE_FX_ENV2_DECAY,	/* BYTE: lw DCYSUSV */
--/*12*/	AWE_FX_ENV2_RELEASE,	/* BYTE: lw DCYSUSV */
--/*13*/	AWE_FX_ENV2_SUSTAIN,	/* BYTE: up DCYSUSV */
--	
--/* LFO1 (tremolo & vibrato) parameters */
--/*14*/	AWE_FX_LFO1_DELAY,	/* WORD: LFO1VAL */
--/*15*/	AWE_FX_LFO1_FREQ,	/* BYTE: lo TREMFRQ */
--/*16*/	AWE_FX_LFO1_VOLUME,	/* BYTE: up TREMFRQ */
--/*17*/	AWE_FX_LFO1_PITCH,	/* BYTE: up FMMOD */
--/*18*/	AWE_FX_LFO1_CUTOFF,	/* BYTE: lo FMMOD */
--
--/* LFO2 (vibrato) parameters */
--/*19*/	AWE_FX_LFO2_DELAY,	/* WORD: LFO2VAL */
--/*20*/	AWE_FX_LFO2_FREQ,	/* BYTE: lo FM2FRQ2 */
--/*21*/	AWE_FX_LFO2_PITCH,	/* BYTE: up FM2FRQ2 */
--
--/* Other overall effect parameters */
--/*22*/	AWE_FX_INIT_PITCH,	/* SHORT: pitch offset */
--/*23*/	AWE_FX_CHORUS,		/* BYTE: chorus effects send (0-255) */
--/*24*/	AWE_FX_REVERB,		/* BYTE: reverb effects send (0-255) */
--/*25*/	AWE_FX_CUTOFF,		/* BYTE: up IFATN */
--/*26*/	AWE_FX_FILTERQ,		/* BYTE: up CCCA */
--
--/* Sample / loop offset changes */
--/*27*/	AWE_FX_SAMPLE_START,	/* SHORT: offset */
--/*28*/	AWE_FX_LOOP_START,	/* SHORT: offset */
--/*29*/	AWE_FX_LOOP_END,	/* SHORT: offset */
--/*30*/	AWE_FX_COARSE_SAMPLE_START,	/* SHORT: upper word offset */
--/*31*/	AWE_FX_COARSE_LOOP_START,	/* SHORT: upper word offset */
--/*32*/	AWE_FX_COARSE_LOOP_END,		/* SHORT: upper word offset */
--/*33*/	AWE_FX_ATTEN,		/* BYTE: lo IFATN */
--
--	AWE_FX_END,
--};
--
--#endif /* AWE_VOICE_H */
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
@@ -581,6 +694,7 @@ jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
 mtd-delete-unused-header-file-linux-mtd-iflashh.patch
 remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
 remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
+delete-unused-header-file-linux-sdla_frh.patch
 pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
 git-scsi-misc.patch
 remove-some-unused-scsi-related-kernel-config-variables.patch
