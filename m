@@ -1,106 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - delete-unused-header-file-media-cs53l32ah.patch removed from -mm tree
-Date: Sun, 25 Mar 2007 13:56:42 -0800
-Message-ID: <200703252156.l2PLugOb003771@shell0.pdx.osdl.net>
+Subject: + uml-use-correct-register-file-size-everywhere.patch added to -mm tree
+Date: Sun, 25 Mar 2007 13:56:00 -0800
+Message-ID: <200703252156.l2PLu09u003756@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59460 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59492 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752848AbXCYV4t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 17:56:49 -0400
+	id S1752856AbXCYV5Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 17:57:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, stable@kernel.org
 
 
 The patch titled
-     Delete unused header file media/cs53l32a.h
-has been removed from the -mm tree.  Its filename was
-     delete-unused-header-file-media-cs53l32ah.patch
+     uml: use correct register file size everywhere
+has been added to the -mm tree.  Its filename is
+     uml-use-correct-register-file-size-everywhere.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Delete unused header file media/cs53l32a.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: uml: use correct register file size everywhere
+From: Jeff Dike <jdike@addtoit.com>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+This patch uses MAX_REG_NR consistently to refer to the register file size.
+ FRAME_SIZE isn't sufficient because on x86_64, it is smaller than the
+ptrace register file size.  MAX_REG_NR was introduced as a consistent way
+to get the number of registers, but wasn't used everywhere it should be.
+
+When this causes a problem, it makes PTRACE_SETREGS fail on x86_64 because
+of a corrupted segment register value in the known-good register file.  The
+patch also adds a register dump at that point in case there are any future
+problems here.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/media/cs53l32a.h |   34 ----------------------------------
- 1 file changed, 34 deletions(-)
+ arch/um/include/sysdep-x86_64/ptrace.h  |    4 ----
+ arch/um/os-Linux/skas/mem.c             |   10 +++++++---
+ arch/um/os-Linux/skas/process.c         |    6 +++---
+ arch/um/os-Linux/sys-i386/registers.c   |    5 +++--
+ arch/um/os-Linux/sys-x86_64/registers.c |    4 ++--
+ 5 files changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN include/media/cs53l32a.h~delete-unused-header-file-media-cs53l32ah /dev/null
---- a/include/media/cs53l32a.h
-+++ /dev/null
-@@ -1,34 +0,0 @@
--/*
--    cs53l32a.h - definition for cs53l32a inputs and outputs
--
--    Copyright (C) 2006 Hans Verkuil (hverkuil@xs4all.nl)
--
--    This program is free software; you can redistribute it and/or modify
--    it under the terms of the GNU General Public License as published by
--    the Free Software Foundation; either version 2 of the License, or
--    (at your option) any later version.
--
--    This program is distributed in the hope that it will be useful,
--    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--    GNU General Public License for more details.
--
--    You should have received a copy of the GNU General Public License
--    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--*/
--
--#ifndef _CS53L32A_H_
--#define _CS53L32A_H_
--
--/* There are 2 physical inputs, but the second input can be
--   placed in two modes, the first mode bypasses the PGA (gain),
--   the second goes through the PGA. Hence there are three
--   possible inputs to choose from. */
--
--/* CS53L32A HW inputs */
--#define CS53L32A_IN0 0
--#define CS53L32A_IN1 1
--#define CS53L32A_IN2 2
--
--#endif
+diff -puN arch/um/include/sysdep-x86_64/ptrace.h~uml-use-correct-register-file-size-everywhere arch/um/include/sysdep-x86_64/ptrace.h
+--- a/arch/um/include/sysdep-x86_64/ptrace.h~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/include/sysdep-x86_64/ptrace.h
+@@ -104,10 +104,6 @@ union uml_pt_regs {
+ #endif
+ #ifdef UML_CONFIG_MODE_SKAS
+ 	struct skas_regs {
+-		/* x86_64 ptrace uses sizeof(user_regs_struct) as its register
+-		 * file size, while i386 uses FRAME_SIZE.  Therefore, we need
+-		 * to use UM_FRAME_SIZE here instead of HOST_FRAME_SIZE.
+-		 */
+ 		unsigned long regs[MAX_REG_NR];
+ 		unsigned long fp[HOST_FP_SIZE];
+                 struct faultinfo faultinfo;
+diff -puN arch/um/os-Linux/skas/mem.c~uml-use-correct-register-file-size-everywhere arch/um/os-Linux/skas/mem.c
+--- a/arch/um/os-Linux/skas/mem.c~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/os-Linux/skas/mem.c
+@@ -47,7 +47,7 @@ int multi_op_count = 0;
+ static inline long do_syscall_stub(struct mm_id * mm_idp, void **addr)
+ {
+ 	unsigned long regs[MAX_REG_NR];
+-	int n;
++	int n, i;
+ 	long ret, offset;
+ 	unsigned long * data;
+ 	unsigned long * syscall;
+@@ -65,9 +65,13 @@ static inline long do_syscall_stub(struc
+ 		 (unsigned long) &__syscall_stub_start);
+ 
+ 	n = ptrace_setregs(pid, regs);
+-	if(n < 0)
++	if(n < 0){
++		printk("Registers - \n");
++		for(i = 0; i < MAX_REG_NR; i++)
++			printk("\t%d\t0x%lx\n", i, regs[i]);
+ 		panic("do_syscall_stub : PTRACE_SETREGS failed, errno = %d\n",
+-		      n);
++		      -n);
++	}
+ 
+ 	wait_stub_done(pid, 0, "do_syscall_stub");
+ 
+diff -puN arch/um/os-Linux/skas/process.c~uml-use-correct-register-file-size-everywhere arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/os-Linux/skas/process.c
+@@ -66,7 +66,7 @@ void wait_stub_done(int pid, int sig, ch
+ 
+ 	if((n < 0) || !WIFSTOPPED(status) ||
+ 	   (WSTOPSIG(status) != SIGUSR1 && WSTOPSIG(status) != SIGTRAP)){
+-		unsigned long regs[HOST_FRAME_SIZE];
++		unsigned long regs[MAX_REG_NR];
+ 
+ 		if(ptrace(PTRACE_GETREGS, pid, 0, regs) < 0)
+ 			printk("Failed to get registers from stub, "
+@@ -75,7 +75,7 @@ void wait_stub_done(int pid, int sig, ch
+ 			int i;
+ 
+ 			printk("Stub registers -\n");
+-			for(i = 0; i < HOST_FRAME_SIZE; i++)
++			for(i = 0; i < ARRAY_SIZE(regs); i++)
+ 				printk("\t%d - %lx\n", i, regs[i]);
+ 		}
+ 		panic("%s : failed to wait for SIGUSR1/SIGTRAP, "
+@@ -327,7 +327,7 @@ void userspace(union uml_pt_regs *regs)
+ int copy_context_skas0(unsigned long new_stack, int pid)
+ {
+ 	int err;
+-	unsigned long regs[HOST_FRAME_SIZE];
++	unsigned long regs[MAX_REG_NR];
+ 	unsigned long fp_regs[HOST_FP_SIZE];
+ 	unsigned long current_stack = current_stub_stack();
+ 	struct stub_data *data = (struct stub_data *) current_stack;
+diff -puN arch/um/os-Linux/sys-i386/registers.c~uml-use-correct-register-file-size-everywhere arch/um/os-Linux/sys-i386/registers.c
+--- a/arch/um/os-Linux/sys-i386/registers.c~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/os-Linux/sys-i386/registers.c
+@@ -15,7 +15,7 @@
+ 
+ /* These are set once at boot time and not changed thereafter */
+ 
+-static unsigned long exec_regs[HOST_FRAME_SIZE];
++static unsigned long exec_regs[MAX_REG_NR];
+ static unsigned long exec_fp_regs[HOST_FP_SIZE];
+ static unsigned long exec_fpx_regs[HOST_XFP_SIZE];
+ static int have_fpx_regs = 1;
+@@ -101,6 +101,7 @@ void init_registers(int pid)
+ {
+ 	int err;
+ 
++	memset(exec_regs, 0, sizeof(exec_regs));
+ 	err = ptrace(PTRACE_GETREGS, pid, 0, exec_regs);
+ 	if(err)
+ 		panic("check_ptrace : PTRACE_GETREGS failed, errno = %d",
+@@ -124,7 +125,7 @@ void init_registers(int pid)
+ 
+ void get_safe_registers(unsigned long *regs, unsigned long *fp_regs)
+ {
+-	memcpy(regs, exec_regs, HOST_FRAME_SIZE * sizeof(unsigned long));
++	memcpy(regs, exec_regs, sizeof(exec_regs));
+ 	if(fp_regs != NULL)
+ 		memcpy(fp_regs, exec_fp_regs,
+ 		       HOST_FP_SIZE * sizeof(unsigned long));
+diff -puN arch/um/os-Linux/sys-x86_64/registers.c~uml-use-correct-register-file-size-everywhere arch/um/os-Linux/sys-x86_64/registers.c
+--- a/arch/um/os-Linux/sys-x86_64/registers.c~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/os-Linux/sys-x86_64/registers.c
+@@ -14,7 +14,7 @@
+ 
+ /* These are set once at boot time and not changed thereafter */
+ 
+-static unsigned long exec_regs[HOST_FRAME_SIZE];
++static unsigned long exec_regs[MAX_REG_NR];
+ static unsigned long exec_fp_regs[HOST_FP_SIZE];
+ 
+ void init_thread_registers(union uml_pt_regs *to)
+@@ -72,7 +72,7 @@ void init_registers(int pid)
+ 
+ void get_safe_registers(unsigned long *regs, unsigned long *fp_regs)
+ {
+-	memcpy(regs, exec_regs, HOST_FRAME_SIZE * sizeof(unsigned long));
++	memcpy(regs, exec_regs, sizeof(exec_regs));
+ 	if(fp_regs != NULL)
+ 		memcpy(fp_regs, exec_fp_regs,
+ 		       HOST_FP_SIZE * sizeof(unsigned long));
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-powerpc.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-git-drm.patch
-delete-unused-header-file-media-cs53l32ah.patch
-git-mtd.patch
-jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
-mtd-delete-unused-header-file-linux-mtd-iflashh.patch
-remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
-remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
-delete-unused-header-file-linux-sdla_frh.patch
-delete-unused-header-file-linux-if_wanpipe_commonh.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-scsi-misc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
+uml-fix-epoll.patch
+uml-fix-static-linking.patch
+uml-use-correct-register-file-size-everywhere.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+array_size-check-for-type-uml-fix.patch
+uml-fix-prototypes.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
 remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-delete-unused-header-file-math-emu-extendedh.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
