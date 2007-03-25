@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + delete-unused-header-file-linux-if_wanpipe_commonh.patch added to -mm tree
-Date: Sun, 25 Mar 2007 00:33:42 -0800
-Message-ID: <200703250833.l2P8Xg5J023862@shell0.pdx.osdl.net>
+Subject: + slim-main-lsm-getprocattr-hook-api-change.patch added to -mm tree
+Date: Sun, 25 Mar 2007 00:31:51 -0800
+Message-ID: <200703250831.l2P8VpOk023822@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36277 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36302 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933230AbXCYIdy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 04:33:54 -0400
+	id S933234AbXCYIfL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 04:35:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, khc@pm.waw.pl
+Cc: zohar@linux.vnet.ibm.com, zohar@us.ibm.com
 
 
 The patch titled
-     Delete unused header file linux/if_wanpipe_common.h
+     SLIM LSM getprocattr hook API change
 has been added to the -mm tree.  Its filename is
-     delete-unused-header-file-linux-if_wanpipe_commonh.patch
+     slim-main-lsm-getprocattr-hook-api-change.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,123 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Delete unused header file linux/if_wanpipe_common.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: SLIM LSM getprocattr hook API change
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
 
-Delete the unreferenced header file include/linux/if_wanpipe_common.h,
-as well as the reference to it in the Doc file.
+This patch addresses the 2.6.21-rc4 LSM getprocattr hook API change.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
+Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/networking/wan-router.txt |    1 
- include/linux/if_wanpipe_common.h       |   58 ----------------------
- 2 files changed, 59 deletions(-)
+ security/slim/slm_main.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/networking/wan-router.txt~delete-unused-header-file-linux-if_wanpipe_commonh Documentation/networking/wan-router.txt
---- a/Documentation/networking/wan-router.txt~delete-unused-header-file-linux-if_wanpipe_commonh
-+++ a/Documentation/networking/wan-router.txt
-@@ -250,7 +250,6 @@ PRODUCT COMPONENTS AND RELATED FILES
- 	sdladrv.h	SDLA support module API definitions
- 	sdlasfm.h	SDLA firmware module definitions
- 	if_wanpipe.h	WANPIPE Socket definitions
--	if_wanpipe_common.h	WANPIPE Socket/Driver common definitions.
- 	sdlapci.h	WANPIPE PCI definitions
- 	
+diff -puN security/slim/slm_main.c~slim-main-lsm-getprocattr-hook-api-change security/slim/slm_main.c
+--- a/security/slim/slm_main.c~slim-main-lsm-getprocattr-hook-api-change
++++ a/security/slim/slm_main.c
+@@ -1057,25 +1057,29 @@ static int slm_setprocattr(struct task_s
+ }
  
-diff -puN include/linux/if_wanpipe_common.h~delete-unused-header-file-linux-if_wanpipe_commonh /dev/null
---- a/include/linux/if_wanpipe_common.h
-+++ /dev/null
-@@ -1,58 +0,0 @@
--/*****************************************************************************
--* if_wanipe_common.h   Sangoma Driver/Socket common area definitions.
--*
--* Author:       Nenad Corbic <ncorbic@sangoma.com>
--*
--* Copyright:    (c) 2000 Sangoma Technologies Inc.
--*
--*               This program is free software; you can redistribute it and/or
--*               modify it under the terms of the GNU General Public License
--*               as published by the Free Software Foundation; either version
--*               2 of the License, or (at your option) any later version.
--* ============================================================================
--* Jan 13, 2000  Nenad Corbic      Initial version
--*****************************************************************************/
--
--
--#ifndef _WANPIPE_SOCK_DRIVER_COMMON_H
--#define _WANPIPE_SOCK_DRIVER_COMMON_H
--
--typedef struct {
--	struct net_device *slave;
--	atomic_t packet_sent;
--	atomic_t receive_block;
--	atomic_t command;
--	atomic_t disconnect;
--	atomic_t driver_busy;
--	long common_critical;
--	struct timer_list *tx_timer;
--	struct sock *sk;		/* Wanpipe Sock bind's here */ 
--	int (*func)(struct sk_buff *skb, struct net_device *dev, 
--		    struct sock *sk);
--
--	struct work_struct wanpipe_work;    /* deferred keventd work */
--	unsigned char rw_bind;			  /* Sock bind state */
--	unsigned char usedby;
--	unsigned char state;
--	unsigned char svc;
--	unsigned short lcn;
--	void *mbox;
--} wanpipe_common_t;
--
--
--enum {
--	WANSOCK_UNCONFIGURED,	/* link/channel is not configured */
--	WANSOCK_DISCONNECTED,	/* link/channel is disconnected */
--	WANSOCK_CONNECTING,		/* connection is in progress */
--	WANSOCK_CONNECTED,		/* link/channel is operational */
--	WANSOCK_LIMIT,		/* for verification only */
--	WANSOCK_DUALPORT,		/* for Dual Port cards */
--	WANSOCK_DISCONNECTING,
--	WANSOCK_BINDED,
--	WANSOCK_BIND_LISTEN,
--	WANSOCK_LISTEN
--};
--
--#endif
--
--
+ static int slm_getprocattr(struct task_struct *tsk,
+-				  char *name, void *value, size_t size)
++				  char *name, char **value)
+ {
+ 	struct slm_tsec_data *tsec = tsk->security;
+ 	size_t len = 0;
++	int buf_size = 31;
++	char buf[buf_size];
+ 
+ 	if (is_kernel_thread(tsk))
+-		len = snprintf(value, size, "KERNEL");
++		len = snprintf(buf, buf_size, "KERNEL");
+ 	else {
+ 		spin_lock(&tsec->lock);
+ 		if (tsec->iac_wx != tsec->iac_r)
+-			len = snprintf(value, size, "GUARD wx:%s r:%s",
++			len = snprintf(buf, buf_size, "GUARD wx:%s r:%s",
+ 				       slm_iac_str[tsec->iac_wx],
+ 				       slm_iac_str[tsec->iac_r]);
+ 		else
+-			len = snprintf(value, size, "%s",
++			len = snprintf(buf, buf_size, "%s",
+ 				       slm_iac_str[tsec->iac_wx]);
+ 		spin_unlock(&tsec->lock);
+ 	}
+-	return min(len, size);
++	*value = kzalloc(len, GFP_KERNEL);
++	memcpy(*value, buf, len);
++	return len;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-powerpc.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-git-drm.patch
-git-mtd.patch
-jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
-mtd-delete-unused-header-file-linux-mtd-iflashh.patch
-remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
-remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
-delete-unused-header-file-linux-sdla_frh.patch
-delete-unused-header-file-linux-if_wanpipe_commonh.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-scsi-misc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
+slim-main-lsm-getprocattr-hook-api-change.patch
+slim-integrity-patch.patch
+integrity-new-hooks.patch
+integrity-fs-hook-placement.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-ima-integrity_measure-support.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-tpm-internal-kernel-interface.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+ibac-patch.patch
