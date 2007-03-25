@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + keyboardc-stop-flooding-dmesg-with-useless-warnings.patch added to -mm tree
-Date: Sun, 25 Mar 2007 01:39:03 -0800
-Message-ID: <200703250939.l2P9d3gR024857@shell0.pdx.osdl.net>
+Subject: + usb-elan-ftdi-check-for-driver-registration-status.patch added to -mm tree
+Date: Sun, 25 Mar 2007 01:39:51 -0800
+Message-ID: <200703250939.l2P9dpwC024863@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37719 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37738 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750799AbXCYJjP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 05:39:15 -0400
+	id S1750735AbXCYJkD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 05:40:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: parag.warudkar@gmail.com, dtor@mail.ru
+Cc: gorcunov@gmail.com, greg@kroah.com, zaitcev@redhat.com
 
 
 The patch titled
-     keyboard.c: stop flooding dmesg with useless warnings
+     USB Elan FTDI: check for driver registration status
 has been added to the -mm tree.  Its filename is
-     keyboardc-stop-flooding-dmesg-with-useless-warnings.patch
+     usb-elan-ftdi-check-for-driver-registration-status.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: keyboard.c: stop flooding dmesg with useless warnings
-From: Parag Warudkar <parag.warudkar@gmail.com>
+Subject: USB Elan FTDI: check for driver registration status
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-I use Apple keyboard and mouse which seem to generate events with
-keycode==0.
+Add checking of driver registration status and if it fails release
+allocated resources.
 
-keyboard.c floods dmesg endlessly with below messages.  This happens at a
-very fast rate and never stops, leaving the dmesg unusable.
-
-[46591.960000] keyboard.c: can't emulate rawmode for keycode 0
-[46591.996000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.032000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.068000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.104000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.140000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.176000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.212000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.248000] keyboard.c: can't emulate rawmode for keycode 0
-
-The patch below avoids printing the warning if keycode == KEY_RESERVED.
-
-Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/keyboard.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/misc/ftdi-elan.c |   37 ++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 14 deletions(-)
 
-diff -puN drivers/char/keyboard.c~keyboardc-stop-flooding-dmesg-with-useless-warnings drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~keyboardc-stop-flooding-dmesg-with-useless-warnings
-+++ a/drivers/char/keyboard.c
-@@ -1135,7 +1135,7 @@ static void kbd_keycode(unsigned int key
+diff -puN drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-driver-registration-status drivers/usb/misc/ftdi-elan.c
+--- a/drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-driver-registration-status
++++ a/drivers/usb/misc/ftdi-elan.c
+@@ -2909,27 +2909,36 @@ static int __init ftdi_elan_init(void)
+         init_MUTEX(&ftdi_module_lock);
+         INIT_LIST_HEAD(&ftdi_static_list);
+         status_queue = create_singlethread_workqueue("ftdi-status-control");
+-	if (!status_queue)
+-		goto err1;
+         command_queue = create_singlethread_workqueue("ftdi-command-engine");
+-	if (!command_queue)
+-		goto err2;
+         respond_queue = create_singlethread_workqueue("ftdi-respond-engine");
+-	if (!respond_queue)
+-		goto err3;
++	if (!status_queue || !command_queue || !respond_queue) {
++		printk(KERN_ERR "%s couldn't create workqueue\n",
++		       ftdi_elan_driver.name);
++		result = -ENOMEM;
++		goto err;
++	}
+         result = usb_register(&ftdi_elan_driver);
+-        if (result)
++        if (result) {
+                 printk(KERN_ERR "usb_register failed. Error number %d\n",
+ 		       result);
++		goto err;
++	}
+         return result;
  
- 	if ((raw_mode = (kbd->kbdmode == VC_RAW)) && !hw_raw)
- 		if (emulate_raw(vc, keycode, !down << 7))
--			if (keycode < BTN_MISC)
-+			if (keycode < BTN_MISC && keycode != KEY_RESERVED)
- 				printk(KERN_WARNING "keyboard.c: can't emulate rawmode for keycode %d\n", keycode);
+- err3:
+-	destroy_workqueue(command_queue);
+- err2:
+-	destroy_workqueue(status_queue);
+- err1:
+-	printk(KERN_ERR "%s couldn't create workqueue\n", ftdi_elan_driver.name);
+-	return -ENOMEM;
++ err:
++	if (status_queue) {
++		destroy_workqueue(status_queue);
++		status_queue = NULL;
++	}
++	if (command_queue) {
++		destroy_workqueue(command_queue);
++		command_queue = NULL;
++	}
++	if (respond_queue) {
++		destroy_workqueue(respond_queue);
++		respond_queue = NULL;
++	}
++	return result;
+ }
  
- #ifdef CONFIG_MAGIC_SYSRQ	       /* Handle the SysRq Hack */
+ static void __exit ftdi_elan_exit(void)
 _
 
-Patches currently in -mm which might be from parag.warudkar@gmail.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-make-aout-executables-work-again.patch
-make-aout-executables-work-again-fix.patch
-keyboardc-stop-flooding-dmesg-with-useless-warnings.patch
+origin.patch
+git-kbuild.patch
+sun3-3x-lance-trivial-fix-improved.patch
+usb-elan-ftdi-check-for-driver-registration-status.patch
+cris-check-for-memory-allocation.patch
