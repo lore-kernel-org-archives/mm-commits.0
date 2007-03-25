@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2.patch added to -mm tree
-Date: Sun, 25 Mar 2007 13:52:33 -0800
-Message-ID: <200703252152.l2PLqX2a003702@shell0.pdx.osdl.net>
+Subject: + uml-use-correct-register-file-size-everywhere.patch added to -mm tree
+Date: Sun, 25 Mar 2007 13:55:48 -0800
+Message-ID: <200703252155.l2PLtmmx003753@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59221 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59358 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619AbXCYVwr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 17:52:47 -0400
+	id S1752853AbXCYVzx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 17:55:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serge@hallyn.com, clg@fr.ibm.com, ebiederm@xmission.com, pbadari@us.ibm.com, serue@us.ibm.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     utsns: fix !CONFIG_UTS_NS behavior
+     uml: use correct register file size everywhere
 has been added to the -mm tree.  Its filename is
-     merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2.patch
+     uml-use-correct-register-file-size-everywhere.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,175 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: utsns: fix !CONFIG_UTS_NS behavior
-From: "Serge E. Hallyn" <serge@hallyn.com>
+Subject: uml: use correct register file size everywhere
+From: Jeff Dike <jdike@addtoit.com>
 
-When CONFIG_UTS_NS=n, clone(CLONE_NEWUTS) quietly refuses.  So correctly does
-not unshare a new uts namespace, but also does not return -EINVAL.
+This patch uses MAX_REG_NR consistently to refer to the register file size.
+ FRAME_SIZE isn't sufficient because on x86_64, it is smaller than the
+ptrace register file size.  MAX_REG_NR was introduced as a consistent way
+to get the number of registers, but wasn't used everywhere it should be.
 
-Fix this to return -EINVAL so the caller knows his request was denied.
+When this causes a problem, it makes PTRACE_SETREGS fail on x86_64 because
+of a corrupted segment register value in the known-good register file.  The
+patch also adds a register dump at that point in case there are any future
+problems here.
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/utsname.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/um/include/sysdep-x86_64/ptrace.h  |    4 ----
+ arch/um/os-Linux/skas/mem.c             |   10 +++++++---
+ arch/um/os-Linux/skas/process.c         |    6 +++---
+ arch/um/os-Linux/sys-i386/registers.c   |    5 +++--
+ arch/um/os-Linux/sys-x86_64/registers.c |    4 ++--
+ 5 files changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/utsname.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2 include/linux/utsname.h
---- a/include/linux/utsname.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2
-+++ a/include/linux/utsname.h
-@@ -35,6 +35,7 @@ struct new_utsname {
- #include <linux/sched.h>
- #include <linux/kref.h>
- #include <linux/nsproxy.h>
-+#include <linux/err.h>
- #include <asm/atomic.h>
- 
- struct uts_namespace {
-@@ -60,6 +61,8 @@ static inline void put_uts_ns(struct uts
- static inline struct uts_namespace *copy_utsname(int flags,
- 						struct uts_namespace *ns)
+diff -puN arch/um/include/sysdep-x86_64/ptrace.h~uml-use-correct-register-file-size-everywhere arch/um/include/sysdep-x86_64/ptrace.h
+--- a/arch/um/include/sysdep-x86_64/ptrace.h~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/include/sysdep-x86_64/ptrace.h
+@@ -104,10 +104,6 @@ union uml_pt_regs {
+ #endif
+ #ifdef UML_CONFIG_MODE_SKAS
+ 	struct skas_regs {
+-		/* x86_64 ptrace uses sizeof(user_regs_struct) as its register
+-		 * file size, while i386 uses FRAME_SIZE.  Therefore, we need
+-		 * to use UM_FRAME_SIZE here instead of HOST_FRAME_SIZE.
+-		 */
+ 		unsigned long regs[MAX_REG_NR];
+ 		unsigned long fp[HOST_FP_SIZE];
+                 struct faultinfo faultinfo;
+diff -puN arch/um/os-Linux/skas/mem.c~uml-use-correct-register-file-size-everywhere arch/um/os-Linux/skas/mem.c
+--- a/arch/um/os-Linux/skas/mem.c~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/os-Linux/skas/mem.c
+@@ -47,7 +47,7 @@ int multi_op_count = 0;
+ static inline long do_syscall_stub(struct mm_id * mm_idp, void **addr)
  {
-+	if (flags & CLONE_NEWUTS)
-+		return ERR_PTR(-EINVAL);
- 	return ns;
- }
+ 	unsigned long regs[MAX_REG_NR];
+-	int n;
++	int n, i;
+ 	long ret, offset;
+ 	unsigned long * data;
+ 	unsigned long * syscall;
+@@ -65,9 +65,13 @@ static inline long do_syscall_stub(struc
+ 		 (unsigned long) &__syscall_stub_start);
  
+ 	n = ptrace_setregs(pid, regs);
+-	if(n < 0)
++	if(n < 0){
++		printk("Registers - \n");
++		for(i = 0; i < MAX_REG_NR; i++)
++			printk("\t%d\t0x%lx\n", i, regs[i]);
+ 		panic("do_syscall_stub : PTRACE_SETREGS failed, errno = %d\n",
+-		      n);
++		      -n);
++	}
+ 
+ 	wait_stub_done(pid, 0, "do_syscall_stub");
+ 
+diff -puN arch/um/os-Linux/skas/process.c~uml-use-correct-register-file-size-everywhere arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/os-Linux/skas/process.c
+@@ -66,7 +66,7 @@ void wait_stub_done(int pid, int sig, ch
+ 
+ 	if((n < 0) || !WIFSTOPPED(status) ||
+ 	   (WSTOPSIG(status) != SIGUSR1 && WSTOPSIG(status) != SIGTRAP)){
+-		unsigned long regs[HOST_FRAME_SIZE];
++		unsigned long regs[MAX_REG_NR];
+ 
+ 		if(ptrace(PTRACE_GETREGS, pid, 0, regs) < 0)
+ 			printk("Failed to get registers from stub, "
+@@ -75,7 +75,7 @@ void wait_stub_done(int pid, int sig, ch
+ 			int i;
+ 
+ 			printk("Stub registers -\n");
+-			for(i = 0; i < HOST_FRAME_SIZE; i++)
++			for(i = 0; i < ARRAY_SIZE(regs); i++)
+ 				printk("\t%d - %lx\n", i, regs[i]);
+ 		}
+ 		panic("%s : failed to wait for SIGUSR1/SIGTRAP, "
+@@ -327,7 +327,7 @@ void userspace(union uml_pt_regs *regs)
+ int copy_context_skas0(unsigned long new_stack, int pid)
+ {
+ 	int err;
+-	unsigned long regs[HOST_FRAME_SIZE];
++	unsigned long regs[MAX_REG_NR];
+ 	unsigned long fp_regs[HOST_FP_SIZE];
+ 	unsigned long current_stack = current_stub_stack();
+ 	struct stub_data *data = (struct stub_data *) current_stack;
+diff -puN arch/um/os-Linux/sys-i386/registers.c~uml-use-correct-register-file-size-everywhere arch/um/os-Linux/sys-i386/registers.c
+--- a/arch/um/os-Linux/sys-i386/registers.c~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/os-Linux/sys-i386/registers.c
+@@ -15,7 +15,7 @@
+ 
+ /* These are set once at boot time and not changed thereafter */
+ 
+-static unsigned long exec_regs[HOST_FRAME_SIZE];
++static unsigned long exec_regs[MAX_REG_NR];
+ static unsigned long exec_fp_regs[HOST_FP_SIZE];
+ static unsigned long exec_fpx_regs[HOST_XFP_SIZE];
+ static int have_fpx_regs = 1;
+@@ -101,6 +101,7 @@ void init_registers(int pid)
+ {
+ 	int err;
+ 
++	memset(exec_regs, 0, sizeof(exec_regs));
+ 	err = ptrace(PTRACE_GETREGS, pid, 0, exec_regs);
+ 	if(err)
+ 		panic("check_ptrace : PTRACE_GETREGS failed, errno = %d",
+@@ -124,7 +125,7 @@ void init_registers(int pid)
+ 
+ void get_safe_registers(unsigned long *regs, unsigned long *fp_regs)
+ {
+-	memcpy(regs, exec_regs, HOST_FRAME_SIZE * sizeof(unsigned long));
++	memcpy(regs, exec_regs, sizeof(exec_regs));
+ 	if(fp_regs != NULL)
+ 		memcpy(fp_regs, exec_fp_regs,
+ 		       HOST_FP_SIZE * sizeof(unsigned long));
+diff -puN arch/um/os-Linux/sys-x86_64/registers.c~uml-use-correct-register-file-size-everywhere arch/um/os-Linux/sys-x86_64/registers.c
+--- a/arch/um/os-Linux/sys-x86_64/registers.c~uml-use-correct-register-file-size-everywhere
++++ a/arch/um/os-Linux/sys-x86_64/registers.c
+@@ -14,7 +14,7 @@
+ 
+ /* These are set once at boot time and not changed thereafter */
+ 
+-static unsigned long exec_regs[HOST_FRAME_SIZE];
++static unsigned long exec_regs[MAX_REG_NR];
+ static unsigned long exec_fp_regs[HOST_FP_SIZE];
+ 
+ void init_thread_registers(union uml_pt_regs *to)
+@@ -72,7 +72,7 @@ void init_registers(int pid)
+ 
+ void get_safe_registers(unsigned long *regs, unsigned long *fp_regs)
+ {
+-	memcpy(regs, exec_regs, HOST_FRAME_SIZE * sizeof(unsigned long));
++	memcpy(regs, exec_regs, sizeof(exec_regs));
+ 	if(fp_regs != NULL)
+ 		memcpy(fp_regs, exec_fp_regs,
+ 		       HOST_FP_SIZE * sizeof(unsigned long));
 _
 
-Patches currently in -mm which might be from serge@hallyn.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-2.patch
+uml-fix-epoll.patch
+uml-fix-static-linking.patch
+uml-use-correct-register-file-size-everywhere.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+array_size-check-for-type-uml-fix.patch
+uml-fix-prototypes.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
