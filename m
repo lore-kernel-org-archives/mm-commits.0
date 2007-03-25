@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fdomainc-get-rid-of-unused-stuff.patch added to -mm tree
-Date: Sun, 25 Mar 2007 14:33:37 -0800
-Message-ID: <200703252233.l2PMXbjZ004321@shell0.pdx.osdl.net>
+Subject: + pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the.patch added to -mm tree
+Date: Sun, 25 Mar 2007 14:34:23 -0800
+Message-ID: <200703252234.l2PMYNsG004328@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33028 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33045 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753512AbXCYWdk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 18:33:40 -0400
+	id S1753499AbXCYWea (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 18:34:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: parag.warudkar@gmail.com, James.Bottomley@steeleye.com
+Cc: rpjday@mindspring.com, James.Bottomley@steeleye.com, linux@dominikbrodowski.net
 
 
 The patch titled
-     fdomain.c: get rid of unused stuff
+     PCMCIA: allow PCMCIA SCSI drivers to be built into the kernel
 has been added to the -mm tree.  Its filename is
-     fdomainc-get-rid-of-unused-stuff.patch
+     pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,66 +25,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fdomain.c: get rid of unused stuff
-From: Parag Warudkar <parag.warudkar@gmail.com>
+Subject: PCMCIA: allow PCMCIA SCSI drivers to be built into the kernel
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-fdomain.c uses the below stuff only if PCMCIA is not defined.  This causes
-unused variables to be defined when PCMCIA is not defined.  Wrap variables
-and functions around #ifndef PCMCIA appropriately to avoid this.
+Remove the Kconfig requirement that the PCMCIA SCSI drivers be built
+only as modules, and allow them to be built into the kernel.
 
-4 less compiler warnings.
-
-Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/fdomain.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/scsi/pcmcia/Kconfig |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/fdomain.c~fdomainc-get-rid-of-unused-stuff drivers/scsi/fdomain.c
---- a/drivers/scsi/fdomain.c~fdomainc-get-rid-of-unused-stuff
-+++ a/drivers/scsi/fdomain.c
-@@ -410,6 +410,7 @@ static irqreturn_t       do_fdomain_16x0
- static char * fdomain = NULL;
- module_param(fdomain, charp, 0);
+diff -puN drivers/scsi/pcmcia/Kconfig~pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the drivers/scsi/pcmcia/Kconfig
+--- a/drivers/scsi/pcmcia/Kconfig~pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the
++++ a/drivers/scsi/pcmcia/Kconfig
+@@ -3,11 +3,11 @@
+ #
  
-+#ifndef PCMCIA
- static unsigned long addresses[] = {
-    0xc8000,
-    0xca000,
-@@ -502,6 +503,7 @@ static struct signature {
- };
+ menu "PCMCIA SCSI adapter support"
+-	depends on SCSI!=n && PCMCIA!=n && MODULES
++	depends on SCSI!=n && PCMCIA!=n
  
- #define SIGNATURE_COUNT ARRAY_SIZE(signatures)
-+#endif /* ifndef PCMCIA */
+ config PCMCIA_AHA152X
+ 	tristate "Adaptec AHA152X PCMCIA support"
+-	depends on m && !64BIT
++	depends on !64BIT
+ 	select SCSI_SPI_ATTRS
+ 	help
+ 	  Say Y here if you intend to attach this type of PCMCIA SCSI host
+@@ -18,7 +18,6 @@ config PCMCIA_AHA152X
  
- static void print_banner( struct Scsi_Host *shpnt )
- {
-@@ -646,7 +648,7 @@ static int fdomain_test_loopback( void )
-    Sometimes it is possible to use the computer's BIOS setup screen to
-    configure a PCI system so that one of these IRQs will be used by the
-    Future Domain card. */
--
-+#ifndef PCMCIA
- static int fdomain_get_irq( int base )
- {
-    int options = inb(base + Configuration1);
-@@ -664,6 +666,7 @@ static int fdomain_get_irq( int base )
-    	return 0;
-    return ints[(options & 0x0e) >> 1];
- }
-+#endif
+ config PCMCIA_FDOMAIN
+ 	tristate "Future Domain PCMCIA support"
+-	depends on m
+ 	help
+ 	  Say Y here if you intend to attach this type of PCMCIA SCSI host
+ 	  adapter to your computer.
+@@ -28,7 +27,7 @@ config PCMCIA_FDOMAIN
  
- static int fdomain_isa_detect( int *irq, int *iobase )
- {
+ config PCMCIA_NINJA_SCSI
+ 	tristate "NinjaSCSI-3 / NinjaSCSI-32Bi (16bit) PCMCIA support"
+-	depends on m && !64BIT
++	depends on !64BIT
+ 	help
+ 	  If you intend to attach this type of PCMCIA SCSI host adapter to
+ 	  your computer, say Y here and read
+@@ -62,7 +61,6 @@ config PCMCIA_NINJA_SCSI
+ 
+ config PCMCIA_QLOGIC
+ 	tristate "Qlogic PCMCIA support"
+-	depends on m
+ 	help
+ 	  Say Y here if you intend to attach this type of PCMCIA SCSI host
+ 	  adapter to your computer.
+@@ -72,7 +70,6 @@ config PCMCIA_QLOGIC
+ 
+ config PCMCIA_SYM53C500
+ 	tristate "Symbios 53c500 PCMCIA support"
+-	depends on m
+ 	help
+ 	  Say Y here if you have a New Media Bus Toaster or other PCMCIA
+ 	  SCSI adapter based on the Symbios 53c500 controller.
 _
 
-Patches currently in -mm which might be from parag.warudkar@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-make-aout-executables-work-again.patch
-make-aout-executables-work-again-fix.patch
-fdomainc-get-rid-of-unused-stuff.patch
-apmc-get-rid-of-unused-variables.patch
-apm-remove-the-apm_rtc_is_gmt-config-option.patch
-keyboardc-stop-flooding-dmesg-with-useless-warnings.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+git-powerpc.patch
+remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
+remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
+git-drm.patch
+git-mtd.patch
+jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
+mtd-delete-unused-header-file-linux-mtd-iflashh.patch
+remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
+remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
+delete-unused-header-file-linux-sdla_frh.patch
+delete-unused-header-file-linux-if_wanpipe_commonh.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the.patch
+git-scsi-misc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+delete-unused-header-file-linux-awe_voiceh.patch
+delete-unused-header-file-math-emu-extendedh.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
