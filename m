@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-sscanf-%n-match-at-end-of-input-string.patch added to -mm tree
-Date: Sun, 25 Mar 2007 14:17:04 -0800
-Message-ID: <200703252217.l2PMH492004053@shell0.pdx.osdl.net>
+Subject: + lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch added to -mm tree
+Date: Sun, 25 Mar 2007 14:24:50 -0800
+Message-ID: <200703252224.l2PMOo36004158@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60472 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60911 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752868AbXCYWRT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 18:17:19 -0400
+	id S1752619AbXCYWZG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 18:25:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johannes@sipsolutions.net
+Cc: bunk@stusta.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     fix sscanf %n match at end of input string
+     lguest: remove check_bug_kill()
 has been added to the -mm tree.  Its filename is
-     fix-sscanf-%n-match-at-end-of-input-string.patch
+     lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,138 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix sscanf %n match at end of input string
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: lguest: remove check_bug_kill()
+From: Adrian Bunk <bunk@stusta.de>
 
-I was playing with some code that sometimes got a string where a %n
-match should have been done where the input string ended, for example
-like this:
+check_bug_kill() is no longer used.
 
-  sscanf("abc123", "abc%d%n", &a, &n);  /* doesn't work */
-  sscanf("abc123a", "abc%d%n", &a, &n); /* works */
-
-However, the scanf function in the kernel doesn't convert the %n in that
-case because it has already matched the complete input after %d and just
-completely stops matching then. This patch fixes that.
-
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/i386/lguest/interrupts_and_traps.c |   27 ----------------------
+ arch/i386/lguest/lg.h                   |    1 
+ 2 files changed, 28 deletions(-)
 
-diff -puN lib/vsprintf.c~fix-sscanf-%n-match-at-end-of-input-string lib/vsprintf.c
---- a/lib/vsprintf.c~fix-sscanf-%n-match-at-end-of-input-string
-+++ a/lib/vsprintf.c
-@@ -825,6 +825,15 @@ int vsscanf(const char * buf, const char
- 			break;
- 		str = next;
- 	}
-+
-+	/* Now we've come all the way through so either the input string or
-+	 * the format ended. In the former case, there can be a %n at the
-+	 * current position in the format that needs to be filled. */
-+	if (*fmt == '%' && *(fmt+1) == 'n') {
-+		int *i = (int *)va_arg(args,int*);
-+		*i = str - buf;
-+	}
-+
- 	return num;
+diff -puN arch/i386/lguest/interrupts_and_traps.c~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy arch/i386/lguest/interrupts_and_traps.c
+--- a/arch/i386/lguest/interrupts_and_traps.c~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy
++++ a/arch/i386/lguest/interrupts_and_traps.c
+@@ -118,33 +118,6 @@ int deliver_trap(struct lguest *lg, unsi
+ 	return 1;
  }
  
+-void check_bug_kill(struct lguest *lg)
+-{
+-#ifdef CONFIG_BUG
+-	u32 eip = lg->regs->eip - PAGE_OFFSET;
+-	u16 insn;
+-
+-	/* This only works for addresses in linear mapping... */
+-	if (lg->regs->eip < PAGE_OFFSET)
+-		return;
+-	lhread(lg, &insn, eip, sizeof(insn));
+-	if (insn == 0x0b0f) {
+-#ifdef CONFIG_DEBUG_BUGVERBOSE
+-		u16 l;
+-		u32 f;
+-		char file[128];
+-		lhread(lg, &l, eip+sizeof(insn), sizeof(l));
+-		lhread(lg, &f, eip+sizeof(insn)+sizeof(l), sizeof(f));
+-		lhread(lg, file, f - PAGE_OFFSET, sizeof(file));
+-		file[sizeof(file)-1] = 0;
+-		kill_guest(lg, "BUG() at %#x %s:%u", eip, file, l);
+-#else
+-		kill_guest(lg, "BUG() at %#x", eip);
+-#endif	/* CONFIG_DEBUG_BUGVERBOSE */
+-	}
+-#endif	/* CONFIG_BUG */
+-}
+-
+ static int direct_trap(const struct lguest *lg,
+ 		       const struct desc_struct *trap,
+ 		       unsigned int num)
+diff -puN arch/i386/lguest/lg.h~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy arch/i386/lguest/lg.h
+--- a/arch/i386/lguest/lg.h~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy
++++ a/arch/i386/lguest/lg.h
+@@ -195,7 +195,6 @@ int find_free_guest(void);
+ /* interrupts_and_traps.c: */
+ void maybe_do_interrupt(struct lguest *lg);
+ int deliver_trap(struct lguest *lg, unsigned int num);
+-void check_bug_kill(struct lguest *lg);
+ void load_guest_idt_entry(struct lguest *lg, unsigned int i, u32 low, u32 hi);
+ void pin_stack_pages(struct lguest *lg);
+ void pin_trap_pages(struct lguest *lg);
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-git-alsa.patch
+drivers-spi-fix-section-mismatches.patch
+dynticks-fix-hrtimer-rounding-error-in.patch
+clocksource-fix-thinko-in-watchdog-selection.patch
+net-sunrpc-svcsockc-fix-a-check.patch
+git-acpi.patch
+git-powerpc.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-mmc_deselect_cards.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-ubi.patch
+git-netdev-all.patch
+drivers-net-vioc-possible-cleanups.patch
+git-net.patch
+drivers-net-bonding-bond_maincmake-3-functions-static.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+make-struct-v9fs_cached_file_operations-static.patch
 git-wireless.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-force-pm_opsvalid-callback-to-be.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+i386-x86_64-early_printkc-make-simnow_init-static.patch
+make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
+lguest-kconfig-and-headers.patch
+lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+drivers-mfd-sm501c-fix-an-off-by-one.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
