@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-rationalize-paravirt-wrappers.patch added to -mm tree
-Date: Sat, 24 Mar 2007 23:46:37 -0800
-Message-ID: <200703250746.l2P7kbpR023101@shell0.pdx.osdl.net>
+Subject: + mm-only-hrtimers-debug-patch.patch added to -mm tree
+Date: Sat, 24 Mar 2007 23:48:32 -0800
+Message-ID: <200703250748.l2P7mWE0023129@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35301 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35338 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753478AbXCYHrJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 03:47:09 -0400
+	id S1753346AbXCYHsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 03:48:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@muc.de, avi@qumranet.com, jeremy@xensource.com
+Cc: mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     Cleanup: rationalize paravirt wrappers
+     hrtimers debug patch
 has been added to the -mm tree.  Its filename is
-     cleanup-rationalize-paravirt-wrappers.patch
+     mm-only-hrtimers-debug-patch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,1181 +25,349 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Cleanup: rationalize paravirt wrappers
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: hrtimers debug patch
+From: Ingo Molnar <mingo@elte.hu>
 
-paravirt.c used to implement native versions of all low-level
-functions.  Far cleaner is to have the native versions exposed in the
-headers and as inline native_XXX, and if !CONFIG_PARAVIRT, then simply
-#define XXX native_XXX.
+debugging helper for hrtimers.  Keep a lookout for WARN_ON messages.  Saves
+a stacktrace on every expires_next update, and makes that stack-trace
+available in SysRq-Q (or /proc/timer_list) output.
 
-There are several nice side effects:
+( make sure to run this on a lockdep-enabled kernel, so that
+  CONFIG_STACKTRACE=y. )
 
-1) write_dt_entry() now takes the correct "struct Xgt_desc_struct *"
-   not "void *".
-
-2) load_TLS is reintroduced to the for loop, not manually unrolled
-   with a #error in case the bounds ever change.
-
-3) Macros become inlines, with type checking.
-
-4) Access to the native versions is trivial for KVM, lguest, Xen and
-   others who might want it.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Avi Kivity <avi@qumranet.com>
+NOT-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c  |  293 ---------------------------------
- include/asm-i386/desc.h      |   82 ++++++---
- include/asm-i386/io.h        |   15 +
- include/asm-i386/irqflags.h  |   61 ++++--
- include/asm-i386/msr.h       |  165 ++++++++++++------
- include/asm-i386/paravirt.h  |   17 +
- include/asm-i386/processor.h |   94 ++++++++--
- include/asm-i386/system.h    |  137 +++++++++------
- 8 files changed, 389 insertions(+), 475 deletions(-)
+ arch/i386/kernel/apic.c    |    2 +
+ include/linux/hrtimer.h    |    7 ++++
+ kernel/hrtimer.c           |   54 +++++++++++++++++++++++++++--------
+ kernel/time/tick-oneshot.c |   13 +++++++-
+ kernel/time/timer_list.c   |   21 ++++++++++++-
+ 5 files changed, 83 insertions(+), 14 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~cleanup-rationalize-paravirt-wrappers arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~cleanup-rationalize-paravirt-wrappers
-+++ a/arch/i386/kernel/paravirt.c
-@@ -93,294 +93,11 @@ static unsigned native_patch(u8 type, u1
- 	return insn_len;
- }
+diff -puN arch/i386/kernel/apic.c~mm-only-hrtimers-debug-patch arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~mm-only-hrtimers-debug-patch
++++ a/arch/i386/kernel/apic.c
+@@ -523,6 +523,8 @@ void __init setup_boot_APIC_clock(void)
+ 		 */
+ 		if (nmi_watchdog != NMI_IO_APIC)
+ 			lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
++		else
++			printk(KERN_WARNING "APIC timer registered as dummy, due to nmi_watchdog=1!\n");
+ 	}
  
--static unsigned long native_get_debugreg(int regno)
--{
--	unsigned long val = 0; 	/* Damn you, gcc! */
--
--	switch (regno) {
--	case 0:
--		asm("movl %%db0, %0" :"=r" (val)); break;
--	case 1:
--		asm("movl %%db1, %0" :"=r" (val)); break;
--	case 2:
--		asm("movl %%db2, %0" :"=r" (val)); break;
--	case 3:
--		asm("movl %%db3, %0" :"=r" (val)); break;
--	case 6:
--		asm("movl %%db6, %0" :"=r" (val)); break;
--	case 7:
--		asm("movl %%db7, %0" :"=r" (val)); break;
--	default:
--		BUG();
--	}
--	return val;
--}
--
--static void native_set_debugreg(int regno, unsigned long value)
--{
--	switch (regno) {
--	case 0:
--		asm("movl %0,%%db0"	: /* no output */ :"r" (value));
--		break;
--	case 1:
--		asm("movl %0,%%db1"	: /* no output */ :"r" (value));
--		break;
--	case 2:
--		asm("movl %0,%%db2"	: /* no output */ :"r" (value));
--		break;
--	case 3:
--		asm("movl %0,%%db3"	: /* no output */ :"r" (value));
--		break;
--	case 6:
--		asm("movl %0,%%db6"	: /* no output */ :"r" (value));
--		break;
--	case 7:
--		asm("movl %0,%%db7"	: /* no output */ :"r" (value));
--		break;
--	default:
--		BUG();
--	}
--}
--
- void init_IRQ(void)
- {
- 	paravirt_ops.init_IRQ();
- }
+ 	/* Setup the lapic or request the broadcast */
+diff -puN include/linux/hrtimer.h~mm-only-hrtimers-debug-patch include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~mm-only-hrtimers-debug-patch
++++ a/include/linux/hrtimer.h
+@@ -15,6 +15,7 @@
+ #ifndef _LINUX_HRTIMER_H
+ #define _LINUX_HRTIMER_H
  
--static void native_clts(void)
--{
--	asm volatile ("clts");
--}
--
--static unsigned long native_read_cr0(void)
--{
--	unsigned long val;
--	asm volatile("movl %%cr0,%0\n\t" :"=r" (val));
--	return val;
--}
--
--static void native_write_cr0(unsigned long val)
--{
--	asm volatile("movl %0,%%cr0": :"r" (val));
--}
--
--static unsigned long native_read_cr2(void)
--{
--	unsigned long val;
--	asm volatile("movl %%cr2,%0\n\t" :"=r" (val));
--	return val;
--}
--
--static void native_write_cr2(unsigned long val)
--{
--	asm volatile("movl %0,%%cr2": :"r" (val));
--}
--
--static unsigned long native_read_cr3(void)
--{
--	unsigned long val;
--	asm volatile("movl %%cr3,%0\n\t" :"=r" (val));
--	return val;
--}
--
--static void native_write_cr3(unsigned long val)
--{
--	asm volatile("movl %0,%%cr3": :"r" (val));
--}
--
--static unsigned long native_read_cr4(void)
--{
--	unsigned long val;
--	asm volatile("movl %%cr4,%0\n\t" :"=r" (val));
--	return val;
--}
--
--static unsigned long native_read_cr4_safe(void)
--{
--	unsigned long val;
--	/* This could fault if %cr4 does not exist */
--	asm("1: movl %%cr4, %0		\n"
--		"2:				\n"
--		".section __ex_table,\"a\"	\n"
--		".long 1b,2b			\n"
--		".previous			\n"
--		: "=r" (val): "0" (0));
--	return val;
--}
--
--static void native_write_cr4(unsigned long val)
--{
--	asm volatile("movl %0,%%cr4": :"r" (val));
--}
--
--static unsigned long native_save_fl(void)
--{
--	unsigned long f;
--	asm volatile("pushfl ; popl %0":"=g" (f): /* no input */);
--	return f;
--}
--
--static void native_restore_fl(unsigned long f)
--{
--	asm volatile("pushl %0 ; popfl": /* no output */
--			     :"g" (f)
--			     :"memory", "cc");
--}
--
--static void native_irq_disable(void)
--{
--	asm volatile("cli": : :"memory");
--}
--
--static void native_irq_enable(void)
--{
--	asm volatile("sti": : :"memory");
--}
--
--static void native_safe_halt(void)
--{
--	asm volatile("sti; hlt": : :"memory");
--}
--
--static void native_halt(void)
--{
--	asm volatile("hlt": : :"memory");
--}
--
--static void native_wbinvd(void)
--{
--	asm volatile("wbinvd": : :"memory");
--}
--
--static unsigned long long native_read_msr(unsigned int msr, int *err)
--{
--	unsigned long long val;
--
--	asm volatile("2: rdmsr ; xorl %0,%0\n"
--		     "1:\n\t"
--		     ".section .fixup,\"ax\"\n\t"
--		     "3:  movl %3,%0 ; jmp 1b\n\t"
--		     ".previous\n\t"
-- 		     ".section __ex_table,\"a\"\n"
--		     "   .align 4\n\t"
--		     "   .long 	2b,3b\n\t"
--		     ".previous"
--		     : "=r" (*err), "=A" (val)
--		     : "c" (msr), "i" (-EFAULT));
--
--	return val;
--}
--
--static int native_write_msr(unsigned int msr, unsigned long long val)
--{
--	int err;
--	asm volatile("2: wrmsr ; xorl %0,%0\n"
--		     "1:\n\t"
--		     ".section .fixup,\"ax\"\n\t"
--		     "3:  movl %4,%0 ; jmp 1b\n\t"
--		     ".previous\n\t"
-- 		     ".section __ex_table,\"a\"\n"
--		     "   .align 4\n\t"
--		     "   .long 	2b,3b\n\t"
--		     ".previous"
--		     : "=a" (err)
--		     : "c" (msr), "0" ((u32)val), "d" ((u32)(val>>32)),
--		       "i" (-EFAULT));
--	return err;
--}
--
--static unsigned long long native_read_tsc(void)
--{
--	unsigned long long val;
--	asm volatile("rdtsc" : "=A" (val));
--	return val;
--}
--
--static unsigned long long native_read_pmc(void)
--{
--	unsigned long long val;
--	asm volatile("rdpmc" : "=A" (val));
--	return val;
--}
--
--static void native_load_tr_desc(void)
--{
--	asm volatile("ltr %w0"::"q" (GDT_ENTRY_TSS*8));
--}
--
--static void native_load_gdt(const struct Xgt_desc_struct *dtr)
--{
--	asm volatile("lgdt %0"::"m" (*dtr));
--}
--
--static void native_load_idt(const struct Xgt_desc_struct *dtr)
--{
--	asm volatile("lidt %0"::"m" (*dtr));
--}
--
--static void native_store_gdt(struct Xgt_desc_struct *dtr)
--{
--	asm ("sgdt %0":"=m" (*dtr));
--}
--
--static void native_store_idt(struct Xgt_desc_struct *dtr)
--{
--	asm ("sidt %0":"=m" (*dtr));
--}
--
--static unsigned long native_store_tr(void)
--{
--	unsigned long tr;
--	asm ("str %0":"=r" (tr));
--	return tr;
--}
--
--static void native_load_tls(struct thread_struct *t, unsigned int cpu)
--{
--#define C(i) get_cpu_gdt_table(cpu)[GDT_ENTRY_TLS_MIN + i] = t->tls_array[i]
--	C(0); C(1); C(2);
--#undef C
--}
--
--static inline void native_write_dt_entry(void *dt, int entry, u32 entry_low, u32 entry_high)
--{
--	u32 *lp = (u32 *)((char *)dt + entry*8);
--	lp[0] = entry_low;
--	lp[1] = entry_high;
--}
--
--static void native_write_ldt_entry(void *dt, int entrynum, u32 low, u32 high)
--{
--	native_write_dt_entry(dt, entrynum, low, high);
--}
--
--static void native_write_gdt_entry(void *dt, int entrynum, u32 low, u32 high)
--{
--	native_write_dt_entry(dt, entrynum, low, high);
--}
--
--static void native_write_idt_entry(void *dt, int entrynum, u32 low, u32 high)
--{
--	native_write_dt_entry(dt, entrynum, low, high);
--}
--
--static void native_load_esp0(struct tss_struct *tss,
--				      struct thread_struct *thread)
--{
--	tss->esp0 = thread->esp0;
--
--	/* This can only happen when SEP is enabled, no need to test "SEP"arately */
--	if (unlikely(tss->ss1 != thread->sysenter_cs)) {
--		tss->ss1 = thread->sysenter_cs;
--		wrmsr(MSR_IA32_SYSENTER_CS, thread->sysenter_cs, 0);
--	}
--}
--
--static void native_io_delay(void)
--{
--	asm volatile("outb %al,$0x80");
--}
--
- static void native_flush_tlb(void)
- {
- 	__native_flush_tlb();
-@@ -517,8 +234,8 @@ struct paravirt_ops paravirt_ops = {
- 	.safe_halt = native_safe_halt,
- 	.halt = native_halt,
- 	.wbinvd = native_wbinvd,
--	.read_msr = native_read_msr,
--	.write_msr = native_write_msr,
-+	.read_msr = native_read_msr_safe,
-+	.write_msr = native_write_msr_safe,
- 	.read_tsc = native_read_tsc,
- 	.read_pmc = native_read_pmc,
- 	.get_scheduled_cycles = native_read_tsc,
-@@ -531,9 +248,9 @@ struct paravirt_ops paravirt_ops = {
- 	.store_idt = native_store_idt,
- 	.store_tr = native_store_tr,
- 	.load_tls = native_load_tls,
--	.write_ldt_entry = native_write_ldt_entry,
--	.write_gdt_entry = native_write_gdt_entry,
--	.write_idt_entry = native_write_idt_entry,
-+	.write_ldt_entry = write_dt_entry,
-+	.write_gdt_entry = write_dt_entry,
-+	.write_idt_entry = write_dt_entry,
- 	.load_esp0 = native_load_esp0,
++#include <linux/stacktrace.h>
+ #include <linux/rbtree.h>
+ #include <linux/ktime.h>
+ #include <linux/init.h>
+@@ -196,6 +197,12 @@ struct hrtimer_cpu_base {
+ 	struct hrtimer_clock_base	clock_base[HRTIMER_MAX_CLOCK_BASES];
+ #ifdef CONFIG_HIGH_RES_TIMERS
+ 	ktime_t				expires_next;
++# define HRTIMERS_STACK_TRACE_DEPTH	32
++# ifdef CONFIG_STACKTRACE
++	struct stack_trace		exp_trace;
++	unsigned long			exp_entries[HRTIMERS_STACK_TRACE_DEPTH];
++# endif
++	ktime_t				exp_prev;
+ 	int				hres_active;
+ 	struct list_head		cb_pending;
+ 	unsigned long			nr_events;
+diff -puN kernel/hrtimer.c~mm-only-hrtimers-debug-patch kernel/hrtimer.c
+--- a/kernel/hrtimer.c~mm-only-hrtimers-debug-patch
++++ a/kernel/hrtimer.c
+@@ -306,6 +306,27 @@ unsigned long ktime_divns(const ktime_t 
+ /* High resolution timer related functions */
+ #ifdef CONFIG_HIGH_RES_TIMERS
  
- 	.set_iopl_mask = native_set_iopl_mask,
-diff -puN include/asm-i386/desc.h~cleanup-rationalize-paravirt-wrappers include/asm-i386/desc.h
---- a/include/asm-i386/desc.h~cleanup-rationalize-paravirt-wrappers
-+++ a/include/asm-i386/desc.h
-@@ -54,45 +54,33 @@ static inline void pack_gate(__u32 *a, _
- #ifdef CONFIG_PARAVIRT
- #include <asm/paravirt.h>
- #else
--#define load_TR_desc() __asm__ __volatile__("ltr %w0"::"q" (GDT_ENTRY_TSS*8))
--
--#define load_gdt(dtr) __asm__ __volatile("lgdt %0"::"m" (*dtr))
--#define load_idt(dtr) __asm__ __volatile("lidt %0"::"m" (*dtr))
-+#define load_TR_desc() native_load_tr_desc()
-+#define load_gdt(dtr) native_load_gdt(dtr)
-+#define load_idt(dtr) native_load_idt(dtr)
- #define load_tr(tr) __asm__ __volatile("ltr %0"::"m" (tr))
- #define load_ldt(ldt) __asm__ __volatile("lldt %0"::"m" (ldt))
- 
--#define store_gdt(dtr) __asm__ ("sgdt %0":"=m" (*dtr))
--#define store_idt(dtr) __asm__ ("sidt %0":"=m" (*dtr))
--#define store_tr(tr) __asm__ ("str %0":"=m" (tr))
-+#define store_gdt(dtr) native_store_gdt(dtr)
-+#define store_idt(dtr) native_store_idt(dtr)
-+#define store_tr(tr) (tr = native_store_tr())
- #define store_ldt(ldt) __asm__ ("sldt %0":"=m" (ldt))
- 
--#if TLS_SIZE != 24
--# error update this code.
--#endif
--
--static inline void load_TLS(struct thread_struct *t, unsigned int cpu)
--{
--#define C(i) get_cpu_gdt_table(cpu)[GDT_ENTRY_TLS_MIN + i] = t->tls_array[i]
--	C(0); C(1); C(2);
--#undef C
--}
-+#define load_TLS(t, cpu) native_load_tls(t, cpu)
-+#define set_ldt native_set_ldt
- 
- #define write_ldt_entry(dt, entry, a, b) write_dt_entry(dt, entry, a, b)
- #define write_gdt_entry(dt, entry, a, b) write_dt_entry(dt, entry, a, b)
- #define write_idt_entry(dt, entry, a, b) write_dt_entry(dt, entry, a, b)
++static void update_cpu_base_expires_next(struct hrtimer_cpu_base *cpu_base,
++					 ktime_t expires_next)
++{
++	cpu_base->exp_prev = cpu_base->expires_next;
++	cpu_base->expires_next = expires_next;
++
++#ifdef CONFIG_STACKTRACE
++	{
++		struct stack_trace *trace = &cpu_base->exp_trace;
++
++		trace->nr_entries = 0;
++		trace->entries = cpu_base->exp_entries;
++		trace->max_entries = HRTIMERS_STACK_TRACE_DEPTH;
++		trace->skip = 1;
++		trace->all_contexts = 0;
++
++		save_stack_trace(trace, NULL);
++	}
 +#endif
++}
++
+ /*
+  * High resolution timer enabled ?
+  */
+@@ -354,7 +375,7 @@ static void hrtimer_force_reprogram(stru
+ 	struct hrtimer_clock_base *base = cpu_base->clock_base;
+ 	ktime_t expires;
  
--static inline void write_dt_entry(void *dt, int entry, __u32 entry_a, __u32 entry_b)
-+static inline void write_dt_entry(struct desc_struct *dt,
-+				  int entry, u32 entry_low, u32 entry_high)
- {
--	__u32 *lp = (__u32 *)((char *)dt + entry*8);
--	*lp = entry_a;
--	*(lp+1) = entry_b;
-+	dt[entry].a = entry_low;
-+	dt[entry].b = entry_high;
- }
+-	cpu_base->expires_next.tv64 = KTIME_MAX;
++	update_cpu_base_expires_next(cpu_base, (ktime_t){ .tv64 = KTIME_MAX });
  
--#define set_ldt native_set_ldt
--#endif /* CONFIG_PARAVIRT */
--
--static inline fastcall void native_set_ldt(const void *addr,
--					   unsigned int entries)
-+static inline void native_set_ldt(const void *addr, unsigned int entries)
- {
- 	if (likely(entries == 0))
- 		__asm__ __volatile__("lldt %w0"::"q" (0));
-@@ -108,6 +96,48 @@ static inline fastcall void native_set_l
+ 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++, base++) {
+ 		struct hrtimer *timer;
+@@ -364,7 +385,7 @@ static void hrtimer_force_reprogram(stru
+ 		timer = rb_entry(base->first, struct hrtimer, node);
+ 		expires = ktime_sub(timer->expires, base->offset);
+ 		if (expires.tv64 < cpu_base->expires_next.tv64)
+-			cpu_base->expires_next = expires;
++			update_cpu_base_expires_next(cpu_base, expires);
  	}
- }
  
-+
-+static inline void native_load_tr_desc(void)
-+{
-+	asm volatile("ltr %w0"::"q" (GDT_ENTRY_TSS*8));
-+}
-+
-+static inline void native_load_gdt(const struct Xgt_desc_struct *dtr)
-+{
-+	asm volatile("lgdt %0"::"m" (*dtr));
-+}
-+
-+static inline void native_load_idt(const struct Xgt_desc_struct *dtr)
-+{
-+	asm volatile("lidt %0"::"m" (*dtr));
-+}
-+
-+static inline void native_store_gdt(struct Xgt_desc_struct *dtr)
-+{
-+	asm ("sgdt %0":"=m" (*dtr));
-+}
-+
-+static inline void native_store_idt(struct Xgt_desc_struct *dtr)
-+{
-+	asm ("sidt %0":"=m" (*dtr));
-+}
-+
-+static inline unsigned long native_store_tr(void)
-+{
-+	unsigned long tr;
-+	asm ("str %0":"=r" (tr));
-+	return tr;
-+}
-+
-+static inline void native_load_tls(struct thread_struct *t, unsigned int cpu)
-+{
-+	unsigned int i;
-+	struct desc_struct *gdt = get_cpu_gdt_table(cpu);
-+
-+	for (i = 0; i < GDT_ENTRY_TLS_ENTRIES; i++)
-+		gdt[GDT_ENTRY_TLS_MIN + i] = t->tls_array[i];
-+}
-+
- static inline void _set_gate(int gate, unsigned int type, void *addr, unsigned short seg)
+ 	if (cpu_base->expires_next.tv64 != KTIME_MAX)
+@@ -383,7 +404,7 @@ static void hrtimer_force_reprogram(stru
+ static int hrtimer_reprogram(struct hrtimer *timer,
+ 			     struct hrtimer_clock_base *base)
  {
- 	__u32 a, b;
-diff -puN include/asm-i386/io.h~cleanup-rationalize-paravirt-wrappers include/asm-i386/io.h
---- a/include/asm-i386/io.h~cleanup-rationalize-paravirt-wrappers
-+++ a/include/asm-i386/io.h
-@@ -250,19 +250,22 @@ static inline void flush_write_buffers(v
+-	ktime_t *expires_next = &__get_cpu_var(hrtimer_bases).expires_next;
++	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
+ 	ktime_t expires = ktime_sub(timer->expires, base->offset);
+ 	int res;
  
- #endif /* __KERNEL__ */
+@@ -397,7 +418,7 @@ static int hrtimer_reprogram(struct hrti
+ 	if (hrtimer_callback_running(timer))
+ 		return 0;
  
-+static inline void native_io_delay(void)
-+{
-+	asm volatile("outb %%al,$0x80" : : : "memory");
-+}
-+
- #if defined(CONFIG_PARAVIRT)
- #include <asm/paravirt.h>
- #else
+-	if (expires.tv64 >= expires_next->tv64)
++	if (expires.tv64 >= cpu_base->expires_next.tv64)
+ 		return 0;
  
--#define __SLOW_DOWN_IO "outb %%al,$0x80;"
--
- static inline void slow_down_io(void) {
--	__asm__ __volatile__(
--		__SLOW_DOWN_IO
-+	native_io_delay();
- #ifdef REALLY_SLOW_IO
--		__SLOW_DOWN_IO __SLOW_DOWN_IO __SLOW_DOWN_IO
-+	native_io_delay();
-+	native_io_delay();
-+	native_io_delay();
- #endif
--		: : );
+ 	/*
+@@ -405,7 +426,7 @@ static int hrtimer_reprogram(struct hrti
+ 	 */
+ 	res = tick_program_event(expires, 0);
+ 	if (!IS_ERR_VALUE(res))
+-		*expires_next = expires;
++		update_cpu_base_expires_next(cpu_base, expires);
+ 	return res;
  }
  
- #endif
-diff -puN include/asm-i386/irqflags.h~cleanup-rationalize-paravirt-wrappers include/asm-i386/irqflags.h
---- a/include/asm-i386/irqflags.h~cleanup-rationalize-paravirt-wrappers
-+++ a/include/asm-i386/irqflags.h
-@@ -10,6 +10,42 @@
- #ifndef _ASM_IRQFLAGS_H
- #define _ASM_IRQFLAGS_H
- 
-+#ifndef __ASSEMBLY__
-+static inline unsigned long native_save_fl(void)
-+{
-+	unsigned long f;
-+	asm volatile("pushfl ; popl %0":"=g" (f): /* no input */);
-+	return f;
-+}
-+
-+static inline void native_restore_fl(unsigned long f)
-+{
-+	asm volatile("pushl %0 ; popfl": /* no output */
-+			     :"g" (f)
-+			     :"memory", "cc");
-+}
-+
-+static inline void native_irq_disable(void)
-+{
-+	asm volatile("cli": : :"memory");
-+}
-+
-+static inline void native_irq_enable(void)
-+{
-+	asm volatile("sti": : :"memory");
-+}
-+
-+static inline void native_safe_halt(void)
-+{
-+	asm volatile("sti; hlt": : :"memory");
-+}
-+
-+static inline void native_halt(void)
-+{
-+	asm volatile("hlt": : :"memory");
-+}
-+#endif	/* __ASSEMBLY__ */
-+
- #ifdef CONFIG_PARAVIRT
- #include <asm/paravirt.h>
- #else
-@@ -17,35 +53,22 @@
- 
- static inline unsigned long __raw_local_save_flags(void)
- {
--	unsigned long flags;
--
--	__asm__ __volatile__(
--		"pushfl ; popl %0"
--		: "=g" (flags)
--		: /* no input */
--	);
--
--	return flags;
-+	return native_save_fl();
- }
- 
- static inline void raw_local_irq_restore(unsigned long flags)
- {
--	__asm__ __volatile__(
--		"pushl %0 ; popfl"
--		: /* no output */
--		:"g" (flags)
--		:"memory", "cc"
--	);
-+	native_restore_fl(flags);
- }
- 
- static inline void raw_local_irq_disable(void)
- {
--	__asm__ __volatile__("cli" : : : "memory");
-+	native_irq_disable();
- }
- 
- static inline void raw_local_irq_enable(void)
- {
--	__asm__ __volatile__("sti" : : : "memory");
-+	native_irq_enable();
- }
- 
- /*
-@@ -54,7 +77,7 @@ static inline void raw_local_irq_enable(
+@@ -480,7 +501,7 @@ static inline void hrtimer_remove_cb_pen
   */
- static inline void raw_safe_halt(void)
+ static inline void hrtimer_init_hres(struct hrtimer_cpu_base *base)
  {
--	__asm__ __volatile__("sti; hlt" : : : "memory");
-+	native_safe_halt();
+-	base->expires_next.tv64 = KTIME_MAX;
++	update_cpu_base_expires_next(base, (ktime_t){ .tv64 = KTIME_MAX });
+ 	base->hres_active = 0;
+ 	INIT_LIST_HEAD(&base->cb_pending);
  }
- 
- /*
-@@ -63,7 +86,7 @@ static inline void raw_safe_halt(void)
+@@ -544,7 +565,8 @@ static inline int hrtimer_enqueue_reprog
   */
- static inline void halt(void)
+ static int hrtimer_switch_to_hres(void)
  {
--	__asm__ __volatile__("hlt": : :"memory");
-+	native_halt();
- }
+-	struct hrtimer_cpu_base *base = &__get_cpu_var(hrtimer_bases);
++	int cpu = smp_processor_id();
++	struct hrtimer_cpu_base *base = &per_cpu(hrtimer_bases, cpu);
+ 	unsigned long flags;
  
- /*
-diff -puN include/asm-i386/msr.h~cleanup-rationalize-paravirt-wrappers include/asm-i386/msr.h
---- a/include/asm-i386/msr.h~cleanup-rationalize-paravirt-wrappers
-+++ a/include/asm-i386/msr.h
-@@ -1,6 +1,74 @@
- #ifndef __ASM_MSR_H
- #define __ASM_MSR_H
+ 	if (base->hres_active)
+@@ -554,6 +576,8 @@ static int hrtimer_switch_to_hres(void)
  
-+#include <asm/errno.h>
-+
-+static inline unsigned long long native_read_msr(unsigned int msr)
-+{
-+	unsigned long long val;
-+
-+	asm volatile("rdmsr" : "=A" (val) : "c" (msr));
-+	return val;
-+}
-+
-+static inline unsigned long long native_read_msr_safe(unsigned int msr,
-+						      int *err)
-+{
-+	unsigned long long val;
-+
-+	asm volatile("2: rdmsr ; xorl %0,%0\n"
-+		     "1:\n\t"
-+		     ".section .fixup,\"ax\"\n\t"
-+		     "3:  movl %3,%0 ; jmp 1b\n\t"
-+		     ".previous\n\t"
-+ 		     ".section __ex_table,\"a\"\n"
-+		     "   .align 4\n\t"
-+		     "   .long 	2b,3b\n\t"
-+		     ".previous"
-+		     : "=r" (*err), "=A" (val)
-+		     : "c" (msr), "i" (-EFAULT));
-+
-+	return val;
-+}
-+
-+static inline void native_write_msr(unsigned int msr, unsigned long long val)
-+{
-+	asm volatile("wrmsr" : : "c" (msr), "A"(val));
-+}
-+
-+static inline int native_write_msr_safe(unsigned int msr,
-+					unsigned long long val)
-+{
-+	int err;
-+	asm volatile("2: wrmsr ; xorl %0,%0\n"
-+		     "1:\n\t"
-+		     ".section .fixup,\"ax\"\n\t"
-+		     "3:  movl %4,%0 ; jmp 1b\n\t"
-+		     ".previous\n\t"
-+ 		     ".section __ex_table,\"a\"\n"
-+		     "   .align 4\n\t"
-+		     "   .long 	2b,3b\n\t"
-+		     ".previous"
-+		     : "=a" (err)
-+		     : "c" (msr), "0" ((u32)val), "d" ((u32)(val>>32)),
-+		       "i" (-EFAULT));
-+	return err;
-+}
-+
-+static inline unsigned long long native_read_tsc(void)
-+{
-+	unsigned long long val;
-+	asm volatile("rdtsc" : "=A" (val));
-+	return val;
-+}
-+
-+static inline unsigned long long native_read_pmc(void)
-+{
-+	unsigned long long val;
-+	asm volatile("rdpmc" : "=A" (val));
-+	return val;
-+}
-+
- #ifdef CONFIG_PARAVIRT
- #include <asm/paravirt.h>
- #else
-@@ -11,22 +79,20 @@
-  * pointer indirection), this allows gcc to optimize better
-  */
- 
--#define rdmsr(msr,val1,val2) \
--	__asm__ __volatile__("rdmsr" \
--			  : "=a" (val1), "=d" (val2) \
--			  : "c" (msr))
--
--#define wrmsr(msr,val1,val2) \
--	__asm__ __volatile__("wrmsr" \
--			  : /* no outputs */ \
--			  : "c" (msr), "a" (val1), "d" (val2))
--
--#define rdmsrl(msr,val) do { \
--	unsigned long l__,h__; \
--	rdmsr (msr, l__, h__);  \
--	val = l__;  \
--	val |= ((u64)h__<<32);  \
--} while(0)
-+#define rdmsr(msr,val1,val2)						\
-+	do {								\
-+		unsigned long long __val = native_read_msr(msr);	\
-+		val1 = __val;						\
-+		val2 = __val >> 32;					\
-+	} while(0)
-+
-+#define wrmsr(msr,val1,val2)						\
-+	native_write_msr(msr, ((unsigned long long)val2 << 32) | val1)
-+
-+#define rdmsrl(msr,val)					\
-+	do {						\
-+		(val) = native_read_msr(msr);		\
-+	} while(0)
- 
- static inline void wrmsrl (unsigned long msr, unsigned long long val)
- {
-@@ -37,50 +103,41 @@ static inline void wrmsrl (unsigned long
- }
- 
- /* wrmsr with exception handling */
--#define wrmsr_safe(msr,a,b) ({ int ret__;						\
--	asm volatile("2: wrmsr ; xorl %0,%0\n"						\
--		     "1:\n\t"								\
--		     ".section .fixup,\"ax\"\n\t"					\
--		     "3:  movl %4,%0 ; jmp 1b\n\t"					\
--		     ".previous\n\t"							\
-- 		     ".section __ex_table,\"a\"\n"					\
--		     "   .align 4\n\t"							\
--		     "   .long 	2b,3b\n\t"						\
--		     ".previous"							\
--		     : "=a" (ret__)							\
--		     : "c" (msr), "0" (a), "d" (b), "i" (-EFAULT));\
--	ret__; })
-+#define wrmsr_safe(msr,val1,val2)						\
-+	(native_write_msr_safe(msr, ((unsigned long long)val2 << 32) | val1))
- 
- /* rdmsr with exception handling */
--#define rdmsr_safe(msr,a,b) ({ int ret__;						\
--	asm volatile("2: rdmsr ; xorl %0,%0\n"						\
--		     "1:\n\t"								\
--		     ".section .fixup,\"ax\"\n\t"					\
--		     "3:  movl %4,%0 ; jmp 1b\n\t"					\
--		     ".previous\n\t"							\
-- 		     ".section __ex_table,\"a\"\n"					\
--		     "   .align 4\n\t"							\
--		     "   .long 	2b,3b\n\t"						\
--		     ".previous"							\
--		     : "=r" (ret__), "=a" (*(a)), "=d" (*(b))				\
--		     : "c" (msr), "i" (-EFAULT));\
--	ret__; })
--
--#define rdtsc(low,high) \
--     __asm__ __volatile__("rdtsc" : "=a" (low), "=d" (high))
--
--#define rdtscl(low) \
--     __asm__ __volatile__("rdtsc" : "=a" (low) : : "edx")
-+#define rdmsr_safe(msr,p1,p2)						\
-+	({								\
-+		int __err;						\
-+		unsigned long long __val = native_read_msr_safe(msr, &__err);\
-+		(*p1) = __val;						\
-+		(*p2) = __val >> 32;					\
-+		__err;							\
-+	})
-+
-+#define rdtsc(low,high)						\
-+	do {							\
-+		u64 _l = native_read_tsc();			\
-+		(low) = (u32)_l;				\
-+		(high) = _l >> 32;				\
-+	} while(0)
-+
-+#define rdtscl(low)						\
-+	do {							\
-+		(low) = native_read_tsc();			\
-+	} while(0)
- 
--#define rdtscll(val) \
--     __asm__ __volatile__("rdtsc" : "=A" (val))
-+#define rdtscll(val) ((val) = native_read_tsc())
- 
- #define write_tsc(val1,val2) wrmsr(0x10, val1, val2)
- 
--#define rdpmc(counter,low,high) \
--     __asm__ __volatile__("rdpmc" \
--			  : "=a" (low), "=d" (high) \
--			  : "c" (counter))
-+#define rdpmc(counter,low,high)					\
-+	do {							\
-+		u64 _l = native_read_pmc();			\
-+		low = (u32)_l;					\
-+		high = _l >> 32;				\
-+	} while(0)
- #endif	/* !CONFIG_PARAVIRT */
- 
- #ifdef CONFIG_SMP
-diff -puN include/asm-i386/paravirt.h~cleanup-rationalize-paravirt-wrappers include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~cleanup-rationalize-paravirt-wrappers
-+++ a/include/asm-i386/paravirt.h
-@@ -29,6 +29,7 @@ struct thread_struct;
- struct Xgt_desc_struct;
- struct tss_struct;
- struct mm_struct;
-+struct desc_struct;
- struct paravirt_ops
- {
- 	unsigned int kernel_rpl;
-@@ -105,14 +106,13 @@ struct paravirt_ops
- 	void (*set_ldt)(const void *desc, unsigned entries);
- 	unsigned long (*store_tr)(void);
- 	void (*load_tls)(struct thread_struct *t, unsigned int cpu);
--	void (*write_ldt_entry)(void *dt, int entrynum,
--					 u32 low, u32 high);
--	void (*write_gdt_entry)(void *dt, int entrynum,
--					 u32 low, u32 high);
--	void (*write_idt_entry)(void *dt, int entrynum,
--					 u32 low, u32 high);
--	void (*load_esp0)(struct tss_struct *tss,
--				   struct thread_struct *thread);
-+	void (*write_ldt_entry)(struct desc_struct *,
-+				int entrynum, u32 low, u32 high);
-+	void (*write_gdt_entry)(struct desc_struct *,
-+				int entrynum, u32 low, u32 high);
-+	void (*write_idt_entry)(struct desc_struct *,
-+				int entrynum, u32 low, u32 high);
-+	void (*load_esp0)(struct tss_struct *tss, struct thread_struct *t);
- 
- 	void (*set_iopl_mask)(unsigned mask);
- 
-@@ -232,6 +232,7 @@ static inline void halt(void)
- 
- #define get_kernel_rpl()  (paravirt_ops.kernel_rpl)
- 
-+/* These should all do BUG_ON(_err), but our headers are too tangled. */
- #define rdmsr(msr,val1,val2) do {				\
- 	int _err;						\
- 	u64 _l = paravirt_ops.read_msr(msr,&_err);		\
-diff -puN include/asm-i386/processor.h~cleanup-rationalize-paravirt-wrappers include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~cleanup-rationalize-paravirt-wrappers
-+++ a/include/asm-i386/processor.h
-@@ -147,7 +147,7 @@ static inline void detect_ht(struct cpui
- #define X86_EFLAGS_VIP	0x00100000 /* Virtual Interrupt Pending */
- #define X86_EFLAGS_ID	0x00200000 /* CPUID detection flag */
- 
--static inline fastcall void native_cpuid(unsigned int *eax, unsigned int *ebx,
-+static inline void native_cpuid(unsigned int *eax, unsigned int *ebx,
- 					 unsigned int *ecx, unsigned int *edx)
- {
- 	/* ecx is often an input as well as an output. */
-@@ -545,13 +545,7 @@ static inline void rep_nop(void)
- 
- #define cpu_relax()	rep_nop()
- 
--#ifdef CONFIG_PARAVIRT
--#include <asm/paravirt.h>
--#else
--#define paravirt_enabled() 0
--#define __cpuid native_cpuid
--
--static inline void load_esp0(struct tss_struct *tss, struct thread_struct *thread)
-+static inline void native_load_esp0(struct tss_struct *tss, struct thread_struct *thread)
- {
- 	tss->esp0 = thread->esp0;
- 	/* This can only happen when SEP is enabled, no need to test "SEP"arately */
-@@ -561,24 +555,60 @@ static inline void load_esp0(struct tss_
+ 	if (tick_init_highres()) {
+ 		local_irq_restore(flags);
++		printk(KERN_WARNING "Could not switch to high resolution "
++				    "mode on CPU %d\n", cpu);
+ 		return 0;
  	}
+ 	base->hres_active = 1;
+@@ -668,6 +692,7 @@ static void enqueue_hrtimer(struct hrtim
+ 	struct rb_node **link = &base->active.rb_node;
+ 	struct rb_node *parent = NULL;
+ 	struct hrtimer *entry;
++	int leftmost = 1;
+ 
+ 	/*
+ 	 * Find the right place in the rbtree:
+@@ -679,18 +704,19 @@ static void enqueue_hrtimer(struct hrtim
+ 		 * We dont care about collisions. Nodes with
+ 		 * the same expiry time stay together.
+ 		 */
+-		if (timer->expires.tv64 < entry->expires.tv64)
++		if (timer->expires.tv64 < entry->expires.tv64) {
+ 			link = &(*link)->rb_left;
+-		else
++		} else {
+ 			link = &(*link)->rb_right;
++			leftmost = 0;
++		}
+ 	}
+ 
+ 	/*
+ 	 * Insert the timer to the rbtree and check whether it
+ 	 * replaces the first pending timer
+ 	 */
+-	if (!base->first || timer->expires.tv64 <
+-	    rb_entry(base->first, struct hrtimer, node)->expires.tv64) {
++	if (leftmost) {
+ 		/*
+ 		 * Reprogram the clock event device. When the timer is already
+ 		 * expired hrtimer_enqueue_reprogram has either called the
+@@ -707,6 +733,9 @@ static void enqueue_hrtimer(struct hrtim
+ 
+ 	rb_link_node(&timer->node, parent, link);
+ 	rb_insert_color(&timer->node, &base->active);
++
++	WARN_ON(base->first != rb_first(&base->active));
++
+ 	/*
+ 	 * HRTIMER_STATE_ENQUEUED is or'ed to the current state to preserve the
+ 	 * state of a possibly running callback.
+@@ -743,6 +772,7 @@ static void __remove_hrtimer(struct hrti
+ 				hrtimer_force_reprogram(base->cpu_base);
+ 		}
+ 		rb_erase(&timer->node, &base->active);
++		WARN_ON(base->first != rb_first(&base->active));
+ 	}
+ 	timer->state = newstate;
+ }
+@@ -1054,7 +1084,7 @@ void hrtimer_interrupt(struct clock_even
+ 		base++;
+ 	}
+ 
+-	cpu_base->expires_next = expires_next;
++	update_cpu_base_expires_next(cpu_base, expires_next);
+ 
+ 	/* Reprogramming necessary ? */
+ 	if (expires_next.tv64 != KTIME_MAX) {
+diff -puN kernel/time/tick-oneshot.c~mm-only-hrtimers-debug-patch kernel/time/tick-oneshot.c
+--- a/kernel/time/tick-oneshot.c~mm-only-hrtimers-debug-patch
++++ a/kernel/time/tick-oneshot.c
+@@ -73,8 +73,19 @@ int tick_switch_to_oneshot(void (*handle
+ 	struct clock_event_device *dev = td->evtdev;
+ 
+ 	if (!dev || !(dev->features & CLOCK_EVT_FEAT_ONESHOT) ||
+-	    !tick_device_is_functional(dev))
++		    !tick_device_is_functional(dev)) {
++
++		printk("could not switch to one-shot clockevents mode.\n");
++		if (!dev) {
++			printk("because no tick device\n");
++		} else {
++			if (!(dev->features & CLOCK_EVT_FEAT_ONESHOT))
++				printk("because %s does not support one-shot mode.\n", dev->name);
++			if (!tick_device_is_functional(dev))
++				printk("because %s is not functional.\n", dev->name);
++		}
+ 		return -EINVAL;
++	}
+ 
+ 	td->mode = TICKDEV_MODE_ONESHOT;
+ 	dev->event_handler = handler;
+diff -puN kernel/time/timer_list.c~mm-only-hrtimers-debug-patch kernel/time/timer_list.c
+--- a/kernel/time/timer_list.c~mm-only-hrtimers-debug-patch
++++ a/kernel/time/timer_list.c
+@@ -46,7 +46,7 @@ static void print_name_offset(struct seq
+ 
+ 	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
+ 	if (sym_name)
+-		SEQ_printf(m, "%s", sym_name);
++		SEQ_printf(m, "%s+%lx/%lx", sym_name, offset, size);
+ 	else
+ 		SEQ_printf(m, "<%p>", sym);
+ }
+@@ -129,6 +129,23 @@ print_base(struct seq_file *m, struct hr
+ 	print_active_timers(m, base, now);
  }
  
--/*
-- * These special macros can be used to get or set a debugging register
-- */
--#define get_debugreg(var, register)				\
--		__asm__("movl %%db" #register ", %0"		\
--			:"=r" (var))
--#define set_debugreg(value, register)			\
--		__asm__("movl %0,%%db" #register		\
--			: /* no output */			\
--			:"r" (value))
- 
--#define set_iopl_mask native_set_iopl_mask
--#endif /* CONFIG_PARAVIRT */
-+static inline unsigned long native_get_debugreg(int regno)
++static void print_cpu_base_stack_trace(struct seq_file *m,
++				       struct hrtimer_cpu_base *cpu_base)
 +{
-+	unsigned long val = 0; 	/* Damn you, gcc! */
++#ifdef CONFIG_STACKTRACE
++	struct stack_trace *trace = &cpu_base->exp_trace;
++	int i;
 +
-+	switch (regno) {
-+	case 0:
-+		asm("movl %%db0, %0" :"=r" (val)); break;
-+	case 1:
-+		asm("movl %%db1, %0" :"=r" (val)); break;
-+	case 2:
-+		asm("movl %%db2, %0" :"=r" (val)); break;
-+	case 3:
-+		asm("movl %%db3, %0" :"=r" (val)); break;
-+	case 6:
-+		asm("movl %%db6, %0" :"=r" (val)); break;
-+	case 7:
-+		asm("movl %%db7, %0" :"=r" (val)); break;
-+	default:
-+		BUG();
++	SEQ_printf(m, " last expires_next stacktrace:\n");
++	for (i = 0; i < trace->nr_entries; i++) {
++		SEQ_printf(m, "  ");
++		print_name_offset(m, (void *)trace->entries[i]);
++		SEQ_printf(m, "\n");
 +	}
-+	return val;
++	SEQ_printf(m, "\n");
++#endif
 +}
 +
-+static inline void native_set_debugreg(int regno, unsigned long value)
-+{
-+	switch (regno) {
-+	case 0:
-+		asm("movl %0,%%db0"	: /* no output */ :"r" (value));
-+		break;
-+	case 1:
-+		asm("movl %0,%%db1"	: /* no output */ :"r" (value));
-+		break;
-+	case 2:
-+		asm("movl %0,%%db2"	: /* no output */ :"r" (value));
-+		break;
-+	case 3:
-+		asm("movl %0,%%db3"	: /* no output */ :"r" (value));
-+		break;
-+	case 6:
-+		asm("movl %0,%%db6"	: /* no output */ :"r" (value));
-+		break;
-+	case 7:
-+		asm("movl %0,%%db7"	: /* no output */ :"r" (value));
-+		break;
-+	default:
-+		BUG();
-+	}
-+}
- 
- /*
-  * Set IOPL bits in EFLAGS from given mask
-  */
--static fastcall inline void native_set_iopl_mask(unsigned mask)
-+static inline void native_set_iopl_mask(unsigned mask)
+ static void print_cpu(struct seq_file *m, int cpu, u64 now)
  {
- 	unsigned int reg;
- 	__asm__ __volatile__ ("pushfl;"
-@@ -591,6 +621,28 @@ static fastcall inline void native_set_i
- 				: "i" (~X86_EFLAGS_IOPL), "r" (mask));
- }
+ 	struct hrtimer_cpu_base *cpu_base = &per_cpu(hrtimer_bases, cpu);
+@@ -147,6 +164,8 @@ static void print_cpu(struct seq_file *m
  
-+#ifdef CONFIG_PARAVIRT
-+#include <asm/paravirt.h>
-+#else
-+#define paravirt_enabled() 0
-+#define __cpuid native_cpuid
-+
-+static inline void load_esp0(struct tss_struct *tss, struct thread_struct *thread)
-+{
-+	native_load_esp0(tss, thread);
-+}
-+
-+/*
-+ * These special macros can be used to get or set a debugging register
-+ */
-+#define get_debugreg(var, register)				\
-+	(var) = native_get_debugreg(register)
-+#define set_debugreg(value, register)				\
-+	native_set_debugreg(register, value)
-+
-+#define set_iopl_mask native_set_iopl_mask
-+#endif /* CONFIG_PARAVIRT */
-+
- /*
-  * Generic CPUID function
-  * clear %ecx since some cpus (Cyrix MII) do not set or clear %ecx
-diff -puN include/asm-i386/system.h~cleanup-rationalize-paravirt-wrappers include/asm-i386/system.h
---- a/include/asm-i386/system.h~cleanup-rationalize-paravirt-wrappers
-+++ a/include/asm-i386/system.h
-@@ -88,65 +88,96 @@ __asm__ __volatile__ ("movw %%dx,%1\n\t"
- #define savesegment(seg, value) \
- 	asm volatile("mov %%" #seg ",%0":"=rm" (value))
- 
--#ifdef CONFIG_PARAVIRT
--#include <asm/paravirt.h>
--#else
--#define read_cr0() ({ \
--	unsigned int __dummy; \
--	__asm__ __volatile__( \
--		"movl %%cr0,%0\n\t" \
--		:"=r" (__dummy)); \
--	__dummy; \
--})
--#define write_cr0(x) \
--	__asm__ __volatile__("movl %0,%%cr0": :"r" (x))
- 
--#define read_cr2() ({ \
--	unsigned int __dummy; \
--	__asm__ __volatile__( \
--		"movl %%cr2,%0\n\t" \
--		:"=r" (__dummy)); \
--	__dummy; \
--})
--#define write_cr2(x) \
--	__asm__ __volatile__("movl %0,%%cr2": :"r" (x))
-+static inline void native_clts(void)
-+{
-+	asm volatile ("clts");
-+}
- 
--#define read_cr3() ({ \
--	unsigned int __dummy; \
--	__asm__ ( \
--		"movl %%cr3,%0\n\t" \
--		:"=r" (__dummy)); \
--	__dummy; \
--})
--#define write_cr3(x) \
--	__asm__ __volatile__("movl %0,%%cr3": :"r" (x))
-+static inline unsigned long native_read_cr0(void)
-+{
-+	unsigned long val;
-+	asm volatile("movl %%cr0,%0\n\t" :"=r" (val));
-+	return val;
-+}
- 
--#define read_cr4() ({ \
--	unsigned int __dummy; \
--	__asm__( \
--		"movl %%cr4,%0\n\t" \
--		:"=r" (__dummy)); \
--	__dummy; \
--})
--#define read_cr4_safe() ({			      \
--	unsigned int __dummy;			      \
--	/* This could fault if %cr4 does not exist */ \
--	__asm__("1: movl %%cr4, %0		\n"   \
--		"2:				\n"   \
--		".section __ex_table,\"a\"	\n"   \
--		".long 1b,2b			\n"   \
--		".previous			\n"   \
--		: "=r" (__dummy): "0" (0));	      \
--	__dummy;				      \
--})
--#define write_cr4(x) \
--	__asm__ __volatile__("movl %0,%%cr4": :"r" (x))
-+static inline void native_write_cr0(unsigned long val)
-+{
-+	asm volatile("movl %0,%%cr0": :"r" (val));
-+}
-+
-+static inline unsigned long native_read_cr2(void)
-+{
-+	unsigned long val;
-+	asm volatile("movl %%cr2,%0\n\t" :"=r" (val));
-+	return val;
-+}
- 
--#define wbinvd() \
--	__asm__ __volatile__ ("wbinvd": : :"memory")
-+static inline void native_write_cr2(unsigned long val)
-+{
-+	asm volatile("movl %0,%%cr2": :"r" (val));
-+}
-+
-+static inline unsigned long native_read_cr3(void)
-+{
-+	unsigned long val;
-+	asm volatile("movl %%cr3,%0\n\t" :"=r" (val));
-+	return val;
-+}
-+
-+static inline void native_write_cr3(unsigned long val)
-+{
-+	asm volatile("movl %0,%%cr3": :"r" (val));
-+}
-+
-+static inline unsigned long native_read_cr4(void)
-+{
-+	unsigned long val;
-+	asm volatile("movl %%cr4,%0\n\t" :"=r" (val));
-+	return val;
-+}
-+
-+static inline unsigned long native_read_cr4_safe(void)
-+{
-+	unsigned long val;
-+	/* This could fault if %cr4 does not exist */
-+	asm("1: movl %%cr4, %0		\n"
-+		"2:				\n"
-+		".section __ex_table,\"a\"	\n"
-+		".long 1b,2b			\n"
-+		".previous			\n"
-+		: "=r" (val): "0" (0));
-+	return val;
-+}
-+
-+static inline void native_write_cr4(unsigned long val)
-+{
-+	asm volatile("movl %0,%%cr4": :"r" (val));
-+}
-+
-+static inline void native_wbinvd(void)
-+{
-+	asm volatile("wbinvd": : :"memory");
-+}
-+
-+
-+#ifdef CONFIG_PARAVIRT
-+#include <asm/paravirt.h>
-+#else
-+#define read_cr0()	(native_read_cr0())
-+#define write_cr0(x)	(native_write_cr0(x))
-+#define read_cr2()	(native_read_cr2())
-+#define write_cr2(x)	(native_write_cr2(x))
-+#define read_cr3()	(native_read_cr3())
-+#define write_cr3(x)	(native_write_cr3(x))
-+#define read_cr4()	(native_read_cr4())
-+#define read_cr4_safe()	(native_read_cr4_safe())
-+#define write_cr4(x)	(native_write_cr4(x))
-+#define wbinvd()	(native_wbinvd())
- 
- /* Clear the 'TS' bit */
--#define clts() __asm__ __volatile__ ("clts")
-+#define clts()		(native_clts())
-+
- #endif/* CONFIG_PARAVIRT */
- 
- /* Set the 'TS' bit */
+ #ifdef CONFIG_HIGH_RES_TIMERS
+ 	P_ns(expires_next);
++	P_ns(exp_prev);
++	print_cpu_base_stack_trace(m, cpu_base);
+ 	P(hres_active);
+ 	P(nr_events);
+ #endif
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-i386-vdso_prelink-warning-fix.patch
-cleanup-initialize-esp0-properly-all-the-time.patch
-lguest-preparation-export_symbol_gpl-5-functions.patch
-lguest-preparation-expose-futex-infrastructure.patch
-lguest-kconfig-and-headers.patch
-lguest-the-host-code-lgko.patch
-lguest-the-host-code-lgko-cleanup-allocate-separate-pages-for-switcher-code.patch
-lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
-lguest-the-host-code-lgko-pin-stack-page-optimization.patch
-lguest-guest-code.patch
-lguest-clean-up-some-references-inittext-warnings.patch
-lguest-clean-up-some-references-inittext-warnings-2.patch
-lguest-makefile.patch
-lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
-lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
-lguest-compile-hypervisors-into-the-lg-module-directly.patch
-lguest-dont-crash-host-on-nmi.patch
-lguest-trivial-guest-network-driver.patch
-lguest-trivial-guest-console-driver.patch
-lguest-trivial-guest-block-driver.patch
-lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
-lguest-documentatation-and-example-launcher.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
-lguest-documentatation-and-example-launcher-bridging-support-in-example-codelguest-documentation-fixes.patch
-introduce-load_tls-to-the-for-loop.patch
-remove-unused-set_seg_base.patch
-clarify-config_reorder-explanation.patch
+origin.patch
+time-fix-formatting-in-proc-timer_list.patch
+correct-slow-acpi_pm-rating.patch
+git-ieee1394.patch
+git-kvm.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-do-not-enable-the-nmi-watchdog-by-default.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+log-reason-why-tsc-was-marked-unstable.patch
 allow-per-cpu-variables-to-be-page-aligned.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
-i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
-i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
-i386-gdt-cleanups-clean-up-cpu_init.patch
-i386-gdt-cleanups-cleanup-gdt-access.patch
-i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt.patch
-cleanup-rationalize-paravirt-wrappers.patch
-array_size-check-for-type.patch
-array_size-check-for-type-uml-fix.patch
-module-use-krealloc.patch
-extend-print_symbol-capability.patch
-extend-print_symbol-capability-fix.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+optimize-timespec_trunc.patch
 futex-restartable-futex_wait.patch
 futex-restartable-futex_wait-fix.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-____call_usermodehelper-dont-flush_signals.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+lists-add-list-splice-tail.patch
+sched-remove-sleepavg-from-proc.patch
+sched-remove-noninteractive-flag.patch
+sched-implement-rsdl-cpu-scheduler.patch
+sched-document-rsdl-cpu-scheduler.patch
+sched-rsdl-improvements.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+futex_requeue_pi-optimization.patch
+sys_futex64-allows-64bit-futexes.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+mm-only-hrtimers-debug-patch.patch
