@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + integrity-evm-as-an-integrity-service-provider-tidy.patch added to -mm tree
-Date: Sun, 25 Mar 2007 00:14:58 -0800
-Message-ID: <200703250814.l2P8EwRW023533@shell0.pdx.osdl.net>
+Subject: + integrity-ima-integrity_measure-support-tidy.patch added to -mm tree
+Date: Sun, 25 Mar 2007 00:24:28 -0800
+Message-ID: <200703250824.l2P8OS59023687@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35990 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36141 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753489AbXCYIPL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 04:15:11 -0400
+	id S932773AbXCYIYg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 04:24:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@linux.vnet.ibm.com, zoha
 
 
 The patch titled
-     integrity-evm-as-an-integrity-service-provider-tidy
+     integrity-ima-integrity_measure-support-tidy
 has been added to the -mm tree.  Its filename is
-     integrity-evm-as-an-integrity-service-provider-tidy.patch
+     integrity-ima-integrity_measure-support-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: integrity-evm-as-an-integrity-service-provider-tidy
+Subject: integrity-ima-integrity_measure-support-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Kylene Hall <kjhall@us.ibm.com>
@@ -34,200 +34,165 @@ Cc: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/mount.c          |    3 ---
- include/linux/magic.h     |    1 +
- security/evm/evm.h        |    2 --
- security/evm/evm_config.c |   19 ++++++++++---------
- security/evm/evm_crypto.c |    8 +++-----
- security/evm/evm_main.c   |   10 ++++------
- 6 files changed, 18 insertions(+), 25 deletions(-)
+ security/evm/evm_secfs.c     |    1 -
+ security/evm/ima/ima.h       |    3 +--
+ security/evm/ima/ima_fs.c    |   17 ++++++-----------
+ security/evm/ima/ima_init.c  |   10 +++++-----
+ security/evm/ima/ima_queue.c |   10 +++++-----
+ 5 files changed, 17 insertions(+), 24 deletions(-)
 
-diff -puN fs/sysfs/mount.c~integrity-evm-as-an-integrity-service-provider-tidy fs/sysfs/mount.c
---- a/fs/sysfs/mount.c~integrity-evm-as-an-integrity-service-provider-tidy
-+++ a/fs/sysfs/mount.c
-@@ -12,9 +12,6 @@
- 
- #include "sysfs.h"
- 
--/* Random magic number */
--#define SYSFS_MAGIC 0x62656572
+diff -puN security/evm/evm_secfs.c~integrity-ima-integrity_measure-support-tidy security/evm/evm_secfs.c
+--- a/security/evm/evm_secfs.c~integrity-ima-integrity_measure-support-tidy
++++ a/security/evm/evm_secfs.c
+@@ -103,7 +103,6 @@ static ssize_t evm_write_secfs(struct fi
+ 	size_t rc = buflen;
+ 	char *data;
+ 	int error;
 -
- struct vfsmount *sysfs_mount;
- struct super_block * sysfs_sb = NULL;
- struct kmem_cache *sysfs_dir_cachep;
-diff -puN include/linux/magic.h~integrity-evm-as-an-integrity-service-provider-tidy include/linux/magic.h
---- a/include/linux/magic.h~integrity-evm-as-an-integrity-service-provider-tidy
-+++ a/include/linux/magic.h
-@@ -20,6 +20,7 @@
- #define MINIX2_SUPER_MAGIC	0x2468		/* minix V2 fs */
- #define MINIX2_SUPER_MAGIC2	0x2478		/* minix V2 fs, 30 char names */
- #define MINIX3_SUPER_MAGIC	0x4d5a		/* minix V3 fs */
-+#define SYSFS_MAGIC		0x62656572
+ 	struct evm_xattr_config *evm_data = NULL;
+ 	int evm_datasize;
  
- #define MSDOS_SUPER_MAGIC	0x4d44		/* MD */
- #define NCP_SUPER_MAGIC		0x564c		/* Guess, what 0x564c is :-) */
-diff -puN security/evm/evm.h~integrity-evm-as-an-integrity-service-provider-tidy security/evm/evm.h
---- a/security/evm/evm.h~integrity-evm-as-an-integrity-service-provider-tidy
-+++ a/security/evm/evm.h
-@@ -8,7 +8,6 @@
- #include <linux/spinlock_types.h>
- #include <linux/integrity.h>
+diff -puN security/evm/ima/ima.h~integrity-ima-integrity_measure-support-tidy security/evm/ima/ima.h
+--- a/security/evm/ima/ima.h~integrity-ima-integrity_measure-support-tidy
++++ a/security/evm/ima/ima.h
+@@ -97,8 +97,7 @@ static inline void ima_pcrread(int idx, 
+ 	if (!ima_used_chip)
+ 		return;
  
--#define DEVFS_SUPER_MAGIC	0x1373
- #define MAX_DIGEST_SIZE 	20	/* 160-bits */
- 
- extern char *evm_hmac, *evm_hash;
-@@ -48,7 +47,6 @@ struct evm_iint_cache {
- 	struct mutex mutex;
+-	if (tpm_pcr_read(IMA_TPM, idx, pcr, pcr_size) != 0) {
++	if (tpm_pcr_read(IMA_TPM, idx, pcr, pcr_size) != 0)
+ 		ima_error("Error Communicating to TPM chip\n");
+-	}
+ }
+ #endif
+diff -puN security/evm/ima/ima_fs.c~integrity-ima-integrity_measure-support-tidy security/evm/ima/ima_fs.c
+--- a/security/evm/ima/ima_fs.c~integrity-ima-integrity_measure-support-tidy
++++ a/security/evm/ima/ima_fs.c
+@@ -172,7 +172,6 @@ static struct file_operations ima_measur
+ 	.release = seq_release,
  };
  
--extern void display_config(const char *);
- extern struct evm_xattr_config *evm_parse_config(char *data,
- 						 unsigned long datalen,
- 						 int *datasize);
-diff -puN security/evm/evm_config.c~integrity-evm-as-an-integrity-service-provider-tidy security/evm/evm_config.c
---- a/security/evm/evm_config.c~integrity-evm-as-an-integrity-service-provider-tidy
-+++ a/security/evm/evm_config.c
-@@ -18,17 +18,17 @@
-  * Configuration data
-  */
- struct evm_xattr_config *evm_config_xattrdata;
--int evm_config_xattrnum = 0;	/* number of extended attributes */
-+int evm_config_xattrnum;	/* number of extended attributes */
- 
- /*
-  * inode->i_integrity information
-  */
--void display_config(const char *name)
-+static void display_config(const char *name)
+-
+ /* print in ascii */
+ static int ima_ascii_measurements_show(struct seq_file *m, void *v)
  {
- 	struct evm_xattr_config *config_p;
+@@ -221,21 +220,18 @@ static struct file_operations ima_ascii_
+ 	.release = seq_release,
+ };
  
- 	for_each_xattr(config_p, evm_config_xattrdata, evm_config_xattrnum)
--	    printk(KERN_INFO "%s: %s\n", name, config_p->xattr_name);
-+		printk(KERN_INFO "%s: %s\n", name, config_p->xattr_name);
+-static struct dentry
+-		*ima_dir = NULL,
+-		*binary_runtime_measurements = NULL,
+-    		*ascii_runtime_measurements = NULL,
+-		*runtime_measurements_count = NULL,
+-		*violations = NULL;
++static struct dentry *ima_dir;
++static struct dentry *binary_runtime_measurements;
++static struct dentry *ascii_runtime_measurements;
++static struct dentry *runtime_measurements_count;
++static struct dentry *violations;
+ 
+ int ima_fs_init(void)
+ {
+-
+ 	ima_dir = securityfs_create_dir("ima", NULL);
+ 	if (!ima_dir || IS_ERR(ima_dir))
+ 		return -1;
+ 
+-
+ 	binary_runtime_measurements =
+ 	    securityfs_create_file("binary_runtime_measurements",
+ 				   S_IRUSR | S_IRGRP, ima_dir, NULL,
+@@ -265,13 +261,12 @@ int ima_fs_init(void)
+ 		goto out;
+ 	return 0;
+ 
+-
+ out:
+ 	securityfs_remove(runtime_measurements_count);
+ 	securityfs_remove(ascii_runtime_measurements);
+ 	securityfs_remove(binary_runtime_measurements);
+ 	securityfs_remove(ima_dir);
+-    return -1;
++	return -1;
  }
  
- /*
-@@ -42,7 +42,6 @@ int evm_init_config(struct evm_xattr_con
- 		evm_config_xattrdata = evm_data;
- 		evm_config_xattrnum = evm_datasize;
- 		display_config(__FUNCTION__);
--
- 	} else {
- 		printk(KERN_INFO "%s: config file definition missing\n",
- 		       __FUNCTION__);
-@@ -60,9 +59,11 @@ static char *get_tag(char *buf_start, ch
- 	/* Get start of tag */
- 	while (bufp < buf_end) {
- 		if (*bufp == ' ')	/* skip blanks */
--			while ((*bufp == ' ') && (bufp++ < buf_end)) ;
-+			while ((*bufp == ' ') && (bufp++ < buf_end))
-+				;
- 		else if (*bufp == '#') {	/* skip comment */
--			while ((*bufp != '\n') && (bufp++ < buf_end)) ;
-+			while ((*bufp != '\n') && (bufp++ < buf_end))
-+				;
- 			bufp++;
- 		} else if (*bufp == '\n')	/* skip newline */
- 			bufp++;
-@@ -107,8 +108,8 @@ struct evm_xattr_config *evm_parse_confi
- 	*xattrnum = num_xattr;
+ void __exit ima_fs_cleanup(void)
+diff -puN security/evm/ima/ima_init.c~integrity-ima-integrity_measure-support-tidy security/evm/ima/ima_init.c
+--- a/security/evm/ima/ima_init.c~integrity-ima-integrity_measure-support-tidy
++++ a/security/evm/ima/ima_init.c
+@@ -21,9 +21,9 @@
+ /* name for boot aggregate entry */
+ static char *boot_aggregate_name = "boot_aggregate";
+ static const char version[] = "v7.6 02/27/2007";
+-static const char illegal_pcr[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
++static const char illegal_pcr[20];
  
- 	datap = data;
--	config_xattrdata =
--	    kmalloc(num_xattr * sizeof(struct evm_xattr_config), GFP_KERNEL);
-+	config_xattrdata = kmalloc(num_xattr * sizeof(struct evm_xattr_config),
-+				GFP_KERNEL);
- 	if (!config_xattrdata)
- 		return NULL;
+-int ima_used_chip = 0;
++int ima_used_chip;
  
-@@ -123,7 +124,7 @@ struct evm_xattr_config *evm_parse_confi
- 	return config_xattrdata;
- }
- 
--inline void evm_cleanup_config(void)
-+void evm_cleanup_config(void)
+ static void ima_add_boot_aggregate(void)
  {
- 	kfree(evm_config_xattrdata);
- }
-diff -puN security/evm/evm_crypto.c~integrity-evm-as-an-integrity-service-provider-tidy security/evm/evm_crypto.c
---- a/security/evm/evm_crypto.c~integrity-evm-as-an-integrity-service-provider-tidy
-+++ a/security/evm/evm_crypto.c
-@@ -33,7 +33,7 @@
- static unsigned char tpm_key[MAX_TPMKEY];
- static int tpm_keylen = MAX_TPMKEY;
+@@ -33,8 +33,7 @@ static void ima_add_boot_aggregate(void)
+ 	int err;
  
--int update_file_hash(struct dentry *dentry, struct file *f,
-+static int update_file_hash(struct dentry *dentry, struct file *f,
- 		     struct hash_desc *desc)
- {
- 	struct file *file = f;
-@@ -217,11 +217,9 @@ int evm_calc_hmac(struct dentry *dentry,
- 	struct scatterlist sg[1];
- 	char *fname;
- 	int error = 0;
--
- 	struct evm_xattr_config *config_p;
- 	int xattr_size = 0;
- 	char *xattr_value = NULL;
--
- 	struct h_misc {
- 		unsigned long ino;
- 		__u32 generation;
-@@ -278,7 +276,7 @@ int evm_calc_hmac(struct dentry *dentry,
- 					__FUNCTION__, fname,
- 					config_p->xattr_name);
- 		}
--	};
-+	}
- 	kfree(xattr_value);
- 	memset(hmac_misc, 0, sizeof misc);
- 	hmac_misc->ino = inode->i_ino;
-@@ -331,7 +329,7 @@ int evm_init_tpmkernkey(void)
+ 	/* create new entry for boot aggregate */
+-	entry = (struct measure_entry *)
+-	    kzalloc(sizeof(struct measure_entry), GFP_ATOMIC);
++	entry = kzalloc(sizeof(struct measure_entry), GFP_ATOMIC);
+ 	if (entry == NULL) {
+ 		ima_invalidate_pcr("error allocating new measurement entry");
+ 		return;
+@@ -101,7 +100,8 @@ int ima_init(void)
+ 		ima_used_chip = 1;
  
- 	kmk = request_key(&key_type_user, TPMKEY, NULL);
- 	if (IS_ERR(kmk)) {
--		return (-1);
-+		return -1;
- 	} else {
- 		down_read(&kmk->sem);
- 		ukp = kmk->payload.data;
-diff -puN security/evm/evm_main.c~integrity-evm-as-an-integrity-service-provider-tidy security/evm/evm_main.c
---- a/security/evm/evm_main.c~integrity-evm-as-an-integrity-service-provider-tidy
-+++ a/security/evm/evm_main.c
-@@ -24,6 +24,7 @@
- #include <linux/proc_fs.h>
- #include <linux/xattr.h>
- #include <linux/file.h>
-+#include <linux/magic.h>
- #include <linux/writeback.h>
- #include "evm_integrity.h"
- #include "evm.h"
-@@ -363,10 +364,7 @@ static int evm_verify_data(struct dentry
+ 	if (!ima_used_chip)
+-		ima_info("No TPM chip found(rc = %d), activating TPM-bypass!\n", rc);
++		ima_info("No TPM chip found(rc = %d), activating TPM-bypass!\n",
++			rc);
+ 
+ 	create_htable();	/* for measurements */
+ 
+diff -puN security/evm/ima/ima_queue.c~integrity-ima-integrity_measure-support-tidy security/evm/ima/ima_queue.c
+--- a/security/evm/ima/ima_queue.c~integrity-ima-integrity_measure-support-tidy
++++ a/security/evm/ima/ima_queue.c
+@@ -32,7 +32,7 @@ DEFINE_SPINLOCK(ima_queue_lock);
+  * and extending the TPM PCR aggregate. Since tpm_extend can take
+  * long (and the tpm driver uses a mutex), we can't use the spinlock.
   */
- static int skip_measurement(struct inode *inode, int mask)
+-static DECLARE_MUTEX(ima_extend_list_mutex);
++static DEFINE_MUTEX(ima_extend_list_mutex);
+ 
+ void create_htable(void)
  {
--#define SYSFS_MAGIC 0x62656572
--
--	if ((inode->i_sb->s_magic == DEVFS_SUPER_MAGIC) ||
--	    (inode->i_sb->s_magic == PROC_SUPER_MAGIC) ||
-+	if ((inode->i_sb->s_magic == PROC_SUPER_MAGIC) ||
- 	    (inode->i_sb->s_magic == SYSFS_MAGIC)) {
- 		return 1;	/*can't measure */
+@@ -49,7 +49,7 @@ void create_htable(void)
+ 		atomic_set(&ima_htable.queue_len[i], 0);
  	}
-@@ -877,9 +875,9 @@ static void evm_enable_integrity(void)
  
- static void evm_cleanup_integrity(void)
- {
--	if (evm_install) {
-+	if (evm_install)
- 		unregister_integrity(&evm_install_ops);
--	} else
-+	else
- 		unregister_integrity(&evm_integrity_ops);
+-	init_MUTEX(&ima_extend_list_mutex);
++	mutex_init(&ima_extend_list_mutex);
+ 	spin_unlock(&ima_queue_lock);
  }
  
+@@ -95,7 +95,7 @@ int ima_add_measure_entry(struct measure
+ 	struct queue_entry *qe;
+ 	int error = 0;
+ 
+-	down(&ima_extend_list_mutex);
++	mutex_lock(&ima_extend_list_mutex);
+ 	spin_lock(&ima_queue_lock);
+ 	if (ima_lookup_digest_entry(entry->digest)) {
+ 		error = -EEXIST;
+@@ -122,7 +122,7 @@ int ima_add_measure_entry(struct measure
+ 	}
+ 	spin_unlock(&ima_queue_lock);
+ 	ima_extend(entry->digest);
+-      out:
+-	up(&ima_extend_list_mutex);
++out:
++	mutex_unlock(&ima_extend_list_mutex);
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -303,4 +268,5 @@ local_t-powerpc-extension.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 fbdev-hecuba-framebuffer-driver.patch
 integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-ima-integrity_measure-support-tidy.patch
 mm-only-free-swap-space-of-reactivated-pages-debug.patch
