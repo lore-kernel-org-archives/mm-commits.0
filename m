@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + protect-tty-drivers-list-with-tty_mutex.patch added to -mm tree
-Date: Sat, 24 Mar 2007 23:27:33 -0800
-Message-ID: <200703250727.l2P7RXcK022772@shell0.pdx.osdl.net>
+Subject: + ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path.patch added to -mm tree
+Date: Sat, 24 Mar 2007 23:28:41 -0800
+Message-ID: <200703250728.l2P7SfpS022801@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34952 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34970 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753241AbXCYH2R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 03:28:17 -0400
+	id S1753247AbXCYH25 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 03:28:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, alan@lxorguk.ukuu.org.uk
+Cc: fenkes@de.ibm.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     Protect tty drivers list with tty_mutex
+     ibmebus: change probe/remove interface from using loc-code to DT path
 has been added to the -mm tree.  Its filename is
-     protect-tty-drivers-list-with-tty_mutex.patch
+     ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,115 +25,215 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Protect tty drivers list with tty_mutex
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: ibmebus: change probe/remove interface from using loc-code to DT path
+From: Joachim Fenkes <fenkes@de.ibm.com>
 
-Additions and removal from tty_drivers list were just done as well as
-iterating on it for /proc/tty/drivers generation.
+In some cases, multiple OFDT nodes might share the same location code, so
+the location code is not a unique identifier for an OFDT node.  Changed the
+ibmebus probe/remove interface to use the DT path of the device node
+instead of the location code.
 
-testing: modprobe/rmmod loop of simple module which does nothing but
-tty_register_driver() vs cat /proc/tty/drivers loop
+The DT path must be written into probe/remove right as it would appear in
+the "devspec" attribute of the ebus device: relative to the DT root, with a
+leading slash and without a trailing slash.  One trailing newline will not
+hurt; multiple newlines will (like perl's chomp()).
 
-BUG: unable to handle kernel paging request at virtual address 6b6b6b6b
- printing eip:
-c01cefa7
-*pde = 00000000
-Oops: 0000 [#1]
-PREEMPT
-last sysfs file: devices/pci0000:00/0000:00:1d.7/usb5/5-0:1.0/bInterfaceProtocol
-Modules linked in: ohci_hcd af_packet e1000 ehci_hcd uhci_hcd usbcore xfs
-CPU:    0
-EIP:    0060:[<c01cefa7>]    Not tainted VLI
-EFLAGS: 00010297   (2.6.21-rc4-mm1 #4)
-EIP is at vsnprintf+0x3a4/0x5fc
-eax: 6b6b6b6b   ebx: f6cb50f2   ecx: 6b6b6b6b   edx: fffffffe
-esi: c0354700   edi: f6cb6000   ebp: 6b6b6b6b   esp: f31f5e68
-ds: 007b   es: 007b   fs: 00d8  gs: 0033  ss: 0068
-Process cat (pid: 31864, ti=f31f4000 task=c1998030 task.ti=f31f4000)
-Stack: 00000000 c0103f20 c013003a c0103f20 00000000 f6cb50da 0000000a 00000f0e
-       f6cb50f2 00000010 00000014 ffffffff ffffffff 00000007 c0354753 f6cb50f2
-       f73e39dc f73e39dc 00000001 c0175416 f31f5ed8 f31f5ed4 0ee00000 f32090bc
-Call Trace:
- [<c0103f20>] restore_nocheck+0x12/0x15
- [<c013003a>] mark_held_locks+0x6d/0x86
- [<c0103f20>] restore_nocheck+0x12/0x15
- [<c0175416>] seq_printf+0x2e/0x52
- [<c0192895>] show_tty_range+0x35/0x1f3
- [<c0175416>] seq_printf+0x2e/0x52
- [<c0192add>] show_tty_driver+0x8a/0x1d9
- [<c01758f6>] seq_read+0x70/0x2ba
- [<c0175886>] seq_read+0x0/0x2ba
- [<c018d8e6>] proc_reg_read+0x63/0x9f
- [<c015e764>] vfs_read+0x7d/0xb5
- [<c018d883>] proc_reg_read+0x0/0x9f
- [<c015eab1>] sys_read+0x41/0x6a
- [<c0103e4e>] sysenter_past_esp+0x5f/0x99
- =======================
-Code: 00 8b 4d 04 e9 44 ff ff ff 8d 4d 04 89 4c 24 50 8b 6d 00 81 fd ff 0f 00 00 b8 a4 c1 35 c0 0f 46 e8 8b 54 24 2c 89 e9 89 c8 eb 06 <80> 38 00 74 07 40 4a 83 fa ff 75 f4 29 c8 89 c6 8b 44 24 28 89
-EIP: [<c01cefa7>] vsnprintf+0x3a4/0x5fc SS:ESP 0068:f31f5e68
+Example:
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+ Add a device "/proc/device-tree/foo@12345678" to ibmebus like this:
+    echo /foo@12345678 > /sys/bus/ibmebus/probe
+
+ Remove the device like this:
+    echo /foo@12345678 > /sys/bus/ibmebus/remove
+
+Signed-off-by: Joachim Fenkes <fenkes@de.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    5 ++++-
- fs/proc/proc_tty.c    |    3 +++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ arch/powerpc/kernel/ibmebus.c |  118 ++++++++++++++++----------------
+ 1 file changed, 61 insertions(+), 57 deletions(-)
 
-diff -puN drivers/char/tty_io.c~protect-tty-drivers-list-with-tty_mutex drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~protect-tty-drivers-list-with-tty_mutex
-+++ a/drivers/char/tty_io.c
-@@ -3771,7 +3771,9 @@ int tty_register_driver(struct tty_drive
- 	if (!driver->put_char)
- 		driver->put_char = tty_default_put_char;
- 	
-+	mutex_lock(&tty_mutex);
- 	list_add(&driver->tty_drivers, &tty_drivers);
-+	mutex_unlock(&tty_mutex);
- 	
- 	if ( !(driver->flags & TTY_DRIVER_DYNAMIC_DEV) ) {
- 		for(i = 0; i < driver->num; i++)
-@@ -3797,8 +3799,9 @@ int tty_unregister_driver(struct tty_dri
+diff -puN arch/powerpc/kernel/ibmebus.c~ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path arch/powerpc/kernel/ibmebus.c
+--- a/arch/powerpc/kernel/ibmebus.c~ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path
++++ a/arch/powerpc/kernel/ibmebus.c
+@@ -44,8 +44,6 @@
+ #include <asm/ibmebus.h>
+ #include <asm/abs_addr.h>
  
- 	unregister_chrdev_region(MKDEV(driver->major, driver->minor_start),
- 				driver->num);
+-#define MAX_LOC_CODE_LENGTH 80
 -
-+	mutex_lock(&tty_mutex);
- 	list_del(&driver->tty_drivers);
-+	mutex_unlock(&tty_mutex);
- 
- 	/*
- 	 * Free the termios and termios_locked structures because
-diff -puN fs/proc/proc_tty.c~protect-tty-drivers-list-with-tty_mutex fs/proc/proc_tty.c
---- a/fs/proc/proc_tty.c~protect-tty-drivers-list-with-tty_mutex
-+++ a/fs/proc/proc_tty.c
-@@ -108,6 +108,8 @@ static void *t_start(struct seq_file *m,
- {
- 	struct list_head *p;
- 	loff_t l = *pos;
-+
-+	mutex_lock(&tty_mutex);
- 	list_for_each(p, &tty_drivers)
- 		if (!l--)
- 			return list_entry(p, struct tty_driver, tty_drivers);
-@@ -124,6 +126,7 @@ static void *t_next(struct seq_file *m, 
- 
- static void t_stop(struct seq_file *m, void *v)
- {
-+	mutex_unlock(&tty_mutex);
+ static struct device ibmebus_bus_device = { /* fake "parent" device */
+ 	.bus_id = "ibmebus",
+ };
+@@ -253,7 +251,7 @@ static void ibmebus_add_devices_by_id(st
+ 	return;
  }
  
- static struct seq_operations tty_drivers_op = {
+-static int ibmebus_match_helper_name(struct device *dev, void *data)
++static int ibmebus_match_name(struct device *dev, void *data)
+ {
+ 	const struct ibmebus_dev *ebus_dev = to_ibmebus_dev(dev);
+ 	char *name;
+@@ -281,7 +279,7 @@ static void ibmebus_remove_devices_by_id
+ 	while (strlen(idt->name) > 0) {
+ 		while ((dev = bus_find_device(&ibmebus_bus_type, NULL,
+ 					      (void*)idt->name,
+-					      ibmebus_match_helper_name))) {
++					      ibmebus_match_name))) {
+ 			ibmebus_unregister_device(dev);
+ 		}
+ 		idt++;
+@@ -372,18 +370,30 @@ static struct device_attribute ibmebus_d
+ 	__ATTR_NULL
+ };
+ 
+-static int ibmebus_match_helper_loc_code(struct device *dev, void *data)
++static int ibmebus_match_path(struct device *dev, void *data)
+ {
+-	const struct ibmebus_dev *ebus_dev = to_ibmebus_dev(dev);
+-	char *loc_code;
++	int rc;
++	struct device_node *dn =
++		of_node_get(to_ibmebus_dev(dev)->ofdev.node);
+ 
+-	loc_code = (char*)get_property(
+-		ebus_dev->ofdev.node, "ibm,loc-code", NULL);
++	rc = (dn->full_name && (strcasecmp((char*)data, dn->full_name) == 0));
+ 
+-	if (loc_code && (strcmp((char*)data, loc_code) == 0))
+-		return 1;
++	of_node_put(dn);
++	return rc;
++}
+ 
+-	return 0;
++static char *ibmebus_chomp(const char *in, size_t count)
++{
++	char *out = (char*)kmalloc(count + 1, GFP_KERNEL);
++	if (!out)
++		return NULL;
++
++	memcpy(out, in, count);
++	out[count] = '\0';
++	if (out[count - 1] == '\n')
++		out[count - 1] = '\0';
++
++	return out;
+ }
+ 
+ static ssize_t ibmebus_store_probe(struct bus_type *bus,
+@@ -391,65 +401,59 @@ static ssize_t ibmebus_store_probe(struc
+ {
+ 	struct device_node *dn = NULL;
+ 	struct ibmebus_dev *dev;
+-	char *loc_code;
+-	char parm[MAX_LOC_CODE_LENGTH];
+-
+-	if (count >= MAX_LOC_CODE_LENGTH)
+-		return -EINVAL;
+-	memcpy(parm, buf, count);
+-	parm[count] = '\0';
+-	if (parm[count-1] == '\n')
+-		parm[count-1] = '\0';
+-
+-	if (bus_find_device(&ibmebus_bus_type, NULL, parm,
+-			     ibmebus_match_helper_loc_code)) {
+-		printk(KERN_WARNING "%s: loc_code %s has already been probed\n",
+-		       __FUNCTION__, parm);
+-		return -EINVAL;
+-	}
++	char *path;
++	ssize_t rc;
+ 
+-	while ((dn = of_find_all_nodes(dn))) {
+-		loc_code = (char *)get_property(dn, "ibm,loc-code", NULL);
+-		if (loc_code && (strncmp(loc_code, parm, count) == 0)) {
+-			dev = ibmebus_register_device_node(dn);
+-			if (IS_ERR(dev)) {
+-				of_node_put(dn);
+-				return PTR_ERR(dev);
+-			} else
+-				return count; /* success */
+-		}
++	path = ibmebus_chomp(buf, count);
++	if (!path)
++		return -ENOMEM;
++
++	if (bus_find_device(&ibmebus_bus_type, NULL, path,
++			     ibmebus_match_path)) {
++		printk(KERN_WARNING "%s: %s has already been probed\n",
++		       __FUNCTION__, path);
++		rc = -EINVAL;
++		goto out;
++	}
++
++	if ((dn = of_find_node_by_path(path))) {
++		dev = ibmebus_register_device_node(dn);
++		of_node_put(dn);
++		rc = IS_ERR(dev) ? PTR_ERR(dev) : count;
++	} else {
++		printk(KERN_WARNING "%s: no such device node: %s",
++		       __FUNCTION__, path);
++		rc = -ENODEV;
+ 	}
+ 
+-	/* if we drop out of the loop, the loc code was invalid */
+-	printk(KERN_WARNING "%s: no device with loc_code %s found\n",
+-	       __FUNCTION__, parm);
+-	return -ENODEV;
++out:
++	kfree(path);
++	return rc;
+ }
+ 
+ static ssize_t ibmebus_store_remove(struct bus_type *bus,
+ 				    const char *buf, size_t count)
+ {
+ 	struct device *dev;
+-	char parm[MAX_LOC_CODE_LENGTH];
++	char *path;
+ 
+-	if (count >= MAX_LOC_CODE_LENGTH)
+-		return -EINVAL;
+-	memcpy(parm, buf, count);
+-	parm[count] = '\0';
+-	if (parm[count-1] == '\n')
+-		parm[count-1] = '\0';
+-
+-	/* The location code is unique, so we will find one device at most */
+-	if ((dev = bus_find_device(&ibmebus_bus_type, NULL, parm,
+-				   ibmebus_match_helper_loc_code))) {
++	path = ibmebus_chomp(buf, count);
++	if (!path)
++		return -ENOMEM;
++
++	if ((dev = bus_find_device(&ibmebus_bus_type, NULL, path,
++				   ibmebus_match_path))) {
+ 		ibmebus_unregister_device(dev);
++
++		kfree(path);
++		return count;
+ 	} else {
+-		printk(KERN_WARNING "%s: loc_code %s not on the bus\n",
+-		       __FUNCTION__, parm);
++		printk(KERN_WARNING "%s: %s not on the bus\n",
++		       __FUNCTION__, path);
++
++		kfree(path);
+ 		return -ENODEV;
+ 	}
+-
+-	return count;
+ }
+ 
+ static struct bus_attribute ibmebus_bus_attrs[] = {
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from fenkes@de.ibm.com are
 
 origin.patch
-git-cpufreq.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-proc-remove-pathetic-deleted-warn_on.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-proc-oom_score-oops-re-badness.patch
-protect-tty-drivers-list-with-tty_mutex.patch
+git-powerpc.patch
+ibmebus-uevent-support.patch
+ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path.patch
