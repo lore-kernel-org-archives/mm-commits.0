@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch added to -mm tree
-Date: Sun, 25 Mar 2007 14:24:50 -0800
-Message-ID: <200703252224.l2PMOo36004158@shell0.pdx.osdl.net>
+Subject: + make-mptspi_target_destroy-static.patch added to -mm tree
+Date: Sun, 25 Mar 2007 14:27:29 -0800
+Message-ID: <200703252227.l2PMRTs5004182@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60911 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:32787 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619AbXCYWZG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 18:25:06 -0400
+	id S1752868AbXCYW1l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 18:27:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, rusty@rustcorp.com.au
+Cc: bunk@stusta.de, Eric.Moore@lsi.com, James.Bottomley@steeleye.com
 
 
 The patch titled
-     lguest: remove check_bug_kill()
+     make mptspi_target_destroy() static
 has been added to the -mm tree.  Its filename is
-     lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch
+     make-mptspi_target_destroy-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: remove check_bug_kill()
+Subject: make mptspi_target_destroy() static
 From: Adrian Bunk <bunk@stusta.de>
 
-check_bug_kill() is no longer used.
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Eric Moore <Eric.Moore@lsi.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lguest/interrupts_and_traps.c |   27 ----------------------
- arch/i386/lguest/lg.h                   |    1 
- 2 files changed, 28 deletions(-)
+ drivers/message/fusion/mptspi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/lguest/interrupts_and_traps.c~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy arch/i386/lguest/interrupts_and_traps.c
---- a/arch/i386/lguest/interrupts_and_traps.c~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy
-+++ a/arch/i386/lguest/interrupts_and_traps.c
-@@ -118,33 +118,6 @@ int deliver_trap(struct lguest *lg, unsi
- 	return 1;
+diff -puN drivers/message/fusion/mptspi.c~make-mptspi_target_destroy-static drivers/message/fusion/mptspi.c
+--- a/drivers/message/fusion/mptspi.c~make-mptspi_target_destroy-static
++++ a/drivers/message/fusion/mptspi.c
+@@ -445,7 +445,7 @@ static int mptspi_target_alloc(struct sc
+ 	return 0;
  }
  
--void check_bug_kill(struct lguest *lg)
--{
--#ifdef CONFIG_BUG
--	u32 eip = lg->regs->eip - PAGE_OFFSET;
--	u16 insn;
--
--	/* This only works for addresses in linear mapping... */
--	if (lg->regs->eip < PAGE_OFFSET)
--		return;
--	lhread(lg, &insn, eip, sizeof(insn));
--	if (insn == 0x0b0f) {
--#ifdef CONFIG_DEBUG_BUGVERBOSE
--		u16 l;
--		u32 f;
--		char file[128];
--		lhread(lg, &l, eip+sizeof(insn), sizeof(l));
--		lhread(lg, &f, eip+sizeof(insn)+sizeof(l), sizeof(f));
--		lhread(lg, file, f - PAGE_OFFSET, sizeof(file));
--		file[sizeof(file)-1] = 0;
--		kill_guest(lg, "BUG() at %#x %s:%u", eip, file, l);
--#else
--		kill_guest(lg, "BUG() at %#x", eip);
--#endif	/* CONFIG_DEBUG_BUGVERBOSE */
--	}
--#endif	/* CONFIG_BUG */
--}
--
- static int direct_trap(const struct lguest *lg,
- 		       const struct desc_struct *trap,
- 		       unsigned int num)
-diff -puN arch/i386/lguest/lg.h~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy arch/i386/lguest/lg.h
---- a/arch/i386/lguest/lg.h~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy
-+++ a/arch/i386/lguest/lg.h
-@@ -195,7 +195,6 @@ int find_free_guest(void);
- /* interrupts_and_traps.c: */
- void maybe_do_interrupt(struct lguest *lg);
- int deliver_trap(struct lguest *lg, unsigned int num);
--void check_bug_kill(struct lguest *lg);
- void load_guest_idt_entry(struct lguest *lg, unsigned int i, u32 low, u32 hi);
- void pin_stack_pages(struct lguest *lg);
- void pin_trap_pages(struct lguest *lg);
+-void
++static void
+ mptspi_target_destroy(struct scsi_target *starget)
+ {
+ 	if (starget->hostdata)
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -95,6 +57,7 @@ origin.patch
 drivers-spi-fix-section-mismatches.patch
 dynticks-fix-hrtimer-rounding-error-in.patch
 clocksource-fix-thinko-in-watchdog-selection.patch
+drivers-eisa-pci_eisacpci_eisa_init-should-be-init.patch
 net-sunrpc-svcsockc-fix-a-check.patch
 git-acpi.patch
 git-powerpc.patch
@@ -160,3 +123,6 @@ slim-main-patch.patch
 slim-debug-output.patch
 i386-enable-4k-stacks-by-default.patch
 mutex-subsystem-synchro-test-module.patch
+make-mptspi_target_destroy-static.patch
+make-remove_inode_dquot_ref-static.patch
+remove-nfs4_acl_add_ace.patch
