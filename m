@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_pdc2027x-bring-into-line-with-changes-add-the-mode.patch added to -mm tree
-Date: Sun, 25 Mar 2007 00:53:37 -0800
-Message-ID: <200703250853.l2P8rbEu024153@shell0.pdx.osdl.net>
+Subject: + pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch added to -mm tree
+Date: Sun, 25 Mar 2007 00:53:35 -0800
+Message-ID: <200703250853.l2P8rZka024149@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36739 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36738 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753499AbXCYIxs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 04:53:48 -0400
+	id S1753503AbXCYIxq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 04:53:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_pdc2027x: Bring into line with changes, add the mode filters as per Jeff's report
+     pata_hpt3x2n: Add HPT371N support and other bits
 has been added to the -mm tree.  Its filename is
-     pata_pdc2027x-bring-into-line-with-changes-add-the-mode.patch
+     pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,192 +25,143 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_pdc2027x: Bring into line with changes, add the mode filters as per Jeff's report
+Subject: pata_hpt3x2n: Add HPT371N support and other bits
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-- Fix theoretical pdc2027x crash if the BIOS didn't assign BAR4 for DMA. 
-  (Needs a default modefilter)
+Yes its no longer 3x2n but 3xxn, I can rename it if you want Jeff
 
-- Use cable methods
-
-- Replace post_set_mode() use with wrapped set_mode() [Removes last use of
-  post_set_mode]
-
-- Mode filter Maxtor UDMA133 rule
+- Don't reset both ports each time (Sergei)
+- If we can't get a DPLL then abort entirely
+- Use ioport access for clock (from drivers/ide)
+- Add HPT371N support (from drivers/ide)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pdc2027x.c |   60 ++++++++++++++++++++++++++--------
- 1 file changed, 47 insertions(+), 13 deletions(-)
+ drivers/ata/pata_hpt3x2n.c |   45 +++++++++++++++++++++++++++++------
+ 1 file changed, 38 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ata/pata_pdc2027x.c~pata_pdc2027x-bring-into-line-with-changes-add-the-mode drivers/ata/pata_pdc2027x.c
---- a/drivers/ata/pata_pdc2027x.c~pata_pdc2027x-bring-into-line-with-changes-add-the-mode
-+++ a/drivers/ata/pata_pdc2027x.c
-@@ -35,7 +35,7 @@
- #include <linux/libata.h>
- 
- #define DRV_NAME	"pata_pdc2027x"
--#define DRV_VERSION	"0.8"
-+#define DRV_VERSION	"0.9"
- #undef PDC_DEBUG
- 
- #ifdef PDC_DEBUG
-@@ -66,8 +66,10 @@ static int pdc2027x_init_one(struct pci_
- static void pdc2027x_error_handler(struct ata_port *ap);
- static void pdc2027x_set_piomode(struct ata_port *ap, struct ata_device *adev);
- static void pdc2027x_set_dmamode(struct ata_port *ap, struct ata_device *adev);
--static void pdc2027x_post_set_mode(struct ata_port *ap);
- static int pdc2027x_check_atapi_dma(struct ata_queued_cmd *qc);
-+static unsigned long pdc2027x_mode_filter(struct ata_device *adev, unsigned long mask);
-+static int pdc2027x_cable_detect(struct ata_port *ap);
-+static int pdc2027x_set_mode(struct ata_port *ap, struct ata_device **r_failed);
- 
- /*
-  * ATA Timing Tables based on 133MHz controller clock.
-@@ -146,6 +148,7 @@ static struct scsi_host_template pdc2027
- 
- static struct ata_port_operations pdc2027x_pata100_ops = {
- 	.port_disable		= ata_port_disable,
-+	.mode_filter		= ata_pci_default_filter,
- 
- 	.tf_load		= ata_tf_load,
- 	.tf_read		= ata_tf_read,
-@@ -166,6 +169,7 @@ static struct ata_port_operations pdc202
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= pdc2027x_error_handler,
- 	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= pdc2027x_cable_detect,
- 
- 	.irq_handler		= ata_interrupt,
- 	.irq_clear		= ata_bmdma_irq_clear,
-@@ -179,7 +183,8 @@ static struct ata_port_operations pdc202
- 	.port_disable		= ata_port_disable,
- 	.set_piomode		= pdc2027x_set_piomode,
- 	.set_dmamode		= pdc2027x_set_dmamode,
--	.post_set_mode		= pdc2027x_post_set_mode,
-+	.set_mode		= pdc2027x_set_mode,
-+	.mode_filter		= pdc2027x_mode_filter,
- 
- 	.tf_load		= ata_tf_load,
- 	.tf_read		= ata_tf_read,
-@@ -200,6 +205,7 @@ static struct ata_port_operations pdc202
- 	.thaw			= ata_bmdma_thaw,
- 	.error_handler		= pdc2027x_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= pdc2027x_cable_detect,
- 
- 	.irq_handler		= ata_interrupt,
- 	.irq_clear		= ata_bmdma_irq_clear,
-@@ -261,7 +267,7 @@ static inline void __iomem *dev_mmio(str
- }
- 
- /**
-- *	pdc2027x_pata_cbl_detect - Probe host controller cable detect info
-+ *	pdc2027x_pata_cable_detect - Probe host controller cable detect info
-  *	@ap: Port for which cable detect info is desired
+diff -puN drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-add-hpt371n-support-and-other-bits drivers/ata/pata_hpt3x2n.c
+--- a/drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-add-hpt371n-support-and-other-bits
++++ a/drivers/ata/pata_hpt3x2n.c
+@@ -8,10 +8,10 @@
+  * Copyright (C) 1999-2003		Andre Hedrick <andre@linux-ide.org>
+  * Portions Copyright (C) 2001	        Sun Microsystems, Inc.
+  * Portions Copyright (C) 2003		Red Hat Inc
++ * Portions Copyright (C) 2005-2006	MontaVista Software, Inc.
   *
-  *	Read 80c cable indicator from Promise extended register.
-@@ -270,7 +276,7 @@ static inline void __iomem *dev_mmio(str
-  *	LOCKING:
-  *	None (inherited from caller).
+  *
+  * TODO
+- *	371N
+  *	Work out best PLL policy
   */
--static void pdc2027x_cbl_detect(struct ata_port *ap)
-+static int pdc2027x_cable_detect(struct ata_port *ap)
- {
- 	u32 cgcr;
  
-@@ -281,13 +287,10 @@ static void pdc2027x_cbl_detect(struct a
- 
- 	PDPRINTK("No cable or 80-conductor cable on port %d\n", ap->port_no);
- 
--	ap->cbl = ATA_CBL_PATA80;
--	return;
--
-+	return ATA_CBL_PATA80;
- cbl40:
- 	printk(KERN_INFO DRV_NAME ": 40-conductor cable detected on port %d\n", ap->port_no);
--	ap->cbl = ATA_CBL_PATA40;
--	ap->udma_mask &= ATA_UDMA_MASK_40C;
-+	return ATA_CBL_PATA40;
- }
- 
+@@ -142,6 +142,7 @@ static int hpt3x2n_cable_detect(struct a
  /**
-@@ -315,7 +318,6 @@ static int pdc2027x_prereset(struct ata_
- 	/* Check whether port enabled */
- 	if (!pdc2027x_port_enabled(ap))
- 		return -ENOENT;
--	pdc2027x_cbl_detect(ap);
+  *	hpt3x2n_pre_reset	-	reset the hpt3x2n bus
+  *	@ap: ATA port to reset
++ *	@deadline: deadline jiffies for the operation
+  *
+  *	Perform the initial reset handling for the 3x2n series controllers.
+  *	Reset the hardware and state machine,
+@@ -151,8 +152,7 @@ static int hpt3xn_pre_reset(struct ata_p
+ {
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	/* Reset the state machine */
+-	pci_write_config_byte(pdev, 0x50, 0x37);
+-	pci_write_config_byte(pdev, 0x54, 0x37);
++	pci_write_config_byte(pdev, 0x50 + 4 * ap->port_no, 0x37);
+ 	udelay(100);
+ 
  	return ata_std_prereset(ap, deadline);
- }
- 
-@@ -335,6 +337,32 @@ static void pdc2027x_error_handler(struc
- }
- 
- /**
-+ *	pdc2720x_mode_filter	-	mode selection filter
-+ *	@adev: ATA device
-+ *	@mask: list of modes proposed
-+ *
-+ *	Block UDMA on devices that cause trouble with this controller.
-+ */
-+
-+static unsigned long pdc2027x_mode_filter(struct ata_device *adev, unsigned long mask)
-+{
-+	unsigned char model_num[ATA_ID_PROD_LEN + 1];
-+	struct ata_device *pair = ata_dev_pair(adev);
-+
-+	if (adev->class != ATA_DEV_ATA || adev->devno == 0 || pair == NULL)
-+		return ata_pci_default_filter(adev, mask);
-+
-+	/* Check for slave of a Maxtor at UDMA6 */
-+	ata_id_c_string(pair->id, model_num, ATA_ID_PROD,
-+			  ATA_ID_PROD_LEN + 1);
-+	/* If the master is a maxtor in UDMA6 then the slave should not use UDMA 6 */
-+	if(strstr(model_num, "Maxtor") == 0 && pair->dma_mode == XFER_UDMA_6)
-+		mask &= ~ (1 << (6 + ATA_SHIFT_UDMA));
-+
-+	return ata_pci_default_filter(adev, mask);
-+}
-+
-+/**
-  *	pdc2027x_set_piomode - Initialize host controller PATA PIO timings
-  *	@ap: Port to configure
-  *	@adev: um
-@@ -445,17 +473,22 @@ static void pdc2027x_set_dmamode(struct 
- }
- 
- /**
-- *	pdc2027x_post_set_mode - Set the timing registers back to correct values.
-+ *	pdc2027x_set_mode - Set the timing registers back to correct values.
-  *	@ap: Port to configure
-+ *	@r_failed: Returned device for failure
-  *
-  *	The pdc2027x hardware will look at "SET FEATURES" and change the timing registers
-  *	automatically. The values set by the hardware might be incorrect, under 133Mhz PLL.
-  *	This function overwrites the possibly incorrect values set by the hardware to be correct.
-  */
--static void pdc2027x_post_set_mode(struct ata_port *ap)
-+static int pdc2027x_set_mode(struct ata_port *ap, struct ata_device **r_failed)
+@@ -434,8 +434,9 @@ static int hpt3x2n_pci_clock(struct pci_
  {
- 	int i;
+ 	unsigned long freq;
+ 	u32 fcnt;
++	unsigned long iobase = pci_resource_start(pdev, 4);
  
-+	i = ata_do_set_mode(ap, r_failed);
-+	if (i < 0)
-+		return i;
+-	pci_read_config_dword(pdev, 0x70/*CHECKME*/, &fcnt);
++	fcnt = inl(iobase + 0x90);	/* Not PCI readable for some chips */
+ 	if ((fcnt >> 12) != 0xABCDE) {
+ 		printk(KERN_WARNING "hpt3xn: BIOS clock data not set.\n");
+ 		return 33;	/* Not BIOS set */
+@@ -504,6 +505,7 @@ static int hpt3x2n_init_one(struct pci_d
+ 	unsigned int pci_mhz;
+ 	unsigned int f_low, f_high;
+ 	int adjust;
++	unsigned long iobase = pci_resource_start(dev, 4);
+ 
+ 	pci_read_config_dword(dev, PCI_CLASS_REVISION, &class_rev);
+ 	class_rev &= 0xFF;
+@@ -513,6 +515,11 @@ static int hpt3x2n_init_one(struct pci_d
+ 			if (class_rev < 6)
+ 				return -ENODEV;
+ 			break;
++		case PCI_DEVICE_ID_TTI_HPT371:
++			if (class_rev < 2)
++				return -ENODEV;
++			/* 371N if rev > 1 */
++			break;
+ 		case PCI_DEVICE_ID_TTI_HPT372:
+ 			/* 372N if rev >= 1*/
+ 			if (class_rev == 0)
+@@ -540,6 +547,19 @@ static int hpt3x2n_init_one(struct pci_d
+ 	irqmask &= ~0x10;
+ 	pci_write_config_byte(dev, 0x5a, irqmask);
+ 
++	/*
++	 * HPT371 chips physically have only one channel, the secondary one,
++	 * but the primary channel registers do exist!  Go figure...
++	 * So,  we manually disable the non-existing channel here
++	 * (if the BIOS hasn't done this already).
++	 */
++	if (dev->device == PCI_DEVICE_ID_TTI_HPT371) {
++		u8 mcr1;
++		pci_read_config_byte(dev, 0x50, &mcr1);
++		mcr1 &= ~0x04;
++		pci_write_config_byte(dev, 0x50, mcr1);
++	}
 +
- 	for (i = 0; i < ATA_MAX_DEVICES; i++) {
- 		struct ata_device *dev = &ap->device[i];
+ 	/* Tune the PLL. HPT recommend using 75 for SATA, 66 for UDMA133 or
+ 	   50 for UDMA100. Right now we always use 66 */
  
-@@ -477,6 +510,7 @@ static void pdc2027x_post_set_mode(struc
- 			}
- 		}
+@@ -558,14 +578,24 @@ static int hpt3x2n_init_one(struct pci_d
+ 			break;
+ 		pci_write_config_dword(dev, 0x5C, (f_high << 16) | f_low);
  	}
-+	return 0;
- }
+-	if (adjust == 8)
+-		printk(KERN_WARNING "hpt3xn: DPLL did not stabilize.\n");
++	if (adjust == 8) {
++		printk(KERN_WARNING "hpt3x2n: DPLL did not stabilize.\n");
++		return -ENODEV;
++	}
  
- /**
+ 	/* Set our private data up. We only need a few flags so we use
+ 	   it directly */
+ 	port->private_data = NULL;
+-	if (pci_mhz > 60)
++	if (pci_mhz > 60) {
+ 		port->private_data = (void *)PCI66;
++		/*
++		 * On  HPT371N, if ATA clock is 66 MHz we must set bit 2 in
++		 * the MISC. register to stretch the UltraDMA Tss timing.
++		 * NOTE: This register is only writeable via I/O space.
++		 */
++		if (dev->device == PCI_DEVICE_ID_TTI_HPT371)
++			outb(inb(iobase + 0x9c) | 0x04, iobase + 0x9c);
++	}
+ 
+ 	/* Now kick off ATA set up */
+ 	port_info[0] = port_info[1] = port;
+@@ -574,6 +604,7 @@ static int hpt3x2n_init_one(struct pci_d
+ 
+ static const struct pci_device_id hpt3x2n[] = {
+ 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT366), },
++	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT371), },
+ 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT372), },
+ 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT302), },
+ 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT372N), },
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
