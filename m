@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-mptspi_target_destroy-static.patch added to -mm tree
-Date: Sun, 25 Mar 2007 14:27:29 -0800
-Message-ID: <200703252227.l2PMRTs5004182@shell0.pdx.osdl.net>
+Subject: + drivers-eisa-pci_eisacpci_eisa_init-should-be-init.patch added to -mm tree
+Date: Sun, 25 Mar 2007 14:25:36 -0800
+Message-ID: <200703252225.l2PMPa3k004168@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:32787 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:32845 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752868AbXCYW1l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 18:27:41 -0400
+	id S1753119AbXCYW2u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 18:28:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, Eric.Moore@lsi.com, James.Bottomley@steeleye.com
+Cc: bunk@stusta.de, greg@kroah.com
 
 
 The patch titled
-     make mptspi_target_destroy() static
+     drivers/eisa/pci_eisa.c:pci_eisa_init() should be init
 has been added to the -mm tree.  Its filename is
-     make-mptspi_target_destroy-static.patch
+     drivers-eisa-pci_eisacpci_eisa_init-should-be-init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make mptspi_target_destroy() static
+Subject: drivers/eisa/pci_eisa.c:pci_eisa_init() should be init
 From: Adrian Bunk <bunk@stusta.de>
 
+WARNING: drivers/built-in.o - Section mismatch: reference to .init.text:eisa_root_register from .text between 'pci_eisa_init' (at offset 0xabf670) and 'virtual_eisa_release'
+
+AFAIK a PCI to EISA bridge isn't anything hotpluggable, so
+pci_eisa_init() can become __init.
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Eric Moore <Eric.Moore@lsi.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptspi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/eisa/pci_eisa.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/message/fusion/mptspi.c~make-mptspi_target_destroy-static drivers/message/fusion/mptspi.c
---- a/drivers/message/fusion/mptspi.c~make-mptspi_target_destroy-static
-+++ a/drivers/message/fusion/mptspi.c
-@@ -445,7 +445,7 @@ static int mptspi_target_alloc(struct sc
- 	return 0;
- }
+diff -puN drivers/eisa/pci_eisa.c~drivers-eisa-pci_eisacpci_eisa_init-should-be-init drivers/eisa/pci_eisa.c
+--- a/drivers/eisa/pci_eisa.c~drivers-eisa-pci_eisacpci_eisa_init-should-be-init
++++ a/drivers/eisa/pci_eisa.c
+@@ -19,8 +19,8 @@
+ /* There is only *one* pci_eisa device per machine, right ? */
+ static struct eisa_root_device pci_eisa_root;
  
--void
-+static void
- mptspi_target_destroy(struct scsi_target *starget)
+-static int __devinit pci_eisa_init (struct pci_dev *pdev,
+-				    const struct pci_device_id *ent)
++static int __init pci_eisa_init(struct pci_dev *pdev,
++				const struct pci_device_id *ent)
  {
- 	if (starget->hostdata)
+ 	int rc;
+ 
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -123,6 +129,3 @@ slim-main-patch.patch
 slim-debug-output.patch
 i386-enable-4k-stacks-by-default.patch
 mutex-subsystem-synchro-test-module.patch
-make-mptspi_target_destroy-static.patch
-make-remove_inode_dquot_ref-static.patch
-remove-nfs4_acl_add_ace.patch
