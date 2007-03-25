@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + schedule-obsolete-oss-drivers-for-removal-4th-round.patch added to -mm tree
-Date: Sun, 25 Mar 2007 01:23:04 -0800
-Message-ID: <200703250923.l2P9N4L3024606@shell0.pdx.osdl.net>
+Subject: + make-struct-v9fs_cached_file_operations-static.patch added to -mm tree
+Date: Sun, 25 Mar 2007 01:26:34 -0800
+Message-ID: <200703250926.l2P9QY70024654@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37366 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37375 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933306AbXCYJ0X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 05:26:23 -0400
+	id S933297AbXCYJ0m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 05:26:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     schedule obsolete OSS drivers for removal, 4th round
+     make struct v9fs_cached_file_operations static
 has been added to the -mm tree.  Its filename is
-     schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+     make-struct-v9fs_cached_file_operations-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,97 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: schedule obsolete OSS drivers for removal, 4th round
+Subject: make struct v9fs_cached_file_operations static
 From: Adrian Bunk <bunk@stusta.de>
-
-Schedule obsolete OSS drivers for removal.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    8 ++++++
- sound/oss/Kconfig                          |   23 ++++++++++++++-----
- 2 files changed, 26 insertions(+), 5 deletions(-)
+ fs/9p/v9fs_vfs.h |    1 -
+ fs/9p/vfs_file.c |    4 +++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~schedule-obsolete-oss-drivers-for-removal-4th-round Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~schedule-obsolete-oss-drivers-for-removal-4th-round
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -312,3 +312,11 @@ Why:	Broken. It depends on i2c-algo-8xx 
- Who:	Jean Delvare <khali@linux-fr.org>
+diff -puN fs/9p/v9fs_vfs.h~make-struct-v9fs_cached_file_operations-static fs/9p/v9fs_vfs.h
+--- a/fs/9p/v9fs_vfs.h~make-struct-v9fs_cached_file_operations-static
++++ a/fs/9p/v9fs_vfs.h
+@@ -40,7 +40,6 @@
+ extern struct file_system_type v9fs_fs_type;
+ extern const struct address_space_operations v9fs_addr_operations;
+ extern const struct file_operations v9fs_file_operations;
+-extern const struct file_operations v9fs_cached_file_operations;
+ extern const struct file_operations v9fs_dir_operations;
+ extern struct dentry_operations v9fs_dentry_operations;
+ extern struct dentry_operations v9fs_cached_dentry_operations;
+diff -puN fs/9p/vfs_file.c~make-struct-v9fs_cached_file_operations-static fs/9p/vfs_file.c
+--- a/fs/9p/vfs_file.c~make-struct-v9fs_cached_file_operations-static
++++ a/fs/9p/vfs_file.c
+@@ -42,6 +42,8 @@
+ #include "v9fs_vfs.h"
+ #include "fid.h"
  
- ---------------------------
++static const struct file_operations v9fs_cached_file_operations;
 +
-+What:  drivers depending on OSS_OBSOLETE
-+When:  options in 2.6.23, code in 2.6.25
-+Why:   obsolete OSS drivers
-+Who:   Adrian Bunk <bunk@stusta.de>
-+
-+---------------------------
-+
-diff -puN sound/oss/Kconfig~schedule-obsolete-oss-drivers-for-removal-4th-round sound/oss/Kconfig
---- a/sound/oss/Kconfig~schedule-obsolete-oss-drivers-for-removal-4th-round
-+++ a/sound/oss/Kconfig
-@@ -5,9 +5,22 @@
- #
- # Prompt user for primary drivers.
+ /**
+  * v9fs_file_open - open a file (or directory)
+  * @inode: inode to be opened
+@@ -245,7 +247,7 @@ v9fs_file_write(struct file *filp, const
+ 	return total;
+ }
  
-+config OSS_OBSOLETE
-+	bool "Obsolete OSS drivers"
-+	depends on SOUND_PRIME
-+	help
-+	  This option enables support for obsolete OSS drivers that
-+	  are scheduled for removal in the near future.
-+
-+	  Please contact Adrian Bunk <bunk@stusta.de> if you had to
-+	  say Y here because your hardware is not properly supported
-+	  by ALSA.
-+
-+	  If unsure, say N.
-+
- config SOUND_BT878
- 	tristate "BT878 audio dma"
--	depends on SOUND_PRIME && PCI
-+	depends on SOUND_PRIME && PCI && OSS_OBSOLETE
- 	---help---
- 	  Audio DMA support for bt878 based grabber boards.  As you might have
- 	  already noticed, bt878 is listed with two functions in /proc/pci.
-@@ -33,7 +46,7 @@ config SOUND_BCM_CS4297A
- 
- config SOUND_ICH
- 	tristate "Intel ICH (i8xx) audio support"
--	depends on SOUND_PRIME && PCI
-+	depends on SOUND_PRIME && PCI && OSS_OBSOLETE
- 	help
- 	  Support for integral audio in Intel's I/O Controller Hub (ICH)
- 	  chipset, as used on the 810/820/840 motherboards.
-@@ -335,7 +348,7 @@ config MSND_FIFOSIZE
- 
- config SOUND_VIA82CXXX
- 	tristate "VIA 82C686 Audio Codec"
--	depends on SOUND_PRIME && PCI
-+	depends on SOUND_PRIME && PCI && OSS_OBSOLETE
- 	help
- 	  Say Y here to include support for the audio codec found on VIA
- 	  82Cxxx-based chips. Typically these are built into a motherboard.
-@@ -389,7 +402,7 @@ config SOUND_DMAP
- 
- config SOUND_CS4232
- 	tristate "Crystal CS4232 based (PnP) cards"
--	depends on SOUND_OSS
-+	depends on SOUND_OSS && OSS_OBSOLETE
- 	help
- 	  Say Y here if you have a card based on the Crystal CS4232 chip set,
- 	  which uses its own Plug and Play protocol.
-@@ -708,7 +721,7 @@ config SOUND_WAVEARTIST
- 
- config SOUND_TVMIXER
- 	tristate "TV card (bt848) mixer support"
--	depends on SOUND_PRIME && I2C && VIDEO_V4L1
-+	depends on SOUND_PRIME && I2C && VIDEO_V4L1 && OSS_OBSOLETE
- 	help
- 	  Support for audio mixer facilities on the BT848 TV frame-grabber
- 	  card.
+-const struct file_operations v9fs_cached_file_operations = {
++static const struct file_operations v9fs_cached_file_operations = {
+ 	.llseek = generic_file_llseek,
+ 	.read = do_sync_read,
+ 	.aio_read = generic_file_aio_read,
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -146,6 +98,7 @@ make-seagate_st0x_detect-static.patch
 drivers-scsi-aacraid-cleanups.patch
 remove-the-broken-scsi_acornscsi_3-driver.patch
 git-unionfs.patch
+make-struct-v9fs_cached_file_operations-static.patch
 git-wireless.patch
 git-ipwireless_cs.patch
 arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
@@ -173,6 +126,7 @@ make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
 linux-kernel-markers-kconfig-menus.patch
 linux-kernel-markers-architecture-independant-code.patch
 linux-kernel-markers-i386-optimization.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
 readahead-events-accounting.patch
 reiser4-export-remove_from_page_cache.patch
 reiser4.patch
