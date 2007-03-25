@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-unchecked_isa_dma-in-sd_revalidate_disk.patch added to -mm tree
-Date: Sat, 24 Mar 2007 23:30:24 -0800
-Message-ID: <200703250730.l2P7UOIY022852@shell0.pdx.osdl.net>
+Subject: + correct-slow-acpi_pm-rating.patch added to -mm tree
+Date: Sat, 24 Mar 2007 23:33:49 -0800
+Message-ID: <200703250733.l2P7XneM022903@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35006 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35064 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753346AbXCYHae (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 03:30:34 -0400
+	id S1753478AbXCYHeP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 03:34:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bwalle@suse.de, James.Bottomley@steeleye.com, jens.axboe@oracle.com
+Cc: johnstul@us.ibm.com, ak@suse.de, mingo@elte.hu, rct@gherkin.frus.com, tglx@linutronix.de
 
 
 The patch titled
-     Use unchecked_isa_dma in sd_revalidate_disk()
+     correct slow acpi_pm rating
 has been added to the -mm tree.  Its filename is
-     use-unchecked_isa_dma-in-sd_revalidate_disk.patch
+     correct-slow-acpi_pm-rating.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use unchecked_isa_dma in sd_revalidate_disk()
-From: Bernhard Walle <bwalle@suse.de>
+Subject: correct slow acpi_pm rating
+From: john stultz <johnstul@us.ibm.com>
 
-In sd_revalidate_disk(), the SCSI Disk driver needs a few bytes DMA memory,
-allocated by kmalloc() and __GFP_DMA.  This patch uses __GFP_DMA only if
-the corresponding host structure has unchecked_isa_dma set.
+On Bob's machine clocksource is selecting PIT over the ACPI PM timer,
+because he has the PIIX4 bug.  That bug drops the ACPI PM timers rating
+to the same as the PIT, so that's why you're getting the PIT.
 
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Realistically, the PIT is much slower then even the triple read ACPI PM,
+so the de-ranking code is probably dropping it too far.
+
+So don't drop ACPI PM quite so low if we see the PIIX4 bug.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Bob Tracy <rct@gherkin.frus.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sd.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/clocksource/acpi_pm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/sd.c~use-unchecked_isa_dma-in-sd_revalidate_disk drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~use-unchecked_isa_dma-in-sd_revalidate_disk
-+++ a/drivers/scsi/sd.c
-@@ -1516,7 +1516,8 @@ static int sd_revalidate_disk(struct gen
- 	if (!scsi_device_online(sdp))
- 		goto out;
+diff -puN drivers/clocksource/acpi_pm.c~correct-slow-acpi_pm-rating drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~correct-slow-acpi_pm-rating
++++ a/drivers/clocksource/acpi_pm.c
+@@ -90,7 +90,7 @@ __setup("acpi_pm_good", acpi_pm_good_set
+ static inline void acpi_pm_need_workaround(void)
+ {
+ 	clocksource_acpi_pm.read = acpi_pm_read_slow;
+-	clocksource_acpi_pm.rating = 110;
++	clocksource_acpi_pm.rating = 120;
+ }
  
--	buffer = kmalloc(SD_BUF_SIZE, GFP_KERNEL | __GFP_DMA);
-+	buffer = kmalloc(SD_BUF_SIZE, GFP_KERNEL |
-+			(sdp->host->unchecked_isa_dma ? __GFP_DMA : 0));
- 	if (!buffer) {
- 		sd_printk(KERN_WARNING, sdkp, "sd_revalidate_disk: Memory "
- 			  "allocation failure.\n");
+ /*
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
 origin.patch
-git-r8169.patch
-use-unchecked_isa_dma-in-sd_revalidate_disk.patch
-x86_64-i386-add-command-line-length-to-boot-protocol.patch
+correct-slow-acpi_pm-rating.patch
+log-reason-why-tsc-was-marked-unstable.patch
+convert-h8-300-to-generic-timekeeping.patch
+v850-generic-timekeeping-conversion.patch
+optimize-timespec_trunc.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
