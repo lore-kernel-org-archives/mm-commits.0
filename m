@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ntp-avoid-time_offset-overflows.patch added to -mm tree
-Date: Sun, 25 Mar 2007 14:13:48 -0800
-Message-ID: <200703252213.l2PMDmIu004006@shell0.pdx.osdl.net>
+Subject: + fix-sscanf-%n-match-at-end-of-input-string-tidy.patch added to -mm tree
+Date: Sun, 25 Mar 2007 14:17:06 -0800
+Message-ID: <200703252217.l2PMH63d004057@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60366 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60473 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752856AbXCYWO5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 18:14:57 -0400
+	id S1753119AbXCYWRT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 18:17:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, johannes@sipsolutions.net
 
 
 The patch titled
-     ntp: avoid time_offset overflows
+     fix-sscanf-%n-match-at-end-of-input-string-tidy
 has been added to the -mm tree.  Its filename is
-     ntp-avoid-time_offset-overflows.patch
+     fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,111 +25,122 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ntp: avoid time_offset overflows
-From: john stultz <johnstul@us.ibm.com>
+Subject: fix-sscanf-%n-match-at-end-of-input-string-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I've been seeing some odd NTP behavior recently on a few boxes and
-finally narrowed it down to time_offset overflowing when converted to
-SHIFT_UPDATE units (which was a side effect from my HZfreeNTP patch).
+- Fix comment layout
 
-This patch converts time_offset from a long to a s64 which resolves the
-issue.
+- Fix coding style
 
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+- `i' is a funny identifier for a pointer.
+
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/ntp.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ lib/vsprintf.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN kernel/time/ntp.c~ntp-avoid-time_offset-overflows kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-avoid-time_offset-overflows
-+++ a/kernel/time/ntp.c
-@@ -32,7 +32,7 @@ static u64 tick_length, tick_length_base
- /* TIME_ERROR prevents overwriting the CMOS clock */
- static int time_state = TIME_OK;	/* clock synchronization status	*/
- int time_status = STA_UNSYNC;		/* clock status bits		*/
--static long time_offset;		/* time adjustment (ns)		*/
-+static s64 time_offset;		/* time adjustment (ns)		*/
- static long time_constant = 2;		/* pll time constant		*/
- long time_maxerror = NTP_PHASE_LIMIT;	/* maximum error (us)		*/
- long time_esterror = NTP_PHASE_LIMIT;	/* estimated error (us)		*/
-@@ -196,7 +196,7 @@ void __attribute__ ((weak)) notify_arch_
-  */
- int do_adjtimex(struct timex *txc)
- {
--	long ltemp, mtemp, save_adjust;
-+	long mtemp, save_adjust;
- 	s64 freq_adj, temp64;
- 	int result;
+diff -puN lib/vsprintf.c~fix-sscanf-%n-match-at-end-of-input-string-tidy lib/vsprintf.c
+--- a/lib/vsprintf.c~fix-sscanf-%n-match-at-end-of-input-string-tidy
++++ a/lib/vsprintf.c
+@@ -826,12 +826,14 @@ int vsscanf(const char * buf, const char
+ 		str = next;
+ 	}
  
-@@ -277,14 +277,14 @@ int do_adjtimex(struct timex *txc)
- 		    time_adjust = txc->offset;
- 		}
- 		else if (time_status & STA_PLL) {
--		    ltemp = txc->offset * NSEC_PER_USEC;
-+		    time_offset = txc->offset * NSEC_PER_USEC;
+-	/* Now we've come all the way through so either the input string or
+-	 * the format ended. In the former case, there can be a %n at the
+-	 * current position in the format that needs to be filled. */
+-	if (*fmt == '%' && *(fmt+1) == 'n') {
+-		int *i = (int *)va_arg(args,int*);
+-		*i = str - buf;
++	/*
++	 * Now we've come all the way through so either the input string or the
++	 * format ended. In the former case, there can be a %n at the current
++	 * position in the format that needs to be filled.
++	 */
++	if (*fmt == '%' && *(fmt + 1) == 'n') {
++		int *p = (int *)va_arg(args, int *);
++		*p = str - buf;
+ 	}
  
- 		    /*
- 		     * Scale the phase adjustment and
- 		     * clamp to the operating range.
- 		     */
--		    time_offset = min(ltemp, MAXPHASE * NSEC_PER_USEC);
--		    time_offset = max(time_offset, -MAXPHASE * NSEC_PER_USEC);
-+		    time_offset = min(time_offset, (s64)MAXPHASE * NSEC_PER_USEC);
-+		    time_offset = max(time_offset, (s64)-MAXPHASE * NSEC_PER_USEC);
- 
- 		    /*
- 		     * Select whether the frequency is to be controlled
-@@ -297,11 +297,11 @@ int do_adjtimex(struct timex *txc)
- 		    mtemp = xtime.tv_sec - time_reftime;
- 		    time_reftime = xtime.tv_sec;
- 
--		    freq_adj = (s64)time_offset * mtemp;
-+		    freq_adj = time_offset * mtemp;
- 		    freq_adj = shift_right(freq_adj, time_constant * 2 +
- 					   (SHIFT_PLL + 2) * 2 - SHIFT_NSEC);
- 		    if (mtemp >= MINSEC && (time_status & STA_FLL || mtemp > MAXSEC)) {
--			temp64 = (s64)time_offset << (SHIFT_NSEC - SHIFT_FLL);
-+			temp64 = time_offset << (SHIFT_NSEC - SHIFT_FLL);
- 			if (time_offset < 0) {
- 			    temp64 = -temp64;
- 			    do_div(temp64, mtemp);
-@@ -314,8 +314,8 @@ int do_adjtimex(struct timex *txc)
- 		    freq_adj += time_freq;
- 		    freq_adj = min(freq_adj, (s64)MAXFREQ_NSEC);
- 		    time_freq = max(freq_adj, (s64)-MAXFREQ_NSEC);
--		    time_offset = (time_offset / NTP_INTERVAL_FREQ)
--		    			<< SHIFT_UPDATE;
-+		    do_div(time_offset, NTP_INTERVAL_FREQ);
-+		    time_offset <<= SHIFT_UPDATE;
- 		} /* STA_PLL */
- 	    } /* txc->modes & ADJ_OFFSET */
- 	    if (txc->modes & ADJ_TICK)
-@@ -330,7 +330,7 @@ leave:	if ((time_status & (STA_UNSYNC|ST
- 	if ((txc->modes & ADJ_OFFSET_SINGLESHOT) == ADJ_OFFSET_SINGLESHOT)
- 	    txc->offset	   = save_adjust;
- 	else
--	    txc->offset    = shift_right(time_offset, SHIFT_UPDATE)
-+	    txc->offset    = ((long)shift_right(time_offset, SHIFT_UPDATE))
- 	    			* NTP_INTERVAL_FREQ / 1000;
- 	txc->freq	   = (time_freq / NSEC_PER_USEC)
- 				<< (SHIFT_USEC - SHIFT_NSEC);
+ 	return num;
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-correct-slow-acpi_pm-rating.patch
-dynticks-fix-hrtimer-rounding-error-in.patch
-clocksource-fix-thinko-in-watchdog-selection.patch
-ntp-avoid-time_offset-overflows.patch
-log-reason-why-tsc-was-marked-unstable.patch
-convert-h8-300-to-generic-timekeeping.patch
-v850-generic-timekeeping-conversion.patch
-optimize-timespec_trunc.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
+ext-ea-block-reference-count-racing-fix-performance-fix.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+git-net.patch
+git-net-fixup.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+blackfin-blackfin-i2c-driver-update-2.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lists-add-list-splice-tail.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
