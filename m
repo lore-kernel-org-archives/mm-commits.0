@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pata_hpt37x-further-small-fixes.patch added to -mm tree
-Date: Sun, 25 Mar 2007 00:53:33 -0800
-Message-ID: <200703250853.l2P8rXvD024144@shell0.pdx.osdl.net>
+Subject: + libata-misc-minor-merge-fixups.patch added to -mm tree
+Date: Sun, 25 Mar 2007 00:53:27 -0800
+Message-ID: <200703250853.l2P8rR7h024135@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36737 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36734 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753502AbXCYIxo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 04:53:44 -0400
+	id S1753501AbXCYIxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 04:53:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_hpt37x: Further small fixes
+     libata: Misc minor merge fixups
 has been added to the -mm tree.  Its filename is
-     pata_hpt37x-further-small-fixes.patch
+     libata-misc-minor-merge-fixups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_hpt37x: Further small fixes
+Subject: libata: Misc minor merge fixups
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Further HPT37x changes
-
-- No 66MHz 370/370A
-- Remove dead special case check now we use the DPLL (as per the IDE driver)
-
-Pointed out by Sergei
+Nothing terribly exciting here just odd glitches from the merge
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt37x.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ drivers/ata/pata_hpt366.c      |    1 -
+ drivers/ata/pata_serverworks.c |    1 -
+ drivers/ata/pata_sis.c         |    2 --
+ 3 files changed, 4 deletions(-)
 
-diff -puN drivers/ata/pata_hpt37x.c~pata_hpt37x-further-small-fixes drivers/ata/pata_hpt37x.c
---- a/drivers/ata/pata_hpt37x.c~pata_hpt37x-further-small-fixes
-+++ a/drivers/ata/pata_hpt37x.c
-@@ -26,7 +26,7 @@
- #include <linux/libata.h>
+diff -puN drivers/ata/pata_hpt366.c~libata-misc-minor-merge-fixups drivers/ata/pata_hpt366.c
+--- a/drivers/ata/pata_hpt366.c~libata-misc-minor-merge-fixups
++++ a/drivers/ata/pata_hpt366.c
+@@ -169,7 +169,6 @@ static int hpt_dma_blacklisted(const str
  
- #define DRV_NAME	"pata_hpt37x"
--#define DRV_VERSION	"0.6.4"
-+#define DRV_VERSION	"0.6.5"
- 
- struct hpt_clock {
- 	u8	xfer_speed;
-@@ -130,7 +130,7 @@ static const struct hpt_chip hpt370 = {
- 		hpt37x_timings_33,
- 		NULL,
- 		NULL,
--		hpt37x_timings_66
-+		NULL
- 	}
- };
- 
-@@ -141,7 +141,7 @@ static const struct hpt_chip hpt370a = {
- 		hpt37x_timings_33,
- 		NULL,
- 		hpt37x_timings_50,
--		hpt37x_timings_66
-+		NULL
- 	}
- };
- 
-@@ -1019,8 +1019,8 @@ static int hpt37x_init_one(struct pci_de
- 					return -ENODEV;
- 				port = &info_hpt372;
- 				chip_table = &hpt371;
--				/* Single channel device, paster is not present
--				   but the NIOS (or us for non x86) must mark it
-+				/* Single channel device, master is not present
-+				   but the BIOS (or us for non x86) must mark it
- 				   absent */
- 				pci_read_config_byte(dev, 0x50, &mcr1);
- 				mcr1 &= ~0x04;
-@@ -1132,16 +1132,11 @@ static int hpt37x_init_one(struct pci_de
- 	} else {
- 		port->private_data = (void *)chip_table->clocks[clock_slot];
- 		/*
--		 *	Perform a final fixup. The 371 and 372 clock determines
--		 *	if UDMA133 is available. (FIXME: should we use DPLL then ?)
--		 */
-+		 *	Perform a final fixup. Note that we will have used the
-+		 *	DPLL on the HPT372 which means we don't have to worry
-+		 *	about lack of UDMA133 support on lower clocks
-+ 		 */
- 
--		if (clock_slot == 2 && chip_table == &hpt372) {	/* 50Mhz */
--			printk(KERN_WARNING "pata_hpt37x: No UDMA133 support available with 50MHz bus clock.\n");
--			if (port == &info_hpt372)
--				port = &info_hpt372_50;
--			else BUG();
--		}
- 		if (clock_slot < 2 && port == &info_hpt370)
- 			port = &info_hpt370_33;
- 		if (clock_slot < 2 && port == &info_hpt370a)
+ /**
+  *	hpt366_filter	-	mode selection filter
+- *	@ap: ATA interface
+  *	@adev: ATA device
+  *
+  *	Block UDMA on devices that cause trouble with this controller.
+diff -puN drivers/ata/pata_serverworks.c~libata-misc-minor-merge-fixups drivers/ata/pata_serverworks.c
+--- a/drivers/ata/pata_serverworks.c~libata-misc-minor-merge-fixups
++++ a/drivers/ata/pata_serverworks.c
+@@ -139,7 +139,6 @@ static struct sv_cable_table cable_detec
+ /**
+  *	serverworks_cable_detect	-	cable detection
+  *	@ap: ATA port
+- *	@deadline: deadline jiffies for the operation
+  *
+  *	Perform cable detection according to the device and subvendor
+  *	identifications
+diff -puN drivers/ata/pata_sis.c~libata-misc-minor-merge-fixups drivers/ata/pata_sis.c
+--- a/drivers/ata/pata_sis.c~libata-misc-minor-merge-fixups
++++ a/drivers/ata/pata_sis.c
+@@ -88,7 +88,6 @@ static int sis_port_base(struct ata_devi
+ /**
+  *	sis_133_cable_detect	-	check for 40/80 pin
+  *	@ap: Port
+- *	@deadline: deadline jiffies for the operation
+  *
+  *	Perform cable detection for the later UDMA133 capable
+  *	SiS chipset.
+@@ -109,7 +108,6 @@ static int sis_133_cable_detect(struct a
+ /**
+  *	sis_66_cable_detect	-	check for 40/80 pin
+  *	@ap: Port
+- *	@deadline: deadline jiffies for the operation
+  *
+  *	Perform cable detection on the UDMA66, UDMA100 and early UDMA133
+  *	SiS IDE controllers.
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
