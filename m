@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch added to -mm tree
-Date: Sun, 25 Mar 2007 01:34:20 -0800
-Message-ID: <200703250934.l2P9YK6S024798@shell0.pdx.osdl.net>
+Subject: + i386-prevent-early-access-to-tsc-to-avoid-crash-on.patch added to -mm tree
+Date: Sun, 25 Mar 2007 01:36:12 -0800
+Message-ID: <200703250936.l2P9aCg4024826@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37504 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37597 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933307AbXCYJeZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 05:34:25 -0400
+	id S1750839AbXCYJgn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 05:36:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbarnes@virtuousgeek.org, greg@kroah.com
+Cc: tglx@linutronix.de, mingo@elte.hu
 
 
 The patch titled
-     fix sysfs rom file creation for BIOS ROM shadows
+     i386: prevent early access to TSC to avoid crash on TSCless systems
 has been added to the -mm tree.  Its filename is
-     fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch
+     i386-prevent-early-access-to-tsc-to-avoid-crash-on.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix sysfs rom file creation for BIOS ROM shadows
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: i386: prevent early access to TSC to avoid crash on TSCless systems
+From: Thomas Gleixner <tglx@linutronix.de>
 
-At one time, if a BIOS ROM shadow was detected for the boot video device
-(stored at offset 0xc0000), we'd set a special resource flag,
-IORESOURCE_ROM_SHADOW, so that the sysfs ROM file code could handle it
-properly.  That broke along the way somewhere though, so current kernels
-will be missing 'rom' files in sysfs if the video device doesn't have an
-explicit ROM BAR.
+commit f9690982b8c2f9a2c65acdc113e758ec356676a3 removed the check for
+cpu_khz from sched_clock(), which prevented early access to the TSC by non
+obvious magic.
 
-This patch fixes the regression by moving the video fixup quirk to a little
-later in the boot cycle (to avoid having its work undone by PCI resource
-allocation) and checking in the PCI sysfs code whether a rom file should be
-created due to a shadow resource, which is also moved to a little later in
-the boot cycle so it will occur after the video fixup.  Tested and works on
-my i386 test box.
+This is harmless as long as the CPU has a TSC.  On TSCless systems this
+results in an illegal instruction trap.
 
-Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Greg KH <greg@kroah.com>
+Replace tsc_disabled and tsc_unstable by tsc_enabled, which is only set
+when the tsc is available and not unstable.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/fixup.c   |    2 +-
- drivers/pci/pci-sysfs.c |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ arch/i386/kernel/tsc.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/pci/fixup.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows arch/i386/pci/fixup.c
---- a/arch/i386/pci/fixup.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows
-+++ a/arch/i386/pci/fixup.c
-@@ -354,7 +354,7 @@ static void __devinit pci_fixup_video(st
- 		printk(KERN_DEBUG "Boot video device is %s\n", pci_name(pdev));
- 	}
- }
--DECLARE_PCI_FIXUP_HEADER(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
-+DECLARE_PCI_FIXUP_FINAL(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
+diff -puN arch/i386/kernel/tsc.c~i386-prevent-early-access-to-tsc-to-avoid-crash-on arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~i386-prevent-early-access-to-tsc-to-avoid-crash-on
++++ a/arch/i386/kernel/tsc.c
+@@ -18,6 +18,8 @@
  
+ #include "mach_timer.h"
+ 
++static int tsc_enabled;
++
  /*
-  * Some Toshiba laptops need extra code to enable their TI TSB43AB22/A.
-diff -puN drivers/pci/pci-sysfs.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows drivers/pci/pci-sysfs.c
---- a/drivers/pci/pci-sysfs.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows
-+++ a/drivers/pci/pci-sysfs.c
-@@ -620,7 +620,8 @@ int __must_check pci_create_sysfs_dev_fi
- 		goto err_bin_file;
+  * On some systems the TSC frequency does not
+  * change with the cpu frequency. So we need
+@@ -105,7 +107,7 @@ unsigned long long sched_clock(void)
+ 	/*
+ 	 * Fall back to jiffies if there's no TSC available:
+ 	 */
+-	if (tsc_unstable || unlikely(tsc_disable))
++	if (unlikely(!tsc_enabled))
+ 		/* No locking but a rare wrong value is not a big deal: */
+ 		return (jiffies_64 - INITIAL_JIFFIES) * (1000000000 / HZ);
  
- 	/* If the device has a ROM, try to expose it in sysfs. */
--	if (pci_resource_len(pdev, PCI_ROM_RESOURCE)) {
-+	if (pci_resource_len(pdev, PCI_ROM_RESOURCE) ||
-+	    (pdev->resource[PCI_ROM_RESOURCE].flags & IORESOURCE_ROM_SHADOW)) {
- 		rom_attr = kzalloc(sizeof(*rom_attr), GFP_ATOMIC);
- 		if (rom_attr) {
- 			pdev->rom_attr = rom_attr;
-@@ -695,4 +696,4 @@ static int __init pci_sysfs_init(void)
- 	return 0;
- }
+@@ -283,6 +285,7 @@ void mark_tsc_unstable(void)
+ {
+ 	if (!tsc_unstable) {
+ 		tsc_unstable = 1;
++		tsc_enabled = 0;
+ 		/* Can be called before registration */
+ 		if (clocksource_tsc.mult)
+ 			clocksource_change_rating(&clocksource_tsc, 0);
+@@ -383,7 +386,9 @@ void __init tsc_init(void)
+ 	if (check_tsc_unstable()) {
+ 		clocksource_tsc.rating = 0;
+ 		clocksource_tsc.flags &= ~CLOCK_SOURCE_IS_CONTINUOUS;
+-	}
++	} else
++		tsc_enabled = 1;
++
+ 	clocksource_register(&clocksource_tsc);
  
--__initcall(pci_sysfs_init);
-+late_initcall(pci_sysfs_init);
+ 	return;
 _
 
-Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch
+origin.patch
+time-fix-formatting-in-proc-timer_list.patch
+correct-slow-acpi_pm-rating.patch
+i386-prevent-early-access-to-tsc-to-avoid-crash-on.patch
+git-ieee1394.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+mm-only-hrtimers-debug-patch.patch
