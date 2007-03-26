@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + forcedeth-work-around-null-skb-dereference-crash-fix.patch added to -mm tree
-Date: Mon, 26 Mar 2007 02:34:52 -0700
-Message-ID: <200703260936.l2Q9atsN015733@shell0.pdx.osdl.net>
+Subject: + make-futex_wait-use-an-hrtimer-for-timeout-fix.patch added to -mm tree
+Date: Mon, 26 Mar 2007 02:56:11 -0700
+Message-ID: <200703260958.l2Q9wEK8016035@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50730 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51186 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753553AbXCZJhM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 05:37:12 -0400
+	id S1753567AbXCZJ6r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 05:58:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aabdulla@nvidia.com, jeff@garzik.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, pierre.peiffer@bull.net, sebastien.dugue@bull.net
 
 
 The patch titled
-     forcedeth-work-around-null-skb-dereference-crash-fix
+     make-futex_wait-use-an-hrtimer-for-timeout-fix
 has been added to the -mm tree.  Its filename is
-     forcedeth-work-around-null-skb-dereference-crash-fix.patch
+     make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth-work-around-null-skb-dereference-crash-fix
+Subject: make-futex_wait-use-an-hrtimer-for-timeout-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/forcedeth.c: In function 'nv_tx_done':
-drivers/net/forcedeth.c:1906: warning: format '%ld' expects type 'long int', but argument 2 has type 'int'
-drivers/net/forcedeth.c:1906: warning: format '%ld' expects type 'long int', but argument 3 has type 'int'
-drivers/net/forcedeth.c:1926: warning: format '%ld' expects type 'long int', but argument 2 has type 'int'
-drivers/net/forcedeth.c:1926: warning: format '%ld' expects type 'long int', but argument 3 has type 'int'
+`make headers_check' fails with
 
-- Print ptrdiff_t's correctly
+/usr/src/devel/usr/include/linux/futex.h requires linux/ktime.h, which does not exist in exported headers
 
-- My xterms aren't as studly as yours.
-
+Cc: Sebastien Dugue <sebastien.dugue@bull.net>
+Cc: Pierre Peiffer <pierre.peiffer@bull.net>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ include/linux/futex.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-work-around-null-skb-dereference-crash-fix drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-work-around-null-skb-dereference-crash-fix
-+++ a/drivers/net/forcedeth.c
-@@ -1903,7 +1903,12 @@ static void nv_tx_done(struct net_device
- 					np->stats.tx_errors++;
- 				} else {
- 					if (!np->get_tx_ctx->skb) {
--						printk("get_tx: %ld, put_tx: %ld\n", np->get_tx_ctx - np->first_tx_ctx, np->put_tx_ctx - np->first_tx_ctx);
-+						printk("get_tx: %td, put_tx: "
-+							"%td\n",
-+							np->get_tx_ctx -
-+							    np->first_tx_ctx,
-+							np->put_tx_ctx -
-+							    np->first_tx_ctx);
- 						WARN_ON(1);
- 						break;
- 					}
-@@ -1923,7 +1928,12 @@ static void nv_tx_done(struct net_device
- 					np->stats.tx_errors++;
- 				} else {
- 					if (!np->get_tx_ctx->skb) {
--						printk("get_tx: %ld, put_tx: %ld\n", np->get_tx_ctx - np->first_tx_ctx, np->put_tx_ctx - np->first_tx_ctx);
-+						printk("get_tx: %td, put_tx: "
-+							"%td\n",
-+							np->get_tx_ctx -
-+							    np->first_tx_ctx,
-+							np->put_tx_ctx -
-+							    np->first_tx_ctx);
- 						WARN_ON(1);
- 						break;
- 					}
+diff -puN include/linux/futex.h~make-futex_wait-use-an-hrtimer-for-timeout-fix include/linux/futex.h
+--- a/include/linux/futex.h~make-futex_wait-use-an-hrtimer-for-timeout-fix
++++ a/include/linux/futex.h
+@@ -1,9 +1,10 @@
+ #ifndef _LINUX_FUTEX_H
+ #define _LINUX_FUTEX_H
+ 
+-#include <linux/ktime.h>
+ #include <linux/sched.h>
+ 
++union ktime;
++
+ /* Second argument to futex syscall */
+ 
+ 
+@@ -95,7 +96,7 @@ struct robust_list_head {
+ #define ROBUST_LIST_LIMIT	2048
+ 
+ #ifdef __KERNEL__
+-long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
++long do_futex(u32 __user *uaddr, int op, u32 val, union ktime *timeout,
+ 	      u32 __user *uaddr2, u32 val2, u32 val3);
+ 
+ extern int
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +92,7 @@ git-md-accel-fix.patch
 git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 git-ubi.patch
 git-netdev-all.patch
+forcedeth-work-around-null-skb-dereference-crash-fix.patch
 bonding-replace-system-timer-with-work-queue-tidy.patch
 git-parisc.patch
 rm9000-serial-driver-tidy.patch
@@ -147,6 +136,8 @@ call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of
 speedup-divides-by-cpu_power-in-scheduler.patch
 lists-add-list-splice-tail.patch
 lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
 proc-maps-protection-vs-utrace.patch
 utrace-prep-2.patch
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
@@ -160,4 +151,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 mm-only-free-swap-space-of-reactivated-pages-debug.patch
 mm-only-hrtimers-debug-patch-fix.patch
-forcedeth-work-around-null-skb-dereference-crash-fix.patch
