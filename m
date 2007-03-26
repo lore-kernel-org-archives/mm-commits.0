@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-fix-compiling-error-in-flat-c-file.patch added to -mm tree
-Date: Mon, 26 Mar 2007 14:10:37 -0700
-Message-ID: <200703262110.l2QLAb4j030655@shell0.pdx.osdl.net>
+Subject: + blackfin-arch-add-kdebug-header-file.patch added to -mm tree
+Date: Mon, 26 Mar 2007 14:10:41 -0700
+Message-ID: <200703262110.l2QLAfp8030661@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52061 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52071 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753209AbXCZVKk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 17:10:40 -0400
+	id S1753211AbXCZVKo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 17:10:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bryan.wu@analog.com
 
 
 The patch titled
-     Blackfin arch: fix compiling error in flat c file
+     Blackfin arch: add kdebug header file
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-fix-compiling-error-in-flat-c-file.patch
+     blackfin-arch-add-kdebug-header-file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,23 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Blackfin arch: fix compiling error in flat c file
+Subject: Blackfin arch: add kdebug header file
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
-THis patch fixed including wrong header file when compiling in 2.6.21-rc4-mm.
+This patch adds kdebug.h header file to blackfin architecture.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/flat.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-blackfin/kdebug.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/blackfin/kernel/flat.c~blackfin-arch-fix-compiling-error-in-flat-c-file arch/blackfin/kernel/flat.c
---- a/arch/blackfin/kernel/flat.c~blackfin-arch-fix-compiling-error-in-flat-c-file
-+++ a/arch/blackfin/kernel/flat.c
-@@ -18,8 +18,8 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
--#include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/sched.h>
- #include <linux/flat.h>
- 
- #define FLAT_BFIN_RELOC_TYPE_16_BIT 0
+diff -puN /dev/null include/asm-blackfin/kdebug.h
+--- /dev/null
++++ a/include/asm-blackfin/kdebug.h
+@@ -0,0 +1 @@
++#include <asm-generic/kdebug.h>
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
