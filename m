@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch added to -mm tree
-Date: Mon, 26 Mar 2007 01:42:01 -0700
-Message-ID: <200703260844.l2Q8i4bv014935@shell0.pdx.osdl.net>
+Subject: + i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch added to -mm tree
+Date: Mon, 26 Mar 2007 02:05:50 -0700
+Message-ID: <200703260907.l2Q97rLr015258@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49739 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50163 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752660AbXCZIoO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 04:44:14 -0400
+	id S1751523AbXCZJIK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 05:08:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, hugh@veritas.com, rientjes@google.com, zach@vmware.com
 
 
 The patch titled
-     i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix
+     i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix
 has been added to the -mm tree.  Its filename is
-     i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
+     i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix
+Subject: i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/asm/percpu.h:5,
-                 from include/asm/pda.h:11,
-                 from include/asm/current.h:4,
-                 from drivers/media/video/pwc/pwc-uncompress.c:29:
-include/asm-generic/percpu.h:8: error: 'NR_CPUS' undeclared here (not in a function)
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/percpu.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-i386/pgtable.h |   36 +++++++++++++++--------------------
+ 1 file changed, 16 insertions(+), 20 deletions(-)
 
-diff -puN include/asm-generic/percpu.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix include/asm-generic/percpu.h
---- a/include/asm-generic/percpu.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix
-+++ a/include/asm-generic/percpu.h
-@@ -1,6 +1,7 @@
- #ifndef _ASM_GENERIC_PERCPU_H_
- #define _ASM_GENERIC_PERCPU_H_
- #include <linux/compiler.h>
-+#include <linux/threads.h>
+diff -puN include/asm-i386/pgtable.h~i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix
++++ a/include/asm-i386/pgtable.h
+@@ -284,28 +284,24 @@ do {									\
+ } while (0)
  
- #define __GENERIC_PER_CPU
- #ifdef CONFIG_SMP
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+-static inline int ptep_test_and_clear_dirty(struct vm_area_struct *vma,
+-					    unsigned long addr, pte_t *ptep)
+-{
+-	int ret = 0;
+-	if (pte_dirty(*ptep))
+-		ret = test_and_clear_bit(_PAGE_BIT_DIRTY, &ptep->pte_low);
+-	if (ret)
+-		pte_update_defer(vma->vm_mm, addr, ptep);
+-	return ret;
+-}
++#define ptep_test_and_clear_dirty(vma, addr, ptep) ({			\
++	int ret = 0;							\
++	if (pte_dirty(*ptep))						\
++		ret = test_and_clear_bit(_PAGE_BIT_DIRTY, &ptep->pte_low); \
++	if (ret)							\
++		pte_update_defer(vma->vm_mm, addr, ptep);		\
++	ret;								\
++})
+ 
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+-static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
+-					    unsigned long addr, pte_t *ptep)
+-{
+-	int ret = 0;
+-	if (pte_young(*ptep))
+-		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED, &ptep->pte_low);
+-	if (ret)
+-		pte_update_defer(vma->vm_mm, addr, ptep);
+-	return ret;
+-}
++#define ptep_test_and_clear_young(vma, addr, ptep) ({			\
++	int ret = 0;							\
++	if (pte_young(*ptep))						\
++		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED, &ptep->pte_low); \
++	if (ret)							\
++		pte_update_defer(vma->vm_mm, addr, ptep);		\
++	ret;								\
++})
+ 
+ /*
+  * Rules for using ptep_establish: the pte MUST be a user pte, and
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +129,7 @@ revert-ac97-fix-microphone-and-line_in-selection-logic.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
 mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
