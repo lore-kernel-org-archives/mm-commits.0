@@ -1,74 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - keyboardc-stop-flooding-dmesg-with-useless-warnings.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 15:33:04 -0800
-Message-ID: <200703262333.l2QNX4Ku001100@shell0.pdx.osdl.net>
+Subject: - fix-up-pci-power-management-doc.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 15:35:19 -0800
+Message-ID: <200703262335.l2QNZJLe001164@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58847 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58999 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933741AbXCZXdM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 19:33:12 -0400
+	id S933779AbXCZXfW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 19:35:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: parag.warudkar@gmail.com, dtor@mail.ru, mm-commits@vger.kernel.org
+To: corbet@lwn.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keyboard.c: stop flooding dmesg with useless warnings
+     Fix up PCI power management doc
 has been removed from the -mm tree.  Its filename was
-     keyboardc-stop-flooding-dmesg-with-useless-warnings.patch
+     fix-up-pci-power-management-doc.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: keyboard.c: stop flooding dmesg with useless warnings
-From: Parag Warudkar <parag.warudkar@gmail.com>
+Subject: Fix up PCI power management doc
+From: Jonathan Corbet <corbet@lwn.net>
 
-I use Apple keyboard and mouse which seem to generate events with
-keycode==0.
+Update the documentation of PCI power management functions.
 
-keyboard.c floods dmesg endlessly with below messages.  This happens at a
-very fast rate and never stops, leaving the dmesg unusable.
-
-[46591.960000] keyboard.c: can't emulate rawmode for keycode 0
-[46591.996000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.032000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.068000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.104000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.140000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.176000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.212000] keyboard.c: can't emulate rawmode for keycode 0
-[46592.248000] keyboard.c: can't emulate rawmode for keycode 0
-
-The patch below avoids printing the warning if keycode == KEY_RESERVED.
-
-Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/keyboard.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/power/pci.txt |   17 +++++++----------
+ 1 files changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/keyboard.c~keyboardc-stop-flooding-dmesg-with-useless-warnings drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~keyboardc-stop-flooding-dmesg-with-useless-warnings
-+++ a/drivers/char/keyboard.c
-@@ -1135,7 +1135,7 @@ static void kbd_keycode(unsigned int key
+diff -puN Documentation/power/pci.txt~fix-up-pci-power-management-doc Documentation/power/pci.txt
+--- a/Documentation/power/pci.txt~fix-up-pci-power-management-doc
++++ a/Documentation/power/pci.txt
+@@ -102,31 +102,28 @@ pci_save_state
+ --------------
  
- 	if ((raw_mode = (kbd->kbdmode == VC_RAW)) && !hw_raw)
- 		if (emulate_raw(vc, keycode, !down << 7))
--			if (keycode < BTN_MISC)
-+			if (keycode < BTN_MISC && keycode != KEY_RESERVED)
- 				printk(KERN_WARNING "keyboard.c: can't emulate rawmode for keycode %d\n", keycode);
+ Usage:
+-	pci_save_state(dev, buffer);
++	pci_save_state(struct pci_dev *dev);
  
- #ifdef CONFIG_MAGIC_SYSRQ	       /* Handle the SysRq Hack */
+ Description:
+-	Save first 64 bytes of PCI config space. Buffer must be allocated by
+-	caller.
++	Save first 64 bytes of PCI config space, along with any additional
++	PCI-Express or PCI-X information.
+ 
+ 
+ pci_restore_state
+ -----------------
+ 
+ Usage:
+-	pci_restore_state(dev, buffer);
++	pci_restore_state(struct pci_dev *dev);
+ 
+ Description:
+-	Restore previously saved config space. (First 64 bytes only);
+-
+-	If buffer is NULL, then restore what information we know about the
+-	device from bootup: BARs and interrupt line.
++	Restore previously saved config space.
+ 
+ 
+ pci_set_power_state
+ -------------------
+ 
+ Usage:
+-	pci_set_power_state(dev, state);
++	pci_set_power_state(struct pci_dev *dev, pci_power_t state);
+ 
+ Description:
+ 	Transition device to low power state using PCI PM Capabilities
+@@ -142,7 +139,7 @@ pci_enable_wake
+ ---------------
+ 
+ Usage:
+-	pci_enable_wake(dev, state, enable);
++	pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable);
+ 
+ Description:
+ 	Enable device to generate PME# during low power state using PCI PM 
 _
 
-Patches currently in -mm which might be from parag.warudkar@gmail.com are
+Patches currently in -mm which might be from corbet@lwn.net are
 
-make-aout-executables-work-again.patch
-make-aout-executables-work-again-fix.patch
-fdomainc-get-rid-of-unused-stuff.patch
-apmc-get-rid-of-unused-variables.patch
-apm-remove-the-apm_rtc_is_gmt-config-option.patch
-keyboardc-stop-flooding-dmesg-with-useless-warnings.patch
+origin.patch
+git-dvb.patch
