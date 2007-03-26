@@ -1,137 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 15:35:13 -0800
-Message-ID: <200703262335.l2QNZDEg001154@shell0.pdx.osdl.net>
+Subject: - ppp-dont-leak-an-sk_buff-on-interface-destruction.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 15:35:16 -0800
+Message-ID: <200703262335.l2QNZGB7001157@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59006 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59020 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933784AbXCZXfY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 19:35:24 -0400
+	id S933751AbXCZXfc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 19:35:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, khc@pm.waw.pl, mm-commits@vger.kernel.org
+To: gl@dsa-ac.de, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused header file: drivers/net/wan/lmc/lmc_media.h
+     ppp: don't leak an sk_buff on interface destruction
 has been removed from the -mm tree.  Its filename was
-     remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
+     ppp-dont-leak-an-sk_buff-on-interface-destruction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove unused header file: drivers/net/wan/lmc/lmc_media.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: ppp: don't leak an sk_buff on interface destruction
+From: Guennadi Liakhovetski <gl@dsa-ac.de>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
+Signed-off-by: G. Liakhovetski <gl@dsa-ac.de>
+Cc: Paul Mackerras <paulus@samba.org>
+
+davem sayeth:
+
+This is strange.
+
+The PPP generic layer seems to be very careful about it's handling of
+the ->xmit_pending packet.
+
+When a packet is added to ->xmit_pending, immediately ppp_push() is
+called, and ppp_push() gives the packet to the channels xmit function,
+and unless the xmit function returns zero the ->xmit_pending is reset
+to NULL because non-zero return from the channel xmit functions means
+that the driver took the packet.
+
+Now I checked irnet_ppp.c, which is the driver under scrutiny here,
+and it never ever returns zero, under any circumstance, it always
+return one.
+
+So the ->xmit_pending should always be NULL'd out by ppp_push().
+
+There is some funny BLOCK_WHEN_CONNECT code, which will return
+0 in certain cases, but that define it never set during the
+build.
+
+Nevermind... that code does get enabled. :(
+
+This looks like it might be a bug, perhaps you can only return zero
+from the transmit function when your queue really is full and you plan
+to wake things up properly when space appears (via
+ppp_output_wakeup()).  You can't return 0 because of an event which
+might never occur, that's what makes ->xmit_pending get stuck and
+leak.
+
+I'm really surprised this leak doesn't trigger already via the
+ppp_synctty.c and ppp_async.c drivers, perhaps they do something to
+make sure the transmitter gets purged properly when unregistering and
+therefore ->xmit_pending does not get left non-NULL at unregister
+time.
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/lmc/lmc_media.h |   65 ------------------------------
- 1 file changed, 65 deletions(-)
+ drivers/net/ppp_generic.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/net/wan/lmc/lmc_media.h~remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah /dev/null
---- a/drivers/net/wan/lmc/lmc_media.h
-+++ /dev/null
-@@ -1,65 +0,0 @@
--#ifndef _LMC_MEDIA_H_
--#define _LMC_MEDIA_H_
--
--lmc_media_t lmc_ds3_media = {
--  lmc_ds3_init,			/* special media init stuff */
--  lmc_ds3_default,		/* reset to default state */
--  lmc_ds3_set_status,		/* reset status to state provided */
--  lmc_dummy_set_1,		/* set clock source */
--  lmc_dummy_set2_1,		/* set line speed */
--  lmc_ds3_set_100ft,		/* set cable length */
--  lmc_ds3_set_scram,		/* set scrambler */
--  lmc_ds3_get_link_status,	/* get link status */
--  lmc_dummy_set_1,		/* set link status */
--  lmc_ds3_set_crc_length,	/* set CRC length */
--  lmc_dummy_set_1,		/* set T1 or E1 circuit type */
--  lmc_ds3_watchdog
--};
--
--lmc_media_t lmc_hssi_media = {
--  lmc_hssi_init,		/* special media init stuff */
--  lmc_hssi_default,		/* reset to default state */
--  lmc_hssi_set_status,		/* reset status to state provided */
--  lmc_hssi_set_clock,		/* set clock source */
--  lmc_dummy_set2_1,		/* set line speed */
--  lmc_dummy_set_1,		/* set cable length */
--  lmc_dummy_set_1,		/* set scrambler */
--  lmc_hssi_get_link_status,	/* get link status */
--  lmc_hssi_set_link_status,	/* set link status */
--  lmc_hssi_set_crc_length,	/* set CRC length */
--  lmc_dummy_set_1,		/* set T1 or E1 circuit type */
--  lmc_hssi_watchdog
--};
--
--lmc_media_t lmc_ssi_media = { lmc_ssi_init,	/* special media init stuff */
--  lmc_ssi_default,		/* reset to default state */
--  lmc_ssi_set_status,		/* reset status to state provided */
--  lmc_ssi_set_clock,		/* set clock source */
--  lmc_ssi_set_speed,		/* set line speed */
--  lmc_dummy_set_1,		/* set cable length */
--  lmc_dummy_set_1,		/* set scrambler */
--  lmc_ssi_get_link_status,	/* get link status */
--  lmc_ssi_set_link_status,	/* set link status */
--  lmc_ssi_set_crc_length,	/* set CRC length */
--  lmc_dummy_set_1,		/* set T1 or E1 circuit type */
--  lmc_ssi_watchdog
--};
--
--lmc_media_t lmc_t1_media = {
--  lmc_t1_init,			/* special media init stuff */
--  lmc_t1_default,		/* reset to default state */
--  lmc_t1_set_status,		/* reset status to state provided */
--  lmc_t1_set_clock,		/* set clock source */
--  lmc_dummy_set2_1,		/* set line speed */
--  lmc_dummy_set_1,		/* set cable length */
--  lmc_dummy_set_1,		/* set scrambler */
--  lmc_t1_get_link_status,	/* get link status */
--  lmc_dummy_set_1,		/* set link status */
--  lmc_t1_set_crc_length,	/* set CRC length */
--  lmc_t1_set_circuit_type,	/* set T1 or E1 circuit type */
--  lmc_t1_watchdog
--};
--
--
--#endif
--
+diff -puN drivers/net/ppp_generic.c~ppp-dont-leak-an-sk_buff-on-interface-destruction drivers/net/ppp_generic.c
+--- a/drivers/net/ppp_generic.c~ppp-dont-leak-an-sk_buff-on-interface-destruction
++++ a/drivers/net/ppp_generic.c
+@@ -2544,6 +2544,9 @@ static void ppp_destroy_interface(struct
+ 	ppp->active_filter = NULL;
+ #endif /* CONFIG_PPP_FILTER */
+ 
++	if (ppp->xmit_pending)
++		kfree_skb(ppp->xmit_pending);
++
+ 	kfree(ppp);
+ }
+ 
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from gl@dsa-ac.de are
 
 origin.patch
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-powerpc.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-git-drm.patch
-git-input.patch
-git-mtd.patch
-jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
-remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
-delete-unused-header-file-linux-sdla_frh.patch
-delete-unused-header-file-linux-if_wanpipe_commonh.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the.patch
-git-scsi-misc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-math-emu-extendedh.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
