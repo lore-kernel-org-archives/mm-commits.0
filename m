@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-pci-pci-piggy-bus.patch added to -mm tree
-Date: Mon, 26 Mar 2007 01:37:10 -0700
-Message-ID: <200703260839.l2Q8dDmQ014873@shell0.pdx.osdl.net>
+Subject: + block-io-errors-on-i2o-disk.patch added to -mm tree
+Date: Mon, 26 Mar 2007 00:37:14 -0800
+Message-ID: <200703260837.l2Q8bEiX014845@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49647 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49643 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753528AbXCZIjT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 04:39:19 -0400
+	id S1752691AbXCZIjR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 04:39:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: vvs@sw.ru, Markus.Lidel@shadowconnect.com, jens.axboe@oracle.com, stable@kernel.org
 
 
 The patch titled
-     fix-gregkh-pci-pci-piggy-bus
+     i2o: block IO errors on i2o disk
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-pci-pci-piggy-bus.patch
+     block-io-errors-on-i2o-disk.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,108 +25,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-gregkh-pci-pci-piggy-bus
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i2o: block IO errors on i2o disk
+From: Vasily Averin <vvs@sw.ru>
 
-drivers/pci/piggy.c: In function 'piggy_release':
-drivers/pci/piggy.c:87: error: called object '"<7>%s %s: "' is not a function
-drivers/pci/piggy.c:87: warning: passing argument 1 of 'dev_driver_string' from incompatible pointer type
-drivers/pci/piggy.c:87: error: request for member 'bus_id' in something not a structure or union
+I2O subsystem has been broken in mainstream several months ago (after
+2.6.18).  The following patch from Jens Axboe splits struct request ->flags
+into two parts: cmd_type and cmd_flags
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=4aff5e2333c9a1609662f2091f55c3f6fffdad36
 
-Cc: Greg KH <greg@kroah.com>
+In i2o layer this patch has replaced flag REQ_SPECIAL by the according
+cmd_type.  However i2o has used REQ_SPECIAL not as command type but as
+driver-specific flag for the debug purposes.  As result all i2o requests
+have type "special" now, are not processed to the hardware and fail with
+I/O error:
+
+ i2o/hda:<3>Buffer I/O error on device i2o/hda, logical block 0
+Buffer I/O error on device i2o/hda, logical block 0
+Buffer I/O error on device i2o/hda, logical block 0
+ unable to read partition table
+block-osm: device added (TID: 207): i2o/hda
+
+The following patch removes the extra debug checks without any drawbacks and
+restores the normal driver's work.
+
+Signed-off-by:	Vasily Averin <vvs@sw.ru>
+Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/piggy.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/message/i2o/i2o_block.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/pci/piggy.c~fix-gregkh-pci-pci-piggy-bus drivers/pci/piggy.c
---- a/drivers/pci/piggy.c~fix-gregkh-pci-pci-piggy-bus
-+++ a/drivers/pci/piggy.c
-@@ -84,7 +84,6 @@ static void piggy_release(struct device 
- {
- 	struct piggy_device *pig = to_piggy_dev(dev);
+diff -puN drivers/message/i2o/i2o_block.c~block-io-errors-on-i2o-disk drivers/message/i2o/i2o_block.c
+--- a/drivers/message/i2o/i2o_block.c~block-io-errors-on-i2o-disk
++++ a/drivers/message/i2o/i2o_block.c
+@@ -390,13 +390,6 @@ static int i2o_block_prep_req_fn(struct 
+ 		return BLKPREP_KILL;
+ 	}
  
--	dev_dbg("%s - %s", __FUNCTION__, dev->bus_id);
- 	pci_dev_put(pig->pdev);
- 	list_del(&pig->node);
- 	kfree(pig);
+-	/* request is already processed by us, so return */
+-	if (blk_special_request(req)) {
+-		osm_debug("REQ_SPECIAL already set!\n");
+-		req->cmd_flags |= REQ_DONTPREP;
+-		return BLKPREP_OK;
+-	}
+-
+ 	/* connect the i2o_block_request to the request */
+ 	if (!req->special) {
+ 		ireq = i2o_block_request_alloc();
+@@ -408,11 +401,8 @@ static int i2o_block_prep_req_fn(struct 
+ 		ireq->i2o_blk_dev = i2o_blk_dev;
+ 		req->special = ireq;
+ 		ireq->req = req;
+-	} else
+-		ireq = req->special;
+-
++	}
+ 	/* do not come back here */
+-	req->cmd_type = REQ_TYPE_SPECIAL;
+ 	req->cmd_flags |= REQ_DONTPREP;
+ 
+ 	return BLKPREP_OK;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vvs@sw.ru are
 
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
-mm-only-hrtimers-debug-patch-fix.patch
-fix-gregkh-pci-pci-piggy-bus.patch
+block-io-errors-on-i2o-disk.patch
