@@ -1,135 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - clockevents-remove-bad-designed-sysfs-support-for-now.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 15:35:09 -0800
-Message-ID: <200703262335.l2QNZ9pc001151@shell0.pdx.osdl.net>
+Subject: - remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 15:35:13 -0800
+Message-ID: <200703262335.l2QNZDEg001154@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59003 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59006 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933780AbXCZXfX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 19:35:23 -0400
+	id S933784AbXCZXfY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 19:35:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, gregkh@suse.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, khc@pm.waw.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clockevents: remove bad designed sysfs support for now
+     remove unused header file: drivers/net/wan/lmc/lmc_media.h
 has been removed from the -mm tree.  Its filename was
-     clockevents-remove-bad-designed-sysfs-support-for-now.patch
+     remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clockevents: remove bad designed sysfs support for now
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: remove unused header file: drivers/net/wan/lmc/lmc_media.h
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-The current sysfs support of clockevents does not obey the "only one value
-per file" rule.
-
-The real fix is not 2.6.21 material.  Therefor remove the sysfs support for
-now.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/clockevents.c |   69 ------------------------------------
- 1 file changed, 69 deletions(-)
+ drivers/net/wan/lmc/lmc_media.h |   65 ------------------------------
+ 1 file changed, 65 deletions(-)
 
-diff -puN kernel/time/clockevents.c~clockevents-remove-bad-designed-sysfs-support-for-now kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~clockevents-remove-bad-designed-sysfs-support-for-now
-+++ a/kernel/time/clockevents.c
-@@ -274,72 +274,3 @@ void clockevents_notify(unsigned long re
- }
- EXPORT_SYMBOL_GPL(clockevents_notify);
- 
--#ifdef CONFIG_SYSFS
+diff -puN drivers/net/wan/lmc/lmc_media.h~remove-unused-header-file-drivers-net-wan-lmc-lmc_mediah /dev/null
+--- a/drivers/net/wan/lmc/lmc_media.h
++++ /dev/null
+@@ -1,65 +0,0 @@
+-#ifndef _LMC_MEDIA_H_
+-#define _LMC_MEDIA_H_
 -
--/**
-- * clockevents_show_registered - sysfs interface for listing clockevents
-- * @dev:	unused
-- * @buf:	char buffer to be filled with clock events list
-- *
-- * Provides sysfs interface for listing registered clock event devices
-- */
--static ssize_t clockevents_show_registered(struct sys_device *dev, char *buf)
--{
--	struct list_head *tmp;
--	char *p = buf;
--	int cpu;
--
--	spin_lock(&clockevents_lock);
--
--	list_for_each(tmp, &clockevent_devices) {
--		struct clock_event_device *ce;
--
--		ce = list_entry(tmp, struct clock_event_device, list);
--		p += sprintf(p, "%-20s F:%04x M:%d", ce->name,
--			     ce->features, ce->mode);
--		p += sprintf(p, " C:");
--		if (!cpus_equal(ce->cpumask, cpu_possible_map)) {
--			for_each_cpu_mask(cpu, ce->cpumask)
--				p += sprintf(p, " %d", cpu);
--		} else {
--			/*
--			 * FIXME: Add the cpu which is handling this sucker
--			 */
--		}
--		p += sprintf(p, "\n");
--	}
--
--	spin_unlock(&clockevents_lock);
--
--	return p - buf;
--}
--
--/*
-- * Sysfs setup bits:
-- */
--static SYSDEV_ATTR(registered, 0600,
--		   clockevents_show_registered, NULL);
--
--static struct sysdev_class clockevents_sysclass = {
--	set_kset_name("clockevents"),
+-lmc_media_t lmc_ds3_media = {
+-  lmc_ds3_init,			/* special media init stuff */
+-  lmc_ds3_default,		/* reset to default state */
+-  lmc_ds3_set_status,		/* reset status to state provided */
+-  lmc_dummy_set_1,		/* set clock source */
+-  lmc_dummy_set2_1,		/* set line speed */
+-  lmc_ds3_set_100ft,		/* set cable length */
+-  lmc_ds3_set_scram,		/* set scrambler */
+-  lmc_ds3_get_link_status,	/* get link status */
+-  lmc_dummy_set_1,		/* set link status */
+-  lmc_ds3_set_crc_length,	/* set CRC length */
+-  lmc_dummy_set_1,		/* set T1 or E1 circuit type */
+-  lmc_ds3_watchdog
 -};
 -
--static struct sys_device clockevents_sys_device = {
--	.id	= 0,
--	.cls	= &clockevents_sysclass,
+-lmc_media_t lmc_hssi_media = {
+-  lmc_hssi_init,		/* special media init stuff */
+-  lmc_hssi_default,		/* reset to default state */
+-  lmc_hssi_set_status,		/* reset status to state provided */
+-  lmc_hssi_set_clock,		/* set clock source */
+-  lmc_dummy_set2_1,		/* set line speed */
+-  lmc_dummy_set_1,		/* set cable length */
+-  lmc_dummy_set_1,		/* set scrambler */
+-  lmc_hssi_get_link_status,	/* get link status */
+-  lmc_hssi_set_link_status,	/* set link status */
+-  lmc_hssi_set_crc_length,	/* set CRC length */
+-  lmc_dummy_set_1,		/* set T1 or E1 circuit type */
+-  lmc_hssi_watchdog
 -};
 -
--static int __init clockevents_sysfs_init(void)
--{
--	int error = sysdev_class_register(&clockevents_sysclass);
+-lmc_media_t lmc_ssi_media = { lmc_ssi_init,	/* special media init stuff */
+-  lmc_ssi_default,		/* reset to default state */
+-  lmc_ssi_set_status,		/* reset status to state provided */
+-  lmc_ssi_set_clock,		/* set clock source */
+-  lmc_ssi_set_speed,		/* set line speed */
+-  lmc_dummy_set_1,		/* set cable length */
+-  lmc_dummy_set_1,		/* set scrambler */
+-  lmc_ssi_get_link_status,	/* get link status */
+-  lmc_ssi_set_link_status,	/* set link status */
+-  lmc_ssi_set_crc_length,	/* set CRC length */
+-  lmc_dummy_set_1,		/* set T1 or E1 circuit type */
+-  lmc_ssi_watchdog
+-};
 -
--	if (!error)
--		error = sysdev_register(&clockevents_sys_device);
--	if (!error)
--		error = sysdev_create_file(
--				&clockevents_sys_device,
--				&attr_registered);
--	return error;
--}
--device_initcall(clockevents_sysfs_init);
+-lmc_media_t lmc_t1_media = {
+-  lmc_t1_init,			/* special media init stuff */
+-  lmc_t1_default,		/* reset to default state */
+-  lmc_t1_set_status,		/* reset status to state provided */
+-  lmc_t1_set_clock,		/* set clock source */
+-  lmc_dummy_set2_1,		/* set line speed */
+-  lmc_dummy_set_1,		/* set cable length */
+-  lmc_dummy_set_1,		/* set scrambler */
+-  lmc_t1_get_link_status,	/* get link status */
+-  lmc_dummy_set_1,		/* set link status */
+-  lmc_t1_set_crc_length,	/* set CRC length */
+-  lmc_t1_set_circuit_type,	/* set T1 or E1 circuit type */
+-  lmc_t1_watchdog
+-};
+-
+-
 -#endif
+-
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-correct-slow-acpi_pm-rating.patch
-ntp-avoid-time_offset-overflows.patch
-ntp-avoid-time_offset-overflows-fix.patch
-hrtimers-fix-reprogramming-smp-race.patch
-git-ieee1394.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-declare-struct-ktime.patch
-mm-only-hrtimers-debug-patch.patch
-mm-only-hrtimers-debug-patch-fix.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+git-powerpc.patch
+remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
+remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
+git-drm.patch
+git-input.patch
+git-mtd.patch
+jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
+remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
+delete-unused-header-file-linux-sdla_frh.patch
+delete-unused-header-file-linux-if_wanpipe_commonh.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the.patch
+git-scsi-misc.patch
+remove-some-unused-scsi-related-kernel-config-variables.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+delete-unused-header-file-math-emu-extendedh.patch
+delete-unused-header-file-linux-awe_voiceh.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
