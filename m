@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch added to -mm tree
-Date: Mon, 26 Mar 2007 14:31:36 -0700
-Message-ID: <200703262131.l2QLVaUF031109@shell0.pdx.osdl.net>
+Subject: + make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch added to -mm tree
+Date: Mon, 26 Mar 2007 14:42:18 -0700
+Message-ID: <200703262142.l2QLgI3l031278@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53019 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53660 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932458AbXCZVbq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 17:31:46 -0400
+	id S932812AbXCZVml (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 17:42:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmitry.adamushko@gmail.com, mingo@elte.hu, tglx@linutronix.de
+Cc: Pierre.Peiffer@bull.net, drepper@redhat.com, mingo@elte.hu, pierre.peiffer@bull.net, sebastien.dugue@bull.net
 
 
 The patch titled
-     kernel/irq/proc.c: unprotected iteration over the IRQ action list in name_unique()
+     Fix: timeout not passed anymore to futex_lock_pi
 has been added to the -mm tree.  Its filename is
-     kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+     make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/irq/proc.c: unprotected iteration over the IRQ action list in name_unique()
-From: "Dmitry Adamushko" <dmitry.adamushko@gmail.com>
+Subject: Fix: timeout not passed anymore to futex_lock_pi
+From: Pierre Peiffer <Pierre.Peiffer@bull.net>
 
-setup_irq() releases a desc->lock before calling register_handler_proc(), so
-the iteration over the IRQ action list is not protected.
+This is a fix for a bug introduced by the patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch : the timeout value
+is not passed anymore to futex_lock_pi.
 
-(akpm: the check itself is still racy, but at least it probably won't oops
-now).
-
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Cc: Sebastien Dugue <sebastien.dugue@bull.net>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/proc.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+ kernel/futex.c        |    4 +++-
+ kernel/futex_compat.c |    4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN kernel/irq/proc.c~kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique kernel/irq/proc.c
---- a/kernel/irq/proc.c~kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique
-+++ a/kernel/irq/proc.c
-@@ -66,12 +66,19 @@ static int name_unique(unsigned int irq,
- {
- 	struct irq_desc *desc = irq_desc + irq;
- 	struct irqaction *action;
-+	unsigned long flags;
-+	int ret = 1;
- 
--	for (action = desc->action ; action; action = action->next)
-+	spin_lock_irqsave(&desc->lock, flags);
-+	for (action = desc->action ; action; action = action->next) {
- 		if ((action != new_action) && action->name &&
--				!strcmp(new_action->name, action->name))
--			return 0;
--	return 1;
-+				!strcmp(new_action->name, action->name)) {
-+			ret = 0;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&desc->lock, flags);
-+	return ret;
- }
- 
- void register_handler_proc(unsigned int irq, struct irqaction *action)
+diff -puN kernel/futex.c~make-futex_wait-use-an-hrtimer-for-timeout-fix-2 kernel/futex.c
+--- a/kernel/futex.c~make-futex_wait-use-an-hrtimer-for-timeout-fix-2
++++ a/kernel/futex.c
+@@ -1874,8 +1874,10 @@ asmlinkage long sys_futex(u32 __user *ua
+ 			return -EFAULT;
+ 		if (!timespec_valid(&ts))
+ 			return -EINVAL;
++
++		t = timespec_to_ktime(ts);
+ 		if (op == FUTEX_WAIT)
+-			t = ktime_add(ktime_get(), timespec_to_ktime(ts));
++			t = ktime_add(ktime_get(), t);
+ 		tp = &t;
+ 	}
+ 	/*
+diff -puN kernel/futex_compat.c~make-futex_wait-use-an-hrtimer-for-timeout-fix-2 kernel/futex_compat.c
+--- a/kernel/futex_compat.c~make-futex_wait-use-an-hrtimer-for-timeout-fix-2
++++ a/kernel/futex_compat.c
+@@ -150,8 +150,10 @@ asmlinkage long compat_sys_futex(u32 __u
+ 			return -EFAULT;
+ 		if (!timespec_valid(&ts))
+ 			return -EINVAL;
++
++		t = timespec_to_ktime(ts);
+ 		if (op == FUTEX_WAIT)
+-			t = ktime_add(ktime_get(), timespec_to_ktime(ts));
++			t = ktime_add(ktime_get(), t);
+ 		tp = &t;
+ 	}
+ 	if (op == FUTEX_REQUEUE || op == FUTEX_CMP_REQUEUE)
 _
 
-Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
+Patches currently in -mm which might be from Pierre.Peiffer@bull.net are
 
-kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
+sys_futex64-allows-64bit-futexes-fix.patch
