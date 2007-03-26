@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + minor-spi_butterfly-cleanup.patch added to -mm tree
-Date: Mon, 26 Mar 2007 15:00:52 -0700
-Message-ID: <200703262200.l2QM0qVu031683@shell0.pdx.osdl.net>
+Subject: + ipcns-fix-config_ipc_ns-behavior.patch added to -mm tree
+Date: Mon, 26 Mar 2007 15:07:14 -0700
+Message-ID: <200703262207.l2QM7EoY031792@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54449 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54698 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933338AbXCZWA6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 18:00:58 -0400
+	id S932511AbXCZWHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 18:07:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: serue@us.ibm.com, ebiederm@xmission.com
 
 
 The patch titled
-     minor spi_butterfly cleanup
+     ipcns: fix !CONFIG_IPC_NS behavior
 has been added to the -mm tree.  Its filename is
-     minor-spi_butterfly-cleanup.patch
+     ipcns-fix-config_ipc_ns-behavior.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,182 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: minor spi_butterfly cleanup
-From: David Brownell <david-b@pacbell.net>
+Subject: ipcns: fix !CONFIG_IPC_NS behavior
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Simplify the spi_butterfly driver by removing incomplete/unused support for
-the second SPI bus, implemented by the USI controller.  This should make
-this a clearer example of how to write a parport bitbang driver.
+When CONFIG_IPC_NS=n, clone(CLONE_NEWIPC) claims success, but did not actually
+clone a new IPC namespace.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Fix this to return -EINVAL so the caller knows his request was denied.
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_butterfly.c |   62 ++--------------------------------
- 1 files changed, 4 insertions(+), 58 deletions(-)
+ include/linux/ipc.h |    7 +------
+ ipc/util.c          |    7 +++++++
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/spi/spi_butterfly.c~minor-spi_butterfly-cleanup drivers/spi/spi_butterfly.c
---- a/drivers/spi/spi_butterfly.c~minor-spi_butterfly-cleanup
-+++ a/drivers/spi/spi_butterfly.c
-@@ -40,8 +40,6 @@
-  * and use this custom parallel port cable.
-  */
+diff -puN include/linux/ipc.h~ipcns-fix-config_ipc_ns-behavior include/linux/ipc.h
+--- a/include/linux/ipc.h~ipcns-fix-config_ipc_ns-behavior
++++ a/include/linux/ipc.h
+@@ -96,15 +96,10 @@ extern struct ipc_namespace init_ipc_ns;
+ #define INIT_IPC_NS(ns)
+ #endif
  
--#undef	HAVE_USI	/* nyet */
--
- 
- /* DATA output bits (pins 2..9 == D0..D7) */
- #define	butterfly_nreset (1 << 1)		/* pin 3 */
-@@ -49,19 +47,13 @@
- #define	spi_sck_bit	(1 << 0)		/* pin 2 */
- #define	spi_mosi_bit	(1 << 7)		/* pin 9 */
- 
--#define	usi_sck_bit	(1 << 3)		/* pin 5 */
--#define	usi_mosi_bit	(1 << 4)		/* pin 6 */
--
- #define	vcc_bits	((1 << 6) | (1 << 5))	/* pins 7, 8 */
- 
- /* STATUS input bits */
- #define	spi_miso_bit	PARPORT_STATUS_BUSY	/* pin 11 */
- 
--#define	usi_miso_bit	PARPORT_STATUS_PAPEROUT	/* pin 12 */
--
- /* CONTROL output bits */
- #define	spi_cs_bit	PARPORT_CONTROL_SELECT	/* pin 17 */
--/* USI uses no chipselect */
- 
- 
- 
-@@ -70,15 +62,6 @@ static inline struct butterfly *spidev_t
- 	return spi->controller_data;
- }
- 
--static inline int is_usidev(struct spi_device *spi)
--{
--#ifdef	HAVE_USI
--	return spi->chip_select != 1;
++extern int copy_ipcs(unsigned long flags, struct task_struct *tsk);
+ #ifdef CONFIG_IPC_NS
+ extern void free_ipc_ns(struct kref *kref);
+-extern int copy_ipcs(unsigned long flags, struct task_struct *tsk);
+ extern int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns);
 -#else
+-static inline int copy_ipcs(unsigned long flags, struct task_struct *tsk)
+-{
 -	return 0;
--#endif
 -}
--
+ #endif
  
- struct butterfly {
- 	/* REVISIT ... for now, this must be first */
-@@ -97,23 +80,13 @@ struct butterfly {
+ static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
+diff -puN ipc/util.c~ipcns-fix-config_ipc_ns-behavior ipc/util.c
+--- a/ipc/util.c~ipcns-fix-config_ipc_ns-behavior
++++ a/ipc/util.c
+@@ -144,6 +144,13 @@ void free_ipc_ns(struct kref *kref)
+ 	shm_exit_ns(ns);
+ 	kfree(ns);
+ }
++#else
++int copy_ipcs(unsigned long flags, struct task_struct *tsk)
++{
++	if (flags & CLONE_NEWIPC)
++		return -EINVAL;
++	return 0;
++}
+ #endif
  
- /*----------------------------------------------------------------------*/
- 
--/*
-- * these routines may be slower than necessary because they're hiding
-- * the fact that there are two different SPI busses on this cable: one
-- * to the DataFlash chip (or AVR SPI controller), the other to the
-- * AVR USI controller.
-- */
--
- static inline void
- setsck(struct spi_device *spi, int is_on)
- {
- 	struct butterfly	*pp = spidev_to_pp(spi);
- 	u8			bit, byte = pp->lastbyte;
- 
--	if (is_usidev(spi))
--		bit = usi_sck_bit;
--	else
--		bit = spi_sck_bit;
-+	bit = spi_sck_bit;
- 
- 	if (is_on)
- 		byte |= bit;
-@@ -129,10 +102,7 @@ setmosi(struct spi_device *spi, int is_o
- 	struct butterfly	*pp = spidev_to_pp(spi);
- 	u8			bit, byte = pp->lastbyte;
- 
--	if (is_usidev(spi))
--		bit = usi_mosi_bit;
--	else
--		bit = spi_mosi_bit;
-+	bit = spi_mosi_bit;
- 
- 	if (is_on)
- 		byte |= bit;
-@@ -148,10 +118,7 @@ static inline int getmiso(struct spi_dev
- 	int			value;
- 	u8			bit;
- 
--	if (is_usidev(spi))
--		bit = usi_miso_bit;
--	else
--		bit = spi_miso_bit;
-+	bit = spi_miso_bit;
- 
- 	/* only STATUS_BUSY is NOT negated */
- 	value = !(parport_read_status(pp->port) & bit);
-@@ -166,10 +133,6 @@ static void butterfly_chipselect(struct 
- 	if (value != BITBANG_CS_INACTIVE)
- 		setsck(spi, spi->mode & SPI_CPOL);
- 
--	/* no chipselect on this USI link config */
--	if (is_usidev(spi))
--		return;
--
- 	/* here, value == "activate or not";
- 	 * most PARPORT_CONTROL_* bits are negated, so we must
- 	 * morph it to value == "bit value to write in control register"
-@@ -300,7 +263,7 @@ static void butterfly_attach(struct parp
- 	parport_frob_control(pp->port, spi_cs_bit, 0);
- 
- 	/* stabilize power with chip in reset (nRESET), and
--	 * both spi_sck_bit and usi_sck_bit clear (CPOL=0)
-+	 * spi_sck_bit clear (CPOL=0)
- 	 */
- 	pp->lastbyte |= vcc_bits;
- 	parport_write_data(pp->port, pp->lastbyte);
-@@ -334,23 +297,6 @@ static void butterfly_attach(struct parp
- 		pr_debug("%s: dataflash at %s\n", p->name,
- 				pp->dataflash->dev.bus_id);
- 
--#ifdef	HAVE_USI
--	/* Bus 2 is only for talking to the AVR, and it can work no
--	 * matter who masters bus 1; needs appropriate AVR firmware.
--	 */
--	pp->info[1].max_speed_hz = 10 /* ?? */ * 1000 * 1000;
--	strcpy(pp->info[1].modalias, "butterfly");
--	// pp->info[1].platform_data = ... TBD ... ;
--	pp->info[1].chip_select = 2,
--	pp->info[1].controller_data = pp;
--	pp->butterfly = spi_new_device(pp->bitbang.master, &pp->info[1]);
--	if (pp->butterfly)
--		pr_debug("%s: butterfly at %s\n", p->name,
--				pp->butterfly->dev.bus_id);
--
--	/* FIXME setup ACK for the IRQ line ...  */
--#endif
--
- 	// dev_info(_what?_, ...)
- 	pr_info("%s: AVR Butterfly\n", p->name);
- 	butterfly = pp;
+ /**
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-8250-make-probing-for-txen-bug-a-config-option.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-kconfig-cleanup.patch
+utsns-fix-config_uts_ns-behavior.patch
+ipcns-fix-config_ipc_ns-behavior.patch
+implement-file-posix-capabilities.patch
+file-capabilities-accomodate-future-64-bit-caps.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+attach_pid-with-struct-pid-parameter.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
