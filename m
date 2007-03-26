@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sys_futex64-allows-64bit-futexes-workaround.patch added to -mm tree
-Date: Mon, 26 Mar 2007 04:50:56 -0700
-Message-ID: <200703261152.l2QBqwe8018035@shell0.pdx.osdl.net>
+Subject: + x86_64-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management.patch added to -mm tree
+Date: Mon, 26 Mar 2007 10:53:26 -0800
+Message-ID: <200703261853.l2QIrQTr027721@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54815 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45165 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752266AbXCZLxj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 07:53:39 -0400
+	id S1753691AbXCZSxh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 14:53:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, pierre.peiffer@bull.net
+Cc: clameter@sgi.com, ak@suse.de
 
 
 The patch titled
-     sys_futex64-allows-64bit-futexes-workaround
+     x86_64: use lru instead of page->index and page->private for pgd lists management.
 has been added to the -mm tree.  Its filename is
-     sys_futex64-allows-64bit-futexes-workaround.patch
+     x86_64-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,194 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sys_futex64-allows-64bit-futexes-workaround
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86_64: use lru instead of page->index and page->private for pgd lists management.
+From: Christoph Lameter <clameter@sgi.com>
 
-un-break the build
+x86_64 currently simulates a list using the index and private fields of the
+page struct.  Seems that the code was inherited from i386.  But x86_64 does
+not use the slab to allocate pgds and pmds etc.  So the lru field is not
+used by the slab and therefore available.
 
-Cc: Pierre Peiffer <pierre.peiffer@bull.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ulrich Drepper <drepper@redhat.com>
+This patch uses standard list operations on page->lru to realize pgd
+tracking.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/futex.h    |   12 ++++++++++++
- include/asm-powerpc/futex.h |   12 ++++++++++++
- include/asm-s390/futex.h    |   12 ++++++++++++
- include/asm-sparc64/futex.h |   12 ++++++++++++
- 4 files changed, 48 insertions(+)
+ arch/x86_64/mm/fault.c       |    5 ++---
+ include/asm-x86_64/pgalloc.h |   14 +++-----------
+ include/asm-x86_64/pgtable.h |    2 +-
+ 3 files changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN include/asm-s390/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-s390/futex.h
---- a/include/asm-s390/futex.h~sys_futex64-allows-64bit-futexes-workaround
-+++ a/include/asm-s390/futex.h
-@@ -48,5 +48,17 @@ static inline int futex_atomic_cmpxchg_i
- 	return uaccess.futex_atomic_cmpxchg(uaddr, oldval, newval);
+diff -puN arch/x86_64/mm/fault.c~x86_64-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management arch/x86_64/mm/fault.c
+--- a/arch/x86_64/mm/fault.c~x86_64-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management
++++ a/arch/x86_64/mm/fault.c
+@@ -585,7 +585,7 @@ do_sigbus:
  }
  
-+static inline u64
-+futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
-+{
-+	return 0;
-+}
-+
-+static inline int
-+futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
-+{
-+	return 0;
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _ASM_S390_FUTEX_H */
-diff -puN include/asm-sparc64/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-sparc64/futex.h
---- a/include/asm-sparc64/futex.h~sys_futex64-allows-64bit-futexes-workaround
-+++ a/include/asm-sparc64/futex.h
-@@ -105,4 +105,16 @@ futex_atomic_cmpxchg_inatomic(int __user
- 	return newval;
+ DEFINE_SPINLOCK(pgd_lock);
+-struct page *pgd_list;
++LIST_HEAD(pgd_list);
+ 
+ void vmalloc_sync_all(void)
+ {
+@@ -605,8 +605,7 @@ void vmalloc_sync_all(void)
+ 			if (pgd_none(*pgd_ref))
+ 				continue;
+ 			spin_lock(&pgd_lock);
+-			for (page = pgd_list; page;
+-			     page = (struct page *)page->index) {
++			list_for_each_entry(page, &pgd_list, lru) {
+ 				pgd_t *pgd;
+ 				pgd = (pgd_t *)page_address(page) + pgd_index(address);
+ 				if (pgd_none(*pgd))
+diff -puN include/asm-x86_64/pgalloc.h~x86_64-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management include/asm-x86_64/pgalloc.h
+--- a/include/asm-x86_64/pgalloc.h~x86_64-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management
++++ a/include/asm-x86_64/pgalloc.h
+@@ -44,24 +44,16 @@ static inline void pgd_list_add(pgd_t *p
+ 	struct page *page = virt_to_page(pgd);
+ 
+ 	spin_lock(&pgd_lock);
+-	page->index = (pgoff_t)pgd_list;
+-	if (pgd_list)
+-		pgd_list->private = (unsigned long)&page->index;
+-	pgd_list = page;
+-	page->private = (unsigned long)&pgd_list;
++	list_add(&page->lru, &pgd_list);
+ 	spin_unlock(&pgd_lock);
  }
  
-+static inline u64
-+futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
-+{
-+	return 0;
-+}
-+
-+static inline int
-+futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
-+{
-+	return 0;
-+}
-+
- #endif /* !(_SPARC64_FUTEX_H) */
-diff -puN include/asm-ia64/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-ia64/futex.h
---- a/include/asm-ia64/futex.h~sys_futex64-allows-64bit-futexes-workaround
-+++ a/include/asm-ia64/futex.h
-@@ -121,4 +121,16 @@ futex_atomic_cmpxchg_inatomic(int __user
- 	}
+ static inline void pgd_list_del(pgd_t *pgd)
+ {
+-	struct page *next, **pprev, *page = virt_to_page(pgd);
++	struct page *page = virt_to_page(pgd);
+ 
+ 	spin_lock(&pgd_lock);
+-	next = (struct page *)page->index;
+-	pprev = (struct page **)page->private;
+-	*pprev = next;
+-	if (next)
+-		next->private = (unsigned long)pprev;
++	list_del(&page->lru);
+ 	spin_unlock(&pgd_lock);
  }
  
-+static inline u64
-+futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
-+{
-+	return 0;
-+}
-+
-+static inline int
-+futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
-+{
-+	return 0;
-+}
-+
- #endif /* _ASM_FUTEX_H */
-diff -puN include/asm-powerpc/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-powerpc/futex.h
---- a/include/asm-powerpc/futex.h~sys_futex64-allows-64bit-futexes-workaround
-+++ a/include/asm-powerpc/futex.h
-@@ -113,5 +113,17 @@ futex_atomic_cmpxchg_inatomic(int __user
-         return prev;
- }
+diff -puN include/asm-x86_64/pgtable.h~x86_64-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management include/asm-x86_64/pgtable.h
+--- a/include/asm-x86_64/pgtable.h~x86_64-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management
++++ a/include/asm-x86_64/pgtable.h
+@@ -402,7 +402,7 @@ static inline pte_t pte_modify(pte_t pte
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
-+static inline u64
-+futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
-+{
-+	return 0;
-+}
-+
-+static inline int
-+futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
-+{
-+	return 0;
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* _ASM_POWERPC_FUTEX_H */
+ extern spinlock_t pgd_lock;
+-extern struct page *pgd_list;
++extern struct list_head pgd_list;
+ void vmalloc_sync_all(void);
+ 
+ #endif /* !__ASSEMBLY__ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
+slab-introduce-krealloc.patch
 slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-revert-jdelvare-hwmon-hwmon-coretemp-new-driver.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-forcedeth-work-around-null-skb-dereference-crash-fix.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-fix-gregkh-pci-pci-piggy-bus.patch
-git-pciseg.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+x86_64-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
-mm-only-hrtimers-debug-patch-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+extend-print_symbol-capability-fix.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+readahead-state-based-method-aging-accounting.patch
