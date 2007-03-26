@@ -1,138 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - fix-cpufreq_stats-attrs-removal.patch removed from -mm tree
-Date: Sun, 25 Mar 2007 17:05:31 -0800
-Message-ID: <200703260105.l2Q15Va4008716@shell0.pdx.osdl.net>
+Subject: - make-xfs-workqueues-nonfreezable.patch removed from -mm tree
+Date: Sun, 25 Mar 2007 17:05:15 -0800
+Message-ID: <200703260105.l2Q15FTS008701@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38528 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38508 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933354AbXCZBFl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 21:05:41 -0400
+	id S933327AbXCZBFb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 21:05:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: malattia@linux.it, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, dgc@sgi.com, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix cpufreq_stats attrs removal
+     Make XFS workqueues nonfreezable
 has been removed from the -mm tree.  Its filename was
-     fix-cpufreq_stats-attrs-removal.patch
+     make-xfs-workqueues-nonfreezable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix cpufreq_stats attrs removal
-From: Mattia Dongili <malattia@linux.it>
+Subject: Make XFS workqueues nonfreezable
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 
-After modprobe/rmmod cpufreq/stats directory appears but doesn't get
-removed.
+Since freezable workqueues are broken in 2.6.21-rc
+(cf. http://marc.theaimsgroup.com/?l=linux-kernel&m=116855740612755,
+http://marc.theaimsgroup.com/?l=linux-kernel&m=117261312523921&w=2)
+it's better to change the only user of them, which is XFS, to use "normal"
+nonfreezable workqueues.
 
-There are other symptoms to this same bug:
-
-1. unload p4-clockmod: /sys/.../cpu0/cpufreq is removed all together
-2. load p4-clockmod: /sys/.../cpu0/cpufreq appears but no 'stats' subdir
-   (yes, cpufreq_stats is loaded)
-3. rmmod cpufreq_stats: Ooops!
-
-Call Trace:
- [<c0183f5b>] remove_dir+0x33/0xc4
- [<c0184fca>] remove_files+0x1a/0x28
- [<c018503b>] sysfs_remove_group+0x63/0x71
- [<f898c38d>] cpufreq_stat_cpu_callback+0x51/0x8a [cpufreq_stats]
- [<f898c477>] cpufreq_stats_exit+0x47/0x4b [cpufreq_stats]
- [<c012f145>] sys_delete_module+0x190/0x1b7
- [<c0140073>] do_wp_page+0x231/0x3e7
- [<c0102e17>] syscall_call+0x7/0xb
-
-The problem is cpufreq_stats doesn't know when a cpufreq driver is removed
-and doesn't cleanup.  I guess this affects any setup with cpufreq_stats.
-
-The attached patch seems to solve both symptoms and yes... it's quite
-invasive as it introduce one more cpufreq policy notification (REMOVED).
-
-Signed-off-by: Mattia Dongili <malattia@linux.it>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c       |    4 ++++
- drivers/cpufreq/cpufreq_stats.c |   26 +++++++++++++++-----------
- include/linux/cpufreq.h         |    1 +
- 3 files changed, 20 insertions(+), 11 deletions(-)
+ fs/xfs/linux-2.6/xfs_buf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~fix-cpufreq_stats-attrs-removal drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~fix-cpufreq_stats-attrs-removal
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -989,6 +989,10 @@ static int __cpufreq_remove_dev (struct 
+diff -puN fs/xfs/linux-2.6/xfs_buf.c~make-xfs-workqueues-nonfreezable fs/xfs/linux-2.6/xfs_buf.c
+--- a/fs/xfs/linux-2.6/xfs_buf.c~make-xfs-workqueues-nonfreezable
++++ a/fs/xfs/linux-2.6/xfs_buf.c
+@@ -1829,11 +1829,11 @@ xfs_buf_init(void)
+ 	if (!xfs_buf_zone)
+ 		goto out_free_trace_buf;
  
- 	unlock_policy_rwsem_write(cpu);
+-	xfslogd_workqueue = create_freezeable_workqueue("xfslogd");
++	xfslogd_workqueue = create_workqueue("xfslogd");
+ 	if (!xfslogd_workqueue)
+ 		goto out_free_buf_zone;
  
-+	/* notify of policy cancellation */
-+	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
-+			CPUFREQ_REMOVE, data);
-+
- 	kobject_unregister(&data->kobj);
+-	xfsdatad_workqueue = create_freezeable_workqueue("xfsdatad");
++	xfsdatad_workqueue = create_workqueue("xfsdatad");
+ 	if (!xfsdatad_workqueue)
+ 		goto out_destroy_xfslogd_workqueue;
  
- 	kobject_put(&data->kobj);
-diff -puN drivers/cpufreq/cpufreq_stats.c~fix-cpufreq_stats-attrs-removal drivers/cpufreq/cpufreq_stats.c
---- a/drivers/cpufreq/cpufreq_stats.c~fix-cpufreq_stats-attrs-removal
-+++ a/drivers/cpufreq/cpufreq_stats.c
-@@ -257,18 +257,23 @@ static int
- cpufreq_stat_notifier_policy (struct notifier_block *nb, unsigned long val,
- 		void *data)
- {
--	int ret;
-+	int ret = 0;
- 	struct cpufreq_policy *policy = data;
- 	struct cpufreq_frequency_table *table;
- 	unsigned int cpu = policy->cpu;
--	if (val != CPUFREQ_NOTIFY)
--		return 0;
--	table = cpufreq_frequency_get_table(cpu);
--	if (!table)
--		return 0;
--	if ((ret = cpufreq_stats_create_table(policy, table)))
--		return ret;
--	return 0;
-+	switch (val) {
-+	case CPUFREQ_NOTIFY:
-+		table = cpufreq_frequency_get_table(cpu);
-+		if (!table)
-+			break;
-+		ret = cpufreq_stats_create_table(policy, table);
-+		break;
-+
-+	case CPUFREQ_REMOVE:
-+		cpufreq_stats_free_table(cpu);
-+		break;
-+	}
-+	return ret;
- }
- 
- static int
-@@ -371,8 +376,7 @@ __exit cpufreq_stats_exit(void)
- 			CPUFREQ_TRANSITION_NOTIFIER);
- 	unregister_hotcpu_notifier(&cpufreq_stat_cpu_notifier);
- 	for_each_online_cpu(cpu) {
--		cpufreq_stat_cpu_callback(&cpufreq_stat_cpu_notifier,
--						CPU_DEAD, (void *)(long)cpu);
-+		cpufreq_stats_free_table(cpu);
- 	}
- }
- 
-diff -puN include/linux/cpufreq.h~fix-cpufreq_stats-attrs-removal include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~fix-cpufreq_stats-attrs-removal
-+++ a/include/linux/cpufreq.h
-@@ -96,6 +96,7 @@ struct cpufreq_policy {
- #define CPUFREQ_ADJUST		(0)
- #define CPUFREQ_INCOMPATIBLE	(1)
- #define CPUFREQ_NOTIFY		(2)
-+#define CPUFREQ_REMOVE		(3)
- 
- #define CPUFREQ_SHARED_TYPE_NONE (0) /* None */
- #define CPUFREQ_SHARED_TYPE_HW	 (1) /* HW does needed coordination */
 _
 
-Patches currently in -mm which might be from malattia@linux.it are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-git-cpufreq.patch
+fix-refrigerator-vs-thaw_process-race.patch
+swsusp-use-inline-functions-for-changing-page-flags.patch
+swsusp-do-not-use-page-flags.patch
+mm-remove-unused-page-flags.patch
+swsusp-fix-error-paths-in-snapshot_open.patch
+swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-force-pm_opsvalid-callback-to-be.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+shrink_slab-handle-bad-shrinkers.patch
