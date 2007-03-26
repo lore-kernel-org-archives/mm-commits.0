@@ -1,96 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - fix-extra-bios-invocation-during-resume.patch removed from -mm tree
-Date: Sun, 25 Mar 2007 17:05:08 -0800
-Message-ID: <200703260105.l2Q158UU008690@shell0.pdx.osdl.net>
+Subject: - dynticks-fix-hrtimer-rounding-error-in.patch removed from -mm tree
+Date: Sun, 25 Mar 2007 17:05:55 -0800
+Message-ID: <200703260105.l2Q15tDX008741@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38736 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38797 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933465AbXCZBIr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 21:08:47 -0400
+	id S933290AbXCZBJ1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 21:09:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, bunk@stusta.de, pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, bunk@stusta.de, jkarlson@cc.hut.fi, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix extra BIOS invocation during resume
+     dynticks: fix hrtimer rounding error in next_timer_interrupt()
 has been removed from the -mm tree.  Its filename was
-     fix-extra-bios-invocation-during-resume.patch
+     dynticks-fix-hrtimer-rounding-error-in.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix extra BIOS invocation during resume
-From: Pavel Machek <pavel@ucw.cz>
+Subject: dynticks: fix hrtimer rounding error in next_timer_interrupt()
+From: Thomas Gleixner <tglx@linutronix.de>
 
-It causes extra moon icons blinking on x60, and breaks at least two other
-systems.
+The rework of next_timer_interrupt() fixed the timer wheel bugs, but
+invented a rounding error versus the next hrtimer event.  This is caused by
+the conversion of the hrtimer internal representation to relative jiffies.
 
-During resume, we do not know that "reboot"/"shutdown" method was used, so
-we assume "plaform" and call BIOS, anyway...
+This causes bug #8100:
+http://bugzilla.kernel.org/show_bug.cgi?id=8100
 
-This is 2.6.21 material, and should fix 2 or 3 regressions from 2.6.20.
+next_timer_interrupt() returns "now" in such a case and causes the code in
+tick_nohz_stop_sched_tick() to trigger the timer softirq, which is bogus as
+no timer is due for expiry.  This results in an endless context switching
+between idle and ksoftirqd until a timer is due for expiry.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Modify the hrtimer evaluation so that, it returns now + 1, when the
+conversion results in a delta < 1 jiffie.
+
+It's confirmed to resolve bug #8100
+
+Reported-by: Emil Karlson <jkarlson@cc.hut.fi>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Adrian Bunk <bunk@stusta.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c |    8 --------
- 1 file changed, 8 deletions(-)
+ kernel/timer.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN kernel/power/disk.c~fix-extra-bios-invocation-during-resume kernel/power/disk.c
---- a/kernel/power/disk.c~fix-extra-bios-invocation-during-resume
-+++ a/kernel/power/disk.c
-@@ -241,18 +241,11 @@ static int software_resume(void)
- 		goto Done;
- 	}
+diff -puN kernel/timer.c~dynticks-fix-hrtimer-rounding-error-in kernel/timer.c
+--- a/kernel/timer.c~dynticks-fix-hrtimer-rounding-error-in
++++ a/kernel/timer.c
+@@ -695,15 +695,28 @@ static unsigned long cmp_next_hrtimer_ev
+ {
+ 	ktime_t hr_delta = hrtimer_get_next_event();
+ 	struct timespec tsdelta;
++	unsigned long delta;
  
--	error = platform_prepare();
--	if (error) {
--		swsusp_free();
--		goto Thaw;
--	}
--
- 	pr_debug("PM: Reading swsusp image.\n");
+ 	if (hr_delta.tv64 == KTIME_MAX)
+ 		return expires;
  
- 	error = swsusp_read();
- 	if (error) {
- 		swsusp_free();
--		platform_finish();
- 		goto Thaw;
- 	}
+-	if (hr_delta.tv64 <= TICK_NSEC)
+-		return now;
++	/*
++	 * Expired timer available, let it expire in the next tick
++	 */
++	if (hr_delta.tv64 <= 0)
++		return now + 1;
  
-@@ -270,7 +263,6 @@ static int software_resume(void)
- 	enable_nonboot_cpus();
-  Free:
- 	swsusp_free();
--	platform_finish();
- 	device_resume();
- 	resume_console();
-  Thaw:
+ 	tsdelta = ktime_to_timespec(hr_delta);
+-	now += timespec_to_jiffies(&tsdelta);
++	delta = timespec_to_jiffies(&tsdelta);
++	/*
++	 * Take rounding errors in to account and make sure, that it
++	 * expires in the next tick. Otherwise we go into an endless
++	 * ping pong due to tick_nohz_stop_sched_tick() retriggering
++	 * the timer softirq
++	 */
++	if (delta < 1)
++		delta = 1;
++	now += delta;
+ 	if (time_before(now, expires))
+ 		return now;
+ 	return expires;
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-fix-refrigerator-vs-thaw_process-race.patch
-swsusp-use-inline-functions-for-changing-page-flags.patch
-swsusp-do-not-use-page-flags.patch
-mm-remove-unused-page-flags.patch
-swsusp-fix-error-paths-in-snapshot_open.patch
-swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-force-pm_opsvalid-callback-to-be.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
+correct-slow-acpi_pm-rating.patch
+ntp-avoid-time_offset-overflows.patch
+ntp-avoid-time_offset-overflows-fix.patch
+git-ieee1394.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+mm-only-hrtimers-debug-patch.patch
