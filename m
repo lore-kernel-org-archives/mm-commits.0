@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipcns-fix-config_ipc_ns-behavior.patch added to -mm tree
-Date: Mon, 26 Mar 2007 15:07:14 -0700
-Message-ID: <200703262207.l2QM7EoY031792@shell0.pdx.osdl.net>
+Subject: + merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix.patch added to -mm tree
+Date: Mon, 26 Mar 2007 15:11:41 -0700
+Message-ID: <200703262211.l2QMBfVA031861@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54698 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54851 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932511AbXCZWHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 18:07:20 -0400
+	id S932619AbXCZWLv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 18:11:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, ebiederm@xmission.com
+Cc: serue@us.ibm.com
 
 
 The patch titled
      ipcns: fix !CONFIG_IPC_NS behavior
 has been added to the -mm tree.  Its filename is
-     ipcns-fix-config_ipc_ns-behavior.patch
+     merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -34,47 +34,48 @@ clone a new IPC namespace.
 Fix this to return -EINVAL so the caller knows his request was denied.
 
 Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc.h |    7 +------
+ include/linux/ipc.h |   10 ++--------
  ipc/util.c          |    7 +++++++
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/ipc.h~ipcns-fix-config_ipc_ns-behavior include/linux/ipc.h
---- a/include/linux/ipc.h~ipcns-fix-config_ipc_ns-behavior
+diff -puN include/linux/ipc.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix include/linux/ipc.h
+--- a/include/linux/ipc.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix
 +++ a/include/linux/ipc.h
-@@ -96,15 +96,10 @@ extern struct ipc_namespace init_ipc_ns;
+@@ -96,16 +96,10 @@ extern struct ipc_namespace init_ipc_ns;
  #define INIT_IPC_NS(ns)
  #endif
  
-+extern int copy_ipcs(unsigned long flags, struct task_struct *tsk);
- #ifdef CONFIG_IPC_NS
- extern void free_ipc_ns(struct kref *kref);
--extern int copy_ipcs(unsigned long flags, struct task_struct *tsk);
- extern int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns);
+-#ifdef CONFIG_IPC_NS
+-extern void free_ipc_ns(struct kref *kref);
+ extern struct ipc_namespace *copy_ipcs(unsigned long flags,
+ 		struct ipc_namespace *ns);
 -#else
--static inline int copy_ipcs(unsigned long flags, struct task_struct *tsk)
+-static inline struct ipc_namespace *copy_ipcs(unsigned long flags,
+-		struct ipc_namespace *ns)
 -{
--	return 0;
+-	return ns;
 -}
++#ifdef CONFIG_IPC_NS
++extern void free_ipc_ns(struct kref *kref);
  #endif
  
  static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
-diff -puN ipc/util.c~ipcns-fix-config_ipc_ns-behavior ipc/util.c
---- a/ipc/util.c~ipcns-fix-config_ipc_ns-behavior
+diff -puN ipc/util.c~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix ipc/util.c
+--- a/ipc/util.c~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix
 +++ a/ipc/util.c
-@@ -144,6 +144,13 @@ void free_ipc_ns(struct kref *kref)
+@@ -111,6 +111,13 @@ void free_ipc_ns(struct kref *kref)
  	shm_exit_ns(ns);
  	kfree(ns);
  }
 +#else
-+int copy_ipcs(unsigned long flags, struct task_struct *tsk)
++struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
 +{
 +	if (flags & CLONE_NEWIPC)
-+		return -EINVAL;
-+	return 0;
++		return ERR_PTR(-EINVAL);
++	return ns;
 +}
  #endif
  
@@ -88,6 +89,7 @@ ipcns-fix-config_ipc_ns-behavior.patch
 implement-file-posix-capabilities.patch
 file-capabilities-accomodate-future-64-bit-caps.patch
 merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix.patch
 attach_pid-with-struct-pid-parameter.patch
 statically-initialize-struct-pid-for-swapper.patch
 explicitly-set-pgid-and-sid-of-init-process.patch
