@@ -1,72 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-breaks-cpu-hotplug.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 03:01:57 -0800
-Message-ID: <200703261101.l2QB1vCV017348@shell0.pdx.osdl.net>
+Subject: + sys_futex64-allows-64bit-futexes-workaround.patch added to -mm tree
+Date: Mon, 26 Mar 2007 04:37:27 -0700
+Message-ID: <200703261139.l2QBdUxJ017858@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53621 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54475 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965233AbXCZLCb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 07:02:31 -0400
+	id S1751795AbXCZLkE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 07:40:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, avi@qumranet.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, pierre.peiffer@bull.net
 
 
 The patch titled
-     KVM breaks CPU hotplug
-has been removed from the -mm tree.  Its filename was
-     kvm-breaks-cpu-hotplug.patch
+     sys_futex64-allows-64bit-futexes-workaround
+has been added to the -mm tree.  Its filename is
+     sys_futex64-allows-64bit-futexes-workaround.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: KVM breaks CPU hotplug
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: sys_futex64-allows-64bit-futexes-workaround
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When testing CPU hotplug, I found cpu can't be onlined with kvm enabled
-sometimes.  The reason is smp_call_function_single is a nop if the thread
-is running on the target cpu.  I think CPU_ONLINE case doesn't require the
-fix as the online CPU isn't plugged into sheduler yet.
+un-break the build
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Avi Kivity <avi@qumranet.com>
+Cc: Pierre Peiffer <pierre.peiffer@bull.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/kvm_main.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/asm-ia64/futex.h    |   12 ++++++++++++
+ include/asm-powerpc/futex.h |   12 ++++++++++++
+ include/asm-s390/futex.h    |   12 ++++++++++++
+ include/asm-sparc64/futex.h |   12 ++++++++++++
+ 4 files changed, 48 insertions(+)
 
-diff -puN drivers/kvm/kvm_main.c~kvm-breaks-cpu-hotplug drivers/kvm/kvm_main.c
---- a/drivers/kvm/kvm_main.c~kvm-breaks-cpu-hotplug
-+++ a/drivers/kvm/kvm_main.c
-@@ -2782,6 +2782,7 @@ static int kvm_cpu_hotplug(struct notifi
- 			   void *v)
- {
- 	int cpu = (long)v;
-+	int this_cpu;
+diff -puN include/asm-s390/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-s390/futex.h
+--- a/include/asm-s390/futex.h~sys_futex64-allows-64bit-futexes-workaround
++++ a/include/asm-s390/futex.h
+@@ -48,5 +48,17 @@ static inline int futex_atomic_cmpxchg_i
+ 	return uaccess.futex_atomic_cmpxchg(uaddr, oldval, newval);
+ }
  
- 	switch (val) {
- 	case CPU_DOWN_PREPARE:
-@@ -2789,8 +2790,13 @@ static int kvm_cpu_hotplug(struct notifi
- 		printk(KERN_INFO "kvm: disabling virtualization on CPU%d\n",
- 		       cpu);
- 		decache_vcpus_on_cpu(cpu);
--		smp_call_function_single(cpu, kvm_arch_ops->hardware_disable,
--					 NULL, 0, 1);
-+		this_cpu = get_cpu();
-+		if (this_cpu == cpu)
-+			kvm_arch_ops->hardware_disable(NULL);
-+		else
-+			smp_call_function_single(cpu,
-+				kvm_arch_ops->hardware_disable,  NULL, 0, 1);
-+		put_cpu();
- 		break;
- 	case CPU_ONLINE:
- 		printk(KERN_INFO "kvm: enabling virtualization on CPU%d\n",
++static inline u64
++futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
++{
++	return 0;
++}
++
++static inline int
++futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
++{
++	return 0;
++}
++
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_S390_FUTEX_H */
+diff -puN include/asm-sparc64/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-sparc64/futex.h
+--- a/include/asm-sparc64/futex.h~sys_futex64-allows-64bit-futexes-workaround
++++ a/include/asm-sparc64/futex.h
+@@ -105,4 +105,16 @@ futex_atomic_cmpxchg_inatomic(int __user
+ 	return newval;
+ }
+ 
++static inline u64
++futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
++{
++	return 0;
++}
++
++static inline int
++futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
++{
++	return 0;
++}
++
+ #endif /* !(_SPARC64_FUTEX_H) */
+diff -puN include/asm-ia64/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-ia64/futex.h
+--- a/include/asm-ia64/futex.h~sys_futex64-allows-64bit-futexes-workaround
++++ a/include/asm-ia64/futex.h
+@@ -121,4 +121,16 @@ futex_atomic_cmpxchg_inatomic(int __user
+ 	}
+ }
+ 
++static inline u64
++futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
++{
++	return 0;
++}
++
++static inline int
++futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
++{
++	return 0;
++}
++
+ #endif /* _ASM_FUTEX_H */
+diff -puN include/asm-powerpc/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-powerpc/futex.h
+--- a/include/asm-powerpc/futex.h~sys_futex64-allows-64bit-futexes-workaround
++++ a/include/asm-powerpc/futex.h
+@@ -113,5 +113,17 @@ futex_atomic_cmpxchg_inatomic(int __user
+         return prev;
+ }
+ 
++static inline u64
++futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
++{
++	return 0;
++}
++
++static inline int
++futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
++{
++	return 0;
++}
++
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_POWERPC_FUTEX_H */
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
 git-acpi.patch
-kvm-breaks-cpu-hotplug.patch
+git-acpi-fixup.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+revert-jdelvare-hwmon-hwmon-coretemp-new-driver.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+forcedeth-work-around-null-skb-dereference-crash-fix.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+fix-gregkh-pci-pci-piggy-bus.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lists-add-list-splice-tail.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+sys_futex64-allows-64bit-futexes-workaround-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
+mm-only-hrtimers-debug-patch-fix.patch
