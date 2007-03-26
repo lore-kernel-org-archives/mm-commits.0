@@ -1,126 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - ext-ea-block-reference-count-racing-fix-performance-fix.patch removed from -mm tree
-Date: Sun, 25 Mar 2007 17:05:49 -0800
-Message-ID: <200703260105.l2Q15ngc008734@shell0.pdx.osdl.net>
+Subject: - fdpic-fix-the-proc-pid-stat-representation-of-executable.patch removed from -mm tree
+Date: Sun, 25 Mar 2007 17:05:40 -0800
+Message-ID: <200703260105.l2Q15epJ008725@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38552 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38554 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933382AbXCZBFw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 21:05:52 -0400
+	id S933409AbXCZBFx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 21:05:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cmm@us.ibm.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     "ext[34]: EA block reference count racing fix" performance fix
+     FDPIC: fix the /proc/pid/stat representation of executable boundaries
 has been removed from the -mm tree.  Its filename was
-     ext-ea-block-reference-count-racing-fix-performance-fix.patch
+     fdpic-fix-the-proc-pid-stat-representation-of-executable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: "ext[34]: EA block reference count racing fix" performance fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: FDPIC: fix the /proc/pid/stat representation of executable boundaries
+From: David Howells <dhowells@redhat.com>
 
-A little mistake in 8a2bfdcbfa441d8b0e5cb9c9a7f45f77f80da465 is making all
-transactions synchronous, which reduces ext3 performance to comical levels.
+Fix the /proc/pid/stat representation of executable boundaries.  It should
+show the bounds of the executable, but instead shows the bounds of the
+loader.
 
-Cc: Mingming Cao <cmm@us.ibm.com>
+Before the patch is applied, the bug can be seen by examining, say, inetd:
+
+	# ps | grep inetd
+	  610         root          0   S   /usr/sbin/inetd -i
+	# cat /proc/610/maps
+	c0bb0000-c0bba788 r-xs 00000000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+	c3180000-c31dede4 r-xs 00000000 00:0b 14582179  /lib/libuClibc-0.9.28.so
+	c328c000-c328ea00 rw-p 00008000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+	c3290000-c329b6c0 rw-p 00000000 00:00 0
+	c32a0000-c32c0000 rwxp 00000000 00:00 0
+	c32d4000-c32d8000 rw-p 00000000 00:00 0
+	c3394000-c3398000 rw-p 00000000 00:00 0
+	c3458000-c345f464 r-xs 00000000 00:0b 16384612  /usr/sbin/inetd
+	c3470000-c34748f8 rw-p 00004000 00:0b 16384612  /usr/sbin/inetd
+	c34cc000-c34d0000 rw-p 00000000 00:00 0
+	c34d4000-c34d8000 rw-p 00000000 00:00 0
+	c34d8000-c34dc000 rw-p 00000000 00:00 0
+	# cat /proc/610/stat
+	610 (inetd) S 1 610 610 0 -1 256 0 0 0 0 0 8 0 0 19 0 1 0 94392000718
+	950272 0 4294967295 3233480704 3233523592 3274440352 3274439976
+ 	3273467584 0 0 4096 90115 3221712796 0 0 17 0 0 0 0
+
+The code boundaries are 3233480704 to 3233523592, which are:
+
+	(gdb) p/x 3233480704
+	$1 = 0xc0bb0000
+	(gdb) p/x 3233523592
+	$2 = 0xc0bba788
+
+Which corresponds to this line in the maps file:
+
+	c0bb0000-c0bba788 r-xs 00000000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+
+Which is wrong.  After the patch is applied, the maps file is pretty much
+identical (there's some minor shuffling of the location of some of the
+anonymous VMAs), but the stat file is now:
+
+	# cat /proc/610/stat
+	610 (inetd) S 1 610 610 0 -1 256 0 0 0 0 0 7 0 0 18 0 1 0 94392000722
+	950272 0 4294967295 3276111872 3276141668 3274440352 3274439976
+	3273467584 0 0 4096 90115 3221712796 0 0 17 0 0 0 0
+
+The code boundaries are then 3276111872 to 3276141668, which are:
+
+	(gdb) p/x 3276111872
+	$1 = 0xc3458000
+	(gdb) p/x 3276141668
+	$2 = 0xc345f464
+
+And these correspond to this line in the maps file instead:
+
+	c3458000-c345f464 r-xs 00000000 00:0b 16384612  /usr/sbin/inetd
+
+Which is now correct.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/xattr.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/binfmt_elf_fdpic.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN fs/ext3/xattr.c~ext-ea-block-reference-count-racing-fix-performance-fix fs/ext3/xattr.c
---- a/fs/ext3/xattr.c~ext-ea-block-reference-count-racing-fix-performance-fix
-+++ a/fs/ext3/xattr.c
-@@ -495,7 +495,8 @@ ext3_xattr_release_block(handle_t *handl
- 		BHDR(bh)->h_refcount = cpu_to_le32(
- 				le32_to_cpu(BHDR(bh)->h_refcount) - 1);
- 		error = ext3_journal_dirty_metadata(handle, bh);
--		handle->h_sync = 1;
-+		if (IS_SYNC(inode))
-+			handle->h_sync = 1;
- 		DQUOT_FREE_BLOCK(inode, 1);
- 		ea_bdebug(bh, "refcount now=%d; releasing",
- 			  le32_to_cpu(BHDR(bh)->h_refcount));
+diff -puN fs/binfmt_elf_fdpic.c~fdpic-fix-the-proc-pid-stat-representation-of-executable fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~fdpic-fix-the-proc-pid-stat-representation-of-executable
++++ a/fs/binfmt_elf_fdpic.c
+@@ -179,6 +179,8 @@ static int load_elf_fdpic_binary(struct 
+ 	int executable_stack;
+ 	int retval, i;
+ 
++	kdebug("____ LOAD %d ____", current->pid);
++
+ 	memset(&exec_params, 0, sizeof(exec_params));
+ 	memset(&interp_params, 0, sizeof(interp_params));
+ 
+@@ -941,8 +943,11 @@ static int elf_fdpic_map_file_constdisp_
+ 
+ 		if (mm) {
+ 			if (phdr->p_flags & PF_X) {
+-				mm->start_code = seg->addr;
+-				mm->end_code = seg->addr + phdr->p_memsz;
++				if (!mm->start_code) {
++					mm->start_code = seg->addr;
++					mm->end_code = seg->addr +
++						phdr->p_memsz;
++				}
+ 			} else if (!mm->start_data) {
+ 				mm->start_data = seg->addr;
+ #ifndef CONFIG_MMU
+@@ -1123,8 +1128,10 @@ static int elf_fdpic_map_file_by_direct_
+ 
+ 		if (mm) {
+ 			if (phdr->p_flags & PF_X) {
+-				mm->start_code = maddr;
+-				mm->end_code = maddr + phdr->p_memsz;
++				if (!mm->start_code) {
++					mm->start_code = maddr;
++					mm->end_code = maddr + phdr->p_memsz;
++				}
+ 			} else if (!mm->start_data) {
+ 				mm->start_data = maddr;
+ 				mm->end_data = maddr + phdr->p_memsz;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-git-net.patch
-git-net-fixup.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-git-pciseg.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lists-add-list-splice-tail.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+romfs-printk-format-warnings.patch
+nommu-hide-vm_mm-in-nommu-mode.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+use-symbolic-constants-in-generic-lseek-code.patch
+use-use-seek_max-to-validate-user-lseek-arguments.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+workqueue-kill-noautorel-works.patch
+mutex-subsystem-synchro-test-module.patch
