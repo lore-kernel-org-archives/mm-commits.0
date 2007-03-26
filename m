@@ -1,92 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - fix-up-pci-power-management-doc.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 15:35:19 -0800
-Message-ID: <200703262335.l2QNZJLe001164@shell0.pdx.osdl.net>
+Subject: - clockevents-remove-bad-designed-sysfs-support-for-now.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 15:35:09 -0800
+Message-ID: <200703262335.l2QNZ9pc001151@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58999 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59003 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933779AbXCZXfW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 19:35:22 -0400
+	id S933780AbXCZXfX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 19:35:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, gregkh@suse.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix up PCI power management doc
+     clockevents: remove bad designed sysfs support for now
 has been removed from the -mm tree.  Its filename was
-     fix-up-pci-power-management-doc.patch
+     clockevents-remove-bad-designed-sysfs-support-for-now.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix up PCI power management doc
-From: Jonathan Corbet <corbet@lwn.net>
+Subject: clockevents: remove bad designed sysfs support for now
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Update the documentation of PCI power management functions.
+The current sysfs support of clockevents does not obey the "only one value
+per file" rule.
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
-Cc: Greg KH <greg@kroah.com>
+The real fix is not 2.6.21 material.  Therefor remove the sysfs support for
+now.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/pci.txt |   17 +++++++----------
- 1 files changed, 7 insertions(+), 10 deletions(-)
+ kernel/time/clockevents.c |   69 ------------------------------------
+ 1 file changed, 69 deletions(-)
 
-diff -puN Documentation/power/pci.txt~fix-up-pci-power-management-doc Documentation/power/pci.txt
---- a/Documentation/power/pci.txt~fix-up-pci-power-management-doc
-+++ a/Documentation/power/pci.txt
-@@ -102,31 +102,28 @@ pci_save_state
- --------------
+diff -puN kernel/time/clockevents.c~clockevents-remove-bad-designed-sysfs-support-for-now kernel/time/clockevents.c
+--- a/kernel/time/clockevents.c~clockevents-remove-bad-designed-sysfs-support-for-now
++++ a/kernel/time/clockevents.c
+@@ -274,72 +274,3 @@ void clockevents_notify(unsigned long re
+ }
+ EXPORT_SYMBOL_GPL(clockevents_notify);
  
- Usage:
--	pci_save_state(dev, buffer);
-+	pci_save_state(struct pci_dev *dev);
- 
- Description:
--	Save first 64 bytes of PCI config space. Buffer must be allocated by
--	caller.
-+	Save first 64 bytes of PCI config space, along with any additional
-+	PCI-Express or PCI-X information.
- 
- 
- pci_restore_state
- -----------------
- 
- Usage:
--	pci_restore_state(dev, buffer);
-+	pci_restore_state(struct pci_dev *dev);
- 
- Description:
--	Restore previously saved config space. (First 64 bytes only);
+-#ifdef CONFIG_SYSFS
 -
--	If buffer is NULL, then restore what information we know about the
--	device from bootup: BARs and interrupt line.
-+	Restore previously saved config space.
- 
- 
- pci_set_power_state
- -------------------
- 
- Usage:
--	pci_set_power_state(dev, state);
-+	pci_set_power_state(struct pci_dev *dev, pci_power_t state);
- 
- Description:
- 	Transition device to low power state using PCI PM Capabilities
-@@ -142,7 +139,7 @@ pci_enable_wake
- ---------------
- 
- Usage:
--	pci_enable_wake(dev, state, enable);
-+	pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable);
- 
- Description:
- 	Enable device to generate PME# during low power state using PCI PM 
+-/**
+- * clockevents_show_registered - sysfs interface for listing clockevents
+- * @dev:	unused
+- * @buf:	char buffer to be filled with clock events list
+- *
+- * Provides sysfs interface for listing registered clock event devices
+- */
+-static ssize_t clockevents_show_registered(struct sys_device *dev, char *buf)
+-{
+-	struct list_head *tmp;
+-	char *p = buf;
+-	int cpu;
+-
+-	spin_lock(&clockevents_lock);
+-
+-	list_for_each(tmp, &clockevent_devices) {
+-		struct clock_event_device *ce;
+-
+-		ce = list_entry(tmp, struct clock_event_device, list);
+-		p += sprintf(p, "%-20s F:%04x M:%d", ce->name,
+-			     ce->features, ce->mode);
+-		p += sprintf(p, " C:");
+-		if (!cpus_equal(ce->cpumask, cpu_possible_map)) {
+-			for_each_cpu_mask(cpu, ce->cpumask)
+-				p += sprintf(p, " %d", cpu);
+-		} else {
+-			/*
+-			 * FIXME: Add the cpu which is handling this sucker
+-			 */
+-		}
+-		p += sprintf(p, "\n");
+-	}
+-
+-	spin_unlock(&clockevents_lock);
+-
+-	return p - buf;
+-}
+-
+-/*
+- * Sysfs setup bits:
+- */
+-static SYSDEV_ATTR(registered, 0600,
+-		   clockevents_show_registered, NULL);
+-
+-static struct sysdev_class clockevents_sysclass = {
+-	set_kset_name("clockevents"),
+-};
+-
+-static struct sys_device clockevents_sys_device = {
+-	.id	= 0,
+-	.cls	= &clockevents_sysclass,
+-};
+-
+-static int __init clockevents_sysfs_init(void)
+-{
+-	int error = sysdev_class_register(&clockevents_sysclass);
+-
+-	if (!error)
+-		error = sysdev_register(&clockevents_sys_device);
+-	if (!error)
+-		error = sysdev_create_file(
+-				&clockevents_sys_device,
+-				&attr_registered);
+-	return error;
+-}
+-device_initcall(clockevents_sysfs_init);
+-#endif
 _
 
-Patches currently in -mm which might be from corbet@lwn.net are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-git-dvb.patch
+correct-slow-acpi_pm-rating.patch
+ntp-avoid-time_offset-overflows.patch
+ntp-avoid-time_offset-overflows-fix.patch
+hrtimers-fix-reprogramming-smp-race.patch
+git-ieee1394.patch
+log-reason-why-tsc-was-marked-unstable.patch
+optimize-timespec_trunc.patch
+kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+declare-struct-ktime.patch
+mm-only-hrtimers-debug-patch.patch
+mm-only-hrtimers-debug-patch-fix.patch
