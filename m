@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-futex_wait-use-an-hrtimer-for-timeout-fix.patch added to -mm tree
-Date: Mon, 26 Mar 2007 02:56:11 -0700
-Message-ID: <200703260958.l2Q9wEK8016035@shell0.pdx.osdl.net>
+Subject: + declare-struct-ktime.patch added to -mm tree
+Date: Mon, 26 Mar 2007 02:56:01 -0700
+Message-ID: <200703260958.l2Q9w4YF016020@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51186 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51213 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753567AbXCZJ6r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 05:58:47 -0400
+	id S1751165AbXCZKAO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 06:00:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, pierre.peiffer@bull.net, sebastien.dugue@bull.net
+Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     make-futex_wait-use-an-hrtimer-for-timeout-fix
+     declare struct ktime
 has been added to the -mm tree.  Its filename is
-     make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+     declare-struct-ktime.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make-futex_wait-use-an-hrtimer-for-timeout-fix
+Subject: declare struct ktime
 From: Andrew Morton <akpm@linux-foundation.org>
 
-`make headers_check' fails with
+Some smarty went and inflicted ktime_t as a typedef upon us, so we cannot
+forward declare it.
 
-/usr/src/devel/usr/include/linux/futex.h requires linux/ktime.h, which does not exist in exported headers
+Create a new `union ktime', map ktime_t onto that.  Now we need to kill off
+this ktime_t thing.
 
-Cc: Sebastien Dugue <sebastien.dugue@bull.net>
-Cc: Pierre Peiffer <pierre.peiffer@bull.net>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/futex.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/ktime.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/futex.h~make-futex_wait-use-an-hrtimer-for-timeout-fix include/linux/futex.h
---- a/include/linux/futex.h~make-futex_wait-use-an-hrtimer-for-timeout-fix
-+++ a/include/linux/futex.h
-@@ -1,9 +1,10 @@
- #ifndef _LINUX_FUTEX_H
- #define _LINUX_FUTEX_H
- 
--#include <linux/ktime.h>
- #include <linux/sched.h>
- 
-+union ktime;
+diff -puN include/linux/ktime.h~declare-struct-ktime include/linux/ktime.h
+--- a/include/linux/ktime.h~declare-struct-ktime
++++ a/include/linux/ktime.h
+@@ -43,7 +43,7 @@
+  * plain scalar nanosecond based representation can be selected by the
+  * config switch CONFIG_KTIME_SCALAR.
+  */
+-typedef union {
++union ktime {
+ 	s64	tv64;
+ #if BITS_PER_LONG != 64 && !defined(CONFIG_KTIME_SCALAR)
+ 	struct {
+@@ -54,7 +54,9 @@ typedef union {
+ # endif
+ 	} tv;
+ #endif
+-} ktime_t;
++};
 +
- /* Second argument to futex syscall */
++typedef union ktime ktime_t;		/* Kill this */
  
- 
-@@ -95,7 +96,7 @@ struct robust_list_head {
- #define ROBUST_LIST_LIMIT	2048
- 
- #ifdef __KERNEL__
--long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
-+long do_futex(u32 __user *uaddr, int op, u32 val, union ktime *timeout,
- 	      u32 __user *uaddr2, u32 val2, u32 val3);
- 
- extern int
+ #define KTIME_MAX			((s64)~((u64)1 << 63))
+ #if (BITS_PER_LONG == 64)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
