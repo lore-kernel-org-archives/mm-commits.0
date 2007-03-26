@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + parport-dev-driver-model-support.patch added to -mm tree
-Date: Mon, 26 Mar 2007 15:39:47 -0700
-Message-ID: <200703262239.l2QMdlic032499@shell0.pdx.osdl.net>
+Subject: + legacy-pc-parports-support-parport-dev.patch added to -mm tree
+Date: Mon, 26 Mar 2007 15:39:49 -0700
+Message-ID: <200703262239.l2QMdneD032503@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56643 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56658 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933686AbXCZWj5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 18:39:57 -0400
+	id S933691AbXCZWkG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 18:40:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: khali@linux-fr.org, dbrownell@users.sourceforge.net, greg@kroah.com
 
 
 The patch titled
-     parport->dev driver model support
+     legacy PC parports support parport->dev
 has been added to the -mm tree.  Its filename is
-     parport-dev-driver-model-support.patch
+     legacy-pc-parports-support-parport-dev.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,282 +25,131 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: parport->dev driver model support
-From: David Brownell <david-b@pacbell.net>
+Subject: legacy PC parports support parport->dev
+From: Jean Delvare <khali@linux-fr.org>
 
-Currently a parport_driver can't get a handle on the device node for the
-underlying parport (PNPACPI, PCI, etc).  That prevents correct placement of
-sysfs child nodes, which can affect things like power management.
+Give legacy parallel ports a platform device in the device tree.
 
-This patch adds a field to "struct parport" pointing to that device node, and
-updates non-legacy port drivers to initialize that device pointer.  That field
-replaces the analagous PCI-only support in parport_pc.
+This is a quick and dirty implementation; it doesn't actually convert the
+legacy parport code to the device driver model (by splitting out probing from
+device creation).  But at least parallel port device drivers will finally have
+a device to work with.
 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_cs.c     |    2 -
- drivers/parport/parport_mfc3.c   |    1 
- drivers/parport/parport_pc.c     |   31 +++++++++++++++--------------
- drivers/parport/parport_serial.c |    2 -
- drivers/parport/parport_sunbpp.c |    1 
- drivers/parport/share.c          |    5 ++++
- include/linux/parport.h          |    8 +++++--
- include/linux/parport_pc.h       |    3 --
- 8 files changed, 33 insertions(+), 20 deletions(-)
+ drivers/parport/parport_pc.c |   39 +++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+)
 
-diff -puN drivers/parport/parport_cs.c~parport-dev-driver-model-support drivers/parport/parport_cs.c
---- a/drivers/parport/parport_cs.c~parport-dev-driver-model-support
-+++ a/drivers/parport/parport_cs.c
-@@ -201,7 +201,7 @@ static int parport_config(struct pcmcia_
- 
-     p = parport_pc_probe_port(link->io.BasePort1, link->io.BasePort2,
- 			      link->irq.AssignedIRQ, PARPORT_DMA_NONE,
--			      NULL);
-+			      &link->dev);
-     if (p == NULL) {
- 	printk(KERN_NOTICE "parport_cs: parport_pc_probe_port() at "
- 	       "0x%3x, irq %u failed\n", link->io.BasePort1,
-diff -puN drivers/parport/parport_mfc3.c~parport-dev-driver-model-support drivers/parport/parport_mfc3.c
---- a/drivers/parport/parport_mfc3.c~parport-dev-driver-model-support
-+++ a/drivers/parport/parport_mfc3.c
-@@ -356,6 +356,7 @@ static int __init parport_mfc3_init(void
- 				if (request_irq(IRQ_AMIGA_PORTS, mfc3_interrupt, IRQF_SHARED, p->name, &pp_mfc3_ops))
- 					goto out_irq;
- 		}
-+		p->dev = &z->dev;
- 
- 		this_port[pias++] = p;
- 		printk(KERN_INFO "%s: Multiface III port using irq\n", p->name);
-diff -puN drivers/parport/parport_pc.c~parport-dev-driver-model-support drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport-dev-driver-model-support
+diff -puN drivers/parport/parport_pc.c~legacy-pc-parports-support-parport-dev drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~legacy-pc-parports-support-parport-dev
 +++ a/drivers/parport/parport_pc.c
-@@ -620,6 +620,7 @@ static size_t parport_pc_fifo_write_bloc
- 	unsigned long dmaflag;
- 	size_t left = length;
- 	const struct parport_pc_private *priv = port->physport->private_data;
-+	struct device *dev = port->physport->dev;
- 	dma_addr_t dma_addr, dma_handle;
- 	size_t maxlen = 0x10000; /* max 64k per DMA transfer */
- 	unsigned long start = (unsigned long) buf;
-@@ -631,8 +632,8 @@ dump_parport_state ("enter fifo_write_bl
- 		if ((start ^ end) & ~0xffffUL)
- 			maxlen = 0x10000 - (start & 0xffff);
+@@ -53,6 +53,7 @@
+ #include <linux/slab.h>
+ #include <linux/pci.h>
+ #include <linux/pnp.h>
++#include <linux/platform_device.h>
+ #include <linux/sysctl.h>
  
--		dma_addr = dma_handle = pci_map_single(priv->dev, (void *)buf, length,
--						       PCI_DMA_TODEVICE);
-+		dma_addr = dma_handle = dma_map_single(dev, (void *)buf, length,
-+						       DMA_TO_DEVICE);
-         } else {
- 		/* above 16 MB we use a bounce buffer as ISA-DMA is not possible */
- 		maxlen   = PAGE_SIZE;          /* sizeof(priv->dma_buf) */
-@@ -728,9 +729,9 @@ dump_parport_state ("enter fifo_write_bl
- 
- 	/* Turn off DMA mode */
- 	frob_econtrol (port, 1<<3, 0);
--	
+ #include <asm/io.h>
+@@ -2156,6 +2157,17 @@ struct parport *parport_pc_probe_port (u
+ 	struct resource *base_res;
+ 	struct resource	*ECR_res = NULL;
+ 	struct resource	*EPP_res = NULL;
++	struct platform_device *pdev = NULL;
 +
- 	if (dma_handle)
--		pci_unmap_single(priv->dev, dma_handle, length, PCI_DMA_TODEVICE);
-+		dma_unmap_single(dev, dma_handle, length, DMA_TO_DEVICE);
++	if (!dev) {
++		/* We need a physical device to attach to, but none was
++		 * provided. Create our own. */
++		pdev = platform_device_register_simple("parport_pc",
++						       base, NULL, 0);
++		if (IS_ERR(pdev))
++			return NULL;
++		dev = &pdev->dev;
++	}
  
- dump_parport_state ("leave fifo_write_block_dma", port);
- 	return length - left;
-@@ -2146,7 +2147,7 @@ static DEFINE_SPINLOCK(ports_lock);
- struct parport *parport_pc_probe_port (unsigned long int base,
- 				       unsigned long int base_hi,
- 				       int irq, int dma,
--				       struct pci_dev *dev)
-+				       struct device *dev)
- {
- 	struct parport_pc_private *priv;
- 	struct parport_operations *ops;
-@@ -2180,9 +2181,10 @@ struct parport *parport_pc_probe_port (u
- 	priv->fifo_depth = 0;
- 	priv->dma_buf = NULL;
- 	priv->dma_handle = 0;
--	priv->dev = dev;
- 	INIT_LIST_HEAD(&priv->list);
- 	priv->port = p;
-+
-+	p->dev = dev;
- 	p->base_hi = base_hi;
- 	p->modes = PARPORT_MODE_PCSPP | PARPORT_MODE_SAFEININT;
- 	p->private_data = priv;
-@@ -2305,9 +2307,10 @@ struct parport *parport_pc_probe_port (u
- 				p->dma = PARPORT_DMA_NONE;
- 			} else {
- 				priv->dma_buf =
--				  pci_alloc_consistent(priv->dev,
-+				  dma_alloc_coherent(dev,
- 						       PAGE_SIZE,
--						       &priv->dma_handle);
-+						       &priv->dma_handle,
-+						       GFP_KERNEL);
- 				if (! priv->dma_buf) {
- 					printk (KERN_WARNING "%s: "
- 						"cannot get buffer for DMA, "
-@@ -2383,7 +2386,7 @@ void parport_pc_unregister_port (struct 
- 		release_region(p->base_hi, 3);
- #if defined(CONFIG_PARPORT_PC_FIFO) && defined(HAS_DMA)
- 	if (priv->dma_buf)
--		pci_free_consistent(priv->dev, PAGE_SIZE,
-+		dma_free_coherent(p->physport->dev, PAGE_SIZE,
- 				    priv->dma_buf,
- 				    priv->dma_handle);
- #endif
-@@ -2489,7 +2492,7 @@ static int __devinit sio_ite_8872_probe 
- 	 */
- 	release_resource(base_res);
- 	if (parport_pc_probe_port (ite8872_lpt, ite8872_lpthi,
--				   irq, PARPORT_DMA_NONE, NULL)) {
-+				   irq, PARPORT_DMA_NONE, &pdev->dev)) {
- 		printk (KERN_INFO
- 			"parport_pc: ITE 8872 parallel port: io=0x%X",
- 			ite8872_lpt);
-@@ -2672,7 +2675,7 @@ static int __devinit sio_via_probe (stru
- 	}
+ 	ops = kmalloc(sizeof (struct parport_operations), GFP_KERNEL);
+ 	if (!ops)
+@@ -2359,6 +2371,8 @@ out3:
+ out2:
+ 	kfree (ops);
+ out1:
++	if (pdev)
++		platform_device_unregister(pdev);
+ 	return NULL;
+ }
  
- 	/* finally, do the probe with values obtained */
--	if (parport_pc_probe_port (port1, port2, irq, dma, NULL)) {
-+	if (parport_pc_probe_port (port1, port2, irq, dma, &pdev->dev)) {
- 		printk (KERN_INFO
- 			"parport_pc: VIA parallel port: io=0x%X", port1);
- 		if (irq != PARPORT_IRQ_NONE)
-@@ -2970,7 +2973,7 @@ static int parport_pc_pci_probe (struct 
- 			parport_pc_pci_tbl[i + last_sio].device, io_lo, io_hi);
- 		data->ports[count] =
- 			parport_pc_probe_port (io_lo, io_hi, PARPORT_IRQ_NONE,
--					       PARPORT_DMA_NONE, dev);
-+					       PARPORT_DMA_NONE, &dev->dev);
- 		if (data->ports[count])
- 			count++;
- 	}
-@@ -3077,8 +3080,8 @@ static int parport_pc_pnp_probe(struct p
- 	} else
- 		dma = PARPORT_DMA_NONE;
- 
--	printk(KERN_INFO "parport: PnPBIOS parport detected.\n");
--	if (!(pdata = parport_pc_probe_port (io_lo, io_hi, irq, dma, NULL)))
-+	dev_info(&dev->dev, "reported by %s\n", dev->protocol->name);
-+	if (!(pdata = parport_pc_probe_port (io_lo, io_hi, irq, dma, &dev->dev)))
- 		return -ENODEV;
- 
- 	pnp_set_drvdata(dev,pdata);
-diff -puN drivers/parport/parport_serial.c~parport-dev-driver-model-support drivers/parport/parport_serial.c
---- a/drivers/parport/parport_serial.c~parport-dev-driver-model-support
-+++ a/drivers/parport/parport_serial.c
-@@ -305,7 +305,7 @@ static int __devinit parport_register (s
- 		dev_dbg(&dev->dev, "PCI parallel port detected: I/O at "
- 			"%#lx(%#lx)\n", io_lo, io_hi);
- 		port = parport_pc_probe_port (io_lo, io_hi, PARPORT_IRQ_NONE,
--					      PARPORT_DMA_NONE, dev);
-+					      PARPORT_DMA_NONE, &dev->dev);
- 		if (port) {
- 			priv->port[priv->num_par++] = port;
- 			success = 1;
-diff -puN drivers/parport/parport_sunbpp.c~parport-dev-driver-model-support drivers/parport/parport_sunbpp.c
---- a/drivers/parport/parport_sunbpp.c~parport-dev-driver-model-support
-+++ a/drivers/parport/parport_sunbpp.c
-@@ -320,6 +320,7 @@ static int __devinit init_one_port(struc
- 		goto out_free_ops;
- 
- 	p->size = size;
-+	p->dev = &sdev->ofdev.dev;
- 
- 	if ((err = request_irq(p->irq, parport_sunbpp_interrupt,
- 			       IRQF_SHARED, p->name, p)) != 0) {
-diff -puN drivers/parport/share.c~parport-dev-driver-model-support drivers/parport/share.c
---- a/drivers/parport/share.c~parport-dev-driver-model-support
-+++ a/drivers/parport/share.c
-@@ -365,6 +365,11 @@ void parport_announce_port (struct parpo
- 	parport_daisy_init(port);
- #endif
- 
-+	if (!port->dev)
-+		printk(KERN_WARNING "%s: fix this legacy "
-+				"no-device port driver!\n",
-+				port->name);
-+
- 	parport_proc_register(port);
- 	mutex_lock(&registration_lock);
- 	spin_lock_irq(&parportlist_lock);
-diff -puN include/linux/parport.h~parport-dev-driver-model-support include/linux/parport.h
---- a/include/linux/parport.h~parport-dev-driver-model-support
-+++ a/include/linux/parport.h
-@@ -279,6 +279,10 @@ struct parport {
- 	int dma;
- 	int muxport;		/* which muxport (if any) this is */
- 	int portnum;		/* which physical parallel port (not mux) */
-+	struct device *dev;	/* Physical device associated with IO/DMA.
-+				 * This may unfortulately be null if the
-+				 * port has a legacy driver.
-+				 */
- 
- 	struct parport *physport;
- 				/* If this is a non-default mux
-@@ -289,7 +293,7 @@ struct parport {
- 				   following structure members are
- 				   meaningless: devices, cad, muxsel,
- 				   waithead, waittail, flags, pdir,
--				   ieee1284, *_lock.
-+				   dev, ieee1284, *_lock.
- 
- 				   It this is a default mux parport, or
- 				   there is no mux involved, this points to
-@@ -302,7 +306,7 @@ struct parport {
- 
- 	struct pardevice *waithead;
- 	struct pardevice *waittail;
--	
-+
- 	struct list_head list;
- 	unsigned int flags;
- 
-diff -puN include/linux/parport_pc.h~parport-dev-driver-model-support include/linux/parport_pc.h
---- a/include/linux/parport_pc.h~parport-dev-driver-model-support
-+++ a/include/linux/parport_pc.h
-@@ -38,7 +38,6 @@ struct parport_pc_private {
- 	/* buffer suitable for DMA, if DMA enabled */
- 	char *dma_buf;
- 	dma_addr_t dma_handle;
--	struct pci_dev *dev;
- 	struct list_head list;
- 	struct parport *port;
+@@ -3106,6 +3120,21 @@ static struct pnp_driver parport_pc_pnp_
  };
-@@ -232,7 +231,7 @@ extern int parport_pc_claim_resources(st
- extern struct parport *parport_pc_probe_port (unsigned long base,
- 					      unsigned long base_hi,
- 					      int irq, int dma,
--					      struct pci_dev *dev);
-+					      struct device *dev);
- extern void parport_pc_unregister_port (struct parport *p);
  
- #endif
+ 
++static int __devinit parport_pc_platform_probe(struct platform_device *pdev)
++{
++	/* Always succeed, the actual probing is done in
++	 * parport_pc_probe_port(). */
++	return 0;
++}
++
++static struct platform_driver parport_pc_platform_driver = {
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "parport_pc",
++	},
++	.probe		= parport_pc_platform_probe,
++};
++
+ /* This is called by parport_pc_find_nonpci_ports (in asm/parport.h) */
+ static int __devinit __attribute__((unused))
+ parport_pc_find_isa_ports (int autoirq, int autodma)
+@@ -3381,9 +3410,15 @@ __setup("parport_init_mode=",parport_ini
+ 
+ static int __init parport_pc_init(void)
+ {
++	int err;
++
+ 	if (parse_parport_params())
+ 		return -EINVAL;
+ 
++	err = platform_driver_register(&parport_pc_platform_driver);
++	if (err)
++		return err;
++
+ 	if (io[0]) {
+ 		int i;
+ 		/* Only probe the ports we were given. */
+@@ -3408,6 +3443,7 @@ static void __exit parport_pc_exit(void)
+ 		pci_unregister_driver (&parport_pc_pci_driver);
+ 	if (pnp_registered_parport)
+ 		pnp_unregister_driver (&parport_pc_pnp_driver);
++	platform_driver_unregister(&parport_pc_platform_driver);
+ 
+ 	spin_lock(&ports_lock);
+ 	while (!list_empty(&ports_list)) {
+@@ -3416,6 +3452,9 @@ static void __exit parport_pc_exit(void)
+ 		priv = list_entry(ports_list.next,
+ 				  struct parport_pc_private, list);
+ 		port = priv->port;
++		if (port->dev && port->dev->bus == &platform_bus_type)
++			platform_device_unregister(
++				to_platform_device(port->dev));
+ 		spin_unlock(&ports_lock);
+ 		parport_pc_unregister_port(port);
+ 		spin_lock(&ports_lock);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-8250-make-probing-for-txen-bug-a-config-option.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
+x86-msr-add-support-for-safe-variants.patch
+sound-strlcpy-is-smart-enough.patch
+git-dvb.patch
+apple-smc-driver-hardware-monitoring-and-control.patch
+ehea-strlcpy-is-smart-enough.patch
+fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
+xtensa-strlcpy-is-smart-enough.patch
+oss-strlcpy-is-smart-enough.patch
 rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
+legacy-pc-parports-support-parport-dev.patch
 layered-parport-code-uses-parport-dev.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-kconfig-cleanup.patch
