@@ -1,238 +1,400 @@
 From: akpm@linux-foundation.org
-Subject: - sched-rsdl-yet-more-fixes.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 15:37:37 -0700
-Message-ID: <200703262237.l2QMbbKY032451@shell0.pdx.osdl.net>
+Subject: - sched-rsdl-improvements.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 15:37:32 -0700
+Message-ID: <200703262237.l2QMbWTl032443@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56515 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56518 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933755AbXCZWhj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 18:37:39 -0400
+	id S933771AbXCZWhk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 18:37:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kernel@kolivas.org, mm-commits@vger.kernel.org
+To: kernel@kolivas.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: rsdl yet more fixes
+     sched: rsdl improvements
 has been removed from the -mm tree.  Its filename was
-     sched-rsdl-yet-more-fixes.patch
+     sched-rsdl-improvements.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: sched: rsdl yet more fixes
+Subject: sched: rsdl improvements
 From: Con Kolivas <kernel@kolivas.org>
 
-The wrong bit could be unset on requeue_task which could cause an oops. 
-Fix that.
+Further improve the deterministic nature of the RSDL cpu scheduler and make
+the rr_interval tunable.
 
-sched_yield semantics became almost a noop so change back to expiring tasks
-when yield is called.
+By only giving out priority slots to tasks at the current runqueue's
+prio_level or below we can make the cpu allocation not altered by
+accounting issues across major_rotation periods.  This makes the cpu
+allocation and latencies more deterministic, and decreases maximum
+latencies substantially.  This change removes the possibility that tasks
+can get bursts of cpu activity which can favour towards interactive tasks
+but also favour towards cpu bound tasks which happen to wait on other
+activity (such as I/O) and is a net gain.
 
-recalc_task_prio() performed during pull_task() on SMP may not reliably be
-doing the right thing to tasks queued on the new runqueue.  Add a special
-variant of enqueue_task that does its own local recalculation of priority
-and quota.
+This change also makes negative nice values less harmful to latencies of
+more niced tasks, and should lead to less preemption which might decrease
+the context switch rate and subsequently improve throughput.
 
-rq->best_static_prio should not be set by realtime or SCHED_BATCH tasks. 
-Correct that, and microoptimise the code around setting best_static_prio.
+The rr_interval can be made a tunable such that if an environment exists
+that is not as latency sensitive, it can be increased for maximum
+throughput.
+
+A tiny change checking for MAX_PRIO in normal_prio() may prevent oopses on
+bootup on large SMP due to forking off the idle task.
+
+Other minor cleanups.
 
 Signed-off-by: Con Kolivas <kernel@kolivas.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |  103 ++++++++++++++++++++++++++++++++---------------
- 1 file changed, 71 insertions(+), 32 deletions(-)
+ Documentation/sysctl/kernel.txt |   12 +++
+ kernel/sched.c                  |   94 ++++++++++++++++--------------
+ kernel/sysctl.c                 |   25 ++++++-
+ 3 files changed, 83 insertions(+), 48 deletions(-)
 
-diff -puN kernel/sched.c~sched-rsdl-yet-more-fixes kernel/sched.c
---- a/kernel/sched.c~sched-rsdl-yet-more-fixes
-+++ a/kernel/sched.c
-@@ -720,17 +720,17 @@ static inline int entitled_slot(int stat
-  */
- static inline int next_entitled_slot(struct task_struct *p, struct rq *rq)
- {
--	if (p->static_prio < rq->best_static_prio && p->policy != SCHED_BATCH)
--		return SCHED_PRIO(find_first_zero_bit(p->bitmap, PRIO_RANGE));
--	else {
--		DECLARE_BITMAP(tmp, PRIO_RANGE);
-+	DECLARE_BITMAP(tmp, PRIO_RANGE);
-+	int search_prio;
+diff -puN Documentation/sysctl/kernel.txt~sched-rsdl-improvements Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~sched-rsdl-improvements
++++ a/Documentation/sysctl/kernel.txt
+@@ -43,6 +43,7 @@ show up in /proc/sys/kernel:
+ - printk
+ - real-root-dev               ==> Documentation/initrd.txt
+ - reboot-cmd                  [ SPARC only ]
++- rr_interval
+ - rtsig-max
+ - rtsig-nr
+ - sem
+@@ -288,6 +289,17 @@ rebooting. ???
  
--		bitmap_or(tmp, p->bitmap,
--			  prio_matrix[USER_PRIO(p->static_prio)],
--			  PRIO_RANGE);
--		return SCHED_PRIO(find_next_zero_bit(tmp, PRIO_RANGE,
--			USER_PRIO(rq->prio_level)));
--	}
-+	if (p->static_prio < rq->best_static_prio && p->policy != SCHED_BATCH)
-+		search_prio = MAX_RT_PRIO;
-+	else
-+		search_prio = rq->prio_level;
-+	bitmap_or(tmp, p->bitmap, prio_matrix[USER_PRIO(p->static_prio)],
-+		  PRIO_RANGE);
-+	return SCHED_PRIO(find_next_zero_bit(tmp, PRIO_RANGE,
-+		USER_PRIO(search_prio)));
- }
+ ==============================================================
  
- static void queue_expired(struct task_struct *p, struct rq *rq)
-@@ -823,7 +823,7 @@ static void requeue_task(struct task_str
- 	list_move_tail(&p->run_list, p->array->queue + p->prio);
- 	if (!rt_task(p)) {
- 		if (list_empty(old_array->queue + old_prio))
--			__clear_bit(old_prio, p->array->prio_bitmap);
-+			__clear_bit(old_prio, old_array->prio_bitmap);
- 		set_dynamic_bit(p, rq);
- 	}
- }
-@@ -2080,25 +2080,54 @@ void sched_exec(void)
- }
- 
- /*
-+ * This is a unique version of enqueue_task for the SMP case where a task
-+ * has just been moved across runqueues. It uses the information from the
-+ * old runqueue to help it make a decision much like recalc_task_prio. As
-+ * the new runqueue is almost certainly at a different prio_level than the
-+ * src_rq it is cheapest just to pick the next entitled slot.
-+ */
-+static inline void enqueue_pulled_task(struct rq *src_rq, struct rq *rq,
-+				       struct task_struct *p)
-+{
-+	int queue_prio;
++rr_interval:
 +
-+	p->array = rq->active;
-+	if (!rt_task(p)) {
-+		if (p->rotation == src_rq->prio_rotation) {
-+			if (p->array == src_rq->expired) {
-+				queue_expired(p, rq);
-+				goto out_queue;
-+			}
-+		} else
-+			task_new_array(p, rq);
-+	}
-+	queue_prio = next_entitled_slot(p, rq);
-+	if (queue_prio >= MAX_PRIO) {
-+		queue_expired(p, rq);
-+		goto out_queue;
-+	}
-+	rq_quota(rq, queue_prio) += p->quota;
-+	p->prio = queue_prio;
-+out_queue:
-+	p->normal_prio = p->prio;
-+	p->rotation = rq->prio_rotation;
-+	sched_info_queued(p);
-+	set_dynamic_bit(p, rq);
-+	list_add_tail(&p->run_list, p->array->queue + p->prio);
++This is the smallest duration that any cpu process scheduling unit
++will run for. Increasing this value can increase throughput of cpu
++bound tasks substantially but at the expense of increased latencies
++overall. This value is in _ticks_ and the default value chosen depends
++on the number of cpus available at scheduler initialisation. Valid
++values are from 1-100.
++
++==============================================================
++
+ rtsig-max & rtsig-nr:
+ 
+ The file rtsig-max can be used to tune the maximum number
+diff -puN kernel/sched.c~sched-rsdl-improvements kernel/sched.c
+--- a/kernel/sched.c~sched-rsdl-improvements
++++ a/kernel/sched.c
+@@ -100,8 +100,10 @@ unsigned long long __attribute__((weak))
+ /*
+  * This is the time all tasks within the same priority round robin.
+  * Set to a minimum of 8ms. Scales with number of cpus and rounds with HZ.
++ * Tunable via /proc interface.
+  */
+-static unsigned int rr_interval __read_mostly;
++int rr_interval __read_mostly;
++
+ #define RR_INTERVAL		8
+ #define DEF_TIMESLICE		(rr_interval * 20)
+ 
+@@ -693,19 +695,32 @@ static inline void task_new_array(struct
+ 	p->rotation = rq->prio_rotation;
+ }
+ 
++/* Find the first slot from the relevant prio_matrix entry */
+ static inline int first_prio_slot(struct task_struct *p)
+ {
+ 	return SCHED_PRIO(find_first_zero_bit(
+ 		prio_matrix[USER_PRIO(p->static_prio)], PRIO_RANGE));
+ }
+ 
+-static inline int next_prio_slot(struct task_struct *p, int prio)
++/* Is a dynamic_prio part of the allocated slots for this static_prio */
++static inline int entitled_slot(int static_prio, int dynamic_prio)
++{
++	return !test_bit(USER_PRIO(dynamic_prio),
++		prio_matrix[USER_PRIO(static_prio)]);
 +}
 +
 +/*
-  * pull_task - move a task from a remote runqueue to the local runqueue.
-  * Both runqueues must be locked.
-  */
--static void pull_task(struct rq *src_rq, struct prio_array *src_array,
--		      struct task_struct *p, struct rq *this_rq,
--		      int this_cpu)
-+static void pull_task(struct rq *src_rq, struct task_struct *p,
-+		      struct rq *this_rq, int this_cpu)
++ * Find the first unused slot by this task that is also in its prio_matrix
++ * level.
++ */
++static inline int next_entitled_slot(struct task_struct *p, struct rq *rq)
  {
- 	dequeue_task(p, src_rq);
- 	dec_nr_running(p, src_rq);
- 	set_task_cpu(p, this_cpu);
- 	inc_nr_running(p, this_rq);
+ 	DECLARE_BITMAP(tmp, PRIO_RANGE);
++
+ 	bitmap_or(tmp, p->bitmap, prio_matrix[USER_PRIO(p->static_prio)],
+ 		  PRIO_RANGE);
+ 	return SCHED_PRIO(find_next_zero_bit(tmp, PRIO_RANGE,
+-		USER_PRIO(prio)));
++		USER_PRIO(rq->prio_level)));
+ }
+ 
+ static void queue_expired(struct task_struct *p, struct rq *rq)
+@@ -732,23 +747,12 @@ static void queue_expired(struct task_st
+ static void recalc_task_prio(struct task_struct *p, struct rq *rq)
+ {
+ 	struct prio_array *array = rq->active;
+-	int queue_prio, search_prio = MAX_RT_PRIO;
 -
 -	/*
--	 * If this task has already been running on src_rq this priority
--	 * cycle, make the new runqueue think it has been on its cycle
+-	 * SCHED_BATCH tasks never start at better priority than any other
+-	 * task that is already running since they are flagged as latency
+-	 * insensitive. This means they never cause greater latencies in other
+-	 * non SCHED_BATCH tasks of the same nice level, but they still will
+-	 * not be exposed to high latencies themselves.
 -	 */
--	if (p->rotation == src_rq->prio_rotation)
--		p->rotation = this_rq->prio_rotation;
--	enqueue_task(p, this_rq);
-+	enqueue_pulled_task(src_rq, this_rq, p);
- 	p->timestamp = (p->timestamp - src_rq->most_recent_timestamp)
- 				+ this_rq->most_recent_timestamp;
- 	try_preempt(p, this_rq);
-@@ -2243,7 +2272,7 @@ skip_queue:
- 		goto skip_bitmap;
+-	if (unlikely(p->policy == SCHED_BATCH))
+-		search_prio = rq->prio_level;
++	int queue_prio;
+ 
+ 	if (p->rotation == rq->prio_rotation) {
+ 		if (p->array == array) {
+ 			if (p->time_slice && rq_quota(rq, p->prio))
+ 				return;
+-			search_prio = p->prio;
+ 		} else if (p->array == rq->expired) {
+ 			queue_expired(p, rq);
+ 			return;
+@@ -757,7 +761,7 @@ static void recalc_task_prio(struct task
+ 	} else
+ 		task_new_array(p, rq);
+ 
+-	queue_prio = next_prio_slot(p, search_prio);
++	queue_prio = next_entitled_slot(p, rq);
+ 	if (queue_prio >= MAX_PRIO) {
+ 		queue_expired(p, rq);
+ 		return;
+@@ -914,7 +918,7 @@ static inline int normal_prio(struct tas
+ 	if (has_rt_policy(p))
+ 		return MAX_RT_PRIO-1 - p->rt_priority;
+ 	/* Other tasks all have normal_prio set in recalc_task_prio */
+-	if (likely(p->prio >= MAX_RT_PRIO))
++	if (likely(p->prio >= MAX_RT_PRIO && p->prio < MAX_PRIO))
+ 		return p->prio;
+ 	else
+ 		return p->static_prio;
+@@ -949,10 +953,10 @@ static int effective_prio(struct task_st
+  */
+ static unsigned int rr_quota(struct task_struct *p)
+ {
+-	int neg_nice = -TASK_NICE(p), rr = rr_interval;
++	int nice = TASK_NICE(p), rr = rr_interval;
+ 
+-	if (neg_nice > 6 && !rt_task(p)) {
+-		rr *= neg_nice * neg_nice;
++	if (nice < -6 && !rt_task(p)) {
++		rr *= nice * nice;
+ 		rr /= 40;
  	}
- 
--	pull_task(busiest, array, tmp, this_rq, this_cpu);
-+	pull_task(busiest, tmp, this_rq, this_cpu);
- 	pulled++;
- 	rem_load_move -= tmp->load_weight;
- 
-@@ -3372,7 +3401,7 @@ static inline void major_prio_rotation(s
- 	rq->active = new_array;
- 	rq->exp_bitmap = rq->expired->prio_bitmap;
- 	rq->dyn_bitmap = rq->active->prio_bitmap;
--	rq->best_static_prio = MAX_PRIO;
-+	rq->best_static_prio = MAX_PRIO - 1;
- 	rq->prio_rotation++;
+ 	return rr;
+@@ -1590,7 +1594,7 @@ int fastcall wake_up_state(struct task_s
+ 	return try_to_wake_up(p, state, 0);
  }
  
-@@ -3615,6 +3644,9 @@ retry:
- 	 */
- 	next->prio = idx;
- 	next->array = array;
-+	if (next->static_prio < rq->best_static_prio &&
-+	    next->policy != SCHED_BATCH)
-+		rq->best_static_prio = next->static_prio;
- 	return next;
+-static void task_running_tick(struct rq *rq, struct task_struct *p);
++static void task_running_tick(struct rq *rq, struct task_struct *p, int tick);
+ /*
+  * Perform scheduler related setup for a newly forked process p.
+  * p is forked by current.
+@@ -1652,7 +1656,7 @@ void fastcall sched_fork(struct task_str
+ 		 * a problem.
+ 		 */
+ 		current->time_slice = 1;
+-		task_running_tick(cpu_rq(cpu), current);
++		task_running_tick(cpu_rq(cpu), current, 0);
+ 	}
+ 	local_irq_enable();
+ out:
+@@ -1727,14 +1731,16 @@ void fastcall wake_up_new_task(struct ta
+  */
+ void fastcall sched_exit(struct task_struct *p)
+ {
++	struct task_struct *parent;
+ 	unsigned long flags;
+ 	struct rq *rq;
+ 
+-	rq = task_rq_lock(p->parent, &flags);
+-	if (p->first_time_slice && task_cpu(p) == task_cpu(p->parent)) {
+-		p->parent->time_slice += p->time_slice;
+-		if (unlikely(p->parent->time_slice > p->quota))
+-			p->parent->time_slice = p->quota;
++	parent = p->parent;
++	rq = task_rq_lock(parent, &flags);
++	if (p->first_time_slice && task_cpu(p) == task_cpu(parent)) {
++		parent->time_slice += p->time_slice;
++		if (unlikely(parent->time_slice > parent->quota))
++			parent->time_slice = parent->quota;
+ 	}
+ 	task_rq_unlock(rq, &flags);
+ }
+@@ -3428,7 +3434,7 @@ static inline void rotate_runqueue_prior
+ 	rq_quota(rq, new_prio_level) += 1;
  }
  
-@@ -3698,12 +3730,11 @@ need_resched_nonpreemptible:
+-static void task_running_tick(struct rq *rq, struct task_struct *p)
++static void task_running_tick(struct rq *rq, struct task_struct *p, int tick)
+ {
+ 	if (unlikely(!task_queued(p))) {
+ 		/* Task has expired but was not scheduled yet */
+@@ -3451,6 +3457,13 @@ static void task_running_tick(struct rq 
+ 	if (!--p->time_slice)
+ 		task_expired_entitlement(rq, p);
+ 	/*
++	 * If we're actually calling this function not in a scheduler_tick
++	 * we are doing so to fix accounting across fork and should not be
++	 * deducting anything from rq_quota.
++	 */
++	if (!tick)
++		goto out_unlock;
++	/*
+ 	 * We only employ the deadline mechanism if we run over the quota.
+ 	 * It allows aliasing problems around the scheduler_tick to be
+ 	 * less harmful.
+@@ -3461,6 +3474,7 @@ static void task_running_tick(struct rq 
+ 		rotate_runqueue_priority(rq);
+ 		set_tsk_need_resched(p);
+ 	}
++out_unlock:
+ 	spin_unlock(&rq->lock);
+ }
+ 
+@@ -3479,7 +3493,7 @@ void scheduler_tick(void)
+ 	update_cpu_clock(p, rq, now);
+ 
+ 	if (!idle_at_tick)
+-		task_running_tick(rq, p);
++		task_running_tick(rq, p, 1);
+ #ifdef CONFIG_SMP
+ 	update_load(rq);
+ 	rq->idle_at_tick = idle_at_tick;
+@@ -3525,20 +3539,13 @@ EXPORT_SYMBOL(sub_preempt_count);
+ 
+ #endif
+ 
+-/* Is a dynamic_prio part of the allocated slots for this static_prio */
+-static inline int entitled_slot(int static_prio, int dynamic_prio)
+-{
+-	return !test_bit(USER_PRIO(dynamic_prio),
+-		prio_matrix[USER_PRIO(static_prio)]);
+-}
+-
+ /*
+  * If a task is queued at a priority that isn't from its bitmap we exchange
+  * by setting one of the entitlement bits.
+  */
+-static inline void exchange_slot(struct task_struct *p, int prio)
++static inline void exchange_slot(struct task_struct *p, struct rq *rq)
+ {
+-	int slot = next_prio_slot(p, prio);
++	int slot = next_entitled_slot(p, rq);
+ 
+ 	if (slot < MAX_PRIO)
+ 		__set_bit(USER_PRIO(slot), p->bitmap);
+@@ -3580,6 +3587,7 @@ retry:
+ 	}
+ 	queue = array->queue + idx;
+ 	next = list_entry(queue->next, struct task_struct, run_list);
++	rq->prio_level = idx;
+ 	/*
+ 	 * When the task is chosen it is checked to see if its quota has been
+ 	 * added to this runqueue level which is only performed once per
+@@ -3589,17 +3597,16 @@ retry:
+ 			/* Task has moved during major rotation */
+ 			task_new_array(next, rq);
+ 			if (!entitled_slot(next->static_prio, idx))
+-				exchange_slot(next, idx);
++				exchange_slot(next, rq);
+ 			set_task_entitlement(next);
+ 			rq_quota(rq, idx) += next->quota;
+ 	} else if (!test_bit(USER_PRIO(idx), next->bitmap)) {
+ 			/* Task has moved during minor rotation */
+ 			if (!entitled_slot(next->static_prio, idx))
+-				exchange_slot(next, idx);
++				exchange_slot(next, rq);
+ 			set_task_entitlement(next);
+ 			rq_quota(rq, idx) += next->quota;
+ 	}
+-	rq->prio_level = idx;
+ 	/*
+ 	 * next needs to have its prio and array reset here in case the
+ 	 * values are wrong due to priority rotation.
+@@ -3688,8 +3695,11 @@ need_resched_nonpreemptible:
+ 		next = list_entry(queue->next, struct task_struct, run_list);
  	}
  switch_tasks:
- 	if (next == rq->idle) {
--		rq->best_static_prio = MAX_PRIO;
-+		rq->best_static_prio = MAX_PRIO - 1;
- 		rq->prio_level = MAX_RT_PRIO;
- 		rq->prio_rotation++;
+-	if (next == rq->idle)
++	if (next == rq->idle) {
++		rq->prio_level = MAX_RT_PRIO;
++		rq->prio_rotation++;
  		schedstat_inc(rq, sched_goidle);
--	} else if (next->static_prio < rq->best_static_prio)
--		rq->best_static_prio = next->static_prio;
 +	}
  	prefetch(next);
  	prefetch_stack(next);
  	clear_tsk_need_resched(prev);
-@@ -4718,8 +4749,9 @@ asmlinkage long sys_sched_getaffinity(pi
-  * sys_sched_yield - yield the current processor to other threads.
-  *
-  * This function yields the current CPU by moving the calling thread
-- * to the end of its current priority queue. If there are no other
-- * threads running on this cpu this function will return.
-+ * to the expired array if SCHED_NORMAL or the end of its current priority
-+ * queue if a realtime task. If there are no other threads running on this
-+ * cpu this function will return.
-  */
- asmlinkage long sys_sched_yield(void)
- {
-@@ -4729,8 +4761,15 @@ asmlinkage long sys_sched_yield(void)
- 	schedstat_inc(rq, yld_cnt);
- 	if (rq->nr_running == 1)
- 		schedstat_inc(rq, yld_both_empty);
--	else
--		list_move_tail(&p->run_list, p->array->queue + p->prio);
-+	else {
-+		struct prio_array *old_array = p->array;
-+		int old_prio = p->prio;
-+
-+		/* p->prio will be updated in requeue_task via queue_expired */
-+		if (!rt_task(p))
-+			p->array = rq->expired;
-+		requeue_task(p, rq, old_array, old_prio);
-+	}
+diff -puN kernel/sysctl.c~sched-rsdl-improvements kernel/sysctl.c
+--- a/kernel/sysctl.c~sched-rsdl-improvements
++++ a/kernel/sysctl.c
+@@ -78,6 +78,7 @@ extern int sysctl_drop_caches;
+ extern int percpu_pagelist_fraction;
+ extern int compat_log;
+ extern int maps_protect;
++extern int rr_interval;
  
- 	/*
- 	 * Since we are going to call schedule() anyway, there's
-@@ -7154,7 +7193,7 @@ void __init sched_init(void)
- 		lockdep_set_class(&rq->lock, &rq->rq_lock_key);
- 		rq->nr_running = 0;
- 		rq->prio_rotation = 0;
--		rq->best_static_prio = MAX_PRIO;
-+		rq->best_static_prio = MAX_PRIO - 1;
- 		rq->prio_level = MAX_RT_PRIO;
- 		rq->active = rq->arrays;
- 		rq->expired = rq->arrays + 1;
+ /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
+ static int maxolduid = 65535;
+@@ -161,6 +162,13 @@ int sysctl_legacy_va_layout;
+ #endif
+ 
+ 
++/* Constants for minimum and maximum testing in vm_table.
++   We use these as one-element integer vectors. */
++static int  __read_mostly zero;
++static int  __read_mostly one = 1;
++static int  __read_mostly one_hundred = 100;
++
++
+ /* The default sysctl tables: */
+ 
+ static ctl_table root_table[] = {
+@@ -501,6 +509,17 @@ static ctl_table kern_table[] = {
+ 		.mode		= 0444,
+ 		.proc_handler	= &proc_dointvec,
+ 	},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "rr_interval",
++		.data		= &rr_interval,
++		.maxlen		= sizeof (int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_minmax,
++		.strategy	= &sysctl_intvec,
++		.extra1		= &one,
++		.extra2		= &one_hundred,
++	},
+ #if defined(CONFIG_X86_LOCAL_APIC) && defined(CONFIG_X86)
+ 	{
+ 		.ctl_name       = KERN_UNKNOWN_NMI_PANIC,
+@@ -619,12 +638,6 @@ static ctl_table kern_table[] = {
+ 	{ .ctl_name = 0 }
+ };
+ 
+-/* Constants for minimum and maximum testing in vm_table.
+-   We use these as one-element integer vectors. */
+-static int zero;
+-static int one_hundred = 100;
+-
+-
+ static ctl_table vm_table[] = {
+ 	{
+ 		.ctl_name	= VM_OVERCOMMIT_MEMORY,
 _
 
 Patches currently in -mm which might be from kernel@kolivas.org are
@@ -241,4 +403,6 @@ sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
 sched-add-above-background-load-function.patch
 mm-implement-swap-prefetching.patch
 swap-prefetch-avoid-repeating-entry.patch
+sched-rsdl-improvements.patch
+sched-rsdl-check-for-niced-tasks-lowering-prio-level.patch
 sched-rsdl-yet-more-fixes.patch
