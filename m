@@ -1,76 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - pwc-cisco-vt-camera-support.patch removed from -mm tree
-Date: Sun, 25 Mar 2007 17:06:04 -0800
-Message-ID: <200703260106.l2Q164K1008752@shell0.pdx.osdl.net>
+Subject: + mm-only-hrtimers-debug-patch-fix.patch added to -mm tree
+Date: Sun, 25 Mar 2007 22:40:52 -0700
+Message-ID: <200703260542.l2Q5guCb012532@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38971 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45594 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933464AbXCZBMl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 21:12:41 -0400
+	id S1752670AbXCZFnJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 01:43:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jt@hpl.hp.com, luc@saillard.org, m.kozlowski@tuxland.pl, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     pwc: cisco VT Camera support
-has been removed from the -mm tree.  Its filename was
-     pwc-cisco-vt-camera-support.patch
+     mm-only-hrtimers-debug-patch-fix
+has been added to the -mm tree.  Its filename is
+     mm-only-hrtimers-debug-patch-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pwc: cisco VT Camera support
-From: Jean Tourrilhes <jt@hpl.hp.com>
+Subject: mm-only-hrtimers-debug-patch-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I have a Cisco VT Camera, and it was just collecting dust.  I decided to
-try connecting it to my Linux box at home.
+Fixes due to mm-only-hrtimers-debug-patch.patch
 
-Just a disgression about the product.  The Cisco VT Camera is a webcam
-Cisco sold to work with their IP phone hardware and software.  It's mostly
-useless on Windows, as it interfaces only to Cisco software.  You can find
-some for cheap on eBay...
-
-Physically, it's just a Logitech Pro 4000.  The only difference with the
-Pro 4000 is the Cisco logo and that it's grey like the Pro 3000.  I believe
-Cisco is now selling the Cisco VT Camera II, which look to be something
-else...
-
-So, assuming that it was a Pro 4000 inside, I created the little patch
-attached.
-
-I'm new to webcam under Linux, but I managed to get an image from it using
-xawtv, and the image looked all right, so I consider that a success.  The
-imaged seemed a bit small and I could not get the microphone driver loaded,
-but I assume it's my lack of experience.  Note that I did not try any other
-type_id, but this one works great.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Luc Saillard <luc@saillard.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pwc/pwc-if.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/hrtimer.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/media/video/pwc/pwc-if.c~pwc-cisco-vt-camera-support drivers/media/video/pwc/pwc-if.c
---- a/drivers/media/video/pwc/pwc-if.c~pwc-cisco-vt-camera-support
-+++ a/drivers/media/video/pwc/pwc-if.c
-@@ -1547,6 +1547,10 @@ static int usb_pwc_probe(struct usb_inte
- 			features |= FEATURE_MOTOR_PANTILT;
- 			break;
- 		case 0x08b6:
-+			PWC_INFO("Logitech/Cisco VT Camera webcam detected.\n");
-+			name = "Cisco VT Camera";
-+			type_id = 740; /* CCD sensor */
-+			break;
- 		case 0x08b7:
- 		case 0x08b8:
- 			PWC_INFO("Logitech QuickCam detected (reserved ID).\n");
+diff -puN kernel/hrtimer.c~mm-only-hrtimers-debug-patch-fix kernel/hrtimer.c
+--- a/kernel/hrtimer.c~mm-only-hrtimers-debug-patch-fix
++++ a/kernel/hrtimer.c
+@@ -320,9 +320,8 @@ static void update_cpu_base_expires_next
+ 		trace->entries = cpu_base->exp_entries;
+ 		trace->max_entries = HRTIMERS_STACK_TRACE_DEPTH;
+ 		trace->skip = 1;
+-		trace->all_contexts = 0;
+ 
+-		save_stack_trace(trace, NULL);
++		save_stack_trace(trace);
+ 	}
+ #endif
+ }
 _
 
-Patches currently in -mm which might be from jt@hpl.hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+git-acpi-fixup.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
 git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+git-net.patch
+git-net-fixup.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lists-add-list-splice-tail.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
+mm-only-hrtimers-debug-patch-fix.patch
