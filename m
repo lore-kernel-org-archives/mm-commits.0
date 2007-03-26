@@ -1,101 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: + do-not-disable-interrupts-when-reading-min_free_kbytes.patch added to -mm tree
-Date: Mon, 26 Mar 2007 16:20:15 -0700
-Message-ID: <200703262320.l2QNKFZ0000843@shell0.pdx.osdl.net>
+Subject: - git-acpi-fixup.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 15:22:24 -0800
+Message-ID: <200703262322.l2QNMO4U000874@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58460 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58522 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932406AbXCZXUY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 19:20:24 -0400
+	id S932853AbXCZXW1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 19:22:27 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l2QNMPU2006606
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2007 16:22:25 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, clameter@engr.sgi.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Do not disable interrupts when reading min_free_kbytes
-has been added to the -mm tree.  Its filename is
-     do-not-disable-interrupts-when-reading-min_free_kbytes.patch
+     git-acpi-fixup
+has been removed from the -mm tree.  Its filename was
+     git-acpi-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Do not disable interrupts when reading min_free_kbytes
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: git-acpi-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The sysctl handler for min_free_kbytes calls setup_per_zone_pages_min() on
-read or write.  This function iterates through every zone and calls
-spin_lock_irqsave() on the zone LRU lock.  When reading min_free_kbytes,
-this is a total waste of time that disables interrupts on the local
-processor.  It might even be noticable machines with large numbers of zones
-if a process started constantly reading min_free_kbytes.
-
-This patch only calls setup_per_zone_pages_min() only on write. Tested on
-an x86 laptop and it did the right thing.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/processor_idle.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~do-not-disable-interrupts-when-reading-min_free_kbytes mm/page_alloc.c
---- a/mm/page_alloc.c~do-not-disable-interrupts-when-reading-min_free_kbytes
-+++ a/mm/page_alloc.c
-@@ -3836,7 +3836,8 @@ int min_free_kbytes_sysctl_handler(ctl_t
- 	struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
- {
- 	proc_dointvec(table, write, file, buffer, length, ppos);
--	setup_per_zone_pages_min();
-+	if (write)
-+		setup_per_zone_pages_min();
- 	return 0;
- }
+diff -puN drivers/acpi/processor_idle.c~git-acpi-fixup drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~git-acpi-fixup
++++ a/drivers/acpi/processor_idle.c
+@@ -80,7 +80,6 @@ module_param(max_cstate, uint, 0644);
+ static unsigned int nocst __read_mostly;
+ module_param(nocst, uint, 0000);
  
+-<<<<<<< HEAD/drivers/acpi/processor_idle.c
+ /*
+  * bm_history -- bit-mask with a bit per jiffy of bus-master activity
+  * 1000 HZ: 0xFFFFFFFF: 32 jiffies = 32ms
+@@ -91,13 +90,12 @@ module_param(nocst, uint, 0000);
+ static unsigned int bm_history __read_mostly =
+     (HZ >= 800 ? 0xFFFFFFFF : ((1U << (HZ / 25)) - 1));
+ module_param(bm_history, uint, 0644);
+-=======
++
+ static unsigned use_ipi = 2;
+ module_param(use_ipi, uint, 0644);
+ MODULE_PARM_DESC(use_ipi, "IPI (vs. LAPIC) irqs for not waking up from C2/C3"
+ 		 " machines. 0=apic, 1=ipi, 2=auto\n");
+ 
+->>>>>>> /drivers/acpi/processor_idle.c
+ /* --------------------------------------------------------------------------
+                                 Power Management
+    -------------------------------------------------------------------------- */
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+origin.patch
+slab-introduce-krealloc-fix.patch
+make-aout-executables-work-again-fix.patch
+git-acpi.patch
+git-acpi-fixup.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+forcedeth-work-around-null-skb-dereference-crash-fix.patch
+bonding-replace-system-timer-with-work-queue-tidy.patch
+git-parisc.patch
+rm9000-serial-driver-tidy.patch
+fix-gregkh-pci-pci-piggy-bus.patch
+fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
-split-the-free-lists-for-movable-and-unmovable-allocations.patch
-choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-drain-per-cpu-lists-when-high-order-allocations-fail.patch
-move-free-pages-between-lists-on-steal.patch
-move-free-pages-between-lists-on-steal-fix.patch
-move-free-pages-between-lists-on-steal-fix-2.patch
-move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-group-high-order-atomic-allocations.patch
-bias-the-placement-of-kernel-pages-at-lower-pfns.patch
-be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-x86-specify-amount-of-kernel-memory-at-boot-time.patch
-ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
-x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
-ia64-specify-amount-of-kernel-memory-at-boot-time.patch
-add-documentation-for-additional-boot-parameter-and-sysctl.patch
-lumpy-reclaim-v4.patch
-lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
-lumpy-only-count-taken-pages-as-scanned.patch
-add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
-anti-fragmentation-switch-over-to-pfn_valid_within.patch
-lumpy-move-to-using-pfn_valid_within.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-do-not-disable-interrupts-when-reading-min_free_kbytes.patch
-ext2-reservations.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
+mm-only-hrtimers-debug-patch-fix.patch
