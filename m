@@ -1,154 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-fixup.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 15:22:24 -0800
-Message-ID: <200703262322.l2QNMO4U000874@shell0.pdx.osdl.net>
+Subject: + msi-read-flush-msi-x-table.patch added to -mm tree
+Date: Mon, 26 Mar 2007 16:32:48 -0700
+Message-ID: <200703262332.l2QNWmOT001072@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58522 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58838 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932853AbXCZXW1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 19:22:27 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l2QNMPU2006606
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2007 16:22:25 -0700
+	id S933757AbXCZXcv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 19:32:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mitch.a.williams@intel.com, ebiederm@xmission.com, greg@kroah.com
 
 
 The patch titled
-     git-acpi-fixup
-has been removed from the -mm tree.  Its filename was
-     git-acpi-fixup.patch
+     MSI: read-flush MSI-X table
+has been added to the -mm tree.  Its filename is
+     msi-read-flush-msi-x-table.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: MSI: read-flush MSI-X table
+From: Mitch Williams <mitch.a.williams@intel.com>
 
+This patch fixes a kernel bug which is triggered when using the irqbalance
+daemon with MSI-X hardware.
+
+Because both MSI-X interrupt messages and MSI-X table writes are posted,
+it's possible for them to cross while in-flight.  This results in
+interrupts being received long after the kernel thinks they're disabled,
+and in interrupts being sent to stale vectors after rebalancing.
+
+This patch performs a read flush after writes to the MSI-X table for
+enable/disable and rebalancing operations.  Because this is an expensive
+operation, we do not perform the read flush after mask/unmask operations. 
+Hardware which supports MSI-X typically also supports some sort of
+interrupt moderation, so a read-flush is not necessary for mask/unmask
+operations.
+
+This patch has been validated with (unreleased) network hardware which
+uses MSI-X.
+
+Signed-off-by: Mitch Williams <mitch.a.williams@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/i386/kernel/io_apic.c   |    2 +
+ arch/ia64/kernel/msi_ia64.c  |    2 +
+ arch/ia64/sn/kernel/msi_sn.c |    2 +
+ arch/x86_64/kernel/io_apic.c |    4 +++
+ drivers/pci/msi.c            |   34 +++++++++++++++++++++++++++++++++
+ include/linux/msi.h          |    3 ++
+ 6 files changed, 47 insertions(+)
 
-diff -puN drivers/acpi/processor_idle.c~git-acpi-fixup drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~git-acpi-fixup
-+++ a/drivers/acpi/processor_idle.c
-@@ -80,7 +80,6 @@ module_param(max_cstate, uint, 0644);
- static unsigned int nocst __read_mostly;
- module_param(nocst, uint, 0000);
+diff -puN arch/i386/kernel/io_apic.c~msi-read-flush-msi-x-table arch/i386/kernel/io_apic.c
+--- a/arch/i386/kernel/io_apic.c~msi-read-flush-msi-x-table
++++ a/arch/i386/kernel/io_apic.c
+@@ -2594,6 +2594,8 @@ static void set_msi_irq_affinity(unsigne
+  */
+ static struct irq_chip msi_chip = {
+ 	.name		= "PCI-MSI",
++	.enable		= enable_msi_irq,
++	.disable	= disable_msi_irq,
+ 	.unmask		= unmask_msi_irq,
+ 	.mask		= mask_msi_irq,
+ 	.ack		= ack_ioapic_irq,
+diff -puN arch/ia64/kernel/msi_ia64.c~msi-read-flush-msi-x-table arch/ia64/kernel/msi_ia64.c
+--- a/arch/ia64/kernel/msi_ia64.c~msi-read-flush-msi-x-table
++++ a/arch/ia64/kernel/msi_ia64.c
+@@ -121,6 +121,8 @@ static int ia64_msi_retrigger_irq(unsign
+  */
+ static struct irq_chip ia64_msi_chip = {
+ 	.name		= "PCI-MSI",
++	.enable		= enable_msi_irq,
++	.disable	= disable_msi_irq,
+ 	.mask		= mask_msi_irq,
+ 	.unmask		= unmask_msi_irq,
+ 	.ack		= ia64_ack_msi_irq,
+diff -puN arch/ia64/sn/kernel/msi_sn.c~msi-read-flush-msi-x-table arch/ia64/sn/kernel/msi_sn.c
+--- a/arch/ia64/sn/kernel/msi_sn.c~msi-read-flush-msi-x-table
++++ a/arch/ia64/sn/kernel/msi_sn.c
+@@ -224,6 +224,8 @@ static int sn_msi_retrigger_irq(unsigned
  
--<<<<<<< HEAD/drivers/acpi/processor_idle.c
- /*
-  * bm_history -- bit-mask with a bit per jiffy of bus-master activity
-  * 1000 HZ: 0xFFFFFFFF: 32 jiffies = 32ms
-@@ -91,13 +90,12 @@ module_param(nocst, uint, 0000);
- static unsigned int bm_history __read_mostly =
-     (HZ >= 800 ? 0xFFFFFFFF : ((1U << (HZ / 25)) - 1));
- module_param(bm_history, uint, 0644);
--=======
+ static struct irq_chip sn_msi_chip = {
+ 	.name		= "PCI-MSI",
++	.enable		= enable_msi_irq,
++	.disable	= disable_msi_irq,
+ 	.mask		= mask_msi_irq,
+ 	.unmask		= unmask_msi_irq,
+ 	.ack		= sn_ack_msi_irq,
+diff -puN arch/x86_64/kernel/io_apic.c~msi-read-flush-msi-x-table arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~msi-read-flush-msi-x-table
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -1942,6 +1942,7 @@ static void set_msi_irq_affinity(unsigne
+ 	if (cpus_empty(tmp))
+ 		return;
+ 
++	msix_flush_writes(irq);
+ 	if (assign_irq_vector(irq, mask))
+ 		return;
+ 
+@@ -1956,6 +1957,7 @@ static void set_msi_irq_affinity(unsigne
+ 	msg.address_lo |= MSI_ADDR_DEST_ID(dest);
+ 
+ 	write_msi_msg(irq, &msg);
++	msix_flush_writes(irq);
+ 	irq_desc[irq].affinity = mask;
+ }
+ #endif /* CONFIG_SMP */
+@@ -1966,6 +1968,8 @@ static void set_msi_irq_affinity(unsigne
+  */
+ static struct irq_chip msi_chip = {
+ 	.name		= "PCI-MSI",
++	.enable		= enable_msi_irq,
++	.disable	= disable_msi_irq,
+ 	.unmask		= unmask_msi_irq,
+ 	.mask		= mask_msi_irq,
+ 	.ack		= ack_apic_edge,
+diff -puN drivers/pci/msi.c~msi-read-flush-msi-x-table drivers/pci/msi.c
+--- a/drivers/pci/msi.c~msi-read-flush-msi-x-table
++++ a/drivers/pci/msi.c
+@@ -68,6 +68,29 @@ static void msix_set_enable(struct pci_d
+ 	}
+ }
+ 
++void msix_flush_writes(unsigned int irq)
++{
++	struct msi_desc *entry;
 +
- static unsigned use_ipi = 2;
- module_param(use_ipi, uint, 0644);
- MODULE_PARM_DESC(use_ipi, "IPI (vs. LAPIC) irqs for not waking up from C2/C3"
- 		 " machines. 0=apic, 1=ipi, 2=auto\n");
++	entry = get_irq_msi(irq);
++	BUG_ON(!entry || !entry->dev);
++	switch (entry->msi_attrib.type) {
++	case PCI_CAP_ID_MSI:
++		/* nothing to do */
++		break;
++	case PCI_CAP_ID_MSIX:
++	{
++		int offset = entry->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE +
++			PCI_MSIX_ENTRY_VECTOR_CTRL_OFFSET;
++		readl(entry->mask_base + offset);
++		break;
++	}
++	default:
++		BUG();
++		break;
++	}
++}
++
+ static void msi_set_mask_bit(unsigned int irq, int flag)
+ {
+ 	struct msi_desc *entry;
+@@ -193,6 +216,17 @@ void unmask_msi_irq(unsigned int irq)
+ 	msi_set_mask_bit(irq, 0);
+ }
  
-->>>>>>> /drivers/acpi/processor_idle.c
- /* --------------------------------------------------------------------------
-                                 Power Management
-    -------------------------------------------------------------------------- */
++void disable_msi_irq(unsigned int irq)
++{
++	msi_set_mask_bit(irq, 1);
++	msix_flush_writes(irq);
++}
++
++void enable_msi_irq(unsigned int irq)
++{
++	msi_set_mask_bit(irq, 0);
++	msix_flush_writes(irq);
++}
+ static int msi_free_irq(struct pci_dev* dev, int irq);
+ 
+ static int msi_init(void)
+diff -puN include/linux/msi.h~msi-read-flush-msi-x-table include/linux/msi.h
+--- a/include/linux/msi.h~msi-read-flush-msi-x-table
++++ a/include/linux/msi.h
+@@ -10,8 +10,11 @@ struct msi_msg {
+ /* Helper functions */
+ extern void mask_msi_irq(unsigned int irq);
+ extern void unmask_msi_irq(unsigned int irq);
++extern void disable_msi_irq(unsigned int irq);
++extern void enable_msi_irq(unsigned int irq);
+ extern void read_msi_msg(unsigned int irq, struct msi_msg *msg);
+ extern void write_msi_msg(unsigned int irq, struct msi_msg *msg);
++extern void msix_flush_writes(unsigned int irq);
+ 
+ struct msi_desc {
+ 	struct {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mitch.a.williams@intel.com are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-forcedeth-work-around-null-skb-dereference-crash-fix.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-fix-gregkh-pci-pci-piggy-bus.patch
-fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
-git-pciseg.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
-mm-only-hrtimers-debug-patch-fix.patch
+msi-read-flush-msi-x-table.patch
