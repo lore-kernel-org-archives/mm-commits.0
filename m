@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + integrity-ima-integrity_measure-support-fix.patch added to -mm tree
-Date: Mon, 26 Mar 2007 03:30:03 -0700
-Message-ID: <200703261032.l2QAW6Co016911@shell0.pdx.osdl.net>
+Subject: + integrity-evm-as-an-integrity-service-provider-tidy-fix.patch added to -mm tree
+Date: Mon, 26 Mar 2007 03:33:32 -0700
+Message-ID: <200703261035.l2QAZZRJ016973@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52466 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52599 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751831AbXCZKfv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 06:35:51 -0400
+	id S1753641AbXCZKjN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 06:39:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@linux.vnet.ibm.com, zoha
 
 
 The patch titled
-     integrity-ima-integrity_measure-support-fix
+     integrity-evm-as-an-integrity-service-provider-tidy-fix
 has been added to the -mm tree.  Its filename is
-     integrity-ima-integrity_measure-support-fix.patch
+     integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,13 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: integrity-ima-integrity_measure-support-fix
+Subject: integrity-evm-as-an-integrity-service-provider-tidy-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-security/evm/evm_main.c: In function 'evm_verify_xattr':
-security/evm/evm_main.c:165: warning: format '%d' expects type 'int', but argument 5 has type 'ssize_t'
-security/evm/evm_main.c: In function 'init_evm':
-security/evm/evm_main.c:903: warning: control may reach end of non-void function 'evm_ima_init' being inlined
+security/evm/evm_crypto.c:94: warning: implicit declaration of function 'kernel_readlink'
 
 Cc: Kylene Hall <kjhall@us.ibm.com>
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
@@ -39,34 +36,20 @@ Cc: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/evm/evm_integrity.h |    1 +
- security/evm/evm_main.c      |    3 ++-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ include/linux/namei.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN security/evm/evm_main.c~integrity-ima-integrity_measure-support-fix security/evm/evm_main.c
---- a/security/evm/evm_main.c~integrity-ima-integrity_measure-support-fix
-+++ a/security/evm/evm_main.c
-@@ -162,7 +162,8 @@ ssize_t evm_verify_xattr(struct dentry *
- 				__FUNCTION__, fname, xattr_name);
- 		}
- 	} else
--		dprintk(EVM_XATTR, "%s: %s(%s) rc = %d no extended attribute\n",
-+		dprintk(EVM_XATTR, "%s: %s(%s) rc = %zd no extended "
-+			"attribute\n",
- 			__FUNCTION__, fname, xattr_name, error);
- 	kfree(xattr_value);
- 	return error;
-diff -puN security/evm/evm_integrity.h~integrity-ima-integrity_measure-support-fix security/evm/evm_integrity.h
---- a/security/evm/evm_integrity.h~integrity-ima-integrity_measure-support-fix
-+++ a/security/evm/evm_integrity.h
-@@ -13,6 +13,7 @@ static inline int evm_ima_init(void)
- {
- 	if (evm_enable_ima)
- 		return ima_init();
-+	return 0;
- }
+diff -puN include/linux/namei.h~integrity-evm-as-an-integrity-service-provider-tidy-fix include/linux/namei.h
+--- a/include/linux/namei.h~integrity-evm-as-an-integrity-service-provider-tidy-fix
++++ a/include/linux/namei.h
+@@ -96,6 +96,7 @@ extern int follow_up(struct vfsmount **,
  
- static inline void evm_ima_measure(const unsigned char *name, int hash_len,
+ extern struct dentry *lock_rename(struct dentry *, struct dentry *);
+ extern void unlock_rename(struct dentry *, struct dentry *);
++extern int kernel_readlink(struct dentry *dentry, char **buffer, int *buflen);
+ 
+ static inline void nd_set_link(struct nameidata *nd, char *path)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +132,7 @@ revoke-core-code-fix-shared-mapping-revoke.patch
 fbdev-hecuba-framebuffer-driver.patch
 integrity-new-hooks-fix.patch
 integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
 integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
