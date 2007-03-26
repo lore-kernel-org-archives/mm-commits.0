@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch added to -mm tree
-Date: Sun, 25 Mar 2007 22:51:03 -0700
-Message-ID: <200703260553.l2Q5r6PT012677@shell0.pdx.osdl.net>
+Subject: + move-die-notifier-handling-to-common-code-fixes-2.patch added to -mm tree
+Date: Sun, 25 Mar 2007 22:56:50 -0700
+Message-ID: <200703260558.l2Q5wrl3012762@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45809 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45939 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933593AbXCZFxT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 01:53:19 -0400
+	id S933602AbXCZF67 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 01:58:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, stefanr@s5r6.in-berlin.de
+Cc: akpm@linux-foundation.org, hch@lst.de
 
 
 The patch titled
-     git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type
+     move-die-notifier-handling-to-common-code-fixes-2
 has been added to the -mm tree.  Its filename is
-     git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
+     move-die-notifier-handling-to-common-code-fixes-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type
+Subject: move-die-notifier-handling-to-common-code-fixes-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/firewire/fw-device.c:500: error: unknown field 'attrs' specified in initializer
-drivers/firewire/fw-device.c:500: warning: initialization from incompatible pointer type
-drivers/firewire/fw-device.c:594: error: unknown field 'attrs' specified in initializer
-drivers/firewire/fw-device.c:594: warning: initialization from incompatible pointer type
+drivers/char/ipmi/ipmi_watchdog.c: In function 'check_parms':
+drivers/char/ipmi/ipmi_watchdog.c:1226: warning: implicit declaration of function 'register_die_notifier'
+drivers/char/ipmi/ipmi_watchdog.c:1234: warning: implicit declaration of function 'unregister_die_notifier'
 
-It sucks to be me.
-
-Stop changing stuff.
-
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/fw-device.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/ipmi/ipmi_watchdog.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/firewire/fw-device.c~git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type drivers/firewire/fw-device.c
---- a/drivers/firewire/fw-device.c~git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type
-+++ a/drivers/firewire/fw-device.c
-@@ -497,7 +497,7 @@ static void fw_unit_release(struct devic
- }
- 
- static struct device_type fw_unit_type = {
--	.attrs		= fw_unit_attributes,
-+//	.attrs		= fw_unit_attributes,
- 	.uevent		= fw_unit_uevent,
- 	.release	= fw_unit_release,
- };
-@@ -591,7 +591,7 @@ static void fw_device_shutdown(struct wo
- }
- 
- static struct device_type fw_device_type = {
--	.attrs		= fw_device_attributes,
-+//	.attrs		= fw_device_attributes,
- 	.release	= fw_device_release,
- };
- 
+diff -puN drivers/char/ipmi/ipmi_watchdog.c~move-die-notifier-handling-to-common-code-fixes-2 drivers/char/ipmi/ipmi_watchdog.c
+--- a/drivers/char/ipmi/ipmi_watchdog.c~move-die-notifier-handling-to-common-code-fixes-2
++++ a/drivers/char/ipmi/ipmi_watchdog.c
+@@ -39,6 +39,7 @@
+ #include <linux/miscdevice.h>
+ #include <linux/init.h>
+ #include <linux/completion.h>
++#include <linux/kdebug.h>
+ #include <linux/rwsem.h>
+ #include <linux/errno.h>
+ #include <asm/uaccess.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,6 +110,7 @@ proc-maps-protection-fix-2.patch
 fix-cycladesh-for-x86_64-and-probably-others-fix.patch
 rtc-add-rtc-rs5c313-driver-tidy.patch
 rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
 fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
