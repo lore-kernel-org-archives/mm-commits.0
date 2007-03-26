@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + legacy-pc-parports-support-parport-dev.patch added to -mm tree
-Date: Mon, 26 Mar 2007 15:39:49 -0700
-Message-ID: <200703262239.l2QMdneD032503@shell0.pdx.osdl.net>
+Subject: + layered-parport-code-uses-parport-dev.patch added to -mm tree
+Date: Mon, 26 Mar 2007 15:39:51 -0700
+Message-ID: <200703262239.l2QMdps1032506@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56658 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56667 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933691AbXCZWkG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 18:40:06 -0400
+	id S933740AbXCZWkJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 18:40:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, dbrownell@users.sourceforge.net, greg@kroah.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, khali@linux-fr.org
 
 
 The patch titled
-     legacy PC parports support parport->dev
+     layered parport code uses parport->dev
 has been added to the -mm tree.  Its filename is
-     legacy-pc-parports-support-parport-dev.patch
+     layered-parport-code-uses-parport-dev.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,131 +25,175 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: legacy PC parports support parport->dev
-From: Jean Delvare <khali@linux-fr.org>
+Subject: layered parport code uses parport->dev
+From: David Brownell <david-b@pacbell.net>
 
-Give legacy parallel ports a platform device in the device tree.
+Update some of the layered parport_driver code to use parport->dev:
 
-This is a quick and dirty implementation; it doesn't actually convert the
-legacy parport code to the device driver model (by splitting out probing from
-device creation).  But at least parallel port device drivers will finally have
-a device to work with.
+	- i2c-parport (parent of i2c_adapter)
+	- spi_butterfly (parent of spi_master, allowing cruft removal)
+	- lp (creating class_device)
+	- ppdev (parent of parportN device)
+	- tipar (creating class_device)
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+There are still drivers that should be updated, like some of the input
+drivers; but they won't be any worse off than they are today.
+
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: Greg KH <greg@kroah.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |   39 +++++++++++++++++++++++++++++++++
- 1 files changed, 39 insertions(+)
+ drivers/char/lp.c                |    2 +-
+ drivers/char/ppdev.c             |    2 +-
+ drivers/char/tipar.c             |    2 +-
+ drivers/i2c/busses/i2c-parport.c |    1 +
+ drivers/spi/spi_butterfly.c      |   21 ++++-----------------
+ 5 files changed, 8 insertions(+), 20 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~legacy-pc-parports-support-parport-dev drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~legacy-pc-parports-support-parport-dev
-+++ a/drivers/parport/parport_pc.c
-@@ -53,6 +53,7 @@
- #include <linux/slab.h>
- #include <linux/pci.h>
- #include <linux/pnp.h>
-+#include <linux/platform_device.h>
- #include <linux/sysctl.h>
+diff -puN drivers/char/lp.c~layered-parport-code-uses-parport-dev drivers/char/lp.c
+--- a/drivers/char/lp.c~layered-parport-code-uses-parport-dev
++++ a/drivers/char/lp.c
+@@ -803,7 +803,7 @@ static int lp_register(int nr, struct pa
+ 	if (reset)
+ 		lp_reset(nr);
  
- #include <asm/io.h>
-@@ -2156,6 +2157,17 @@ struct parport *parport_pc_probe_port (u
- 	struct resource *base_res;
- 	struct resource	*ECR_res = NULL;
- 	struct resource	*EPP_res = NULL;
-+	struct platform_device *pdev = NULL;
-+
-+	if (!dev) {
-+		/* We need a physical device to attach to, but none was
-+		 * provided. Create our own. */
-+		pdev = platform_device_register_simple("parport_pc",
-+						       base, NULL, 0);
-+		if (IS_ERR(pdev))
-+			return NULL;
-+		dev = &pdev->dev;
-+	}
+-	class_device_create(lp_class, NULL, MKDEV(LP_MAJOR, nr), NULL,
++	class_device_create(lp_class, NULL, MKDEV(LP_MAJOR, nr), port->dev,
+ 				"lp%d", nr);
  
- 	ops = kmalloc(sizeof (struct parport_operations), GFP_KERNEL);
- 	if (!ops)
-@@ -2359,6 +2371,8 @@ out3:
- out2:
- 	kfree (ops);
- out1:
-+	if (pdev)
-+		platform_device_unregister(pdev);
- 	return NULL;
+ 	printk(KERN_INFO "lp%d: using %s (%s).\n", nr, port->name, 
+diff -puN drivers/char/ppdev.c~layered-parport-code-uses-parport-dev drivers/char/ppdev.c
+--- a/drivers/char/ppdev.c~layered-parport-code-uses-parport-dev
++++ a/drivers/char/ppdev.c
+@@ -752,7 +752,7 @@ static const struct file_operations pp_f
+ 
+ static void pp_attach(struct parport *port)
+ {
+-	device_create(ppdev_class, NULL, MKDEV(PP_MAJOR, port->number),
++	device_create(ppdev_class, port->dev, MKDEV(PP_MAJOR, port->number),
+ 			"parport%d", port->number);
  }
  
-@@ -3106,6 +3120,21 @@ static struct pnp_driver parport_pc_pnp_
- };
+diff -puN drivers/char/tipar.c~layered-parport-code-uses-parport-dev drivers/char/tipar.c
+--- a/drivers/char/tipar.c~layered-parport-code-uses-parport-dev
++++ a/drivers/char/tipar.c
+@@ -442,7 +442,7 @@ tipar_register(int nr, struct parport *p
+ 	}
  
+ 	class_device_create(tipar_class, NULL, MKDEV(TIPAR_MAJOR,
+-			TIPAR_MINOR + nr), NULL, "par%d", nr);
++			TIPAR_MINOR + nr), port->dev, "par%d", nr);
  
-+static int __devinit parport_pc_platform_probe(struct platform_device *pdev)
-+{
-+	/* Always succeed, the actual probing is done in
-+	 * parport_pc_probe_port(). */
-+	return 0;
-+}
-+
-+static struct platform_driver parport_pc_platform_driver = {
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "parport_pc",
-+	},
-+	.probe		= parport_pc_platform_probe,
-+};
-+
- /* This is called by parport_pc_find_nonpci_ports (in asm/parport.h) */
- static int __devinit __attribute__((unused))
- parport_pc_find_isa_ports (int autoirq, int autodma)
-@@ -3381,9 +3410,15 @@ __setup("parport_init_mode=",parport_ini
+ 	/* Display informations */
+ 	pr_info("tipar%d: using %s (%s)\n", nr, port->name, (port->irq ==
+diff -puN drivers/i2c/busses/i2c-parport.c~layered-parport-code-uses-parport-dev drivers/i2c/busses/i2c-parport.c
+--- a/drivers/i2c/busses/i2c-parport.c~layered-parport-code-uses-parport-dev
++++ a/drivers/i2c/busses/i2c-parport.c
+@@ -175,6 +175,7 @@ static void i2c_parport_attach (struct p
+ 	}
+ 	adapter->algo_data.data = port;
+ 	adapter->adapter.algo_data = &adapter->algo_data;
++	adapter->adapter.dev.parent = port->physport->dev;
  
- static int __init parport_pc_init(void)
+ 	if (parport_claim_or_block(adapter->pdev) < 0) {
+ 		printk(KERN_ERR "i2c-parport: Could not claim parallel port\n");
+diff -puN drivers/spi/spi_butterfly.c~layered-parport-code-uses-parport-dev drivers/spi/spi_butterfly.c
+--- a/drivers/spi/spi_butterfly.c~layered-parport-code-uses-parport-dev
++++ a/drivers/spi/spi_butterfly.c
+@@ -20,7 +20,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+-#include <linux/platform_device.h>
++#include <linux/device.h>
+ #include <linux/parport.h>
+ 
+ #include <linux/sched.h>
+@@ -237,24 +237,16 @@ static void butterfly_attach(struct parp
+ 	int			status;
+ 	struct butterfly	*pp;
+ 	struct spi_master	*master;
+-	struct platform_device	*pdev;
++	struct device		*dev = p->physport->dev;
+ 
+-	if (butterfly)
++	if (butterfly || !dev)
+ 		return;
+ 
+ 	/* REVISIT:  this just _assumes_ a butterfly is there ... no probe,
+ 	 * and no way to be selective about what it binds to.
+ 	 */
+ 
+-	/* FIXME where should master->cdev.dev come from?
+-	 * e.g. /sys/bus/pnp0/00:0b, some PCI thing, etc
+-	 * setting up a platform device like this is an ugly kluge...
+-	 */
+-	pdev = platform_device_register_simple("butterfly", -1, NULL, 0);
+-	if (IS_ERR(pdev))
+-		return;
+-
+-	master = spi_alloc_master(&pdev->dev, sizeof *pp);
++	master = spi_alloc_master(dev, sizeof *pp);
+ 	if (!master) {
+ 		status = -ENOMEM;
+ 		goto done;
+@@ -366,14 +358,12 @@ clean1:
+ clean0:
+ 	(void) spi_master_put(pp->bitbang.master);
+ done:
+-	platform_device_unregister(pdev);
+ 	pr_debug("%s: butterfly probe, fail %d\n", p->name, status);
+ }
+ 
+ static void butterfly_detach(struct parport *p)
  {
-+	int err;
-+
- 	if (parse_parport_params())
- 		return -EINVAL;
+ 	struct butterfly	*pp;
+-	struct platform_device	*pdev;
+ 	int			status;
  
-+	err = platform_driver_register(&parport_pc_platform_driver);
-+	if (err)
-+		return err;
-+
- 	if (io[0]) {
- 		int i;
- 		/* Only probe the ports we were given. */
-@@ -3408,6 +3443,7 @@ static void __exit parport_pc_exit(void)
- 		pci_unregister_driver (&parport_pc_pci_driver);
- 	if (pnp_registered_parport)
- 		pnp_unregister_driver (&parport_pc_pnp_driver);
-+	platform_driver_unregister(&parport_pc_platform_driver);
+ 	/* FIXME this global is ugly ... but, how to quickly get from
+@@ -386,7 +376,6 @@ static void butterfly_detach(struct parp
+ 	butterfly = NULL;
  
- 	spin_lock(&ports_lock);
- 	while (!list_empty(&ports_list)) {
-@@ -3416,6 +3452,9 @@ static void __exit parport_pc_exit(void)
- 		priv = list_entry(ports_list.next,
- 				  struct parport_pc_private, list);
- 		port = priv->port;
-+		if (port->dev && port->dev->bus == &platform_bus_type)
-+			platform_device_unregister(
-+				to_platform_device(port->dev));
- 		spin_unlock(&ports_lock);
- 		parport_pc_unregister_port(port);
- 		spin_lock(&ports_lock);
+ 	/* stop() unregisters child devices too */
+-	pdev = to_platform_device(pp->bitbang.master->cdev.dev);
+ 	status = spi_bitbang_stop(&pp->bitbang);
+ 
+ 	/* turn off VCC */
+@@ -397,8 +386,6 @@ static void butterfly_detach(struct parp
+ 	parport_unregister_device(pp->pd);
+ 
+ 	(void) spi_master_put(pp->bitbang.master);
+-
+-	platform_device_unregister(pdev);
+ }
+ 
+ static struct parport_driver butterfly_driver = {
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-x86-msr-add-support-for-safe-variants.patch
-sound-strlcpy-is-smart-enough.patch
-git-dvb.patch
-apple-smc-driver-hardware-monitoring-and-control.patch
-ehea-strlcpy-is-smart-enough.patch
-fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
-xtensa-strlcpy-is-smart-enough.patch
-oss-strlcpy-is-smart-enough.patch
+8250-make-probing-for-txen-bug-a-config-option.patch
+scsi-newstyle-hotplug-coldplug-support.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+init-dma-masks-in-pnp_dev.patch
 rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-legacy-pc-parports-support-parport-dev.patch
+char-cs5535_gpio-add-module_device_table.patch
+parport-dev-driver-model-support.patch
 layered-parport-code-uses-parport-dev.patch
+minor-spi_butterfly-cleanup.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+rtc-kconfig-cleanup.patch
