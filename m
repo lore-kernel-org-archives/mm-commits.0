@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-power-management-replace-firmware-disk-mode.patch added to -mm tree
-Date: Mon, 26 Mar 2007 14:10:39 -0700
-Message-ID: <200703262110.l2QLAdGS030658@shell0.pdx.osdl.net>
+Subject: + blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch added to -mm tree
+Date: Mon, 26 Mar 2007 14:10:48 -0700
+Message-ID: <200703262110.l2QLAm37030671@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52065 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52082 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753211AbXCZVKm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 17:10:42 -0400
+	id S1753211AbXCZVKv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 17:10:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bryan.wu@analog.com
 
 
 The patch titled
-     Blackfin arch: power management replace firmware disk mode
+     Blackfin: spi driver fix reboot kernel mounting spi flash print error bug
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-power-management-replace-firmware-disk-mode.patch
+     blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Blackfin arch: power management replace firmware disk mode
+Subject: Blackfin: spi driver fix reboot kernel mounting spi flash print error bug
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
-This patches replace firmware disk mode according to include/linux/pm.h
+This patch fix a printing error bug when reboot kernel mounting on SPI flash.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/mach-common/pm.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi_bfin5xx.c |    9 ---------
+ 1 files changed, 9 deletions(-)
 
-diff -puN arch/blackfin/mach-common/pm.c~blackfin-arch-power-management-replace-firmware-disk-mode arch/blackfin/mach-common/pm.c
---- a/arch/blackfin/mach-common/pm.c~blackfin-arch-power-management-replace-firmware-disk-mode
-+++ a/arch/blackfin/mach-common/pm.c
-@@ -166,7 +166,7 @@ static int bfin_pm_finish(suspend_state_
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -1203,14 +1203,6 @@ static int bfin5xx_spi_remove(struct pla
+ 	return 0;
  }
  
- struct pm_ops bfin_pm_ops = {
--	.pm_disk_mode = PM_DISK_FIRMWARE,
-+	.pm_disk_mode = PM_DISK_PLATFORM,
- 	.prepare = bfin_pm_prepare,
- 	.enter = bfin_pm_enter,
- 	.finish = bfin_pm_finish,
+-static void bfin5xx_spi_shutdown(struct platform_device *pdev)
+-{
+-	int status = 0;
+-
+-	if ((status = bfin5xx_spi_remove(pdev)) != 0)
+-		dev_err(&pdev->dev, "shutdown failed with %d\n", status);
+-}
+-
+ /* PM, do nothing now */
+ #ifdef CONFIG_PM
+ static int suspend_devices(struct device *dev, void *pm_message)
+@@ -1276,7 +1268,6 @@ static struct platform_driver driver = {
+ 		   },
+ 	.probe = bfin5xx_spi_probe,
+ 	.remove = __devexit_p(bfin5xx_spi_remove),
+-	.shutdown = bfin5xx_spi_shutdown,
+ 	.suspend = bfin5xx_spi_suspend,
+ 	.resume = bfin5xx_spi_resume,
+ };
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
