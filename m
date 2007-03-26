@@ -1,71 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - nommu-supply-get_unmapped_area-to-fix-nommu-sysv-shm.patch removed from -mm tree
-Date: Sun, 25 Mar 2007 17:05:02 -0800
-Message-ID: <200703260105.l2Q152gI008680@shell0.pdx.osdl.net>
+Subject: - nommu-make-sysv-shm-nattch-work-correctly.patch removed from -mm tree
+Date: Sun, 25 Mar 2007 17:05:05 -0800
+Message-ID: <200703260105.l2Q155BI008683@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38479 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38482 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933314AbXCZBFM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 25 Mar 2007 21:05:12 -0400
+	id S933328AbXCZBFO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 25 Mar 2007 21:05:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, agl@us.ibm.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NOMMU: supply get_unmapped_area() to fix NOMMU SYSV SHM
+     NOMMU: make SYSV SHM nattch work correctly
 has been removed from the -mm tree.  Its filename was
-     nommu-supply-get_unmapped_area-to-fix-nommu-sysv-shm.patch
+     nommu-make-sysv-shm-nattch-work-correctly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NOMMU: supply get_unmapped_area() to fix NOMMU SYSV SHM
+Subject: NOMMU: make SYSV SHM nattch work correctly
 From: David Howells <dhowells@redhat.com>
 
-Supply a get_unmapped_area() to fix NOMMU SYSV SHM support.
+Make the SYSV SHM nattch counter work correctly by forcing multiple VMAs to
+be produced to represent MAP_SHARED segments, even if they overlap exactly.
+
+Using this test program:
+
+	http://people.redhat.com/~dhowells/doshm.c
+
+Run as:
+
+	doshm sysv
+
+I can see nattch going from one before the patch:
+
+	# /doshm sysv
+	Command: sysv
+	shmid: 65536
+	memory: 0xc3700000
+	c0b00000-c0b04000 rw-p 00000000 00:00 0
+	c0bb0000-c0bba788 r-xs 00000000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+	c3180000-c31dede4 r-xs 00000000 00:0b 14582179  /lib/libuClibc-0.9.28.so
+	c3520000-c352278c rw-p 00000000 00:0b 13763417  /doshm
+	c3584000-c35865e8 r-xs 00000000 00:0b 13763417  /doshm
+	c3588000-c358aa00 rw-p 00008000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+	c3590000-c359b6c0 rw-p 00000000 00:00 0
+	c3620000-c3640000 rwxp 00000000 00:00 0
+	c3700000-c37fa000 rw-S 00000000 00:06 1411      /SYSV00000000 (deleted)
+	c3700000-c37fa000 rw-S 00000000 00:06 1411      /SYSV00000000 (deleted)
+	nattch 1
+
+To two after the patch:
+
+	# /doshm sysv
+	Command: sysv
+	shmid: 0
+	memory: 0xc3700000
+	c0bb0000-c0bba788 r-xs 00000000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+	c3180000-c31dede4 r-xs 00000000 00:0b 14582179  /lib/libuClibc-0.9.28.so
+	c3320000-c3340000 rwxp 00000000 00:00 0
+	c3530000-c35325e8 r-xs 00000000 00:0b 13763417  /doshm
+	c3534000-c353678c rw-p 00000000 00:0b 13763417  /doshm
+	c3538000-c353aa00 rw-p 00008000 00:0b 14582157  /lib/ld-uClibc-0.9.28.so
+	c3590000-c359b6c0 rw-p 00000000 00:00 0
+	c35a4000-c35a8000 rw-p 00000000 00:00 0
+	c3700000-c37fa000 rw-S 00000000 00:06 1369      /SYSV00000000 (deleted)
+	c3700000-c37fa000 rw-S 00000000 00:06 1369      /SYSV00000000 (deleted)
+	nattch 2
+
+That's +1 to nattch for each shmat() made.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ mm/nommu.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/nommu.c~nommu-supply-get_unmapped_area-to-fix-nommu-sysv-shm mm/nommu.c
---- a/mm/nommu.c~nommu-supply-get_unmapped_area-to-fix-nommu-sysv-shm
+diff -puN mm/nommu.c~nommu-make-sysv-shm-nattch-work-correctly mm/nommu.c
+--- a/mm/nommu.c~nommu-make-sysv-shm-nattch-work-correctly
 +++ a/mm/nommu.c
-@@ -1193,6 +1193,28 @@ void unmap_mapping_range(struct address_
- EXPORT_SYMBOL(unmap_mapping_range);
+@@ -826,6 +826,11 @@ unsigned long do_mmap_pgoff(struct file 
+ 		unsigned long pglen = (len + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 		unsigned long vmpglen;
  
- /*
-+ * ask for an unmapped area at which to create a mapping on a file
-+ */
-+unsigned long get_unmapped_area(struct file *file, unsigned long addr,
-+				unsigned long len, unsigned long pgoff,
-+				unsigned long flags)
-+{
-+	unsigned long (*get_area)(struct file *, unsigned long, unsigned long,
-+				  unsigned long, unsigned long);
++		/* suppress VMA sharing for shared regions */
++		if (vm_flags & VM_SHARED &&
++		    capabilities & BDI_CAP_MAP_DIRECT)
++			goto dont_share_VMAs;
 +
-+	get_area = current->mm->get_unmapped_area;
-+	if (file && file->f_op && file->f_op->get_unmapped_area)
-+		get_area = file->f_op->get_unmapped_area;
-+
-+	if (!get_area)
-+		return -ENOSYS;
-+
-+	return get_area(file, addr, len, pgoff, flags);
-+}
-+
-+EXPORT_SYMBOL(get_unmapped_area);
-+
-+/*
-  * Check that a process has enough memory to allocate a new virtual
-  * mapping. 0 means there is enough memory for the allocation to
-  * succeed and -ENOMEM implies there is not.
+ 		for (rb = rb_first(&nommu_vma_tree); rb; rb = rb_next(rb)) {
+ 			vma = rb_entry(rb, struct vm_area_struct, vm_rb);
+ 
+@@ -859,6 +864,7 @@ unsigned long do_mmap_pgoff(struct file 
+ 			goto shared;
+ 		}
+ 
++	dont_share_VMAs:
+ 		vma = NULL;
+ 
+ 		/* obtain the address at which to make a shared mapping
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
