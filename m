@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-file-position-info-to-proc.patch added to -mm tree
-Date: Mon, 26 Mar 2007 13:28:41 -0700
-Message-ID: <200703262028.l2QKSfVH029548@shell0.pdx.osdl.net>
+Subject: + fix-race-between-attach_task-and-cpuset_exit.patch added to -mm tree
+Date: Mon, 26 Mar 2007 13:29:51 -0700
+Message-ID: <200703262029.l2QKTp8i029562@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50035 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50064 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752500AbXCZU30 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 16:29:26 -0400
+	id S1752639AbXCZUaG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 16:30:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, adobriyan@sw.ru
+Cc: vatsa@in.ibm.com, balbir@in.ibm.com, menage@google.com, pj@sgi.com
 
 
 The patch titled
-     add file position info to proc
+     Fix race between attach_task and cpuset_exit
 has been added to the -mm tree.  Its filename is
-     add-file-position-info-to-proc.patch
+     fix-race-between-attach_task-and-cpuset_exit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,268 +25,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add file position info to proc
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: Fix race between attach_task and cpuset_exit
+From: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 
-Add support for finding out the current file position, open flags and
-possibly other info in the future.
+Currently cpuset_exit() changes the exiting task's ->cpuset pointer w/o
+taking task_lock().  This can lead to ugly races between attach_task and
+cpuset_exit.  Details of the races are described at
+http://lkml.org/lkml/2007/3/24/132.
 
-These new entries are added:
+Patch below closes those races.  It is against 2.6.21-rc4 and has undergone
+a simple compile/boot test on a x86_64 box.
 
-  /proc/PID/fdinfo/FD
-  /proc/PID/task/TID/fdinfo/FD
-
-For each fd the information is provided in the following format:
-
-pos:	1234
-flags:	0100002
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |  132 ++++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 114 insertions(+), 18 deletions(-)
+ kernel/cpuset.c |   22 ++++++++++++----------
+ 1 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/base.c~add-file-position-info-to-proc fs/proc/base.c
---- a/fs/proc/base.c~add-file-position-info-to-proc
-+++ a/fs/proc/base.c
-@@ -1233,7 +1233,10 @@ out:
- 	return ~0U;
+diff -puN kernel/cpuset.c~fix-race-between-attach_task-and-cpuset_exit kernel/cpuset.c
+--- a/kernel/cpuset.c~fix-race-between-attach_task-and-cpuset_exit
++++ a/kernel/cpuset.c
+@@ -1120,6 +1120,7 @@ static int attach_task(struct cpuset *cs
+ 	pid_t pid;
+ 	struct task_struct *tsk;
+ 	struct cpuset *oldcs;
++	struct cpuset *oldcs_to_be_released = NULL;
+ 	cpumask_t cpus;
+ 	nodemask_t from, to;
+ 	struct mm_struct *mm;
+@@ -1175,6 +1176,8 @@ static int attach_task(struct cpuset *cs
+ 	}
+ 	atomic_inc(&cs->count);
+ 	rcu_assign_pointer(tsk->cpuset, cs);
++	if (atomic_dec_and_test(&oldcs->count))
++		oldcs_to_be_released = oldcs;
+ 	task_unlock(tsk);
+ 
+ 	guarantee_online_cpus(cs, &cpus);
+@@ -1195,8 +1198,8 @@ static int attach_task(struct cpuset *cs
+ 
+ 	put_task_struct(tsk);
+ 	synchronize_rcu();
+-	if (atomic_dec_and_test(&oldcs->count))
+-		check_for_release(oldcs, ppathbuf);
++	if (oldcs_to_be_released)
++		check_for_release(oldcs_to_be_released, ppathbuf);
+ 	return 0;
  }
  
--static int proc_fd_link(struct inode *inode, struct dentry **dentry, struct vfsmount **mnt)
-+#define PROC_FDINFO_MAX 64
-+
-+static int proc_fd_info(struct inode *inode, struct dentry **dentry,
-+			struct vfsmount **mnt, char *info)
+@@ -2120,10 +2123,6 @@ void cpuset_fork(struct task_struct *chi
+  * it is holding that mutex while calling check_for_release(),
+  * which calls kmalloc(), so can't be called holding callback_mutex().
+  *
+- * We don't need to task_lock() this reference to tsk->cpuset,
+- * because tsk is already marked PF_EXITING, so attach_task() won't
+- * mess with it, or task is a failed fork, never visible to attach_task.
+- *
+  * the_top_cpuset_hack:
+  *
+  *    Set the exiting tasks cpuset to the root cpuset (top_cpuset).
+@@ -2161,20 +2160,23 @@ void cpuset_fork(struct task_struct *chi
+ void cpuset_exit(struct task_struct *tsk)
  {
- 	struct task_struct *task = get_proc_task(inode);
- 	struct files_struct *files = NULL;
-@@ -1252,8 +1255,16 @@ static int proc_fd_link(struct inode *in
- 		spin_lock(&files->file_lock);
- 		file = fcheck_files(files, fd);
- 		if (file) {
--			*mnt = mntget(file->f_path.mnt);
--			*dentry = dget(file->f_path.dentry);
-+			if (mnt)
-+				*mnt = mntget(file->f_path.mnt);
-+			if (dentry)
-+				*dentry = dget(file->f_path.dentry);
-+			if (info)
-+				snprintf(info, PROC_FDINFO_MAX,
-+					 "pos:\t%lli\n"
-+					 "flags:\t0%o\n",
-+					 (long long) file->f_pos,
-+					 file->f_flags);
- 			spin_unlock(&files->file_lock);
- 			put_files_struct(files);
- 			return 0;
-@@ -1264,6 +1275,12 @@ static int proc_fd_link(struct inode *in
- 	return -ENOENT;
+ 	struct cpuset *cs;
++	struct cpuset *oldcs_to_be_released = NULL;
+ 
++	task_lock(tsk);
+ 	cs = tsk->cpuset;
+ 	tsk->cpuset = &top_cpuset;	/* the_top_cpuset_hack - see above */
++	if (atomic_dec_and_test(&cs->count))
++		oldcs_to_be_released = cs;
++	task_unlock(tsk);
+ 
+ 	if (notify_on_release(cs)) {
+ 		char *pathbuf = NULL;
+ 
+ 		mutex_lock(&manage_mutex);
+-		if (atomic_dec_and_test(&cs->count))
+-			check_for_release(cs, &pathbuf);
++		if (oldcs_to_be_released)
++			check_for_release(oldcs_to_be_released, &pathbuf);
+ 		mutex_unlock(&manage_mutex);
+ 		cpuset_release_agent(pathbuf);
+-	} else {
+-		atomic_dec(&cs->count);
+ 	}
  }
  
-+static int proc_fd_link(struct inode *inode, struct dentry **dentry,
-+			struct vfsmount **mnt)
-+{
-+	return proc_fd_info(inode, dentry, mnt, NULL);
-+}
-+
- static int tid_fd_revalidate(struct dentry *dentry, struct nameidata *nd)
- {
- 	struct inode *inode = dentry->d_inode;
-@@ -1359,7 +1376,9 @@ out_iput:
- 	goto out;
- }
- 
--static struct dentry *proc_lookupfd(struct inode * dir, struct dentry * dentry, struct nameidata *nd)
-+static struct dentry *proc_lookupfd_common(struct inode *dir,
-+					   struct dentry *dentry,
-+					   instantiate_t instantiate)
- {
- 	struct task_struct *task = get_proc_task(dir);
- 	unsigned fd = name_to_int(dentry);
-@@ -1370,23 +1389,15 @@ static struct dentry *proc_lookupfd(stru
- 	if (fd == ~0U)
- 		goto out;
- 
--	result = proc_fd_instantiate(dir, dentry, task, &fd);
-+	result = instantiate(dir, dentry, task, &fd);
- out:
- 	put_task_struct(task);
- out_no_task:
- 	return result;
- }
- 
--static int proc_fd_fill_cache(struct file *filp, void *dirent, filldir_t filldir,
--	struct task_struct *task, int fd)
--{
--	char name[PROC_NUMBUF];
--	int len = snprintf(name, sizeof(name), "%d", fd);
--	return proc_fill_cache(filp, dirent, filldir, name, len,
--				proc_fd_instantiate, task, &fd);
--}
--
--static int proc_readfd(struct file * filp, void * dirent, filldir_t filldir)
-+static int proc_readfd_common(struct file * filp, void * dirent,
-+			      filldir_t filldir, instantiate_t instantiate)
- {
- 	struct dentry *dentry = filp->f_path.dentry;
- 	struct inode *inode = dentry->d_inode;
-@@ -1422,12 +1433,17 @@ static int proc_readfd(struct file * fil
- 			for (fd = filp->f_pos-2;
- 			     fd < fdt->max_fds;
- 			     fd++, filp->f_pos++) {
-+				char name[PROC_NUMBUF];
-+				int len;
- 
- 				if (!fcheck_files(files, fd))
- 					continue;
- 				rcu_read_unlock();
- 
--				if (proc_fd_fill_cache(filp, dirent, filldir, p, fd) < 0) {
-+				len = snprintf(name, sizeof(name), "%d", fd);
-+				if (proc_fill_cache(filp, dirent, filldir,
-+						    name, len, instantiate,
-+						    p, &fd) < 0) {
- 					rcu_read_lock();
- 					break;
- 				}
-@@ -1442,6 +1458,32 @@ out_no_task:
- 	return retval;
- }
- 
-+static struct dentry *proc_lookupfd(struct inode *dir, struct dentry *dentry,
-+				    struct nameidata *nd)
-+{
-+	return proc_lookupfd_common(dir, dentry, proc_fd_instantiate);
-+}
-+
-+static int proc_readfd(struct file *filp, void *dirent, filldir_t filldir)
-+{
-+	return proc_readfd_common(filp, dirent, filldir, proc_fd_instantiate);
-+}
-+
-+static ssize_t proc_fdinfo_read(struct file *file, char __user *buf,
-+				      size_t len, loff_t *ppos)
-+{
-+	char tmp[PROC_FDINFO_MAX];
-+	int err = proc_fd_info(file->f_path.dentry->d_inode, NULL, NULL, tmp);
-+	if (!err)
-+		err = simple_read_from_buffer(buf, len, ppos, tmp, strlen(tmp));
-+	return err;
-+}
-+
-+const struct file_operations proc_fdinfo_file_operations = {
-+	.open		= nonseekable_open,
-+	.read		= proc_fdinfo_read,
-+};
-+
- static const struct file_operations proc_fd_operations = {
- 	.read		= generic_read_dir,
- 	.readdir	= proc_readfd,
-@@ -1473,6 +1515,58 @@ static const struct inode_operations pro
- 	.setattr	= proc_setattr,
- };
- 
-+static struct dentry *proc_fdinfo_instantiate(struct inode *dir,
-+	struct dentry *dentry, struct task_struct *task, void *ptr)
-+{
-+	unsigned fd = *(unsigned *)ptr;
-+ 	struct inode *inode;
-+ 	struct proc_inode *ei;
-+	struct dentry *error = ERR_PTR(-ENOENT);
-+
-+	inode = proc_pid_make_inode(dir->i_sb, task);
-+	if (!inode)
-+		goto out;
-+	ei = PROC_I(inode);
-+	ei->fd = fd;
-+	inode->i_mode = S_IFREG | S_IRUSR;
-+	inode->i_fop = &proc_fdinfo_file_operations;
-+	dentry->d_op = &tid_fd_dentry_operations;
-+	d_add(dentry, inode);
-+	/* Close the race of the process dying before we return the dentry */
-+	if (tid_fd_revalidate(dentry, NULL))
-+		error = NULL;
-+
-+ out:
-+	return error;
-+}
-+
-+static struct dentry *proc_lookupfdinfo(struct inode *dir,
-+					struct dentry *dentry,
-+					struct nameidata *nd)
-+{
-+	return proc_lookupfd_common(dir, dentry, proc_fdinfo_instantiate);
-+}
-+
-+static int proc_readfdinfo(struct file *filp, void *dirent, filldir_t filldir)
-+{
-+	return proc_readfd_common(filp, dirent, filldir,
-+				  proc_fdinfo_instantiate);
-+}
-+
-+static const struct file_operations proc_fdinfo_operations = {
-+	.read		= generic_read_dir,
-+	.readdir	= proc_readfdinfo,
-+};
-+
-+/*
-+ * proc directories can do almost nothing..
-+ */
-+static const struct inode_operations proc_fdinfo_inode_operations = {
-+	.lookup		= proc_lookupfdinfo,
-+	.setattr	= proc_setattr,
-+};
-+
-+
- static struct dentry *proc_pident_instantiate(struct inode *dir,
- 	struct dentry *dentry, struct task_struct *task, const void *ptr)
- {
-@@ -1883,6 +1977,7 @@ static const struct inode_operations pro
- static const struct pid_entry tgid_base_stuff[] = {
- 	DIR("task",       S_IRUGO|S_IXUGO, task),
- 	DIR("fd",         S_IRUSR|S_IXUSR, fd),
-+	DIR("fdinfo",     S_IRUSR|S_IXUSR, fdinfo),
- 	INF("environ",    S_IRUSR, pid_environ),
- 	INF("auxv",       S_IRUSR, pid_auxv),
- 	INF("status",     S_IRUGO, pid_status),
-@@ -2036,7 +2131,7 @@ static struct dentry *proc_pid_instantia
- 	inode->i_op = &proc_tgid_base_inode_operations;
- 	inode->i_fop = &proc_tgid_base_operations;
- 	inode->i_flags|=S_IMMUTABLE;
--	inode->i_nlink = 4;
-+	inode->i_nlink = 5;
- #ifdef CONFIG_SECURITY
- 	inode->i_nlink += 1;
- #endif
-@@ -2166,6 +2261,7 @@ out_no_task:
-  */
- static const struct pid_entry tid_base_stuff[] = {
- 	DIR("fd",        S_IRUSR|S_IXUSR, fd),
-+	DIR("fdinfo",    S_IRUSR|S_IXUSR, fdinfo),
- 	INF("environ",   S_IRUSR, pid_environ),
- 	INF("auxv",      S_IRUSR, pid_auxv),
- 	INF("status",    S_IRUGO, pid_status),
-@@ -2246,7 +2342,7 @@ static struct dentry *proc_task_instanti
- 	inode->i_op = &proc_tid_base_inode_operations;
- 	inode->i_fop = &proc_tid_base_operations;
- 	inode->i_flags|=S_IMMUTABLE;
--	inode->i_nlink = 3;
-+	inode->i_nlink = 4;
- #ifdef CONFIG_SECURITY
- 	inode->i_nlink += 1;
- #endif
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from vatsa@in.ibm.com are
 
-shmem-fix-bug-in-shmem_writepage.patch
-shmem-dont-release-lock-for-hole-punching.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-filesystem-subtype-support.patch
-add-file-position-info-to-proc.patch
-consolidate-generic_writepages-and-mpage_writepages.patch
+fix-race-between-attach_task-and-cpuset_exit.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
