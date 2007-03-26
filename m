@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch added to -mm tree
-Date: Sun, 25 Mar 2007 22:50:34 -0700
-Message-ID: <200703260552.l2Q5qbvU012674@shell0.pdx.osdl.net>
+Date: Sun, 25 Mar 2007 22:51:03 -0700
+Message-ID: <200703260553.l2Q5r6PT012677@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45797 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45809 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753088AbXCZFwk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 01:52:40 -0400
+	id S933593AbXCZFxT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 01:53:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
@@ -37,7 +37,7 @@ It sucks to be me.
 
 Stop changing stuff.
 
-Cc: Greg KH <greg@kroah.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
