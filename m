@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + integrity-ima-integrity_measure-support-fix-2.patch added to -mm tree
-Date: Mon, 26 Mar 2007 04:40:25 -0700
-Message-ID: <200703261142.l2QBgSdW017883@shell0.pdx.osdl.net>
+Subject: + sys_futex64-allows-64bit-futexes-workaround.patch added to -mm tree
+Date: Mon, 26 Mar 2007 04:50:56 -0700
+Message-ID: <200703261152.l2QBqwe8018035@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54516 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54815 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752000AbXCZLmg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 07:42:36 -0400
+	id S1752266AbXCZLxj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 07:53:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@linux.vnet.ibm.com, zohar@us.ibm.com
+Cc: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, pierre.peiffer@bull.net
 
 
 The patch titled
-     integrity-ima-integrity_measure-support-fix-2
+     sys_futex64-allows-64bit-futexes-workaround
 has been added to the -mm tree.  Its filename is
-     integrity-ima-integrity_measure-support-fix-2.patch
+     sys_futex64-allows-64bit-futexes-workaround.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,105 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: integrity-ima-integrity_measure-support-fix-2
+Subject: sys_futex64-allows-64bit-futexes-workaround
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix ia64 buid:
+un-break the build
 
-ima_fs_cleanup: discarded in section `.exit.text' from security/built-in.o
-
-Cc: Kylene Hall <kjhall@us.ibm.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: Pierre Peiffer <pierre.peiffer@bull.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- evm/ima/ima_queue.c       |    0 
- security/evm/ima/ima_fs.c |    2 +-
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-ia64/futex.h    |   12 ++++++++++++
+ include/asm-powerpc/futex.h |   12 ++++++++++++
+ include/asm-s390/futex.h    |   12 ++++++++++++
+ include/asm-sparc64/futex.h |   12 ++++++++++++
+ 4 files changed, 48 insertions(+)
 
-diff -puN security/evm/Kconfig~integrity-ima-integrity_measure-support-fix-2 security/evm/Kconfig
-diff -puN security/evm/Makefile~integrity-ima-integrity_measure-support-fix-2 security/evm/Makefile
-diff -puN security/evm/evm_integrity.h~integrity-ima-integrity_measure-support-fix-2 security/evm/evm_integrity.h
-diff -puN security/evm/evm_secfs.c~integrity-ima-integrity_measure-support-fix-2 security/evm/evm_secfs.c
-diff -puN security/evm/ima/Kconfig~integrity-ima-integrity_measure-support-fix-2 security/evm/ima/Kconfig
-diff -puN security/evm/ima/ima.h~integrity-ima-integrity_measure-support-fix-2 security/evm/ima/ima.h
-diff -puN security/evm/ima/ima_evm.h~integrity-ima-integrity_measure-support-fix-2 security/evm/ima/ima_evm.h
-diff -puN security/evm/ima/ima_fs.c~integrity-ima-integrity_measure-support-fix-2 security/evm/ima/ima_fs.c
---- a/security/evm/ima/ima_fs.c~integrity-ima-integrity_measure-support-fix-2
-+++ a/security/evm/ima/ima_fs.c
-@@ -269,7 +269,7 @@ out:
- 	return -1;
+diff -puN include/asm-s390/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-s390/futex.h
+--- a/include/asm-s390/futex.h~sys_futex64-allows-64bit-futexes-workaround
++++ a/include/asm-s390/futex.h
+@@ -48,5 +48,17 @@ static inline int futex_atomic_cmpxchg_i
+ 	return uaccess.futex_atomic_cmpxchg(uaddr, oldval, newval);
  }
  
--void __exit ima_fs_cleanup(void)
-+void ima_fs_cleanup(void)
- {
- 	securityfs_remove(violations);
- 	securityfs_remove(runtime_measurements_count);
-diff -puN security/evm/ima/ima_init.c~integrity-ima-integrity_measure-support-fix-2 security/evm/ima/ima_init.c
-diff -puN security/evm/ima/ima_main.c~integrity-ima-integrity_measure-support-fix-2 security/evm/ima/ima_main.c
-diff -puN security/evm/ima/ima_queue.c~integrity-ima-integrity_measure-support-fix-2 security/evm/ima/ima_queue.c
++static inline u64
++futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
++{
++	return 0;
++}
++
++static inline int
++futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
++{
++	return 0;
++}
++
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_S390_FUTEX_H */
+diff -puN include/asm-sparc64/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-sparc64/futex.h
+--- a/include/asm-sparc64/futex.h~sys_futex64-allows-64bit-futexes-workaround
++++ a/include/asm-sparc64/futex.h
+@@ -105,4 +105,16 @@ futex_atomic_cmpxchg_inatomic(int __user
+ 	return newval;
+ }
+ 
++static inline u64
++futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
++{
++	return 0;
++}
++
++static inline int
++futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
++{
++	return 0;
++}
++
+ #endif /* !(_SPARC64_FUTEX_H) */
+diff -puN include/asm-ia64/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-ia64/futex.h
+--- a/include/asm-ia64/futex.h~sys_futex64-allows-64bit-futexes-workaround
++++ a/include/asm-ia64/futex.h
+@@ -121,4 +121,16 @@ futex_atomic_cmpxchg_inatomic(int __user
+ 	}
+ }
+ 
++static inline u64
++futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
++{
++	return 0;
++}
++
++static inline int
++futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
++{
++	return 0;
++}
++
+ #endif /* _ASM_FUTEX_H */
+diff -puN include/asm-powerpc/futex.h~sys_futex64-allows-64bit-futexes-workaround include/asm-powerpc/futex.h
+--- a/include/asm-powerpc/futex.h~sys_futex64-allows-64bit-futexes-workaround
++++ a/include/asm-powerpc/futex.h
+@@ -113,5 +113,17 @@ futex_atomic_cmpxchg_inatomic(int __user
+         return prev;
+ }
+ 
++static inline u64
++futex_atomic_cmpxchg_inatomic64(u64 __user *uaddr, u64 oldval, u64 newval)
++{
++	return 0;
++}
++
++static inline int
++futex_atomic_op_inuser64 (int encoded_op, u64 __user *uaddr)
++{
++	return 0;
++}
++
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_POWERPC_FUTEX_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
