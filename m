@@ -1,56 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 22:03:20 -0800
-Message-ID: <200703270603.l2R63Kri008941@shell0.pdx.osdl.net>
+Subject: - i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 22:04:24 -0800
+Message-ID: <200703270604.l2R64OUF008964@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41075 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41091 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965197AbXC0GDl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 02:03:41 -0400
+	id S965187AbXC0GEc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 02:04:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, ebiederm@xmission.com, horms@verge.net.au, ian.campbell@xensource.com, magnus.damm@gmail.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     allow-i386-crash-kernels-to-handle-x86_64-dumps-fix
+     i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix
 has been removed from the -mm tree.  Its filename was
-     allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
+     i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
 
-This patch was dropped because it was folded into allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
+This patch was dropped because it was folded into i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
 
 ------------------------------------------------------
-Subject: allow-i386-crash-kernels-to-handle-x86_64-dumps-fix
+Subject: i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/i386/kernel/setup.c:46:
-include/linux/crash_dump.h:19:36: warning: extra tokens at end of #ifndef directive
+In file included from include/asm/percpu.h:5,
+                 from include/asm/pda.h:11,
+                 from include/asm/current.h:4,
+                 from drivers/media/video/pwc/pwc-uncompress.c:29:
+include/asm-generic/percpu.h:8: error: 'NR_CPUS' undeclared here (not in a function)
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Horms <horms@verge.net.au>
-Cc: Ian Campbell <ian.campbell@xensource.com>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_dump.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/percpu.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/crash_dump.h~allow-i386-crash-kernels-to-handle-x86_64-dumps-fix include/linux/crash_dump.h
---- a/include/linux/crash_dump.h~allow-i386-crash-kernels-to-handle-x86_64-dumps-fix
-+++ a/include/linux/crash_dump.h
-@@ -16,7 +16,7 @@ extern struct proc_dir_entry *proc_vmcor
+diff -puN include/asm-generic/percpu.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix include/asm-generic/percpu.h
+--- a/include/asm-generic/percpu.h~i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix
++++ a/include/asm-generic/percpu.h
+@@ -1,6 +1,7 @@
+ #ifndef _ASM_GENERIC_PERCPU_H_
+ #define _ASM_GENERIC_PERCPU_H_
+ #include <linux/compiler.h>
++#include <linux/threads.h>
  
- /* Architecture code defines this if there are other possible ELF
-  * machine types, e.g. on bi-arch capable hardware. */
--#ifndef vmcore_elf_check_arch_cross(x)
-+#ifndef vmcore_elf_check_arch_cross
- #define vmcore_elf_check_arch_cross(x) 0
- #endif
- 
+ #define __GENERIC_PER_CPU
+ #ifdef CONFIG_SMP
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,8 +86,8 @@ revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.pa
 linux-sysdevh-needs-to-include-linux-moduleh.patch
 i386-vdso_prelink-warning-fix.patch
 allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
 i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
 make-aout-executables-work-again-fix.patch
 revert-ac97-fix-microphone-and-line_in-selection-logic.patch
