@@ -1,71 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: + parport-dev-driver-model-support-powerpc-fix.patch added to -mm tree
-Date: Tue, 27 Mar 2007 12:16:30 -0700
-Message-ID: <200703271916.l2RJGU4t025421@shell0.pdx.osdl.net>
+Subject: - time-smp-friendly-alignment-of-struct-clocksource-fix.patch removed from -mm tree
+Date: Tue, 27 Mar 2007 13:01:52 -0700
+Message-ID: <200703272003.l2RK3ws4026565@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38672 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40927 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934196AbXC0TQi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 15:16:38 -0400
+	id S965059AbXC0UEz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 16:04:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, david-b@pacbell.net, paulus@samba.org
+To: akpm@linux-foundation.org, dada1@cosmosbay.com, johnstul@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport-dev-driver-model-support-powerpc-fix
-has been added to the -mm tree.  Its filename is
-     parport-dev-driver-model-support-powerpc-fix.patch
+     time-smp-friendly-alignment-of-struct-clocksource-fix
+has been removed from the -mm tree.  Its filename was
+     time-smp-friendly-alignment-of-struct-clocksource-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into time-smp-friendly-alignment-of-struct-clocksource.patch
 
 ------------------------------------------------------
-Subject: parport-dev-driver-model-support-powerpc-fix
+Subject: time-smp-friendly-alignment-of-struct-clocksource-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-http://test.kernel.org/abat/79954/debug/test.log.0 says:
+For ____cacheline_aligned_in_smp
 
-In file included from drivers/parport/parport_pc.c:66:
-include/asm/parport.h:18: error: conflicting types for parport_pc_probe_port
-include/linux/parport_pc.h:234: error: previous declaration of parport_pc_probe_port was here
-drivers/parport/parport_pc.c:2379: error: conflicting types for parport_pc_probe_port
-drivers/parport/parport_pc.c:2152: error: previous definition of parport_pc_probe_port was here
-drivers/parport/parport_pc.c: In function sio_ite_8872_probe:
-
-I don't think this declaration should be in an arch header at all.  Take it
-out, see what happens ;)
-
-Why on earth do we have a noninlined function in a header file?  Sigh.
-
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: John Stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/parport.h |    5 -----
- 1 files changed, 5 deletions(-)
+ include/linux/clocksource.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-powerpc/parport.h~parport-dev-driver-model-support-powerpc-fix include/asm-powerpc/parport.h
---- a/include/asm-powerpc/parport.h~parport-dev-driver-model-support-powerpc-fix
-+++ a/include/asm-powerpc/parport.h
-@@ -12,11 +12,6 @@
- 
- #include <asm/prom.h>
- 
--extern struct parport *parport_pc_probe_port (unsigned long int base,
--                                              unsigned long int base_hi,
--                                              int irq, int dma,
--                                              struct pci_dev *dev);
--
- static int __devinit parport_pc_find_nonpci_ports (int autoirq, int autodma)
- {
- 	struct device_node *np;
+diff -puN include/linux/clocksource.h~time-smp-friendly-alignment-of-struct-clocksource-fix include/linux/clocksource.h
+--- a/include/linux/clocksource.h~time-smp-friendly-alignment-of-struct-clocksource-fix
++++ a/include/linux/clocksource.h
+@@ -12,6 +12,7 @@
+ #include <linux/timex.h>
+ #include <linux/time.h>
+ #include <linux/list.h>
++#include <linux/cache.h>
+ #include <linux/timer.h>
+ #include <asm/div64.h>
+ #include <asm/io.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,6 +106,7 @@ fix-cycladesh-for-x86_64-and-probably-others-fix.patch
 rtc-add-rtc-rs5c313-driver-tidy.patch
 rtc-add-rtc-rs5c313-driver-is-busted.patch
 move-die-notifier-handling-to-common-code-fixes-2.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
 time-smp-friendly-alignment-of-struct-clocksource-fix.patch
 fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
 parport-dev-driver-model-support-powerpc-fix.patch
