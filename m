@@ -1,266 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-sysfs-imrovements.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 20:53:05 -0700
-Message-ID: <200703270353.l2R3r7Mw006132@shell0.pdx.osdl.net>
+Subject: - cache-pipe-buf-page-address-for-non-highmem-arch.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 20:15:59 -0800
+Message-ID: <200703270416.l2R4G06R006504@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37335 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37556 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932487AbXC0Dxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 23:53:41 -0400
+	id S933966AbXC0EQL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 00:16:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jsimmons@infradead.org, adaplas@pol.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: kenchen@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev sysfs improvements
+     cache pipe buf page address for non-highmem arch
 has been removed from the -mm tree.  Its filename was
-     fbdev-sysfs-imrovements.patch
+     cache-pipe-buf-page-address-for-non-highmem-arch.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: fbdev sysfs improvements
-From: James Simmons <jsimmons@infradead.org>
+Subject: cache pipe buf page address for non-highmem arch
+From: "Ken Chen" <kenchen@google.com>
 
-This patch does several things to allow the underlying hardware to be
-shared amount many devices.  The most important thing is the use of the
-created device via device_create instead of the hardware device.  No longer
-should fbdev drivers use the xxx_set_drvdata with the parent bus device. 
-The second change is having a bus independent power management for the
-framebuffer driver.  The final change is using the release method to
-cleanup the device.  The reason again is to make the fbdev driver
-independent of the bus parent device.
+It is really sad that we always call kmap and friends for every pipe buffer
+page on 64-bit arch that doesn't use HIGHMEM, or on configuration that
+doesn't turn on HIGHMEM.
 
-Looks-good-to: Greg KH <greg@kroah.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+The effect of calling kmap* is visible in the execution profile when pipe
+code is being stressed.  It is especially true on amd's x86-64 platform
+where kmap() has to traverse through numa node index calculation in order
+to convert struct page * to kernel virtual address.  It is fairly pointless
+to perform that calculation repeatly on system with no highmem (i.e.,
+64-bit arch like x86-64).  This patch caches kernel pipe buffer page's
+kernel vaddr to speed up pipe buffer mapping functions.
+
+There is another suboptimal block in pipe_read() where wake_up is called
+twice.  I think it was an oversight since in pipe_write(), it looks like it
+is doing the right thing.
+
+Signed-off-by: Ken Chen <kenchen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c   |   20 +-------
- drivers/video/fbsysfs.c |   93 ++++++++++++++++++++++++++++++--------
- include/linux/fb.h      |    5 ++
- 3 files changed, 84 insertions(+), 34 deletions(-)
+ fs/pipe.c |   34 ++++++++++++++++++++++++++--------
+ 1 file changed, 26 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fbdev-sysfs-imrovements drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-sysfs-imrovements
-+++ a/drivers/video/fbmem.c
-@@ -1271,8 +1271,6 @@ static const struct file_operations fb_f
- #endif
- };
+diff -puN fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch fs/pipe.c
+--- a/fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch
++++ a/fs/pipe.c
+@@ -21,6 +21,21 @@
+ #include <asm/uaccess.h>
+ #include <asm/ioctls.h>
  
--struct class *fb_class;
--EXPORT_SYMBOL(fb_class);
- /**
-  *	register_framebuffer - registers a frame buffer device
-  *	@fb_info: frame buffer info structure
-@@ -1298,14 +1296,9 @@ register_framebuffer(struct fb_info *fb_
- 			break;
- 	fb_info->node = i;
- 
--	fb_info->dev = device_create(fb_class, fb_info->device,
--				     MKDEV(FB_MAJOR, i), "fb%d", i);
--	if (IS_ERR(fb_info->dev)) {
--		/* Not fatal */
-+	/* Not fatal */
-+	if (fb_init_device(fb_info))
- 		printk(KERN_WARNING "Unable to create device for framebuffer %d; errno = %ld\n", i, PTR_ERR(fb_info->dev));
--		fb_info->dev = NULL;
--	} else
--		fb_init_device(fb_info);
- 
- 	if (fb_info->pixmap.addr == NULL) {
- 		fb_info->pixmap.addr = kmalloc(FBPIXMAPSIZE, GFP_KERNEL);
-@@ -1359,7 +1352,6 @@ unregister_framebuffer(struct fb_info *f
- 	registered_fb[i]=NULL;
- 	num_registered_fb--;
- 	fb_cleanup_device(fb_info);
--	device_destroy(fb_class, MKDEV(FB_MAJOR, i));
- 	event.info = fb_info;
- 	fb_notifier_call_chain(FB_EVENT_FB_UNREGISTERED, &event);
- 	return 0;
-@@ -1405,11 +1397,7 @@ fbmem_init(void)
- 	if (register_chrdev(FB_MAJOR,"fb",&fb_fops))
- 		printk("unable to get major %d for fb devs\n", FB_MAJOR);
- 
--	fb_class = class_create(THIS_MODULE, "graphics");
--	if (IS_ERR(fb_class)) {
--		printk(KERN_WARNING "Unable to create fb class; errno = %ld\n", PTR_ERR(fb_class));
--		fb_class = NULL;
--	}
-+	fb_create_class();
- 	return 0;
- }
- 
-@@ -1418,8 +1406,8 @@ module_init(fbmem_init);
- static void __exit
- fbmem_exit(void)
++#ifdef CONFIG_HIGHMEM
++#define pipe_kmap		kmap
++#define pipe_kmap_atomic	kmap_atomic
++#define pipe_kunmap		kunmap
++#define pipe_kunmap_atomic	kunmap_atomic
++#else	/* CONFIG_HIGHMEM */
++static inline void *pipe_kmap(struct page *page)
++{
++	return (void *) page->private;
++}
++#define pipe_kmap_atomic(page, type)	pipe_kmap(page)
++#define pipe_kunmap(page)		do { } while (0)
++#define pipe_kunmap_atomic(page, type)	do { } while (0)
++#endif
++
+ /*
+  * We use a start+len construction, which provides full use of the 
+  * allocated memory.
+@@ -169,10 +184,10 @@ void *generic_pipe_buf_map(struct pipe_i
  {
--	class_destroy(fb_class);
- 	unregister_chrdev(FB_MAJOR, "fb");
-+	fb_destroy_class();
+ 	if (atomic) {
+ 		buf->flags |= PIPE_BUF_FLAG_ATOMIC;
+-		return kmap_atomic(buf->page, KM_USER0);
++		return pipe_kmap_atomic(buf->page, KM_USER0);
+ 	}
+ 
+-	return kmap(buf->page);
++	return pipe_kmap(buf->page);
  }
  
- module_exit(fbmem_exit);
-diff -puN drivers/video/fbsysfs.c~fbdev-sysfs-imrovements drivers/video/fbsysfs.c
---- a/drivers/video/fbsysfs.c~fbdev-sysfs-imrovements
-+++ a/drivers/video/fbsysfs.c
-@@ -505,42 +505,99 @@ static struct device_attribute device_at
- #endif
- };
- 
--int fb_init_device(struct fb_info *fb_info)
-+struct class *fb_class;
-+EXPORT_SYMBOL(fb_class);
-+
-+static void fb_device_release(struct device *dev)
+ void generic_pipe_buf_unmap(struct pipe_inode_info *pipe,
+@@ -180,9 +195,9 @@ void generic_pipe_buf_unmap(struct pipe_
  {
--	int i, error = 0;
-+	struct fb_info *fb_info = dev_get_drvdata(dev);
- 
--	dev_set_drvdata(fb_info->dev, fb_info);
-+	if (fb_info) {
-+		acquire_console_sem();
- 
--	fb_info->class_flag |= FB_SYSFS_FLAG_ATTR;
-+		// shutdown the hardware.
-+		if (fb_info->fbops->fb_release)
-+			fb_info->fbops->fb_release(fb_info, 0);
- 
--	for (i = 0; i < ARRAY_SIZE(device_attrs); i++) {
--		error = device_create_file(fb_info->dev, &device_attrs[i]);
-+		fb_dealloc_cmap(&fb_info->cmap);
-+		unregister_framebuffer(fb_info);
- 
--		if (error)
--			break;
-+		//framebuffer_release(info); Not every driver does this yet
-+		release_console_sem();
- 	}
-+}
-+
-+int fb_init_device(struct fb_info *fb_info)
-+{
-+	int error = 0;
- 
--	if (error) {
--		while (--i >= 0)
--			device_remove_file(fb_info->dev, &device_attrs[i]);
-+	fb_info->dev = device_create(fb_class, fb_info->device,
-+					MKDEV(FB_MAJOR, fb_info->node),
-+					"fb%d", fb_info->node);
-+	if (IS_ERR(fb_info->dev)) {
- 		fb_info->class_flag &= ~FB_SYSFS_FLAG_ATTR;
-+		fb_info->dev = NULL;
-+		error = -EINVAL;
-+	} else {
-+		dev_set_drvdata(fb_info->dev, fb_info);
-+		fb_info->dev->release = fb_device_release;
-+		fb_info->class_flag |= FB_SYSFS_FLAG_ATTR;
- 	}
--
--	return 0;
-+	return error;
+ 	if (buf->flags & PIPE_BUF_FLAG_ATOMIC) {
+ 		buf->flags &= ~PIPE_BUF_FLAG_ATOMIC;
+-		kunmap_atomic(map_data, KM_USER0);
++		pipe_kunmap_atomic(map_data, KM_USER0);
+ 	} else
+-		kunmap(buf->page);
++		pipe_kunmap(buf->page);
  }
  
- void fb_cleanup_device(struct fb_info *fb_info)
- {
--	unsigned int i;
-+	fb_info->class_flag &= ~FB_SYSFS_FLAG_ATTR;
-+	dev_set_drvdata(fb_info->dev, NULL);
-+	device_destroy(fb_class, MKDEV(FB_MAJOR, fb_info->node));
-+}
- 
--	if (fb_info->class_flag & FB_SYSFS_FLAG_ATTR) {
--		for (i = 0; i < ARRAY_SIZE(device_attrs); i++)
--			device_remove_file(fb_info->dev, &device_attrs[i]);
-+static int fb_class_suspend(struct device *dev, pm_message_t state)
-+{
-+	struct fb_info *fb_info = dev_get_drvdata(dev);
-+	int ret = 0;
- 
--		fb_info->class_flag &= ~FB_SYSFS_FLAG_ATTR;
-+	acquire_console_sem();
-+	fb_set_suspend(fb_info, 1);
-+	if (fb_info->fbops->fb_power)
-+		ret = fb_info->fbops->fb_power(fb_info, state);
-+	release_console_sem();
-+	return ret;
-+}
-+
-+static int fb_class_resume(struct device *dev)
-+{
-+	struct fb_info *fb_info = dev_get_drvdata(dev);
-+	int ret = 0;
-+
-+	acquire_console_sem();
-+	fb_set_suspend(fb_info, 0);
-+	if (fb_info->fbops->fb_power)
-+		ret = fb_info->fbops->fb_power(fb_info, PMSG_ON);
-+	release_console_sem();
-+	return ret;
-+}
-+
-+void fb_create_class()
-+{
-+	fb_class = class_create(THIS_MODULE, "graphics");
-+	if (IS_ERR(fb_class)) {
-+		printk(KERN_WARNING "Unable to create fb class; errno = %ld\n", PTR_ERR(fb_class));
-+		fb_class = NULL;
-+	} else {
-+		fb_class->suspend = fb_class_suspend;
-+		fb_class->resume = fb_class_resume;
-+		fb_class->dev_attrs = device_attrs;
+ int generic_pipe_buf_steal(struct pipe_inode_info *pipe,
+@@ -316,6 +331,7 @@ redo:
+ 		if (do_wakeup) {
+ 			wake_up_interruptible_sync(&pipe->wait);
+  			kill_fasync(&pipe->fasync_writers, SIGIO, POLL_OUT);
++			do_wakeup = 0;
+ 		}
+ 		pipe_wait(pipe);
  	}
- }
+@@ -423,6 +439,8 @@ redo1:
+ 					ret = ret ? : -ENOMEM;
+ 					break;
+ 				}
++				page->private = (unsigned long)
++							page_address(page);
+ 				pipe->tmp_page = page;
+ 			}
+ 			/* Always wake up, even if the copy fails. Otherwise
+@@ -438,16 +456,16 @@ redo1:
+ 			iov_fault_in_pages_read(iov, chars);
+ redo2:
+ 			if (atomic)
+-				src = kmap_atomic(page, KM_USER0);
++				src = pipe_kmap_atomic(page, KM_USER0);
+ 			else
+-				src = kmap(page);
++				src = pipe_kmap(page);
  
-+void fb_destroy_class()
-+{
-+	if (fb_class)
-+		class_destroy(fb_class);
-+}
-+
- #ifdef CONFIG_FB_BACKLIGHT
- /* This function generates a linear backlight curve
-  *
-diff -puN include/linux/fb.h~fbdev-sysfs-imrovements include/linux/fb.h
---- a/include/linux/fb.h~fbdev-sysfs-imrovements
-+++ a/include/linux/fb.h
-@@ -641,6 +641,9 @@ struct fb_ops {
- 	/* perform fb specific mmap */
- 	int (*fb_mmap)(struct fb_info *info, struct vm_area_struct *vma);
+ 			error = pipe_iov_copy_from_user(src, iov, chars,
+ 							atomic);
+ 			if (atomic)
+-				kunmap_atomic(src, KM_USER0);
++				pipe_kunmap_atomic(src, KM_USER0);
+ 			else
+-				kunmap(page);
++				pipe_kunmap(page);
  
-+	/* Power management */
-+	int (*fb_power)(struct fb_info *info, pm_message_t state);
-+
- 	/* save current hardware state */
- 	void (*fb_save_state)(struct fb_info *info);
- 
-@@ -941,6 +944,8 @@ extern void framebuffer_release(struct f
- extern int fb_init_device(struct fb_info *fb_info);
- extern void fb_cleanup_device(struct fb_info *head);
- extern void fb_bl_default_curve(struct fb_info *fb_info, u8 off, u8 min, u8 max);
-+extern void fb_destroy_class(void);
-+extern void fb_create_class(void);
- 
- /* drivers/video/fbmon.c */
- #define FB_MAXTIMINGS		0
+ 			if (unlikely(error)) {
+ 				if (atomic) {
 _
 
-Patches currently in -mm which might be from jsimmons@infradead.org are
+Patches currently in -mm which might be from kenchen@google.com are
 
-ps3fb-thread-updates.patch
-ps3av-thread-updates.patch
-ps3fb-kill-superfluous-zero-initializations.patch
-ps3av-misc-updates.patch
-aty128fb-fix-blanking.patch
-change-rivafb_remove-to-__devexit.patch
-fbdev-display-class.patch
-fbdev-display-class-fix.patch
-tgafb-turbochannel-support.patch
-tgafb-accelerated-code.patch
-fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
-fbdev-fb_do_show_logo-updates.patch
-fbdev-correct-image-offsets-when-rotating-logo.patch
-fbdev-sysfs-imrovements.patch
+type-cast-clean-up-for-find_next_zero_bit.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
