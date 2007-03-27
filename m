@@ -1,95 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 22:04:44 -0800
-Message-ID: <200703270604.l2R64ilV008967@shell0.pdx.osdl.net>
+Subject: - lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 22:02:06 -0800
+Message-ID: <200703270602.l2R626Jq008870@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41100 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41111 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965233AbXC0GEw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 02:04:52 -0400
+	id S965254AbXC0GFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 02:05:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot fix
+     lguest: remove check_bug_kill()
 has been removed from the -mm tree.  Its filename was
-     i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
+     lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch
 
-This patch was dropped because it was folded into i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
+This patch was dropped because it was folded into lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
 
 ------------------------------------------------------
-Subject: i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot fix
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: lguest: remove check_bug_kill()
+From: Adrian Bunk <bunk@stusta.de>
 
-I'll just leave the comment, and try to pretend this never happened 8)
+check_bug_kill() is no longer used.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/i386/lguest/interrupts_and_traps.c |   27 ----------------------
+ arch/i386/lguest/lg.h                   |    1 
+ 2 files changed, 28 deletions(-)
 
-diff -puN arch/i386/kernel/head.S~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix
-+++ a/arch/i386/kernel/head.S
-@@ -601,6 +601,10 @@ ENTRY(early_gdt_descr)
- 	.word GDT_ENTRIES*8-1
- 	.long per_cpu__cpu_gdt		/* Overwritten for secondary CPUs */
+diff -puN arch/i386/lguest/interrupts_and_traps.c~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy arch/i386/lguest/interrupts_and_traps.c
+--- a/arch/i386/lguest/interrupts_and_traps.c~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy
++++ a/arch/i386/lguest/interrupts_and_traps.c
+@@ -118,33 +118,6 @@ int deliver_trap(struct lguest *lg, unsi
+ 	return 1;
+ }
  
-+/*
-+ * The boot_gdt_table must mirror the equivalent in setup.S and is
-+ * used only for booting.
-+ */
- 	.align L1_CACHE_BYTES
- ENTRY(boot_gdt_table)
- 	.fill GDT_ENTRY_BOOT_CS,8,0
+-void check_bug_kill(struct lguest *lg)
+-{
+-#ifdef CONFIG_BUG
+-	u32 eip = lg->regs->eip - PAGE_OFFSET;
+-	u16 insn;
+-
+-	/* This only works for addresses in linear mapping... */
+-	if (lg->regs->eip < PAGE_OFFSET)
+-		return;
+-	lhread(lg, &insn, eip, sizeof(insn));
+-	if (insn == 0x0b0f) {
+-#ifdef CONFIG_DEBUG_BUGVERBOSE
+-		u16 l;
+-		u32 f;
+-		char file[128];
+-		lhread(lg, &l, eip+sizeof(insn), sizeof(l));
+-		lhread(lg, &f, eip+sizeof(insn)+sizeof(l), sizeof(f));
+-		lhread(lg, file, f - PAGE_OFFSET, sizeof(file));
+-		file[sizeof(file)-1] = 0;
+-		kill_guest(lg, "BUG() at %#x %s:%u", eip, file, l);
+-#else
+-		kill_guest(lg, "BUG() at %#x", eip);
+-#endif	/* CONFIG_DEBUG_BUGVERBOSE */
+-	}
+-#endif	/* CONFIG_BUG */
+-}
+-
+ static int direct_trap(const struct lguest *lg,
+ 		       const struct desc_struct *trap,
+ 		       unsigned int num)
+diff -puN arch/i386/lguest/lg.h~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy arch/i386/lguest/lg.h
+--- a/arch/i386/lguest/lg.h~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy
++++ a/arch/i386/lguest/lg.h
+@@ -195,7 +195,6 @@ int find_free_guest(void);
+ /* interrupts_and_traps.c: */
+ void maybe_do_interrupt(struct lguest *lg);
+ int deliver_trap(struct lguest *lg, unsigned int num);
+-void check_bug_kill(struct lguest *lg);
+ void load_guest_idt_entry(struct lguest *lg, unsigned int i, u32 low, u32 hi);
+ void pin_stack_pages(struct lguest *lg);
+ void pin_trap_pages(struct lguest *lg);
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-git-kbuild.patch
-i386-vdso_prelink-warning-fix.patch
-cleanup-initialize-esp0-properly-all-the-time.patch
-lguest-preparation-export_symbol_gpl-5-functions.patch
-lguest-preparation-expose-futex-infrastructure.patch
+origin.patch
+drivers-spi-fix-section-mismatches.patch
+drivers-eisa-pci_eisacpci_eisa_init-should-be-init.patch
+net-sunrpc-svcsockc-fix-a-check.patch
+git-acpi.patch
+git-powerpc.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-mmc_deselect_cards.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-ubi.patch
+git-netdev-all.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+make-mptspi_target_destroy-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+i386-x86_64-early_printkc-make-simnow_init-static.patch
+make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
 lguest-kconfig-and-headers.patch
-lguest-the-host-code-lgko.patch
-lguest-guest-code.patch
-lguest-clean-up-some-references-inittext-warnings.patch
-lguest-makefile.patch
-lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
 lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
-lguest-compile-hypervisors-into-the-lg-module-directly.patch
-lguest-dont-crash-host-on-nmi.patch
-lguest-trivial-guest-network-driver.patch
-lguest-trivial-guest-console-driver.patch
-lguest-trivial-guest-block-driver.patch
-lguest-documentatation-and-example-launcher.patch
-introduce-load_tls-to-the-for-loop.patch
-remove-unused-set_seg_base.patch
-clarify-config_reorder-explanation.patch
-allow-per-cpu-variables-to-be-page-aligned.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
-i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
-i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
-i386-gdt-cleanups-clean-up-cpu_init.patch
-i386-gdt-cleanups-cleanup-gdt-access.patch
-i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt.patch
-cleanup-rationalize-paravirt-wrappers.patch
-array_size-check-for-type.patch
-array_size-check-for-type-uml-fix.patch
-module-use-krealloc.patch
-extend-print_symbol-capability.patch
-extend-print_symbol-capability-fix.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-____call_usermodehelper-dont-flush_signals.patch
+lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+drivers-mfd-sm501c-fix-an-off-by-one.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
