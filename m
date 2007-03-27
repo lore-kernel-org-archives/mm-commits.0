@@ -1,57 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 22:03:57 -0800
-Message-ID: <200703270603.l2R63v6L008961@shell0.pdx.osdl.net>
+Subject: - make-aout-executables-work-again-fix.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 22:12:18 -0800
+Message-ID: <200703270612.l2R6CIGW009284@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41109 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41521 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965211AbXC0GFT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 02:05:19 -0400
+	id S965055AbXC0GMX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 02:12:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, lenb@kernel.org, tvignaud@mandriva.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, parag.warudkar@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
+     make-aout-executables-work-again-fix
 has been removed from the -mm tree.  Its filename was
-     prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+     make-aout-executables-work-again-fix.patch
 
-This patch was dropped because it was folded into prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+This patch was dropped because it was folded into make-aout-executables-work-again.patch
 
 ------------------------------------------------------
-Subject: prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
+Subject: make-aout-executables-work-again-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Thierry Vignaud <tvignaud@mandriva.com>
+arch/x86_64/ia32/syscall32.c:55: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/x86_64/ia32/syscall32.c:55: warning: parameter names (without types) in function declaration
+arch/x86_64/ia32/syscall32.c:55: warning: data definition has no type or storage class
+
+Cc: Parag Warudkar <parag.warudkar@gmail.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/earlyquirk.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/x86_64/ia32/syscall32.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy arch/i386/kernel/acpi/earlyquirk.c
---- a/arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
-+++ a/arch/i386/kernel/acpi/earlyquirk.c
-@@ -21,12 +21,13 @@ static int __init nvidia_hpet_check(stru
- 
- static int __init check_bridge(int vendor, int device)
- {
--	static int warned = 0;
-+	static int warned;
- #ifdef CONFIG_ACPI
- 	/* According to Nvidia all timer overrides are bogus unless HPET
- 	   is enabled. */
- 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
--		if (!warned && acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
-+		if (!warned && acpi_table_parse(ACPI_SIG_HPET,
-+						nvidia_hpet_check)) {
- 			warned = 1;
- 			acpi_skip_timer_override = 1;
- 			  printk(KERN_INFO "Nvidia board "
+diff -puN arch/x86_64/ia32/syscall32.c~make-aout-executables-work-again-fix arch/x86_64/ia32/syscall32.c
+--- a/arch/x86_64/ia32/syscall32.c~make-aout-executables-work-again-fix
++++ a/arch/x86_64/ia32/syscall32.c
+@@ -7,6 +7,7 @@
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+ #include <linux/gfp.h>
++#include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/stringify.h>
+ #include <linux/security.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,8 +85,8 @@ linux-sysdevh-needs-to-include-linux-moduleh.patch
 i386-vdso_prelink-warning-fix.patch
 allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
 prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
+make-aout-executables-work-again.patch
 make-aout-executables-work-again-fix.patch
 revert-ac97-fix-microphone-and-line_in-selection-logic.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
