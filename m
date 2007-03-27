@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipcns-fix-config_ipc_ns-behavior-fix.patch added to -mm tree
-Date: Mon, 26 Mar 2007 21:18:19 -0800
-Message-ID: <200703270518.l2R5IJY5007509@shell0.pdx.osdl.net>
+Subject: - ipcns-fix-config_ipc_ns-behavior-fix.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 21:21:43 -0800
+Message-ID: <200703270521.l2R5LhTp007570@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39361 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39373 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933986AbXC0FVc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 01:21:32 -0400
+	id S933993AbXC0FWK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 01:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: serge@hallyn.com, ebiederm@xmission.com, serue@us.ibm.com
+To: serge@hallyn.com, ebiederm@xmission.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      ipcns: fix stupid !CONFIG_IPC error
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      ipcns-fix-config_ipc_ns-behavior-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into ipcns-fix-config_ipc_ns-behavior.patch
 
 ------------------------------------------------------
 Subject: ipcns: fix stupid !CONFIG_IPC error
@@ -63,4 +59,5 @@ _
 
 Patches currently in -mm which might be from serge@hallyn.com are
 
+ipcns-fix-config_ipc_ns-behavior.patch
 ipcns-fix-config_ipc_ns-behavior-fix.patch
