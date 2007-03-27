@@ -1,135 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-clean-up-some-references-inittext-warnings-2.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 22:01:50 -0800
-Message-ID: <200703270601.l2R61okG008866@shell0.pdx.osdl.net>
+Subject: - lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 22:02:38 -0800
+Message-ID: <200703270602.l2R62cC9008874@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41011 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41043 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965028AbXC0GBz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 02:01:55 -0400
+	id S965105AbXC0GCs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 02:02:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ak@suse.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: clean rest of linkage warnings (bar one)
+     lguest: block device speedup
 has been removed from the -mm tree.  Its filename was
-     lguest-clean-up-some-references-inittext-warnings-2.patch
+     lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
 
-This patch was dropped because it was folded into lguest-clean-up-some-references-inittext-warnings.patch
+This patch was dropped because it was folded into lguest-trivial-guest-block-driver.patch
 
 ------------------------------------------------------
-Subject: lguest: clean rest of linkage warnings (bar one)
+Subject: lguest: block device speedup
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-My previous warning fix broke lguest if your text size wasn't correct to
-make the __start_paravirtprobe aligned correctly.  Put the separate
-paravirtprobe section back, but inside the init section so it gets
-discarded.
-
-It also fixes the remaining warnings, except one.  The code in modpost.c
-which needs to be taught that it's legal to link from .paravirtprobe to
-.init.text is horrible, and I'm pretty sure I'd just make it worse.
+Jens Axboe pointed out that end_request() does not end the entire request.  Go
+figure.  On the upside, he wrote the replacement for me!  Now we do far less
+block traffic, and our performance sucks less.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmlinux.lds.S |   12 ++++++------
- arch/i386/lguest/core.c        |    2 +-
- arch/i386/lguest/lg.h          |    2 +-
- arch/i386/lguest/lguest.c      |    5 +++--
- arch/i386/lguest/page_tables.c |    2 +-
- 5 files changed, 12 insertions(+), 11 deletions(-)
+ drivers/block/lguest_blk.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/vmlinux.lds.S~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/kernel/vmlinux.lds.S
---- a/arch/i386/kernel/vmlinux.lds.S~lguest-clean-up-some-references-inittext-warnings-2
-+++ a/arch/i386/kernel/vmlinux.lds.S
-@@ -145,12 +145,7 @@ SECTIONS
- 	*(.init.text)
- 	_einittext = .;
-   }
--  .init.data : AT(ADDR(.init.data) - LOAD_OFFSET) {
--	*(.init.data)
--  	__start_paravirtprobe = .;
--	*(.paravirtprobe)
--  	__stop_paravirtprobe = .;
--  }
-+  .init.data : AT(ADDR(.init.data) - LOAD_OFFSET) { *(.init.data) }
-   . = ALIGN(16);
-   .init.setup : AT(ADDR(.init.setup) - LOAD_OFFSET) {
-   	__setup_start = .;
-@@ -178,6 +173,11 @@ SECTIONS
- 	*(.altinstr_replacement)
-   }
-   . = ALIGN(4);
-+  .paravirtprobe : AT(ADDR(.paravirtprobe) - LOAD_OFFSET) {
-+ 	__start_paravirtprobe = .;
-+	*(.paravirtprobe)
-+  	__stop_paravirtprobe = .;
-+  }
-   .parainstructions : AT(ADDR(.parainstructions) - LOAD_OFFSET) {
-   	__start_parainstructions = .;
- 	*(.parainstructions)
-diff -puN arch/i386/lguest/core.c~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/lguest/core.c
---- a/arch/i386/lguest/core.c~lguest-clean-up-some-references-inittext-warnings-2
-+++ a/arch/i386/lguest/core.c
-@@ -112,7 +112,7 @@ free_some_pages:
- 	return err;
- }
- 
--static __exit void unmap_hypervisor(void)
-+static void unmap_hypervisor(void)
- {
- 	unsigned int i;
- 
-diff -puN arch/i386/lguest/lg.h~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/lguest/lg.h
---- a/arch/i386/lguest/lg.h~lguest-clean-up-some-references-inittext-warnings-2
-+++ a/arch/i386/lguest/lg.h
-@@ -38,7 +38,7 @@ struct lguest_regs
- 	u32 ss;
+diff -puN drivers/block/lguest_blk.c~lguest-trivial-guest-block-driver-lguest-block-device-speedup drivers/block/lguest_blk.c
+--- a/drivers/block/lguest_blk.c~lguest-trivial-guest-block-driver-lguest-block-device-speedup
++++ a/drivers/block/lguest_blk.c
+@@ -45,6 +45,16 @@ struct blockdev
+ 	struct request *req;
  };
  
--__exit void free_pagetables(void);
-+void free_pagetables(void);
- __init int init_pagetables(struct page **hype_page, int pages);
- 
- /* Full 4G segment descriptors, suitable for CS and DS. */
-diff -puN arch/i386/lguest/lguest.c~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/lguest/lguest.c
---- a/arch/i386/lguest/lguest.c~lguest-clean-up-some-references-inittext-warnings-2
-+++ a/arch/i386/lguest/lguest.c
-@@ -550,7 +550,7 @@ static __attribute_used__ __init void lg
- 	start_kernel();
- }
- 
--asm(".section .init.text\n"
-+asm(".pushsection .init.text,\"ax\",@progbits\n"
-     "lguest_maybe_init:\n"
-     "	cmpl $"__stringify(LGUEST_MAGIC_EBP)", %ebp\n"
-     "	jne 1f\n"
-@@ -558,6 +558,7 @@ asm(".section .init.text\n"
-     "	jne 1f\n"
-     "	cmpl $"__stringify(LGUEST_MAGIC_ESI)", %esi\n"
-     "	je lguest_init\n"
--    "1: ret");
-+    "1: ret\n"
-+    ".popsection");
- extern void asmlinkage lguest_maybe_init(void);
- paravirt_probe(lguest_maybe_init);
-diff -puN arch/i386/lguest/page_tables.c~lguest-clean-up-some-references-inittext-warnings-2 arch/i386/lguest/page_tables.c
---- a/arch/i386/lguest/page_tables.c~lguest-clean-up-some-references-inittext-warnings-2
-+++ a/arch/i386/lguest/page_tables.c
-@@ -377,7 +377,7 @@ __init int init_pagetables(struct page *
- 	return 0;
- }
- 
--__exit void free_pagetables(void)
-+void free_pagetables(void)
++/* Jens gave me this nice helper to end all chunks of a request. */
++static void end_entire_request(struct request *req, int uptodate)
++{
++	if (end_that_request_first(req, uptodate, req->hard_nr_sectors))
++		BUG();
++	add_disk_randomness(req->rq_disk);
++	blkdev_dequeue_request(req);
++	end_that_request_last(req, uptodate);
++}
++
+ static irqreturn_t lgb_irq(int irq, void *_bd)
  {
- 	free_hypervisor_pte_pages();
- }
+ 	struct blockdev *bd = _bd;
+@@ -61,7 +71,7 @@ static irqreturn_t lgb_irq(int irq, void
+ 	}
+ 
+ 	spin_lock_irqsave(&bd->lock, flags);
+-	end_request(bd->req, bd->lb_page->result == 1);
++	end_entire_request(bd->req, bd->lb_page->result == 1);
+ 	bd->req = NULL;
+ 	bd->dma.used_len = 0;
+ 	blk_start_queue(bd->disk->queue);
+@@ -149,7 +159,7 @@ again:
+ 		pr_debug("Got non-command 0x%08x\n", req->cmd_type);
+ 	error:
+ 		req->errors++;
+-		end_request(req, 0);
++		end_entire_request(req, 0);
+ 		goto again;
+ 	} else {
+ 		if (rq_data_dir(req) == WRITE)
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -143,11 +88,9 @@ lguest-kconfig-and-headers.patch
 lguest-the-host-code-lgko.patch
 lguest-guest-code.patch
 lguest-clean-up-some-references-inittext-warnings.patch
-lguest-clean-up-some-references-inittext-warnings-2.patch
 lguest-makefile.patch
 lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
 lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
-lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch
 lguest-compile-hypervisors-into-the-lg-module-directly.patch
 lguest-dont-crash-host-on-nmi.patch
 lguest-trivial-guest-network-driver.patch
