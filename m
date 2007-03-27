@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch added to -mm tree
-Date: Mon, 26 Mar 2007 17:50:40 -0700
-Message-ID: <200703270052.l2R0qiRt003157@shell0.pdx.osdl.net>
+Subject: + time-smp-friendly-alignment-of-struct-clocksource-fix.patch added to -mm tree
+Date: Mon, 26 Mar 2007 18:10:56 -0700
+Message-ID: <200703270113.l2R1D0kU003518@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33975 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34531 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933864AbXC0AxN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 20:53:13 -0400
+	id S933901AbXC0BQl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 21:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, dada1@cosmosbay.com, johnstul@us.ibm.com
 
 
 The patch titled
-     merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix
+     time-smp-friendly-alignment-of-struct-clocksource-fix
 has been added to the -mm tree.  Its filename is
-     merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+     time-smp-friendly-alignment-of-struct-clocksource-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix
+Subject: time-smp-friendly-alignment-of-struct-clocksource-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix build with CONFIG_SYSVIPC=n.
+For ____cacheline_aligned_in_smp
 
-Correctly, I hope.
-
-Serge, you tend to do this rather a lot - please test things better. 
-At least with allnoconfig and allmodconfig.
-
-Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: John Stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc.h |    9 +++++++--
- util.c              |    0 
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ include/linux/clocksource.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/ipc.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix include/linux/ipc.h
---- a/include/linux/ipc.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix
-+++ a/include/linux/ipc.h
-@@ -92,12 +92,17 @@ extern struct ipc_namespace init_ipc_ns;
- 
- #ifdef CONFIG_SYSVIPC
- #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
-+extern struct ipc_namespace *copy_ipcs(unsigned long flags,
-+						struct ipc_namespace *ns);
- #else
- #define INIT_IPC_NS(ns)
-+static inline struct ipc_namespace *copy_ipcs(unsigned long flags,
-+						struct ipc_namespace *ns)
-+{
-+	return ns;
-+}
- #endif
- 
--extern struct ipc_namespace *copy_ipcs(unsigned long flags,
--		struct ipc_namespace *ns);
- #ifdef CONFIG_IPC_NS
- extern void free_ipc_ns(struct kref *kref);
- #endif
-diff -puN ipc/util.c~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix ipc/util.c
+diff -puN include/linux/clocksource.h~time-smp-friendly-alignment-of-struct-clocksource-fix include/linux/clocksource.h
+--- a/include/linux/clocksource.h~time-smp-friendly-alignment-of-struct-clocksource-fix
++++ a/include/linux/clocksource.h
+@@ -12,6 +12,7 @@
+ #include <linux/timex.h>
+ #include <linux/time.h>
+ #include <linux/list.h>
++#include <linux/cache.h>
+ #include <linux/timer.h>
+ #include <asm/div64.h>
+ #include <asm/io.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -159,3 +141,4 @@ integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 mm-only-free-swap-space-of-reactivated-pages-debug.patch
 mm-only-hrtimers-debug-patch-fix.patch
+time-smp-friendly-alignment-of-struct-clocksource-fix.patch
