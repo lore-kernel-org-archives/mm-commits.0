@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + bluetooth-hid-quirks-mightymouse-quirk-2.patch added to -mm tree
-Date: Tue, 27 Mar 2007 13:23:36 -0700
-Message-ID: <200703272023.l2RKNaSB026926@shell0.pdx.osdl.net>
+Date: Tue, 27 Mar 2007 13:23:51 -0700
+Message-ID: <200703272023.l2RKNqXm026931@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41720 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41735 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965352AbXC0UXp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 16:23:45 -0400
+	id S965369AbXC0UX7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 16:23:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -41,7 +41,7 @@ handling to current bluetooth hidp code, and sets quirk flags for device
 0x05ac/0x030c, which is the bluetooth version of the apple mightymouse.
 
 Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Signed-off-by: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
