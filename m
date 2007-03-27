@@ -1,181 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - fix-sudden-warps-in-mousedev.patch removed from -mm tree
-Date: Tue, 27 Mar 2007 09:58:46 -0800
-Message-ID: <200703271758.l2RHwkES023885@shell0.pdx.osdl.net>
+Subject: - tulip-fix-shutdown-dma-irq-race.patch removed from -mm tree
+Date: Tue, 27 Mar 2007 11:37:18 -0700
+Message-ID: <200703271837.l2RIbKHu024673@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35782 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37335 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934089AbXC0R7H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 13:59:07 -0400
+	id S934163AbXC0Sic (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 14:38:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zaitcev@redhat.com, dtor@mail.ru, mm-commits@vger.kernel.org
+To: grundler@parisc-linux.org, jeff@garzik.org, val_henson@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix sudden warps in mousedev
+     tulip: fix shutdown DMA/irq race
 has been removed from the -mm tree.  Its filename was
-     fix-sudden-warps-in-mousedev.patch
+     tulip-fix-shutdown-dma-irq-race.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Fix sudden warps in mousedev
-From: Pete Zaitcev <zaitcev@redhat.com>
+Subject: tulip: fix shutdown DMA/irq race
+From: Grant Grundler <grundler@parisc-linux.org>
 
-On my laptop with Synaptics, if I lift the finger and place it elsewhere,
-the pointer sometimes warps dramatically. Here's the evtest trace
-which illustrates what happens:
+IRQs are racing with tulip_down().  DMA can be restarted by the interrupt
+handler _after_ we call tulip_stop_rxtx() and the DMA buffers are unmapped.
+ The result is an MCA (hard crash on ia64) because of an IO TLB miss.  The
+long-term fix is to make the interrupt handler shutdown aware.
 
-Event: time 1174703240.830555, type 3 (Absolute), code 0 (X), value 3907
-Event: time 1174703240.830557, type 3 (Absolute), code 1 (Y), value 3684
-Event: time 1174703240.830561, -------------- Report Sync ------------
-Event: time 1174703240.842205, type 3 (Absolute), code 0 (X), value 3909
-Event: time 1174703240.842208, type 3 (Absolute), code 1 (Y), value 3687
-         <---- value used by fy(2) later
-Event: time 1174703240.842211, -------------- Report Sync ------------
-Event: time 1174703240.854912, type 3 (Absolute), code 24 (Pressure), value 30
-Event: time 1174703240.854917, -------------- Report Sync ------------
-Event: time 1174703240.867130, type 1 (Key), code 330 (Touch), value 0
-         <---- touch=0 now, we drop pkt_count here
-Event: time 1174703240.867133, type 3 (Absolute), code 0 (X), value 3913
-Event: time 1174703240.867135, type 3 (Absolute), code 1 (Y), value 3699
-Event: time 1174703240.867137, type 3 (Absolute), code 24 (Pressure), value 17
-Event: time 1174703240.867139, -------------- Report Sync ------------
-Event: time 1174703240.877716, type 3 (Absolute), code 0 (X), value 3899
-Event: time 1174703240.877718, type 3 (Absolute), code 1 (Y), value 3720
-Event: time 1174703240.877721, type 3 (Absolute), code 24 (Pressure), value 8
-Event: time 1174703240.877723, type 3 (Absolute), code 28 (Tool Width), value 5
-Event: time 1174703240.877725, -------------- Report Sync ------------
-Event: time 1174703240.891954, type 3 (Absolute), code 0 (X), value 3898
-Event: time 1174703240.891957, type 3 (Absolute), code 1 (Y), value 3746
-Event: time 1174703240.891959, type 3 (Absolute), code 24 (Pressure), value 5
-Event: time 1174703240.891960, type 3 (Absolute), code 28 (Tool Width), value 6
-Event: time 1174703240.891965, -------------- Report Sync ------------
-Event: time 1174703240.918746, type 3 (Absolute), code 0 (X), value 1
-Event: time 1174703240.918749, type 3 (Absolute), code 1 (Y), value 5855
-Event: time 1174703240.918751, type 3 (Absolute), code 24 (Pressure), value 3
-Event: time 1174703240.918753, type 3 (Absolute), code 28 (Tool Width), value 5
-Event: time 1174703240.918756, type 1 (Key), code 325 (ToolFinger), value 0
-Event: time 1174703240.918758, type 1 (Key), code 333 (Tool Doubletap), value 1
-Event: time 1174703240.918760, -------------- Report Sync ------------
-Event: time 1174703240.929545, type 3 (Absolute), code 24 (Pressure), value 2
-Event: time 1174703240.929549, -------------- Report Sync ------------
-Event: time 1174703241.137650, type 3 (Absolute), code 24 (Pressure), value 1
-Event: time 1174703241.137655, -------------- Report Sync ------------
-Event: time 1174703241.386150, type 3 (Absolute), code 24 (Pressure), value 0
-Event: time 1174703241.386153, type 3 (Absolute), code 28 (Tool Width), value 0
-Event: time 1174703241.386155, type 1 (Key), code 333 (Tool Doubletap), value 0
-Event: time 1174703241.386158, -------------- Report Sync ------------
-Event: time 1174703243.119979, type 3 (Absolute), code 0 (X), value 4763
-Event: time 1174703243.119982, type 3 (Absolute), code 1 (Y), value 1964
-Event: time 1174703243.119984, type 3 (Absolute), code 24 (Pressure), value 8
-Event: time 1174703243.119985, type 3 (Absolute), code 28 (Tool Width), value 5
-Event: time 1174703243.119987, type 1 (Key), code 325 (ToolFinger), value 1
-Event: time 1174703243.119990, -------------- Report Sync ------------
-Event: time 1174703243.131696, type 3 (Absolute), code 0 (X), value 4760
-Event: time 1174703243.131699, type 3 (Absolute), code 1 (Y), value 1961
-Event: time 1174703243.131701, type 3 (Absolute), code 24 (Pressure), value 9
-Event: time 1174703243.131703, -------------- Report Sync ------------
-Event: time 1174703243.143436, type 3 (Absolute), code 24 (Pressure), value 12
-Event: time 1174703243.143440, type 3 (Absolute), code 28 (Tool Width), value 4
-Event: time 1174703243.143442, -------------- Report Sync ------------
-Event: time 1174703243.157148, type 3 (Absolute), code 24 (Pressure), value 15
-Event: time 1174703243.157153, -------------- Report Sync ------------
-Event: time 1174703243.169804, type 3 (Absolute), code 0 (X), value 4757
-Event: time 1174703243.169806, type 3 (Absolute), code 1 (Y), value 1999
-Event: time 1174703243.169808, type 3 (Absolute), code 24 (Pressure), value 18
-Event: time 1174703243.169811, -------------- Report Sync ------------
-Event: time 1174703243.181728, type 3 (Absolute), code 0 (X), value 4753
-Event: time 1174703243.181731, type 3 (Absolute), code 24 (Pressure), value 20
-Event: time 1174703243.181735, -------------- Report Sync ------------
-Event: time 1174703243.193445, type 3 (Absolute), code 24 (Pressure), value 21
-Event: time 1174703243.193448, -------------- Report Sync ------------
-Event: time 1174703243.206640, type 3 (Absolute), code 0 (X), value 4748
-Event: time 1174703243.206643, type 3 (Absolute), code 1 (Y), value 1997
-Event: time 1174703243.206645, type 3 (Absolute), code 24 (Pressure), value 23
-Event: time 1174703243.206647, -------------- Report Sync ------------
-Event: time 1174703243.219358, type 3 (Absolute), code 24 (Pressure), value 24
-Event: time 1174703243.219362, -------------- Report Sync ------------
-Event: time 1174703243.231448, type 3 (Absolute), code 0 (X), value 4752
-Event: time 1174703243.231450, type 3 (Absolute), code 1 (Y), value 1993
-Event: time 1174703243.231452, type 3 (Absolute), code 24 (Pressure), value 25
-Event: time 1174703243.231455, -------------- Report Sync ------------
-Event: time 1174703243.243435, type 3 (Absolute), code 1 (Y), value 1989
-Event: time 1174703243.243438, type 3 (Absolute), code 24 (Pressure), value 27
-Event: time 1174703243.243440, -------------- Report Sync ------------
-Event: time 1174703243.255193, type 3 (Absolute), code 0 (X), value 4748
-Event: time 1174703243.255197, type 3 (Absolute), code 24 (Pressure), value 28
-Event: time 1174703243.255201, -------------- Report Sync ------------
-Event: time 1174703243.268904, type 3 (Absolute), code 0 (X), value 4746
-Event: time 1174703243.268907, type 3 (Absolute), code 1 (Y), value 1990
-Event: time 1174703243.268909, type 3 (Absolute), code 24 (Pressure), value 29
-Event: time 1174703243.268911, -------------- Report Sync ------------
-Event: time 1174703243.293295, type 3 (Absolute), code 1 (Y), value 1986
-Event: time 1174703243.293298, type 3 (Absolute), code 24 (Pressure), value 30
-Event: time 1174703243.293301, -------------- Report Sync ------------
-Event: time 1174703243.305535, type 1 (Key), code 330 (Touch), value 1
-          <---- touch!=0 now, we're on
-Event: time 1174703243.305538, type 3 (Absolute), code 24 (Pressure), value 31
-Event: time 1174703243.305541, -------------- Report Sync ------------
-          <---- We increment the pkt_count, leaving value of 3687 in old_y
-Event: time 1174703243.342452, type 3 (Absolute), code 0 (X), value 4747
-Event: time 1174703243.342455, type 3 (Absolute), code 1 (Y), value 1988
-          <----- Later to be fy(1), not used for warping purposes :-)
-Event: time 1174703243.342459, -------------- Report Sync ------------
-Event: time 1174703243.356225, type 3 (Absolute), code 0 (X), value 4749
-Event: time 1174703243.356237, type 3 (Absolute), code 1 (Y), value 1987
-          <----- warp here, by the difference of 3687 and 1987, plus
-                 some small frac_dy value. Easily jumps half the screen.
-Event: time 1174703243.356246, -------------- Report Sync ------------
-
-Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Grant Grundler <grundler@parisc-linux.org>
+Acked-by: Valerie Henson <val_henson@linux.intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mousedev.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ drivers/net/tulip/tulip_core.c |   31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
 
-diff -puN drivers/input/mousedev.c~fix-sudden-warps-in-mousedev drivers/input/mousedev.c
---- a/drivers/input/mousedev.c~fix-sudden-warps-in-mousedev
-+++ a/drivers/input/mousedev.c
-@@ -278,6 +278,8 @@ static void mousedev_notify_readers(stru
+diff -puN drivers/net/tulip/tulip_core.c~tulip-fix-shutdown-dma-irq-race drivers/net/tulip/tulip_core.c
+--- a/drivers/net/tulip/tulip_core.c~tulip-fix-shutdown-dma-irq-race
++++ a/drivers/net/tulip/tulip_core.c
+@@ -734,23 +734,36 @@ static void tulip_down (struct net_devic
+ #endif
+ 	spin_lock_irqsave (&tp->lock, flags);
  
- static void mousedev_touchpad_touch(struct mousedev *mousedev, int value)
- {
-+	struct input_dev *dev;
++	/*
++	  FIXME: We should really add a shutdown-in-progress flag and
++	  check it in the interrupt handler to see whether we should
++	  reenable DMA or not.  The preferred ordering here would be:
 +
- 	if (!value) {
- 		if (mousedev->touch &&
- 		    time_before(jiffies, mousedev->touch + msecs_to_jiffies(tap_time))) {
-@@ -297,8 +299,22 @@ static void mousedev_touchpad_touch(stru
- 		mousedev->frac_dx = 0;
- 		mousedev->frac_dy = 0;
++	  stop DMA engine
++	  disable interrupts
++	  remove DMA resources
++	  free_irq()
++
++	  The below works but is non-obvious and doesn't match the
++	  ordering of bring-up. -VAL
++	*/
++
+ 	/* Disable interrupts by clearing the interrupt mask. */
+ 	iowrite32 (0x00000000, ioaddr + CSR7);
++	ioread32 (ioaddr + CSR7);	/* flush posted write */
  
--	} else if (!mousedev->touch)
-+	} else if (!mousedev->touch) {
- 		mousedev->touch = jiffies;
-+		/*
-+		 * Seed the ring with new position where finger has just landed.
-+		 *
-+		 * Without this, a touchpad may report an unchanged position,
-+		 * then a sync. The input_event() eats the position report, but
-+		 * lets the sync through. We increment pkt_count and leave
-+		 * a stale position in the ring. If a future reference to fx(2)
-+		 * hits the stale position, a large dx is reported, and the
-+		 * pointer warps across the screen.
-+		 */
-+		dev = mousedev->handle.dev;
-+		fx(0) = dev->abs[ABS_X];
-+		fy(0) = dev->abs[ABS_Y];
-+	}
- }
+-	/* Stop the Tx and Rx processes. */
+-	tulip_stop_rxtx(tp);
++	spin_unlock_irqrestore (&tp->lock, flags);
  
- static void mousedev_event(struct input_handle *handle, unsigned int type, unsigned int code, int value)
+-	/* prepare receive buffers */
+-	tulip_refill_rx(dev);
++	free_irq (dev->irq, dev);	/* no more races after this */
++	tulip_stop_rxtx(tp);		/* Stop DMA */
+ 
+-	/* release any unconsumed transmit buffers */
+-	tulip_clean_tx_ring(tp);
++	/* Put driver back into the state we start with */
++	tulip_refill_rx(dev);		/* prepare RX buffers */
++	tulip_clean_tx_ring(tp);	/* clean up unsent TX buffers */
+ 
+ 	if (ioread32 (ioaddr + CSR6) != 0xffffffff)
+ 		tp->stats.rx_missed_errors += ioread32 (ioaddr + CSR8) & 0xffff;
+ 
+-	spin_unlock_irqrestore (&tp->lock, flags);
+-
+ 	init_timer(&tp->timer);
+ 	tp->timer.data = (unsigned long)dev;
+ 	tp->timer.function = tulip_tbl[tp->chip_id].media_timer;
+@@ -776,7 +789,6 @@ static int tulip_close (struct net_devic
+ 		printk (KERN_DEBUG "%s: Shutting down ethercard, status was %2.2x.\n",
+ 			dev->name, ioread32 (ioaddr + CSR5));
+ 
+-	free_irq (dev->irq, dev);
+ 
+ 	/* Free all the skbuffs in the Rx queue. */
+ 	for (i = 0; i < RX_RING_SIZE; i++) {
+@@ -1747,7 +1759,6 @@ static int tulip_suspend (struct pci_dev
+ 		tulip_down(dev);
+ 
+ 	netif_device_detach(dev);
+-	free_irq(dev->irq, dev);
+ 
+ 	pci_save_state(pdev);
+ 	pci_disable_device(pdev);
 _
 
-Patches currently in -mm which might be from zaitcev@redhat.com are
+Patches currently in -mm which might be from grundler@parisc-linux.org are
 
-fix-sudden-warps-in-mousedev.patch
+git-netdev-all.patch
+tulip-fix-shutdown-dma-irq-race.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+local_t-parisc-cleanup.patch
