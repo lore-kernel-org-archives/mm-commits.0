@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-i386-optimization-fix.patch added to -mm tree
-Date: Tue, 27 Mar 2007 11:46:14 -0700
-Message-ID: <200703271846.l2RIkEYn024896@shell0.pdx.osdl.net>
+Subject: + parport-dev-driver-model-support-powerpc-fix.patch added to -mm tree
+Date: Tue, 27 Mar 2007 12:16:30 -0700
+Message-ID: <200703271916.l2RJGU4t025421@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37501 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38672 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934166AbXC0Sqe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 14:46:34 -0400
+	id S934196AbXC0TQi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 15:16:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@muc.de, mathieu.desnoyers@polymtl.ca
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, david-b@pacbell.net, paulus@samba.org
 
 
 The patch titled
-     linux-kernel-markers-i386-optimization-fix
+     parport-dev-driver-model-support-powerpc-fix
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-i386-optimization-fix.patch
+     parport-dev-driver-model-support-powerpc-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-i386-optimization-fix
+Subject: parport-dev-driver-model-support-powerpc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <ak@muc.de>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+http://test.kernel.org/abat/79954/debug/test.log.0 says:
+
+In file included from drivers/parport/parport_pc.c:66:
+include/asm/parport.h:18: error: conflicting types for parport_pc_probe_port
+include/linux/parport_pc.h:234: error: previous declaration of parport_pc_probe_port was here
+drivers/parport/parport_pc.c:2379: error: conflicting types for parport_pc_probe_port
+drivers/parport/parport_pc.c:2152: error: previous definition of parport_pc_probe_port was here
+drivers/parport/parport_pc.c: In function sio_ite_8872_probe:
+
+I don't think this declaration should be in an arch header at all.  Take it
+out, see what happens ;)
+
+Why on earth do we have a noninlined function in a header file?  Sigh.
+
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/marker.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ include/asm-powerpc/parport.h |    5 -----
+ 1 files changed, 5 deletions(-)
 
-diff -puN arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-fix arch/i386/kernel/marker.c
---- a/arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-fix
-+++ a/arch/i386/kernel/marker.c
-@@ -16,8 +16,9 @@
- #include <linux/notifier.h>
- #include <linux/module.h>
- #include <linux/marker.h>
-+#include <linux/kdebug.h>
-+
- #include <asm/cacheflush.h>
--#include <asm/kdebug.h>
+diff -puN include/asm-powerpc/parport.h~parport-dev-driver-model-support-powerpc-fix include/asm-powerpc/parport.h
+--- a/include/asm-powerpc/parport.h~parport-dev-driver-model-support-powerpc-fix
++++ a/include/asm-powerpc/parport.h
+@@ -12,11 +12,6 @@
  
- #define BREAKPOINT_INSTRUCTION  0xcc
- #define BREAKPOINT_INS_LEN 1
+ #include <asm/prom.h>
+ 
+-extern struct parport *parport_pc_probe_port (unsigned long int base,
+-                                              unsigned long int base_hi,
+-                                              int irq, int dma,
+-                                              struct pci_dev *dev);
+-
+ static int __devinit parport_pc_find_nonpci_ports (int autoirq, int autodma)
+ {
+ 	struct device_node *np;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +129,7 @@ rtc-add-rtc-rs5c313-driver-is-busted.patch
 move-die-notifier-handling-to-common-code-fixes-2.patch
 time-smp-friendly-alignment-of-struct-clocksource-fix.patch
 fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
