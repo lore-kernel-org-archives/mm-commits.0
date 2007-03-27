@@ -1,159 +1,307 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-bonding-bond_maincmake-3-functions-static.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 21:58:16 -0800
-Message-ID: <200703270558.l2R5wG1U008585@shell0.pdx.osdl.net>
+Subject: - lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 22:01:24 -0800
+Message-ID: <200703270601.l2R61O8W008860@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40972 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40975 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964893AbXC0GBa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 02:01:30 -0400
+	id S965013AbXC0GBc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 02:01:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/bonding/bond_main.c:make 3 functions static
+     lguest: cleanup: clean up regs save/restore
 has been removed from the -mm tree.  Its filename was
-     drivers-net-bonding-bond_maincmake-3-functions-static.patch
+     lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into lguest-the-host-code-lgko.patch
 
 ------------------------------------------------------
-Subject: drivers/net/bonding/bond_main.c:make 3 functions static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: lguest: cleanup: clean up regs save/restore
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-This patch makes the following needlessly global functions static:
-- bond_mode_name()
-- bond_sethwaddr()
-- bond_mii_monitor()
+We previously put "cr3" in the guest regs restored and saved: the guest cannot
+change cr3, so saving it it silly.  Hand it across to the host<->guest
+switcher in ebx.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+While we're there, only save the host registers we need to; tell GCC we
+clobber everything we can.
+
+Finally, and trap 2 (NMI) doesn't supply a error code (we don't handle NMI
+yet, but the test is wrong, so fix it before I get confused).
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bonding/bond_main.c |    7 ++++---
- drivers/net/bonding/bonding.h   |    3 ---
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ arch/i386/lguest/core.c        |    8 +--
+ arch/i386/lguest/hypervisor.S  |   68 +++++++++++++------------------
+ arch/i386/lguest/lg.h          |    2 
+ arch/i386/lguest/lguest_user.c |    5 --
+ arch/i386/lguest/page_tables.c |    3 -
+ 5 files changed, 39 insertions(+), 47 deletions(-)
 
-diff -puN drivers/net/bonding/bond_main.c~drivers-net-bonding-bond_maincmake-3-functions-static drivers/net/bonding/bond_main.c
---- a/drivers/net/bonding/bond_main.c~drivers-net-bonding-bond_maincmake-3-functions-static
-+++ a/drivers/net/bonding/bond_main.c
-@@ -188,7 +188,7 @@ static void bond_send_gratuitous_arp(str
- 
- /*---------------------------- General routines -----------------------------*/
- 
--const char *bond_mode_name(int mode)
-+static const char *bond_mode_name(int mode)
+diff -puN arch/i386/lguest/core.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/core.c
+--- a/arch/i386/lguest/core.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
++++ a/arch/i386/lguest/core.c
+@@ -260,11 +260,11 @@ static void run_guest_once(struct lguest
  {
- 	switch (mode) {
- 	case BOND_MODE_ROUNDROBIN :
-@@ -1225,7 +1225,8 @@ static void bond_detach_slave(struct bon
+ 	unsigned int clobber;
  
- /*---------------------------------- IOCTL ----------------------------------*/
+-	/* Put eflags on stack, lcall does rest. */
++	/* Put eflags on stack, lcall does rest: suitable for iret return. */
+ 	asm volatile("pushf; lcall *lguest_entry"
+-		     : "=a"(clobber), "=d"(clobber)
+-		     : "0"(lg->state), "1"(get_idt_table())
+-		     : "memory");
++		     : "=a"(clobber), "=d"(clobber), "=b"(clobber)
++		     : "0"(lg->state), "1"(get_idt_table()), "2"(lg->cr3)
++		     : "memory", "%ecx", "%edi", "%esi");
+ }
  
--int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev)
-+static int bond_sethwaddr(struct net_device *bond_dev,
-+			  struct net_device *slave_dev)
+ int run_guest(struct lguest *lg, char *__user user)
+diff -puN arch/i386/lguest/hypervisor.S~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/hypervisor.S
+--- a/arch/i386/lguest/hypervisor.S~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
++++ a/arch/i386/lguest/hypervisor.S
+@@ -4,26 +4,17 @@
+ #include <asm/asm-offsets.h>
+ #include "lg.h"
+ 
+-#define SAVE_REGS				\
+-	/* Save old guest/host state */		\
+-	pushl	%es;				\
+-	pushl	%ds;				\
+-	pushl	%fs;				\
+-	pushl	%eax;				\
+-	pushl	%gs;				\
+-	pushl	%ebp;				\
+-	pushl	%edi;				\
+-	pushl	%esi;				\
+-	pushl	%edx;				\
+-	pushl	%ecx;				\
+-	pushl	%ebx;				\
+-
+ .text
+ ENTRY(_start) /* ld complains unless _start is defined. */
+-/* %eax contains ptr to target guest state, %edx contains host idt. */
++/* %eax contains ptr to target guest state, %edx contains host idt.
++   %ebx contains cr3 value.  All normal registers can be clobbered! */
+ switch_to_guest:
+-	pushl	%ss
+-	SAVE_REGS
++	pushl	%es
++	pushl	%ds
++	pushl	%fs
++	pushl	%gs
++	pushl	%edx
++	pushl	%ebp
+ 	/* Save old stack, switch to guest's stack. */
+ 	movl	%esp, LGUEST_STATE_host_stackptr(%eax)
+ 	movl	%eax, %esp
+@@ -33,17 +24,16 @@ switch_to_guest:
+ 	lgdt	LGUEST_STATE_gdt(%eax)
+ 	lidt	LGUEST_STATE_idt(%eax)
+ 	/* Save page table top. */
+-	movl	%cr3, %ebx
+-	movl	%ebx, LGUEST_STATE_host_pgdir(%eax)
++	movl	%cr3, %ecx
++	movl	%ecx, LGUEST_STATE_host_pgdir(%eax)
+ 	/* Set host's TSS to available (clear byte 5 bit 2). */
+-	movl	(LGUEST_STATE_host_gdt+2)(%eax), %ebx
+-	andb	$0xFD, (GDT_ENTRY_TSS*8 + 5)(%ebx)
++	movl	(LGUEST_STATE_host_gdt+2)(%eax), %ecx
++	andb	$0xFD, (GDT_ENTRY_TSS*8 + 5)(%ecx)
+ 	/* Switch to guest page tables */
+-	popl	%ebx
+ 	movl	%ebx, %cr3
+ 	/* Switch to guest's TSS. */
+-	movl	$(GDT_ENTRY_TSS*8), %ebx
+-	ltr	%bx
++	movl	$(GDT_ENTRY_TSS*8), %edx
++	ltr	%dx
+ 	/* Restore guest regs */
+ 	popl	%ebx
+ 	popl	%ecx
+@@ -66,10 +56,18 @@ switch_to_guest:
+ 	iret
+ 
+ #define SWITCH_TO_HOST							\
+-	SAVE_REGS;							\
+-	/* Save old pgdir */						\
+-	movl	%cr3, %eax;						\
++	/* Save guest state */						\
++	pushl	%es;							\
++	pushl	%ds;							\
++	pushl	%fs;							\
+ 	pushl	%eax;							\
++	pushl	%gs;							\
++	pushl	%ebp;							\
++	pushl	%edi;							\
++	pushl	%esi;							\
++	pushl	%edx;							\
++	pushl	%ecx;							\
++	pushl	%ebx;							\
+ 	/* Load lguest ds segment for convenience. */			\
+ 	movl	$(LGUEST_DS), %eax;					\
+ 	movl	%eax, %ds;						\
+@@ -88,21 +86,15 @@ switch_to_guest:
+ 	/* Switch to host's stack. */					\
+ 	movl	LGUEST_STATE_host_stackptr(%eax), %esp;			\
+ 	/* Switch to host's TSS */					\
+-	movl	$(GDT_ENTRY_TSS*8), %eax;				\
+-	ltr	%ax;							\
++	movl	$(GDT_ENTRY_TSS*8), %ebx;				\
++	ltr	%bx;							\
+ 	/* Restore host regs */						\
+-	popl	%ebx;							\
+-	popl	%ecx;							\
+-	popl	%edx;							\
+-	popl	%esi;							\
+-	popl	%edi;							\
+ 	popl	%ebp;							\
++	popl	%edx;							\
+ 	popl	%gs;							\
+-	popl	%eax;							\
+ 	popl	%fs;							\
+ 	popl	%ds;							\
+-	popl	%es;							\
+-	popl	%ss
++	popl	%es
+ 
+ /* Return to run_guest_once. */
+ return_to_host:
+@@ -135,7 +127,7 @@ deliver_to_host_with_errcode:
+ .macro IRQ_STUB N TARGET
+ 	.data; .long 1f; .text; 1:
+  /* Make an error number for most traps, which don't have one. */
+- .if (\N <> 2) && (\N <> 8) && (\N < 10 || \N > 14) && (\N <> 17)
++ .if (\N <> 8) && (\N < 10 || \N > 14) && (\N <> 17)
+ 	pushl	$0
+  .endif
+ 	pushl	$\N
+diff -puN arch/i386/lguest/lg.h~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/lg.h
+--- a/arch/i386/lguest/lg.h~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
++++ a/arch/i386/lguest/lg.h
+@@ -24,7 +24,6 @@
+ struct lguest_regs
  {
- 	dprintk("bond_dev=%p\n", bond_dev);
- 	dprintk("slave_dev=%p\n", slave_dev);
-@@ -2039,7 +2040,7 @@ static int bond_slave_info_query(struct 
- /*-------------------------------- Monitoring -------------------------------*/
+ 	/* Manually saved part. */
+-	u32 cr3;
+ 	u32 ebx, ecx, edx;
+ 	u32 esi, edi, ebp;
+ 	u32 gs;
+@@ -81,6 +80,7 @@ struct lguest
+ 	u32 pfn_limit;
+ 	u32 page_offset;
+ 	u32 cr2;
++	u32 cr3;
+ 	int timer_on;
+ 	int halted;
+ 	int ts;
+diff -puN arch/i386/lguest/lguest_user.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/lguest_user.c
+--- a/arch/i386/lguest/lguest_user.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
++++ a/arch/i386/lguest/lguest_user.c
+@@ -4,7 +4,7 @@
+ #include <linux/fs.h>
+ #include "lg.h"
  
- /* this function is called regularly to monitor each slave's link. */
--void bond_mii_monitor(struct work_struct *work)
-+static void bond_mii_monitor(struct work_struct *work)
+-static struct lguest_state *setup_guest_state(unsigned int num, void *pgdir,
++static struct lguest_state *setup_guest_state(unsigned int num,
+ 					      unsigned long start)
  {
- 	struct bonding *bond = container_of(work, struct bonding, mii_work.work);
- 	struct net_device *bond_dev = bond->dev;
-diff -puN drivers/net/bonding/bonding.h~drivers-net-bonding-bond_maincmake-3-functions-static drivers/net/bonding/bonding.h
---- a/drivers/net/bonding/bonding.h~drivers-net-bonding-bond_maincmake-3-functions-static
-+++ a/drivers/net/bonding/bonding.h
-@@ -301,13 +301,10 @@ int bond_create_slave_symlinks(struct ne
- void bond_destroy_slave_symlinks(struct net_device *master, struct net_device *slave);
- int bond_enslave(struct net_device *bond_dev, struct net_device *slave_dev);
- int bond_release(struct net_device *bond_dev, struct net_device *slave_dev);
--int bond_sethwaddr(struct net_device *bond_dev, struct net_device *slave_dev);
--void bond_mii_monitor(struct work_struct *work);
- void bond_loadbalance_arp_mon(struct work_struct *work);
- void bond_activebackup_arp_mon(struct work_struct *work);
- void bond_set_mode_ops(struct bonding *bond, int mode);
- int bond_parse_parm(char *mode_arg, struct bond_parm_tbl *tbl);
--const char *bond_mode_name(int mode);
- void bond_select_active_slave(struct bonding *bond);
- void bond_change_active_slave(struct bonding *bond, struct slave *new_active);
- void bond_register_arp(struct bonding *);
+ 	struct lguest_state *guest = &__lguest_states()[num];
+@@ -38,7 +38,6 @@ static struct lguest_state *setup_guest_
+ 
+ 	/* Write out stack in format lguest expects, so we can switch to it. */
+ 	regs = &guest->regs;
+-	regs->cr3 = __pa(pgdir);
+ 	regs->eax = regs->ebx = regs->ecx = regs->edx = regs->esp = 0;
+ 	regs->edi = LGUEST_MAGIC_EDI;
+ 	regs->ebp = LGUEST_MAGIC_EBP;
+@@ -149,7 +148,7 @@ static int initialize(struct file *file,
+ 	if (err)
+ 		goto free_trap_page;
+ 
+-	lg->state = setup_guest_state(i, lg->pgdirs[lg->pgdidx].pgdir,args[2]);
++	lg->state = setup_guest_state(i, args[2]);
+ 	if (!lg->state) {
+ 		err = -ENOEXEC;
+ 		goto release_pgtable;
+diff -puN arch/i386/lguest/page_tables.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore arch/i386/lguest/page_tables.c
+--- a/arch/i386/lguest/page_tables.c~lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore
++++ a/arch/i386/lguest/page_tables.c
+@@ -223,7 +223,7 @@ void guest_new_pagetable(struct lguest *
+ 	if (newpgdir == ARRAY_SIZE(lg->pgdirs))
+ 		newpgdir = new_pgdir(lg, pgtable);
+ 	lg->pgdidx = newpgdir;
+-	lg->state->regs.cr3 = __pa(lg->pgdirs[lg->pgdidx].pgdir);
++	lg->cr3 = __pa(lg->pgdirs[lg->pgdidx].pgdir);
+ 	pin_stack_pages(lg);
+ }
+ 
+@@ -296,6 +296,7 @@ int init_guest_pagetable(struct lguest *
+ 	lg->pgdirs[lg->pgdidx].pgdir = (u32*)get_zeroed_page(GFP_KERNEL);
+ 	if (!lg->pgdirs[lg->pgdidx].pgdir)
+ 		return -ENOMEM;
++	lg->cr3 = __pa(lg->pgdirs[lg->pgdidx].pgdir);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-origin.patch
-drivers-spi-fix-section-mismatches.patch
-drivers-eisa-pci_eisacpci_eisa_init-should-be-init.patch
-net-sunrpc-svcsockc-fix-a-check.patch
-git-acpi.patch
-git-powerpc.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-mmc_deselect_cards.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-ubi.patch
-git-netdev-all.patch
-drivers-net-bonding-bond_maincmake-3-functions-static.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-make-mptspi_target_destroy-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-i386-x86_64-early_printkc-make-simnow_init-static.patch
-make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
+git-kbuild.patch
+i386-vdso_prelink-warning-fix.patch
+cleanup-initialize-esp0-properly-all-the-time.patch
+lguest-preparation-export_symbol_gpl-5-functions.patch
+lguest-preparation-expose-futex-infrastructure.patch
 lguest-kconfig-and-headers.patch
+lguest-the-host-code-lgko.patch
+lguest-the-host-code-lgko-cleanup-clean-up-regs-save-restore.patch
+lguest-the-host-code-lgko-pin-stack-page-optimization.patch
+lguest-guest-code.patch
+lguest-clean-up-some-references-inittext-warnings.patch
+lguest-clean-up-some-references-inittext-warnings-2.patch
+lguest-makefile.patch
+lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
+lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
 lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-drivers-mfd-sm501c-fix-an-off-by-one.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+lguest-compile-hypervisors-into-the-lg-module-directly.patch
+lguest-dont-crash-host-on-nmi.patch
+lguest-trivial-guest-network-driver.patch
+lguest-trivial-guest-console-driver.patch
+lguest-trivial-guest-block-driver.patch
+lguest-trivial-guest-block-driver-lguest-block-device-speedup.patch
+lguest-documentatation-and-example-launcher.patch
+lguest-documentatation-and-example-launcher-bridging-support-in-example-code.patch
+lguest-documentatation-and-example-launcher-bridging-support-in-example-codelguest-documentation-fixes.patch
+introduce-load_tls-to-the-for-loop.patch
+remove-unused-set_seg_base.patch
+clarify-config_reorder-explanation.patch
+allow-per-cpu-variables-to-be-page-aligned.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
+i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
+i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot-fix.patch
+i386-gdt-cleanups-clean-up-cpu_init.patch
+i386-gdt-cleanups-cleanup-gdt-access.patch
+i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt.patch
+cleanup-rationalize-paravirt-wrappers.patch
+array_size-check-for-type.patch
+array_size-check-for-type-uml-fix.patch
+module-use-krealloc.patch
+extend-print_symbol-capability.patch
+extend-print_symbol-capability-fix.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+____call_usermodehelper-dont-flush_signals.patch
