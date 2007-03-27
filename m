@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-guest-code-warning-fixes.patch added to -mm tree
-Date: Tue, 27 Mar 2007 13:17:03 -0700
-Message-ID: <200703272017.l2RKH4wm026797@shell0.pdx.osdl.net>
+Subject: + revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch added to -mm tree
+Date: Tue, 27 Mar 2007 13:19:51 -0700
+Message-ID: <200703272019.l2RKJplw026851@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41462 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41608 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965044AbXC0URK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 16:17:10 -0400
+	id S964813AbXC0UT5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 16:19:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au
+Cc: penberg@cs.helsinki.fi
 
 
 The patch titled
-     lguest warning fixes
+     revoke: only revoke mappings for the given inode
 has been added to the -mm tree.  Its filename is
-     lguest-guest-code-warning-fixes.patch
+     revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,105 +25,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest warning fixes
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: revoke: only revoke mappings for the given inode
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-The prototype for paravirt_ops write_lgt_entry, write_gdt_entry and
-write_idt_entry was type-corrected, so change lguest to match.  We can
-also use the "write_dt_entry" which was exported by that same cleanup
-patch, rather than write our own.
+This fixes a bug that was introduced when we switched to rescanning all the
+vmas of a mm.  We need to check that the vma host file points to the same
+inode we are revoking; otherwise we end up revoking all shared mappings.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lguest/lguest.c |   22 ++++++++--------------
- 1 files changed, 8 insertions(+), 14 deletions(-)
+ fs/revoke.c |   17 +++++++++++++----
+ 1 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/lguest/lguest.c~lguest-guest-code-warning-fixes arch/i386/lguest/lguest.c
---- a/arch/i386/lguest/lguest.c~lguest-guest-code-warning-fixes
-+++ a/arch/i386/lguest/lguest.c
-@@ -362,30 +362,24 @@ static void __init lguest_init_IRQ(void)
- 	irq_ctx_init(smp_processor_id());
+diff -puN fs/revoke.c~revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode fs/revoke.c
+--- a/fs/revoke.c~revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode
++++ a/fs/revoke.c
+@@ -161,15 +161,24 @@ static int revoke_fds(struct task_struct
  }
  
--static inline void native_write_dt_entry(void *dt, int entry, u32 entry_low, u32 entry_high)
--{
--	u32 *lp = (u32 *)((char *)dt + entry*8);
--	lp[0] = entry_low;
--	lp[1] = entry_high;
--}
--
--static fastcall void lguest_write_ldt_entry(void *dt, int entrynum, u32 low, u32 high)
-+static fastcall void lguest_write_ldt_entry(struct desc_struct *dt,
-+					    int entrynum, u32 low, u32 high)
+ static inline bool need_revoke(struct vm_area_struct *vma,
++			       struct inode *inode,
+ 			       struct file *to_exclude)
  {
- 	/* FIXME: Allow this. */
- 	BUG();
++	struct file *file = vma->vm_file;
++
+ 	if (vma->vm_flags & VM_REVOKED)
+ 		return false;
+ 
++	if (!file)
++		return false;
++
++	if (file->f_path.dentry->d_inode != inode)
++		return false;
++
+ 	if (!(vma->vm_flags & VM_SHARED))
+ 		return false;
+ 
+-	return vma->vm_file != to_exclude;
++	return file != to_exclude;
  }
  
--static fastcall void lguest_write_gdt_entry(void *dt, int entrynum,
--					   u32 low, u32 high)
-+static fastcall void lguest_write_gdt_entry(struct desc_struct *dt,
-+					    int entrynum, u32 low, u32 high)
- {
--	native_write_dt_entry(dt, entrynum, low, high);
-+	write_dt_entry(dt, entrynum, low, high);
- 	hcall(LHCALL_LOAD_GDT, __pa(dt), GDT_ENTRIES, 0);
- }
+ /*
+@@ -227,7 +236,7 @@ static int revoke_mm(struct mm_struct *m
+ 		goto out;
+ 	}
+ 	for (vma = mm->mmap; vma != NULL; vma = vma->vm_next) {
+-		if (!need_revoke(vma, to_exclude))
++		if (!need_revoke(vma, mapping->host, to_exclude))
+ 			continue;
  
--static fastcall void lguest_write_idt_entry(void *dt, int entrynum,
--					   u32 low, u32 high)
-+static fastcall void lguest_write_idt_entry(struct desc_struct *dt,
-+					    int entrynum, u32 low, u32 high)
- {
--	native_write_dt_entry(dt, entrynum, low, high);
-+	write_dt_entry(dt, entrynum, low, high);
- 	hcall(LHCALL_LOAD_IDT_ENTRY, entrynum, low, high);
- }
+ 		err = revoke_vma(vma, &details);
+@@ -253,7 +262,7 @@ static void revoke_mapping_tree(struct a
+ 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, 0, ULONG_MAX) {
+ 		int err;
  
+-		if (likely(!need_revoke(vma, to_exclude)))
++		if (likely(!need_revoke(vma, mapping->host, to_exclude)))
+ 			continue;
+ 
+ 		err = revoke_mm(vma->vm_mm, mapping, to_exclude);
+@@ -283,7 +292,7 @@ static void revoke_mapping_list(struct a
+ 	list_for_each_entry(vma, &mapping->i_mmap_nonlinear, shared.vm_set.list) {
+ 		int err;
+ 
+-		if (likely(!need_revoke(vma, to_exclude)))
++		if (likely(!need_revoke(vma, mapping->host, to_exclude)))
+ 			continue;
+ 
+ 		err = revoke_mm(vma->vm_mm, mapping, to_exclude);
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
-git-kbuild.patch
-i386-vdso_prelink-warning-fix.patch
-cleanup-initialize-esp0-properly-all-the-time.patch
-lguest-preparation-export_symbol_gpl-5-functions.patch
-lguest-preparation-expose-futex-infrastructure.patch
-lguest-kconfig-and-headers.patch
-lguest-the-host-code-lgko.patch
-lguest-guest-code.patch
-lguest-guest-code-warning-fixes.patch
-lguest-clean-up-some-references-inittext-warnings.patch
-lguest-makefile.patch
-lguest-use-read-only-pages-rather-than-segments-to-protect-high-mapped-switcher.patch
-lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
-lguest-compile-hypervisors-into-the-lg-module-directly.patch
-lguest-dont-crash-host-on-nmi.patch
-lguest-trivial-guest-network-driver.patch
-lguest-trivial-guest-console-driver.patch
-lguest-trivial-guest-block-driver.patch
-lguest-documentatation-and-example-launcher.patch
-introduce-load_tls-to-the-for-loop.patch
-remove-unused-set_seg_base.patch
-clarify-config_reorder-explanation.patch
-allow-per-cpu-variables-to-be-page-aligned.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
-i386-gdt-cleanups-use-per-cpu-gdt-immediately-upon-boot.patch
-i386-gdt-cleanups-clean-up-cpu_init.patch
-i386-gdt-cleanups-cleanup-gdt-access.patch
-i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt.patch
-cleanup-rationalize-paravirt-wrappers.patch
-array_size-check-for-type.patch
-array_size-check-for-type-uml-fix.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+unionfs-fix-slab-abuses-with-krealloc.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+slab-dont-allocate-empty-shared-caches.patch
+slab-numa-kmem_cache-diet.patch
 module-use-krealloc.patch
-extend-print_symbol-capability.patch
-extend-print_symbol-capability-fix.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-____call_usermodehelper-dont-flush_signals.patch
+slab-use-cpu_lock_.patch
+revoke-special-mmap-handling.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+revoke-core-code.patch
+revoke-core-code-misc-fixes.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-core-code-move-magic.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+slab-leaks3-default-y.patch
