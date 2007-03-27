@@ -1,144 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: + time-smp-friendly-alignment-of-struct-clocksource-fix.patch added to -mm tree
-Date: Mon, 26 Mar 2007 18:10:56 -0700
-Message-ID: <200703270113.l2R1D0kU003518@shell0.pdx.osdl.net>
+Subject: - fbdev-sysfs-imrovements.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 20:53:05 -0700
+Message-ID: <200703270353.l2R3r7Mw006132@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34531 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37335 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933901AbXC0BQl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2007 21:16:41 -0400
+	id S932487AbXC0Dxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2007 23:53:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dada1@cosmosbay.com, johnstul@us.ibm.com
+To: jsimmons@infradead.org, adaplas@pol.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time-smp-friendly-alignment-of-struct-clocksource-fix
-has been added to the -mm tree.  Its filename is
-     time-smp-friendly-alignment-of-struct-clocksource-fix.patch
+     fbdev sysfs improvements
+has been removed from the -mm tree.  Its filename was
+     fbdev-sysfs-imrovements.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: time-smp-friendly-alignment-of-struct-clocksource-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbdev sysfs improvements
+From: James Simmons <jsimmons@infradead.org>
 
-For ____cacheline_aligned_in_smp
+This patch does several things to allow the underlying hardware to be
+shared amount many devices.  The most important thing is the use of the
+created device via device_create instead of the hardware device.  No longer
+should fbdev drivers use the xxx_set_drvdata with the parent bus device. 
+The second change is having a bus independent power management for the
+framebuffer driver.  The final change is using the release method to
+cleanup the device.  The reason again is to make the fbdev driver
+independent of the bus parent device.
 
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: John Stultz <johnstul@us.ibm.com>
+Looks-good-to: Greg KH <greg@kroah.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/fbmem.c   |   20 +-------
+ drivers/video/fbsysfs.c |   93 ++++++++++++++++++++++++++++++--------
+ include/linux/fb.h      |    5 ++
+ 3 files changed, 84 insertions(+), 34 deletions(-)
 
-diff -puN include/linux/clocksource.h~time-smp-friendly-alignment-of-struct-clocksource-fix include/linux/clocksource.h
---- a/include/linux/clocksource.h~time-smp-friendly-alignment-of-struct-clocksource-fix
-+++ a/include/linux/clocksource.h
-@@ -12,6 +12,7 @@
- #include <linux/timex.h>
- #include <linux/time.h>
- #include <linux/list.h>
-+#include <linux/cache.h>
- #include <linux/timer.h>
- #include <asm/div64.h>
- #include <asm/io.h>
+diff -puN drivers/video/fbmem.c~fbdev-sysfs-imrovements drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-sysfs-imrovements
++++ a/drivers/video/fbmem.c
+@@ -1271,8 +1271,6 @@ static const struct file_operations fb_f
+ #endif
+ };
+ 
+-struct class *fb_class;
+-EXPORT_SYMBOL(fb_class);
+ /**
+  *	register_framebuffer - registers a frame buffer device
+  *	@fb_info: frame buffer info structure
+@@ -1298,14 +1296,9 @@ register_framebuffer(struct fb_info *fb_
+ 			break;
+ 	fb_info->node = i;
+ 
+-	fb_info->dev = device_create(fb_class, fb_info->device,
+-				     MKDEV(FB_MAJOR, i), "fb%d", i);
+-	if (IS_ERR(fb_info->dev)) {
+-		/* Not fatal */
++	/* Not fatal */
++	if (fb_init_device(fb_info))
+ 		printk(KERN_WARNING "Unable to create device for framebuffer %d; errno = %ld\n", i, PTR_ERR(fb_info->dev));
+-		fb_info->dev = NULL;
+-	} else
+-		fb_init_device(fb_info);
+ 
+ 	if (fb_info->pixmap.addr == NULL) {
+ 		fb_info->pixmap.addr = kmalloc(FBPIXMAPSIZE, GFP_KERNEL);
+@@ -1359,7 +1352,6 @@ unregister_framebuffer(struct fb_info *f
+ 	registered_fb[i]=NULL;
+ 	num_registered_fb--;
+ 	fb_cleanup_device(fb_info);
+-	device_destroy(fb_class, MKDEV(FB_MAJOR, i));
+ 	event.info = fb_info;
+ 	fb_notifier_call_chain(FB_EVENT_FB_UNREGISTERED, &event);
+ 	return 0;
+@@ -1405,11 +1397,7 @@ fbmem_init(void)
+ 	if (register_chrdev(FB_MAJOR,"fb",&fb_fops))
+ 		printk("unable to get major %d for fb devs\n", FB_MAJOR);
+ 
+-	fb_class = class_create(THIS_MODULE, "graphics");
+-	if (IS_ERR(fb_class)) {
+-		printk(KERN_WARNING "Unable to create fb class; errno = %ld\n", PTR_ERR(fb_class));
+-		fb_class = NULL;
+-	}
++	fb_create_class();
+ 	return 0;
+ }
+ 
+@@ -1418,8 +1406,8 @@ module_init(fbmem_init);
+ static void __exit
+ fbmem_exit(void)
+ {
+-	class_destroy(fb_class);
+ 	unregister_chrdev(FB_MAJOR, "fb");
++	fb_destroy_class();
+ }
+ 
+ module_exit(fbmem_exit);
+diff -puN drivers/video/fbsysfs.c~fbdev-sysfs-imrovements drivers/video/fbsysfs.c
+--- a/drivers/video/fbsysfs.c~fbdev-sysfs-imrovements
++++ a/drivers/video/fbsysfs.c
+@@ -505,42 +505,99 @@ static struct device_attribute device_at
+ #endif
+ };
+ 
+-int fb_init_device(struct fb_info *fb_info)
++struct class *fb_class;
++EXPORT_SYMBOL(fb_class);
++
++static void fb_device_release(struct device *dev)
+ {
+-	int i, error = 0;
++	struct fb_info *fb_info = dev_get_drvdata(dev);
+ 
+-	dev_set_drvdata(fb_info->dev, fb_info);
++	if (fb_info) {
++		acquire_console_sem();
+ 
+-	fb_info->class_flag |= FB_SYSFS_FLAG_ATTR;
++		// shutdown the hardware.
++		if (fb_info->fbops->fb_release)
++			fb_info->fbops->fb_release(fb_info, 0);
+ 
+-	for (i = 0; i < ARRAY_SIZE(device_attrs); i++) {
+-		error = device_create_file(fb_info->dev, &device_attrs[i]);
++		fb_dealloc_cmap(&fb_info->cmap);
++		unregister_framebuffer(fb_info);
+ 
+-		if (error)
+-			break;
++		//framebuffer_release(info); Not every driver does this yet
++		release_console_sem();
+ 	}
++}
++
++int fb_init_device(struct fb_info *fb_info)
++{
++	int error = 0;
+ 
+-	if (error) {
+-		while (--i >= 0)
+-			device_remove_file(fb_info->dev, &device_attrs[i]);
++	fb_info->dev = device_create(fb_class, fb_info->device,
++					MKDEV(FB_MAJOR, fb_info->node),
++					"fb%d", fb_info->node);
++	if (IS_ERR(fb_info->dev)) {
+ 		fb_info->class_flag &= ~FB_SYSFS_FLAG_ATTR;
++		fb_info->dev = NULL;
++		error = -EINVAL;
++	} else {
++		dev_set_drvdata(fb_info->dev, fb_info);
++		fb_info->dev->release = fb_device_release;
++		fb_info->class_flag |= FB_SYSFS_FLAG_ATTR;
+ 	}
+-
+-	return 0;
++	return error;
+ }
+ 
+ void fb_cleanup_device(struct fb_info *fb_info)
+ {
+-	unsigned int i;
++	fb_info->class_flag &= ~FB_SYSFS_FLAG_ATTR;
++	dev_set_drvdata(fb_info->dev, NULL);
++	device_destroy(fb_class, MKDEV(FB_MAJOR, fb_info->node));
++}
+ 
+-	if (fb_info->class_flag & FB_SYSFS_FLAG_ATTR) {
+-		for (i = 0; i < ARRAY_SIZE(device_attrs); i++)
+-			device_remove_file(fb_info->dev, &device_attrs[i]);
++static int fb_class_suspend(struct device *dev, pm_message_t state)
++{
++	struct fb_info *fb_info = dev_get_drvdata(dev);
++	int ret = 0;
+ 
+-		fb_info->class_flag &= ~FB_SYSFS_FLAG_ATTR;
++	acquire_console_sem();
++	fb_set_suspend(fb_info, 1);
++	if (fb_info->fbops->fb_power)
++		ret = fb_info->fbops->fb_power(fb_info, state);
++	release_console_sem();
++	return ret;
++}
++
++static int fb_class_resume(struct device *dev)
++{
++	struct fb_info *fb_info = dev_get_drvdata(dev);
++	int ret = 0;
++
++	acquire_console_sem();
++	fb_set_suspend(fb_info, 0);
++	if (fb_info->fbops->fb_power)
++		ret = fb_info->fbops->fb_power(fb_info, PMSG_ON);
++	release_console_sem();
++	return ret;
++}
++
++void fb_create_class()
++{
++	fb_class = class_create(THIS_MODULE, "graphics");
++	if (IS_ERR(fb_class)) {
++		printk(KERN_WARNING "Unable to create fb class; errno = %ld\n", PTR_ERR(fb_class));
++		fb_class = NULL;
++	} else {
++		fb_class->suspend = fb_class_suspend;
++		fb_class->resume = fb_class_resume;
++		fb_class->dev_attrs = device_attrs;
+ 	}
+ }
+ 
++void fb_destroy_class()
++{
++	if (fb_class)
++		class_destroy(fb_class);
++}
++
+ #ifdef CONFIG_FB_BACKLIGHT
+ /* This function generates a linear backlight curve
+  *
+diff -puN include/linux/fb.h~fbdev-sysfs-imrovements include/linux/fb.h
+--- a/include/linux/fb.h~fbdev-sysfs-imrovements
++++ a/include/linux/fb.h
+@@ -641,6 +641,9 @@ struct fb_ops {
+ 	/* perform fb specific mmap */
+ 	int (*fb_mmap)(struct fb_info *info, struct vm_area_struct *vma);
+ 
++	/* Power management */
++	int (*fb_power)(struct fb_info *info, pm_message_t state);
++
+ 	/* save current hardware state */
+ 	void (*fb_save_state)(struct fb_info *info);
+ 
+@@ -941,6 +944,8 @@ extern void framebuffer_release(struct f
+ extern int fb_init_device(struct fb_info *fb_info);
+ extern void fb_cleanup_device(struct fb_info *head);
+ extern void fb_bl_default_curve(struct fb_info *fb_info, u8 off, u8 min, u8 max);
++extern void fb_destroy_class(void);
++extern void fb_create_class(void);
+ 
+ /* drivers/video/fbmon.c */
+ #define FB_MAXTIMINGS		0
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jsimmons@infradead.org are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-make-aout-executables-work-again-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-forcedeth-work-around-null-skb-dereference-crash-fix.patch
-bonding-replace-system-timer-with-work-queue-tidy.patch
-git-parisc.patch
-rm9000-serial-driver-tidy.patch
-fix-gregkh-pci-pci-piggy-bus.patch
-fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
-git-pciseg.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps-fix.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
-mm-only-hrtimers-debug-patch-fix.patch
-time-smp-friendly-alignment-of-struct-clocksource-fix.patch
+ps3fb-thread-updates.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3av-misc-updates.patch
+aty128fb-fix-blanking.patch
+change-rivafb_remove-to-__devexit.patch
+fbdev-display-class.patch
+fbdev-display-class-fix.patch
+tgafb-turbochannel-support.patch
+tgafb-accelerated-code.patch
+fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
+fbdev-fb_do_show_logo-updates.patch
+fbdev-correct-image-offsets-when-rotating-logo.patch
+fbdev-sysfs-imrovements.patch
