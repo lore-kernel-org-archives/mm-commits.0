@@ -1,276 +1,252 @@
 From: akpm@linux-foundation.org
-Subject: - revert-ac97-fix-microphone-and-line_in-selection-logic.patch removed from -mm tree
-Date: Tue, 27 Mar 2007 08:27:03 -0800
-Message-ID: <200703271627.l2RGR3o2020426@shell0.pdx.osdl.net>
+Subject: - make-aout-executables-work-again.patch removed from -mm tree
+Date: Tue, 27 Mar 2007 08:33:15 -0800
+Message-ID: <200703271633.l2RGXGXb020555@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60753 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:32774 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933127AbXC0Qa1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 12:30:27 -0400
+	id S933115AbXC0Qew (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 12:34:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bunk@stusta.de, michal.k.k.piotrowski@gmail.com, perex@suse.cz, rcushman_linux@earthlink.net, tiwai@suse.de, mm-commits@vger.kernel.org
+To: parag.warudkar@gmail.com, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, lethal@linux-sh.org, paulus@samba.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "ac97 - fix microphone and line_in selection logic"
+     Make aout executables work again
 has been removed from the -mm tree.  Its filename was
-     revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+     make-aout-executables-work-again.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert "ac97 - fix microphone and line_in selection logic"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Make aout executables work again
+From: Parag Warudkar <parag.warudkar@gmail.com>
 
-Revert 831466f4ad2b5fe23dff77edbe6a7c244435e973: "Michal Piotrowski"
-<michal.k.k.piotrowski@gmail.com> reports that it broke his 3d surround.
+Fix http://bugzilla.kernel.org/show_bug.cgi?id=7891
 
-Cc:"Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
-Cc: Randy Cushman <rcushman_linux@earthlink.net>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Adrian Bunk <bunk@stusta.de>
+  "In kernel 2.6.18 the vdso page is no longer mapped for a.out binaries. 
+   For instance a program using sleep will sigsegv on delivery of SIGALRM (to
+   be precise: on return from signal handling).  I tested this using a static
+   a.out binary.  This program does work in 2.6.17 .  
+
+   cat /proc/pid/smaps does show that vdso is not mapped in 2.6.18 for an
+   a.out binary.  I had a look at fs/binfmt_elf.c and found that the vdso
+   pages is mapped using arch_setup_additional_pages from
+   arch/i386/kernel/sysenter.c for elf."
+
+
+1) Define arch_setup_additional_pages() as weak in linux/interp.h
+
+2) Include linux/interp.h in appropriate places
+
+3) Conditionally call arch_setup_additional_pages() from binfmt_*.c if
+   the arch defines it
+
+4) EXPORT_SYMBOL_GPL(arch_setup_additional_pages) for all x86{64},
+   powerpc, sh - binfmt_aout can be built as module
+
+5) Get rid of ARCH_HAS_SETUP_ADDITIONAL_PAGES from various places
+
+6) For x86_64 - define and export arch_setup_additional_pages as a
+   wrapper over syscall32_setup_pages, call it from ia32_aout.c
+
+Fully tested on x86. (Compile, boot and run the aout binary at
+http://ftp.funet.fi/pub/Linux/bin/as86.tar.Z). Other arches - changes are
+minimal but still I'll appreciate if someone tests them.
+
+[akpm@linux-foundation.org: build fixes]
+Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
+Cc: Joerg Ahrens <joerg@hydrops.han.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/ac97/ac97_patch.c |   66 +++++++++++++---------------------
- 1 file changed, 26 insertions(+), 40 deletions(-)
+ arch/i386/kernel/sysenter.c        |    1 +
+ arch/powerpc/kernel/vdso.c         |    1 +
+ arch/sh/kernel/vsyscall/vsyscall.c |    1 +
+ arch/x86_64/ia32/ia32_aout.c       |    7 +++++++
+ arch/x86_64/ia32/ia32_binfmt.c     |    4 ----
+ arch/x86_64/ia32/syscall32.c       |    7 +++++++
+ fs/binfmt_aout.c                   |    9 +++++++++
+ fs/binfmt_elf.c                    |   13 +++++++------
+ include/linux/interp.h             |    8 ++++++++
+ 9 files changed, 41 insertions(+), 10 deletions(-)
 
-diff -puN sound/pci/ac97/ac97_patch.c~revert-ac97-fix-microphone-and-line_in-selection-logic sound/pci/ac97/ac97_patch.c
---- a/sound/pci/ac97/ac97_patch.c~revert-ac97-fix-microphone-and-line_in-selection-logic
-+++ a/sound/pci/ac97/ac97_patch.c
-@@ -178,28 +178,14 @@ static inline int is_clfe_on(struct snd_
- 	return ac97->channel_mode >= 2;
+diff -puN arch/i386/kernel/sysenter.c~make-aout-executables-work-again arch/i386/kernel/sysenter.c
+--- a/arch/i386/kernel/sysenter.c~make-aout-executables-work-again
++++ a/arch/i386/kernel/sysenter.c
+@@ -137,6 +137,7 @@ up_fail:
+ 	up_write(&mm->mmap_sem);
+ 	return ret;
  }
++EXPORT_SYMBOL_GPL(arch_setup_additional_pages);
  
--/* system has shared jacks with surround out enabled */
--static inline int is_shared_surrout(struct snd_ac97 *ac97)
--{
--	return !ac97->indep_surround && is_surround_on(ac97);
--}
+ const char *arch_vma_name(struct vm_area_struct *vma)
+ {
+diff -puN arch/powerpc/kernel/vdso.c~make-aout-executables-work-again arch/powerpc/kernel/vdso.c
+--- a/arch/powerpc/kernel/vdso.c~make-aout-executables-work-again
++++ a/arch/powerpc/kernel/vdso.c
+@@ -256,6 +256,7 @@ int arch_setup_additional_pages(struct l
+ 	up_write(&mm->mmap_sem);
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(arch_setup_additional_pages);
+ 
+ const char *arch_vma_name(struct vm_area_struct *vma)
+ {
+diff -puN arch/sh/kernel/vsyscall/vsyscall.c~make-aout-executables-work-again arch/sh/kernel/vsyscall/vsyscall.c
+--- a/arch/sh/kernel/vsyscall/vsyscall.c~make-aout-executables-work-again
++++ a/arch/sh/kernel/vsyscall/vsyscall.c
+@@ -85,6 +85,7 @@ up_fail:
+ 	up_write(&mm->mmap_sem);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(arch_setup_additional_pages);
+ 
+ const char *arch_vma_name(struct vm_area_struct *vma)
+ {
+diff -puN arch/x86_64/ia32/ia32_aout.c~make-aout-executables-work-again arch/x86_64/ia32/ia32_aout.c
+--- a/arch/x86_64/ia32/ia32_aout.c~make-aout-executables-work-again
++++ a/arch/x86_64/ia32/ia32_aout.c
+@@ -23,6 +23,7 @@
+ #include <linux/user.h>
+ #include <linux/slab.h>
+ #include <linux/binfmts.h>
++#include <linux/interp.h>
+ #include <linux/personality.h>
+ #include <linux/init.h>
+ 
+@@ -411,6 +412,12 @@ beyond_if:
+ 		return retval;
+ 	}
+ 
++	retval = arch_setup_additional_pages(bprm, EXSTACK_DEFAULT);
++	if (retval < 0) {
++		send_sig(SIGKILL, current, 0);
++		return retval;
++	}
++
+ 	current->mm->start_stack =
+ 		(unsigned long)create_aout_tables((char __user *)bprm->p, bprm);
+ 	/* start thread */
+diff -puN arch/x86_64/ia32/ia32_binfmt.c~make-aout-executables-work-again arch/x86_64/ia32/ia32_binfmt.c
+--- a/arch/x86_64/ia32/ia32_binfmt.c~make-aout-executables-work-again
++++ a/arch/x86_64/ia32/ia32_binfmt.c
+@@ -260,10 +260,6 @@ MODULE_AUTHOR("Eric Youngdale, Andi Klee
+ 
+ static void elf32_init(struct pt_regs *);
+ 
+-#define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
+-#define arch_setup_additional_pages syscall32_setup_pages
+-extern int syscall32_setup_pages(struct linux_binprm *, int exstack);
 -
--/* system has shared jacks with center/lfe out enabled */
--static inline int is_shared_clfeout(struct snd_ac97 *ac97)
--{
--	return !ac97->indep_surround && is_clfe_on(ac97);
--}
--
--/* system has shared jacks with line in enabled */
- static inline int is_shared_linein(struct snd_ac97 *ac97)
- {
--	return !ac97->indep_surround && !is_surround_on(ac97);
-+	return ! ac97->indep_surround && is_surround_on(ac97);
+ #include "../../../fs/binfmt_elf.c" 
+ 
+ static void elf32_init(struct pt_regs *regs)
+diff -puN arch/x86_64/ia32/syscall32.c~make-aout-executables-work-again arch/x86_64/ia32/syscall32.c
+--- a/arch/x86_64/ia32/syscall32.c~make-aout-executables-work-again
++++ a/arch/x86_64/ia32/syscall32.c
+@@ -7,6 +7,7 @@
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+ #include <linux/gfp.h>
++#include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/stringify.h>
+ #include <linux/security.h>
+@@ -49,6 +50,12 @@ int syscall32_setup_pages(struct linux_b
+ 	return ret;
  }
  
--/* system has shared jacks with mic in enabled */
- static inline int is_shared_micin(struct snd_ac97 *ac97)
++int arch_setup_additional_pages(struct linux_binprm* bprm, int exstack)
++{
++	return syscall32_setup_pages(bprm, exstack);
++}
++EXPORT_SYMBOL_GPL(arch_setup_additional_pages);
++
+ const char *arch_vma_name(struct vm_area_struct *vma)
  {
--	return !ac97->indep_surround && !is_clfe_on(ac97);
-+	return ! ac97->indep_surround && is_clfe_on(ac97);
- }
+ 	if (vma->vm_start == VSYSCALL32_BASE &&
+diff -puN fs/binfmt_aout.c~make-aout-executables-work-again fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~make-aout-executables-work-again
++++ a/fs/binfmt_aout.c
+@@ -22,6 +22,7 @@
+ #include <linux/user.h>
+ #include <linux/slab.h>
+ #include <linux/binfmts.h>
++#include <linux/interp.h>
+ #include <linux/personality.h>
+ #include <linux/init.h>
  
+@@ -446,6 +447,14 @@ beyond_if:
+ 		return retval;
+ 	}
  
-@@ -2476,12 +2462,12 @@ static void alc650_update_jacks(struct s
- {
- 	int shared;
- 	
--	/* shared Line-In / Surround Out */
--	shared = is_shared_surrout(ac97);
-+	/* shared Line-In */
-+	shared = is_shared_linein(ac97);
- 	snd_ac97_update_bits(ac97, AC97_ALC650_MULTICH, 1 << 9,
- 			     shared ? (1 << 9) : 0);
--	/* update shared Mic In / Center/LFE Out */
--	shared = is_shared_clfeout(ac97);
-+	/* update shared Mic */
-+	shared = is_shared_micin(ac97);
- 	/* disable/enable vref */
- 	snd_ac97_update_bits(ac97, AC97_ALC650_CLOCK, 1 << 12,
- 			     shared ? (1 << 12) : 0);
-@@ -2611,12 +2597,12 @@ static void alc655_update_jacks(struct s
- {
- 	int shared;
- 	
--	/* shared Line-In / Surround Out */
--	shared = is_shared_surrout(ac97);
-+	/* shared Line-In */
-+	shared = is_shared_linein(ac97);
- 	ac97_update_bits_page(ac97, AC97_ALC650_MULTICH, 1 << 9,
- 			      shared ? (1 << 9) : 0, 0);
--	/* update shared Mic In / Center/LFE Out */
--	shared = is_shared_clfeout(ac97);
-+	/* update shared mic */
-+	shared = is_shared_micin(ac97);
- 	/* misc control; vrefout disable */
- 	snd_ac97_update_bits(ac97, AC97_ALC650_CLOCK, 1 << 12,
- 			     shared ? (1 << 12) : 0);
-@@ -2761,16 +2747,16 @@ static void alc850_update_jacks(struct s
- {
- 	int shared;
- 	
--	/* shared Line-In / Surround Out */
--	shared = is_shared_surrout(ac97);
-+	/* shared Line-In */
-+	shared = is_shared_linein(ac97);
- 	/* SURR 1kOhm (bit4), Amp (bit5) */
- 	snd_ac97_update_bits(ac97, AC97_ALC850_MISC1, (1<<4)|(1<<5),
- 			     shared ? (1<<5) : (1<<4));
- 	/* LINE-IN = 0, SURROUND = 2 */
- 	snd_ac97_update_bits(ac97, AC97_ALC850_JACK_SELECT, 7 << 12,
- 			     shared ? (2<<12) : (0<<12));
--	/* update shared Mic In / Center/LFE Out */
--	shared = is_shared_clfeout(ac97);
-+	/* update shared mic */
-+	shared = is_shared_micin(ac97);
- 	/* Vref disable (bit12), 1kOhm (bit13) */
- 	snd_ac97_update_bits(ac97, AC97_ALC850_MISC1, (1<<12)|(1<<13),
- 			     shared ? (1<<12) : (1<<13));
-@@ -2843,9 +2829,9 @@ static int patch_alc850(struct snd_ac97 
-  */
- static void cm9738_update_jacks(struct snd_ac97 *ac97)
- {
--	/* shared Line-In / Surround Out */
-+	/* shared Line-In */
- 	snd_ac97_update_bits(ac97, AC97_CM9738_VENDOR_CTRL, 1 << 10,
--			     is_shared_surrout(ac97) ? (1 << 10) : 0);
-+			     is_shared_linein(ac97) ? (1 << 10) : 0);
- }
++	if(arch_setup_additional_pages) {
++		retval = arch_setup_additional_pages(bprm, EXSTACK_DEFAULT);
++		if (retval < 0) {
++			send_sig(SIGKILL, current, 0);
++			return retval;
++		}
++	}
++
+ 	current->mm->start_stack =
+ 		(unsigned long) create_aout_tables((char __user *) bprm->p, bprm);
+ #ifdef __alpha__
+diff -puN fs/binfmt_elf.c~make-aout-executables-work-again fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~make-aout-executables-work-again
++++ a/fs/binfmt_elf.c
+@@ -20,6 +20,7 @@
+ #include <linux/errno.h>
+ #include <linux/signal.h>
+ #include <linux/binfmts.h>
++#include <linux/interp.h>
+ #include <linux/string.h>
+ #include <linux/file.h>
+ #include <linux/fcntl.h>
+@@ -975,13 +976,13 @@ static int load_elf_binary(struct linux_
  
- static const struct snd_kcontrol_new snd_ac97_cm9738_controls[] = {
-@@ -2927,12 +2913,12 @@ static const struct snd_kcontrol_new snd
+ 	set_binfmt(&elf_format);
  
- static void cm9739_update_jacks(struct snd_ac97 *ac97)
- {
--	/* shared Line-In / Surround Out */
-+	/* shared Line-In */
- 	snd_ac97_update_bits(ac97, AC97_CM9739_MULTI_CHAN, 1 << 10,
--			     is_shared_surrout(ac97) ? (1 << 10) : 0);
--	/* shared Mic In / Center/LFE Out **/
-+			     is_shared_linein(ac97) ? (1 << 10) : 0);
-+	/* shared Mic */
- 	snd_ac97_update_bits(ac97, AC97_CM9739_MULTI_CHAN, 0x3000,
--			     is_shared_clfeout(ac97) ? 0x1000 : 0x2000);
-+			     is_shared_micin(ac97) ? 0x1000 : 0x2000);
- }
+-#ifdef ARCH_HAS_SETUP_ADDITIONAL_PAGES
+-	retval = arch_setup_additional_pages(bprm, executable_stack);
+-	if (retval < 0) {
+-		send_sig(SIGKILL, current, 0);
+-		goto out;
++	if (arch_setup_additional_pages) {
++		retval = arch_setup_additional_pages(bprm, executable_stack);
++		if (retval < 0) {
++			send_sig(SIGKILL, current, 0);
++			goto out;
++		}
+ 	}
+-#endif /* ARCH_HAS_SETUP_ADDITIONAL_PAGES */
  
- static const struct snd_kcontrol_new snd_ac97_cm9739_controls[] = {
-@@ -3044,8 +3030,8 @@ static void cm9761_update_jacks(struct s
- 
- 	val |= surr_on[ac97->spec.dev_flags][is_surround_on(ac97)];
- 	val |= clfe_on[ac97->spec.dev_flags][is_clfe_on(ac97)];
--	val |= surr_shared[ac97->spec.dev_flags][is_shared_surrout(ac97)];
--	val |= clfe_shared[ac97->spec.dev_flags][is_shared_clfeout(ac97)];
-+	val |= surr_shared[ac97->spec.dev_flags][is_shared_linein(ac97)];
-+	val |= clfe_shared[ac97->spec.dev_flags][is_shared_micin(ac97)];
- 
- 	snd_ac97_update_bits(ac97, AC97_CM9761_MULTI_CHAN, 0x3c88, val);
- }
-@@ -3388,12 +3374,12 @@ int patch_vt1617a(struct snd_ac97 * ac97
-  */
- static void it2646_update_jacks(struct snd_ac97 *ac97)
- {
--	/* shared Line-In / Surround Out */
-+	/* shared Line-In */
- 	snd_ac97_update_bits(ac97, 0x76, 1 << 9,
--			     is_shared_surrout(ac97) ? (1<<9) : 0);
--	/* shared Mic / Center/LFE Out */
-+			     is_shared_linein(ac97) ? (1<<9) : 0);
-+	/* shared Mic */
- 	snd_ac97_update_bits(ac97, 0x76, 1 << 10,
--			     is_shared_clfeout(ac97) ? (1<<10) : 0);
-+			     is_shared_micin(ac97) ? (1<<10) : 0);
- }
- 
- static const struct snd_kcontrol_new snd_ac97_controls_it2646[] = {
+ 	compute_creds(bprm);
+ 	current->flags &= ~PF_FORKNOEXEC;
+diff -puN /dev/null include/linux/interp.h
+--- /dev/null
++++ a/include/linux/interp.h
+@@ -0,0 +1,8 @@
++#ifndef _LINUX_INTERP_H
++#define _LINUX_INTERP_H
++
++struct linux_binprm;
++
++extern int __attribute__((weak))
++	arch_setup_additional_pages(struct linux_binprm*, int);
++#endif /* _LINUX_INTERP_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from parag.warudkar@gmail.com are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-ubi.patch
-git-netdev-all.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-piggy-bus.patch
-fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
-git-pciseg.patch
-git-scsi-rc-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-i386-vdso_prelink-warning-fix.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
-prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
-i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
+fdomainc-get-rid-of-unused-stuff.patch
+apmc-get-rid-of-unused-variables.patch
+apm-remove-the-apm_rtc_is_gmt-config-option.patch
 make-aout-executables-work-again.patch
-revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-add-an-anonymous-inode-source-tidy.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-time-smp-friendly-alignment-of-struct-clocksource-fix.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-fbdev-hecuba-framebuffer-driver.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
-mm-only-hrtimers-debug-patch-fix.patch
