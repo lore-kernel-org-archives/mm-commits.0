@@ -1,292 +1,276 @@
 From: akpm@linux-foundation.org
-Subject: + add-file-position-info-to-proc.patch added to -mm tree
-Date: Mon, 26 Mar 2007 23:35:42 -0800
-Message-ID: <200703270735.l2R7Zg9t010611@shell0.pdx.osdl.net>
+Subject: - revert-ac97-fix-microphone-and-line_in-selection-logic.patch removed from -mm tree
+Date: Tue, 27 Mar 2007 08:27:03 -0800
+Message-ID: <200703271627.l2RGR3o2020426@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43766 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60753 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965323AbXC0Hg0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 03:36:26 -0400
+	id S933127AbXC0Qa1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 12:30:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, adobriyan@sw.ru
+To: akpm@linux-foundation.org, bunk@stusta.de, michal.k.k.piotrowski@gmail.com, perex@suse.cz, rcushman_linux@earthlink.net, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add file position info to proc
-has been added to the -mm tree.  Its filename is
-     add-file-position-info-to-proc.patch
+     revert "ac97 - fix microphone and line_in selection logic"
+has been removed from the -mm tree.  Its filename was
+     revert-ac97-fix-microphone-and-line_in-selection-logic.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: add file position info to proc
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: revert "ac97 - fix microphone and line_in selection logic"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add support for finding out the current file position, open flags and
-possibly other info in the future.
+Revert 831466f4ad2b5fe23dff77edbe6a7c244435e973: "Michal Piotrowski"
+<michal.k.k.piotrowski@gmail.com> reports that it broke his 3d surround.
 
-These new entries are added:
-
-  /proc/PID/fdinfo/FD
-  /proc/PID/task/TID/fdinfo/FD
-
-For each fd the information is provided in the following format:
-
-pos:	1234
-flags:	0100002
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc:"Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
+Cc: Randy Cushman <rcushman_linux@earthlink.net>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |  132 ++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 114 insertions(+), 18 deletions(-)
+ sound/pci/ac97/ac97_patch.c |   66 +++++++++++++---------------------
+ 1 file changed, 26 insertions(+), 40 deletions(-)
 
-diff -puN fs/proc/base.c~add-file-position-info-to-proc fs/proc/base.c
---- a/fs/proc/base.c~add-file-position-info-to-proc
-+++ a/fs/proc/base.c
-@@ -1231,7 +1231,10 @@ out:
- 	return ~0U;
+diff -puN sound/pci/ac97/ac97_patch.c~revert-ac97-fix-microphone-and-line_in-selection-logic sound/pci/ac97/ac97_patch.c
+--- a/sound/pci/ac97/ac97_patch.c~revert-ac97-fix-microphone-and-line_in-selection-logic
++++ a/sound/pci/ac97/ac97_patch.c
+@@ -178,28 +178,14 @@ static inline int is_clfe_on(struct snd_
+ 	return ac97->channel_mode >= 2;
  }
  
--static int proc_fd_link(struct inode *inode, struct dentry **dentry, struct vfsmount **mnt)
-+#define PROC_FDINFO_MAX 64
-+
-+static int proc_fd_info(struct inode *inode, struct dentry **dentry,
-+			struct vfsmount **mnt, char *info)
- {
- 	struct task_struct *task = get_proc_task(inode);
- 	struct files_struct *files = NULL;
-@@ -1250,8 +1253,16 @@ static int proc_fd_link(struct inode *in
- 		spin_lock(&files->file_lock);
- 		file = fcheck_files(files, fd);
- 		if (file) {
--			*mnt = mntget(file->f_path.mnt);
--			*dentry = dget(file->f_path.dentry);
-+			if (mnt)
-+				*mnt = mntget(file->f_path.mnt);
-+			if (dentry)
-+				*dentry = dget(file->f_path.dentry);
-+			if (info)
-+				snprintf(info, PROC_FDINFO_MAX,
-+					 "pos:\t%lli\n"
-+					 "flags:\t0%o\n",
-+					 (long long) file->f_pos,
-+					 file->f_flags);
- 			spin_unlock(&files->file_lock);
- 			put_files_struct(files);
- 			return 0;
-@@ -1262,6 +1273,12 @@ static int proc_fd_link(struct inode *in
- 	return -ENOENT;
- }
- 
-+static int proc_fd_link(struct inode *inode, struct dentry **dentry,
-+			struct vfsmount **mnt)
-+{
-+	return proc_fd_info(inode, dentry, mnt, NULL);
-+}
-+
- static int tid_fd_revalidate(struct dentry *dentry, struct nameidata *nd)
- {
- 	struct inode *inode = dentry->d_inode;
-@@ -1357,7 +1374,9 @@ out_iput:
- 	goto out;
- }
- 
--static struct dentry *proc_lookupfd(struct inode * dir, struct dentry * dentry, struct nameidata *nd)
-+static struct dentry *proc_lookupfd_common(struct inode *dir,
-+					   struct dentry *dentry,
-+					   instantiate_t instantiate)
- {
- 	struct task_struct *task = get_proc_task(dir);
- 	unsigned fd = name_to_int(dentry);
-@@ -1368,23 +1387,15 @@ static struct dentry *proc_lookupfd(stru
- 	if (fd == ~0U)
- 		goto out;
- 
--	result = proc_fd_instantiate(dir, dentry, task, &fd);
-+	result = instantiate(dir, dentry, task, &fd);
- out:
- 	put_task_struct(task);
- out_no_task:
- 	return result;
- }
- 
--static int proc_fd_fill_cache(struct file *filp, void *dirent, filldir_t filldir,
--	struct task_struct *task, int fd)
+-/* system has shared jacks with surround out enabled */
+-static inline int is_shared_surrout(struct snd_ac97 *ac97)
 -{
--	char name[PROC_NUMBUF];
--	int len = snprintf(name, sizeof(name), "%d", fd);
--	return proc_fill_cache(filp, dirent, filldir, name, len,
--				proc_fd_instantiate, task, &fd);
+-	return !ac97->indep_surround && is_surround_on(ac97);
 -}
 -
--static int proc_readfd(struct file * filp, void * dirent, filldir_t filldir)
-+static int proc_readfd_common(struct file * filp, void * dirent,
-+			      filldir_t filldir, instantiate_t instantiate)
+-/* system has shared jacks with center/lfe out enabled */
+-static inline int is_shared_clfeout(struct snd_ac97 *ac97)
+-{
+-	return !ac97->indep_surround && is_clfe_on(ac97);
+-}
+-
+-/* system has shared jacks with line in enabled */
+ static inline int is_shared_linein(struct snd_ac97 *ac97)
  {
- 	struct dentry *dentry = filp->f_path.dentry;
- 	struct inode *inode = dentry->d_inode;
-@@ -1420,12 +1431,17 @@ static int proc_readfd(struct file * fil
- 			for (fd = filp->f_pos-2;
- 			     fd < fdt->max_fds;
- 			     fd++, filp->f_pos++) {
-+				char name[PROC_NUMBUF];
-+				int len;
- 
- 				if (!fcheck_files(files, fd))
- 					continue;
- 				rcu_read_unlock();
- 
--				if (proc_fd_fill_cache(filp, dirent, filldir, p, fd) < 0) {
-+				len = snprintf(name, sizeof(name), "%d", fd);
-+				if (proc_fill_cache(filp, dirent, filldir,
-+						    name, len, instantiate,
-+						    p, &fd) < 0) {
- 					rcu_read_lock();
- 					break;
- 				}
-@@ -1440,6 +1456,32 @@ out_no_task:
- 	return retval;
+-	return !ac97->indep_surround && !is_surround_on(ac97);
++	return ! ac97->indep_surround && is_surround_on(ac97);
  }
  
-+static struct dentry *proc_lookupfd(struct inode *dir, struct dentry *dentry,
-+				    struct nameidata *nd)
-+{
-+	return proc_lookupfd_common(dir, dentry, proc_fd_instantiate);
-+}
-+
-+static int proc_readfd(struct file *filp, void *dirent, filldir_t filldir)
-+{
-+	return proc_readfd_common(filp, dirent, filldir, proc_fd_instantiate);
-+}
-+
-+static ssize_t proc_fdinfo_read(struct file *file, char __user *buf,
-+				      size_t len, loff_t *ppos)
-+{
-+	char tmp[PROC_FDINFO_MAX];
-+	int err = proc_fd_info(file->f_path.dentry->d_inode, NULL, NULL, tmp);
-+	if (!err)
-+		err = simple_read_from_buffer(buf, len, ppos, tmp, strlen(tmp));
-+	return err;
-+}
-+
-+const struct file_operations proc_fdinfo_file_operations = {
-+	.open		= nonseekable_open,
-+	.read		= proc_fdinfo_read,
-+};
-+
- static const struct file_operations proc_fd_operations = {
- 	.read		= generic_read_dir,
- 	.readdir	= proc_readfd,
-@@ -1471,6 +1513,58 @@ static const struct inode_operations pro
- 	.setattr	= proc_setattr,
- };
- 
-+static struct dentry *proc_fdinfo_instantiate(struct inode *dir,
-+	struct dentry *dentry, struct task_struct *task, const void *ptr)
-+{
-+	unsigned fd = *(unsigned *)ptr;
-+ 	struct inode *inode;
-+ 	struct proc_inode *ei;
-+	struct dentry *error = ERR_PTR(-ENOENT);
-+
-+	inode = proc_pid_make_inode(dir->i_sb, task);
-+	if (!inode)
-+		goto out;
-+	ei = PROC_I(inode);
-+	ei->fd = fd;
-+	inode->i_mode = S_IFREG | S_IRUSR;
-+	inode->i_fop = &proc_fdinfo_file_operations;
-+	dentry->d_op = &tid_fd_dentry_operations;
-+	d_add(dentry, inode);
-+	/* Close the race of the process dying before we return the dentry */
-+	if (tid_fd_revalidate(dentry, NULL))
-+		error = NULL;
-+
-+ out:
-+	return error;
-+}
-+
-+static struct dentry *proc_lookupfdinfo(struct inode *dir,
-+					struct dentry *dentry,
-+					struct nameidata *nd)
-+{
-+	return proc_lookupfd_common(dir, dentry, proc_fdinfo_instantiate);
-+}
-+
-+static int proc_readfdinfo(struct file *filp, void *dirent, filldir_t filldir)
-+{
-+	return proc_readfd_common(filp, dirent, filldir,
-+				  proc_fdinfo_instantiate);
-+}
-+
-+static const struct file_operations proc_fdinfo_operations = {
-+	.read		= generic_read_dir,
-+	.readdir	= proc_readfdinfo,
-+};
-+
-+/*
-+ * proc directories can do almost nothing..
-+ */
-+static const struct inode_operations proc_fdinfo_inode_operations = {
-+	.lookup		= proc_lookupfdinfo,
-+	.setattr	= proc_setattr,
-+};
-+
-+
- static struct dentry *proc_pident_instantiate(struct inode *dir,
- 	struct dentry *dentry, struct task_struct *task, const void *ptr)
+-/* system has shared jacks with mic in enabled */
+ static inline int is_shared_micin(struct snd_ac97 *ac97)
  {
-@@ -1881,6 +1975,7 @@ static const struct inode_operations pro
- static const struct pid_entry tgid_base_stuff[] = {
- 	DIR("task",       S_IRUGO|S_IXUGO, task),
- 	DIR("fd",         S_IRUSR|S_IXUSR, fd),
-+	DIR("fdinfo",     S_IRUSR|S_IXUSR, fdinfo),
- 	INF("environ",    S_IRUSR, pid_environ),
- 	INF("auxv",       S_IRUSR, pid_auxv),
- 	INF("status",     S_IRUGO, pid_status),
-@@ -2034,7 +2129,7 @@ static struct dentry *proc_pid_instantia
- 	inode->i_op = &proc_tgid_base_inode_operations;
- 	inode->i_fop = &proc_tgid_base_operations;
- 	inode->i_flags|=S_IMMUTABLE;
--	inode->i_nlink = 4;
-+	inode->i_nlink = 5;
- #ifdef CONFIG_SECURITY
- 	inode->i_nlink += 1;
- #endif
-@@ -2164,6 +2259,7 @@ out_no_task:
+-	return !ac97->indep_surround && !is_clfe_on(ac97);
++	return ! ac97->indep_surround && is_clfe_on(ac97);
+ }
+ 
+ 
+@@ -2476,12 +2462,12 @@ static void alc650_update_jacks(struct s
+ {
+ 	int shared;
+ 	
+-	/* shared Line-In / Surround Out */
+-	shared = is_shared_surrout(ac97);
++	/* shared Line-In */
++	shared = is_shared_linein(ac97);
+ 	snd_ac97_update_bits(ac97, AC97_ALC650_MULTICH, 1 << 9,
+ 			     shared ? (1 << 9) : 0);
+-	/* update shared Mic In / Center/LFE Out */
+-	shared = is_shared_clfeout(ac97);
++	/* update shared Mic */
++	shared = is_shared_micin(ac97);
+ 	/* disable/enable vref */
+ 	snd_ac97_update_bits(ac97, AC97_ALC650_CLOCK, 1 << 12,
+ 			     shared ? (1 << 12) : 0);
+@@ -2611,12 +2597,12 @@ static void alc655_update_jacks(struct s
+ {
+ 	int shared;
+ 	
+-	/* shared Line-In / Surround Out */
+-	shared = is_shared_surrout(ac97);
++	/* shared Line-In */
++	shared = is_shared_linein(ac97);
+ 	ac97_update_bits_page(ac97, AC97_ALC650_MULTICH, 1 << 9,
+ 			      shared ? (1 << 9) : 0, 0);
+-	/* update shared Mic In / Center/LFE Out */
+-	shared = is_shared_clfeout(ac97);
++	/* update shared mic */
++	shared = is_shared_micin(ac97);
+ 	/* misc control; vrefout disable */
+ 	snd_ac97_update_bits(ac97, AC97_ALC650_CLOCK, 1 << 12,
+ 			     shared ? (1 << 12) : 0);
+@@ -2761,16 +2747,16 @@ static void alc850_update_jacks(struct s
+ {
+ 	int shared;
+ 	
+-	/* shared Line-In / Surround Out */
+-	shared = is_shared_surrout(ac97);
++	/* shared Line-In */
++	shared = is_shared_linein(ac97);
+ 	/* SURR 1kOhm (bit4), Amp (bit5) */
+ 	snd_ac97_update_bits(ac97, AC97_ALC850_MISC1, (1<<4)|(1<<5),
+ 			     shared ? (1<<5) : (1<<4));
+ 	/* LINE-IN = 0, SURROUND = 2 */
+ 	snd_ac97_update_bits(ac97, AC97_ALC850_JACK_SELECT, 7 << 12,
+ 			     shared ? (2<<12) : (0<<12));
+-	/* update shared Mic In / Center/LFE Out */
+-	shared = is_shared_clfeout(ac97);
++	/* update shared mic */
++	shared = is_shared_micin(ac97);
+ 	/* Vref disable (bit12), 1kOhm (bit13) */
+ 	snd_ac97_update_bits(ac97, AC97_ALC850_MISC1, (1<<12)|(1<<13),
+ 			     shared ? (1<<12) : (1<<13));
+@@ -2843,9 +2829,9 @@ static int patch_alc850(struct snd_ac97 
   */
- static const struct pid_entry tid_base_stuff[] = {
- 	DIR("fd",        S_IRUSR|S_IXUSR, fd),
-+	DIR("fdinfo",    S_IRUSR|S_IXUSR, fdinfo),
- 	INF("environ",   S_IRUSR, pid_environ),
- 	INF("auxv",      S_IRUSR, pid_auxv),
- 	INF("status",    S_IRUGO, pid_status),
-@@ -2244,7 +2340,7 @@ static struct dentry *proc_task_instanti
- 	inode->i_op = &proc_tid_base_inode_operations;
- 	inode->i_fop = &proc_tid_base_operations;
- 	inode->i_flags|=S_IMMUTABLE;
--	inode->i_nlink = 3;
-+	inode->i_nlink = 4;
- #ifdef CONFIG_SECURITY
- 	inode->i_nlink += 1;
- #endif
+ static void cm9738_update_jacks(struct snd_ac97 *ac97)
+ {
+-	/* shared Line-In / Surround Out */
++	/* shared Line-In */
+ 	snd_ac97_update_bits(ac97, AC97_CM9738_VENDOR_CTRL, 1 << 10,
+-			     is_shared_surrout(ac97) ? (1 << 10) : 0);
++			     is_shared_linein(ac97) ? (1 << 10) : 0);
+ }
+ 
+ static const struct snd_kcontrol_new snd_ac97_cm9738_controls[] = {
+@@ -2927,12 +2913,12 @@ static const struct snd_kcontrol_new snd
+ 
+ static void cm9739_update_jacks(struct snd_ac97 *ac97)
+ {
+-	/* shared Line-In / Surround Out */
++	/* shared Line-In */
+ 	snd_ac97_update_bits(ac97, AC97_CM9739_MULTI_CHAN, 1 << 10,
+-			     is_shared_surrout(ac97) ? (1 << 10) : 0);
+-	/* shared Mic In / Center/LFE Out **/
++			     is_shared_linein(ac97) ? (1 << 10) : 0);
++	/* shared Mic */
+ 	snd_ac97_update_bits(ac97, AC97_CM9739_MULTI_CHAN, 0x3000,
+-			     is_shared_clfeout(ac97) ? 0x1000 : 0x2000);
++			     is_shared_micin(ac97) ? 0x1000 : 0x2000);
+ }
+ 
+ static const struct snd_kcontrol_new snd_ac97_cm9739_controls[] = {
+@@ -3044,8 +3030,8 @@ static void cm9761_update_jacks(struct s
+ 
+ 	val |= surr_on[ac97->spec.dev_flags][is_surround_on(ac97)];
+ 	val |= clfe_on[ac97->spec.dev_flags][is_clfe_on(ac97)];
+-	val |= surr_shared[ac97->spec.dev_flags][is_shared_surrout(ac97)];
+-	val |= clfe_shared[ac97->spec.dev_flags][is_shared_clfeout(ac97)];
++	val |= surr_shared[ac97->spec.dev_flags][is_shared_linein(ac97)];
++	val |= clfe_shared[ac97->spec.dev_flags][is_shared_micin(ac97)];
+ 
+ 	snd_ac97_update_bits(ac97, AC97_CM9761_MULTI_CHAN, 0x3c88, val);
+ }
+@@ -3388,12 +3374,12 @@ int patch_vt1617a(struct snd_ac97 * ac97
+  */
+ static void it2646_update_jacks(struct snd_ac97 *ac97)
+ {
+-	/* shared Line-In / Surround Out */
++	/* shared Line-In */
+ 	snd_ac97_update_bits(ac97, 0x76, 1 << 9,
+-			     is_shared_surrout(ac97) ? (1<<9) : 0);
+-	/* shared Mic / Center/LFE Out */
++			     is_shared_linein(ac97) ? (1<<9) : 0);
++	/* shared Mic */
+ 	snd_ac97_update_bits(ac97, 0x76, 1 << 10,
+-			     is_shared_clfeout(ac97) ? (1<<10) : 0);
++			     is_shared_micin(ac97) ? (1<<10) : 0);
+ }
+ 
+ static const struct snd_kcontrol_new snd_ac97_controls_it2646[] = {
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-shmem-fix-bug-in-shmem_writepage.patch
-shmem-dont-release-lock-for-hole-punching.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-piggy-bus.patch
+fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
+make-aout-executables-work-again.patch
+revert-ac97-fix-microphone-and-line_in-selection-logic.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
 mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-filesystem-subtype-support.patch
-add-file-position-info-to-proc.patch
-consolidate-generic_writepages-and-mpage_writepages.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+time-smp-friendly-alignment-of-struct-clocksource-fix.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
+mm-only-hrtimers-debug-patch-fix.patch
