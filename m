@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-compilation-problems.patch added to -mm tree
-Date: Tue, 27 Mar 2007 13:35:31 -0700
-Message-ID: <200703272035.l2RKZV0I027150@shell0.pdx.osdl.net>
+Subject: + fix-utrace-utrace-tracehook-um.patch added to -mm tree
+Date: Tue, 27 Mar 2007 13:37:02 -0700
+Message-ID: <200703272037.l2RKb2Ub027167@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42133 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42188 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965388AbXC0Ufj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 16:35:39 -0400
+	id S965404AbXC0UhQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 16:37:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, roland@redhat.com
 
 
 The patch titled
-     uml: fix compilation problems
+     fix utrace-utrace-tracehook-um
 has been added to the -mm tree.  Its filename is
-     uml-fix-compilation-problems.patch
+     fix-utrace-utrace-tracehook-um.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,61 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix compilation problems
+Subject: fix utrace-utrace-tracehook-um
 From: Jeff Dike <jdike@addtoit.com>
 
-Fix a few miscellaneous compilation problems -
-	an assignment with mismatched types in ldt.c
-	a missing include in mconsole.h which needs a definition of uml_pt_regs
-	when auditing is configured there are some mismatched types in ptrace.c
-	I missed removing an include of user_util.h in hostfs
+When auditing is configured there are some mismatched types in ptrace.c
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/mconsole.h |    2 ++
- arch/um/sys-i386/ldt.c     |    3 ++-
- fs/hostfs/hostfs_kern.c    |    1 -
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ arch/um/kernel/ptrace.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/um/include/mconsole.h~uml-fix-compilation-problems arch/um/include/mconsole.h
---- a/arch/um/include/mconsole.h~uml-fix-compilation-problems
-+++ a/arch/um/include/mconsole.h
-@@ -12,6 +12,8 @@
- #define u32 uint32_t
- #endif
+diff -puN arch/um/kernel/ptrace.c~fix-utrace-utrace-tracehook-um arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~fix-utrace-utrace-tracehook-um
++++ a/arch/um/kernel/ptrace.c
+@@ -48,8 +48,8 @@ void do_syscall_trace(struct pt_regs *re
+ 		secure_computing(PT_REGS_SYSCALL_NR(regs));
  
-+#include "sysdep/ptrace.h"
-+
- #define MCONSOLE_MAGIC (0xcafebabe)
- #define MCONSOLE_MAX_DATA (512)
- #define MCONSOLE_VERSION 2
-diff -puN arch/um/sys-i386/ldt.c~uml-fix-compilation-problems arch/um/sys-i386/ldt.c
---- a/arch/um/sys-i386/ldt.c~uml-fix-compilation-problems
-+++ a/arch/um/sys-i386/ldt.c
-@@ -394,7 +394,8 @@ static short * host_ldt_entries = NULL;
- static void ldt_get_host_info(void)
- {
- 	long ret;
--	struct ldt_entry * ldt, *tmp;
-+	struct ldt_entry * ldt;
-+	short *tmp;
- 	int i, size, k, order;
+ 	if (unlikely(current->audit_context) && entryexit)
+-		audit_syscall_exit(AUDITSC_RESULT(UPT_SYSCALL_RET(regs)),
+-				   UPT_SYSCALL_RET(regs));
++		audit_syscall_exit(AUDITSC_RESULT(UPT_SYSCALL_RET(&regs->regs)),
++				   UPT_SYSCALL_RET(&regs->regs));
  
- 	spin_lock(&host_ldt_lock);
-diff -puN fs/hostfs/hostfs_kern.c~uml-fix-compilation-problems fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~uml-fix-compilation-problems
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -20,7 +20,6 @@
- #include "hostfs.h"
- #include "kern_util.h"
- #include "kern.h"
--#include "user_util.h"
- #include "init.h"
+ 	if (test_thread_flag(TIF_SYSCALL_TRACE))
+ 		tracehook_report_syscall(regs, entryexit);
+@@ -61,9 +61,9 @@ void do_syscall_trace(struct pt_regs *re
  
- struct hostfs_inode_info {
+ 	if (unlikely(current->audit_context) && !entryexit)
+ 		audit_syscall_entry(HOST_AUDIT_ARCH,
+-					    UPT_SYSCALL_NR(regs),
+-					    UPT_SYSCALL_ARG1(regs),
+-					    UPT_SYSCALL_ARG2(regs),
+-					    UPT_SYSCALL_ARG3(regs),
+-					    UPT_SYSCALL_ARG4(regs));
++				    UPT_SYSCALL_NR(&regs->regs),
++				    UPT_SYSCALL_ARG1(&regs->regs),
++				    UPT_SYSCALL_ARG2(&regs->regs),
++				    UPT_SYSCALL_ARG3(&regs->regs),
++				    UPT_SYSCALL_ARG4(&regs->regs));
+ }
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
