@@ -1,157 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch removed from -mm tree
-Date: Mon, 26 Mar 2007 22:02:06 -0800
-Message-ID: <200703270602.l2R626Jq008870@shell0.pdx.osdl.net>
+Subject: - prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch removed from -mm tree
+Date: Mon, 26 Mar 2007 22:03:57 -0800
+Message-ID: <200703270603.l2R63v6L008961@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41111 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41109 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965254AbXC0GFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 02:05:24 -0400
+	id S965211AbXC0GFT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 02:05:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, lenb@kernel.org, tvignaud@mandriva.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: remove check_bug_kill()
+     prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
 has been removed from the -mm tree.  Its filename was
-     lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch
+     prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
 
-This patch was dropped because it was folded into lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
+This patch was dropped because it was folded into prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
 
 ------------------------------------------------------
-Subject: lguest: remove check_bug_kill()
-From: Adrian Bunk <bunk@stusta.de>
+Subject: prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-check_bug_kill() is no longer used.
-
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Thierry Vignaud <tvignaud@mandriva.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lguest/interrupts_and_traps.c |   27 ----------------------
- arch/i386/lguest/lg.h                   |    1 
- 2 files changed, 28 deletions(-)
+ arch/i386/kernel/acpi/earlyquirk.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/lguest/interrupts_and_traps.c~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy arch/i386/lguest/interrupts_and_traps.c
---- a/arch/i386/lguest/interrupts_and_traps.c~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy
-+++ a/arch/i386/lguest/interrupts_and_traps.c
-@@ -118,33 +118,6 @@ int deliver_trap(struct lguest *lg, unsi
- 	return 1;
- }
+diff -puN arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy arch/i386/kernel/acpi/earlyquirk.c
+--- a/arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy
++++ a/arch/i386/kernel/acpi/earlyquirk.c
+@@ -21,12 +21,13 @@ static int __init nvidia_hpet_check(stru
  
--void check_bug_kill(struct lguest *lg)
--{
--#ifdef CONFIG_BUG
--	u32 eip = lg->regs->eip - PAGE_OFFSET;
--	u16 insn;
--
--	/* This only works for addresses in linear mapping... */
--	if (lg->regs->eip < PAGE_OFFSET)
--		return;
--	lhread(lg, &insn, eip, sizeof(insn));
--	if (insn == 0x0b0f) {
--#ifdef CONFIG_DEBUG_BUGVERBOSE
--		u16 l;
--		u32 f;
--		char file[128];
--		lhread(lg, &l, eip+sizeof(insn), sizeof(l));
--		lhread(lg, &f, eip+sizeof(insn)+sizeof(l), sizeof(f));
--		lhread(lg, file, f - PAGE_OFFSET, sizeof(file));
--		file[sizeof(file)-1] = 0;
--		kill_guest(lg, "BUG() at %#x %s:%u", eip, file, l);
--#else
--		kill_guest(lg, "BUG() at %#x", eip);
--#endif	/* CONFIG_DEBUG_BUGVERBOSE */
--	}
--#endif	/* CONFIG_BUG */
--}
--
- static int direct_trap(const struct lguest *lg,
- 		       const struct desc_struct *trap,
- 		       unsigned int num)
-diff -puN arch/i386/lguest/lg.h~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy arch/i386/lguest/lg.h
---- a/arch/i386/lguest/lg.h~lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy
-+++ a/arch/i386/lguest/lg.h
-@@ -195,7 +195,6 @@ int find_free_guest(void);
- /* interrupts_and_traps.c: */
- void maybe_do_interrupt(struct lguest *lg);
- int deliver_trap(struct lguest *lg, unsigned int num);
--void check_bug_kill(struct lguest *lg);
- void load_guest_idt_entry(struct lguest *lg, unsigned int i, u32 low, u32 hi);
- void pin_stack_pages(struct lguest *lg);
- void pin_trap_pages(struct lguest *lg);
+ static int __init check_bridge(int vendor, int device)
+ {
+-	static int warned = 0;
++	static int warned;
+ #ifdef CONFIG_ACPI
+ 	/* According to Nvidia all timer overrides are bogus unless HPET
+ 	   is enabled. */
+ 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
+-		if (!warned && acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
++		if (!warned && acpi_table_parse(ACPI_SIG_HPET,
++						nvidia_hpet_check)) {
+ 			warned = 1;
+ 			acpi_skip_timer_override = 1;
+ 			  printk(KERN_INFO "Nvidia board "
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-spi-fix-section-mismatches.patch
-drivers-eisa-pci_eisacpci_eisa_init-should-be-init.patch
-net-sunrpc-svcsockc-fix-a-check.patch
+slab-introduce-krealloc-fix.patch
 git-acpi.patch
-git-powerpc.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
 git-drm.patch
 git-dvb.patch
+git-gfs2-nmw.patch
 git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-mmc_deselect_cards.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
 git-ubi.patch
 git-netdev-all.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-make-mptspi_target_destroy-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-piggy-bus.patch
+fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
 git-unionfs.patch
 git-wireless.patch
-git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
-make-struct-vmi_ops-static.patch
-i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
-i386-x86_64-early_printkc-make-simnow_init-static.patch
-make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
-lguest-kconfig-and-headers.patch
-lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
-lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages-tidy.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs-tidy.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda-fix.patch
+make-aout-executables-work-again-fix.patch
 revert-ac97-fix-microphone-and-line_in-selection-logic.patch
-drivers-mfd-sm501c-fix-an-off-by-one.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+time-smp-friendly-alignment-of-struct-clocksource-fix.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
+mm-only-hrtimers-debug-patch-fix.patch
