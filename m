@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-utrace-utrace-tracehook-um.patch added to -mm tree
-Date: Tue, 27 Mar 2007 13:37:02 -0700
-Message-ID: <200703272037.l2RKb2Ub027167@shell0.pdx.osdl.net>
+Subject: + adaptec-maintainers-updates.patch added to -mm tree
+Date: Tue, 27 Mar 2007 13:39:49 -0700
+Message-ID: <200703272039.l2RKdnxD027207@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42188 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42266 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965404AbXC0UhQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 16:37:16 -0400
+	id S965412AbXC0Ujz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 16:39:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, roland@redhat.com
+Cc: mark_salyzyn@adaptec.com, James.Bottomley@steeleye.com
 
 
 The patch titled
-     fix utrace-utrace-tracehook-um
+     adaptec MAINTAINERS updates
 has been added to the -mm tree.  Its filename is
-     fix-utrace-utrace-tracehook-um.patch
+     adaptec-maintainers-updates.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix utrace-utrace-tracehook-um
-From: Jeff Dike <jdike@addtoit.com>
+Subject: adaptec MAINTAINERS updates
+From: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
 
-When auditing is configured there are some mismatched types in ptrace.c
+The IPS and DPT_I2O drivers are missing, so here is my 'hand coded'
+addition to deal with overlap to the patch below (apply both). I
+selected Maintained rather than supported for the ips and dpt_i2o driver
+due to their legacy nature.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/ptrace.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ MAINTAINERS |   17 ++++++++++++++++-
+ 1 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/kernel/ptrace.c~fix-utrace-utrace-tracehook-um arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~fix-utrace-utrace-tracehook-um
-+++ a/arch/um/kernel/ptrace.c
-@@ -48,8 +48,8 @@ void do_syscall_trace(struct pt_regs *re
- 		secure_computing(PT_REGS_SYSCALL_NR(regs));
+diff -puN MAINTAINERS~adaptec-maintainers-updates MAINTAINERS
+--- a/MAINTAINERS~adaptec-maintainers-updates
++++ a/MAINTAINERS
+@@ -198,10 +198,25 @@ L:	linux-sound@vger.kernel.org
+ W:	http://www.stud.uni-karlsruhe.de/~uh1b/
+ S:	Maintained
  
- 	if (unlikely(current->audit_context) && entryexit)
--		audit_syscall_exit(AUDITSC_RESULT(UPT_SYSCALL_RET(regs)),
--				   UPT_SYSCALL_RET(regs));
-+		audit_syscall_exit(AUDITSC_RESULT(UPT_SYSCALL_RET(&regs->regs)),
-+				   UPT_SYSCALL_RET(&regs->regs));
++IPS SCSI RAID DRIVER
++P:	Adaptec OEM Raid Solutions
++M:	aacraid@adaptec.com
++L:	linux-scsi@vger.kernel.org
++W:	http://www.adaptec.com/
++S:	Maintained
++
++DPT_I2O SCSI RAID DRIVER
++P:	Adaptec OEM Raid Solutions
++M:	aacraid@adaptec.com
++L:	linux-scsi@vger.kernel.org
++W:	http://www.adaptec.com/
++S:	Maintained
++
+ AACRAID SCSI RAID DRIVER
+ P:	Adaptec OEM Raid Solutions
++M:	aacraid@adaptec.com
+ L:	linux-scsi@vger.kernel.org
+-W:	http://linux.dell.com/storage.shtml
++W:	http://www.adaptec.com/
+ S:	Supported
  
- 	if (test_thread_flag(TIF_SYSCALL_TRACE))
- 		tracehook_report_syscall(regs, entryexit);
-@@ -61,9 +61,9 @@ void do_syscall_trace(struct pt_regs *re
- 
- 	if (unlikely(current->audit_context) && !entryexit)
- 		audit_syscall_entry(HOST_AUDIT_ARCH,
--					    UPT_SYSCALL_NR(regs),
--					    UPT_SYSCALL_ARG1(regs),
--					    UPT_SYSCALL_ARG2(regs),
--					    UPT_SYSCALL_ARG3(regs),
--					    UPT_SYSCALL_ARG4(regs));
-+				    UPT_SYSCALL_NR(&regs->regs),
-+				    UPT_SYSCALL_ARG1(&regs->regs),
-+				    UPT_SYSCALL_ARG2(&regs->regs),
-+				    UPT_SYSCALL_ARG3(&regs->regs),
-+				    UPT_SYSCALL_ARG4(&regs->regs));
- }
+ ACPI
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from mark_salyzyn@adaptec.com are
 
-uml-fix-epoll.patch
-uml-fix-static-linking.patch
-uml-use-correct-register-file-size-everywhere.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-array_size-check-for-type-uml-fix.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-i386-fix-cmpxchg-warning.patch
-uml-fix-device-unplug-crash.patch
-uml-irq-locking-fixes.patch
-uml-fix-compilation-problems.patch
-fix-utrace-utrace-tracehook-um.patch
+adaptec-maintainers-updates.patch
+git-scsi-misc.patch
+drivers-scsi-aacraid-cleanups.patch
