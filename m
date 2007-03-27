@@ -1,252 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - make-aout-executables-work-again.patch removed from -mm tree
-Date: Tue, 27 Mar 2007 08:33:15 -0800
-Message-ID: <200703271633.l2RGXGXb020555@shell0.pdx.osdl.net>
+Subject: - fix-sudden-warps-in-mousedev.patch removed from -mm tree
+Date: Tue, 27 Mar 2007 09:58:46 -0800
+Message-ID: <200703271758.l2RHwkES023885@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:32774 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35782 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933115AbXC0Qew (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 12:34:52 -0400
+	id S934089AbXC0R7H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 27 Mar 2007 13:59:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: parag.warudkar@gmail.com, ak@suse.de, benh@kernel.crashing.org, joerg@hydrops.han.de, lethal@linux-sh.org, paulus@samba.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: zaitcev@redhat.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make aout executables work again
+     Fix sudden warps in mousedev
 has been removed from the -mm tree.  Its filename was
-     make-aout-executables-work-again.patch
+     fix-sudden-warps-in-mousedev.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Make aout executables work again
-From: Parag Warudkar <parag.warudkar@gmail.com>
+Subject: Fix sudden warps in mousedev
+From: Pete Zaitcev <zaitcev@redhat.com>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=7891
+On my laptop with Synaptics, if I lift the finger and place it elsewhere,
+the pointer sometimes warps dramatically. Here's the evtest trace
+which illustrates what happens:
 
-  "In kernel 2.6.18 the vdso page is no longer mapped for a.out binaries. 
-   For instance a program using sleep will sigsegv on delivery of SIGALRM (to
-   be precise: on return from signal handling).  I tested this using a static
-   a.out binary.  This program does work in 2.6.17 .  
+Event: time 1174703240.830555, type 3 (Absolute), code 0 (X), value 3907
+Event: time 1174703240.830557, type 3 (Absolute), code 1 (Y), value 3684
+Event: time 1174703240.830561, -------------- Report Sync ------------
+Event: time 1174703240.842205, type 3 (Absolute), code 0 (X), value 3909
+Event: time 1174703240.842208, type 3 (Absolute), code 1 (Y), value 3687
+         <---- value used by fy(2) later
+Event: time 1174703240.842211, -------------- Report Sync ------------
+Event: time 1174703240.854912, type 3 (Absolute), code 24 (Pressure), value 30
+Event: time 1174703240.854917, -------------- Report Sync ------------
+Event: time 1174703240.867130, type 1 (Key), code 330 (Touch), value 0
+         <---- touch=0 now, we drop pkt_count here
+Event: time 1174703240.867133, type 3 (Absolute), code 0 (X), value 3913
+Event: time 1174703240.867135, type 3 (Absolute), code 1 (Y), value 3699
+Event: time 1174703240.867137, type 3 (Absolute), code 24 (Pressure), value 17
+Event: time 1174703240.867139, -------------- Report Sync ------------
+Event: time 1174703240.877716, type 3 (Absolute), code 0 (X), value 3899
+Event: time 1174703240.877718, type 3 (Absolute), code 1 (Y), value 3720
+Event: time 1174703240.877721, type 3 (Absolute), code 24 (Pressure), value 8
+Event: time 1174703240.877723, type 3 (Absolute), code 28 (Tool Width), value 5
+Event: time 1174703240.877725, -------------- Report Sync ------------
+Event: time 1174703240.891954, type 3 (Absolute), code 0 (X), value 3898
+Event: time 1174703240.891957, type 3 (Absolute), code 1 (Y), value 3746
+Event: time 1174703240.891959, type 3 (Absolute), code 24 (Pressure), value 5
+Event: time 1174703240.891960, type 3 (Absolute), code 28 (Tool Width), value 6
+Event: time 1174703240.891965, -------------- Report Sync ------------
+Event: time 1174703240.918746, type 3 (Absolute), code 0 (X), value 1
+Event: time 1174703240.918749, type 3 (Absolute), code 1 (Y), value 5855
+Event: time 1174703240.918751, type 3 (Absolute), code 24 (Pressure), value 3
+Event: time 1174703240.918753, type 3 (Absolute), code 28 (Tool Width), value 5
+Event: time 1174703240.918756, type 1 (Key), code 325 (ToolFinger), value 0
+Event: time 1174703240.918758, type 1 (Key), code 333 (Tool Doubletap), value 1
+Event: time 1174703240.918760, -------------- Report Sync ------------
+Event: time 1174703240.929545, type 3 (Absolute), code 24 (Pressure), value 2
+Event: time 1174703240.929549, -------------- Report Sync ------------
+Event: time 1174703241.137650, type 3 (Absolute), code 24 (Pressure), value 1
+Event: time 1174703241.137655, -------------- Report Sync ------------
+Event: time 1174703241.386150, type 3 (Absolute), code 24 (Pressure), value 0
+Event: time 1174703241.386153, type 3 (Absolute), code 28 (Tool Width), value 0
+Event: time 1174703241.386155, type 1 (Key), code 333 (Tool Doubletap), value 0
+Event: time 1174703241.386158, -------------- Report Sync ------------
+Event: time 1174703243.119979, type 3 (Absolute), code 0 (X), value 4763
+Event: time 1174703243.119982, type 3 (Absolute), code 1 (Y), value 1964
+Event: time 1174703243.119984, type 3 (Absolute), code 24 (Pressure), value 8
+Event: time 1174703243.119985, type 3 (Absolute), code 28 (Tool Width), value 5
+Event: time 1174703243.119987, type 1 (Key), code 325 (ToolFinger), value 1
+Event: time 1174703243.119990, -------------- Report Sync ------------
+Event: time 1174703243.131696, type 3 (Absolute), code 0 (X), value 4760
+Event: time 1174703243.131699, type 3 (Absolute), code 1 (Y), value 1961
+Event: time 1174703243.131701, type 3 (Absolute), code 24 (Pressure), value 9
+Event: time 1174703243.131703, -------------- Report Sync ------------
+Event: time 1174703243.143436, type 3 (Absolute), code 24 (Pressure), value 12
+Event: time 1174703243.143440, type 3 (Absolute), code 28 (Tool Width), value 4
+Event: time 1174703243.143442, -------------- Report Sync ------------
+Event: time 1174703243.157148, type 3 (Absolute), code 24 (Pressure), value 15
+Event: time 1174703243.157153, -------------- Report Sync ------------
+Event: time 1174703243.169804, type 3 (Absolute), code 0 (X), value 4757
+Event: time 1174703243.169806, type 3 (Absolute), code 1 (Y), value 1999
+Event: time 1174703243.169808, type 3 (Absolute), code 24 (Pressure), value 18
+Event: time 1174703243.169811, -------------- Report Sync ------------
+Event: time 1174703243.181728, type 3 (Absolute), code 0 (X), value 4753
+Event: time 1174703243.181731, type 3 (Absolute), code 24 (Pressure), value 20
+Event: time 1174703243.181735, -------------- Report Sync ------------
+Event: time 1174703243.193445, type 3 (Absolute), code 24 (Pressure), value 21
+Event: time 1174703243.193448, -------------- Report Sync ------------
+Event: time 1174703243.206640, type 3 (Absolute), code 0 (X), value 4748
+Event: time 1174703243.206643, type 3 (Absolute), code 1 (Y), value 1997
+Event: time 1174703243.206645, type 3 (Absolute), code 24 (Pressure), value 23
+Event: time 1174703243.206647, -------------- Report Sync ------------
+Event: time 1174703243.219358, type 3 (Absolute), code 24 (Pressure), value 24
+Event: time 1174703243.219362, -------------- Report Sync ------------
+Event: time 1174703243.231448, type 3 (Absolute), code 0 (X), value 4752
+Event: time 1174703243.231450, type 3 (Absolute), code 1 (Y), value 1993
+Event: time 1174703243.231452, type 3 (Absolute), code 24 (Pressure), value 25
+Event: time 1174703243.231455, -------------- Report Sync ------------
+Event: time 1174703243.243435, type 3 (Absolute), code 1 (Y), value 1989
+Event: time 1174703243.243438, type 3 (Absolute), code 24 (Pressure), value 27
+Event: time 1174703243.243440, -------------- Report Sync ------------
+Event: time 1174703243.255193, type 3 (Absolute), code 0 (X), value 4748
+Event: time 1174703243.255197, type 3 (Absolute), code 24 (Pressure), value 28
+Event: time 1174703243.255201, -------------- Report Sync ------------
+Event: time 1174703243.268904, type 3 (Absolute), code 0 (X), value 4746
+Event: time 1174703243.268907, type 3 (Absolute), code 1 (Y), value 1990
+Event: time 1174703243.268909, type 3 (Absolute), code 24 (Pressure), value 29
+Event: time 1174703243.268911, -------------- Report Sync ------------
+Event: time 1174703243.293295, type 3 (Absolute), code 1 (Y), value 1986
+Event: time 1174703243.293298, type 3 (Absolute), code 24 (Pressure), value 30
+Event: time 1174703243.293301, -------------- Report Sync ------------
+Event: time 1174703243.305535, type 1 (Key), code 330 (Touch), value 1
+          <---- touch!=0 now, we're on
+Event: time 1174703243.305538, type 3 (Absolute), code 24 (Pressure), value 31
+Event: time 1174703243.305541, -------------- Report Sync ------------
+          <---- We increment the pkt_count, leaving value of 3687 in old_y
+Event: time 1174703243.342452, type 3 (Absolute), code 0 (X), value 4747
+Event: time 1174703243.342455, type 3 (Absolute), code 1 (Y), value 1988
+          <----- Later to be fy(1), not used for warping purposes :-)
+Event: time 1174703243.342459, -------------- Report Sync ------------
+Event: time 1174703243.356225, type 3 (Absolute), code 0 (X), value 4749
+Event: time 1174703243.356237, type 3 (Absolute), code 1 (Y), value 1987
+          <----- warp here, by the difference of 3687 and 1987, plus
+                 some small frac_dy value. Easily jumps half the screen.
+Event: time 1174703243.356246, -------------- Report Sync ------------
 
-   cat /proc/pid/smaps does show that vdso is not mapped in 2.6.18 for an
-   a.out binary.  I had a look at fs/binfmt_elf.c and found that the vdso
-   pages is mapped using arch_setup_additional_pages from
-   arch/i386/kernel/sysenter.c for elf."
-
-
-1) Define arch_setup_additional_pages() as weak in linux/interp.h
-
-2) Include linux/interp.h in appropriate places
-
-3) Conditionally call arch_setup_additional_pages() from binfmt_*.c if
-   the arch defines it
-
-4) EXPORT_SYMBOL_GPL(arch_setup_additional_pages) for all x86{64},
-   powerpc, sh - binfmt_aout can be built as module
-
-5) Get rid of ARCH_HAS_SETUP_ADDITIONAL_PAGES from various places
-
-6) For x86_64 - define and export arch_setup_additional_pages as a
-   wrapper over syscall32_setup_pages, call it from ia32_aout.c
-
-Fully tested on x86. (Compile, boot and run the aout binary at
-http://ftp.funet.fi/pub/Linux/bin/as86.tar.Z). Other arches - changes are
-minimal but still I'll appreciate if someone tests them.
-
-[akpm@linux-foundation.org: build fixes]
-Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
-Cc: Joerg Ahrens <joerg@hydrops.han.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sysenter.c        |    1 +
- arch/powerpc/kernel/vdso.c         |    1 +
- arch/sh/kernel/vsyscall/vsyscall.c |    1 +
- arch/x86_64/ia32/ia32_aout.c       |    7 +++++++
- arch/x86_64/ia32/ia32_binfmt.c     |    4 ----
- arch/x86_64/ia32/syscall32.c       |    7 +++++++
- fs/binfmt_aout.c                   |    9 +++++++++
- fs/binfmt_elf.c                    |   13 +++++++------
- include/linux/interp.h             |    8 ++++++++
- 9 files changed, 41 insertions(+), 10 deletions(-)
+ drivers/input/mousedev.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/sysenter.c~make-aout-executables-work-again arch/i386/kernel/sysenter.c
---- a/arch/i386/kernel/sysenter.c~make-aout-executables-work-again
-+++ a/arch/i386/kernel/sysenter.c
-@@ -137,6 +137,7 @@ up_fail:
- 	up_write(&mm->mmap_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(arch_setup_additional_pages);
+diff -puN drivers/input/mousedev.c~fix-sudden-warps-in-mousedev drivers/input/mousedev.c
+--- a/drivers/input/mousedev.c~fix-sudden-warps-in-mousedev
++++ a/drivers/input/mousedev.c
+@@ -278,6 +278,8 @@ static void mousedev_notify_readers(stru
  
- const char *arch_vma_name(struct vm_area_struct *vma)
+ static void mousedev_touchpad_touch(struct mousedev *mousedev, int value)
  {
-diff -puN arch/powerpc/kernel/vdso.c~make-aout-executables-work-again arch/powerpc/kernel/vdso.c
---- a/arch/powerpc/kernel/vdso.c~make-aout-executables-work-again
-+++ a/arch/powerpc/kernel/vdso.c
-@@ -256,6 +256,7 @@ int arch_setup_additional_pages(struct l
- 	up_write(&mm->mmap_sem);
- 	return rc;
- }
-+EXPORT_SYMBOL_GPL(arch_setup_additional_pages);
++	struct input_dev *dev;
++
+ 	if (!value) {
+ 		if (mousedev->touch &&
+ 		    time_before(jiffies, mousedev->touch + msecs_to_jiffies(tap_time))) {
+@@ -297,8 +299,22 @@ static void mousedev_touchpad_touch(stru
+ 		mousedev->frac_dx = 0;
+ 		mousedev->frac_dy = 0;
  
- const char *arch_vma_name(struct vm_area_struct *vma)
- {
-diff -puN arch/sh/kernel/vsyscall/vsyscall.c~make-aout-executables-work-again arch/sh/kernel/vsyscall/vsyscall.c
---- a/arch/sh/kernel/vsyscall/vsyscall.c~make-aout-executables-work-again
-+++ a/arch/sh/kernel/vsyscall/vsyscall.c
-@@ -85,6 +85,7 @@ up_fail:
- 	up_write(&mm->mmap_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(arch_setup_additional_pages);
- 
- const char *arch_vma_name(struct vm_area_struct *vma)
- {
-diff -puN arch/x86_64/ia32/ia32_aout.c~make-aout-executables-work-again arch/x86_64/ia32/ia32_aout.c
---- a/arch/x86_64/ia32/ia32_aout.c~make-aout-executables-work-again
-+++ a/arch/x86_64/ia32/ia32_aout.c
-@@ -23,6 +23,7 @@
- #include <linux/user.h>
- #include <linux/slab.h>
- #include <linux/binfmts.h>
-+#include <linux/interp.h>
- #include <linux/personality.h>
- #include <linux/init.h>
- 
-@@ -411,6 +412,12 @@ beyond_if:
- 		return retval;
- 	}
- 
-+	retval = arch_setup_additional_pages(bprm, EXSTACK_DEFAULT);
-+	if (retval < 0) {
-+		send_sig(SIGKILL, current, 0);
-+		return retval;
+-	} else if (!mousedev->touch)
++	} else if (!mousedev->touch) {
+ 		mousedev->touch = jiffies;
++		/*
++		 * Seed the ring with new position where finger has just landed.
++		 *
++		 * Without this, a touchpad may report an unchanged position,
++		 * then a sync. The input_event() eats the position report, but
++		 * lets the sync through. We increment pkt_count and leave
++		 * a stale position in the ring. If a future reference to fx(2)
++		 * hits the stale position, a large dx is reported, and the
++		 * pointer warps across the screen.
++		 */
++		dev = mousedev->handle.dev;
++		fx(0) = dev->abs[ABS_X];
++		fy(0) = dev->abs[ABS_Y];
 +	}
-+
- 	current->mm->start_stack =
- 		(unsigned long)create_aout_tables((char __user *)bprm->p, bprm);
- 	/* start thread */
-diff -puN arch/x86_64/ia32/ia32_binfmt.c~make-aout-executables-work-again arch/x86_64/ia32/ia32_binfmt.c
---- a/arch/x86_64/ia32/ia32_binfmt.c~make-aout-executables-work-again
-+++ a/arch/x86_64/ia32/ia32_binfmt.c
-@@ -260,10 +260,6 @@ MODULE_AUTHOR("Eric Youngdale, Andi Klee
- 
- static void elf32_init(struct pt_regs *);
- 
--#define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
--#define arch_setup_additional_pages syscall32_setup_pages
--extern int syscall32_setup_pages(struct linux_binprm *, int exstack);
--
- #include "../../../fs/binfmt_elf.c" 
- 
- static void elf32_init(struct pt_regs *regs)
-diff -puN arch/x86_64/ia32/syscall32.c~make-aout-executables-work-again arch/x86_64/ia32/syscall32.c
---- a/arch/x86_64/ia32/syscall32.c~make-aout-executables-work-again
-+++ a/arch/x86_64/ia32/syscall32.c
-@@ -7,6 +7,7 @@
- #include <linux/string.h>
- #include <linux/kernel.h>
- #include <linux/gfp.h>
-+#include <linux/module.h>
- #include <linux/init.h>
- #include <linux/stringify.h>
- #include <linux/security.h>
-@@ -49,6 +50,12 @@ int syscall32_setup_pages(struct linux_b
- 	return ret;
  }
  
-+int arch_setup_additional_pages(struct linux_binprm* bprm, int exstack)
-+{
-+	return syscall32_setup_pages(bprm, exstack);
-+}
-+EXPORT_SYMBOL_GPL(arch_setup_additional_pages);
-+
- const char *arch_vma_name(struct vm_area_struct *vma)
- {
- 	if (vma->vm_start == VSYSCALL32_BASE &&
-diff -puN fs/binfmt_aout.c~make-aout-executables-work-again fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~make-aout-executables-work-again
-+++ a/fs/binfmt_aout.c
-@@ -22,6 +22,7 @@
- #include <linux/user.h>
- #include <linux/slab.h>
- #include <linux/binfmts.h>
-+#include <linux/interp.h>
- #include <linux/personality.h>
- #include <linux/init.h>
- 
-@@ -446,6 +447,14 @@ beyond_if:
- 		return retval;
- 	}
- 
-+	if(arch_setup_additional_pages) {
-+		retval = arch_setup_additional_pages(bprm, EXSTACK_DEFAULT);
-+		if (retval < 0) {
-+			send_sig(SIGKILL, current, 0);
-+			return retval;
-+		}
-+	}
-+
- 	current->mm->start_stack =
- 		(unsigned long) create_aout_tables((char __user *) bprm->p, bprm);
- #ifdef __alpha__
-diff -puN fs/binfmt_elf.c~make-aout-executables-work-again fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~make-aout-executables-work-again
-+++ a/fs/binfmt_elf.c
-@@ -20,6 +20,7 @@
- #include <linux/errno.h>
- #include <linux/signal.h>
- #include <linux/binfmts.h>
-+#include <linux/interp.h>
- #include <linux/string.h>
- #include <linux/file.h>
- #include <linux/fcntl.h>
-@@ -975,13 +976,13 @@ static int load_elf_binary(struct linux_
- 
- 	set_binfmt(&elf_format);
- 
--#ifdef ARCH_HAS_SETUP_ADDITIONAL_PAGES
--	retval = arch_setup_additional_pages(bprm, executable_stack);
--	if (retval < 0) {
--		send_sig(SIGKILL, current, 0);
--		goto out;
-+	if (arch_setup_additional_pages) {
-+		retval = arch_setup_additional_pages(bprm, executable_stack);
-+		if (retval < 0) {
-+			send_sig(SIGKILL, current, 0);
-+			goto out;
-+		}
- 	}
--#endif /* ARCH_HAS_SETUP_ADDITIONAL_PAGES */
- 
- 	compute_creds(bprm);
- 	current->flags &= ~PF_FORKNOEXEC;
-diff -puN /dev/null include/linux/interp.h
---- /dev/null
-+++ a/include/linux/interp.h
-@@ -0,0 +1,8 @@
-+#ifndef _LINUX_INTERP_H
-+#define _LINUX_INTERP_H
-+
-+struct linux_binprm;
-+
-+extern int __attribute__((weak))
-+	arch_setup_additional_pages(struct linux_binprm*, int);
-+#endif /* _LINUX_INTERP_H */
+ static void mousedev_event(struct input_handle *handle, unsigned int type, unsigned int code, int value)
 _
 
-Patches currently in -mm which might be from parag.warudkar@gmail.com are
+Patches currently in -mm which might be from zaitcev@redhat.com are
 
-fdomainc-get-rid-of-unused-stuff.patch
-apmc-get-rid-of-unused-variables.patch
-apm-remove-the-apm_rtc_is_gmt-config-option.patch
-make-aout-executables-work-again.patch
+fix-sudden-warps-in-mousedev.patch
