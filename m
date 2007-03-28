@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-kexec-calculate-note-size-at-compile-time.patch added to -mm tree
-Date: Wed, 28 Mar 2007 16:42:09 -0700
-Message-ID: <200703282342.l2SNg9NK022884@shell0.pdx.osdl.net>
+Subject: + x86_64-fix-vtime-vsyscall.patch added to -mm tree
+Date: Wed, 28 Mar 2007 16:48:57 -0700
+Message-ID: <200703282348.l2SNmvgB023031@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35772 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35898 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933796AbXC1XnK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 19:43:10 -0400
+	id S965814AbXC1Xt2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 19:49:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: horms@verge.net.au, vgoyal@in.ibm.com
+Cc: dada1@cosmosbay.com, ak@suse.de
 
 
 The patch titled
-     kdump/kexec: calculate note size at compile time
+     x86_64: fix vtime() vsyscall
 has been added to the -mm tree.  Its filename is
-     kdump-kexec-calculate-note-size-at-compile-time.patch
+     x86_64-fix-vtime-vsyscall.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,180 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kdump/kexec: calculate note size at compile time
-From: Horms <horms@verge.net.au>
+Subject: x86_64: fix vtime() vsyscall
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-Currently the size of the per-cpu region reserved to save crash notes is
-set by the per-architecture value MAX_NOTE_BYTES.  Which in turn is
-currently set to 1024 on all supported architectures.
+There is a tiny probability that the return value from vtime(time_t *t) is
+different from the value stored in *t.
 
-While testing ia64 I recently discovered that this value is in fact too
-small.  The particular setup I was using actually needs 1172 bytes.  This
-lead to very tedious failure mode where the tail of one elf note would
-overwrite the head of another if they ended up being alocated sequentially
-by kmalloc, which was often the case.
+Using a temporary variable solves the problem and gives a faster code.
 
-It seems to me that a far better approach is to caclculate the size that
-the area needs to be.  This patch does just that.
+   17:   48 85 ff                test   %rdi,%rdi
+   1a:   48 8b 05 00 00 00 00    mov    0(%rip),%rax        #
+__vsyscall_gtod_data.wall_time_tv.tv_sec
+   21:   74 03                   je     26
+   23:   48 89 07                mov    %rax,(%rdi)
+   26:   c9                      leaveq
+   27:   c3                      retq
 
-If a simpler stop-gap patch for ia64 to be squeezed into 2.6.21(.X) is
-needed then this should be as easy as making MAX_NOTE_BYTES larger in
-arch/asm-ia64/kexec.h.  Perhaps 2048 would be a good choice.  However, I
-think that the approach in this patch is a much more robust idea.
-
-Signed-off-by: Simon Horman <horms@verge.net.au>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/kexec.h     |    2 --
- include/asm-i386/kexec.h    |    2 --
- include/asm-ia64/kexec.h    |    2 --
- include/asm-mips/kexec.h    |    2 --
- include/asm-powerpc/kexec.h |    2 --
- include/asm-s390/kexec.h    |    2 --
- include/asm-sh/kexec.h      |    2 --
- include/asm-x86_64/kexec.h  |    2 --
- include/linux/kexec.h       |   11 ++++++++++-
- 9 files changed, 10 insertions(+), 17 deletions(-)
+ arch/x86_64/kernel/vsyscall.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-arm/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-arm/kexec.h
---- a/include/asm-arm/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
-+++ a/include/asm-arm/kexec.h
-@@ -16,8 +16,6 @@
+diff -puN arch/x86_64/kernel/vsyscall.c~x86_64-fix-vtime-vsyscall arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~x86_64-fix-vtime-vsyscall
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -147,15 +147,15 @@ int __vsyscall(0) vgettimeofday(struct t
+ 	return 0;
+ }
  
- #ifndef __ASSEMBLY__
- 
--#define MAX_NOTE_BYTES 1024
--
- struct kimage;
- /* Provide a dummy definition to avoid build failures. */
- static inline void crash_setup_regs(struct pt_regs *newregs,
-diff -puN include/asm-i386/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-i386/kexec.h
---- a/include/asm-i386/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
-+++ a/include/asm-i386/kexec.h
-@@ -47,8 +47,6 @@
- /* The native architecture */
- #define KEXEC_ARCH KEXEC_ARCH_386
- 
--#define MAX_NOTE_BYTES 1024
--
- /* CPU does not save ss and esp on stack if execution is already
-  * running in kernel mode at the time of NMI occurrence. This code
-  * fixes it.
-diff -puN include/asm-ia64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-ia64/kexec.h
---- a/include/asm-ia64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
-+++ a/include/asm-ia64/kexec.h
-@@ -14,8 +14,6 @@
- /* The native architecture */
- #define KEXEC_ARCH KEXEC_ARCH_IA_64
- 
--#define MAX_NOTE_BYTES 1024
--
- #define kexec_flush_icache_page(page) do { \
-                 unsigned long page_addr = (unsigned long)page_address(page); \
-                 flush_icache_range(page_addr, page_addr + PAGE_SIZE); \
-diff -puN include/asm-mips/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-mips/kexec.h
---- a/include/asm-mips/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
-+++ a/include/asm-mips/kexec.h
-@@ -21,8 +21,6 @@
- /* The native architecture */
- #define KEXEC_ARCH KEXEC_ARCH_MIPS
- 
--#define MAX_NOTE_BYTES 1024
--
- static inline void crash_setup_regs(struct pt_regs *newregs,
- 				    struct pt_regs *oldregs)
+-/* This will break when the xtime seconds get inaccurate, but that is
+- * unlikely */
+ time_t __vsyscall(1) vtime(time_t *t)
  {
-diff -puN include/asm-powerpc/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-powerpc/kexec.h
---- a/include/asm-powerpc/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
-+++ a/include/asm-powerpc/kexec.h
-@@ -108,8 +108,6 @@ static inline void crash_setup_regs(stru
- 					struct pt_regs *oldregs) { }
- #endif /* !__powerpc64 __ */
++	time_t result;
+ 	if (unlikely(!__vsyscall_gtod_data.sysctl_enabled))
+ 		return time_syscall(t);
+-	else if (t)
+-		*t = __vsyscall_gtod_data.wall_time_tv.tv_sec;
+-	return __vsyscall_gtod_data.wall_time_tv.tv_sec;
++	result = __vsyscall_gtod_data.wall_time_tv.tv_sec;
++	if (t)
++		*t = result;
++	return result;
+ }
  
--#define MAX_NOTE_BYTES 1024
--
- extern void kexec_smp_wait(void);	/* get and clear naca physid, wait for
- 					  master to copy new code to 0 */
- extern int crashing_cpu;
-diff -puN include/asm-s390/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-s390/kexec.h
---- a/include/asm-s390/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
-+++ a/include/asm-s390/kexec.h
-@@ -34,8 +34,6 @@
- /* The native architecture */
- #define KEXEC_ARCH KEXEC_ARCH_S390
- 
--#define MAX_NOTE_BYTES 1024
--
- /* Provide a dummy definition to avoid build failures. */
- static inline void crash_setup_regs(struct pt_regs *newregs,
- 					struct pt_regs *oldregs) { }
-diff -puN include/asm-sh/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-sh/kexec.h
---- a/include/asm-sh/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
-+++ a/include/asm-sh/kexec.h
-@@ -23,8 +23,6 @@
- /* The native architecture */
- #define KEXEC_ARCH KEXEC_ARCH_SH
- 
--#define MAX_NOTE_BYTES 1024
--
- /* Provide a dummy definition to avoid build failures. */
- static inline void crash_setup_regs(struct pt_regs *newregs,
- 					struct pt_regs *oldregs) { }
-diff -puN include/asm-x86_64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-x86_64/kexec.h
---- a/include/asm-x86_64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
-+++ a/include/asm-x86_64/kexec.h
-@@ -48,8 +48,6 @@
- /* The native architecture */
- #define KEXEC_ARCH KEXEC_ARCH_X86_64
- 
--#define MAX_NOTE_BYTES 1024
--
- /*
-  * Saving the registers of the cpu on which panic occured in
-  * crash_kexec to save a valid sp. The registers of other cpus
-diff -puN include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/linux/kexec.h
---- a/include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
-+++ a/include/linux/kexec.h
-@@ -7,6 +7,8 @@
- #include <linux/linkage.h>
- #include <linux/compat.h>
- #include <linux/ioport.h>
-+#include <linux/elfcore.h>
-+#include <linux/elf.h>
- #include <asm/kexec.h>
- 
- /* Verify architecture specific macros are defined */
-@@ -31,6 +33,13 @@
- #error KEXEC_ARCH not defined
- #endif
- 
-+#define KEXEC_NOTE_NAME "CORE"
-+#define KEXEC_NOTE_HEAD_BYTES ALIGN(sizeof(struct elf_note), 4)
-+#define KEXEC_NOTE_NAME_BYTES ALIGN(strlen(KEXEC_NOTE_NAME) + 1, 4)
-+#define KEXEC_NOTE_DESC_BYTES ALIGN(sizeof(struct elf_prstatus), 4)
-+#define KEXEC_NOTE_BYTES ( (KEXEC_NOTE_HEAD_BYTES * 2) + \
-+			   KEXEC_NOTE_NAME_BYTES + KEXEC_NOTE_DESC_BYTES )
-+
- /*
-  * This structure is used to hold the arguments that are used when loading
-  * kernel binaries.
-@@ -136,7 +145,7 @@ extern struct kimage *kexec_crash_image;
- /* Location of a reserved region to hold the crash kernel.
-  */
- extern struct resource crashk_res;
--typedef u32 note_buf_t[MAX_NOTE_BYTES/4];
-+typedef u32 note_buf_t[KEXEC_NOTE_BYTES/4];
- extern note_buf_t *crash_notes;
- 
- 
+ /* Fast way to get current CPU and node.
 _
 
-Patches currently in -mm which might be from horms@verge.net.au are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-kdump-kexec-calculate-note-size-at-compile-time.patch
-git-ia64.patch
-git-scsi-misc.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone.patch
+x86_64-fix-vtime-vsyscall.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+slab-dont-allocate-empty-shared-caches.patch
+slab-numa-kmem_cache-diet.patch
+optimize-timespec_trunc.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+vfs-delay-the-dentry-name-generation-on-sockets-and.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
