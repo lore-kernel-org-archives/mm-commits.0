@@ -1,114 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - arch-i386-kernel-alternativec-dont-include-bugsh.patch removed from -mm tree
-Date: Wed, 28 Mar 2007 11:40:53 -0700
-Message-ID: <200703281840.l2SIergw017259@shell0.pdx.osdl.net>
+Subject: - arch-i386-kernel-alternativec-should-include-asm-bugsh.patch removed from -mm tree
+Date: Wed, 28 Mar 2007 11:40:46 -0700
+Message-ID: <200703281840.l2SIemvb017256@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53693 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53761 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965587AbXC1SlH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 14:41:07 -0400
+	id S965657AbXC1SoF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 14:44:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@muc.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/i386/kernel/alternative.c: don't include bugs.h
+     arch/i386/kernel/alternative.c should #include <asm/bugs.h>
 has been removed from the -mm tree.  Its filename was
-     arch-i386-kernel-alternativec-dont-include-bugsh.patch
+     arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: arch/i386/kernel/alternative.c: don't include bugs.h
-From: Andrew Morton <akpm@osdl.org>
+Subject: arch/i386/kernel/alternative.c should #include <asm/bugs.h>
+From: Adrian Bunk <bunk@stusta.de>
 
-That stupid non-inlined-static function in bugs.h causes:
+Every file should include the headers containing the prototypes for its
+global functions.
 
-include/asm/bugs.h:186: warning: 'check_bugs' defined but not used
-
-But fortunately the include isn't needed.
-
-Cc: Andi Kleen <ak@muc.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/i386/kernel/alternative.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-dont-include-bugsh arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-dont-include-bugsh
+diff -puN arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-should-include-asm-bugsh arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-should-include-asm-bugsh
 +++ a/arch/i386/kernel/alternative.c
-@@ -4,7 +4,6 @@
+@@ -4,6 +4,7 @@
  #include <linux/list.h>
  #include <asm/alternative.h>
  #include <asm/sections.h>
--#include <asm/bugs.h>
++#include <asm/bugs.h>
  
  static int no_replacement    = 0;
  static int smp_alt_once      = 0;
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
+origin.patch
+drivers-spi-fix-section-mismatches.patch
+drivers-eisa-pci_eisacpci_eisa_init-should-be-init.patch
+remove-the-warn_on-in-arch-x86_64-kernel-acpi-sleepcinit_low_mapping.patch
+net-sunrpc-svcsockc-fix-a-check.patch
+git-acpi.patch
 git-powerpc.patch
-git-ia64.patch
+git-drm.patch
+git-dvb.patch
 git-ieee1394.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+remove-mmc_deselect_cards.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
 git-ubi.patch
 git-netdev-all.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-dpt_i2oc-remove-dead-code.patch
+drivers-scsi-aic7xxx-make-functions-static.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+drivers-scsi-aacraid-cleanups.patch
+make-mptspi_target_destroy-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
 git-ipwireless_cs.patch
-arch-i386-kernel-alternativec-dont-include-bugsh.patch
+arch-i386-kernel-alternativec-should-include-asm-bugsh.patch
+make-struct-vmi_ops-static.patch
+i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+i386-x86_64-early_printkc-make-simnow_init-static.patch
+make-arch-i386-kernel-vmicvmi_pmd_clear-static.patch
+lguest-kconfig-and-headers.patch
+lguest-optimize-away-copy-in-and-out-of-per-cpu-guest-pages.patch
+drivers-mfd-sm501c-fix-an-off-by-one.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
 lumpy-reclaim-v4.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-block_write_full_page-handle-enospc.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-epoll-optimizations-and-cleanups-tidy.patch
-sync_sb_inodes-propagate-errors.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-move-page-writeback-acounting-out-of-macros.patch
-per-backing_dev-dirty-and-writeback-page-accounting.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
 ext2-reservations.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-aio-is-unlikely.patch
-mm-implement-swap-prefetching.patch
-readahead-kconfig-options.patch
-readahead-minmax_ra_pages.patch
-readahead-sysctl-parameters.patch
-readahead-context-based-method.patch
-readahead-call-scheme.patch
-readahead-nfsd-case.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+drivers-edac-make-code-static.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-e1000-printk-warning-fixes.patch
-acpi_format_exception-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
