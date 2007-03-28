@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atl1-remove-unnecessary-crc-inversion.patch added to -mm tree
-Date: Tue, 27 Mar 2007 17:08:18 -0800
-Message-ID: <200703280108.l2S18IhV032151@shell0.pdx.osdl.net>
+Subject: + uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch added to -mm tree
+Date: Wed, 28 Mar 2007 02:53:17 -0700
+Message-ID: <200703280953.l2S9rHdc008078@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49373 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34933 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965544AbXC1BIe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 27 Mar 2007 21:08:34 -0400
+	id S1752924AbXC1Jx2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 05:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jacliburn@bellsouth.net, jareguero@telefonica.net, jeff@garzik.org
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     atl1: remove unnecessary crc inversion
+     uml: fix I/O hang when multiple devices are in use
 has been added to the -mm tree.  Its filename is
-     atl1-remove-unnecessary-crc-inversion.patch
+     uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,116 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atl1: remove unnecessary crc inversion
-From: Jay Cliburn <jacliburn@bellsouth.net>
+Subject: uml: fix I/O hang when multiple devices are in use
+From: Jeff Dike <jdike@addtoit.com>
 
-The original vendor driver contained a private ether_crc_le() function that
-produced an inverted crc.  When we changed to the kernel version of
-ether_crc_le(), we neglected to undo the inversion.  Let's do it now. 
-Discovered by and patch proffered by Jose Alberto Reguero.
+Commit 62f96cb01e8de7a5daee472e540f726db2801499 introduced per-devices
+queues and locks, which was fine as far as it went, but left in place a
+global which controlled access to submitting requests to the host.  This
+should have been made per-device as well, since it causes I/O hangs when
+multiple block devices are in use.
 
-Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
-Cc: Jeff Garzik <jeff@garzik.org>
+This patch fixes that by replacing the global with an activity flag in the
+device structure in order to tell whether the queue is currently being run.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1/atl1_hw.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/um/drivers/ubd_kern.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/atl1/atl1_hw.c~atl1-remove-unnecessary-crc-inversion drivers/net/atl1/atl1_hw.c
---- a/drivers/net/atl1/atl1_hw.c~atl1-remove-unnecessary-crc-inversion
-+++ a/drivers/net/atl1/atl1_hw.c
-@@ -334,7 +334,6 @@ u32 atl1_hash_mc_addr(struct atl1_hw *hw
- 	int i;
+diff -puN arch/um/drivers/ubd_kern.c~uml-fix-i-o-hang-when-multiple-devices-are-in-use arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~uml-fix-i-o-hang-when-multiple-devices-are-in-use
++++ a/arch/um/drivers/ubd_kern.c
+@@ -109,10 +109,6 @@ static inline void ubd_set_bit(__u64 bit
  
- 	crc32 = ether_crc_le(6, mc_addr);
--	crc32 = ~crc32;
- 	for (i = 0; i < 32; i++)
- 		value |= (((crc32 >> i) & 1) << (31 - i));
+ static DEFINE_MUTEX(ubd_lock);
  
+-/* XXX - this made sense in 2.4 days, now it's only used as a boolean, and
+- * probably it doesn't make sense even for that. */
+-static int do_ubd;
+-
+ static int ubd_open(struct inode * inode, struct file * filp);
+ static int ubd_release(struct inode * inode, struct file * file);
+ static int ubd_ioctl(struct inode * inode, struct file * file,
+@@ -169,6 +165,7 @@ struct ubd {
+ 	struct platform_device pdev;
+ 	struct request_queue *queue;
+ 	spinlock_t lock;
++	int active;
+ };
+ 
+ #define DEFAULT_COW { \
+@@ -190,6 +187,7 @@ struct ubd {
+ 	.shared =		0, \
+         .cow =			DEFAULT_COW, \
+ 	.lock =			SPIN_LOCK_UNLOCKED,	\
++	.active =		0, \
+ }
+ 
+ /* Protected by ubd_lock */
+@@ -507,7 +505,6 @@ static void ubd_handler(void)
+ 	struct ubd *dev;
+ 	int n;
+ 
+-	do_ubd = 0;
+ 	n = os_read_file(thread_fd, &req, sizeof(req));
+ 	if(n != sizeof(req)){
+ 		printk(KERN_ERR "Pid %d - spurious interrupt in ubd_handler, "
+@@ -517,6 +514,7 @@ static void ubd_handler(void)
+ 
+ 	rq = req.req;
+ 	dev = rq->rq_disk->private_data;
++	dev->active = 0;
+ 
+ 	ubd_finish(rq, req.error);
+ 	reactivate_fd(thread_fd, UBD_IRQ);
+@@ -1081,11 +1079,12 @@ static void do_ubd_request(request_queue
+ 		}
+ 	}
+ 	else {
+-		if(do_ubd || (req = elv_next_request(q)) == NULL)
++		struct ubd *dev = q->queuedata;
++		if(dev->active || (req = elv_next_request(q)) == NULL)
+ 			return;
+ 		err = prepare_request(req, &io_req);
+ 		if(!err){
+-			do_ubd = 1;
++			dev->active = 1;
+ 			n = os_write_file(thread_fd, (char *) &io_req,
+ 					 sizeof(io_req));
+ 			if(n != sizeof(io_req))
 _
 
-Patches currently in -mm which might be from jacliburn@bellsouth.net are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-atl1-remove-unnecessary-crc-inversion.patch
+uml-fix-epoll.patch
+uml-fix-static-linking.patch
+uml-use-correct-register-file-size-everywhere.patch
+uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch
+i386-fix-cmpxchg-warning.patch
+uml-fix-device-unplug-crash.patch
+uml-irq-locking-fixes.patch
+uml-fix-compilation-problems.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+array_size-check-for-type-uml-fix.patch
+uml-fix-prototypes.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+fix-utrace-utrace-tracehook-um.patch
