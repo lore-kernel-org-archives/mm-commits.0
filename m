@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-support-for-deferrable-timers-respun-fix-2.patch added to -mm tree
-Date: Wed, 28 Mar 2007 16:23:12 -0700
-Message-ID: <200703282323.l2SNNDBL022552@shell0.pdx.osdl.net>
+Subject: + ignore-stolen-time-in-the-softlockup-watchdog.patch added to -mm tree
+Date: Wed, 28 Mar 2007 16:25:58 -0700
+Message-ID: <200703282325.l2SNPwIQ022613@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35438 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35533 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933834AbXC1XXQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 19:23:16 -0400
+	id S933796AbXC1X1Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 19:27:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com
+Cc: jeremy@goop.org, ak@suse.de, clalance@redhat.com, dada1@cosmosbay.com, dhecht@vmware.com, jeremy@xensource.com, jmorris@namei.org, johnstul@us.ibm.com, mingo@elte.hu, paulus@samba.org, prarit@redhat.com, ricklind@us.ibm.com, schwidefsky@de.ibm.com, tglx@linutronix.de, zach@vmware.com
 
 
 The patch titled
-     Add support for deferrable timers (respun-Mar28)
+     Ignore stolen time in the softlockup watchdog
 has been added to the -mm tree.  Its filename is
-     add-support-for-deferrable-timers-respun-fix-2.patch
+     ignore-stolen-time-in-the-softlockup-watchdog.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,178 +25,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add support for deferrable timers (respun-Mar28)
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Ignore stolen time in the softlockup watchdog
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Introduce a new flag for timers - deferrable:
-Timers that work normally when system is busy. But, will not cause CPU to
-come out of idle (just to service this timer), when CPU is idle. Instead,
-this timer will be serviced when CPU eventually wakes up with a subsequent
-non-deferrable timer.
+The softlockup watchdog is currently a nuisance in a virtual machine, since
+the whole system could have the CPU stolen from it for a long period of
+time.  While it would be unlikely for a guest domain to be denied timer
+interrupts for over 10s, it could happen and any softlockup message would
+be completely spurious.
 
-The main advantage of this is to avoid unnecessary timer interrupts when
-CPU is idle. If the routine currently called by a timer can wait until next
-event without any issues, this new timer can be used to setup timer event
-for that routine. This, with dynticks, allows CPUs to be lazy, allowing them
-to stay in idle for extended period of time by reducing unnecesary wakeup and
-thereby reducing the power consumption.
+Earlier I proposed that sched_clock() return time in unstolen nanoseconds,
+which is how Xen and VMI currently implement it.  If the softlockup
+watchdog uses sched_clock() to measure time, it would automatically ignore
+stolen time, and therefore only report when the guest itself locked up. 
+When running native, sched_clock() returns real-time nanoseconds, so the
+behaviour would be unchanged.
 
-This patch:
-Builds this new timer on top of existing timer infrastructure. It uses
-last bit in 'base' pointer of timer_list structure to store this
-deferrable timer flag. __next_timer_interrupt() function
-skips over these deferrable timers when CPU looks for
-next timer event for which it has to wake up.
+Note that sched_clock() used this way is inherently per-cpu, so this patch
+makes sure that the per-processor watchdog thread initialized its own
+timestamp.
 
-This is exported by a new interface init_timer_deferrable() that can
-be called in place of regular init_timer().
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Dan Hecht <dhecht@vmware.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Chris Lalancette <clalance@redhat.com>
+Cc: Rick Lindsley <ricklind@us.ibm.com>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timer.h |    2 -
- kernel/timer.c        |   52 +++++++++++++++-------------------------
- 2 files changed, 20 insertions(+), 34 deletions(-)
+ kernel/softlockup.c |   39 +++++++++++++++++++++++++++++++--------
+ 1 files changed, 31 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/timer.h~add-support-for-deferrable-timers-respun-fix-2 include/linux/timer.h
---- a/include/linux/timer.h~add-support-for-deferrable-timers-respun-fix-2
-+++ a/include/linux/timer.h
-@@ -8,8 +8,6 @@
+diff -puN kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog kernel/softlockup.c
+--- a/kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog
++++ a/kernel/softlockup.c
+@@ -35,9 +35,19 @@ static struct notifier_block panic_block
+ 	.notifier_call = softlock_panic,
+ };
  
- struct tvec_t_base_s;
- 
--extern struct tvec_t_base_s boot_tvec_bases;
--
- struct timer_list {
- 	struct list_head entry;
- 	unsigned long expires;
-diff -puN kernel/timer.c~add-support-for-deferrable-timers-respun-fix-2 kernel/timer.c
---- a/kernel/timer.c~add-support-for-deferrable-timers-respun-fix-2
-+++ a/kernel/timer.c
-@@ -48,13 +48,6 @@ u64 jiffies_64 __cacheline_aligned_in_sm
- EXPORT_SYMBOL(jiffies_64);
- 
- /*
-- * Note that all tvec_bases is 2 byte aligned and lower bit of base in
-- * timer_list is guaranteed to be zero. Use the LSB for the new flag to
-- * indicate whether the timer is deferrable
-- */
--#define TBASE_DEFERRABLE_FLAG		(0x1)
--
--/*
-  * per-CPU timer vector definitions:
-  */
- #define TVN_BITS (CONFIG_BASE_SMALL ? 4 : 6)
-@@ -90,38 +83,34 @@ EXPORT_SYMBOL(boot_tvec_bases);
- static DEFINE_PER_CPU(tvec_base_t *, tvec_bases) = &boot_tvec_bases;
- 
- /*
-- * The lowest bit of base ptr in timer is used as a flag to indicate
-- * 'deferrable' nature of the timer. Functions below help us manage that flag.
-+ * Note that all tvec_bases is 2 byte aligned and lower bit of
-+ * base in timer_list is guaranteed to be zero. Use the LSB for
-+ * the new flag to indicate whether the timer is deferrable
-  */
--static inline unsigned int tbase_get_deferrable(struct tvec_t_base_s *base)
--{
--	return ((unsigned int)base & TBASE_DEFERRABLE_FLAG);
--}
-+#define TBASE_DEFERRABLE_FLAG		(0x1)
- 
--static inline unsigned int timer_get_deferrable(struct timer_list *timer)
-+/* Functions below help us manage 'deferrable' flag */
-+static inline unsigned int tbase_get_deferrable(tvec_base_t *base)
++/*
++ * Returns seconds, approximately.  We don't need nanosecond
++ * resolution, and we don't need to waste time with a big divide when
++ * 2^30ns == 1.074s.
++ */
++static unsigned long get_timestamp(void)
++{
++	return sched_clock() >> 30;  /* 2^30 ~= 10^9 */
++}
++
+ void touch_cpu_softlockup_watchdog(void)
  {
--	return tbase_get_deferrable(timer->base);
-+	return ((unsigned int)(unsigned long)base & TBASE_DEFERRABLE_FLAG);
+-	__raw_get_cpu_var(touch_timestamp) = jiffies;
++	__raw_get_cpu_var(touch_timestamp) = get_timestamp();
  }
+ EXPORT_SYMBOL(touch_cpu_softlockup_watchdog);
  
--static inline struct tvec_t_base_s *tbase_get_base(struct tvec_t_base_s *base)
-+static inline tvec_base_t *tbase_get_base(tvec_base_t *base)
+@@ -46,7 +56,7 @@ void touch_softlockup_watchdog(void)
+ 	int cpu;
+ 
+ 	for_each_online_cpu(cpu)
+-		per_cpu(touch_timestamp, cpu) = jiffies;
++		per_cpu(touch_timestamp, cpu) = get_timestamp();
+ }
+ EXPORT_SYMBOL(touch_softlockup_watchdog);
+ 
+@@ -57,10 +67,18 @@ EXPORT_SYMBOL(touch_softlockup_watchdog)
+ void softlockup_tick(void)
  {
--	return ((struct tvec_t_base_s *)((unsigned long)base &
--	                                 ~TBASE_DEFERRABLE_FLAG));
-+	return ((tvec_base_t *)((unsigned long)base & ~TBASE_DEFERRABLE_FLAG));
- }
+ 	int this_cpu = smp_processor_id();
+-	unsigned long touch_timestamp = per_cpu(touch_timestamp, this_cpu);
++	unsigned long touch_timestamp = __get_cpu_var(touch_timestamp);
++	unsigned long print_timestamp;
++	unsigned long now;
  
- static inline void timer_set_deferrable(struct timer_list *timer)
- {
--	timer->base = ((struct tvec_t_base_s *)((unsigned long)(timer->base) |
--	                                        TBASE_DEFERRABLE_FLAG));
-+	timer->base = ((tvec_base_t *)((unsigned long)(timer->base) |
-+	                               TBASE_DEFERRABLE_FLAG));
- }
+-	/* prevent double reports: */
+-	if (per_cpu(print_timestamp, this_cpu) == touch_timestamp ||
++	/* watchdog task hasn't updated timestamp yet */
++	if (touch_timestamp == 0)
++		return;
++
++	print_timestamp = __get_cpu_var(print_timestamp);
++
++	/* report at most once a second */
++	if (print_timestamp < (touch_timestamp + 1) ||
+ 		did_panic ||
+ 			!per_cpu(watchdog_task, this_cpu))
+ 		return;
+@@ -71,12 +89,14 @@ void softlockup_tick(void)
+ 		return;
+ 	}
  
--/* new_base is guaranteed to have last bit not set, in all callers below */
--static inline void timer_set_base(struct timer_list *timer,
--					struct tvec_t_base_s *old_base,
--					struct tvec_t_base_s *new_base)
-+static inline void
-+timer_set_base(struct timer_list *timer, tvec_base_t *new_base)
- {
--	timer->base = (struct tvec_t_base_s *)((unsigned long)(new_base) |
--	                                       tbase_get_deferrable(old_base));
-+	timer->base = (tvec_base_t *)((unsigned long)(new_base) |
-+	                              tbase_get_deferrable(timer->base));
- }
++	now = get_timestamp();
++
+ 	/* Wake up the high-prio watchdog task every second: */
+-	if (time_after(jiffies, touch_timestamp + HZ))
++	if (now > (touch_timestamp + 1))
+ 		wake_up_process(per_cpu(watchdog_task, this_cpu));
  
- /**
-@@ -414,13 +403,12 @@ int __mod_timer(struct timer_list *timer
- 		 * the timer is serialized wrt itself.
- 		 */
- 		if (likely(base->running_timer != timer)) {
--			tvec_base_t *old_base = timer->base;
- 			/* See the comment in lock_timer_base() */
--			timer->base = NULL;
-+			timer_set_base(timer, NULL);
- 			spin_unlock(&base->lock);
- 			base = new_base;
- 			spin_lock(&base->lock);
--			timer_set_base(timer, old_base, base);
-+			timer_set_base(timer, base);
+ 	/* Warn about unreasonable 10+ seconds delays: */
+-	if (time_after(jiffies, touch_timestamp + 10*HZ)) {
++	if (now > (touch_timestamp + 10)) {
+ 		per_cpu(print_timestamp, this_cpu) = touch_timestamp;
+ 
+ 		spin_lock(&print_lock);
+@@ -97,6 +117,9 @@ static int watchdog(void * __bind_cpu)
+ 	sched_setscheduler(current, SCHED_FIFO, &param);
+ 	current->flags |= PF_NOFREEZE;
+ 
++	/* initialize timestamp */
++	touch_softlockup_watchdog();
++
+ 	/*
+ 	 * Run briefly once per second to reset the softlockup timestamp.
+ 	 * If this gets delayed for more than 10 seconds then the
+@@ -128,7 +151,7 @@ cpu_callback(struct notifier_block *nfb,
+ 			printk("watchdog for %i failed\n", hotcpu);
+ 			return NOTIFY_BAD;
  		}
- 	}
- 
-@@ -448,7 +436,7 @@ void add_timer_on(struct timer_list *tim
- 	timer_stats_timer_set_start_info(timer);
-   	BUG_ON(timer_pending(timer) || !timer->function);
- 	spin_lock_irqsave(&base->lock, flags);
--	timer_set_base(timer, timer->base, base);
-+	timer_set_base(timer, base);
- 	internal_add_timer(base, timer);
- 	spin_unlock_irqrestore(&base->lock, flags);
- }
-@@ -685,7 +673,7 @@ static unsigned long __next_timer_interr
- 	index = slot = timer_jiffies & TVR_MASK;
- 	do {
- 		list_for_each_entry(nte, base->tv1.vec + slot, entry) {
-- 			if (timer_get_deferrable(nte))
-+ 			if (tbase_get_deferrable(nte->base))
-  				continue;
- 
- 			found = 1;
-@@ -1717,7 +1705,7 @@ static void migrate_timer_list(tvec_base
- 	while (!list_empty(head)) {
- 		timer = list_entry(head->next, struct timer_list, entry);
- 		detach_timer(timer, 0);
--		timer_set_base(timer, timer->base, new_base);
-+		timer_set_base(timer, new_base);
- 		internal_add_timer(new_base, timer);
- 	}
- }
+-  		per_cpu(touch_timestamp, hotcpu) = jiffies;
++  		per_cpu(touch_timestamp, hotcpu) = 0;
+   		per_cpu(watchdog_task, hotcpu) = p;
+ 		kthread_bind(p, hotcpu);
+  		break;
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-git-acpi.patch
-cpuidle-fix-boot-hang.patch
-cpuidle-unsigned-bitfield.patch
-add-support-for-deferrable-timers-respun.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-add-support-for-deferrable-timers-respun-fix.patch
-add-support-for-deferrable-timers-respun-fix-2.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+i386-simplify-smp_call_function-by-using-common-implementation.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
