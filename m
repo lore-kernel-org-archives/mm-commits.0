@@ -1,140 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch added to -mm tree
-Date: Wed, 28 Mar 2007 02:53:17 -0700
-Message-ID: <200703280953.l2S9rHdc008078@shell0.pdx.osdl.net>
+Subject: - arch-i386-kernel-alternativec-dont-include-bugsh.patch removed from -mm tree
+Date: Wed, 28 Mar 2007 11:40:53 -0700
+Message-ID: <200703281840.l2SIergw017259@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34933 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53693 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752924AbXC1Jx2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 05:53:28 -0400
+	id S965587AbXC1SlH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 14:41:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
+To: akpm@linux-foundation.org, ak@muc.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix I/O hang when multiple devices are in use
-has been added to the -mm tree.  Its filename is
-     uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch
+     arch/i386/kernel/alternative.c: don't include bugs.h
+has been removed from the -mm tree.  Its filename was
+     arch-i386-kernel-alternativec-dont-include-bugsh.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: uml: fix I/O hang when multiple devices are in use
-From: Jeff Dike <jdike@addtoit.com>
+Subject: arch/i386/kernel/alternative.c: don't include bugs.h
+From: Andrew Morton <akpm@osdl.org>
 
-Commit 62f96cb01e8de7a5daee472e540f726db2801499 introduced per-devices
-queues and locks, which was fine as far as it went, but left in place a
-global which controlled access to submitting requests to the host.  This
-should have been made per-device as well, since it causes I/O hangs when
-multiple block devices are in use.
+That stupid non-inlined-static function in bugs.h causes:
 
-This patch fixes that by replacing the global with an activity flag in the
-device structure in order to tell whether the queue is currently being run.
+include/asm/bugs.h:186: warning: 'check_bugs' defined but not used
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+But fortunately the include isn't needed.
+
+Cc: Andi Kleen <ak@muc.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/ubd_kern.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ arch/i386/kernel/alternative.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/um/drivers/ubd_kern.c~uml-fix-i-o-hang-when-multiple-devices-are-in-use arch/um/drivers/ubd_kern.c
---- a/arch/um/drivers/ubd_kern.c~uml-fix-i-o-hang-when-multiple-devices-are-in-use
-+++ a/arch/um/drivers/ubd_kern.c
-@@ -109,10 +109,6 @@ static inline void ubd_set_bit(__u64 bit
+diff -puN arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-dont-include-bugsh arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~arch-i386-kernel-alternativec-dont-include-bugsh
++++ a/arch/i386/kernel/alternative.c
+@@ -4,7 +4,6 @@
+ #include <linux/list.h>
+ #include <asm/alternative.h>
+ #include <asm/sections.h>
+-#include <asm/bugs.h>
  
- static DEFINE_MUTEX(ubd_lock);
- 
--/* XXX - this made sense in 2.4 days, now it's only used as a boolean, and
-- * probably it doesn't make sense even for that. */
--static int do_ubd;
--
- static int ubd_open(struct inode * inode, struct file * filp);
- static int ubd_release(struct inode * inode, struct file * file);
- static int ubd_ioctl(struct inode * inode, struct file * file,
-@@ -169,6 +165,7 @@ struct ubd {
- 	struct platform_device pdev;
- 	struct request_queue *queue;
- 	spinlock_t lock;
-+	int active;
- };
- 
- #define DEFAULT_COW { \
-@@ -190,6 +187,7 @@ struct ubd {
- 	.shared =		0, \
-         .cow =			DEFAULT_COW, \
- 	.lock =			SPIN_LOCK_UNLOCKED,	\
-+	.active =		0, \
- }
- 
- /* Protected by ubd_lock */
-@@ -507,7 +505,6 @@ static void ubd_handler(void)
- 	struct ubd *dev;
- 	int n;
- 
--	do_ubd = 0;
- 	n = os_read_file(thread_fd, &req, sizeof(req));
- 	if(n != sizeof(req)){
- 		printk(KERN_ERR "Pid %d - spurious interrupt in ubd_handler, "
-@@ -517,6 +514,7 @@ static void ubd_handler(void)
- 
- 	rq = req.req;
- 	dev = rq->rq_disk->private_data;
-+	dev->active = 0;
- 
- 	ubd_finish(rq, req.error);
- 	reactivate_fd(thread_fd, UBD_IRQ);
-@@ -1081,11 +1079,12 @@ static void do_ubd_request(request_queue
- 		}
- 	}
- 	else {
--		if(do_ubd || (req = elv_next_request(q)) == NULL)
-+		struct ubd *dev = q->queuedata;
-+		if(dev->active || (req = elv_next_request(q)) == NULL)
- 			return;
- 		err = prepare_request(req, &io_req);
- 		if(!err){
--			do_ubd = 1;
-+			dev->active = 1;
- 			n = os_write_file(thread_fd, (char *) &io_req,
- 					 sizeof(io_req));
- 			if(n != sizeof(io_req))
+ static int no_replacement    = 0;
+ static int smp_alt_once      = 0;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-uml-fix-epoll.patch
-uml-fix-static-linking.patch
-uml-use-correct-register-file-size-everywhere.patch
-uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch
-i386-fix-cmpxchg-warning.patch
-uml-fix-device-unplug-crash.patch
-uml-irq-locking-fixes.patch
-uml-fix-compilation-problems.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-array_size-check-for-type-uml-fix.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-fix-utrace-utrace-tracehook-um.patch
+git-powerpc.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-ubi.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+arch-i386-kernel-alternativec-dont-include-bugsh.patch
+lumpy-reclaim-v4.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+epoll-optimizations-and-cleanups-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+move-page-writeback-acounting-out-of-macros.patch
+per-backing_dev-dirty-and-writeback-page-accounting.patch
+ext2-reservations.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+aio-is-unlikely.patch
+mm-implement-swap-prefetching.patch
+readahead-kconfig-options.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-context-based-method.patch
+readahead-call-scheme.patch
+readahead-nfsd-case.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+e1000-printk-warning-fixes.patch
+acpi_format_exception-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
