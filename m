@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ahcic-walkaround-for-sb600-sata-internal-error-issue.patch added to -mm tree
-Date: Wed, 28 Mar 2007 15:29:09 -0700
-Message-ID: <200703282229.l2SMT9om021632@shell0.pdx.osdl.net>
+Subject: + x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch added to -mm tree
+Date: Wed, 28 Mar 2007 15:32:34 -0700
+Message-ID: <200703282232.l2SMWYBm021704@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34108 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34242 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932853AbXC1W3S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 18:29:18 -0400
+	id S933805AbXC1Wcl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 18:32:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: conke.hu@gmail.com, conke.hu@amd.com, htejun@gmail.com, jeff@garzik.org
+Cc: akpm@linux-foundation.org, ak@suse.de, konrad@darnok.org
 
 
 The patch titled
-     ahci.c: workaround for SB600 SATA internal error issue
+     x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy
 has been added to the -mm tree.  Its filename is
-     ahcic-walkaround-for-sb600-sata-internal-error-issue.patch
+     x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,108 +25,126 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ahci.c: workaround for SB600 SATA internal error issue
-From: "Conke Hu" <conke.hu@gmail.com>
+Subject: x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There is a HW issue in ATI SB600 SATA that PxSERR.E should not be set on
-some conditions, for example, when there is no media in SATA CD/DVD drive
-or media is not ready, AHCI controller fails to execute ATAPI commands and
-reports PORT_IRQ_TF_ERR, but ATI SB600 SATA controller sets PxSERR.E at the
-same time, which is not necessary.
-
-This patch is just to ignore the INTERNAL ERROR in such case.  Without this
-patch, ahci error handler will report many errors as below:
-
-    ----------- cut from dmesg -----------
-ata9: soft resetting port
-ata9: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
-ata9.00: configured for UDMA/33
-ata9: EH complete
-ata9.00: exception Emask 0x40 SAct 0x0 SErr 0x800 action 0x2
-ata9.00: (irq_stat 0x40000001)
-ata9.00: cmd a0/00:00:00:00:20/00:00:00:00:00/a0 tag 0 cdb 0x0 data 0
-        res 51/24:03:00:00:20/00:00:00:00:00/a0 Emask 0x40 (internal error)
-ata9: soft resetting port
-ata9: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
-ata9.00: configured for UDMA/33
-ata9: EH complete
-ata9.00: exception Emask 0x40 SAct 0x0 SErr 0x800 action 0x2
-ata9.00: (irq_stat 0x40000001)
-ata9.00: cmd a0/01:00:00:00:00/00:00:00:00:00/a0 tag 0 cdb 0x43 data 12 in
-        res 51/24:03:00:00:00/00:00:00:00:00/a0 Emask 0x40 (internal error)
-    -------- end cut ---------
-
-Signed-off-by: Conke Hu <conke.hu@amd.com>
-Acked-by: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Konrad Rzeszutek <konrad@darnok.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c |   21 +++++++++++++++++++--
- 1 files changed, 19 insertions(+), 2 deletions(-)
+ arch/x86_64/mm/init.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/ahci.c~ahcic-walkaround-for-sb600-sata-internal-error-issue drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~ahcic-walkaround-for-sb600-sata-internal-error-issue
-+++ a/drivers/ata/ahci.c
-@@ -81,6 +81,7 @@ enum {
- 	board_ahci_vt8251	= 2,
- 	board_ahci_ign_iferr	= 3,
- 	board_ahci_mv		= 4,
-+	board_ahci_sb600	= 5,
+diff -puN arch/x86_64/mm/init.c~x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy arch/x86_64/mm/init.c
+--- a/arch/x86_64/mm/init.c~x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy
++++ a/arch/x86_64/mm/init.c
+@@ -73,11 +73,12 @@ void show_mem(void)
  
- 	/* global controller registers */
- 	HOST_CAP		= 0x00, /* host capabilities */
-@@ -170,6 +171,7 @@ enum {
- 	AHCI_FLAG_IGN_IRQ_IF_ERR	= (1 << 25), /* ignore IRQ_IF_ERR */
- 	AHCI_FLAG_HONOR_PI		= (1 << 26), /* honor PORTS_IMPL */
- 	AHCI_FLAG_MV_PATA		= (1 << 27), /* PATA port */
-+	AHCI_FLAG_IGN_SERR_INTERNAL	= (1 << 28), /* ignore SERR_INTERNAL */
- };
- 
- struct ahci_cmd_hdr {
-@@ -375,6 +377,18 @@ static const struct ata_port_info ahci_p
- 		.udma_mask	= 0x7f, /* udma0-6 ; FIXME */
- 		.port_ops	= &ahci_ops,
- 	},
-+	/* board_ahci_sb600 */
-+	{
-+		.sht		= &ahci_sht,
-+		.flags		= ATA_FLAG_SATA | ATA_FLAG_NO_LEGACY |
-+				  ATA_FLAG_MMIO | ATA_FLAG_PIO_DMA |
-+				  ATA_FLAG_SKIP_D2H_BSY |
-+				  AHCI_FLAG_IGN_SERR_INTERNAL,
-+		.pio_mask	= 0x1f, /* pio0-4 */
-+		.udma_mask	= 0x7f, /* udma0-6 ; FIXME */
-+		.port_ops	= &ahci_ops,
-+	},
-+
- };
- 
- static const struct pci_device_id ahci_pci_tbl[] = {
-@@ -412,7 +426,7 @@ static const struct pci_device_id ahci_p
- 	  PCI_CLASS_STORAGE_SATA_AHCI, 0xffffff, board_ahci_ign_iferr },
- 
- 	/* ATI */
--	{ PCI_VDEVICE(ATI, 0x4380), board_ahci }, /* ATI SB600 non-raid */
-+	{ PCI_VDEVICE(ATI, 0x4380), board_ahci_sb600 }, /* ATI SB600 non-raid */
- 	{ PCI_VDEVICE(ATI, 0x4381), board_ahci }, /* ATI SB600 raid */
- 
- 	/* VIA */
-@@ -1102,8 +1116,11 @@ static void ahci_error_intr(struct ata_p
- 	if (ap->flags & AHCI_FLAG_IGN_IRQ_IF_ERR)
- 		irq_stat &= ~PORT_IRQ_IF_ERR;
- 
--	if (irq_stat & PORT_IRQ_TF_ERR)
-+	if (irq_stat & PORT_IRQ_TF_ERR) {
- 		err_mask |= AC_ERR_DEV;
-+		if (ap->flags & AHCI_FLAG_IGN_SERR_INTERNAL)
-+			serror &= ~SERR_INTERNAL;
-+	}
- 
- 	if (irq_stat & (PORT_IRQ_HBUS_ERR | PORT_IRQ_HBUS_DATA_ERR)) {
- 		err_mask |= AC_ERR_HOST_BUS;
+ 	for_each_online_pgdat(pgdat) {
+                for (i = 0; i < pgdat->node_spanned_pages; ++i) {
+-			/* this loop can take a while with 256 GB and 4k pages
+-			   so update the NMI watchdog */
+-			if (unlikely(i % MAX_ORDER_NR_PAGES == 0)) {
++			/*
++			 * This loop can take a while with 256 GB and 4k pages
++			 * so update the NMI watchdog
++			 */
++			if (unlikely(i % MAX_ORDER_NR_PAGES == 0))
+ 				touch_nmi_watchdog();
+-			}
+ 			page = pfn_to_page(pgdat->node_start_pfn + i);
+ 			total++;
+ 			if (PageReserved(page))
 _
 
-Patches currently in -mm which might be from conke.hu@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ahcic-walkaround-for-sb600-sata-internal-error-issue.patch
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-piggy-bus.patch
+fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
+mm-only-hrtimers-debug-patch-fix.patch
