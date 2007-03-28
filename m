@@ -1,82 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + convert-hugetlbfs-to-use-vm_ops-fault.patch added to -mm tree
-Date: Wed, 28 Mar 2007 13:56:01 -0700
-Message-ID: <200703282056.l2SKu1aF019889@shell0.pdx.osdl.net>
+Subject: - always-ask-the-hardware-to-obtain-hardware-processor.patch removed from -mm tree
+Date: Wed, 28 Mar 2007 14:01:31 -0700
+Message-ID: <200703282101.l2SL1VSL020001@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59476 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59530 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752863AbXC1U7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 16:59:22 -0400
+	id S1752902AbXC1VB4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 17:01:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: agl@us.ibm.com, nickpiggin@yahoo.com.au
+To: fernando@oss.ntt.co.jp, ak@suse.de, ebiederm@xmission.com, horms@verge.net.au, tony.luck@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     "Convert" hugetlbfs to use vm_ops->fault()
-has been added to the -mm tree.  Its filename is
-     convert-hugetlbfs-to-use-vm_ops-fault.patch
+     Always ask the hardware to obtain hardware processor id - ia64
+has been removed from the -mm tree.  Its filename was
+     always-ask-the-hardware-to-obtain-hardware-processor.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into remove-hardcoding-of-hard_smp_processor_id-on-up.patch
 
 ------------------------------------------------------
-Subject: "Convert" hugetlbfs to use vm_ops->fault()
-From: Adam Litke <agl@us.ibm.com>
+Subject: Always ask the hardware to obtain hardware processor id - ia64
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
-I discovered that 2.6.21-rc5-mm1 was oopsing my box when running the
-libhugetlbfs test suite.  The trouble led me once again to shm stacked
-files ;-) The stacked mmap function is labeling the lack of a ->fault()
-vm_op a BUG() which is probably a good idea.  It isn't really a problem for
-hugetlbfs though, since our faults are handled by an explicit hook in
-__handle_mm_fault().  Rather than removing the BUG(), just convert the
-hugetlbfs ->nopage() placeholder to a ->fault() one which helps us get one
-step closer to removing the nopage vm_op anyway.
+Always ask the hardware to determine the hardware processor id in both UP and
+SMP kernels.
 
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ include/asm-ia64/smp.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/hugetlb.c~convert-hugetlbfs-to-use-vm_ops-fault mm/hugetlb.c
---- a/mm/hugetlb.c~convert-hugetlbfs-to-use-vm_ops-fault
-+++ a/mm/hugetlb.c
-@@ -291,20 +291,19 @@ unsigned long hugetlb_total_pages(void)
+diff -puN include/asm-ia64/smp.h~always-ask-the-hardware-to-obtain-hardware-processor include/asm-ia64/smp.h
+--- a/include/asm-ia64/smp.h~always-ask-the-hardware-to-obtain-hardware-processor
++++ a/include/asm-ia64/smp.h
+@@ -38,6 +38,8 @@ ia64_get_lid (void)
+ 	return lid.f.id << 8 | lid.f.eid;
  }
  
- /*
-- * We cannot handle pagefaults against hugetlb pages at all.  They cause
-- * handle_mm_fault() to try to instantiate regular-sized pages in the
-- * hugegpage VMA.  do_page_fault() is supposed to trap this, so BUG is we get
-- * this far.
-+ * Hugetlb faults are serviced in __handle_mm_fault by explicitly calling
-+ * hugetlb_fault.  Therefore the vm_ops->fault() op for hugetlb pages
-+ * should never be called.
-  */
--static struct page *hugetlb_nopage(struct vm_area_struct *vma,
--				unsigned long address, int *unused)
-+static struct page *hugetlb_vm_op_fault(struct vm_area_struct *vma,
-+					struct fault_data *fdata)
- {
- 	BUG();
- 	return NULL;
++#define hard_smp_processor_id()		ia64_get_lid()
++
+ #ifdef CONFIG_SMP
+ 
+ #define XTP_OFFSET		0x1e0008
+@@ -110,8 +112,6 @@ max_xtp (void)
+ 		writeb(0x0f, ipi_base_addr + XTP_OFFSET); /* Set XTP to max */
  }
  
- struct vm_operations_struct hugetlb_vm_ops = {
--	.nopage = hugetlb_nopage,
-+	.fault = hugetlb_vm_op_fault,
- };
+-#define hard_smp_processor_id()		ia64_get_lid()
+-
+ /* Upping and downing of CPUs */
+ extern int __cpu_disable (void);
+ extern void __cpu_die (unsigned int cpu);
+@@ -128,7 +128,7 @@ extern void unlock_ipi_calllock(void);
+ extern void identify_siblings (struct cpuinfo_ia64 *);
+ extern int is_multithreading_enabled(void);
  
- static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
+-#else
++#else /* CONFIG_SMP */
+ 
+ #define cpu_logical_id(i)		0
+ #define cpu_physical_id(i)		ia64_get_lid()
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
-convert-hugetlbfs-to-use-vm_ops-fault.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+always-ask-the-hardware-to-obtain-hardware-processor.patch
