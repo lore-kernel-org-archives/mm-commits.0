@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + msi-x-fix-resume-crash.patch added to -mm tree
-Date: Wed, 28 Mar 2007 16:56:37 -0700
-Message-ID: <200703282356.l2SNubd9023192@shell0.pdx.osdl.net>
+Subject: + revoke-core-code-break-cow-fixes.patch added to -mm tree
+Date: Wed, 28 Mar 2007 16:57:39 -0700
+Message-ID: <200703282357.l2SNvdYE023200@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36058 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36074 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753093AbXC1X4u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 19:56:50 -0400
+	id S965801AbXC1X5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 19:57:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, mingo@elte.hu
+Cc: penberg@cs.helsinki.fi, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     MSI-X: fix resume crash
+     revoke: break cow fixes
 has been added to the -mm tree.  Its filename is
-     msi-x-fix-resume-crash.patch
+     revoke-core-code-break-cow-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,130 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MSI-X: fix resume crash
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: revoke: break cow fixes
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-So I think the right solution is to simply make pci_enable_device just flip
-enable bits and move the rest of the work someplace else.
+As pointed out by Nick Piggin, __revoke_break_cow() only needs to do
+down_read() and we must use vma_pages() for get_user_pages().
 
-However a thorough cleanup is a little extreme for this point in the
-release cycle, so I think a quick hack that makes the code not stomp the
-irq when msi irq's are enabled should be the first fix.  Then we can later
-make the code not change the irqs at all.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/drivers/pci/bios.c |    4 +++-
- arch/frv/mb93090-mb00/pci-vdk.c       |    3 ++-
- arch/i386/pci/common.c                |    6 ++++--
- arch/ia64/pci/pci.c                   |    8 ++++++--
- 4 files changed, 15 insertions(+), 6 deletions(-)
+ fs/revoke.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/cris/arch-v32/drivers/pci/bios.c~msi-x-fix-resume-crash arch/cris/arch-v32/drivers/pci/bios.c
---- a/arch/cris/arch-v32/drivers/pci/bios.c~msi-x-fix-resume-crash
-+++ a/arch/cris/arch-v32/drivers/pci/bios.c
-@@ -100,7 +100,9 @@ int pcibios_enable_device(struct pci_dev
- 	if ((err = pcibios_enable_resources(dev, mask)) < 0)
- 		return err;
+diff -puN fs/revoke.c~revoke-core-code-break-cow-fixes fs/revoke.c
+--- a/fs/revoke.c~revoke-core-code-break-cow-fixes
++++ a/fs/revoke.c
+@@ -185,7 +185,7 @@ static int __revoke_break_cow(struct tas
+ 	struct vm_area_struct *vma;
+ 	int err = 0;
  
--	return pcibios_enable_irq(dev);
-+	if (!dev->msi_enabled)
-+		pcibios_enable_irq(dev);
-+	return 0;
+-	down_write(&mm->mmap_sem);
++	down_read(&mm->mmap_sem);
+ 	for (vma = mm->mmap; vma != NULL; vma = vma->vm_next) {
+ 		int ret;
+ 
+@@ -196,14 +196,13 @@ static int __revoke_break_cow(struct tas
+ 			continue;
+ 
+ 		ret = get_user_pages(tsk, tsk->mm, vma->vm_start,
+-				     vma->vm_end-vma->vm_start, 1, 1, NULL,
+-				     NULL);
++				     vma_pages(vma), 1, 1, NULL, NULL);
+ 		if (ret < 0) {
+ 			err = ret;
+ 			break;
+ 		}
+ 	}
+-	up_write(&mm->mmap_sem);
++	up_read(&mm->mmap_sem);
+ 	return err;
  }
  
- int pcibios_assign_resources(void)
-diff -puN arch/frv/mb93090-mb00/pci-vdk.c~msi-x-fix-resume-crash arch/frv/mb93090-mb00/pci-vdk.c
---- a/arch/frv/mb93090-mb00/pci-vdk.c~msi-x-fix-resume-crash
-+++ a/arch/frv/mb93090-mb00/pci-vdk.c
-@@ -466,6 +466,7 @@ int pcibios_enable_device(struct pci_dev
- 
- 	if ((err = pcibios_enable_resources(dev, mask)) < 0)
- 		return err;
--	pcibios_enable_irq(dev);
-+	if (!dev->msi_enabled)
-+		pcibios_enable_irq(dev);
- 	return 0;
- }
-diff -puN arch/i386/pci/common.c~msi-x-fix-resume-crash arch/i386/pci/common.c
---- a/arch/i386/pci/common.c~msi-x-fix-resume-crash
-+++ a/arch/i386/pci/common.c
-@@ -449,11 +449,13 @@ int pcibios_enable_device(struct pci_dev
- 	if ((err = pcibios_enable_resources(dev, mask)) < 0)
- 		return err;
- 
--	return pcibios_enable_irq(dev);
-+	if (!dev->msi_enabled)
-+		return pcibios_enable_irq(dev);
-+	return 0;
- }
- 
- void pcibios_disable_device (struct pci_dev *dev)
- {
--	if (pcibios_disable_irq)
-+	if (!dev->msi_enabled && pcibios_disable_irq)
- 		pcibios_disable_irq(dev);
- }
-diff -puN arch/ia64/pci/pci.c~msi-x-fix-resume-crash arch/ia64/pci/pci.c
---- a/arch/ia64/pci/pci.c~msi-x-fix-resume-crash
-+++ a/arch/ia64/pci/pci.c
-@@ -557,14 +557,18 @@ pcibios_enable_device (struct pci_dev *d
- 	if (ret < 0)
- 		return ret;
- 
--	return acpi_pci_irq_enable(dev);
-+	if (!dev->msi_enabled)
-+		return acpi_pci_irq_enable(dev);
-+	return 0;
- }
- 
- void
- pcibios_disable_device (struct pci_dev *dev)
- {
- 	BUG_ON(atomic_read(&dev->enable_cnt));
--	acpi_pci_irq_disable(dev);
-+	if (!dev->msi_enabled)
-+		acpi_pci_irq_disable(dev);
-+	return 0;
- }
- 
- void
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
-utsns-fix-config_uts_ns-behavior.patch
-ipcns-fix-config_ipc_ns-behavior.patch
-fix-kernel-build-with-embedded-proc_fs-proc_sysctl.patch
-msi-x-fix-resume-crash.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-i386-irq-kill-irq-compression.patch
-i386-irq-kill-nr_irq_vectors-and-increase-nr_irqs.patch
-x86_64-irq-remove-extra-smp_processor_id-calling.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-edac-k8-driver-coding-tidy.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+unionfs-fix-slab-abuses-with-krealloc.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+slab-dont-allocate-empty-shared-caches.patch
+slab-numa-kmem_cache-diet.patch
+module-use-krealloc.patch
+slab-use-cpu_lock_.patch
+revoke-special-mmap-handling.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+revoke-core-code.patch
+revoke-core-code-misc-fixes.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-core-code-move-magic.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
+revoke-core-code-break-cow-for-private-mappings.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+revoke-core-code-break-cow-fixes.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+slab-leaks3-default-y.patch
