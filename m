@@ -1,101 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: + time-smp-friendly-alignment-of-struct-clocksource.patch added to -mm tree
-Date: Wed, 28 Mar 2007 16:23:33 -0700
-Message-ID: <200703282323.l2SNNXN9022557@shell0.pdx.osdl.net>
+Subject: - ignore-stolen-time-in-the-softlockup-watchdog.patch removed from -mm tree
+Date: Wed, 28 Mar 2007 16:37:19 -0700
+Message-ID: <200703282337.l2SNbJNu022808@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35615 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35697 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933815AbXC1Xdv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 19:33:51 -0400
+	id S934004AbXC1Xi6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 19:38:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, johnstul@us.ibm.com
+To: jeremy@goop.org, ak@suse.de, clalance@redhat.com, dada1@cosmosbay.com, dhecht@vmware.com, jeremy@xensource.com, jmorris@namei.org, johnstul@us.ibm.com, mingo@elte.hu, paulus@samba.org, prarit@redhat.com, ricklind@us.ibm.com, schwidefsky@de.ibm.com, tglx@linutronix.de, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: SMP friendly alignment of struct clocksource
-has been added to the -mm tree.  Its filename is
-     time-smp-friendly-alignment-of-struct-clocksource.patch
+     Ignore stolen time in the softlockup watchdog
+has been removed from the -mm tree.  Its filename was
+     ignore-stolen-time-in-the-softlockup-watchdog.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: time: SMP friendly alignment of struct clocksource
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Ignore stolen time in the softlockup watchdog
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-struct clocksource is a critical data structure.
+The softlockup watchdog is currently a nuisance in a virtual machine, since
+the whole system could have the CPU stolen from it for a long period of
+time.  While it would be unlikely for a guest domain to be denied timer
+interrupts for over 10s, it could happen and any softlockup message would
+be completely spurious.
 
-Most of its fields are read only, some of them are heavily modified at each
-timer interrupt.
+Earlier I proposed that sched_clock() return time in unstolen nanoseconds,
+which is how Xen and VMI currently implement it.  If the softlockup
+watchdog uses sched_clock() to measure time, it would automatically ignore
+stolen time, and therefore only report when the guest itself locked up. 
+When running native, sched_clock() returns real-time nanoseconds, so the
+behaviour would be unchanged.
 
-It makes sense to separate those fields and make sure they all share one
-cache line, or at least the minimum for machines with small cache lines.
+Note that sched_clock() used this way is inherently per-cpu, so this patch
+makes sure that the per-processor watchdog thread initialized its own
+timestamp.
 
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Acked-by: John Stultz <johnstul@us.ibm.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Dan Hecht <dhecht@vmware.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Chris Lalancette <clalance@redhat.com>
+Cc: Rick Lindsley <ricklind@us.ibm.com>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |   15 +++++++++++++--
- 1 files changed, 13 insertions(+), 2 deletions(-)
+ kernel/softlockup.c |   39 +++++++++++++++++++++++++++++++--------
+ 1 files changed, 31 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/clocksource.h~time-smp-friendly-alignment-of-struct-clocksource include/linux/clocksource.h
---- a/include/linux/clocksource.h~time-smp-friendly-alignment-of-struct-clocksource
-+++ a/include/linux/clocksource.h
-@@ -12,6 +12,7 @@
- #include <linux/timex.h>
- #include <linux/time.h>
- #include <linux/list.h>
-+#include <linux/cache.h>
- #include <linux/timer.h>
- #include <asm/div64.h>
- #include <asm/io.h>
-@@ -52,6 +53,9 @@ struct clocksource;
-  * @xtime_interval:	Used internally by timekeeping core, please ignore.
-  */
- struct clocksource {
-+	/*
-+	 * First part of structure is read mostly
-+	 */
- 	char *name;
- 	struct list_head list;
- 	int rating;
-@@ -63,8 +67,15 @@ struct clocksource {
- 	cycle_t (*vread)(void);
+diff -puN kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog kernel/softlockup.c
+--- a/kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog
++++ a/kernel/softlockup.c
+@@ -35,9 +35,19 @@ static struct notifier_block panic_block
+ 	.notifier_call = softlock_panic,
+ };
  
- 	/* timekeeping specific data, ignore */
--	cycle_t cycle_last, cycle_interval;
--	u64 xtime_nsec, xtime_interval;
-+	cycle_t cycle_interval;
-+	u64	xtime_interval;
-+	/*
-+	 * Second part is written at each timer interrupt
-+	 * Keep it in a different cache line to dirty no
-+	 * more than one cache line.
-+	 */
-+	cycle_t cycle_last ____cacheline_aligned_in_smp;
-+	u64 xtime_nsec;
- 	s64 error;
++/*
++ * Returns seconds, approximately.  We don't need nanosecond
++ * resolution, and we don't need to waste time with a big divide when
++ * 2^30ns == 1.074s.
++ */
++static unsigned long get_timestamp(void)
++{
++	return sched_clock() >> 30;  /* 2^30 ~= 10^9 */
++}
++
+ void touch_cpu_softlockup_watchdog(void)
+ {
+-	__raw_get_cpu_var(touch_timestamp) = jiffies;
++	__raw_get_cpu_var(touch_timestamp) = get_timestamp();
+ }
+ EXPORT_SYMBOL(touch_cpu_softlockup_watchdog);
  
- #ifdef CONFIG_CLOCKSOURCE_WATCHDOG
+@@ -46,7 +56,7 @@ void touch_softlockup_watchdog(void)
+ 	int cpu;
+ 
+ 	for_each_online_cpu(cpu)
+-		per_cpu(touch_timestamp, cpu) = jiffies;
++		per_cpu(touch_timestamp, cpu) = get_timestamp();
+ }
+ EXPORT_SYMBOL(touch_softlockup_watchdog);
+ 
+@@ -57,10 +67,18 @@ EXPORT_SYMBOL(touch_softlockup_watchdog)
+ void softlockup_tick(void)
+ {
+ 	int this_cpu = smp_processor_id();
+-	unsigned long touch_timestamp = per_cpu(touch_timestamp, this_cpu);
++	unsigned long touch_timestamp = __get_cpu_var(touch_timestamp);
++	unsigned long print_timestamp;
++	unsigned long now;
+ 
+-	/* prevent double reports: */
+-	if (per_cpu(print_timestamp, this_cpu) == touch_timestamp ||
++	/* watchdog task hasn't updated timestamp yet */
++	if (touch_timestamp == 0)
++		return;
++
++	print_timestamp = __get_cpu_var(print_timestamp);
++
++	/* report at most once a second */
++	if (print_timestamp < (touch_timestamp + 1) ||
+ 		did_panic ||
+ 			!per_cpu(watchdog_task, this_cpu))
+ 		return;
+@@ -71,12 +89,14 @@ void softlockup_tick(void)
+ 		return;
+ 	}
+ 
++	now = get_timestamp();
++
+ 	/* Wake up the high-prio watchdog task every second: */
+-	if (time_after(jiffies, touch_timestamp + HZ))
++	if (now > (touch_timestamp + 1))
+ 		wake_up_process(per_cpu(watchdog_task, this_cpu));
+ 
+ 	/* Warn about unreasonable 10+ seconds delays: */
+-	if (time_after(jiffies, touch_timestamp + 10*HZ)) {
++	if (now > (touch_timestamp + 10)) {
+ 		per_cpu(print_timestamp, this_cpu) = touch_timestamp;
+ 
+ 		spin_lock(&print_lock);
+@@ -97,6 +117,9 @@ static int watchdog(void * __bind_cpu)
+ 	sched_setscheduler(current, SCHED_FIFO, &param);
+ 	current->flags |= PF_NOFREEZE;
+ 
++	/* initialize timestamp */
++	touch_softlockup_watchdog();
++
+ 	/*
+ 	 * Run briefly once per second to reset the softlockup timestamp.
+ 	 * If this gets delayed for more than 10 seconds then the
+@@ -128,7 +151,7 @@ cpu_callback(struct notifier_block *nfb,
+ 			printk("watchdog for %i failed\n", hotcpu);
+ 			return NOTIFY_BAD;
+ 		}
+-  		per_cpu(touch_timestamp, hotcpu) = jiffies;
++  		per_cpu(touch_timestamp, hotcpu) = 0;
+   		per_cpu(watchdog_task, hotcpu) = p;
+ 		kthread_bind(p, hotcpu);
+  		break;
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-slab-dont-allocate-empty-shared-caches.patch
-slab-numa-kmem_cache-diet.patch
-optimize-timespec_trunc.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-vfs-delay-the-dentry-name-generation-on-sockets-and.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
+i386-simplify-smp_call_function-by-using-common-implementation.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
