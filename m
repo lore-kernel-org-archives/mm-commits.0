@@ -1,74 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86_64-compilation-with-debug_sig-on.patch removed from -mm tree
-Date: Wed, 28 Mar 2007 13:23:40 -0700
-Message-ID: <200703282023.l2SKNe87019271@shell0.pdx.osdl.net>
+Subject: - i386-fix-cmpxchg-warning.patch removed from -mm tree
+Date: Wed, 28 Mar 2007 13:27:32 -0700
+Message-ID: <200703282027.l2SKRWp8019330@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58260 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58417 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965773AbXC1UXv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 16:23:51 -0400
+	id S965757AbXC1U1g (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 16:27:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gcosta@redhat.com, ak@suse.de, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix x86_64 compilation with DEBUG_SIG on
+     i386: fix cmpxchg warning
 has been removed from the -mm tree.  Its filename was
-     fix-x86_64-compilation-with-debug_sig-on.patch
+     i386-fix-cmpxchg-warning.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: Fix x86_64 compilation with DEBUG_SIG on
-From: Glauber de Oliveira Costa <gcosta@redhat.com>
+Subject: i386: fix cmpxchg warning
+From: Jeff Dike <jdike@addtoit.com>
 
-Setting the DEBUG_SIG flag breaks compilation due to a wrong struct access.
-Additionally, it raises two warnings.  This is one patch to fix them all.
+I started getting warnings from atomic.h about cmpxchg not having a prototype.
+ It's declared in system.h, so including that fixes the UML build warnings and
+has no noticable ill effects on the i386 build.
 
-Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/signal.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/asm-i386/atomic.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/x86_64/kernel/signal.c~fix-x86_64-compilation-with-debug_sig-on arch/x86_64/kernel/signal.c
---- a/arch/x86_64/kernel/signal.c~fix-x86_64-compilation-with-debug_sig-on
-+++ a/arch/x86_64/kernel/signal.c
-@@ -141,7 +141,7 @@ asmlinkage long sys_rt_sigreturn(struct 
- 		goto badframe;
+diff -puN include/asm-i386/atomic.h~i386-fix-cmpxchg-warning include/asm-i386/atomic.h
+--- a/include/asm-i386/atomic.h~i386-fix-cmpxchg-warning
++++ a/include/asm-i386/atomic.h
+@@ -3,6 +3,7 @@
  
- #ifdef DEBUG_SIG
--	printk("%d sigreturn rip:%lx rsp:%lx frame:%p rax:%lx\n",current->pid,regs.rip,regs.rsp,frame,eax);
-+	printk("%d sigreturn rip:%lx rsp:%lx frame:%p rax:%lx\n",current->pid,regs->rip,regs->rsp,frame,eax);
- #endif
+ #include <linux/compiler.h>
+ #include <asm/processor.h>
++#include <asm/system.h>
  
- 	if (do_sigaltstack(&frame->uc.uc_stack, NULL, regs->rsp) == -EFAULT)
-@@ -301,7 +301,7 @@ static int setup_rt_frame(int sig, struc
- 	if (test_thread_flag(TIF_SINGLESTEP))
- 		ptrace_notify(SIGTRAP);
- #ifdef DEBUG_SIG
--	printk("SIG deliver (%s:%d): sp=%p pc=%p ra=%p\n",
-+	printk("SIG deliver (%s:%d): sp=%p pc=%lx ra=%p\n",
- 		current->comm, current->pid, frame, regs->rip, frame->pretcode);
- #endif
- 
-@@ -463,7 +463,7 @@ void
- do_notify_resume(struct pt_regs *regs, void *unused, __u32 thread_info_flags)
- {
- #ifdef DEBUG_SIG
--	printk("do_notify_resume flags:%x rip:%lx rsp:%lx caller:%lx pending:%lx\n",
-+	printk("do_notify_resume flags:%x rip:%lx rsp:%lx caller:%p pending:%x\n",
- 	       thread_info_flags, regs->rip, regs->rsp, __builtin_return_address(0),signal_pending(current)); 
- #endif
- 	       
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
 _
 
-Patches currently in -mm which might be from gcosta@redhat.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-x86_64-remove-duplicated-code-for-reading-control-registers.patch
-yet-another-function-to-load-cr3-register.patch
-fix-x86_64-compilation-with-debug_sig-on.patch
+uml-fix-epoll.patch
+uml-fix-static-linking.patch
+uml-use-correct-register-file-size-everywhere.patch
+uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch
+i386-fix-cmpxchg-warning.patch
+uml-fix-device-unplug-crash.patch
+uml-irq-locking-fixes.patch
+uml-fix-compilation-problems.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+array_size-check-for-type-uml-fix.patch
+uml-fix-prototypes.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+fix-utrace-utrace-tracehook-um.patch
