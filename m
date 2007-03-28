@@ -1,161 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: - ignore-stolen-time-in-the-softlockup-watchdog.patch removed from -mm tree
-Date: Wed, 28 Mar 2007 16:37:19 -0700
-Message-ID: <200703282337.l2SNbJNu022808@shell0.pdx.osdl.net>
+Subject: - fix-bogus-softlockup-warning-with-sysrq-t.patch removed from -mm tree
+Date: Wed, 28 Mar 2007 16:37:16 -0700
+Message-ID: <200703282337.l2SNbGTk022805@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35697 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35729 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934004AbXC1Xi6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 19:38:58 -0400
+	id S934046AbXC1Xkq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 19:40:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, clalance@redhat.com, dada1@cosmosbay.com, dhecht@vmware.com, jeremy@xensource.com, jmorris@namei.org, johnstul@us.ibm.com, mingo@elte.hu, paulus@samba.org, prarit@redhat.com, ricklind@us.ibm.com, schwidefsky@de.ibm.com, tglx@linutronix.de, zach@vmware.com, mm-commits@vger.kernel.org
+To: prarit@redhat.com, clalance@redhat.com, mingo@elte.hu, ricklind@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Ignore stolen time in the softlockup watchdog
+     Fix bogus softlockup warning with sysrq-t
 has been removed from the -mm tree.  Its filename was
-     ignore-stolen-time-in-the-softlockup-watchdog.patch
+     fix-bogus-softlockup-warning-with-sysrq-t.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Ignore stolen time in the softlockup watchdog
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: Fix bogus softlockup warning with sysrq-t
+From: Prarit Bhargava <prarit@redhat.com>
 
-The softlockup watchdog is currently a nuisance in a virtual machine, since
-the whole system could have the CPU stolen from it for a long period of
-time.  While it would be unlikely for a guest domain to be denied timer
-interrupts for over 10s, it could happen and any softlockup message would
-be completely spurious.
+There are some situations when soft lockup warnings are expected in the
+kernel.  For example, when doing an alt-sysrq-t on a large number of
+processes, the dump to console can take a long time and the tasklist_lock
+is held over that period.  This results in a bogus soft lockup warning.
 
-Earlier I proposed that sched_clock() return time in unstolen nanoseconds,
-which is how Xen and VMI currently implement it.  If the softlockup
-watchdog uses sched_clock() to measure time, it would automatically ignore
-stolen time, and therefore only report when the guest itself locked up. 
-When running native, sched_clock() returns real-time nanoseconds, so the
-behaviour would be unchanged.
+This patch reworks touch_softlockup_watchdog to touch ALL cpu's
+touch_timestamp.  It also introduces touch_cpu_softlockup_watchdog to touch
+a single cpu's touch_timestamp.  This makes it functionally equivalent to
+touch_nmi_watchdog.
 
-Note that sched_clock() used this way is inherently per-cpu, so this patch
-makes sure that the per-processor watchdog thread initialized its own
-timestamp.
+touch_nmi_watchdog is not modified -- AFAICT it was attempting to touch all
+cpu's softlockup watchdogs, not just a specific cpu.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+/drivers/ide/ide-iops.c does not need to call touch_softlockup_watchdog as
+it is done in the call to touch_nmi_watchdog.
+
+The EXPORT_SYMBOL for touch_softlockup_watchdog is needed by
+drivers/scsi/ips.ko
+
+Acked-by: Chris Lalancette <clalance@redhat.com>
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Acked-by: Rick Lindsley <ricklind@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Dan Hecht <dhecht@vmware.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Chris Lalancette <clalance@redhat.com>
-Cc: Rick Lindsley <ricklind@us.ibm.com>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |   39 +++++++++++++++++++++++++++++++--------
- 1 files changed, 31 insertions(+), 8 deletions(-)
+ arch/ia64/kernel/uncached.c  |    2 +-
+ drivers/ide/ide-iops.c       |    1 -
+ drivers/ide/ide-taskfile.c   |    2 +-
+ drivers/mtd/nand/nand_base.c |    2 +-
+ include/linux/sched.h        |    4 ++++
+ kernel/panic.c               |    2 +-
+ kernel/power/swsusp.c        |    2 +-
+ kernel/sched.c               |    1 +
+ kernel/softlockup.c          |   16 +++++++++++++---
+ 9 files changed, 23 insertions(+), 9 deletions(-)
 
-diff -puN kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog kernel/softlockup.c
---- a/kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog
+diff -puN arch/ia64/kernel/uncached.c~fix-bogus-softlockup-warning-with-sysrq-t arch/ia64/kernel/uncached.c
+--- a/arch/ia64/kernel/uncached.c~fix-bogus-softlockup-warning-with-sysrq-t
++++ a/arch/ia64/kernel/uncached.c
+@@ -254,7 +254,7 @@ static int __init uncached_build_memmap(
+ 	struct gen_pool *pool = uncached_pools[nid].pool;
+ 	size_t size = uc_end - uc_start;
+ 
+-	touch_softlockup_watchdog();
++	touch_cpu_softlockup_watchdog();
+ 
+ 	if (pool != NULL) {
+ 		memset((char *)uc_start, 0, size);
+diff -puN drivers/ide/ide-iops.c~fix-bogus-softlockup-warning-with-sysrq-t drivers/ide/ide-iops.c
+--- a/drivers/ide/ide-iops.c~fix-bogus-softlockup-warning-with-sysrq-t
++++ a/drivers/ide/ide-iops.c
+@@ -1226,7 +1226,6 @@ int ide_wait_not_busy(ide_hwif_t *hwif, 
+ 		 */
+ 		if (stat == 0xff)
+ 			return -ENODEV;
+-		touch_softlockup_watchdog();
+ 		touch_nmi_watchdog();
+ 	}
+ 	return -EBUSY;
+diff -puN drivers/ide/ide-taskfile.c~fix-bogus-softlockup-warning-with-sysrq-t drivers/ide/ide-taskfile.c
+--- a/drivers/ide/ide-taskfile.c~fix-bogus-softlockup-warning-with-sysrq-t
++++ a/drivers/ide/ide-taskfile.c
+@@ -313,7 +313,7 @@ static void ide_pio_datablock(ide_drive_
+ 	if (rq->bio)	/* fs request */
+ 		rq->errors = 0;
+ 
+-	touch_softlockup_watchdog();
++	touch_cpu_softlockup_watchdog();
+ 
+ 	switch (drive->hwif->data_phase) {
+ 	case TASKFILE_MULTI_IN:
+diff -puN drivers/mtd/nand/nand_base.c~fix-bogus-softlockup-warning-with-sysrq-t drivers/mtd/nand/nand_base.c
+--- a/drivers/mtd/nand/nand_base.c~fix-bogus-softlockup-warning-with-sysrq-t
++++ a/drivers/mtd/nand/nand_base.c
+@@ -425,7 +425,7 @@ void nand_wait_ready(struct mtd_info *mt
+ 	do {
+ 		if (chip->dev_ready(mtd))
+ 			break;
+-		touch_softlockup_watchdog();
++		touch_cpu_softlockup_watchdog();
+ 	} while (time_before(jiffies, timeo));
+ 	led_trigger_event(nand_led_trigger, LED_OFF);
+ }
+diff -puN include/linux/sched.h~fix-bogus-softlockup-warning-with-sysrq-t include/linux/sched.h
+--- a/include/linux/sched.h~fix-bogus-softlockup-warning-with-sysrq-t
++++ a/include/linux/sched.h
+@@ -225,6 +225,7 @@ extern void scheduler_tick(void);
+ #ifdef CONFIG_DETECT_SOFTLOCKUP
+ extern void softlockup_tick(void);
+ extern void spawn_softlockup_task(void);
++extern void touch_cpu_softlockup_watchdog(void);
+ extern void touch_softlockup_watchdog(void);
+ #else
+ static inline void softlockup_tick(void)
+@@ -233,6 +234,9 @@ static inline void softlockup_tick(void)
+ static inline void spawn_softlockup_task(void)
+ {
+ }
++static inline void touch_cpu_softlockup_watchdog(void)
++{
++}
+ static inline void touch_softlockup_watchdog(void)
+ {
+ }
+diff -puN kernel/panic.c~fix-bogus-softlockup-warning-with-sysrq-t kernel/panic.c
+--- a/kernel/panic.c~fix-bogus-softlockup-warning-with-sysrq-t
++++ a/kernel/panic.c
+@@ -132,7 +132,7 @@ NORET_TYPE void panic(const char * fmt, 
+ #endif
+ 	local_irq_enable();
+ 	for (i = 0;;) {
+-		touch_softlockup_watchdog();
++		touch_cpu_softlockup_watchdog();
+ 		i += panic_blink(i);
+ 		mdelay(1);
+ 		i++;
+diff -puN kernel/power/swsusp.c~fix-bogus-softlockup-warning-with-sysrq-t kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~fix-bogus-softlockup-warning-with-sysrq-t
++++ a/kernel/power/swsusp.c
+@@ -323,7 +323,7 @@ int swsusp_resume(void)
+ 	 */
+ 	swsusp_free();
+ 	restore_processor_state();
+-	touch_softlockup_watchdog();
++	touch_cpu_softlockup_watchdog();
+ 	device_power_up();
+ 	local_irq_enable();
+ 	return error;
+diff -puN kernel/sched.c~fix-bogus-softlockup-warning-with-sysrq-t kernel/sched.c
+--- a/kernel/sched.c~fix-bogus-softlockup-warning-with-sysrq-t
++++ a/kernel/sched.c
+@@ -4783,6 +4783,7 @@ void show_state_filter(unsigned long sta
+ 		if (p->state & state_filter)
+ 			show_task(p);
+ 	} while_each_thread(g, p);
++	touch_softlockup_watchdog();
+ 
+ 	read_unlock(&tasklist_lock);
+ 	/*
+diff -puN kernel/softlockup.c~fix-bogus-softlockup-warning-with-sysrq-t kernel/softlockup.c
+--- a/kernel/softlockup.c~fix-bogus-softlockup-warning-with-sysrq-t
 +++ a/kernel/softlockup.c
-@@ -35,9 +35,19 @@ static struct notifier_block panic_block
+@@ -8,6 +8,7 @@
+  */
+ #include <linux/mm.h>
+ #include <linux/cpu.h>
++#include <linux/cpumask.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/kthread.h>
+@@ -34,10 +35,19 @@ static struct notifier_block panic_block
  	.notifier_call = softlock_panic,
  };
  
-+/*
-+ * Returns seconds, approximately.  We don't need nanosecond
-+ * resolution, and we don't need to waste time with a big divide when
-+ * 2^30ns == 1.074s.
-+ */
-+static unsigned long get_timestamp(void)
-+{
-+	return sched_clock() >> 30;  /* 2^30 ~= 10^9 */
-+}
-+
- void touch_cpu_softlockup_watchdog(void)
+-void touch_softlockup_watchdog(void)
++void touch_cpu_softlockup_watchdog(void)
  {
--	__raw_get_cpu_var(touch_timestamp) = jiffies;
-+	__raw_get_cpu_var(touch_timestamp) = get_timestamp();
+ 	__raw_get_cpu_var(touch_timestamp) = jiffies;
  }
- EXPORT_SYMBOL(touch_cpu_softlockup_watchdog);
- 
-@@ -46,7 +56,7 @@ void touch_softlockup_watchdog(void)
- 	int cpu;
- 
- 	for_each_online_cpu(cpu)
--		per_cpu(touch_timestamp, cpu) = jiffies;
-+		per_cpu(touch_timestamp, cpu) = get_timestamp();
- }
++EXPORT_SYMBOL(touch_cpu_softlockup_watchdog);
++
++void touch_softlockup_watchdog(void)
++{
++	int cpu;
++
++	for_each_online_cpu(cpu)
++		per_cpu(touch_timestamp, cpu) = jiffies;
++}
  EXPORT_SYMBOL(touch_softlockup_watchdog);
  
-@@ -57,10 +67,18 @@ EXPORT_SYMBOL(touch_softlockup_watchdog)
- void softlockup_tick(void)
- {
- 	int this_cpu = smp_processor_id();
--	unsigned long touch_timestamp = per_cpu(touch_timestamp, this_cpu);
-+	unsigned long touch_timestamp = __get_cpu_var(touch_timestamp);
-+	unsigned long print_timestamp;
-+	unsigned long now;
+ /*
+@@ -57,7 +67,7 @@ void softlockup_tick(void)
  
--	/* prevent double reports: */
--	if (per_cpu(print_timestamp, this_cpu) == touch_timestamp ||
-+	/* watchdog task hasn't updated timestamp yet */
-+	if (touch_timestamp == 0)
-+		return;
-+
-+	print_timestamp = __get_cpu_var(print_timestamp);
-+
-+	/* report at most once a second */
-+	if (print_timestamp < (touch_timestamp + 1) ||
- 		did_panic ||
- 			!per_cpu(watchdog_task, this_cpu))
- 		return;
-@@ -71,12 +89,14 @@ void softlockup_tick(void)
+ 	/* do not print during early bootup: */
+ 	if (unlikely(system_state != SYSTEM_RUNNING)) {
+-		touch_softlockup_watchdog();
++		touch_cpu_softlockup_watchdog();
  		return;
  	}
  
-+	now = get_timestamp();
-+
- 	/* Wake up the high-prio watchdog task every second: */
--	if (time_after(jiffies, touch_timestamp + HZ))
-+	if (now > (touch_timestamp + 1))
- 		wake_up_process(per_cpu(watchdog_task, this_cpu));
+@@ -94,7 +104,7 @@ static int watchdog(void * __bind_cpu)
+ 	 */
+ 	while (!kthread_should_stop()) {
+ 		set_current_state(TASK_INTERRUPTIBLE);
+-		touch_softlockup_watchdog();
++		touch_cpu_softlockup_watchdog();
+ 		schedule();
+ 	}
  
- 	/* Warn about unreasonable 10+ seconds delays: */
--	if (time_after(jiffies, touch_timestamp + 10*HZ)) {
-+	if (now > (touch_timestamp + 10)) {
- 		per_cpu(print_timestamp, this_cpu) = touch_timestamp;
- 
- 		spin_lock(&print_lock);
-@@ -97,6 +117,9 @@ static int watchdog(void * __bind_cpu)
- 	sched_setscheduler(current, SCHED_FIFO, &param);
- 	current->flags |= PF_NOFREEZE;
- 
-+	/* initialize timestamp */
-+	touch_softlockup_watchdog();
-+
- 	/*
- 	 * Run briefly once per second to reset the softlockup timestamp.
- 	 * If this gets delayed for more than 10 seconds then the
-@@ -128,7 +151,7 @@ cpu_callback(struct notifier_block *nfb,
- 			printk("watchdog for %i failed\n", hotcpu);
- 			return NOTIFY_BAD;
- 		}
--  		per_cpu(touch_timestamp, hotcpu) = jiffies;
-+  		per_cpu(touch_timestamp, hotcpu) = 0;
-   		per_cpu(watchdog_task, hotcpu) = p;
- 		kthread_bind(p, hotcpu);
-  		break;
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from prarit@redhat.com are
 
-i386-simplify-smp_call_function-by-using-common-implementation.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+origin.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+use-stop_machine_run-in-the-intel-rng-driver.patch
+fix-bogus-softlockup-warning-with-sysrq-t.patch
 ignore-stolen-time-in-the-softlockup-watchdog.patch
+change-rivafb_remove-to-__devexit.patch
