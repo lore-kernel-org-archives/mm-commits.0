@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + wire-up-dec-serial-drivers-in-kconfig.patch added to -mm tree
-Date: Wed, 28 Mar 2007 16:38:37 -0700
-Message-ID: <200703282338.l2SNcblH022826@shell0.pdx.osdl.net>
+Subject: + kdump-kexec-calculate-note-size-at-compile-time.patch added to -mm tree
+Date: Wed, 28 Mar 2007 16:42:09 -0700
+Message-ID: <200703282342.l2SNg9NK022884@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35761 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35772 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934070AbXC1Xlz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 19:41:55 -0400
+	id S933796AbXC1XnK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 19:43:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org
+Cc: horms@verge.net.au, vgoyal@in.ibm.com
 
 
 The patch titled
-     Wire up DEC serial drivers in Kconfig
+     kdump/kexec: calculate note size at compile time
 has been added to the -mm tree.  Its filename is
-     wire-up-dec-serial-drivers-in-kconfig.patch
+     kdump-kexec-calculate-note-size-at-compile-time.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,180 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Wire up DEC serial drivers in Kconfig
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: kdump/kexec: calculate note size at compile time
+From: Horms <horms@verge.net.au>
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Currently the size of the per-cpu region reserved to save crash notes is
+set by the per-architecture value MAX_NOTE_BYTES.  Which in turn is
+currently set to 1024 on all supported architectures.
+
+While testing ia64 I recently discovered that this value is in fact too
+small.  The particular setup I was using actually needs 1172 bytes.  This
+lead to very tedious failure mode where the tail of one elf note would
+overwrite the head of another if they ended up being alocated sequentially
+by kmalloc, which was often the case.
+
+It seems to me that a far better approach is to caclculate the size that
+the area needs to be.  This patch does just that.
+
+If a simpler stop-gap patch for ia64 to be squeezed into 2.6.21(.X) is
+needed then this should be as easy as making MAX_NOTE_BYTES larger in
+arch/asm-ia64/kexec.h.  Perhaps 2048 would be a good choice.  However, I
+think that the approach in this patch is a much more robust idea.
+
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |   33 +++++++++++++++++++++++++++++++++
- 1 files changed, 33 insertions(+)
+ include/asm-arm/kexec.h     |    2 --
+ include/asm-i386/kexec.h    |    2 --
+ include/asm-ia64/kexec.h    |    2 --
+ include/asm-mips/kexec.h    |    2 --
+ include/asm-powerpc/kexec.h |    2 --
+ include/asm-s390/kexec.h    |    2 --
+ include/asm-sh/kexec.h      |    2 --
+ include/asm-x86_64/kexec.h  |    2 --
+ include/linux/kexec.h       |   11 ++++++++++-
+ 9 files changed, 10 insertions(+), 17 deletions(-)
 
-diff -puN drivers/char/Kconfig~wire-up-dec-serial-drivers-in-kconfig drivers/char/Kconfig
---- a/drivers/char/Kconfig~wire-up-dec-serial-drivers-in-kconfig
-+++ a/drivers/char/Kconfig
-@@ -396,6 +396,39 @@ config AU1000_SERIAL_CONSOLE
- 	  If you have an Alchemy AU1000 processor (MIPS based) and you want
- 	  to use a console on a serial port, say Y.  Otherwise, say N.
+diff -puN include/asm-arm/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-arm/kexec.h
+--- a/include/asm-arm/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-arm/kexec.h
+@@ -16,8 +16,6 @@
  
-+config SERIAL_DEC
-+	bool "DECstation serial support"
-+	depends on MACH_DECSTATION
-+	default y
-+	help
-+	  This selects whether you want to be asked about drivers for
-+	  DECstation serial ports.
+ #ifndef __ASSEMBLY__
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ struct kimage;
+ /* Provide a dummy definition to avoid build failures. */
+ static inline void crash_setup_regs(struct pt_regs *newregs,
+diff -puN include/asm-i386/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-i386/kexec.h
+--- a/include/asm-i386/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-i386/kexec.h
+@@ -47,8 +47,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_386
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ /* CPU does not save ss and esp on stack if execution is already
+  * running in kernel mode at the time of NMI occurrence. This code
+  * fixes it.
+diff -puN include/asm-ia64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-ia64/kexec.h
+--- a/include/asm-ia64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-ia64/kexec.h
+@@ -14,8 +14,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_IA_64
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ #define kexec_flush_icache_page(page) do { \
+                 unsigned long page_addr = (unsigned long)page_address(page); \
+                 flush_icache_range(page_addr, page_addr + PAGE_SIZE); \
+diff -puN include/asm-mips/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-mips/kexec.h
+--- a/include/asm-mips/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-mips/kexec.h
+@@ -21,8 +21,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_MIPS
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ static inline void crash_setup_regs(struct pt_regs *newregs,
+ 				    struct pt_regs *oldregs)
+ {
+diff -puN include/asm-powerpc/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-powerpc/kexec.h
+--- a/include/asm-powerpc/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-powerpc/kexec.h
+@@ -108,8 +108,6 @@ static inline void crash_setup_regs(stru
+ 					struct pt_regs *oldregs) { }
+ #endif /* !__powerpc64 __ */
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ extern void kexec_smp_wait(void);	/* get and clear naca physid, wait for
+ 					  master to copy new code to 0 */
+ extern int crashing_cpu;
+diff -puN include/asm-s390/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-s390/kexec.h
+--- a/include/asm-s390/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-s390/kexec.h
+@@ -34,8 +34,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_S390
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ /* Provide a dummy definition to avoid build failures. */
+ static inline void crash_setup_regs(struct pt_regs *newregs,
+ 					struct pt_regs *oldregs) { }
+diff -puN include/asm-sh/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-sh/kexec.h
+--- a/include/asm-sh/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-sh/kexec.h
+@@ -23,8 +23,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_SH
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ /* Provide a dummy definition to avoid build failures. */
+ static inline void crash_setup_regs(struct pt_regs *newregs,
+ 					struct pt_regs *oldregs) { }
+diff -puN include/asm-x86_64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/asm-x86_64/kexec.h
+--- a/include/asm-x86_64/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/asm-x86_64/kexec.h
+@@ -48,8 +48,6 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_X86_64
+ 
+-#define MAX_NOTE_BYTES 1024
+-
+ /*
+  * Saving the registers of the cpu on which panic occured in
+  * crash_kexec to save a valid sp. The registers of other cpus
+diff -puN include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time include/linux/kexec.h
+--- a/include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time
++++ a/include/linux/kexec.h
+@@ -7,6 +7,8 @@
+ #include <linux/linkage.h>
+ #include <linux/compat.h>
+ #include <linux/ioport.h>
++#include <linux/elfcore.h>
++#include <linux/elf.h>
+ #include <asm/kexec.h>
+ 
+ /* Verify architecture specific macros are defined */
+@@ -31,6 +33,13 @@
+ #error KEXEC_ARCH not defined
+ #endif
+ 
++#define KEXEC_NOTE_NAME "CORE"
++#define KEXEC_NOTE_HEAD_BYTES ALIGN(sizeof(struct elf_note), 4)
++#define KEXEC_NOTE_NAME_BYTES ALIGN(strlen(KEXEC_NOTE_NAME) + 1, 4)
++#define KEXEC_NOTE_DESC_BYTES ALIGN(sizeof(struct elf_prstatus), 4)
++#define KEXEC_NOTE_BYTES ( (KEXEC_NOTE_HEAD_BYTES * 2) + \
++			   KEXEC_NOTE_NAME_BYTES + KEXEC_NOTE_DESC_BYTES )
 +
-+	  Note that the answer to this question won't directly affect the
-+	  kernel: saying N will just cause the configurator to skip all
-+	  the questions about DECstation serial ports.
-+
-+config SERIAL_DEC_CONSOLE
-+	bool "Support for console on a DECstation serial port"
-+	depends on SERIAL_DEC
-+	default y
-+	help
-+	  If you say Y here, it will be possible to use a serial port as the
-+	  system console (the system console is the device which receives all
-+	  kernel messages and warnings and which allows logins in single user
-+	  mode).  Note that the firmware uses ttyS0 as the serial console on
-+	  the Maxine and ttyS2 on the others.
-+
-+	  If unsure, say Y.
-+
-+config ZS
-+	bool "Z85C30 Serial Support"
-+	depends on SERIAL_DEC
-+	default y
-+	help
-+	  Documentation on the Zilog 85C350 serial communications controller
-+	  is downloadable at <http://www.zilog.com/pdfs/serial/z85c30.pdf>
-+
- config A2232
- 	tristate "Commodore A2232 serial support (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL && ZORRO && BROKEN_ON_SMP
+ /*
+  * This structure is used to hold the arguments that are used when loading
+  * kernel binaries.
+@@ -136,7 +145,7 @@ extern struct kimage *kexec_crash_image;
+ /* Location of a reserved region to hold the crash kernel.
+  */
+ extern struct resource crashk_res;
+-typedef u32 note_buf_t[MAX_NOTE_BYTES/4];
++typedef u32 note_buf_t[KEXEC_NOTE_BYTES/4];
+ extern note_buf_t *crash_notes;
+ 
+ 
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from horms@verge.net.au are
 
-origin.patch
-fix-struct-device-member-name-in-pcmcia-au1000_generic.patch
-wire-up-dec-serial-drivers-in-kconfig.patch
-git-alsa.patch
-git-mips.patch
-git-netdev-all.patch
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
-x86_64-fix-ia32_binfmtc-build-error.patch
-simplify-the-stacktrace-code.patch
-serial-allocate-minor-device-numbers-for.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-local_t-mips-extension.patch
-tgafb-turbochannel-support.patch
+kdump-kexec-calculate-note-size-at-compile-time.patch
+git-ia64.patch
+git-scsi-misc.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
