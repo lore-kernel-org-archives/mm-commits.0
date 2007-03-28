@@ -1,103 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: + holepunch-fix-disconnected-pages-after-second-truncate.patch added to -mm tree
-Date: Wed, 28 Mar 2007 17:04:40 -0700
-Message-ID: <200703290004.l2T04eI0023374@shell0.pdx.osdl.net>
+Subject: - shmem-dont-release-lock-for-hole-punching.patch removed from -mm tree
+Date: Wed, 28 Mar 2007 16:58:49 -0700
+Message-ID: <200703282358.l2SNwnUA023226@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36193 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36207 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753214AbXC2AFA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 20:05:00 -0400
+	id S1753224AbXC2AFa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 20:05:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, mszeredi@suse.cz, npiggin@suse.de, pbadari@us.ibm.com
+To: mszeredi@suse.cz, hugh@veritas.com, pbadari@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     holepunch: fix disconnected pages after second truncate
-has been added to the -mm tree.  Its filename is
-     holepunch-fix-disconnected-pages-after-second-truncate.patch
+     shmem: don't release lock for hole punching
+has been removed from the -mm tree.  Its filename was
+     shmem-dont-release-lock-for-hole-punching.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: holepunch: fix disconnected pages after second truncate
-From: Hugh Dickins <hugh@veritas.com>
+Subject: shmem: don't release lock for hole punching
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-shmem_truncate_range has its own truncate_inode_pages_range, to free any pages
-racily instantiated while it was in progress: a SHMEM_PAGEIN flag is set when
-this might have happened.  But holepunching gets no chance to clear that flag
-at the start of vmtruncate_range, so it's always set (unless a truncate came
-just before), so holepunch almost always does this second
-truncate_inode_pages_range.
+During truncation of shmem page directories, info->lock is released to
+improve latency.  But this is wrong for hole punching, because the memory
+areas being operated on are still in use by shmem_unuse, shmem_getpage and
+shmem_writepage.
 
-shmem holepunch has unlikely swap<->file races hereabouts whatever we do
-(without a fuller rework than is fit for this release): I was going to skip
-the second truncate in the punch_hole case, but Miklos points out that would
-make holepunch correctness more vulnerable to swapoff.  So keep the second
-truncate, but follow it by an unmap_mapping_range to eliminate the
-disconnected pages (freed from pagecache while still mapped in userspace) that
-it might have left behind.
+So for hole punching don't release the lock.  Users of MADV_REMOVE likely
+don't care about latency anyway.  But this function really wants a cleanup,
+and with that latency could also be taken care of.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ mm/shmem.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN mm/shmem.c~holepunch-fix-disconnected-pages-after-second-truncate mm/shmem.c
---- a/mm/shmem.c~holepunch-fix-disconnected-pages-after-second-truncate
+diff -puN mm/shmem.c~shmem-dont-release-lock-for-hole-punching mm/shmem.c
+--- a/mm/shmem.c~shmem-dont-release-lock-for-hole-punching
 +++ a/mm/shmem.c
-@@ -674,8 +674,16 @@ done2:
- 		 * generic_delete_inode did it, before we lowered next_index.
- 		 * Also, though shmem_getpage checks i_size before adding to
- 		 * cache, no recheck after: so fix the narrow window there too.
-+		 *
-+		 * Recalling truncate_inode_pages_range and unmap_mapping_range
-+		 * every time for punch_hole (which never got a chance to clear
-+		 * SHMEM_PAGEIN at the start of vmtruncate_range) is expensive,
-+		 * yet hardly ever necessary: try to optimize them out later.
- 		 */
- 		truncate_inode_pages_range(inode->i_mapping, start, end);
-+		if (punch_hole)
-+			unmap_mapping_range(inode->i_mapping, start,
-+							end - start, 1);
- 	}
+@@ -421,7 +421,7 @@ static int shmem_free_swp(swp_entry_t *d
+ }
  
- 	spin_lock(&info->lock);
+ static int shmem_map_and_free_swp(struct page *subdir,
+-		int offset, int limit, struct page ***dir)
++		int offset, int limit, struct page ***dir, int punch_hole)
+ {
+ 	swp_entry_t *ptr;
+ 	int freed = 0;
+@@ -429,10 +429,10 @@ static int shmem_map_and_free_swp(struct
+ 	ptr = shmem_swp_map(subdir);
+ 	for (; offset < limit; offset += LATENCY_LIMIT) {
+ 		int size = limit - offset;
+-		if (size > LATENCY_LIMIT)
++		if (!punch_hole && size > LATENCY_LIMIT)
+ 			size = LATENCY_LIMIT;
+ 		freed += shmem_free_swp(ptr+offset, ptr+offset+size);
+-		if (need_resched()) {
++		if (!punch_hole && need_resched()) {
+ 			shmem_swp_unmap(ptr);
+ 			if (*dir) {
+ 				shmem_dir_unmap(*dir);
+@@ -506,7 +506,8 @@ static void shmem_truncate_range(struct 
+ 		nr_pages_to_free++;
+ 		list_add(&topdir->lru, &pages_to_free);
+ 	}
+-	spin_unlock(&info->lock);
++	if (!punch_hole)
++		spin_unlock(&info->lock);
+ 
+ 	if (info->swapped && idx < SHMEM_NR_DIRECT) {
+ 		ptr = info->i_direct;
+@@ -589,14 +590,14 @@ static void shmem_truncate_range(struct 
+ 			if (size > ENTRIES_PER_PAGE)
+ 				size = ENTRIES_PER_PAGE;
+ 			freed = shmem_map_and_free_swp(subdir,
+-						offset, size, &dir);
++					offset, size, &dir, punch_hole);
+ 			if (!dir)
+ 				dir = shmem_dir_map(middir);
+ 			nr_swaps_freed += freed;
+-			if (offset)
++			if (offset && !punch_hole)
+ 				spin_lock(&info->lock);
+ 			set_page_private(subdir, page_private(subdir) - freed);
+-			if (offset)
++			if (offset && !punch_hole)
+ 				spin_unlock(&info->lock);
+ 			if (!punch_hole)
+ 				BUG_ON(page_private(subdir) > offset);
+@@ -613,6 +614,8 @@ static void shmem_truncate_range(struct 
+ done1:
+ 	shmem_dir_unmap(dir);
+ done2:
++	if (punch_hole)
++		spin_unlock(&info->lock);
+ 	if (inode->i_mapping->nrpages && (info->flags & SHMEM_PAGEIN)) {
+ 		/*
+ 		 * Call truncate_inode_pages again: racing shmem_unuse_inode
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-holepunch-fix-shmem_truncate_range-punching-too-far.patch
-holepunch-fix-shmem_truncate_range-punch-locking.patch
-holepunch-fix-disconnected-pages-after-second-truncate.patch
-holepunch-fix-mmap_sem-i_mutex-deadlock.patch
-git-drm.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-free-swap-space-of-reactivated-pages.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-smaps-use-ptep_test_and_clear_young.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+uml-fix-pte-bit-collision.patch
+shmem-fix-bug-in-shmem_writepage.patch
+shmem-dont-release-lock-for-hole-punching.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-filesystem-subtype-support.patch
+add-file-position-info-to-proc.patch
+consolidate-generic_writepages-and-mpage_writepages.patch
