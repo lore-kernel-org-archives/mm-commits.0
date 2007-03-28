@@ -1,226 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - fix-bogus-softlockup-warning-with-sysrq-t.patch removed from -mm tree
-Date: Wed, 28 Mar 2007 16:37:16 -0700
-Message-ID: <200703282337.l2SNbGTk022805@shell0.pdx.osdl.net>
+Subject: + wire-up-dec-serial-drivers-in-kconfig.patch added to -mm tree
+Date: Wed, 28 Mar 2007 16:38:37 -0700
+Message-ID: <200703282338.l2SNcblH022826@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35729 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35761 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934046AbXC1Xkq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 19:40:46 -0400
+	id S934070AbXC1Xlz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 19:41:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: prarit@redhat.com, clalance@redhat.com, mingo@elte.hu, ricklind@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ralf@linux-mips.org
 
 
 The patch titled
-     Fix bogus softlockup warning with sysrq-t
-has been removed from the -mm tree.  Its filename was
-     fix-bogus-softlockup-warning-with-sysrq-t.patch
+     Wire up DEC serial drivers in Kconfig
+has been added to the -mm tree.  Its filename is
+     wire-up-dec-serial-drivers-in-kconfig.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Fix bogus softlockup warning with sysrq-t
-From: Prarit Bhargava <prarit@redhat.com>
+Subject: Wire up DEC serial drivers in Kconfig
+From: Ralf Baechle <ralf@linux-mips.org>
 
-There are some situations when soft lockup warnings are expected in the
-kernel.  For example, when doing an alt-sysrq-t on a large number of
-processes, the dump to console can take a long time and the tasklist_lock
-is held over that period.  This results in a bogus soft lockup warning.
-
-This patch reworks touch_softlockup_watchdog to touch ALL cpu's
-touch_timestamp.  It also introduces touch_cpu_softlockup_watchdog to touch
-a single cpu's touch_timestamp.  This makes it functionally equivalent to
-touch_nmi_watchdog.
-
-touch_nmi_watchdog is not modified -- AFAICT it was attempting to touch all
-cpu's softlockup watchdogs, not just a specific cpu.
-
-/drivers/ide/ide-iops.c does not need to call touch_softlockup_watchdog as
-it is done in the call to touch_nmi_watchdog.
-
-The EXPORT_SYMBOL for touch_softlockup_watchdog is needed by
-drivers/scsi/ips.ko
-
-Acked-by: Chris Lalancette <clalance@redhat.com>
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Acked-by: Rick Lindsley <ricklind@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/uncached.c  |    2 +-
- drivers/ide/ide-iops.c       |    1 -
- drivers/ide/ide-taskfile.c   |    2 +-
- drivers/mtd/nand/nand_base.c |    2 +-
- include/linux/sched.h        |    4 ++++
- kernel/panic.c               |    2 +-
- kernel/power/swsusp.c        |    2 +-
- kernel/sched.c               |    1 +
- kernel/softlockup.c          |   16 +++++++++++++---
- 9 files changed, 23 insertions(+), 9 deletions(-)
+ drivers/char/Kconfig |   33 +++++++++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+)
 
-diff -puN arch/ia64/kernel/uncached.c~fix-bogus-softlockup-warning-with-sysrq-t arch/ia64/kernel/uncached.c
---- a/arch/ia64/kernel/uncached.c~fix-bogus-softlockup-warning-with-sysrq-t
-+++ a/arch/ia64/kernel/uncached.c
-@@ -254,7 +254,7 @@ static int __init uncached_build_memmap(
- 	struct gen_pool *pool = uncached_pools[nid].pool;
- 	size_t size = uc_end - uc_start;
+diff -puN drivers/char/Kconfig~wire-up-dec-serial-drivers-in-kconfig drivers/char/Kconfig
+--- a/drivers/char/Kconfig~wire-up-dec-serial-drivers-in-kconfig
++++ a/drivers/char/Kconfig
+@@ -396,6 +396,39 @@ config AU1000_SERIAL_CONSOLE
+ 	  If you have an Alchemy AU1000 processor (MIPS based) and you want
+ 	  to use a console on a serial port, say Y.  Otherwise, say N.
  
--	touch_softlockup_watchdog();
-+	touch_cpu_softlockup_watchdog();
- 
- 	if (pool != NULL) {
- 		memset((char *)uc_start, 0, size);
-diff -puN drivers/ide/ide-iops.c~fix-bogus-softlockup-warning-with-sysrq-t drivers/ide/ide-iops.c
---- a/drivers/ide/ide-iops.c~fix-bogus-softlockup-warning-with-sysrq-t
-+++ a/drivers/ide/ide-iops.c
-@@ -1226,7 +1226,6 @@ int ide_wait_not_busy(ide_hwif_t *hwif, 
- 		 */
- 		if (stat == 0xff)
- 			return -ENODEV;
--		touch_softlockup_watchdog();
- 		touch_nmi_watchdog();
- 	}
- 	return -EBUSY;
-diff -puN drivers/ide/ide-taskfile.c~fix-bogus-softlockup-warning-with-sysrq-t drivers/ide/ide-taskfile.c
---- a/drivers/ide/ide-taskfile.c~fix-bogus-softlockup-warning-with-sysrq-t
-+++ a/drivers/ide/ide-taskfile.c
-@@ -313,7 +313,7 @@ static void ide_pio_datablock(ide_drive_
- 	if (rq->bio)	/* fs request */
- 		rq->errors = 0;
- 
--	touch_softlockup_watchdog();
-+	touch_cpu_softlockup_watchdog();
- 
- 	switch (drive->hwif->data_phase) {
- 	case TASKFILE_MULTI_IN:
-diff -puN drivers/mtd/nand/nand_base.c~fix-bogus-softlockup-warning-with-sysrq-t drivers/mtd/nand/nand_base.c
---- a/drivers/mtd/nand/nand_base.c~fix-bogus-softlockup-warning-with-sysrq-t
-+++ a/drivers/mtd/nand/nand_base.c
-@@ -425,7 +425,7 @@ void nand_wait_ready(struct mtd_info *mt
- 	do {
- 		if (chip->dev_ready(mtd))
- 			break;
--		touch_softlockup_watchdog();
-+		touch_cpu_softlockup_watchdog();
- 	} while (time_before(jiffies, timeo));
- 	led_trigger_event(nand_led_trigger, LED_OFF);
- }
-diff -puN include/linux/sched.h~fix-bogus-softlockup-warning-with-sysrq-t include/linux/sched.h
---- a/include/linux/sched.h~fix-bogus-softlockup-warning-with-sysrq-t
-+++ a/include/linux/sched.h
-@@ -225,6 +225,7 @@ extern void scheduler_tick(void);
- #ifdef CONFIG_DETECT_SOFTLOCKUP
- extern void softlockup_tick(void);
- extern void spawn_softlockup_task(void);
-+extern void touch_cpu_softlockup_watchdog(void);
- extern void touch_softlockup_watchdog(void);
- #else
- static inline void softlockup_tick(void)
-@@ -233,6 +234,9 @@ static inline void softlockup_tick(void)
- static inline void spawn_softlockup_task(void)
- {
- }
-+static inline void touch_cpu_softlockup_watchdog(void)
-+{
-+}
- static inline void touch_softlockup_watchdog(void)
- {
- }
-diff -puN kernel/panic.c~fix-bogus-softlockup-warning-with-sysrq-t kernel/panic.c
---- a/kernel/panic.c~fix-bogus-softlockup-warning-with-sysrq-t
-+++ a/kernel/panic.c
-@@ -132,7 +132,7 @@ NORET_TYPE void panic(const char * fmt, 
- #endif
- 	local_irq_enable();
- 	for (i = 0;;) {
--		touch_softlockup_watchdog();
-+		touch_cpu_softlockup_watchdog();
- 		i += panic_blink(i);
- 		mdelay(1);
- 		i++;
-diff -puN kernel/power/swsusp.c~fix-bogus-softlockup-warning-with-sysrq-t kernel/power/swsusp.c
---- a/kernel/power/swsusp.c~fix-bogus-softlockup-warning-with-sysrq-t
-+++ a/kernel/power/swsusp.c
-@@ -323,7 +323,7 @@ int swsusp_resume(void)
- 	 */
- 	swsusp_free();
- 	restore_processor_state();
--	touch_softlockup_watchdog();
-+	touch_cpu_softlockup_watchdog();
- 	device_power_up();
- 	local_irq_enable();
- 	return error;
-diff -puN kernel/sched.c~fix-bogus-softlockup-warning-with-sysrq-t kernel/sched.c
---- a/kernel/sched.c~fix-bogus-softlockup-warning-with-sysrq-t
-+++ a/kernel/sched.c
-@@ -4783,6 +4783,7 @@ void show_state_filter(unsigned long sta
- 		if (p->state & state_filter)
- 			show_task(p);
- 	} while_each_thread(g, p);
-+	touch_softlockup_watchdog();
- 
- 	read_unlock(&tasklist_lock);
- 	/*
-diff -puN kernel/softlockup.c~fix-bogus-softlockup-warning-with-sysrq-t kernel/softlockup.c
---- a/kernel/softlockup.c~fix-bogus-softlockup-warning-with-sysrq-t
-+++ a/kernel/softlockup.c
-@@ -8,6 +8,7 @@
-  */
- #include <linux/mm.h>
- #include <linux/cpu.h>
-+#include <linux/cpumask.h>
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <linux/kthread.h>
-@@ -34,10 +35,19 @@ static struct notifier_block panic_block
- 	.notifier_call = softlock_panic,
- };
- 
--void touch_softlockup_watchdog(void)
-+void touch_cpu_softlockup_watchdog(void)
- {
- 	__raw_get_cpu_var(touch_timestamp) = jiffies;
- }
-+EXPORT_SYMBOL(touch_cpu_softlockup_watchdog);
++config SERIAL_DEC
++	bool "DECstation serial support"
++	depends on MACH_DECSTATION
++	default y
++	help
++	  This selects whether you want to be asked about drivers for
++	  DECstation serial ports.
 +
-+void touch_softlockup_watchdog(void)
-+{
-+	int cpu;
++	  Note that the answer to this question won't directly affect the
++	  kernel: saying N will just cause the configurator to skip all
++	  the questions about DECstation serial ports.
 +
-+	for_each_online_cpu(cpu)
-+		per_cpu(touch_timestamp, cpu) = jiffies;
-+}
- EXPORT_SYMBOL(touch_softlockup_watchdog);
- 
- /*
-@@ -57,7 +67,7 @@ void softlockup_tick(void)
- 
- 	/* do not print during early bootup: */
- 	if (unlikely(system_state != SYSTEM_RUNNING)) {
--		touch_softlockup_watchdog();
-+		touch_cpu_softlockup_watchdog();
- 		return;
- 	}
- 
-@@ -94,7 +104,7 @@ static int watchdog(void * __bind_cpu)
- 	 */
- 	while (!kthread_should_stop()) {
- 		set_current_state(TASK_INTERRUPTIBLE);
--		touch_softlockup_watchdog();
-+		touch_cpu_softlockup_watchdog();
- 		schedule();
- 	}
- 
++config SERIAL_DEC_CONSOLE
++	bool "Support for console on a DECstation serial port"
++	depends on SERIAL_DEC
++	default y
++	help
++	  If you say Y here, it will be possible to use a serial port as the
++	  system console (the system console is the device which receives all
++	  kernel messages and warnings and which allows logins in single user
++	  mode).  Note that the firmware uses ttyS0 as the serial console on
++	  the Maxine and ttyS2 on the others.
++
++	  If unsure, say Y.
++
++config ZS
++	bool "Z85C30 Serial Support"
++	depends on SERIAL_DEC
++	default y
++	help
++	  Documentation on the Zilog 85C350 serial communications controller
++	  is downloadable at <http://www.zilog.com/pdfs/serial/z85c30.pdf>
++
+ config A2232
+ 	tristate "Commodore A2232 serial support (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL && ZORRO && BROKEN_ON_SMP
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-use-stop_machine_run-in-the-intel-rng-driver.patch
-fix-bogus-softlockup-warning-with-sysrq-t.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-change-rivafb_remove-to-__devexit.patch
+fix-struct-device-member-name-in-pcmcia-au1000_generic.patch
+wire-up-dec-serial-drivers-in-kconfig.patch
+git-alsa.patch
+git-mips.patch
+git-netdev-all.patch
+serial-driver-pmc-msp71xx.patch
+rm9000-serial-driver.patch
+x86_64-fix-ia32_binfmtc-build-error.patch
+simplify-the-stacktrace-code.patch
+serial-allocate-minor-device-numbers-for.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+local_t-mips-extension.patch
+tgafb-turbochannel-support.patch
