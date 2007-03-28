@@ -1,106 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - use-the-apic-to-determine-the-hardware-processor-id-i386.patch removed from -mm tree
-Date: Wed, 28 Mar 2007 13:19:25 -0700
-Message-ID: <200703282019.l2SKJP4A019186@shell0.pdx.osdl.net>
+Subject: - fix-x86_64-compilation-with-debug_sig-on.patch removed from -mm tree
+Date: Wed, 28 Mar 2007 13:23:40 -0700
+Message-ID: <200703282023.l2SKNe87019271@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58009 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58260 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965764AbXC1UUE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 16:20:04 -0400
+	id S965773AbXC1UXv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 16:23:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fernando@oss.ntt.co.jp, ak@suse.de, ebiederm@xmission.com, horms@verge.net.au, tony.luck@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: gcosta@redhat.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use the APIC to determine the hardware processor id - i386
+     Fix x86_64 compilation with DEBUG_SIG on
 has been removed from the -mm tree.  Its filename was
-     use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+     fix-x86_64-compilation-with-debug_sig-on.patch
 
-This patch was dropped because it was folded into remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Use the APIC to determine the hardware processor id - i386
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: Fix x86_64 compilation with DEBUG_SIG on
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-Use the APIC to determine the hardware processor id when APIC support has been
-selected, independently of whether CONFIG_SMP is set or not.
+Setting the DEBUG_SIG flag breaks compilation due to a wrong struct access.
+Additionally, it raises two warnings.  This is one patch to fix them all.
 
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/smp.h |   37 ++++++++++++++++++++++---------------
- 1 file changed, 22 insertions(+), 15 deletions(-)
+ arch/x86_64/kernel/signal.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-i386/smp.h~use-the-apic-to-determine-the-hardware-processor-id-i386 include/asm-i386/smp.h
---- a/include/asm-i386/smp.h~use-the-apic-to-determine-the-hardware-processor-id-i386
-+++ a/include/asm-i386/smp.h
-@@ -71,20 +71,6 @@ static inline int num_booting_cpus(void)
- 	return cpus_weight(cpu_callout_map);
- }
+diff -puN arch/x86_64/kernel/signal.c~fix-x86_64-compilation-with-debug_sig-on arch/x86_64/kernel/signal.c
+--- a/arch/x86_64/kernel/signal.c~fix-x86_64-compilation-with-debug_sig-on
++++ a/arch/x86_64/kernel/signal.c
+@@ -141,7 +141,7 @@ asmlinkage long sys_rt_sigreturn(struct 
+ 		goto badframe;
  
--#ifdef CONFIG_X86_LOCAL_APIC
--
--#ifdef APIC_DEFINITION
--extern int hard_smp_processor_id(void);
--#else
--#include <mach_apicdef.h>
--static inline int hard_smp_processor_id(void)
--{
--	/* we don't want to mark this access volatile - bad code generation */
--	return GET_APIC_ID(*(unsigned long *)(APIC_BASE+APIC_ID));
--}
--#endif
--#endif
--
- extern int safe_smp_processor_id(void);
- extern int __cpu_disable(void);
- extern void __cpu_die(unsigned int cpu);
-@@ -99,10 +85,31 @@ extern unsigned int num_processors;
+ #ifdef DEBUG_SIG
+-	printk("%d sigreturn rip:%lx rsp:%lx frame:%p rax:%lx\n",current->pid,regs.rip,regs.rsp,frame,eax);
++	printk("%d sigreturn rip:%lx rsp:%lx frame:%p rax:%lx\n",current->pid,regs->rip,regs->rsp,frame,eax);
+ #endif
  
- #define NO_PROC_ID		0xFF		/* No processor magic marker */
+ 	if (do_sigaltstack(&frame->uc.uc_stack, NULL, regs->rsp) == -EFAULT)
+@@ -301,7 +301,7 @@ static int setup_rt_frame(int sig, struc
+ 	if (test_thread_flag(TIF_SINGLESTEP))
+ 		ptrace_notify(SIGTRAP);
+ #ifdef DEBUG_SIG
+-	printk("SIG deliver (%s:%d): sp=%p pc=%p ra=%p\n",
++	printk("SIG deliver (%s:%d): sp=%p pc=%lx ra=%p\n",
+ 		current->comm, current->pid, frame, regs->rip, frame->pretcode);
+ #endif
  
--#endif
-+#endif /* CONFIG_SMP */
- 
- #ifndef __ASSEMBLY__
- 
-+#ifdef CONFIG_X86_LOCAL_APIC
-+
-+#ifdef APIC_DEFINITION
-+extern int hard_smp_processor_id(void);
-+#else
-+#include <mach_apicdef.h>
-+static inline int hard_smp_processor_id(void)
-+{
-+	/* we don't want to mark this access volatile - bad code generation */
-+	return GET_APIC_ID(*(unsigned long *)(APIC_BASE+APIC_ID));
-+}
-+#endif /* APIC_DEFINITION */
-+
-+#else /* CONFIG_X86_LOCAL_APIC */
-+
-+#ifndef CONFIG_SMP
-+#define hard_smp_processor_id()		0
-+#endif
-+
-+#endif /* CONFIG_X86_LOCAL_APIC */
-+
- extern u8 apicid_2_node[];
- 
- #ifdef CONFIG_X86_LOCAL_APIC
+@@ -463,7 +463,7 @@ void
+ do_notify_resume(struct pt_regs *regs, void *unused, __u32 thread_info_flags)
+ {
+ #ifdef DEBUG_SIG
+-	printk("do_notify_resume flags:%x rip:%lx rsp:%lx caller:%lx pending:%lx\n",
++	printk("do_notify_resume flags:%x rip:%lx rsp:%lx caller:%p pending:%x\n",
+ 	       thread_info_flags, regs->rip, regs->rsp, __builtin_return_address(0),signal_pending(current)); 
+ #endif
+ 	       
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from gcosta@redhat.com are
 
-always-ask-the-hardware-to-obtain-hardware-processor.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+x86_64-remove-duplicated-code-for-reading-control-registers.patch
+yet-another-function-to-load-cr3-register.patch
+fix-x86_64-compilation-with-debug_sig-on.patch
