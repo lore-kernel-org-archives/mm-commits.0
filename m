@@ -1,82 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - uml-irq-locking-fixes.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:16 -0700
-Message-ID: <200703292337.l2TNbGxu015084@shell0.pdx.osdl.net>
+Subject: - uml-fix-compilation-problems.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:21 -0700
+Message-ID: <200703292337.l2TNbLip015092@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42946 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42958 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945916AbXC2XhT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:37:19 -0400
+	id S1945926AbXC2XhY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:37:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: irq locking fixes
+     uml: fix compilation problems
 has been removed from the -mm tree.  Its filename was
-     uml-irq-locking-fixes.patch
+     uml-fix-compilation-problems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: irq locking fixes
+Subject: uml: fix compilation problems
 From: Jeff Dike <jdike@addtoit.com>
 
-As the comment immediately preceding this points out, this list is changed in
-irq context, so it needs to be protected with spin_lock_irqsave in process
-context when it is processed.
-
-Sometimes, gcc should just compile the comments and forget the code.
-
-The IRQ side of this was better, in the sense that it blocked and unblocked
-interrupts, but it still should have saved and restored them.
+Fix a few miscellaneous compilation problems -
+	an assignment with mismatched types in ldt.c
+	a missing include in mconsole.h which needs a definition of uml_pt_regs
+	I missed removing an include of user_util.h in hostfs
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_kern.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ arch/um/include/mconsole.h |    2 ++
+ arch/um/sys-i386/ldt.c     |    3 ++-
+ fs/hostfs/hostfs_kern.c    |    1 -
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/drivers/chan_kern.c~uml-irq-locking-fixes arch/um/drivers/chan_kern.c
---- a/arch/um/drivers/chan_kern.c~uml-irq-locking-fixes
-+++ a/arch/um/drivers/chan_kern.c
-@@ -236,11 +236,11 @@ void free_irqs(void)
- 	struct chan *chan;
- 	LIST_HEAD(list);
- 	struct list_head *ele;
-+	unsigned long flags;
+diff -puN arch/um/include/mconsole.h~uml-fix-compilation-problems arch/um/include/mconsole.h
+--- a/arch/um/include/mconsole.h~uml-fix-compilation-problems
++++ a/arch/um/include/mconsole.h
+@@ -12,6 +12,8 @@
+ #define u32 uint32_t
+ #endif
  
--	spin_lock_irq(&irqs_to_free_lock);
-+	spin_lock_irqsave(&irqs_to_free_lock, flags);
- 	list_splice_init(&irqs_to_free, &list);
--	INIT_LIST_HEAD(&irqs_to_free);
--	spin_unlock_irq(&irqs_to_free_lock);
-+	spin_unlock_irqrestore(&irqs_to_free_lock, flags);
- 
- 	list_for_each(ele, &list){
- 		chan = list_entry(ele, struct chan, free_list);
-@@ -255,13 +255,15 @@ void free_irqs(void)
- 
- static void close_one_chan(struct chan *chan, int delay_free_irq)
- {
-+	unsigned long flags;
++#include "sysdep/ptrace.h"
 +
- 	if(!chan->opened)
- 		return;
+ #define MCONSOLE_MAGIC (0xcafebabe)
+ #define MCONSOLE_MAX_DATA (512)
+ #define MCONSOLE_VERSION 2
+diff -puN arch/um/sys-i386/ldt.c~uml-fix-compilation-problems arch/um/sys-i386/ldt.c
+--- a/arch/um/sys-i386/ldt.c~uml-fix-compilation-problems
++++ a/arch/um/sys-i386/ldt.c
+@@ -394,7 +394,8 @@ static short * host_ldt_entries = NULL;
+ static void ldt_get_host_info(void)
+ {
+ 	long ret;
+-	struct ldt_entry * ldt, *tmp;
++	struct ldt_entry * ldt;
++	short *tmp;
+ 	int i, size, k, order;
  
- 	if(delay_free_irq){
--		spin_lock_irq(&irqs_to_free_lock);
-+		spin_lock_irqsave(&irqs_to_free_lock, flags);
- 		list_add(&chan->free_list, &irqs_to_free);
--		spin_unlock_irq(&irqs_to_free_lock);
-+		spin_unlock_irqrestore(&irqs_to_free_lock, flags);
- 	}
- 	else {
- 		if(chan->input)
+ 	spin_lock(&host_ldt_lock);
+diff -puN fs/hostfs/hostfs_kern.c~uml-fix-compilation-problems fs/hostfs/hostfs_kern.c
+--- a/fs/hostfs/hostfs_kern.c~uml-fix-compilation-problems
++++ a/fs/hostfs/hostfs_kern.c
+@@ -20,7 +20,6 @@
+ #include "hostfs.h"
+ #include "kern_util.h"
+ #include "kern.h"
+-#include "user_util.h"
+ #include "init.h"
+ 
+ struct hostfs_inode_info {
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
