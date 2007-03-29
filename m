@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + holepunch-fix-mmap_sem-i_mutex-deadlock.patch added to -mm tree
-Date: Wed, 28 Mar 2007 17:04:42 -0700
-Message-ID: <200703290004.l2T04giE023377@shell0.pdx.osdl.net>
+Subject: + uml-hostfs-variable-renaming.patch added to -mm tree
+Date: Wed, 28 Mar 2007 17:07:28 -0700
+Message-ID: <200703290007.l2T07S2M023395@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36197 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36279 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753214AbXC2AFG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 20:05:06 -0400
+	id S1751559AbXC2AHb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 20:07:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, mszeredi@suse.cz, npiggin@suse.de, pbadari@us.ibm.com
+Cc: blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     holepunch: fix mmap_sem i_mutex deadlock
+     uml: hostfs variable renaming
 has been added to the -mm tree.  Its filename is
-     holepunch-fix-mmap_sem-i_mutex-deadlock.patch
+     uml-hostfs-variable-renaming.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,102 +25,111 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: holepunch: fix mmap_sem i_mutex deadlock
-From: Hugh Dickins <hugh@veritas.com>
+Subject: uml: hostfs variable renaming
+From: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 
-sys_madvise has down_write of mmap_sem, then madvise_remove calls
-vmtruncate_range which takes i_mutex and i_alloc_sem: no, we can easily devise
-deadlocks from that ordering.
+* rename name to host_root_path
+* rename data to req_root.
 
-madvise_remove drop mmap_sem while calling vmtruncate_range: luckily, since
-madvise_remove doesn't split or merge vmas, it's easy to handle this case with
-a NULL prev, without restructuring sys_madvise.  (Though sad to retake
-mmap_sem when it's unlikely to be needed, and certainly down_read is
-sufficient for MADV_REMOVE, unlike the other madvices.)
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   19 ++++++++++++++-----
- 1 files changed, 14 insertions(+), 5 deletions(-)
+ fs/hostfs/hostfs_kern.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/madvise.c~holepunch-fix-mmap_sem-i_mutex-deadlock mm/madvise.c
---- a/mm/madvise.c~holepunch-fix-mmap_sem-i_mutex-deadlock
-+++ a/mm/madvise.c
-@@ -159,9 +159,10 @@ static long madvise_remove(struct vm_are
- 				unsigned long start, unsigned long end)
+diff -puN fs/hostfs/hostfs_kern.c~uml-hostfs-variable-renaming fs/hostfs/hostfs_kern.c
+--- a/fs/hostfs/hostfs_kern.c~uml-hostfs-variable-renaming
++++ a/fs/hostfs/hostfs_kern.c
+@@ -938,7 +938,7 @@ static const struct address_space_operat
+ static int hostfs_fill_sb_common(struct super_block *sb, void *d, int silent)
  {
- 	struct address_space *mapping;
--        loff_t offset, endoff;
-+	loff_t offset, endoff;
-+	int error;
+ 	struct inode *root_inode;
+-	char *name, *data = d;
++	char *host_root_path, *req_root = d;
+ 	int err;
  
--	*prev = vma;
-+	*prev = NULL;	/* tell sys_madvise we drop mmap_sem */
+ 	sb->s_blocksize = 1024;
+@@ -947,16 +947,16 @@ static int hostfs_fill_sb_common(struct 
+ 	sb->s_op = &hostfs_sbops;
  
- 	if (vma->vm_flags & (VM_LOCKED|VM_NONLINEAR|VM_HUGETLB))
- 		return -EINVAL;
-@@ -180,7 +181,12 @@ static long madvise_remove(struct vm_are
- 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
- 	endoff = (loff_t)(end - vma->vm_start - 1)
- 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
--	return  vmtruncate_range(mapping->host, offset, endoff);
-+
-+	/* vmtruncate_range needs to take i_mutex and i_alloc_sem */
-+	up_write(&current->mm->mmap_sem);
-+	error = vmtruncate_range(mapping->host, offset, endoff);
-+	down_write(&current->mm->mmap_sem);
-+	return error;
+ 	/* NULL is printed as <NULL> by sprintf: avoid that. */
+-	if (data == NULL)
+-		data = "";
++	if (req_root == NULL)
++		req_root = "";
+ 
+ 	err = -ENOMEM;
+-	name = kmalloc(strlen(root_ino) + 1
+-			+ strlen(data) + 1, GFP_KERNEL);
+-	if(name == NULL)
++	host_root_path = kmalloc(strlen(root_ino) + 1
++				 + strlen(req_root) + 1, GFP_KERNEL);
++	if(host_root_path == NULL)
+ 		goto out;
+ 
+-	sprintf(name, "%s/%s", root_ino, data);
++	sprintf(host_root_path, "%s/%s", root_ino, req_root);
+ 
+ 	root_inode = iget(sb, 0);
+ 	if(root_inode == NULL)
+@@ -966,10 +966,10 @@ static int hostfs_fill_sb_common(struct 
+ 	if(err)
+ 		goto out_put;
+ 
+-	HOSTFS_I(root_inode)->host_filename = name;
+-	/* Avoid that in the error path, iput(root_inode) frees again name through
+-	 * hostfs_destroy_inode! */
+-	name = NULL;
++	HOSTFS_I(root_inode)->host_filename = host_root_path;
++	/* Avoid that in the error path, iput(root_inode) frees again
++	 * host_root_path through hostfs_destroy_inode! */
++	host_root_path = NULL;
+ 
+ 	err = -ENOMEM;
+ 	sb->s_root = d_alloc_root(root_inode);
+@@ -989,7 +989,7 @@ static int hostfs_fill_sb_common(struct 
+  out_put:
+         iput(root_inode);
+  out_free:
+-	kfree(name);
++	kfree(host_root_path);
+  out:
+ 	return(err);
  }
- 
- static long
-@@ -315,12 +321,15 @@ asmlinkage long sys_madvise(unsigned lon
- 		if (error)
- 			goto out;
- 		start = tmp;
--		if (start < prev->vm_end)
-+		if (prev && start < prev->vm_end)
- 			start = prev->vm_end;
- 		error = unmapped_error;
- 		if (start >= end)
- 			goto out;
--		vma = prev->vm_next;
-+		if (prev)
-+			vma = prev->vm_next;
-+		else	/* madvise_remove dropped mmap_sem */
-+			vma = find_vma(current->mm, start);
- 	}
- out:
- 	up_write(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from blaisorblade@yahoo.it are
 
-holepunch-fix-shmem_truncate_range-punching-too-far.patch
-holepunch-fix-shmem_truncate_range-punch-locking.patch
-holepunch-fix-disconnected-pages-after-second-truncate.patch
-holepunch-fix-mmap_sem-i_mutex-deadlock.patch
-git-drm.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-free-swap-space-of-reactivated-pages.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-smaps-use-ptep_test_and_clear_young.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-mm-only-free-swap-space-of-reactivated-pages-debug.patch
+uml-fix-static-linking.patch
+uml-use-correct-register-file-size-everywhere.patch
+uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch
+uml-fix-device-unplug-crash.patch
+uml-fix-pte-bit-collision.patch
+uml-irq-locking-fixes.patch
+uml-fix-lvm-crash.patch
+uml-fix-compilation-problems.patch
+uml-hostfs-variable-renaming.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+uml-fix-prototypes.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+uml-improve-checking-and-diagnostics-of-ethernet-macs.patch
+uml-eliminate-temporary-buffer-in-eth_configure.patch
+uml-replace-one-element-array-with-zero-element-array.patch
+fix-utrace-utrace-tracehook-um.patch
+git-gccbug.patch
