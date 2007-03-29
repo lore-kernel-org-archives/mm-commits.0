@@ -1,68 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - ehea-strlcpy-is-smart-enough.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:47 -0700
-Message-ID: <200703292337.l2TNblhf015152@shell0.pdx.osdl.net>
+Subject: - type-cast-clean-up-for-find_next_zero_bit.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:38:05 -0700
+Message-ID: <200703292338.l2TNc5Ee015191@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43025 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43030 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945929AbXC2XiH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:38:07 -0400
+	id S1945930AbXC2XiJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:38:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, osstklei@de.ibm.com, themann@de.ibm.com, mm-commits@vger.kernel.org
+To: kenchen@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     strlcpy is smart enough
+     type cast clean up for find_next_zero_bit
 has been removed from the -mm tree.  Its filename was
-     ehea-strlcpy-is-smart-enough.patch
+     type-cast-clean-up-for-find_next_zero_bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: strlcpy is smart enough
-From: Jean Delvare <khali@linux-fr.org>
+Subject: type cast clean up for find_next_zero_bit
+From: "Ken Chen" <kenchen@google.com>
 
-strlcpy already accounts for the trailing zero in its length
-computation, so there is no need to substract one to the buffer size.
+clean up unneeded type cast by properly declare data type.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Jan-Bernd Themann <themann@de.ibm.com>
-Cc: Thomas Klein <osstklei@de.ibm.com>
+Signed-off-by: Ken Chen <kenchen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea_ethtool.c |    4 ++--
+ arch/i386/lib/bitops.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ehea/ehea_ethtool.c~ehea-strlcpy-is-smart-enough drivers/net/ehea/ehea_ethtool.c
---- a/drivers/net/ehea/ehea_ethtool.c~ehea-strlcpy-is-smart-enough
-+++ a/drivers/net/ehea/ehea_ethtool.c
-@@ -144,8 +144,8 @@ static int ehea_nway_reset(struct net_de
- static void ehea_get_drvinfo(struct net_device *dev,
- 			       struct ethtool_drvinfo *info)
+diff -puN arch/i386/lib/bitops.c~type-cast-clean-up-for-find_next_zero_bit arch/i386/lib/bitops.c
+--- a/arch/i386/lib/bitops.c~type-cast-clean-up-for-find_next_zero_bit
++++ a/arch/i386/lib/bitops.c
+@@ -43,7 +43,7 @@ EXPORT_SYMBOL(find_next_bit);
+  */
+ int find_next_zero_bit(const unsigned long *addr, int size, int offset)
  {
--	strlcpy(info->driver, DRV_NAME, sizeof(info->driver) - 1);
--	strlcpy(info->version, DRV_VERSION, sizeof(info->version) - 1);
-+	strlcpy(info->driver, DRV_NAME, sizeof(info->driver));
-+	strlcpy(info->version, DRV_VERSION, sizeof(info->version));
- }
+-	unsigned long * p = ((unsigned long *) addr) + (offset >> 5);
++	const unsigned long *p = addr + (offset >> 5);
+ 	int set = 0, bit = offset & 31, res;
  
- static u32 ehea_get_msglevel(struct net_device *dev)
+ 	if (bit) {
+@@ -64,7 +64,7 @@ int find_next_zero_bit(const unsigned lo
+ 	/*
+ 	 * No zero yet, search remaining full bytes for a zero
+ 	 */
+-	res = find_first_zero_bit (p, size - 32 * (p - (unsigned long *) addr));
++	res = find_first_zero_bit(p, size - 32 * (p - addr));
+ 	return (offset + set + res);
+ }
+ EXPORT_SYMBOL(find_next_zero_bit);
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from kenchen@google.com are
 
-origin.patch
-x86-msr-add-support-for-safe-variants.patch
-git-alsa.patch
-git-dvb.patch
-apple-smc-driver-hardware-monitoring-and-control.patch
-git-netdev-all.patch
-git-net.patch
-xtensa-strlcpy-is-smart-enough.patch
-oss-strlcpy-is-smart-enough.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-legacy-pc-parports-support-parport-dev.patch
-layered-parport-code-uses-parport-dev.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
