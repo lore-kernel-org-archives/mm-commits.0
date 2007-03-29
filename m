@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + integrity-ima-cleanup.patch added to -mm tree
-Date: Wed, 28 Mar 2007 17:26:04 -0700
-Message-ID: <200703290026.l2T0Q4MS023709@shell0.pdx.osdl.net>
+Subject: + integrity-ima-integrity_measure-support-ima-exit.patch added to -mm tree
+Date: Wed, 28 Mar 2007 17:25:41 -0700
+Message-ID: <200703290025.l2T0Pg39023700@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36546 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36550 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933956AbXC2A0I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 20:26:08 -0400
+	id S1751559AbXC2A0e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 20:26:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: zohar@linux.vnet.ibm.com, kjhall@us.ibm.com, zohar@us.ibm.com
 
 
 The patch titled
-     integrity: ima cleanup
+     integrity: ima exit
 has been added to the -mm tree.  Its filename is
-     integrity-ima-cleanup.patch
+     integrity-ima-integrity_measure-support-ima-exit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: integrity: ima cleanup
+Subject: integrity: ima exit
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
 
-This patch cleanups the few Lindent and sparse msgs
+This patch corrects calling an __exit function from a non-_-exit function.
 
 Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/evm/ima/ima.h    |    6 +++---
- security/evm/ima/ima_fs.c |   12 ++++--------
- 2 files changed, 7 insertions(+), 11 deletions(-)
+ security/evm/evm_integrity.h |   12 ++++++------
+ security/evm/ima/ima_init.c  |    2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN security/evm/ima/ima.h~integrity-ima-cleanup security/evm/ima/ima.h
---- a/security/evm/ima/ima.h~integrity-ima-cleanup
-+++ a/security/evm/ima/ima.h
-@@ -52,7 +52,7 @@ struct ima_measure_entry {
+diff -puN security/evm/evm_integrity.h~integrity-ima-integrity_measure-support-ima-exit security/evm/evm_integrity.h
+--- a/security/evm/evm_integrity.h~integrity-ima-integrity_measure-support-ima-exit
++++ a/security/evm/evm_integrity.h
+@@ -9,21 +9,21 @@
+ extern unsigned int evm_enable_ima;
  
- struct ima_queue_entry {
- 	struct hlist_node hnext;	/* place in hash collision list */
--	struct list_head later;	/* place in ima_measurements list */
-+	struct list_head later;		/* place in ima_measurements list */
- 	struct ima_measure_entry *entry;
- };
- 
-@@ -72,7 +72,7 @@ struct ima_queue_entry *ima_lookup_diges
- extern spinlock_t ima_queue_lock;
- 
- struct ima_h_table {
--	atomic_t len;	/* number of stored measurements in the list */
-+	atomic_t len;		/* number of stored measurements in the list */
- 	atomic_t violations;
- 	unsigned int max_htable_size;
- 	struct hlist_head queue[IMA_MEASURE_HTABLE_SIZE];
-@@ -82,7 +82,7 @@ extern struct ima_h_table ima_htable;
- 
- /* TPM "Glue" definitions */
- 
--#define IMA_TPM ((TPM_ANY_TYPE<<16)| TPM_ANY_NUM)
-+#define IMA_TPM ((((u32)TPM_ANY_TYPE)<<16)| (u32)TPM_ANY_NUM)
- static inline void ima_extend(const u8 * hash)
+ #ifdef CONFIG_IMA_MEASURE
+-static inline int evm_ima_init(void)
++static int evm_ima_init(void)
  {
- 	if (!ima_used_chip)
-diff -puN security/evm/ima/ima_fs.c~integrity-ima-cleanup security/evm/ima/ima_fs.c
---- a/security/evm/ima/ima_fs.c~integrity-ima-cleanup
-+++ a/security/evm/ima/ima_fs.c
-@@ -69,12 +69,11 @@ static void *ima_measurements_start(stru
- 	return NULL;
- }
- 
--static void *ima_measurements_next(struct seq_file *m, void *v,
--				   loff_t * pos)
-+static void *ima_measurements_next(struct seq_file *m, void *v, loff_t * pos)
- {
- 	/* lock protects when reading beyond last element
- 	 * against concurrent list-extension */
--	struct list_head *lpos = (struct list_head *) v;
-+	struct list_head *lpos = (struct list_head *)v;
- 
- 	rcu_read_lock();
- 	lpos = rcu_dereference(lpos->next);
-@@ -88,7 +87,6 @@ static void ima_measurements_stop(struct
- {
- }
- 
--
- /* print format:
-  *       32bit-le=pcr#
-  *       32bit-le=type# << flag
-@@ -207,8 +205,7 @@ static struct seq_operations ima_ascii_m
- 	.show = ima_ascii_measurements_show
- };
- 
--static int ima_ascii_measurements_open(struct inode *inode,
--				       struct file *file)
-+static int ima_ascii_measurements_open(struct inode *inode, struct file *file)
- {
- 	return seq_open(file, &ima_ascii_measurements_seqops);
- }
-@@ -255,8 +252,7 @@ int ima_fs_init(void)
- 
- 	violations =
- 	    securityfs_create_file("violations", S_IRUSR | S_IRGRP,
--				   ima_dir, NULL,
--				   &ima_htable_violations_ops);
-+				   ima_dir, NULL, &ima_htable_violations_ops);
- 	if (!violations || IS_ERR(violations))
- 		goto out;
+ 	if (evm_enable_ima)
+ 		return ima_init();
  	return 0;
+ }
+ 
+-static inline void evm_ima_measure(const unsigned char *name, int hash_len,
++static void evm_ima_measure(const unsigned char *name, int hash_len,
+ 				   char *hash)
+ {
+ 	if (evm_enable_ima)
+ 		ima_measure(name, hash_len, hash);
+ }
+ 
+-static inline void evm_ima_cleanup(void)
++static void __exit evm_ima_cleanup(void)
+ {
+ 	if (evm_enable_ima)
+ 		ima_cleanup();
+@@ -31,19 +31,19 @@ static inline void evm_ima_cleanup(void)
+ }
+ 
+ #else
+-static inline int evm_ima_init(void)
++static int evm_ima_init(void)
+ {
+ 	evm_enable_ima = 0;
+ 	return 0;
+ }
+ 
+-static inline void evm_ima_measure(const unsigned char *name, int hash_len,
++static void evm_ima_measure(const unsigned char *name, int hash_len,
+ 				   char *hash)
+ {
+ 	return;
+ }
+ 
+-static inline void evm_ima_cleanup(void)
++static void __exit evm_ima_cleanup(void)
+ {
+ 	evm_enable_ima = 0;
+ }
+diff -puN security/evm/ima/ima_init.c~integrity-ima-integrity_measure-support-ima-exit security/evm/ima/ima_init.c
+--- a/security/evm/ima/ima_init.c~integrity-ima-integrity_measure-support-ima-exit
++++ a/security/evm/ima/ima_init.c
+@@ -111,7 +111,7 @@ int ima_init(void)
+ 	return ima_fs_init();
+ }
+ 
+-void ima_cleanup(void)
++void __exit ima_cleanup(void)
+ {
+ 	ima_fs_cleanup();
+ }
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
@@ -134,7 +121,7 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-ima-integrity_measure-support-ima-exit.patch
 integrity-ima-identifiers.patch
-integrity-ima-cleanup.patch
 integrity-tpm-internal-kernel-interface.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 ibac-patch.patch
+integrity-ima-cleanup.patch
