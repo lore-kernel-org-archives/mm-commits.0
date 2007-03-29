@@ -1,85 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - tty-minor-merge-correction.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:42:00 -0700
-Message-ID: <200703290742.l2T7g04T030273@shell0.pdx.osdl.net>
+Subject: - correct-slow-acpi_pm-rating.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:41:52 -0700
+Message-ID: <200703290741.l2T7fqW5030264@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46098 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46108 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753320AbXC2HmM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:42:12 -0400
+	id S1753323AbXC2HmQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:42:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, ak@suse.de, mingo@elte.hu, rct@gherkin.frus.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: minor merge correction
+     correct slow acpi_pm rating
 has been removed from the -mm tree.  Its filename was
-     tty-minor-merge-correction.patch
+     correct-slow-acpi_pm-rating.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: minor merge correction
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: correct slow acpi_pm rating
+From: john stultz <johnstul@us.ibm.com>
 
-Its now used.. because we added the new definitions so enabled all the
-goodies on i386
+On Bob's machine clocksource is selecting PIT over the ACPI PM timer,
+because he has the PIIX4 bug.  That bug drops the ACPI PM timers rating
+to the same as the PIT, so that's why you're getting the PIT.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Realistically, the PIT is much slower then even the triple read ACPI PM,
+so the de-ranking code is probably dropping it too far.
+
+So don't drop ACPI PM quite so low if we see the PIIX4 bug.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Bob Tracy <rct@gherkin.frus.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/termbits.h |    2 +-
+ drivers/clocksource/acpi_pm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-i386/termbits.h~tty-minor-merge-correction include/asm-i386/termbits.h
---- a/include/asm-i386/termbits.h~tty-minor-merge-correction
-+++ a/include/asm-i386/termbits.h
-@@ -144,7 +144,7 @@ struct ktermios {
- #define  B3000000 0010015
- #define  B3500000 0010016
- #define  B4000000 0010017
--#define CIBAUD	  002003600000	/* input baud rate (not used) */
-+#define CIBAUD	  002003600000
- #define CMSPAR	  010000000000		/* mark or space (stick) parity */
- #define CRTSCTS	  020000000000		/* flow control */
+diff -puN drivers/clocksource/acpi_pm.c~correct-slow-acpi_pm-rating drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~correct-slow-acpi_pm-rating
++++ a/drivers/clocksource/acpi_pm.c
+@@ -90,7 +90,7 @@ __setup("acpi_pm_good", acpi_pm_good_set
+ static inline void acpi_pm_need_workaround(void)
+ {
+ 	clocksource_acpi_pm.read = acpi_pm_read_slow;
+-	clocksource_acpi_pm.rating = 110;
++	clocksource_acpi_pm.rating = 120;
+ }
  
+ /*
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
 origin.patch
-git-libata-all.patch
-pcmcia-spot-slave-decode-flaws-for-testing.patch
-libata-misc-minor-merge-fixups.patch
-pata_hpt37x-further-small-fixes.patch
-pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
-pata_pdc2027x-bring-into-line-with-changes-add-the-mode.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-baycom_ser_fdx-also-allow-i-o-ports-=-0x1000-and-enhanced.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-protect-tty-drivers-list-with-tty_mutex.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
+log-reason-why-tsc-was-marked-unstable.patch
+convert-h8-300-to-generic-timekeeping.patch
+v850-generic-timekeeping-conversion.patch
+optimize-timespec_trunc.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+declare-struct-ktime.patch
