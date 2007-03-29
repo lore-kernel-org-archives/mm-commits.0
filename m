@@ -1,50 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - make-struct-vmi_ops-static.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:38:02 -0700
-Message-ID: <200703292338.l2TNc26t015188@shell0.pdx.osdl.net>
+Subject: - i386-x86_64-early_printkc-make-simnow_init-static.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:38:17 -0700
+Message-ID: <200703292338.l2TNcHC8015207@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43295 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43303 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934400AbXC2XlS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:41:18 -0400
+	id S934403AbXC2Xla (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:41:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ak@suse.de, zach@vmware.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make struct vmi_ops static
+     i386/x86_64 early_printk.c: make simnow_init() static
 has been removed from the -mm tree.  Its filename was
-     make-struct-vmi_ops-static.patch
+     i386-x86_64-early_printkc-make-simnow_init-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make struct vmi_ops static
+Subject: i386/x86_64 early_printk.c: make simnow_init() static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmi.c |    2 +-
+ arch/x86_64/kernel/early_printk.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/vmi.c~make-struct-vmi_ops-static arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~make-struct-vmi_ops-static
-+++ a/arch/i386/kernel/vmi.c
-@@ -56,7 +56,7 @@ static int disable_noidle;
- static int disable_vmi_timer;
+diff -puN arch/x86_64/kernel/early_printk.c~i386-x86_64-early_printkc-make-simnow_init-static arch/x86_64/kernel/early_printk.c
+--- a/arch/x86_64/kernel/early_printk.c~i386-x86_64-early_printkc-make-simnow_init-static
++++ a/arch/x86_64/kernel/early_printk.c
+@@ -176,7 +176,7 @@ static noinline long simnow(long cmd, lo
+ 	return ret;
+ }
  
- /* Cached VMI operations */
--struct {
-+static struct {
- 	void (*cpuid)(void /* non-c */);
- 	void (*_set_ldt)(u32 selector);
- 	void (*set_tr)(u32 selector);
+-void __init simnow_init(char *str)
++static void __init simnow_init(char *str)
+ {
+ 	char *fn = "klog";
+ 	if (*str == '=')
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
