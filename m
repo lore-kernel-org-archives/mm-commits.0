@@ -1,69 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - clarify-config_reorder-explanation.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:38:56 -0700
-Message-ID: <200703292338.l2TNcuWI015390@shell0.pdx.osdl.net>
+Subject: - x86_64-i386-add-command-line-length-to-boot-protocol.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:39:07 -0700
+Message-ID: <200703292339.l2TNd7oG015407@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43154 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43168 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934395AbXC2XjD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:39:03 -0400
+	id S1945931AbXC2XjM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:39:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
+To: bwalle@suse.de, ak@suse.de, alon.barlev@gmail.com, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clarify CONFIG_REORDER explanation
+     x86_64, i386: add command line length to boot protocol
 has been removed from the -mm tree.  Its filename was
-     clarify-config_reorder-explanation.patch
+     x86_64-i386-add-command-line-length-to-boot-protocol.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clarify CONFIG_REORDER explanation
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: x86_64, i386: add command line length to boot protocol
+From: Bernhard Walle <bwalle@suse.de>
 
-if (1 && X) => if (X).
+Because the command line is increased to 2048 characters after 2.6.21, it's
+not possible for boot loaders and userspace tools to determine the length
+of the command line the kernel can understand.  The benefit of knowing the
+length is that users can be warned if the command line size is too long
+which prevents surprise if things don't work after bootup.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+This patch updates the boot protocol to contain a field called
+"cmdline_size" that contain the length of the command line (excluding the
+terminating zero).
+
+The patch also adds missing fields (of protocol version 2.05) to the x86_64
+setup code.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Alon Bar-Lev <alon.barlev@gmail.com>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/i386/boot.txt |   23 +++++++++++++++++------
+ arch/i386/boot/setup.S      |    7 ++++++-
+ arch/x86_64/boot/setup.S    |   15 ++++++++++++++-
+ 3 files changed, 37 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/Kconfig~clarify-config_reorder-explanation arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~clarify-config_reorder-explanation
-+++ a/arch/x86_64/Kconfig
-@@ -632,8 +632,8 @@ config REORDER
- 	default n
- 	help
-          This option enables the toolchain to reorder functions for a more 
--         optimal TLB usage. If you have pretty much any version of binutils, 
--	 this can increase your kernel build time by roughly one minute.
-+         optimal TLB usage.  This will slow your kernel build by
-+	 roughly one minute.
+diff -puN Documentation/i386/boot.txt~x86_64-i386-add-command-line-length-to-boot-protocol Documentation/i386/boot.txt
+--- a/Documentation/i386/boot.txt~x86_64-i386-add-command-line-length-to-boot-protocol
++++ a/Documentation/i386/boot.txt
+@@ -2,7 +2,7 @@
+ 		     ----------------------------
  
- config K8_NB
- 	def_bool y
+ 		    H. Peter Anvin <hpa@zytor.com>
+-			Last update 2007-01-26
++			Last update 2007-03-06
+ 
+ On the i386 platform, the Linux kernel uses a rather complicated boot
+ convention.  This has evolved partially due to historical aspects, as
+@@ -35,9 +35,13 @@ Protocol 2.03:	(Kernel 2.4.18-pre1) Expl
+ 		initrd address available to the bootloader.
+ 
+ Protocol 2.04:	(Kernel 2.6.14) Extend the syssize field to four bytes.
++
+ Protocol 2.05:	(Kernel 2.6.20) Make protected mode kernel relocatable.
+ 		Introduce relocatable_kernel and kernel_alignment fields.
+ 
++Protocol 2.06:	(Kernel 2.6.22) Added a field that contains the size of
++		the boot command line
++
+ 
+ **** MEMORY LAYOUT
+ 
+@@ -133,6 +137,8 @@ Offset	Proto	Name		Meaning
+ 022C/4	2.03+	initrd_addr_max	Highest legal initrd address
+ 0230/4	2.05+	kernel_alignment Physical addr alignment required for kernel
+ 0234/1	2.05+	relocatable_kernel Whether kernel is relocatable or not
++0235/3	N/A	pad2		Unused
++0238/4	2.06+	cmdline_size	Maximum size of the kernel command line
+ 
+ (1) For backwards compatibility, if the setup_sects field contains 0, the
+     real value is 4.
+@@ -233,6 +239,12 @@ filled out, however:
+ 	if your ramdisk is exactly 131072 bytes long and this field is
+ 	0x37FFFFFF, you can start your ramdisk at 0x37FE0000.)
+ 
++  cmdline_size:
++	The maximum size of the command line without the terminating
++	zero. This means that the command line can contain at most
++	cmdline_size characters. With protocol version 2.05 and
++	earlier, the maximum size was 255.
++
+ 
+ **** THE KERNEL COMMAND LINE
+ 
+@@ -241,11 +253,10 @@ loader to communicate with the kernel.  
+ relevant to the boot loader itself, see "special command line options"
+ below.
+ 
+-The kernel command line is a null-terminated string currently up to
+-255 characters long, plus the final null.  A string that is too long
+-will be automatically truncated by the kernel, a boot loader may allow
+-a longer command line to be passed to permit future kernels to extend
+-this limit.
++The kernel command line is a null-terminated string. The maximum
++length can be retrieved from the field cmdline_size.  Before protocol
++version 2.06, the maximum was 255 characters.  A string that is too
++long will be automatically truncated by the kernel.
+ 
+ If the boot protocol version is 2.02 or later, the address of the
+ kernel command line is given by the header field cmd_line_ptr (see
+diff -puN arch/i386/boot/setup.S~x86_64-i386-add-command-line-length-to-boot-protocol arch/i386/boot/setup.S
+--- a/arch/i386/boot/setup.S~x86_64-i386-add-command-line-length-to-boot-protocol
++++ a/arch/i386/boot/setup.S
+@@ -52,6 +52,7 @@
+ #include <asm/boot.h>
+ #include <asm/e820.h>
+ #include <asm/page.h>
++#include <asm/setup.h>
+ 	
+ /* Signature words to ensure LILO loaded us right */
+ #define SIG1	0xAA55
+@@ -81,7 +82,7 @@ start:
+ # This is the setup header, and it must start at %cs:2 (old 0x9020:2)
+ 
+ 		.ascii	"HdrS"		# header signature
+-		.word	0x0205		# header version number (>= 0x0105)
++		.word	0x0206		# header version number (>= 0x0105)
+ 					# or else old loadlin-1.5 will fail)
+ realmode_swtch:	.word	0, 0		# default_switch, SETUPSEG
+ start_sys_seg:	.word	SYSSEG
+@@ -171,6 +172,10 @@ relocatable_kernel:    .byte 0
+ pad2:			.byte 0
+ pad3:			.word 0
+ 
++cmdline_size:   .long   COMMAND_LINE_SIZE-1     #length of the command line,
++                                                #added with boot protocol
++                                                #version 2.06
++
+ trampoline:	call	start_of_setup
+ 		.align 16
+ 					# The offset at this point is 0x240
+diff -puN arch/x86_64/boot/setup.S~x86_64-i386-add-command-line-length-to-boot-protocol arch/x86_64/boot/setup.S
+--- a/arch/x86_64/boot/setup.S~x86_64-i386-add-command-line-length-to-boot-protocol
++++ a/arch/x86_64/boot/setup.S
+@@ -51,6 +51,7 @@
+ #include <asm/boot.h>
+ #include <asm/e820.h>
+ #include <asm/page.h>
++#include <asm/setup.h>
+ 
+ /* Signature words to ensure LILO loaded us right */
+ #define SIG1	0xAA55
+@@ -80,7 +81,7 @@ start:
+ # This is the setup header, and it must start at %cs:2 (old 0x9020:2)
+ 
+ 		.ascii	"HdrS"		# header signature
+-		.word	0x0204		# header version number (>= 0x0105)
++		.word	0x0206		# header version number (>= 0x0105)
+ 					# or else old loadlin-1.5 will fail)
+ realmode_swtch:	.word	0, 0		# default_switch, SETUPSEG
+ start_sys_seg:	.word	SYSSEG
+@@ -155,6 +156,18 @@ cmd_line_ptr:	.long 0			# (Header versio
+ 					# low memory 0x10000 or higher.
+ 
+ ramdisk_max:	.long 0xffffffff
++
++kernel_alignment:  .long CONFIG_PHYSICAL_START 	#physical addr alignment
++						#(not relocatable =>
++						#fixed start == alignment)
++
++relocatable_kernel:     .byte 0                 #x86_64 is currently not
++pad2:			.byte 0                 #relocatable
++pad3:			.word 0
++
++cmdline_size:   .long   COMMAND_LINE_SIZE-1     #length of the command line,
++                                                #added with boot protocol
++                                                #version 2.06
+ 	
+ trampoline:	call	start_of_setup
+ 		.align 16
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-git-kbuild.patch
-git-net.patch
-allow-per-cpu-variables-to-be-page-aligned.patch
-array_size-check-for-type.patch
-array_size-check-for-type-uml-fix.patch
-module-use-krealloc.patch
-extend-print_symbol-capability.patch
-extend-print_symbol-capability-fix.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-____call_usermodehelper-dont-flush_signals.patch
+origin.patch
+git-r8169.patch
+use-unchecked_isa_dma-in-sd_revalidate_disk.patch
+qla2xxx-remove-duplicate-pci_disable_device-call.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-parisc.patch
+add-irqf_irqpoll-flag-on-arm.patch
