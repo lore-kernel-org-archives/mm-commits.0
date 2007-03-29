@@ -1,94 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - wire-up-dec-serial-drivers-in-kconfig.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:29 -0700
-Message-ID: <200703292337.l2TNbTkR015122@shell0.pdx.osdl.net>
+Subject: - holepunch-fix-disconnected-pages-after-second-truncate.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:38 -0700
+Message-ID: <200703292337.l2TNbcdC015131@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43280 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43287 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934398AbXC2Xkq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:40:46 -0400
+	id S934399AbXC2Xk7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:40:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: hugh@veritas.com, mszeredi@suse.cz, npiggin@suse.de, pbadari@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Wire up DEC serial drivers in Kconfig
+     holepunch: fix disconnected pages after second truncate
 has been removed from the -mm tree.  Its filename was
-     wire-up-dec-serial-drivers-in-kconfig.patch
+     holepunch-fix-disconnected-pages-after-second-truncate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Wire up DEC serial drivers in Kconfig
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: holepunch: fix disconnected pages after second truncate
+From: Hugh Dickins <hugh@veritas.com>
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+shmem_truncate_range has its own truncate_inode_pages_range, to free any pages
+racily instantiated while it was in progress: a SHMEM_PAGEIN flag is set when
+this might have happened.  But holepunching gets no chance to clear that flag
+at the start of vmtruncate_range, so it's always set (unless a truncate came
+just before), so holepunch almost always does this second
+truncate_inode_pages_range.
+
+shmem holepunch has unlikely swap<->file races hereabouts whatever we do
+(without a fuller rework than is fit for this release): I was going to skip
+the second truncate in the punch_hole case, but Miklos points out that would
+make holepunch correctness more vulnerable to swapoff.  So keep the second
+truncate, but follow it by an unmap_mapping_range to eliminate the
+disconnected pages (freed from pagecache while still mapped in userspace) that
+it might have left behind.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |   33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ mm/shmem.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/char/Kconfig~wire-up-dec-serial-drivers-in-kconfig drivers/char/Kconfig
---- a/drivers/char/Kconfig~wire-up-dec-serial-drivers-in-kconfig
-+++ a/drivers/char/Kconfig
-@@ -386,6 +386,39 @@ config AU1000_SERIAL_CONSOLE
- 	  If you have an Alchemy AU1000 processor (MIPS based) and you want
- 	  to use a console on a serial port, say Y.  Otherwise, say N.
+diff -puN mm/shmem.c~holepunch-fix-disconnected-pages-after-second-truncate mm/shmem.c
+--- a/mm/shmem.c~holepunch-fix-disconnected-pages-after-second-truncate
++++ a/mm/shmem.c
+@@ -674,8 +674,16 @@ done2:
+ 		 * generic_delete_inode did it, before we lowered next_index.
+ 		 * Also, though shmem_getpage checks i_size before adding to
+ 		 * cache, no recheck after: so fix the narrow window there too.
++		 *
++		 * Recalling truncate_inode_pages_range and unmap_mapping_range
++		 * every time for punch_hole (which never got a chance to clear
++		 * SHMEM_PAGEIN at the start of vmtruncate_range) is expensive,
++		 * yet hardly ever necessary: try to optimize them out later.
+ 		 */
+ 		truncate_inode_pages_range(inode->i_mapping, start, end);
++		if (punch_hole)
++			unmap_mapping_range(inode->i_mapping, start,
++							end - start, 1);
+ 	}
  
-+config SERIAL_DEC
-+	bool "DECstation serial support"
-+	depends on MACH_DECSTATION
-+	default y
-+	help
-+	  This selects whether you want to be asked about drivers for
-+	  DECstation serial ports.
-+
-+	  Note that the answer to this question won't directly affect the
-+	  kernel: saying N will just cause the configurator to skip all
-+	  the questions about DECstation serial ports.
-+
-+config SERIAL_DEC_CONSOLE
-+	bool "Support for console on a DECstation serial port"
-+	depends on SERIAL_DEC
-+	default y
-+	help
-+	  If you say Y here, it will be possible to use a serial port as the
-+	  system console (the system console is the device which receives all
-+	  kernel messages and warnings and which allows logins in single user
-+	  mode).  Note that the firmware uses ttyS0 as the serial console on
-+	  the Maxine and ttyS2 on the others.
-+
-+	  If unsure, say Y.
-+
-+config ZS
-+	bool "Z85C30 Serial Support"
-+	depends on SERIAL_DEC
-+	default y
-+	help
-+	  Documentation on the Zilog 85C350 serial communications controller
-+	  is downloadable at <http://www.zilog.com/pdfs/serial/z85c30.pdf>
-+
- config A2232
- 	tristate "Commodore A2232 serial support (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL && ZORRO && BROKEN_ON_SMP
+ 	spin_lock(&info->lock);
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-git-alsa.patch
-git-mips.patch
-git-netdev-all.patch
-serial-driver-pmc-msp71xx.patch
-rm9000-serial-driver.patch
-simplify-the-stacktrace-code.patch
-serial-allocate-minor-device-numbers-for.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-mips-convert-to-use-shared-apm-emulation-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
-local_t-mips-extension.patch
-tgafb-turbochannel-support.patch
+git-drm.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+smaps-use-ptep_test_and_clear_young.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
