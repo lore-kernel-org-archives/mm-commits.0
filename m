@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ignore-stolen-time-in-the-softlockup-watchdog.patch added to -mm tree
-Date: Wed, 28 Mar 2007 18:43:24 -0700
-Message-ID: <200703290143.l2T1hOJ8024957@shell0.pdx.osdl.net>
+Subject: + i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch added to -mm tree
+Date: Wed, 28 Mar 2007 18:45:52 -0700
+Message-ID: <200703290145.l2T1jqin025025@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38303 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38321 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965889AbXC2Bo4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 21:44:56 -0400
+	id S965890AbXC2Bp6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 21:45:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, clalance@redhat.com, dada1@cosmosbay.com, dhecht@vmware.com, jeremy@xensource.com, jmorris@namei.org, johnstul@us.ibm.com, mingo@elte.hu, paulus@samba.org, prarit@redhat.com, ricklind@us.ibm.com, schwidefsky@de.ibm.com, tglx@linutronix.de, zach@vmware.com
+Cc: hifumi.hisashi@oss.ntt.co.jp, ak@suse.de
 
 
 The patch titled
-     Ignore stolen time in the softlockup watchdog
+     i386 machine_real_restart(): replace spin_lock_irqsave with spin_lock
 has been added to the -mm tree.  Its filename is
-     ignore-stolen-time-in-the-softlockup-watchdog.patch
+     i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,133 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Ignore stolen time in the softlockup watchdog
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: i386 machine_real_restart(): replace spin_lock_irqsave with spin_lock
+From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 
-The softlockup watchdog is currently a nuisance in a virtual machine, since
-the whole system could have the CPU stolen from it for a long period of
-time.  While it would be unlikely for a guest domain to be denied timer
-interrupts for over 10s, it could happen and any softlockup message would
-be completely spurious.
+IRQ is already disabled through local_irq_disable().  So
+spin_lock_irqsave() can be replaced with spin_lock().
 
-Earlier I proposed that sched_clock() return time in unstolen nanoseconds,
-which is how Xen and VMI currently implement it.  If the softlockup
-watchdog uses sched_clock() to measure time, it would automatically ignore
-stolen time, and therefore only report when the guest itself locked up. 
-When running native, sched_clock() returns real-time nanoseconds, so the
-behaviour would be unchanged.
-
-Note that sched_clock() used this way is inherently per-cpu, so this patch
-makes sure that the per-processor watchdog thread initialized its own
-timestamp.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Dan Hecht <dhecht@vmware.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Chris Lalancette <clalance@redhat.com>
-Cc: Rick Lindsley <ricklind@us.ibm.com>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
+Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |   37 ++++++++++++++++++++++++++++++-------
- 1 file changed, 30 insertions(+), 7 deletions(-)
+ arch/i386/kernel/reboot.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog kernel/softlockup.c
---- a/kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog
-+++ a/kernel/softlockup.c
-@@ -34,9 +34,19 @@ static struct notifier_block panic_block
- 	.notifier_call = softlock_panic,
- };
- 
-+/*
-+ * Returns seconds, approximately.  We don't need nanosecond
-+ * resolution, and we don't need to waste time with a big divide when
-+ * 2^30ns == 1.074s.
-+ */
-+static unsigned long get_timestamp(void)
-+{
-+	return sched_clock() >> 30;  /* 2^30 ~= 10^9 */
-+}
-+
- void touch_softlockup_watchdog(void)
+diff -puN arch/i386/kernel/reboot.c~i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock arch/i386/kernel/reboot.c
+--- a/arch/i386/kernel/reboot.c~i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock
++++ a/arch/i386/kernel/reboot.c
+@@ -197,8 +197,6 @@ static unsigned char jump_to_bios [] =
+  */
+ void machine_real_restart(unsigned char *code, int length)
  {
--	__raw_get_cpu_var(touch_timestamp) = jiffies;
-+	__raw_get_cpu_var(touch_timestamp) = get_timestamp();
- }
- EXPORT_SYMBOL(touch_softlockup_watchdog);
+-	unsigned long flags;
+-
+ 	local_irq_disable();
  
-@@ -47,10 +57,18 @@ EXPORT_SYMBOL(touch_softlockup_watchdog)
- void softlockup_tick(void)
- {
- 	int this_cpu = smp_processor_id();
--	unsigned long touch_timestamp = per_cpu(touch_timestamp, this_cpu);
-+	unsigned long touch_timestamp = __get_cpu_var(touch_timestamp);
-+	unsigned long print_timestamp;
-+	unsigned long now;
+ 	/* Write zero to CMOS register number 0x0f, which the BIOS POST
+@@ -211,9 +209,9 @@ void machine_real_restart(unsigned char 
+ 	   safe side.  (Yes, CMOS_WRITE does outb_p's. -  Paul G.)
+ 	 */
  
--	/* prevent double reports: */
--	if (per_cpu(print_timestamp, this_cpu) == touch_timestamp ||
-+	/* watchdog task hasn't updated timestamp yet */
-+	if (touch_timestamp == 0)
-+		return;
-+
-+	print_timestamp = __get_cpu_var(print_timestamp);
-+
-+	/* report at most once a second */
-+	if (print_timestamp < (touch_timestamp + 1) ||
- 		did_panic ||
- 			!per_cpu(watchdog_task, this_cpu))
- 		return;
-@@ -61,12 +79,14 @@ void softlockup_tick(void)
- 		return;
- 	}
+-	spin_lock_irqsave(&rtc_lock, flags);
++	spin_lock(&rtc_lock);
+ 	CMOS_WRITE(0x00, 0x8f);
+-	spin_unlock_irqrestore(&rtc_lock, flags);
++	spin_unlock(&rtc_lock);
  
-+	now = get_timestamp();
-+
- 	/* Wake up the high-prio watchdog task every second: */
--	if (time_after(jiffies, touch_timestamp + HZ))
-+	if (now > (touch_timestamp + 1))
- 		wake_up_process(per_cpu(watchdog_task, this_cpu));
- 
- 	/* Warn about unreasonable 10+ seconds delays: */
--	if (time_after(jiffies, touch_timestamp + 10*HZ)) {
-+	if (now > (touch_timestamp + 10)) {
- 		per_cpu(print_timestamp, this_cpu) = touch_timestamp;
- 
- 		spin_lock(&print_lock);
-@@ -87,6 +107,9 @@ static int watchdog(void * __bind_cpu)
- 	sched_setscheduler(current, SCHED_FIFO, &param);
- 	current->flags |= PF_NOFREEZE;
- 
-+	/* initialize timestamp */
-+	touch_softlockup_watchdog();
-+
- 	/*
- 	 * Run briefly once per second to reset the softlockup timestamp.
- 	 * If this gets delayed for more than 10 seconds then the
-@@ -118,7 +141,7 @@ cpu_callback(struct notifier_block *nfb,
- 			printk("watchdog for %i failed\n", hotcpu);
- 			return NOTIFY_BAD;
- 		}
--  		per_cpu(touch_timestamp, hotcpu) = jiffies;
-+  		per_cpu(touch_timestamp, hotcpu) = 0;
-   		per_cpu(watchdog_task, hotcpu) = p;
- 		kthread_bind(p, hotcpu);
-  		break;
+ 	/* Remap the kernel at virtual address zero, as well as offset zero
+ 	   from the kernel segment.  This assumes the kernel segment starts at
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
 
-i386-simplify-smp_call_function-by-using-common-implementation.patch
-i386-account-for-module-percpu-space-separately-from-kernel.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-add-touch_all_softlockup_watchdogs.patch
+i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch
