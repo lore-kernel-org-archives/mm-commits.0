@@ -1,464 +1,281 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-map-fake-nodes-to-real-nodes.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:13:02 -0700
-Message-ID: <200703292313.l2TND36t014646@shell0.pdx.osdl.net>
+Subject: - mm-inconsistent-use-of-node-ids.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:13:17 -0700
+Message-ID: <200703292313.l2TNDIMJ014660@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42292 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42300 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422682AbXC2XNR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:13:17 -0400
+	id S1422684AbXC2XNZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:13:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, ak@suse.de, clameter@engr.sgi.com, pj@sgi.com, rohitseth@google.com, mm-commits@vger.kernel.org
+To: solo@google.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: map fake nodes to real nodes
+     x86 mm: Inconsistent use of node IDs
 has been removed from the -mm tree.  Its filename was
-     x86_64-map-fake-nodes-to-real-nodes.patch
+     mm-inconsistent-use-of-node-ids.patch
 
 This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: x86_64: map fake nodes to real nodes
-From: David Rientjes <rientjes@google.com>
+Subject: x86 mm: Inconsistent use of node IDs
+From: Ethan Solomita <solo@google.com>
 
-Exports the struct bootnode array globally so that the physical mapping can be
-saved when NUMA emulation is used.  This is then copied and stored for later
-reference so that there exists a mapping between fake nodes and the real nodes
-they reside on through the get_phys_node() function.
+Correct inconsistent use of node numbers (variously "nid" or "node") in the
+presence of fake NUMA.
 
-physical_node_map is a new struct bootnode array that is used to save the
-physical mapping in the emulation case.  The is no effect when CONFIG_NUMA_EMU
-is disabled or numa=fake=off.
+Both AMD and Intel x86_64 discovery code will determine a CPU's physical
+node and use that node when calling numa_add_cpu() to associate that CPU
+with the node, but numa_add_cpu() treats the node argument as a fake node. 
+This physical node may not exist within the fake nodespace, and even if it
+does, it will likely incorrectly associate a CPU with a fake memory node
+that may not share the same underlying physical NUMA node.
 
-The emulation case is handled after K8 and ACPI so that the physical mapping
-can be saved later.
+Similarly, the PCI code which determines the node of the PCI bus saves it
+in the pci_sysdata structure.  This node then propagates down to other
+buses and devices which hang off the PCI bus, and is used to specify a node
+when allocating memory.  The purpose is to provide NUMA locality, but the
+node is a physical node, and the memory allocation code expects a fake node
+argument.
 
-__node_distance() is modified to use the physical node that corresponds to the
-fake node for measurement.
+Provide a routine (get_fake_node()) to map a physical node ID to a fake
+node ID, where the fake node ID contains memory on the specified physical
+node ID.  This fake node's zonelist is tied to other close fake nodes,
+maintaining NUMA locality.  Also provide numa_online_phys() which is the
+same as numa_online() but takes a physical node ID.
 
+Change init_cpu_to_node(), x86_64 and PCI code use get_fake_node() and
+numa_online_phys() in order to convert to an appropriate fake ID.
+
+Signed-off-by: Ethan Solomita <solo@google.com>
 Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Rohit Seth <rohitseth@google.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/k8topology.c   |   23 +++---
- arch/x86_64/mm/numa.c         |  113 ++++++++++++++++++++++----------
- arch/x86_64/mm/srat.c         |    9 +-
- include/asm-x86_64/numa.h     |    4 -
- include/asm-x86_64/proto.h    |    2 
- include/asm-x86_64/topology.h |    1 
- 6 files changed, 103 insertions(+), 49 deletions(-)
+ arch/i386/pci/acpi.c          |    7 ++
+ arch/x86_64/kernel/setup.c    |   16 +++---
+ arch/x86_64/mm/numa.c         |   75 ++++++++++++++++++++++++++++----
+ arch/x86_64/pci/k8-bus.c      |    1 
+ include/asm-x86_64/topology.h |    8 +++
+ 5 files changed, 91 insertions(+), 16 deletions(-)
 
-diff -puN arch/x86_64/mm/k8topology.c~x86_64-map-fake-nodes-to-real-nodes arch/x86_64/mm/k8topology.c
---- a/arch/x86_64/mm/k8topology.c~x86_64-map-fake-nodes-to-real-nodes
-+++ a/arch/x86_64/mm/k8topology.c
-@@ -40,10 +40,9 @@ static __init int find_northbridge(void)
- 	return -1; 	
- }
+diff -puN arch/i386/pci/acpi.c~mm-inconsistent-use-of-node-ids arch/i386/pci/acpi.c
+--- a/arch/i386/pci/acpi.c~mm-inconsistent-use-of-node-ids
++++ a/arch/i386/pci/acpi.c
+@@ -35,8 +35,13 @@ struct pci_bus * __devinit pci_acpi_scan
  
--int __init k8_scan_nodes(unsigned long start, unsigned long end)
-+int __init k8_scan_nodes(unsigned long start, unsigned long end, int fake)
- { 
- 	unsigned long prevbase;
--	struct bootnode nodes[8];
- 	int nodeid, i, nb; 
- 	unsigned char nodeids[8];
- 	int found = 0;
-@@ -162,19 +161,25 @@ int __init k8_scan_nodes(unsigned long s
- 	if (!found)
- 		return -1; 
- 
--	memnode_shift = compute_hash_shift(nodes, 8);
--	if (memnode_shift < 0) { 
--		printk(KERN_ERR "No NUMA node hash function found. Contact maintainer\n"); 
--		return -1; 
--	} 
--	printk(KERN_INFO "Using node hash shift of %d\n", memnode_shift); 
-+	if (!fake) {
-+		memnode_shift = compute_hash_shift(8);
-+		if (memnode_shift < 0) {
-+			printk(KERN_ERR "No NUMA node hash function found. "
-+					"Contact maintainer\n");
-+			return -1;
-+		}
-+		printk(KERN_INFO "Using node hash shift of %d\n",
-+		       memnode_shift);
+ 	pxm = acpi_get_pxm(device->handle);
+ #ifdef CONFIG_ACPI_NUMA
+-	if (pxm >= 0)
++	if (pxm >= 0) {
+ 		sd->node = pxm_to_node(pxm);
++#ifdef CONFIG_NUMA_EMU
++		if (sd->node != -1)
++			sd->node = get_fake_node(sd->node);
++#endif
 +	}
+ #endif
  
- 	for (i = 0; i < 8; i++) {
- 		if (nodes[i].start != nodes[i].end) { 
- 			nodeid = nodeids[i];
- 			apicid_to_node[nodeid << dualcore] = i;
- 			apicid_to_node[(nodeid << dualcore) + dualcore] = i;
--			setup_node_bootmem(i, nodes[i].start, nodes[i].end); 
-+			if (!fake)
-+				setup_node_bootmem(i, nodes[i].start,
-+						   nodes[i].end);
- 		} 
- 	}
- 
-diff -puN arch/x86_64/mm/numa.c~x86_64-map-fake-nodes-to-real-nodes arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-map-fake-nodes-to-real-nodes
-+++ a/arch/x86_64/mm/numa.c
-@@ -34,6 +34,7 @@ unsigned char apicid_to_node[MAX_LOCAL_A
-  	[0 ... MAX_LOCAL_APIC-1] = NUMA_NO_NODE
- };
- cpumask_t node_to_cpumask[MAX_NUMNODES] __read_mostly;
-+struct bootnode nodes[MAX_NUMNODES] __read_mostly;
- 
- int numa_off __initdata;
- unsigned long __initdata nodemap_addr;
-@@ -47,8 +48,7 @@ unsigned long __initdata nodemap_size;
-  * 0 if memnodmap[] too small (of shift too small)
-  * -1 if node overlap or lost ram (shift too big)
-  */
--static int __init
--populate_memnodemap(const struct bootnode *nodes, int numnodes, int shift)
-+static int __init populate_memnodemap(int numnodes, int shift)
- {
- 	int i; 
- 	int res = -1;
-@@ -104,8 +104,7 @@ static int __init allocate_cachealigned_
-  * The LSB of all start and end addresses in the node map is the value of the
-  * maximum possible shift.
-  */
--static int __init
--extract_lsb_from_nodes (const struct bootnode *nodes, int numnodes)
-+static int __init extract_lsb_from_nodes(int numnodes)
- {
- 	int i, nodes_used = 0;
- 	unsigned long start, end;
-@@ -129,17 +128,17 @@ extract_lsb_from_nodes (const struct boo
- 	return i;
+ 	bus = pci_scan_bus_parented(NULL, busnum, &pci_root_ops, sd);
+diff -puN arch/x86_64/kernel/setup.c~mm-inconsistent-use-of-node-ids arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~mm-inconsistent-use-of-node-ids
++++ a/arch/x86_64/kernel/setup.c
+@@ -476,20 +476,20 @@ static void __cpuinit display_cacheinfo(
  }
  
--int __init compute_hash_shift(struct bootnode *nodes, int numnodes)
-+int __init compute_hash_shift(int numnodes)
+ #ifdef CONFIG_NUMA
+-static int nearby_node(int apicid)
++static int __init nearby_node(int apicid)
  {
- 	int shift;
+ 	int i;
+ 	for (i = apicid - 1; i >= 0; i--) {
+ 		int node = apicid_to_node[i];
+-		if (node != NUMA_NO_NODE && node_online(node))
++		if (node != NUMA_NO_NODE && node_online_phys(node))
+ 			return node;
+ 	}
+ 	for (i = apicid + 1; i < MAX_LOCAL_APIC; i++) {
+ 		int node = apicid_to_node[i];
+-		if (node != NUMA_NO_NODE && node_online(node))
++		if (node != NUMA_NO_NODE && node_online_phys(node))
+ 			return node;
+ 	}
+-	return first_node(node_online_map); /* Shouldn't happen */
++	return NUMA_NO_NODE; /* Shouldn't happen */
+ }
+ #endif
  
--	shift = extract_lsb_from_nodes(nodes, numnodes);
-+	shift = extract_lsb_from_nodes(numnodes);
- 	if (allocate_cachealigned_memnodemap())
- 		return -1;
- 	printk(KERN_DEBUG "NUMA: Using %d for the hash shift.\n",
- 		shift);
+@@ -528,7 +528,7 @@ static void __init amd_detect_cmp(struct
+   	node = c->phys_proc_id;
+  	if (apicid_to_node[apicid] != NUMA_NO_NODE)
+  		node = apicid_to_node[apicid];
+- 	if (!node_online(node)) {
++ 	if (!node_online_phys(node)) {
+  		/* Two possibilities here:
+  		   - The CPU is missing memory and no node was created.
+  		   In that case try picking one from a nearby CPU
+@@ -543,9 +543,10 @@ static void __init amd_detect_cmp(struct
+  		    apicid_to_node[ht_nodeid] != NUMA_NO_NODE)
+  			node = apicid_to_node[ht_nodeid];
+  		/* Pick a nearby node */
+- 		if (!node_online(node))
++ 		if (!node_online_phys(node))
+  			node = nearby_node(apicid);
+  	}
++	node = get_fake_node(node);
+ 	numa_set_node(cpu, node);
  
--	if (populate_memnodemap(nodes, numnodes, shift) != 1) {
-+	if (populate_memnodemap(numnodes, shift) != 1) {
- 		printk(KERN_INFO
- 	"Your memory is not aligned you need to rebuild your kernel "
- 	"with a bigger NODEMAPSIZE shift=%d\n",
-@@ -276,7 +275,37 @@ void __init numa_init_array(void)
- #define E820_ADDR_HOLE_SIZE(start, end)					\
- 	(e820_hole_size((start) >> PAGE_SHIFT, (end) >> PAGE_SHIFT) <<	\
- 	PAGE_SHIFT)
+ 	printk(KERN_INFO "CPU %d/%x -> Node %d\n", cpu, apicid, node);
+@@ -679,7 +680,7 @@ static int __cpuinit intel_num_cpu_cores
+ 		return 1;
+ }
+ 
+-static void srat_detect_node(void)
++static void __cpuinit srat_detect_node(void)
+ {
+ #ifdef CONFIG_NUMA
+ 	unsigned node;
+@@ -689,6 +690,7 @@ static void srat_detect_node(void)
+ 	/* Don't do the funky fallback heuristics the AMD version employs
+ 	   for now. */
+ 	node = apicid_to_node[apicid];
++	node = get_fake_node(node);
+ 	if (node == NUMA_NO_NODE)
+ 		node = first_node(node_online_map);
+ 	numa_set_node(cpu, node);
+diff -puN arch/x86_64/mm/numa.c~mm-inconsistent-use-of-node-ids arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~mm-inconsistent-use-of-node-ids
++++ a/arch/x86_64/mm/numa.c
+@@ -282,6 +282,61 @@ char *cmdline __initdata;
+ int numa_emu;
+ 
+ /*
++ * Some arch routines want to call node_online() with a physical node after
++ * numa_emulation has already initialized fake nodes. They need to call this
++ * routine instead, which assumes that a physical node should be considered
++ * online iff it has associated memory.
++ */
 +
-+static struct bootnode physical_node_map[MAX_NUMNODES];
- char *cmdline __initdata;
-+int numa_emu;
++int __init node_online_phys(int nid)
++{
++	if (!numa_emu)
++		return node_online(nid);
++
++	if (nid < 0 || nid >= MAX_NUMNODES || nid == NUMA_NO_NODE)
++		return 0;
++
++	return (physical_node_map[nid].start != physical_node_map[nid].end);
++}
++
 +
 +/*
-+ * Returns the physical NUMA node that fake node nid resides on.  If NUMA
-+ * emulation is disabled, then this is the same as nid.
++ * Returns the first fake NUMA node that starts with phys node nid's memory
++ * if fake numa is in use, otherwise returns its argument.
 + */
-+int get_phys_node(int nid)
++int __devinit get_fake_node(int nid)
 +{
-+	pg_data_t *pgdat;
-+	u64 node_start_addr;
-+	unsigned int i;
-+	int ret = 0;
++	int fake;
++	u64 start, end;
 +
 +	if (!numa_emu)
 +		return nid;
 +
-+	pgdat = NODE_DATA(nid);
-+	node_start_addr = pgdat->node_start_pfn << PAGE_SHIFT;
++	if (nid < 0 || nid >= MAX_NUMNODES || nid == NUMA_NO_NODE)
++		return first_online_node;
 +
-+	for (i = 0; i < MAX_NUMNODES; i++)
-+		if (node_start_addr >= physical_node_map[i].start &&
-+		    node_start_addr < physical_node_map[i].end) {
-+			ret = i;
-+			break;
-+		}
++	start = physical_node_map[nid].start;
++	end = physical_node_map[nid].end;
 +
-+	return ret;
-+}
- 
- /*
-  * Setups up nid to range from addr to addr + size.  If the end boundary is
-@@ -284,8 +313,7 @@ char *cmdline __initdata;
-  * if there is additional memory left for allocation past addr and -1 otherwise.
-  * addr is adjusted to be at the end of the node.
-  */
--static int __init setup_node_range(int nid, struct bootnode *nodes, u64 *addr,
--				   u64 size, u64 max_addr)
-+static int __init setup_node_range(int nid, u64 *addr, u64 size, u64 max_addr)
- {
- 	int ret = 0;
- 	nodes[nid].start = *addr;
-@@ -307,8 +335,7 @@ static int __init setup_node_range(int n
-  * is the number of nodes split up and addr is adjusted to be at the end of the
-  * last node allocated.
-  */
--static int __init split_nodes_equally(struct bootnode *nodes, u64 *addr,
--				      u64 max_addr, int node_start,
-+static int __init split_nodes_equally(u64 *addr, u64 max_addr, int node_start,
- 				      int num_nodes)
- {
- 	unsigned int big;
-@@ -355,7 +382,7 @@ static int __init split_nodes_equally(st
- 					break;
- 				}
- 			}
--		if (setup_node_range(i, nodes, addr, end - *addr, max_addr) < 0)
-+		if (setup_node_range(i, addr, end - *addr, max_addr) < 0)
- 			break;
- 	}
- 	return i - node_start + 1;
-@@ -366,12 +393,12 @@ static int __init split_nodes_equally(st
-  * always assigned to a final node and can be asymmetric.  Returns the number of
-  * nodes split.
-  */
--static int __init split_nodes_by_size(struct bootnode *nodes, u64 *addr,
--				      u64 max_addr, int node_start, u64 size)
-+static int __init split_nodes_by_size(u64 *addr, u64 max_addr, int node_start,
-+				      u64 size)
- {
- 	int i = node_start;
- 	size = (size << 20) & FAKE_NODE_MIN_HASH_MASK;
--	while (!setup_node_range(i++, nodes, addr, size, max_addr))
-+	while (!setup_node_range(i++, addr, size, max_addr))
- 		;
- 	return i - node_start;
- }
-@@ -382,7 +409,6 @@ static int __init split_nodes_by_size(st
-  */
- static int __init numa_emulation(unsigned long start_pfn, unsigned long end_pfn)
- {
--	struct bootnode nodes[MAX_NUMNODES];
- 	u64 addr = start_pfn << PAGE_SHIFT;
- 	u64 max_addr = end_pfn << PAGE_SHIFT;
- 	int num_nodes = 0;
-@@ -392,13 +418,18 @@ static int __init numa_emulation(unsigne
- 	u64 size;
- 	int i;
- 
-+	/*
-+	 * Map the existing real NUMA toplogy to physical_node_map before the
-+	 * information is cleared.
-+	 */
-+	memcpy(physical_node_map, nodes, sizeof(nodes));
- 	memset(&nodes, 0, sizeof(nodes));
- 	/*
- 	 * If the numa=fake command-line is just a single number N, split the
- 	 * system RAM into N fake nodes.
- 	 */
- 	if (!strchr(cmdline, '*') && !strchr(cmdline, ',')) {
--		num_nodes = split_nodes_equally(nodes, &addr, max_addr, 0,
-+		num_nodes = split_nodes_equally(&addr, max_addr, 0,
- 						simple_strtol(cmdline, NULL, 0));
- 		if (num_nodes < 0)
- 			return num_nodes;
-@@ -426,8 +457,8 @@ static int __init numa_emulation(unsigne
- 			size = ((u64)num << 20) & FAKE_NODE_MIN_HASH_MASK;
- 			if (size)
- 				for (i = 0; i < coeff; i++, num_nodes++)
--					if (setup_node_range(num_nodes, nodes,
--						&addr, size, max_addr) < 0)
-+					if (setup_node_range(num_nodes, &addr,
-+						size, max_addr) < 0)
- 						goto done;
- 			if (!*cmdline)
- 				break;
-@@ -443,7 +474,7 @@ done:
- 	if (addr < max_addr) {
- 		if (coeff_flag && coeff < 0) {
- 			/* Split remaining nodes into num-sized chunks */
--			num_nodes += split_nodes_by_size(nodes, &addr, max_addr,
-+			num_nodes += split_nodes_by_size(&addr, max_addr,
- 							 num_nodes, num);
- 			goto out;
- 		}
-@@ -452,7 +483,7 @@ done:
- 			/* Split remaining nodes into coeff chunks */
- 			if (coeff <= 0)
- 				break;
--			num_nodes += split_nodes_equally(nodes, &addr, max_addr,
-+			num_nodes += split_nodes_equally(&addr, max_addr,
- 							 num_nodes, coeff);
- 			break;
- 		case ',':
-@@ -460,13 +491,13 @@ done:
- 			break;
- 		default:
- 			/* Give one final node */
--			setup_node_range(num_nodes, nodes, &addr,
--					 max_addr - addr, max_addr);
-+			setup_node_range(num_nodes, &addr, max_addr - addr,
-+					 max_addr);
- 			num_nodes++;
- 		}
- 	}
- out:
--	memnode_shift = compute_hash_shift(nodes, num_nodes);
-+	memnode_shift = compute_hash_shift(num_nodes);
- 	if (memnode_shift < 0) {
- 		memnode_shift = 0;
- 		printk(KERN_ERR "No NUMA hash function found.  NUMA emulation "
-@@ -492,30 +523,42 @@ out:
- 
- void __init numa_initmem_init(unsigned long start_pfn, unsigned long end_pfn)
- { 
-+	unsigned long start_addr = start_pfn << PAGE_SHIFT;
-+	unsigned long end_addr = end_pfn << PAGE_SHIFT;
-+	int numa_fake = 0;
- 	int i;
- 
- #ifdef CONFIG_NUMA_EMU
--	if (cmdline && !numa_emulation(start_pfn, end_pfn))
-- 		return;
-+	/* Determine if we have a numa=fake command line */
-+	if (cmdline != 0)
-+		numa_fake = 1;
- #endif
- 
- #ifdef CONFIG_ACPI_NUMA
--	if (!numa_off && !acpi_scan_nodes(start_pfn << PAGE_SHIFT,
--					  end_pfn << PAGE_SHIFT))
-+	if (!numa_off && !numa_fake && !acpi_scan_nodes(start_addr, end_addr))
-  		return;
- #endif
- 
- #ifdef CONFIG_K8_NUMA
--	if (!numa_off && !k8_scan_nodes(start_pfn<<PAGE_SHIFT, end_pfn<<PAGE_SHIFT))
--		return;
-+	if (!numa_off && !k8_scan_nodes(start_addr, end_addr, numa_fake))
-+		if (!numa_fake)
-+			return;
- #endif
++	/* pick first online memory node for cpu nodes without memory */
 +
-+#ifdef CONFIG_NUMA_EMU
-+	if (numa_fake) {
-+		numa_emu = !numa_emulation(start_pfn, end_pfn);
-+		if (numa_emu)
-+			return;
++	if (start == end)
++		return first_online_node;
++
++	for (fake = 0; fake < MAX_NUMNODES; fake++) {
++		/* Return a fake node if it begins within the physical node */
++		if (nodes[fake].start >= start && nodes[fake].start < end)
++			return fake;
++
++		/* But don't skip past the last eligible fake node (e.g. numa=fake=1) */
++		if (nodes[fake].end >= end)
++			return fake;
 +	}
-+#endif
 +
- 	printk(KERN_INFO "%s\n",
- 	       numa_off ? "NUMA turned off" : "No NUMA configuration found");
- 
--	printk(KERN_INFO "Faking a node at %016lx-%016lx\n", 
--	       start_pfn << PAGE_SHIFT,
--	       end_pfn << PAGE_SHIFT); 
--		/* setup dummy node covering all memory */ 
-+	printk(KERN_INFO "Faking a node at %016lx-%016lx\n", start_addr,
-+	       end_addr);
-+	/* setup dummy node covering all memory */
- 	memnode_shift = 63; 
- 	memnodemap = memnode.embedded_map;
- 	memnodemap[0] = 0;
-@@ -525,7 +568,7 @@ void __init numa_initmem_init(unsigned l
- 		numa_set_node(i, 0);
- 	node_to_cpumask[0] = cpumask_of_cpu(0);
- 	e820_register_active_regions(0, start_pfn, end_pfn);
--	setup_node_bootmem(0, start_pfn << PAGE_SHIFT, end_pfn << PAGE_SHIFT);
-+	setup_node_bootmem(0, start_addr, end_addr);
++	return first_online_node;	/* Shouldn't happen */
++}
++
++/*
+  * Returns the physical NUMA node that fake node nid resides on.  If NUMA
+  * emulation is disabled, then this is the same as nid.
+  */
+@@ -639,23 +694,27 @@ early_param("numa", numa_setup);
+  *
+  * Populate cpu_to_node[] only if x86_cpu_to_apicid[],
+  * and apicid_to_node[] tables have valid entries for a CPU.
+- * This means we skip cpu_to_node[] initialisation for NUMA
+- * emulation and faking node case (when running a kernel compiled
+- * for NUMA on a non NUMA box), which is OK as cpu_to_node[]
+- * is already initialized in a round robin manner at numa_init_array,
+- * prior to this call, and this initialization is good enough
+- * for the fake NUMA cases.
++ * If fake numa is in use, convert the physical node to the
++ * most appropriate fake node.
+  */
+ void __init init_cpu_to_node(void)
+ {
+ 	int i;
++	unsigned char node;
++
+  	for (i = 0; i < NR_CPUS; i++) {
+ 		u8 apicid = x86_cpu_to_apicid[i];
+ 		if (apicid == BAD_APICID)
+ 			continue;
+-		if (apicid_to_node[apicid] == NUMA_NO_NODE)
++		node = apicid_to_node[apicid];
++		if (node == NUMA_NO_NODE)
+ 			continue;
+-		numa_set_node(i,apicid_to_node[apicid]);
++#ifdef CONFIG_NUMA_EMU
++		node = get_fake_node(node);
++		if (numa_emu)
++			printk(KERN_INFO "CPU %d --> fake node %d\n", i, node);
++#endif
++		numa_set_node(i, node);
+ 	}
  }
  
- __cpuinit void numa_add_cpu(int cpu)
-diff -puN arch/x86_64/mm/srat.c~x86_64-map-fake-nodes-to-real-nodes arch/x86_64/mm/srat.c
---- a/arch/x86_64/mm/srat.c~x86_64-map-fake-nodes-to-real-nodes
-+++ a/arch/x86_64/mm/srat.c
-@@ -26,7 +26,6 @@ int acpi_numa __initdata;
- static struct acpi_table_slit *acpi_slit;
+diff -puN arch/x86_64/pci/k8-bus.c~mm-inconsistent-use-of-node-ids arch/x86_64/pci/k8-bus.c
+--- a/arch/x86_64/pci/k8-bus.c~mm-inconsistent-use-of-node-ids
++++ a/arch/x86_64/pci/k8-bus.c
+@@ -67,6 +67,7 @@ fill_mp_bus_to_cpumask(void)
+ 					bus = pci_find_bus(0, j);
+ 					if (!bus)
+ 						continue;
++					node = get_fake_node(node);
+ 					if (!node_online(node))
+ 						node = 0;
  
- static nodemask_t nodes_parsed __initdata;
--static struct bootnode nodes[MAX_NUMNODES] __initdata;
- static struct bootnode nodes_add[MAX_NUMNODES];
- static int found_add_area __initdata;
- int hotadd_percent __initdata = 0;
-@@ -411,7 +410,7 @@ int __init acpi_scan_nodes(unsigned long
- 		return -1;
- 	}
- 
--	memnode_shift = compute_hash_shift(nodes, MAX_NUMNODES);
-+	memnode_shift = compute_hash_shift(MAX_NUMNODES);
- 	if (memnode_shift < 0) {
- 		printk(KERN_ERR
- 		     "SRAT: No NUMA node hash function found. Contact maintainer\n");
-@@ -461,6 +460,12 @@ int __node_distance(int a, int b)
- {
- 	int index;
+diff -puN include/asm-x86_64/topology.h~mm-inconsistent-use-of-node-ids include/asm-x86_64/topology.h
+--- a/include/asm-x86_64/topology.h~mm-inconsistent-use-of-node-ids
++++ a/include/asm-x86_64/topology.h
+@@ -69,4 +69,12 @@ extern int __node_distance(int, int);
+ extern cpumask_t cpu_coregroup_map(int cpu);
+ extern int get_phys_node(int nid);
  
 +#ifdef CONFIG_NUMA_EMU
-+	/* In fake NUMA, the physical node is used for node distance. */
-+	a = get_phys_node(a);
-+	b = get_phys_node(b);
++extern int __init node_online_phys(int nid);
++extern int __devinit get_fake_node(int nid);
++#else
++#define node_online_phys(nid) node_online(nid)
++#define get_fake_node(nid) (nid)
 +#endif
 +
- 	if (!acpi_slit)
- 		return a == b ? 10 : 20;
- 	index = acpi_slit->locality_count * node_to_pxm(a);
-diff -puN include/asm-x86_64/numa.h~x86_64-map-fake-nodes-to-real-nodes include/asm-x86_64/numa.h
---- a/include/asm-x86_64/numa.h~x86_64-map-fake-nodes-to-real-nodes
-+++ a/include/asm-x86_64/numa.h
-@@ -6,8 +6,8 @@
- struct bootnode {
- 	u64 start,end; 
- };
--
--extern int compute_hash_shift(struct bootnode *nodes, int numnodes);
-+extern struct bootnode nodes[MAX_NUMNODES];
-+extern int compute_hash_shift(int numnodes);
- 
- #define ZONE_ALIGN (1UL << (MAX_ORDER+PAGE_SHIFT))
- 
-diff -puN include/asm-x86_64/proto.h~x86_64-map-fake-nodes-to-real-nodes include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~x86_64-map-fake-nodes-to-real-nodes
-+++ a/include/asm-x86_64/proto.h
-@@ -51,7 +51,7 @@ extern void early_printk(const char *fmt
- 
- extern void early_identify_cpu(struct cpuinfo_x86 *c);
- 
--extern int k8_scan_nodes(unsigned long start, unsigned long end);
-+extern int k8_scan_nodes(unsigned long start, unsigned long end, int fake);
- 
- extern void numa_initmem_init(unsigned long start_pfn, unsigned long end_pfn);
- extern unsigned long numa_free_all_bootmem(void);
-diff -puN include/asm-x86_64/topology.h~x86_64-map-fake-nodes-to-real-nodes include/asm-x86_64/topology.h
---- a/include/asm-x86_64/topology.h~x86_64-map-fake-nodes-to-real-nodes
-+++ a/include/asm-x86_64/topology.h
-@@ -67,5 +67,6 @@ extern int __node_distance(int, int);
- #include <asm-generic/topology.h>
- 
- extern cpumask_t cpu_coregroup_map(int cpu);
-+extern int get_phys_node(int nid);
- 
  #endif
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from solo@google.com are
 
-x86_64-map-fake-nodes-to-real-nodes.patch
-x86_64-disable-alien-cache-for-fake-numa.patch
-x86_64-export-physnode-mapping-to-userspace.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
-smaps-use-ptep_test_and_clear_young.patch
-smaps-add-clear_refs-file-to-clear-reference-docs.patch
+mm-inconsistent-use-of-node-ids.patch
