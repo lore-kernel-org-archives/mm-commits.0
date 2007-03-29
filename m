@@ -1,126 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - s390-kmalloc-kzalloc-casting-cleanups.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:43:13 -0700
-Message-ID: <200703290743.l2T7hDf2030367@shell0.pdx.osdl.net>
+Subject: - ata-ncq-is-broken-on-maxtor-6l250s0.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:42:59 -0700
+Message-ID: <200703290742.l2T7gx1w030348@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46221 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46214 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965105AbXC2HnV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:43:21 -0400
+	id S965104AbXC2Hn1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:43:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darwish.07@gmail.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: rol@as2917.net, alan@redhat.com, edmudama@gmail.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     S390: kmalloc->kzalloc/casting cleanups
+     ata: NCQ is broken on Maxtor 6L250S0
 has been removed from the -mm tree.  Its filename was
-     s390-kmalloc-kzalloc-casting-cleanups.patch
+     ata-ncq-is-broken-on-maxtor-6l250s0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: S390: kmalloc->kzalloc/casting cleanups
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: ata: NCQ is broken on Maxtor 6L250S0
+From: "Paul Rolland" <rol@as2917.net>
 
-A patch for the CTC / ESCON network driver.  Switch from kmalloc to kzalloc
-when appropriate, remove some unnecessary kmalloc casts too.  Since I have no
-s390 machine, I didn't compile it but I examined it carefully.
+With this applied, my machine has stopped all those painful messages.
+dmesg now says :
 
-Signed-off-by: Ahmed Darwish <darwish.07@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+root@riri:/Kernels# dmesg | grep LBA
+ata1.00: 490234752 sectors, multi 0: LBA48 NCQ (not used)
+ata2.00: 640 sectors, multi 1: LBA 
+ata3.00: 490234752 sectors, multi 0: LBA48 NCQ (not used)
+
+Signed-off-by: Paul Rolland <rol@as2917.net>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/ctcmain.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ drivers/ata/libata-core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/s390/net/ctcmain.c~s390-kmalloc-kzalloc-casting-cleanups drivers/s390/net/ctcmain.c
---- a/drivers/s390/net/ctcmain.c~s390-kmalloc-kzalloc-casting-cleanups
-+++ a/drivers/s390/net/ctcmain.c
-@@ -1638,21 +1638,19 @@ add_channel(struct ccw_device *cdev, enu
- 	struct channel *ch;
+diff -puN drivers/ata/libata-core.c~ata-ncq-is-broken-on-maxtor-6l250s0 drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~ata-ncq-is-broken-on-maxtor-6l250s0
++++ a/drivers/ata/libata-core.c
+@@ -3483,6 +3483,8 @@ static const struct ata_blacklist_entry 
+         { "WDC WD740ADFD-00",   NULL,		ATA_HORKAGE_NONCQ },
+ 	/* http://thread.gmane.org/gmane.linux.ide/14907 */
+ 	{ "FUJITSU MHT2060BH",	NULL,		ATA_HORKAGE_NONCQ },
++	/* NCQ is broken */
++	{ "Maxtor 6L250S0",     "BANC1G10",     ATA_HORKAGE_NONCQ },
  
- 	DBF_TEXT(trace, 2, __FUNCTION__);
--	if ((ch =
--	     (struct channel *) kmalloc(sizeof (struct channel),
--					GFP_KERNEL)) == NULL) {
-+	ch = kzalloc(sizeof (struct channel), GFP_KERNEL);
-+	if (!ch) {
- 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
- 		return -1;
- 	}
--	memset(ch, 0, sizeof (struct channel));
--	if ((ch->ccw = kmalloc(8*sizeof(struct ccw1),
--					       GFP_KERNEL | GFP_DMA)) == NULL) {
-+	/* assure all flags and counters are reset */
-+	ch->ccw = kzalloc(8 * sizeof(struct ccw1), GFP_KERNEL | GFP_DMA);
-+	if (!ch->ccw) {
- 		kfree(ch);
- 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
- 		return -1;
- 	}
+ 	/* Devices with NCQ limits */
  
--	memset(ch->ccw, 0, 8*sizeof(struct ccw1));	// assure all flags and counters are reset
- 
- 	/**
- 	 * "static" ccws are used in the following way:
-@@ -1692,15 +1690,14 @@ add_channel(struct ccw_device *cdev, enu
- 		return -1;
- 	}
- 	fsm_newstate(ch->fsm, CH_STATE_IDLE);
--	if ((ch->irb = kmalloc(sizeof (struct irb),
--					      GFP_KERNEL)) == NULL) {
-+	ch->irb = kzalloc(sizeof (struct irb), GFP_KERNEL);
-+	if (!ch->irb) {
- 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
- 		kfree_fsm(ch->fsm);
- 		kfree(ch->ccw);
- 		kfree(ch);
- 		return -1;
- 	}
--	memset(ch->irb, 0, sizeof (struct irb));
- 	while (*c && less_than((*c)->id, ch->id))
- 		c = &(*c)->next;
- 	if (*c && (!strncmp((*c)->id, ch->id, CTC_ID_SIZE))) {
-@@ -2745,14 +2742,13 @@ ctc_probe_device(struct ccwgroup_device 
- 	if (!get_device(&cgdev->dev))
- 		return -ENODEV;
- 
--	priv = kmalloc(sizeof (struct ctc_priv), GFP_KERNEL);
-+	priv = kzalloc(sizeof (struct ctc_priv), GFP_KERNEL);
- 	if (!priv) {
- 		ctc_pr_err("%s: Out of memory\n", __func__);
- 		put_device(&cgdev->dev);
- 		return -ENOMEM;
- 	}
- 
--	memset(priv, 0, sizeof (struct ctc_priv));
- 	rc = ctc_add_files(&cgdev->dev);
- 	if (rc) {
- 		kfree(priv);
-@@ -2793,10 +2789,9 @@ ctc_init_netdevice(struct net_device * d
- 	DBF_TEXT(setup, 3, __FUNCTION__);
- 
- 	if (alloc_device) {
--		dev = kmalloc(sizeof (struct net_device), GFP_KERNEL);
-+		dev = kzalloc(sizeof (struct net_device), GFP_KERNEL);
- 		if (!dev)
- 			return NULL;
--		memset(dev, 0, sizeof (struct net_device));
- 	}
- 
- 	dev->priv = privptr;
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from rol@as2917.net are
 
-git-drm.patch
-git-kvm.patch
-git-netdev-all.patch
-git-s390.patch
-i386-fix-gdts-number-of-quadwords-in.patch
-irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
-rcutorture-use-array_size-macro-when-appropriate.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
+origin.patch
