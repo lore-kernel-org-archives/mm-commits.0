@@ -1,104 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - block-blk_max_pfn-is-somtimes-wrong.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:43:15 -0700
-Message-ID: <200703290743.l2T7hFPe030370@shell0.pdx.osdl.net>
+Subject: - sound-strlcpy-is-smart-enough.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:42:56 -0700
+Message-ID: <200703290742.l2T7guE6030345@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46219 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46211 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965055AbXC2HnW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:43:22 -0400
+	id S965055AbXC2HnR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:43:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vtaras@openvz.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block: blk_max_pfn is somtimes wrong
+     sound: strlcpy is smart enough
 has been removed from the -mm tree.  Its filename was
-     block-blk_max_pfn-is-somtimes-wrong.patch
+     sound-strlcpy-is-smart-enough.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: block: blk_max_pfn is somtimes wrong
-From: Vasily Tarasov <vtaras@openvz.org>
+Subject: sound: strlcpy is smart enough
+From: Jean Delvare <khali@linux-fr.org>
 
-There is a small problem in handling page bounce.
+strlcpy already accounts for the trailing zero in its length
+computation, so there is no need to substract one to the buffer size.
 
-At the moment blk_max_pfn equals max_pfn, which is in fact not maximum
-possible _number_ of a page frame, but the _amount_ of page frames.  For
-example for the 32bit x86 node with 4Gb RAM, max_pfn = 0x100000, but not
-0xFFFF.
-
-request_queue structure has a member q->bounce_pfn and queue needs bounce
-pages for the pages _above_ this limit.  This routine is handled by
-blk_queue_bounce(), where the following check is produced:
-
-	if (q->bounce_pfn >= blk_max_pfn)
-		return;
-
-Assume, that a driver has set q->bounce_pfn to 0xFFFF, but blk_max_pfn
-equals 0x10000.  In such situation the check above fails and for each bio
-we always fall down for iterating over pages tied to the bio.
-
-I want to notice, that for quite a big range of device drivers (ide, md,
-...) such problem doesn't happen because they use BLK_BOUNCE_ANY for
-bounce_pfn.  BLK_BOUNCE_ANY is defined as blk_max_pfn << PAGE_SHIFT, and
-then the check above doesn't fail.  But for other drivers, which obtain
-reuired value from drivers, it fails.  For example sata_nv uses
-ATA_DMA_MASK or dev->dma_mask.
-
-I propose to use (max_pfn - 1) for blk_max_pfn.  And the same for
-blk_max_low_pfn.  The patch also cleanses some checks related with
-bounce_pfn.
-
-Signed-off-by: Vasily Tarasov <vtaras@openvz.org>
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |    6 +++---
- mm/bounce.c       |    2 +-
+ sound/aoa/codecs/snd-aoa-codec-onyx.c |    4 ++--
+ sound/aoa/codecs/snd-aoa-codec-tas.c  |    4 ++--
  2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN block/ll_rw_blk.c~block-blk_max_pfn-is-somtimes-wrong block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~block-blk_max_pfn-is-somtimes-wrong
-+++ a/block/ll_rw_blk.c
-@@ -1221,7 +1221,7 @@ void blk_recount_segments(request_queue_
- 		 * considered part of another segment, since that might
- 		 * change with the bounce page.
- 		 */
--		high = page_to_pfn(bv->bv_page) >= q->bounce_pfn;
-+		high = page_to_pfn(bv->bv_page) > q->bounce_pfn;
- 		if (high || highprv)
- 			goto new_hw_segment;
- 		if (cluster) {
-@@ -3658,8 +3658,8 @@ int __init blk_dev_init(void)
- 	open_softirq(BLOCK_SOFTIRQ, blk_done_softirq, NULL);
- 	register_hotcpu_notifier(&blk_cpu_notifier);
+diff -puN sound/aoa/codecs/snd-aoa-codec-onyx.c~sound-strlcpy-is-smart-enough sound/aoa/codecs/snd-aoa-codec-onyx.c
+--- a/sound/aoa/codecs/snd-aoa-codec-onyx.c~sound-strlcpy-is-smart-enough
++++ a/sound/aoa/codecs/snd-aoa-codec-onyx.c
+@@ -1018,7 +1018,7 @@ static int onyx_create(struct i2c_adapte
+ 	onyx->i2c.driver = &onyx_driver;
+ 	onyx->i2c.adapter = adapter;
+ 	onyx->i2c.addr = addr & 0x7f;
+-	strlcpy(onyx->i2c.name, "onyx audio codec", I2C_NAME_SIZE-1);
++	strlcpy(onyx->i2c.name, "onyx audio codec", I2C_NAME_SIZE);
  
--	blk_max_low_pfn = max_low_pfn;
--	blk_max_pfn = max_pfn;
-+	blk_max_low_pfn = max_low_pfn - 1;
-+	blk_max_pfn = max_pfn - 1;
+ 	if (i2c_attach_client(&onyx->i2c)) {
+ 		printk(KERN_ERR PFX "failed to attach to i2c\n");
+@@ -1033,7 +1033,7 @@ static int onyx_create(struct i2c_adapte
+ 		goto fail;
+ 	}
  
- 	return 0;
- }
-diff -puN mm/bounce.c~block-blk_max_pfn-is-somtimes-wrong mm/bounce.c
---- a/mm/bounce.c~block-blk_max_pfn-is-somtimes-wrong
-+++ a/mm/bounce.c
-@@ -204,7 +204,7 @@ static void __blk_queue_bounce(request_q
- 		/*
- 		 * is destination page below bounce pfn?
- 		 */
--		if (page_to_pfn(page) < q->bounce_pfn)
-+		if (page_to_pfn(page) <= q->bounce_pfn)
- 			continue;
+-	strlcpy(onyx->codec.name, "onyx", MAX_CODEC_NAME_LEN-1);
++	strlcpy(onyx->codec.name, "onyx", MAX_CODEC_NAME_LEN);
+ 	onyx->codec.owner = THIS_MODULE;
+ 	onyx->codec.init = onyx_init_codec;
+ 	onyx->codec.exit = onyx_exit_codec;
+diff -puN sound/aoa/codecs/snd-aoa-codec-tas.c~sound-strlcpy-is-smart-enough sound/aoa/codecs/snd-aoa-codec-tas.c
+--- a/sound/aoa/codecs/snd-aoa-codec-tas.c~sound-strlcpy-is-smart-enough
++++ a/sound/aoa/codecs/snd-aoa-codec-tas.c
+@@ -899,14 +899,14 @@ static int tas_create(struct i2c_adapter
+ 	tas->i2c.addr = addr;
+ 	/* seems that half is a saner default */
+ 	tas->drc_range = TAS3004_DRC_MAX / 2;
+-	strlcpy(tas->i2c.name, "tas audio codec", I2C_NAME_SIZE-1);
++	strlcpy(tas->i2c.name, "tas audio codec", I2C_NAME_SIZE);
  
- 		/*
+ 	if (i2c_attach_client(&tas->i2c)) {
+ 		printk(KERN_ERR PFX "failed to attach to i2c\n");
+ 		goto fail;
+ 	}
+ 
+-	strlcpy(tas->codec.name, "tas", MAX_CODEC_NAME_LEN-1);
++	strlcpy(tas->codec.name, "tas", MAX_CODEC_NAME_LEN);
+ 	tas->codec.owner = THIS_MODULE;
+ 	tas->codec.init = tas_init_codec;
+ 	tas->codec.exit = tas_exit_codec;
 _
 
-Patches currently in -mm which might be from vtaras@openvz.org are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
+x86-msr-add-support-for-safe-variants.patch
+git-alsa.patch
+git-dvb.patch
+apple-smc-driver-hardware-monitoring-and-control.patch
+ehea-strlcpy-is-smart-enough.patch
+git-net.patch
+fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
+xtensa-strlcpy-is-smart-enough.patch
+oss-strlcpy-is-smart-enough.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+legacy-pc-parports-support-parport-dev.patch
+layered-parport-code-uses-parport-dev.patch
