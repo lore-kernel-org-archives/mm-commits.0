@@ -1,59 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-nfsd4-demote-clientid-in-use-printk-to-a-dprintk.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:41:37 -0700
-Message-ID: <200703290741.l2T7fbMg030243@shell0.pdx.osdl.net>
+Subject: - md-convert-compile-time-warnings-into-runtime-warnings.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:41:47 -0700
+Message-ID: <200703290741.l2T7fliT030258@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46047 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46066 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753311AbXC2Hln (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:41:43 -0400
+	id S1753319AbXC2Hlw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:41:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: nfsd4: demote "clientid in use" printk to a dprintk
+     md: convert compile time warnings into runtime warnings
 has been removed from the -mm tree.  Its filename was
-     knfsd-nfsd4-demote-clientid-in-use-printk-to-a-dprintk.patch
+     md-convert-compile-time-warnings-into-runtime-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: nfsd4: demote "clientid in use" printk to a dprintk
-From: Bruce Fields <bfields@citi.umich.edu>
+Subject: md: convert compile time warnings into runtime warnings
+From: NeilBrown <neilb@suse.de>
 
-The reused clientid here is a more of a problem for the client than the
-server, and the client can report the problem itself if it's serious.
+...  still not sure why we need this ....
 
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4state.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/md/md.c    |   41 +++++++++++++++++++++++++++++++----------
+ drivers/md/raid5.c |   12 ++++++++++--
+ 2 files changed, 41 insertions(+), 12 deletions(-)
 
-diff -puN fs/nfsd/nfs4state.c~knfsd-nfsd4-demote-clientid-in-use-printk-to-a-dprintk fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~knfsd-nfsd4-demote-clientid-in-use-printk-to-a-dprintk
-+++ a/fs/nfsd/nfs4state.c
-@@ -750,9 +750,8 @@ nfsd4_setclientid(struct svc_rqst *rqstp
- 		status = nfserr_clid_inuse;
- 		if (!cmp_creds(&conf->cl_cred, &rqstp->rq_cred)
- 				|| conf->cl_addr != sin->sin_addr.s_addr) {
--			printk("NFSD: setclientid: string in use by client"
--			"(clientid %08x/%08x)\n",
--			conf->cl_clientid.cl_boot, conf->cl_clientid.cl_id);
-+			dprintk("NFSD: setclientid: string in use by client"
-+				"at %u.%u.%u.%u\n", NIPQUAD(conf->cl_addr));
- 			goto out;
- 		}
+diff -puN drivers/md/md.c~md-convert-compile-time-warnings-into-runtime-warnings drivers/md/md.c
+--- a/drivers/md/md.c~md-convert-compile-time-warnings-into-runtime-warnings
++++ a/drivers/md/md.c
+@@ -1318,6 +1318,7 @@ static int bind_rdev_to_array(mdk_rdev_t
+ 	char b[BDEVNAME_SIZE];
+ 	struct kobject *ko;
+ 	char *s;
++	int err;
+ 
+ 	if (rdev->mddev) {
+ 		MD_BUG();
+@@ -1352,20 +1353,29 @@ static int bind_rdev_to_array(mdk_rdev_t
+ 	while ( (s=strchr(rdev->kobj.k_name, '/')) != NULL)
+ 		*s = '!';
+ 			
+-	list_add(&rdev->same_set, &mddev->disks);
+ 	rdev->mddev = mddev;
+ 	printk(KERN_INFO "md: bind<%s>\n", b);
+ 
+ 	rdev->kobj.parent = &mddev->kobj;
+-	kobject_add(&rdev->kobj);
++	if ((err = kobject_add(&rdev->kobj)))
++		goto fail;
+ 
+ 	if (rdev->bdev->bd_part)
+ 		ko = &rdev->bdev->bd_part->kobj;
+ 	else
+ 		ko = &rdev->bdev->bd_disk->kobj;
+-	sysfs_create_link(&rdev->kobj, ko, "block");
++	if ((err = sysfs_create_link(&rdev->kobj, ko, "block"))) {
++		kobject_del(&rdev->kobj);
++		goto fail;
++	}
++	list_add(&rdev->same_set, &mddev->disks);
+ 	bd_claim_by_disk(rdev->bdev, rdev, mddev->gendisk);
+ 	return 0;
++
++ fail:
++	printk(KERN_WARNING "md: failed to register dev-%s for %s\n",
++	       b, mdname(mddev));
++	return err;
+ }
+ 
+ static void unbind_rdev_from_array(mdk_rdev_t * rdev)
+@@ -2966,7 +2976,9 @@ static struct kobject *md_probe(dev_t de
+ 	mddev->kobj.k_name = NULL;
+ 	snprintf(mddev->kobj.name, KOBJ_NAME_LEN, "%s", "md");
+ 	mddev->kobj.ktype = &md_ktype;
+-	kobject_register(&mddev->kobj);
++	if (kobject_register(&mddev->kobj))
++		printk(KERN_WARNING "md: cannot register %s/md - name in use\n",
++		       disk->disk_name);
+ 	return NULL;
+ }
+ 
+@@ -3144,9 +3156,12 @@ static int do_md_run(mddev_t * mddev)
+ 		bitmap_destroy(mddev);
+ 		return err;
  	}
+-	if (mddev->pers->sync_request)
+-		sysfs_create_group(&mddev->kobj, &md_redundancy_group);
+-	else if (mddev->ro == 2) /* auto-readonly not meaningful */
++	if (mddev->pers->sync_request) {
++		if (sysfs_create_group(&mddev->kobj, &md_redundancy_group))
++			printk(KERN_WARNING
++			       "md: cannot register extra attributes for %s\n",
++			       mdname(mddev));
++	} else if (mddev->ro == 2) /* auto-readonly not meaningful */
+ 		mddev->ro = 0;
+ 
+  	atomic_set(&mddev->writes_pending,0);
+@@ -3160,7 +3175,9 @@ static int do_md_run(mddev_t * mddev)
+ 		if (rdev->raid_disk >= 0) {
+ 			char nm[20];
+ 			sprintf(nm, "rd%d", rdev->raid_disk);
+-			sysfs_create_link(&mddev->kobj, &rdev->kobj, nm);
++			if (sysfs_create_link(&mddev->kobj, &rdev->kobj, nm))
++				printk("md: cannot register %s for %s\n",
++				       nm, mdname(mddev));
+ 		}
+ 	
+ 	set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
+@@ -5386,8 +5403,12 @@ static int remove_and_add_spares(mddev_t
+ 				if (mddev->pers->hot_add_disk(mddev,rdev)) {
+ 					char nm[20];
+ 					sprintf(nm, "rd%d", rdev->raid_disk);
+-					sysfs_create_link(&mddev->kobj,
+-							  &rdev->kobj, nm);
++					if (sysfs_create_link(&mddev->kobj,
++							      &rdev->kobj, nm))
++						printk(KERN_WARNING
++						       "md: cannot register "
++						       "%s for %s\n",
++						       nm, mdname(mddev));
+ 					spares++;
+ 					md_new_event(mddev);
+ 				} else
+diff -puN drivers/md/raid5.c~md-convert-compile-time-warnings-into-runtime-warnings drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-convert-compile-time-warnings-into-runtime-warnings
++++ a/drivers/md/raid5.c
+@@ -3642,7 +3642,10 @@ static int run(mddev_t *mddev)
+ 	}
+ 
+ 	/* Ok, everything is just fine now */
+-	sysfs_create_group(&mddev->kobj, &raid5_attrs_group);
++	if (sysfs_create_group(&mddev->kobj, &raid5_attrs_group))
++		printk(KERN_WARNING
++		       "raid5: failed to create sysfs attributes for %s\n",
++		       mdname(mddev));
+ 
+ 	mddev->queue->unplug_fn = raid5_unplug_device;
+ 	mddev->queue->issue_flush_fn = raid5_issue_flush;
+@@ -3951,7 +3954,12 @@ static int raid5_start_reshape(mddev_t *
+ 				added_devices++;
+ 				rdev->recovery_offset = 0;
+ 				sprintf(nm, "rd%d", rdev->raid_disk);
+-				sysfs_create_link(&mddev->kobj, &rdev->kobj, nm);
++				if (sysfs_create_link(&mddev->kobj,
++						      &rdev->kobj, nm))
++					printk(KERN_WARNING
++					       "raid5: failed to create "
++					       " link %s for %s\n",
++					       nm, mdname(mddev));
+ 			} else
+ 				break;
+ 		}
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-remove-nfs4_acl_add_ace.patch
+net-sunrpc-svcsockc-fix-a-check.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
+readahead-nfsd-case.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
