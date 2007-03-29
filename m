@@ -1,119 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: - free-swap-space-of-reactivated-pages.patch removed from -mm tree
-Date: Wed, 28 Mar 2007 18:26:06 -0700
-Message-ID: <200703290126.l2T1Q6wC024669@shell0.pdx.osdl.net>
+Subject: + scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io.patch added to -mm tree
+Date: Wed, 28 Mar 2007 18:28:01 -0700
+Message-ID: <200703290128.l2T1S1Lh024690@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37876 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37922 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934293AbXC2B0T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 21:26:19 -0400
+	id S933963AbXC2B2I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 21:28:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, hugh@veritas.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sumant.patro@lsi.com, James.Bottomley@steeleye.com
 
 
 The patch titled
-     free swap space of (re)activated pages
-has been removed from the -mm tree.  Its filename was
-     free-swap-space-of-reactivated-pages.patch
+     scsi: megaraid_sas - intercepts cmd timeout and throttle io
+has been added to the -mm tree.  Its filename is
+     scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: free swap space of (re)activated pages
-From: Rik van Riel <riel@redhat.com>
+Subject: scsi: megaraid_sas - intercepts cmd timeout and throttle io
+From: Sumant Patro <sumant.patro@lsi.com>
 
-Free the swap space of already resident pages when swap space starts
-getting tight, instead of only freeing up the swap space taken up by newly
-swapped in pages.
+eh_timed_out call back (megasas_reset_timer) is used to throttle io to the
+adapter when it is called the first time for a scmd.  The MEGASAS_FW_BUSY
+flag is set and can_queue reduced to 16.  The can_queue is restored from
+completion routine in following two conditions : 5 seconds has elapsed and
+the # of outstanding cmds in FW is < 17.
 
-This should result in the swap space of pages that remain resident in
-memory being freed, allowing kswapd more chances to actually swap a page
-out (instead of rotating it back onto the active list).
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Sumant Patro <sumant.patro@lsi.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    1 +
- mm/swap.c               |   18 ++++++++++++++++++
- mm/vmscan.c             |    7 +++++++
- 3 files changed, 26 insertions(+)
+ drivers/scsi/megaraid/megaraid_sas.c |   65 +++++++++++++++++++++++--
+ drivers/scsi/megaraid/megaraid_sas.h |   13 +++--
+ 2 files changed, 70 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/pagevec.h~free-swap-space-of-reactivated-pages include/linux/pagevec.h
---- a/include/linux/pagevec.h~free-swap-space-of-reactivated-pages
-+++ a/include/linux/pagevec.h
-@@ -26,6 +26,7 @@ void __pagevec_free(struct pagevec *pvec
- void __pagevec_lru_add(struct pagevec *pvec);
- void __pagevec_lru_add_active(struct pagevec *pvec);
- void pagevec_strip(struct pagevec *pvec);
-+void pagevec_swap_free(struct pagevec *pvec);
- unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
- 		pgoff_t start, unsigned nr_pages);
- unsigned pagevec_lookup_tag(struct pagevec *pvec,
-diff -puN mm/swap.c~free-swap-space-of-reactivated-pages mm/swap.c
---- a/mm/swap.c~free-swap-space-of-reactivated-pages
-+++ a/mm/swap.c
-@@ -420,6 +420,24 @@ void pagevec_strip(struct pagevec *pvec)
- 	}
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io
++++ a/drivers/scsi/megaraid/megaraid_sas.c
+@@ -10,7 +10,7 @@
+  *	   2 of the License, or (at your option) any later version.
+  *
+  * FILE		: megaraid_sas.c
+- * Version	: v00.00.03.10-rc1
++ * Version	: v00.00.03.10-rc3
+  *
+  * Authors:
+  *	(email-id : megaraidlinux@lsi.com)
+@@ -886,6 +886,7 @@ megasas_queue_command(struct scsi_cmnd *
+ 		goto out_return_cmd;
+ 
+ 	cmd->scmd = scmd;
++	scmd->SCp.ptr = (char *)cmd;
+ 
+ 	/*
+ 	 * Issue the command to the FW
+@@ -981,8 +982,8 @@ static int megasas_generic_reset(struct 
+ 
+ 	instance = (struct megasas_instance *)scmd->device->host->hostdata;
+ 
+-	scmd_printk(KERN_NOTICE, scmd, "megasas: RESET -%ld cmd=%x\n",
+-	       scmd->serial_number, scmd->cmnd[0]);
++	scmd_printk(KERN_NOTICE, scmd, "megasas: RESET -%ld cmd=%x retries=%x\n",
++		 scmd->serial_number, scmd->cmnd[0], scmd->retries);
+ 
+ 	if (instance->hw_crit_error) {
+ 		printk(KERN_ERR "megasas: cannot recover from previous reset "
+@@ -1000,6 +1001,40 @@ static int megasas_generic_reset(struct 
  }
  
-+/*
-+ * Try to free swap space from the pages in a pagevec
+ /**
++ * megasas_reset_timer - quiesce the adapter if required
++ * @scmd:		scsi cmnd
++ *
++ * Sets the FW busy flag and reduces the host->can_queue if the
++ * cmd has not been completed within the timeout period.
 + */
-+void pagevec_swap_free(struct pagevec *pvec)
++static enum
++scsi_eh_timer_return megasas_reset_timer(struct scsi_cmnd *scmd)
 +{
-+	int i;
++	struct megasas_cmd *cmd = (struct megasas_cmd *)scmd->SCp.ptr;
++	struct megasas_instance *instance;
++	unsigned long flags;
 +
-+	for (i = 0; i < pagevec_count(pvec); i++) {
-+		struct page *page = pvec->pages[i];
++	if (cmd) {
++		if (time_after(jiffies, scmd->jiffies_at_alloc + 170 * HZ))
++			return EH_NOT_HANDLED;
 +
-+		if (PageSwapCache(page) && !TestSetPageLocked(page)) {
-+			if (PageSwapCache(page))
-+				remove_exclusive_swap_page(page);
-+			unlock_page(page);
++		instance = cmd->instance;
++		if (!(instance->flag & MEGASAS_FW_BUSY)) {
++			/* FW is busy, throttle IO */
++			spin_lock_irqsave(&instance->throttle_io_lock, flags);
++
++			instance->host->can_queue = 16;
++			instance->last_time = jiffies;
++			instance->flag |= MEGASAS_FW_BUSY;
++
++			spin_unlock_irqrestore(&instance->throttle_io_lock, flags);
 +		}
++		return EH_RESET_TIMER;
 +	}
++	return EH_HANDLED;
 +}
 +
- /**
-  * pagevec_lookup - gang pagecache lookup
-  * @pvec:	Where the resulting pages are placed
-diff -puN mm/vmscan.c~free-swap-space-of-reactivated-pages mm/vmscan.c
---- a/mm/vmscan.c~free-swap-space-of-reactivated-pages
-+++ a/mm/vmscan.c
-@@ -587,6 +587,9 @@ free_it:
- 		continue;
++/**
+  * megasas_reset_device -	Device reset handler entry point
+  */
+ static int megasas_reset_device(struct scsi_cmnd *scmd)
+@@ -1112,6 +1147,7 @@ static struct scsi_host_template megasas
+ 	.eh_device_reset_handler = megasas_reset_device,
+ 	.eh_bus_reset_handler = megasas_reset_bus_host,
+ 	.eh_host_reset_handler = megasas_reset_bus_host,
++	.eh_timed_out = megasas_reset_timer,
+ 	.bios_param = megasas_bios_param,
+ 	.use_clustering = ENABLE_CLUSTERING,
+ };
+@@ -1215,9 +1251,8 @@ megasas_complete_cmd(struct megasas_inst
+ 	int exception = 0;
+ 	struct megasas_header *hdr = &cmd->frame->hdr;
  
- activate_locked:
-+		/* Not a candidate for swapping, so reclaim swap space. */
-+		if (PageSwapCache(page) && vm_swap_full())
-+			remove_exclusive_swap_page(page);
- 		SetPageActive(page);
- 		pgactivate++;
- keep_locked:
-@@ -889,6 +892,8 @@ force_reclaim_mapped:
- 			__mod_zone_page_state(zone, NR_ACTIVE, pgmoved);
- 			pgmoved = 0;
- 			spin_unlock_irq(&zone->lru_lock);
-+			if (vm_swap_full())
-+				pagevec_swap_free(&pvec);
- 			__pagevec_release(&pvec);
- 			spin_lock_irq(&zone->lru_lock);
- 		}
-@@ -899,6 +904,8 @@ force_reclaim_mapped:
- 	__count_vm_events(PGDEACTIVATE, pgdeactivate);
- 	spin_unlock_irq(&zone->lru_lock);
+-	if (cmd->scmd) {
++	if (cmd->scmd)
+ 		cmd->scmd->SCp.ptr = (char *)0;
+-	}
  
-+	if (vm_swap_full())
-+		pagevec_swap_free(&pvec);
- 	pagevec_release(&pvec);
+ 	switch (hdr->cmd) {
+ 
+@@ -1806,6 +1841,7 @@ static void megasas_complete_cmd_dpc(uns
+ 	u32 context;
+ 	struct megasas_cmd *cmd;
+ 	struct megasas_instance *instance = (struct megasas_instance *)instance_addr;
++	unsigned long flags;
+ 
+ 	/* If we have already declared adapter dead, donot complete cmds */
+ 	if (instance->hw_crit_error)
+@@ -1828,6 +1864,22 @@ static void megasas_complete_cmd_dpc(uns
+ 	}
+ 
+ 	*instance->consumer = producer;
++
++	/*
++	 * Check if we can restore can_queue
++	 */
++	if (instance->flag & MEGASAS_FW_BUSY
++		&& time_after(jiffies, instance->last_time + 5 * HZ)
++		&& atomic_read(&instance->fw_outstanding) < 17) {
++
++		spin_lock_irqsave(&instance->throttle_io_lock, flags);
++
++		instance->flag &= ~MEGASAS_FW_BUSY;
++		instance->host->can_queue =
++				instance->max_fw_cmds - MEGASAS_INT_CMDS;
++
++		spin_unlock_irqrestore(&instance->throttle_io_lock, flags);
++	}
  }
  
+ /**
+@@ -2384,6 +2436,7 @@ megasas_probe_one(struct pci_dev *pdev, 
+ 	init_waitqueue_head(&instance->int_cmd_wait_q);
+ 	init_waitqueue_head(&instance->abort_cmd_wait_q);
+ 
++	spin_lock_init(&instance->throttle_io_lock);
+ 	spin_lock_init(&instance->cmd_pool_lock);
+ 
+ 	sema_init(&instance->aen_mutex, 1);
+@@ -2398,6 +2451,8 @@ megasas_probe_one(struct pci_dev *pdev, 
+ 	instance->init_id = MEGASAS_DEFAULT_INIT_ID;
+ 
+ 	megasas_dbg_lvl = 0;
++	instance->flag = 0;
++	instance->last_time = 0;
+ 
+ 	/*
+ 	 * Initialize MFI Firmware
+diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io drivers/scsi/megaraid/megaraid_sas.h
+--- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io
++++ a/drivers/scsi/megaraid/megaraid_sas.h
+@@ -18,9 +18,9 @@
+ /*
+  * MegaRAID SAS Driver meta data
+  */
+-#define MEGASAS_VERSION				"00.00.03.10-rc1"
+-#define MEGASAS_RELDATE				"Feb 14, 2007"
+-#define MEGASAS_EXT_VERSION			"Wed Feb 14 10:14:25 PST 2007"
++#define MEGASAS_VERSION				"00.00.03.10-rc3"
++#define MEGASAS_RELDATE				"Mar 28, 2007"
++#define MEGASAS_EXT_VERSION			"Wed Mar 28 10:25:52 PST 2007"
+ 
+ /*
+  * Device IDs
+@@ -539,6 +539,8 @@ struct megasas_ctrl_info {
+ 
+ #define MEGASAS_DBG_LVL				1
+ 
++#define MEGASAS_FW_BUSY				1
++
+ /*
+  * When SCSI mid-layer calls driver's reset routine, driver waits for
+  * MEGASAS_RESET_WAIT_TIME seconds for all outstanding IO to complete. Note
+@@ -1104,6 +1106,11 @@ struct megasas_instance {
+ 
+ 	struct megasas_instance_template *instancet;
+ 	struct tasklet_struct isr_tasklet;
++
++	u8 flag;
++	u8 rsvd[3];
++	unsigned long last_time;
++	spinlock_t throttle_io_lock;
+ };
+ 
+ #define MEGASAS_IS_LOGICAL(scp)						\
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from sumant.patro@lsi.com are
 
-free-swap-space-of-reactivated-pages.patch
+scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io.patch
+scsi-megaraid_sas-throttle-io-if-cmds-are-in-risk-of.patch
