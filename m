@@ -1,83 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-static-linking.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:42:08 -0700
-Message-ID: <200703290742.l2T7g8mK030282@shell0.pdx.osdl.net>
+Subject: - ipcns-fix-config_ipc_ns-behavior.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:42:26 -0700
+Message-ID: <200703290742.l2T7gQ23030300@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46230 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46216 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965105AbXC2Hn1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:43:27 -0400
+	id S965111AbXC2HnT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:43:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix static linking
+     ipcns: fix !CONFIG_IPC_NS behavior
 has been removed from the -mm tree.  Its filename was
-     uml-fix-static-linking.patch
+     ipcns-fix-config_ipc_ns-behavior.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix static linking
-From: Jeff Dike <jdike@addtoit.com>
+Subject: ipcns: fix !CONFIG_IPC_NS behavior
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-During a static link, ld has started putting a .note section in the
-.uml.setup.init section.  This has the result that the UML setups begin
-with 32 bytes of garbage and UML crashes immediately on boot.
+When CONFIG_IPC_NS=n, clone(CLONE_NEWIPC) claims success, but did not actually
+clone a new IPC namespace.
 
-This patch creates a specific .note section for ld to drop this stuff
-into.
+Fix this to return -EINVAL so the caller knows his request was denied.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Cc: <stable@kernel.org>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/common.lds.S |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/ipc.h |    9 +++------
+ ipc/util.c          |    7 +++++++
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-um/common.lds.S~uml-fix-static-linking include/asm-um/common.lds.S
---- a/include/asm-um/common.lds.S~uml-fix-static-linking
-+++ a/include/asm-um/common.lds.S
-@@ -15,6 +15,7 @@
-   PROVIDE (_unprotected_end = .);
+diff -puN include/linux/ipc.h~ipcns-fix-config_ipc_ns-behavior include/linux/ipc.h
+--- a/include/linux/ipc.h~ipcns-fix-config_ipc_ns-behavior
++++ a/include/linux/ipc.h
+@@ -92,19 +92,16 @@ extern struct ipc_namespace init_ipc_ns;
  
-   . = ALIGN(4096);
-+  .note : { *(note.*) }
-   __start___ex_table = .;
-   __ex_table : { *(__ex_table) }
-   __stop___ex_table = .;
+ #ifdef CONFIG_SYSVIPC
+ #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
++extern int copy_ipcs(unsigned long flags, struct task_struct *tsk);
+ #else
+ #define INIT_IPC_NS(ns)
++static inline int copy_ipcs(unsigned long flags, struct task_struct *tsk)
++{ return 0; }
+ #endif
+ 
+ #ifdef CONFIG_IPC_NS
+ extern void free_ipc_ns(struct kref *kref);
+-extern int copy_ipcs(unsigned long flags, struct task_struct *tsk);
+ extern int unshare_ipcs(unsigned long flags, struct ipc_namespace **ns);
+-#else
+-static inline int copy_ipcs(unsigned long flags, struct task_struct *tsk)
+-{
+-	return 0;
+-}
+ #endif
+ 
+ static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
+diff -puN ipc/util.c~ipcns-fix-config_ipc_ns-behavior ipc/util.c
+--- a/ipc/util.c~ipcns-fix-config_ipc_ns-behavior
++++ a/ipc/util.c
+@@ -144,6 +144,13 @@ void free_ipc_ns(struct kref *kref)
+ 	shm_exit_ns(ns);
+ 	kfree(ns);
+ }
++#else
++int copy_ipcs(unsigned long flags, struct task_struct *tsk)
++{
++	if (flags & CLONE_NEWIPC)
++		return -EINVAL;
++	return 0;
++}
+ #endif
+ 
+ /**
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 origin.patch
-uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch
-uml-fix-device-unplug-crash.patch
-uml-irq-locking-fixes.patch
-uml-fix-compilation-problems.patch
-uml-fix-unreasonably-long-udelay.patch
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-array_size-check-for-type-uml-fix.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-fix-utrace-utrace-tracehook-um.patch
+implement-file-posix-capabilities.patch
+file-capabilities-accomodate-future-64-bit-caps.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+attach_pid-with-struct-pid-parameter.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
