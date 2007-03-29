@@ -1,69 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - prevent-acpi-quirk-warning-mass-spamming-in-logs.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:39:04 -0700
-Message-ID: <200703292339.l2TNd47N015404@shell0.pdx.osdl.net>
+Subject: - wire-up-dec-serial-drivers-in-kconfig.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:29 -0700
+Message-ID: <200703292337.l2TNbTkR015122@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43271 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43280 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934396AbXC2Xka (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:40:30 -0400
+	id S934398AbXC2Xkq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:40:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tvignaud@mandriva.com, ak@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     prevent ACPI quirk warning mass spamming in logs
+     Wire up DEC serial drivers in Kconfig
 has been removed from the -mm tree.  Its filename was
-     prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+     wire-up-dec-serial-drivers-in-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: prevent ACPI quirk warning mass spamming in logs
-From: Thierry Vignaud <tvignaud@mandriva.com>
+Subject: Wire up DEC serial drivers in Kconfig
+From: Ralf Baechle <ralf@linux-mips.org>
 
-The following patch prevent this warning to be displayed again & again (eg:
-nine times on my NForce2 motherboard) and thus improve signal to noise
-ratio in logs.
-
-The ATI quirk below probably needs a similar "fix" but I don't have
-the hardware to test.
-
-Btw arch/x86_64/kernel/early-quirks.c::nvidia_bugs() would probably need to
-be synced (but I don't have an x86_64 NVidia motherboard to boot test it). 
-Still it shows the usefullity of the recent x86 merge thread.
-
-[akpm@linux-foundation.org: cleanup]
-Signed-off-by: Thierry Vignaud <tvignaud@mandriva.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/acpi/earlyquirk.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/char/Kconfig |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff -puN arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs arch/i386/kernel/acpi/earlyquirk.c
---- a/arch/i386/kernel/acpi/earlyquirk.c~prevent-acpi-quirk-warning-mass-spamming-in-logs
-+++ a/arch/i386/kernel/acpi/earlyquirk.c
-@@ -21,11 +21,14 @@ static int __init nvidia_hpet_check(stru
+diff -puN drivers/char/Kconfig~wire-up-dec-serial-drivers-in-kconfig drivers/char/Kconfig
+--- a/drivers/char/Kconfig~wire-up-dec-serial-drivers-in-kconfig
++++ a/drivers/char/Kconfig
+@@ -386,6 +386,39 @@ config AU1000_SERIAL_CONSOLE
+ 	  If you have an Alchemy AU1000 processor (MIPS based) and you want
+ 	  to use a console on a serial port, say Y.  Otherwise, say N.
  
- static int __init check_bridge(int vendor, int device)
- {
-+	static int warned;
- #ifdef CONFIG_ACPI
- 	/* According to Nvidia all timer overrides are bogus unless HPET
- 	   is enabled. */
- 	if (!acpi_use_timer_override && vendor == PCI_VENDOR_ID_NVIDIA) {
--		if (acpi_table_parse(ACPI_SIG_HPET, nvidia_hpet_check)) {
-+		if (!warned && acpi_table_parse(ACPI_SIG_HPET,
-+						nvidia_hpet_check)) {
-+			warned = 1;
- 			acpi_skip_timer_override = 1;
- 			  printk(KERN_INFO "Nvidia board "
-                        "detected. Ignoring ACPI "
++config SERIAL_DEC
++	bool "DECstation serial support"
++	depends on MACH_DECSTATION
++	default y
++	help
++	  This selects whether you want to be asked about drivers for
++	  DECstation serial ports.
++
++	  Note that the answer to this question won't directly affect the
++	  kernel: saying N will just cause the configurator to skip all
++	  the questions about DECstation serial ports.
++
++config SERIAL_DEC_CONSOLE
++	bool "Support for console on a DECstation serial port"
++	depends on SERIAL_DEC
++	default y
++	help
++	  If you say Y here, it will be possible to use a serial port as the
++	  system console (the system console is the device which receives all
++	  kernel messages and warnings and which allows logins in single user
++	  mode).  Note that the firmware uses ttyS0 as the serial console on
++	  the Maxine and ttyS2 on the others.
++
++	  If unsure, say Y.
++
++config ZS
++	bool "Z85C30 Serial Support"
++	depends on SERIAL_DEC
++	default y
++	help
++	  Documentation on the Zilog 85C350 serial communications controller
++	  is downloadable at <http://www.zilog.com/pdfs/serial/z85c30.pdf>
++
+ config A2232
+ 	tristate "Commodore A2232 serial support (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL && ZORRO && BROKEN_ON_SMP
 _
 
-Patches currently in -mm which might be from tvignaud@mandriva.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
+
+origin.patch
+git-alsa.patch
+git-mips.patch
+git-netdev-all.patch
+serial-driver-pmc-msp71xx.patch
+rm9000-serial-driver.patch
+simplify-the-stacktrace-code.patch
+serial-allocate-minor-device-numbers-for.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+local_t-mips-extension.patch
+tgafb-turbochannel-support.patch
