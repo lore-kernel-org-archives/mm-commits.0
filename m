@@ -1,128 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - ahcic-walkaround-for-sb600-sata-internal-error-issue.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:43:04 -0700
-Message-ID: <200703290743.l2T7h4WJ030355@shell0.pdx.osdl.net>
+Subject: - s390-kmalloc-kzalloc-casting-cleanups.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:43:13 -0700
+Message-ID: <200703290743.l2T7hDf2030367@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46209 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46221 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965119AbXC2HnS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:43:18 -0400
+	id S965105AbXC2HnV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:43:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: conke.hu@gmail.com, conke.hu@amd.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ahci.c: workaround for SB600 SATA internal error issue
+     S390: kmalloc->kzalloc/casting cleanups
 has been removed from the -mm tree.  Its filename was
-     ahcic-walkaround-for-sb600-sata-internal-error-issue.patch
+     s390-kmalloc-kzalloc-casting-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ahci.c: workaround for SB600 SATA internal error issue
-From: "Conke Hu" <conke.hu@gmail.com>
+Subject: S390: kmalloc->kzalloc/casting cleanups
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-There is a HW issue in ATI SB600 SATA that PxSERR.E should not be set on
-some conditions, for example, when there is no media in SATA CD/DVD drive
-or media is not ready, AHCI controller fails to execute ATAPI commands and
-reports PORT_IRQ_TF_ERR, but ATI SB600 SATA controller sets PxSERR.E at the
-same time, which is not necessary.
+A patch for the CTC / ESCON network driver.  Switch from kmalloc to kzalloc
+when appropriate, remove some unnecessary kmalloc casts too.  Since I have no
+s390 machine, I didn't compile it but I examined it carefully.
 
-This patch is just to ignore the INTERNAL ERROR in such case.  Without this
-patch, ahci error handler will report many errors as below:
-
-    ----------- cut from dmesg -----------
-ata9: soft resetting port
-ata9: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
-ata9.00: configured for UDMA/33
-ata9: EH complete
-ata9.00: exception Emask 0x40 SAct 0x0 SErr 0x800 action 0x2
-ata9.00: (irq_stat 0x40000001)
-ata9.00: cmd a0/00:00:00:00:20/00:00:00:00:00/a0 tag 0 cdb 0x0 data 0
-        res 51/24:03:00:00:20/00:00:00:00:00/a0 Emask 0x40 (internal error)
-ata9: soft resetting port
-ata9: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
-ata9.00: configured for UDMA/33
-ata9: EH complete
-ata9.00: exception Emask 0x40 SAct 0x0 SErr 0x800 action 0x2
-ata9.00: (irq_stat 0x40000001)
-ata9.00: cmd a0/01:00:00:00:00/00:00:00:00:00/a0 tag 0 cdb 0x43 data 12 in
-        res 51/24:03:00:00:00/00:00:00:00:00/a0 Emask 0x40 (internal error)
-    -------- end cut ---------
-
-Signed-off-by: Conke Hu <conke.hu@amd.com>
-Acked-by: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Ahmed Darwish <darwish.07@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c |   21 +++++++++++++++++++--
- 1 files changed, 19 insertions(+), 2 deletions(-)
+ drivers/s390/net/ctcmain.c |   23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
-diff -puN drivers/ata/ahci.c~ahcic-walkaround-for-sb600-sata-internal-error-issue drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~ahcic-walkaround-for-sb600-sata-internal-error-issue
-+++ a/drivers/ata/ahci.c
-@@ -81,6 +81,7 @@ enum {
- 	board_ahci_vt8251	= 2,
- 	board_ahci_ign_iferr	= 3,
- 	board_ahci_mv		= 4,
-+	board_ahci_sb600	= 5,
+diff -puN drivers/s390/net/ctcmain.c~s390-kmalloc-kzalloc-casting-cleanups drivers/s390/net/ctcmain.c
+--- a/drivers/s390/net/ctcmain.c~s390-kmalloc-kzalloc-casting-cleanups
++++ a/drivers/s390/net/ctcmain.c
+@@ -1638,21 +1638,19 @@ add_channel(struct ccw_device *cdev, enu
+ 	struct channel *ch;
  
- 	/* global controller registers */
- 	HOST_CAP		= 0x00, /* host capabilities */
-@@ -170,6 +171,7 @@ enum {
- 	AHCI_FLAG_IGN_IRQ_IF_ERR	= (1 << 25), /* ignore IRQ_IF_ERR */
- 	AHCI_FLAG_HONOR_PI		= (1 << 26), /* honor PORTS_IMPL */
- 	AHCI_FLAG_MV_PATA		= (1 << 27), /* PATA port */
-+	AHCI_FLAG_IGN_SERR_INTERNAL	= (1 << 28), /* ignore SERR_INTERNAL */
- };
+ 	DBF_TEXT(trace, 2, __FUNCTION__);
+-	if ((ch =
+-	     (struct channel *) kmalloc(sizeof (struct channel),
+-					GFP_KERNEL)) == NULL) {
++	ch = kzalloc(sizeof (struct channel), GFP_KERNEL);
++	if (!ch) {
+ 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
+ 		return -1;
+ 	}
+-	memset(ch, 0, sizeof (struct channel));
+-	if ((ch->ccw = kmalloc(8*sizeof(struct ccw1),
+-					       GFP_KERNEL | GFP_DMA)) == NULL) {
++	/* assure all flags and counters are reset */
++	ch->ccw = kzalloc(8 * sizeof(struct ccw1), GFP_KERNEL | GFP_DMA);
++	if (!ch->ccw) {
+ 		kfree(ch);
+ 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
+ 		return -1;
+ 	}
  
- struct ahci_cmd_hdr {
-@@ -375,6 +377,18 @@ static const struct ata_port_info ahci_p
- 		.udma_mask	= 0x7f, /* udma0-6 ; FIXME */
- 		.port_ops	= &ahci_ops,
- 	},
-+	/* board_ahci_sb600 */
-+	{
-+		.sht		= &ahci_sht,
-+		.flags		= ATA_FLAG_SATA | ATA_FLAG_NO_LEGACY |
-+				  ATA_FLAG_MMIO | ATA_FLAG_PIO_DMA |
-+				  ATA_FLAG_SKIP_D2H_BSY |
-+				  AHCI_FLAG_IGN_SERR_INTERNAL,
-+		.pio_mask	= 0x1f, /* pio0-4 */
-+		.udma_mask	= 0x7f, /* udma0-6 ; FIXME */
-+		.port_ops	= &ahci_ops,
-+	},
-+
- };
+-	memset(ch->ccw, 0, 8*sizeof(struct ccw1));	// assure all flags and counters are reset
  
- static const struct pci_device_id ahci_pci_tbl[] = {
-@@ -412,7 +426,7 @@ static const struct pci_device_id ahci_p
- 	  PCI_CLASS_STORAGE_SATA_AHCI, 0xffffff, board_ahci_ign_iferr },
+ 	/**
+ 	 * "static" ccws are used in the following way:
+@@ -1692,15 +1690,14 @@ add_channel(struct ccw_device *cdev, enu
+ 		return -1;
+ 	}
+ 	fsm_newstate(ch->fsm, CH_STATE_IDLE);
+-	if ((ch->irb = kmalloc(sizeof (struct irb),
+-					      GFP_KERNEL)) == NULL) {
++	ch->irb = kzalloc(sizeof (struct irb), GFP_KERNEL);
++	if (!ch->irb) {
+ 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
+ 		kfree_fsm(ch->fsm);
+ 		kfree(ch->ccw);
+ 		kfree(ch);
+ 		return -1;
+ 	}
+-	memset(ch->irb, 0, sizeof (struct irb));
+ 	while (*c && less_than((*c)->id, ch->id))
+ 		c = &(*c)->next;
+ 	if (*c && (!strncmp((*c)->id, ch->id, CTC_ID_SIZE))) {
+@@ -2745,14 +2742,13 @@ ctc_probe_device(struct ccwgroup_device 
+ 	if (!get_device(&cgdev->dev))
+ 		return -ENODEV;
  
- 	/* ATI */
--	{ PCI_VDEVICE(ATI, 0x4380), board_ahci }, /* ATI SB600 non-raid */
-+	{ PCI_VDEVICE(ATI, 0x4380), board_ahci_sb600 }, /* ATI SB600 non-raid */
- 	{ PCI_VDEVICE(ATI, 0x4381), board_ahci }, /* ATI SB600 raid */
+-	priv = kmalloc(sizeof (struct ctc_priv), GFP_KERNEL);
++	priv = kzalloc(sizeof (struct ctc_priv), GFP_KERNEL);
+ 	if (!priv) {
+ 		ctc_pr_err("%s: Out of memory\n", __func__);
+ 		put_device(&cgdev->dev);
+ 		return -ENOMEM;
+ 	}
  
- 	/* VIA */
-@@ -1102,8 +1116,11 @@ static void ahci_error_intr(struct ata_p
- 	if (ap->flags & AHCI_FLAG_IGN_IRQ_IF_ERR)
- 		irq_stat &= ~PORT_IRQ_IF_ERR;
+-	memset(priv, 0, sizeof (struct ctc_priv));
+ 	rc = ctc_add_files(&cgdev->dev);
+ 	if (rc) {
+ 		kfree(priv);
+@@ -2793,10 +2789,9 @@ ctc_init_netdevice(struct net_device * d
+ 	DBF_TEXT(setup, 3, __FUNCTION__);
  
--	if (irq_stat & PORT_IRQ_TF_ERR)
-+	if (irq_stat & PORT_IRQ_TF_ERR) {
- 		err_mask |= AC_ERR_DEV;
-+		if (ap->flags & AHCI_FLAG_IGN_SERR_INTERNAL)
-+			serror &= ~SERR_INTERNAL;
-+	}
+ 	if (alloc_device) {
+-		dev = kmalloc(sizeof (struct net_device), GFP_KERNEL);
++		dev = kzalloc(sizeof (struct net_device), GFP_KERNEL);
+ 		if (!dev)
+ 			return NULL;
+-		memset(dev, 0, sizeof (struct net_device));
+ 	}
  
- 	if (irq_stat & (PORT_IRQ_HBUS_ERR | PORT_IRQ_HBUS_DATA_ERR)) {
- 		err_mask |= AC_ERR_HOST_BUS;
+ 	dev->priv = privptr;
 _
 
-Patches currently in -mm which might be from conke.hu@gmail.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-origin.patch
+git-drm.patch
+git-kvm.patch
+git-netdev-all.patch
+git-s390.patch
+i386-fix-gdts-number-of-quadwords-in.patch
+irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
