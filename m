@@ -1,57 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - ignore-vgacon-if-hardware-not-present.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:39:50 -0700
-Message-ID: <200703292339.l2TNdo8e015461@shell0.pdx.osdl.net>
+Subject: - splice-partial-write-handling-fix.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:39:44 -0700
+Message-ID: <200703292339.l2TNdiBO015455@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43263 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43268 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945958AbXC2XkM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:40:12 -0400
+	id S934373AbXC2Xk1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kraxel@suse.de, adaplas@pol.net, alan@lxorguk.ukuu.org.uk, jeremy@xensource.com, mingo@elte.hu, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: dmonakhov@sw.ru, dmonakhov@openvz.org, jens.axboe@oracle.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ignore vgacon if hardware not present
+     splice: partial write handling fix
 has been removed from the -mm tree.  Its filename was
-     ignore-vgacon-if-hardware-not-present.patch
+     splice-partial-write-handling-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ignore vgacon if hardware not present
-From: Gerd Hoffmann <kraxel@suse.de>
+Subject: splice: partial write handling fix
+From: Dmitriy Monakhov <dmonakhov@sw.ru>
 
-Avoid trying to set up vgacon if there's no vga hardware present.
+Currently if partial write has happened while ->commit_write() then page
+wasn't marked as accessed and rebalanced.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Alan <alan@lxorguk.ukuu.org.uk>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/vgacon.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ fs/splice.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/console/vgacon.c~ignore-vgacon-if-hardware-not-present drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~ignore-vgacon-if-hardware-not-present
-+++ a/drivers/video/console/vgacon.c
-@@ -371,7 +371,8 @@ static const char *vgacon_startup(void)
+diff -puN fs/splice.c~splice-partial-write-handling-fix fs/splice.c
+--- a/fs/splice.c~splice-partial-write-handling-fix
++++ a/fs/splice.c
+@@ -627,18 +627,25 @@ find_page:
  	}
  
- 	/* VGA16 modes are not handled by VGACON */
--	if ((ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
-+	if ((ORIG_VIDEO_MODE == 0x00) ||	/* SCREEN_INFO not initialized */
-+	    (ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
- 	    (ORIG_VIDEO_MODE == 0x0E) ||	/* 640x200/4 */
- 	    (ORIG_VIDEO_MODE == 0x10) ||	/* 640x350/4 */
- 	    (ORIG_VIDEO_MODE == 0x12) ||	/* 640x480/4 */
+ 	ret = mapping->a_ops->commit_write(file, page, offset, offset+this_len);
+-	if (!ret) {
++	if (ret) {
++		if (ret == AOP_TRUNCATED_PAGE) {
++			page_cache_release(page);
++			goto find_page;
++		}
++		if (ret < 0)
++			goto out;
+ 		/*
+-		 * Return the number of bytes written and mark page as
+-		 * accessed, we are now done!
++		 * Partial write has happened, so 'ret' already initialized by
++		 * number of bytes written, Where is nothing we have to do here.
+ 		 */
++	} else
+ 		ret = this_len;
+-		mark_page_accessed(page);
+-		balance_dirty_pages_ratelimited(mapping);
+-	} else if (ret == AOP_TRUNCATED_PAGE) {
+-		page_cache_release(page);
+-		goto find_page;
+-	}
++	/*
++	 * Return the number of bytes written and mark page as
++	 * accessed, we are now done!
++	 */
++	mark_page_accessed(page);
++	balance_dirty_pages_ratelimited(mapping);
+ out:
+ 	page_cache_release(page);
+ 	unlock_page(page);
 _
 
-Patches currently in -mm which might be from kraxel@suse.de are
+Patches currently in -mm which might be from dmonakhov@sw.ru are
 
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+origin.patch
+git-libata-all.patch
+freevxfs-possible-null-pointer-dereference-fix.patch
+reiserfs-possible-null-pointer-dereference-during-resize.patch
+ext3-dirindex-error-pointer-issues.patch
+ext3-dirindex-error-pointer-issues-fix.patch
+floppy-handle-device_create_file-failure-while-init.patch
