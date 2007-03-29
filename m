@@ -1,78 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - i386-fix-bogus-return-value-in-hpet_next_event.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:42:33 -0700
-Message-ID: <200703290742.l2T7gXs9030309@shell0.pdx.osdl.net>
+Subject: - splice-dont-readpage.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:42:47 -0700
+Message-ID: <200703290742.l2T7glue030333@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46159 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46169 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964873AbXC2Hmt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:42:49 -0400
+	id S964974AbXC2Hmy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:42:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: npiggin@suse.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: fix bogus return value in hpet_next_event()
+     splice: don't readpage
 has been removed from the -mm tree.  Its filename was
-     i386-fix-bogus-return-value-in-hpet_next_event.patch
+     splice-dont-readpage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: fix bogus return value in hpet_next_event()
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: splice: don't readpage
+From: Nick Piggin <npiggin@suse.de>
 
-The clockevents / tick management code expects an error value, when the
-event is already expired. hpet_next_event() returns 1 in that case.
+Splice does not need to readpage to bring the page uptodate before writing
+to it, because prepare_write will take care of that for us.
 
-Fix it to return the proper -ETIME error code.
+Splice is also wrong to SetPageUptodate before the page is actually
+uptodate.  This results in the old uninitialised memory leak.  This gets
+fixed as a matter of course when removing the readpage logic.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/hpet.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/splice.c |   30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~i386-fix-bogus-return-value-in-hpet_next_event arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~i386-fix-bogus-return-value-in-hpet_next_event
-+++ a/arch/i386/kernel/hpet.c
-@@ -197,7 +197,7 @@ static int hpet_next_event(unsigned long
- 	cnt += delta;
- 	hpet_writel(cnt, HPET_T0_CMP);
+diff -puN fs/splice.c~splice-dont-readpage fs/splice.c
+--- a/fs/splice.c~splice-dont-readpage
++++ a/fs/splice.c
+@@ -593,36 +593,6 @@ find_page:
+ 			goto out;
+ 	}
  
--	return ((long)(hpet_readl(HPET_COUNTER) - cnt ) > 0);
-+	return ((long)(hpet_readl(HPET_COUNTER) - cnt ) > 0) ? -ETIME : 0;
- }
- 
- /*
+-	/*
+-	 * We get here with the page locked. If the page is also
+-	 * uptodate, we don't need to do more. If it isn't, we
+-	 * may need to bring it in if we are not going to overwrite
+-	 * the full page.
+-	 */
+-	if (!PageUptodate(page)) {
+-		if (this_len < PAGE_CACHE_SIZE) {
+-			ret = mapping->a_ops->readpage(file, page);
+-			if (unlikely(ret))
+-				goto out;
+-
+-			lock_page(page);
+-
+-			if (!PageUptodate(page)) {
+-				/*
+-				 * Page got invalidated, repeat.
+-				 */
+-				if (!page->mapping) {
+-					unlock_page(page);
+-					page_cache_release(page);
+-					goto find_page;
+-				}
+-				ret = -EIO;
+-				goto out;
+-			}
+-		} else
+-			SetPageUptodate(page);
+-	}
+-
+ 	ret = mapping->a_ops->prepare_write(file, page, offset, offset+this_len);
+ 	if (unlikely(ret)) {
+ 		loff_t isize = i_size_read(mapping->host);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-git-ieee1394.patch
-log-reason-why-tsc-was-marked-unstable.patch
-optimize-timespec_trunc.patch
-kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
-add-support-for-deferrable-timers-respun.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-add-support-for-deferrable-timers-respun-fix.patch
-irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
-move-timekeeping-code-to-timekeepingc.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-declare-struct-ktime.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
-mm-only-hrtimers-debug-patch.patch
-mm-only-hrtimers-debug-patch-fix.patch
+holepunch-fix-disconnected-pages-after-second-truncate.patch
+holepunch-fix-mmap_sem-i_mutex-deadlock.patch
+mm-remove-gcc-workaround.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+mm-simplify-filemap_nopage.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault.patch
+mm-remove-legacy-cruft.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-filemapc-fix-mark_page_accessed-logic.patch
+exec-fix-remove_arg_zero.patch
+exec-fix-remove_arg_zero-add-comment.patch
+as-fix-antic_expire-check.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
