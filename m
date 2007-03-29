@@ -1,77 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + remove-hardcoding-of-hard_smp_processor_id-on-up.patch added to -mm tree
-Date: Thu, 29 Mar 2007 16:32:25 -0700
-Message-ID: <200703292332.l2TNWPhu015007@shell0.pdx.osdl.net>
+Subject: - adaptec-maintainers-updates.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:03 -0700
+Message-ID: <200703292337.l2TNb3LB015069@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42871 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42929 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934376AbXC2Xcc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:32:32 -0400
+	id S934378AbXC2XhJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:37:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: fernando@oss.ntt.co.jp, ak@suse.de, tony.luck@intel.com
+To: mark_salyzyn@adaptec.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: remove hardcoding of hard_smp_processor_id on UP systems (fix)
-has been added to the -mm tree.  Its filename is
-     remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+     adaptec MAINTAINERS updates
+has been removed from the -mm tree.  Its filename was
+     adaptec-maintainers-updates.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: remove hardcoding of hard_smp_processor_id on UP systems (fix)
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: adaptec MAINTAINERS updates
+From: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
 
-Make ia64's hard_smp_processor_id() implementation available to CONFIG_SMP=n
-builds.
+The IPS and DPT_I2O drivers are missing, so here is my 'hand coded'
+addition to deal with overlap to the patch below (apply both). I
+selected Maintained rather than supported for the ips and dpt_i2o driver
+due to their legacy nature.
 
-Cc: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/smp.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-ia64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-ia64/smp.h
---- a/include/asm-ia64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
-+++ a/include/asm-ia64/smp.h
-@@ -38,6 +38,8 @@ ia64_get_lid (void)
- 	return lid.f.id << 8 | lid.f.eid;
- }
+diff -puN MAINTAINERS~adaptec-maintainers-updates MAINTAINERS
+--- a/MAINTAINERS~adaptec-maintainers-updates
++++ a/MAINTAINERS
+@@ -198,10 +198,25 @@ L:	linux-sound@vger.kernel.org
+ W:	http://www.stud.uni-karlsruhe.de/~uh1b/
+ S:	Maintained
  
-+#define hard_smp_processor_id()		ia64_get_lid()
++IPS SCSI RAID DRIVER
++P:	Adaptec OEM Raid Solutions
++M:	aacraid@adaptec.com
++L:	linux-scsi@vger.kernel.org
++W:	http://www.adaptec.com/
++S:	Maintained
 +
- #ifdef CONFIG_SMP
++DPT_I2O SCSI RAID DRIVER
++P:	Adaptec OEM Raid Solutions
++M:	aacraid@adaptec.com
++L:	linux-scsi@vger.kernel.org
++W:	http://www.adaptec.com/
++S:	Maintained
++
+ AACRAID SCSI RAID DRIVER
+ P:	Adaptec OEM Raid Solutions
++M:	aacraid@adaptec.com
+ L:	linux-scsi@vger.kernel.org
+-W:	http://linux.dell.com/storage.shtml
++W:	http://www.adaptec.com/
+ S:	Supported
  
- #define XTP_OFFSET		0x1e0008
-@@ -110,8 +112,6 @@ max_xtp (void)
- 		writeb(0x0f, ipi_base_addr + XTP_OFFSET); /* Set XTP to max */
- }
- 
--#define hard_smp_processor_id()		ia64_get_lid()
--
- /* Upping and downing of CPUs */
- extern int __cpu_disable (void);
- extern void __cpu_die (unsigned int cpu);
-@@ -128,7 +128,7 @@ extern void unlock_ipi_calllock(void);
- extern void identify_siblings (struct cpuinfo_ia64 *);
- extern int is_multithreading_enabled(void);
- 
--#else
-+#else /* CONFIG_SMP */
- 
- #define cpu_logical_id(i)		0
- #define cpu_physical_id(i)		ia64_get_lid()
+ ACPI
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from mark_salyzyn@adaptec.com are
 
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+origin.patch
+git-scsi-misc.patch
+drivers-scsi-aacraid-cleanups.patch
