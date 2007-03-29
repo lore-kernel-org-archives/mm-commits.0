@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + integrity-ima-identifiers.patch added to -mm tree
-Date: Wed, 28 Mar 2007 17:24:59 -0700
-Message-ID: <200703290024.l2T0Oxqh023688@shell0.pdx.osdl.net>
+Subject: + mm-fix-xip-issue-with-dev-zero.patch added to -mm tree
+Date: Wed, 28 Mar 2007 17:28:44 -0700
+Message-ID: <200703290028.l2T0SiKF023759@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36565 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36590 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933939AbXC2A2R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 20:28:17 -0400
+	id S933951AbXC2A2x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 20:28:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zohar@linux.vnet.ibm.com, kjhall@us.ibm.com, zohar@us.ibm.com
+Cc: cotte@de.ibm.com, hugh@veritas.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     integrity: ima identifiers
+     mm: fix xip issue with /dev/zero
 has been added to the -mm tree.  Its filename is
-     integrity-ima-identifiers.patch
+     mm-fix-xip-issue-with-dev-zero.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,306 +25,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: integrity: ima identifiers
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: mm: fix xip issue with /dev/zero
+From: Carsten Otte <cotte@de.ibm.com>
 
-This patch corrects the naming of global and other identifiers.
+Fix the bug, that reading into xip mapping from /dev/zero fills the user
+page table with ZERO_PAGE() entries.  Later on, xip cannot tell which pages
+have been ZERO_PAGE() filled by access to a sparse mapping, and which ones
+origin from /dev/zero.  It will unmap ZERO_PAGE from all mappings when
+filling the sparse hole with data.  xip does now use its own zeroed page
+for its sparse mappings.  Please apply.
 
-Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
-Signed-off-by: Kylene Hall <kjhall@us.ibm.com>
+Signed-off-by: Carsten Otte <cotte@de.ibm.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/evm/ima/ima.h       |   24 ++++++++++++------------
- security/evm/ima/ima_fs.c    |   18 +++++++++---------
- security/evm/ima/ima_init.c  |   10 +++++-----
- security/evm/ima/ima_main.c  |    8 ++++----
- security/evm/ima/ima_queue.c |   24 ++++++++++++------------
- 5 files changed, 42 insertions(+), 42 deletions(-)
+ mm/filemap_xip.c |   38 ++++++++++++++++++++++++++++++++++----
+ 1 files changed, 34 insertions(+), 4 deletions(-)
 
-diff -puN security/evm/ima/ima.h~integrity-ima-identifiers security/evm/ima/ima.h
---- a/security/evm/ima/ima.h~integrity-ima-identifiers
-+++ a/security/evm/ima/ima.h
-@@ -34,26 +34,26 @@
- 
- /* digest size for IMA, fits SHA1 or MD5 */
- #define IMA_DIGEST_SIZE		20
--#define TCG_EVENT_NAME_LEN_MAX	255
-+#define IMA_EVENT_NAME_LEN_MAX	255
- 
- #define IMA_HASH_BITS 9
--#define MEASURE_HTABLE_SIZE (1 << IMA_HASH_BITS)
--#define HASH_KEY(digest) (hash_long( \
-+#define IMA_MEASURE_HTABLE_SIZE (1 << IMA_HASH_BITS)
-+#define IMA_HASH_KEY(digest) (hash_long( \
- 	(unsigned long)(*digest), IMA_HASH_BITS));
- 
- /* set during initialization */
- extern int ima_used_chip;
- 
--struct measure_entry {
-+struct ima_measure_entry {
- 	u32 measure_flags;
- 	u8 digest[IMA_DIGEST_SIZE];	/* sha1 or md5 measurement hash */
--	char file_name[TCG_EVENT_NAME_LEN_MAX + 1];	/* name + \0 */
-+	char file_name[IMA_EVENT_NAME_LEN_MAX + 1];	/* name + \0 */
- };
- 
--struct queue_entry {
-+struct ima_queue_entry {
- 	struct hlist_node hnext;	/* place in hash collision list */
- 	struct list_head later;	/* place in ima_measurements list */
--	struct measure_entry *entry;
-+	struct ima_measure_entry *entry;
- };
- 
- extern struct list_head ima_measurements;	/* list of all measurements */
-@@ -61,10 +61,10 @@ extern struct list_head ima_measurements
- /* declarations */
- int ima_fs_init(void);
- void ima_fs_cleanup(void);
--void create_htable(void);
-+void ima_create_htable(void);
- void ima_invalidate_pcr(char *);
--int ima_add_measure_entry(struct measure_entry *entry);
--struct queue_entry *ima_lookup_digest_entry(u8 * digest);
-+int ima_add_measure_entry(struct ima_measure_entry *entry);
-+struct ima_queue_entry *ima_lookup_digest_entry(u8 * digest);
+diff -puN mm/filemap_xip.c~mm-fix-xip-issue-with-dev-zero mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-fix-xip-issue-with-dev-zero
++++ a/mm/filemap_xip.c
+@@ -17,6 +17,29 @@
+ #include "filemap.h"
  
  /*
-  * used to protect h_table and sha_table
-@@ -75,8 +75,8 @@ struct ima_h_table {
- 	atomic_t len;	/* number of stored measurements in the list */
- 	atomic_t violations;
- 	unsigned int max_htable_size;
--	struct hlist_head queue[MEASURE_HTABLE_SIZE];
--	atomic_t queue_len[MEASURE_HTABLE_SIZE];
-+	struct hlist_head queue[IMA_MEASURE_HTABLE_SIZE];
-+	atomic_t queue_len[IMA_MEASURE_HTABLE_SIZE];
- };
- extern struct ima_h_table ima_htable;
- 
-diff -puN security/evm/ima/ima_fs.c~integrity-ima-identifiers security/evm/ima/ima_fs.c
---- a/security/evm/ima/ima_fs.c~integrity-ima-identifiers
-+++ a/security/evm/ima/ima_fs.c
-@@ -105,15 +105,15 @@ static int ima_measurements_show(struct 
- {
- 	/* the list never shrinks, so we don't need a lock here */
- 	struct list_head *lpos = v;
--	struct queue_entry *qe;
--	struct measure_entry *e;
-+	struct ima_queue_entry *qe;
-+	struct ima_measure_entry *e;
- 	int filename_len;
- 	int i;
- 	u32 pcr = CONFIG_IMA_MEASURE_PCR_IDX;
- 	char data[4];
- 
- 	/* get entry */
--	qe = list_entry(lpos, struct queue_entry, later);
-+	qe = list_entry(lpos, struct ima_queue_entry, later);
- 	e = qe->entry;
- 	if (e == NULL)
- 		return -1;
-@@ -138,8 +138,8 @@ static int ima_measurements_show(struct 
- 
- 	/* 4th: eventDataSize */
- 	filename_len = strlen(e->file_name);
--	if (filename_len > TCG_EVENT_NAME_LEN_MAX)
--		filename_len = TCG_EVENT_NAME_LEN_MAX;
-+	if (filename_len > IMA_EVENT_NAME_LEN_MAX)
-+		filename_len = IMA_EVENT_NAME_LEN_MAX;
- 
- 	memcpy(data, &filename_len, 4);
- 	for (i = 0; i < 4; i++)
-@@ -177,12 +177,12 @@ static int ima_ascii_measurements_show(s
- {
- 	/* the list never shrinks, so we don't need a lock here */
- 	struct list_head *lpos = v;
--	struct queue_entry *qe;
--	struct measure_entry *e;
-+	struct ima_queue_entry *qe;
-+	struct ima_measure_entry *e;
- 	int i;
- 
- 	/* get entry */
--	qe = list_entry(lpos, struct queue_entry, later);
-+	qe = list_entry(lpos, struct ima_queue_entry, later);
- 	e = qe->entry;
- 	if (e == NULL)
- 		return -1;
-@@ -269,7 +269,7 @@ out:
- 	return -1;
- }
- 
--void ima_fs_cleanup(void)
-+void __exit ima_fs_cleanup(void)
- {
- 	securityfs_remove(violations);
- 	securityfs_remove(runtime_measurements_count);
-diff -puN security/evm/ima/ima_init.c~integrity-ima-identifiers security/evm/ima/ima_init.c
---- a/security/evm/ima/ima_init.c~integrity-ima-identifiers
-+++ a/security/evm/ima/ima_init.c
-@@ -28,18 +28,18 @@ int ima_used_chip;
- static void ima_add_boot_aggregate(void)
- {
- 	/* cumulative sha1 over tpm registers 0-7 */
--	struct measure_entry *entry;
-+	struct ima_measure_entry *entry;
- 	size_t count;
- 	int err;
- 
- 	/* create new entry for boot aggregate */
--	entry = kzalloc(sizeof(struct measure_entry), GFP_ATOMIC);
-+	entry = kzalloc(sizeof(struct ima_measure_entry), GFP_ATOMIC);
- 	if (entry == NULL) {
- 		ima_invalidate_pcr("error allocating new measurement entry");
- 		return;
- 	}
--	if ((count = strlen(boot_aggregate_name)) > TCG_EVENT_NAME_LEN_MAX)
--		count = TCG_EVENT_NAME_LEN_MAX;
-+	if ((count = strlen(boot_aggregate_name)) > IMA_EVENT_NAME_LEN_MAX)
-+		count = IMA_EVENT_NAME_LEN_MAX;
- 	memcpy(entry->file_name, boot_aggregate_name, count);
- 	entry->file_name[count] = '\0';
- 	if (ima_used_chip) {
-@@ -103,7 +103,7 @@ int ima_init(void)
- 		ima_info("No TPM chip found(rc = %d), activating TPM-bypass!\n",
- 			rc);
- 
--	create_htable();	/* for measurements */
-+	ima_create_htable();	/* for measurements */
- 
- 	/* boot aggregate must be very first entry */
- 	ima_add_boot_aggregate();
-diff -puN security/evm/ima/ima_main.c~integrity-ima-identifiers security/evm/ima/ima_main.c
---- a/security/evm/ima/ima_main.c~integrity-ima-identifiers
-+++ a/security/evm/ima/ima_main.c
-@@ -41,7 +41,7 @@
++ * We do use our own empty page to avoid interference with other users
++ * of ZERO_PAGE(), such as /dev/zero
++ */
++static struct page *__xip_sparse_page;
++
++static struct page *xip_sparse_page(void)
++{
++	if (!__xip_sparse_page) {
++		unsigned long zeroes = get_zeroed_page(GFP_HIGHUSER);
++		if (zeroes) {
++			static DEFINE_SPINLOCK(xip_alloc_lock);
++			spin_lock(&xip_alloc_lock);
++			if (!__xip_sparse_page)
++				__xip_sparse_page = virt_to_page(zeroes);
++			else
++				free_page(zeroes);
++			spin_unlock(&xip_alloc_lock);
++		}
++	}
++	return __xip_sparse_page;
++}
++
++/*
+  * This is a file read routine for execute in place files, and uses
+  * the mapping->a_ops->get_xip_page() function for the actual low-level
+  * stuff.
+@@ -162,7 +185,7 @@ EXPORT_SYMBOL_GPL(xip_file_sendfile);
+  * xip_write
+  *
+  * This function walks all vmas of the address_space and unmaps the
+- * ZERO_PAGE when found at pgoff. Should it go in rmap.c?
++ * __xip_sparse_page when found at pgoff.
   */
- void ima_measure(const unsigned char *name, int hash_len, char *hash)
- {
--	struct measure_entry *entry;
-+	struct ima_measure_entry *entry;
- 	u8 digest[IMA_DIGEST_SIZE];
- 	int err = 0, count;
+ static void
+ __xip_unmap (struct address_space * mapping,
+@@ -177,13 +200,16 @@ __xip_unmap (struct address_space * mapp
+ 	spinlock_t *ptl;
+ 	struct page *page;
  
-@@ -64,15 +64,15 @@ void ima_measure(const unsigned char *na
- 		return;
- 
- 	/* create new entry and add to measurement list */
--	entry = kzalloc(sizeof(struct measure_entry), GFP_ATOMIC);
-+	entry = kzalloc(sizeof(struct ima_measure_entry), GFP_ATOMIC);
- 	if (!entry) {
- 		ima_error("Error allocating new measurement entry");
- 		return;		/* invalidate pcr */
++	page = __xip_sparse_page;
++	if (!page)
++		return;
++
+ 	spin_lock(&mapping->i_mmap_lock);
+ 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
+ 		mm = vma->vm_mm;
+ 		address = vma->vm_start +
+ 			((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 		BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+-		page = ZERO_PAGE(0);
+ 		pte = page_check_address(page, mm, address, &ptl);
+ 		if (pte) {
+ 			/* Nuke the page table entry. */
+@@ -245,8 +271,12 @@ static struct page *xip_file_fault(struc
+ 		/* unmap page at pgoff from all other vmas */
+ 		__xip_unmap(mapping, fdata->pgoff);
+ 	} else {
+-		/* not shared and writable, use ZERO_PAGE() */
+-		page = ZERO_PAGE(0);
++		/* not shared and writable, use xip_sparse_page() */
++		page = xip_sparse_page();
++		if (!page) {
++	                fdata->type = VM_FAULT_OOM;
++	                return NULL;
++		}
  	}
  
- 	entry->measure_flags = 0;
--	if ((count = strlen(name)) > TCG_EVENT_NAME_LEN_MAX)
--		count = TCG_EVENT_NAME_LEN_MAX;
-+	if ((count = strlen(name)) > IMA_EVENT_NAME_LEN_MAX)
-+		count = IMA_EVENT_NAME_LEN_MAX;
- 
- 	memcpy(entry->file_name, name, count);
- 	entry->file_name[count] = '\0';
-diff -puN security/evm/ima/ima_queue.c~integrity-ima-identifiers security/evm/ima/ima_queue.c
---- a/security/evm/ima/ima_queue.c~integrity-ima-identifiers
-+++ a/security/evm/ima/ima_queue.c
-@@ -34,7 +34,7 @@ DEFINE_SPINLOCK(ima_queue_lock);
-  */
- static DEFINE_MUTEX(ima_extend_list_mutex);
- 
--void create_htable(void)
-+void ima_create_htable(void)
- {
- 	int i;
- 
-@@ -42,7 +42,7 @@ void create_htable(void)
- 	INIT_LIST_HEAD(&ima_measurements);
- 	atomic_set(&ima_htable.len, 0);
- 	atomic_set(&ima_htable.violations, 0);
--	ima_htable.max_htable_size = MEASURE_HTABLE_SIZE;
-+	ima_htable.max_htable_size = IMA_MEASURE_HTABLE_SIZE;
- 
- 	for (i = 0; i < ima_htable.max_htable_size; i++) {
- 		INIT_HLIST_HEAD(&ima_htable.queue[i]);
-@@ -53,13 +53,13 @@ void create_htable(void)
- 	spin_unlock(&ima_queue_lock);
- }
- 
--struct queue_entry *ima_lookup_digest_entry(u8 * digest_value)
-+struct ima_queue_entry *ima_lookup_digest_entry(u8 * digest_value)
- {
--	struct queue_entry *qe, *ret = NULL;
-+	struct ima_queue_entry *qe, *ret = NULL;
- 	unsigned int key;
- 	struct hlist_node *pos;
- 
--	key = HASH_KEY(digest_value);
-+	key = IMA_HASH_KEY(digest_value);
- 	rcu_read_lock();
- 	hlist_for_each_entry_rcu(qe, pos, &ima_htable.queue[key], hnext) {
- 		if (memcmp(qe->entry->digest, digest_value, 20) == 0) {
-@@ -72,13 +72,13 @@ struct queue_entry *ima_lookup_digest_en
- }
- 
- /* Called with ima_queue_lock held */
--static int ima_add_digest_entry(struct measure_entry *entry)
-+static int ima_add_digest_entry(struct ima_measure_entry *entry)
- {
--	struct queue_entry *qe;
-+	struct ima_queue_entry *qe;
- 	unsigned int key;
- 
--	key = HASH_KEY(entry->digest);
--	qe = kmalloc(sizeof(struct queue_entry), GFP_ATOMIC);
-+	key = IMA_HASH_KEY(entry->digest);
-+	qe = kmalloc(sizeof(struct ima_queue_entry), GFP_ATOMIC);
- 	if (qe == NULL) {
- 		ima_error("OUT OF MEMORY ERROR creating queue entry.\n");
- 		return -ENOMEM;
-@@ -90,9 +90,9 @@ static int ima_add_digest_entry(struct m
- 	return 0;
- }
- 
--int ima_add_measure_entry(struct measure_entry *entry)
-+int ima_add_measure_entry(struct ima_measure_entry *entry)
- {
--	struct queue_entry *qe;
-+	struct ima_queue_entry *qe;
- 	int error = 0;
- 
- 	mutex_lock(&ima_extend_list_mutex);
-@@ -102,7 +102,7 @@ int ima_add_measure_entry(struct measure
- 		spin_unlock(&ima_queue_lock);
- 		goto out;
- 	}
--	qe = kmalloc(sizeof(struct queue_entry), GFP_ATOMIC);
-+	qe = kmalloc(sizeof(struct ima_queue_entry), GFP_ATOMIC);
- 	if (qe == NULL) {
- 		ima_error("OUT OF MEMORY in %s.\n", __func__);
- 		error = -ENOMEM;
+ out:
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from cotte@de.ibm.com are
 
-integrity-service-api-and-dummy-provider-integrity_dummy_verify_metadata.patch
-slim-main-lsm-getprocattr-hook-api-change.patch
-slim-integrity-patch.patch
-integrity-new-hooks.patch
-integrity-new-hooks-fix.patch
-integrity-fs-hook-placement.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-ima-integrity_measure-support.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-ima-identifiers.patch
-integrity-tpm-internal-kernel-interface.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-ibac-patch.patch
-integrity-ima-exit.patch
-integrity-ima-cleanup.patch
+mm-fix-xip-issue-with-dev-zero.patch
