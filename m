@@ -1,81 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch added to -mm tree
-Date: Thu, 29 Mar 2007 15:16:56 -0700
-Message-ID: <200703292216.l2TMGuKv013571@shell0.pdx.osdl.net>
+Subject: - x86_64-export-physnode-mapping-to-userspace.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:13:10 -0700
+Message-ID: <200703292313.l2TNDA5A014655@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41073 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42293 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422684AbXC2WQ6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 18:16:58 -0400
+	id S1422686AbXC2XNS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:13:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com
+To: rientjes@google.com, ak@suse.de, clameter@engr.sgi.com, pj@sgi.com, rohitseth@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin arch fix stamp537 ISP1716 IRQ setting bug
-has been added to the -mm tree.  Its filename is
-     blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
+     x86_64: export physnode mapping to userspace
+has been removed from the -mm tree.  Its filename was
+     x86_64-export-physnode-mapping-to-userspace.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: blackfin arch fix stamp537 ISP1716 IRQ setting bug
-From: "Wu, Bryan" <bryan.wu@analog.com>
+Subject: x86_64: export physnode mapping to userspace
+From: David Rientjes <rientjes@google.com>
 
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Exports the physical NUMA node to fake NUMA node mapping to user-space via
+sysfs.  The information is now accessible via the 'physnode' file.
+
+Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Rohit Seth <rohitseth@google.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/mach-bf537/boards/stamp.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/node.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN arch/blackfin/mach-bf537/boards/stamp.c~blackfin-arch-fix-stamp537-isp1716-irq-setting-bug arch/blackfin/mach-bf537/boards/stamp.c
---- a/arch/blackfin/mach-bf537/boards/stamp.c~blackfin-arch-fix-stamp537-isp1716-irq-setting-bug
-+++ a/arch/blackfin/mach-bf537/boards/stamp.c
-@@ -68,7 +68,7 @@ static struct resource bfin_isp1761_reso
- 	[1] = {
- 		.start  = ISP1761_IRQ,
- 		.end    = ISP1761_IRQ,
--		.flags  = IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
-+		.flags  = IORESOURCE_IRQ,
- 	},
- };
+diff -puN drivers/base/node.c~x86_64-export-physnode-mapping-to-userspace drivers/base/node.c
+--- a/drivers/base/node.c~x86_64-export-physnode-mapping-to-userspace
++++ a/drivers/base/node.c
+@@ -131,6 +131,13 @@ static ssize_t node_read_distance(struct
+ }
+ static SYSDEV_ATTR(distance, S_IRUGO, node_read_distance, NULL);
  
++#ifdef CONFIG_NUMA_EMU
++static ssize_t node_read_physnode(struct sys_device *dev, char *buf)
++{
++	return sprintf(buf, "%d\n", get_phys_node(dev->id));
++}
++static SYSDEV_ATTR(physnode, S_IRUGO, node_read_physnode, NULL);
++#endif
+ 
+ /*
+  * register_node - Setup a sysfs device for a node.
+@@ -151,6 +158,9 @@ int register_node(struct node *node, int
+ 		sysdev_create_file(&node->sysdev, &attr_meminfo);
+ 		sysdev_create_file(&node->sysdev, &attr_numastat);
+ 		sysdev_create_file(&node->sysdev, &attr_distance);
++#ifdef CONFIG_NUMA_EMU
++		sysdev_create_file(&node->sysdev, &attr_physnode);
++#endif
+ 	}
+ 	return error;
+ }
+@@ -168,6 +178,9 @@ void unregister_node(struct node *node)
+ 	sysdev_remove_file(&node->sysdev, &attr_meminfo);
+ 	sysdev_remove_file(&node->sysdev, &attr_numastat);
+ 	sysdev_remove_file(&node->sysdev, &attr_distance);
++#ifdef CONFIG_NUMA_EMU
++	sysdev_remove_file(&node->sysdev, &attr_physnode);
++#endif
+ 
+ 	sysdev_unregister(&node->sysdev);
+ }
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-blackfin-Documentation.patch
-blackfin-arch.patch
-blackfin-arch-balance-parenthesis-in-macros.patch
-blackfin-arch-2.6.21-rc4-mm1-update.patch
-blackfin-arch-fix-struct-dmasg-packing-bug.patch
-blackfin-arch-cleanup-cache-header-file.patch
-blackfin-arch-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
-blackfin-arch-fix-compiling-error-in-flat-c-file.patch
-blackfin-arch-power-management-replace-firmware-disk-mode.patch
-blackfin-arch-add-kdebug-header-file.patch
-blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
-blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
-blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-blackfin-on-chip-ethernet-mac-controller-driver.patch
-blackfin-on-chip-ethernet-mac-controller-driver-update.patch
-blackfin-patch-add-blackfin-support-in-smc91x.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
-blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
-blackfin-blackfin-utrace-patch.patch
-utrace-nommu-fixup-support-utrace.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-revoke-core-code-generic_file_revoke-stub-for-nommu.patch
-vdso-print-fatal-signals-fix-compiling-error-bug-in.patch
+x86_64-disable-alien-cache-for-fake-numa.patch
+x86_64-export-physnode-mapping-to-userspace.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
+smaps-use-ptep_test_and_clear_young.patch
+smaps-add-clear_refs-file-to-clear-reference-docs.patch
