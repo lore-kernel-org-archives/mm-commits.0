@@ -1,148 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - msi-x-fix-resume-crash.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:42:41 -0700
-Message-ID: <200703290742.l2T7gfjZ030319@shell0.pdx.osdl.net>
+Subject: - hrtimers-fix-reprogramming-smp-race.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:42:35 -0700
+Message-ID: <200703290742.l2T7gZcX030312@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46155 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46149 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753023AbXC2Hms (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:42:48 -0400
+	id S1753329AbXC2Hmp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:42:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mingo@elte.hu, michal.k.k.piotrowski@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MSI: fix resume crash
+     hrtimers: fix reprogramming SMP race
 has been removed from the -mm tree.  Its filename was
-     msi-x-fix-resume-crash.patch
+     hrtimers-fix-reprogramming-smp-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MSI: fix resume crash
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: hrtimers: fix reprogramming SMP race
+From: Ingo Molnar <mingo@elte.hu>
 
-So I think the right solution is to simply make pci_enable_device just flip
-enable bits and move the rest of the work someplace else.
+hrtimer_start() incorrectly set the 'reprogram' flag to enqueue_hrtimer(),
+which should only be 1 if the hrtimer is queued to the current CPU.
 
-However a thorough cleanup is a little extreme for this point in the
-release cycle, so I think a quick hack that makes the code not stomp the
-irq when msi irq's are enabled should be the first fix.  Then we can later
-make the code not change the irqs at all.
+Doing otherwise could result in a reprogramming of the current CPU's
+clockevents device, with a timer that is not queued to it - resulting in a
+bogus next expiry value.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/drivers/pci/bios.c |    4 +++-
- arch/frv/mb93090-mb00/pci-vdk.c       |    3 ++-
- arch/i386/pci/common.c                |    6 ++++--
- arch/ia64/pci/pci.c                   |    8 ++++++--
- 4 files changed, 15 insertions(+), 6 deletions(-)
+ kernel/hrtimer.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/cris/arch-v32/drivers/pci/bios.c~msi-x-fix-resume-crash arch/cris/arch-v32/drivers/pci/bios.c
---- a/arch/cris/arch-v32/drivers/pci/bios.c~msi-x-fix-resume-crash
-+++ a/arch/cris/arch-v32/drivers/pci/bios.c
-@@ -100,7 +100,9 @@ int pcibios_enable_device(struct pci_dev
- 	if ((err = pcibios_enable_resources(dev, mask)) < 0)
- 		return err;
+diff -puN kernel/hrtimer.c~hrtimers-fix-reprogramming-smp-race kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimers-fix-reprogramming-smp-race
++++ a/kernel/hrtimer.c
+@@ -814,7 +814,12 @@ hrtimer_start(struct hrtimer *timer, kti
  
--	return pcibios_enable_irq(dev);
-+	if (!dev->msi_enabled)
-+		pcibios_enable_irq(dev);
-+	return 0;
- }
+ 	timer_stats_hrtimer_set_start_info(timer);
  
- int pcibios_assign_resources(void)
-diff -puN arch/frv/mb93090-mb00/pci-vdk.c~msi-x-fix-resume-crash arch/frv/mb93090-mb00/pci-vdk.c
---- a/arch/frv/mb93090-mb00/pci-vdk.c~msi-x-fix-resume-crash
-+++ a/arch/frv/mb93090-mb00/pci-vdk.c
-@@ -466,6 +466,7 @@ int pcibios_enable_device(struct pci_dev
+-	enqueue_hrtimer(timer, new_base, base == new_base);
++	/*
++	 * Only allow reprogramming if the new base is on this CPU.
++	 * (it might still be on another CPU if the timer was pending)
++	 */
++	enqueue_hrtimer(timer, new_base,
++			new_base->cpu_base == &__get_cpu_var(hrtimer_bases));
  
- 	if ((err = pcibios_enable_resources(dev, mask)) < 0)
- 		return err;
--	pcibios_enable_irq(dev);
-+	if (!dev->msi_enabled)
-+		pcibios_enable_irq(dev);
- 	return 0;
- }
-diff -puN arch/i386/pci/common.c~msi-x-fix-resume-crash arch/i386/pci/common.c
---- a/arch/i386/pci/common.c~msi-x-fix-resume-crash
-+++ a/arch/i386/pci/common.c
-@@ -449,11 +449,13 @@ int pcibios_enable_device(struct pci_dev
- 	if ((err = pcibios_enable_resources(dev, mask)) < 0)
- 		return err;
+ 	unlock_hrtimer_base(timer, &flags);
  
--	return pcibios_enable_irq(dev);
-+	if (!dev->msi_enabled)
-+		return pcibios_enable_irq(dev);
-+	return 0;
- }
- 
- void pcibios_disable_device (struct pci_dev *dev)
- {
--	if (pcibios_disable_irq)
-+	if (!dev->msi_enabled && pcibios_disable_irq)
- 		pcibios_disable_irq(dev);
- }
-diff -puN arch/ia64/pci/pci.c~msi-x-fix-resume-crash arch/ia64/pci/pci.c
---- a/arch/ia64/pci/pci.c~msi-x-fix-resume-crash
-+++ a/arch/ia64/pci/pci.c
-@@ -557,14 +557,18 @@ pcibios_enable_device (struct pci_dev *d
- 	if (ret < 0)
- 		return ret;
- 
--	return acpi_pci_irq_enable(dev);
-+	if (!dev->msi_enabled)
-+		return acpi_pci_irq_enable(dev);
-+	return 0;
- }
- 
- void
- pcibios_disable_device (struct pci_dev *dev)
- {
- 	BUG_ON(atomic_read(&dev->enable_cnt));
--	acpi_pci_irq_disable(dev);
-+	if (!dev->msi_enabled)
-+		acpi_pci_irq_disable(dev);
-+	return 0;
- }
- 
- void
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-i386-irq-kill-irq-compression.patch
-i386-irq-kill-nr_irq_vectors-and-increase-nr_irqs.patch
-x86_64-irq-remove-extra-smp_processor_id-calling.patch
-allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
-i386-account-for-module-percpu-space-separately-from-kernel.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-edac-k8-driver-coding-tidy.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
+git-ieee1394.patch
+git-kvm.patch
+forcedeth-work-around-null-skb-dereference-crash.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+log-reason-why-tsc-was-marked-unstable.patch
+allow-per-cpu-variables-to-be-page-aligned.patch
+i386-simplify-smp_call_function-by-using-common-implementation.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+optimize-timespec_trunc.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
+move-timekeeping-code-to-timekeepingc.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+add-touch_all_softlockup_watchdogs.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-dont-renice-kernel-threads.patch
+sched-remove-sleepavg-from-proc.patch
+sched-implement-staircase-deadline-cpu-scheduler.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+sched-remove-noninteractive-flag.patch
+sched-document-sd-cpu-scheduler.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+declare-struct-ktime.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
+futex_requeue_pi-optimization.patch
+sys_futex64-allows-64bit-futexes.patch
+sys_futex64-allows-64bit-futexes-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+mm-only-hrtimers-debug-patch.patch
+mm-only-hrtimers-debug-patch-fix.patch
