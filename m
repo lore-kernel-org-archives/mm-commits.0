@@ -1,121 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:39:16 -0700
-Message-ID: <200703292339.l2TNdG8A015419@shell0.pdx.osdl.net>
+Subject: - x86_64-fix-section-mismatch-compile-warning.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:39:27 -0700
+Message-ID: <200703292339.l2TNdRj6015434@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43202 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43207 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945943AbXC2Xj1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:39:27 -0400
+	id S1945939AbXC2Xja (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:39:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sebastien.dugue@bull.net, ak@suse.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: bwalle@suse.de, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 GDT cleanups: Rename boot_gdt_table to boot_gdt
+     x86_64: fix "Section mismatch" compile warning
 has been removed from the -mm tree.  Its filename was
-     i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt.patch
+     x86_64-fix-section-mismatch-compile-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 GDT cleanups: Rename boot_gdt_table to boot_gdt
-From: Sebastien Dugue <sebastien.dugue@bull.net>
+Subject: x86_64: fix "Section mismatch" compile warning
+From: Bernhard Walle <bwalle@suse.de>
 
-Rename boot_gdt_table to boot_gdt to avoid the duplicate T(able).
+Fix "Section mismatch" warnings in arch/x86_64/kernel/time.c
 
-Signed-off-by: Sebastien Dugue <sebastien.dugue@bull.net>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S       |    9 ++++-----
- arch/i386/kernel/trampoline.S |   12 ++++++------
- 2 files changed, 10 insertions(+), 11 deletions(-)
+ arch/x86_64/kernel/time.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/head.S~i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt
-+++ a/arch/i386/kernel/head.S
-@@ -147,8 +147,7 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
- /*
-  * Non-boot CPU entry point; entered from trampoline.S
-  * We can't lgdt here, because lgdt itself uses a data segment, but
-- * we know the trampoline has already loaded the boot_gdt_table GDT
-- * for us.
-+ * we know the trampoline has already loaded the boot_gdt for us.
-  *
-  * If cpu hotplug is not supported then this code can go in init section
-  * which will be freed later
-@@ -588,7 +587,7 @@ fault_msg:
- 	.word 0				# 32 bit align gdt_desc.address
- boot_gdt_descr:
- 	.word __BOOT_DS+7
--	.long boot_gdt_table - __PAGE_OFFSET
-+	.long boot_gdt - __PAGE_OFFSET
+diff -puN arch/x86_64/kernel/time.c~x86_64-fix-section-mismatch-compile-warning arch/x86_64/kernel/time.c
+--- a/arch/x86_64/kernel/time.c~x86_64-fix-section-mismatch-compile-warning
++++ a/arch/x86_64/kernel/time.c
+@@ -282,7 +282,7 @@ static unsigned int __init pit_calibrate
+ #define PIT_MODE 0x43
+ #define PIT_CH0  0x40
  
- 	.word 0				# 32-bit align idt_desc.address
- idt_descr:
-@@ -602,11 +601,11 @@ ENTRY(early_gdt_descr)
- 	.long per_cpu__cpu_gdt		/* Overwritten for secondary CPUs */
+-static void __init __pit_init(int val, u8 mode)
++static void __pit_init(int val, u8 mode)
+ {
+ 	unsigned long flags;
  
- /*
-- * The boot_gdt_table must mirror the equivalent in setup.S and is
-+ * The boot_gdt must mirror the equivalent in setup.S and is
-  * used only for booting.
-  */
- 	.align L1_CACHE_BYTES
--ENTRY(boot_gdt_table)
-+ENTRY(boot_gdt)
- 	.fill GDT_ENTRY_BOOT_CS,8,0
- 	.quad 0x00cf9a000000ffff	/* kernel 4GB code at 0x00000000 */
- 	.quad 0x00cf92000000ffff	/* kernel 4GB data at 0x00000000 */
-diff -puN arch/i386/kernel/trampoline.S~i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt arch/i386/kernel/trampoline.S
---- a/arch/i386/kernel/trampoline.S~i386-gdt-cleanups-rename-boot_gdt_table-to-boot_gdt
-+++ a/arch/i386/kernel/trampoline.S
-@@ -29,7 +29,7 @@
-  *
-  *	TYPE              VALUE
-  *	R_386_32          startup_32_smp
-- *	R_386_32          boot_gdt_table
-+ *	R_386_32          boot_gdt
-  */
+@@ -298,12 +298,12 @@ void __init pit_init(void)
+ 	__pit_init(LATCH, 0x34); /* binary, mode 2, LSB/MSB, ch 0 */
+ }
  
- #include <linux/linkage.h>
-@@ -62,8 +62,8 @@ r_base = .
- 	 * to 32 bit.
- 	 */
+-void __init pit_stop_interrupt(void)
++void pit_stop_interrupt(void)
+ {
+ 	__pit_init(0, 0x30); /* mode 0 */
+ }
  
--	lidtl	boot_idt - r_base	# load idt with 0, 0
--	lgdtl	boot_gdt - r_base	# load gdt with whatever is appropriate
-+	lidtl	boot_idt_descr - r_base	# load idt with 0, 0
-+	lgdtl	boot_gdt_descr - r_base	# load gdt with whatever is appropriate
- 
- 	xor	%ax, %ax
- 	inc	%ax		# protected mode (PE) bit
-@@ -73,11 +73,11 @@ r_base = .
- 
- 	# These need to be in the same 64K segment as the above;
- 	# hence we don't use the boot_gdt_descr defined in head.S
--boot_gdt:
-+boot_gdt_descr:
- 	.word	__BOOT_DS + 7			# gdt limit
--	.long	boot_gdt_table-__PAGE_OFFSET	# gdt base
-+	.long	boot_gdt - __PAGE_OFFSET	# gdt base
- 
--boot_idt:
-+boot_idt_descr:
- 	.word	0				# idt limit = 0
- 	.long	0				# idt base = 0L
- 
+-void __init stop_timer_interrupt(void)
++void stop_timer_interrupt(void)
+ {
+ 	char *name;
+ 	if (hpet_address) {
 _
 
-Patches currently in -mm which might be from sebastien.dugue@bull.net are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-futex-priority-based-wakeup.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
-sys_futex64-allows-64bit-futexes-fix.patch
+origin.patch
+git-r8169.patch
+use-unchecked_isa_dma-in-sd_revalidate_disk.patch
+qla2xxx-remove-duplicate-pci_disable_device-call.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-parisc.patch
+add-irqf_irqpoll-flag-on-arm.patch
