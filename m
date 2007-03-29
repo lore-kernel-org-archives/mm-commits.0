@@ -1,75 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - generic_serial-fix-decoding-of-baud-rate.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:41:49 -0700
-Message-ID: <200703290741.l2T7fnse030261@shell0.pdx.osdl.net>
+Subject: - block-blk_max_pfn-is-somtimes-wrong.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:43:15 -0700
+Message-ID: <200703290743.l2T7hFPe030370@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46208 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46219 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965116AbXC2HnQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:43:16 -0400
+	id S965055AbXC2HnW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dsd@gentoo.org, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk, stable@kernel.org, mm-commits@vger.kernel.org
+To: vtaras@openvz.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     generic_serial: fix decoding of baud rate
+     block: blk_max_pfn is somtimes wrong
 has been removed from the -mm tree.  Its filename was
-     generic_serial-fix-decoding-of-baud-rate.patch
+     block-blk_max_pfn-is-somtimes-wrong.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: generic_serial: fix decoding of baud rate
-From: Daniel Drake <dsd@gentoo.org>
+Subject: block: blk_max_pfn is somtimes wrong
+From: Vasily Tarasov <vtaras@openvz.org>
 
-Commit d720bc4b8fc5d6d179ef094908d4fbb5e436ffad partially removed a private
-implementation of baud speed decoding.  However it doesn't seem to be
-complete: after the speed is decoded, it is still being used as an index to
-a local speed table (array overrun, no doubt).
+There is a small problem in handling page bounce.
 
-This was found by Graham Murray who noticed it caused a 2.6.19 regression
-with the SX driver: https://bugs.gentoo.org/170554
+At the moment blk_max_pfn equals max_pfn, which is in fact not maximum
+possible _number_ of a page frame, but the _amount_ of page frames.  For
+example for the 32bit x86 node with 4Gb RAM, max_pfn = 0x100000, but not
+0xFFFF.
 
-Signed-off-by: Daniel Drake <dsd@gentoo.org>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: <stable@kernel.org>
+request_queue structure has a member q->bounce_pfn and queue needs bounce
+pages for the pages _above_ this limit.  This routine is handled by
+blk_queue_bounce(), where the following check is produced:
+
+	if (q->bounce_pfn >= blk_max_pfn)
+		return;
+
+Assume, that a driver has set q->bounce_pfn to 0xFFFF, but blk_max_pfn
+equals 0x10000.  In such situation the check above fails and for each bio
+we always fall down for iterating over pages tied to the bio.
+
+I want to notice, that for quite a big range of device drivers (ide, md,
+...) such problem doesn't happen because they use BLK_BOUNCE_ANY for
+bounce_pfn.  BLK_BOUNCE_ANY is defined as blk_max_pfn << PAGE_SHIFT, and
+then the check above doesn't fail.  But for other drivers, which obtain
+reuired value from drivers, it fails.  For example sata_nv uses
+ATA_DMA_MASK or dev->dma_mask.
+
+I propose to use (max_pfn - 1) for blk_max_pfn.  And the same for
+blk_max_low_pfn.  The patch also cleanses some checks related with
+bounce_pfn.
+
+Signed-off-by: Vasily Tarasov <vtaras@openvz.org>
+Acked-by: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/generic_serial.c |    7 -------
- 1 file changed, 7 deletions(-)
+ block/ll_rw_blk.c |    6 +++---
+ mm/bounce.c       |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/generic_serial.c~generic_serial-fix-decoding-of-baud-rate drivers/char/generic_serial.c
---- a/drivers/char/generic_serial.c~generic_serial-fix-decoding-of-baud-rate
-+++ a/drivers/char/generic_serial.c
-@@ -710,12 +710,6 @@ void gs_close(struct tty_struct * tty, s
+diff -puN block/ll_rw_blk.c~block-blk_max_pfn-is-somtimes-wrong block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~block-blk_max_pfn-is-somtimes-wrong
++++ a/block/ll_rw_blk.c
+@@ -1221,7 +1221,7 @@ void blk_recount_segments(request_queue_
+ 		 * considered part of another segment, since that might
+ 		 * change with the bounce page.
+ 		 */
+-		high = page_to_pfn(bv->bv_page) >= q->bounce_pfn;
++		high = page_to_pfn(bv->bv_page) > q->bounce_pfn;
+ 		if (high || highprv)
+ 			goto new_hw_segment;
+ 		if (cluster) {
+@@ -3658,8 +3658,8 @@ int __init blk_dev_init(void)
+ 	open_softirq(BLOCK_SOFTIRQ, blk_done_softirq, NULL);
+ 	register_hotcpu_notifier(&blk_cpu_notifier);
+ 
+-	blk_max_low_pfn = max_low_pfn;
+-	blk_max_pfn = max_pfn;
++	blk_max_low_pfn = max_low_pfn - 1;
++	blk_max_pfn = max_pfn - 1;
+ 
+ 	return 0;
  }
+diff -puN mm/bounce.c~block-blk_max_pfn-is-somtimes-wrong mm/bounce.c
+--- a/mm/bounce.c~block-blk_max_pfn-is-somtimes-wrong
++++ a/mm/bounce.c
+@@ -204,7 +204,7 @@ static void __blk_queue_bounce(request_q
+ 		/*
+ 		 * is destination page below bounce pfn?
+ 		 */
+-		if (page_to_pfn(page) < q->bounce_pfn)
++		if (page_to_pfn(page) <= q->bounce_pfn)
+ 			continue;
  
- 
--static unsigned int     gs_baudrates[] = {
--  0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
--  9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600
--};
--
--
- void gs_set_termios (struct tty_struct * tty, 
-                      struct ktermios * old_termios)
- {
-@@ -771,7 +765,6 @@ void gs_set_termios (struct tty_struct *
- 
- 	baudrate = tty_get_baud_rate(tty);
- 
--	baudrate = gs_baudrates[baudrate];
- 	if ((tiosp->c_cflag & CBAUD) == B38400) {
- 		if (     (port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_HI)
- 			baudrate = 57600;
+ 		/*
 _
 
-Patches currently in -mm which might be from dsd@gentoo.org are
+Patches currently in -mm which might be from vtaras@openvz.org are
 
 origin.patch
-git-netdev-all.patch
-git-wireless.patch
