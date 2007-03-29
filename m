@@ -1,75 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - adaptec-maintainers-updates.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:03 -0700
-Message-ID: <200703292337.l2TNb3LB015069@shell0.pdx.osdl.net>
+Subject: - bluetooth-hid-quirks-mightymouse-quirk-2.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:06 -0700
+Message-ID: <200703292337.l2TNb6lD015072@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42929 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42937 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934378AbXC2XhJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:37:09 -0400
+	id S1945909AbXC2XhQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:37:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark_salyzyn@adaptec.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     adaptec MAINTAINERS updates
+     bluetooth hid quirks: mightymouse quirk
 has been removed from the -mm tree.  Its filename was
-     adaptec-maintainers-updates.patch
+     bluetooth-hid-quirks-mightymouse-quirk-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: adaptec MAINTAINERS updates
-From: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
+Subject: bluetooth hid quirks: mightymouse quirk
+From: Jiri Kosina <jkosina@suse.cz>
 
-The IPS and DPT_I2O drivers are missing, so here is my 'hand coded'
-addition to deal with overlap to the patch below (apply both). I
-selected Maintained rather than supported for the ips and dpt_i2o driver
-due to their legacy nature.
+I have a bugreport that scrollwheel of bluetooth version of apple
+mightymouse doesn't work.  The USB version of mightymouse works, as there
+is a quirk for handling scrollwheel in hid/usbhid for it.
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Now that bluetooth git tree is hooked to generic hid layer, it could easily
+use the quirks which are already present in generic hid parser, hid-input,
+etc.
+
+Below is a simple patch against bluetooth git tree, which adds quirk
+handling to current bluetooth hidp code, and sets quirk flags for device
+0x05ac/0x030c, which is the bluetooth version of the apple mightymouse.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ net/bluetooth/hidp/core.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN MAINTAINERS~adaptec-maintainers-updates MAINTAINERS
---- a/MAINTAINERS~adaptec-maintainers-updates
-+++ a/MAINTAINERS
-@@ -198,10 +198,25 @@ L:	linux-sound@vger.kernel.org
- W:	http://www.stud.uni-karlsruhe.de/~uh1b/
- S:	Maintained
+diff -puN net/bluetooth/hidp/core.c~bluetooth-hid-quirks-mightymouse-quirk-2 net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~bluetooth-hid-quirks-mightymouse-quirk-2
++++ a/net/bluetooth/hidp/core.c
+@@ -679,6 +679,27 @@ static void hidp_close(struct hid_device
+ {
+ }
  
-+IPS SCSI RAID DRIVER
-+P:	Adaptec OEM Raid Solutions
-+M:	aacraid@adaptec.com
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.adaptec.com/
-+S:	Maintained
++static const struct {
++	__u16 idVendor;
++	__u16 idProduct;
++	unsigned quirks;
++} hidp_blacklist[] = {
++	/* Apple wireless Mighty Mouse */
++	{ 0x05ac, 0x030c, HID_QUIRK_MIGHTYMOUSE | HID_QUIRK_INVERT_HWHEEL },
 +
-+DPT_I2O SCSI RAID DRIVER
-+P:	Adaptec OEM Raid Solutions
-+M:	aacraid@adaptec.com
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.adaptec.com/
-+S:	Maintained
++	{ }	/* Terminating entry */
++};
 +
- AACRAID SCSI RAID DRIVER
- P:	Adaptec OEM Raid Solutions
-+M:	aacraid@adaptec.com
- L:	linux-scsi@vger.kernel.org
--W:	http://linux.dell.com/storage.shtml
-+W:	http://www.adaptec.com/
- S:	Supported
++static void hidp_setup_quirks(struct hid_device *hid)
++{
++	unsigned int n;
++
++	for (n = 0; hidp_blacklist[n].idVendor; n++)
++		if (hidp_blacklist[n].idVendor == le16_to_cpu(hid->vendor) &&
++				hidp_blacklist[n].idProduct == le16_to_cpu(hid->product))
++			hid->quirks = hidp_blacklist[n].quirks;
++}
++
+ static inline void hidp_setup_hid(struct hidp_session *session, struct hidp_connadd_req *req)
+ {
+ 	struct hid_device *hid = session->hid;
+@@ -708,6 +729,8 @@ static inline void hidp_setup_hid(struct
  
- ACPI
+ 	hid->hidinput_input_event = hidp_hidinput_event;
+ 
++	hidp_setup_quirks(hid);
++
+ 	list_for_each_entry(report, &hid->report_enum[HID_INPUT_REPORT].report_list, list)
+ 		hidp_send_report(session, report);
+ 
 _
 
-Patches currently in -mm which might be from mark_salyzyn@adaptec.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
-git-scsi-misc.patch
-drivers-scsi-aacraid-cleanups.patch
+git-hid.patch
+git-ipwireless_cs.patch
