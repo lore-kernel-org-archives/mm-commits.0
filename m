@@ -1,113 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - cpuidle-fix-boot-hang.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:42:49 -0700
-Message-ID: <200703290742.l2T7gnpO030336@shell0.pdx.osdl.net>
+Subject: - block-io-errors-on-i2o-disk.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:42:23 -0700
+Message-ID: <200703290742.l2T7gNpi030297@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46271 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46304 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965254AbXC2HoI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:44:08 -0400
+	id S965973AbXC2HoV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:44:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, larry.finger@lwfinger.net, lenb@kernel.org, mm-commits@vger.kernel.org
+To: vvs@sw.ru, Markus.Lidel@shadowconnect.com, jens.axboe@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cuidle: fix boot hang
+     i2o: block IO errors on i2o disk
 has been removed from the -mm tree.  Its filename was
-     cpuidle-fix-boot-hang.patch
+     block-io-errors-on-i2o-disk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cuidle: fix boot hang
-From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: i2o: block IO errors on i2o disk
+From: Vasily Averin <vvs@sw.ru>
 
-Patch for cpuidle boot hang reported by Larry Finger here.
-http://www.ussg.iu.edu/hypermail/linux/kernel/0703.2/2025.html
+I2O subsystem has been broken in mainstream several months ago (after
+2.6.18).  The following patch from Jens Axboe splits struct request ->flags
+into two parts: cmd_type and cmd_flags
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=4aff5e2333c9a1609662f2091f55c3f6fffdad36
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Larry Finger <larry.finger@lwfinger.net>
+In i2o layer this patch has replaced flag REQ_SPECIAL by the according
+cmd_type.  However i2o has used REQ_SPECIAL not as command type but as
+driver-specific flag for the debug purposes.  As result all i2o requests
+have type "special" now, are not processed to the hardware and fail with
+I/O error:
+
+ i2o/hda:<3>Buffer I/O error on device i2o/hda, logical block 0
+Buffer I/O error on device i2o/hda, logical block 0
+Buffer I/O error on device i2o/hda, logical block 0
+ unable to read partition table
+block-osm: device added (TID: 207): i2o/hda
+
+The following patch removes the extra debug checks without any drawbacks and
+restores the normal driver's work.
+
+Signed-off-by:	Vasily Averin <vvs@sw.ru>
+Acked-by: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c |   26 +++++++++++++++++++-------
- drivers/cpuidle/driver.c  |    4 ++--
- 2 files changed, 21 insertions(+), 9 deletions(-)
+ drivers/message/i2o/i2o_block.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-fix-boot-hang drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-fix-boot-hang
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -119,6 +119,7 @@ static int cpuidle_add_device(struct sys
- 
- 	dev = &per_cpu(cpuidle_devices, cpu);
- 
-+	dev->cpu = cpu;
- 	mutex_lock(&cpuidle_lock);
- 	if (cpu_is_offline(cpu)) {
- 		mutex_unlock(&cpuidle_lock);
-@@ -129,15 +130,26 @@ static int cpuidle_add_device(struct sys
- 		mutex_unlock(&cpuidle_lock);
- 		return 0;
+diff -puN drivers/message/i2o/i2o_block.c~block-io-errors-on-i2o-disk drivers/message/i2o/i2o_block.c
+--- a/drivers/message/i2o/i2o_block.c~block-io-errors-on-i2o-disk
++++ a/drivers/message/i2o/i2o_block.c
+@@ -390,13 +390,6 @@ static int i2o_block_prep_req_fn(struct 
+ 		return BLKPREP_KILL;
  	}
--	dev->status |= CPUIDLE_STATUS_DETECTED;
--	list_add(&dev->device_list, &cpuidle_detected_devices);
--	cpuidle_add_sysfs(sys_dev);
--	if (cpuidle_curr_driver)
--		cpuidle_attach_driver(dev);
--	if (cpuidle_curr_governor)
--		cpuidle_attach_governor(dev);
-+	if (cpuidle_curr_driver) {
-+		if (cpuidle_attach_driver(dev))
-+			goto err_ret;
-+	}
-+
-+	if (cpuidle_curr_governor) {
-+		if (cpuidle_attach_governor(dev)) {
-+			cpuidle_detach_driver(dev);
-+			goto err_ret;
-+		}
-+	}
-+
- 	if (cpuidle_device_can_idle(dev))
- 		cpuidle_install_idle_handler();
-+
-+	list_add(&dev->device_list, &cpuidle_detected_devices);
-+	cpuidle_add_sysfs(sys_dev);
-+	dev->status |= CPUIDLE_STATUS_DETECTED;
-+
-+err_ret:
- 	mutex_unlock(&cpuidle_lock);
  
- 	return 0;
-diff -puN drivers/cpuidle/driver.c~cpuidle-fix-boot-hang drivers/cpuidle/driver.c
---- a/drivers/cpuidle/driver.c~cpuidle-fix-boot-hang
-+++ a/drivers/cpuidle/driver.c
-@@ -37,8 +37,8 @@ int cpuidle_attach_driver(struct cpuidle
- 	ret = cpuidle_curr_driver->init(dev);
- 	if (ret) {
- 		module_put(cpuidle_curr_driver->owner);
--		printk(KERN_ERR "cpuidle: driver %s failed to attach to cpu %d\n",
--			cpuidle_curr_driver->name, dev->cpu);
-+		printk(KERN_INFO "cpuidle: driver %s failed to attach to "
-+			"cpu %d\n", cpuidle_curr_driver->name, dev->cpu);
- 	} else {
- 		if (dev->status & CPUIDLE_STATUS_GOVERNOR_ATTACHED)
- 			cpuidle_rescan_device(dev);
+-	/* request is already processed by us, so return */
+-	if (blk_special_request(req)) {
+-		osm_debug("REQ_SPECIAL already set!\n");
+-		req->cmd_flags |= REQ_DONTPREP;
+-		return BLKPREP_OK;
+-	}
+-
+ 	/* connect the i2o_block_request to the request */
+ 	if (!req->special) {
+ 		ireq = i2o_block_request_alloc();
+@@ -408,11 +401,8 @@ static int i2o_block_prep_req_fn(struct 
+ 		ireq->i2o_blk_dev = i2o_blk_dev;
+ 		req->special = ireq;
+ 		ireq->req = req;
+-	} else
+-		ireq = req->special;
+-
++	}
+ 	/* do not come back here */
+-	req->cmd_type = REQ_TYPE_SPECIAL;
+ 	req->cmd_flags |= REQ_DONTPREP;
+ 
+ 	return BLKPREP_OK;
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from vvs@sw.ru are
 
 origin.patch
-git-acpi.patch
-add-support-for-deferrable-timers-respun.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-add-support-for-deferrable-timers-respun-fix.patch
-add-support-for-deferrable-timers-respun-fix-2.patch
-add-a-new-deferrable-delayed-work-init.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
