@@ -1,250 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-preparation-expose-futex-infrastructure.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:38:48 -0700
-Message-ID: <200703292338.l2TNcmCS015368@shell0.pdx.osdl.net>
+Subject: - x86_64-remove-duplicated-code-for-reading-control-registers.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:38:50 -0700
+Message-ID: <200703292338.l2TNco6B015374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43141 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43152 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934390AbXC2Xi4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:38:56 -0400
+	id S934396AbXC2XjB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:39:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
+To: gcosta@redhat.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest preparation: expose futex infrastructure: get_futex_key, get_key_refs and drop_key_refs
+     x86_64: remove duplicated code for reading control registers
 has been removed from the -mm tree.  Its filename was
-     lguest-preparation-expose-futex-infrastructure.patch
+     x86_64-remove-duplicated-code-for-reading-control-registers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lguest preparation: expose futex infrastructure: get_futex_key, get_key_refs and drop_key_refs
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: x86_64: remove duplicated code for reading control registers
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-lguest uses the convenient futex infrastructure for inter-domain I/O, so
-expose get_futex_key, get_key_refs (renamed get_futex_key_refs) and
-drop_key_refs (renamed drop_futex_key_refs).  Also means we need to expose the
-union that these use.
+In x86_64, the same functions for reading cr3 and writing cr{3,4} are
+defined in tlbflush.h and system.h, whith just a name change.  The only
+difference is the clobbering of memory, which seems a safe, and even needed
+change for the write_cr4.  This patch removes the duplicate.  write_cr3()
+is moved to system.h for consistency.
 
-No code changes.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/futex.h |   29 +++++++++++++++++++++++
- kernel/futex.c        |   50 +++++++++++-----------------------------
- 2 files changed, 43 insertions(+), 36 deletions(-)
+ include/asm-x86_64/system.h   |    7 +++++-
+ include/asm-x86_64/tlbflush.h |   33 ++++----------------------------
+ 2 files changed, 11 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/futex.h~lguest-preparation-expose-futex-infrastructure include/linux/futex.h
---- a/include/linux/futex.h~lguest-preparation-expose-futex-infrastructure
-+++ a/include/linux/futex.h
-@@ -100,6 +100,35 @@ long do_futex(u32 __user *uaddr, int op,
- extern int
- handle_futex_death(u32 __user *uaddr, struct task_struct *curr, int pi);
+diff -puN include/asm-x86_64/system.h~x86_64-remove-duplicated-code-for-reading-control-registers include/asm-x86_64/system.h
+--- a/include/asm-x86_64/system.h~x86_64-remove-duplicated-code-for-reading-control-registers
++++ a/include/asm-x86_64/system.h
+@@ -89,6 +89,11 @@ static inline unsigned long read_cr3(voi
+ 	return cr3;
+ } 
  
-+/*
-+ * Futexes are matched on equal values of this key.
-+ * The key type depends on whether it's a shared or private mapping.
-+ * Don't rearrange members without looking at hash_futex().
-+ *
-+ * offset is aligned to a multiple of sizeof(u32) (== 4) by definition.
-+ * We set bit 0 to indicate if it's an inode-based key.
-+ */
-+union futex_key {
-+	struct {
-+		unsigned long pgoff;
-+		struct inode *inode;
-+		int offset;
-+	} shared;
-+	struct {
-+		unsigned long address;
-+		struct mm_struct *mm;
-+		int offset;
-+	} private;
-+	struct {
-+		unsigned long word;
-+		void *ptr;
-+		int offset;
-+	} both;
-+};
-+int get_futex_key(u32 __user *uaddr, union futex_key *key);
-+void get_futex_key_refs(union futex_key *key);
-+void drop_futex_key_refs(union futex_key *key);
++static inline void write_cr3(unsigned long val)
++{
++	asm volatile("movq %0,%%cr3" :: "r" (val) : "memory");
++}
 +
- #ifdef CONFIG_FUTEX
- extern void exit_robust_list(struct task_struct *curr);
- extern void exit_pi_state_list(struct task_struct *curr);
-diff -puN kernel/futex.c~lguest-preparation-expose-futex-infrastructure kernel/futex.c
---- a/kernel/futex.c~lguest-preparation-expose-futex-infrastructure
-+++ a/kernel/futex.c
-@@ -48,6 +48,7 @@
- #include <linux/pagemap.h>
- #include <linux/syscalls.h>
- #include <linux/signal.h>
-+#include <linux/module.h>
- #include <asm/futex.h>
+ static inline unsigned long read_cr4(void)
+ { 
+ 	unsigned long cr4;
+@@ -98,7 +103,7 @@ static inline unsigned long read_cr4(voi
  
- #include "rtmutex_common.h"
-@@ -55,32 +56,6 @@
- #define FUTEX_HASHBITS (CONFIG_BASE_SMALL ? 4 : 8)
+ static inline void write_cr4(unsigned long val)
+ { 
+-	asm volatile("movq %0,%%cr4" :: "r" (val));
++	asm volatile("movq %0,%%cr4" :: "r" (val) : "memory");
+ } 
  
- /*
-- * Futexes are matched on equal values of this key.
-- * The key type depends on whether it's a shared or private mapping.
-- * Don't rearrange members without looking at hash_futex().
-- *
-- * offset is aligned to a multiple of sizeof(u32) (== 4) by definition.
-- * We set bit 0 to indicate if it's an inode-based key.
-- */
--union futex_key {
--	struct {
--		unsigned long pgoff;
--		struct inode *inode;
--		int offset;
--	} shared;
--	struct {
--		unsigned long address;
--		struct mm_struct *mm;
--		int offset;
--	} private;
--	struct {
--		unsigned long word;
--		void *ptr;
--		int offset;
--	} both;
--};
+ #define stts() write_cr0(8 | read_cr0())
+diff -puN include/asm-x86_64/tlbflush.h~x86_64-remove-duplicated-code-for-reading-control-registers include/asm-x86_64/tlbflush.h
+--- a/include/asm-x86_64/tlbflush.h~x86_64-remove-duplicated-code-for-reading-control-registers
++++ a/include/asm-x86_64/tlbflush.h
+@@ -3,41 +3,18 @@
+ 
+ #include <linux/mm.h>
+ #include <asm/processor.h>
 -
--/*
-  * Priority Inheritance state:
-  */
- struct futex_pi_state {
-@@ -175,7 +150,7 @@ static inline int match_futex(union fute
-  *
-  * Should be called with &current->mm->mmap_sem but NOT any spinlocks.
-  */
--static int get_futex_key(u32 __user *uaddr, union futex_key *key)
-+int get_futex_key(u32 __user *uaddr, union futex_key *key)
+-static inline unsigned long get_cr3(void)
+-{
+-	unsigned long cr3;
+-	asm volatile("mov %%cr3,%0" : "=r" (cr3));
+-	return cr3;
+-}
+-
+-static inline void set_cr3(unsigned long cr3)
+-{
+-	asm volatile("mov %0,%%cr3" :: "r" (cr3) : "memory");
+-}
++#include <asm/system.h>
+ 
+ static inline void __flush_tlb(void)
  {
- 	unsigned long address = (unsigned long)uaddr;
- 	struct mm_struct *mm = current->mm;
-@@ -246,6 +221,7 @@ static int get_futex_key(u32 __user *uad
- 	}
- 	return err;
+-	set_cr3(get_cr3());
+-}
+-
+-static inline unsigned long get_cr4(void)
+-{
+-	unsigned long cr4;
+-	asm volatile("mov %%cr4,%0" : "=r" (cr4));
+-	return cr4;
+-}
+-
+-static inline void set_cr4(unsigned long cr4)
+-{
+-	asm volatile("mov %0,%%cr4" :: "r" (cr4) : "memory");
++	write_cr3(read_cr3());
  }
-+EXPORT_SYMBOL_GPL(get_futex_key);
  
- /*
-  * Take a reference to the resource addressed by a key.
-@@ -254,7 +230,7 @@ static int get_futex_key(u32 __user *uad
-  * NOTE: mmap_sem MUST be held between get_futex_key() and calling this
-  * function, if it is called at all.  mmap_sem keeps key->shared.inode valid.
-  */
--static inline void get_key_refs(union futex_key *key)
-+inline void get_futex_key_refs(union futex_key *key)
+ static inline void __flush_tlb_all(void)
  {
- 	if (key->both.ptr != 0) {
- 		if (key->both.offset & 1)
-@@ -263,12 +239,13 @@ static inline void get_key_refs(union fu
- 			atomic_inc(&key->private.mm->mm_count);
- 	}
- }
-+EXPORT_SYMBOL_GPL(get_futex_key_refs);
- 
- /*
-  * Drop a reference to the resource addressed by a key.
-  * The hash bucket spinlock must not be held.
-  */
--static void drop_key_refs(union futex_key *key)
-+void drop_futex_key_refs(union futex_key *key)
- {
- 	if (key->both.ptr != 0) {
- 		if (key->both.offset & 1)
-@@ -277,6 +254,7 @@ static void drop_key_refs(union futex_ke
- 			mmdrop(key->private.mm);
- 	}
- }
-+EXPORT_SYMBOL_GPL(drop_futex_key_refs);
- 
- static inline int get_futex_value_locked(u32 *dest, u32 __user *from)
- {
-@@ -873,7 +851,7 @@ static int futex_requeue(u32 __user *uad
- 				this->lock_ptr = &hb2->lock;
- 			}
- 			this->key = key2;
--			get_key_refs(&key2);
-+			get_futex_key_refs(&key2);
- 			drop_count++;
- 
- 			if (ret - nr_wake >= nr_requeue)
-@@ -886,9 +864,9 @@ out_unlock:
- 	if (hb1 != hb2)
- 		spin_unlock(&hb2->lock);
- 
--	/* drop_key_refs() must be called outside the spinlocks. */
-+	/* drop_futex_key_refs() must be called outside the spinlocks. */
- 	while (--drop_count >= 0)
--		drop_key_refs(&key1);
-+		drop_futex_key_refs(&key1);
- 
- out:
- 	up_read(&current->mm->mmap_sem);
-@@ -906,7 +884,7 @@ queue_lock(struct futex_q *q, int fd, st
- 
- 	init_waitqueue_head(&q->waiters);
- 
--	get_key_refs(&q->key);
-+	get_futex_key_refs(&q->key);
- 	hb = hash_futex(&q->key);
- 	q->lock_ptr = &hb->lock;
- 
-@@ -925,7 +903,7 @@ static inline void
- queue_unlock(struct futex_q *q, struct futex_hash_bucket *hb)
- {
- 	spin_unlock(&hb->lock);
--	drop_key_refs(&q->key);
-+	drop_futex_key_refs(&q->key);
+-	unsigned long cr4 = get_cr4();
+-	set_cr4(cr4 & ~X86_CR4_PGE);	/* clear PGE */
+-	set_cr4(cr4);			/* write old PGE again and flush TLBs */
++	unsigned long cr4 = read_cr4();
++	write_cr4(cr4 & ~X86_CR4_PGE);	/* clear PGE */
++	write_cr4(cr4);			/* write old PGE again and flush TLBs */
  }
  
- /*
-@@ -980,7 +958,7 @@ static int unqueue_me(struct futex_q *q)
- 		ret = 1;
- 	}
- 
--	drop_key_refs(&q->key);
-+	drop_futex_key_refs(&q->key);
- 	return ret;
- }
- 
-@@ -999,7 +977,7 @@ static void unqueue_me_pi(struct futex_q
- 
- 	spin_unlock(&hb->lock);
- 
--	drop_key_refs(&q->key);
-+	drop_futex_key_refs(&q->key);
- }
- 
- static int futex_wait(u32 __user *uaddr, u32 val, unsigned long time)
+ #define __flush_tlb_one(addr) \
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
-
-git-kbuild.patch
-git-net.patch
-allow-per-cpu-variables-to-be-page-aligned.patch
-array_size-check-for-type.patch
-array_size-check-for-type-uml-fix.patch
-module-use-krealloc.patch
-extend-print_symbol-capability.patch
-extend-print_symbol-capability-fix.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-____call_usermodehelper-dont-flush_signals.patch
+Patches currently in -mm which might be from gcosta@redhat.com are
