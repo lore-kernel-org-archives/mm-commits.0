@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch added to -mm tree
-Date: Wed, 28 Mar 2007 18:45:52 -0700
-Message-ID: <200703290145.l2T1jqin025025@shell0.pdx.osdl.net>
+Subject: + add-a-new-deferrable-delayed-work-init.patch added to -mm tree
+Date: Wed, 28 Mar 2007 18:47:38 -0700
+Message-ID: <200703290147.l2T1lcSL025043@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38321 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38341 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965890AbXC2Bp6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 21:45:58 -0400
+	id S965884AbXC2Br4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 21:47:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hifumi.hisashi@oss.ntt.co.jp, ak@suse.de
+Cc: venkatesh.pallipadi@intel.com, davej@codemonkey.org.uk, oleg@tv-sign.ru
 
 
 The patch titled
-     i386 machine_real_restart(): replace spin_lock_irqsave with spin_lock
+     Add a new deferrable delayed work init
 has been added to the -mm tree.  Its filename is
-     i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch
+     add-a-new-deferrable-delayed-work-init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 machine_real_restart(): replace spin_lock_irqsave with spin_lock
-From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Subject: Add a new deferrable delayed work init
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-IRQ is already disabled through local_irq_disable().  So
-spin_lock_irqsave() can be replaced with spin_lock().
+Add a new deferrable delayed work init.  This can be used to schedule work
+that are 'unimportant' when CPU is idle and can be called later, when CPU
+eventually comes out of idle.
 
-Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-Cc: Andi Kleen <ak@suse.de>
+Use this init in cpufreq ondemand governor.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/reboot.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/cpufreq/cpufreq_ondemand.c |    2 +-
+ include/linux/workqueue.h          |    6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/reboot.c~i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock arch/i386/kernel/reboot.c
---- a/arch/i386/kernel/reboot.c~i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock
-+++ a/arch/i386/kernel/reboot.c
-@@ -197,8 +197,6 @@ static unsigned char jump_to_bios [] =
-  */
- void machine_real_restart(unsigned char *code, int length)
- {
--	unsigned long flags;
--
- 	local_irq_disable();
+diff -puN drivers/cpufreq/cpufreq_ondemand.c~add-a-new-deferrable-delayed-work-init drivers/cpufreq/cpufreq_ondemand.c
+--- a/drivers/cpufreq/cpufreq_ondemand.c~add-a-new-deferrable-delayed-work-init
++++ a/drivers/cpufreq/cpufreq_ondemand.c
+@@ -470,7 +470,7 @@ static inline void dbs_timer_init(struct
+ 	dbs_info->enable = 1;
+ 	ondemand_powersave_bias_init();
+ 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;
+-	INIT_DELAYED_WORK(&dbs_info->work, do_dbs_timer);
++	INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
+ 	queue_delayed_work_on(dbs_info->cpu, kondemand_wq, &dbs_info->work,
+ 	                      delay);
+ }
+diff -puN include/linux/workqueue.h~add-a-new-deferrable-delayed-work-init include/linux/workqueue.h
+--- a/include/linux/workqueue.h~add-a-new-deferrable-delayed-work-init
++++ a/include/linux/workqueue.h
+@@ -121,6 +121,12 @@ struct execute_work {
+ 		init_timer(&(_work)->timer);			\
+ 	} while (0)
  
- 	/* Write zero to CMOS register number 0x0f, which the BIOS POST
-@@ -211,9 +209,9 @@ void machine_real_restart(unsigned char 
- 	   safe side.  (Yes, CMOS_WRITE does outb_p's. -  Paul G.)
- 	 */
- 
--	spin_lock_irqsave(&rtc_lock, flags);
-+	spin_lock(&rtc_lock);
- 	CMOS_WRITE(0x00, 0x8f);
--	spin_unlock_irqrestore(&rtc_lock, flags);
-+	spin_unlock(&rtc_lock);
- 
- 	/* Remap the kernel at virtual address zero, as well as offset zero
- 	   from the kernel segment.  This assumes the kernel segment starts at
++#define INIT_DELAYED_WORK_DEFERRABLE(_work, _func)			\
++	do {							\
++		INIT_WORK(&(_work)->work, (_func));		\
++		init_timer_deferrable(&(_work)->timer);		\
++	} while (0)
++
+ /**
+  * work_pending - Find out whether a work item is currently pending
+  * @work: The work item in question
 _
 
-Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch
+git-acpi.patch
+cpuidle-fix-boot-hang.patch
+cpuidle-unsigned-bitfield.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+add-support-for-deferrable-timers-respun-fix-2.patch
+add-a-new-deferrable-delayed-work-init.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
