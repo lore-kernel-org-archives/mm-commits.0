@@ -1,155 +1,267 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:53 -0700
-Message-ID: <200703292337.l2TNbrjD015158@shell0.pdx.osdl.net>
+Subject: - holepunch-fix-shmem_truncate_range-punch-locking.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:35 -0700
+Message-ID: <200703292337.l2TNbZ7p015128@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43014 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43012 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945927AbXC2Xh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1945926AbXC2Xh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 29 Mar 2007 19:37:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: hugh@veritas.com, mszeredi@suse.cz, pbadari@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused header file: drivers/net/skfp/h/lnkstat.h
+     holepunch: fix shmem_truncate_range punch locking
 has been removed from the -mm tree.  Its filename was
-     remove-unused-header-file-drivers-net-skfp-h-lnkstath.patch
+     holepunch-fix-shmem_truncate_range-punch-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove unused header file: drivers/net/skfp/h/lnkstat.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: holepunch: fix shmem_truncate_range punch locking
+From: Hugh Dickins <hugh@veritas.com>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Miklos Szeredi observes that during truncation of shmem page directories,
+info->lock is released to improve latency (after lowering i_size and
+next_index to exclude races); but this is quite wrong for holepunching, which
+receives no such protection from i_size or next_index, and is left vulnerable
+to races with shmem_unuse, shmem_getpage and shmem_writepage.
+
+Hold info->lock throughout when holepunching?  No, any user could prevent
+rescheduling for far too long.  Instead take info->lock just when needed: in
+shmem_free_swp when removing the swap entries, and whenever removing a
+directory page from the level above.  But so long as we remove before
+scanning, we can safely skip taking the lock at the lower levels, except at
+misaligned start and end of the hole.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/skfp/h/lnkstat.h |   84 ---------------------------------
- 1 file changed, 84 deletions(-)
+ mm/shmem.c |   96 ++++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 73 insertions(+), 23 deletions(-)
 
-diff -puN drivers/net/skfp/h/lnkstat.h~remove-unused-header-file-drivers-net-skfp-h-lnkstath /dev/null
---- a/drivers/net/skfp/h/lnkstat.h
-+++ /dev/null
-@@ -1,84 +0,0 @@
--/******************************************************************************
-- *
-- *	(C)Copyright 1998,1999 SysKonnect,
-- *	a business unit of Schneider & Koch & Co. Datensysteme GmbH.
-- *
-- *	This program is free software; you can redistribute it and/or modify
-- *	it under the terms of the GNU General Public License as published by
-- *	the Free Software Foundation; either version 2 of the License, or
-- *	(at your option) any later version.
-- *
-- *	The information in this file is provided "AS IS" without warranty.
-- *
-- ******************************************************************************/
--
--/*
-- * Definition of the Error Log Structure
-- * This structure will be copied into the Error Log buffer
-- * during the NDIS General Request ReadErrorLog by the MAC Driver
-- */
--
--struct	s_error_log {
--
--	/*
--	 * place holder for token ring adapter error log (zeros)
--	 */
--	u_char	reserved_0 ;			/* byte 0 inside Error Log */
--	u_char	reserved_1 ;			/* byte 1 */
--	u_char	reserved_2 ;			/* byte 2 */	
--	u_char	reserved_3 ;			/* byte 3 */
--	u_char	reserved_4 ;			/* byte 4 */
--	u_char	reserved_5 ;			/* byte 5 */
--	u_char	reserved_6 ;			/* byte 6 */
--	u_char	reserved_7 ;			/* byte 7 */
--	u_char	reserved_8 ;			/* byte 8 */
--	u_char	reserved_9 ;			/* byte 9 */
--	u_char	reserved_10 ;			/* byte 10 */
--	u_char	reserved_11 ;			/* byte 11 */
--	u_char	reserved_12 ;			/* byte 12 */
--	u_char	reserved_13 ;			/* byte 13 */
--
--	/*
--	 * FDDI link statistics 
--	 */
--/*
-- * smt error low
-- */
--#define SMT_ERL_AEB	(1<<15)			/* A elast. buffer */
--#define SMT_ERL_BLC	(1<<14)			/* B link error condition */
--#define SMT_ERL_ALC	(1<<13)			/* A link error condition */
--#define SMT_ERL_NCC	(1<<12)			/* not copied condition */
--#define SMT_ERL_FEC	(1<<11)			/* frame error condition */
--
--/*
-- * smt event low
-- */
--#define SMT_EVL_NCE	(1<<5)
--
--	u_short	smt_error_low ;			/* byte 14/15 */
--	u_short	smt_error_high ;		/* byte 16/17 */
--	u_short	smt_event_low ;			/* byte 18/19 */
--	u_short	smt_event_high ;		/* byte 20/21 */
--	u_short	connection_policy_violation ;	/* byte 22/23 */
--	u_short port_event ;			/* byte 24/25 */
--	u_short set_count_low ;			/* byte 26/27 */
--	u_short set_count_high ;		/* byte 28/29 */
--	u_short	aci_id_code ;			/* byte 30/31 */
--	u_short	purge_frame_counter ;		/* byte 32/33 */
--
--	/*
--	 * CMT and RMT state machines
--	 */
--	u_short	ecm_state ;			/* byte 34/35 */
--	u_short	pcm_a_state ;			/* byte 36/37 */
--	u_short pcm_b_state ;			/* byte 38/39 */
--	u_short	cfm_state ;			/* byte 40/41 */
--	u_short	rmt_state ;			/* byte 42/43 */
--
--	u_short	not_used[30] ;			/* byte 44-103 */
--
--	u_short	ucode_version_level ;		/* byte 104/105 */
--
--	u_short	not_used_1 ;			/* byte 106/107 */
--	u_short not_used_2 ;			/* byte 108/109 */
--} ;
+diff -puN mm/shmem.c~holepunch-fix-shmem_truncate_range-punch-locking mm/shmem.c
+--- a/mm/shmem.c~holepunch-fix-shmem_truncate_range-punch-locking
++++ a/mm/shmem.c
+@@ -402,26 +402,38 @@ static swp_entry_t *shmem_swp_alloc(stru
+ /*
+  * shmem_free_swp - free some swap entries in a directory
+  *
+- * @dir:   pointer to the directory
+- * @edir:  pointer after last entry of the directory
++ * @dir:        pointer to the directory
++ * @edir:       pointer after last entry of the directory
++ * @punch_lock: pointer to spinlock when needed for the holepunch case
+  */
+-static int shmem_free_swp(swp_entry_t *dir, swp_entry_t *edir)
++static int shmem_free_swp(swp_entry_t *dir, swp_entry_t *edir,
++						spinlock_t *punch_lock)
+ {
++	spinlock_t *punch_unlock = NULL;
+ 	swp_entry_t *ptr;
+ 	int freed = 0;
+ 
+ 	for (ptr = dir; ptr < edir; ptr++) {
+ 		if (ptr->val) {
++			if (unlikely(punch_lock)) {
++				punch_unlock = punch_lock;
++				punch_lock = NULL;
++				spin_lock(punch_unlock);
++				if (!ptr->val)
++					continue;
++			}
+ 			free_swap_and_cache(*ptr);
+ 			*ptr = (swp_entry_t){0};
+ 			freed++;
+ 		}
+ 	}
++	if (punch_unlock)
++		spin_unlock(punch_unlock);
+ 	return freed;
+ }
+ 
+-static int shmem_map_and_free_swp(struct page *subdir,
+-		int offset, int limit, struct page ***dir)
++static int shmem_map_and_free_swp(struct page *subdir, int offset,
++		int limit, struct page ***dir, spinlock_t *punch_lock)
+ {
+ 	swp_entry_t *ptr;
+ 	int freed = 0;
+@@ -431,7 +443,8 @@ static int shmem_map_and_free_swp(struct
+ 		int size = limit - offset;
+ 		if (size > LATENCY_LIMIT)
+ 			size = LATENCY_LIMIT;
+-		freed += shmem_free_swp(ptr+offset, ptr+offset+size);
++		freed += shmem_free_swp(ptr+offset, ptr+offset+size,
++							punch_lock);
+ 		if (need_resched()) {
+ 			shmem_swp_unmap(ptr);
+ 			if (*dir) {
+@@ -482,6 +495,8 @@ static void shmem_truncate_range(struct 
+ 	int offset;
+ 	int freed;
+ 	int punch_hole;
++	spinlock_t *needs_lock;
++	spinlock_t *punch_lock;
+ 	unsigned long upper_limit;
+ 
+ 	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
+@@ -495,6 +510,7 @@ static void shmem_truncate_range(struct 
+ 		limit = info->next_index;
+ 		upper_limit = SHMEM_MAX_INDEX;
+ 		info->next_index = idx;
++		needs_lock = NULL;
+ 		punch_hole = 0;
+ 	} else {
+ 		if (end + 1 >= inode->i_size) {	/* we may free a little more */
+@@ -505,6 +521,7 @@ static void shmem_truncate_range(struct 
+ 			limit = (end + 1) >> PAGE_CACHE_SHIFT;
+ 			upper_limit = limit;
+ 		}
++		needs_lock = &info->lock;
+ 		punch_hole = 1;
+ 	}
+ 
+@@ -521,7 +538,7 @@ static void shmem_truncate_range(struct 
+ 		size = limit;
+ 		if (size > SHMEM_NR_DIRECT)
+ 			size = SHMEM_NR_DIRECT;
+-		nr_swaps_freed = shmem_free_swp(ptr+idx, ptr+size);
++		nr_swaps_freed = shmem_free_swp(ptr+idx, ptr+size, needs_lock);
+ 	}
+ 
+ 	/*
+@@ -531,6 +548,19 @@ static void shmem_truncate_range(struct 
+ 	if (!topdir || limit <= SHMEM_NR_DIRECT)
+ 		goto done2;
+ 
++	/*
++	 * The truncation case has already dropped info->lock, and we're safe
++	 * because i_size and next_index have already been lowered, preventing
++	 * access beyond.  But in the punch_hole case, we still need to take
++	 * the lock when updating the swap directory, because there might be
++	 * racing accesses by shmem_getpage(SGP_CACHE), shmem_unuse_inode or
++	 * shmem_writepage.  However, whenever we find we can remove a whole
++	 * directory page (not at the misaligned start or end of the range),
++	 * we first NULLify its pointer in the level above, and then have no
++	 * need to take the lock when updating its contents: needs_lock and
++	 * punch_lock (either pointing to info->lock or NULL) manage this.
++	 */
++
+ 	upper_limit -= SHMEM_NR_DIRECT;
+ 	limit -= SHMEM_NR_DIRECT;
+ 	idx = (idx > SHMEM_NR_DIRECT)? (idx - SHMEM_NR_DIRECT): 0;
+@@ -552,7 +582,13 @@ static void shmem_truncate_range(struct 
+ 			diroff = ((idx - ENTRIES_PER_PAGEPAGE/2) %
+ 				ENTRIES_PER_PAGEPAGE) / ENTRIES_PER_PAGE;
+ 			if (!diroff && !offset && upper_limit >= stage) {
+-				*dir = NULL;
++				if (needs_lock) {
++					spin_lock(needs_lock);
++					*dir = NULL;
++					spin_unlock(needs_lock);
++					needs_lock = NULL;
++				} else
++					*dir = NULL;
+ 				nr_pages_to_free++;
+ 				list_add(&middir->lru, &pages_to_free);
+ 			}
+@@ -578,8 +614,16 @@ static void shmem_truncate_range(struct 
+ 			}
+ 			stage = idx + ENTRIES_PER_PAGEPAGE;
+ 			middir = *dir;
++			if (punch_hole)
++				needs_lock = &info->lock;
+ 			if (upper_limit >= stage) {
+-				*dir = NULL;
++				if (needs_lock) {
++					spin_lock(needs_lock);
++					*dir = NULL;
++					spin_unlock(needs_lock);
++					needs_lock = NULL;
++				} else
++					*dir = NULL;
+ 				nr_pages_to_free++;
+ 				list_add(&middir->lru, &pages_to_free);
+ 			}
+@@ -588,31 +632,37 @@ static void shmem_truncate_range(struct 
+ 			dir = shmem_dir_map(middir);
+ 			diroff = 0;
+ 		}
++		punch_lock = needs_lock;
+ 		subdir = dir[diroff];
+-		if (subdir && page_private(subdir)) {
++		if (subdir && !offset && upper_limit-idx >= ENTRIES_PER_PAGE) {
++			if (needs_lock) {
++				spin_lock(needs_lock);
++				dir[diroff] = NULL;
++				spin_unlock(needs_lock);
++				punch_lock = NULL;
++			} else
++				dir[diroff] = NULL;
++			nr_pages_to_free++;
++			list_add(&subdir->lru, &pages_to_free);
++		}
++		if (subdir && page_private(subdir) /* has swap entries */) {
+ 			size = limit - idx;
+ 			if (size > ENTRIES_PER_PAGE)
+ 				size = ENTRIES_PER_PAGE;
+ 			freed = shmem_map_and_free_swp(subdir,
+-						offset, size, &dir);
++					offset, size, &dir, punch_lock);
+ 			if (!dir)
+ 				dir = shmem_dir_map(middir);
+ 			nr_swaps_freed += freed;
+-			if (offset)
++			if (offset || punch_lock) {
+ 				spin_lock(&info->lock);
+-			set_page_private(subdir, page_private(subdir) - freed);
+-			if (offset)
++				set_page_private(subdir,
++					page_private(subdir) - freed);
+ 				spin_unlock(&info->lock);
+-			if (!punch_hole)
+-				BUG_ON(page_private(subdir) > offset);
+-		}
+-		if (offset)
+-			offset = 0;
+-		else if (subdir && upper_limit - idx >= ENTRIES_PER_PAGE) {
+-			dir[diroff] = NULL;
+-			nr_pages_to_free++;
+-			list_add(&subdir->lru, &pages_to_free);
++			} else
++				BUG_ON(page_private(subdir) != freed);
+ 		}
++		offset = 0;
+ 	}
+ done1:
+ 	shmem_dir_unmap(dir);
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-powerpc.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
 git-drm.patch
-git-mtd.patch
-jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
-git-netdev-all.patch
-delete-unused-header-file-linux-sdla_frh.patch
-delete-unused-header-file-linux-if_wanpipe_commonh.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the.patch
-git-scsi-misc.patch
-remove-some-unused-scsi-related-kernel-config-variables.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-math-emu-extendedh.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+smaps-use-ptep_test_and_clear_young.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
