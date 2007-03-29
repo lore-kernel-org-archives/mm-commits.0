@@ -1,83 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-lvm-crash.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:18 -0700
-Message-ID: <200703292337.l2TNbI3C015088@shell0.pdx.osdl.net>
+Subject: - holepunch-fix-shmem_truncate_range-punching-too-far.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:32 -0700
+Message-ID: <200703292337.l2TNbWrm015125@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42977 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42985 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945922AbXC2Xhf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:37:35 -0400
+	id S1945925AbXC2Xhl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:37:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lunz@falooley.org, agk@redhat.com, blaisorblade@yahoo.it, jdike@linux.intel.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, mszeredi@suse.cs, pbadari@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix LVM crash
+     holepunch: fix shmem_truncate_range punching too far
 has been removed from the -mm tree.  Its filename was
-     uml-fix-lvm-crash.patch
+     holepunch-fix-shmem_truncate_range-punching-too-far.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix LVM crash
-From: Jason Lunz <lunz@falooley.org>
+Subject: holepunch: fix shmem_truncate_range punching too far
+From: Hugh Dickins <hugh@veritas.com>
 
-Permit lvm to create logical volumes without crashing UML.
+Miklos Szeredi observes BUG_ON(!entry) in shmem_writepage() triggered in rare
+circumstances, because shmem_truncate_range() erroneously removes partially
+truncated directory pages at the end of the range: later reclaim on pages
+pointing to these removed directories triggers the BUG.  Indeed, and it can
+also cause data loss beyond the hole.
 
-When device-mapper's DM_DEV_CREATE_CMD ioctl is called to create a new device,
-dev_create()->dm_create()->alloc_dev()-> blk_queue_bounce_limit(md->queue,
-BLK_BOUNCE_ANY) is called.
+Fix this as in the patch proposed by Miklos, but distinguish between "limit"
+(how far we need to search: ignore truncation's next_index optimization in the
+holepunch case - if there are races it's more consistent to act on the whole
+range specified) and "upper_limit" (how far we can free directory pages:
+generally we must be careful to keep partially punched pages, but can relax at
+end of file - i_size being held stable by i_mutex).
 
-blk_queue_bounce_limit(BLK_BOUNCE_ANY) calls init_emergency_isa_pool() if
-blk_max_pfn < blk_max_low_pfn.  This is the case on UML, but
-init_emergency_isa_pool() hits BUG_ON(!isa_page_pool) because there doesn't
-seem to be a dma zone on UML for mempool_create() to allocate from.
-
-Most architectures seem to have max_low_pfn == max_pfn, but UML doesn't
-because of the uml_reserved chunk it keeps for itself.  From what I can see,
-max_pfn and max_low_pfn don't get much use after the bootmem-allocator stops
-being used anyway, except that they initialize the block layer's
-blk_max_low_pfn/blk_max_pfn.
-
-This ensures init_emergency_isa_pool() doesn't crash uml in this situation by
-setting max_low_pfn == max_pfn in mem_init().
-
-Signed-off-by: Jason Lunz <lunz@falooley.org>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Cc: Alasdair G Kergon <agk@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Miklos Szeredi <mszeredi@suse.cs>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/mem.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/shmem.c |   32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
-diff -puN arch/um/kernel/mem.c~uml-fix-lvm-crash arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-fix-lvm-crash
-+++ a/arch/um/kernel/mem.c
-@@ -64,8 +64,6 @@ static void setup_highmem(unsigned long 
+diff -puN mm/shmem.c~holepunch-fix-shmem_truncate_range-punching-too-far mm/shmem.c
+--- a/mm/shmem.c~holepunch-fix-shmem_truncate_range-punching-too-far
++++ a/mm/shmem.c
+@@ -481,7 +481,8 @@ static void shmem_truncate_range(struct 
+ 	long nr_swaps_freed = 0;
+ 	int offset;
+ 	int freed;
+-	int punch_hole = 0;
++	int punch_hole;
++	unsigned long upper_limit;
  
- void mem_init(void)
- {
--	max_low_pfn = (high_physmem - uml_physmem) >> PAGE_SHIFT;
--
- 	/* clear the zero-page */
- 	memset((void *) empty_zero_page, 0, PAGE_SIZE);
+ 	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
+ 	idx = (start + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+@@ -492,11 +493,18 @@ static void shmem_truncate_range(struct 
+ 	info->flags |= SHMEM_TRUNCATE;
+ 	if (likely(end == (loff_t) -1)) {
+ 		limit = info->next_index;
++		upper_limit = SHMEM_MAX_INDEX;
+ 		info->next_index = idx;
++		punch_hole = 0;
+ 	} else {
+-		limit = (end + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-		if (limit > info->next_index)
+-			limit = info->next_index;
++		if (end + 1 >= inode->i_size) {	/* we may free a little more */
++			limit = (inode->i_size + PAGE_CACHE_SIZE - 1) >>
++							PAGE_CACHE_SHIFT;
++			upper_limit = SHMEM_MAX_INDEX;
++		} else {
++			limit = (end + 1) >> PAGE_CACHE_SHIFT;
++			upper_limit = limit;
++		}
+ 		punch_hole = 1;
+ 	}
  
-@@ -80,6 +78,7 @@ void mem_init(void)
+@@ -520,10 +528,10 @@ static void shmem_truncate_range(struct 
+ 	 * If there are no indirect blocks or we are punching a hole
+ 	 * below indirect blocks, nothing to be done.
+ 	 */
+-	if (!topdir || (punch_hole && (limit <= SHMEM_NR_DIRECT)))
++	if (!topdir || limit <= SHMEM_NR_DIRECT)
+ 		goto done2;
  
- 	/* this will put all low memory onto the freelists */
- 	totalram_pages = free_all_bootmem();
-+	max_low_pfn = totalram_pages;
- #ifdef CONFIG_HIGHMEM
- 	totalhigh_pages = highmem >> PAGE_SHIFT;
- 	totalram_pages += totalhigh_pages;
+-	BUG_ON(limit <= SHMEM_NR_DIRECT);
++	upper_limit -= SHMEM_NR_DIRECT;
+ 	limit -= SHMEM_NR_DIRECT;
+ 	idx = (idx > SHMEM_NR_DIRECT)? (idx - SHMEM_NR_DIRECT): 0;
+ 	offset = idx % ENTRIES_PER_PAGE;
+@@ -543,7 +551,7 @@ static void shmem_truncate_range(struct 
+ 		if (*dir) {
+ 			diroff = ((idx - ENTRIES_PER_PAGEPAGE/2) %
+ 				ENTRIES_PER_PAGEPAGE) / ENTRIES_PER_PAGE;
+-			if (!diroff && !offset) {
++			if (!diroff && !offset && upper_limit >= stage) {
+ 				*dir = NULL;
+ 				nr_pages_to_free++;
+ 				list_add(&middir->lru, &pages_to_free);
+@@ -570,9 +578,11 @@ static void shmem_truncate_range(struct 
+ 			}
+ 			stage = idx + ENTRIES_PER_PAGEPAGE;
+ 			middir = *dir;
+-			*dir = NULL;
+-			nr_pages_to_free++;
+-			list_add(&middir->lru, &pages_to_free);
++			if (upper_limit >= stage) {
++				*dir = NULL;
++				nr_pages_to_free++;
++				list_add(&middir->lru, &pages_to_free);
++			}
+ 			shmem_dir_unmap(dir);
+ 			cond_resched();
+ 			dir = shmem_dir_map(middir);
+@@ -598,7 +608,7 @@ static void shmem_truncate_range(struct 
+ 		}
+ 		if (offset)
+ 			offset = 0;
+-		else if (subdir && !page_private(subdir)) {
++		else if (subdir && upper_limit - idx >= ENTRIES_PER_PAGE) {
+ 			dir[diroff] = NULL;
+ 			nr_pages_to_free++;
+ 			list_add(&subdir->lru, &pages_to_free);
 _
 
-Patches currently in -mm which might be from lunz@falooley.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-git-wireless.patch
+git-drm.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+smaps-use-ptep_test_and_clear_young.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
