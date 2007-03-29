@@ -1,61 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - ata-ncq-is-broken-on-maxtor-6l250s0.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:42:59 -0700
-Message-ID: <200703290742.l2T7gx1w030348@shell0.pdx.osdl.net>
+Subject: - libata-identify-backwards-for-drive-side-cable-detection.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:43:20 -0700
+Message-ID: <200703290743.l2T7hKb0030376@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46214 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46237 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965104AbXC2Hn1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:43:27 -0400
+	id S965104AbXC2Hnc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:43:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rol@as2917.net, alan@redhat.com, edmudama@gmail.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: htejun@gmail.com, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata: NCQ is broken on Maxtor 6L250S0
+     libata: IDENTIFY backwards for drive side cable detection
 has been removed from the -mm tree.  Its filename was
-     ata-ncq-is-broken-on-maxtor-6l250s0.patch
+     libata-identify-backwards-for-drive-side-cable-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ata: NCQ is broken on Maxtor 6L250S0
-From: "Paul Rolland" <rol@as2917.net>
+Subject: libata: IDENTIFY backwards for drive side cable detection
+From: Tejun Heo <htejun@gmail.com>
 
-With this applied, my machine has stopped all those painful messages.
-dmesg now says :
+For drive side cable detection to work correctly, drives need to be
+identified backwards such that the slave device releases PDIAG- before the
+mater drive tries to detect cable type.  ata_bus_probe() was fixed by
+commit f31f0cc2f0b7527072d94d02da332d9bb8d7d94c but the new EH path wasn't
+fixed.  This patch makes new EH path do IDENTIFY backwards.
 
-root@riri:/Kernels# dmesg | grep LBA
-ata1.00: 490234752 sectors, multi 0: LBA48 NCQ (not used)
-ata2.00: 640 sectors, multi 1: LBA 
-ata3.00: 490234752 sectors, multi 0: LBA48 NCQ (not used)
+ata_dev_configure() for new devices are still performed master first.
+This is to keep the detection messages in forward order.
 
-Signed-off-by: Paul Rolland <rol@as2917.net>
+The following regression is fixed by this.
+
+  http://thread.gmane.org/gmane.linux.ide/17433
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Acked-by: Alan Cox <alan@redhat.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/ata/libata-eh.c |   66 ++++++++++++++++++++++++--------------
+ 1 files changed, 42 insertions(+), 24 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~ata-ncq-is-broken-on-maxtor-6l250s0 drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~ata-ncq-is-broken-on-maxtor-6l250s0
-+++ a/drivers/ata/libata-core.c
-@@ -3483,6 +3483,8 @@ static const struct ata_blacklist_entry 
-         { "WDC WD740ADFD-00",   NULL,		ATA_HORKAGE_NONCQ },
- 	/* http://thread.gmane.org/gmane.linux.ide/14907 */
- 	{ "FUJITSU MHT2060BH",	NULL,		ATA_HORKAGE_NONCQ },
-+	/* NCQ is broken */
-+	{ "Maxtor 6L250S0",     "BANC1G10",     ATA_HORKAGE_NONCQ },
+diff -puN drivers/ata/libata-eh.c~libata-identify-backwards-for-drive-side-cable-detection drivers/ata/libata-eh.c
+--- a/drivers/ata/libata-eh.c~libata-identify-backwards-for-drive-side-cable-detection
++++ a/drivers/ata/libata-eh.c
+@@ -1767,12 +1767,17 @@ static int ata_eh_revalidate_and_attach(
+ {
+ 	struct ata_eh_context *ehc = &ap->eh_context;
+ 	struct ata_device *dev;
++	unsigned int new_mask = 0;
+ 	unsigned long flags;
+ 	int i, rc = 0;
  
- 	/* Devices with NCQ limits */
+ 	DPRINTK("ENTER\n");
+ 
+-	for (i = 0; i < ATA_MAX_DEVICES; i++) {
++	/* For PATA drive side cable detection to work, IDENTIFY must
++	 * be done backwards such that PDIAG- is released by the slave
++	 * device before the master device is identified.
++	 */
++	for (i = ATA_MAX_DEVICES - 1; i >= 0; i--) {
+ 		unsigned int action, readid_flags = 0;
+ 
+ 		dev = &ap->device[i];
+@@ -1784,13 +1789,13 @@ static int ata_eh_revalidate_and_attach(
+ 		if (action & ATA_EH_REVALIDATE && ata_dev_ready(dev)) {
+ 			if (ata_port_offline(ap)) {
+ 				rc = -EIO;
+-				break;
++				goto err;
+ 			}
+ 
+ 			ata_eh_about_to_do(ap, dev, ATA_EH_REVALIDATE);
+ 			rc = ata_dev_revalidate(dev, readid_flags);
+ 			if (rc)
+-				break;
++				goto err;
+ 
+ 			ata_eh_done(ap, dev, ATA_EH_REVALIDATE);
+ 
+@@ -1808,40 +1813,53 @@ static int ata_eh_revalidate_and_attach(
+ 
+ 			rc = ata_dev_read_id(dev, &dev->class, readid_flags,
+ 					     dev->id);
+-			if (rc == 0) {
+-				ehc->i.flags |= ATA_EHI_PRINTINFO;
+-				rc = ata_dev_configure(dev);
+-				ehc->i.flags &= ~ATA_EHI_PRINTINFO;
+-			} else if (rc == -ENOENT) {
++			switch (rc) {
++			case 0:
++				new_mask |= 1 << i;
++				break;
++			case -ENOENT:
+ 				/* IDENTIFY was issued to non-existent
+ 				 * device.  No need to reset.  Just
+ 				 * thaw and kill the device.
+ 				 */
+ 				ata_eh_thaw_port(ap);
+ 				dev->class = ATA_DEV_UNKNOWN;
+-				rc = 0;
+-			}
+-
+-			if (rc) {
+-				dev->class = ATA_DEV_UNKNOWN;
+ 				break;
++			default:
++				dev->class = ATA_DEV_UNKNOWN;
++				goto err;
+ 			}
++		}
++	}
+ 
+-			if (ata_dev_enabled(dev)) {
+-				spin_lock_irqsave(ap->lock, flags);
+-				ap->pflags |= ATA_PFLAG_SCSI_HOTPLUG;
+-				spin_unlock_irqrestore(ap->lock, flags);
++	/* Configure new devices forward such that user doesn't see
++	 * device detection messages backwards.
++	 */
++	for (i = 0; i < ATA_MAX_DEVICES; i++) {
++		dev = &ap->device[i];
+ 
+-				/* new device discovered, configure xfermode */
+-				ehc->i.flags |= ATA_EHI_SETMODE;
+-			}
+-		}
++		if (!(new_mask & (1 << i)))
++			continue;
++
++		ehc->i.flags |= ATA_EHI_PRINTINFO;
++		rc = ata_dev_configure(dev);
++		ehc->i.flags &= ~ATA_EHI_PRINTINFO;
++		if (rc)
++			goto err;
++
++		spin_lock_irqsave(ap->lock, flags);
++		ap->pflags |= ATA_PFLAG_SCSI_HOTPLUG;
++		spin_unlock_irqrestore(ap->lock, flags);
++
++		/* new device discovered, configure xfermode */
++		ehc->i.flags |= ATA_EHI_SETMODE;
+ 	}
+ 
+-	if (rc)
+-		*r_failed_dev = dev;
++	return 0;
+ 
+-	DPRINTK("EXIT\n");
++ err:
++	*r_failed_dev = dev;
++	DPRINTK("EXIT rc=%d\n", rc);
+ 	return rc;
+ }
  
 _
 
-Patches currently in -mm which might be from rol@as2917.net are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+optional-led-trigger-for-libata.patch
+git-scsi-misc.patch
+introduce-config_has_dma.patch
