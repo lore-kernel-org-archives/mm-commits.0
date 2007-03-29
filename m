@@ -1,166 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-isdn-gigaset-mark-some-static-data-as-const-v2.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:26 -0700
-Message-ID: <200703292337.l2TNbQWu015117@shell0.pdx.osdl.net>
+Subject: - uml-fix-lvm-crash.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:18 -0700
+Message-ID: <200703292337.l2TNbI3C015088@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42968 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42977 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945920AbXC2Xh3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:37:29 -0400
+	id S1945922AbXC2Xhf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:37:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tilman@imap.cc, hjlipp@web.de, mm-commits@vger.kernel.org
+To: lunz@falooley.org, agk@redhat.com, blaisorblade@yahoo.it, jdike@linux.intel.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/isdn/gigaset: mark some static data as const (v2)
+     uml: fix LVM crash
 has been removed from the -mm tree.  Its filename was
-     drivers-isdn-gigaset-mark-some-static-data-as-const-v2.patch
+     uml-fix-lvm-crash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/isdn/gigaset: mark some static data as const (v2)
-From: Tilman Schmidt <tilman@imap.cc>
+Subject: uml: fix LVM crash
+From: Jason Lunz <lunz@falooley.org>
 
-Mark some static arrays as const that aren't and shouldn't be modified, and
-remove incorrect static attribute from some variables.
+Permit lvm to create logical volumes without crashing UML.
 
-Signed-off-by: Tilman Schmidt <tilman@imap.cc>
-Signed-off-by: Hansjoerg Lipp <hjlipp@web.de>
+When device-mapper's DM_DEV_CREATE_CMD ioctl is called to create a new device,
+dev_create()->dm_create()->alloc_dev()-> blk_queue_bounce_limit(md->queue,
+BLK_BOUNCE_ANY) is called.
+
+blk_queue_bounce_limit(BLK_BOUNCE_ANY) calls init_emergency_isa_pool() if
+blk_max_pfn < blk_max_low_pfn.  This is the case on UML, but
+init_emergency_isa_pool() hits BUG_ON(!isa_page_pool) because there doesn't
+seem to be a dma zone on UML for mempool_create() to allocate from.
+
+Most architectures seem to have max_low_pfn == max_pfn, but UML doesn't
+because of the uml_reserved chunk it keeps for itself.  From what I can see,
+max_pfn and max_low_pfn don't get much use after the bootmem-allocator stops
+being used anyway, except that they initialize the block layer's
+blk_max_low_pfn/blk_max_pfn.
+
+This ensures init_emergency_isa_pool() doesn't crash uml in this situation by
+setting max_low_pfn == max_pfn in mem_init().
+
+Signed-off-by: Jason Lunz <lunz@falooley.org>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/bas-gigaset.c |    4 ++--
- drivers/isdn/gigaset/common.c      |    6 +++---
- drivers/isdn/gigaset/ev-layer.c    |    4 ++--
- drivers/isdn/gigaset/isocdata.c    |    4 ++--
- drivers/isdn/gigaset/ser-gigaset.c |    2 +-
- drivers/isdn/gigaset/usb-gigaset.c |    4 ++--
- 6 files changed, 12 insertions(+), 12 deletions(-)
+ arch/um/kernel/mem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/isdn/gigaset/bas-gigaset.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2 drivers/isdn/gigaset/bas-gigaset.c
---- a/drivers/isdn/gigaset/bas-gigaset.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2
-+++ a/drivers/isdn/gigaset/bas-gigaset.c
-@@ -54,7 +54,7 @@ MODULE_PARM_DESC(cidmode, "Call-ID mode"
- #define USB_SX353_PRODUCT_ID    0x0022
+diff -puN arch/um/kernel/mem.c~uml-fix-lvm-crash arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~uml-fix-lvm-crash
++++ a/arch/um/kernel/mem.c
+@@ -64,8 +64,6 @@ static void setup_highmem(unsigned long 
  
- /* table of devices that work with this driver */
--static struct usb_device_id gigaset_table [] = {
-+static const struct usb_device_id gigaset_table [] = {
- 	{ USB_DEVICE(USB_GIGA_VENDOR_ID, USB_3070_PRODUCT_ID) },
- 	{ USB_DEVICE(USB_GIGA_VENDOR_ID, USB_3075_PRODUCT_ID) },
- 	{ USB_DEVICE(USB_GIGA_VENDOR_ID, USB_SX303_PRODUCT_ID) },
-@@ -2305,7 +2305,7 @@ static void gigaset_disconnect(struct us
- 	gigaset_unassign(cs);
- }
- 
--static struct gigaset_ops gigops = {
-+static const struct gigaset_ops gigops = {
- 	gigaset_write_cmd,
- 	gigaset_write_room,
- 	gigaset_chars_in_buffer,
-diff -puN drivers/isdn/gigaset/common.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2 drivers/isdn/gigaset/common.c
---- a/drivers/isdn/gigaset/common.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2
-+++ a/drivers/isdn/gigaset/common.c
-@@ -944,8 +944,8 @@ static DEFINE_SPINLOCK(driver_lock);
- struct cardstate *gigaset_get_cs_by_id(int id)
+ void mem_init(void)
  {
- 	unsigned long flags;
--	static struct cardstate *ret = NULL;
--	static struct cardstate *cs;
-+	struct cardstate *ret = NULL;
-+	struct cardstate *cs;
- 	struct gigaset_driver *drv;
- 	unsigned i;
+-	max_low_pfn = (high_physmem - uml_physmem) >> PAGE_SHIFT;
+-
+ 	/* clear the zero-page */
+ 	memset((void *) empty_zero_page, 0, PAGE_SIZE);
  
-@@ -999,7 +999,7 @@ void gigaset_debugdrivers(void)
- static struct cardstate *gigaset_get_cs_by_minor(unsigned minor)
- {
- 	unsigned long flags;
--	static struct cardstate *ret = NULL;
-+	struct cardstate *ret = NULL;
- 	struct gigaset_driver *drv;
- 	unsigned index;
+@@ -80,6 +78,7 @@ void mem_init(void)
  
-diff -puN drivers/isdn/gigaset/ev-layer.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2 drivers/isdn/gigaset/ev-layer.c
---- a/drivers/isdn/gigaset/ev-layer.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2
-+++ a/drivers/isdn/gigaset/ev-layer.c
-@@ -409,7 +409,7 @@ static struct reply_t tab_cid[] = /* no 
- };
- #endif
- 
--static struct resp_type_t resp_type[]=
-+static const struct resp_type_t resp_type[] =
- {
- 	/*{"",		RSP_EMPTY,	RT_NOTHING},*/
- 	{"OK",		RSP_OK,		RT_NOTHING},
-@@ -511,7 +511,7 @@ void gigaset_handle_modem_response(struc
- 	unsigned char *argv[MAX_REC_PARAMS + 1];
- 	int params;
- 	int i, j;
--	struct resp_type_t *rt;
-+	const struct resp_type_t *rt;
- 	int curarg;
- 	unsigned long flags;
- 	unsigned next, tail, head;
-diff -puN drivers/isdn/gigaset/isocdata.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2 drivers/isdn/gigaset/isocdata.c
---- a/drivers/isdn/gigaset/isocdata.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2
-+++ a/drivers/isdn/gigaset/isocdata.c
-@@ -274,7 +274,7 @@ static inline void dump_bytes(enum debug
-  *        bit 12..10 = number of trailing '1' bits in result
-  *        bit 14..13 = number of bits added by stuffing
-  */
--static u16 stufftab[5 * 256] = {
-+static const u16 stufftab[5 * 256] = {
- // previous 1s = 0:
-  0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x000e, 0x000f,
-  0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b, 0x001c, 0x001d, 0x001e, 0x201f,
-@@ -629,7 +629,7 @@ static inline void hdlc_frag(struct bc_s
-  *		     (replacing 8 by 7 to make it fit; the algorithm won't care)
-  *        bit 7 set if there are 5 or more "interior" consecutive '1' bits
-  */
--static unsigned char bitcounts[256] = {
-+static const unsigned char bitcounts[256] = {
-   0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x03, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x04,
-   0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x03, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x05,
-   0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x03, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00, 0x04,
-diff -puN drivers/isdn/gigaset/ser-gigaset.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2 drivers/isdn/gigaset/ser-gigaset.c
---- a/drivers/isdn/gigaset/ser-gigaset.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2
-+++ a/drivers/isdn/gigaset/ser-gigaset.c
-@@ -459,7 +459,7 @@ static int gigaset_set_line_ctrl(struct 
- 	return -EINVAL;
- }
- 
--static struct gigaset_ops ops = {
-+static const struct gigaset_ops ops = {
- 	gigaset_write_cmd,
- 	gigaset_write_room,
- 	gigaset_chars_in_buffer,
-diff -puN drivers/isdn/gigaset/usb-gigaset.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2 drivers/isdn/gigaset/usb-gigaset.c
---- a/drivers/isdn/gigaset/usb-gigaset.c~drivers-isdn-gigaset-mark-some-static-data-as-const-v2
-+++ a/drivers/isdn/gigaset/usb-gigaset.c
-@@ -50,7 +50,7 @@ MODULE_PARM_DESC(cidmode, "Call-ID mode"
- #define USB_M105_PRODUCT_ID	0x0009
- 
- /* table of devices that work with this driver */
--static struct usb_device_id gigaset_table [] = {
-+static const struct usb_device_id gigaset_table [] = {
- 	{ USB_DEVICE(USB_M105_VENDOR_ID, USB_M105_PRODUCT_ID) },
- 	{ }					/* Terminating entry */
- };
-@@ -860,7 +860,7 @@ static void gigaset_disconnect(struct us
- 	gigaset_unassign(cs);
- }
- 
--static struct gigaset_ops ops = {
-+static const struct gigaset_ops ops = {
- 	gigaset_write_cmd,
- 	gigaset_write_room,
- 	gigaset_chars_in_buffer,
+ 	/* this will put all low memory onto the freelists */
+ 	totalram_pages = free_all_bootmem();
++	max_low_pfn = totalram_pages;
+ #ifdef CONFIG_HIGHMEM
+ 	totalhigh_pages = highmem >> PAGE_SHIFT;
+ 	totalram_pages += totalhigh_pages;
 _
 
-Patches currently in -mm which might be from tilman@imap.cc are
+Patches currently in -mm which might be from lunz@falooley.org are
 
 origin.patch
+git-wireless.patch
