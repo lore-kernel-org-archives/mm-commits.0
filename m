@@ -1,74 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-device-unplug-crash.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:12 -0700
-Message-ID: <200703292337.l2TNbCia015078@shell0.pdx.osdl.net>
+Subject: - uml-fix-pte-bit-collision.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:14 -0700
+Message-ID: <200703292337.l2TNbEVN015081@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42944 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42949 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945907AbXC2XhS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:37:18 -0400
+	id S1945918AbXC2XhT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:37:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix device unplug crash
+     uml: fix pte bit collision
 has been removed from the -mm tree.  Its filename was
-     uml-fix-device-unplug-crash.patch
+     uml-fix-pte-bit-collision.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix device unplug crash
-From: Jeff Dike <jdike@addtoit.com>
+Subject: uml: fix pte bit collision
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Fix a NULL dereference when unplugging a device.  The default value of
-err_msg wants to be "" in case the driver doesn't modify it.
+_PAGE_PROTNONE conflicts with the lowest bit of pgoff.  This causes all sorts
+of weirdness when nonlinear mappings are used.
 
+Took me a good half day to track this down.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Acked-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/mconsole_kern.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/asm-um/pgtable-2level.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/um/drivers/mconsole_kern.c~uml-fix-device-unplug-crash arch/um/drivers/mconsole_kern.c
---- a/arch/um/drivers/mconsole_kern.c~uml-fix-device-unplug-crash
-+++ a/arch/um/drivers/mconsole_kern.c
-@@ -615,6 +615,9 @@ void mconsole_remove(struct mc_request *
- 	err_msg = NULL;
- 	err = (*dev->remove)(n, &err_msg);
- 	switch(err){
-+	case 0:
-+		err_msg = "";
-+		break;
- 	case -ENODEV:
- 		if(err_msg == NULL)
- 			err_msg = "Device doesn't exist";
+diff -puN include/asm-um/pgtable-2level.h~uml-fix-pte-bit-collision include/asm-um/pgtable-2level.h
+--- a/include/asm-um/pgtable-2level.h~uml-fix-pte-bit-collision
++++ a/include/asm-um/pgtable-2level.h
+@@ -45,12 +45,12 @@ static inline void pgd_mkuptodate(pgd_t 
+ 	((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
+ 
+ /*
+- * Bits 0 through 3 are taken
++ * Bits 0 through 4 are taken
+  */
+-#define PTE_FILE_MAX_BITS	28
++#define PTE_FILE_MAX_BITS	27
+ 
+-#define pte_to_pgoff(pte) (pte_val(pte) >> 4)
++#define pte_to_pgoff(pte) (pte_val(pte) >> 5)
+ 
+-#define pgoff_to_pte(off) ((pte_t) { ((off) << 4) + _PAGE_FILE })
++#define pgoff_to_pte(off) ((pte_t) { ((off) << 5) + _PAGE_FILE })
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-uml-fix-unreasonably-long-udelay.patch
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-array_size-check-for-type-uml-fix.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-filesystem-subtype-support.patch
+add-file-position-info-to-proc.patch
+consolidate-generic_writepages-and-mpage_writepages.patch
