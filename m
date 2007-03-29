@@ -1,267 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - holepunch-fix-shmem_truncate_range-punch-locking.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:35 -0700
-Message-ID: <200703292337.l2TNbZ7p015128@shell0.pdx.osdl.net>
+Subject: - mm-set-hashdist_default-to-1-for-x86_64-numa.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:56 -0700
+Message-ID: <200703292337.l2TNbuiq015169@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43012 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43033 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945926AbXC2Xh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:37:58 -0400
+	id S1945932AbXC2XiK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:38:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mszeredi@suse.cz, pbadari@us.ibm.com, mm-commits@vger.kernel.org
+To: kiran@scalex86.org, ak@suse.de, clameter@engr.sgi.com, pravin.shelar@calsoftinc.com, shai@scalex86.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     holepunch: fix shmem_truncate_range punch locking
+     mm: Set HASHDIST_DEFAULT to 1 for x86_64 NUMA
 has been removed from the -mm tree.  Its filename was
-     holepunch-fix-shmem_truncate_range-punch-locking.patch
+     mm-set-hashdist_default-to-1-for-x86_64-numa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: holepunch: fix shmem_truncate_range punch locking
-From: Hugh Dickins <hugh@veritas.com>
+Subject: mm: Set HASHDIST_DEFAULT to 1 for x86_64 NUMA
+From: Ravikiran G Thirumalai <kiran@scalex86.org>
 
-Miklos Szeredi observes that during truncation of shmem page directories,
-info->lock is released to improve latency (after lowering i_size and
-next_index to exclude races); but this is quite wrong for holepunching, which
-receives no such protection from i_size or next_index, and is left vulnerable
-to races with shmem_unuse, shmem_getpage and shmem_writepage.
+Enable system hashtable memory to be distributed among nodes on x86_64 NUMA
 
-Hold info->lock throughout when holepunching?  No, any user could prevent
-rescheduling for far too long.  Instead take info->lock just when needed: in
-shmem_free_swp when removing the swap entries, and whenever removing a
-directory page from the level above.  But so long as we remove before
-scanning, we can safely skip taking the lock at the lower levels, except at
-misaligned start and end of the hole.
+Forcing the kernel to use node interleaved vmalloc instead of bootmem for
+the system hashtable memory (alloc_large_system_hash) reduces the memory
+imbalance on node 0 by around 40MB on a 8 node x86_64 NUMA box:
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Before the following patch, on bootup of a 8 node box:
+
+Node 0 MemTotal:      3407488 kB
+Node 0 MemFree:       3206296 kB
+Node 0 MemUsed:        201192 kB
+Node 0 Active:           7012 kB
+Node 0 Inactive:          512 kB
+Node 0 Dirty:               0 kB
+Node 0 Writeback:           0 kB
+Node 0 FilePages:        1912 kB
+Node 0 Mapped:            420 kB
+Node 0 AnonPages:        5612 kB
+Node 0 PageTables:        468 kB
+Node 0 NFS_Unstable:        0 kB
+Node 0 Bounce:              0 kB
+Node 0 Slab:             5408 kB
+Node 0 SReclaimable:      644 kB
+Node 0 SUnreclaim:       4764 kB
+
+After the patch (or using hashdist=1 on the kernel command line):
+
+Node 0 MemTotal:      3407488 kB
+Node 0 MemFree:       3247608 kB
+Node 0 MemUsed:        159880 kB
+Node 0 Active:           3012 kB
+Node 0 Inactive:          616 kB
+Node 0 Dirty:               0 kB
+Node 0 Writeback:           0 kB
+Node 0 FilePages:        2424 kB
+Node 0 Mapped:            380 kB
+Node 0 AnonPages:        1200 kB
+Node 0 PageTables:        396 kB
+Node 0 NFS_Unstable:        0 kB
+Node 0 Bounce:              0 kB
+Node 0 Slab:             6304 kB
+Node 0 SReclaimable:     1596 kB
+Node 0 SUnreclaim:       4708 kB
+
+I guess it is a good idea to keep HASHDIST_DEFAULT "on" for x86_64 NUMA
+since x86_64 has no dearth of vmalloc space?  Or maybe enable hash
+distribution for all 64bit NUMA arches?  The following patch does it only
+for x86_64.
+
+
+I ran a HPC MPI benchmark -- 'Ansys wingsolid', which takes up quite a bit of
+memory and uses up tlb entries.  This was on a 4 way, 2 socket
+Tyan AMD box (non vsmp), with 8G total memory (4G pernode).
+
+The results with and without hash distribution are:
+
+1. Vanilla - runtime of 1188.000s
+2. With hashdist=1 runtime of 1154.000s
+
+Oprofile output for the duration of run is:
+
+1. Vanilla:
+PU: AMD64 processors, speed 2411.16 MHz (estimated)
+Counted L1_AND_L2_DTLB_MISSES events (L1 and L2 DTLB misses) with a unit
+mask of 0x00 (No unit mask) count 500
+samples  %        app name                 symbol name
+163054    6.5513  libansys1.so             MultiFront::decompose(int, int,
+Elemset *, int *, int, int, int)
+162061    6.5114  libansys3.so             blockSaxpy6L_fd
+162042    6.5107  libansys3.so             blockInnerProduct6L_fd
+156286    6.2794  libansys3.so             maxb33_
+87879     3.5309  libansys1.so             elmatrixmultpcg_
+84857     3.4095  libansys4.so             saxpy_pcg
+58637     2.3560  libansys4.so             .st4560
+46612     1.8728  libansys4.so             .st4282
+43043     1.7294  vmlinux-t                copy_user_generic_string
+41326     1.6604  libansys3.so             blockSaxpyBackSolve6L_fd
+41288     1.6589  libansys3.so             blockInnerProductBackSolve6L_fd
+
+2. With hashdist=1
+CPU: AMD64 processors, speed 2411.13 MHz (estimated)
+Counted L1_AND_L2_DTLB_MISSES events (L1 and L2 DTLB misses) with a unit
+mask of 0x00 (No unit mask) count 500
+samples  %        app name                 symbol name
+162993    6.9814  libansys1.so             MultiFront::decompose(int, int,
+Elemset *, int *, int, int, int)
+160799    6.8874  libansys3.so             blockInnerProduct6L_fd
+160459    6.8729  libansys3.so             blockSaxpy6L_fd
+156018    6.6826  libansys3.so             maxb33_
+84700     3.6279  libansys4.so             saxpy_pcg
+83434     3.5737  libansys1.so             elmatrixmultpcg_
+58074     2.4875  libansys4.so             .st4560
+46000     1.9703  libansys4.so             .st4282
+41166     1.7632  libansys3.so             blockSaxpyBackSolve6L_fd
+41033     1.7575  libansys3.so             blockInnerProductBackSolve6L_fd
+35762     1.5318  libansys1.so             inner_product_sub
+35591     1.5245  libansys1.so             inner_product_sub2
+28259     1.2104  libansys4.so             addVectors
+
+
+
+Signed-off-by: Pravin B. Shelar <pravin.shelar@calsoftinc.com>
+Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
+Signed-off-by: Shai Fultheim <shai@scalex86.org>
+Acked-by: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   96 ++++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 73 insertions(+), 23 deletions(-)
+ include/linux/bootmem.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~holepunch-fix-shmem_truncate_range-punch-locking mm/shmem.c
---- a/mm/shmem.c~holepunch-fix-shmem_truncate_range-punch-locking
-+++ a/mm/shmem.c
-@@ -402,26 +402,38 @@ static swp_entry_t *shmem_swp_alloc(stru
- /*
-  * shmem_free_swp - free some swap entries in a directory
-  *
-- * @dir:   pointer to the directory
-- * @edir:  pointer after last entry of the directory
-+ * @dir:        pointer to the directory
-+ * @edir:       pointer after last entry of the directory
-+ * @punch_lock: pointer to spinlock when needed for the holepunch case
+diff -puN include/linux/bootmem.h~mm-set-hashdist_default-to-1-for-x86_64-numa include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-set-hashdist_default-to-1-for-x86_64-numa
++++ a/include/linux/bootmem.h
+@@ -122,9 +122,9 @@ extern void *alloc_large_system_hash(con
+ #define HASH_EARLY	0x00000001	/* Allocating during early boot? */
+ 
+ /* Only NUMA needs hash distribution.
+- * IA64 is known to have sufficient vmalloc space.
++ * IA64 and x86_64 have sufficient vmalloc space.
   */
--static int shmem_free_swp(swp_entry_t *dir, swp_entry_t *edir)
-+static int shmem_free_swp(swp_entry_t *dir, swp_entry_t *edir,
-+						spinlock_t *punch_lock)
- {
-+	spinlock_t *punch_unlock = NULL;
- 	swp_entry_t *ptr;
- 	int freed = 0;
- 
- 	for (ptr = dir; ptr < edir; ptr++) {
- 		if (ptr->val) {
-+			if (unlikely(punch_lock)) {
-+				punch_unlock = punch_lock;
-+				punch_lock = NULL;
-+				spin_lock(punch_unlock);
-+				if (!ptr->val)
-+					continue;
-+			}
- 			free_swap_and_cache(*ptr);
- 			*ptr = (swp_entry_t){0};
- 			freed++;
- 		}
- 	}
-+	if (punch_unlock)
-+		spin_unlock(punch_unlock);
- 	return freed;
- }
- 
--static int shmem_map_and_free_swp(struct page *subdir,
--		int offset, int limit, struct page ***dir)
-+static int shmem_map_and_free_swp(struct page *subdir, int offset,
-+		int limit, struct page ***dir, spinlock_t *punch_lock)
- {
- 	swp_entry_t *ptr;
- 	int freed = 0;
-@@ -431,7 +443,8 @@ static int shmem_map_and_free_swp(struct
- 		int size = limit - offset;
- 		if (size > LATENCY_LIMIT)
- 			size = LATENCY_LIMIT;
--		freed += shmem_free_swp(ptr+offset, ptr+offset+size);
-+		freed += shmem_free_swp(ptr+offset, ptr+offset+size,
-+							punch_lock);
- 		if (need_resched()) {
- 			shmem_swp_unmap(ptr);
- 			if (*dir) {
-@@ -482,6 +495,8 @@ static void shmem_truncate_range(struct 
- 	int offset;
- 	int freed;
- 	int punch_hole;
-+	spinlock_t *needs_lock;
-+	spinlock_t *punch_lock;
- 	unsigned long upper_limit;
- 
- 	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
-@@ -495,6 +510,7 @@ static void shmem_truncate_range(struct 
- 		limit = info->next_index;
- 		upper_limit = SHMEM_MAX_INDEX;
- 		info->next_index = idx;
-+		needs_lock = NULL;
- 		punch_hole = 0;
- 	} else {
- 		if (end + 1 >= inode->i_size) {	/* we may free a little more */
-@@ -505,6 +521,7 @@ static void shmem_truncate_range(struct 
- 			limit = (end + 1) >> PAGE_CACHE_SHIFT;
- 			upper_limit = limit;
- 		}
-+		needs_lock = &info->lock;
- 		punch_hole = 1;
- 	}
- 
-@@ -521,7 +538,7 @@ static void shmem_truncate_range(struct 
- 		size = limit;
- 		if (size > SHMEM_NR_DIRECT)
- 			size = SHMEM_NR_DIRECT;
--		nr_swaps_freed = shmem_free_swp(ptr+idx, ptr+size);
-+		nr_swaps_freed = shmem_free_swp(ptr+idx, ptr+size, needs_lock);
- 	}
- 
- 	/*
-@@ -531,6 +548,19 @@ static void shmem_truncate_range(struct 
- 	if (!topdir || limit <= SHMEM_NR_DIRECT)
- 		goto done2;
- 
-+	/*
-+	 * The truncation case has already dropped info->lock, and we're safe
-+	 * because i_size and next_index have already been lowered, preventing
-+	 * access beyond.  But in the punch_hole case, we still need to take
-+	 * the lock when updating the swap directory, because there might be
-+	 * racing accesses by shmem_getpage(SGP_CACHE), shmem_unuse_inode or
-+	 * shmem_writepage.  However, whenever we find we can remove a whole
-+	 * directory page (not at the misaligned start or end of the range),
-+	 * we first NULLify its pointer in the level above, and then have no
-+	 * need to take the lock when updating its contents: needs_lock and
-+	 * punch_lock (either pointing to info->lock or NULL) manage this.
-+	 */
-+
- 	upper_limit -= SHMEM_NR_DIRECT;
- 	limit -= SHMEM_NR_DIRECT;
- 	idx = (idx > SHMEM_NR_DIRECT)? (idx - SHMEM_NR_DIRECT): 0;
-@@ -552,7 +582,13 @@ static void shmem_truncate_range(struct 
- 			diroff = ((idx - ENTRIES_PER_PAGEPAGE/2) %
- 				ENTRIES_PER_PAGEPAGE) / ENTRIES_PER_PAGE;
- 			if (!diroff && !offset && upper_limit >= stage) {
--				*dir = NULL;
-+				if (needs_lock) {
-+					spin_lock(needs_lock);
-+					*dir = NULL;
-+					spin_unlock(needs_lock);
-+					needs_lock = NULL;
-+				} else
-+					*dir = NULL;
- 				nr_pages_to_free++;
- 				list_add(&middir->lru, &pages_to_free);
- 			}
-@@ -578,8 +614,16 @@ static void shmem_truncate_range(struct 
- 			}
- 			stage = idx + ENTRIES_PER_PAGEPAGE;
- 			middir = *dir;
-+			if (punch_hole)
-+				needs_lock = &info->lock;
- 			if (upper_limit >= stage) {
--				*dir = NULL;
-+				if (needs_lock) {
-+					spin_lock(needs_lock);
-+					*dir = NULL;
-+					spin_unlock(needs_lock);
-+					needs_lock = NULL;
-+				} else
-+					*dir = NULL;
- 				nr_pages_to_free++;
- 				list_add(&middir->lru, &pages_to_free);
- 			}
-@@ -588,31 +632,37 @@ static void shmem_truncate_range(struct 
- 			dir = shmem_dir_map(middir);
- 			diroff = 0;
- 		}
-+		punch_lock = needs_lock;
- 		subdir = dir[diroff];
--		if (subdir && page_private(subdir)) {
-+		if (subdir && !offset && upper_limit-idx >= ENTRIES_PER_PAGE) {
-+			if (needs_lock) {
-+				spin_lock(needs_lock);
-+				dir[diroff] = NULL;
-+				spin_unlock(needs_lock);
-+				punch_lock = NULL;
-+			} else
-+				dir[diroff] = NULL;
-+			nr_pages_to_free++;
-+			list_add(&subdir->lru, &pages_to_free);
-+		}
-+		if (subdir && page_private(subdir) /* has swap entries */) {
- 			size = limit - idx;
- 			if (size > ENTRIES_PER_PAGE)
- 				size = ENTRIES_PER_PAGE;
- 			freed = shmem_map_and_free_swp(subdir,
--						offset, size, &dir);
-+					offset, size, &dir, punch_lock);
- 			if (!dir)
- 				dir = shmem_dir_map(middir);
- 			nr_swaps_freed += freed;
--			if (offset)
-+			if (offset || punch_lock) {
- 				spin_lock(&info->lock);
--			set_page_private(subdir, page_private(subdir) - freed);
--			if (offset)
-+				set_page_private(subdir,
-+					page_private(subdir) - freed);
- 				spin_unlock(&info->lock);
--			if (!punch_hole)
--				BUG_ON(page_private(subdir) > offset);
--		}
--		if (offset)
--			offset = 0;
--		else if (subdir && upper_limit - idx >= ENTRIES_PER_PAGE) {
--			dir[diroff] = NULL;
--			nr_pages_to_free++;
--			list_add(&subdir->lru, &pages_to_free);
-+			} else
-+				BUG_ON(page_private(subdir) != freed);
- 		}
-+		offset = 0;
- 	}
- done1:
- 	shmem_dir_unmap(dir);
+-#if defined(CONFIG_NUMA) && defined(CONFIG_IA64)
++#if defined(CONFIG_NUMA) && (defined(CONFIG_IA64) || defined(CONFIG_X86_64))
+ #define HASHDIST_DEFAULT 1
+ #else
+ #define HASHDIST_DEFAULT 0
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from kiran@scalex86.org are
 
-origin.patch
-git-drm.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-smaps-use-ptep_test_and_clear_young.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+git-pciseg.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+slab-leaks3-default-y.patch
