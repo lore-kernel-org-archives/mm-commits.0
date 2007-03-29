@@ -1,200 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-i386-add-command-line-length-to-boot-protocol.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:39:07 -0700
-Message-ID: <200703292339.l2TNd7oG015407@shell0.pdx.osdl.net>
+Subject: - allow-i386-crash-kernels-to-handle-x86_64-dumps.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:39:01 -0700
+Message-ID: <200703292339.l2TNd1Mj015396@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43168 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43175 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945931AbXC2XjM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:39:12 -0400
+	id S1945937AbXC2XjP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:39:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bwalle@suse.de, ak@suse.de, alon.barlev@gmail.com, hpa@zytor.com, mm-commits@vger.kernel.org
+To: ian.campbell@xensource.com, ak@suse.de, ebiederm@xmission.com, horms@verge.net.au, magnus.damm@gmail.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64, i386: add command line length to boot protocol
+     Allow i386 crash kernels to handle x86_64 dumps
 has been removed from the -mm tree.  Its filename was
-     x86_64-i386-add-command-line-length-to-boot-protocol.patch
+     allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64, i386: add command line length to boot protocol
-From: Bernhard Walle <bwalle@suse.de>
+Subject: Allow i386 crash kernels to handle x86_64 dumps
+From: Ian Campbell <ian.campbell@xensource.com>
 
-Because the command line is increased to 2048 characters after 2.6.21, it's
-not possible for boot loaders and userspace tools to determine the length
-of the command line the kernel can understand.  The benefit of knowing the
-length is that users can be warned if the command line size is too long
-which prevents surprise if things don't work after bootup.
+The specific case I am encountering is kdump under Xen with a 64 bit
+hypervisor and 32 bit kernel/userspace.  The dump created is 64 bit due to
+the hypervisor but the dump kernel is 32 bit for maximum compatibility.
 
-This patch updates the boot protocol to contain a field called
-"cmdline_size" that contain the length of the command line (excluding the
-terminating zero).
+It's possibly less likely to be useful in a purely native scenario but I
+see no reason to disallow it.
 
-The patch also adds missing fields (of protocol version 2.05) to the x86_64
-setup code.
-
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: Alon Bar-Lev <alon.barlev@gmail.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Ian Campbell <ian.campbell@xensource.com>
+Acked-by: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Horms <horms@verge.net.au>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/i386/boot.txt |   23 +++++++++++++++++------
- arch/i386/boot/setup.S      |    7 ++++++-
- arch/x86_64/boot/setup.S    |   15 ++++++++++++++-
- 3 files changed, 37 insertions(+), 8 deletions(-)
+ fs/proc/vmcore.c           |    2 +-
+ include/asm-i386/kexec.h   |    3 +++
+ include/linux/crash_dump.h |    8 ++++++++
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/i386/boot.txt~x86_64-i386-add-command-line-length-to-boot-protocol Documentation/i386/boot.txt
---- a/Documentation/i386/boot.txt~x86_64-i386-add-command-line-length-to-boot-protocol
-+++ a/Documentation/i386/boot.txt
-@@ -2,7 +2,7 @@
- 		     ----------------------------
+diff -puN fs/proc/vmcore.c~allow-i386-crash-kernels-to-handle-x86_64-dumps fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~allow-i386-crash-kernels-to-handle-x86_64-dumps
++++ a/fs/proc/vmcore.c
+@@ -514,7 +514,7 @@ static int __init parse_crash_elf64_head
+ 	/* Do some basic Verification. */
+ 	if (memcmp(ehdr.e_ident, ELFMAG, SELFMAG) != 0 ||
+ 		(ehdr.e_type != ET_CORE) ||
+-		!elf_check_arch(&ehdr) ||
++		!vmcore_elf_check_arch(&ehdr) ||
+ 		ehdr.e_ident[EI_CLASS] != ELFCLASS64 ||
+ 		ehdr.e_ident[EI_VERSION] != EV_CURRENT ||
+ 		ehdr.e_version != EV_CURRENT ||
+diff -puN include/asm-i386/kexec.h~allow-i386-crash-kernels-to-handle-x86_64-dumps include/asm-i386/kexec.h
+--- a/include/asm-i386/kexec.h~allow-i386-crash-kernels-to-handle-x86_64-dumps
++++ a/include/asm-i386/kexec.h
+@@ -42,6 +42,9 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_386
  
- 		    H. Peter Anvin <hpa@zytor.com>
--			Last update 2007-01-26
-+			Last update 2007-03-06
- 
- On the i386 platform, the Linux kernel uses a rather complicated boot
- convention.  This has evolved partially due to historical aspects, as
-@@ -35,9 +35,13 @@ Protocol 2.03:	(Kernel 2.4.18-pre1) Expl
- 		initrd address available to the bootloader.
- 
- Protocol 2.04:	(Kernel 2.6.14) Extend the syssize field to four bytes.
++/* We can also handle crash dumps from 64 bit kernel. */
++#define vmcore_elf_check_arch_cross(x) ((x)->e_machine == EM_X86_64)
 +
- Protocol 2.05:	(Kernel 2.6.20) Make protected mode kernel relocatable.
- 		Introduce relocatable_kernel and kernel_alignment fields.
+ #define MAX_NOTE_BYTES 1024
  
-+Protocol 2.06:	(Kernel 2.6.22) Added a field that contains the size of
-+		the boot command line
+ /* CPU does not save ss and esp on stack if execution is already
+diff -puN include/linux/crash_dump.h~allow-i386-crash-kernels-to-handle-x86_64-dumps include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~allow-i386-crash-kernels-to-handle-x86_64-dumps
++++ a/include/linux/crash_dump.h
+@@ -14,5 +14,13 @@ extern ssize_t copy_oldmem_page(unsigned
+ extern const struct file_operations proc_vmcore_operations;
+ extern struct proc_dir_entry *proc_vmcore;
+ 
++/* Architecture code defines this if there are other possible ELF
++ * machine types, e.g. on bi-arch capable hardware. */
++#ifndef vmcore_elf_check_arch_cross
++#define vmcore_elf_check_arch_cross(x) 0
++#endif
 +
- 
- **** MEMORY LAYOUT
- 
-@@ -133,6 +137,8 @@ Offset	Proto	Name		Meaning
- 022C/4	2.03+	initrd_addr_max	Highest legal initrd address
- 0230/4	2.05+	kernel_alignment Physical addr alignment required for kernel
- 0234/1	2.05+	relocatable_kernel Whether kernel is relocatable or not
-+0235/3	N/A	pad2		Unused
-+0238/4	2.06+	cmdline_size	Maximum size of the kernel command line
- 
- (1) For backwards compatibility, if the setup_sects field contains 0, the
-     real value is 4.
-@@ -233,6 +239,12 @@ filled out, however:
- 	if your ramdisk is exactly 131072 bytes long and this field is
- 	0x37FFFFFF, you can start your ramdisk at 0x37FE0000.)
- 
-+  cmdline_size:
-+	The maximum size of the command line without the terminating
-+	zero. This means that the command line can contain at most
-+	cmdline_size characters. With protocol version 2.05 and
-+	earlier, the maximum size was 255.
++#define vmcore_elf_check_arch(x) (elf_check_arch(x) || vmcore_elf_check_arch_cross(x))
 +
- 
- **** THE KERNEL COMMAND LINE
- 
-@@ -241,11 +253,10 @@ loader to communicate with the kernel.  
- relevant to the boot loader itself, see "special command line options"
- below.
- 
--The kernel command line is a null-terminated string currently up to
--255 characters long, plus the final null.  A string that is too long
--will be automatically truncated by the kernel, a boot loader may allow
--a longer command line to be passed to permit future kernels to extend
--this limit.
-+The kernel command line is a null-terminated string. The maximum
-+length can be retrieved from the field cmdline_size.  Before protocol
-+version 2.06, the maximum was 255 characters.  A string that is too
-+long will be automatically truncated by the kernel.
- 
- If the boot protocol version is 2.02 or later, the address of the
- kernel command line is given by the header field cmd_line_ptr (see
-diff -puN arch/i386/boot/setup.S~x86_64-i386-add-command-line-length-to-boot-protocol arch/i386/boot/setup.S
---- a/arch/i386/boot/setup.S~x86_64-i386-add-command-line-length-to-boot-protocol
-+++ a/arch/i386/boot/setup.S
-@@ -52,6 +52,7 @@
- #include <asm/boot.h>
- #include <asm/e820.h>
- #include <asm/page.h>
-+#include <asm/setup.h>
- 	
- /* Signature words to ensure LILO loaded us right */
- #define SIG1	0xAA55
-@@ -81,7 +82,7 @@ start:
- # This is the setup header, and it must start at %cs:2 (old 0x9020:2)
- 
- 		.ascii	"HdrS"		# header signature
--		.word	0x0205		# header version number (>= 0x0105)
-+		.word	0x0206		# header version number (>= 0x0105)
- 					# or else old loadlin-1.5 will fail)
- realmode_swtch:	.word	0, 0		# default_switch, SETUPSEG
- start_sys_seg:	.word	SYSSEG
-@@ -171,6 +172,10 @@ relocatable_kernel:    .byte 0
- pad2:			.byte 0
- pad3:			.word 0
- 
-+cmdline_size:   .long   COMMAND_LINE_SIZE-1     #length of the command line,
-+                                                #added with boot protocol
-+                                                #version 2.06
-+
- trampoline:	call	start_of_setup
- 		.align 16
- 					# The offset at this point is 0x240
-diff -puN arch/x86_64/boot/setup.S~x86_64-i386-add-command-line-length-to-boot-protocol arch/x86_64/boot/setup.S
---- a/arch/x86_64/boot/setup.S~x86_64-i386-add-command-line-length-to-boot-protocol
-+++ a/arch/x86_64/boot/setup.S
-@@ -51,6 +51,7 @@
- #include <asm/boot.h>
- #include <asm/e820.h>
- #include <asm/page.h>
-+#include <asm/setup.h>
- 
- /* Signature words to ensure LILO loaded us right */
- #define SIG1	0xAA55
-@@ -80,7 +81,7 @@ start:
- # This is the setup header, and it must start at %cs:2 (old 0x9020:2)
- 
- 		.ascii	"HdrS"		# header signature
--		.word	0x0204		# header version number (>= 0x0105)
-+		.word	0x0206		# header version number (>= 0x0105)
- 					# or else old loadlin-1.5 will fail)
- realmode_swtch:	.word	0, 0		# default_switch, SETUPSEG
- start_sys_seg:	.word	SYSSEG
-@@ -155,6 +156,18 @@ cmd_line_ptr:	.long 0			# (Header versio
- 					# low memory 0x10000 or higher.
- 
- ramdisk_max:	.long 0xffffffff
-+
-+kernel_alignment:  .long CONFIG_PHYSICAL_START 	#physical addr alignment
-+						#(not relocatable =>
-+						#fixed start == alignment)
-+
-+relocatable_kernel:     .byte 0                 #x86_64 is currently not
-+pad2:			.byte 0                 #relocatable
-+pad3:			.word 0
-+
-+cmdline_size:   .long   COMMAND_LINE_SIZE-1     #length of the command line,
-+                                                #added with boot protocol
-+                                                #version 2.06
- 	
- trampoline:	call	start_of_setup
- 		.align 16
+ #endif /* CONFIG_CRASH_DUMP */
+ #endif /* LINUX_CRASHDUMP_H */
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
-
-origin.patch
-git-r8169.patch
-use-unchecked_isa_dma-in-sd_revalidate_disk.patch
-qla2xxx-remove-duplicate-pci_disable_device-call.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-parisc.patch
-add-irqf_irqpoll-flag-on-arm.patch
+Patches currently in -mm which might be from ian.campbell@xensource.com are
