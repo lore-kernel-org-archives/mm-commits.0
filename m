@@ -1,67 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - shmem-fix-bug-in-shmem_writepage.patch removed from -mm tree
-Date: Wed, 28 Mar 2007 16:58:52 -0700
-Message-ID: <200703282358.l2SNwqxB023229@shell0.pdx.osdl.net>
+Subject: + holepunch-fix-shmem_truncate_range-punching-too-far.patch added to -mm tree
+Date: Wed, 28 Mar 2007 17:04:36 -0700
+Message-ID: <200703290004.l2T04aMe023368@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36112 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36183 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965865AbXC2AAj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 20:00:39 -0400
+	id S1753184AbXC2AEr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 20:04:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hugh@veritas.com, pbadari@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hugh@veritas.com, mszeredi@suse.cs, pbadari@us.ibm.com
 
 
 The patch titled
-     shmem: fix BUG in shmem_writepage
-has been removed from the -mm tree.  Its filename was
-     shmem-fix-bug-in-shmem_writepage.patch
+     holepunch: fix shmem_truncate_range punching too far
+has been added to the -mm tree.  Its filename is
+     holepunch-fix-shmem_truncate_range-punching-too-far.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: shmem: fix BUG in shmem_writepage
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: holepunch: fix shmem_truncate_range punching too far
+From: Hugh Dickins <hugh@veritas.com>
 
-BUG_ON(!entry) in shmem_writepage() is triggered in rare circumstances.
+Miklos Szeredi observes BUG_ON(!entry) in shmem_writepage() triggered in rare
+circumstances, because shmem_truncate_range() erroneously removes partially
+truncated directory pages at the end of the range: later reclaim on pages
+pointing to these removed directories triggers the BUG.  Indeed, and it can
+also cause data loss beyond the hole.
 
-The cause is that shmem_truncate_range() erroneously removes partially
-truncated directory pages at the end of the range.  A later reclaim on
-pages pointing to these removed directories triggers the BUG.
+Fix this as in the patch proposed by Miklos, but distinguish between "limit"
+(how far we need to search: ignore truncation's next_index optimization in the
+holepunch case - if there are races it's more consistent to act on the whole
+range specified) and "upper_limit" (how far we can free directory pages:
+generally we must be careful to keep partially punched pages, but can relax at
+end of file - i_size being held stable by i_mutex).
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Miklos Szeredi <mszeredi@suse.cs>
 Cc: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/shmem.c |   32 +++++++++++++++++++++-----------
+ 1 files changed, 21 insertions(+), 11 deletions(-)
 
-diff -puN mm/shmem.c~shmem-fix-bug-in-shmem_writepage mm/shmem.c
---- a/mm/shmem.c~shmem-fix-bug-in-shmem_writepage
+diff -puN mm/shmem.c~holepunch-fix-shmem_truncate_range-punching-too-far mm/shmem.c
+--- a/mm/shmem.c~holepunch-fix-shmem_truncate_range-punching-too-far
 +++ a/mm/shmem.c
-@@ -543,7 +543,9 @@ static void shmem_truncate_range(struct 
+@@ -481,7 +481,8 @@ static void shmem_truncate_range(struct 
+ 	long nr_swaps_freed = 0;
+ 	int offset;
+ 	int freed;
+-	int punch_hole = 0;
++	int punch_hole;
++	unsigned long upper_limit;
+ 
+ 	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
+ 	idx = (start + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+@@ -492,11 +493,18 @@ static void shmem_truncate_range(struct 
+ 	info->flags |= SHMEM_TRUNCATE;
+ 	if (likely(end == (loff_t) -1)) {
+ 		limit = info->next_index;
++		upper_limit = SHMEM_MAX_INDEX;
+ 		info->next_index = idx;
++		punch_hole = 0;
+ 	} else {
+-		limit = (end + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-		if (limit > info->next_index)
+-			limit = info->next_index;
++		if (end + 1 >= inode->i_size) {	/* we may free a little more */
++			limit = (inode->i_size + PAGE_CACHE_SIZE - 1) >>
++							PAGE_CACHE_SHIFT;
++			upper_limit = SHMEM_MAX_INDEX;
++		} else {
++			limit = (end + 1) >> PAGE_CACHE_SHIFT;
++			upper_limit = limit;
++		}
+ 		punch_hole = 1;
+ 	}
+ 
+@@ -520,10 +528,10 @@ static void shmem_truncate_range(struct 
+ 	 * If there are no indirect blocks or we are punching a hole
+ 	 * below indirect blocks, nothing to be done.
+ 	 */
+-	if (!topdir || (punch_hole && (limit <= SHMEM_NR_DIRECT)))
++	if (!topdir || limit <= SHMEM_NR_DIRECT)
+ 		goto done2;
+ 
+-	BUG_ON(limit <= SHMEM_NR_DIRECT);
++	upper_limit -= SHMEM_NR_DIRECT;
+ 	limit -= SHMEM_NR_DIRECT;
+ 	idx = (idx > SHMEM_NR_DIRECT)? (idx - SHMEM_NR_DIRECT): 0;
+ 	offset = idx % ENTRIES_PER_PAGE;
+@@ -543,7 +551,7 @@ static void shmem_truncate_range(struct 
  		if (*dir) {
  			diroff = ((idx - ENTRIES_PER_PAGEPAGE/2) %
  				ENTRIES_PER_PAGEPAGE) / ENTRIES_PER_PAGE;
 -			if (!diroff && !offset) {
-+			if (!diroff && !offset &&
-+			    (!punch_hole ||
-+			     limit - idx >= ENTRIES_PER_PAGEPAGE)) {
++			if (!diroff && !offset && upper_limit >= stage) {
  				*dir = NULL;
  				nr_pages_to_free++;
  				list_add(&middir->lru, &pages_to_free);
-@@ -570,9 +572,12 @@ static void shmem_truncate_range(struct 
+@@ -570,9 +578,11 @@ static void shmem_truncate_range(struct 
  			}
  			stage = idx + ENTRIES_PER_PAGEPAGE;
  			middir = *dir;
 -			*dir = NULL;
 -			nr_pages_to_free++;
 -			list_add(&middir->lru, &pages_to_free);
-+			if (!punch_hole ||
-+			    limit - idx >= ENTRIES_PER_PAGEPAGE) {
++			if (upper_limit >= stage) {
 +				*dir = NULL;
 +				nr_pages_to_free++;
 +				list_add(&middir->lru, &pages_to_free);
@@ -69,24 +122,40 @@ diff -puN mm/shmem.c~shmem-fix-bug-in-shmem_writepage mm/shmem.c
  			shmem_dir_unmap(dir);
  			cond_resched();
  			dir = shmem_dir_map(middir);
-@@ -598,7 +603,8 @@ static void shmem_truncate_range(struct 
+@@ -598,7 +608,7 @@ static void shmem_truncate_range(struct 
  		}
  		if (offset)
  			offset = 0;
 -		else if (subdir && !page_private(subdir)) {
-+		else if (subdir &&
-+			 (!punch_hole || limit - idx >= ENTRIES_PER_PAGE)) {
++		else if (subdir && upper_limit - idx >= ENTRIES_PER_PAGE) {
  			dir[diroff] = NULL;
  			nr_pages_to_free++;
  			list_add(&subdir->lru, &pages_to_free);
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-uml-fix-pte-bit-collision.patch
-shmem-fix-bug-in-shmem_writepage.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-filesystem-subtype-support.patch
-add-file-position-info-to-proc.patch
-consolidate-generic_writepages-and-mpage_writepages.patch
+holepunch-fix-shmem_truncate_range-punching-too-far.patch
+holepunch-fix-shmem_truncate_range-punch-locking.patch
+holepunch-fix-disconnected-pages-after-second-truncate.patch
+holepunch-fix-mmap_sem-i_mutex-deadlock.patch
+git-drm.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+free-swap-space-of-reactivated-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+smaps-use-ptep_test_and_clear_young.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
