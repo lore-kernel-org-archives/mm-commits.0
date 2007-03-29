@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch added to -mm tree
-Date: Thu, 29 Mar 2007 15:15:53 -0700
-Message-ID: <200703292215.l2TMFuJ3013552@shell0.pdx.osdl.net>
+Subject: + blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch added to -mm tree
+Date: Thu, 29 Mar 2007 15:16:26 -0700
+Message-ID: <200703292216.l2TMGQGe013555@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41060 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41064 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422657AbXC2WQA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 18:16:00 -0400
+	id S1422662AbXC2WQ2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 18:16:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bryan.wu@analog.com
 
 
 The patch titled
-     blackfin arch fix bug bf561 rev ID are 8-bit
+     blackfin arch fix bug prevent warning in case BF531 is target
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
+     blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: blackfin arch fix bug bf561 rev ID are 8-bit
+Subject: blackfin arch fix bug prevent warning in case BF531 is target
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/setup.c            |    3 +++
- include/asm-blackfin/mach-bf561/bf561.h |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ arch/blackfin/kernel/setup.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-bf561-rev-id-are-8-bit arch/blackfin/kernel/setup.c
---- a/arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-bf561-rev-id-are-8-bit
+diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target arch/blackfin/kernel/setup.c
+--- a/arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target
 +++ a/arch/blackfin/kernel/setup.c
-@@ -117,6 +117,9 @@ static u_int get_dsp_rev_id(void)
- {
- 	u_int id;
- 	id = bfin_read_DSPID() & 0xffff;
-+#if defined(CONFIG_BF561)
-+	id>>=8;
-+#endif
- 	return id;
- }
+@@ -571,7 +571,7 @@ static void __init generate_cpl_tables(v
+ 			 * rootfs size, there can be overlapping memory areas.
+ 			 */
  
-diff -puN include/asm-blackfin/mach-bf561/bf561.h~blackfin-arch-fix-bug-bf561-rev-id-are-8-bit include/asm-blackfin/mach-bf561/bf561.h
---- a/include/asm-blackfin/mach-bf561/bf561.h~blackfin-arch-fix-bug-bf561-rev-id-are-8-bit
-+++ a/include/asm-blackfin/mach-bf561/bf561.h
-@@ -30,7 +30,7 @@
- #ifndef __MACH_BF561_H__
- #define __MACH_BF561_H__
- 
--#define SUPPORTED_DSPID		0x300
-+#define SUPPORTED_DSPID		0x3
- 
- #define OFFSET_(x) ((x) & 0x0000FFFF)
- #define L1_ISRAM		0xFFA00000
+-			if (as_1m) {
++			if (as_1m &&  i!=L1I_MEM && i!=L1D_MEM) {
+ #ifdef CONFIG_MTD_UCLINUX
+ 				if (i == SDRAM_RAM_MTD) {
+ 					if ((cplb_data[SDRAM_KERN].end + 1) > cplb_data[SDRAM_RAM_MTD].start)
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -76,6 +62,7 @@ blackfin-arch-fix-compiling-error-in-flat-c-file.patch
 blackfin-arch-power-management-replace-firmware-disk-mode.patch
 blackfin-arch-add-kdebug-header-file.patch
 blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
+blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
 driver_bfin_serial_core.patch
 driver_bfin_serial_core-update.patch
 blackfin-on-chip-ethernet-mac-controller-driver.patch
@@ -86,7 +73,6 @@ blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
 blackfin-blackfin-on-chip-spi-controller-driver.patch
 blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
 blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
-blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
 blackfin-blackfin-utrace-patch.patch
 utrace-nommu-fixup-support-utrace.patch
 revoke-core-code-revoke-no-revoke-for-nommu.patch
