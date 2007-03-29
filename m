@@ -1,142 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - ntp-avoid-time_offset-overflows.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:42:14 -0700
-Message-ID: <200703290742.l2T7gEV2030288@shell0.pdx.osdl.net>
+Subject: - msi-x-fix-resume-crash.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:42:41 -0700
+Message-ID: <200703290742.l2T7gfjZ030319@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46154 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46155 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753296AbXC2Hmr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:42:47 -0400
+	id S1753023AbXC2Hms (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:42:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntp: avoid time_offset overflows
+     MSI: fix resume crash
 has been removed from the -mm tree.  Its filename was
-     ntp-avoid-time_offset-overflows.patch
+     msi-x-fix-resume-crash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ntp: avoid time_offset overflows
-From: john stultz <johnstul@us.ibm.com>
+Subject: MSI: fix resume crash
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-I've been seeing some odd NTP behavior recently on a few boxes and
-finally narrowed it down to time_offset overflowing when converted to
-SHIFT_UPDATE units (which was a side effect from my HZfreeNTP patch).
+So I think the right solution is to simply make pci_enable_device just flip
+enable bits and move the rest of the work someplace else.
 
-This patch converts time_offset from a long to a s64 which resolves the
-issue.
+However a thorough cleanup is a little extreme for this point in the
+release cycle, so I think a quick hack that makes the code not stomp the
+irq when msi irq's are enabled should be the first fix.  Then we can later
+make the code not change the irqs at all.
 
-[tglx@linutronix.de: signedness fixes]
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/ntp.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ arch/cris/arch-v32/drivers/pci/bios.c |    4 +++-
+ arch/frv/mb93090-mb00/pci-vdk.c       |    3 ++-
+ arch/i386/pci/common.c                |    6 ++++--
+ arch/ia64/pci/pci.c                   |    8 ++++++--
+ 4 files changed, 15 insertions(+), 6 deletions(-)
 
-diff -puN kernel/time/ntp.c~ntp-avoid-time_offset-overflows kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-avoid-time_offset-overflows
-+++ a/kernel/time/ntp.c
-@@ -32,7 +32,7 @@ static u64 tick_length, tick_length_base
- /* TIME_ERROR prevents overwriting the CMOS clock */
- static int time_state = TIME_OK;	/* clock synchronization status	*/
- int time_status = STA_UNSYNC;		/* clock status bits		*/
--static long time_offset;		/* time adjustment (ns)		*/
-+static s64 time_offset;		/* time adjustment (ns)		*/
- static long time_constant = 2;		/* pll time constant		*/
- long time_maxerror = NTP_PHASE_LIMIT;	/* maximum error (us)		*/
- long time_esterror = NTP_PHASE_LIMIT;	/* estimated error (us)		*/
-@@ -196,7 +196,7 @@ void __attribute__ ((weak)) notify_arch_
-  */
- int do_adjtimex(struct timex *txc)
+diff -puN arch/cris/arch-v32/drivers/pci/bios.c~msi-x-fix-resume-crash arch/cris/arch-v32/drivers/pci/bios.c
+--- a/arch/cris/arch-v32/drivers/pci/bios.c~msi-x-fix-resume-crash
++++ a/arch/cris/arch-v32/drivers/pci/bios.c
+@@ -100,7 +100,9 @@ int pcibios_enable_device(struct pci_dev
+ 	if ((err = pcibios_enable_resources(dev, mask)) < 0)
+ 		return err;
+ 
+-	return pcibios_enable_irq(dev);
++	if (!dev->msi_enabled)
++		pcibios_enable_irq(dev);
++	return 0;
+ }
+ 
+ int pcibios_assign_resources(void)
+diff -puN arch/frv/mb93090-mb00/pci-vdk.c~msi-x-fix-resume-crash arch/frv/mb93090-mb00/pci-vdk.c
+--- a/arch/frv/mb93090-mb00/pci-vdk.c~msi-x-fix-resume-crash
++++ a/arch/frv/mb93090-mb00/pci-vdk.c
+@@ -466,6 +466,7 @@ int pcibios_enable_device(struct pci_dev
+ 
+ 	if ((err = pcibios_enable_resources(dev, mask)) < 0)
+ 		return err;
+-	pcibios_enable_irq(dev);
++	if (!dev->msi_enabled)
++		pcibios_enable_irq(dev);
+ 	return 0;
+ }
+diff -puN arch/i386/pci/common.c~msi-x-fix-resume-crash arch/i386/pci/common.c
+--- a/arch/i386/pci/common.c~msi-x-fix-resume-crash
++++ a/arch/i386/pci/common.c
+@@ -449,11 +449,13 @@ int pcibios_enable_device(struct pci_dev
+ 	if ((err = pcibios_enable_resources(dev, mask)) < 0)
+ 		return err;
+ 
+-	return pcibios_enable_irq(dev);
++	if (!dev->msi_enabled)
++		return pcibios_enable_irq(dev);
++	return 0;
+ }
+ 
+ void pcibios_disable_device (struct pci_dev *dev)
  {
--	long ltemp, mtemp, save_adjust;
-+	long mtemp, save_adjust, rem;
- 	s64 freq_adj, temp64;
- 	int result;
+-	if (pcibios_disable_irq)
++	if (!dev->msi_enabled && pcibios_disable_irq)
+ 		pcibios_disable_irq(dev);
+ }
+diff -puN arch/ia64/pci/pci.c~msi-x-fix-resume-crash arch/ia64/pci/pci.c
+--- a/arch/ia64/pci/pci.c~msi-x-fix-resume-crash
++++ a/arch/ia64/pci/pci.c
+@@ -557,14 +557,18 @@ pcibios_enable_device (struct pci_dev *d
+ 	if (ret < 0)
+ 		return ret;
  
-@@ -277,14 +277,14 @@ int do_adjtimex(struct timex *txc)
- 		    time_adjust = txc->offset;
- 		}
- 		else if (time_status & STA_PLL) {
--		    ltemp = txc->offset * NSEC_PER_USEC;
-+		    time_offset = txc->offset * NSEC_PER_USEC;
+-	return acpi_pci_irq_enable(dev);
++	if (!dev->msi_enabled)
++		return acpi_pci_irq_enable(dev);
++	return 0;
+ }
  
- 		    /*
- 		     * Scale the phase adjustment and
- 		     * clamp to the operating range.
- 		     */
--		    time_offset = min(ltemp, MAXPHASE * NSEC_PER_USEC);
--		    time_offset = max(time_offset, -MAXPHASE * NSEC_PER_USEC);
-+		    time_offset = min(time_offset, (s64)MAXPHASE * NSEC_PER_USEC);
-+		    time_offset = max(time_offset, (s64)-MAXPHASE * NSEC_PER_USEC);
+ void
+ pcibios_disable_device (struct pci_dev *dev)
+ {
+ 	BUG_ON(atomic_read(&dev->enable_cnt));
+-	acpi_pci_irq_disable(dev);
++	if (!dev->msi_enabled)
++		acpi_pci_irq_disable(dev);
++	return 0;
+ }
  
- 		    /*
- 		     * Select whether the frequency is to be controlled
-@@ -297,11 +297,11 @@ int do_adjtimex(struct timex *txc)
- 		    mtemp = xtime.tv_sec - time_reftime;
- 		    time_reftime = xtime.tv_sec;
- 
--		    freq_adj = (s64)time_offset * mtemp;
-+		    freq_adj = time_offset * mtemp;
- 		    freq_adj = shift_right(freq_adj, time_constant * 2 +
- 					   (SHIFT_PLL + 2) * 2 - SHIFT_NSEC);
- 		    if (mtemp >= MINSEC && (time_status & STA_FLL || mtemp > MAXSEC)) {
--			temp64 = (s64)time_offset << (SHIFT_NSEC - SHIFT_FLL);
-+			temp64 = time_offset << (SHIFT_NSEC - SHIFT_FLL);
- 			if (time_offset < 0) {
- 			    temp64 = -temp64;
- 			    do_div(temp64, mtemp);
-@@ -314,8 +314,10 @@ int do_adjtimex(struct timex *txc)
- 		    freq_adj += time_freq;
- 		    freq_adj = min(freq_adj, (s64)MAXFREQ_NSEC);
- 		    time_freq = max(freq_adj, (s64)-MAXFREQ_NSEC);
--		    time_offset = (time_offset / NTP_INTERVAL_FREQ)
--		    			<< SHIFT_UPDATE;
-+		    time_offset = div_long_long_rem_signed(time_offset,
-+							   NTP_INTERVAL_FREQ,
-+							   &rem);
-+		    time_offset <<= SHIFT_UPDATE;
- 		} /* STA_PLL */
- 	    } /* txc->modes & ADJ_OFFSET */
- 	    if (txc->modes & ADJ_TICK)
-@@ -328,12 +330,12 @@ leave:	if ((time_status & (STA_UNSYNC|ST
- 		result = TIME_ERROR;
- 
- 	if ((txc->modes & ADJ_OFFSET_SINGLESHOT) == ADJ_OFFSET_SINGLESHOT)
--	    txc->offset	   = save_adjust;
-+		txc->offset = save_adjust;
- 	else
--	    txc->offset    = shift_right(time_offset, SHIFT_UPDATE)
--	    			* NTP_INTERVAL_FREQ / 1000;
--	txc->freq	   = (time_freq / NSEC_PER_USEC)
--				<< (SHIFT_USEC - SHIFT_NSEC);
-+		txc->offset = ((long)shift_right(time_offset, SHIFT_UPDATE)) *
-+	    			NTP_INTERVAL_FREQ / 1000;
-+	txc->freq	   = (time_freq / NSEC_PER_USEC) <<
-+				(SHIFT_USEC - SHIFT_NSEC);
- 	txc->maxerror	   = time_maxerror;
- 	txc->esterror	   = time_esterror;
- 	txc->status	   = time_status;
+ void
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-log-reason-why-tsc-was-marked-unstable.patch
-convert-h8-300-to-generic-timekeeping.patch
-v850-generic-timekeeping-conversion.patch
-optimize-timespec_trunc.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-declare-struct-ktime.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+i386-irq-kill-irq-compression.patch
+i386-irq-kill-nr_irq_vectors-and-increase-nr_irqs.patch
+x86_64-irq-remove-extra-smp_processor_id-calling.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
+i386-account-for-module-percpu-space-separately-from-kernel.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+edac-k8-driver-coding-tidy.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
