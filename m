@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-unreasonably-long-udelay.patch added to -mm tree
-Date: Wed, 28 Mar 2007 18:37:42 -0700
-Message-ID: <200703290137.l2T1bgI3024863@shell0.pdx.osdl.net>
+Subject: + add-touch_all_softlockup_watchdogs.patch added to -mm tree
+Date: Wed, 28 Mar 2007 18:43:37 -0700
+Message-ID: <200703290143.l2T1hbbX024971@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38112 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38294 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965886AbXC2Bhq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 21:37:46 -0400
+	id S965884AbXC2Boc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 21:44:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: blaisorblade@yahoo.it, jdike@addtoit.com
+Cc: jeremy@goop.org, clalance@redhat.com, jeremy@xensource.com, mingo@elte.hu, prarit@redhat.com, ricklind@us.ibm.com
 
 
 The patch titled
-     uml: fix unreasonably long udelay
+     add touch_all_softlockup_watchdogs()
 has been added to the -mm tree.  Its filename is
-     uml-fix-unreasonably-long-udelay.patch
+     add-touch_all_softlockup_watchdogs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,128 +25,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix unreasonably long udelay
-From: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
+Subject: add touch_all_softlockup_watchdogs()
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Currently we have a confused udelay implementation.
+Add touch_all_softlockup_watchdogs() to allow the softlockup watchdog
+timers on all cpus to be updated.  This is used to prevent sysrq-t from
+generating a spurious watchdog message when generating lots of output.
 
-* __const_udelay does not accept usecs but xloops in i386 and x86_64
-* our implementation requires usecs as arg
-* it gets a xloops count when called by asm/arch/delay.h
+Softlockup watchdogs use sched_clock() as its timebase, which is inherently
+per-cpu (at least, when it is measuring unstolen time).  Because of this,
+it isn't possible for one CPU to directly update the other CPU's timers,
+but it is possible to tell the other CPUs to do update themselves
+appropriately.
 
-Bugs related to this (extremely long shutdown times) where reported by some
-x86_64 users, especially using Device Mapper.
-
-To hit this bug, a compile-time constant time parameter must be passed -
-that's why UML seems to work most times.  Fix this with a simple udelay
-implementation.
-
-Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Chris Lalancette <clalance@redhat.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Rick Lindsley <ricklind@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/delay.c   |   11 -----------
- arch/um/sys-x86_64/delay.c |   11 -----------
- include/asm-um/delay.h     |   17 ++++++++++++++---
- 3 files changed, 14 insertions(+), 25 deletions(-)
+ include/linux/sched.h |    4 ++++
+ kernel/sched.c        |    2 ++
+ kernel/softlockup.c   |   15 +++++++++++++--
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/sys-i386/delay.c~uml-fix-unreasonably-long-udelay arch/um/sys-i386/delay.c
---- a/arch/um/sys-i386/delay.c~uml-fix-unreasonably-long-udelay
-+++ a/arch/um/sys-i386/delay.c
-@@ -27,14 +27,3 @@ void __udelay(unsigned long usecs)
+diff -puN include/linux/sched.h~add-touch_all_softlockup_watchdogs include/linux/sched.h
+--- a/include/linux/sched.h~add-touch_all_softlockup_watchdogs
++++ a/include/linux/sched.h
+@@ -226,6 +226,7 @@ extern void scheduler_tick(void);
+ extern void softlockup_tick(void);
+ extern void spawn_softlockup_task(void);
+ extern void touch_softlockup_watchdog(void);
++extern void touch_all_softlockup_watchdogs(void);
+ #else
+ static inline void softlockup_tick(void)
+ {
+@@ -236,6 +237,9 @@ static inline void spawn_softlockup_task
+ static inline void touch_softlockup_watchdog(void)
+ {
  }
- 
- EXPORT_SYMBOL(__udelay);
--
--void __const_udelay(unsigned long usecs)
--{
--	int i, n;
--
--	n = (loops_per_jiffy * HZ * usecs) / MILLION;
--        for(i=0;i<n;i++)
--                cpu_relax();
--}
--
--EXPORT_SYMBOL(__const_udelay);
-diff -puN arch/um/sys-x86_64/delay.c~uml-fix-unreasonably-long-udelay arch/um/sys-x86_64/delay.c
---- a/arch/um/sys-x86_64/delay.c~uml-fix-unreasonably-long-udelay
-+++ a/arch/um/sys-x86_64/delay.c
-@@ -28,14 +28,3 @@ void __udelay(unsigned long usecs)
- }
- 
- EXPORT_SYMBOL(__udelay);
--
--void __const_udelay(unsigned long usecs)
--{
--	unsigned long i, n;
--
--	n = (loops_per_jiffy * HZ * usecs) / MILLION;
--        for(i=0;i<n;i++)
--                cpu_relax();
--}
--
--EXPORT_SYMBOL(__const_udelay);
-diff -puN include/asm-um/delay.h~uml-fix-unreasonably-long-udelay include/asm-um/delay.h
---- a/include/asm-um/delay.h~uml-fix-unreasonably-long-udelay
-+++ a/include/asm-um/delay.h
-@@ -1,9 +1,20 @@
- #ifndef __UM_DELAY_H
- #define __UM_DELAY_H
- 
--#include "asm/arch/delay.h"
--#include "asm/archparam.h"
--
- #define MILLION 1000000
- 
-+/* Undefined on purpose */
-+extern void __bad_udelay(void);
-+
-+extern void __udelay(unsigned long usecs);
-+extern void __delay(unsigned long loops);
-+
-+#define udelay(n) ((__builtin_constant_p(n) && (n) > 20000) ? \
-+	__bad_udelay() : __udelay(n))
-+
-+/* It appears that ndelay is not used at all for UML, and has never been
-+ * implemented. */
-+extern void __unimplemented_ndelay(void);
-+#define ndelay(n) __unimplemented_ndelay()
-+
++static inline void touch_all_softlockup_watchdogs(void)
++{
++}
  #endif
+ 
+ 
+diff -puN kernel/sched.c~add-touch_all_softlockup_watchdogs kernel/sched.c
+--- a/kernel/sched.c~add-touch_all_softlockup_watchdogs
++++ a/kernel/sched.c
+@@ -4784,6 +4784,8 @@ void show_state_filter(unsigned long sta
+ 			show_task(p);
+ 	} while_each_thread(g, p);
+ 
++	touch_all_softlockup_watchdogs();
++
+ 	read_unlock(&tasklist_lock);
+ 	/*
+ 	 * Only show locks if all tasks are dumped:
+diff -puN kernel/softlockup.c~add-touch_all_softlockup_watchdogs kernel/softlockup.c
+--- a/kernel/softlockup.c~add-touch_all_softlockup_watchdogs
++++ a/kernel/softlockup.c
+@@ -50,6 +50,16 @@ void touch_softlockup_watchdog(void)
+ }
+ EXPORT_SYMBOL(touch_softlockup_watchdog);
+ 
++void touch_all_softlockup_watchdogs(void)
++{
++	int cpu;
++
++	/* Cause each CPU to re-update its timestamp rather than complain */
++	for_each_online_cpu(cpu)
++		per_cpu(touch_timestamp, cpu) = 0;
++}
++EXPORT_SYMBOL(touch_all_softlockup_watchdogs);
++
+ /*
+  * This callback runs from the timer interrupt, and checks
+  * whether the watchdog thread has hung or not:
+@@ -61,9 +71,10 @@ void softlockup_tick(void)
+ 	unsigned long print_timestamp;
+ 	unsigned long now;
+ 
+-	/* watchdog task hasn't updated timestamp yet */
+-	if (touch_timestamp == 0)
++	if (touch_timestamp == 0) {
++		touch_softlockup_watchdog();
+ 		return;
++	}
+ 
+ 	print_timestamp = __get_cpu_var(print_timestamp);
+ 
 _
 
-Patches currently in -mm which might be from blaisorblade@yahoo.it are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-uml-fix-static-linking.patch
-uml-use-correct-register-file-size-everywhere.patch
-uml-fix-i-o-hang-when-multiple-devices-are-in-use.patch
-uml-fix-device-unplug-crash.patch
-uml-fix-pte-bit-collision.patch
-uml-irq-locking-fixes.patch
-uml-fix-lvm-crash.patch
-uml-fix-compilation-problems.patch
-uml-hostfs-variable-renaming.patch
-uml-fix-unreasonably-long-udelay.patch
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-uml-improve-checking-and-diagnostics-of-ethernet-macs.patch
-uml-eliminate-temporary-buffer-in-eth_configure.patch
-uml-replace-one-element-array-with-zero-element-array.patch
-fix-utrace-utrace-tracehook-um.patch
-git-gccbug.patch
+i386-simplify-smp_call_function-by-using-common-implementation.patch
+i386-account-for-module-percpu-space-separately-from-kernel.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+add-touch_all_softlockup_watchdogs.patch
