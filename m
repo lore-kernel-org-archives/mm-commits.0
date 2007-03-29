@@ -1,55 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:38:07 -0700
-Message-ID: <200703292338.l2TNc7J5015194@shell0.pdx.osdl.net>
+Subject: - make-struct-vmi_ops-static.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:38:02 -0700
+Message-ID: <200703292338.l2TNc26t015188@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43300 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43295 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934402AbXC2XlZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:41:25 -0400
+	id S934400AbXC2XlS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ak@muc.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ak@suse.de, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 asm-offsets.c: workaround for a -Wmissing-prototypes warning
+     make struct vmi_ops static
 has been removed from the -mm tree.  Its filename was
-     i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning.patch
+     make-struct-vmi_ops-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 asm-offsets.c: workaround for a -Wmissing-prototypes warning
+Subject: make struct vmi_ops static
 From: Adrian Bunk <bunk@stusta.de>
 
-Work around a warning with -Wmissing-prototypes in
-arch/i386/kernel/asm-offsets.c
-
-The warning isn't gcc's fault - asm-offsets.c is simply a special file.
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Andi Kleen <ak@muc.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/asm-offsets.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/i386/kernel/vmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/asm-offsets.c~i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning arch/i386/kernel/asm-offsets.c
---- a/arch/i386/kernel/asm-offsets.c~i386-asm-offsetsc-workaround-for-a-wmissing-prototypes-warning
-+++ a/arch/i386/kernel/asm-offsets.c
-@@ -25,6 +25,9 @@
- #define OFFSET(sym, str, mem) \
- 	DEFINE(sym, offsetof(struct str, mem));
+diff -puN arch/i386/kernel/vmi.c~make-struct-vmi_ops-static arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~make-struct-vmi_ops-static
++++ a/arch/i386/kernel/vmi.c
+@@ -56,7 +56,7 @@ static int disable_noidle;
+ static int disable_vmi_timer;
  
-+/* workaround for a warning with -Wmissing-prototypes */
-+void foo(void);
-+
- void foo(void)
- {
- 	OFFSET(SIGCONTEXT_eax, sigcontext, eax);
+ /* Cached VMI operations */
+-struct {
++static struct {
+ 	void (*cpuid)(void /* non-c */);
+ 	void (*_set_ldt)(u32 selector);
+ 	void (*set_tr)(u32 selector);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
