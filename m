@@ -1,152 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - holepunch-fix-shmem_truncate_range-punching-too-far.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:37:32 -0700
-Message-ID: <200703292337.l2TNbWrm015125@shell0.pdx.osdl.net>
+Subject: - mm-fix-xip-issue-with-dev-zero.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:37:44 -0700
+Message-ID: <200703292337.l2TNbiTr015149@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42985 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43005 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945925AbXC2Xhl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:37:41 -0400
+	id S1945924AbXC2Xhy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:37:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mszeredi@suse.cs, pbadari@us.ibm.com, mm-commits@vger.kernel.org
+To: cotte@de.ibm.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     holepunch: fix shmem_truncate_range punching too far
+     mm: fix xip issue with /dev/zero
 has been removed from the -mm tree.  Its filename was
-     holepunch-fix-shmem_truncate_range-punching-too-far.patch
+     mm-fix-xip-issue-with-dev-zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: holepunch: fix shmem_truncate_range punching too far
-From: Hugh Dickins <hugh@veritas.com>
+Subject: mm: fix xip issue with /dev/zero
+From: Carsten Otte <cotte@de.ibm.com>
 
-Miklos Szeredi observes BUG_ON(!entry) in shmem_writepage() triggered in rare
-circumstances, because shmem_truncate_range() erroneously removes partially
-truncated directory pages at the end of the range: later reclaim on pages
-pointing to these removed directories triggers the BUG.  Indeed, and it can
-also cause data loss beyond the hole.
+Fix the bug, that reading into xip mapping from /dev/zero fills the user
+page table with ZERO_PAGE() entries.  Later on, xip cannot tell which pages
+have been ZERO_PAGE() filled by access to a sparse mapping, and which ones
+origin from /dev/zero.  It will unmap ZERO_PAGE from all mappings when
+filling the sparse hole with data.  xip does now use its own zeroed page
+for its sparse mappings.  Please apply.
 
-Fix this as in the patch proposed by Miklos, but distinguish between "limit"
-(how far we need to search: ignore truncation's next_index optimization in the
-holepunch case - if there are races it's more consistent to act on the whole
-range specified) and "upper_limit" (how far we can free directory pages:
-generally we must be careful to keep partially punched pages, but can relax at
-end of file - i_size being held stable by i_mutex).
-
+Signed-off-by: Carsten Otte <cotte@de.ibm.com>
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Miklos Szeredi <mszeredi@suse.cs>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   32 +++++++++++++++++++++-----------
- 1 file changed, 21 insertions(+), 11 deletions(-)
+ mm/filemap_xip.c |   48 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 37 insertions(+), 11 deletions(-)
 
-diff -puN mm/shmem.c~holepunch-fix-shmem_truncate_range-punching-too-far mm/shmem.c
---- a/mm/shmem.c~holepunch-fix-shmem_truncate_range-punching-too-far
-+++ a/mm/shmem.c
-@@ -481,7 +481,8 @@ static void shmem_truncate_range(struct 
- 	long nr_swaps_freed = 0;
- 	int offset;
- 	int freed;
--	int punch_hole = 0;
-+	int punch_hole;
-+	unsigned long upper_limit;
+diff -puN mm/filemap_xip.c~mm-fix-xip-issue-with-dev-zero mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-fix-xip-issue-with-dev-zero
++++ a/mm/filemap_xip.c
+@@ -17,6 +17,29 @@
+ #include "filemap.h"
  
- 	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
- 	idx = (start + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-@@ -492,11 +493,18 @@ static void shmem_truncate_range(struct 
- 	info->flags |= SHMEM_TRUNCATE;
- 	if (likely(end == (loff_t) -1)) {
- 		limit = info->next_index;
-+		upper_limit = SHMEM_MAX_INDEX;
- 		info->next_index = idx;
-+		punch_hole = 0;
- 	} else {
--		limit = (end + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
--		if (limit > info->next_index)
--			limit = info->next_index;
-+		if (end + 1 >= inode->i_size) {	/* we may free a little more */
-+			limit = (inode->i_size + PAGE_CACHE_SIZE - 1) >>
-+							PAGE_CACHE_SHIFT;
-+			upper_limit = SHMEM_MAX_INDEX;
-+		} else {
-+			limit = (end + 1) >> PAGE_CACHE_SHIFT;
-+			upper_limit = limit;
+ /*
++ * We do use our own empty page to avoid interference with other users
++ * of ZERO_PAGE(), such as /dev/zero
++ */
++static struct page *__xip_sparse_page;
++
++static struct page *xip_sparse_page(void)
++{
++	if (!__xip_sparse_page) {
++		unsigned long zeroes = get_zeroed_page(GFP_HIGHUSER);
++		if (zeroes) {
++			static DEFINE_SPINLOCK(xip_alloc_lock);
++			spin_lock(&xip_alloc_lock);
++			if (!__xip_sparse_page)
++				__xip_sparse_page = virt_to_page(zeroes);
++			else
++				free_page(zeroes);
++			spin_unlock(&xip_alloc_lock);
 +		}
- 		punch_hole = 1;
++	}
++	return __xip_sparse_page;
++}
++
++/*
+  * This is a file read routine for execute in place files, and uses
+  * the mapping->a_ops->get_xip_page() function for the actual low-level
+  * stuff.
+@@ -162,7 +185,7 @@ EXPORT_SYMBOL_GPL(xip_file_sendfile);
+  * xip_write
+  *
+  * This function walks all vmas of the address_space and unmaps the
+- * ZERO_PAGE when found at pgoff. Should it go in rmap.c?
++ * __xip_sparse_page when found at pgoff.
+  */
+ static void
+ __xip_unmap (struct address_space * mapping,
+@@ -177,13 +200,16 @@ __xip_unmap (struct address_space * mapp
+ 	spinlock_t *ptl;
+ 	struct page *page;
+ 
++	page = __xip_sparse_page;
++	if (!page)
++		return;
++
+ 	spin_lock(&mapping->i_mmap_lock);
+ 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
+ 		mm = vma->vm_mm;
+ 		address = vma->vm_start +
+ 			((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 		BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+-		page = ZERO_PAGE(0);
+ 		pte = page_check_address(page, mm, address, &ptl);
+ 		if (pte) {
+ 			/* Nuke the page table entry. */
+@@ -222,16 +248,14 @@ xip_file_nopage(struct vm_area_struct * 
+ 		+ area->vm_pgoff;
+ 
+ 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (pgoff >= size) {
+-		return NULL;
+-	}
++	if (pgoff >= size)
++		return NOPAGE_SIGBUS;
+ 
+ 	page = mapping->a_ops->get_xip_page(mapping, pgoff*(PAGE_SIZE/512), 0);
+-	if (!IS_ERR(page)) {
++	if (!IS_ERR(page))
+ 		goto out;
+-	}
+ 	if (PTR_ERR(page) != -ENODATA)
+-		return NULL;
++		return NOPAGE_SIGBUS;
+ 
+ 	/* sparse block */
+ 	if ((area->vm_flags & (VM_WRITE | VM_MAYWRITE)) &&
+@@ -241,12 +265,14 @@ xip_file_nopage(struct vm_area_struct * 
+ 		page = mapping->a_ops->get_xip_page (mapping,
+ 			pgoff*(PAGE_SIZE/512), 1);
+ 		if (IS_ERR(page))
+-			return NULL;
++			return NOPAGE_SIGBUS;
+ 		/* unmap page at pgoff from all other vmas */
+ 		__xip_unmap(mapping, pgoff);
+ 	} else {
+-		/* not shared and writable, use ZERO_PAGE() */
+-		page = ZERO_PAGE(0);
++		/* not shared and writable, use xip_sparse_page() */
++		page = xip_sparse_page();
++		if (!page)
++			return NOPAGE_OOM;
  	}
  
-@@ -520,10 +528,10 @@ static void shmem_truncate_range(struct 
- 	 * If there are no indirect blocks or we are punching a hole
- 	 * below indirect blocks, nothing to be done.
- 	 */
--	if (!topdir || (punch_hole && (limit <= SHMEM_NR_DIRECT)))
-+	if (!topdir || limit <= SHMEM_NR_DIRECT)
- 		goto done2;
- 
--	BUG_ON(limit <= SHMEM_NR_DIRECT);
-+	upper_limit -= SHMEM_NR_DIRECT;
- 	limit -= SHMEM_NR_DIRECT;
- 	idx = (idx > SHMEM_NR_DIRECT)? (idx - SHMEM_NR_DIRECT): 0;
- 	offset = idx % ENTRIES_PER_PAGE;
-@@ -543,7 +551,7 @@ static void shmem_truncate_range(struct 
- 		if (*dir) {
- 			diroff = ((idx - ENTRIES_PER_PAGEPAGE/2) %
- 				ENTRIES_PER_PAGEPAGE) / ENTRIES_PER_PAGE;
--			if (!diroff && !offset) {
-+			if (!diroff && !offset && upper_limit >= stage) {
- 				*dir = NULL;
- 				nr_pages_to_free++;
- 				list_add(&middir->lru, &pages_to_free);
-@@ -570,9 +578,11 @@ static void shmem_truncate_range(struct 
- 			}
- 			stage = idx + ENTRIES_PER_PAGEPAGE;
- 			middir = *dir;
--			*dir = NULL;
--			nr_pages_to_free++;
--			list_add(&middir->lru, &pages_to_free);
-+			if (upper_limit >= stage) {
-+				*dir = NULL;
-+				nr_pages_to_free++;
-+				list_add(&middir->lru, &pages_to_free);
-+			}
- 			shmem_dir_unmap(dir);
- 			cond_resched();
- 			dir = shmem_dir_map(middir);
-@@ -598,7 +608,7 @@ static void shmem_truncate_range(struct 
- 		}
- 		if (offset)
- 			offset = 0;
--		else if (subdir && !page_private(subdir)) {
-+		else if (subdir && upper_limit - idx >= ENTRIES_PER_PAGE) {
- 			dir[diroff] = NULL;
- 			nr_pages_to_free++;
- 			list_add(&subdir->lru, &pages_to_free);
+ out:
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from cotte@de.ibm.com are
 
 origin.patch
-git-drm.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-smaps-use-ptep_test_and_clear_young.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
