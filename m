@@ -1,65 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-load_tls-to-the-for-loop.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:38:52 -0700
-Message-ID: <200703292338.l2TNcqnH015377@shell0.pdx.osdl.net>
+Subject: - remove-unused-set_seg_base.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:38:54 -0700
+Message-ID: <200703292338.l2TNcsd3015383@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43146 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43151 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934393AbXC2Xi7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:38:59 -0400
+	id S934398AbXC2XjB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:39:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [PATCH] Introduce load_TLS to the "for" loop.
+     Remove unused set_seg_base
 has been removed from the -mm tree.  Its filename was
-     introduce-load_tls-to-the-for-loop.patch
+     remove-unused-set_seg_base.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Subject: [PATCH] Introduce load_TLS to the "for" loop.
+Subject: Remove unused set_seg_base
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-GCC (4.1 at least) unrolls it anyway, but I can't believe this code
-was ever justifiable.  (I've also submitted a patch which cleans up
-i386, which is even uglier).
+The set_seg_base function isn't used anywhere (2.6.21-rc3-git1)
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/desc.h |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ include/asm-x86_64/desc.h |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN include/asm-x86_64/desc.h~introduce-load_tls-to-the-for-loop include/asm-x86_64/desc.h
---- a/include/asm-x86_64/desc.h~introduce-load_tls-to-the-for-loop
+diff -puN include/asm-x86_64/desc.h~remove-unused-set_seg_base include/asm-x86_64/desc.h
+--- a/include/asm-x86_64/desc.h~remove-unused-set_seg_base
 +++ a/include/asm-x86_64/desc.h
-@@ -145,16 +145,13 @@ static inline void set_seg_base(unsigned
- 	(info)->useable		== 0	&& \
- 	(info)->lm		== 0)
+@@ -107,16 +107,6 @@ static inline void set_ldt_desc(unsigned
+ 			      DESC_LDT, size * 8 - 1);
+ }
  
--#if TLS_SIZE != 24
--# error update this code.
--#endif
+-static inline void set_seg_base(unsigned cpu, int entry, void *base)
+-{ 
+-	struct desc_struct *d = &cpu_gdt(cpu)[entry];
+-	u32 addr = (u32)(u64)base;
+-	BUG_ON((u64)base >> 32); 
+-	d->base0 = addr & 0xffff;
+-	d->base1 = (addr >> 16) & 0xff;
+-	d->base2 = (addr >> 24) & 0xff;
+-} 
 -
- static inline void load_TLS(struct thread_struct *t, unsigned int cpu)
- {
-+	unsigned int i;
- 	u64 *gdt = (u64 *)(cpu_gdt(cpu) + GDT_ENTRY_TLS_MIN);
--	gdt[0] = t->tls_array[0];
--	gdt[1] = t->tls_array[1];
--	gdt[2] = t->tls_array[2];
-+
-+	for (i = 0; i < GDT_ENTRY_TLS_ENTRIES; i++)
-+		gdt[i] = t->tls_array[i];
- } 
- 
- /*
+ #define LDT_entry_a(info) \
+ 	((((info)->base_addr & 0x0000ffff) << 16) | ((info)->limit & 0x0ffff))
+ /* Don't allow setting of the lm bit. It is useless anyways because 
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
