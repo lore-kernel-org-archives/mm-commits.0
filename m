@@ -1,126 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-xip-issue-with-dev-zero.patch added to -mm tree
-Date: Wed, 28 Mar 2007 17:28:44 -0700
-Message-ID: <200703290028.l2T0SiKF023759@shell0.pdx.osdl.net>
+Subject: - mm-only-free-swap-space-of-reactivated-pages-debug.patch removed from -mm tree
+Date: Wed, 28 Mar 2007 18:25:59 -0700
+Message-ID: <200703290126.l2T1PxBX024666@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36590 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37874 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933951AbXC2A2x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 28 Mar 2007 20:28:53 -0400
+	id S933078AbXC2B0R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 28 Mar 2007 21:26:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: cotte@de.ibm.com, hugh@veritas.com, nickpiggin@yahoo.com.au
+To: akpm@linux-foundation.org, hugh@veritas.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix xip issue with /dev/zero
-has been added to the -mm tree.  Its filename is
-     mm-fix-xip-issue-with-dev-zero.patch
+     mm-only free-swap-space-of-reactivated-pages debug
+has been removed from the -mm tree.  Its filename was
+     mm-only-free-swap-space-of-reactivated-pages-debug.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: mm: fix xip issue with /dev/zero
-From: Carsten Otte <cotte@de.ibm.com>
+Subject: mm-only free-swap-space-of-reactivated-pages debug
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix the bug, that reading into xip mapping from /dev/zero fills the user
-page table with ZERO_PAGE() entries.  Later on, xip cannot tell which pages
-have been ZERO_PAGE() filled by access to a sparse mapping, and which ones
-origin from /dev/zero.  It will unmap ZERO_PAGE from all mappings when
-filling the sparse hole with data.  xip does now use its own zeroed page
-for its sparse mappings.  Please apply.
-
-Signed-off-by: Carsten Otte <cotte@de.ibm.com>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap_xip.c |   38 ++++++++++++++++++++++++++++++++++----
- 1 files changed, 34 insertions(+), 4 deletions(-)
+ mm/swap.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN mm/filemap_xip.c~mm-fix-xip-issue-with-dev-zero mm/filemap_xip.c
---- a/mm/filemap_xip.c~mm-fix-xip-issue-with-dev-zero
-+++ a/mm/filemap_xip.c
-@@ -17,6 +17,29 @@
- #include "filemap.h"
- 
- /*
-+ * We do use our own empty page to avoid interference with other users
-+ * of ZERO_PAGE(), such as /dev/zero
-+ */
-+static struct page *__xip_sparse_page;
-+
-+static struct page *xip_sparse_page(void)
-+{
-+	if (!__xip_sparse_page) {
-+		unsigned long zeroes = get_zeroed_page(GFP_HIGHUSER);
-+		if (zeroes) {
-+			static DEFINE_SPINLOCK(xip_alloc_lock);
-+			spin_lock(&xip_alloc_lock);
-+			if (!__xip_sparse_page)
-+				__xip_sparse_page = virt_to_page(zeroes);
-+			else
-+				free_page(zeroes);
-+			spin_unlock(&xip_alloc_lock);
-+		}
-+	}
-+	return __xip_sparse_page;
-+}
-+
-+/*
-  * This is a file read routine for execute in place files, and uses
-  * the mapping->a_ops->get_xip_page() function for the actual low-level
-  * stuff.
-@@ -162,7 +185,7 @@ EXPORT_SYMBOL_GPL(xip_file_sendfile);
-  * xip_write
-  *
-  * This function walks all vmas of the address_space and unmaps the
-- * ZERO_PAGE when found at pgoff. Should it go in rmap.c?
-+ * __xip_sparse_page when found at pgoff.
-  */
- static void
- __xip_unmap (struct address_space * mapping,
-@@ -177,13 +200,16 @@ __xip_unmap (struct address_space * mapp
- 	spinlock_t *ptl;
- 	struct page *page;
- 
-+	page = __xip_sparse_page;
-+	if (!page)
-+		return;
-+
- 	spin_lock(&mapping->i_mmap_lock);
- 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
- 		mm = vma->vm_mm;
- 		address = vma->vm_start +
- 			((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
- 		BUG_ON(address < vma->vm_start || address >= vma->vm_end);
--		page = ZERO_PAGE(0);
- 		pte = page_check_address(page, mm, address, &ptl);
- 		if (pte) {
- 			/* Nuke the page table entry. */
-@@ -245,8 +271,12 @@ static struct page *xip_file_fault(struc
- 		/* unmap page at pgoff from all other vmas */
- 		__xip_unmap(mapping, fdata->pgoff);
- 	} else {
--		/* not shared and writable, use ZERO_PAGE() */
--		page = ZERO_PAGE(0);
-+		/* not shared and writable, use xip_sparse_page() */
-+		page = xip_sparse_page();
-+		if (!page) {
-+	                fdata->type = VM_FAULT_OOM;
-+	                return NULL;
-+		}
+diff -puN mm/swap.c~mm-only-free-swap-space-of-reactivated-pages-debug mm/swap.c
+--- a/mm/swap.c~mm-only-free-swap-space-of-reactivated-pages-debug
++++ a/mm/swap.c
+@@ -479,6 +479,8 @@ void pagevec_swap_free(struct pagevec *p
+ 			if (PageSwapCache(page))
+ 				remove_exclusive_swap_page(page);
+ 			unlock_page(page);
++			if (printk_ratelimit())
++				printk("kswapd freed a swap space\n");
+ 		}
  	}
- 
- out:
+ }
 _
 
-Patches currently in -mm which might be from cotte@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-xip-issue-with-dev-zero.patch
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-vs-gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-piggy-bus.patch
+fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
+git-pciseg.patch
+git-scsi-rc-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+i386-vdso_prelink-warning-fix.patch
+allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
+prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+i386-gdt-cleanups-use-per-cpu-variables-for-gdt-pda.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+mm-only-free-swap-space-of-reactivated-pages-debug.patch
+mm-only-hrtimers-debug-patch-fix.patch
