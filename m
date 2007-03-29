@@ -1,60 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - fix-struct-device-member-name-in-pcmcia-au1000_generic.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:42:19 -0700
-Message-ID: <200703290742.l2T7gJhr030294@shell0.pdx.osdl.net>
+Subject: - make-elv_register-output-atomic.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:43:18 -0700
+Message-ID: <200703290743.l2T7hIVm030373@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46373 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46419 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965975AbXC2Hp6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:45:58 -0400
+	id S965977AbXC2Hq4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:46:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yoichi_yuasa@tripeaks.co.jp, greg@kroah.com, linux@dominikbrodowski.net, perex@suse.cz, ralf@linux-mips.org, tiwai@suse.de, mm-commits@vger.kernel.org
+To: T-Bone@parisc-linux.org, varenet@parisc-linux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix struct device member name in PCMCIA au1000_generic
+     make elv_register() output atomic
 has been removed from the -mm tree.  Its filename was
-     fix-struct-device-member-name-in-pcmcia-au1000_generic.patch
+     make-elv_register-output-atomic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix struct device member name in PCMCIA au1000_generic
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: make elv_register() output atomic
+From: Thibaut VARENE <T-Bone@parisc-linux.org>
 
-drivers/pcmcia/au1000_generic.c: In function 'au1x00_pcmcia_socket_probe':
-drivers/pcmcia/au1000_generic.c:375: error: 'struct device' has no member named 'dev'
+Booting 2.6.21-rc3-g45592145 I noticed the following on one of my
+machines in the bootlog:
 
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+io scheduler noop registered<6>Time: jiffies clocksource has been installed.
+
+io scheduler deadline registered (default)
+
+Looking at block/elevator.c, it appears that elv_register() uses two
+consecutive printks in a non-atomic way, leading to the above glitch.  The
+attached trivial patch fixes this issue, by using a single printk.
+
+Signed-off-by: Thibaut VARENE <varenet@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/au1000_generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/elevator.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pcmcia/au1000_generic.c~fix-struct-device-member-name-in-pcmcia-au1000_generic drivers/pcmcia/au1000_generic.c
---- a/drivers/pcmcia/au1000_generic.c~fix-struct-device-member-name-in-pcmcia-au1000_generic
-+++ a/drivers/pcmcia/au1000_generic.c
-@@ -372,7 +372,7 @@ int au1x00_pcmcia_socket_probe(struct de
- 		skt->socket.resource_ops = &pccard_static_ops;
- 		skt->socket.ops = &au1x00_pcmcia_operations;
- 		skt->socket.owner = ops->owner;
--		skt->socket.dev.dev = dev;
-+		skt->socket.dev.parent = dev;
+diff -puN block/elevator.c~make-elv_register-output-atomic block/elevator.c
+--- a/block/elevator.c~make-elv_register-output-atomic
++++ a/block/elevator.c
+@@ -964,17 +964,18 @@ void elv_unregister_queue(struct request
  
- 		init_timer(&skt->poll_timer);
- 		skt->poll_timer.function = au1x00_pcmcia_poll_event;
+ int elv_register(struct elevator_type *e)
+ {
++	char *def = "";
+ 	spin_lock_irq(&elv_list_lock);
+ 	BUG_ON(elevator_find(e->elevator_name));
+ 	list_add_tail(&e->list, &elv_list);
+ 	spin_unlock_irq(&elv_list_lock);
+ 
+-	printk(KERN_INFO "io scheduler %s registered", e->elevator_name);
+ 	if (!strcmp(e->elevator_name, chosen_elevator) ||
+ 			(!*chosen_elevator &&
+ 			 !strcmp(e->elevator_name, CONFIG_DEFAULT_IOSCHED)))
+-				printk(" (default)");
+-	printk("\n");
++				def = " (default)";
++
++	printk(KERN_INFO "io scheduler %s registered%s\n", e->elevator_name, def);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(elv_register);
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from T-Bone@parisc-linux.org are
 
 origin.patch
-git-input.patch
-git-mips.patch
+git-netdev-all.patch
