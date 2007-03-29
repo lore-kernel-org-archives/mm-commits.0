@@ -1,97 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - sound-strlcpy-is-smart-enough.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 00:42:56 -0700
-Message-ID: <200703290742.l2T7guE6030345@shell0.pdx.osdl.net>
+Subject: - forcedeth-fix-tx-timeout.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 00:43:11 -0700
+Message-ID: <200703290743.l2T7hBZB030364@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46211 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46199 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965055AbXC2HnR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 03:43:17 -0400
+	id S965030AbXC2HnW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 03:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: aabdulla@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sound: strlcpy is smart enough
+     forcedeth: fix tx timeout
 has been removed from the -mm tree.  Its filename was
-     sound-strlcpy-is-smart-enough.patch
+     forcedeth-fix-tx-timeout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sound: strlcpy is smart enough
-From: Jean Delvare <khali@linux-fr.org>
+Subject: forcedeth: fix tx timeout
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-strlcpy already accounts for the trailing zero in its length
-computation, so there is no need to substract one to the buffer size.
+The tx timeout routine was waking the tx queue conditionally.  However, it
+must call it unconditionally since the dev_watchdog has halted the tx queue
+before calling the timeout function.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/aoa/codecs/snd-aoa-codec-onyx.c |    4 ++--
- sound/aoa/codecs/snd-aoa-codec-tas.c  |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/forcedeth.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN sound/aoa/codecs/snd-aoa-codec-onyx.c~sound-strlcpy-is-smart-enough sound/aoa/codecs/snd-aoa-codec-onyx.c
---- a/sound/aoa/codecs/snd-aoa-codec-onyx.c~sound-strlcpy-is-smart-enough
-+++ a/sound/aoa/codecs/snd-aoa-codec-onyx.c
-@@ -1018,7 +1018,7 @@ static int onyx_create(struct i2c_adapte
- 	onyx->i2c.driver = &onyx_driver;
- 	onyx->i2c.adapter = adapter;
- 	onyx->i2c.addr = addr & 0x7f;
--	strlcpy(onyx->i2c.name, "onyx audio codec", I2C_NAME_SIZE-1);
-+	strlcpy(onyx->i2c.name, "onyx audio codec", I2C_NAME_SIZE);
- 
- 	if (i2c_attach_client(&onyx->i2c)) {
- 		printk(KERN_ERR PFX "failed to attach to i2c\n");
-@@ -1033,7 +1033,7 @@ static int onyx_create(struct i2c_adapte
- 		goto fail;
+diff -puN drivers/net/forcedeth.c~forcedeth-fix-tx-timeout drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-fix-tx-timeout
++++ a/drivers/net/forcedeth.c
+@@ -2050,9 +2050,10 @@ static void nv_tx_timeout(struct net_dev
+ 		nv_drain_tx(dev);
+ 		nv_init_tx(dev);
+ 		setup_hw_rings(dev, NV_SETUP_TX_RING);
+-		netif_wake_queue(dev);
  	}
  
--	strlcpy(onyx->codec.name, "onyx", MAX_CODEC_NAME_LEN-1);
-+	strlcpy(onyx->codec.name, "onyx", MAX_CODEC_NAME_LEN);
- 	onyx->codec.owner = THIS_MODULE;
- 	onyx->codec.init = onyx_init_codec;
- 	onyx->codec.exit = onyx_exit_codec;
-diff -puN sound/aoa/codecs/snd-aoa-codec-tas.c~sound-strlcpy-is-smart-enough sound/aoa/codecs/snd-aoa-codec-tas.c
---- a/sound/aoa/codecs/snd-aoa-codec-tas.c~sound-strlcpy-is-smart-enough
-+++ a/sound/aoa/codecs/snd-aoa-codec-tas.c
-@@ -899,14 +899,14 @@ static int tas_create(struct i2c_adapter
- 	tas->i2c.addr = addr;
- 	/* seems that half is a saner default */
- 	tas->drc_range = TAS3004_DRC_MAX / 2;
--	strlcpy(tas->i2c.name, "tas audio codec", I2C_NAME_SIZE-1);
-+	strlcpy(tas->i2c.name, "tas audio codec", I2C_NAME_SIZE);
- 
- 	if (i2c_attach_client(&tas->i2c)) {
- 		printk(KERN_ERR PFX "failed to attach to i2c\n");
- 		goto fail;
- 	}
- 
--	strlcpy(tas->codec.name, "tas", MAX_CODEC_NAME_LEN-1);
-+	strlcpy(tas->codec.name, "tas", MAX_CODEC_NAME_LEN);
- 	tas->codec.owner = THIS_MODULE;
- 	tas->codec.init = tas_init_codec;
- 	tas->codec.exit = tas_exit_codec;
++	netif_wake_queue(dev);
++
+ 	/* 4) restart tx engine */
+ 	nv_start_tx(dev);
+ 	spin_unlock_irq(&np->lock);
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
 origin.patch
-x86-msr-add-support-for-safe-variants.patch
-git-alsa.patch
-git-dvb.patch
-apple-smc-driver-hardware-monitoring-and-control.patch
-ehea-strlcpy-is-smart-enough.patch
-git-net.patch
-fix-gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
-xtensa-strlcpy-is-smart-enough.patch
-oss-strlcpy-is-smart-enough.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-legacy-pc-parports-support-parport-dev.patch
-layered-parport-code-uses-parport-dev.patch
+forcedeth-work-around-null-skb-dereference-crash.patch
