@@ -1,71 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - update-__copy_to_user_inatomic.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:39:42 -0700
-Message-ID: <200703292339.l2TNdgTu015452@shell0.pdx.osdl.net>
+Subject: - fix-amd64-agp-aperture-validation.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 16:39:40 -0700
+Message-ID: <200703292339.l2TNdenJ015449@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43228 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43249 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945950AbXC2Xjn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:39:43 -0400
+	id S1945951AbXC2Xjy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 19:39:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@gmail.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, ak@suse.de, davej@codemonkey.org.uk, mark.langsdorf@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Update  __copy_to_user_inatomic documentation
+     fix amd64-agp aperture validation
 has been removed from the -mm tree.  Its filename was
-     update-__copy_to_user_inatomic.patch
+     fix-amd64-agp-aperture-validation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Update  __copy_to_user_inatomic documentation
-From: "Aneesh Kumar K.V" <aneesh.kumar@gmail.com>
+Subject: fix amd64-agp aperture validation
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Explicity specify that the caller should pin the user memory otherwise the
-function will sleep
+Under CONFIG_DISCONTIGMEM, assuming that a !pfn_valid() implies all
+subsequent pfn-s are also invalid is wrong.  Thus replace this by
+explicitly checking against the E820 map.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@gmail.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Acked-by: Mark Langsdorf <mark.langsdorf@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/uaccess.h |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ arch/i386/kernel/e820.c      |   20 ++++++++++++++++++++
+ arch/x86_64/kernel/e820.c    |    3 ++-
+ drivers/char/agp/amd64-agp.c |   13 ++++---------
+ include/asm-i386/e820.h      |    1 +
+ 4 files changed, 27 insertions(+), 10 deletions(-)
 
-diff -puN include/asm-i386/uaccess.h~update-__copy_to_user_inatomic include/asm-i386/uaccess.h
---- a/include/asm-i386/uaccess.h~update-__copy_to_user_inatomic
-+++ a/include/asm-i386/uaccess.h
-@@ -397,7 +397,19 @@ unsigned long __must_check __copy_from_u
- unsigned long __must_check __copy_from_user_ll_nocache_nozero(void *to,
- 				const void __user *from, unsigned long n);
+diff -puN arch/i386/kernel/e820.c~fix-amd64-agp-aperture-validation arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~fix-amd64-agp-aperture-validation
++++ a/arch/i386/kernel/e820.c
+@@ -818,6 +818,26 @@ void __init limit_regions(unsigned long 
+ 	print_memory_map("limit_regions endfunc");
+ }
  
--/*
-+/**
-+ * __copy_to_user_inatomic: - Copy a block of data into user space, with less checking.
-+ * @to:   Destination address, in user space.
-+ * @from: Source address, in kernel space.
-+ * @n:    Number of bytes to copy.
-+ *
-+ * Context: User context only.
-+ *
-+ * Copy data from kernel space to user space.  Caller must check
-+ * the specified block with access_ok() before calling this function.
-+ * The caller should also make sure he pins the user space address
-+ * so that the we don't result in page fault and sleep.
-+ *
-  * Here we special-case 1, 2 and 4-byte copy_*_user invocations.  On a fault
-  * we return the initial request size (1, 2 or 4), as copy_*_user should do.
-  * If a store crosses a page boundary and gets a fault, the x86 will not write
++/*
++ * This function checks if any part of the range <start,end> is mapped
++ * with type.
++ */
++int
++e820_any_mapped(u64 start, u64 end, unsigned type)
++{
++	int i;
++	for (i = 0; i < e820.nr_map; i++) {
++		const struct e820entry *ei = &e820.map[i];
++		if (type && ei->type != type)
++			continue;
++		if (ei->addr >= end || ei->addr + ei->size <= start)
++			continue;
++		return 1;
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(e820_any_mapped);
++
+  /*
+   * This function checks if the entire range <start,end> is mapped with type.
+   *
+diff -puN arch/x86_64/kernel/e820.c~fix-amd64-agp-aperture-validation arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~fix-amd64-agp-aperture-validation
++++ a/arch/x86_64/kernel/e820.c
+@@ -98,7 +98,7 @@ static inline int bad_addr(unsigned long
+  * This function checks if any part of the range <start,end> is mapped
+  * with type.
+  */
+-int __meminit
++int
+ e820_any_mapped(unsigned long start, unsigned long end, unsigned type)
+ { 
+ 	int i;
+@@ -112,6 +112,7 @@ e820_any_mapped(unsigned long start, uns
+ 	} 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(e820_any_mapped);
+ 
+ /*
+  * This function checks if the entire range <start,end> is mapped with type.
+diff -puN drivers/char/agp/amd64-agp.c~fix-amd64-agp-aperture-validation drivers/char/agp/amd64-agp.c
+--- a/drivers/char/agp/amd64-agp.c~fix-amd64-agp-aperture-validation
++++ a/drivers/char/agp/amd64-agp.c
+@@ -14,6 +14,7 @@
+ #include <linux/agp_backend.h>
+ #include <linux/mmzone.h>
+ #include <asm/page.h>		/* PAGE_SIZE */
++#include <asm/e820.h>
+ #include <asm/k8.h>
+ #include "agp.h"
+ 
+@@ -259,7 +260,6 @@ static const struct agp_bridge_driver am
+ /* Some basic sanity checks for the aperture. */
+ static int __devinit aperture_valid(u64 aper, u32 size)
+ {
+-	u32 pfn, c;
+ 	if (aper == 0) {
+ 		printk(KERN_ERR PFX "No aperture\n");
+ 		return 0;
+@@ -272,14 +272,9 @@ static int __devinit aperture_valid(u64 
+ 		printk(KERN_ERR PFX "Aperture out of bounds\n");
+ 		return 0;
+ 	}
+-	pfn = aper >> PAGE_SHIFT;
+-	for (c = 0; c < size/PAGE_SIZE; c++) {
+-		if (!pfn_valid(pfn + c))
+-			break;
+-		if (!PageReserved(pfn_to_page(pfn + c))) {
+-			printk(KERN_ERR PFX "Aperture pointing to RAM\n");
+-			return 0;
+-		}
++	if (e820_any_mapped(aper, aper + size, E820_RAM)) {
++		printk(KERN_ERR PFX "Aperture pointing to RAM\n");
++		return 0;
+ 	}
+ 
+ 	/* Request the Aperture. This catches cases when someone else
+diff -puN include/asm-i386/e820.h~fix-amd64-agp-aperture-validation include/asm-i386/e820.h
+--- a/include/asm-i386/e820.h~fix-amd64-agp-aperture-validation
++++ a/include/asm-i386/e820.h
+@@ -38,6 +38,7 @@ extern struct e820map e820;
+ 
+ extern int e820_all_mapped(unsigned long start, unsigned long end,
+ 			   unsigned type);
++extern int e820_any_mapped(u64 start, u64 end, unsigned type);
+ extern void find_max_pfn(void);
+ extern void register_bootmem_low_pages(unsigned long max_low_pfn);
+ extern void e820_register_memory(void);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@gmail.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
+remove-pci_dac_dma_-apis.patch
+use-stop_machine_run-in-the-intel-rng-driver.patch
