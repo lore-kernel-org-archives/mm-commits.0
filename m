@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ignore-vgacon-if-hardware-not-present.patch added to -mm tree
-Date: Thu, 29 Mar 2007 14:56:39 -0700
-Message-ID: <200703292156.l2TLudkH013083@shell0.pdx.osdl.net>
+Subject: + fix-amd64-agp-aperture-validation.patch added to -mm tree
+Date: Thu, 29 Mar 2007 14:59:52 -0700
+Message-ID: <200703292159.l2TLxqv7013162@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40545 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40630 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422650AbXC2V4z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 17:56:55 -0400
+	id S1422655AbXC2WAI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 18:00:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kraxel@suse.de, adaplas@pol.net, alan@lxorguk.ukuu.org.uk, jeremy@xensource.com, mingo@elte.hu, rusty@rustcorp.com.au
+Cc: jbeulich@novell.com, ak@suse.de, davej@codemonkey.org.uk, mark.langsdorf@amd.com
 
 
 The patch titled
-     ignore vgacon if hardware not present
+     fix amd64-agp aperture validation
 has been added to the -mm tree.  Its filename is
-     ignore-vgacon-if-hardware-not-present.patch
+     fix-amd64-agp-aperture-validation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,130 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ignore vgacon if hardware not present
-From: Gerd Hoffmann <kraxel@suse.de>
+Subject: fix amd64-agp aperture validation
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Avoid trying to set up vgacon if there's no vga hardware present.
+Under CONFIG_DISCONTIGMEM, assuming that a !pfn_valid() implies all
+subsequent pfn-s are also invalid is wrong.  Thus replace this by
+explicitly checking against the E820 map.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Alan <alan@lxorguk.ukuu.org.uk>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Acked-by: Mark Langsdorf <mark.langsdorf@amd.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/vgacon.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ arch/i386/kernel/e820.c      |   20 ++++++++++++++++++++
+ arch/x86_64/kernel/e820.c    |    3 ++-
+ drivers/char/agp/amd64-agp.c |   13 ++++---------
+ include/asm-i386/e820.h      |    1 +
+ 4 files changed, 27 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/console/vgacon.c~ignore-vgacon-if-hardware-not-present drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~ignore-vgacon-if-hardware-not-present
-+++ a/drivers/video/console/vgacon.c
-@@ -371,7 +371,8 @@ static const char *vgacon_startup(void)
+diff -puN arch/i386/kernel/e820.c~fix-amd64-agp-aperture-validation arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~fix-amd64-agp-aperture-validation
++++ a/arch/i386/kernel/e820.c
+@@ -818,6 +818,26 @@ void __init limit_regions(unsigned long 
+ 	print_memory_map("limit_regions endfunc");
+ }
+ 
++/*
++ * This function checks if any part of the range <start,end> is mapped
++ * with type.
++ */
++int
++e820_any_mapped(u64 start, u64 end, unsigned type)
++{
++	int i;
++	for (i = 0; i < e820.nr_map; i++) {
++		const struct e820entry *ei = &e820.map[i];
++		if (type && ei->type != type)
++			continue;
++		if (ei->addr >= end || ei->addr + ei->size <= start)
++			continue;
++		return 1;
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(e820_any_mapped);
++
+  /*
+   * This function checks if the entire range <start,end> is mapped with type.
+   *
+diff -puN arch/x86_64/kernel/e820.c~fix-amd64-agp-aperture-validation arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~fix-amd64-agp-aperture-validation
++++ a/arch/x86_64/kernel/e820.c
+@@ -98,7 +98,7 @@ static inline int bad_addr(unsigned long
+  * This function checks if any part of the range <start,end> is mapped
+  * with type.
+  */
+-int __meminit
++int
+ e820_any_mapped(unsigned long start, unsigned long end, unsigned type)
+ { 
+ 	int i;
+@@ -112,6 +112,7 @@ e820_any_mapped(unsigned long start, uns
+ 	} 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(e820_any_mapped);
+ 
+ /*
+  * This function checks if the entire range <start,end> is mapped with type.
+diff -puN drivers/char/agp/amd64-agp.c~fix-amd64-agp-aperture-validation drivers/char/agp/amd64-agp.c
+--- a/drivers/char/agp/amd64-agp.c~fix-amd64-agp-aperture-validation
++++ a/drivers/char/agp/amd64-agp.c
+@@ -14,6 +14,7 @@
+ #include <linux/agp_backend.h>
+ #include <linux/mmzone.h>
+ #include <asm/page.h>		/* PAGE_SIZE */
++#include <asm/e820.h>
+ #include <asm/k8.h>
+ #include "agp.h"
+ 
+@@ -259,7 +260,6 @@ static const struct agp_bridge_driver am
+ /* Some basic sanity checks for the aperture. */
+ static int __devinit aperture_valid(u64 aper, u32 size)
+ {
+-	u32 pfn, c;
+ 	if (aper == 0) {
+ 		printk(KERN_ERR PFX "No aperture\n");
+ 		return 0;
+@@ -272,14 +272,9 @@ static int __devinit aperture_valid(u64 
+ 		printk(KERN_ERR PFX "Aperture out of bounds\n");
+ 		return 0;
+ 	}
+-	pfn = aper >> PAGE_SHIFT;
+-	for (c = 0; c < size/PAGE_SIZE; c++) {
+-		if (!pfn_valid(pfn + c))
+-			break;
+-		if (!PageReserved(pfn_to_page(pfn + c))) {
+-			printk(KERN_ERR PFX "Aperture pointing to RAM\n");
+-			return 0;
+-		}
++	if (e820_any_mapped(aper, aper + size, E820_RAM)) {
++		printk(KERN_ERR PFX "Aperture pointing to RAM\n");
++		return 0;
  	}
  
- 	/* VGA16 modes are not handled by VGACON */
--	if ((ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
-+	if ((ORIG_VIDEO_MODE == 0x00) ||	/* SCREEN_INFO not initialized */
-+	    (ORIG_VIDEO_MODE == 0x0D) ||	/* 320x200/4 */
- 	    (ORIG_VIDEO_MODE == 0x0E) ||	/* 640x200/4 */
- 	    (ORIG_VIDEO_MODE == 0x10) ||	/* 640x350/4 */
- 	    (ORIG_VIDEO_MODE == 0x12) ||	/* 640x480/4 */
+ 	/* Request the Aperture. This catches cases when someone else
+diff -puN include/asm-i386/e820.h~fix-amd64-agp-aperture-validation include/asm-i386/e820.h
+--- a/include/asm-i386/e820.h~fix-amd64-agp-aperture-validation
++++ a/include/asm-i386/e820.h
+@@ -38,6 +38,7 @@ extern struct e820map e820;
+ 
+ extern int e820_all_mapped(unsigned long start, unsigned long end,
+ 			   unsigned type);
++extern int e820_any_mapped(u64 start, u64 end, unsigned type);
+ extern void find_max_pfn(void);
+ extern void register_bootmem_low_pages(unsigned long max_low_pfn);
+ extern void e820_register_memory(void);
 _
 
-Patches currently in -mm which might be from kraxel@suse.de are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-ignore-vgacon-if-hardware-not-present.patch
+remove-pci_dac_dma_-apis.patch
+x86-tighten-kernel-image-page-access-rights.patch
+i386-simplify-smp_call_function-by-using-common-implementation.patch
+fix-amd64-agp-aperture-validation.patch
+use-stop_machine_run-in-the-intel-rng-driver.patch
