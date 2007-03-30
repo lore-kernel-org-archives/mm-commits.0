@@ -1,287 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - i386-simplify-smp_call_function-by-using-common-implementation.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 16:39:32 -0700
-Message-ID: <200703292339.l2TNdWft015440@shell0.pdx.osdl.net>
+Subject: + a.patch added to -mm tree
+Date: Thu, 29 Mar 2007 17:19:14 -0700
+Message-ID: <200703300021.l2U0LOLZ016315@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43357 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44184 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934361AbXC2XqS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 19:46:18 -0400
+	id S934202AbXC3AVq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 20:21:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, eranian@hpl.hp.com, jbeulich@novell.com, jeremy@xensource.com, mingo@elte.hu, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     i386: simplify smp_call_function*() by using common implementation
-has been removed from the -mm tree.  Its filename was
-     i386-simplify-smp_call_function-by-using-common-implementation.patch
+     timekeeping.c needs sysdev.h
+has been added to the -mm tree.  Its filename is
+     a.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: i386: simplify smp_call_function*() by using common implementation
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: timekeeping.c needs sysdev.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-smp_call_function and smp_call_function_single are almost complete
-duplicates of the same logic.  This patch combines them by implementing
-them in terms of the more general smp_call_function_mask().
+kernel/time/timekeeping.c:270: warning: 'struct sys_device' declared inside parameter list
+kernel/time/timekeeping.c:270: warning: its scope is only this definition or declaration, which is probably not what you want
+kernel/time/timekeeping.c:299: warning: 'struct sys_device' declared inside parameter list
+kernel/time/timekeeping.c:314: error: variable 'timekeeping_sysclass' has initializer but incomplete type
 
-[ Jan, Andi: This only changes arch/i386; can x86_64 be changed in the
-  same way? ]
+<etc>
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Stephane Eranian <eranian@hpl.hp.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smp.c |  173 ++++++++++++++++++---------------------
- 1 files changed, 84 insertions(+), 89 deletions(-)
+ kernel/time/timekeeping.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/smp.c~i386-simplify-smp_call_function-by-using-common-implementation arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~i386-simplify-smp_call_function-by-using-common-implementation
-+++ a/arch/i386/kernel/smp.c
-@@ -515,14 +515,26 @@ void unlock_ipi_call_lock(void)
- 
- static struct call_data_struct *call_data;
- 
--static void __smp_call_function(void (*func) (void *info), void *info,
--				int nonatomic, int wait)
-+
-+static int __smp_call_function_mask(cpumask_t mask,
-+				    void (*func)(void *), void *info,
-+				    int wait)
- {
- 	struct call_data_struct data;
--	int cpus = num_online_cpus() - 1;
-+	cpumask_t allbutself;
-+	int cpus;
-+
-+	/* Can deadlock when called with interrupts disabled */
-+	WARN_ON(irqs_disabled());
-+
-+	allbutself = cpu_online_map;
-+	cpu_clear(smp_processor_id(), allbutself);
-+
-+	cpus_and(mask, mask, allbutself);
-+	cpus = cpus_weight(mask);
- 
- 	if (!cpus)
--		return;
-+		return 0;
- 
- 	data.func = func;
- 	data.info = info;
-@@ -533,9 +545,12 @@ static void __smp_call_function(void (*f
- 
- 	call_data = &data;
- 	mb();
--	
--	/* Send a message to all other CPUs and wait for them to respond */
--	send_IPI_allbutself(CALL_FUNCTION_VECTOR);
-+
-+	/* Send a message to other CPUs */
-+	if (cpus_equal(mask, allbutself))
-+		send_IPI_allbutself(CALL_FUNCTION_VECTOR);
-+	else
-+		send_IPI_mask(mask, CALL_FUNCTION_VECTOR);
- 
- 	/* Wait for response */
- 	while (atomic_read(&data.started) != cpus)
-@@ -544,36 +559,87 @@ static void __smp_call_function(void (*f
- 	if (wait)
- 		while (atomic_read(&data.finished) != cpus)
- 			cpu_relax();
-+
-+	return 0;
- }
- 
- /**
-- * smp_call_function(): Run a function on all other CPUs.
-+ * smp_call_function_mask(): Run a function on a set of other CPUs.
-+ * @mask: The set of cpus to run on.  Must not include the current cpu.
-  * @func: The function to run. This must be fast and non-blocking.
-  * @info: An arbitrary pointer to pass to the function.
-- * @nonatomic: currently unused.
-  * @wait: If true, wait (atomically) until function has completed on other CPUs.
-  *
-  * Returns 0 on success, else a negative status code. Does not return until
-- * remote CPUs are nearly ready to execute <<func>> or are or have executed.
-+ * remote CPUs are nearly ready to execute <<func>> or are or have finished.
-  *
-  * You must not call this function with disabled interrupts or from a
-  * hardware interrupt handler or from a bottom half handler.
-  */
--int smp_call_function (void (*func) (void *info), void *info, int nonatomic,
--			int wait)
-+int smp_call_function_mask(cpumask_t mask,
-+			     void (*func)(void *), void *info,
-+			     int wait)
- {
--	/* Can deadlock when called with interrupts disabled */
--	WARN_ON(irqs_disabled());
-+	int ret;
- 
--	/* Holding any lock stops cpus from going down. */
- 	spin_lock(&call_lock);
--	__smp_call_function(func, info, nonatomic, wait);
-+	ret = __smp_call_function_mask(mask, func, info, wait);
- 	spin_unlock(&call_lock);
- 
--	return 0;
-+	return ret;
-+}
-+
-+/**
-+ * smp_call_function(): Run a function on all other CPUs.
-+ * @func: The function to run. This must be fast and non-blocking.
-+ * @info: An arbitrary pointer to pass to the function.
-+ * @nonatomic: currently unused.
-+ * @wait: If true, wait (atomically) until function has completed on other CPUs.
-+ *
-+ * Returns 0 on success, else a negative status code. Does not return until
-+ * remote CPUs are nearly ready to execute <<func>> or are or have executed.
-+ *
-+ * You must not call this function with disabled interrupts or from a
-+ * hardware interrupt handler or from a bottom half handler.
-+ */
-+int smp_call_function(void (*func) (void *info), void *info, int nonatomic,
-+		      int wait)
-+{
-+	return smp_call_function_mask(cpu_online_map, func, info, wait);
- }
- EXPORT_SYMBOL(smp_call_function);
- 
-+/*
-+ * smp_call_function_single - Run a function on another CPU
-+ * @func: The function to run. This must be fast and non-blocking.
-+ * @info: An arbitrary pointer to pass to the function.
-+ * @nonatomic: Currently unused.
-+ * @wait: If true, wait until function has completed on other CPUs.
-+ *
-+ * Retrurns 0 on success, else a negative status code.
-+ *
-+ * Does not return until the remote CPU is nearly ready to execute <func>
-+ * or is or has executed.
-+ */
-+int smp_call_function_single(int cpu, void (*func) (void *info), void *info,
-+			     int nonatomic, int wait)
-+{
-+	/* prevent preemption and reschedule on another processor */
-+	int ret;
-+	int me = get_cpu();
-+	if (cpu == me) {
-+		WARN_ON(1);
-+		put_cpu();
-+		return -EBUSY;
-+	}
-+
-+	ret = smp_call_function_mask(cpumask_of_cpu(cpu), func, info, wait);
-+
-+	put_cpu();
-+	return ret;
-+}
-+EXPORT_SYMBOL(smp_call_function_single);
-+
- static void stop_this_cpu (void * dummy)
- {
- 	local_irq_disable();
-@@ -598,7 +664,7 @@ void smp_send_stop(void)
- 	unsigned long flags;
- 
- 	local_irq_save(flags);
--	__smp_call_function(stop_this_cpu, NULL, 0, 0);
-+	__smp_call_function_mask(cpu_online_map, stop_this_cpu, NULL, 0);
- 	if (!nolock)
- 		spin_unlock(&call_lock);
- 	disable_local_APIC();
-@@ -641,77 +707,6 @@ fastcall void smp_call_function_interrup
- 	}
- }
- 
--/*
-- * this function sends a 'generic call function' IPI to one other CPU
-- * in the system.
-- *
-- * cpu is a standard Linux logical CPU number.
-- */
--static void
--__smp_call_function_single(int cpu, void (*func) (void *info), void *info,
--				int nonatomic, int wait)
--{
--	struct call_data_struct data;
--	int cpus = 1;
--
--	data.func = func;
--	data.info = info;
--	atomic_set(&data.started, 0);
--	data.wait = wait;
--	if (wait)
--		atomic_set(&data.finished, 0);
--
--	call_data = &data;
--	wmb();
--	/* Send a message to all other CPUs and wait for them to respond */
--	send_IPI_mask(cpumask_of_cpu(cpu), CALL_FUNCTION_VECTOR);
--
--	/* Wait for response */
--	while (atomic_read(&data.started) != cpus)
--		cpu_relax();
--
--	if (!wait)
--		return;
--
--	while (atomic_read(&data.finished) != cpus)
--		cpu_relax();
--}
--
--/*
-- * smp_call_function_single - Run a function on another CPU
-- * @func: The function to run. This must be fast and non-blocking.
-- * @info: An arbitrary pointer to pass to the function.
-- * @nonatomic: Currently unused.
-- * @wait: If true, wait until function has completed on other CPUs.
-- *
-- * Retrurns 0 on success, else a negative status code.
-- *
-- * Does not return until the remote CPU is nearly ready to execute <func>
-- * or is or has executed.
-- */
--
--int smp_call_function_single(int cpu, void (*func) (void *info), void *info,
--			int nonatomic, int wait)
--{
--	/* prevent preemption and reschedule on another processor */
--	int me = get_cpu();
--	if (cpu == me) {
--		WARN_ON(1);
--		put_cpu();
--		return -EBUSY;
--	}
--
--	/* Can deadlock when called with interrupts disabled */
--	WARN_ON(irqs_disabled());
--
--	spin_lock_bh(&call_lock);
--	__smp_call_function_single(cpu, func, info, nonatomic, wait);
--	spin_unlock_bh(&call_lock);
--	put_cpu();
--	return 0;
--}
--EXPORT_SYMBOL(smp_call_function_single);
--
- static int convert_apicid_to_cpu(int apic_id)
- {
- 	int i;
+diff -puN kernel/time/timekeeping.c~a kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~a
++++ a/kernel/time/timekeeping.c
+@@ -13,6 +13,7 @@
+ #include <linux/percpu.h>
+ #include <linux/init.h>
+ #include <linux/mm.h>
++#include <linux/sysdev.h>
+ #include <linux/clocksource.h>
+ #include <linux/jiffies.h>
+ #include <linux/time.h>
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-add-touch_all_softlockup_watchdogs.patch
+origin.patch
+proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-ubi.patch
+git-netdev-all.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-piggy-bus.patch
+git-pciseg.patch
+git-s390.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+mm-only-hrtimers-debug-patch-fix.patch
+a.patch
