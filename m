@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vioc-cast-warning-fix.patch added to -mm tree
-Date: Thu, 29 Mar 2007 18:34:07 -0700
-Message-ID: <200703300136.l2U1aFWu017430@shell0.pdx.osdl.net>
+Subject: + utrace-x86_64-fix.patch added to -mm tree
+Date: Thu, 29 Mar 2007 18:48:34 -0700
+Message-ID: <200703300150.l2U1ogEq017640@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45379 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45596 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752579AbXC3BgU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 21:36:20 -0400
+	id S1752700AbXC3Buw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 21:50:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, driver-support@fabric7.com, jeff@garzik.org, schidambaram@fabric7.com
+Cc: akpm@linux-foundation.org, roland@redhat.com
 
 
 The patch titled
-     vioc cast warningfix
+     utrace x86_64 fix
 has been added to the -mm tree.  Its filename is
-     vioc-cast-warning-fix.patch
+     utrace-x86_64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vioc cast warningfix
+Subject: utrace x86_64 fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386:
+{standard input}:3025: Error: suffix or operands invalid for `movq'
+{standard input}:3053: Error: suffix or operands invalid for `movq'
+{standard input}:3081: Error: suffix or operands invalid for `movq'
+{standard input}:3109: Error: suffix or operands invalid for `movq'
 
-drivers/net/vioc/vioc_receive.c: In function '_vioc_fill_n_xfer':
-drivers/net/vioc/vioc_receive.c:198: warning: cast from pointer to integer of different size
-drivers/net/vioc/vioc_receive.c:199: warning: cast to pointer from integer of different size
-drivers/net/vioc/vioc_irq.c: In function 'vioc_set_intr_func_param':
-drivers/net/vioc/vioc_irq.c:344: warning: cast to pointer from integer of different size
+hope this is right...
 
-This code looks fishy.
+btw, all the indenting on all those switch statements is off-by-one.  
 
-Cc: Sriram Chidambaram <schidambaram@fabric7.com>
-Cc: Fabric7 Driver-Support <driver-support@fabric7.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/vioc/vioc_receive.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/ptrace.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/vioc/vioc_receive.c~vioc-cast-warning-fix drivers/net/vioc/vioc_receive.c
---- a/drivers/net/vioc/vioc_receive.c~vioc-cast-warning-fix
-+++ a/drivers/net/vioc/vioc_receive.c
-@@ -195,8 +195,8 @@ static u32 _vioc_fill_n_xfer(struct rxdq
- 				goto undo_refill;
+diff -puN arch/x86_64/kernel/ptrace.c~utrace-x86_64-fix arch/x86_64/kernel/ptrace.c
+--- a/arch/x86_64/kernel/ptrace.c~utrace-x86_64-fix
++++ a/arch/x86_64/kernel/ptrace.c
+@@ -292,29 +292,29 @@ static int putreg(struct task_struct *ch
+ 
+ static unsigned long getreg(struct task_struct *child, unsigned long regno)
+ {
+-	unsigned long val;
++	unsigned int val;
+ 	switch (regno) {
+ 		case offsetof(struct user_regs_struct, fs):
+ 			if (child == current) {
+-				asm("movq %%fs,%0" : "=r" (val));
++				asm("movl %%fs,%0" : "=r" (val));
+ 				return val;
  			}
- 			/* Cache align */
--			x = (u64) skb->data;
--			skb->data = (unsigned char *)ALIGN(x, 64);
-+			x = (u64)(long)skb->data;
-+			skb->data = (unsigned char *)(long)ALIGN(x, 64);
- 			rxdq->vbuf[idx].skb = skb;
- 			rxdq->vbuf[idx].dma =
- 			    pci_map_single(rxdq->viocdev->pdev,
+ 			return child->thread.fsindex;
+ 		case offsetof(struct user_regs_struct, gs):
+ 			if (child == current) {
+-				asm("movq %%gs,%0" : "=r" (val));
++				asm("movl %%gs,%0" : "=r" (val));
+ 				return val;
+ 			}
+ 			return child->thread.gsindex;
+ 		case offsetof(struct user_regs_struct, ds):
+ 			if (child == current) {
+-				asm("movq %%ds,%0" : "=r" (val));
++				asm("movl %%ds,%0" : "=r" (val));
+ 				return val;
+ 			}
+ 			return child->thread.ds;
+ 		case offsetof(struct user_regs_struct, es):
+ 			if (child == current) {
+-				asm("movq %%es,%0" : "=r" (val));
++				asm("movl %%es,%0" : "=r" (val));
+ 				return val;
+ 			}
+ 			return child->thread.es; 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +108,7 @@ git-md-accel-fix.patch
 git-ubi.patch
 git-netdev-all.patch
 vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
 git-e1000.patch
 git-e1000-fixup-2.patch
 git-net.patch
@@ -159,4 +181,4 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 mm-only-hrtimers-debug-patch-fix.patch
-vioc-cast-warning-fix.patch
+utrace-x86_64-fix.patch
