@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + a.patch added to -mm tree
-Date: Thu, 29 Mar 2007 17:19:14 -0700
-Message-ID: <200703300021.l2U0LOLZ016315@shell0.pdx.osdl.net>
+Subject: + timekeepingc-needs-sysdevh.patch added to -mm tree
+Date: Thu, 29 Mar 2007 17:19:43 -0700
+Message-ID: <200703300021.l2U0Lpte016321@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44184 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44194 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934202AbXC3AVq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 20:21:46 -0400
+	id S934366AbXC3AWJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 20:22:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutron
 The patch titled
      timekeeping.c needs sysdev.h
 has been added to the -mm tree.  Its filename is
-     a.patch
+     timekeepingc-needs-sysdevh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -44,8 +44,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/time/timekeeping.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/time/timekeeping.c~a kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~a
+diff -puN kernel/time/timekeeping.c~timekeepingc-needs-sysdevh kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~timekeepingc-needs-sysdevh
 +++ a/kernel/time/timekeeping.c
 @@ -13,6 +13,7 @@
  #include <linux/percpu.h>
@@ -146,4 +146,4 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 mm-only-hrtimers-debug-patch-fix.patch
-a.patch
+timekeepingc-needs-sysdevh.patch
