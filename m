@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-vs-git-netdev-all.patch added to -mm tree
-Date: Thu, 29 Mar 2007 18:27:29 -0700
-Message-ID: <200703300129.l2U1Tb9R017337@shell0.pdx.osdl.net>
+Subject: + vioc-warning-fix.patch added to -mm tree
+Date: Thu, 29 Mar 2007 18:30:05 -0700
+Message-ID: <200703300132.l2U1WDsA017384@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45304 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45336 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945920AbXC3B3w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 21:29:52 -0400
+	id S1751364AbXC3BcS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 21:32:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, jeff@garzik.org
+Cc: akpm@linux-foundation.org, driver-support@fabric7.com, jeff@garzik.org, schidambaram@fabric7.com
 
 
 The patch titled
-     git-net vs git-netdev-all
+     vioc-warning-fix
 has been added to the -mm tree.  Its filename is
-     git-net-vs-git-netdev-all.patch
+     vioc-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net vs git-netdev-all
+Subject: vioc-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Try to repair these:
+Fix this, on i386:
 
-drivers/net/vioc/vioc_transmit.c: In function 'init_f7_header':
-drivers/net/vioc/vioc_transmit.c:600: error: 'struct sk_buff' has no member named 'mac'
-drivers/net/vioc/vioc_transmit.c:602: error: 'struct sk_buff' has no member named 'nh'
-drivers/net/vioc/vioc_transmit.c:605: error: 'struct sk_buff' has no member named 'h'
-drivers/net/vioc/vioc_transmit.c:609: error: 'struct sk_buff' has no member named 'h'
-drivers/net/vioc/vioc_transmit.c: In function 'vnic_start_xmit':
-drivers/net/vioc/vioc_transmit.c:703: error: 'struct sk_buff' has no member named 'mac'
-drivers/net/vioc/vioc_transmit.c:704: error: 'struct sk_buff' has no member named 'nh'
-drivers/net/vioc/vioc_transmit.c: In function 'vnic_eth_header':
-drivers/net/vioc/vioc_transmit.c:742: error: 'struct sk_buff' has no member named 'mac'
+drivers/net/vioc/vioc_transmit.c: In function 'vioc_tx_interrupt':
+drivers/net/vioc/vioc_transmit.c:387: warning: cast from pointer to integer of different size
 
-This driver looks fairly revolting.
+I dunno what the driver is trying to do here, but it looks unpleasant.
 
+Cc: Sriram Chidambaram <schidambaram@fabric7.com>
+Cc: Fabric7 Driver-Support <driver-support@fabric7.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/vioc/vioc_transmit.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/net/vioc/vioc_vnic.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/vioc/vioc_transmit.c~git-net-vs-git-netdev-all drivers/net/vioc/vioc_transmit.c
---- a/drivers/net/vioc/vioc_transmit.c~git-net-vs-git-netdev-all
-+++ a/drivers/net/vioc/vioc_transmit.c
-@@ -597,16 +597,17 @@ static inline void init_f7_header(struct
- 	 */
+diff -puN drivers/net/vioc/vioc_vnic.h~vioc-warning-fix drivers/net/vioc/vioc_vnic.h
+--- a/drivers/net/vioc/vioc_vnic.h~vioc-warning-fix
++++ a/drivers/net/vioc/vioc_vnic.h
+@@ -103,11 +103,11 @@
+        )
  
- 	/* Determine packet tag */
--	if (((struct ethhdr *)skb->mac.raw)->h_proto == ntohs(ETH_P_IP)) {
-+	if (((struct ethhdr *)skb_mac_header(skb))->h_proto ==
-+				ntohs(ETH_P_IP)) {
- 		if (skb->ip_summed == VIOC_CSUM_OFFLOAD) {
--			switch (skb->nh.iph->protocol) {
-+			switch (ip_hdr(skb)->protocol) {
- 			case IPPROTO_TCP:
- 				tag = VIOC_F7PF_ET_ETH_IPV4_CKS;
--				skb->h.th->check = 0;
-+				tcp_hdr(skb)->check = 0;
- 				break;
- 			case IPPROTO_UDP:
- 				tag = VIOC_F7PF_ET_ETH_IPV4_CKS;
--				skb->h.uh->check = 0;
-+				udp_hdr(skb)->check = 0;
- 				break;
- 			default:
- 				tag = VIOC_F7PF_ET_ETH_IPV4;
-@@ -700,8 +701,8 @@ int vnic_start_xmit(struct sk_buff *skb,
- 	}
+ #define VIOC_IRQ_PARAM_VIOC_ID(param)  \
+-       (int) (((u64) param >> 28) & 0xf)
++       (int) (((long) param >> 28) & 0xf)
+ #define VIOC_IRQ_PARAM_INTR_ID(param)  \
+-       (int) ((u64) param & 0xffff)
++       (int) ((long) param & 0xffff)
+ #define VIOC_IRQ_PARAM_PARAM_ID(param) \
+-       (int) (((u64) param >> 16) & 0xff)
++       (int) (((long) param >> 16) & 0xff)
  
- 	/* Don't rely on the skb pointers being set */
--	skb->mac.raw = skb->data;
--	skb->nh.raw = skb->data + ETH_HLEN;
-+	skb_set_mac_header(skb, 0);
-+	skb_set_network_header(skb, ETH_HLEN);
- 	skb_push(skb, F7PF_HLEN_STD);
- 
- 	init_f7_header(skb);
-@@ -739,7 +740,7 @@ int vnic_eth_header(struct sk_buff *skb,
- {
- 	struct ethhdr *eth = (struct ethhdr *)skb_push(skb, ETH_HLEN);
- 
--	skb->mac.raw = skb->data;
-+	skb_set_mac_header(skb, 0);
- 
- 	/*
- 	 *      Set the protocol type. For a packet of type
+ #define VIOC_IRQ_PARAM_SET(vioc, intr, param) \
+                ((((u64) vioc & 0xf) << 28) | \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -193,3 +159,4 @@ integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 mm-only-hrtimers-debug-patch-fix.patch
 git-net-vs-git-netdev-all.patch
+vioc-warning-fix.patch
