@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - timekeepingc-needs-sysdevh.patch removed from -mm tree
-Date: Thu, 29 Mar 2007 17:43:16 -0700
-Message-ID: <200703300045.l2U0jO4N016710@shell0.pdx.osdl.net>
+Subject: + move-timekeeping-code-to-timekeepingc-fix.patch added to -mm tree
+Date: Thu, 29 Mar 2007 17:44:45 -0700
+Message-ID: <200703300046.l2U0kscB016735@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44623 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44686 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945912AbXC3AqE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 20:46:04 -0400
+	id S1945916AbXC3AuQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 20:50:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
      timekeeping.c needs sysdev.h
-has been removed from the -mm tree.  Its filename was
-     timekeepingc-needs-sysdevh.patch
+has been added to the -mm tree.  Its filename is
+     move-timekeeping-code-to-timekeepingc-fix.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: timekeeping.c needs sysdev.h
@@ -40,8 +44,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/time/timekeeping.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/time/timekeeping.c~timekeepingc-needs-sysdevh kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~timekeepingc-needs-sysdevh
+diff -puN kernel/time/timekeeping.c~move-timekeeping-code-to-timekeepingc-fix kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~move-timekeeping-code-to-timekeepingc-fix
 +++ a/kernel/time/timekeeping.c
 @@ -13,6 +13,7 @@
  #include <linux/percpu.h>
