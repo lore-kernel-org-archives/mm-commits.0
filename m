@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vioc-warning-fix.patch added to -mm tree
-Date: Thu, 29 Mar 2007 18:30:05 -0700
-Message-ID: <200703300132.l2U1WDsA017384@shell0.pdx.osdl.net>
+Subject: + vioc-cast-warning-fix.patch added to -mm tree
+Date: Thu, 29 Mar 2007 18:34:07 -0700
+Message-ID: <200703300136.l2U1aFWu017430@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45336 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45379 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751364AbXC3BcS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 21:32:18 -0400
+	id S1752579AbXC3BgU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 21:36:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, driver-support@fabric7.com, jeff@garzik.org, schi
 
 
 The patch titled
-     vioc-warning-fix
+     vioc cast warningfix
 has been added to the -mm tree.  Its filename is
-     vioc-warning-fix.patch
+     vioc-cast-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,15 +25,18 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vioc-warning-fix
+Subject: vioc cast warningfix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this, on i386:
+i386:
 
-drivers/net/vioc/vioc_transmit.c: In function 'vioc_tx_interrupt':
-drivers/net/vioc/vioc_transmit.c:387: warning: cast from pointer to integer of different size
+drivers/net/vioc/vioc_receive.c: In function '_vioc_fill_n_xfer':
+drivers/net/vioc/vioc_receive.c:198: warning: cast from pointer to integer of different size
+drivers/net/vioc/vioc_receive.c:199: warning: cast to pointer from integer of different size
+drivers/net/vioc/vioc_irq.c: In function 'vioc_set_intr_func_param':
+drivers/net/vioc/vioc_irq.c:344: warning: cast to pointer from integer of different size
 
-I dunno what the driver is trying to do here, but it looks unpleasant.
+This code looks fishy.
 
 Cc: Sriram Chidambaram <schidambaram@fabric7.com>
 Cc: Fabric7 Driver-Support <driver-support@fabric7.com>
@@ -41,27 +44,23 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/vioc/vioc_vnic.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/vioc/vioc_receive.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/vioc/vioc_vnic.h~vioc-warning-fix drivers/net/vioc/vioc_vnic.h
---- a/drivers/net/vioc/vioc_vnic.h~vioc-warning-fix
-+++ a/drivers/net/vioc/vioc_vnic.h
-@@ -103,11 +103,11 @@
-        )
- 
- #define VIOC_IRQ_PARAM_VIOC_ID(param)  \
--       (int) (((u64) param >> 28) & 0xf)
-+       (int) (((long) param >> 28) & 0xf)
- #define VIOC_IRQ_PARAM_INTR_ID(param)  \
--       (int) ((u64) param & 0xffff)
-+       (int) ((long) param & 0xffff)
- #define VIOC_IRQ_PARAM_PARAM_ID(param) \
--       (int) (((u64) param >> 16) & 0xff)
-+       (int) (((long) param >> 16) & 0xff)
- 
- #define VIOC_IRQ_PARAM_SET(vioc, intr, param) \
-                ((((u64) vioc & 0xf) << 28) | \
+diff -puN drivers/net/vioc/vioc_receive.c~vioc-cast-warning-fix drivers/net/vioc/vioc_receive.c
+--- a/drivers/net/vioc/vioc_receive.c~vioc-cast-warning-fix
++++ a/drivers/net/vioc/vioc_receive.c
+@@ -195,8 +195,8 @@ static u32 _vioc_fill_n_xfer(struct rxdq
+ 				goto undo_refill;
+ 			}
+ 			/* Cache align */
+-			x = (u64) skb->data;
+-			skb->data = (unsigned char *)ALIGN(x, 64);
++			x = (u64)(long)skb->data;
++			skb->data = (unsigned char *)(long)ALIGN(x, 64);
+ 			rxdq->vbuf[idx].skb = skb;
+ 			rxdq->vbuf[idx].dma =
+ 			    pci_map_single(rxdq->viocdev->pdev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,10 +86,12 @@ revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
 git-ubi.patch
 git-netdev-all.patch
+vioc-warning-fix.patch
 git-e1000.patch
 git-e1000-fixup-2.patch
 git-net.patch
 git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
 git-parisc.patch
 rm9000-serial-driver.patch
 fix-gregkh-pci-pci-piggy-bus.patch
@@ -158,5 +159,4 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 mm-only-hrtimers-debug-patch-fix.patch
-git-net-vs-git-netdev-all.patch
-vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
