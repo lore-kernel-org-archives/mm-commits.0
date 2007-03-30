@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch added to -mm tree
-Date: Fri, 30 Mar 2007 14:01:05 -0700
-Message-ID: <200703302101.l2UL15Lt005019@shell0.pdx.osdl.net>
+Subject: + blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch added to -mm tree
+Date: Fri, 30 Mar 2007 14:01:31 -0700
+Message-ID: <200703302101.l2UL1VcK005032@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52164 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52185 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753821AbXC3VBJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Mar 2007 17:01:09 -0400
+	id S1753825AbXC3VBd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 30 Mar 2007 17:01:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bryan.wu@analog.com
 
 
 The patch titled
-     blackfin arch fix bug interrupt setup problem request_irq: set_gpio_dir called before gpio_request
+     blackfin arch PNAV and Bluetechnix CM-BF537 use the MAC address programmed by u-boot and Warn if no valid MAC address found
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
+     blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,178 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: blackfin arch fix bug interrupt setup problem request_irq: set_gpio_dir called before gpio_request
+Subject: blackfin arch PNAV and Bluetechnix CM-BF537 use the MAC address programmed by u-boot and Warn if no valid MAC address found
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/mach-common/ints-priority-dc.c |   36 ++++++++++++----
- arch/blackfin/mach-common/ints-priority-sc.c |   38 +++++++++++++----
- include/asm-blackfin/gpio.h                  |    6 +-
- 3 files changed, 63 insertions(+), 17 deletions(-)
+ arch/blackfin/mach-bf537/boards/eth_mac.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/blackfin/mach-common/ints-priority-dc.c~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq arch/blackfin/mach-common/ints-priority-dc.c
---- a/arch/blackfin/mach-common/ints-priority-dc.c~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq
-+++ a/arch/blackfin/mach-common/ints-priority-dc.c
-@@ -217,11 +217,18 @@ static void bf561_gpio_unmask_irq(unsign
- static unsigned int bf561_gpio_irq_startup(unsigned int irq)
+diff -puN arch/blackfin/mach-bf537/boards/eth_mac.c~blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac arch/blackfin/mach-bf537/boards/eth_mac.c
+--- a/arch/blackfin/mach-bf537/boards/eth_mac.c~blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac
++++ a/arch/blackfin/mach-bf537/boards/eth_mac.c
+@@ -21,9 +21,7 @@
+ #include <asm/blackfin.h>
+ 
+ #if	defined(CONFIG_GENERIC_BOARD) \
+-	|| defined(CONFIG_BFIN537_STAMP) \
+-	|| defined(CONFIG_BFIN537_BLUETECHNIX_CM) \
+-	|| defined(CONFIG_PNAV10)
++	|| defined(CONFIG_BFIN537_STAMP)
+ 
+ /*
+  * Currently the MAC address is saved in Flash by U-Boot
+@@ -45,6 +43,7 @@ void get_bf537_ether_addr(char *addr)
+  */
+ void get_bf537_ether_addr(char *addr)
  {
- 	unsigned int ret;
-+	u16 gpionr = irq - IRQ_PF0;
-+
-+	if (!(gpio_enabled[gpio_bank(gpionr)] & gpio_bit(gpionr))) {
- 
--	ret = gpio_request(irq - IRQ_PF0, NULL);
-+		ret = gpio_request(gpionr, NULL);
-+		if(ret)
-+			return ret;
- 
--	if (!ret)
--	  bf561_gpio_unmask_irq(irq);
-+	}
-+
-+	gpio_enabled[gpio_bank(gpionr)] |= gpio_bit(gpionr);
-+	bf561_gpio_unmask_irq(irq);
- 
-   return ret;
- 
-@@ -231,15 +238,15 @@ static void bf561_gpio_irq_shutdown(unsi
- {
- 	bf561_gpio_mask_irq(irq);
- 	gpio_free(irq - IRQ_PF0);
-+	gpio_enabled[gpio_bank(irq - IRQ_PF0)] &= ~gpio_bit(irq - IRQ_PF0);
++	printk(KERN_WARNING "%s: No valid Ethernet MAC address found\n",__FILE__);
  }
  
- static int bf561_gpio_irq_type(unsigned int irq, unsigned int type)
- {
- 
-+	unsigned int ret;
- 	u16 gpionr = irq - IRQ_PF0;
- 
--		set_gpio_dir(gpionr, 0);
--		set_gpio_inen(gpionr, 1);
- 
- 		if (type == IRQ_TYPE_PROBE) {
- 			/* only probe unenabled GPIO interrupt lines */
-@@ -250,11 +257,26 @@ static int bf561_gpio_irq_type(unsigned 
- 		}
- 
- 		if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING |
--			    IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW))
-+			    IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
-+
-+		if (!(gpio_enabled[gpio_bank(gpionr)] & gpio_bit(gpionr))) {
-+
-+			ret = gpio_request(gpionr, NULL);
-+			if(ret)
-+				return ret;
-+
-+		}
- 
- 			gpio_enabled[gpio_bank(gpionr)] |= gpio_bit(gpionr);
--		else
-+		} else {
- 			gpio_enabled[gpio_bank(gpionr)] &= ~gpio_bit(gpionr);
-+			return 0;
-+		}
-+
-+
-+		set_gpio_dir(gpionr, 0);
-+		set_gpio_inen(gpionr, 1);
-+
- 
- 		if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)) {
- 			gpio_edge_triggered[gpio_bank(gpionr)] |= gpio_bit(gpionr);
-diff -puN arch/blackfin/mach-common/ints-priority-sc.c~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq arch/blackfin/mach-common/ints-priority-sc.c
---- a/arch/blackfin/mach-common/ints-priority-sc.c~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq
-+++ a/arch/blackfin/mach-common/ints-priority-sc.c
-@@ -326,11 +326,18 @@ static void bfin_gpio_unmask_irq(unsigne
- static unsigned int bfin_gpio_irq_startup(unsigned int irq)
- {
- 	unsigned int ret;
-+	u16 gpionr = irq - IRQ_PF0;
-+
-+	if (!(gpio_enabled[gpio_bank(gpionr)] & gpio_bit(gpionr))) {
-+
-+		ret = gpio_request(gpionr, NULL);
-+		if(ret)
-+			return ret;
- 
--	ret = gpio_request(irq - IRQ_PF0, NULL);
-+	}
- 
--	if (!ret)
--		bfin_gpio_unmask_irq(irq);
-+	gpio_enabled[gpio_bank(gpionr)] |= gpio_bit(gpionr);
-+	bfin_gpio_unmask_irq(irq);
- 
- 	return ret;
- }
-@@ -339,14 +346,15 @@ static void bfin_gpio_irq_shutdown(unsig
- {
- 	bfin_gpio_mask_irq(irq);
- 	gpio_free(irq - IRQ_PF0);
-+	gpio_enabled[gpio_bank(irq - IRQ_PF0)] &= ~gpio_bit(irq - IRQ_PF0);
- }
- 
- static int bfin_gpio_irq_type(unsigned int irq, unsigned int type)
- {
-+
-+	unsigned int ret;
- 	u16 gpionr = irq - IRQ_PF0;
- 
--		set_gpio_dir(gpionr, 0);
--		set_gpio_inen(gpionr, 1);
- 
- 		if (type == IRQ_TYPE_PROBE) {
- 			/* only probe unenabled GPIO interrupt lines */
-@@ -357,10 +365,26 @@ static int bfin_gpio_irq_type(unsigned i
- 		}
- 
- 		if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING |
--			    IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW))
-+			    IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
-+
-+		if (!(gpio_enabled[gpio_bank(gpionr)] & gpio_bit(gpionr))) {
-+
-+			ret = gpio_request(gpionr, NULL);
-+			if(ret)
-+				return ret;
-+
-+		}
-+
- 			gpio_enabled[gpio_bank(gpionr)] |= gpio_bit(gpionr);
--		else
-+		} else {
- 			gpio_enabled[gpio_bank(gpionr)] &= ~gpio_bit(gpionr);
-+			return 0;
-+		}
-+
-+
-+		set_gpio_dir(gpionr, 0);
-+		set_gpio_inen(gpionr, 1);
-+
- 
- 		if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)) {
- 			gpio_edge_triggered[gpio_bank(gpionr)] |= gpio_bit(gpionr);
-diff -puN include/asm-blackfin/gpio.h~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq include/asm-blackfin/gpio.h
---- a/include/asm-blackfin/gpio.h~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq
-+++ a/include/asm-blackfin/gpio.h
-@@ -85,9 +85,9 @@
- #ifndef __ARCH_BLACKFIN_GPIO_H__
- #define __ARCH_BLACKFIN_GPIO_H__
- 
--#define gpio_bank(x) (x >> 4)
--#define gpio_bit(x)  (1<<(x & 0xF))
--#define gpio_sub_n(x) (x & 0xF)
-+#define gpio_bank(x) ((x) >> 4)
-+#define gpio_bit(x)  (1<<((x) & 0xF))
-+#define gpio_sub_n(x) ((x) & 0xF)
- 
- #define GPIO_BANKSIZE 16
- 
+ #endif
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -215,6 +75,7 @@ blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
 blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
 blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
 blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
+blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
 driver_bfin_serial_core.patch
 driver_bfin_serial_core-update.patch
 blackfin-on-chip-ethernet-mac-controller-driver.patch
