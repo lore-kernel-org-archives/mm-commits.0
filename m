@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + timekeepingc-needs-sysdevh.patch added to -mm tree
-Date: Thu, 29 Mar 2007 17:19:43 -0700
-Message-ID: <200703300021.l2U0Lpte016321@shell0.pdx.osdl.net>
+Subject: + fix-x86_64-mm-sched-clock-share.patch added to -mm tree
+Date: Thu, 29 Mar 2007 17:28:48 -0700
+Message-ID: <200703300030.l2U0Uu7v016482@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44194 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44361 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934366AbXC3AWJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 20:22:09 -0400
+	id S934378AbXC3AbH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 20:31:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, ak@suse.de, davej@codemonkey.org.uk
 
 
 The patch titled
-     timekeeping.c needs sysdev.h
+     fix x86_64-mm-sched-clock-share
 has been added to the -mm tree.  Its filename is
-     timekeepingc-needs-sysdevh.patch
+     fix-x86_64-mm-sched-clock-share.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: timekeeping.c needs sysdev.h
+Subject: fix x86_64-mm-sched-clock-share
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/time/timekeeping.c:270: warning: 'struct sys_device' declared inside parameter list
-kernel/time/timekeeping.c:270: warning: its scope is only this definition or declaration, which is probably not what you want
-kernel/time/timekeeping.c:299: warning: 'struct sys_device' declared inside parameter list
-kernel/time/timekeeping.c:314: error: variable 'timekeeping_sysclass' has initializer but incomplete type
+i386 allnoconfig:
 
-<etc>
+arch/i386/kernel/built-in.o: In function `call_r_s_f':
+sched-clock.c:(.text+0x755a): undefined reference to `cpufreq_get'
+arch/i386/kernel/built-in.o: In function `init_sched_clock':
+sched-clock.c:(.init.text+0x201c): undefined reference to `cpufreq_register_notifier'
 
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/cpufreq.h |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN kernel/time/timekeeping.c~timekeepingc-needs-sysdevh kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~timekeepingc-needs-sysdevh
-+++ a/kernel/time/timekeeping.c
-@@ -13,6 +13,7 @@
- #include <linux/percpu.h>
- #include <linux/init.h>
- #include <linux/mm.h>
-+#include <linux/sysdev.h>
- #include <linux/clocksource.h>
- #include <linux/jiffies.h>
- #include <linux/time.h>
+diff -puN include/linux/cpufreq.h~fix-x86_64-mm-sched-clock-share include/linux/cpufreq.h
+--- a/include/linux/cpufreq.h~fix-x86_64-mm-sched-clock-share
++++ a/include/linux/cpufreq.h
+@@ -32,7 +32,15 @@
+  *                     CPUFREQ NOTIFIER INTERFACE                    *
+  *********************************************************************/
+ 
++#ifdef CONFIG_CPU_FREQ
+ int cpufreq_register_notifier(struct notifier_block *nb, unsigned int list);
++#else
++static inline int cpufreq_register_notifier(struct notifier_block *nb,
++						unsigned int list)
++{
++	return 0;
++}
++#endif
+ int cpufreq_unregister_notifier(struct notifier_block *nb, unsigned int list);
+ 
+ #define CPUFREQ_TRANSITION_NOTIFIER	(0)
+@@ -262,17 +270,22 @@ int cpufreq_set_policy(struct cpufreq_po
+ int cpufreq_get_policy(struct cpufreq_policy *policy, unsigned int cpu);
+ int cpufreq_update_policy(unsigned int cpu);
+ 
+-/* query the current CPU frequency (in kHz). If zero, cpufreq couldn't detect it */
+-unsigned int cpufreq_get(unsigned int cpu);
+ 
+-/* query the last known CPU freq (in kHz). If zero, cpufreq couldn't detect it */
++/*
++ * query the last known CPU freq (in kHz). If zero, cpufreq couldn't detect it
++ */
+ #ifdef CONFIG_CPU_FREQ
+ unsigned int cpufreq_quick_get(unsigned int cpu);
++unsigned int cpufreq_get(unsigned int cpu);
+ #else
+ static inline unsigned int cpufreq_quick_get(unsigned int cpu)
+ {
+ 	return 0;
+ }
++static inline unsigned int cpufreq_get(unsigned int cpu)
++{
++	return 0;
++}
+ #endif
+ 
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -147,3 +180,4 @@ integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 mm-only-hrtimers-debug-patch-fix.patch
 timekeepingc-needs-sysdevh.patch
+fix-x86_64-mm-sched-clock-share.patch
