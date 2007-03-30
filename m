@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pata_acpi-restore-driver-fix.patch added to -mm tree
-Date: Thu, 29 Mar 2007 18:01:48 -0700
-Message-ID: <200703300103.l2U13uGB016990@shell0.pdx.osdl.net>
+Subject: + git-wireless-vs-git-net.patch added to -mm tree
+Date: Thu, 29 Mar 2007 18:20:48 -0700
+Message-ID: <200703300122.l2U1MunA017231@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44875 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45159 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934195AbXC3BEK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 21:04:10 -0400
+	id S934382AbXC3BXi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 21:23:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, linville@tuxdriver.com
 
 
 The patch titled
-     pata_acpi-restore-driver-fix
+     git-wireless vs git-net
 has been added to the -mm tree.  Its filename is
-     pata_acpi-restore-driver-fix.patch
+     git-wireless-vs-git-net.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,122 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_acpi-restore-driver-fix
+Subject: git-wireless vs git-net
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/pata_acpi.c: In function 'pacpi_pre_reset':
-drivers/ata/pata_acpi.c:55: error: too many arguments to function 'ata_std_prereset'
-drivers/ata/pata_acpi.c: In function 'pacpi_error_handler':
-drivers/ata/pata_acpi.c:86: warning: passing argument 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
+net/mac80211/ieee80211.c: In function 'ieee80211_subif_start_xmit':
+net/mac80211/ieee80211.c:1467: error: 'struct sk_buff' has no member named 'nh'
+net/mac80211/ieee80211.c:1468: error: 'struct sk_buff' has no member named 'h'
+net/mac80211/ieee80211.c:1605: error: 'struct sk_buff' has no member named 'mac'
+net/mac80211/ieee80211.c:1606: error: 'struct sk_buff' has no member named 'nh'
+net/mac80211/ieee80211.c:1607: error: 'struct sk_buff' has no member named 'h'
+net/mac80211/ieee80211.c: In function 'header_parse_80211':
+net/mac80211/ieee80211.c:2452: error: 'struct sk_buff' has no member named 'mac'
+net/mac80211/ieee80211.c:2452: error: 'struct sk_buff' has no member named 'mac'
+net/mac80211/ieee80211.c: In function 'ieee80211_rx_h_data':
+net/mac80211/ieee80211.c:2628: error: 'struct sk_buff' has no member named 'mac'
+net/mac80211/ieee80211.c:2628: error: 'struct sk_buff' has no member named 'nh'
+net/mac80211/ieee80211.c: In function 'ieee80211_rx_mgmt':
+net/mac80211/ieee80211.c:2756: error: 'struct sk_buff' has no member named 'mac'
+net/mac80211/ieee80211.c: In function 'ieee80211_rx_monitor':
+net/mac80211/ieee80211.c:2792: error: 'struct sk_buff' has no member named 'mac'
 
-Cc: Alan Cox <alan@redhat.com>
+net/mac80211/ieee80211_sta.c: In function 'ieee80211_sta_tx':
+net/mac80211/ieee80211_sta.c:409: error: 'struct sk_buff' has no member named 'mac'
+net/mac80211/ieee80211_sta.c:409: error: 'struct sk_buff' has no member named 'nh'
+net/mac80211/ieee80211_sta.c:409: error: 'struct sk_buff' has no member named 'h'
+
+Hope I got this right.  Perhaps we should be using skb_reset_foo(skb) instead
+of skb_set_foo(skb, 0)?
+
+
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_acpi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/mac80211/ieee80211.c     |   19 ++++++++++---------
+ net/mac80211/ieee80211_sta.c |    4 +++-
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN drivers/ata/Kconfig~pata_acpi-restore-driver-fix drivers/ata/Kconfig
-diff -puN drivers/ata/Makefile~pata_acpi-restore-driver-fix drivers/ata/Makefile
-diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix
-+++ a/drivers/ata/pata_acpi.c
-@@ -45,14 +45,14 @@ struct pata_acpi {
-  *	Perform the PATA port setup we need.
-  */
+diff -puN net/mac80211/ieee80211.c~git-wireless-vs-git-net net/mac80211/ieee80211.c
+--- a/net/mac80211/ieee80211.c~git-wireless-vs-git-net
++++ a/net/mac80211/ieee80211.c
+@@ -1464,8 +1464,8 @@ static int ieee80211_subif_start_xmit(st
+ 		goto fail;
+ 	}
  
--static int pacpi_pre_reset(struct ata_port *ap, unsigned long deadline)
-+static int pacpi_pre_reset(struct ata_port *ap)
+-	nh_pos = skb->nh.raw - skb->data;
+-	h_pos = skb->h.raw - skb->data;
++	nh_pos = skb_network_header(skb) - skb->data;
++	h_pos = skb_transport_header(skb) - skb->data;
+ 
+ 	/* convert Ethernet header to proper 802.11 header (based on
+ 	 * operation mode) */
+@@ -1602,9 +1602,9 @@ static int ieee80211_subif_start_xmit(st
+ 	/* Update skb pointers to various headers since this modified frame
+ 	 * is going to go through Linux networking code that may potentially
+ 	 * need things like pointer to IP header. */
+-	skb->mac.raw = skb->data;
+-	skb->nh.raw = skb->data + nh_pos;
+-	skb->h.raw = skb->data + h_pos;
++	skb_set_mac_header(skb, 0);
++	skb_set_network_header(skb, nh_pos);
++	skb_set_transport_header(skb, h_pos);
+ 
+ 	dev->trans_start = jiffies;
+ 	dev_queue_xmit(skb);
+@@ -2449,7 +2449,7 @@ static int ieee80211_stop(struct net_dev
+ 
+ static int header_parse_80211(struct sk_buff *skb, unsigned char *haddr)
  {
- 	struct pata_acpi *acpi = ap->private_data;
- 
- 	if (acpi->handle == NULL || ata_acpi_gtm(ap, acpi->handle, &acpi->gtm) < 0)
- 		return -ENODEV;
- 
--	return ata_std_prereset(ap, deadline);
-+	return ata_std_prereset(ap);
+-	memcpy(haddr, skb->mac.raw + 10, ETH_ALEN); /* addr2 */
++	memcpy(haddr, skb_mac_header(skb), ETH_ALEN); /* addr2 */
+ 	return ETH_ALEN;
  }
  
- /**
+@@ -2625,7 +2625,8 @@ ieee80211_rx_h_data(struct ieee80211_txr
+ 	if (skb2) {
+ 		/* send to wireless media */
+ 		skb2->protocol = __constant_htons(ETH_P_802_3);
+-		skb2->mac.raw = skb2->nh.raw = skb2->data;
++		skb_set_network_header(skb2, 0);
++		skb_set_mac_header(skb2, 0);
+ 		dev_queue_xmit(skb2);
+ 	}
+ 
+@@ -2753,7 +2754,7 @@ ieee80211_rx_mgmt(struct ieee80211_local
+ 	sdata->stats.rx_packets++;
+ 	sdata->stats.rx_bytes += skb->len;
+ 
+-	skb->mac.raw = skb->data;
++	skb_set_mac_header(skb, 0);
+ 	skb->ip_summed = CHECKSUM_UNNECESSARY;
+ 	skb->pkt_type = PACKET_OTHERHOST;
+ 	skb->protocol = htons(ETH_P_802_2);
+@@ -2789,7 +2790,7 @@ ieee80211_rx_monitor(struct net_device *
+ 	sdata->stats.rx_packets++;
+ 	sdata->stats.rx_bytes += skb->len;
+ 
+-	skb->mac.raw = skb->data;
++	skb_set_mac_header(skb, 0);
+ 	skb->ip_summed = CHECKSUM_UNNECESSARY;
+ 	skb->pkt_type = PACKET_OTHERHOST;
+ 	skb->protocol = htons(ETH_P_802_2);
+diff -puN net/mac80211/ieee80211_sta.c~git-wireless-vs-git-net net/mac80211/ieee80211_sta.c
+--- a/net/mac80211/ieee80211_sta.c~git-wireless-vs-git-net
++++ a/net/mac80211/ieee80211_sta.c
+@@ -406,7 +406,9 @@ static void ieee80211_sta_tx(struct net_
+ 
+ 	sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+ 	skb->dev = sdata->local->mdev;
+-	skb->mac.raw = skb->nh.raw = skb->h.raw = skb->data;
++	skb_set_mac_header(skb, 0);
++	skb_set_network_header(skb, 0);
++	skb_set_transport_header(skb, 0);
+ 
+ 	pkt_data = (struct ieee80211_tx_packet_data *) skb->cb;
+ 	memset(pkt_data, 0, sizeof(struct ieee80211_tx_packet_data));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +161,7 @@ git-kvm.patch
 git-libata-all.patch
 git-libata-all-ipr-fix.patch
 libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
 revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
 git-ubi.patch
@@ -98,6 +178,7 @@ git-s390.patch
 git-unionfs.patch
 git-wireless.patch
 git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
 fix-x86_64-mm-sched-clock-share.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
@@ -156,4 +237,3 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 mm-only-hrtimers-debug-patch-fix.patch
-pata_acpi-restore-driver-fix.patch
