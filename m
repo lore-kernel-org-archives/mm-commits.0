@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + utrace-x86_64-fix.patch added to -mm tree
-Date: Thu, 29 Mar 2007 18:48:34 -0700
-Message-ID: <200703300150.l2U1ogEq017640@shell0.pdx.osdl.net>
+Subject: + git-wireless-vs-git-net-2.patch added to -mm tree
+Date: Thu, 29 Mar 2007 18:53:48 -0700
+Message-ID: <200703300155.l2U1tukv017702@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45596 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45779 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752700AbXC3Buw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 21:50:52 -0400
+	id S1751364AbXC3B4e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 21:56:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, roland@redhat.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, linville@tuxdriver.com
 
 
 The patch titled
-     utrace x86_64 fix
+     git-wireless vs git-net 2
 has been added to the -mm tree.  Its filename is
-     utrace-x86_64-fix.patch
+     git-wireless-vs-git-net-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,63 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: utrace x86_64 fix
+Subject: git-wireless vs git-net 2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-{standard input}:3025: Error: suffix or operands invalid for `movq'
-{standard input}:3053: Error: suffix or operands invalid for `movq'
-{standard input}:3081: Error: suffix or operands invalid for `movq'
-{standard input}:3109: Error: suffix or operands invalid for `movq'
+net/wireless/wext-common.c: In function 'rtnetlink_fill_iwinfo':
+net/wireless/wext-common.c:481: warning: initialization makes pointer from integer without a cast
+net/wireless/wext-common.c:495: error: invalid operands to binary -
 
-hope this is right...
-
-btw, all the indenting on all those switch statements is off-by-one.  
-
-Cc: Roland McGrath <roland@redhat.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/ptrace.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ net/wireless/wext-common.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/ptrace.c~utrace-x86_64-fix arch/x86_64/kernel/ptrace.c
---- a/arch/x86_64/kernel/ptrace.c~utrace-x86_64-fix
-+++ a/arch/x86_64/kernel/ptrace.c
-@@ -292,29 +292,29 @@ static int putreg(struct task_struct *ch
- 
- static unsigned long getreg(struct task_struct *child, unsigned long regno)
+diff -puN net/wireless/wext-common.c~git-wireless-vs-git-net-2 net/wireless/wext-common.c
+--- a/net/wireless/wext-common.c~git-wireless-vs-git-net-2
++++ a/net/wireless/wext-common.c
+@@ -478,7 +478,7 @@ static inline int rtnetlink_fill_iwinfo(
  {
--	unsigned long val;
-+	unsigned int val;
- 	switch (regno) {
- 		case offsetof(struct user_regs_struct, fs):
- 			if (child == current) {
--				asm("movq %%fs,%0" : "=r" (val));
-+				asm("movl %%fs,%0" : "=r" (val));
- 				return val;
- 			}
- 			return child->thread.fsindex;
- 		case offsetof(struct user_regs_struct, gs):
- 			if (child == current) {
--				asm("movq %%gs,%0" : "=r" (val));
-+				asm("movl %%gs,%0" : "=r" (val));
- 				return val;
- 			}
- 			return child->thread.gsindex;
- 		case offsetof(struct user_regs_struct, ds):
- 			if (child == current) {
--				asm("movq %%ds,%0" : "=r" (val));
-+				asm("movl %%ds,%0" : "=r" (val));
- 				return val;
- 			}
- 			return child->thread.ds;
- 		case offsetof(struct user_regs_struct, es):
- 			if (child == current) {
--				asm("movq %%es,%0" : "=r" (val));
-+				asm("movl %%es,%0" : "=r" (val));
- 				return val;
- 			}
- 			return child->thread.es; 
+ 	struct ifinfomsg *r;
+ 	struct nlmsghdr  *nlh;
+-	unsigned char	 *b = skb->tail;
++	unsigned char	 *b = skb_tail_pointer(skb);
+ 
+ 	nlh = NLMSG_PUT(skb, 0, 0, type, sizeof(*r));
+ 	r = NLMSG_DATA(nlh);
+@@ -492,7 +492,7 @@ static inline int rtnetlink_fill_iwinfo(
+ 	/* Add the wireless events in the netlink packet */
+ 	RTA_PUT(skb, IFLA_WIRELESS, event_len, event);
+ 
+-	nlh->nlmsg_len = skb->tail - b;
++	nlh->nlmsg_len = skb_tail_pointer(skb) - b;
+ 	return skb->len;
+ 
+ nlmsg_failure:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -182,3 +161,4 @@ integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 mm-only-hrtimers-debug-patch-fix.patch
 utrace-x86_64-fix.patch
+git-wireless-vs-git-net-2.patch
