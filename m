@@ -1,59 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch added to -mm tree
-Date: Thu, 29 Mar 2007 17:42:18 -0700
-Message-ID: <200703300044.l2U0iQdC016675@shell0.pdx.osdl.net>
+Subject: - timekeepingc-needs-sysdevh.patch removed from -mm tree
+Date: Thu, 29 Mar 2007 17:43:16 -0700
+Message-ID: <200703300045.l2U0jO4N016710@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44584 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44623 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934381AbXC3Aof (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2007 20:44:35 -0400
+	id S1945912AbXC3AqE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2007 20:46:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com
+To: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-acpi-add-infrastructure-for-drivers-to-use-fix
-has been added to the -mm tree.  Its filename is
-     libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+     timekeeping.c needs sysdev.h
+has been removed from the -mm tree.  Its filename was
+     timekeepingc-needs-sysdevh.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: libata-acpi-add-infrastructure-for-drivers-to-use-fix
+Subject: timekeeping.c needs sysdev.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@redhat.com>
+kernel/time/timekeeping.c:270: warning: 'struct sys_device' declared inside parameter list
+kernel/time/timekeeping.c:270: warning: its scope is only this definition or declaration, which is probably not what you want
+kernel/time/timekeeping.c:299: warning: 'struct sys_device' declared inside parameter list
+kernel/time/timekeeping.c:314: error: variable 'timekeeping_sysclass' has initializer but incomplete type
+
+<etc>
+
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/time/timekeeping.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ata/libata-acpi.c~libata-acpi-add-infrastructure-for-drivers-to-use-fix drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-acpi-add-infrastructure-for-drivers-to-use-fix
-+++ a/drivers/ata/libata-acpi.c
-@@ -764,7 +764,7 @@ static void *ata_pata_find_handle(struct
- 	acpi_handle handle;
- 	acpi_integer devfn;
- 
--	if (noacpi)
-+	if (libata_noacpi)
- 		return NULL;
- 	if (pata_get_dev_handle(dev, &handle, &devfn) < 0)
- 		return NULL;
+diff -puN kernel/time/timekeeping.c~timekeepingc-needs-sysdevh kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~timekeepingc-needs-sysdevh
++++ a/kernel/time/timekeeping.c
+@@ -13,6 +13,7 @@
+ #include <linux/percpu.h>
+ #include <linux/init.h>
+ #include <linux/mm.h>
++#include <linux/sysdev.h>
+ #include <linux/clocksource.h>
+ #include <linux/jiffies.h>
+ #include <linux/time.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n.patch
-timekeepingc-needs-sysdevh.patch
 slab-introduce-krealloc-fix.patch
 git-acpi.patch
 git-alsa.patch
@@ -116,6 +119,7 @@ cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
 add-support-for-deferrable-timers-respun-tidy.patch
 linux-sysdevh-needs-to-include-linux-moduleh.patch
 time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
