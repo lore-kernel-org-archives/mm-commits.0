@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-vioc-possible-cleanups.patch added to -mm tree
-Date: Sat, 31 Mar 2007 12:42:05 -0700
-Message-ID: <200703311942.l2VJg5iC028821@shell0.pdx.osdl.net>
+Subject: + move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch added to -mm tree
+Date: Sat, 31 Mar 2007 12:53:54 -0700
+Message-ID: <200703311953.l2VJrsKX028999@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34109 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34258 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752306AbXCaTpX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 31 Mar 2007 15:45:23 -0400
+	id S1752313AbXCaTyD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 31 Mar 2007 15:54:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, schidambaram@fabric7.com
+Cc: akpm@linux-foundation.org, ak@suse.de, hch@lst.de
 
 
 The patch titled
-     drivers/net/vioc/: possible cleanups
+     move-die-notifier-handling-to-common-code: fix vmalloc_sync_all()
 has been added to the -mm tree.  Its filename is
-     drivers-net-vioc-possible-cleanups.patch
+     move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,647 +25,222 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/net/vioc/: possible cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: move-die-notifier-handling-to-common-code: fix vmalloc_sync_all()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- remove dead #ifdef EXPORT_SYMTAB code
-- no "inline" functions in C files - gcc knows best whether or not to
-  inline static functions
-- move the vioc_ethtool_ops prototype to a header file
-- make needlessly global code static
-- #if 0 unused code
-- vioc_irq.c: remove the unused vioc_driver_lock
+Christoph removed the vmalloc_sync_all() calls from i386 and x86_64's
+register_die_notifier().  Apparently we need them.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Sriram Chidambaram <schidambaram@fabric7.com>
+Put them back by making vmalloc_sync_all() a vmalloc API functions and play
+tricks with attribute(weak) for architectures which do not implement it.
+
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/vioc/f7/sppapi.h      |    2 
- drivers/net/vioc/khash.h          |   10 ----
- drivers/net/vioc/spp.c            |   60 ++++++++++++++++++----------
- drivers/net/vioc/vioc_api.c       |    5 +-
- drivers/net/vioc/vioc_api.h       |    3 -
- drivers/net/vioc/vioc_driver.c    |    3 -
- drivers/net/vioc/vioc_ethtool.c   |    2 
- drivers/net/vioc/vioc_irq.c       |    9 ----
- drivers/net/vioc/vioc_provision.c |   16 ++++---
- drivers/net/vioc/vioc_receive.c   |    2 
- drivers/net/vioc/vioc_spp.c       |    6 +-
- drivers/net/vioc/vioc_transmit.c  |   40 ++++++++++--------
- 12 files changed, 85 insertions(+), 73 deletions(-)
+ arch/i386/mm/fault.c              |    1 +
+ arch/x86_64/mm/fault.c            |    1 +
+ include/asm-i386/pgtable-2level.h |    2 --
+ include/asm-i386/pgtable-3level.h |    2 --
+ include/asm-x86_64/pgtable.h      |    1 -
+ include/linux/vmalloc.h           |    1 +
+ kernel/die_notifier.c             |    2 ++
+ mm/vmalloc.c                      |    7 +++++++
+ 8 files changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/vioc/f7/sppapi.h~drivers-net-vioc-possible-cleanups drivers/net/vioc/f7/sppapi.h
---- a/drivers/net/vioc/f7/sppapi.h~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/f7/sppapi.h
-@@ -234,7 +234,5 @@ extern int spp_msg_register(u32 key_faci
+diff -puN arch/i386/mm/fault.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/arch/i386/mm/fault.c
+@@ -21,6 +21,7 @@
+ #include <linux/vt_kern.h>		/* For unblank_screen() */
+ #include <linux/highmem.h>
+ #include <linux/bootmem.h>		/* for max_low_pfn */
++#include <linux/vmalloc.h>
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+diff -puN arch/x86_64/mm/fault.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all arch/x86_64/mm/fault.c
+--- a/arch/x86_64/mm/fault.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/arch/x86_64/mm/fault.c
+@@ -21,6 +21,7 @@
+ #include <linux/tty.h>
+ #include <linux/vt_kern.h>		/* For unblank_screen() */
+ #include <linux/compiler.h>
++#include <linux/vmalloc.h>
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+diff -puN include/asm-i386/pgtable-2level.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all include/asm-i386/pgtable-2level.h
+--- a/include/asm-i386/pgtable-2level.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/include/asm-i386/pgtable-2level.h
+@@ -66,6 +66,4 @@ static inline int pte_exec_kernel(pte_t 
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { (pte).pte_low })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
- extern void spp_msg_unregister(u32 key_facility);
- 
--extern int read_spp_regbank32(int vioc, int bank, char *buffer);
+-void vmalloc_sync_all(void);
 -
- #endif /* _SPPAPI_H_ */
+ #endif /* _I386_PGTABLE_2LEVEL_H */
+diff -puN include/asm-i386/pgtable-3level.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all include/asm-i386/pgtable-3level.h
+--- a/include/asm-i386/pgtable-3level.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/include/asm-i386/pgtable-3level.h
+@@ -187,6 +187,4 @@ static inline pmd_t pfn_pmd(unsigned lon
  
-diff -puN drivers/net/vioc/khash.h~drivers-net-vioc-possible-cleanups drivers/net/vioc/khash.h
---- a/drivers/net/vioc/khash.h~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/khash.h
-@@ -52,14 +52,4 @@ struct hash_elem_t {
- };
+ #define __pmd_free_tlb(tlb, x)		do { } while (0)
  
- 
--struct shash_t  *hashT_create(u32, size_t, size_t, u32(*)(unsigned char *, unsigned long), int(*)(void *, void *), unsigned int);
--int hashT_delete(struct shash_t * , void *);
--struct hash_elem_t *hashT_lookup(struct shash_t * , void *);
--struct hash_elem_t *hashT_add(struct shash_t *, void *);
--void hashT_destroy(struct shash_t *);
--/* Accesors */
--void **hashT_getkeys(struct shash_t *);
--size_t hashT_tablesize(struct shash_t *);
--size_t hashT_size(struct shash_t *);
+-#define vmalloc_sync_all() ((void)0)
 -
- #endif
-diff -puN drivers/net/vioc/spp.c~drivers-net-vioc-possible-cleanups drivers/net/vioc/spp.c
---- a/drivers/net/vioc/spp.c~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/spp.c
-@@ -50,6 +50,15 @@
-   c -= a; c -= b; c ^= (b >> 15); \
+ #endif /* _I386_PGTABLE_3LEVEL_H */
+diff -puN include/asm-x86_64/pgtable.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all include/asm-x86_64/pgtable.h
+--- a/include/asm-x86_64/pgtable.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/include/asm-x86_64/pgtable.h
+@@ -411,7 +411,6 @@ static inline pte_t pte_modify(pte_t pte
+ 
+ extern spinlock_t pgd_lock;
+ extern struct list_head pgd_list;
+-void vmalloc_sync_all(void);
+ 
+ extern int kern_addr_valid(unsigned long addr); 
+ 
+diff -puN include/linux/vmalloc.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/include/linux/vmalloc.h
+@@ -53,6 +53,7 @@ extern void vunmap(void *addr);
+ 
+ extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
+ 							unsigned long pgoff);
++void vmalloc_sync_all(void);
+  
+ /*
+  *	Lowlevel-APIs (not for driver use!)
+diff -puN kernel/die_notifier.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all kernel/die_notifier.c
+--- a/kernel/die_notifier.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/kernel/die_notifier.c
+@@ -1,6 +1,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/notifier.h>
++#Include <linux/vmalloc.h>
+ #include <linux/kdebug.h>
+ 
+ 
+@@ -23,6 +24,7 @@ int notify_die(enum die_val val, const c
+ 
+ int register_die_notifier(struct notifier_block *nb)
+ {
++	vmalloc_sync_all();
+ 	return atomic_notifier_chain_register(&die_chain, nb);
  }
- 
-+static struct hash_elem_t *hashT_add(struct shash_t *htable, void *key);
-+static struct shash_t *hashT_create(u32 sizehint, size_t keybuf_size,
-+                                    size_t databuf_size,
-+                                    u32(*hfunc) (unsigned char *,
-+						 unsigned long),
-+                                    int (*cfunc) (void *, void *),
-+                                    unsigned int flags);
-+static void hashT_destroy(struct shash_t *htable);
-+static struct hash_elem_t *hashT_lookup(struct shash_t *htable, void *key);
- 
- struct shash_t {
- 	/* Common fields for all hash tables types */
-@@ -65,7 +74,9 @@ struct shash_t {
- };
- 
- struct hash_ops {
-+#if 0
- 	int (*delete) (struct shash_t *, void *);
-+#endif  /*  0  */
- 	struct hash_elem_t *(*lookup) (struct shash_t *, void *);
- 	void (*destroy) (struct shash_t *);
- 	struct hash_elem_t *(*add) (struct shash_t *, void *);
-@@ -143,6 +154,7 @@ static u32 gethash(struct shash_t *htabl
- 	return ((htable->hash_fn(key, len)) & (htable->tsize - 1));
+ EXPORT_SYMBOL_GPL(register_die_notifier);
+diff -puN mm/vmalloc.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all mm/vmalloc.c
+--- a/mm/vmalloc.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/mm/vmalloc.c
+@@ -749,3 +749,10 @@ out_einval_locked:
  }
+ EXPORT_SYMBOL(remap_vmalloc_range);
  
-+#if 0
- /* Data associated to this key MUST be freed by the caller */
- static int ch_delete(struct shash_t *htable, void *key)
- {
-@@ -181,6 +193,7 @@ static int ch_delete(struct shash_t *hta
- 
- 	return -1;
- }
-+#endif  /*  0  */
- 
- static void ch_destroy(struct shash_t *htable)
- {
-@@ -232,16 +245,21 @@ static void **ch_getkeys(struct shash_t 
- }
- 
- /* Accesors ******************************************************************/
--inline size_t hashT_tablesize(struct shash_t * htable)
-+
-+#if 0
-+
-+size_t hashT_tablesize(struct shash_t * htable)
- {
- 	return htable->tsize;
- }
- 
--inline size_t hashT_size(struct shash_t * htable)
-+size_t hashT_size(struct shash_t * htable)
- {
- 	return htable->nelems;
- }
- 
-+#endif  /*  0  */
-+
- static struct hash_elem_t *ch_lookup(struct shash_t *htable, void *key)
- {
- 	u32 idx;
-@@ -330,15 +348,17 @@ static int key_compare(void *key_in, voi
- 		return 1;
- }
- 
--struct hash_ops ch_ops = {
-+static struct hash_ops ch_ops = {
-+#if 0
- 	.delete = ch_delete,
-+#endif  /*  0  */
- 	.lookup = ch_lookup,
- 	.destroy = ch_destroy,
- 	.getkeys = ch_getkeys,
- 	.add = ch_add
- };
- 
--struct facility fTable[FACILITY_CNT];
-+static struct facility fTable[FACILITY_CNT];
- 
- int spp_init(void)
- {
-@@ -511,7 +531,7 @@ void spp_msg_unregister(u32 key_facility
- 	spin_unlock(&elem->lock);
- }
- 
--
-+#if 0
- int read_spp_regbank32(int vioc_idx, int bank, char *buffer)
- {
- 	struct vioc_device *viocdev = vioc_viocdev(vioc_idx);
-@@ -531,14 +551,14 @@ int read_spp_regbank32(int vioc_idx, int
- 
- 	return i;
- }
-+#endif  /*  0  */
- 
--struct shash_t *hashT_create(u32 sizehint,
--							size_t keybuf_size,
--							size_t databuf_size,
--							u32(*hfunc) (unsigned char *,
--							unsigned long),
--							int (*cfunc) (void *, void *),
--							unsigned int flags)
-+static struct shash_t *hashT_create(u32 sizehint, size_t keybuf_size,
-+                                    size_t databuf_size,
-+                                    u32(*hfunc) (unsigned char *,
-+                                                 unsigned long),
-+                                    int (*cfunc) (void *, void *),
-+                                    unsigned int flags)
- {
- 	struct shash_t *htable;
- 	u32 size = 0;		/* Table size */
-@@ -591,36 +611,34 @@ struct shash_t *hashT_create(u32 sizehin
- 	return htable;
- }
- 
-+#if 0
- int hashT_delete(struct shash_t *htable, void *key)
- {
- 	return htable->h_ops->delete(htable, key);
- }
-+#endif  /*  0  */
- 
--struct hash_elem_t *hashT_add(struct shash_t *htable, void *key)
-+static struct hash_elem_t *hashT_add(struct shash_t *htable, void *key)
- {
- 	return htable->h_ops->add(htable, key);
- }
- 
--struct hash_elem_t *hashT_lookup(struct shash_t *htable, void *key)
-+static struct hash_elem_t *hashT_lookup(struct shash_t *htable, void *key)
- {
- 	return htable->h_ops->lookup(htable, key);
- }
- 
--void hashT_destroy(struct shash_t *htable)
-+static void hashT_destroy(struct shash_t *htable)
- {
--
- 	htable->h_ops->destroy(htable);
- 
- 	vfree(htable);
- }
- 
-+#if 0
- void **hashT_getkeys(struct shash_t *htable)
- {
- 	return htable->h_ops->getkeys(htable);
- }
-+#endif  /*  0  */
- 
--#ifdef EXPORT_SYMTAB
--EXPORT_SYMBOL(spp_msg_register);
--EXPORT_SYMBOL(spp_msg_unregister);
--EXPORT_SYMBOL(read_spp_regbank32);
--#endif
-diff -puN drivers/net/vioc/vioc_api.c~drivers-net-vioc-possible-cleanups drivers/net/vioc/vioc_api.c
---- a/drivers/net/vioc/vioc_api.c~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/vioc_api.c
-@@ -46,7 +46,8 @@
- #include "vioc_vnic.h"
- #include "vioc_api.h"
- 
--int vioc_set_rx_intr_param(int viocdev_idx, int rx_intr_id, u32 timeout, u32 cntout)
-+static int vioc_set_rx_intr_param(int viocdev_idx, int rx_intr_id,
-+				  u32 timeout, u32 cntout)
- {
- 	int ret = 0;
- 	struct vioc_device *viocdev;
-@@ -83,6 +84,7 @@ int vioc_get_vnic_mac(int viocdev_idx, u
- 	return 0;
- }
- 
-+#if 0
- int vioc_set_vnic_mac(int viocdev_idx, u32 vnic_id, u8 * p)
- {
- 	struct vioc_device *viocdev = vioc_viocdev(viocdev_idx);
-@@ -101,6 +103,7 @@ int vioc_set_vnic_mac(int viocdev_idx, u
- 
- 	return 0;
- }
-+#endif  /*  0  */
- 
- int vioc_set_txq(int viocdev_idx, u32 vnic_id, u32 txq_id, dma_addr_t base,
- 		 u32 num_elements)
-diff -puN drivers/net/vioc/vioc_api.h~drivers-net-vioc-possible-cleanups drivers/net/vioc/vioc_api.h
---- a/drivers/net/vioc/vioc_api.h~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/vioc_api.h
-@@ -30,11 +30,12 @@
- #include <asm/io.h>
- #include "vioc_vnic.h"
- 
-+extern struct ethtool_ops vioc_ethtool_ops;
-+
- extern int vioc_vnic_resources_set(int vioc_id, u32 vnic_id);
- extern void vioc_sw_reset(int vioc_id);
- extern u32 vioc_rrd(int vioc_id, int module_id, int vnic_id, int reg_addr);
- extern int vioc_rwr(int vioc_id, int module_id, int vnic_id, int reg_addr, u32 value);
--extern int vioc_set_vnic_mac(int vioc_id, u32 vnic_id, u8 * p);
- extern int vioc_get_vnic_mac(int vioc_id, u32 vnic_id, u8 * p);
- extern int vioc_set_txq(int vioc_id, u32 vnic_id, u32 txq_id, dma_addr_t base,
-                 u32 num_elements);
-diff -puN drivers/net/vioc/vioc_driver.c~drivers-net-vioc-possible-cleanups drivers/net/vioc/vioc_driver.c
---- a/drivers/net/vioc/vioc_driver.c~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/vioc_driver.c
-@@ -868,6 +868,3 @@ static void __exit vioc_module_exit(void
- module_init(vioc_module_init);
- module_exit(vioc_module_exit);
- 
--#ifdef EXPORT_SYMTAB
--EXPORT_SYMBOL(vioc_viocdev);
--#endif				/* EXPORT_SYMTAB */
-diff -puN drivers/net/vioc/vioc_ethtool.c~drivers-net-vioc-possible-cleanups drivers/net/vioc/vioc_ethtool.c
---- a/drivers/net/vioc/vioc_ethtool.c~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/vioc_ethtool.c
-@@ -155,7 +155,7 @@ static int vnic_get_settings(struct net_
- 	return 0;
- }
- 
--int vioc_trace;
-+static int vioc_trace;
- 
- static u32 vnic_get_msglevel(struct net_device *netdev)
- {
-diff -puN drivers/net/vioc/vioc_irq.c~drivers-net-vioc-possible-cleanups drivers/net/vioc/vioc_irq.c
---- a/drivers/net/vioc/vioc_irq.c~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/vioc_irq.c
-@@ -55,9 +55,6 @@
- #define VIOC_INTERRUPTS_CNT    19	/* 16 Rx + 1 Tx + 1 BMC + 1 Error */
- #define VIOC_INTERRUPTS_CNT_PIN_IRQ    4	/* 2 Rx + 1 Tx + 1 BMC */
- 
--#define VIOC_SLVAR(x) x spinlock_t vioc_driver_lock = SPIN_LOCK_UNLOCKED
--#define VIOC_CLI spin_lock_irq(&vioc_driver_lock)
--#define VIOC_STI spin_unlock_irq(&vioc_driver_lock)
- #define IRQRETURN return IRQ_HANDLED
- #define TX_IRQ_IDX			16
- #define BMC_IRQ_IDX			17
-@@ -92,9 +89,7 @@ struct viocdev_intreq {
- };
- 
- /* GLOBAL VIOC Interrupt table/structure */
--struct viocdev_intreq vioc_interrupts[VIOC_MAX_VIOCS];
--
--VIOC_SLVAR();
-+static struct viocdev_intreq vioc_interrupts[VIOC_MAX_VIOCS];
- 
- static irqreturn_t taskq_handler(int i, void *p)
- {
-@@ -227,7 +222,7 @@ int vioc_irq_init(void)
- 	return 0;
- }
- 
--int get_pci_pin_irq(struct pci_dev *dev_in, int func)
-+static int get_pci_pin_irq(struct pci_dev *dev_in, int func)
- {
- 	struct pci_dev *dev = NULL;
- 	unsigned int slot, fn, devfn;
-diff -puN drivers/net/vioc/vioc_provision.c~drivers-net-vioc-possible-cleanups drivers/net/vioc/vioc_provision.c
---- a/drivers/net/vioc/vioc_provision.c~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/vioc_provision.c
-@@ -75,7 +75,7 @@ struct rxd_q_prov {
- 
- */
- 
--struct vnic_prov_def vnic_set_0 = {
-+static struct vnic_prov_def vnic_set_0 = {
- 	.rxd_ring[0].buf_size = RXDQ_SMALL_ALLOC_BUFSIZE,
- 	.rxd_ring[0].entries = RXDQ_SMALL_ENTRIES,
- 	.rxd_ring[0].id = 0,
-@@ -92,7 +92,7 @@ struct vnic_prov_def vnic_set_0 = {
- 	    0,.rxc_intr_id = 0
- };
- 
--struct vnic_prov_def vnic_set_1 = {
-+static struct vnic_prov_def vnic_set_1 = {
- 	.rxd_ring[0].buf_size = RXDQ_SMALL_ALLOC_BUFSIZE,
- 	.rxd_ring[0].entries = RXDQ_SMALL_ENTRIES,
- 	.rxd_ring[0].id = 4,
-@@ -109,7 +109,7 @@ struct vnic_prov_def vnic_set_1 = {
- 	    1,.rxc_intr_id = 1
- };
- 
--struct vnic_prov_def vnic_set_2 = {
-+static struct vnic_prov_def vnic_set_2 = {
- 	.rxd_ring[0].buf_size = RXDQ_SMALL_ALLOC_BUFSIZE,
- 	.rxd_ring[0].entries = RXDQ_SMALL_ENTRIES,
- 	.rxd_ring[0].id = 8,
-@@ -126,7 +126,7 @@ struct vnic_prov_def vnic_set_2 = {
- 	    2,.rxc_intr_id = 2
- };
- 
--struct vnic_prov_def vnic_set_3 = {
-+static struct vnic_prov_def vnic_set_3 = {
- 	.rxd_ring[0].buf_size = RXDQ_SMALL_ALLOC_BUFSIZE,
- 	.rxd_ring[0].entries = RXDQ_SMALL_ENTRIES,
- 	.rxd_ring[0].id = 12,
-@@ -143,6 +143,7 @@ struct vnic_prov_def vnic_set_3 = {
- 	    3,.rxc_intr_id = 3
- };
- 
-+#if 0
- struct vnic_prov_def vnic_set_sim = {
- 	.rxd_ring[0].buf_size = RXDQ_STD_ALLOC_BUFSIZE,
- 	.rxd_ring[0].entries = 256,
-@@ -158,8 +159,9 @@ struct vnic_prov_def vnic_set_sim = {
- 	.rxd_ring[2].state = 1,
- 	.tx_entries = 256,.rxc_entries = 256 * 3,.rxc_id = 0,.rxc_intr_id = 0
- };
-+#endif  /*  0  */
- 
--struct vnic_prov_def *vnic_prov_pmm_pin_irq[VIOC_MAX_VNICS] = {
-+static struct vnic_prov_def *vnic_prov_pmm_pin_irq[VIOC_MAX_VNICS] = {
- 	&vnic_set_0,
- 	&vnic_set_1,
- 	&vnic_set_0,
-@@ -178,7 +180,7 @@ struct vnic_prov_def *vnic_prov_pmm_pin_
- 	&vnic_set_1
- };
- 
--struct vnic_prov_def *vnic_prov_pmm_msi_x[VIOC_MAX_VNICS] = {
-+static struct vnic_prov_def *vnic_prov_pmm_msi_x[VIOC_MAX_VNICS] = {
- 	&vnic_set_0,
- 	&vnic_set_1,
- 	&vnic_set_2,
-@@ -197,6 +199,7 @@ struct vnic_prov_def *vnic_prov_pmm_msi_
- 	&vnic_set_3
- };
- 
-+#if 0
- struct vnic_prov_def *vnic_prov_sim[VIOC_MAX_VNICS] = {
- 	&vnic_set_sim,
- 	&vnic_set_sim,
-@@ -215,6 +218,7 @@ struct vnic_prov_def *vnic_prov_sim[VIOC
- 	&vnic_set_sim,
- 	&vnic_set_sim
- };
-+#endif  /*  0  */
- 
- struct vnic_prov_def **vioc_prov_get(int num_rx_irq)
- {
-diff -puN drivers/net/vioc/vioc_receive.c~drivers-net-vioc-possible-cleanups drivers/net/vioc/vioc_receive.c
---- a/drivers/net/vioc/vioc_receive.c~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/vioc_receive.c
-@@ -58,7 +58,7 @@
-  * one RxSet, no locking is needed on RxDQs or RxCQs.
-  * Return true if we got a packet, false if the queue is empty.
-  */
--int vioc_rx_pkt(struct vioc_device *viocdev, struct rxc *rxc, u32 sw_idx)
-+static int vioc_rx_pkt(struct vioc_device *viocdev, struct rxc *rxc, u32 sw_idx)
- {
- 	u32 rx_status;
- 	u32 vnic_id;
-diff -puN drivers/net/vioc/vioc_spp.c~drivers-net-vioc-possible-cleanups drivers/net/vioc/vioc_spp.c
---- a/drivers/net/vioc/vioc_spp.c~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/vioc_spp.c
-@@ -84,12 +84,12 @@
- 
- static DECLARE_MUTEX(vnic_prov_sem);
- 
--static inline void vnic_prov_get_sema(void)
-+static void vnic_prov_get_sema(void)
- {
- 	down(&vnic_prov_sem);
- }
- 
--static inline void vnic_prov_put_sema(void)
-+static void vnic_prov_put_sema(void)
- {
- 	up(&vnic_prov_sem);
- }
-@@ -290,7 +290,7 @@ void vioc_hb_to_bmc(int vioc_id)
- 	vioc_reg_wr(1, viocdev->ba.virt, SPP_HB_SENSOR_REG);
- }
- 
--void vioc_reset_rq_to_bmc(int vioc_id, u32 command)
-+static void vioc_reset_rq_to_bmc(int vioc_id, u32 command)
- {
- 	struct vioc_device *viocdev = vioc_viocdev(0);
- 
-diff -puN drivers/net/vioc/vioc_transmit.c~drivers-net-vioc-possible-cleanups drivers/net/vioc/vioc_transmit.c
---- a/drivers/net/vioc/vioc_transmit.c~drivers-net-vioc-possible-cleanups
-+++ a/drivers/net/vioc/vioc_transmit.c
-@@ -73,49 +73,52 @@
- #define TXQ0            0
- #define NOT_SET        -1
- 
--static inline u32 vnic_rd_txd_ctl(struct txq *txq)
-+static u32 vnic_rd_txd_ctl(struct txq *txq)
- {
- 	return readl(txq->va_of_vreg_veng_txd_ctl);
- }
- 
--static inline void vnic_ring_tx_bell(struct txq *txq)
-+static void vnic_ring_tx_bell(struct txq *txq)
- {
- 	writel(txq->shadow_VREG_VENG_TXD_CTL | VREG_VENG_TXD_CTL_QRING_MASK,
- 	       txq->va_of_vreg_veng_txd_ctl);
- 	txq->bells++;
- }
- 
--static inline void vnic_reset_tx_ring_err(struct txq *txq)
-+static void vnic_reset_tx_ring_err(struct txq *txq)
- {
- 	writel(txq->shadow_VREG_VENG_TXD_CTL |
- 	       (VREG_VENG_TXD_CTL_QENABLE_MASK | VREG_VENG_TXD_CTL_CLEARMASK),
- 	       txq->va_of_vreg_veng_txd_ctl);
- }
- 
--static inline void vnic_enable_tx_ring(struct txq *txq)
-+static void vnic_enable_tx_ring(struct txq *txq)
- {
- 	txq->shadow_VREG_VENG_TXD_CTL = VREG_VENG_TXD_CTL_QENABLE_MASK;
- 	writel(txq->shadow_VREG_VENG_TXD_CTL, txq->va_of_vreg_veng_txd_ctl);
- }
- 
--static inline void vnic_disable_tx_ring(struct txq *txq)
-+static void vnic_disable_tx_ring(struct txq *txq)
- {
- 	txq->shadow_VREG_VENG_TXD_CTL = 0;
- 	writel(0, txq->va_of_vreg_veng_txd_ctl);
- }
- 
--static inline void vnic_pause_tx_ring(struct txq *txq)
-+#if 0
-+
-+static void vnic_pause_tx_ring(struct txq *txq)
- {
- 	txq->shadow_VREG_VENG_TXD_CTL |= VREG_VENG_TXD_CTL_QPAUSE_MASK;
- 	writel(txq->shadow_VREG_VENG_TXD_CTL, txq->va_of_vreg_veng_txd_ctl);
- }
- 
--static inline void vnic_resume_tx_ring(struct txq *txq)
-+static void vnic_resume_tx_ring(struct txq *txq)
- {
- 	txq->shadow_VREG_VENG_TXD_CTL &= ~VREG_VENG_TXD_CTL_QPAUSE_MASK;
- 	writel(txq->shadow_VREG_VENG_TXD_CTL, txq->va_of_vreg_veng_txd_ctl);
- }
- 
-+#endif  /*  0  */
- 
- /* TxQ must be locked */
- static void vnic_reset_txq(struct vnic_device *vnicdev, struct txq *txq)
-@@ -395,8 +398,9 @@ void vioc_tx_interrupt(struct work_struc
- 	viocdev->vioc_stats.tx_tasklets++;
- 	// read_unlock(&viocdev->lock);
- }
--void vnic_enqueue_tx_pkt(struct vnic_device *vnicdev, struct txq *txq,
--			 struct sk_buff *skb, struct vioc_prov *prov)
-+
-+static void vnic_enqueue_tx_pkt(struct vnic_device *vnicdev, struct txq *txq,
-+				struct sk_buff *skb, struct vioc_prov *prov)
- {
- 	int idx, sop_idx, eop_idx, f;
- 	struct tx_pktBufDesc_Phys_w *txd;
-@@ -512,8 +516,9 @@ void vnic_enqueue_tx_pkt(struct vnic_dev
- 
- }
- 
--void vnic_enqueue_tx_buffers(struct vnic_device *vnicdev, struct txq *txq,
--			     struct sk_buff *skb, struct vioc_prov *prov)
-+static void vnic_enqueue_tx_buffers(struct vnic_device *vnicdev,
-+				    struct txq *txq, struct sk_buff *skb,
-+				    struct vioc_prov *prov)
- {
- 	int len;
- 	int idx;
-@@ -586,7 +591,7 @@ void vnic_enqueue_tx_buffers(struct vnic
- 	txq->next_to_use = idx;
- }
- 
--static inline void init_f7_header(struct sk_buff *skb)
-+static void init_f7_header(struct sk_buff *skb)
- {
- 	struct vioc_f7pf_w *f7p;
- 	unsigned char tag;
-@@ -675,7 +680,7 @@ void vioc_tx_timer(unsigned long data)
-  * not hold - add a tx_enabled flag to the vnic struct protected
-  * by txq->lock.  Or just read-lock the VIOC.
-  */
--int vnic_start_xmit(struct sk_buff *skb, struct net_device *netdev)
-+static int vnic_start_xmit(struct sk_buff *skb, struct net_device *netdev)
- {
- 	struct vnic_device *vnicdev = netdev->priv;
- 	struct txq *txq = &vnicdev->txq;
-@@ -734,8 +739,9 @@ int vnic_start_xmit(struct sk_buff *skb,
-  *      saddr=NULL      means use device source address
-  *      daddr=NULL      means leave destination address (eg unresolved arp)
-  */
--int vnic_eth_header(struct sk_buff *skb, struct net_device *dev,
--		    unsigned short type, void *daddr, void *saddr, unsigned len)
-+static int vnic_eth_header(struct sk_buff *skb, struct net_device *dev,
-+			   unsigned short type, void *daddr, void *saddr,
-+			   unsigned len)
- {
- 	struct ethhdr *eth = (struct ethhdr *)skb_push(skb, ETH_HLEN);
- 
-@@ -952,6 +958,7 @@ static void vnic_free_tx_resources(struc
- 	vnicdev->txq.vbuf = NULL;
- }
- 
-+#if 0
- void vioc_reset_if_tx(struct net_device *netdev)
- {
- 	struct vnic_device *vnicdev = netdev->priv;
-@@ -959,8 +966,7 @@ void vioc_reset_if_tx(struct net_device 
- 
- 	vnic_reset_txq(vnicdev, txq);
- }
--
--extern struct ethtool_ops vioc_ethtool_ops;
-+#endif  /*  0  */
- 
- /**
-  * vnic_uninit - Device Termination Routine
++/*
++ * Implement a stub for vmalloc_sync_all() if the architecture chose not to
++ * have one.
++ */
++void  __attribute__((weak)) vmalloc_sync_all(void)
++{
++}
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-mfd-sm501c-fix-an-off-by-one.patch
-net-sunrpc-svcsockc-fix-a-check.patch
+proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n.patch
+slab-introduce-krealloc-fix.patch
 git-acpi.patch
-git-powerpc.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
 git-drm.patch
 git-dvb.patch
+git-gfs2-nmw.patch
 git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-remove-mmc_deselect_cards.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 git-ubi.patch
 git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-dpt_i2oc-remove-dead-code.patch
-drivers-scsi-aic7xxx-make-functions-static.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-drivers-scsi-aacraid-cleanups.patch
-make-mptspi_target_destroy-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-piggy-bus.patch
+git-pciseg.patch
+git-s390.patch
 git-unionfs.patch
 git-wireless.patch
-git-ipwireless_cs.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+git-wireless-fixup.patch
+fix-x86_64-mm-sched-clock-share.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+add-an-anonymous-inode-source-tidy.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+utrace-x86_64-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+fbdev-hecuba-framebuffer-driver.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
