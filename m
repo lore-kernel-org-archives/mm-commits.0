@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-kevents-childs-priority-greediness-fix.patch added to -mm tree
-Date: Sun, 01 Apr 2007 22:40:48 -0700
-Message-ID: <200704020540.l325emvJ025220@shell0.pdx.osdl.net>
+Subject: + fix-kevents-childs-priority-greediness.patch added to -mm tree
+Date: Sun, 01 Apr 2007 22:40:31 -0700
+Message-ID: <200704020540.l325eVxW025217@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36366 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36368 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932279AbXDBFld (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 01:41:33 -0400
+	id S932067AbXDBFlg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 01:41:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, jengelh@gmx.de
+Cc: jengelh@linux01.gwdg.de, chrisw@sous-sol.org, jengelh@gmx.de
 
 
 The patch titled
-     fix-kevents-childs-priority-greediness fix
+     Fix kevent's childs priority greediness
 has been added to the -mm tree.  Its filename is
-     fix-kevents-childs-priority-greediness-fix.patch
+     fix-kevents-childs-priority-greediness.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,132 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-kevents-childs-priority-greediness fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix kevent's childs priority greediness
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
+Fix kevent's childs priority greediness.  Such tasks were always scheduled
+at nice level -5 and, at that time, udev stole us the CPU time with -5.
+
+Already posted at http://lkml.org/lkml/2005/1/10/85
+
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ kernel/kmod.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/kmod.c~fix-kevents-childs-priority-greediness-fix kernel/kmod.c
---- a/kernel/kmod.c~fix-kevents-childs-priority-greediness-fix
+diff -puN kernel/kmod.c~fix-kevents-childs-priority-greediness kernel/kmod.c
+--- a/kernel/kmod.c~fix-kevents-childs-priority-greediness
 +++ a/kernel/kmod.c
-@@ -164,6 +164,11 @@ static int ____call_usermodehelper(void 
+@@ -164,6 +164,7 @@ static int ____call_usermodehelper(void 
  
  	/* We can run anywhere, unlike our parent keventd(). */
  	set_cpus_allowed(current, CPU_MASK_ALL);
-+
-+	/*
-+	 * Our parent is keventd, which runs with elevated scheduling priority.
-+	 * Avoid propagating that into the userspace child.
-+	 */
- 	set_user_nice(current, 0);
++	set_user_nice(current, 0);
  
  	retval = -EPERM;
+ 	if (current->fs->root)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
-origin.patch
-proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n.patch
-revert-retries-in-ext3_prepare_write-violate-ordering-requirements.patch
-revert-retries-in-ext4_prepare_write-violate-ordering-requirements.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-piggy-bus.patch
-git-pciseg.patch
-git-s390.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-fix-x86_64-mm-sched-clock-share.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-utrace-x86_64-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+git-kbuild.patch
+remove-artificial-software-max_loop-limit.patch
+fix-kevents-childs-priority-greediness.patch
+fix-kthread-nicenessdiff-fix.patch
+vt-allow-for-the-palette-to-be-exposed-and-changed-via-sysfs.patch
+vt-add-color-support-to-the-underline-and-italic-attributes.patch
