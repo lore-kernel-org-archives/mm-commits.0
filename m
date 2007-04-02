@@ -1,102 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - flush-msi-x-table-writes.patch removed from -mm tree
-Date: Mon, 02 Apr 2007 16:04:14 -0700
-Message-ID: <200704022304.l32N4EDd011967@shell0.pdx.osdl.net>
+Subject: - usb-serial-whiteheat-convert-to-generic-boolean.patch removed from -mm tree
+Date: Mon, 02 Apr 2007 16:04:09 -0700
+Message-ID: <200704022304.l32N492T011961@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52011 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52013 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966077AbXDBXEQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 19:04:16 -0400
+	id S966078AbXDBXES (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 19:04:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mitch.a.williams@intel.com, ebiederm@xmission.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: ricknu-0@student.ltu.se, greg@kroah.com, stuartm@connecttech.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Flush MSI-X table writes
+     usb/serial/whiteheat: Convert to generic boolean
 has been removed from the -mm tree.  Its filename was
-     flush-msi-x-table-writes.patch
+     usb-serial-whiteheat-convert-to-generic-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Flush MSI-X table writes
-From: Mitch Williams <mitch.a.williams@intel.com>
+Subject: usb/serial/whiteheat: Convert to generic boolean
+From: Richard Knutsson <ricknu-0@student.ltu.se>
 
-Fix a kernel bug which is triggered when using the irqbalance daemon with
-MSI-X hardware.
-
-Because both MSI-X interrupt messages and MSI-X table writes are posted,
-it's possible for them to cross while in-flight.  This results in
-interrupts being received long after the kernel thinks they're disabled,
-and in interrupts being sent to stale vectors after rebalancing.
-
-This patch performs a read flush after writes to the MSI-X table for mask
-and unmask operations.  Since the SMP affinity is set while the interrupt
-is masked, and since it's unmasked immediately after, no additional flushes
-are required in the various affinity setting routines.
-
-This patch has been validated with (unreleased) network hardware which
-uses MSI-X.
-
-Revised with input from Eric Biederman.
-
-Signed-off-by: Mitch Williams <mitch.a.williams@intel.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
 Cc: Greg KH <greg@kroah.com>
+Acked-by: Stuart MacDonald <stuartm@connecttech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c |   24 ++++++++++++++++++++++++
- 1 files changed, 24 insertions(+)
+ drivers/usb/serial/whiteheat.c |    8 ++++----
+ drivers/usb/serial/whiteheat.h |    4 ----
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/pci/msi.c~flush-msi-x-table-writes drivers/pci/msi.c
---- a/drivers/pci/msi.c~flush-msi-x-table-writes
-+++ a/drivers/pci/msi.c
-@@ -56,6 +56,28 @@ static void msix_set_enable(struct pci_d
- 	}
- }
+diff -puN drivers/usb/serial/whiteheat.c~usb-serial-whiteheat-convert-to-generic-boolean drivers/usb/serial/whiteheat.c
+--- a/drivers/usb/serial/whiteheat.c~usb-serial-whiteheat-convert-to-generic-boolean
++++ a/drivers/usb/serial/whiteheat.c
+@@ -1109,7 +1109,7 @@ static int firm_send_command (struct usb
+ 	command_port = port->serial->port[COMMAND_PORT];
+ 	command_info = usb_get_serial_port_data(command_port);
+ 	spin_lock_irqsave(&command_info->lock, flags);
+-	command_info->command_finished = FALSE;
++	command_info->command_finished = false;
+ 	
+ 	transfer_buffer = (__u8 *)command_port->write_urb->transfer_buffer;
+ 	transfer_buffer[0] = command;
+@@ -1124,12 +1124,12 @@ static int firm_send_command (struct usb
+ 	spin_unlock_irqrestore(&command_info->lock, flags);
  
-+static void msix_flush_writes(unsigned int irq)
-+{
-+	struct msi_desc *entry;
-+
-+	entry = get_irq_msi(irq);
-+	BUG_ON(!entry || !entry->dev);
-+	switch (entry->msi_attrib.type) {
-+	case PCI_CAP_ID_MSI:
-+		/* nothing to do */
-+		break;
-+	case PCI_CAP_ID_MSIX: {
-+		int offset = entry->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE +
-+			PCI_MSIX_ENTRY_VECTOR_CTRL_OFFSET;
-+		readl(entry->mask_base + offset);
-+		break;
-+	}
-+	default:
-+		BUG();
-+		break;
-+	}
-+}
-+
- static void msi_set_mask_bit(unsigned int irq, int flag)
- {
- 	struct msi_desc *entry;
-@@ -174,11 +196,13 @@ void write_msi_msg(unsigned int irq, str
- void mask_msi_irq(unsigned int irq)
- {
- 	msi_set_mask_bit(irq, 1);
-+	msix_flush_writes(irq);
- }
+ 	/* wait for the command to complete */
+-	wait_event_interruptible_timeout(command_info->wait_command, 
+-		(command_info->command_finished != FALSE), COMMAND_TIMEOUT);
++	wait_event_interruptible_timeout(command_info->wait_command,
++		(bool)command_info->command_finished, COMMAND_TIMEOUT);
  
- void unmask_msi_irq(unsigned int irq)
- {
- 	msi_set_mask_bit(irq, 0);
-+	msix_flush_writes(irq);
- }
+ 	spin_lock_irqsave(&command_info->lock, flags);
  
- static int msi_free_irq(struct pci_dev* dev, int irq);
+-	if (command_info->command_finished == FALSE) {
++	if (command_info->command_finished == false) {
+ 		dbg("%s - command timed out.", __FUNCTION__);
+ 		retval = -ETIMEDOUT;
+ 		goto exit;
+diff -puN drivers/usb/serial/whiteheat.h~usb-serial-whiteheat-convert-to-generic-boolean drivers/usb/serial/whiteheat.h
+--- a/drivers/usb/serial/whiteheat.h~usb-serial-whiteheat-convert-to-generic-boolean
++++ a/drivers/usb/serial/whiteheat.h
+@@ -20,10 +20,6 @@
+ #define __LINUX_USB_SERIAL_WHITEHEAT_H
+ 
+ 
+-#define FALSE	0
+-#define TRUE	1
+-
+-
+ /* WhiteHEAT commands */
+ #define WHITEHEAT_OPEN			1	/* open the port */
+ #define WHITEHEAT_CLOSE			2	/* close the port */
 _
 
-Patches currently in -mm which might be from mitch.a.williams@intel.com are
+Patches currently in -mm which might be from ricknu-0@student.ltu.se are
+
+git-agpgart.patch
+git-netdev-all.patch
+git-scsi-misc.patch
+drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
