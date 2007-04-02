@@ -1,120 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the.patch removed from -mm tree
-Date: Sun, 01 Apr 2007 23:14:51 -0700
-Message-ID: <200704020614.l326Epua025955@shell0.pdx.osdl.net>
+Subject: - kbuild-fix-dependency-generation.patch removed from -mm tree
+Date: Sun, 01 Apr 2007 23:14:53 -0700
+Message-ID: <200704020614.l326Erpk025958@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39787 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39792 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933740AbXDBGO5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 02:14:57 -0400
+	id S933764AbXDBGPA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 02:15:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, James.Bottomley@steeleye.com, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCMCIA: allow PCMCIA SCSI drivers to be built into the kernel
+     kbuild: fix dependency generation
 has been removed from the -mm tree.  Its filename was
-     pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the.patch
+     kbuild-fix-dependency-generation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PCMCIA: allow PCMCIA SCSI drivers to be built into the kernel
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: kbuild: fix dependency generation
+From: Jan Beulich <jbeulich@novell.com>
 
-Remove the Kconfig requirement that the PCMCIA SCSI drivers be built
-only as modules, and allow them to be built into the kernel.
+Commit 2e3646e51b2d6415549b310655df63e7e0d7a080 changed the way
+the split config tree is built, but failed to also adjust fixdep
+accordingly - if changing a config option from or to m, files
+referencing the respective CONFIG_..._MODULE (but not the
+corresponding CONFIG_...) didn't get rebuilt.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+The problem is that trisate symbol are represent with three
+SYMBOL=n => no symbol defined
+SYMBOL=y => CONFIG_SYMBOL defined to '1'
+SYMBOL=m => CONFIG_SYMBOL_MODULE defined to '1'
+
+But conf_split_config do not distingush between the =y and =m case,
+so only the =y case is honoured.
+This is fixed in fixdep so when a CONFIG symbol with
+_MODULE is found we skip that part and only look
+for the CONFIG_SYMBOL version.
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/pcmcia/Kconfig |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ scripts/basic/fixdep.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/pcmcia/Kconfig~pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the drivers/scsi/pcmcia/Kconfig
---- a/drivers/scsi/pcmcia/Kconfig~pcmcia-allow-pcmcia-scsi-drivers-to-be-built-into-the
-+++ a/drivers/scsi/pcmcia/Kconfig
-@@ -3,11 +3,11 @@
- #
+diff -puN scripts/basic/fixdep.c~kbuild-fix-dependency-generation scripts/basic/fixdep.c
+--- a/scripts/basic/fixdep.c~kbuild-fix-dependency-generation
++++ a/scripts/basic/fixdep.c
+@@ -28,9 +28,11 @@
+  * the dependency on linux/autoconf.h by a dependency on every config
+  * option which is mentioned in any of the listed prequisites.
+  *
+- * To be exact, split-include populates a tree in include/config/,
+- * e.g. include/config/his/driver.h, which contains the #define/#undef
+- * for the CONFIG_HIS_DRIVER option.
++ * kconfig populates a tree in include/config/ with an empty file
++ * for each config symbol and when the configuration is updated
++ * the files representing changed config options are touched
++ * which then let make pick up the changes and the files that use
++ * the config symbols are rebuilt.
+  *
+  * So if the user changes his CONFIG_HIS_DRIVER option, only the objects
+  * which depend on "include/linux/config/his/driver.h" will be rebuilt,
+@@ -245,6 +247,8 @@ void parse_config_file(char *map, size_t
+ 		continue;
  
- menu "PCMCIA SCSI adapter support"
--	depends on SCSI!=n && PCMCIA!=n && MODULES
-+	depends on SCSI!=n && PCMCIA!=n
- 
- config PCMCIA_AHA152X
- 	tristate "Adaptec AHA152X PCMCIA support"
--	depends on m && !64BIT
-+	depends on !64BIT
- 	select SCSI_SPI_ATTRS
- 	help
- 	  Say Y here if you intend to attach this type of PCMCIA SCSI host
-@@ -18,7 +18,6 @@ config PCMCIA_AHA152X
- 
- config PCMCIA_FDOMAIN
- 	tristate "Future Domain PCMCIA support"
--	depends on m
- 	help
- 	  Say Y here if you intend to attach this type of PCMCIA SCSI host
- 	  adapter to your computer.
-@@ -28,7 +27,7 @@ config PCMCIA_FDOMAIN
- 
- config PCMCIA_NINJA_SCSI
- 	tristate "NinjaSCSI-3 / NinjaSCSI-32Bi (16bit) PCMCIA support"
--	depends on m && !64BIT
-+	depends on !64BIT
- 	help
- 	  If you intend to attach this type of PCMCIA SCSI host adapter to
- 	  your computer, say Y here and read
-@@ -62,7 +61,6 @@ config PCMCIA_NINJA_SCSI
- 
- config PCMCIA_QLOGIC
- 	tristate "Qlogic PCMCIA support"
--	depends on m
- 	help
- 	  Say Y here if you intend to attach this type of PCMCIA SCSI host
- 	  adapter to your computer.
-@@ -72,7 +70,6 @@ config PCMCIA_QLOGIC
- 
- config PCMCIA_SYM53C500
- 	tristate "Symbios 53c500 PCMCIA support"
--	depends on m
- 	help
- 	  Say Y here if you have a New Media Bus Toaster or other PCMCIA
- 	  SCSI adapter based on the Symbios 53c500 controller.
+ 	found:
++		if (!memcmp(q - 7, "_MODULE", 7))
++			q -= 7;
+ 		use_config(p+7, q-p-7);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-powerpc.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-git-drm.patch
-git-input.patch
-git-mtd.patch
-jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
-git-netdev-all.patch
-delete-unused-header-file-linux-sdla_frh.patch
-delete-unused-header-file-linux-if_wanpipe_commonh.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-scsi-misc.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-math-emu-extendedh.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
+remove-pci_dac_dma_-apis.patch
+use-stop_machine_run-in-the-intel-rng-driver.patch
