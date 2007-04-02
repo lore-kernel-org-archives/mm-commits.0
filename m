@@ -1,270 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - fix-microcode-related-suspend-problem.patch removed from -mm tree
-Date: Mon, 02 Apr 2007 16:04:01 -0700
-Message-ID: <200704022304.l32N41gD011952@shell0.pdx.osdl.net>
+Subject: - signal-timer-event-fds-v9-anonymous-inode-source-fix.patch removed from -mm tree
+Date: Mon, 02 Apr 2007 16:16:25 -0700
+Message-ID: <200704022316.l32NGPC3012186@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52209 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52434 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966017AbXDBXHq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 19:07:46 -0400
+	id S966097AbXDBXQ1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 19:16:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, bunk@stusta.de, maximlevitsky@gmail.com, pavel@ucw.cz, tigran@aivazian.fsnet.co.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix microcode-related suspend problem
+     signal-timer-event-fds-v9-anonymous-inode-source-fix
 has been removed from the -mm tree.  Its filename was
-     fix-microcode-related-suspend-problem.patch
+     signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Fix microcode-related suspend problem
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: signal-timer-event-fds-v9-anonymous-inode-source-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix the regression resulting from the recent change of suspend code
-ordering that causes systems based on Intel x86 CPUs using the microcode
-driver to hang during the resume.
-
-The problem occurs since the microcode driver uses request_firmware() in
-its CPU hotplug notifier, which is called after tasks has been frozen and
-hangs.  It can be fixed by telling the microcode driver to use the
-microcode stored in memory during the resume instead of trying to load it
-from disk.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Adrian Bunk <bunk@stusta.de>
-Cc: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Maxim <maximlevitsky@gmail.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/microcode.c |   71 +++++++++++++++++++++++++++++++--
- include/linux/cpu.h          |    4 +
- kernel/cpu.c                 |   32 +++++++-------
- 3 files changed, 87 insertions(+), 20 deletions(-)
+ fs/anon_inodes.c            |    2 --
+ include/linux/anon_inodes.h |    2 +-
+ init/Kconfig                |    2 +-
+ 3 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/microcode.c~fix-microcode-related-suspend-problem arch/i386/kernel/microcode.c
---- a/arch/i386/kernel/microcode.c~fix-microcode-related-suspend-problem
-+++ a/arch/i386/kernel/microcode.c
-@@ -567,6 +567,53 @@ static int cpu_request_microcode(int cpu
- 	return error;
- }
+diff -puN fs/anon_inodes.c~signal-timer-event-fds-v9-anonymous-inode-source-fix fs/anon_inodes.c
+--- a/fs/anon_inodes.c~signal-timer-event-fds-v9-anonymous-inode-source-fix
++++ a/fs/anon_inodes.c
+@@ -21,12 +21,10 @@
  
-+static int apply_microcode_on_cpu(int cpu)
-+{
-+	struct cpuinfo_x86 *c = cpu_data + cpu;
-+	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
-+	cpumask_t old;
-+	unsigned int val[2];
-+	int err = 0;
-+
-+	if (!uci->mc)
-+		return -EINVAL;
-+
-+	old = current->cpus_allowed;
-+	set_cpus_allowed(current, cpumask_of_cpu(cpu));
-+
-+	/* Check if the microcode we have in memory matches the CPU */
-+	if (c->x86_vendor != X86_VENDOR_INTEL || c->x86 < 6 ||
-+	    cpu_has(c, X86_FEATURE_IA64) || uci->sig != cpuid_eax(0x00000001))
-+		err = -EINVAL;
-+
-+	if (!err && ((c->x86_model >= 5) || (c->x86 > 6))) {
-+		/* get processor flags from MSR 0x17 */
-+		rdmsr(MSR_IA32_PLATFORM_ID, val[0], val[1]);
-+		if (uci->pf != (1 << ((val[1] >> 18) & 7)))
-+			err = -EINVAL;
-+	}
-+
-+	if (!err) {
-+		wrmsr(MSR_IA32_UCODE_REV, 0, 0);
-+		/* see notes above for revision 1.07.  Apparent chip bug */
-+		sync_core();
-+		/* get the current revision from MSR 0x8B */
-+		rdmsr(MSR_IA32_UCODE_REV, val[0], val[1]);
-+		if (uci->rev != val[1])
-+			err = -EINVAL;
-+	}
-+
-+	if (!err)
-+		apply_microcode(cpu);
-+	else
-+		printk(KERN_ERR "microcode: Could not apply microcode to CPU%d:"
-+			" sig=0x%x, pf=0x%x, rev=0x%x\n",
-+			cpu, uci->sig, uci->pf, uci->rev);
-+
-+	set_cpus_allowed(current, old);
-+	return err;
-+}
-+
- static void microcode_init_cpu(int cpu)
- {
- 	cpumask_t old;
-@@ -577,7 +624,8 @@ static void microcode_init_cpu(int cpu)
- 	set_cpus_allowed(current, cpumask_of_cpu(cpu));
- 	mutex_lock(&microcode_mutex);
- 	collect_cpu_info(cpu);
--	if (uci->valid && system_state == SYSTEM_RUNNING)
-+	if (uci->valid && system_state == SYSTEM_RUNNING &&
-+	    !suspend_cpu_hotplug)
- 		cpu_request_microcode(cpu);
- 	mutex_unlock(&microcode_mutex);
- 	set_cpus_allowed(current, old);
-@@ -663,13 +711,24 @@ static int mc_sysdev_add(struct sys_devi
- 		return 0;
+ #include <asm/uaccess.h>
  
- 	pr_debug("Microcode:CPU %d added\n", cpu);
--	memset(uci, 0, sizeof(*uci));
-+	/* If suspend_cpu_hotplug is set, the system is resuming and we should
-+	 * use the data from before the suspend.
-+	 */
-+	if (suspend_cpu_hotplug) {
-+		err = apply_microcode_on_cpu(cpu);
-+		if (err)
-+			microcode_fini_cpu(cpu);
-+	}
-+	if (!uci->valid)
-+		memset(uci, 0, sizeof(*uci));
- 
- 	err = sysfs_create_group(&sys_dev->kobj, &mc_attr_group);
- 	if (err)
- 		return err;
- 
--	microcode_init_cpu(cpu);
-+	if (!uci->valid)
-+		microcode_init_cpu(cpu);
-+
- 	return 0;
- }
- 
-@@ -680,7 +739,11 @@ static int mc_sysdev_remove(struct sys_d
- 	if (!cpu_online(cpu))
- 		return 0;
- 	pr_debug("Microcode:CPU %d removed\n", cpu);
--	microcode_fini_cpu(cpu);
-+	/* If suspend_cpu_hotplug is set, the system is suspending and we should
-+	 * keep the microcode in memory for the resume.
-+	 */
-+	if (!suspend_cpu_hotplug)
-+		microcode_fini_cpu(cpu);
- 	sysfs_remove_group(&sys_dev->kobj, &mc_attr_group);
- 	return 0;
- }
-diff -puN include/linux/cpu.h~fix-microcode-related-suspend-problem include/linux/cpu.h
---- a/include/linux/cpu.h~fix-microcode-related-suspend-problem
-+++ a/include/linux/cpu.h
-@@ -127,9 +127,13 @@ static inline int cpu_is_offline(int cpu
- #endif		/* CONFIG_HOTPLUG_CPU */
- 
- #ifdef CONFIG_SUSPEND_SMP
-+extern int suspend_cpu_hotplug;
-+
- extern int disable_nonboot_cpus(void);
- extern void enable_nonboot_cpus(void);
- #else
-+#define suspend_cpu_hotplug	0
-+
- static inline int disable_nonboot_cpus(void) { return 0; }
- static inline void enable_nonboot_cpus(void) {}
- #endif
-diff -puN kernel/cpu.c~fix-microcode-related-suspend-problem kernel/cpu.c
---- a/kernel/cpu.c~fix-microcode-related-suspend-problem
-+++ a/kernel/cpu.c
-@@ -254,6 +254,12 @@ int __cpuinit cpu_up(unsigned int cpu)
- }
- 
- #ifdef CONFIG_SUSPEND_SMP
-+/* Needed to prevent the microcode driver from requesting firmware in its CPU
-+ * hotplug notifier during the suspend/resume.
-+ */
-+int suspend_cpu_hotplug;
-+EXPORT_SYMBOL(suspend_cpu_hotplug);
-+
- static cpumask_t frozen_cpus;
- 
- int disable_nonboot_cpus(void)
-@@ -261,16 +267,8 @@ int disable_nonboot_cpus(void)
- 	int cpu, first_cpu, error = 0;
- 
- 	mutex_lock(&cpu_add_remove_lock);
--	first_cpu = first_cpu(cpu_present_map);
--	if (!cpu_online(first_cpu)) {
--		error = _cpu_up(first_cpu);
--		if (error) {
--			printk(KERN_ERR "Could not bring CPU%d up.\n",
--				first_cpu);
--			goto out;
--		}
--	}
 -
-+	suspend_cpu_hotplug = 1;
-+	first_cpu = first_cpu(cpu_online_map);
- 	/* We take down all of the non-boot CPUs in one shot to avoid races
- 	 * with the userspace trying to use the CPU hotplug at the same time
- 	 */
-@@ -296,7 +294,7 @@ int disable_nonboot_cpus(void)
- 	} else {
- 		printk(KERN_ERR "Non-boot CPUs are not disabled\n");
- 	}
--out:
-+	suspend_cpu_hotplug = 0;
- 	mutex_unlock(&cpu_add_remove_lock);
- 	return error;
- }
-@@ -308,20 +306,22 @@ void enable_nonboot_cpus(void)
- 	/* Allow everyone to use the CPU hotplug again */
- 	mutex_lock(&cpu_add_remove_lock);
- 	cpu_hotplug_disabled = 0;
--	mutex_unlock(&cpu_add_remove_lock);
- 	if (cpus_empty(frozen_cpus))
--		return;
-+		goto out;
+ static struct vfsmount *aino_mnt __read_mostly;
+ static struct inode *aino_inode;
+ static const struct file_operations aino_fops;
  
-+	suspend_cpu_hotplug = 1;
- 	printk("Enabling non-boot CPUs ...\n");
- 	for_each_cpu_mask(cpu, frozen_cpus) {
--		error = cpu_up(cpu);
-+		error = _cpu_up(cpu);
- 		if (!error) {
- 			printk("CPU%d is up\n", cpu);
- 			continue;
- 		}
--		printk(KERN_WARNING "Error taking CPU%d up: %d\n",
--			cpu, error);
-+		printk(KERN_WARNING "Error taking CPU%d up: %d\n", cpu, error);
- 	}
- 	cpus_clear(frozen_cpus);
-+	suspend_cpu_hotplug = 0;
-+out:
-+	mutex_unlock(&cpu_add_remove_lock);
- }
- #endif
+-
+ static int ainofs_get_sb(struct file_system_type *fs_type, int flags,
+ 			 const char *dev_name, void *data, struct vfsmount *mnt)
+ {
+diff -puN include/linux/anon_inodes.h~signal-timer-event-fds-v9-anonymous-inode-source-fix include/linux/anon_inodes.h
+--- a/include/linux/anon_inodes.h~signal-timer-event-fds-v9-anonymous-inode-source-fix
++++ a/include/linux/anon_inodes.h
+@@ -9,7 +9,7 @@
+ #define _LINUX_ANON_INODES_H
+ 
+ int aino_getfd(int *pfd, struct inode **pinode, struct file **pfile,
+-	       const char *name, const struct file_operations *fops, void *priv);
++	    const char *name, const struct file_operations *fops, void *priv);
+ 
+ #endif /* _LINUX_ANON_INODES_H */
+ 
+diff -puN init/Kconfig~signal-timer-event-fds-v9-anonymous-inode-source-fix init/Kconfig
+--- a/init/Kconfig~signal-timer-event-fds-v9-anonymous-inode-source-fix
++++ a/init/Kconfig
+@@ -479,7 +479,7 @@ config FUTEX
+ 	  run glibc-based applications correctly.
+ 
+ config ANON_INODES
+-	bool "Enable anynimous inode source" if EMBEDDED
++	bool "Enable anonymous inode source" if EMBEDDED
+ 	default y
+ 	help
+ 	  Anonymous inode source for pseudo-files like epoll, signalfd,
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fix-refrigerator-vs-thaw_process-race.patch
-swsusp-use-inline-functions-for-changing-page-flags.patch
-swsusp-do-not-use-page-flags.patch
-mm-remove-unused-page-flags.patch
-swsusp-fix-error-paths-in-snapshot_open.patch
-swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-force-pm_opsvalid-callback-to-be.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-shrink_slab-handle-bad-shrinkers.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+fix-x86_64-mm-sched-clock-share.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+utrace-x86_64-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
