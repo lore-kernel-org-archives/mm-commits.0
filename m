@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + round_up-macro-cleanup-in-drivers-pci.patch added to -mm tree
-Date: Mon, 02 Apr 2007 14:03:09 -0700
-Message-ID: <200704022103.l32L39CY009348@shell0.pdx.osdl.net>
+Subject: + fix-x86_64-mm-relocatable-kernel-support.patch added to -mm tree
+Date: Mon, 02 Apr 2007 14:08:44 -0700
+Message-ID: <200704022108.l32L8iab009498@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45497 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45713 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752974AbXDBVDM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 17:03:12 -0400
+	id S965889AbXDBVI7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 17:08:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: milindchoudhary@gmail.com, greg@kroah.com
+Cc: vgoyal@in.ibm.com, ak@suse.de, ebiederm@xmission.com
 
 
 The patch titled
-     ROUND_UP macro cleanup in drivers/pci
+     x86_64-mm-relocatable-kernel-support: build-time checking
 has been added to the -mm tree.  Its filename is
-     round_up-macro-cleanup-in-drivers-pci.patch
+     fix-x86_64-mm-relocatable-kernel-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,70 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ROUND_UP macro cleanup in drivers/pci
-From: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Subject: x86_64-mm-relocatable-kernel-support: build-time checking
+From: Vivek Goyal <vgoyal@in.ibm.com>
 
-ROUND_UP macro cleanup, use ALIGN where ever appropriate
+o X86_64 kernel should run from 2MB aligned address for two reasons.
+	- Performance.
+	- For relocatable kernels, page tables are updated based on difference
+	  between compile time address and load time physical address.
+	  This difference should be multiple of 2MB as kernel text and data
+	  is mapped using 2MB pages and PMD should be pointing to a 2MB
+	  aligned address. Life is simpler if both compile time and load time
+	  kernel addresses are 2MB aligned.
 
-Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+o Flag the error at compile time if one is trying to build a kernel which
+  does not meet alignment restrictions.
+
+Signed-off-by: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/cpci_hotplug_pci.c |    2 --
- drivers/pci/setup-bus.c                |    8 +++-----
- 2 files changed, 3 insertions(+), 7 deletions(-)
+ arch/x86_64/kernel/head64.c |    8 ++++++++
+ include/asm-x86_64/page.h   |    1 +
+ 2 files changed, 9 insertions(+)
 
-diff -puN drivers/pci/hotplug/cpci_hotplug_pci.c~round_up-macro-cleanup-in-drivers-pci drivers/pci/hotplug/cpci_hotplug_pci.c
---- a/drivers/pci/hotplug/cpci_hotplug_pci.c~round_up-macro-cleanup-in-drivers-pci
-+++ a/drivers/pci/hotplug/cpci_hotplug_pci.c
-@@ -45,8 +45,6 @@ extern int cpci_debug;
- #define info(format, arg...) printk(KERN_INFO "%s: " format "\n", MY_NAME , ## arg)
- #define warn(format, arg...) printk(KERN_WARNING "%s: " format "\n", MY_NAME , ## arg)
- 
--#define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
--
- 
- u8 cpci_get_attention_status(struct slot* slot)
+diff -puN arch/x86_64/kernel/head64.c~fix-x86_64-mm-relocatable-kernel-support arch/x86_64/kernel/head64.c
+--- a/arch/x86_64/kernel/head64.c~fix-x86_64-mm-relocatable-kernel-support
++++ a/arch/x86_64/kernel/head64.c
+@@ -62,6 +62,14 @@ void __init x86_64_start_kernel(char * r
  {
-diff -puN drivers/pci/setup-bus.c~round_up-macro-cleanup-in-drivers-pci drivers/pci/setup-bus.c
---- a/drivers/pci/setup-bus.c~round_up-macro-cleanup-in-drivers-pci
-+++ a/drivers/pci/setup-bus.c
-@@ -34,8 +34,6 @@
- #define DBG(x...)
- #endif
+ 	int i;
  
--#define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
--
- static void pbus_assign_resources_sorted(struct pci_bus *bus)
- {
- 	struct pci_dev *dev;
-@@ -310,7 +308,7 @@ static void pbus_size_io(struct pci_bus 
- #if defined(CONFIG_ISA) || defined(CONFIG_EISA)
- 	size = (size & 0xff) + ((size & ~0xffUL) << 2);
- #endif
--	size = ROUND_UP(size + size1, 4096);
-+	size = ALIGN(size + size1, 4096);
- 	if (!size) {
- 		b_res->flags = 0;
- 		return;
-@@ -378,11 +376,11 @@ static int pbus_size_mem(struct pci_bus 
++	/*
++	 * Make sure kernel is aligned to 2MB address. Catching it at compile
++	 * time is better. Change your config file and compile the kernel
++	 * for a 2MB aligned address (CONFIG_PHYSICAL_START)
++	 */
++	BUILD_BUG_ON(ALIGN(CONFIG_PHYSICAL_START, __KERNEL_ALIGN)
++			!= CONFIG_PHYSICAL_START);
++
+ 	/* clear bss before set_intr_gate with early_idt_handler */
+ 	clear_bss();
  
- 		if (!align)
- 			min_align = align1;
--		else if (ROUND_UP(align + min_align, min_align) < align1)
-+		else if (ALIGN(align + min_align, min_align) < align1)
- 			min_align = align1 >> 1;
- 		align += aligns[order];
- 	}
--	size = ROUND_UP(size, min_align);
-+	size = ALIGN(size, min_align);
- 	if (!size) {
- 		b_res->flags = 0;
- 		return 1;
+diff -puN include/asm-x86_64/page.h~fix-x86_64-mm-relocatable-kernel-support include/asm-x86_64/page.h
+--- a/include/asm-x86_64/page.h~fix-x86_64-mm-relocatable-kernel-support
++++ a/include/asm-x86_64/page.h
+@@ -78,6 +78,7 @@ extern unsigned long phys_base;
+ #endif /* !__ASSEMBLY__ */
+ 
+ #define __PHYSICAL_START	CONFIG_PHYSICAL_START
++#define __KERNEL_ALIGN		0x200000
+ #define __START_KERNEL		(__START_KERNEL_map + __PHYSICAL_START)
+ #define __START_KERNEL_map	0xffffffff80000000
+ #define __PAGE_OFFSET           0xffff810000000000
 _
 
-Patches currently in -mm which might be from milindchoudhary@gmail.com are
+Patches currently in -mm which might be from vgoyal@in.ibm.com are
 
-round_up-macro-cleanup-in-drivers-parisc.patch
-round_up-macro-cleanup-in-drivers-pci.patch
+fix-i-oat-for-kexec.patch
+fix-x86_64-mm-relocatable-kernel-support.patch
+kdump-kexec-calculate-note-size-at-compile-time.patch
