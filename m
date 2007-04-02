@@ -1,154 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-pci-pci-piggy-bus.patch removed from -mm tree
-Date: Mon, 02 Apr 2007 16:04:07 -0700
-Message-ID: <200704022304.l32N47gQ011958@shell0.pdx.osdl.net>
+Subject: - flush-msi-x-table-writes.patch removed from -mm tree
+Date: Mon, 02 Apr 2007 16:04:14 -0700
+Message-ID: <200704022304.l32N4EDd011967@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51999 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52011 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966073AbXDBXEJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 19:04:09 -0400
+	id S966077AbXDBXEQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 19:04:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: mitch.a.williams@intel.com, ebiederm@xmission.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-pci-pci-piggy-bus
+     Flush MSI-X table writes
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-pci-pci-piggy-bus.patch
+     flush-msi-x-table-writes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix gregkh-pci-pci-piggy-bus
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Flush MSI-X table writes
+From: Mitch Williams <mitch.a.williams@intel.com>
 
-drivers/pci/piggy.c: In function 'piggy_release':
-drivers/pci/piggy.c:87: error: called object '"<7>%s %s: "' is not a function
-drivers/pci/piggy.c:87: warning: passing argument 1 of 'dev_driver_string' from incompatible pointer type
-drivers/pci/piggy.c:87: error: request for member 'bus_id' in something not a structure or union
+Fix a kernel bug which is triggered when using the irqbalance daemon with
+MSI-X hardware.
 
+Because both MSI-X interrupt messages and MSI-X table writes are posted,
+it's possible for them to cross while in-flight.  This results in
+interrupts being received long after the kernel thinks they're disabled,
+and in interrupts being sent to stale vectors after rebalancing.
+
+This patch performs a read flush after writes to the MSI-X table for mask
+and unmask operations.  Since the SMP affinity is set while the interrupt
+is masked, and since it's unmasked immediately after, no additional flushes
+are required in the various affinity setting routines.
+
+This patch has been validated with (unreleased) network hardware which
+uses MSI-X.
+
+Revised with input from Eric Biederman.
+
+Signed-off-by: Mitch Williams <mitch.a.williams@intel.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/piggy.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/pci/msi.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+)
 
-diff -puN drivers/pci/piggy.c~fix-gregkh-pci-pci-piggy-bus drivers/pci/piggy.c
---- a/drivers/pci/piggy.c~fix-gregkh-pci-pci-piggy-bus
-+++ a/drivers/pci/piggy.c
-@@ -84,7 +84,6 @@ static void piggy_release(struct device 
- {
- 	struct piggy_device *pig = to_piggy_dev(dev);
+diff -puN drivers/pci/msi.c~flush-msi-x-table-writes drivers/pci/msi.c
+--- a/drivers/pci/msi.c~flush-msi-x-table-writes
++++ a/drivers/pci/msi.c
+@@ -56,6 +56,28 @@ static void msix_set_enable(struct pci_d
+ 	}
+ }
  
--	dev_dbg("%s - %s", __FUNCTION__, dev->bus_id);
- 	pci_dev_put(pig->pdev);
- 	list_del(&pig->node);
- 	kfree(pig);
++static void msix_flush_writes(unsigned int irq)
++{
++	struct msi_desc *entry;
++
++	entry = get_irq_msi(irq);
++	BUG_ON(!entry || !entry->dev);
++	switch (entry->msi_attrib.type) {
++	case PCI_CAP_ID_MSI:
++		/* nothing to do */
++		break;
++	case PCI_CAP_ID_MSIX: {
++		int offset = entry->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE +
++			PCI_MSIX_ENTRY_VECTOR_CTRL_OFFSET;
++		readl(entry->mask_base + offset);
++		break;
++	}
++	default:
++		BUG();
++		break;
++	}
++}
++
+ static void msi_set_mask_bit(unsigned int irq, int flag)
+ {
+ 	struct msi_desc *entry;
+@@ -174,11 +196,13 @@ void write_msi_msg(unsigned int irq, str
+ void mask_msi_irq(unsigned int irq)
+ {
+ 	msi_set_mask_bit(irq, 1);
++	msix_flush_writes(irq);
+ }
+ 
+ void unmask_msi_irq(unsigned int irq)
+ {
+ 	msi_set_mask_bit(irq, 0);
++	msix_flush_writes(irq);
+ }
+ 
+ static int msi_free_irq(struct pci_dev* dev, int irq);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-fix-x86_64-mm-sched-clock-share.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-utrace-x86_64-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+Patches currently in -mm which might be from mitch.a.williams@intel.com are
