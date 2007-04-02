@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + fix-x86_64-mm-relocatable-kernel-support.patch added to -mm tree
-Date: Mon, 02 Apr 2007 14:08:44 -0700
-Message-ID: <200704022108.l32L8iab009498@shell0.pdx.osdl.net>
+Date: Mon, 02 Apr 2007 14:09:11 -0700
+Message-ID: <200704022109.l32L9CXx009512@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45713 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45726 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965889AbXDBVI7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 17:08:59 -0400
+	id S965910AbXDBVJY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 17:09:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -46,14 +46,27 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/head64.c |    8 ++++++++
- include/asm-x86_64/page.h   |    1 +
- 2 files changed, 9 insertions(+)
+ arch/x86_64/boot/compressed/misc.c |    2 +-
+ arch/x86_64/kernel/head64.c        |    7 +++++++
+ include/asm-x86_64/page.h          |    1 +
+ 3 files changed, 9 insertions(+), 1 deletion(-)
 
+diff -puN arch/x86_64/boot/compressed/misc.c~fix-x86_64-mm-relocatable-kernel-support arch/x86_64/boot/compressed/misc.c
+--- a/arch/x86_64/boot/compressed/misc.c~fix-x86_64-mm-relocatable-kernel-support
++++ a/arch/x86_64/boot/compressed/misc.c
+@@ -358,7 +358,7 @@ asmlinkage void decompress_kernel(void *
+ 	insize = input_len;
+ 	inptr  = 0;
+ 
+-	if ((ulg)output & 0x1fffffUL)
++	if ((ulg)output & (__KERNEL_ALIGN - 1))
+ 		error("Destination address not 2M aligned");
+ 	if ((ulg)output >= 0xffffffffffUL)
+ 		error("Destination address too large");
 diff -puN arch/x86_64/kernel/head64.c~fix-x86_64-mm-relocatable-kernel-support arch/x86_64/kernel/head64.c
 --- a/arch/x86_64/kernel/head64.c~fix-x86_64-mm-relocatable-kernel-support
 +++ a/arch/x86_64/kernel/head64.c
-@@ -62,6 +62,14 @@ void __init x86_64_start_kernel(char * r
+@@ -62,6 +62,13 @@ void __init x86_64_start_kernel(char * r
  {
  	int i;
  
@@ -62,8 +75,7 @@ diff -puN arch/x86_64/kernel/head64.c~fix-x86_64-mm-relocatable-kernel-support a
 +	 * time is better. Change your config file and compile the kernel
 +	 * for a 2MB aligned address (CONFIG_PHYSICAL_START)
 +	 */
-+	BUILD_BUG_ON(ALIGN(CONFIG_PHYSICAL_START, __KERNEL_ALIGN)
-+			!= CONFIG_PHYSICAL_START);
++	BUILD_BUG_ON(CONFIG_PHYSICAL_START & (__KERNEL_ALIGN - 1));
 +
  	/* clear bss before set_intr_gate with early_idt_handler */
  	clear_bss();
