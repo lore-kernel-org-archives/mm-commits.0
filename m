@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch added to -mm tree
-Date: Sun, 01 Apr 2007 22:35:31 -0700
-Message-ID: <200704020535.l325ZVB8025109@shell0.pdx.osdl.net>
+Subject: + fix-kevents-childs-priority-greediness-fix.patch added to -mm tree
+Date: Sun, 01 Apr 2007 22:40:48 -0700
+Message-ID: <200704020540.l325emvJ025220@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36221 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36366 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753286AbXDBFfj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 01:35:39 -0400
+	id S932279AbXDBFld (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 01:41:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net, jengelh@gmx.de
+Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, jengelh@gmx.de
 
 
 The patch titled
-     vt-add-color-support-to-the-underline-and-italic-attributes-fix
+     fix-kevents-childs-priority-greediness fix
 has been added to the -mm tree.  Its filename is
-     vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+     fix-kevents-childs-priority-greediness-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vt-add-color-support-to-the-underline-and-italic-attributes-fix
+Subject: fix-kevents-childs-priority-greediness fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/vgacon.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/kmod.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/video/console/vgacon.c~vt-add-color-support-to-the-underline-and-italic-attributes-fix drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~vt-add-color-support-to-the-underline-and-italic-attributes-fix
-+++ a/drivers/video/console/vgacon.c
-@@ -86,8 +86,6 @@ static int vgacon_set_origin(struct vc_d
- static void vgacon_save_screen(struct vc_data *c);
- static int vgacon_scroll(struct vc_data *c, int t, int b, int dir,
- 			 int lines);
--static u8 vgacon_build_attr(struct vc_data *c, u8 color, u8 intensity,
--			    u8 blink, u8 underline, u8 reverse, u8);
- static void vgacon_invert_region(struct vc_data *c, u16 * p, int count);
- static unsigned long vgacon_uni_pagedir[2];
+diff -puN kernel/kmod.c~fix-kevents-childs-priority-greediness-fix kernel/kmod.c
+--- a/kernel/kmod.c~fix-kevents-childs-priority-greediness-fix
++++ a/kernel/kmod.c
+@@ -164,6 +164,11 @@ static int ____call_usermodehelper(void 
  
+ 	/* We can run anywhere, unlike our parent keventd(). */
+ 	set_cpus_allowed(current, CPU_MASK_ALL);
++
++	/*
++	 * Our parent is keventd, which runs with elevated scheduling priority.
++	 * Avoid propagating that into the userspace child.
++	 */
+ 	set_user_nice(current, 0);
+ 
+ 	retval = -EPERM;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +125,7 @@ add-support-for-deferrable-timers-respun-tidy.patch
 linux-sysdevh-needs-to-include-linux-moduleh.patch
 time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
