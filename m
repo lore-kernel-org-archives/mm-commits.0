@@ -1,146 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-unreasonably-long-udelay.patch removed from -mm tree
-Date: Mon, 02 Apr 2007 16:03:35 -0700
-Message-ID: <200704022303.l32N3Zwx011902@shell0.pdx.osdl.net>
+Subject: - proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n.patch removed from -mm tree
+Date: Mon, 02 Apr 2007 16:03:32 -0700
+Message-ID: <200704022303.l32N3Wte011899@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51947 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51944 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966063AbXDBXDj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 19:03:39 -0400
+	id S966051AbXDBXDi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 19:03:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: blaisorblade@yahoo.it, jdike@addtoit.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, helgehaf@aitel.hist.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix unreasonably long udelay
+     proc: fix linkage with CONFIG_SYSCTL=y, CONFIG_PROC_SYSCTL=n
 has been removed from the -mm tree.  Its filename was
-     uml-fix-unreasonably-long-udelay.patch
+     proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix unreasonably long udelay
-From: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
+Subject: proc: fix linkage with CONFIG_SYSCTL=y, CONFIG_PROC_SYSCTL=n
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently we have a confused udelay implementation.
+We're using #ifdef CONFIG_SYSCTL, but we should be using CONFIG_PROC_SYSCTL,
+so we get
 
-* __const_udelay does not accept usecs but xloops in i386 and x86_64
-* our implementation requires usecs as arg
-* it gets a xloops count when called by asm/arch/delay.h
+ fs/built-in.o: In function `proc_root_init':
+ /usr/src/linux/fs/proc/root.c:83: undefined reference to `proc_sys_init'
 
-Bugs related to this (extremely long shutdown times) where reported by some
-x86_64 users, especially using Device Mapper.
+Fix that up and remove an ifdef-in-C.
 
-To hit this bug, a compile-time constant time parameter must be passed -
-that's why UML seems to work most times.  Fix this with a simple udelay
-implementation.
-
-Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Acked-by: Jeff Dike <jdike@addtoit.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Helge Hafting <helgehaf@aitel.hist.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/delay.c   |   11 -----------
- arch/um/sys-x86_64/delay.c |   11 -----------
- include/asm-um/delay.h     |   17 ++++++++++++++---
- 3 files changed, 14 insertions(+), 25 deletions(-)
+ fs/proc/internal.h |    4 ++++
+ fs/proc/root.c     |    2 --
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/sys-i386/delay.c~uml-fix-unreasonably-long-udelay arch/um/sys-i386/delay.c
---- a/arch/um/sys-i386/delay.c~uml-fix-unreasonably-long-udelay
-+++ a/arch/um/sys-i386/delay.c
-@@ -27,14 +27,3 @@ void __udelay(unsigned long usecs)
- }
+diff -puN fs/proc/internal.h~proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n
++++ a/fs/proc/internal.h
+@@ -11,7 +11,11 @@
  
- EXPORT_SYMBOL(__udelay);
--
--void __const_udelay(unsigned long usecs)
--{
--	int i, n;
--
--	n = (loops_per_jiffy * HZ * usecs) / MILLION;
--        for(i=0;i<n;i++)
--                cpu_relax();
--}
--
--EXPORT_SYMBOL(__const_udelay);
-diff -puN arch/um/sys-x86_64/delay.c~uml-fix-unreasonably-long-udelay arch/um/sys-x86_64/delay.c
---- a/arch/um/sys-x86_64/delay.c~uml-fix-unreasonably-long-udelay
-+++ a/arch/um/sys-x86_64/delay.c
-@@ -28,14 +28,3 @@ void __udelay(unsigned long usecs)
- }
+ #include <linux/proc_fs.h>
  
- EXPORT_SYMBOL(__udelay);
--
--void __const_udelay(unsigned long usecs)
--{
--	unsigned long i, n;
--
--	n = (loops_per_jiffy * HZ * usecs) / MILLION;
--        for(i=0;i<n;i++)
--                cpu_relax();
--}
--
--EXPORT_SYMBOL(__const_udelay);
-diff -puN include/asm-um/delay.h~uml-fix-unreasonably-long-udelay include/asm-um/delay.h
---- a/include/asm-um/delay.h~uml-fix-unreasonably-long-udelay
-+++ a/include/asm-um/delay.h
-@@ -1,9 +1,20 @@
- #ifndef __UM_DELAY_H
- #define __UM_DELAY_H
++#ifdef CONFIG_PROC_SYSCTL
+ extern int proc_sys_init(void);
++#else
++static inline void proc_sys_init(void) { }
++#endif
  
--#include "asm/arch/delay.h"
--#include "asm/archparam.h"
--
- #define MILLION 1000000
- 
-+/* Undefined on purpose */
-+extern void __bad_udelay(void);
-+
-+extern void __udelay(unsigned long usecs);
-+extern void __delay(unsigned long loops);
-+
-+#define udelay(n) ((__builtin_constant_p(n) && (n) > 20000) ? \
-+	__bad_udelay() : __udelay(n))
-+
-+/* It appears that ndelay is not used at all for UML, and has never been
-+ * implemented. */
-+extern void __unimplemented_ndelay(void);
-+#define ndelay(n) __unimplemented_ndelay()
-+
+ struct vmalloc_info {
+ 	unsigned long	used;
+diff -puN fs/proc/root.c~proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n fs/proc/root.c
+--- a/fs/proc/root.c~proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n
++++ a/fs/proc/root.c
+@@ -79,9 +79,7 @@ void __init proc_root_init(void)
+ 	proc_device_tree_init();
  #endif
+ 	proc_bus = proc_mkdir("bus", NULL);
+-#ifdef CONFIG_SYSCTL
+ 	proc_sys_init();
+-#endif
+ }
+ 
+ static int proc_root_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat
 _
 
-Patches currently in -mm which might be from blaisorblade@yahoo.it are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+fix-x86_64-mm-sched-clock-share.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+driver_bfin_serial_core-update.patch
 uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-uml-improve-checking-and-diagnostics-of-ethernet-macs.patch
-uml-eliminate-temporary-buffer-in-eth_configure.patch
-uml-replace-one-element-array-with-zero-element-array.patch
-uml-fix-umid-in-xterm-titles.patch
-uml-speed-up-exec.patch
-uml-no-locking-needed-in-tlsc.patch
-uml-tidy-processc.patch
-uml-remove-page_size.patch
-uml-kernel_thread-shouldnt-panic.patch
-sys_futex64-allows-64bit-futexes-workaround-for-uml.patch
-utrace-uml-make-uml-compile-with-utrace-enabled.patch
-git-gccbug.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+utrace-x86_64-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
