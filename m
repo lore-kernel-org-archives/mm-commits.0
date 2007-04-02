@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch added to -mm tree
-Date: Sun, 01 Apr 2007 22:48:24 -0700
-Message-ID: <200704020548.l325mOsa025353@shell0.pdx.osdl.net>
+Subject: + enhance-initcall_debug-measure-latency.patch added to -mm tree
+Date: Sun, 01 Apr 2007 22:50:46 -0700
+Message-ID: <200704020550.l325okW0025402@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36599 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36621 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932319AbXDBFty (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 01:49:54 -0400
+	id S932500AbXDBFu5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 01:50:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jengelh@gmx.de, linux@treblig.org
+Cc: mingo@elte.hu
 
 
 The patch titled
-     display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix
+     enhance initcall_debug, measure latency
 has been added to the -mm tree.  Its filename is
-     display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+     enhance-initcall_debug-measure-latency.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,181 +25,144 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: enhance initcall_debug, measure latency
+From: Ingo Molnar <mingo@elte.hu>
 
-Cc: Dave Gilbert <linux@treblig.org>
-Cc: Jan Engelhardt <jengelh@gmx.de>
+enhance the initcall_debug boot option:
+
+ - measure the time the initcall took to execute and report
+   it in units of milliseconds.
+
+ - show the return code of initcalls (useful to see failures and
+   to make sure that an initcall hung)
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ init/main.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN block/genhd.c~display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix block/genhd.c
---- a/block/genhd.c~display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix
-+++ a/block/genhd.c
-@@ -216,14 +216,15 @@ struct gendisk *get_gendisk(dev_t dev, i
- }
+diff -puN init/main.c~enhance-initcall_debug-measure-latency init/main.c
+--- a/init/main.c~enhance-initcall_debug-measure-latency
++++ a/init/main.c
+@@ -652,6 +652,7 @@ static void __init do_initcalls(void)
+ 	int count = preempt_count();
  
- /*
-- * printk a full list of all partitions - intended for
-- * places where the root filesystem can't be mounted and thus
-- * to give the victim some idea of what went wrong
-+ * print a full list of all partitions - intended for places where the root
-+ * filesystem can't be mounted and thus to give the victim some idea of what
-+ * went wrong.
-  */
--void printk_all_partitions(void)
-+void __init printk_all_partitions(void)
- {
- 	int n;
--        struct gendisk* sgp;
-+	struct gendisk* sgp;
+ 	for (call = __initcall_start; call < __initcall_end; call++) {
++		ktime_t t0, t1, delta;
+ 		char *msg = NULL;
+ 		char msgbuf[40];
+ 		int result;
+@@ -661,10 +662,26 @@ static void __init do_initcalls(void)
+ 			print_fn_descriptor_symbol(": %s()",
+ 					(unsigned long) *call);
+ 			printk("\n");
++			t0 = ktime_get();
+ 		}
+ 
+ 		result = (*call)();
+ 
++		if (initcall_debug) {
++			t1 = ktime_get();
++			delta = ktime_sub(t1, t0);
 +
- 	mutex_lock(&block_subsys_lock);
- 
-         /* For each block device... */
-@@ -233,7 +234,7 @@ void printk_all_partitions(void)
- 	  	 * Don't show empty devices or things that have been surpressed
- 	  	 */
- 		if (get_capacity(sgp) &&
--		  !(sgp->flags & GENHD_FL_SUPPRESS_PARTITION_INFO)) {
-+		    !(sgp->flags & GENHD_FL_SUPPRESS_PARTITION_INFO)) {
- 			/*
- 			 * Note, unlike /proc/partitions I am showing the
- 			 * numbers in hex in the same format as the root=
-@@ -244,7 +245,7 @@ void printk_all_partitions(void)
- 			       (unsigned long long)get_capacity(sgp) >> 1,
- 			       disk_name(sgp, 0, buf));
- 			if ((sgp->driverfs_dev) &&
--			  (sgp->driverfs_dev->driver)) {
-+			    (sgp->driverfs_dev->driver)) {
- 				printk(" driver: %s\n",
- 				       sgp->driverfs_dev->driver->name);
- 			} else {
-@@ -252,15 +253,16 @@ void printk_all_partitions(void)
- 			}
- 
- 			/* now show the partitions */
--			for (n = 0; n < sgp->minors - 1; ++n) {
-+			for (n = 0; n < sgp->minors - 1; n++) {
- 				if (!sgp->part[n])
- 					continue;
- 				if (sgp->part[n]->nr_sects == 0)
- 					continue;
- 				printk("  %02x%02x %10llu %s\n",
--				       sgp->major, n + 1 + sgp->first_minor,
--				       (unsigned long long)sgp->part[n]->nr_sects >> 1 ,
--				       disk_name(sgp, n + 1, buf));
-+					sgp->major, n + 1 + sgp->first_minor,
-+					(unsigned long long)
-+						sgp->part[n]->nr_sects >> 1 ,
-+					disk_name(sgp, n + 1, buf));
- 			} /* partition subloop */
- 		} /* Non 0 size, not surpressed */
- 	} /* Block device loop */
++			printk("initcall 0x%p", *call);
++			print_fn_descriptor_symbol(": %s()",
++					(unsigned long) *call);
++			printk(" returned %d.\n", result);
++
++			printk("initcall 0x%p ran for %Ld msecs: ",
++				*call, delta.tv64 >> 20);
++			print_fn_descriptor_symbol("%s()\n",
++				(unsigned long) *call);
++		}
++
+ 		if (result && result != -ENODEV && initcall_debug) {
+ 			sprintf(msgbuf, "error code %d", result);
+ 			msg = msgbuf;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n.patch
 revert-retries-in-ext3_prepare_write-violate-ordering-requirements.patch
 revert-retries-in-ext4_prepare_write-violate-ordering-requirements.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
+driver-core-fix-built-in-drivers-sysfs-links.patch
 git-ieee1394.patch
-git-input.patch
 git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-piggy-bus.patch
-git-pciseg.patch
-git-s390.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-fix-x86_64-mm-sched-clock-share.patch
+forcedeth-work-around-null-skb-dereference-crash.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+allow-per-cpu-variables-to-be-page-aligned.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+optimize-timespec_trunc.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+add-support-for-deferrable-timers-respun.patch
 add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
+add-support-for-deferrable-timers-respun-fix.patch
+irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
+move-timekeeping-code-to-timekeepingc.patch
 move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+add-touch_all_softlockup_watchdogs.patch
+enhance-initcall_debug-measure-latency.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-dont-renice-kernel-threads.patch
+sched-remove-sleepavg-from-proc.patch
+sched-implement-staircase-deadline-cpu-scheduler.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+sched-remove-noninteractive-flag.patch
+sched-document-sd-cpu-scheduler.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
 declare-struct-ktime.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
 make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
+futex_requeue_pi-optimization.patch
+sys_futex64-allows-64bit-futexes.patch
+sys_futex64-allows-64bit-futexes-fix.patch
 sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-utrace-x86_64-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+clocksource-arm-initialize-list-value.patch
+clocksource-parisc-initialize-list-value.patch
+clocksource-avr32-initialize-list-value.patch
+clocksource-mips-initialize-list-value.patch
+clocksource-i386-initialize-list-value.patch
+clocksource-x86_64-initialize-list-value.patch
+clocksource-s390-initialize-list-value.patch
+clocksource-driver-initialize-list-value.patch
+clocksource-refactor-duplicate-registration-checking.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
