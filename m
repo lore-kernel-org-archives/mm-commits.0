@@ -1,85 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - kbuild-fix-dependency-generation.patch removed from -mm tree
-Date: Sun, 01 Apr 2007 23:14:53 -0700
-Message-ID: <200704020614.l326Erpk025958@shell0.pdx.osdl.net>
+Subject: - qla2xxx-remove-duplicate-pci_disable_device-call.patch removed from -mm tree
+Date: Sun, 01 Apr 2007 23:14:49 -0700
+Message-ID: <200704020614.l326EnW9025952@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39792 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39793 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933764AbXDBGPA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 02:15:00 -0400
+	id S933844AbXDBGPB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 02:15:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: bwalle@suse.de, James.Bottomley@steeleye.com, andrew.vasquez@qlogic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: fix dependency generation
+     qla2xxx: remove duplicate pci_disable_device() call
 has been removed from the -mm tree.  Its filename was
-     kbuild-fix-dependency-generation.patch
+     qla2xxx-remove-duplicate-pci_disable_device-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kbuild: fix dependency generation
-From: Jan Beulich <jbeulich@novell.com>
+Subject: qla2xxx: remove duplicate pci_disable_device() call
+From: Bernhard Walle <bwalle@suse.de>
 
-Commit 2e3646e51b2d6415549b310655df63e7e0d7a080 changed the way
-the split config tree is built, but failed to also adjust fixdep
-accordingly - if changing a config option from or to m, files
-referencing the respective CONFIG_..._MODULE (but not the
-corresponding CONFIG_...) didn't get rebuilt.
+On the path qla2x00_probe_one() -> probe_failed -> qla2x00_free_device(),
+pci_disable_device() is executed twice, once in qla2x00_free_device() and
+once in qla2x00_probe_one().
 
-The problem is that trisate symbol are represent with three
-SYMBOL=n => no symbol defined
-SYMBOL=y => CONFIG_SYMBOL defined to '1'
-SYMBOL=m => CONFIG_SYMBOL_MODULE defined to '1'
+This patch removes the unnecessary call.
 
-But conf_split_config do not distingush between the =y and =m case,
-so only the =y case is honoured.
-This is fixed in fixdep so when a CONFIG symbol with
-_MODULE is found we skip that part and only look
-for the CONFIG_SYMBOL version.
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/basic/fixdep.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/scsi/qla2xxx/qla_os.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN scripts/basic/fixdep.c~kbuild-fix-dependency-generation scripts/basic/fixdep.c
---- a/scripts/basic/fixdep.c~kbuild-fix-dependency-generation
-+++ a/scripts/basic/fixdep.c
-@@ -28,9 +28,11 @@
-  * the dependency on linux/autoconf.h by a dependency on every config
-  * option which is mentioned in any of the listed prequisites.
-  *
-- * To be exact, split-include populates a tree in include/config/,
-- * e.g. include/config/his/driver.h, which contains the #define/#undef
-- * for the CONFIG_HIS_DRIVER option.
-+ * kconfig populates a tree in include/config/ with an empty file
-+ * for each config symbol and when the configuration is updated
-+ * the files representing changed config options are touched
-+ * which then let make pick up the changes and the files that use
-+ * the config symbols are rebuilt.
-  *
-  * So if the user changes his CONFIG_HIS_DRIVER option, only the objects
-  * which depend on "include/linux/config/his/driver.h" will be rebuilt,
-@@ -245,6 +247,8 @@ void parse_config_file(char *map, size_t
- 		continue;
+diff -puN drivers/scsi/qla2xxx/qla_os.c~qla2xxx-remove-duplicate-pci_disable_device-call drivers/scsi/qla2xxx/qla_os.c
+--- a/drivers/scsi/qla2xxx/qla_os.c~qla2xxx-remove-duplicate-pci_disable_device-call
++++ a/drivers/scsi/qla2xxx/qla_os.c
+@@ -1707,6 +1707,7 @@ qla2x00_remove_one(struct pci_dev *pdev)
  
- 	found:
-+		if (!memcmp(q - 7, "_MODULE", 7))
-+			q -= 7;
- 		use_config(p+7, q-p-7);
- 	}
+ 	scsi_host_put(ha->host);
+ 
++	pci_disable_device(pdev);
+ 	pci_set_drvdata(pdev, NULL);
  }
+ 
+@@ -1749,8 +1750,6 @@ qla2x00_free_device(scsi_qla_host_t *ha)
+ 	if (ha->iobase)
+ 		iounmap(ha->iobase);
+ 	pci_release_regions(ha->pdev);
+-
+-	pci_disable_device(ha->pdev);
+ }
+ 
+ static inline void
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
-remove-pci_dac_dma_-apis.patch
-use-stop_machine_run-in-the-intel-rng-driver.patch
+git-r8169.patch
+git-scsi-misc.patch
+use-unchecked_isa_dma-in-sd_revalidate_disk.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-parisc.patch
+add-irqf_irqpoll-flag-on-arm.patch
