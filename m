@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + signal-timer-event-fds-v9-signalfd-core-fix.patch added to -mm tree
-Date: Mon, 02 Apr 2007 16:44:08 -0700
-Message-ID: <200704022346.l32NkMOB012773@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch added to -mm tree
+Date: Mon, 02 Apr 2007 16:48:04 -0700
+Message-ID: <200704022350.l32NoGVP012837@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53396 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53486 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966109AbXDBXq2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 19:46:28 -0400
+	id S966111AbXDBXuT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 19:50:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     signal-timer-event-fds-v9-signalfd-core fix
+     fix gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option
 has been added to the -mm tree.  Its filename is
-     signal-timer-event-fds-v9-signalfd-core-fix.patch
+     fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,61 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: signal-timer-event-fds-v9-signalfd-core fix
+Subject: fix gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386:
+drivers/base/dd.c:211: warning: 'device_probe_drivers' defined but not used
 
-fs/signalfd.c: In function 'signalfd_copyinfo':
-fs/signalfd.c:179: warning: cast from pointer to integer of different size
-fs/signalfd.c:179: warning: cast from pointer to integer of different size
-fs/signalfd.c:179: warning: cast from pointer to integer of different size
-fs/signalfd.c:179: warning: cast from pointer to integer of different size
-fs/signalfd.c:186: warning: cast from pointer to integer of different size
-fs/signalfd.c:186: warning: cast from pointer to integer of different size
-fs/signalfd.c:186: warning: cast from pointer to integer of different size
-fs/signalfd.c:186: warning: cast from pointer to integer of different size
-fs/signalfd.c:202: warning: cast from pointer to integer of different size
-fs/signalfd.c:202: warning: cast from pointer to integer of different size
-fs/signalfd.c:202: warning: cast from pointer to integer of different size
-fs/signalfd.c:202: warning: cast from pointer to integer of different size
-
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/signalfd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/base/dd.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN fs/signalfd.c~signal-timer-event-fds-v9-signalfd-core-fix fs/signalfd.c
---- a/fs/signalfd.c~signal-timer-event-fds-v9-signalfd-core-fix
-+++ a/fs/signalfd.c
-@@ -176,14 +176,14 @@ static int signalfd_copyinfo(struct sign
- 	case __SI_TIMER:
- 		 err |= __put_user(kinfo->si_tid, &uinfo->tid);
- 		 err |= __put_user(kinfo->si_overrun, &uinfo->overrun);
--		 err |= __put_user(kinfo->si_ptr, &uinfo->svptr);
-+		 err |= __put_user((long)kinfo->si_ptr, &uinfo->svptr);
- 		break;
- 	case __SI_POLL:
- 		err |= __put_user(kinfo->si_band, &uinfo->band);
- 		err |= __put_user(kinfo->si_fd, &uinfo->fd);
- 		break;
- 	case __SI_FAULT:
--		err |= __put_user(kinfo->si_addr, &uinfo->addr);
-+		err |= __put_user((long)kinfo->si_addr, &uinfo->addr);
- #ifdef __ARCH_SI_TRAPNO
- 		err |= __put_user(kinfo->si_trapno, &uinfo->trapno);
- #endif
-@@ -199,7 +199,7 @@ static int signalfd_copyinfo(struct sign
- 	case __SI_MESGQ: /* But this is */
- 		err |= __put_user(kinfo->si_pid, &uinfo->pid);
- 		err |= __put_user(kinfo->si_uid, &uinfo->uid);
--		err |= __put_user(kinfo->si_ptr, &uinfo->svptr);
-+		err |= __put_user((long)kinfo->si_ptr, &uinfo->svptr);
- 		break;
- 	default: /* this is just in case for now ... */
- 		err |= __put_user(kinfo->si_pid, &uinfo->pid);
+diff -puN drivers/base/dd.c~fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option drivers/base/dd.c
+--- a/drivers/base/dd.c~fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option
++++ a/drivers/base/dd.c
+@@ -207,19 +207,6 @@ static int __device_attach(struct device
+ 	return driver_probe_device(drv, dev);
+ }
+ 
+-static int device_probe_drivers(void *data)
+-{
+-	struct device *dev = data;
+-	int ret = 0;
+-
+-	if (dev->bus) {
+-		down(&dev->sem);
+-		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
+-		up(&dev->sem);
+-	}
+-	return ret;
+-}
+-
+ /**
+  *	device_attach - try to attach device to a driver.
+  *	@dev:	device.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -185,3 +165,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
