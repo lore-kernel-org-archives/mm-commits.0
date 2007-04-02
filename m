@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-print-details-of-kretprobe-on-assertion-failure.patch added to -mm tree
-Date: Mon, 02 Apr 2007 14:17:39 -0700
-Message-ID: <200704022117.l32LHd4w009702@shell0.pdx.osdl.net>
+Subject: + kdump-kexec-calculate-note-size-at-compile-time-update.patch added to -mm tree
+Date: Mon, 02 Apr 2007 14:19:46 -0700
+Message-ID: <200704022119.l32LJkM4009766@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46290 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46598 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965914AbXDBVSA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 17:18:00 -0400
+	id S965931AbXDBVUp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 17:20:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, jkenisto@us.ibm.com, maneesh@in.ibm.com, prasanna@in.ibm.com
+Cc: horms@verge.net.au, vgoyal@in.ibm.com
 
 
 The patch titled
-     Kprobes: print details of kretprobe on assertion failure
+     kdump/kexec: calculate note size at compile time (update)
 has been added to the -mm tree.  Its filename is
-     kprobes-print-details-of-kretprobe-on-assertion-failure.patch
+     kdump-kexec-calculate-note-size-at-compile-time-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,105 +25,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Kprobes: print details of kretprobe on assertion failure
-From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Subject: kdump/kexec: calculate note size at compile time (update)
+From: Simon Horman <horms@verge.net.au>
 
-In certain cases like when the real return address can't be found or when
-the number of tracked calls to a kretprobed function is less than the
-number of returns, we may not be able to find the correct return address
-after processing a kretprobe.  Currently we just do a BUG_ON, but no
-information is provided about the actual failing kretprobe.
+Here is a further update to this patch which uses
+sizeof(KEXEC_NOTE_NAME_BYTES) as suggested by Milton Miller.
+It also adds a comment describing why space for two struct elf_note
+is needed, as that question has come up a few times.
 
-Print out details of the kretprobe before calling BUG().
-
-Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Maneesh Soni <maneesh@in.ibm.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/kprobes.c    |    6 +++++-
- arch/ia64/kernel/kprobes.c    |    7 ++++++-
- arch/powerpc/kernel/kprobes.c |    7 ++++++-
- arch/x86_64/kernel/kprobes.c  |    7 ++++++-
- 4 files changed, 23 insertions(+), 4 deletions(-)
+ arch/ia64/kernel/crash.c |    2 +-
+ include/linux/kexec.h    |    8 +++++++-
+ kernel/kexec.c           |    2 +-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/i386/kernel/kprobes.c
---- a/arch/i386/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
-+++ a/arch/i386/kernel/kprobes.c
-@@ -449,7 +449,11 @@ fastcall void *__kprobes trampoline_hand
- 			break;
- 	}
+diff -puN arch/ia64/kernel/crash.c~kdump-kexec-calculate-note-size-at-compile-time-update arch/ia64/kernel/crash.c
+--- a/arch/ia64/kernel/crash.c~kdump-kexec-calculate-note-size-at-compile-time-update
++++ a/arch/ia64/kernel/crash.c
+@@ -74,7 +74,7 @@ crash_save_this_cpu(void)
+ 	buf = (u64 *) per_cpu_ptr(crash_notes, cpu);
+ 	if (!buf)
+ 		return;
+-	buf = append_elf_note(buf, "CORE", NT_PRSTATUS, prstatus,
++	buf = append_elf_note(buf, KEXEC_NOTE_NAME, NT_PRSTATUS, prstatus,
+ 			sizeof(*prstatus));
+ 	final_note(buf);
+ }
+diff -puN include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time-update include/linux/kexec.h
+--- a/include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time-update
++++ a/include/linux/kexec.h
+@@ -33,9 +33,15 @@
+ #error KEXEC_ARCH not defined
+ #endif
  
--	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
-+	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
-+		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
-+				ri->rp, ri->rp->kp.addr);
-+		BUG();
-+	}
++#define KEXEC_NOTE_NAME "CORE"
+ #define KEXEC_NOTE_HEAD_BYTES ALIGN(sizeof(struct elf_note), 4)
+-#define KEXEC_NOTE_NAME_BYTES 8 /* ALIGN(strlen("CORE") + 1, 4) */
++#define KEXEC_NOTE_NAME_BYTES ALIGN(sizeof("CORE"), 4) /* N.B: Includes '\0' */
+ #define KEXEC_NOTE_DESC_BYTES ALIGN(sizeof(struct elf_prstatus), 4)
++/* The notes are read and combined by the code in vmcore.c running
++ * in the second-kernel after kdump is performed. This code
++ * expects the notes area to be a list of notes, terminated
++ * by a "NULL" note header. The "* 2" below is to provide space
++ * for the terminating note header */
+ #define KEXEC_NOTE_BYTES ( (KEXEC_NOTE_HEAD_BYTES * 2) + \
+ 			   KEXEC_NOTE_NAME_BYTES + KEXEC_NOTE_DESC_BYTES )
  
- 	spin_unlock_irqrestore(&kretprobe_lock, flags);
- 
-diff -puN arch/ia64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
-+++ a/arch/ia64/kernel/kprobes.c
-@@ -444,7 +444,12 @@ int __kprobes trampoline_probe_handler(s
- 			break;
- 	}
- 
--	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
-+	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
-+		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
-+				ri->rp, ri->rp->kp.addr);
-+		BUG();
-+	}
-+
- 	regs->cr_iip = orig_ret_address;
- 
- 	reset_current_kprobe();
-diff -puN arch/powerpc/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/powerpc/kernel/kprobes.c
---- a/arch/powerpc/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
-+++ a/arch/powerpc/kernel/kprobes.c
-@@ -302,7 +302,12 @@ int __kprobes trampoline_probe_handler(s
- 			break;
- 	}
- 
--	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
-+	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
-+		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
-+				ri->rp, ri->rp->kp.addr);
-+		BUG();
-+	}
-+
- 	regs->nip = orig_ret_address;
- 
- 	reset_current_kprobe();
-diff -puN arch/x86_64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/x86_64/kernel/kprobes.c
---- a/arch/x86_64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
-+++ a/arch/x86_64/kernel/kprobes.c
-@@ -447,7 +447,12 @@ int __kprobes trampoline_probe_handler(s
- 			break;
- 	}
- 
--	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
-+	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
-+		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
-+				ri->rp, ri->rp->kp.addr);
-+		BUG();
-+	}
-+
- 	regs->rip = orig_ret_address;
- 
- 	reset_current_kprobe();
+diff -puN kernel/kexec.c~kdump-kexec-calculate-note-size-at-compile-time-update kernel/kexec.c
+--- a/kernel/kexec.c~kdump-kexec-calculate-note-size-at-compile-time-update
++++ a/kernel/kexec.c
+@@ -1118,7 +1118,7 @@ void crash_save_cpu(struct pt_regs *regs
+ 	memset(&prstatus, 0, sizeof(prstatus));
+ 	prstatus.pr_pid = current->pid;
+ 	elf_core_copy_regs(&prstatus.pr_reg, regs);
+-	buf = append_elf_note(buf, "CORE", NT_PRSTATUS, &prstatus,
++	buf = append_elf_note(buf, KEXEC_NOTE_NAME, NT_PRSTATUS, &prstatus,
+ 				sizeof(prstatus));
+ 	final_note(buf);
+ }
 _
 
-Patches currently in -mm which might be from ananth@in.ibm.com are
+Patches currently in -mm which might be from horms@verge.net.au are
 
-kprobes-make-kprobesymbol_name-const.patch
-kprobes-fix-sparse-null-warning.patch
-kprobes-print-details-of-kretprobe-on-assertion-failure.patch
-kprobes-use-hlist_for_each_entry.patch
-kprobes-codingstyle-cleanups.patch
-kprobes-kretprobes-simplifcations.patch
+cpusets-add-mems-to-basic-usage-documentation.patch
+git-ia64.patch
+git-scsi-misc.patch
+kdump-kexec-calculate-note-size-at-compile-time.patch
+kdump-kexec-calculate-note-size-at-compile-time-update.patch
