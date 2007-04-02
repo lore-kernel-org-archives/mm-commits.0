@@ -1,73 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - vt-fix-potential-race-in-vt_waitactive-handler.patch removed from -mm tree
-Date: Mon, 02 Apr 2007 16:04:04 -0700
-Message-ID: <200704022304.l32N44Sp011955@shell0.pdx.osdl.net>
+Subject: - correctly-report-pnp-64bit-resources.patch removed from -mm tree
+Date: Mon, 02 Apr 2007 16:03:53 -0700
+Message-ID: <200704022303.l32N3rrG011940@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51998 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52019 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966072AbXDBXEJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 19:04:09 -0400
+	id S966079AbXDBXEW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 19:04:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: spock@gentoo.org, adaplas@pol.net, mm-commits@vger.kernel.org
+To: petr@vandrovec.name, ambx1@neo.rr.com, bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt: fix potential race in VT_WAITACTIVE handler
+     Correctly report PnP 64bit resources
 has been removed from the -mm tree.  Its filename was
-     vt-fix-potential-race-in-vt_waitactive-handler.patch
+     correctly-report-pnp-64bit-resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vt: fix potential race in VT_WAITACTIVE handler
-From: Michal Januszewski <spock@gentoo.org>
+Subject: Correctly report PnP 64bit resources
+From: Petr Vandrovec <petr@vandrovec.name>
 
-On a multiprocessor machine the VT_WAITACTIVE ioctl call may return 0 if
-fg_console has already been updated in redraw_screen() but the console
-switch itself hasn't been completed.  Fix this by checking fg_console in
-vt_waitactive() with the console sem held.
+Change PnP resource handling code to use proper type for resource start and
+length.  Fixes bogus regions reported in /proc/iomem.
 
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
-Acked-by: Antonino Daplas <adaplas@pol.net>
+I've also made some pointer constant, as they are constant...
+
+Signed-off-by: Petr Vandrovec <petr@vandrovec.name>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt_ioctl.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/pnp/system.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/vt_ioctl.c~vt-fix-potential-race-in-vt_waitactive-handler drivers/char/vt_ioctl.c
---- a/drivers/char/vt_ioctl.c~vt-fix-potential-race-in-vt_waitactive-handler
-+++ a/drivers/char/vt_ioctl.c
-@@ -1039,10 +1039,22 @@ int vt_waitactive(int vt)
+diff -puN drivers/pnp/system.c~correctly-report-pnp-64bit-resources drivers/pnp/system.c
+--- a/drivers/pnp/system.c~correctly-report-pnp-64bit-resources
++++ a/drivers/pnp/system.c
+@@ -22,7 +22,7 @@ static const struct pnp_device_id pnp_de
+ 	{	"",			0	}
+ };
  
- 	add_wait_queue(&vt_activate_queue, &wait);
- 	for (;;) {
--		set_current_state(TASK_INTERRUPTIBLE);
- 		retval = 0;
--		if (vt == fg_console)
-+
-+		/*
-+		 * Synchronize with redraw_screen(). By acquiring the console
-+		 * semaphore we make sure that the console switch is completed
-+		 * before we return. If we didn't wait for the semaphore, we
-+		 * could return at a point where fg_console has already been
-+		 * updated, but the console switch hasn't been completed.
-+		 */
-+		acquire_console_sem();
-+		set_current_state(TASK_INTERRUPTIBLE);
-+		if (vt == fg_console) {
-+			release_console_sem();
- 			break;
-+		}
-+		release_console_sem();
- 		retval = -EINTR;
- 		if (signal_pending(current))
- 			break;
+-static void reserve_range(char *pnpid, int start, int end, int port)
++static void reserve_range(const char *pnpid, resource_size_t start, resource_size_t end, int port)
+ {
+ 	struct resource *res;
+ 	char *regionid;
+@@ -32,9 +32,9 @@ static void reserve_range(char *pnpid, i
+ 		return;
+ 	snprintf(regionid, 16, "pnp %s", pnpid);
+ 	if (port)
+-		res = request_region(start,end-start+1,regionid);
++		res = request_region(start, end-start+1, regionid);
+ 	else
+-		res = request_mem_region(start,end-start+1,regionid);
++		res = request_mem_region(start, end-start+1, regionid);
+ 	if (res == NULL)
+ 		kfree(regionid);
+ 	else
+@@ -45,12 +45,13 @@ static void reserve_range(char *pnpid, i
+ 	 * have double reservations.
+ 	 */
+ 	printk(KERN_INFO
+-		"pnp: %s: %s range 0x%x-0x%x %s reserved\n",
+-		pnpid, port ? "ioport" : "iomem", start, end,
++		"pnp: %s: %s range 0x%llx-0x%llx %s reserved\n",
++		pnpid, port ? "ioport" : "iomem",
++                (unsigned long long)start, (unsigned long long)end,
+ 		NULL != res ? "has been" : "could not be");
+ }
+ 
+-static void reserve_resources_of_dev(struct pnp_dev *dev)
++static void reserve_resources_of_dev(const struct pnp_dev *dev)
+ {
+ 	int i;
+ 
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from petr@vandrovec.name are
 
 origin.patch
-fbcon-dont-draw-cursor-when-its-disabled.patch
