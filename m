@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix.patch added to -mm tree
-Date: Mon, 02 Apr 2007 14:13:31 -0700
-Message-ID: <200704022113.l32LDVqt009589@shell0.pdx.osdl.net>
+Subject: + kprobes-print-details-of-kretprobe-on-assertion-failure.patch added to -mm tree
+Date: Mon, 02 Apr 2007 14:17:39 -0700
+Message-ID: <200704022117.l32LHd4w009702@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45927 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46290 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965913AbXDBVNf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 17:13:35 -0400
+	id S965914AbXDBVSA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 17:18:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+Cc: ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, jkenisto@us.ibm.com, maneesh@in.ibm.com, prasanna@in.ibm.com
 
 
 The patch titled
-     md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs fix
+     Kprobes: print details of kretprobe on assertion failure
 has been added to the -mm tree.  Its filename is
-     md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix.patch
+     kprobes-print-details-of-kretprobe-on-assertion-failure.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,105 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs fix
-From: Neil Brown <neilb@suse.de>
+Subject: Kprobes: print details of kretprobe on assertion failure
+From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 
-Avoid a deadlock when removing a device from an md array via sysfs. - fix
+In certain cases like when the real return address can't be found or when
+the number of tracked calls to a kretprobed function is less than the
+number of returns, we may not be able to find the correct return address
+after processing a kretprobe.  Currently we just do a BUG_ON, but no
+information is provided about the actual failing kretprobe.
 
-Make sure any delayed_delete calls finish before module unload.
-For simplicity, flush the queue when we stop the array.
+Print out details of the kretprobe before calling BUG().
 
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Maneesh Soni <maneesh@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    3 +++
- 1 files changed, 3 insertions(+)
+ arch/i386/kernel/kprobes.c    |    6 +++++-
+ arch/ia64/kernel/kprobes.c    |    7 ++++++-
+ arch/powerpc/kernel/kprobes.c |    7 ++++++-
+ arch/x86_64/kernel/kprobes.c  |    7 ++++++-
+ 4 files changed, 23 insertions(+), 4 deletions(-)
 
-diff -puN drivers/md/md.c~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix drivers/md/md.c
---- a/drivers/md/md.c~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix
-+++ a/drivers/md/md.c
-@@ -3400,6 +3400,9 @@ static int do_md_stop(mddev_t * mddev, i
- 				sysfs_remove_link(&mddev->kobj, nm);
- 			}
+diff -puN arch/i386/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/i386/kernel/kprobes.c
+--- a/arch/i386/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
++++ a/arch/i386/kernel/kprobes.c
+@@ -449,7 +449,11 @@ fastcall void *__kprobes trampoline_hand
+ 			break;
+ 	}
  
-+		/* make sure all delayed_delete calls have finished */
-+		flush_scheduled_work();
+-	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
++	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
++		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
++				ri->rp, ri->rp->kp.addr);
++		BUG();
++	}
+ 
+ 	spin_unlock_irqrestore(&kretprobe_lock, flags);
+ 
+diff -puN arch/ia64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
++++ a/arch/ia64/kernel/kprobes.c
+@@ -444,7 +444,12 @@ int __kprobes trampoline_probe_handler(s
+ 			break;
+ 	}
+ 
+-	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
++	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
++		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
++				ri->rp, ri->rp->kp.addr);
++		BUG();
++	}
 +
- 		export_array(mddev);
+ 	regs->cr_iip = orig_ret_address;
  
- 		mddev->array_size = 0;
+ 	reset_current_kprobe();
+diff -puN arch/powerpc/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/powerpc/kernel/kprobes.c
+--- a/arch/powerpc/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
++++ a/arch/powerpc/kernel/kprobes.c
+@@ -302,7 +302,12 @@ int __kprobes trampoline_probe_handler(s
+ 			break;
+ 	}
+ 
+-	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
++	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
++		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
++				ri->rp, ri->rp->kp.addr);
++		BUG();
++	}
++
+ 	regs->nip = orig_ret_address;
+ 
+ 	reset_current_kprobe();
+diff -puN arch/x86_64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/x86_64/kernel/kprobes.c
+--- a/arch/x86_64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
++++ a/arch/x86_64/kernel/kprobes.c
+@@ -447,7 +447,12 @@ int __kprobes trampoline_probe_handler(s
+ 			break;
+ 	}
+ 
+-	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
++	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
++		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
++				ri->rp, ri->rp->kp.addr);
++		BUG();
++	}
++
+ 	regs->rip = orig_ret_address;
+ 
+ 	reset_current_kprobe();
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from ananth@in.ibm.com are
 
-origin.patch
-md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs.patch
-md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix.patch
-net-sunrpc-svcsockc-fix-a-check.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
-the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
-readahead-nfsd-case.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+kprobes-make-kprobesymbol_name-const.patch
+kprobes-fix-sparse-null-warning.patch
+kprobes-print-details-of-kretprobe-on-assertion-failure.patch
+kprobes-use-hlist_for_each_entry.patch
+kprobes-codingstyle-cleanups.patch
+kprobes-kretprobes-simplifcations.patch
