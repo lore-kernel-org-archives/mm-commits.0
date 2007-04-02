@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slab-mention-slab-name-when-listing-corrupt-objects.patch added to -mm tree
-Date: Mon, 02 Apr 2007 16:20:31 -0700
-Message-ID: <200704022320.l32NKVFX012304@shell0.pdx.osdl.net>
+Subject: + signal-timer-event-fds-v9-signalfd-core-fix.patch added to -mm tree
+Date: Mon, 02 Apr 2007 16:44:08 -0700
+Message-ID: <200704022346.l32NkMOB012773@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52551 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53396 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966100AbXDBXUk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 19:20:40 -0400
+	id S966109AbXDBXq2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 19:46:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org
 
 
 The patch titled
-     slab: mention slab name when listing corrupt objects
+     signal-timer-event-fds-v9-signalfd-core fix
 has been added to the -mm tree.  Its filename is
-     slab-mention-slab-name-when-listing-corrupt-objects.patch
+     signal-timer-event-fds-v9-signalfd-core-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,163 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab: mention slab name when listing corrupt objects
-From: David Howells <dhowells@redhat.com>
+Subject: signal-timer-event-fds-v9-signalfd-core fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Mention the slab name when listing corrupt objects.  Although the function
-that released the memory is mentioned, that is frequently ambiguous as such
-functions often release several pieces of memory.
+i386:
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+fs/signalfd.c: In function 'signalfd_copyinfo':
+fs/signalfd.c:179: warning: cast from pointer to integer of different size
+fs/signalfd.c:179: warning: cast from pointer to integer of different size
+fs/signalfd.c:179: warning: cast from pointer to integer of different size
+fs/signalfd.c:179: warning: cast from pointer to integer of different size
+fs/signalfd.c:186: warning: cast from pointer to integer of different size
+fs/signalfd.c:186: warning: cast from pointer to integer of different size
+fs/signalfd.c:186: warning: cast from pointer to integer of different size
+fs/signalfd.c:186: warning: cast from pointer to integer of different size
+fs/signalfd.c:202: warning: cast from pointer to integer of different size
+fs/signalfd.c:202: warning: cast from pointer to integer of different size
+fs/signalfd.c:202: warning: cast from pointer to integer of different size
+fs/signalfd.c:202: warning: cast from pointer to integer of different size
+
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/signalfd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~slab-mention-slab-name-when-listing-corrupt-objects mm/slab.c
---- a/mm/slab.c~slab-mention-slab-name-when-listing-corrupt-objects
-+++ a/mm/slab.c
-@@ -1830,8 +1830,8 @@ static void check_poison_obj(struct kmem
- 			/* Print header */
- 			if (lines == 0) {
- 				printk(KERN_ERR
--					"Slab corruption: start=%p, len=%d\n",
--					realobj, size);
-+					"Slab corruption: %s start=%p, len=%d\n",
-+					cachep->name, realobj, size);
- 				print_objinfo(cachep, objp, 0);
- 			}
- 			/* Hexdump the affected line */
+diff -puN fs/signalfd.c~signal-timer-event-fds-v9-signalfd-core-fix fs/signalfd.c
+--- a/fs/signalfd.c~signal-timer-event-fds-v9-signalfd-core-fix
++++ a/fs/signalfd.c
+@@ -176,14 +176,14 @@ static int signalfd_copyinfo(struct sign
+ 	case __SI_TIMER:
+ 		 err |= __put_user(kinfo->si_tid, &uinfo->tid);
+ 		 err |= __put_user(kinfo->si_overrun, &uinfo->overrun);
+-		 err |= __put_user(kinfo->si_ptr, &uinfo->svptr);
++		 err |= __put_user((long)kinfo->si_ptr, &uinfo->svptr);
+ 		break;
+ 	case __SI_POLL:
+ 		err |= __put_user(kinfo->si_band, &uinfo->band);
+ 		err |= __put_user(kinfo->si_fd, &uinfo->fd);
+ 		break;
+ 	case __SI_FAULT:
+-		err |= __put_user(kinfo->si_addr, &uinfo->addr);
++		err |= __put_user((long)kinfo->si_addr, &uinfo->addr);
+ #ifdef __ARCH_SI_TRAPNO
+ 		err |= __put_user(kinfo->si_trapno, &uinfo->trapno);
+ #endif
+@@ -199,7 +199,7 @@ static int signalfd_copyinfo(struct sign
+ 	case __SI_MESGQ: /* But this is */
+ 		err |= __put_user(kinfo->si_pid, &uinfo->pid);
+ 		err |= __put_user(kinfo->si_uid, &uinfo->uid);
+-		err |= __put_user(kinfo->si_ptr, &uinfo->svptr);
++		err |= __put_user((long)kinfo->si_ptr, &uinfo->svptr);
+ 		break;
+ 	default: /* this is just in case for now ... */
+ 		err |= __put_user(kinfo->si_pid, &uinfo->pid);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-romfs-printk-format-warnings.patch
-slab-mention-slab-name-when-listing-corrupt-objects.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-use-symbolic-constants-in-generic-lseek-code.patch
-use-use-seek_max-to-validate-user-lseek-arguments.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-workqueue-kill-noautorel-works.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-mutex-subsystem-synchro-test-module.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-kvm.patch
+git-libata-all.patch
+git-libata-all-ipr-fix.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-ubi.patch
+git-netdev-all.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+fix-x86_64-mm-sched-clock-share.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+utrace-x86_64-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
