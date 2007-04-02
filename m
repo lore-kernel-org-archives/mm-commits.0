@@ -1,50 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - make-mptspi_target_destroy-static.patch removed from -mm tree
-Date: Sun, 01 Apr 2007 23:14:47 -0700
-Message-ID: <200704020614.l326ElND025949@shell0.pdx.osdl.net>
+Subject: - drivers-scsi-aic7xxx-make-functions-static.patch removed from -mm tree
+Date: Sun, 01 Apr 2007 23:14:41 -0700
+Message-ID: <200704020614.l326Efdi025940@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39918 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39913 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933920AbXDBGSE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 02:18:04 -0400
+	id S933929AbXDBGR5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 02:17:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, Eric.Moore@lsi.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, hare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make mptspi_target_destroy() static
+     drivers/scsi/aic7xxx/: make functions static
 has been removed from the -mm tree.  Its filename was
-     make-mptspi_target_destroy-static.patch
+     drivers-scsi-aic7xxx-make-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make mptspi_target_destroy() static
+Subject: drivers/scsi/aic7xxx/: make functions static
 From: Adrian Bunk <bunk@stusta.de>
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Eric Moore <Eric.Moore@lsi.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Acked-by: Hannes Reinecke <hare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptspi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/aic7xxx/aic79xx_osm.c  |    6 ++++--
+ drivers/scsi/aic7xxx/aic79xx_osm.h  |    2 --
+ drivers/scsi/aic7xxx/aic7xxx.h      |    5 -----
+ drivers/scsi/aic7xxx/aic7xxx_core.c |    2 +-
+ 4 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/message/fusion/mptspi.c~make-mptspi_target_destroy-static drivers/message/fusion/mptspi.c
---- a/drivers/message/fusion/mptspi.c~make-mptspi_target_destroy-static
-+++ a/drivers/message/fusion/mptspi.c
-@@ -445,7 +445,7 @@ static int mptspi_target_alloc(struct sc
- 	return 0;
+diff -puN drivers/scsi/aic7xxx/aic79xx_osm.c~drivers-scsi-aic7xxx-make-functions-static drivers/scsi/aic7xxx/aic79xx_osm.c
+--- a/drivers/scsi/aic7xxx/aic79xx_osm.c~drivers-scsi-aic7xxx-make-functions-static
++++ a/drivers/scsi/aic7xxx/aic79xx_osm.c
+@@ -363,6 +363,8 @@ static int ahd_linux_run_command(struct 
+ 				 struct scsi_cmnd *);
+ static void ahd_linux_setup_tag_info_global(char *p);
+ static int  aic79xx_setup(char *c);
++static void ahd_freeze_simq(struct ahd_softc *ahd);
++static void ahd_release_simq(struct ahd_softc *ahd);
+ 
+ static int ahd_linux_unit;
+ 
+@@ -2016,13 +2018,13 @@ ahd_linux_queue_cmd_complete(struct ahd_
+ 	cmd->scsi_done(cmd);
  }
  
 -void
 +static void
- mptspi_target_destroy(struct scsi_target *starget)
+ ahd_freeze_simq(struct ahd_softc *ahd)
  {
- 	if (starget->hostdata)
+ 	scsi_block_requests(ahd->platform_data->host);
+ }
+ 
+-void
++static void
+ ahd_release_simq(struct ahd_softc *ahd)
+ {
+ 	scsi_unblock_requests(ahd->platform_data->host);
+diff -puN drivers/scsi/aic7xxx/aic79xx_osm.h~drivers-scsi-aic7xxx-make-functions-static drivers/scsi/aic7xxx/aic79xx_osm.h
+--- a/drivers/scsi/aic7xxx/aic79xx_osm.h~drivers-scsi-aic7xxx-make-functions-static
++++ a/drivers/scsi/aic7xxx/aic79xx_osm.h
+@@ -837,8 +837,6 @@ int	ahd_platform_alloc(struct ahd_softc 
+ void	ahd_platform_free(struct ahd_softc *ahd);
+ void	ahd_platform_init(struct ahd_softc *ahd);
+ void	ahd_platform_freeze_devq(struct ahd_softc *ahd, struct scb *scb);
+-void	ahd_freeze_simq(struct ahd_softc *ahd);
+-void	ahd_release_simq(struct ahd_softc *ahd);
+ 
+ static __inline void
+ ahd_freeze_scb(struct scb *scb)
+diff -puN drivers/scsi/aic7xxx/aic7xxx.h~drivers-scsi-aic7xxx-make-functions-static drivers/scsi/aic7xxx/aic7xxx.h
+--- a/drivers/scsi/aic7xxx/aic7xxx.h~drivers-scsi-aic7xxx-make-functions-static
++++ a/drivers/scsi/aic7xxx/aic7xxx.h
+@@ -1278,11 +1278,6 @@ typedef enum {
+ 	AHC_QUEUE_TAGGED
+ } ahc_queue_alg;
+ 
+-void			ahc_set_tags(struct ahc_softc *ahc,
+-				     struct scsi_cmnd *cmd,
+-				     struct ahc_devinfo *devinfo,
+-				     ahc_queue_alg alg);
+-
+ /**************************** Target Mode *************************************/
+ #ifdef AHC_TARGET_MODE
+ void		ahc_send_lstate_events(struct ahc_softc *,
+diff -puN drivers/scsi/aic7xxx/aic7xxx_core.c~drivers-scsi-aic7xxx-make-functions-static drivers/scsi/aic7xxx/aic7xxx_core.c
+--- a/drivers/scsi/aic7xxx/aic7xxx_core.c~drivers-scsi-aic7xxx-make-functions-static
++++ a/drivers/scsi/aic7xxx/aic7xxx_core.c
+@@ -2073,7 +2073,7 @@ ahc_set_width(struct ahc_softc *ahc, str
+ /*
+  * Update the current state of tagged queuing for a given target.
+  */
+-void
++static void
+ ahc_set_tags(struct ahc_softc *ahc, struct scsi_cmnd *cmd,
+ 	     struct ahc_devinfo *devinfo, ahc_queue_alg alg)
+ {
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
