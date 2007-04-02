@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nvidiafb-fix-reversed-ddc-port.patch added to -mm tree
-Date: Sun, 01 Apr 2007 22:24:52 -0700
-Message-ID: <200704020524.l325OqsO024904@shell0.pdx.osdl.net>
+Subject: + kbuild-fix-dependency-generation.patch added to -mm tree
+Date: Sun, 01 Apr 2007 22:25:31 -0700
+Message-ID: <200704020525.l325PV8V024922@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35938 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35969 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753278AbXDBFZB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 01:25:01 -0400
+	id S1753274AbXDBFZm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 01:25:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vandrove@vc.cvut.cz, adaplas@gmail.com, airlied@linux.ie
+Cc: jbeulich@novell.com, sam@ravnborg.org
 
 
 The patch titled
-     nvidiafb: Fix reversed DDC port
+     kbuild: fix dependency generation
 has been added to the -mm tree.  Its filename is
-     nvidiafb-fix-reversed-ddc-port.patch
+     kbuild-fix-dependency-generation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nvidiafb: Fix reversed DDC port
-From: Petr Vandrovec <vandrove@vc.cvut.cz>
+Subject: kbuild: fix dependency generation
+From: Jan Beulich <jbeulich@novell.com>
 
-After I added some debugging printks I've found that code became a bit
-confused because it believed that primary monitor is 1920x540, but later it
-found in CRTC0's registers that panel size is 1920x1200 (Windows also agree
-that 1920x1200 is primary monitor, and 1920x1080i secondary one).
+Commit 2e3646e51b2d6415549b310655df63e7e0d7a080 changed the way
+the split config tree is built, but failed to also adjust fixdep
+accordingly - if changing a config option from or to m, files
+referencing the respective CONFIG_..._MODULE (but not the
+corresponding CONFIG_...) didn't get rebuilt.
 
-When I applied attached patch then my monitor became as happy as it was
-before I connected HDMI cable to secondary output.
+The problem is that trisate symbol are represent with three
+SYMBOL=n => no symbol defined
+SYMBOL=y => CONFIG_SYMBOL defined to '1'
+SYMBOL=m => CONFIG_SYMBOL_MODULE defined to '1'
 
-Signed-off-by: Petr Vandrovec <vandrove@vc.cvut.cz>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
+But conf_split_config do not distingush between the =y and =m case,
+so only the =y case is honoured.
+This is fixed in fixdep so when a CONFIG symbol with
+_MODULE is found we skip that part and only look
+for the CONFIG_SYMBOL version.
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nv_i2c.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/basic/fixdep.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/nvidia/nv_i2c.c~nvidiafb-fix-reversed-ddc-port drivers/video/nvidia/nv_i2c.c
---- a/drivers/video/nvidia/nv_i2c.c~nvidiafb-fix-reversed-ddc-port
-+++ a/drivers/video/nvidia/nv_i2c.c
-@@ -131,10 +131,10 @@ void nvidia_create_i2c_busses(struct nvi
- 	par->chan[1].par = par;
- 	par->chan[2].par = par;
+diff -puN scripts/basic/fixdep.c~kbuild-fix-dependency-generation scripts/basic/fixdep.c
+--- a/scripts/basic/fixdep.c~kbuild-fix-dependency-generation
++++ a/scripts/basic/fixdep.c
+@@ -28,9 +28,11 @@
+  * the dependency on linux/autoconf.h by a dependency on every config
+  * option which is mentioned in any of the listed prequisites.
+  *
+- * To be exact, split-include populates a tree in include/config/,
+- * e.g. include/config/his/driver.h, which contains the #define/#undef
+- * for the CONFIG_HIS_DRIVER option.
++ * kconfig populates a tree in include/config/ with an empty file
++ * for each config symbol and when the configuration is updated
++ * the files representing changed config options are touched
++ * which then let make pick up the changes and the files that use
++ * the config symbols are rebuilt.
+  *
+  * So if the user changes his CONFIG_HIS_DRIVER option, only the objects
+  * which depend on "include/linux/config/his/driver.h" will be rebuilt,
+@@ -245,6 +247,8 @@ void parse_config_file(char *map, size_t
+ 		continue;
  
--	par->chan[0].ddc_base = 0x3e;
-+	par->chan[0].ddc_base = 0x36;
- 	nvidia_setup_i2c_bus(&par->chan[0], "nvidia #0");
- 
--	par->chan[1].ddc_base = 0x36;
-+	par->chan[1].ddc_base = 0x3e;
- 	nvidia_setup_i2c_bus(&par->chan[1], "nvidia #1");
- 
- 	par->chan[2].ddc_base = 0x50;
+ 	found:
++		if (!memcmp(q - 7, "_MODULE", 7))
++			q -= 7;
+ 		use_config(p+7, q-p-7);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from vandrove@vc.cvut.cz are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-nvidiafb-fix-reversed-ddc-port.patch
+remove-pci_dac_dma_-apis.patch
+kbuild-fix-dependency-generation.patch
+use-stop_machine_run-in-the-intel-rng-driver.patch
