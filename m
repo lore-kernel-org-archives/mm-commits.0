@@ -1,51 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-dpt_i2oc-remove-dead-code.patch removed from -mm tree
-Date: Sun, 01 Apr 2007 23:14:37 -0700
-Message-ID: <200704020614.l326EbJa025934@shell0.pdx.osdl.net>
+Subject: - make-mptspi_target_destroy-static.patch removed from -mm tree
+Date: Sun, 01 Apr 2007 23:14:47 -0700
+Message-ID: <200704020614.l326ElND025949@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39909 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39918 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933253AbXDBGRv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 02:17:51 -0400
+	id S933920AbXDBGSE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 02:18:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bunk@stusta.de, Eric.Moore@lsi.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/dpt_i2o.c: remove dead code
+     make mptspi_target_destroy() static
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-dpt_i2oc-remove-dead-code.patch
+     make-mptspi_target_destroy-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/scsi/dpt_i2o.c: remove dead code
+Subject: make mptspi_target_destroy() static
 From: Adrian Bunk <bunk@stusta.de>
 
-The Coverity checker spotted this dead code introduced by
-commit a07f353701acae77e023f6270e8af353b37af7c4.
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Eric Moore <Eric.Moore@lsi.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/dpt_i2o.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/message/fusion/mptspi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/dpt_i2o.c~drivers-scsi-dpt_i2oc-remove-dead-code drivers/scsi/dpt_i2o.c
---- a/drivers/scsi/dpt_i2o.c~drivers-scsi-dpt_i2oc-remove-dead-code
-+++ a/drivers/scsi/dpt_i2o.c
-@@ -195,8 +195,6 @@ static int adpt_detect(struct scsi_host_
- 			pci_dev_get(pDev);
- 		}
- 	}
--	if (pDev)
--		pci_dev_put(pDev);
+diff -puN drivers/message/fusion/mptspi.c~make-mptspi_target_destroy-static drivers/message/fusion/mptspi.c
+--- a/drivers/message/fusion/mptspi.c~make-mptspi_target_destroy-static
++++ a/drivers/message/fusion/mptspi.c
+@@ -445,7 +445,7 @@ static int mptspi_target_alloc(struct sc
+ 	return 0;
+ }
  
- 	/* In INIT state, Activate IOPs */
- 	for (pHba = hba_chain; pHba; pHba = pHba->next) {
+-void
++static void
+ mptspi_target_destroy(struct scsi_target *starget)
+ {
+ 	if (starget->hostdata)
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
