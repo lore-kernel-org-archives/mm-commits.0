@@ -1,138 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-use-mutexdiff.patch added to -mm tree
-Date: Sun, 01 Apr 2007 22:55:13 -0700
-Message-ID: <200704020555.l325tDrm025479@shell0.pdx.osdl.net>
+Subject: - remove-some-unused-scsi-related-kernel-config-variables.patch removed from -mm tree
+Date: Sun, 01 Apr 2007 23:14:43 -0700
+Message-ID: <200704020614.l326EhIs025943@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36788 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39768 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932511AbXDBF62 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 01:58:28 -0400
+	id S933675AbXDBGOr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 02:14:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roland@digitalvampire.org, jengelh@gmx.de, sfrench@us.ibm.com
+To: rpjday@mindspring.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cifs: use mutex
-has been added to the -mm tree.  Its filename is
-     cifs-use-mutexdiff.patch
+     Remove some unused SCSI-related kernel config variables.
+has been removed from the -mm tree.  Its filename was
+     remove-some-unused-scsi-related-kernel-config-variables.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cifs: use mutex
-From: Roland Dreier <roland@digitalvampire.org>
+Subject: Remove some unused SCSI-related kernel config variables.
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Originally at http://lkml.org/lkml/2006/9/2/86
+Remove the unused SCSI-related kernel config variables
 
-The recent change to "allow Windows blocking locks to be cancelled via a
-CANCEL_LOCK call" introduced a new semaphore in struct cifsFileInfo,
-lock_sem.  However, semaphores used as mutexes are deprecated these days,
-and there's no reason to add a new one to the kernel.  Therefore, convert
-lock_sem to a struct mutex (and also fix one indentation glitch on one of
-the lines changed anyway).
+	SCSI_NCR53C8XX_PROFILE_SUPPORT
+	SCSI_NCR53C8XX_PROFILE
+	53C700_IO_MAPPED
+	AIC79XX_ENABLE_RD_STRM
+	AIC7XXX_PROBE_EISA_VL
 
-Compile tested only, since I don't use CIFS.
-
-Signed-off-by: Roland Dreier <roland@digitalvampire.org>
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Steven French <sfrench@us.ibm.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsglob.h |    2 +-
- fs/cifs/dir.c      |    2 +-
- fs/cifs/file.c     |   14 +++++++-------
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ Documentation/scsi/ncr53c8xx.txt     |    5 -----
+ drivers/scsi/Kconfig                 |   16 ----------------
+ drivers/scsi/aic7xxx/Kconfig.aic79xx |   12 ------------
+ drivers/scsi/aic7xxx/Kconfig.aic7xxx |   10 ----------
+ 4 files changed, 43 deletions(-)
 
-diff -puN fs/cifs/cifsglob.h~cifs-use-mutexdiff fs/cifs/cifsglob.h
---- a/fs/cifs/cifsglob.h~cifs-use-mutexdiff
-+++ a/fs/cifs/cifsglob.h
-@@ -311,7 +311,7 @@ struct cifsFileInfo {
- 	/* lock scope id (0 if none) */
- 	struct file * pfile; /* needed for writepage */
- 	struct inode * pInode; /* needed for oplock break */
--	struct semaphore lock_sem;
-+	struct mutex lock_mutex;
- 	struct list_head llist; /* list of byte range locks we have. */
- 	unsigned closePend:1;	/* file is marked to close */
- 	unsigned invalidHandle:1;  /* file closed via session abend */
-diff -puN fs/cifs/dir.c~cifs-use-mutexdiff fs/cifs/dir.c
---- a/fs/cifs/dir.c~cifs-use-mutexdiff
-+++ a/fs/cifs/dir.c
-@@ -274,7 +274,7 @@ cifs_create(struct inode *inode, struct 
- 			pCifsFile->invalidHandle = FALSE;
- 			pCifsFile->closePend     = FALSE;
- 			init_MUTEX(&pCifsFile->fh_sem);
--			init_MUTEX(&pCifsFile->lock_sem);
-+			mutex_init(&pCifsFile->lock_mutex);
- 			INIT_LIST_HEAD(&pCifsFile->llist);
- 			atomic_set(&pCifsFile->wrtPending,0);
+diff -puN Documentation/scsi/ncr53c8xx.txt~remove-some-unused-scsi-related-kernel-config-variables Documentation/scsi/ncr53c8xx.txt
+--- a/Documentation/scsi/ncr53c8xx.txt~remove-some-unused-scsi-related-kernel-config-variables
++++ a/Documentation/scsi/ncr53c8xx.txt
+@@ -562,11 +562,6 @@ if only one has a flaw for some SCSI fea
+ support by the driver of this feature at linux start-up and enable
+ this feature after boot-up only for devices that support it safely.
  
-diff -puN fs/cifs/file.c~cifs-use-mutexdiff fs/cifs/file.c
---- a/fs/cifs/file.c~cifs-use-mutexdiff
-+++ a/fs/cifs/file.c
-@@ -47,7 +47,7 @@ static inline struct cifsFileInfo *cifs_
- 	private_data->netfid = netfid;
- 	private_data->pid = current->tgid;	
- 	init_MUTEX(&private_data->fh_sem);
--	init_MUTEX(&private_data->lock_sem);
-+	mutex_init(&private_data->lock_mutex);
- 	INIT_LIST_HEAD(&private_data->llist);
- 	private_data->pfile = file; /* needed for writepage */
- 	private_data->pInode = inode;
-@@ -499,12 +499,12 @@ int cifs_close(struct inode *inode, stru
+-CONFIG_SCSI_NCR53C8XX_PROFILE_SUPPORT  (default answer: n)
+-    This option must be set for profiling information to be gathered 
+-    and printed out through the proc file system. This features may 
+-    impact performances.
+-
+ CONFIG_SCSI_NCR53C8XX_IOMAPPED       (default answer: n)
+     Answer "y" if you suspect your mother board to not allow memory mapped I/O.
+     May slow down performance a little.  This option is required by
+diff -puN drivers/scsi/Kconfig~remove-some-unused-scsi-related-kernel-config-variables drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~remove-some-unused-scsi-related-kernel-config-variables
++++ a/drivers/scsi/Kconfig
+@@ -1200,17 +1200,6 @@ config SCSI_NCR53C8XX_SYNC
+ 	  There is no safe option other than using good cabling, right
+ 	  terminations and SCSI conformant devices.
  
- 		/* Delete any outstanding lock records.
- 		   We'll lose them when the file is closed anyway. */
--		down(&pSMBFile->lock_sem);
-+		mutex_lock(&pSMBFile->lock_mutex);
- 		list_for_each_entry_safe(li, tmp, &pSMBFile->llist, llist) {
- 			list_del(&li->llist);
- 			kfree(li);
- 		}
--		up(&pSMBFile->lock_sem);
-+		mutex_unlock(&pSMBFile->lock_mutex);
+-config SCSI_NCR53C8XX_PROFILE
+-	bool "enable profiling"
+-	depends on SCSI_ZALON || SCSI_NCR_Q720
+-	help
+-	  This option allows you to enable profiling information gathering.
+-	  These statistics are not very accurate due to the low frequency
+-	  of the kernel clock (100 Hz on i386) and have performance impact
+-	  on systems that use very fast devices.
+-
+-	  The normal answer therefore is N.
+-
+ config SCSI_NCR53C8XX_NO_DISCONNECT
+ 	bool "not allow targets to disconnect"
+ 	depends on (SCSI_ZALON || SCSI_NCR_Q720) && SCSI_NCR53C8XX_DEFAULT_TAGS=0
+@@ -1340,11 +1329,6 @@ config SCSI_SIM710
  
- 		write_lock(&GlobalSMBSeslock);
- 		list_del(&pSMBFile->flist);
-@@ -589,9 +589,9 @@ static int store_file_lock(struct cifsFi
- 	li->offset = offset;
- 	li->length = len;
- 	li->type = lockType;
--	down(&fid->lock_sem);
-+	mutex_lock(&fid->lock_mutex);
- 	list_add(&li->llist, &fid->llist);
--	up(&fid->lock_sem);
-+	mutex_unlock(&fid->lock_mutex);
- 	return 0;
- }
+ 	  It currently supports Compaq EISA cards and NCR MCA cards
  
-@@ -748,7 +748,7 @@ int cifs_lock(struct file *file, int cmd
- 			struct cifsLockInfo *li, *tmp;
+-config 53C700_IO_MAPPED
+-	bool
+-	depends on SCSI_SIM710
+-	default y
+-
+ config SCSI_SYM53C416
+ 	tristate "Symbios 53c416 SCSI support"
+ 	depends on ISA && SCSI
+diff -puN drivers/scsi/aic7xxx/Kconfig.aic79xx~remove-some-unused-scsi-related-kernel-config-variables drivers/scsi/aic7xxx/Kconfig.aic79xx
+--- a/drivers/scsi/aic7xxx/Kconfig.aic79xx~remove-some-unused-scsi-related-kernel-config-variables
++++ a/drivers/scsi/aic7xxx/Kconfig.aic79xx
+@@ -57,18 +57,6 @@ config AIC79XX_BUILD_FIRMWARE
+ 	or modify the assembler Makefile or the files it includes if your
+ 	build environment is different than that of the author.
  
- 			rc = 0;
--			down(&fid->lock_sem);
-+			mutex_lock(&fid->lock_mutex);
- 			list_for_each_entry_safe(li, tmp, &fid->llist, llist) {
- 				if (pfLock->fl_start <= li->offset &&
- 						length >= li->length) {
-@@ -762,7 +762,7 @@ int cifs_lock(struct file *file, int cmd
- 					kfree(li);
- 				}
- 			}
--			up(&fid->lock_sem);
-+			mutex_unlock(&fid->lock_mutex);
- 		}
- 	}
+-config AIC79XX_ENABLE_RD_STRM
+-	bool "Enable Read Streaming for All Targets"
+-	depends on SCSI_AIC79XX
+-	default n
+-	help
+-	Read Streaming is a U320 protocol option that should enhance
+-	performance.  Early U320 drive firmware actually performs slower
+-	with read streaming enabled so it is disabled by default.  Read
+-	Streaming can be configured in much the same way as tagged queueing
+-	using the "rd_strm" command line option.  See
+-	drivers/scsi/aic7xxx/README.aic79xx for details.
+-
+ config AIC79XX_DEBUG_ENABLE
+ 	bool "Compile in Debugging Code"
+ 	depends on SCSI_AIC79XX
+diff -puN drivers/scsi/aic7xxx/Kconfig.aic7xxx~remove-some-unused-scsi-related-kernel-config-variables drivers/scsi/aic7xxx/Kconfig.aic7xxx
+--- a/drivers/scsi/aic7xxx/Kconfig.aic7xxx~remove-some-unused-scsi-related-kernel-config-variables
++++ a/drivers/scsi/aic7xxx/Kconfig.aic7xxx
+@@ -50,16 +50,6 @@ config AIC7XXX_RESET_DELAY_MS
  
+ 	Default: 5000 (5 seconds)
+ 
+-config AIC7XXX_PROBE_EISA_VL
+-	bool "Probe for EISA and VL AIC7XXX Adapters"
+-	depends on SCSI_AIC7XXX && EISA
+-	help
+-	Probe for EISA and VLB Aic7xxx controllers.  In many newer systems,
+-	the invasive probes necessary to detect these controllers can cause
+-	other devices to fail.  For this reason, the non-PCI probe code is
+-	disabled by default.  The current value of this option can be "toggled"
+-	via the no_probe kernel command line option.
+-
+ config AIC7XXX_BUILD_FIRMWARE
+ 	bool "Build Adapter Firmware with Kernel Build"
+ 	depends on SCSI_AIC7XXX && !PREVENT_FIRMWARE_BUILD
 _
 
-Patches currently in -mm which might be from roland@digitalvampire.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-cifs-use-mutexdiff.patch
+origin.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+git-powerpc.patch
+remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
+remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
+git-drm.patch
+git-input.patch
+git-mtd.patch
+jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
+git-netdev-all.patch
+delete-unused-header-file-linux-sdla_frh.patch
+delete-unused-header-file-linux-if_wanpipe_commonh.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-scsi-misc.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+delete-unused-header-file-math-emu-extendedh.patch
+delete-unused-header-file-linux-awe_voiceh.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
