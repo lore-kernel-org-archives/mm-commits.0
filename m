@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slab-mark-set_up_list3s-__init.patch added to -mm tree
-Date: Mon, 02 Apr 2007 13:55:31 -0700
-Message-ID: <200704022055.l32KtVcm009207@shell0.pdx.osdl.net>
+Subject: + round_up-macro-cleanup-in-drivers-pci.patch added to -mm tree
+Date: Mon, 02 Apr 2007 14:03:09 -0700
+Message-ID: <200704022103.l32L39CY009348@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45425 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45497 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965883AbXDBVAj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 2 Apr 2007 17:00:39 -0400
+	id S1752974AbXDBVDM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 2 Apr 2007 17:03:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@engr.sgi.com, penberg@cs.helsinki.fi
+Cc: milindchoudhary@gmail.com, greg@kroah.com
 
 
 The patch titled
-     slab: mark set_up_list3s() __init
+     ROUND_UP macro cleanup in drivers/pci
 has been added to the -mm tree.  Its filename is
-     slab-mark-set_up_list3s-__init.patch
+     round_up-macro-cleanup-in-drivers-pci.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,138 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab: mark set_up_list3s() __init
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ROUND_UP macro cleanup in drivers/pci
+From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-It is only ever used prior to free_initmem().
+ROUND_UP macro cleanup, use ALIGN where ever appropriate
 
-(It will cause a warning when we run the section checking, but that's a
-false-positive and it simply changes the source of an existing warning, which
-is also a false-positive)
-
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/cpci_hotplug_pci.c |    2 --
+ drivers/pci/setup-bus.c                |    8 +++-----
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN mm/slab.c~slab-mark-set_up_list3s-__init mm/slab.c
---- a/mm/slab.c~slab-mark-set_up_list3s-__init
-+++ a/mm/slab.c
-@@ -1946,7 +1946,7 @@ static void slab_destroy(struct kmem_cac
-  * For setting up all the kmem_list3s for cache whose buffer_size is same as
-  * size of kmem_list3.
-  */
--static void set_up_list3s(struct kmem_cache *cachep, int index)
-+static void __init set_up_list3s(struct kmem_cache *cachep, int index)
- {
- 	int node;
+diff -puN drivers/pci/hotplug/cpci_hotplug_pci.c~round_up-macro-cleanup-in-drivers-pci drivers/pci/hotplug/cpci_hotplug_pci.c
+--- a/drivers/pci/hotplug/cpci_hotplug_pci.c~round_up-macro-cleanup-in-drivers-pci
++++ a/drivers/pci/hotplug/cpci_hotplug_pci.c
+@@ -45,8 +45,6 @@ extern int cpci_debug;
+ #define info(format, arg...) printk(KERN_INFO "%s: " format "\n", MY_NAME , ## arg)
+ #define warn(format, arg...) printk(KERN_WARNING "%s: " format "\n", MY_NAME , ## arg)
  
+-#define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+-
+ 
+ u8 cpci_get_attention_status(struct slot* slot)
+ {
+diff -puN drivers/pci/setup-bus.c~round_up-macro-cleanup-in-drivers-pci drivers/pci/setup-bus.c
+--- a/drivers/pci/setup-bus.c~round_up-macro-cleanup-in-drivers-pci
++++ a/drivers/pci/setup-bus.c
+@@ -34,8 +34,6 @@
+ #define DBG(x...)
+ #endif
+ 
+-#define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+-
+ static void pbus_assign_resources_sorted(struct pci_bus *bus)
+ {
+ 	struct pci_dev *dev;
+@@ -310,7 +308,7 @@ static void pbus_size_io(struct pci_bus 
+ #if defined(CONFIG_ISA) || defined(CONFIG_EISA)
+ 	size = (size & 0xff) + ((size & ~0xffUL) << 2);
+ #endif
+-	size = ROUND_UP(size + size1, 4096);
++	size = ALIGN(size + size1, 4096);
+ 	if (!size) {
+ 		b_res->flags = 0;
+ 		return;
+@@ -378,11 +376,11 @@ static int pbus_size_mem(struct pci_bus 
+ 
+ 		if (!align)
+ 			min_align = align1;
+-		else if (ROUND_UP(align + min_align, min_align) < align1)
++		else if (ALIGN(align + min_align, min_align) < align1)
+ 			min_align = align1 >> 1;
+ 		align += aligns[order];
+ 	}
+-	size = ROUND_UP(size, min_align);
++	size = ALIGN(size, min_align);
+ 	if (!size) {
+ 		b_res->flags = 0;
+ 		return 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from milindchoudhary@gmail.com are
 
-origin.patch
-proc-fix-linkage-with-config_sysctl=y-config_proc_sysctl=n.patch
-revert-retries-in-ext3_prepare_write-violate-ordering-requirements.patch
-revert-retries-in-ext4_prepare_write-violate-ordering-requirements.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-piggy-bus.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-fix-x86_64-mm-sched-clock-share.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-utrace-x86_64-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-slab-mark-set_up_list3s-__init.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+round_up-macro-cleanup-in-drivers-pci.patch
