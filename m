@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-config_scsi_wait_scan=m-fix-fix.patch added to -mm tree
-Date: Tue, 03 Apr 2007 15:28:39 -0700
-Message-ID: <200704032230.l33MUrrW005159@shell0.pdx.osdl.net>
+Subject: + pnpacpi-sets-pnpdev-devarchdata.patch added to -mm tree
+Date: Tue, 03 Apr 2007 15:33:50 -0700
+Message-ID: <200704032233.l33MXorR005214@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46438 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46555 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161001AbXDCWbD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 3 Apr 2007 18:31:03 -0400
+	id S2992436AbXDCWfV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 3 Apr 2007 18:35:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, hugh@veritas.com
+Cc: david-b@pacbell.net, ambx1@neo.rr.com, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, lenb@kernel.org
 
 
 The patch titled
-     scsi-fix-config_scsi_wait_scan=m-fix-fix
+     PNPACPI sets pnpdev->dev.archdata
 has been added to the -mm tree.  Its filename is
-     scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+     pnpacpi-sets-pnpdev-devarchdata.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,152 +25,204 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi-fix-config_scsi_wait_scan=m-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: PNPACPI sets pnpdev->dev.archdata
+From: David Brownell <david-b@pacbell.net>
 
-drivers/scsi/scsi_scan.o: In function `scsi_complete_async_scans':
-scsi_scan.c:(.text+0x200): multiple definition of `init_module'
-drivers/scsi/scsi.o:scsi.c:(.init.text+0x0): first defined here
+Teach PNPACPI how to hook up its devices to their ACPI nodes, so that
+pnpdev->dev.archdata points to the parallel acpi device node.  Previously
+this only worked for PCI, leaving a notable hole.
 
-erk.
+Export "acpi_bus_type" so this can work.
 
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Remove some extraneous whitespace.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_scan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/scan.c        |    2 -
+ drivers/pnp/pnpacpi/core.c |   53 +++++++++++++++++++++++++++++------
+ include/acpi/acpi_bus.h    |    3 +
+ 3 files changed, 49 insertions(+), 9 deletions(-)
 
-diff -puN drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix-fix drivers/scsi/scsi_scan.c
---- a/drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix-fix
-+++ a/drivers/scsi/scsi_scan.c
-@@ -184,12 +184,14 @@ int scsi_complete_async_scans(void)
- /* Only exported for the benefit of scsi_wait_scan */
- EXPORT_SYMBOL_GPL(scsi_complete_async_scans);
+diff -puN drivers/acpi/scan.c~pnpacpi-sets-pnpdev-devarchdata drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~pnpacpi-sets-pnpdev-devarchdata
++++ a/drivers/acpi/scan.c
+@@ -302,7 +302,7 @@ static void acpi_device_shutdown(struct 
+ 	return ;
+ }
  
-+#ifndef MODULE
- /*
-  * For async scanning we need to wait for all the scans to complete before
-  * trying to mount the root fs.  Otherwise non-modular drivers may not be ready
-  * yet.
+-static struct bus_type acpi_bus_type = {
++struct bus_type acpi_bus_type = {
+ 	.name		= "acpi",
+ 	.suspend	= acpi_device_suspend,
+ 	.resume		= acpi_device_resume,
+diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-sets-pnpdev-devarchdata drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~pnpacpi-sets-pnpdev-devarchdata
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -3,7 +3,7 @@
+  *
+  * Copyright (c) 2004 Matthieu Castet <castet.matthieu@free.fr>
+  * Copyright (c) 2004 Li Shaohua <shaohua.li@intel.com>
+- * 
++ *
+  * This program is free software; you can redistribute it and/or modify it
+  * under the terms of the GNU General Public License as published by the
+  * Free Software Foundation; either version 2, or (at your option) any
+@@ -18,7 +18,7 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   */
- late_initcall(scsi_complete_async_scans);
-+#endif
+- 
++
+ #include <linux/acpi.h>
+ #include <linux/pnp.h>
+ #include <acpi/acpi_bus.h>
+@@ -82,7 +82,7 @@ static void __init pnpidacpi_to_pnpid(ch
+ static int pnpacpi_get_resources(struct pnp_dev * dev, struct pnp_resource_table * res)
+ {
+ 	acpi_status status;
+-	status = pnpacpi_parse_allocated_resource((acpi_handle)dev->data, 
++	status = pnpacpi_parse_allocated_resource((acpi_handle)dev->data,
+ 		&dev->res);
+ 	return ACPI_FAILURE(status) ? -ENODEV : 0;
+ }
+@@ -112,9 +112,9 @@ static int pnpacpi_set_resources(struct 
+ static int pnpacpi_disable_resources(struct pnp_dev *dev)
+ {
+ 	acpi_status status;
+-	
++
+ 	/* acpi_unregister_gsi(pnp_irq(dev, 0)); */
+-	status = acpi_evaluate_object((acpi_handle)dev->data, 
++	status = acpi_evaluate_object((acpi_handle)dev->data,
+ 		"_DIS", NULL, NULL);
+ 	return ACPI_FAILURE(status) ? -ENODEV : 0;
+ }
+@@ -167,7 +167,7 @@ static int __init pnpacpi_add_device(str
+ 		strncpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
  
- /**
-  * scsi_unlock_floptical - unlock device via a special MODE SENSE command
+ 	dev->number = num;
+-	
++
+ 	/* set the initial values for the PnP device */
+ 	dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
+ 	if (!dev_id)
+@@ -185,14 +185,14 @@ static int __init pnpacpi_add_device(str
+ 	}
+ 
+ 	if(dev->capabilities & PNP_CONFIGURABLE) {
+-		status = pnpacpi_parse_resource_option_data(device->handle, 
++		status = pnpacpi_parse_resource_option_data(device->handle,
+ 			dev);
+ 		if (ACPI_FAILURE(status) && (status != AE_NOT_FOUND)) {
+ 			pnp_err("PnPACPI: METHOD_NAME__PRS failure for %s", dev_id->id);
+ 			goto err1;
+ 		}
+ 	}
+-	
++
+ 	/* parse compatible ids */
+ 	if (device->flags.compatible_ids) {
+ 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
+@@ -236,6 +236,41 @@ static acpi_status __init pnpacpi_add_de
+ 	return AE_OK;
+ }
+ 
++static int __init acpi_pnp_match(struct device *dev, void *_pnp)
++{
++	struct acpi_device	*acpi = to_acpi_device(dev);
++	struct pnp_dev		*pnp = _pnp;
++
++	/* true means it matched */
++	return acpi->flags.hardware_id
++		&& compare_pnp_id(pnp->id, acpi->pnp.hardware_id);
++}
++
++static int __init acpi_pnp_find_device(struct device *dev, acpi_handle *handle)
++{
++	struct device		*adev;
++	struct acpi_device	*acpi;
++
++	adev = bus_find_device(&acpi_bus_type, NULL,
++			to_pnp_dev(dev),
++			acpi_pnp_match);
++	if (!adev)
++		return -ENODEV;
++
++	acpi = to_acpi_device(adev);
++	*handle = acpi->handle;
++	put_device(adev);
++	return 0;
++}
++
++/* complete initialization of a PNPACPI device includes having
++ * pnpdev->dev.archdata.acpi_handle point to its ACPI sibling.
++ */
++static struct acpi_bus_type __initdata acpi_pnp_bus = {
++	.bus = &pnp_bus_type,
++	.find_device = acpi_pnp_find_device,
++};
++
+ int pnpacpi_disabled __initdata;
+ static int __init pnpacpi_init(void)
+ {
+@@ -245,8 +280,10 @@ static int __init pnpacpi_init(void)
+ 	}
+ 	pnp_info("PnP ACPI init");
+ 	pnp_register_protocol(&pnpacpi_protocol);
++	register_acpi_bus_type(&acpi_pnp_bus);
+ 	acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
+ 	pnp_info("PnP ACPI: found %d devices", num);
++	unregister_acpi_bus_type(&acpi_pnp_bus);
+ 	return 0;
+ }
+ subsys_initcall(pnpacpi_init);
+diff -puN include/acpi/acpi_bus.h~pnpacpi-sets-pnpdev-devarchdata include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~pnpacpi-sets-pnpdev-devarchdata
++++ a/include/acpi/acpi_bus.h
+@@ -303,6 +303,9 @@ struct acpi_device {
+ #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
+ #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
+ 
++/* acpi_device.dev.bus == &acpi_bus_type */
++extern struct bus_type acpi_bus_type;
++
+ /*
+  * Events
+  * ------
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-revert-driver-core-do-not-wait-unnecessarily-in-driver_unregister.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-xfs-clean-up-shrinker-games.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+scsi-newstyle-hotplug-coldplug-support.patch
+fix-hotplug-for-legacy-platform-drivers.patch
+update-documentation-driver-model-platformtxt.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+init-dma-masks-in-pnp_dev.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+char-cs5535_gpio-add-module_device_table.patch
+parport-dev-driver-model-support.patch
 parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-utrace-x86_64-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+layered-parport-code-uses-parport-dev.patch
+pnpacpi-sets-pnpdev-devarchdata.patch
+minor-spi_butterfly-cleanup.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+rtc-kconfig-cleanup.patch
+rtc-cmos-wakeup-interface.patch
+acpi-wakeup-hooks-for-rtc-cmos.patch
