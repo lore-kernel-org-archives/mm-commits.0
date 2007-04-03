@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ieee1394_core-printk-format.patch added to -mm tree
-Date: Tue, 03 Apr 2007 13:33:54 -0700
-Message-ID: <200704032033.l33KXsbG002560@shell0.pdx.osdl.net>
+Subject: + swsusp-fix-memory-shrinker.patch added to -mm tree
+Date: Tue, 03 Apr 2007 14:19:06 -0700
+Message-ID: <200704032119.l33LJ7Af003554@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42505 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44590 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945920AbXDCUeR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 3 Apr 2007 16:34:17 -0400
+	id S1945956AbXDCVTr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 3 Apr 2007 17:19:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, stefanr@s5r6.in-berlin.de
+Cc: rjw@sisk.pl, jirislaby@gmail.com, pavel@ucw.cz
 
 
 The patch titled
-     ieee1394_core printk format
+     swsusp: fix memory shrinker
 has been added to the -mm tree.  Its filename is
-     ieee1394_core-printk-format.patch
+     swsusp-fix-memory-shrinker.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ieee1394_core printk format
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: swsusp: fix memory shrinker
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Fix printk format string:
-drivers/ieee1394/ieee1394_core.c:702: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+Fix a bug in the swsusp's memory shrinker that causes some systems using
+highmem to refuse to suspend to disk if image_size is set above 1/2 of
+available RAM.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Special thanks to Jiri Slaby for reporting the problem and assistance in
+debugging it.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/ieee1394_core.c |    2 +-
+ kernel/power/swsusp.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ieee1394/ieee1394_core.c~ieee1394_core-printk-format drivers/ieee1394/ieee1394_core.c
---- a/drivers/ieee1394/ieee1394_core.c~ieee1394_core-printk-format
-+++ a/drivers/ieee1394/ieee1394_core.c
-@@ -699,7 +699,7 @@ static size_t packet_size_to_data_size(s
- 		ret = buffer_size;
+diff -puN kernel/power/swsusp.c~swsusp-fix-memory-shrinker kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~swsusp-fix-memory-shrinker
++++ a/kernel/power/swsusp.c
+@@ -229,13 +229,13 @@ int swsusp_shrink_memory(void)
+ 		size += highmem_size;
+ 		for_each_zone (zone)
+ 			if (populated_zone(zone)) {
++				tmp += snapshot_additional_pages(zone);
+ 				if (is_highmem(zone)) {
+ 					highmem_size -=
+ 					zone_page_state(zone, NR_FREE_PAGES);
+ 				} else {
+ 					tmp -= zone_page_state(zone, NR_FREE_PAGES);
+ 					tmp += zone->lowmem_reserve[ZONE_NORMAL];
+-					tmp += snapshot_additional_pages(zone);
+ 				}
+ 			}
  
- 	if (unlikely(ret + header_size != packet_size))
--		HPSB_ERR("unexpected packet size %d (tcode %d), bug?",
-+		HPSB_ERR("unexpected packet size %zd (tcode %d), bug?",
- 			 packet_size, tcode);
- 	return ret;
- }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-git-acpi.patch
-git-drm.patch
-ieee1394_core-printk-format.patch
-romfs-printk-format-warnings.patch
-git-netdev-all.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-scripts-kernel-doc-whitespace-cleanup.patch
-reiserfs-proc-support-requires-proc_fs.patch
-kprobes-fix-sparse-null-warning.patch
-header-cleaning-dont-include-smp_lockh-when-not-used.patch
-ext4-use-null-for-pointers.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-profile-likely-unlikely-macros.patch
+origin.patch
+swsusp-fix-memory-shrinker.patch
+fix-refrigerator-vs-thaw_process-race.patch
+swsusp-use-inline-functions-for-changing-page-flags.patch
+swsusp-do-not-use-page-flags.patch
+mm-remove-unused-page-flags.patch
+swsusp-fix-error-paths-in-snapshot_open.patch
+swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-force-pm_opsvalid-callback-to-be.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+shrink_slab-handle-bad-shrinkers.patch
