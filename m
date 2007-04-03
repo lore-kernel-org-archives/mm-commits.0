@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-config_scsi_wait_scan=m-fix.patch added to -mm tree
-Date: Tue, 03 Apr 2007 13:06:11 -0700
-Message-ID: <200704032006.l33K6BDI001877@shell0.pdx.osdl.net>
+Subject: + undo-utrace-prep-2.patch added to -mm tree
+Date: Tue, 03 Apr 2007 13:22:21 -0700
+Message-ID: <200704032022.l33KMLqF002260@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41060 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41963 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422678AbXDCUGR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 3 Apr 2007 16:06:17 -0400
+	id S1945909AbXDCUW0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 3 Apr 2007 16:22:26 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l33KMMPD021732
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 3 Apr 2007 13:22:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, hugh@veritas.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     scsi-fix-config_scsi_wait_scan=m-fix
+     undo utrace-prep-2
 has been added to the -mm tree.  Its filename is
-     scsi-fix-config_scsi_wait_scan=m-fix.patch
+     undo-utrace-prep-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +29,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi-fix-config_scsi_wait_scan=m-fix
+Subject: undo utrace-prep-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_scan.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ kernel/fork.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix drivers/scsi/scsi_scan.c
---- a/drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix
-+++ a/drivers/scsi/scsi_scan.c
-@@ -183,6 +183,12 @@ int scsi_complete_async_scans(void)
+diff -puN kernel/fork.c~undo-utrace-prep-2 kernel/fork.c
+--- a/kernel/fork.c~undo-utrace-prep-2
++++ a/kernel/fork.c
+@@ -1387,7 +1387,9 @@ long do_fork(unsigned long clone_flags,
+ 			tracehook_report_clone_complete(clone_flags, nr, p);
  
- /* Only exported for the benefit of scsi_wait_scan */
- EXPORT_SYMBOL_GPL(scsi_complete_async_scans);
-+
-+/*
-+ * For async scanning we need to wait for all the scans to complete before
-+ * trying to mount the root fs.  Otherwise non-modular drivers may not be ready
-+ * yet.
-+ */
- late_initcall(scsi_complete_async_scans);
- 
- /**
+ 		if (clone_flags & CLONE_VFORK) {
++			freezer_do_not_count();
+ 			wait_for_completion(&vfork);
++			freezer_count();
+ 			if (likely(is_user))
+ 				tracehook_report_vfork_done(p, nr);
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,6 +145,7 @@ make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
 sys_futex64-allows-64bit-futexes-workaround.patch
 proc-maps-protection-vs-utrace.patch
 utrace-prep-2.patch
+undo-utrace-prep-2.patch
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 utrace-printk-borkage.patch
 utrace-x86_64-fix.patch
