@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-print-details-of-kretprobe-on-assertion-failure.patch added to -mm tree
-Date: Tue, 03 Apr 2007 17:23:08 -0700
-Message-ID: <200704040023.l340N8q7007546@shell0.pdx.osdl.net>
+Subject: + net-ignore-sysfs-network-device-rename-bugs.patch added to -mm tree
+Date: Tue, 03 Apr 2007 17:24:12 -0700
+Message-ID: <200704040024.l340OCLq007596@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49876 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49958 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030275AbXDDAXV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 3 Apr 2007 20:23:21 -0400
+	id S1030357AbXDDAYU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 3 Apr 2007 20:24:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, jkenisto@us.ibm.com, maneesh@in.ibm.com, prasanna@in.ibm.com
+Cc: ebiederm@xmission.com, davem@davemloft.net, greg@kroah.com, jeff@garzik.org
 
 
 The patch titled
-     Kprobes: print details of kretprobe on assertion failure
+     net: ignore sysfs network device rename bugs.
 has been added to the -mm tree.  Its filename is
-     kprobes-print-details-of-kretprobe-on-assertion-failure.patch
+     net-ignore-sysfs-network-device-rename-bugs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,109 +25,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Kprobes: print details of kretprobe on assertion failure
-From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Subject: net: ignore sysfs network device rename bugs.
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-In certain cases like when the real return address can't be found or when
-the number of tracked calls to a kretprobed function is less than the
-number of returns, we may not be able to find the correct return address
-after processing a kretprobe.  Currently we just do a BUG_ON, but no
-information is provided about the actual failing kretprobe.
+The generic networking code ensures that no two networking devices have the
+same name, so there is no time except when sysfs has implementation bugs
+that device_rename when called from dev_change_name will fail.
 
-Print out details of the kretprobe before calling BUG().
+The current error handling for errors from device_rename in dev_change_name
+is wrong and results in an unusable and unrecoverable network device if
+device_rename is happens to return an error.
 
-Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Maneesh Soni <maneesh@in.ibm.com>
+This patch removes the buggy error handling.  Which confines the mess when
+device_rename hits a problem to sysfs, instead of propagating it the rest
+of the network stack.  Making linux a little more robust.
+
+Without this patch you can observe what happens when sysfs has a bug when
+CONFIG_SYSFS_DEPRECATED is not set and you attempt to rename a real network
+device to a name like (broken_parity_status, device, modalias, power,
+resource2, subsystem_vendor, class, driver, irq, msi_bus, resource,
+subsystem, uevent, config, enable, local_cpus, numa_node, resource0,
+subsystem_device, vendor)
+
+Greg has a patch that fixes the sysfs bugs but he doesn't trust it for a
+2.6.21 timeframe.  This patch which just ignores errors should be safe and
+it keeps the system from going completely wacky.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/kprobes.c    |    3 +--
- arch/ia64/kernel/kprobes.c    |    3 ++-
- arch/powerpc/kernel/kprobes.c |    2 +-
- arch/x86_64/kernel/kprobes.c  |    2 +-
- include/linux/kprobes.h       |   10 ++++++++++
- 5 files changed, 15 insertions(+), 5 deletions(-)
+ net/core/dev.c |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN arch/i386/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/i386/kernel/kprobes.c
---- a/arch/i386/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
-+++ a/arch/i386/kernel/kprobes.c
-@@ -449,8 +449,7 @@ fastcall void *__kprobes trampoline_hand
- 			break;
- 	}
+diff -puN net/core/dev.c~net-ignore-sysfs-network-device-rename-bugs net/core/dev.c
+--- a/net/core/dev.c~net-ignore-sysfs-network-device-rename-bugs
++++ a/net/core/dev.c
+@@ -752,13 +752,10 @@ int dev_change_name(struct net_device *d
+ 	else
+ 		strlcpy(dev->name, newname, IFNAMSIZ);
  
--	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
--
-+	kretprobe_assert(ri, orig_ret_address, trampoline_address);
- 	spin_unlock_irqrestore(&kretprobe_lock, flags);
+-	err = device_rename(&dev->dev, dev->name);
+-	if (!err) {
+-		hlist_del(&dev->name_hlist);
+-		hlist_add_head(&dev->name_hlist, dev_name_hash(dev->name));
+-		raw_notifier_call_chain(&netdev_chain,
+-				NETDEV_CHANGENAME, dev);
+-	}
++	device_rename(&dev->dev, dev->name);
++	hlist_del(&dev->name_hlist);
++	hlist_add_head(&dev->name_hlist, dev_name_hash(dev->name));
++	raw_notifier_call_chain(&netdev_chain, NETDEV_CHANGENAME, dev);
  
- 	hlist_for_each_entry_safe(ri, node, tmp, &empty_rp, hlist) {
-diff -puN arch/ia64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
-+++ a/arch/ia64/kernel/kprobes.c
-@@ -444,7 +444,8 @@ int __kprobes trampoline_probe_handler(s
- 			break;
- 	}
- 
--	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
-+	kretprobe_assert(ri, orig_ret_address, trampoline_address);
-+
- 	regs->cr_iip = orig_ret_address;
- 
- 	reset_current_kprobe();
-diff -puN arch/powerpc/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/powerpc/kernel/kprobes.c
---- a/arch/powerpc/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
-+++ a/arch/powerpc/kernel/kprobes.c
-@@ -302,7 +302,7 @@ int __kprobes trampoline_probe_handler(s
- 			break;
- 	}
- 
--	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
-+	kretprobe_assert(ri, orig_ret_address, trampoline_address);
- 	regs->nip = orig_ret_address;
- 
- 	reset_current_kprobe();
-diff -puN arch/x86_64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/x86_64/kernel/kprobes.c
---- a/arch/x86_64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
-+++ a/arch/x86_64/kernel/kprobes.c
-@@ -447,7 +447,7 @@ int __kprobes trampoline_probe_handler(s
- 			break;
- 	}
- 
--	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
-+	kretprobe_assert(ri, orig_ret_address, trampoline_address);
- 	regs->rip = orig_ret_address;
- 
- 	reset_current_kprobe();
-diff -puN include/linux/kprobes.h~kprobes-print-details-of-kretprobe-on-assertion-failure include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-print-details-of-kretprobe-on-assertion-failure
-+++ a/include/linux/kprobes.h
-@@ -157,6 +157,16 @@ struct kretprobe_instance {
- 	struct task_struct *task;
- };
- 
-+static inline void kretprobe_assert(struct kretprobe_instance *ri,
-+	unsigned long orig_ret_address, unsigned long trampoline_address)
-+{
-+	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
-+		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
-+				ri->rp, ri->rp->kp.addr);
-+		BUG();
-+	}
-+}
-+
- extern spinlock_t kretprobe_lock;
- extern struct mutex kprobe_mutex;
- extern int arch_prepare_kprobe(struct kprobe *p);
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from ananth@in.ibm.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-kprobes-make-kprobesymbol_name-const.patch
-kprobes-fix-sparse-null-warning.patch
-kprobes-print-details-of-kretprobe-on-assertion-failure.patch
-kprobes-use-hlist_for_each_entry.patch
-kprobes-codingstyle-cleanups.patch
-kprobes-kretprobes-simplifcations.patch
+origin.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+fix-x86_64-mm-relocatable-kernel-support.patch
+i386-irq-kill-irq-compression.patch
+i386-irq-kill-nr_irq_vectors-and-increase-nr_irqs.patch
+net-ignore-sysfs-network-device-rename-bugs.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+clean-up-elf-note-generation.patch
+edac-k8-driver-coding-tidy.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
