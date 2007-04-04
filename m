@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + signal-timer-event-fds-v9-eventfd-core-fix-fix.patch added to -mm tree
-Date: Tue, 03 Apr 2007 18:11:44 -0700
-Message-ID: <200704040111.l341BiIF008533@shell0.pdx.osdl.net>
+Subject: + signal-timer-event-fds-v9-anonymous-inode-source-fix.patch added to -mm tree
+Date: Tue, 03 Apr 2007 18:12:23 -0700
+Message-ID: <200704040112.l341CNFp008546@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50939 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50963 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753724AbXDDBLq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 3 Apr 2007 21:11:46 -0400
+	id S1753726AbXDDBMY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 3 Apr 2007 21:12:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org
+Cc: davidel@xmailserver.org
 
 
 The patch titled
-     signal-timer-event-fds-v9-eventfd-core-fix-fix
+     new fds fixes for 2.6.21-rc5.mm4 - fix a spelling error
 has been added to the -mm tree.  Its filename is
-     signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+     signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,139 +25,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: signal-timer-event-fds-v9-eventfd-core-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: new fds fixes for 2.6.21-rc5.mm4 - fix a spelling error
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Fixes a spelling error inside init/Kconfig.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ init/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sys_ni.c~signal-timer-event-fds-v9-eventfd-core-fix-fix kernel/sys_ni.c
---- a/kernel/sys_ni.c~signal-timer-event-fds-v9-eventfd-core-fix-fix
-+++ a/kernel/sys_ni.c
-@@ -150,3 +150,4 @@ cond_syscall(sys_ioprio_get);
- /* New file descriptors */
- cond_syscall(sys_signalfd);
- cond_syscall(sys_timerfd);
-+cond_syscall(sys_eventfd);
+diff -puN init/Kconfig~signal-timer-event-fds-v9-anonymous-inode-source-fix init/Kconfig
+--- a/init/Kconfig~signal-timer-event-fds-v9-anonymous-inode-source-fix
++++ a/init/Kconfig
+@@ -479,7 +479,7 @@ config FUTEX
+ 	  run glibc-based applications correctly.
+ 
+ config ANON_INODES
+-	bool "Enable anynimous inode source" if EMBEDDED
++	bool "Enable anonymous inode source" if EMBEDDED
+ 	default y
+ 	help
+ 	  Anonymous inode source for pseudo-files like epoll, signalfd,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-revert-driver-core-do-not-wait-unnecessarily-in-driver_unregister.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-kvm.patch
-git-libata-all.patch
-git-libata-all-ipr-fix.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-fix-x86_64-mm-sched-clock-share.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-xfs-clean-up-shrinker-games.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-sched_getaffinity-speedup.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-utrace-x86_64-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
+epoll-optimizations-and-cleanups.patch
+epoll-optimizations-and-cleanups-tidy.patch
+signal-timer-event-fds-v9-anonymous-inode-source.patch
+signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
+signal-timer-event-fds-v9-signalfd-core.patch
 signal-timer-event-fds-v9-signalfd-core-fix.patch
 signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-signalfd-wire-up-i386-arch.patch
+signal-timer-event-fds-v9-signalfd-wire-up-x86_64-arch.patch
+signal-timer-event-fds-v9-signalfd-compat-code.patch
+signal-timer-event-fds-v9-timerfd-core.patch
 signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-timerfd-wire-up-i386-arch.patch
+signal-timer-event-fds-v9-timerfd-wire-up-x86_64-arch.patch
+signal-timer-event-fds-v9-timerfd-compat-code.patch
+signal-timer-event-fds-v9-eventfd-core.patch
 signal-timer-event-fds-v9-eventfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+signal-timer-event-fds-v9-eventfd-wire-up-i386-arch.patch
+signal-timer-event-fds-v9-eventfd-wire-up-x86_64-arch.patch
+signal-timer-event-fds-v9-kaio-eventfd-support-example.patch
+epoll-use-anonymous-inodes.patch
+new-fds-fixes-for-2621-rc5mm4-signalfd-include-files-diet.patch
+new-fds-fixes-for-2621-rc5mm4-timerfd-include-files-diet.patch
+new-fds-fixes-for-2621-rc5mm4-eventfd-include-files-diet.patch
