@@ -1,86 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - sched_getaffinity-speedup.patch removed from -mm tree
-Date: Wed, 04 Apr 2007 10:35:17 -0700
-Message-ID: <200704041735.l34HZHcF026225@shell0.pdx.osdl.net>
+Subject: + remove-protection-of-lanana-reserved-majors.patch added to -mm tree
+Date: Wed, 04 Apr 2007 10:49:07 -0700
+Message-ID: <200704041749.l34Hn7NJ026597@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48947 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49761 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752041AbXDDRgM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 4 Apr 2007 13:36:12 -0400
+	id S1752308AbXDDRt3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 4 Apr 2007 13:49:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dipankar@in.ibm.com, drepper@redhat.com, ego@in.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, pj@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     sched_getaffinity speedup
-has been removed from the -mm tree.  Its filename was
-     sched_getaffinity-speedup.patch
+     remove protection of LANANA-reserved majors
+has been added to the -mm tree.  Its filename is
+     remove-protection-of-lanana-reserved-majors.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: sched_getaffinity speedup
+Subject: remove protection of LANANA-reserved majors
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Optimise the common case of running sched_getaffinity() against the current
-task - we don't need to take tasklist_lock in that case.
+Revert all this.  It can cause device-mapper to receive a different major from
+earlier kernels and it turns out that the Amanda backup program checks major
+numbers on files when performing incremental backups.
 
-And we don't need to take lock_cpu_hotplug() even if we're running
-sched_getaffinity() against a different task, actually - taking tasklist_lock
-is sufficient to hold off cpu hotplugging.
+Which is a bit broken of Amanda, but this feature isn't important enough to
+justify the churn.
 
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   21 +++++++++++++--------
- 1 files changed, 13 insertions(+), 8 deletions(-)
+ block/genhd.c          |    2 --
+ drivers/base/core.c    |   14 --------------
+ fs/char_dev.c          |    2 --
+ include/linux/kdev_t.h |    2 --
+ 4 files changed, 20 deletions(-)
 
-diff -puN kernel/sched.c~sched_getaffinity-speedup kernel/sched.c
---- a/kernel/sched.c~sched_getaffinity-speedup
-+++ a/kernel/sched.c
-@@ -4381,8 +4381,12 @@ long sched_getaffinity(pid_t pid, cpumas
- 	struct task_struct *p;
- 	int retval;
+diff -puN drivers/base/core.c~remove-protection-of-lanana-reserved-majors drivers/base/core.c
+--- a/drivers/base/core.c~remove-protection-of-lanana-reserved-majors
++++ a/drivers/base/core.c
+@@ -28,20 +28,6 @@ int (*platform_notify)(struct device * d
+ int (*platform_notify_remove)(struct device * dev) = NULL;
  
--	lock_cpu_hotplug();
--	read_lock(&tasklist_lock);
-+	if (pid) {
-+		lock_cpu_hotplug();
-+		read_lock(&tasklist_lock);
-+	} else {
-+		preempt_disable();	/* Prevent CPU hotplugging */
-+	}
- 
- 	retval = -ESRCH;
- 	p = find_process_by_pid(pid);
-@@ -4396,12 +4400,13 @@ long sched_getaffinity(pid_t pid, cpumas
- 	cpus_and(*mask, p->cpus_allowed, cpu_online_map);
- 
- out_unlock:
--	read_unlock(&tasklist_lock);
--	unlock_cpu_hotplug();
--	if (retval)
--		return retval;
--
+ /*
+- * Detect the LANANA-assigned LOCAL/EXPERIMENTAL majors
+- */
+-bool is_lanana_major(unsigned int major)
+-{
+-	if (major >= 60 && major <= 63)
+-		return 1;
+-	if (major >= 120 && major <= 127)
+-		return 1;
+-	if (major >= 240 && major <= 254)
+-		return 1;
 -	return 0;
-+	if (pid) {
-+		read_unlock(&tasklist_lock);
-+		unlock_cpu_hotplug();
-+	} else {
-+		preempt_enable();
-+	}
-+	return retval;
+-}
+-
+-/*
+  * sysfs bindings for devices.
+  */
+ 
+diff -puN block/genhd.c~remove-protection-of-lanana-reserved-majors block/genhd.c
+--- a/block/genhd.c~remove-protection-of-lanana-reserved-majors
++++ a/block/genhd.c
+@@ -62,8 +62,6 @@ int register_blkdev(unsigned int major, 
+ 	/* temporary */
+ 	if (major == 0) {
+ 		for (index = ARRAY_SIZE(major_names)-1; index > 0; index--) {
+-			if (is_lanana_major(index))
+-				continue;
+ 			if (major_names[index] == NULL)
+ 				break;
+ 		}
+diff -puN fs/char_dev.c~remove-protection-of-lanana-reserved-majors fs/char_dev.c
+--- a/fs/char_dev.c~remove-protection-of-lanana-reserved-majors
++++ a/fs/char_dev.c
+@@ -109,8 +109,6 @@ __register_chrdev_region(unsigned int ma
+ 	/* temporary */
+ 	if (major == 0) {
+ 		for (i = ARRAY_SIZE(chrdevs)-1; i > 0; i--) {
+-			if (is_lanana_major(i))
+-				continue;
+ 			if (chrdevs[i] == NULL)
+ 				break;
+ 		}
+diff -puN include/linux/kdev_t.h~remove-protection-of-lanana-reserved-majors include/linux/kdev_t.h
+--- a/include/linux/kdev_t.h~remove-protection-of-lanana-reserved-majors
++++ a/include/linux/kdev_t.h
+@@ -87,8 +87,6 @@ static inline unsigned sysv_minor(u32 de
+ 	return dev & 0x3ffff;
  }
  
- /**
+-bool is_lanana_major(unsigned int major);
+-
+ #else /* __KERNEL__ */
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -165,7 +189,6 @@ time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc-fix.patch
 fix-kevents-childs-priority-greediness-fix.patch
 display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-sched_getaffinity-speedup.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
@@ -199,3 +222,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+remove-protection-of-lanana-reserved-majors.patch
