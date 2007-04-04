@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + msi-immediately-mask-and-unmask-msi-x-irqs.patch added to -mm tree
-Date: Tue, 03 Apr 2007 17:30:36 -0700
-Message-ID: <200704040030.l340UaPw007718@shell0.pdx.osdl.net>
+Subject: + kdump-kexec-calculate-note-size-at-compile-time-update-2.patch added to -mm tree
+Date: Tue, 03 Apr 2007 17:37:40 -0700
+Message-ID: <200704040037.l340bfc2007922@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50042 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50151 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966202AbXDDAam (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 3 Apr 2007 20:30:42 -0400
+	id S934045AbXDDAhw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 3 Apr 2007 20:37:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, ak@suse.de, greg@kroah.com, mitch.a.williams@intel.com, suresh.b.siddha@intel.com
+Cc: horms@verge.net.au, vgoyal@in.ibm.com
 
 
 The patch titled
-     msi: immediately mask and unmask msi-x irqs
+     kdump/kexec: calculate note size at compile time (update2)
 has been added to the -mm tree.  Its filename is
-     msi-immediately-mask-and-unmask-msi-x-irqs.patch
+     kdump-kexec-calculate-note-size-at-compile-time-update-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: msi: immediately mask and unmask msi-x irqs
-From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: kdump/kexec: calculate note size at compile time (update2)
+From: Simon Horman <horms@verge.net.au>
 
-This is a simplified and actually more comprehensive form of a bug fix from
-Mitch Williams <mitch.a.williams@intel.com>.
+Currently the size of the per-cpu region reserved to save crash notes is
+set by the per-architecture value MAX_NOTE_BYTES.  Which in turn is
+currently set to 1024 on all supported architectures.
 
-When we mask or unmask a msi-x irqs the writes may be posted because we are
-writing to memory mapped region.  This means the mask and unmask don't
-happen immediately but at some unspecified time in the future.  Which is
-out of sync with how the mask/unmask logic work for ioapic irqs.
+While testing ia64 I recently discovered that this value is in fact too
+small.  The particular setup I was using actually needs 1172 bytes.  This
+lead to very tedious failure mode where the tail of one elf note would
+overwrite the head of another if they ended up being alocated sequentially
+by kmalloc, which was often the case.
 
-The practical result is that we get very subtle and hard to track down irq
-migration bugs.
+It seems to me that a far better approach is to caclculate the size that
+the area needs to be.  This patch does just that.
 
-This patch performs a read flush after writes to the MSI-X table for mask
-and unmask operations.  Since the SMP affinity is set while the interrupt
-is masked, and since it's unmasked immediately after, no additional flushes
-are required in the various affinity setting routines.
+If a simpler stop-gap patch for ia64 to be squeezed into 2.6.21(.X) is
+needed then this should be as easy as making MAX_NOTE_BYTES larger in
+arch/asm-ia64/kexec.h.  Perhaps 2048 would be a good choice.  However, I
+think that the approach in this patch is a much more robust idea.
 
-The testing by Mitch Williams on his especially problematic system should
-still be valid as I have only simplified the code, not changed the
-functionality.
-
-We currently have 7 drivers: cciss, mthca, cxgb3, forceth, s2io,
-pcie/portdrv_core, and qla2xxx in 2.6.21 that are affected by this problem
-when the hardware they driver is plugged into the right slot.
-
-Given the difficulty of reproducing this bug and tracing it down to
-anything that even remotely resembles a cause, even if people are being
-affected we aren't likely to see many meaningful bug reports, and the
-people who see this bug aren't likely to be able to reproduce this bug in a
-timely fashion.  So it is best to get this problem fixed as soon as we can
-so people don't have problems.
-
-Then if people do have a kernel message stating "No irq for vector" we will
-know it is yet another novel cause that needs a complete new investigation.
-
-Acked-by: Mitch Williams <mitch.a.williams@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Acked-by:  Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/msi.c |    1 +
- 1 files changed, 1 insertion(+)
+ arch/ia64/kernel/crash.c |    2 +-
+ include/linux/kexec.h    |   21 +++++++++++----------
+ kernel/kexec.c           |    4 ++--
+ 3 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN drivers/pci/msi.c~msi-immediately-mask-and-unmask-msi-x-irqs drivers/pci/msi.c
---- a/drivers/pci/msi.c~msi-immediately-mask-and-unmask-msi-x-irqs
-+++ a/drivers/pci/msi.c
-@@ -94,6 +94,7 @@ static void msi_set_mask_bit(unsigned in
- 		int offset = entry->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE +
- 			PCI_MSIX_ENTRY_VECTOR_CTRL_OFFSET;
- 		writel(flag, entry->mask_base + offset);
-+		readl(entry->mask_base + offset);
- 		break;
- 	}
- 	default:
+diff -puN arch/ia64/kernel/crash.c~kdump-kexec-calculate-note-size-at-compile-time-update-2 arch/ia64/kernel/crash.c
+--- a/arch/ia64/kernel/crash.c~kdump-kexec-calculate-note-size-at-compile-time-update-2
++++ a/arch/ia64/kernel/crash.c
+@@ -74,7 +74,7 @@ crash_save_this_cpu(void)
+ 	buf = (u64 *) per_cpu_ptr(crash_notes, cpu);
+ 	if (!buf)
+ 		return;
+-	buf = append_elf_note(buf, KEXEC_NOTE_NAME, NT_PRSTATUS, prstatus,
++	buf = append_elf_note(buf, KEXEC_CORE_NOTE_NAME, NT_PRSTATUS, prstatus,
+ 			sizeof(*prstatus));
+ 	final_note(buf);
+ }
+diff -puN include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time-update-2 include/linux/kexec.h
+--- a/include/linux/kexec.h~kdump-kexec-calculate-note-size-at-compile-time-update-2
++++ a/include/linux/kexec.h
+@@ -33,17 +33,18 @@
+ #error KEXEC_ARCH not defined
+ #endif
+ 
+-#define KEXEC_NOTE_NAME "CORE"
+ #define KEXEC_NOTE_HEAD_BYTES ALIGN(sizeof(struct elf_note), 4)
+-#define KEXEC_NOTE_NAME_BYTES ALIGN(sizeof("CORE"), 4) /* N.B: Includes '\0' */
+-#define KEXEC_NOTE_DESC_BYTES ALIGN(sizeof(struct elf_prstatus), 4)
+-/* The notes are read and combined by the code in vmcore.c running
+- * in the second-kernel after kdump is performed. This code
+- * expects the notes area to be a list of notes, terminated
+- * by a "NULL" note header. The "* 2" below is to provide space
+- * for the terminating note header */
+-#define KEXEC_NOTE_BYTES ( (KEXEC_NOTE_HEAD_BYTES * 2) + \
+-			   KEXEC_NOTE_NAME_BYTES + KEXEC_NOTE_DESC_BYTES )
++#define KEXEC_CORE_NOTE_NAME "CORE"
++#define KEXEC_CORE_NOTE_NAME_BYTES ALIGN(sizeof(KEXEC_CORE_NOTE_NAME), 4)
++#define KEXEC_CORE_NOTE_DESC_BYTES ALIGN(sizeof(struct elf_prstatus), 4)
++/*
++ * The per-cpu notes area is a list of notes terminated by a "NULL"
++ * note header.  For kdump, the code in vmcore.c runs in the context
++ * of the second kernel to combine them into one note.
++ */
++#define KEXEC_NOTE_BYTES ( (KEXEC_NOTE_HEAD_BYTES * 2) +		\
++			    KEXEC_CORE_NOTE_NAME_BYTES +		\
++			    KEXEC_CORE_NOTE_DESC_BYTES )
+ 
+ /*
+  * This structure is used to hold the arguments that are used when loading
+diff -puN kernel/kexec.c~kdump-kexec-calculate-note-size-at-compile-time-update-2 kernel/kexec.c
+--- a/kernel/kexec.c~kdump-kexec-calculate-note-size-at-compile-time-update-2
++++ a/kernel/kexec.c
+@@ -1118,8 +1118,8 @@ void crash_save_cpu(struct pt_regs *regs
+ 	memset(&prstatus, 0, sizeof(prstatus));
+ 	prstatus.pr_pid = current->pid;
+ 	elf_core_copy_regs(&prstatus.pr_reg, regs);
+-	buf = append_elf_note(buf, KEXEC_NOTE_NAME, NT_PRSTATUS, &prstatus,
+-				sizeof(prstatus));
++	buf = append_elf_note(buf, KEXEC_CORE_NOTE_NAME, NT_PRSTATUS,
++		      	      &prstatus, sizeof(prstatus));
+ 	final_note(buf);
+ }
+ 
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from horms@verge.net.au are
 
 origin.patch
-msi-immediately-mask-and-unmask-msi-x-irqs.patch
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-fix-x86_64-mm-relocatable-kernel-support.patch
-i386-irq-kill-irq-compression.patch
-i386-irq-kill-nr_irq_vectors-and-increase-nr_irqs.patch
-net-ignore-sysfs-network-device-rename-bugs.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-clean-up-elf-note-generation.patch
-edac-k8-driver-coding-tidy.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+git-ia64.patch
+git-net.patch
+git-scsi-misc.patch
+kdump-kexec-calculate-note-size-at-compile-time.patch
+kdump-kexec-calculate-note-size-at-compile-time-update.patch
+kdump-kexec-calculate-note-size-at-compile-time-update-2.patch
