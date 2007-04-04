@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fix-race-between-rmmod-and-cat-proc-kallsyms.patch added to -mm tree
-Date: Tue, 03 Apr 2007 17:10:24 -0700
-Message-ID: <200704040010.l340AOcr007287@shell0.pdx.osdl.net>
+Subject: + simplify-kallsyms_lookup.patch added to -mm tree
+Date: Tue, 03 Apr 2007 17:10:26 -0700
+Message-ID: <200704040010.l340AQt1007291@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49706 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49707 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992504AbXDDALH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 3 Apr 2007 20:11:07 -0400
+	id S1946043AbXDDALJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 3 Apr 2007 20:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adobriyan@sw.ru, rusty@rustcorp.com.au
 
 
 The patch titled
-     Fix race between rmmod and cat /proc/kallsyms
+     Simplify kallsyms_lookup()
 has been added to the -mm tree.  Its filename is
-     fix-race-between-rmmod-and-cat-proc-kallsyms.patch
+     simplify-kallsyms_lookup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,155 +25,208 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix race between rmmod and cat /proc/kallsyms
+Subject: Simplify kallsyms_lookup()
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
-module_get_kallsym() leaks "struct module *" outside of module_mutex which is
-no-no, because module can dissapear right after mutex unlock.
+Several kallsyms_lookup() pass dummy arguments but only need, say, module's
+name.  Make kallsyms_lookup() accept NULLs where possible.
 
-Copy all needed information from inside module_mutex into caller-supplied
-space.
+Also, makes picture clearer about what interfaces are needed for all symbol
+resolving business.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |   14 +++++++-------
- kernel/kallsyms.c      |   30 +++++++++++++++---------------
- kernel/module.c        |   10 ++++++----
- 3 files changed, 28 insertions(+), 26 deletions(-)
+ arch/parisc/kernel/unwind.c |    5 +----
+ arch/powerpc/xmon/xmon.c    |    3 +--
+ arch/sh64/kernel/unwind.c   |    6 +++---
+ fs/proc/base.c              |    5 ++---
+ kernel/kallsyms.c           |    6 ++++--
+ kernel/kprobes.c            |    4 ++--
+ kernel/lockdep.c            |    5 +----
+ kernel/module.c             |    6 ++++--
+ kernel/time/timer_list.c    |    4 +---
+ kernel/time/timer_stats.c   |    4 +---
+ 10 files changed, 20 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/module.h~fix-race-between-rmmod-and-cat-proc-kallsyms include/linux/module.h
---- a/include/linux/module.h~fix-race-between-rmmod-and-cat-proc-kallsyms
-+++ a/include/linux/module.h
-@@ -371,10 +371,10 @@ struct module *module_text_address(unsig
- struct module *__module_text_address(unsigned long addr);
- int is_module_address(unsigned long addr);
+diff -puN arch/parisc/kernel/unwind.c~simplify-kallsyms_lookup arch/parisc/kernel/unwind.c
+--- a/arch/parisc/kernel/unwind.c~simplify-kallsyms_lookup
++++ a/arch/parisc/kernel/unwind.c
+@@ -216,11 +216,8 @@ static void unwind_frame_regs(struct unw
+ 		/* Handle some frequent special cases.... */
+ 		{
+ 			char symname[KSYM_NAME_LEN+1];
+-			char *modname;
+-			unsigned long symsize, offset;
  
--/* Returns module and fills in value, defined and namebuf, or NULL if
-+/* Returns 0 and fills in value, defined and namebuf, or -ERANGE if
-    symnum out of range. */
--struct module *module_get_kallsym(unsigned int symnum, unsigned long *value,
--				char *type, char *name);
-+int module_get_kallsym(unsigned int symnum, unsigned long *value, char *type,
-+			char *name, char *module_name, int *exported);
+-			kallsyms_lookup(info->ip, &symsize, &offset,
+-					&modname, symname);
++			kallsyms_lookup(info->ip, NULL, NULL, NULL, symname);
  
- /* Look for this name: can be of form module:name. */
- unsigned long module_kallsyms_lookup_name(const char *name);
-@@ -530,11 +530,11 @@ static inline const char *module_address
- 	return NULL;
- }
+ 			dbg("info->ip = 0x%lx, name = %s\n", info->ip, symname);
  
--static inline struct module *module_get_kallsym(unsigned int symnum,
--						unsigned long *value,
--						char *type, char *name)
-+static inline int module_get_kallsym(unsigned int symnum, unsigned long *value,
-+					char *type, char *name,
-+					char *module_name, int *exported)
+diff -puN arch/powerpc/xmon/xmon.c~simplify-kallsyms_lookup arch/powerpc/xmon/xmon.c
+--- a/arch/powerpc/xmon/xmon.c~simplify-kallsyms_lookup
++++ a/arch/powerpc/xmon/xmon.c
+@@ -1218,7 +1218,6 @@ static void get_function_bounds(unsigned
  {
--	return NULL;
-+	return -ERANGE;
- }
+ 	unsigned long size, offset;
+ 	const char *name;
+-	char *modname;
  
- static inline unsigned long module_kallsyms_lookup_name(const char *name)
-diff -puN kernel/kallsyms.c~fix-race-between-rmmod-and-cat-proc-kallsyms kernel/kallsyms.c
---- a/kernel/kallsyms.c~fix-race-between-rmmod-and-cat-proc-kallsyms
+ 	*startp = *endp = 0;
+ 	if (pc == 0)
+@@ -1226,7 +1225,7 @@ static void get_function_bounds(unsigned
+ 	if (setjmp(bus_error_jmp) == 0) {
+ 		catch_memory_errors = 1;
+ 		sync();
+-		name = kallsyms_lookup(pc, &size, &offset, &modname, tmpstr);
++		name = kallsyms_lookup(pc, &size, &offset, NULL, tmpstr);
+ 		if (name != NULL) {
+ 			*startp = pc - offset;
+ 			*endp = pc - offset + size;
+diff -puN arch/sh64/kernel/unwind.c~simplify-kallsyms_lookup arch/sh64/kernel/unwind.c
+--- a/arch/sh64/kernel/unwind.c~simplify-kallsyms_lookup
++++ a/arch/sh64/kernel/unwind.c
+@@ -46,15 +46,15 @@ static int lookup_prev_stack_frame(unsig
+ 		      struct pt_regs *regs)
+ {
+ 	const char *sym;
+-	char *modname, namebuf[128];
+-	unsigned long offset, size;
++	char namebuf[128];
++	unsigned long offset;
+ 	unsigned long prologue = 0;
+ 	unsigned long fp_displacement = 0;
+ 	unsigned long fp_prev = 0;
+ 	unsigned long offset_r14 = 0, offset_r18 = 0;
+ 	int i, found_prologue_end = 0;
+ 
+-	sym = kallsyms_lookup(pc, &size, &offset, &modname, namebuf);
++	sym = kallsyms_lookup(pc, NULL, &offset, NULL, namebuf);
+ 	if (!sym)
+ 		return -EINVAL;
+ 
+diff -puN fs/proc/base.c~simplify-kallsyms_lookup fs/proc/base.c
+--- a/fs/proc/base.c~simplify-kallsyms_lookup
++++ a/fs/proc/base.c
+@@ -278,14 +278,13 @@ static int proc_pid_auxv(struct task_str
+  */
+ static int proc_pid_wchan(struct task_struct *task, char *buffer)
+ {
+-	char *modname;
+ 	const char *sym_name;
+-	unsigned long wchan, size, offset;
++	unsigned long wchan;
+ 	char namebuf[KSYM_NAME_LEN+1];
+ 
+ 	wchan = get_wchan(task);
+ 
+-	sym_name = kallsyms_lookup(wchan, &size, &offset, &modname, namebuf);
++	sym_name = kallsyms_lookup(wchan, NULL, NULL, NULL, namebuf);
+ 	if (sym_name)
+ 		return sprintf(buffer, "%s", sym_name);
+ 	return sprintf(buffer, "%lu", wchan);
+diff -puN kernel/kallsyms.c~simplify-kallsyms_lookup kernel/kallsyms.c
+--- a/kernel/kallsyms.c~simplify-kallsyms_lookup
 +++ a/kernel/kallsyms.c
-@@ -301,25 +301,20 @@ void __print_symbol(const char *fmt, uns
- struct kallsym_iter
- {
- 	loff_t pos;
--	struct module *owner;
- 	unsigned long value;
- 	unsigned int nameoff; /* If iterating in core kernel symbols */
- 	char type;
- 	char name[KSYM_NAME_LEN+1];
-+	char module_name[MODULE_NAME_LEN + 1];
-+	int exported;
- };
- 
- static int get_ksymbol_mod(struct kallsym_iter *iter)
- {
--	iter->owner = module_get_kallsym(iter->pos - kallsyms_num_syms,
--					 &iter->value, &iter->type,
--					 iter->name);
--	if (iter->owner == NULL)
-+	if (module_get_kallsym(iter->pos - kallsyms_num_syms, &iter->value,
-+				&iter->type, iter->name, iter->module_name,
-+				&iter->exported) < 0)
- 		return 0;
--
--	/* Label it "global" if it is exported, "local" if not exported. */
--	iter->type = is_exported(iter->name, iter->owner)
--		? toupper(iter->type) : tolower(iter->type);
--
- 	return 1;
- }
- 
-@@ -328,7 +323,7 @@ static unsigned long get_ksymbol_core(st
- {
- 	unsigned off = iter->nameoff;
- 
--	iter->owner = NULL;
-+	iter->module_name[0] = '\0';
- 	iter->value = kallsyms_addresses[iter->pos];
- 
- 	iter->type = kallsyms_get_symbol_type(off);
-@@ -392,12 +387,17 @@ static int s_show(struct seq_file *m, vo
- 	if (!iter->name[0])
- 		return 0;
- 
--	if (iter->owner)
-+	if (iter->module_name[0]) {
-+		char type;
-+
-+		/* Label it "global" if it is exported,
-+		 * "local" if not exported. */
-+		type = iter->exported ? toupper(iter->type) :
-+					tolower(iter->type);
- 		seq_printf(m, "%0*lx %c %s\t[%s]\n",
- 			   (int)(2*sizeof(void*)),
--			   iter->value, iter->type, iter->name,
--			   module_name(iter->owner));
--	else
-+			   iter->value, type, iter->name, iter->module_name);
-+	} else
- 		seq_printf(m, "%0*lx %c %s\n",
- 			   (int)(2*sizeof(void*)),
- 			   iter->value, iter->type, iter->name);
-diff -puN kernel/module.c~fix-race-between-rmmod-and-cat-proc-kallsyms kernel/module.c
---- a/kernel/module.c~fix-race-between-rmmod-and-cat-proc-kallsyms
-+++ a/kernel/module.c
-@@ -2200,8 +2200,8 @@ const char *module_address_lookup(unsign
- 	return NULL;
- }
- 
--struct module *module_get_kallsym(unsigned int symnum, unsigned long *value,
--				char *type, char *name)
-+int module_get_kallsym(unsigned int symnum, unsigned long *value, char *type,
-+			char *name, char *module_name, int *exported)
- {
- 	struct module *mod;
- 
-@@ -2212,13 +2212,15 @@ struct module *module_get_kallsym(unsign
- 			*type = mod->symtab[symnum].st_info;
- 			strlcpy(name, mod->strtab + mod->symtab[symnum].st_name,
- 				KSYM_NAME_LEN + 1);
-+			strlcpy(module_name, mod->name, MODULE_NAME_LEN + 1);
-+			*exported = is_exported(name, mod);
- 			mutex_unlock(&module_mutex);
--			return mod;
-+			return 0;
- 		}
- 		symnum -= mod->num_symtab;
+@@ -214,8 +214,10 @@ static unsigned long get_symbol_pos(unsi
+ 			symbol_end = (unsigned long)_etext;
  	}
- 	mutex_unlock(&module_mutex);
--	return NULL;
-+	return -ERANGE;
+ 
+-	*symbolsize = symbol_end - symbol_start;
+-	*offset = addr - symbol_start;
++	if (symbolsize)
++		*symbolsize = symbol_end - symbol_start;
++	if (offset)
++		*offset = addr - symbol_start;
+ 
+ 	return low;
+ }
+diff -puN kernel/kprobes.c~simplify-kallsyms_lookup kernel/kprobes.c
+--- a/kernel/kprobes.c~simplify-kallsyms_lookup
++++ a/kernel/kprobes.c
+@@ -868,13 +868,13 @@ static int __kprobes show_kprobe_addr(st
+ 	struct kprobe *p, *kp;
+ 	const char *sym = NULL;
+ 	unsigned int i = *(loff_t *) v;
+-	unsigned long size, offset = 0;
++	unsigned long offset = 0;
+ 	char *modname, namebuf[128];
+ 
+ 	head = &kprobe_table[i];
+ 	preempt_disable();
+ 	hlist_for_each_entry_rcu(p, node, head, hlist) {
+-		sym = kallsyms_lookup((unsigned long)p->addr, &size,
++		sym = kallsyms_lookup((unsigned long)p->addr, NULL,
+ 					&offset, &modname, namebuf);
+ 		if (p->pre_handler == aggr_pre_handler) {
+ 			list_for_each_entry_rcu(kp, &p->list, list)
+diff -puN kernel/lockdep.c~simplify-kallsyms_lookup kernel/lockdep.c
+--- a/kernel/lockdep.c~simplify-kallsyms_lookup
++++ a/kernel/lockdep.c
+@@ -340,10 +340,7 @@ static const char *usage_str[] =
+ 
+ const char * __get_key_name(struct lockdep_subclass_key *key, char *str)
+ {
+-	unsigned long offs, size;
+-	char *modname;
+-
+-	return kallsyms_lookup((unsigned long)key, &size, &offs, &modname, str);
++	return kallsyms_lookup((unsigned long)key, NULL, NULL, NULL, str);
  }
  
- static unsigned long mod_find_symname(struct module *mod, const char *name)
+ void
+diff -puN kernel/module.c~simplify-kallsyms_lookup kernel/module.c
+--- a/kernel/module.c~simplify-kallsyms_lookup
++++ a/kernel/module.c
+@@ -2174,8 +2174,10 @@ static const char *get_ksymbol(struct mo
+ 	if (!best)
+ 		return NULL;
+ 
+-	*size = nextval - mod->symtab[best].st_value;
+-	*offset = addr - mod->symtab[best].st_value;
++	if (size)
++		*size = nextval - mod->symtab[best].st_value;
++	if (offset)
++		*offset = addr - mod->symtab[best].st_value;
+ 	return mod->strtab + mod->symtab[best].st_name;
+ }
+ 
+diff -puN kernel/time/timer_list.c~simplify-kallsyms_lookup kernel/time/timer_list.c
+--- a/kernel/time/timer_list.c~simplify-kallsyms_lookup
++++ a/kernel/time/timer_list.c
+@@ -40,11 +40,9 @@ static void print_name_offset(struct seq
+ {
+ 	unsigned long addr = (unsigned long)sym;
+ 	char namebuf[KSYM_NAME_LEN+1];
+-	unsigned long size, offset;
+ 	const char *sym_name;
+-	char *modname;
+ 
+-	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
++	sym_name = kallsyms_lookup(addr, NULL, NULL, NULL, namebuf);
+ 	if (sym_name)
+ 		SEQ_printf(m, "%s", sym_name);
+ 	else
+diff -puN kernel/time/timer_stats.c~simplify-kallsyms_lookup kernel/time/timer_stats.c
+--- a/kernel/time/timer_stats.c~simplify-kallsyms_lookup
++++ a/kernel/time/timer_stats.c
+@@ -258,11 +258,9 @@ void timer_stats_update_stats(void *time
+ static void print_name_offset(struct seq_file *m, unsigned long addr)
+ {
+ 	char namebuf[KSYM_NAME_LEN+1];
+-	unsigned long size, offset;
+ 	const char *sym_name;
+-	char *modname;
+ 
+-	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
++	sym_name = kallsyms_lookup(addr, NULL, NULL, NULL, namebuf);
+ 	if (sym_name)
+ 		seq_printf(m, "%s", sym_name);
+ 	else
 _
 
 Patches currently in -mm which might be from adobriyan@sw.ru are
