@@ -1,73 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - remove-hardcoding-of-hard_smp_processor_id-on-up.patch removed from -mm tree
-Date: Tue, 03 Apr 2007 17:21:39 -0700
-Message-ID: <200704040021.l340Ldj4007518@shell0.pdx.osdl.net>
+Subject: + kprobes-print-details-of-kretprobe-on-assertion-failure.patch added to -mm tree
+Date: Tue, 03 Apr 2007 17:23:08 -0700
+Message-ID: <200704040023.l340N8q7007546@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49852 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49876 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992513AbXDDAVs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 3 Apr 2007 20:21:48 -0400
+	id S1030275AbXDDAXV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 3 Apr 2007 20:23:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fernando@oss.ntt.co.jp, ak@suse.de, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, jkenisto@us.ibm.com, maneesh@in.ibm.com, prasanna@in.ibm.com
 
 
 The patch titled
-     x86: remove hardcoding of hard_smp_processor_id on UP systems (fix)
-has been removed from the -mm tree.  Its filename was
-     remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+     Kprobes: print details of kretprobe on assertion failure
+has been added to the -mm tree.  Its filename is
+     kprobes-print-details-of-kretprobe-on-assertion-failure.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86: remove hardcoding of hard_smp_processor_id on UP systems (fix)
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: Kprobes: print details of kretprobe on assertion failure
+From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 
-Make ia64's hard_smp_processor_id() implementation available to CONFIG_SMP=n
-builds.
+In certain cases like when the real return address can't be found or when
+the number of tracked calls to a kretprobed function is less than the
+number of returns, we may not be able to find the correct return address
+after processing a kretprobe.  Currently we just do a BUG_ON, but no
+information is provided about the actual failing kretprobe.
 
-Cc: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Print out details of the kretprobe before calling BUG().
+
+Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Maneesh Soni <maneesh@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/smp.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/i386/kernel/kprobes.c    |    3 +--
+ arch/ia64/kernel/kprobes.c    |    3 ++-
+ arch/powerpc/kernel/kprobes.c |    2 +-
+ arch/x86_64/kernel/kprobes.c  |    2 +-
+ include/linux/kprobes.h       |   10 ++++++++++
+ 5 files changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-ia64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-ia64/smp.h
---- a/include/asm-ia64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
-+++ a/include/asm-ia64/smp.h
-@@ -38,6 +38,8 @@ ia64_get_lid (void)
- 	return lid.f.id << 8 | lid.f.eid;
- }
+diff -puN arch/i386/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/i386/kernel/kprobes.c
+--- a/arch/i386/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
++++ a/arch/i386/kernel/kprobes.c
+@@ -449,8 +449,7 @@ fastcall void *__kprobes trampoline_hand
+ 			break;
+ 	}
  
-+#define hard_smp_processor_id()		ia64_get_lid()
-+
- #ifdef CONFIG_SMP
- 
- #define XTP_OFFSET		0x1e0008
-@@ -110,8 +112,6 @@ max_xtp (void)
- 		writeb(0x0f, ipi_base_addr + XTP_OFFSET); /* Set XTP to max */
- }
- 
--#define hard_smp_processor_id()		ia64_get_lid()
+-	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
 -
- /* Upping and downing of CPUs */
- extern int __cpu_disable (void);
- extern void __cpu_die (unsigned int cpu);
-@@ -128,7 +128,7 @@ extern void unlock_ipi_calllock(void);
- extern void identify_siblings (struct cpuinfo_ia64 *);
- extern int is_multithreading_enabled(void);
++	kretprobe_assert(ri, orig_ret_address, trampoline_address);
+ 	spin_unlock_irqrestore(&kretprobe_lock, flags);
  
--#else
-+#else /* CONFIG_SMP */
+ 	hlist_for_each_entry_safe(ri, node, tmp, &empty_rp, hlist) {
+diff -puN arch/ia64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
++++ a/arch/ia64/kernel/kprobes.c
+@@ -444,7 +444,8 @@ int __kprobes trampoline_probe_handler(s
+ 			break;
+ 	}
  
- #define cpu_logical_id(i)		0
- #define cpu_physical_id(i)		ia64_get_lid()
+-	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
++	kretprobe_assert(ri, orig_ret_address, trampoline_address);
++
+ 	regs->cr_iip = orig_ret_address;
+ 
+ 	reset_current_kprobe();
+diff -puN arch/powerpc/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/powerpc/kernel/kprobes.c
+--- a/arch/powerpc/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
++++ a/arch/powerpc/kernel/kprobes.c
+@@ -302,7 +302,7 @@ int __kprobes trampoline_probe_handler(s
+ 			break;
+ 	}
+ 
+-	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
++	kretprobe_assert(ri, orig_ret_address, trampoline_address);
+ 	regs->nip = orig_ret_address;
+ 
+ 	reset_current_kprobe();
+diff -puN arch/x86_64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure arch/x86_64/kernel/kprobes.c
+--- a/arch/x86_64/kernel/kprobes.c~kprobes-print-details-of-kretprobe-on-assertion-failure
++++ a/arch/x86_64/kernel/kprobes.c
+@@ -447,7 +447,7 @@ int __kprobes trampoline_probe_handler(s
+ 			break;
+ 	}
+ 
+-	BUG_ON(!orig_ret_address || (orig_ret_address == trampoline_address));
++	kretprobe_assert(ri, orig_ret_address, trampoline_address);
+ 	regs->rip = orig_ret_address;
+ 
+ 	reset_current_kprobe();
+diff -puN include/linux/kprobes.h~kprobes-print-details-of-kretprobe-on-assertion-failure include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-print-details-of-kretprobe-on-assertion-failure
++++ a/include/linux/kprobes.h
+@@ -157,6 +157,16 @@ struct kretprobe_instance {
+ 	struct task_struct *task;
+ };
+ 
++static inline void kretprobe_assert(struct kretprobe_instance *ri,
++	unsigned long orig_ret_address, unsigned long trampoline_address)
++{
++	if (!orig_ret_address || (orig_ret_address == trampoline_address)) {
++		printk("kretprobe BUG!: Processing kretprobe %p @ %p\n",
++				ri->rp, ri->rp->kp.addr);
++		BUG();
++	}
++}
++
+ extern spinlock_t kretprobe_lock;
+ extern struct mutex kprobe_mutex;
+ extern int arch_prepare_kprobe(struct kprobe *p);
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from ananth@in.ibm.com are
 
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+kprobes-make-kprobesymbol_name-const.patch
+kprobes-fix-sparse-null-warning.patch
+kprobes-print-details-of-kretprobe-on-assertion-failure.patch
+kprobes-use-hlist_for_each_entry.patch
+kprobes-codingstyle-cleanups.patch
+kprobes-kretprobes-simplifcations.patch
