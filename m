@@ -1,66 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + libata-add-ncq-blacklist-entries-from-silicon-image-windows.patch added to -mm tree
-Date: Tue, 03 Apr 2007 17:12:35 -0700
-Message-ID: <200704040012.l340CZKu007351@shell0.pdx.osdl.net>
+Subject: - remove-hardcoding-of-hard_smp_processor_id-on-up.patch removed from -mm tree
+Date: Tue, 03 Apr 2007 17:21:39 -0700
+Message-ID: <200704040021.l340Ldj4007518@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49725 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49852 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992506AbXDDAMi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 3 Apr 2007 20:12:38 -0400
+	id S2992513AbXDDAVs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 3 Apr 2007 20:21:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hancockr@shaw.ca, htejun@gmail.com
+To: fernando@oss.ntt.co.jp, ak@suse.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: add NCQ blacklist entries from Silicon Image Windows  driver (v2)
-has been added to the -mm tree.  Its filename is
-     libata-add-ncq-blacklist-entries-from-silicon-image-windows.patch
+     x86: remove hardcoding of hard_smp_processor_id on UP systems (fix)
+has been removed from the -mm tree.  Its filename was
+     remove-hardcoding-of-hard_smp_processor_id-on-up.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: libata: add NCQ blacklist entries from Silicon Image Windows  driver (v2)
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: x86: remove hardcoding of hard_smp_processor_id on UP systems (fix)
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
-This adds some NCQ blacklist entries taken from the Silicon Image 3124/3132
-Windows driver .inf files.  There are some confirming reports of problems
-with these drives under Linux (for example
-http://lkml.org/lkml/2007/3/4/178) so let's disable NCQ on these drives.
+Make ia64's hard_smp_processor_id() implementation available to CONFIG_SMP=n
+builds.
 
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
-Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    5 +++++
- 1 files changed, 5 insertions(+)
+ include/asm-ia64/smp.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-add-ncq-blacklist-entries-from-silicon-image-windows drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-add-ncq-blacklist-entries-from-silicon-image-windows
-+++ a/drivers/ata/libata-core.c
-@@ -3438,6 +3438,11 @@ static const struct ata_blacklist_entry 
- 	{ "Maxtor 6L250S0",     "BANC1G10",     ATA_HORKAGE_NONCQ },
- 	/* NCQ hard hangs device under heavier load, needs hard power cycle */
- 	{ "Maxtor 6B250S0",	"BANC1B70",	ATA_HORKAGE_NONCQ },
-+	/* Blacklist entries taken from Silicon Image 3124/3132
-+	   Windows driver .inf file - also several Linux problem reports */
-+	{ "HTS541060G9SA00",    "MB3OC60D",     ATA_HORKAGE_NONCQ, },
-+	{ "HTS541080G9SA00",    "MB4OC60D",     ATA_HORKAGE_NONCQ, },
-+	{ "HTS541010G9SA00",    "MBZOC60D",     ATA_HORKAGE_NONCQ, },
+diff -puN include/asm-ia64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-ia64/smp.h
+--- a/include/asm-ia64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-ia64/smp.h
+@@ -38,6 +38,8 @@ ia64_get_lid (void)
+ 	return lid.f.id << 8 | lid.f.eid;
+ }
  
- 	/* Devices with NCQ limits */
++#define hard_smp_processor_id()		ia64_get_lid()
++
+ #ifdef CONFIG_SMP
  
+ #define XTP_OFFSET		0x1e0008
+@@ -110,8 +112,6 @@ max_xtp (void)
+ 		writeb(0x0f, ipi_base_addr + XTP_OFFSET); /* Set XTP to max */
+ }
+ 
+-#define hard_smp_processor_id()		ia64_get_lid()
+-
+ /* Upping and downing of CPUs */
+ extern int __cpu_disable (void);
+ extern void __cpu_die (unsigned int cpu);
+@@ -128,7 +128,7 @@ extern void unlock_ipi_calllock(void);
+ extern void identify_siblings (struct cpuinfo_ia64 *);
+ extern int is_multithreading_enabled(void);
+ 
+-#else
++#else /* CONFIG_SMP */
+ 
+ #define cpu_logical_id(i)		0
+ #define cpu_physical_id(i)		ia64_get_lid()
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
-git-libata-all.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-sata_nv-dont-read-shadow-registers-when-in-adma-mode.patch
-libata-add-ncq-blacklist-entries-from-silicon-image-windows.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
