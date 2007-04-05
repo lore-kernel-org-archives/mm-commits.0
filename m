@@ -1,76 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - slab-mention-slab-name-when-listing-corrupt-objects.patch removed from -mm tree
-Date: Wed, 04 Apr 2007 19:00:49 -0700
-Message-ID: <200704050200.l3520nCq004850@shell0.pdx.osdl.net>
+Subject: - md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix.patch removed from -mm tree
+Date: Wed, 04 Apr 2007 19:07:16 -0700
+Message-ID: <200704050207.l3527GiF004949@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38075 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38174 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932511AbXDECA6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 4 Apr 2007 22:00:58 -0400
+	id S1752546AbXDECHV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 4 Apr 2007 22:07:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: mention slab name when listing corrupt objects
+     md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs fix
 has been removed from the -mm tree.  Its filename was
-     slab-mention-slab-name-when-listing-corrupt-objects.patch
+     md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs.patch
 
 ------------------------------------------------------
-Subject: slab: mention slab name when listing corrupt objects
-From: David Howells <dhowells@redhat.com>
+Subject: md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs fix
+From: Neil Brown <neilb@suse.de>
 
-Mention the slab name when listing corrupt objects.  Although the function
-that released the memory is mentioned, that is frequently ambiguous as such
-functions often release several pieces of memory.
+Avoid a deadlock when removing a device from an md array via sysfs. - fix
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Make sure any delayed_delete calls finish before module unload.
+For simplicity, flush the queue when we stop the array.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/md/md.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN mm/slab.c~slab-mention-slab-name-when-listing-corrupt-objects mm/slab.c
---- a/mm/slab.c~slab-mention-slab-name-when-listing-corrupt-objects
-+++ a/mm/slab.c
-@@ -1830,8 +1830,8 @@ static void check_poison_obj(struct kmem
- 			/* Print header */
- 			if (lines == 0) {
- 				printk(KERN_ERR
--					"Slab corruption: start=%p, len=%d\n",
--					realobj, size);
-+					"Slab corruption: %s start=%p, len=%d\n",
-+					cachep->name, realobj, size);
- 				print_objinfo(cachep, objp, 0);
+diff -puN drivers/md/md.c~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix drivers/md/md.c
+--- a/drivers/md/md.c~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix
++++ a/drivers/md/md.c
+@@ -3400,6 +3400,9 @@ static int do_md_stop(mddev_t * mddev, i
+ 				sysfs_remove_link(&mddev->kobj, nm);
  			}
- 			/* Hexdump the affected line */
+ 
++		/* make sure all delayed_delete calls have finished */
++		flush_scheduled_work();
++
+ 		export_array(mddev);
+ 
+ 		mddev->array_size = 0;
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-romfs-printk-format-warnings.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-use-symbolic-constants-in-generic-lseek-code.patch
-use-use-seek_max-to-validate-user-lseek-arguments.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-workqueue-kill-noautorel-works.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-mutex-subsystem-synchro-test-module.patch
+md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs.patch
+md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix.patch
+net-sunrpc-svcsockc-fix-a-check.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
+readahead-nfsd-case.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
