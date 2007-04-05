@@ -1,217 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - cxgb3-detect-nic-only-adapters.patch removed from -mm tree
-Date: Wed, 04 Apr 2007 19:00:32 -0700
-Message-ID: <200704050200.l3520WGN004829@shell0.pdx.osdl.net>
+Subject: - net-ignore-sysfs-network-device-rename-bugs.patch removed from -mm tree
+Date: Wed, 04 Apr 2007 19:00:44 -0700
+Message-ID: <200704050200.l3520i6R004846@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38060 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38067 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932469AbXDECAt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 4 Apr 2007 22:00:49 -0400
+	id S932469AbXDECAv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 4 Apr 2007 22:00:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: divy@chelsio.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, davem@davemloft.net, greg@kroah.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cxgb3: detect NIC only adapters
+     net: ignore sysfs network device rename bugs.
 has been removed from the -mm tree.  Its filename was
-     cxgb3-detect-nic-only-adapters.patch
+     net-ignore-sysfs-network-device-rename-bugs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cxgb3: detect NIC only adapters
-From: Divy Le Ray <divy@chelsio.com>
+Subject: net: ignore sysfs network device rename bugs.
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Differentiate NIC only adapters from RNICs.
-Initialize offload capabilities for RNICs only.
+The generic networking code ensures that no two networking devices have the
+same name, so there is no time except when sysfs has implementation bugs
+that device_rename when called from dev_change_name will fail.
 
-Signed-off-by: Divy Le Ray <divy@chelsio.com>
+The current error handling for errors from device_rename in dev_change_name
+is wrong and results in an unusable and unrecoverable network device if
+device_rename is happens to return an error.
+
+This patch removes the buggy error handling.  Which confines the mess when
+device_rename hits a problem to sysfs, instead of propagating it the rest
+of the network stack.  Making linux a little more robust.
+
+Without this patch you can observe what happens when sysfs has a bug when
+CONFIG_SYSFS_DEPRECATED is not set and you attempt to rename a real network
+device to a name like (broken_parity_status, device, modalias, power,
+resource2, subsystem_vendor, class, driver, irq, msi_bus, resource,
+subsystem, uevent, config, enable, local_cpus, numa_node, resource0,
+subsystem_device, vendor)
+
+Greg has a patch that fixes the sysfs bugs but he doesn't trust it for a
+2.6.21 timeframe.  This patch which just ignores errors should be safe and
+it keeps the system from going completely wacky.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/common.h     |    6 +++---
- drivers/net/cxgb3/cxgb3_main.c |    8 ++++----
- drivers/net/cxgb3/mc5.c        |    3 +++
- drivers/net/cxgb3/sge.c        |    2 +-
- drivers/net/cxgb3/t3_hw.c      |   24 ++++++++++++++++++------
- 5 files changed, 29 insertions(+), 14 deletions(-)
+ net/core/dev.c |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/cxgb3/common.h~cxgb3-detect-nic-only-adapters drivers/net/cxgb3/common.h
---- a/drivers/net/cxgb3/common.h~cxgb3-detect-nic-only-adapters
-+++ a/drivers/net/cxgb3/common.h
-@@ -112,8 +112,7 @@ enum {
- };
+diff -puN net/core/dev.c~net-ignore-sysfs-network-device-rename-bugs net/core/dev.c
+--- a/net/core/dev.c~net-ignore-sysfs-network-device-rename-bugs
++++ a/net/core/dev.c
+@@ -752,13 +752,10 @@ int dev_change_name(struct net_device *d
+ 	else
+ 		strlcpy(dev->name, newname, IFNAMSIZ);
  
- enum {
--	SUPPORTED_OFFLOAD = 1 << 24,
--	SUPPORTED_IRQ = 1 << 25
-+	SUPPORTED_IRQ      = 1 << 24
- };
+-	err = device_rename(&dev->dev, dev->name);
+-	if (!err) {
+-		hlist_del(&dev->name_hlist);
+-		hlist_add_head(&dev->name_hlist, dev_name_hash(dev->name));
+-		raw_notifier_call_chain(&netdev_chain,
+-				NETDEV_CHANGENAME, dev);
+-	}
++	device_rename(&dev->dev, dev->name);
++	hlist_del(&dev->name_hlist);
++	hlist_add_head(&dev->name_hlist, dev_name_hash(dev->name));
++	raw_notifier_call_chain(&netdev_chain, NETDEV_CHANGENAME, dev);
  
- enum {				/* adapter interrupt-maintained statistics */
-@@ -405,6 +404,7 @@ struct adapter_params {
- 	unsigned int stats_update_period;	/* MAC stats accumulation period */
- 	unsigned int linkpoll_period;	/* link poll period in 0.1s */
- 	unsigned int rev;	/* chip revision */
-+	unsigned int offload;
- };
- 
- enum {					    /* chip revisions */
-@@ -605,7 +605,7 @@ static inline int is_10G(const struct ad
- 
- static inline int is_offload(const struct adapter *adap)
- {
--	return adapter_info(adap)->caps & SUPPORTED_OFFLOAD;
-+	return adap->params.offload;
+ 	return err;
  }
- 
- static inline unsigned int core_ticks_per_usec(const struct adapter *adap)
-diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-detect-nic-only-adapters drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-detect-nic-only-adapters
-+++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -407,7 +407,7 @@ static void quiesce_rx(struct adapter *a
- static int setup_sge_qsets(struct adapter *adap)
- {
- 	int i, j, err, irq_idx = 0, qset_idx = 0, dummy_dev_idx = 0;
--	unsigned int ntxq = is_offload(adap) ? SGE_TXQ_PER_SET : 1;
-+	unsigned int ntxq = SGE_TXQ_PER_SET;
- 
- 	if (adap->params.rev > 0 && !(adap->flags & USING_MSI))
- 		irq_idx = -1;
-@@ -922,7 +922,7 @@ static int cxgb_open(struct net_device *
- 		return err;
- 
- 	set_bit(pi->port_id, &adapter->open_device_map);
--	if (!ofld_disable) {
-+	if (is_offload(adapter) && !ofld_disable) {
- 		err = offload_open(dev);
- 		if (err)
- 			printk(KERN_WARNING
-@@ -2270,9 +2270,9 @@ static void __devinit print_port_info(st
- 
- 		if (!test_bit(i, &adap->registered_device_map))
- 			continue;
--		printk(KERN_INFO "%s: %s %s RNIC (rev %d) %s%s\n",
-+		printk(KERN_INFO "%s: %s %s %sNIC (rev %d) %s%s\n",
- 		       dev->name, ai->desc, pi->port_type->desc,
--		       adap->params.rev, buf,
-+		       is_offload(adap) ? "R" : "", adap->params.rev, buf,
- 		       (adap->flags & USING_MSIX) ? " MSI-X" :
- 		       (adap->flags & USING_MSI) ? " MSI" : "");
- 		if (adap->name == dev->name && adap->params.vpd.mclk)
-diff -puN drivers/net/cxgb3/mc5.c~cxgb3-detect-nic-only-adapters drivers/net/cxgb3/mc5.c
---- a/drivers/net/cxgb3/mc5.c~cxgb3-detect-nic-only-adapters
-+++ a/drivers/net/cxgb3/mc5.c
-@@ -328,6 +328,9 @@ int t3_mc5_init(struct mc5 *mc5, unsigne
- 	unsigned int tcam_size = mc5->tcam_size;
- 	struct adapter *adap = mc5->adapter;
- 
-+	if (!tcam_size)
-+		return 0;
-+
- 	if (nroutes > MAX_ROUTES || nroutes + nservers + nfilters > tcam_size)
- 		return -EINVAL;
- 
-diff -puN drivers/net/cxgb3/sge.c~cxgb3-detect-nic-only-adapters drivers/net/cxgb3/sge.c
---- a/drivers/net/cxgb3/sge.c~cxgb3-detect-nic-only-adapters
-+++ a/drivers/net/cxgb3/sge.c
-@@ -2631,7 +2631,7 @@ int t3_sge_alloc_qset(struct adapter *ad
- 	q->txq[TXQ_ETH].stop_thres = nports *
- 	    flits_to_desc(sgl_len(MAX_SKB_FRAGS + 1) + 3);
- 
--	if (ntxq == 1) {
-+	if (!is_offload(adapter)) {
- #ifdef USE_RX_PAGE
- 		q->fl[0].buf_size = RX_PAGE_SIZE;
- #else
-diff -puN drivers/net/cxgb3/t3_hw.c~cxgb3-detect-nic-only-adapters drivers/net/cxgb3/t3_hw.c
---- a/drivers/net/cxgb3/t3_hw.c~cxgb3-detect-nic-only-adapters
-+++ a/drivers/net/cxgb3/t3_hw.c
-@@ -438,23 +438,23 @@ static const struct adapter_info t3_adap
- 	{2, 0, 0, 0,
- 	 F_GPIO2_OEN | F_GPIO4_OEN |
- 	 F_GPIO2_OUT_VAL | F_GPIO4_OUT_VAL, F_GPIO3 | F_GPIO5,
--	 SUPPORTED_OFFLOAD,
-+	 0,
- 	 &mi1_mdio_ops, "Chelsio PE9000"},
- 	{2, 0, 0, 0,
- 	 F_GPIO2_OEN | F_GPIO4_OEN |
- 	 F_GPIO2_OUT_VAL | F_GPIO4_OUT_VAL, F_GPIO3 | F_GPIO5,
--	 SUPPORTED_OFFLOAD,
-+	 0,
- 	 &mi1_mdio_ops, "Chelsio T302"},
- 	{1, 0, 0, 0,
- 	 F_GPIO1_OEN | F_GPIO6_OEN | F_GPIO7_OEN | F_GPIO10_OEN |
- 	 F_GPIO1_OUT_VAL | F_GPIO6_OUT_VAL | F_GPIO10_OUT_VAL, 0,
--	 SUPPORTED_10000baseT_Full | SUPPORTED_AUI | SUPPORTED_OFFLOAD,
-+	 SUPPORTED_10000baseT_Full | SUPPORTED_AUI,
- 	 &mi1_mdio_ext_ops, "Chelsio T310"},
- 	{2, 0, 0, 0,
- 	 F_GPIO1_OEN | F_GPIO2_OEN | F_GPIO4_OEN | F_GPIO5_OEN | F_GPIO6_OEN |
- 	 F_GPIO7_OEN | F_GPIO10_OEN | F_GPIO11_OEN | F_GPIO1_OUT_VAL |
- 	 F_GPIO5_OUT_VAL | F_GPIO6_OUT_VAL | F_GPIO10_OUT_VAL, 0,
--	 SUPPORTED_10000baseT_Full | SUPPORTED_AUI | SUPPORTED_OFFLOAD,
-+	 SUPPORTED_10000baseT_Full | SUPPORTED_AUI,
- 	 &mi1_mdio_ext_ops, "Chelsio T320"},
- };
- 
-@@ -2900,6 +2900,9 @@ static int mc7_init(struct mc7 *mc7, uns
- 	struct adapter *adapter = mc7->adapter;
- 	const struct mc7_timing_params *p = &mc7_timings[mem_type];
- 
-+	if (!mc7->size)
-+		return 0;
-+
- 	val = t3_read_reg(adapter, mc7->offset + A_MC7_CFG);
- 	slow = val & F_SLOW;
- 	width = G_WIDTH(val);
-@@ -3100,8 +3103,10 @@ int t3_init_hw(struct adapter *adapter, 
- 	do {			/* wait for uP to initialize */
- 		msleep(20);
- 	} while (t3_read_reg(adapter, A_CIM_HOST_ACC_DATA) && --attempts);
--	if (!attempts)
-+	if (!attempts) {
-+		CH_ERR(adapter, "uP initialization timed out\n");
- 		goto out_err;
-+	}
- 
- 	err = 0;
- out_err:
-@@ -3201,7 +3206,7 @@ static void __devinit mc7_prep(struct ad
- 	mc7->name = name;
- 	mc7->offset = base_addr - MC7_PMRX_BASE_ADDR;
- 	cfg = t3_read_reg(adapter, mc7->offset + A_MC7_CFG);
--	mc7->size = mc7_calc_size(cfg);
-+	mc7->size = mc7->size = G_DEN(cfg) == M_DEN ? 0 : mc7_calc_size(cfg);
- 	mc7->width = G_WIDTH(cfg);
- }
- 
-@@ -3228,6 +3233,7 @@ void early_hw_init(struct adapter *adapt
- 		     V_I2C_CLKDIV(adapter->params.vpd.cclk / 80 - 1));
- 	t3_write_reg(adapter, A_T3DBG_GPIO_EN,
- 		     ai->gpio_out | F_GPIO0_OEN | F_GPIO0_OUT_VAL);
-+	t3_write_reg(adapter, A_MC5_DB_SERVER_INDEX, 0);
- 
- 	if (adapter->params.rev == 0 || !uses_xaui(adapter))
- 		val |= F_ENRGMII;
-@@ -3326,7 +3332,13 @@ int __devinit t3_prep_adapter(struct ada
- 		p->tx_num_pgs = pm_num_pages(p->chan_tx_size, p->tx_pg_size);
- 		p->ntimer_qs = p->cm_size >= (128 << 20) ||
- 		    adapter->params.rev > 0 ? 12 : 6;
-+	}
-+
-+	adapter->params.offload = t3_mc7_size(&adapter->pmrx) &&
-+				  t3_mc7_size(&adapter->pmtx) &&
-+				  t3_mc7_size(&adapter->cm);
- 
-+	if (is_offload(adapter)) {
- 		adapter->params.mc5.nservers = DEFAULT_NSERVERS;
- 		adapter->params.mc5.nfilters = adapter->params.rev > 0 ?
- 		    DEFAULT_NFILTERS : 0;
 _
 
-Patches currently in -mm which might be from divy@chelsio.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+fix-x86_64-mm-relocatable-kernel-support.patch
+i386-irq-kill-irq-compression.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+clean-up-elf-note-generation.patch
+edac-k8-driver-coding-tidy.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
