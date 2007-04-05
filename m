@@ -1,77 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - cxgb3-firwmare-update.patch removed from -mm tree
-Date: Wed, 04 Apr 2007 19:00:39 -0700
-Message-ID: <200704050200.l3520dDJ004840@shell0.pdx.osdl.net>
+Subject: - fix-scsi_send_eh_cmnd-scatterlist-handling.patch removed from -mm tree
+Date: Wed, 04 Apr 2007 19:00:41 -0700
+Message-ID: <200704050200.l3520fmd004843@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38061 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38062 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932501AbXDECAt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S932470AbXDECAt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Wed, 4 Apr 2007 22:00:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: divy@chelsio.com, mm-commits@vger.kernel.org
+To: davem@davemloft.net, James.Bottomley@steeleye.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cxgb3: firwmare update
+     Fix scsi_send_eh_cmnd scatterlist handling
 has been removed from the -mm tree.  Its filename was
-     cxgb3-firwmare-update.patch
+     fix-scsi_send_eh_cmnd-scatterlist-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cxgb3: firwmare update
-From: Divy Le Ray <divy@chelsio.com>
+Subject: Fix scsi_send_eh_cmnd scatterlist handling
+From: David Miller <davem@davemloft.net>
 
-Introduce FW micro version.
-Bump up FW version to 3.3.0
+This fixes a regression caused by commit:
 
-Signed-off-by: Divy Le Ray <divy@chelsio.com>
+2dc611de5a3fd955cd0298c50691d4c05046db97
+
+The sense buffer code in scsi_send_eh_cmnd was changed to use alloc_page()
+and a scatter list, but the sense data copy was not updated to match so
+what we actually get in the sense buffer is total grabage starting with the
+kernel address of the struct page we got.  Basically the stack frame of
+scsi_send_eh_cmd() is what ends up in the sense buffer.
+
+Depending upon how pointers look on a given platform, you can end up
+getting sr_ioctl.c errors when you mount a cdrom.  If the CDROM gives a
+check condition for GPCMD_GET_CONFIGURATION issued by
+drivers/cdrom/cdrom.c:cdrom_mmc_profile(), sr_ioctl will spit out this
+error message in sr_do_ioctl() with the way pointers are on sparc64:
+
+		default:
+			printk(KERN_ERR "%s: CDROM (ioctl) error, command: ", cd->cdi.name);
+			__scsi_print_command(cgc->cmd);
+			scsi_print_sense_hdr("sr", &sshdr);
+			err = -EIO;
+
+This is the error Tom Callaway reported in:
+
+http://marc.info/?l=linux-sparc&m=117407453208101&w=2
+
+Anyways, fix this by using page_address(sgl.page) which is OK because we
+know this is low-mem due to GFP_ATOMIC.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c |    4 ++--
- drivers/net/cxgb3/version.h    |    5 ++++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/scsi/scsi_error.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-firwmare-update drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-firwmare-update
-+++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -721,7 +721,7 @@ static void bind_qsets(struct adapter *a
- 	}
- }
- 
--#define FW_FNAME "t3fw-%d.%d.bin"
-+#define FW_FNAME "t3fw-%d.%d.%d.bin"
- 
- static int upgrade_fw(struct adapter *adap)
- {
-@@ -731,7 +731,7 @@ static int upgrade_fw(struct adapter *ad
- 	struct device *dev = &adap->pdev->dev;
- 
- 	snprintf(buf, sizeof(buf), FW_FNAME, FW_VERSION_MAJOR,
--		 FW_VERSION_MINOR);
-+		 FW_VERSION_MINOR, FW_VERSION_MICRO);
- 	ret = request_firmware(&fw, buf, dev);
- 	if (ret < 0) {
- 		dev_err(dev, "could not upgrade firmware: unable to load %s\n",
-diff -puN drivers/net/cxgb3/version.h~cxgb3-firwmare-update drivers/net/cxgb3/version.h
---- a/drivers/net/cxgb3/version.h~cxgb3-firwmare-update
-+++ a/drivers/net/cxgb3/version.h
-@@ -36,6 +36,9 @@
- #define DRV_NAME "cxgb3"
- /* Driver version */
- #define DRV_VERSION "1.0-ko"
-+
-+/* Firmware version */
- #define FW_VERSION_MAJOR 3
--#define FW_VERSION_MINOR 2
-+#define FW_VERSION_MINOR 3
-+#define FW_VERSION_MICRO 0
- #endif				/* __CHELSIO_VERSION_H */
+diff -puN drivers/scsi/scsi_error.c~fix-scsi_send_eh_cmnd-scatterlist-handling drivers/scsi/scsi_error.c
+--- a/drivers/scsi/scsi_error.c~fix-scsi_send_eh_cmnd-scatterlist-handling
++++ a/drivers/scsi/scsi_error.c
+@@ -726,7 +726,7 @@ static int scsi_send_eh_cmnd(struct scsi
+ 	 */
+ 	if (copy_sense) {
+ 		if (!SCSI_SENSE_VALID(scmd)) {
+-			memcpy(scmd->sense_buffer, scmd->request_buffer,
++			memcpy(scmd->sense_buffer, page_address(sgl.page),
+ 			       sizeof(scmd->sense_buffer));
+ 		}
+ 		__free_page(sgl.page);
 _
 
-Patches currently in -mm which might be from divy@chelsio.com are
+Patches currently in -mm which might be from davem@davemloft.net are
 
 origin.patch
+git-net.patch
+git-net-vs-git-netdev-all.patch
+fix-irq-problem-with-napi-netpoll.patch
+remove-pci_dac_dma_-apis.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+simplify-the-stacktrace-code.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+ipvs-flush-defense_work-before-module-unload.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+local_t-sparc64-cleanup.patch
