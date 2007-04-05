@@ -1,65 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix.patch removed from -mm tree
-Date: Wed, 04 Apr 2007 19:07:16 -0700
-Message-ID: <200704050207.l3527GiF004949@shell0.pdx.osdl.net>
+Subject: - clocksource-i386-initialize-list-value.patch removed from -mm tree
+Date: Thu, 05 Apr 2007 12:28:55 -0700
+Message-ID: <200704051928.l35JSteX024043@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38174 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49016 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752546AbXDECHV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 4 Apr 2007 22:07:21 -0400
+	id S1753248AbXDET3r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 5 Apr 2007 15:29:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs fix
+     clocksource: i386 initialize list value
 has been removed from the -mm tree.  Its filename was
-     md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix.patch
+     clocksource-i386-initialize-list-value.patch
 
-This patch was dropped because it was folded into md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs.patch
+This patch was dropped because of general bunfight
 
 ------------------------------------------------------
-Subject: md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs fix
-From: Neil Brown <neilb@suse.de>
+Subject: clocksource: i386 initialize list value
+From: Daniel Walker <dwalker@mvista.com>
 
-Avoid a deadlock when removing a device from an md array via sysfs. - fix
+Update arch/i386/ with list initialization.
 
-Make sure any delayed_delete calls finish before module unload.
-For simplicity, flush the queue when we stop the array.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    3 +++
- 1 files changed, 3 insertions(+)
+ arch/i386/kernel/hpet.c    |    1 +
+ arch/i386/kernel/i8253.c   |    1 +
+ arch/i386/kernel/tsc.c     |    1 +
+ arch/i386/kernel/vmitime.c |    1 +
+ 4 files changed, 4 insertions(+)
 
-diff -puN drivers/md/md.c~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix drivers/md/md.c
---- a/drivers/md/md.c~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix
-+++ a/drivers/md/md.c
-@@ -3400,6 +3400,9 @@ static int do_md_stop(mddev_t * mddev, i
- 				sysfs_remove_link(&mddev->kobj, nm);
- 			}
+diff -puN arch/i386/kernel/hpet.c~clocksource-i386-initialize-list-value arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~clocksource-i386-initialize-list-value
++++ a/arch/i386/kernel/hpet.c
+@@ -217,6 +217,7 @@ static struct clocksource clocksource_hp
+ 	.mask		= HPET_MASK,
+ 	.shift		= HPET_SHIFT,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++	.list		= LIST_HEAD_INIT(clocksource_hpet.list),
+ };
  
-+		/* make sure all delayed_delete calls have finished */
-+		flush_scheduled_work();
-+
- 		export_array(mddev);
+ /*
+diff -puN arch/i386/kernel/i8253.c~clocksource-i386-initialize-list-value arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~clocksource-i386-initialize-list-value
++++ a/arch/i386/kernel/i8253.c
+@@ -193,6 +193,7 @@ static struct clocksource clocksource_pi
+ 	.mask	= CLOCKSOURCE_MASK(32),
+ 	.mult	= 0,
+ 	.shift	= 20,
++	.list	= LIST_HEAD_INIT(clocksource_pit.list),
+ };
  
- 		mddev->array_size = 0;
+ static int __init init_pit_clocksource(void)
+diff -puN arch/i386/kernel/tsc.c~clocksource-i386-initialize-list-value arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~clocksource-i386-initialize-list-value
++++ a/arch/i386/kernel/tsc.c
+@@ -279,6 +279,7 @@ static struct clocksource clocksource_ts
+ 	.shift			= 22,
+ 	.flags			= CLOCK_SOURCE_IS_CONTINUOUS |
+ 				  CLOCK_SOURCE_MUST_VERIFY,
++	.list			= LIST_HEAD_INIT(clocksource_tsc.list),
+ };
+ 
+ void mark_tsc_unstable(void)
+diff -puN arch/i386/kernel/vmitime.c~clocksource-i386-initialize-list-value arch/i386/kernel/vmitime.c
+--- a/arch/i386/kernel/vmitime.c~clocksource-i386-initialize-list-value
++++ a/arch/i386/kernel/vmitime.c
+@@ -116,6 +116,7 @@ static struct clocksource clocksource_vm
+ 	.mult			= 0, /* to be set */
+ 	.shift			= 22,
+ 	.flags			= CLOCK_SOURCE_IS_CONTINUOUS,
++	.list			= LIST_HEAD_INIT(clocksource_vmi.list),
+ };
+ 
+ 
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-origin.patch
-md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs.patch
-md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs-fix.patch
-net-sunrpc-svcsockc-fix-a-check.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
-the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
-readahead-nfsd-case.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+clocksource-i386-initialize-list-value.patch
+clocksource-x86_64-initialize-list-value.patch
+clocksource-s390-initialize-list-value.patch
+clocksource-driver-initialize-list-value.patch
+clocksource-refactor-duplicate-registration-checking.patch
+slim-make-and-config-stuff.patch
+profile-likely-unlikely-macros.patch
