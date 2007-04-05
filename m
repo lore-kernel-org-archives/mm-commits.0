@@ -1,110 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - cxgb3-tighten-xgmac-workaround.patch removed from -mm tree
-Date: Wed, 04 Apr 2007 19:00:36 -0700
-Message-ID: <200704050200.l3520aYk004837@shell0.pdx.osdl.net>
+Subject: - cxgb3-safeguard-tcam-size-usage.patch removed from -mm tree
+Date: Wed, 04 Apr 2007 19:00:30 -0700
+Message-ID: <200704050200.l3520UvB004826@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38054 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38050 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932451AbXDECAq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 4 Apr 2007 22:00:46 -0400
+	id S932315AbXDECAp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 4 Apr 2007 22:00:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: divy@chelsio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cxgb3: tighten xgmac workaround
+     cxgb3: safeguard TCAM size usage
 has been removed from the -mm tree.  Its filename was
-     cxgb3-tighten-xgmac-workaround.patch
+     cxgb3-safeguard-tcam-size-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cxgb3: tighten xgmac workaround
+Subject: cxgb3: safeguard TCAM size usage
 From: Divy Le Ray <divy@chelsio.com>
 
-Run the watchdog task when the link is up.
-Flush the XGMAC Tx FIFO when the link drops.
-
-Also remove a statistics update that should have gone
-in the previous modification of xgmac.c.
+Ensure that the TCAM active region size is at least 16.
 
 Signed-off-by: Divy Le Ray <divy@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c |   16 +++++++++++++---
- drivers/net/cxgb3/regs.h       |    4 ++++
- drivers/net/cxgb3/xgmac.c      |    1 -
- 3 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/net/cxgb3/common.h        |    3 +++
+ drivers/net/cxgb3/cxgb3_main.c    |    7 +++++--
+ drivers/net/cxgb3/cxgb3_offload.c |    4 +++-
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-tighten-xgmac-workaround drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-tighten-xgmac-workaround
+diff -puN drivers/net/cxgb3/common.h~cxgb3-safeguard-tcam-size-usage drivers/net/cxgb3/common.h
+--- a/drivers/net/cxgb3/common.h~cxgb3-safeguard-tcam-size-usage
++++ a/drivers/net/cxgb3/common.h
+@@ -358,6 +358,9 @@ enum {
+ 	MC5_MODE_72_BIT = 2
+ };
+ 
++/* MC5 min active region size */
++enum { MC5_MIN_TIDS = 16 };
++
+ struct vpd_params {
+ 	unsigned int cclk;
+ 	unsigned int mclk;
+diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-safeguard-tcam-size-usage drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-safeguard-tcam-size-usage
 +++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -185,16 +185,26 @@ void t3_os_link_changed(struct adapter *
- 			int speed, int duplex, int pause)
+@@ -485,12 +485,14 @@ static ssize_t show_##name(struct device
+ static ssize_t set_nfilters(struct net_device *dev, unsigned int val)
  {
- 	struct net_device *dev = adapter->port[port_id];
-+	struct port_info *pi = netdev_priv(dev);
-+	struct cmac *mac = &pi->mac;
+ 	struct adapter *adap = dev->priv;
++	int min_tids = is_offload(adap) ? MC5_MIN_TIDS : 0;
  
- 	/* Skip changes from disabled ports. */
- 	if (!netif_running(dev))
- 		return;
+ 	if (adap->flags & FULL_INIT_DONE)
+ 		return -EBUSY;
+ 	if (val && adap->params.rev == 0)
+ 		return -EINVAL;
+-	if (val > t3_mc5_size(&adap->mc5) - adap->params.mc5.nservers)
++	if (val > t3_mc5_size(&adap->mc5) - adap->params.mc5.nservers -
++	    min_tids)
+ 		return -EINVAL;
+ 	adap->params.mc5.nfilters = val;
+ 	return 0;
+@@ -508,7 +510,8 @@ static ssize_t set_nservers(struct net_d
  
- 	if (link_stat != netif_carrier_ok(dev)) {
--		if (link_stat)
-+		if (link_stat) {
-+			t3_set_reg_field(adapter,
-+					 A_XGM_TXFIFO_CFG + mac->offset,
-+					 F_ENDROPPKT, 0);
- 			netif_carrier_on(dev);
--		else
-+		} else {
- 			netif_carrier_off(dev);
-+			t3_set_reg_field(adapter,
-+					 A_XGM_TXFIFO_CFG + mac->offset,
-+					 F_ENDROPPKT, F_ENDROPPKT);
-+		}
-+
- 		link_report(dev);
- 	}
- }
-@@ -2119,7 +2129,7 @@ static void check_t3b2_mac(struct adapte
- 			continue;
+ 	if (adap->flags & FULL_INIT_DONE)
+ 		return -EBUSY;
+-	if (val > t3_mc5_size(&adap->mc5) - adap->params.mc5.nfilters)
++	if (val > t3_mc5_size(&adap->mc5) - adap->params.mc5.nfilters -
++	    MC5_MIN_TIDS)
+ 		return -EINVAL;
+ 	adap->params.mc5.nservers = val;
+ 	return 0;
+diff -puN drivers/net/cxgb3/cxgb3_offload.c~cxgb3-safeguard-tcam-size-usage drivers/net/cxgb3/cxgb3_offload.c
+--- a/drivers/net/cxgb3/cxgb3_offload.c~cxgb3-safeguard-tcam-size-usage
++++ a/drivers/net/cxgb3/cxgb3_offload.c
+@@ -553,7 +553,9 @@ int cxgb3_alloc_atid(struct t3cdev *tdev
+ 	struct tid_info *t = &(T3C_DATA(tdev))->tid_maps;
  
- 		status = 0;
--		if (netif_running(dev))
-+		if (netif_running(dev) && netif_carrier_ok(dev))
- 			status = t3b2_mac_watchdog_task(&p->mac);
- 		if (status == 1)
- 			p->mac.stats.num_toggled++;
-diff -puN drivers/net/cxgb3/regs.h~cxgb3-tighten-xgmac-workaround drivers/net/cxgb3/regs.h
---- a/drivers/net/cxgb3/regs.h~cxgb3-tighten-xgmac-workaround
-+++ a/drivers/net/cxgb3/regs.h
-@@ -1940,6 +1940,10 @@
+ 	spin_lock_bh(&t->atid_lock);
+-	if (t->afree) {
++	if (t->afree &&
++	    t->atids_in_use + atomic_read(&t->tids_in_use) + MC5_MIN_TIDS <=
++	    t->ntids) {
+ 		union active_open_entry *p = t->afree;
  
- #define V_TXFIFOTHRESH(x) ((x) << S_TXFIFOTHRESH)
- 
-+#define S_ENDROPPKT    21
-+#define V_ENDROPPKT(x) ((x) << S_ENDROPPKT)
-+#define F_ENDROPPKT    V_ENDROPPKT(1U)
-+
- #define A_XGM_SERDES_CTRL 0x890
- #define A_XGM_SERDES_CTRL0 0x8e0
- 
-diff -puN drivers/net/cxgb3/xgmac.c~cxgb3-tighten-xgmac-workaround drivers/net/cxgb3/xgmac.c
---- a/drivers/net/cxgb3/xgmac.c~cxgb3-tighten-xgmac-workaround
-+++ a/drivers/net/cxgb3/xgmac.c
-@@ -471,7 +471,6 @@ const struct mac_stats *t3_mac_update_st
- 	RMON_UPDATE(mac, rx_symbol_errs, RX_SYM_CODE_ERR_FRAMES);
- 
- 	RMON_UPDATE(mac, rx_too_long, RX_OVERSIZE_FRAMES);
--	mac->stats.rx_too_long += RMON_READ(mac, A_XGM_RX_MAX_PKT_SIZE_ERR_CNT);
- 
- 	v = RMON_READ(mac, A_XGM_RX_MAX_PKT_SIZE_ERR_CNT);
- 	if (mac->adapter->params.rev == T3_REV_B2)
+ 		atid = (p - t->atid_tab) + t->atid_base;
 _
 
 Patches currently in -mm which might be from divy@chelsio.com are
