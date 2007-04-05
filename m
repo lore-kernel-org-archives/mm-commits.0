@@ -1,237 +1,247 @@
 From: akpm@linux-foundation.org
-Subject: - jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch removed from -mm tree
-Date: Wed, 04 Apr 2007 19:00:23 -0700
-Message-ID: <200704050200.l3520N0n004816@shell0.pdx.osdl.net>
+Subject: - mtd-support-for-auto-locking-flash-on-power-up.patch removed from -mm tree
+Date: Wed, 04 Apr 2007 19:00:25 -0700
+Message-ID: <200704050200.l3520Pj4004819@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38032 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38040 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932286AbXDECAd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 4 Apr 2007 22:00:33 -0400
+	id S932451AbXDECAi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 4 Apr 2007 22:00:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: giometti@enneenne.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     JFFS2: Delete everything related to obsolete JFFS2_PROC option
+     MTD: support for auto locking flash on power up
 has been removed from the -mm tree.  Its filename was
-     jffs2-delete-everything-related-to-obsolete-jffs2_proc.patch
+     mtd-support-for-auto-locking-flash-on-power-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: JFFS2: Delete everything related to obsolete JFFS2_PROC option
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: MTD: support for auto locking flash on power up
+From: Rodolfo Giometti <giometti@enneenne.com>
 
-Delete everything related to the apparently non-existent kernel config
-option JFFS2_PROC.
+Auto unlock sectors on resume for auto locking flash on power up.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Rodolfo Giometti <giometti@enneenne.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/compr.c |  138 ---------------------------------------------
- fs/jffs2/compr.h |   10 ---
- 2 files changed, 148 deletions(-)
+ drivers/mtd/chips/cfi_cmdset_0001.c |   93 +++++++++++++++++++++++++-
+ include/linux/mtd/mtd.h             |    1 
+ 2 files changed, 91 insertions(+), 3 deletions(-)
 
-diff -puN fs/jffs2/compr.c~jffs2-delete-everything-related-to-obsolete-jffs2_proc fs/jffs2/compr.c
---- a/fs/jffs2/compr.c~jffs2-delete-everything-related-to-obsolete-jffs2_proc
-+++ a/fs/jffs2/compr.c
-@@ -268,144 +268,6 @@ int jffs2_unregister_compressor(struct j
-         return 0;
+diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-support-for-auto-locking-flash-on-power-up drivers/mtd/chips/cfi_cmdset_0001.c
+--- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-support-for-auto-locking-flash-on-power-up
++++ a/drivers/mtd/chips/cfi_cmdset_0001.c
+@@ -15,6 +15,8 @@
+  *	- optimized write buffer method
+  * 02/05/2002	Christopher Hoover <ch@hpl.hp.com>/<ch@murgatroid.com>
+  *	- reworked lock/unlock/erase support for var size flash
++ * 21/03/2007   Rodolfo Giometti <giometti@linux.it>
++ * 	- auto unlock sectors on resume for auto locking flash on power up
+  */
+ 
+ #include <linux/module.h>
+@@ -30,6 +32,7 @@
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+ #include <linux/reboot.h>
++#include <linux/bitmap.h>
+ #include <linux/mtd/xip.h>
+ #include <linux/mtd/map.h>
+ #include <linux/mtd/mtd.h>
+@@ -220,6 +223,15 @@ static void fixup_use_write_buffers(stru
+ 	}
  }
  
--#ifdef CONFIG_JFFS2_PROC
--
--#define JFFS2_STAT_BUF_SIZE 16000
--
--char *jffs2_list_compressors(void)
--{
--        struct jffs2_compressor *this;
--        char *buf, *act_buf;
--
--        act_buf = buf = kmalloc(JFFS2_STAT_BUF_SIZE,GFP_KERNEL);
--        list_for_each_entry(this, &jffs2_compressor_list, list) {
--                act_buf += sprintf(act_buf, "%10s priority:%d ", this->name, this->priority);
--                if ((this->disabled)||(!this->compress))
--                        act_buf += sprintf(act_buf,"disabled");
--                else
--                        act_buf += sprintf(act_buf,"enabled");
--                act_buf += sprintf(act_buf,"\n");
--        }
--        return buf;
--}
--
--char *jffs2_stats(void)
--{
--        struct jffs2_compressor *this;
--        char *buf, *act_buf;
--
--        act_buf = buf = kmalloc(JFFS2_STAT_BUF_SIZE,GFP_KERNEL);
--
--        act_buf += sprintf(act_buf,"JFFS2 compressor statistics:\n");
--        act_buf += sprintf(act_buf,"%10s   ","none");
--        act_buf += sprintf(act_buf,"compr: %d blocks (%d)  decompr: %d blocks\n", none_stat_compr_blocks,
--                           none_stat_compr_size, none_stat_decompr_blocks);
--        spin_lock(&jffs2_compressor_list_lock);
--        list_for_each_entry(this, &jffs2_compressor_list, list) {
--                act_buf += sprintf(act_buf,"%10s ",this->name);
--                if ((this->disabled)||(!this->compress))
--                        act_buf += sprintf(act_buf,"- ");
--                else
--                        act_buf += sprintf(act_buf,"+ ");
--                act_buf += sprintf(act_buf,"compr: %d blocks (%d/%d)  decompr: %d blocks ", this->stat_compr_blocks,
--                                   this->stat_compr_new_size, this->stat_compr_orig_size,
--                                   this->stat_decompr_blocks);
--                act_buf += sprintf(act_buf,"\n");
--        }
--        spin_unlock(&jffs2_compressor_list_lock);
--
--        return buf;
--}
--
--char *jffs2_get_compression_mode_name(void)
--{
--        switch (jffs2_compression_mode) {
--        case JFFS2_COMPR_MODE_NONE:
--                return "none";
--        case JFFS2_COMPR_MODE_PRIORITY:
--                return "priority";
--        case JFFS2_COMPR_MODE_SIZE:
--                return "size";
--        }
--        return "unkown";
--}
--
--int jffs2_set_compression_mode_name(const char *name)
--{
--        if (!strcmp("none",name)) {
--                jffs2_compression_mode = JFFS2_COMPR_MODE_NONE;
--                return 0;
--        }
--        if (!strcmp("priority",name)) {
--                jffs2_compression_mode = JFFS2_COMPR_MODE_PRIORITY;
--                return 0;
--        }
--        if (!strcmp("size",name)) {
--                jffs2_compression_mode = JFFS2_COMPR_MODE_SIZE;
--                return 0;
--        }
--        return 1;
--}
--
--static int jffs2_compressor_Xable(const char *name, int disabled)
--{
--        struct jffs2_compressor *this;
--        spin_lock(&jffs2_compressor_list_lock);
--        list_for_each_entry(this, &jffs2_compressor_list, list) {
--                if (!strcmp(this->name, name)) {
--                        this->disabled = disabled;
--                        spin_unlock(&jffs2_compressor_list_lock);
--                        return 0;
--                }
--        }
--        spin_unlock(&jffs2_compressor_list_lock);
--        printk(KERN_WARNING "JFFS2: compressor %s not found.\n",name);
--        return 1;
--}
--
--int jffs2_enable_compressor_name(const char *name)
--{
--        return jffs2_compressor_Xable(name, 0);
--}
--
--int jffs2_disable_compressor_name(const char *name)
--{
--        return jffs2_compressor_Xable(name, 1);
--}
--
--int jffs2_set_compressor_priority(const char *name, int priority)
--{
--        struct jffs2_compressor *this,*comp;
--        spin_lock(&jffs2_compressor_list_lock);
--        list_for_each_entry(this, &jffs2_compressor_list, list) {
--                if (!strcmp(this->name, name)) {
--                        this->priority = priority;
--                        comp = this;
--                        goto reinsert;
--                }
--        }
--        spin_unlock(&jffs2_compressor_list_lock);
--        printk(KERN_WARNING "JFFS2: compressor %s not found.\n",name);
--        return 1;
--reinsert:
--        /* list is sorted in the order of priority, so if
--           we change it we have to reinsert it into the
--           good place */
--        list_del(&comp->list);
--        list_for_each_entry(this, &jffs2_compressor_list, list) {
--                if (this->priority < comp->priority) {
--                        list_add(&comp->list, this->list.prev);
--                        spin_unlock(&jffs2_compressor_list_lock);
--                        return 0;
--                }
--        }
--        list_add_tail(&comp->list, &jffs2_compressor_list);
--        spin_unlock(&jffs2_compressor_list_lock);
--        return 0;
--}
--
--#endif
--
- void jffs2_free_comprbuf(unsigned char *comprbuf, unsigned char *orig)
++/*
++ * Some chips power-up with all sectors locked by default.
++ */
++static void fixup_use_powerup_lock(struct mtd_info *mtd, void *param)
++{
++	printk(KERN_INFO "Using auto-unlock on power-up/resume\n" );
++	mtd->flags |= MTD_STUPID_LOCK;
++}
++
+ static struct cfi_fixup cfi_fixup_table[] = {
+ #ifdef CMDSET0001_DISABLE_ERASE_SUSPEND_ON_WRITE
+ 	{ CFI_MFR_ANY, CFI_ID_ANY, fixup_intel_strataflash, NULL },
+@@ -232,6 +244,7 @@ static struct cfi_fixup cfi_fixup_table[
+ #endif
+ 	{ CFI_MFR_ST, 0x00ba, /* M28W320CT */ fixup_st_m28w320ct, NULL },
+ 	{ CFI_MFR_ST, 0x00bb, /* M28W320CB */ fixup_st_m28w320cb, NULL },
++	{ MANUFACTURER_INTEL, 0x891c,	      fixup_use_powerup_lock, NULL, },
+ 	{ 0, 0, NULL, NULL }
+ };
+ 
+@@ -460,6 +473,7 @@ static struct mtd_info *cfi_intelext_set
+ 			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].offset = (j*devsize)+offset;
+ 			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].erasesize = ersize;
+ 			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].numblocks = ernum;
++			mtd->eraseregions[(j*cfi->cfiq->NumEraseRegions)+i].lockmap = kmalloc(ernum / 8 + 1, GFP_KERNEL);
+ 		}
+ 		offset += (ersize * ernum);
+ 	}
+@@ -1825,8 +1839,7 @@ static void cfi_intelext_sync (struct mt
+ 	}
+ }
+ 
+-#ifdef DEBUG_LOCK_BITS
+-static int __xipram do_printlockstatus_oneblock(struct map_info *map,
++static int __xipram do_getlockstatus_oneblock(struct map_info *map,
+ 						struct flchip *chip,
+ 						unsigned long adr,
+ 						int len, void *thunk)
+@@ -1840,8 +1853,17 @@ static int __xipram do_printlockstatus_o
+ 	chip->state = FL_JEDEC_QUERY;
+ 	status = cfi_read_query(map, adr+(2*ofs_factor));
+ 	xip_enable(map, chip, 0);
++	return status;
++}
++
++#ifdef DEBUG_LOCK_BITS
++static int __xipram do_printlockstatus_oneblock(struct map_info *map,
++						struct flchip *chip,
++						unsigned long adr,
++						int len, void *thunk)
++{
+ 	printk(KERN_DEBUG "block status register for 0x%08lx is %x\n",
+-	       adr, status);
++	       adr, do_getlockstatus_oneblock(map, chip, adr, len, thunk));
+ 	return 0;
+ }
+ #endif
+@@ -2216,14 +2238,45 @@ static int cfi_intelext_get_user_prot_in
+ 
+ #endif
+ 
++static void cfi_intelext_save_locks(struct mtd_info *mtd)
++{
++	struct mtd_erase_region_info *region;
++	int block, status, i;
++	unsigned long adr;
++	size_t len;
++
++	for (i = 0; i < mtd->numeraseregions; i++) {
++		region = &mtd->eraseregions[i];
++		if (!region->lockmap)
++			continue;
++
++		for (block = 0; block < region->numblocks; block++){
++			len = region->erasesize;
++			adr = region->offset + block * len;
++
++			status = cfi_varsize_frob(mtd,
++					do_getlockstatus_oneblock, adr, len, 0);
++			if (status)
++				set_bit(block, region->lockmap);
++			else
++				clear_bit(block, region->lockmap);
++		}
++	}
++}
++
+ static int cfi_intelext_suspend(struct mtd_info *mtd)
  {
-         if (orig != comprbuf)
-diff -puN fs/jffs2/compr.h~jffs2-delete-everything-related-to-obsolete-jffs2_proc fs/jffs2/compr.h
---- a/fs/jffs2/compr.h~jffs2-delete-everything-related-to-obsolete-jffs2_proc
-+++ a/fs/jffs2/compr.h
-@@ -76,16 +76,6 @@ int jffs2_decompress(struct jffs2_sb_inf
+ 	struct map_info *map = mtd->priv;
+ 	struct cfi_private *cfi = map->fldrv_priv;
++	struct cfi_pri_intelext *extp = cfi->cmdset_priv;
+ 	int i;
+ 	struct flchip *chip;
+ 	int ret = 0;
  
- void jffs2_free_comprbuf(unsigned char *comprbuf, unsigned char *orig);
++	if ((mtd->flags & MTD_STUPID_LOCK)
++	    && extp && (extp->FeatureSupport & (1 << 5)))
++		cfi_intelext_save_locks(mtd);
++
+ 	for (i=0; !ret && i<cfi->numchips; i++) {
+ 		chip = &cfi->chips[i];
  
--#ifdef CONFIG_JFFS2_PROC
--int jffs2_enable_compressor_name(const char *name);
--int jffs2_disable_compressor_name(const char *name);
--int jffs2_set_compression_mode_name(const char *mode_name);
--char *jffs2_get_compression_mode_name(void);
--int jffs2_set_compressor_priority(const char *mode_name, int priority);
--char *jffs2_list_compressors(void);
--char *jffs2_stats(void);
--#endif
--
- /* Compressor modules */
- /* These functions will be called by jffs2_compressors_init/exit */
+@@ -2285,10 +2338,33 @@ static int cfi_intelext_suspend(struct m
+ 	return ret;
+ }
  
++static void cfi_intelext_restore_locks(struct mtd_info *mtd)
++{
++	struct mtd_erase_region_info *region;
++	int block, i;
++	unsigned long adr;
++	size_t len;
++
++	for (i = 0; i < mtd->numeraseregions; i++) {
++		region = &mtd->eraseregions[i];
++		if (!region->lockmap)
++			continue;
++
++		for (block = 0; block < region->numblocks; block++) {
++			len = region->erasesize;
++			adr = region->offset + block * len;
++
++			if (!test_bit(block, region->lockmap))
++				cfi_intelext_unlock(mtd, adr, len);
++		}
++	}
++}
++
+ static void cfi_intelext_resume(struct mtd_info *mtd)
+ {
+ 	struct map_info *map = mtd->priv;
+ 	struct cfi_private *cfi = map->fldrv_priv;
++	struct cfi_pri_intelext *extp = cfi->cmdset_priv;
+ 	int i;
+ 	struct flchip *chip;
+ 
+@@ -2307,6 +2383,10 @@ static void cfi_intelext_resume(struct m
+ 
+ 		spin_unlock(chip->mutex);
+ 	}
++
++	if ((mtd->flags & MTD_STUPID_LOCK)
++	    && extp && (extp->FeatureSupport & (1 << 5)))
++		cfi_intelext_restore_locks(mtd);
+ }
+ 
+ static int cfi_intelext_reset(struct mtd_info *mtd)
+@@ -2347,12 +2427,19 @@ static void cfi_intelext_destroy(struct 
+ {
+ 	struct map_info *map = mtd->priv;
+ 	struct cfi_private *cfi = map->fldrv_priv;
++	struct mtd_erase_region_info *region;
++	int i;
+ 	cfi_intelext_reset(mtd);
+ 	unregister_reboot_notifier(&mtd->reboot_notifier);
+ 	kfree(cfi->cmdset_priv);
+ 	kfree(cfi->cfiq);
+ 	kfree(cfi->chips[0].priv);
+ 	kfree(cfi);
++	for (i = 0; i < mtd->numeraseregions; i++) {
++		region = &mtd->eraseregions[i];
++		if (region->lockmap)
++			kfree(region->lockmap);
++	}
+ 	kfree(mtd->eraseregions);
+ }
+ 
+diff -puN include/linux/mtd/mtd.h~mtd-support-for-auto-locking-flash-on-power-up include/linux/mtd/mtd.h
+--- a/include/linux/mtd/mtd.h~mtd-support-for-auto-locking-flash-on-power-up
++++ a/include/linux/mtd/mtd.h
+@@ -53,6 +53,7 @@ struct mtd_erase_region_info {
+ 	u_int32_t offset;			/* At which this region starts, from the beginning of the MTD */
+ 	u_int32_t erasesize;		/* For this region */
+ 	u_int32_t numblocks;		/* Number of blocks of erasesize in this region */
++	unsigned long *lockmap;		/* If keeping bitmap of locks */
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from giometti@enneenne.com are
 
-origin.patch
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-powerpc.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-git-drm.patch
+i2c-tsl2550-support.patch
 git-input.patch
 git-mtd.patch
-git-netdev-all.patch
-delete-unused-header-file-linux-sdla_frh.patch
-delete-unused-header-file-linux-if_wanpipe_commonh.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-scsi-misc.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-math-emu-extendedh.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
