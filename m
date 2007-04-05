@@ -1,104 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - pata_netcell-re-remove-all-the-crud.patch removed from -mm tree
-Date: Wed, 04 Apr 2007 19:00:08 -0700
-Message-ID: <200704050200.l352084P004792@shell0.pdx.osdl.net>
+Subject: - ieee1394_core-printk-format.patch removed from -mm tree
+Date: Wed, 04 Apr 2007 18:59:54 -0700
+Message-ID: <200704050159.l351xsOS004738@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38002 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38003 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753017AbXDECAQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 4 Apr 2007 22:00:16 -0400
+	id S1753043AbXDECAS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 4 Apr 2007 22:00:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@redhat.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_netcell: re-remove all the crud
+     ieee1394_core printk format
 has been removed from the -mm tree.  Its filename was
-     pata_netcell-re-remove-all-the-crud.patch
+     ieee1394_core-printk-format.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_netcell: re-remove all the crud
-From: Alan Cox <alan@redhat.com>
+Subject: ieee1394_core printk format
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Fix printk format string:
+drivers/ieee1394/ieee1394_core.c:702: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_netcell.c |   31 +++----------------------------
- 1 file changed, 3 insertions(+), 28 deletions(-)
+ drivers/ieee1394/ieee1394_core.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_netcell.c~pata_netcell-re-remove-all-the-crud drivers/ata/pata_netcell.c
---- a/drivers/ata/pata_netcell.c~pata_netcell-re-remove-all-the-crud
-+++ a/drivers/ata/pata_netcell.c
-@@ -16,33 +16,7 @@
- #include <linux/ata.h>
+diff -puN drivers/ieee1394/ieee1394_core.c~ieee1394_core-printk-format drivers/ieee1394/ieee1394_core.c
+--- a/drivers/ieee1394/ieee1394_core.c~ieee1394_core-printk-format
++++ a/drivers/ieee1394/ieee1394_core.c
+@@ -699,7 +699,7 @@ static size_t packet_size_to_data_size(s
+ 		ret = buffer_size;
  
- #define DRV_NAME	"pata_netcell"
--#define DRV_VERSION	"0.1.6"
--
--/**
-- *	netcell_probe_init	-	check for 40/80 pin
-- *	@ap: Port
-- *
-- *	Cables are handled by the RAID controller. Report 80 pin.
-- */
--
--static int netcell_pre_reset(struct ata_port *ap)
--{
--	ap->cbl = ATA_CBL_PATA80;
--	return ata_std_prereset(ap);
--}
--
--/**
-- *	netcell_probe_reset - Probe specified port on PATA host controller
-- *	@ap: Port to probe
-- *
-- *	LOCKING:
-- *	None (inherited from caller).
-- */
--
--static void netcell_error_handler(struct ata_port *ap)
--{
--	return ata_bmdma_drive_eh(ap, netcell_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
--}
-+#define DRV_VERSION	"0.1.7"
- 
- /* No PIO or DMA methods needed for this device */
- 
-@@ -81,8 +55,9 @@ static const struct ata_port_operations 
- 
- 	.freeze			= ata_bmdma_freeze,
- 	.thaw			= ata_bmdma_thaw,
--	.error_handler		= netcell_error_handler,
-+	.error_handler		= ata_bmdma_error_handler,
- 	.post_internal_cmd	= ata_bmdma_post_internal_cmd,
-+	.cable_detect		= ata_cable_80wire,
- 
- 	/* BMDMA handling is PCI ATA format, use helpers */
- 	.bmdma_setup		= ata_bmdma_setup,
+ 	if (unlikely(ret + header_size != packet_size))
+-		HPSB_ERR("unexpected packet size %d (tcode %d), bug?",
++		HPSB_ERR("unexpected packet size %zd (tcode %d), bug?",
+ 			 packet_size, tcode);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
-git-libata-all.patch
-ata_generic-remove-all-the-crud-again-and-use-cable.patch
-pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
-libata-acpi-add-infrastructure-for-drivers-to-use.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver.patch
-pata_acpi-restore-driver-fix.patch
-libata-misc-minor-merge-fixups.patch
-pata_hpt37x-further-small-fixes.patch
-pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
-pata_pdc2027x-bring-into-line-with-changes-add-the-mode.patch
-pci_module_init-convertion-in-tmscsimc.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-revoke-special-mmap-handling.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
+git-acpi.patch
+git-drm.patch
+git-ieee1394.patch
+romfs-printk-format-warnings.patch
+git-netdev-all.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+scripts-kernel-doc-whitespace-cleanup.patch
+reiserfs-proc-support-requires-proc_fs.patch
+kprobes-fix-sparse-null-warning.patch
+header-cleaning-dont-include-smp_lockh-when-not-used.patch
+ext4-use-null-for-pointers.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+profile-likely-unlikely-macros.patch
