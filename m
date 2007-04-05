@@ -1,124 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - sata_nv-dont-read-shadow-registers-when-in-adma-mode.patch removed from -mm tree
-Date: Wed, 04 Apr 2007 19:00:02 -0700
-Message-ID: <200704050200.l35202MK004780@shell0.pdx.osdl.net>
+Subject: - cifs-remove-unneeded-checks.patch removed from -mm tree
+Date: Wed, 04 Apr 2007 18:59:51 -0700
+Message-ID: <200704050159.l351xpKZ004735@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37988 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37995 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752904AbXDECAG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 4 Apr 2007 22:00:06 -0400
+	id S1752916AbXDECAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 4 Apr 2007 22:00:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hancockr@shaw.ca, mm-commits@vger.kernel.org
+To: hch@lst.de, sfrench@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_nv: don't read shadow registers when in ADMA mode
+     cifs: remove unneeded checks
 has been removed from the -mm tree.  Its filename was
-     sata_nv-dont-read-shadow-registers-when-in-adma-mode.patch
+     cifs-remove-unneeded-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sata_nv: don't read shadow registers when in ADMA mode
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: cifs: remove unneeded checks
+From: Christoph Hellwig <hch@lst.de>
 
-Reading from the ATA shadow registers while we are in ADMA mode may cause
-undefined behavior.  Don't read the ATA status register when completing
-commands for this reason, it shouldn't be needed as the controller will
-notify us if the command failed.  Also, don't allow commands with result
-taskfile requested to execute in ADMA mode, since that requires accessing
-the shadow registers.  We also still need to override tf_read since libata
-will read the result taskfile on a command failure, and we need to go into
-port register mode before allowing this.
+file->f_path.dentry or file->f_path.dentry.d_inode can't be NULL since at
+least ten years, similar for all but very few arguments passed in from the
+VFS.
 
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |   33 ++++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 13 deletions(-)
+ fs/cifs/file.c |   53 +++++++++++++++--------------------------------
+ 1 file changed, 18 insertions(+), 35 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~sata_nv-dont-read-shadow-registers-when-in-adma-mode drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~sata_nv-dont-read-shadow-registers-when-in-adma-mode
-+++ a/drivers/ata/sata_nv.c
-@@ -260,6 +260,7 @@ static int nv_adma_port_resume(struct at
- static void nv_adma_error_handler(struct ata_port *ap);
- static void nv_adma_host_stop(struct ata_host *host);
- static void nv_adma_post_internal_cmd(struct ata_queued_cmd *qc);
-+static void nv_adma_tf_read(struct ata_port *ap, struct ata_taskfile *tf);
+diff -puN fs/cifs/file.c~cifs-remove-unneeded-checks fs/cifs/file.c
+--- a/fs/cifs/file.c~cifs-remove-unneeded-checks
++++ a/fs/cifs/file.c
+@@ -352,8 +352,6 @@ static int cifs_reopen_file(struct inode
+ 	int disposition = FILE_OPEN;
+ 	__u16 netfid;
  
- enum nv_host_type
- {
-@@ -435,7 +436,7 @@ static const struct ata_port_operations 
- static const struct ata_port_operations nv_adma_ops = {
- 	.port_disable		= ata_port_disable,
- 	.tf_load		= ata_tf_load,
--	.tf_read		= ata_tf_read,
-+	.tf_read		= nv_adma_tf_read,
- 	.check_atapi_dma	= nv_adma_check_atapi_dma,
- 	.exec_command		= ata_exec_command,
- 	.check_status		= ata_check_status,
-@@ -667,6 +668,18 @@ static int nv_adma_check_atapi_dma(struc
- 	return !(pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE);
- }
- 
-+static void nv_adma_tf_read(struct ata_port *ap, struct ata_taskfile *tf)
-+{
-+	/* Since commands where a result TF is requested are not
-+	   executed in ADMA mode, the only time this function will be called
-+	   in ADMA mode will be if a command fails. In this case we
-+	   don't care about going into register mode with ADMA commands
-+	   pending, as the commands will all shortly be aborted anyway. */
-+	nv_adma_register_mode(ap);
-+
-+	ata_tf_read(ap, tf);
-+}
-+
- static unsigned int nv_adma_tf_to_cpb(struct ata_taskfile *tf, __le16 *cpb)
- {
- 	unsigned int idx = 0;
-@@ -738,19 +751,11 @@ static int nv_adma_check_cpb(struct ata_
- 		return 1;
+-	if (inode == NULL)
+-		return -EBADF;
+ 	if (file->private_data) {
+ 		pCifsFile = (struct cifsFileInfo *)file->private_data;
+ 	} else
+@@ -367,12 +365,6 @@ static int cifs_reopen_file(struct inode
+ 		return 0;
  	}
  
--	if (flags & NV_CPB_RESP_DONE) {
-+	if (likely(flags & NV_CPB_RESP_DONE)) {
- 		struct ata_queued_cmd *qc = ata_qc_from_tag(ap, cpb_num);
- 		VPRINTK("CPB flags done, flags=0x%x\n", flags);
- 		if (likely(qc)) {
--			/* Grab the ATA port status for non-NCQ commands.
--			   For NCQ commands the current status may have nothing to do with
--			   the command just completed. */
--			if (qc->tf.protocol != ATA_PROT_NCQ) {
--				u8 ata_status = readb(pp->ctl_block + (ATA_REG_STATUS * 4));
--				qc->err_mask |= ac_err_mask(ata_status);
--			}
--			DPRINTK("Completing qc from tag %d with err_mask %u\n",cpb_num,
--				qc->err_mask);
-+			DPRINTK("Completing qc from tag %d\n",cpb_num);
- 			ata_qc_complete(qc);
- 		} else {
- 			struct ata_eh_info *ehi = &ap->eh_info;
-@@ -1167,9 +1172,11 @@ static int nv_adma_use_reg_mode(struct a
- 	struct nv_adma_port_priv *pp = qc->ap->private_data;
+-	if (file->f_path.dentry == NULL) {
+-		up(&pCifsFile->fh_sem);
+-		cFYI(1, ("failed file reopen, no valid name if dentry freed"));
+-		FreeXid(xid);
+-		return -EBADF;
+-	}
+ 	cifs_sb = CIFS_SB(inode->i_sb);
+ 	pTcon = cifs_sb->tcon;
+ /* can not grab rename sem here because various ops, including
+@@ -784,6 +776,7 @@ int cifs_lock(struct file *file, int cmd
+ ssize_t cifs_user_write(struct file *file, const char __user *write_data,
+ 	size_t write_size, loff_t *poffset)
+ {
++	struct inode *inode = file->f_path.dentry->d_inode;
+ 	int rc = 0;
+ 	unsigned int bytes_written = 0;
+ 	unsigned int total_written;
+@@ -831,11 +824,6 @@ ssize_t cifs_user_write(struct file *fil
+ 					return -EBADF;
+ 			}
+ 			if (open_file->invalidHandle) {
+-				if ((file->f_path.dentry == NULL) ||
+-				    (file->f_path.dentry->d_inode == NULL)) {
+-					FreeXid(xid);
+-					return total_written;
+-				}
+ 				/* we could deadlock if we called
+ 				   filemap_fdatawait from here so tell
+ 				   reopen_file not to flush data to server
+@@ -868,21 +856,18 @@ ssize_t cifs_user_write(struct file *fil
  
- 	/* ADMA engine can only be used for non-ATAPI DMA commands,
--	   or interrupt-driven no-data commands. */
-+	   or interrupt-driven no-data commands, where a result taskfile
-+	   is not required. */
- 	if((pp->flags & NV_ADMA_ATAPI_SETUP_COMPLETE) ||
--	   (qc->tf.flags & ATA_TFLAG_POLLING))
-+	   (qc->tf.flags & ATA_TFLAG_POLLING) ||
-+	   (qc->flags & ATA_QCFLAG_RESULT_TF))
- 		return 1;
+ 	cifs_stats_bytes_written(pTcon, total_written);
  
- 	if((qc->flags & ATA_QCFLAG_DMAMAP) ||
+-	/* since the write may have blocked check these pointers again */
+-	if ((file->f_path.dentry) && (file->f_path.dentry->d_inode)) {
+-		struct inode *inode = file->f_path.dentry->d_inode;
+ /* Do not update local mtime - server will set its actual value on write		
+  *		inode->i_ctime = inode->i_mtime = 
+  * 			current_fs_time(inode->i_sb);*/
+-		if (total_written > 0) {
+-			spin_lock(&inode->i_lock);
+-			if (*poffset > file->f_path.dentry->d_inode->i_size)
+-				i_size_write(file->f_path.dentry->d_inode,
+-					*poffset);
+-			spin_unlock(&inode->i_lock);
+-		}
+-		mark_inode_dirty_sync(file->f_path.dentry->d_inode);	
++	if (total_written > 0) {
++		spin_lock(&inode->i_lock);
++		if (*poffset > file->f_path.dentry->d_inode->i_size)
++			i_size_write(file->f_path.dentry->d_inode,
++				*poffset);
++		spin_unlock(&inode->i_lock);
+ 	}
++	mark_inode_dirty_sync(file->f_path.dentry->d_inode);
++
+ 	FreeXid(xid);
+ 	return total_written;
+ }
+@@ -988,19 +973,17 @@ static ssize_t cifs_write(struct file *f
+ 	cifs_stats_bytes_written(pTcon, total_written);
+ 
+ 	/* since the write may have blocked check these pointers again */
+-	if ((file->f_path.dentry) && (file->f_path.dentry->d_inode)) {
+ /*BB We could make this contingent on superblock ATIME flag too */
+-/*		file->f_path.dentry->d_inode->i_ctime =
+-		file->f_path.dentry->d_inode->i_mtime = CURRENT_TIME;*/
+-		if (total_written > 0) {
+-			spin_lock(&file->f_path.dentry->d_inode->i_lock);
+-			if (*poffset > file->f_path.dentry->d_inode->i_size)
+-				i_size_write(file->f_path.dentry->d_inode,
+-					     *poffset);
+-			spin_unlock(&file->f_path.dentry->d_inode->i_lock);
+-		}
+-		mark_inode_dirty_sync(file->f_path.dentry->d_inode);
++/*	file->f_path.dentry->d_inode->i_ctime =
++	file->f_path.dentry->d_inode->i_mtime = CURRENT_TIME;*/
++	if (total_written > 0) {
++		spin_lock(&file->f_path.dentry->d_inode->i_lock);
++		if (*poffset > file->f_path.dentry->d_inode->i_size)
++			i_size_write(file->f_path.dentry->d_inode,
++				     *poffset);
++		spin_unlock(&file->f_path.dentry->d_inode->i_lock);
+ 	}
++	mark_inode_dirty_sync(file->f_path.dentry->d_inode);
+ 	FreeXid(xid);
+ 	return total_written;
+ }
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-git-libata-all.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-cifs.patch
+git-ocfs2.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+simplify-the-stacktrace-code.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+freevxfs-possible-null-pointer-dereference-fix.patch
+vfs-remove-superflous-sb-==-null-checks.patch
+nameic-remove-utterly-outdated-comment.patch
+move-die-notifier-handling-to-common-code.patch
+move-die-notifier-handling-to-common-code-fixes.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+remove-do_sync_file_range.patch
+remove-artificial-software-max_loop-limit.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
+aio-is-unlikely.patch
+kprobes-use-hlist_for_each_entry.patch
+kprobes-codingstyle-cleanups.patch
+kprobes-kretprobes-simplifcations.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+ps3fb-thread-updates.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3av-misc-updates.patch
