@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch added to -mm tree
-Date: Fri, 06 Apr 2007 16:26:35 -0700
-Message-ID: <200704062326.l36NQZC0022520@shell0.pdx.osdl.net>
+Subject: + paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch added to -mm tree
+Date: Fri, 06 Apr 2007 16:26:13 -0700
+Message-ID: <200704062326.l36NQDq1022501@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38362 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38315 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933452AbXDFX0q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 19:26:46 -0400
+	id S933426AbXDFX0Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 19:26:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com
+Cc: jeremy@goop.org, clameter@sgi.com, jeremy@xensource.com, mingo@elte.hu, wli@holomorphy.com, zach@vmware.com
 
 
 The patch titled
-     paravirt_ops: Use patch site IDs computed from offset in paravirt_ops structure
+     paravirt_ops: Allow paravirt backend to choose kernel PMD sharing
 has been added to the -mm tree.  Its filename is
-     paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
+     paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,377 +25,369 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: paravirt_ops: Use patch site IDs computed from offset in paravirt_ops structure
+Subject: paravirt_ops: Allow paravirt backend to choose kernel PMD sharing
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Use patch type identifiers derived from the offset of the operation in the
-paravirt_ops structure.  This avoids having to maintain a separate enum for
-patch site types.
+Normally when running in PAE mode, the 4th PMD maps the kernel address space,
+which can be shared among all processes (since they all need the same kernel
+mappings).
 
-Also, since the identifier is derived from the offset into paravirt_ops, the
-offset can be derived from the identifier.  This is used to remove replicated
-information in the various callsite macros, which has been a source of bugs in
-the past.
+Xen, however, does not allow guests to have the kernel pmd shared between page
+tables, so parameterize pgtable.c to allow both modes of operation.
 
-This patch also drops the fused save_fl+cli operation, which doesn't really
-add much and makes things more complex - specifically because it breaks the
-1:1 relationship between identifiers and offsets.  If this operation turns out
-to be particularly beneficial, then the right answer is to define a new
-entrypoint for it.
+There are several side-effects of this.  One is that vmalloc will update the
+kernel address space mappings, and those updates need to be propagated into
+all processes if the kernel mappings are not intrinsically shared.  In the
+non-PAE case, this is done by maintaining a pgd_list of all processes; this
+list is used when all process pagetables must be updated.  pgd_list is
+threaded via otherwise unused entries in the page structure for the pgd, which
+means that the pgd must be page-sized for this to work.
+
+Normally the PAE pgd is only 4x64 byte entries large, but Xen requires the PAE
+pgd to page aligned anyway, so this patch forces the pgd to be page
+aligned+sized when the kernel pmd is unshared, to accomodate both these
+requirements.
+
+Also, since there may be several distinct kernel pmds (if the user/kernel
+split is below 3G), there's no point in allocating them from a slab cache;
+they're just allocated with get_free_page and initialized appropriately.  (Of
+course the could be cached if there is just a single kernel pmd - which is the
+default with a 3G user/kernel split - but it doesn't seem worthwhile to add
+yet another case into this code).
+
+[ Many thanks to wli for review comments. ]
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: William Lee Irwin III <wli@holomorphy.com>
 Cc: Zachary Amsden <zach@vmware.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |   14 +-
- arch/i386/kernel/vmi.c      |   39 +------
- include/asm-i386/paravirt.h |  179 +++++++++++++++++-----------------
- 3 files changed, 105 insertions(+), 127 deletions(-)
+ arch/i386/kernel/paravirt.c            |    1 
+ arch/i386/mm/fault.c                   |    6 -
+ arch/i386/mm/init.c                    |   18 ++++-
+ arch/i386/mm/pageattr.c                |    2 
+ arch/i386/mm/pgtable.c                 |   82 +++++++++++++++++++----
+ include/asm-i386/paravirt.h            |    1 
+ include/asm-i386/pgtable-2level-defs.h |    2 
+ include/asm-i386/pgtable-2level.h      |    2 
+ include/asm-i386/pgtable-3level-defs.h |    6 +
+ include/asm-i386/pgtable-3level.h      |    2 
+ include/asm-i386/pgtable.h             |    7 +
+ 11 files changed, 104 insertions(+), 25 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
+diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
 +++ a/arch/i386/kernel/paravirt.c
-@@ -58,7 +58,6 @@ DEF_NATIVE(cli, "cli");
- DEF_NATIVE(sti, "sti");
- DEF_NATIVE(popf, "push %eax; popf");
- DEF_NATIVE(pushf, "pushf; pop %eax");
--DEF_NATIVE(pushf_cli, "pushf; pop %eax; cli");
- DEF_NATIVE(iret, "iret");
- DEF_NATIVE(sti_sysexit, "sti; sysexit");
+@@ -132,6 +132,7 @@ struct paravirt_ops paravirt_ops = {
+ 	.name = "bare hardware",
+ 	.paravirt_enabled = 0,
+ 	.kernel_rpl = 0,
++	.shared_kernel_pmd = 1,	/* Only used when CONFIG_X86_PAE is set */
  
-@@ -66,13 +65,12 @@ static const struct native_insns
+  	.patch = native_patch,
+ 	.banner = default_banner,
+diff -puN arch/i386/mm/fault.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/arch/i386/mm/fault.c
+@@ -603,8 +603,7 @@ do_sigbus:
+ 	force_sig_info_fault(SIGBUS, BUS_ADRERR, address, tsk);
+ }
+ 
+-#ifndef CONFIG_X86_PAE
+-void vmalloc_sync_all(void)
++void _vmalloc_sync_all(void)
  {
- 	const char *start, *end;
- } native_insns[] = {
--	[PARAVIRT_IRQ_DISABLE] = { start_cli, end_cli },
--	[PARAVIRT_IRQ_ENABLE] = { start_sti, end_sti },
--	[PARAVIRT_RESTORE_FLAGS] = { start_popf, end_popf },
--	[PARAVIRT_SAVE_FLAGS] = { start_pushf, end_pushf },
--	[PARAVIRT_SAVE_FLAGS_IRQ_DISABLE] = { start_pushf_cli, end_pushf_cli },
--	[PARAVIRT_INTERRUPT_RETURN] = { start_iret, end_iret },
--	[PARAVIRT_STI_SYSEXIT] = { start_sti_sysexit, end_sti_sysexit },
-+	[PARAVIRT_PATCH(irq_disable)] = { start_cli, end_cli },
-+	[PARAVIRT_PATCH(irq_enable)] = { start_sti, end_sti },
-+	[PARAVIRT_PATCH(restore_fl)] = { start_popf, end_popf },
-+	[PARAVIRT_PATCH(save_fl)] = { start_pushf, end_pushf },
-+	[PARAVIRT_PATCH(iret)] = { start_iret, end_iret },
-+	[PARAVIRT_PATCH(irq_enable_sysexit)] = { start_sti_sysexit, end_sti_sysexit },
- };
+ 	/*
+ 	 * Note that races in the updates of insync and start aren't
+@@ -616,6 +615,8 @@ void vmalloc_sync_all(void)
+ 	static unsigned long start = TASK_SIZE;
+ 	unsigned long address;
  
- static unsigned native_patch(u8 type, u16 clobbers, void *insns, unsigned len)
-diff -puN arch/i386/kernel/vmi.c~paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
-+++ a/arch/i386/kernel/vmi.c
-@@ -83,11 +83,6 @@ extern struct paravirt_patch_site __star
- #define MNEM_JMP  0xe9
- #define MNEM_RET  0xc3
++	BUG_ON(SHARED_KERNEL_PMD);
++
+ 	BUILD_BUG_ON(TASK_SIZE & ~PGDIR_MASK);
+ 	for (address = start; address >= TASK_SIZE; address += PGDIR_SIZE) {
+ 		if (!test_bit(pgd_index(address), insync)) {
+@@ -638,4 +639,3 @@ void vmalloc_sync_all(void)
+ 			start = address + PGDIR_SIZE;
+ 	}
+ }
+-#endif
+diff -puN arch/i386/mm/init.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing arch/i386/mm/init.c
+--- a/arch/i386/mm/init.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/arch/i386/mm/init.c
+@@ -757,6 +757,8 @@ struct kmem_cache *pmd_cache;
  
--static char irq_save_disable_callout[] = {
--	MNEM_CALL, 0, 0, 0, 0,
--	MNEM_CALL, 0, 0, 0, 0,
--	MNEM_RET
--};
- #define IRQ_PATCH_INT_MASK 0
- #define IRQ_PATCH_DISABLE  5
- 
-@@ -135,33 +130,17 @@ static unsigned patch_internal(int call,
- static unsigned vmi_patch(u8 type, u16 clobbers, void *insns, unsigned len)
+ void __init pgtable_cache_init(void)
  {
- 	switch (type) {
--		case PARAVIRT_IRQ_DISABLE:
-+		case PARAVIRT_PATCH(irq_disable):
- 			return patch_internal(VMI_CALL_DisableInterrupts, len, insns);
--		case PARAVIRT_IRQ_ENABLE:
-+		case PARAVIRT_PATCH(irq_enable):
- 			return patch_internal(VMI_CALL_EnableInterrupts, len, insns);
--		case PARAVIRT_RESTORE_FLAGS:
-+		case PARAVIRT_PATCH(restore_fl):
- 			return patch_internal(VMI_CALL_SetInterruptMask, len, insns);
--		case PARAVIRT_SAVE_FLAGS:
-+		case PARAVIRT_PATCH(save_fl):
- 			return patch_internal(VMI_CALL_GetInterruptMask, len, insns);
--        	case PARAVIRT_SAVE_FLAGS_IRQ_DISABLE:
--			if (len >= 10) {
--				patch_internal(VMI_CALL_GetInterruptMask, len, insns);
--				patch_internal(VMI_CALL_DisableInterrupts, len-5, insns+5);
--				return 10;
--			} else {
--				/*
--				 * You bastards didn't leave enough room to
--				 * patch save_flags_irq_disable inline.  Patch
--				 * to a helper
--				 */
--				BUG_ON(len < 5);
--				*(char *)insns = MNEM_CALL;
--				patch_offset(insns, irq_save_disable_callout);
--				return 5;
--			}
--		case PARAVIRT_INTERRUPT_RETURN:
-+		case PARAVIRT_PATCH(iret):
- 			return patch_internal(VMI_CALL_IRET, len, insns);
--		case PARAVIRT_STI_SYSEXIT:
-+		case PARAVIRT_PATCH(irq_enable_sysexit):
- 			return patch_internal(VMI_CALL_SYSEXIT, len, insns);
- 		default:
- 			break;
-@@ -798,12 +777,6 @@ static inline int __init activate_vmi(vo
- 	para_fill(irq_disable, DisableInterrupts);
- 	para_fill(irq_enable, EnableInterrupts);
++	size_t pgd_size = PTRS_PER_PGD*sizeof(pgd_t);
++
+ 	if (PTRS_PER_PMD > 1) {
+ 		pmd_cache = kmem_cache_create("pmd",
+ 					PTRS_PER_PMD*sizeof(pmd_t),
+@@ -766,13 +768,23 @@ void __init pgtable_cache_init(void)
+ 					NULL);
+ 		if (!pmd_cache)
+ 			panic("pgtable_cache_init(): cannot create pmd cache");
++
++		if (!SHARED_KERNEL_PMD) {
++			/* If we're in PAE mode and have a non-shared
++			   kernel pmd, then the pgd size must be a
++			   page size.  This is because the pgd_list
++			   links through the page structure, so there
++			   can only be one pgd per page for this to
++			   work. */
++			pgd_size = PAGE_SIZE;
++		}
+ 	}
+ 	pgd_cache = kmem_cache_create("pgd",
+-				PTRS_PER_PGD*sizeof(pgd_t),
+-				PTRS_PER_PGD*sizeof(pgd_t),
++				pgd_size,
++				pgd_size,
+ 				0,
+ 				pgd_ctor,
+-				PTRS_PER_PMD == 1 ? pgd_dtor : NULL);
++				(!SHARED_KERNEL_PMD) ? pgd_dtor : NULL);
+ 	if (!pgd_cache)
+ 		panic("pgtable_cache_init(): Cannot create pgd cache");
+ }
+diff -puN arch/i386/mm/pageattr.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing arch/i386/mm/pageattr.c
+--- a/arch/i386/mm/pageattr.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/arch/i386/mm/pageattr.c
+@@ -91,7 +91,7 @@ static void set_pmd_pte(pte_t *kpte, uns
+ 	unsigned long flags;
  
--	/* irq_save_disable !!! sheer pain */
--	patch_offset(&irq_save_disable_callout[IRQ_PATCH_INT_MASK],
--		     (char *)paravirt_ops.save_fl);
--	patch_offset(&irq_save_disable_callout[IRQ_PATCH_DISABLE],
--		     (char *)paravirt_ops.irq_disable);
--
- 	para_fill(wbinvd, WBINVD);
- 	para_fill(read_tsc, RDTSC);
+ 	set_pte_atomic(kpte, pte); 	/* change init_mm */
+-	if (PTRS_PER_PMD > 1)
++	if (SHARED_KERNEL_PMD)
+ 		return;
  
-diff -puN include/asm-i386/paravirt.h~paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure
+ 	spin_lock_irqsave(&pgd_lock, flags);
+diff -puN arch/i386/mm/pgtable.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing arch/i386/mm/pgtable.c
+--- a/arch/i386/mm/pgtable.c~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/arch/i386/mm/pgtable.c
+@@ -238,42 +238,94 @@ static inline void pgd_list_del(pgd_t *p
+ 		set_page_private(next, (unsigned long)pprev);
+ }
+ 
++#if (PTRS_PER_PMD == 1)
++/* Non-PAE pgd constructor */
+ void pgd_ctor(void *pgd, struct kmem_cache *cache, unsigned long unused)
+ {
+ 	unsigned long flags;
+ 
+-	if (PTRS_PER_PMD == 1) {
+-		memset(pgd, 0, USER_PTRS_PER_PGD*sizeof(pgd_t));
+-		spin_lock_irqsave(&pgd_lock, flags);
+-	}
++	/* !PAE, no pagetable sharing */
++	memset(pgd, 0, USER_PTRS_PER_PGD*sizeof(pgd_t));
+ 
+ 	clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
+ 			swapper_pg_dir + USER_PTRS_PER_PGD,
+ 			KERNEL_PGD_PTRS);
+ 
+-	if (PTRS_PER_PMD > 1)
+-		return;
++	spin_lock_irqsave(&pgd_lock, flags);
+ 
+ 	/* must happen under lock */
+ 	paravirt_alloc_pd_clone(__pa(pgd) >> PAGE_SHIFT,
+-			__pa(swapper_pg_dir) >> PAGE_SHIFT,
+-			USER_PTRS_PER_PGD, PTRS_PER_PGD - USER_PTRS_PER_PGD);
++				__pa(swapper_pg_dir) >> PAGE_SHIFT,
++				USER_PTRS_PER_PGD,
++				KERNEL_PGD_PTRS);
+ 
+ 	pgd_list_add(pgd);
+ 	spin_unlock_irqrestore(&pgd_lock, flags);
+ }
++#else  /* PTRS_PER_PMD > 1 */
++/* PAE pgd constructor */
++void pgd_ctor(void *pgd, struct kmem_cache *cache, unsigned long unused)
++{
++	/* PAE, kernel PMD may be shared */
++
++	if (SHARED_KERNEL_PMD) {
++		clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
++				swapper_pg_dir + USER_PTRS_PER_PGD,
++				KERNEL_PGD_PTRS);
++	} else {
++		unsigned long flags;
++
++		memset(pgd, 0, USER_PTRS_PER_PGD*sizeof(pgd_t));
++		spin_lock_irqsave(&pgd_lock, flags);
++		pgd_list_add(pgd);
++		spin_unlock_irqrestore(&pgd_lock, flags);
++	}
++}
++#endif	/* PTRS_PER_PMD */
+ 
+-/* never called when PTRS_PER_PMD > 1 */
+ void pgd_dtor(void *pgd, struct kmem_cache *cache, unsigned long unused)
+ {
+ 	unsigned long flags; /* can be called from interrupt context */
+ 
++	BUG_ON(SHARED_KERNEL_PMD);
++
+ 	paravirt_release_pd(__pa(pgd) >> PAGE_SHIFT);
+ 	spin_lock_irqsave(&pgd_lock, flags);
+ 	pgd_list_del(pgd);
+ 	spin_unlock_irqrestore(&pgd_lock, flags);
+ }
+ 
++#define UNSHARED_PTRS_PER_PGD				\
++	(SHARED_KERNEL_PMD ? USER_PTRS_PER_PGD : PTRS_PER_PGD)
++
++/* If we allocate a pmd for part of the kernel address space, then
++   make sure its initialized with the appropriate kernel mappings.
++   Otherwise use a cached zeroed pmd.  */
++static pmd_t *pmd_cache_alloc(int idx)
++{
++	pmd_t *pmd;
++
++	if (idx >= USER_PTRS_PER_PGD) {
++		pmd = (pmd_t *)__get_free_page(GFP_KERNEL);
++
++		if (pmd)
++			memcpy(pmd,
++			       (void *)pgd_page_vaddr(swapper_pg_dir[idx]),
++			       sizeof(pmd_t) * PTRS_PER_PMD);
++	} else
++		pmd = kmem_cache_alloc(pmd_cache, GFP_KERNEL);
++
++	return pmd;
++}
++
++static void pmd_cache_free(pmd_t *pmd, int idx)
++{
++	if (idx >= USER_PTRS_PER_PGD)
++		free_page((unsigned long)pmd);
++	else
++		kmem_cache_free(pmd_cache, pmd);
++}
++
+ pgd_t *pgd_alloc(struct mm_struct *mm)
+ {
+ 	int i;
+@@ -282,10 +334,12 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
+ 	if (PTRS_PER_PMD == 1 || !pgd)
+ 		return pgd;
+ 
+-	for (i = 0; i < USER_PTRS_PER_PGD; ++i) {
+-		pmd_t *pmd = kmem_cache_alloc(pmd_cache, GFP_KERNEL);
++ 	for (i = 0; i < UNSHARED_PTRS_PER_PGD; ++i) {
++		pmd_t *pmd = pmd_cache_alloc(i);
++
+ 		if (!pmd)
+ 			goto out_oom;
++
+ 		paravirt_alloc_pd(__pa(pmd) >> PAGE_SHIFT);
+ 		set_pgd(&pgd[i], __pgd(1 + __pa(pmd)));
+ 	}
+@@ -296,7 +350,7 @@ out_oom:
+ 		pgd_t pgdent = pgd[i];
+ 		void* pmd = (void *)__va(pgd_val(pgdent)-1);
+ 		paravirt_release_pd(__pa(pmd) >> PAGE_SHIFT);
+-		kmem_cache_free(pmd_cache, pmd);
++		pmd_cache_free(pmd, i);
+ 	}
+ 	kmem_cache_free(pgd_cache, pgd);
+ 	return NULL;
+@@ -308,11 +362,11 @@ void pgd_free(pgd_t *pgd)
+ 
+ 	/* in the PAE case user pgd entries are overwritten before usage */
+ 	if (PTRS_PER_PMD > 1)
+-		for (i = 0; i < USER_PTRS_PER_PGD; ++i) {
++		for (i = 0; i < UNSHARED_PTRS_PER_PGD; ++i) {
+ 			pgd_t pgdent = pgd[i];
+ 			void* pmd = (void *)__va(pgd_val(pgdent)-1);
+ 			paravirt_release_pd(__pa(pmd) >> PAGE_SHIFT);
+-			kmem_cache_free(pmd_cache, pmd);
++			pmd_cache_free(pmd, i);
+ 		}
+ 	/* in the non-PAE case, free_pgtables() clears user pgd entries */
+ 	kmem_cache_free(pgd_cache, pgd);
+diff -puN include/asm-i386/paravirt.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
 +++ a/include/asm-i386/paravirt.h
-@@ -4,19 +4,8 @@
-  * para-virtualization: those hooks are defined here. */
- 
- #ifdef CONFIG_PARAVIRT
--#include <linux/stringify.h>
- #include <asm/page.h>
- 
--/* These are the most performance critical ops, so we want to be able to patch
-- * callers */
--#define PARAVIRT_IRQ_DISABLE 0
--#define PARAVIRT_IRQ_ENABLE 1
--#define PARAVIRT_RESTORE_FLAGS 2
--#define PARAVIRT_SAVE_FLAGS 3
--#define PARAVIRT_SAVE_FLAGS_IRQ_DISABLE 4
--#define PARAVIRT_INTERRUPT_RETURN 5
--#define PARAVIRT_STI_SYSEXIT 6
--
- /* Bitmask of what can be clobbered: usually at least eax. */
- #define CLBR_NONE 0x0
- #define CLBR_EAX 0x1
-@@ -191,6 +180,28 @@ struct paravirt_ops
- 
- extern struct paravirt_ops paravirt_ops;
- 
-+#define PARAVIRT_PATCH(x)					\
-+	(offsetof(struct paravirt_ops, x) / sizeof(void *))
-+
-+#define paravirt_type(type)					\
-+	[paravirt_typenum] "i" (PARAVIRT_PATCH(type))
-+#define paravirt_clobber(clobber)		\
-+	[paravirt_clobber] "i" (clobber)
-+
-+#define PARAVIRT_CALL	"call *paravirt_ops+%c[paravirt_typenum]*4;"
-+
-+#define _paravirt_alt(insn_string, type, clobber)	\
-+	"771:\n\t" insn_string "\n" "772:\n"		\
-+	".pushsection .parainstructions,\"a\"\n"	\
-+	"  .long 771b\n"				\
-+	"  .byte " type "\n"				\
-+	"  .byte 772b-771b\n"				\
-+	"  .short " clobber "\n"			\
-+	".popsection\n"
-+
-+#define paravirt_alt(insn_string)				\
-+	_paravirt_alt(insn_string, "%c[paravirt_typenum]", "%c[paravirt_clobber]")
-+
- #define paravirt_enabled() (paravirt_ops.paravirt_enabled)
- 
- static inline void load_esp0(struct tss_struct *tss,
-@@ -512,93 +523,89 @@ struct paravirt_patch_site {
- extern struct paravirt_patch_site __parainstructions[],
- 	__parainstructions_end[];
- 
--#define paravirt_alt(insn_string, typenum, clobber)	\
--	"771:\n\t" insn_string "\n" "772:\n"		\
--	".pushsection .parainstructions,\"a\"\n"	\
--	"  .long 771b\n"				\
--	"  .byte " __stringify(typenum) "\n"		\
--	"  .byte 772b-771b\n"				\
--	"  .short " __stringify(clobber) "\n"		\
--	".popsection"
--
- static inline unsigned long __raw_local_save_flags(void)
+@@ -35,6 +35,7 @@ struct desc_struct;
+ struct paravirt_ops
  {
- 	unsigned long f;
+ 	unsigned int kernel_rpl;
++	int shared_kernel_pmd;
+  	int paravirt_enabled;
+ 	const char *name;
  
--	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
--					   "call *%1;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_SAVE_FLAGS, CLBR_NONE)
--			     : "=a"(f): "m"(paravirt_ops.save_fl)
--			     : "memory", "cc");
-+	asm volatile(paravirt_alt("pushl %%ecx; pushl %%edx;"
-+				  PARAVIRT_CALL
-+				  "popl %%edx; popl %%ecx")
-+		     : "=a"(f)
-+		     : paravirt_type(save_fl),
-+		       paravirt_clobber(CLBR_NONE)
-+		     : "memory", "cc");
- 	return f;
- }
+diff -puN include/asm-i386/pgtable-2level-defs.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable-2level-defs.h
+--- a/include/asm-i386/pgtable-2level-defs.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/pgtable-2level-defs.h
+@@ -1,6 +1,8 @@
+ #ifndef _I386_PGTABLE_2LEVEL_DEFS_H
+ #define _I386_PGTABLE_2LEVEL_DEFS_H
  
- static inline void raw_local_irq_restore(unsigned long f)
- {
--	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
--					   "call *%1;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_RESTORE_FLAGS, CLBR_EAX)
--			     : "=a"(f) : "m" (paravirt_ops.restore_fl), "0"(f)
--			     : "memory", "cc");
-+	asm volatile(paravirt_alt("pushl %%ecx; pushl %%edx;"
-+				  PARAVIRT_CALL
-+				  "popl %%edx; popl %%ecx")
-+		     : "=a"(f)
-+		     : "0"(f),
-+		       paravirt_type(restore_fl),
-+		       paravirt_clobber(CLBR_EAX)
-+		     : "memory", "cc");
- }
++#define SHARED_KERNEL_PMD	0
++
+ /*
+  * traditional i386 two-level paging structure:
+  */
+diff -puN include/asm-i386/pgtable-2level.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable-2level.h
+--- a/include/asm-i386/pgtable-2level.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/pgtable-2level.h
+@@ -82,6 +82,4 @@ static inline int pte_exec_kernel(pte_t 
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { (pte).pte_low })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
- static inline void raw_local_irq_disable(void)
- {
--	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
--					   "call *%0;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_IRQ_DISABLE, CLBR_EAX)
--			     : : "m" (paravirt_ops.irq_disable)
--			     : "memory", "eax", "cc");
-+	asm volatile(paravirt_alt("pushl %%ecx; pushl %%edx;"
-+				  PARAVIRT_CALL
-+				  "popl %%edx; popl %%ecx")
-+		     :
-+		     : paravirt_type(irq_disable),
-+		       paravirt_clobber(CLBR_EAX)
-+		     : "memory", "eax", "cc");
- }
- 
- static inline void raw_local_irq_enable(void)
- {
--	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
--					   "call *%0;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_IRQ_ENABLE, CLBR_EAX)
--			     : : "m" (paravirt_ops.irq_enable)
--			     : "memory", "eax", "cc");
-+	asm volatile(paravirt_alt("pushl %%ecx; pushl %%edx;"
-+				  PARAVIRT_CALL
-+				  "popl %%edx; popl %%ecx")
-+		     :
-+		     : paravirt_type(irq_enable),
-+		       paravirt_clobber(CLBR_EAX)
-+		     : "memory", "eax", "cc");
- }
- 
- static inline unsigned long __raw_local_irq_save(void)
- {
- 	unsigned long f;
- 
--	__asm__ __volatile__(paravirt_alt( "pushl %%ecx; pushl %%edx;"
--					   "call *%1; pushl %%eax;"
--					   "call *%2; popl %%eax;"
--					   "popl %%edx; popl %%ecx",
--					  PARAVIRT_SAVE_FLAGS_IRQ_DISABLE,
--					  CLBR_NONE)
--			     : "=a"(f)
--			     : "m" (paravirt_ops.save_fl),
--			       "m" (paravirt_ops.irq_disable)
--			     : "memory", "cc");
-+	f = __raw_local_save_flags();
-+	raw_local_irq_disable();
- 	return f;
- }
- 
--#define CLI_STRING paravirt_alt("pushl %%ecx; pushl %%edx;"		\
--		     "call *paravirt_ops+%c[irq_disable];"		\
--		     "popl %%edx; popl %%ecx",				\
--		     PARAVIRT_IRQ_DISABLE, CLBR_EAX)
+-void vmalloc_sync_all(void);
 -
--#define STI_STRING paravirt_alt("pushl %%ecx; pushl %%edx;"		\
--		     "call *paravirt_ops+%c[irq_enable];"		\
--		     "popl %%edx; popl %%ecx",				\
--		     PARAVIRT_IRQ_ENABLE, CLBR_EAX)
-+#define CLI_STRING							\
-+	_paravirt_alt("pushl %%ecx; pushl %%edx;"			\
-+		      "call *paravirt_ops+%c[paravirt_cli_type]*4;"	\
-+		      "popl %%edx; popl %%ecx",				\
-+		      "%c[paravirt_cli_type]", "%c[paravirt_clobber]")
-+
-+#define STI_STRING							\
-+	_paravirt_alt("pushl %%ecx; pushl %%edx;"			\
-+		      "call *paravirt_ops+%c[paravirt_sti_type]*4;"	\
-+		      "popl %%edx; popl %%ecx",				\
-+		      "%c[paravirt_sti_type]", "%c[paravirt_clobber]")
-+
- #define CLI_STI_CLOBBERS , "%eax"
--#define CLI_STI_INPUT_ARGS \
-+#define CLI_STI_INPUT_ARGS						\
- 	,								\
--	[irq_disable] "i" (offsetof(struct paravirt_ops, irq_disable)),	\
--	[irq_enable] "i" (offsetof(struct paravirt_ops, irq_enable))
-+	[paravirt_cli_type] "i" (PARAVIRT_PATCH(irq_disable)),		\
-+	[paravirt_sti_type] "i" (PARAVIRT_PATCH(irq_enable)),		\
-+	paravirt_clobber(CLBR_EAX)
-+
-+#undef PARAVIRT_CALL
+ #endif /* _I386_PGTABLE_2LEVEL_H */
+diff -puN include/asm-i386/pgtable-3level-defs.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable-3level-defs.h
+--- a/include/asm-i386/pgtable-3level-defs.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/pgtable-3level-defs.h
+@@ -1,6 +1,12 @@
+ #ifndef _I386_PGTABLE_3LEVEL_DEFS_H
+ #define _I386_PGTABLE_3LEVEL_DEFS_H
  
- #else  /* __ASSEMBLY__ */
- 
--#define PARA_PATCH(ptype, clobbers, ops)	\
-+#define PARA_PATCH(off)	((off) / 4)
++#ifdef CONFIG_PARAVIRT
++#define SHARED_KERNEL_PMD	(paravirt_ops.shared_kernel_pmd)
++#else
++#define SHARED_KERNEL_PMD	1
++#endif
 +
-+#define PARA_SITE(ptype, clobbers, ops)		\
- 771:;						\
- 	ops;					\
- 772:;						\
-@@ -609,25 +616,25 @@ static inline unsigned long __raw_local_
- 	 .short clobbers;			\
- 	.popsection
+ /*
+  * PGDIR_SHIFT determines what a top-level page table entry can map
+  */
+diff -puN include/asm-i386/pgtable-3level.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable-3level.h
+--- a/include/asm-i386/pgtable-3level.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/pgtable-3level.h
+@@ -200,6 +200,4 @@ static inline pmd_t pfn_pmd(unsigned lon
  
--#define INTERRUPT_RETURN				\
--	PARA_PATCH(PARAVIRT_INTERRUPT_RETURN, CLBR_ANY,	\
--	jmp *%cs:paravirt_ops+PARAVIRT_iret)
+ #define __pmd_free_tlb(tlb, x)		do { } while (0)
+ 
+-#define vmalloc_sync_all() ((void)0)
 -
--#define DISABLE_INTERRUPTS(clobbers)			\
--	PARA_PATCH(PARAVIRT_IRQ_DISABLE, clobbers,	\
--	pushl %ecx; pushl %edx;				\
--	call *paravirt_ops+PARAVIRT_irq_disable;	\
--	popl %edx; popl %ecx)				\
--
--#define ENABLE_INTERRUPTS(clobbers)			\
--	PARA_PATCH(PARAVIRT_IRQ_ENABLE, clobbers,	\
--	pushl %ecx; pushl %edx;				\
--	call *%cs:paravirt_ops+PARAVIRT_irq_enable;	\
--	popl %edx; popl %ecx)
--
--#define ENABLE_INTERRUPTS_SYSEXIT			\
--	PARA_PATCH(PARAVIRT_STI_SYSEXIT, CLBR_ANY,	\
--	jmp *%cs:paravirt_ops+PARAVIRT_irq_enable_sysexit)
-+#define INTERRUPT_RETURN					\
-+	PARA_SITE(PARA_PATCH(PARAVIRT_iret), CLBR_ANY,		\
-+		  jmp *%cs:paravirt_ops+PARAVIRT_iret)
-+
-+#define DISABLE_INTERRUPTS(clobbers)					\
-+	PARA_SITE(PARA_PATCH(PARAVIRT_irq_disable), clobbers,		\
-+		  pushl %ecx; pushl %edx;				\
-+		  call *%cs:paravirt_ops+PARAVIRT_irq_disable;		\
-+		  popl %edx; popl %ecx)					\
-+
-+#define ENABLE_INTERRUPTS(clobbers)					\
-+	PARA_SITE(PARA_PATCH(PARAVIRT_irq_enable), clobbers,		\
-+		  pushl %ecx; pushl %edx;				\
-+		  call *%cs:paravirt_ops+PARAVIRT_irq_enable;		\
-+		  popl %edx; popl %ecx)
-+
-+#define ENABLE_INTERRUPTS_SYSEXIT					\
-+	PARA_SITE(PARA_PATCH(PARAVIRT_irq_enable_sysexit), CLBR_ANY,	\
-+		  jmp *%cs:paravirt_ops+PARAVIRT_irq_enable_sysexit)
+ #endif /* _I386_PGTABLE_3LEVEL_H */
+diff -puN include/asm-i386/pgtable.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing
++++ a/include/asm-i386/pgtable.h
+@@ -243,6 +243,13 @@ static inline pte_t pte_mkyoung(pte_t pt
+ static inline pte_t pte_mkwrite(pte_t pte)	{ (pte).pte_low |= _PAGE_RW; return pte; }
+ static inline pte_t pte_mkhuge(pte_t pte)	{ (pte).pte_low |= _PAGE_PSE; return pte; }
  
- #define GET_CR0_INTO_EAX			\
- 	call *paravirt_ops+PARAVIRT_read_cr0
++extern void _vmalloc_sync_all(void);
++static inline void vmalloc_sync_all(void)
++{
++	if (!SHARED_KERNEL_PMD)
++		_vmalloc_sync_all();
++}
++
+ #ifdef CONFIG_X86_PAE
+ # include <asm/pgtable-3level.h>
+ #else
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
