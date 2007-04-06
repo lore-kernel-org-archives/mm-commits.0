@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + paravirt_ops-add-flush_tlb_others-paravirt_op.patch added to -mm tree
-Date: Fri, 06 Apr 2007 16:26:45 -0700
-Message-ID: <200704062326.l36NQjDV022537@shell0.pdx.osdl.net>
+Subject: + paravirt_ops-add-common-patching-machinery.patch added to -mm tree
+Date: Fri, 06 Apr 2007 16:26:43 -0700
+Message-ID: <200704062326.l36NQhwU022532@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38370 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38415 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933454AbXDFX0t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 19:26:49 -0400
+	id S933463AbXDFX1H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 19:27:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, jeremy@xensource.com
+Cc: jeremy@goop.org, anthony@codemonkey.ws, jeremy@xensource.com, mingo@elte.hu, rusty@rustcorp.com.au, zach@vmware.com
 
 
 The patch titled
-     paravirt_ops: add flush_tlb_others paravirt_op
+     paravirt_ops: add common patching machinery
 has been added to the -mm tree.  Its filename is
-     paravirt_ops-add-flush_tlb_others-paravirt_op.patch
+     paravirt_ops-add-common-patching-machinery.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,178 +25,270 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: paravirt_ops: add flush_tlb_others paravirt_op
+Subject: paravirt_ops: add common patching machinery
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-This patch adds a pv_op for flush_tlb_others.  Linux running on native
-hardware uses cross-CPU IPIs to flush the TLB on any CPU which may have a
-particular mm's pagetable entries cached in its TLB.  This is inefficient in a
-paravirtualized environment, since the hypervisor knows which real CPUs
-actually contain cached mappings, which may be a small subset of a guest's
-VCPUs.
+Implement the actual patching machinery.  paravirt_patch_default() contains
+the logic to automatically patch a callsite based on a few simple rules:
+
+ - if the paravirt_op function is paravirt_nop, then patch nops
+ - if the paravirt_op function is a jmp target, then jmp to it
+ - if the paravirt_op function is callable and doesn't clobber too much
+    for the callsite, call it directly
+
+paravirt_patch_default is suitable as a default implementation of
+paravirt_ops.patch, will remove most of the expensive indirect calls in favour
+of either a direct call or a pile of nops.
+
+Backends may implement their own patcher, however.  There are several helper
+functions to help with this:
+
+paravirt_patch_nop	nop out a callsite
+paravirt_patch_ignore	leave the callsite as-is
+paravirt_patch_call	patch a call if the caller and callee
+			have compatible clobbers
+paravirt_patch_jmp	patch in a jmp
+paravirt_patch_insns	patch some literal instructions over
+			the callsite, if they fit
+
+This patch also implements more direct patches for the native case, so
+that when running on native hardware many common operations are
+implemented inline.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: Anthony Liguori <anthony@codemonkey.ws>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |    1 +
- arch/i386/kernel/smp.c      |   13 +++++++------
- include/asm-i386/paravirt.h |    9 +++++++++
- include/asm-i386/tlbflush.h |   19 +++++++++++++++++--
- 4 files changed, 34 insertions(+), 8 deletions(-)
+ arch/i386/kernel/alternative.c |    5 -
+ arch/i386/kernel/paravirt.c    |  154 +++++++++++++++++++++++++------
+ include/asm-i386/paravirt.h    |   12 ++
+ 3 files changed, 144 insertions(+), 27 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-add-flush_tlb_others-paravirt_op arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~paravirt_ops-add-flush_tlb_others-paravirt_op
-+++ a/arch/i386/kernel/paravirt.c
-@@ -300,6 +300,7 @@ struct paravirt_ops paravirt_ops = {
- 	.flush_tlb_user = native_flush_tlb,
- 	.flush_tlb_kernel = native_flush_tlb_global,
- 	.flush_tlb_single = native_flush_tlb_single,
-+	.flush_tlb_others = native_flush_tlb_others,
+diff -puN arch/i386/kernel/alternative.c~paravirt_ops-add-common-patching-machinery arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~paravirt_ops-add-common-patching-machinery
++++ a/arch/i386/kernel/alternative.c
+@@ -361,11 +361,14 @@ void apply_paravirt(struct paravirt_patc
+ 		used = paravirt_ops.patch(p->instrtype, p->clobbers, p->instr,
+ 					  p->len);
  
- 	.map_pt_hook = paravirt_nop,
- 
-diff -puN arch/i386/kernel/smp.c~paravirt_ops-add-flush_tlb_others-paravirt_op arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~paravirt_ops-add-flush_tlb_others-paravirt_op
-+++ a/arch/i386/kernel/smp.c
-@@ -256,7 +256,6 @@ static cpumask_t flush_cpumask;
- static struct mm_struct * flush_mm;
- static unsigned long flush_va;
- static DEFINE_SPINLOCK(tlbstate_lock);
--#define FLUSH_ALL	0xffffffff
- 
- /*
-  * We cannot call mmdrop() because we are in interrupt context, 
-@@ -338,7 +337,7 @@ fastcall void smp_invalidate_interrupt(s
- 		 
- 	if (flush_mm == per_cpu(cpu_tlbstate, cpu).active_mm) {
- 		if (per_cpu(cpu_tlbstate, cpu).state == TLBSTATE_OK) {
--			if (flush_va == FLUSH_ALL)
-+			if (flush_va == TLB_FLUSH_ALL)
- 				local_flush_tlb();
- 			else
- 				__flush_tlb_one(flush_va);
-@@ -353,9 +352,11 @@ out:
- 	put_cpu_no_resched();
- }
- 
--static void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
--						unsigned long va)
-+void native_flush_tlb_others(const cpumask_t *cpumaskp, struct mm_struct *mm,
-+			     unsigned long va)
- {
-+	cpumask_t cpumask = *cpumaskp;
++		BUG_ON(used > p->len);
 +
- 	/*
- 	 * A couple of (to be removed) sanity checks:
- 	 *
-@@ -417,7 +418,7 @@ void flush_tlb_current_task(void)
- 
- 	local_flush_tlb();
- 	if (!cpus_empty(cpu_mask))
--		flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
-+		flush_tlb_others(cpu_mask, mm, TLB_FLUSH_ALL);
- 	preempt_enable();
- }
- 
-@@ -436,7 +437,7 @@ void flush_tlb_mm (struct mm_struct * mm
- 			leave_mm(smp_processor_id());
+ 		/* Pad the rest with nops */
+ 		nop_out(p->instr + used, p->len - used);
  	}
- 	if (!cpus_empty(cpu_mask))
--		flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
-+		flush_tlb_others(cpu_mask, mm, TLB_FLUSH_ALL);
  
- 	preempt_enable();
+-	/* Sync to be conservative, in case we patched following instructions */
++	/* Sync to be conservative, in case we patched following
++	   instructions */
+ 	sync_core();
  }
-diff -puN include/asm-i386/paravirt.h~paravirt_ops-add-flush_tlb_others-paravirt_op include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~paravirt_ops-add-flush_tlb_others-paravirt_op
-+++ a/include/asm-i386/paravirt.h
-@@ -15,6 +15,7 @@
- 
- #ifndef __ASSEMBLY__
- #include <linux/types.h>
-+#include <linux/cpumask.h>
- 
- struct thread_struct;
- struct Xgt_desc_struct;
-@@ -165,6 +166,8 @@ struct paravirt_ops
- 	void (*flush_tlb_user)(void);
- 	void (*flush_tlb_kernel)(void);
- 	void (*flush_tlb_single)(unsigned long addr);
-+	void (*flush_tlb_others)(const cpumask_t *cpus, struct mm_struct *mm,
-+				 unsigned long va);
- 
- 	void (*map_pt_hook)(int type, pte_t *va, u32 pfn);
- 
-@@ -853,6 +856,12 @@ static inline void __flush_tlb_single(un
- 	PVOP_VCALL1(flush_tlb_single, addr);
- }
- 
-+static inline void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
-+				    unsigned long va)
-+{
-+	PVOP_VCALL3(flush_tlb_others, &cpumask, mm, va);
-+}
+ extern struct paravirt_patch_site __start_parainstructions[],
+diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-add-common-patching-machinery arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~paravirt_ops-add-common-patching-machinery
++++ a/arch/i386/kernel/paravirt.c
+@@ -54,40 +54,142 @@ char *memory_setup(void)
+ #define DEF_NATIVE(name, code)					\
+ 	extern const char start_##name[], end_##name[];		\
+ 	asm("start_" #name ": " code "; end_" #name ":")
+-DEF_NATIVE(cli, "cli");
+-DEF_NATIVE(sti, "sti");
+-DEF_NATIVE(popf, "push %eax; popf");
+-DEF_NATIVE(pushf, "pushf; pop %eax");
 +
- static inline void paravirt_map_pt_hook(int type, pte_t *va, u32 pfn)
++DEF_NATIVE(irq_disable, "cli");
++DEF_NATIVE(irq_enable, "sti");
++DEF_NATIVE(restore_fl, "push %eax; popf");
++DEF_NATIVE(save_fl, "pushf; pop %eax");
+ DEF_NATIVE(iret, "iret");
+-DEF_NATIVE(sti_sysexit, "sti; sysexit");
++DEF_NATIVE(irq_enable_sysexit, "sti; sysexit");
++DEF_NATIVE(read_cr2, "mov %cr2, %eax");
++DEF_NATIVE(write_cr3, "mov %eax, %cr3");
++DEF_NATIVE(read_cr3, "mov %cr3, %eax");
++DEF_NATIVE(clts, "clts");
++DEF_NATIVE(read_tsc, "rdtsc");
+ 
+-static const struct native_insns
+-{
+-	const char *start, *end;
+-} native_insns[] = {
+-	[PARAVIRT_PATCH(irq_disable)] = { start_cli, end_cli },
+-	[PARAVIRT_PATCH(irq_enable)] = { start_sti, end_sti },
+-	[PARAVIRT_PATCH(restore_fl)] = { start_popf, end_popf },
+-	[PARAVIRT_PATCH(save_fl)] = { start_pushf, end_pushf },
+-	[PARAVIRT_PATCH(iret)] = { start_iret, end_iret },
+-	[PARAVIRT_PATCH(irq_enable_sysexit)] = { start_sti_sysexit, end_sti_sysexit },
+-};
++DEF_NATIVE(ud2a, "ud2a");
+ 
+ static unsigned native_patch(u8 type, u16 clobbers, void *insns, unsigned len)
  {
- 	PVOP_VCALL3(map_pt_hook, type, va, pfn);
-diff -puN include/asm-i386/tlbflush.h~paravirt_ops-add-flush_tlb_others-paravirt_op include/asm-i386/tlbflush.h
---- a/include/asm-i386/tlbflush.h~paravirt_ops-add-flush_tlb_others-paravirt_op
-+++ a/include/asm-i386/tlbflush.h
-@@ -79,11 +79,15 @@
-  *  - flush_tlb_range(vma, start, end) flushes a range of pages
-  *  - flush_tlb_kernel_range(start, end) flushes a range of kernel pages
-  *  - flush_tlb_pgtables(mm, start, end) flushes a range of page tables
-+ *  - flush_tlb_others(cpumask, mm, va) flushes a TLBs on other cpus
-  *
-  * ..but the i386 has somewhat limited tlb flushing capabilities,
-  * and page-granular flushes are available only on i486 and up.
-  */
- 
-+#define TLB_FLUSH_ALL	0xffffffff
+-	unsigned int insn_len;
++	const unsigned char *start, *end;
++	unsigned ret;
 +
++	switch(type) {
++#define SITE(x)	case PARAVIRT_PATCH(x):	start = start_##x; end = end_##x; goto patch_site
++		SITE(irq_disable);
++		SITE(irq_enable);
++		SITE(restore_fl);
++		SITE(save_fl);
++		SITE(iret);
++		SITE(irq_enable_sysexit);
++		SITE(read_cr2);
++		SITE(read_cr3);
++		SITE(write_cr3);
++		SITE(clts);
++		SITE(read_tsc);
++#undef SITE
 +
- #ifndef CONFIG_SMP
- 
- #define flush_tlb() __flush_tlb()
-@@ -110,7 +114,12 @@ static inline void flush_tlb_range(struc
- 		__flush_tlb();
- }
- 
--#else
-+static inline void native_flush_tlb_others(const cpumask_t *cpumask,
-+					   struct mm_struct *mm, unsigned long va)
-+{
++	patch_site:
++		ret = paravirt_patch_insns(insns, len, start, end);
++		break;
++
++	case PARAVIRT_PATCH(make_pgd):
++	case PARAVIRT_PATCH(make_pte):
++	case PARAVIRT_PATCH(pgd_val):
++	case PARAVIRT_PATCH(pte_val):
++#ifdef CONFIG_X86_PAE
++	case PARAVIRT_PATCH(make_pmd):
++	case PARAVIRT_PATCH(pmd_val):
++#endif
++		/* These functions end up returning exactly what
++		   they're passed, in the same registers. */
++		ret = paravirt_patch_nop();
++		break;
++
++	default:
++		ret = paravirt_patch_default(type, clobbers, insns, len);
++		break;
++	}
++
++	return ret;
 +}
 +
-+#else  /* SMP */
++unsigned paravirt_patch_nop(void)
++{
++	return 0;
++}
++
++unsigned paravirt_patch_ignore(unsigned len)
++{
++	return len;
++}
++
++unsigned paravirt_patch_call(void *target, u16 tgt_clobbers,
++			     void *site, u16 site_clobbers,
++			     unsigned len)
++{
++	unsigned char *call = site;
++	unsigned long delta = (unsigned long)target - (unsigned long)(call+5);
++
++	if (tgt_clobbers & ~site_clobbers)
++		return len;	/* target would clobber too much for this site */
++	if (len < 5)
++		return len;	/* call too long for patch site */
++
++	*call++ = 0xe8;		/* call */
++	*(unsigned long *)call = delta;
++
++	return 5;
++}
++
++unsigned paravirt_patch_jmp(void *target, void *site, unsigned len)
++{
++	unsigned char *jmp = site;
++	unsigned long delta = (unsigned long)target - (unsigned long)(jmp+5);
++
++	if (len < 5)
++		return len;	/* call too long for patch site */
++
++	*jmp++ = 0xe9;		/* jmp */
++	*(unsigned long *)jmp = delta;
++
++	return 5;
++}
++
++unsigned paravirt_patch_default(u8 type, u16 clobbers, void *site, unsigned len)
++{
++	void *opfunc = *((void **)&paravirt_ops + type);
++	unsigned ret;
++
++	if (opfunc == NULL)
++		/* If there's no function, patch it with a ud2a (BUG) */
++		ret = paravirt_patch_insns(site, len, start_ud2a, end_ud2a);
++	else if (opfunc == paravirt_nop)
++		/* If the operation is a nop, then nop the callsite */
++		ret = paravirt_patch_nop();
++	else if (type == PARAVIRT_PATCH(iret) ||
++		 type == PARAVIRT_PATCH(irq_enable_sysexit))
++		/* If operation requires a jmp, then jmp */
++		ret = paravirt_patch_jmp(opfunc, site, len);
++	else
++		/* Otherwise call the function; assume target could
++		   clobber any caller-save reg */
++		ret = paravirt_patch_call(opfunc, CLBR_ANY,
++					  site, clobbers, len);
  
- #include <asm/smp.h>
+-	/* Don't touch it if we don't have a replacement */
+-	if (type >= ARRAY_SIZE(native_insns) || !native_insns[type].start)
+-		return len;
++	return ret;
++}
  
-@@ -129,6 +138,9 @@ static inline void flush_tlb_range(struc
- 	flush_tlb_mm(vma->vm_mm);
+-	insn_len = native_insns[type].end - native_insns[type].start;
++unsigned paravirt_patch_insns(void *site, unsigned len,
++			      const char *start, const char *end)
++{
++	unsigned insn_len = end - start;
+ 
+-	/* Similarly if we can't fit replacement. */
+-	if (len < insn_len)
+-		return len;
++	if (insn_len > len || start == NULL)
++		insn_len = len;
++	else
++		memcpy(site, start, insn_len);
+ 
+-	memcpy(insns, native_insns[type].start, insn_len);
+ 	return insn_len;
  }
  
-+void native_flush_tlb_others(const cpumask_t *cpumask, struct mm_struct *mm,
-+			     unsigned long va);
+@@ -110,7 +212,7 @@ static void native_flush_tlb_global(void
+ 	__native_flush_tlb_global();
+ }
+ 
+-static void native_flush_tlb_single(u32 addr)
++static void native_flush_tlb_single(unsigned long addr)
+ {
+ 	__native_flush_tlb_single(addr);
+ }
+diff -puN include/asm-i386/paravirt.h~paravirt_ops-add-common-patching-machinery include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~paravirt_ops-add-common-patching-machinery
++++ a/include/asm-i386/paravirt.h
+@@ -248,6 +248,18 @@ extern struct paravirt_ops paravirt_ops;
+ #define paravirt_alt(insn_string)					\
+ 	_paravirt_alt(insn_string, "%c[paravirt_typenum]", "%c[paravirt_clobber]")
+ 
++unsigned paravirt_patch_nop(void);
++unsigned paravirt_patch_ignore(unsigned len);
++unsigned paravirt_patch_call(void *target, u16 tgt_clobbers,
++			     void *site, u16 site_clobbers,
++			     unsigned len);
++unsigned paravirt_patch_jmp(void *target, void *site, unsigned len);
++unsigned paravirt_patch_default(u8 type, u16 clobbers, void *site, unsigned len);
 +
- #define TLBSTATE_OK	1
- #define TLBSTATE_LAZY	2
- 
-@@ -139,8 +151,11 @@ struct tlb_state
- 	char __cacheline_padding[L1_CACHE_BYTES-8];
- };
- DECLARE_PER_CPU(struct tlb_state, cpu_tlbstate);
-+#endif	/* SMP */
- 
--
-+#ifndef CONFIG_PARAVIRT
-+#define flush_tlb_others(mask, mm, va)		\
-+	native_flush_tlb_others(&mask, mm, va)
- #endif
- 
- #define flush_tlb_kernel_range(start, end) flush_tlb_all()
++unsigned paravirt_patch_insns(void *site, unsigned len,
++			      const char *start, const char *end);
++
++
+ /*
+  * This generates an indirect call based on the operation type number.
+  * The type number, computed in PARAVIRT_PATCH, is derived from the
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
