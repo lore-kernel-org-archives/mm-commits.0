@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch added to -mm tree
-Date: Fri, 06 Apr 2007 14:24:49 -0700
-Message-ID: <200704062124.l36LOnxT019343@shell0.pdx.osdl.net>
+Subject: + blackfin-arch-use-boot_command_line-instead-of.patch added to -mm tree
+Date: Fri, 06 Apr 2007 14:24:44 -0700
+Message-ID: <200704062124.l36LOigW019326@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34724 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34701 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933090AbXDFVYv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 17:24:51 -0400
+	id S933089AbXDFVYr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 17:24:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bryan.wu@analog.com
 
 
 The patch titled
-     blackfin arch: add SCM_TIMESTAMPNS and SIOCGSTAMPNS to socket header file with code style cleaning up
+     blackfin arch: use boot_command_line instead of saved_command_line in setup c file
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
+     blackfin-arch-use-boot_command_line-instead-of.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: blackfin arch: add SCM_TIMESTAMPNS and SIOCGSTAMPNS to socket header file with code style cleaning up
+Subject: blackfin arch: use boot_command_line instead of saved_command_line in setup c file
 From: "Wu, Bryan" <bryan.wu@analog.com>
+
+As boot_command_line is added in init/main.c for arch-specific boot command
+line, replace old saved_command_line to boot_command_line for right boot
+command passing in -mm tree.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-blackfin/socket.h  |   11 ++++++-----
- include/asm-blackfin/sockios.h |    3 ++-
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ arch/blackfin/kernel/setup.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-blackfin/socket.h~blackfin-arch-add-scm_timestampns-and-siocgstampns-to include/asm-blackfin/socket.h
---- a/include/asm-blackfin/socket.h~blackfin-arch-add-scm_timestampns-and-siocgstampns-to
-+++ a/include/asm-blackfin/socket.h
-@@ -38,15 +38,16 @@
- #define SO_BINDTODEVICE	25
+diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-use-boot_command_line-instead-of arch/blackfin/kernel/setup.c
+--- a/arch/blackfin/kernel/setup.c~blackfin-arch-use-boot_command_line-instead-of
++++ a/arch/blackfin/kernel/setup.c
+@@ -221,8 +221,8 @@ void __init setup_arch(char **cmdline_p)
  
- /* Socket filtering */
--#define SO_ATTACH_FILTER        26
--#define SO_DETACH_FILTER        27
-+#define SO_ATTACH_FILTER	26
-+#define SO_DETACH_FILTER	27
+ 	/* Keep a copy of command line */
+ 	*cmdline_p = &command_line[0];
+-	memcpy(saved_command_line, command_line, COMMAND_LINE_SIZE);
+-	saved_command_line[COMMAND_LINE_SIZE - 1] = 0;
++	memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
++	boot_command_line[COMMAND_LINE_SIZE - 1] = 0;
  
--#define SO_PEERNAME             28
-+#define SO_PEERNAME		28
- #define SO_TIMESTAMP		29
- #define SCM_TIMESTAMP		SO_TIMESTAMP
- 
- #define SO_ACCEPTCONN		30
--#define SO_PEERSEC             31
-+#define SO_PEERSEC		31
- #define SO_PASSSEC		34
--
-+#define SO_TIMESTAMPNS		35
-+#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
- #endif				/* _ASM_SOCKET_H */
-diff -puN include/asm-blackfin/sockios.h~blackfin-arch-add-scm_timestampns-and-siocgstampns-to include/asm-blackfin/sockios.h
---- a/include/asm-blackfin/sockios.h~blackfin-arch-add-scm_timestampns-and-siocgstampns-to
-+++ a/include/asm-blackfin/sockios.h
-@@ -7,6 +7,7 @@
- #define FIOGETOWN	0x8903
- #define SIOCGPGRP	0x8904
- #define SIOCATMARK	0x8905
--#define SIOCGSTAMP	0x8906	/* Get stamp */
-+#define SIOCGSTAMP	0x8906	/* Get stamp (timeval) */
-+#define SIOCGSTAMPNS	0x8907	/* Get stamp (timespec) */
- 
- #endif				/* __ARCH_BFIN_SOCKIOS__ */
+ 	/* setup memory defaults from the user config */
+ 	physical_mem_end = 0;
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
