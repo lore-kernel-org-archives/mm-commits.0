@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch added to -mm tree
-Date: Fri, 06 Apr 2007 16:26:37 -0700
-Message-ID: <200704062326.l36NQbOD022523@shell0.pdx.osdl.net>
+Subject: + paravirt_ops-revert-map_pt_hook.patch added to -mm tree
+Date: Fri, 06 Apr 2007 16:26:47 -0700
+Message-ID: <200704062326.l36NQl3A022541@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38356 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38375 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933439AbXDFX0o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 19:26:44 -0400
+	id S933463AbXDFX0u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 19:26:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com
+Cc: jeremy@goop.org, jeremy@xensource.com, zach@vmware.com
 
 
 The patch titled
-     paravirt_ops: Fix patch site clobbers to include return register
+     paravirt_ops: revert map_pt_hook.
 has been added to the -mm tree.  Its filename is
-     paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
+     paravirt_ops-revert-map_pt_hook.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,87 +25,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: paravirt_ops: Fix patch site clobbers to include return register
+Subject: paravirt_ops: revert map_pt_hook.
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Fix a few clobbers to include the return register.  The clobbers set is the
-set of all registers modified (or may be modified) by the code snippet,
-regardless of whether it was deliberate or accidental.
-
-Also, make sure that callsites which are used in contexts which don't allow
-clobbers actually save and restore all clobberable registers.
+Back out the map_pt_hook to clear the way for kmap_atomic_pte.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/entry.S    |    2 +-
- include/asm-i386/paravirt.h |   18 ++++++++++--------
- 2 files changed, 11 insertions(+), 9 deletions(-)
+ arch/i386/kernel/paravirt.c |    2 --
+ arch/i386/kernel/vmi.c      |    2 ++
+ include/asm-i386/paravirt.h |    7 -------
+ include/asm-i386/pgtable.h  |   23 ++++-------------------
+ 4 files changed, 6 insertions(+), 28 deletions(-)
 
-diff -puN arch/i386/kernel/entry.S~paravirt_ops-fix-patch-site-clobbers-to-include-return-register arch/i386/kernel/entry.S
---- a/arch/i386/kernel/entry.S~paravirt_ops-fix-patch-site-clobbers-to-include-return-register
-+++ a/arch/i386/kernel/entry.S
-@@ -342,7 +342,7 @@ sysenter_past_esp:
- 	jae syscall_badsys
- 	call *sys_call_table(,%eax,4)
- 	movl %eax,PT_EAX(%esp)
--	DISABLE_INTERRUPTS(CLBR_ECX|CLBR_EDX)
-+	DISABLE_INTERRUPTS(CLBR_ANY)
- 	TRACE_IRQS_OFF
- 	movl TI_flags(%ebp), %ecx
- 	testw $_TIF_ALLWORK_MASK, %cx
-diff -puN include/asm-i386/paravirt.h~paravirt_ops-fix-patch-site-clobbers-to-include-return-register include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~paravirt_ops-fix-patch-site-clobbers-to-include-return-register
+diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-revert-map_pt_hook arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~paravirt_ops-revert-map_pt_hook
++++ a/arch/i386/kernel/paravirt.c
+@@ -302,8 +302,6 @@ struct paravirt_ops paravirt_ops = {
+ 	.flush_tlb_single = native_flush_tlb_single,
+ 	.flush_tlb_others = native_flush_tlb_others,
+ 
+-	.map_pt_hook = paravirt_nop,
+-
+ 	.alloc_pt = paravirt_nop,
+ 	.alloc_pd = paravirt_nop,
+ 	.alloc_pd_clone = paravirt_nop,
+diff -puN arch/i386/kernel/vmi.c~paravirt_ops-revert-map_pt_hook arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~paravirt_ops-revert-map_pt_hook
++++ a/arch/i386/kernel/vmi.c
+@@ -853,8 +853,10 @@ static inline int __init activate_vmi(vo
+ 		paravirt_ops.release_pt = vmi_release_pt;
+ 		paravirt_ops.release_pd = vmi_release_pd;
+ 	}
++#if 0
+ 	para_wrap(map_pt_hook, vmi_map_pt_hook, set_linear_mapping,
+ 		  SetLinearMapping);
++#endif
+ 
+ 	/*
+ 	 * These MUST always be patched.  Don't support indirect jumps
+diff -puN include/asm-i386/paravirt.h~paravirt_ops-revert-map_pt_hook include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~paravirt_ops-revert-map_pt_hook
 +++ a/include/asm-i386/paravirt.h
-@@ -532,7 +532,7 @@ static inline unsigned long __raw_local_
- 				  "popl %%edx; popl %%ecx")
- 		     : "=a"(f)
- 		     : paravirt_type(save_fl),
--		       paravirt_clobber(CLBR_NONE)
-+		       paravirt_clobber(CLBR_EAX)
- 		     : "memory", "cc");
- 	return f;
+@@ -169,8 +169,6 @@ struct paravirt_ops
+ 	void (*flush_tlb_others)(const cpumask_t *cpus, struct mm_struct *mm,
+ 				 unsigned long va);
+ 
+-	void (*map_pt_hook)(int type, pte_t *va, u32 pfn);
+-
+ 	/* Hooks for allocating/releasing pagetable pages */
+ 	void (*alloc_pt)(u32 pfn);
+ 	void (*alloc_pd)(u32 pfn);
+@@ -862,11 +860,6 @@ static inline void flush_tlb_others(cpum
+ 	PVOP_VCALL3(flush_tlb_others, &cpumask, mm, va);
  }
-@@ -617,27 +617,29 @@ static inline unsigned long __raw_local_
- 	.popsection
  
- #define INTERRUPT_RETURN					\
--	PARA_SITE(PARA_PATCH(PARAVIRT_iret), CLBR_ANY,		\
-+	PARA_SITE(PARA_PATCH(PARAVIRT_iret), CLBR_NONE,		\
- 		  jmp *%cs:paravirt_ops+PARAVIRT_iret)
+-static inline void paravirt_map_pt_hook(int type, pte_t *va, u32 pfn)
+-{
+-	PVOP_VCALL3(map_pt_hook, type, va, pfn);
+-}
+-
+ static inline void paravirt_alloc_pt(unsigned pfn)
+ {
+ 	PVOP_VCALL1(alloc_pt, pfn);
+diff -puN include/asm-i386/pgtable.h~paravirt_ops-revert-map_pt_hook include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~paravirt_ops-revert-map_pt_hook
++++ a/include/asm-i386/pgtable.h
+@@ -272,7 +272,6 @@ static inline void vmalloc_sync_all(void
+  */
+ #define pte_update(mm, addr, ptep)		do { } while (0)
+ #define pte_update_defer(mm, addr, ptep)	do { } while (0)
+-#define paravirt_map_pt_hook(slot, va, pfn)	do { } while (0)
  
- #define DISABLE_INTERRUPTS(clobbers)					\
- 	PARA_SITE(PARA_PATCH(PARAVIRT_irq_disable), clobbers,		\
--		  pushl %ecx; pushl %edx;				\
-+		  pushl %eax; pushl %ecx; pushl %edx;			\
- 		  call *%cs:paravirt_ops+PARAVIRT_irq_disable;		\
--		  popl %edx; popl %ecx)					\
-+		  popl %edx; popl %ecx; popl %eax)			\
+ #define raw_ptep_get_and_clear(xp)     native_ptep_get_and_clear(xp)
+ #endif
+@@ -481,24 +480,10 @@ extern pte_t *lookup_address(unsigned lo
+ #endif
  
- #define ENABLE_INTERRUPTS(clobbers)					\
- 	PARA_SITE(PARA_PATCH(PARAVIRT_irq_enable), clobbers,		\
--		  pushl %ecx; pushl %edx;				\
-+		  pushl %eax; pushl %ecx; pushl %edx;			\
- 		  call *%cs:paravirt_ops+PARAVIRT_irq_enable;		\
--		  popl %edx; popl %ecx)
-+		  popl %edx; popl %ecx; popl %eax)
- 
- #define ENABLE_INTERRUPTS_SYSEXIT					\
--	PARA_SITE(PARA_PATCH(PARAVIRT_irq_enable_sysexit), CLBR_ANY,	\
-+	PARA_SITE(PARA_PATCH(PARAVIRT_irq_enable_sysexit), CLBR_NONE,	\
- 		  jmp *%cs:paravirt_ops+PARAVIRT_irq_enable_sysexit)
- 
- #define GET_CR0_INTO_EAX			\
--	call *paravirt_ops+PARAVIRT_read_cr0
-+	push %ecx; push %edx;			\
-+	call *paravirt_ops+PARAVIRT_read_cr0;	\
-+	pop %edx; pop %ecx
- 
- #endif /* __ASSEMBLY__ */
- #endif /* CONFIG_PARAVIRT */
+ #if defined(CONFIG_HIGHPTE)
+-#define pte_offset_map(dir, address)				\
+-({								\
+-	pte_t *__ptep;						\
+-	unsigned pfn = pmd_val(*(dir)) >> PAGE_SHIFT;	   	\
+-	__ptep = (pte_t *)kmap_atomic(pfn_to_page(pfn),KM_PTE0);\
+-	paravirt_map_pt_hook(KM_PTE0,__ptep, pfn);		\
+-	__ptep = __ptep + pte_index(address);			\
+-	__ptep;							\
+-})
+-#define pte_offset_map_nested(dir, address)			\
+-({								\
+-	pte_t *__ptep;						\
+-	unsigned pfn = pmd_val(*(dir)) >> PAGE_SHIFT;	   	\
+-	__ptep = (pte_t *)kmap_atomic(pfn_to_page(pfn),KM_PTE1);\
+-	paravirt_map_pt_hook(KM_PTE1,__ptep, pfn);		\
+-	__ptep = __ptep + pte_index(address);			\
+-	__ptep;							\
+-})
++#define pte_offset_map(dir, address) \
++	((pte_t *)kmap_atomic(pmd_page(*(dir)),KM_PTE0) + pte_index(address))
++#define pte_offset_map_nested(dir, address) \
++	((pte_t *)kmap_atomic(pmd_page(*(dir)),KM_PTE1) + pte_index(address))
+ #define pte_unmap(pte) kunmap_atomic(pte, KM_PTE0)
+ #define pte_unmap_nested(pte) kunmap_atomic(pte, KM_PTE1)
+ #else
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
