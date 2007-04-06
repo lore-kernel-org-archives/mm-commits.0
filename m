@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-use-correct-flags-to-check-for-dma-cache.patch added to -mm tree
-Date: Fri, 06 Apr 2007 15:49:15 -0700
-Message-ID: <200704062249.l36MnFZw021272@shell0.pdx.osdl.net>
+Subject: + unexport-pci_proc_attach_device.patch added to -mm tree
+Date: Fri, 06 Apr 2007 15:47:34 -0700
+Message-ID: <200704062247.l36MlY1A021228@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36516 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36556 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933294AbXDFWtR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 18:49:17 -0400
+	id S933291AbXDFWus (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 18:50:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: bunk@stusta.de, greg@kroah.com
 
 
 The patch titled
-     SLUB: Use correct flags to check for DMA cache
+     unexport pci_proc_attach_device
 has been added to the -mm tree.  Its filename is
-     slub-use-correct-flags-to-check-for-dma-cache.patch
+     unexport-pci_proc_attach_device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Use correct flags to check for DMA cache
-From: Christoph Lameter <clameter@sgi.com>
+Subject: unexport pci_proc_attach_device
+From: Adrian Bunk <bunk@stusta.de>
 
-We use a GFP mask to check the SLAB flags if this is a DMA cache.
+After its removal from drivers/edac/i82875p_edac.c, pci_proc_attach_device()
+no longer has any modular user.
 
-Fix this by using the correct SLAB mask and then use the SLUB_DMA for the
-ORing of flags.  If the system does not support DMA then we will OR zero
-which will hopefully get the compiler to drop the useless if statement as
-well.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/proc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/slub.c~slub-use-correct-flags-to-check-for-dma-cache mm/slub.c
---- a/mm/slub.c~slub-use-correct-flags-to-check-for-dma-cache
-+++ a/mm/slub.c
-@@ -678,8 +678,8 @@ static struct page *allocate_slab(struct
- 	if (s->order)
- 		flags |= __GFP_COMP;
+diff -puN drivers/pci/proc.c~unexport-pci_proc_attach_device drivers/pci/proc.c
+--- a/drivers/pci/proc.c~unexport-pci_proc_attach_device
++++ a/drivers/pci/proc.c
+@@ -480,7 +480,6 @@ static int __init pci_proc_init(void)
+ __initcall(pci_proc_init);
  
--	if (s->flags & SLUB_DMA)
--		flags |= GFP_DMA;
-+	if (s->flags & SLAB_CACHE_DMA)
-+		flags |= SLUB_DMA;
+ #ifdef CONFIG_HOTPLUG
+-EXPORT_SYMBOL(pci_proc_attach_device);
+ EXPORT_SYMBOL(pci_proc_detach_bus);
+ #endif
  
- 	if (node == -1)
- 		page = alloc_pages(flags, s->order);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-add-slabinfo-tool.patch
-extend-print_symbol-capability-fix.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-readahead-state-based-method-aging-accounting.patch
+git-acpi.patch
+git-powerpc.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
+remove-mmc_deselect_cards.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-ubi.patch
+git-netdev-all.patch
+drivers-net-vioc-possible-cleanups.patch
+git-net.patch
+net-possible-cleanups.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+add-file-position-info-to-proc-fix.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
+unexport-pci_proc_attach_device.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+no-longer-include-asm-kdebugh.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
