@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch added to -mm tree
-Date: Fri, 06 Apr 2007 14:33:31 -0700
-Message-ID: <200704062133.l36LXWxn019548@shell0.pdx.osdl.net>
+Subject: + remove-hardcoding-of-hard_smp_processor_id-on-up.patch added to -mm tree
+Date: Fri, 06 Apr 2007 14:33:26 -0700
+Message-ID: <200704062133.l36LXQOr019541@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35024 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34979 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933100AbXDFVe1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 17:34:27 -0400
+	id S933100AbXDFVdm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 17:33:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fernando@oss.ntt.co.jp, ak@suse.de, ebiederm@xmission.com, tony.luck@intel.c
 
 
 The patch titled
-     Use the APIC to determine the hardware processor id - x86_64
+     Remove hardcoding of hard_smp_processor_id on UP systems
 has been added to the -mm tree.  Its filename is
-     use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+     remove-hardcoding-of-hard_smp_processor_id-on-up.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,21 +25,18 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use the APIC to determine the hardware processor id - x86_64
+Subject: Remove hardcoding of hard_smp_processor_id on UP systems
 From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
-hard_smp_processor_id used to be just a macro that hard-coded
-hard_smp_processor_id to 0 in the non SMP case.  When booting non SMP kernels
-on hardware where the boot ioapic id is not 0 this turns out to be a problem. 
-This is happens frequently in the case of kdump and once in a great while in
-the case of real hardware.
+With the advent of kdump, the assumption that the boot CPU when booting an UP
+kernel is always the CPU with a particular hardware ID (often 0) (usually
+referred to as BSP on some architectures) is not valid anymore.  The reason
+being that the dump capture kernel boots on the crashed CPU (the CPU that
+invoked crash_kexec), which may be or may not be that particular CPU.
 
-Use the APIC to determine the hardware processor id in both UP and SMP kernels
-to fix this issue.
-
-Notice that hard_smp_processor_id is only used by SMP code or by code that
-works with apics so we do not need to handle the case when apics are not
-present and hard_smp_processor_id should never be called there.
+Move definition of hard_smp_processor_id for the UP case to
+architecture-specific code ("asm/smp.h") where it belongs, so that each
+architecture can provide its own implementation.
 
 Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 Cc: "Luck, Tony" <tony.luck@intel.com>
@@ -49,42 +46,160 @@ Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/smp.h |   14 ++++++--------
- 1 files changed, 6 insertions(+), 8 deletions(-)
+ include/asm-alpha/smp.h   |    1 +
+ include/asm-i386/smp.h    |    3 ++-
+ include/asm-ia64/smp.h    |    3 ++-
+ include/asm-m32r/smp.h    |    6 +++++-
+ include/asm-powerpc/smp.h |    1 +
+ include/asm-s390/smp.h    |    1 +
+ include/asm-sparc/smp.h   |    1 +
+ include/asm-sparc64/smp.h |    1 +
+ include/asm-um/smp.h      |    4 ++++
+ include/asm-x86_64/smp.h  |    4 +++-
+ include/linux/smp.h       |    1 -
+ 11 files changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-x86_64/smp.h~use-the-apic-to-determine-the-hardware-processor-id-x86_64 include/asm-x86_64/smp.h
---- a/include/asm-x86_64/smp.h~use-the-apic-to-determine-the-hardware-processor-id-x86_64
-+++ a/include/asm-x86_64/smp.h
-@@ -57,12 +57,6 @@ static inline int num_booting_cpus(void)
+diff -puN include/asm-alpha/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-alpha/smp.h
+--- a/include/asm-alpha/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-alpha/smp.h
+@@ -51,6 +51,7 @@ int smp_call_function_on_cpu(void (*func
  
- #define raw_smp_processor_id() read_pda(cpunumber)
+ #else /* CONFIG_SMP */
  
--static inline int hard_smp_processor_id(void)
--{
--	/* we don't want to mark this access volatile - bad code generation */
--	return GET_APIC_ID(*(unsigned int *)(APIC_BASE+APIC_ID));
--}
--
- extern int __cpu_disable(void);
- extern void __cpu_die(unsigned int cpu);
- extern void prefill_possible_map(void);
-@@ -71,10 +65,14 @@ extern unsigned __cpuinitdata disabled_c
++#define hard_smp_processor_id()		0
+ #define smp_call_function_on_cpu(func,info,retry,wait,cpu)    ({ 0; })
+ 
+ #endif /* CONFIG_SMP */
+diff -puN include/asm-i386/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-i386/smp.h
+--- a/include/asm-i386/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-i386/smp.h
+@@ -147,12 +147,13 @@ extern unsigned int num_processors;
+ 
+ #else /* CONFIG_SMP */
+ 
++#define hard_smp_processor_id()		0
+ #define safe_smp_processor_id()		0
+ #define cpu_physical_id(cpu)		boot_cpu_physical_apicid
  
  #define NO_PROC_ID		0xFF		/* No processor magic marker */
  
--#else /* CONFIG_SMP */
--#define hard_smp_processor_id() 0
- #endif /* CONFIG_SMP */
+-#endif
++#endif /* CONFIG_SMP */
  
-+static inline int hard_smp_processor_id(void)
-+{
-+	/* we don't want to mark this access volatile - bad code generation */
-+	return GET_APIC_ID(*(unsigned int *)(APIC_BASE+APIC_ID));
-+}
+ #ifndef __ASSEMBLY__
+ 
+diff -puN include/asm-ia64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-ia64/smp.h
+--- a/include/asm-ia64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-ia64/smp.h
+@@ -128,8 +128,9 @@ extern void unlock_ipi_calllock(void);
+ extern void identify_siblings (struct cpuinfo_ia64 *);
+ extern int is_multithreading_enabled(void);
+ 
+-#else
++#else /* CONFIG_SMP */
+ 
++#define hard_smp_processor_id()		0
+ #define cpu_logical_id(i)		0
+ #define cpu_physical_id(i)		ia64_get_lid()
+ 
+diff -puN include/asm-m32r/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-m32r/smp.h
+--- a/include/asm-m32r/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-m32r/smp.h
+@@ -108,6 +108,10 @@ extern unsigned long send_IPI_mask_phys(
+ #define IPI_SHIFT	(0)
+ #define NR_IPIS		(8)
+ 
+-#endif	/* CONFIG_SMP */
++#else	/* CONFIG_SMP */
 +
++#define hard_smp_processor_id()		0
++
++#endif /* CONFIG_SMP */
+ 
+ #endif	/* _ASM_M32R_SMP_H */
+diff -puN include/asm-powerpc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-powerpc/smp.h
+--- a/include/asm-powerpc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-powerpc/smp.h
+@@ -83,6 +83,7 @@ extern void __cpu_die(unsigned int cpu);
+ 
+ #else
+ /* for UP */
++#define hard_smp_processor_id()		0
+ #define smp_setup_cpu_maps()
+ 
+ #endif /* CONFIG_SMP */
+diff -puN include/asm-s390/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-s390/smp.h
+--- a/include/asm-s390/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-s390/smp.h
+@@ -113,6 +113,7 @@ static inline void smp_send_stop(void)
+ 	__load_psw_mask(psw_kernel_bits & ~PSW_MASK_MCHECK);
+ }
+ 
++#define hard_smp_processor_id()		0
+ #define smp_cpu_not_running(cpu)	1
+ #define smp_get_cpu(cpu) ({ 0; })
+ #define smp_put_cpu(cpu) ({ 0; })
+diff -puN include/asm-sparc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-sparc/smp.h
+--- a/include/asm-sparc/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-sparc/smp.h
+@@ -165,6 +165,7 @@ void smp_setup_cpu_possible_map(void);
+ 
+ #else /* SMP */
+ 
++#define hard_smp_processor_id()		0
+ #define smp_setup_cpu_possible_map() do { } while (0)
+ 
+ #endif /* !(SMP) */
+diff -puN include/asm-sparc64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-sparc64/smp.h
+--- a/include/asm-sparc64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-sparc64/smp.h
+@@ -47,6 +47,7 @@ extern void smp_setup_cpu_possible_map(v
+ 
+ #else
+ 
++#define hard_smp_processor_id()		0
+ #define smp_setup_cpu_possible_map() do { } while (0)
+ 
+ #endif /* !(CONFIG_SMP) */
+diff -puN include/asm-um/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-um/smp.h
+--- a/include/asm-um/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-um/smp.h
+@@ -24,6 +24,10 @@ extern inline void smp_cpus_done(unsigne
+ 
+ extern struct task_struct *idle_threads[NR_CPUS];
+ 
++#else
++
++#define hard_smp_processor_id()		0
++
+ #endif
+ 
+ #endif
+diff -puN include/asm-x86_64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/asm-x86_64/smp.h
+--- a/include/asm-x86_64/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/asm-x86_64/smp.h
+@@ -71,7 +71,9 @@ extern unsigned __cpuinitdata disabled_c
+ 
+ #define NO_PROC_ID		0xFF		/* No processor magic marker */
+ 
+-#endif
++#else /* CONFIG_SMP */
++#define hard_smp_processor_id() 0
++#endif /* CONFIG_SMP */
+ 
  /*
   * Some lowlevel functions might want to know about
-  * the real APIC ID <-> CPU # mapping.
+diff -puN include/linux/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up include/linux/smp.h
+--- a/include/linux/smp.h~remove-hardcoding-of-hard_smp_processor_id-on-up
++++ a/include/linux/smp.h
+@@ -83,7 +83,6 @@ void smp_prepare_boot_cpu(void);
+  *	These macros fold the SMP functionality into a single CPU system
+  */
+ #define raw_smp_processor_id()			0
+-#define hard_smp_processor_id()			0
+ static inline int up_smp_call_function(void)
+ {
+ 	return 0;
 _
 
 Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
