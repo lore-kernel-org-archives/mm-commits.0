@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-smp_alt_instructions.patch added to -mm tree
-Date: Thu, 05 Apr 2007 17:47:30 -0700
-Message-ID: <200704060047.l360lUV6030802@shell0.pdx.osdl.net>
+Subject: + rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch added to -mm tree
+Date: Thu, 05 Apr 2007 17:47:32 -0700
+Message-ID: <200704060047.l360lWOI030805@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59551 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59562 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1767462AbXDFArg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 5 Apr 2007 20:47:36 -0400
+	id S1767463AbXDFArm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 5 Apr 2007 20:47:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, ak@suse.de, jeremy@xensource.com
+Cc: jeremy@goop.org, ak@suse.de, jeremy@xensource.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     Remove smp_alt_instructions
+     Rename the parainstructions symbols to be consistent with the others
 has been added to the -mm tree.  Its filename is
-     remove-smp_alt_instructions.patch
+     rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,156 +25,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove smp_alt_instructions
+Subject: Rename the parainstructions symbols to be consistent with the others
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-The .smp_altinstructions section and its corresponding symbols are completely
-unused, so remove them.
-
-Also, remove stray #ifdef __KENREL__ in asm-i386/alternative.h
+The other symbols used to delineate the alt-instructions sections have the
+form __foo/__foo_end.  Rename parainstructions to match.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |   38 +------------------------------
- arch/i386/kernel/vmlinux.lds.S |   11 --------
- include/asm-i386/alternative.h |    6 ----
- 3 files changed, 3 insertions(+), 52 deletions(-)
+ arch/i386/kernel/alternative.c |    6 +++---
+ arch/i386/kernel/vmi.c         |    6 +++---
+ arch/i386/kernel/vmlinux.lds.S |    4 ++--
+ include/asm-i386/alternative.h |    4 ++--
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/i386/kernel/alternative.c~remove-smp_alt_instructions arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~remove-smp_alt_instructions
+diff -puN arch/i386/kernel/alternative.c~rename-the-parainstructions-symbols-to-be-consistent-with-the-others arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~rename-the-parainstructions-symbols-to-be-consistent-with-the-others
 +++ a/arch/i386/kernel/alternative.c
-@@ -132,11 +132,8 @@ static void nop_out(void *insns, unsigne
+@@ -339,8 +339,8 @@ void apply_paravirt(struct paravirt_patc
+ 	/* Sync to be conservative, in case we patched following instructions */
+ 	sync_core();
  }
+-extern struct paravirt_patch __start_parainstructions[],
+-	__stop_parainstructions[];
++extern struct paravirt_patch __parainstructions[],
++	__parainstructions_end[];
+ #endif	/* CONFIG_PARAVIRT */
  
- extern struct alt_instr __alt_instructions[], __alt_instructions_end[];
--extern struct alt_instr __smp_alt_instructions[], __smp_alt_instructions_end[];
- extern u8 *__smp_locks[], *__smp_locks_end[];
+ void __init alternative_instructions(void)
+@@ -379,6 +379,6 @@ void __init alternative_instructions(voi
+ 		alternatives_smp_switch(0);
+ 	}
+ #endif
+- 	apply_paravirt(__start_parainstructions, __stop_parainstructions);
++ 	apply_paravirt(__parainstructions, __parainstructions_end);
+ 	local_irq_restore(flags);
+ }
+diff -puN arch/i386/kernel/vmi.c~rename-the-parainstructions-symbols-to-be-consistent-with-the-others arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~rename-the-parainstructions-symbols-to-be-consistent-with-the-others
++++ a/arch/i386/kernel/vmi.c
+@@ -73,8 +73,8 @@ static struct {
+ } vmi_ops;
  
--extern u8 __smp_alt_begin[], __smp_alt_end[];
--
- /* Replace instructions with better alternatives for this CPU type.
-    This runs before SMP is initialized to avoid SMP problems with
-    self modifying code. This implies that assymetric systems where
-@@ -171,29 +168,6 @@ void apply_alternatives(struct alt_instr
- 
- #ifdef CONFIG_SMP
- 
--static void alternatives_smp_save(struct alt_instr *start, struct alt_instr *end)
--{
--	struct alt_instr *a;
--
--	DPRINTK("%s: alt table %p-%p\n", __FUNCTION__, start, end);
--	for (a = start; a < end; a++) {
--		memcpy(a->replacement + a->replacementlen,
--		       a->instr,
--		       a->instrlen);
--	}
--}
--
--static void alternatives_smp_apply(struct alt_instr *start, struct alt_instr *end)
--{
--	struct alt_instr *a;
--
--	for (a = start; a < end; a++) {
--		memcpy(a->instr,
--		       a->replacement + a->replacementlen,
--		       a->instrlen);
--	}
--}
--
- static void alternatives_smp_lock(u8 **start, u8 **end, u8 *text, u8 *text_end)
- {
- 	u8 **ptr;
-@@ -319,8 +293,6 @@ void alternatives_smp_switch(int smp)
- 		printk(KERN_INFO "SMP alternatives: switching to SMP code\n");
- 		clear_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
- 		clear_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
--		alternatives_smp_apply(__smp_alt_instructions,
--				       __smp_alt_instructions_end);
- 		list_for_each_entry(mod, &smp_alt_modules, next)
- 			alternatives_smp_lock(mod->locks, mod->locks_end,
- 					      mod->text, mod->text_end);
-@@ -328,8 +300,6 @@ void alternatives_smp_switch(int smp)
- 		printk(KERN_INFO "SMP alternatives: switching to UP code\n");
- 		set_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
- 		set_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
--		apply_alternatives(__smp_alt_instructions,
--				   __smp_alt_instructions_end);
- 		list_for_each_entry(mod, &smp_alt_modules, next)
- 			alternatives_smp_unlock(mod->locks, mod->locks_end,
- 						mod->text, mod->text_end);
-@@ -396,17 +366,13 @@ void __init alternative_instructions(voi
- 			printk(KERN_INFO "SMP alternatives: switching to UP code\n");
- 			set_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
- 			set_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
--			apply_alternatives(__smp_alt_instructions,
--					   __smp_alt_instructions_end);
- 			alternatives_smp_unlock(__smp_locks, __smp_locks_end,
- 						_text, _etext);
- 		}
- 		free_init_pages("SMP alternatives",
--				__pa_symbol(&__smp_alt_begin),
--				__pa_symbol(&__smp_alt_end));
-+				__pa_symbol(&__smp_locks),
-+				__pa_symbol(&__smp_locks_end));
- 	} else {
--		alternatives_smp_save(__smp_alt_instructions,
--				      __smp_alt_instructions_end);
- 		alternatives_smp_module_add(NULL, "core kernel",
- 					    __smp_locks, __smp_locks_end,
- 					    _text, _etext);
-diff -puN arch/i386/kernel/vmlinux.lds.S~remove-smp_alt_instructions arch/i386/kernel/vmlinux.lds.S
---- a/arch/i386/kernel/vmlinux.lds.S~remove-smp_alt_instructions
-+++ a/arch/i386/kernel/vmlinux.lds.S
-@@ -119,22 +119,11 @@ SECTIONS
- 
-   /* might get freed after init */
-   . = ALIGN(4096);
--  .smp_altinstructions : AT(ADDR(.smp_altinstructions) - LOAD_OFFSET) {
--	__smp_alt_begin = .;
--	__smp_alt_instructions = .;
--	*(.smp_altinstructions)
--	__smp_alt_instructions_end = .;
--  }
--  . = ALIGN(4);
-   .smp_locks : AT(ADDR(.smp_locks) - LOAD_OFFSET) {
-   	__smp_locks = .;
- 	*(.smp_locks)
- 	__smp_locks_end = .;
-   }
--  .smp_altinstr_replacement : AT(ADDR(.smp_altinstr_replacement) - LOAD_OFFSET) {
--	*(.smp_altinstr_replacement)
--  	__smp_alt_end = .;
--  }
-   /* will be freed after init
-    * Following ALIGN() is required to make sure no other data falls on the
-    * same page where __smp_alt_end is pointing as that page might be freed
-diff -puN include/asm-i386/alternative.h~remove-smp_alt_instructions include/asm-i386/alternative.h
---- a/include/asm-i386/alternative.h~remove-smp_alt_instructions
-+++ a/include/asm-i386/alternative.h
-@@ -1,8 +1,6 @@
- #ifndef _I386_ALTERNATIVE_H
- #define _I386_ALTERNATIVE_H
- 
--#ifdef __KERNEL__
--
- #include <asm/types.h>
- #include <linux/stddef.h>
- #include <linux/types.h>
-@@ -31,9 +29,7 @@ static inline void alternatives_smp_modu
- 					void *text, void *text_end) {}
- static inline void alternatives_smp_module_del(struct module *mod) {}
- static inline void alternatives_smp_switch(int smp) {}
--#endif
--
--#endif
-+#endif	/* CONFIG_SMP */
+ /* XXX move this to alternative.h */
+-extern struct paravirt_patch __start_parainstructions[],
+-	__stop_parainstructions[];
++extern struct paravirt_patch __parainstructions[],
++	__parainstructions_end[];
  
  /*
-  * Alternative instructions for different CPU types or capabilities.
+  * VMI patching routines.
+@@ -947,7 +947,7 @@ static inline int __init activate_vmi(vo
+ 	 * to do this before IRQs get reenabled.  Fortunately, it is
+ 	 * idempotent.
+ 	 */
+-	apply_paravirt(__start_parainstructions, __stop_parainstructions);
++	apply_paravirt(__parainstructions, __parainstructions_end);
+ 
+ 	vmi_bringup();
+ 
+diff -puN arch/i386/kernel/vmlinux.lds.S~rename-the-parainstructions-symbols-to-be-consistent-with-the-others arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~rename-the-parainstructions-symbols-to-be-consistent-with-the-others
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -169,9 +169,9 @@ SECTIONS
+   }
+   . = ALIGN(4);
+   .parainstructions : AT(ADDR(.parainstructions) - LOAD_OFFSET) {
+-  	__start_parainstructions = .;
++  	__parainstructions = .;
+ 	*(.parainstructions)
+-  	__stop_parainstructions = .;
++  	__parainstructions_end = .;
+   }
+   /* .exit.text is discard at runtime, not link time, to deal with references
+      from .altinstructions and .eh_frame */
+diff -puN include/asm-i386/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others include/asm-i386/alternative.h
+--- a/include/asm-i386/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others
++++ a/include/asm-i386/alternative.h
+@@ -121,8 +121,8 @@ void apply_paravirt(struct paravirt_patc
+ static inline void
+ apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end)
+ {}
+-#define __start_parainstructions NULL
+-#define __stop_parainstructions NULL
++#define __parainstructions	NULL
++#define __parainstructions_end	NULL
+ #endif
+ 
+ #endif /* _I386_ALTERNATIVE_H */
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
