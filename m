@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + unexport-pci_proc_attach_device.patch added to -mm tree
-Date: Fri, 06 Apr 2007 15:47:34 -0700
-Message-ID: <200704062247.l36MlY1A021228@shell0.pdx.osdl.net>
+Subject: + slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch added to -mm tree
+Date: Fri, 06 Apr 2007 15:50:35 -0700
+Message-ID: <200704062250.l36MoZs8021333@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36556 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36548 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933291AbXDFWus (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 18:50:48 -0400
+	id S933290AbXDFWun (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 18:50:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, greg@kroah.com
+Cc: clameter@sgi.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     unexport pci_proc_attach_device
+     SLUB: Treat SLAB_HWCACHE_ALIGN as a mininum and not as *the* alignment
 has been added to the -mm tree.  Its filename is
-     unexport-pci_proc_attach_device.patch
+     slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unexport pci_proc_attach_device
-From: Adrian Bunk <bunk@stusta.de>
+Subject: SLUB: Treat SLAB_HWCACHE_ALIGN as a mininum and not as *the* alignment
+From: Christoph Lameter <clameter@sgi.com>
 
-After its removal from drivers/edac/i82875p_edac.c, pci_proc_attach_device()
-no longer has any modular user.
+Checking for slabs used in powerpc arch code:
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Greg KH <greg@kroah.com>
+The pgtable cache is configured as
+
+          pgtable_cache[i] = kmem_cache_create(name,
+                                                     size, size,
+                                                     SLAB_HWCACHE_ALIGN |
+                                                     SLAB_MUST_HWCACHE_ALIGN,
+                                                     zero_ctor,
+                                                     NULL);
+
+Hmmm.... aligned slabs at size and then we MUST_HWCACHE_ALIGN?? Two
+competing alignment requirements and a constructor. Constructor requires
+the moving of the free pointer after the slab and thus increases the slab
+size.
+
+Sigh. IF SLAB_HWCACHE_ALIGN is set then SLUB believes this to be the
+ultimate demand that overrides all other alignments and only aligns to the
+cacheline. Try the following fix:
+
+SLUB: Treat SLAB_HWCACHE_ALIGN as a mininum and not as *the* alignment
+
+If the specified alignment is higher than L1_CACHE_BYTES and
+SLAB_HWCACHE_ALIGN is set then use the higher alignment.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/proc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/slub.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/pci/proc.c~unexport-pci_proc_attach_device drivers/pci/proc.c
---- a/drivers/pci/proc.c~unexport-pci_proc_attach_device
-+++ a/drivers/pci/proc.c
-@@ -480,7 +480,6 @@ static int __init pci_proc_init(void)
- __initcall(pci_proc_init);
+diff -puN mm/slub.c~slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment mm/slub.c
+--- a/mm/slub.c~slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment
++++ a/mm/slub.c
+@@ -1373,10 +1373,7 @@ static int calculate_order(int size)
+ static unsigned long calculate_alignment(unsigned long flags,
+ 		unsigned long align)
+ {
+-	if (flags & SLAB_HWCACHE_ALIGN)
+-		return L1_CACHE_BYTES;
+-
+-	if (flags & SLAB_MUST_HWCACHE_ALIGN)
++	if (flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN))
+ 		return max_t(unsigned long, align, L1_CACHE_BYTES);
  
- #ifdef CONFIG_HOTPLUG
--EXPORT_SYMBOL(pci_proc_attach_device);
- EXPORT_SYMBOL(pci_proc_detach_bus);
- #endif
- 
+ 	if (align < ARCH_SLAB_MINALIGN)
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-acpi.patch
-git-powerpc.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
-remove-mmc_deselect_cards.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-ubi.patch
-git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-git-net.patch
-net-possible-cleanups.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-add-file-position-info-to-proc-fix.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-unexport-pci_proc_attach_device.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-i386-enable-4k-stacks-by-default.patch
-mutex-subsystem-synchro-test-module.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-add-slabinfo-tool.patch
+extend-print_symbol-capability-fix.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+readahead-state-based-method-aging-accounting.patch
