@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-proc-acpi-wakeup-more-useful.patch added to -mm tree
-Date: Thu, 05 Apr 2007 17:45:00 -0700
-Message-ID: <200704060045.l360j24x030759@shell0.pdx.osdl.net>
+Subject: + remove-smp_alt_instructions.patch added to -mm tree
+Date: Thu, 05 Apr 2007 17:47:30 -0700
+Message-ID: <200704060047.l360lUV6030802@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59514 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59551 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1767458AbXDFAqg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 5 Apr 2007 20:46:36 -0400
+	id S1767462AbXDFArg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 5 Apr 2007 20:47:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, lenb@kernel.org, mjg59@srcf.ucam.org, rui.zhang@intel.com
+Cc: jeremy@goop.org, ak@suse.de, jeremy@xensource.com
 
 
 The patch titled
-     make /proc/acpi/wakeup more useful
+     Remove smp_alt_instructions
 has been added to the -mm tree.  Its filename is
-     make-proc-acpi-wakeup-more-useful.patch
+     remove-smp_alt_instructions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,115 +25,167 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make /proc/acpi/wakeup more useful
-From: David Brownell <david-b@pacbell.net>
+Subject: Remove smp_alt_instructions
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-This updates /proc/acpi/wakeup to be more informative, primarily by showing
-the sysfs node associated with each wakeup-enabled device.  Example:
+The .smp_altinstructions section and its corresponding symbols are completely
+unused, so remove them.
 
-	Device	S-state	  Status   Sysfs node
-	PCI0	  S4	 disabled  no-bus:pci0000:00
-	PS2M	  S4	 disabled  pnp:00:05
-	PS2K	  S4	 disabled  pnp:00:06
-	UAR1	  S4	 disabled  pnp:00:08
-	USB1	  S3	 disabled  pci:0000:00:03.0
-	USB2	  S3	 disabled  pci:0000:00:03.1
-	USB3	  S3	 disabled
-	USB4	  S3	 disabled  pci:0000:00:03.3
-	S139	  S4	 disabled
-	LAN	  S4	 disabled  pci:0000:00:04.0
-	MDM	  S4	 disabled
-	AUD	  S4	 disabled  pci:0000:00:02.7
-	SLPB	  S4	*enabled
+Also, remove stray #ifdef __KENREL__ in asm-i386/alternative.h
 
-Eventually this file should be removed, but until then it's almost the only
-way we have to tell how the relevant ACPI tables are broken (and cope).  In
-that example, two devices don't actually exist (USB3, S139), one can't issue
-wakeup events (PCI0), and two seem harmlessly (?) confused (MDM and AUD are
-the same PCI device, but it's the _modem_ that does wake-on-ring).
-
-In particular, we need to be sure driver model nodes are properly hooked
-up before we can get rid of this ACPI-only interface for wakeup events.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/proc.c |   16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
+ arch/i386/kernel/alternative.c |   38 +------------------------------
+ arch/i386/kernel/vmlinux.lds.S |   11 --------
+ include/asm-i386/alternative.h |    6 ----
+ 3 files changed, 3 insertions(+), 52 deletions(-)
 
-diff -puN drivers/acpi/sleep/proc.c~make-proc-acpi-wakeup-more-useful drivers/acpi/sleep/proc.c
---- a/drivers/acpi/sleep/proc.c~make-proc-acpi-wakeup-more-useful
-+++ a/drivers/acpi/sleep/proc.c
-@@ -350,21 +350,31 @@ acpi_system_wakeup_device_seq_show(struc
+diff -puN arch/i386/kernel/alternative.c~remove-smp_alt_instructions arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~remove-smp_alt_instructions
++++ a/arch/i386/kernel/alternative.c
+@@ -132,11 +132,8 @@ static void nop_out(void *insns, unsigne
+ }
+ 
+ extern struct alt_instr __alt_instructions[], __alt_instructions_end[];
+-extern struct alt_instr __smp_alt_instructions[], __smp_alt_instructions_end[];
+ extern u8 *__smp_locks[], *__smp_locks_end[];
+ 
+-extern u8 __smp_alt_begin[], __smp_alt_end[];
+-
+ /* Replace instructions with better alternatives for this CPU type.
+    This runs before SMP is initialized to avoid SMP problems with
+    self modifying code. This implies that assymetric systems where
+@@ -171,29 +168,6 @@ void apply_alternatives(struct alt_instr
+ 
+ #ifdef CONFIG_SMP
+ 
+-static void alternatives_smp_save(struct alt_instr *start, struct alt_instr *end)
+-{
+-	struct alt_instr *a;
+-
+-	DPRINTK("%s: alt table %p-%p\n", __FUNCTION__, start, end);
+-	for (a = start; a < end; a++) {
+-		memcpy(a->replacement + a->replacementlen,
+-		       a->instr,
+-		       a->instrlen);
+-	}
+-}
+-
+-static void alternatives_smp_apply(struct alt_instr *start, struct alt_instr *end)
+-{
+-	struct alt_instr *a;
+-
+-	for (a = start; a < end; a++) {
+-		memcpy(a->instr,
+-		       a->replacement + a->replacementlen,
+-		       a->instrlen);
+-	}
+-}
+-
+ static void alternatives_smp_lock(u8 **start, u8 **end, u8 *text, u8 *text_end)
  {
- 	struct list_head *node, *next;
+ 	u8 **ptr;
+@@ -319,8 +293,6 @@ void alternatives_smp_switch(int smp)
+ 		printk(KERN_INFO "SMP alternatives: switching to SMP code\n");
+ 		clear_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
+ 		clear_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
+-		alternatives_smp_apply(__smp_alt_instructions,
+-				       __smp_alt_instructions_end);
+ 		list_for_each_entry(mod, &smp_alt_modules, next)
+ 			alternatives_smp_lock(mod->locks, mod->locks_end,
+ 					      mod->text, mod->text_end);
+@@ -328,8 +300,6 @@ void alternatives_smp_switch(int smp)
+ 		printk(KERN_INFO "SMP alternatives: switching to UP code\n");
+ 		set_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
+ 		set_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
+-		apply_alternatives(__smp_alt_instructions,
+-				   __smp_alt_instructions_end);
+ 		list_for_each_entry(mod, &smp_alt_modules, next)
+ 			alternatives_smp_unlock(mod->locks, mod->locks_end,
+ 						mod->text, mod->text_end);
+@@ -396,17 +366,13 @@ void __init alternative_instructions(voi
+ 			printk(KERN_INFO "SMP alternatives: switching to UP code\n");
+ 			set_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
+ 			set_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
+-			apply_alternatives(__smp_alt_instructions,
+-					   __smp_alt_instructions_end);
+ 			alternatives_smp_unlock(__smp_locks, __smp_locks_end,
+ 						_text, _etext);
+ 		}
+ 		free_init_pages("SMP alternatives",
+-				__pa_symbol(&__smp_alt_begin),
+-				__pa_symbol(&__smp_alt_end));
++				__pa_symbol(&__smp_locks),
++				__pa_symbol(&__smp_locks_end));
+ 	} else {
+-		alternatives_smp_save(__smp_alt_instructions,
+-				      __smp_alt_instructions_end);
+ 		alternatives_smp_module_add(NULL, "core kernel",
+ 					    __smp_locks, __smp_locks_end,
+ 					    _text, _etext);
+diff -puN arch/i386/kernel/vmlinux.lds.S~remove-smp_alt_instructions arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~remove-smp_alt_instructions
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -119,22 +119,11 @@ SECTIONS
  
--	seq_printf(seq, "Device	Sleep state	Status\n");
-+	seq_printf(seq, "Device\tS-state\t  Status   Sysfs node\n");
+   /* might get freed after init */
+   . = ALIGN(4096);
+-  .smp_altinstructions : AT(ADDR(.smp_altinstructions) - LOAD_OFFSET) {
+-	__smp_alt_begin = .;
+-	__smp_alt_instructions = .;
+-	*(.smp_altinstructions)
+-	__smp_alt_instructions_end = .;
+-  }
+-  . = ALIGN(4);
+   .smp_locks : AT(ADDR(.smp_locks) - LOAD_OFFSET) {
+   	__smp_locks = .;
+ 	*(.smp_locks)
+ 	__smp_locks_end = .;
+   }
+-  .smp_altinstr_replacement : AT(ADDR(.smp_altinstr_replacement) - LOAD_OFFSET) {
+-	*(.smp_altinstr_replacement)
+-  	__smp_alt_end = .;
+-  }
+   /* will be freed after init
+    * Following ALIGN() is required to make sure no other data falls on the
+    * same page where __smp_alt_end is pointing as that page might be freed
+diff -puN include/asm-i386/alternative.h~remove-smp_alt_instructions include/asm-i386/alternative.h
+--- a/include/asm-i386/alternative.h~remove-smp_alt_instructions
++++ a/include/asm-i386/alternative.h
+@@ -1,8 +1,6 @@
+ #ifndef _I386_ALTERNATIVE_H
+ #define _I386_ALTERNATIVE_H
  
- 	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
- 		struct acpi_device *dev =
- 		    container_of(node, struct acpi_device, wakeup_list);
-+		struct device *ldev;
+-#ifdef __KERNEL__
+-
+ #include <asm/types.h>
+ #include <linux/stddef.h>
+ #include <linux/types.h>
+@@ -31,9 +29,7 @@ static inline void alternatives_smp_modu
+ 					void *text, void *text_end) {}
+ static inline void alternatives_smp_module_del(struct module *mod) {}
+ static inline void alternatives_smp_switch(int smp) {}
+-#endif
+-
+-#endif
++#endif	/* CONFIG_SMP */
  
- 		if (!dev->wakeup.flags.valid)
- 			continue;
- 		spin_unlock(&acpi_device_lock);
--		seq_printf(seq, "%4s	%4d		%s%8s\n",
-+
-+		ldev = acpi_get_physical_device(dev->handle);
-+		seq_printf(seq, "%s\t  S%d\t%c%-8s  ",
- 			   dev->pnp.bus_id,
- 			   (u32) dev->wakeup.sleep_state,
--			   dev->wakeup.flags.run_wake ? "*" : "",
-+			   dev->wakeup.flags.run_wake ? '*' : ' ',
- 			   dev->wakeup.state.enabled ? "enabled" : "disabled");
-+		if (ldev)
-+			seq_printf(seq, "%s:%s",
-+				ldev->bus ? ldev->bus->name : "no-bus",
-+				ldev->bus_id);
-+		seq_printf(seq, "\n");
-+		put_device(ldev);
-+
- 		spin_lock(&acpi_device_lock);
- 	}
- 	spin_unlock(&acpi_device_lock);
+ /*
+  * Alternative instructions for different CPU types or capabilities.
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-origin.patch
-make-proc-acpi-wakeup-more-useful.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-fix-hotplug-for-legacy-platform-drivers-update.patch
-update-documentation-driver-model-platformtxt.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
+re-enable-vdso-by-default-with-paravirt.patch
+remove-noreplacement-option.patch
+remove-smp_alt_instructions.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
+allow-boot-time-disable-of-smp-altinstructions.patch
+allow-boot-time-disable-of-paravirt_ops-patching.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+add-touch_all_softlockup_watchdogs.patch
+clean-up-elf-note-generation.patch
