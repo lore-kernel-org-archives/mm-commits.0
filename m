@@ -1,106 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs.patch removed from -mm tree
-Date: Fri, 06 Apr 2007 13:08:26 -0700
-Message-ID: <200704062008.l36K8Q7N017848@shell0.pdx.osdl.net>
+Subject: - net-sunrpc-svcsockc-fix-a-check.patch removed from -mm tree
+Date: Fri, 06 Apr 2007 13:08:30 -0700
+Message-ID: <200704062008.l36K8Ufm017853@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:32858 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:32909 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932700AbXDFUKf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 16:10:35 -0400
+	id S932809AbXDFULq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 16:11:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: bunk@stusta.de, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: avoid a deadlock when removing a device from an md array via sysfs
+     net/sunrpc/svcsock.c: fix a check
 has been removed from the -mm tree.  Its filename was
-     md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs.patch
+     net-sunrpc-svcsockc-fix-a-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: avoid a deadlock when removing a device from an md array via sysfs
-From: NeilBrown <neilb@suse.de>
+Subject: net/sunrpc/svcsock.c: fix a check
+From: Adrian Bunk <bunk@stusta.de>
 
-A device can be removed from an md array via e.g.
-  echo remove > /sys/block/md3/md/dev-sde/state
+The return value of kernel_recvmsg() should be assigned to "err", not
+compared with the random value of a never initialized "err" (and the "< 0"
+check wrongly always returned false since == comparisons never have a
+result < 0).
 
-This will try to remove the 'dev-sde' subtree which will deadlock
-since
-  commit e7b0d26a86943370c04d6833c6edba2a72a6e240
+Spotted by the Coverity checker.
 
-With this patch we run the kobject_del via schedule_work so as to
-avoid the deadlock.
-
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c           |   16 +++++++++++++++-
- include/linux/raid/md_k.h |    1 +
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ net/sunrpc/svcsock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/md.c~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs drivers/md/md.c
---- a/drivers/md/md.c~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs
-+++ a/drivers/md/md.c
-@@ -1378,6 +1378,12 @@ static int bind_rdev_to_array(mdk_rdev_t
- 	return err;
- }
+diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-fix-a-check net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-fix-a-check
++++ a/net/sunrpc/svcsock.c
+@@ -779,8 +779,8 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
+ 	}
  
-+static void delayed_delete(struct work_struct *ws)
-+{
-+	mdk_rdev_t *rdev = container_of(ws, mdk_rdev_t, del_work);
-+	kobject_del(&rdev->kobj);
-+}
-+
- static void unbind_rdev_from_array(mdk_rdev_t * rdev)
- {
- 	char b[BDEVNAME_SIZE];
-@@ -1390,7 +1396,12 @@ static void unbind_rdev_from_array(mdk_r
- 	printk(KERN_INFO "md: unbind<%s>\n", bdevname(rdev->bdev,b));
- 	rdev->mddev = NULL;
- 	sysfs_remove_link(&rdev->kobj, "block");
--	kobject_del(&rdev->kobj);
-+
-+	/* We need to delay this, otherwise we can deadlock when
-+	 * writing to 'remove' to "dev/state"
-+	 */
-+	INIT_WORK(&rdev->del_work, delayed_delete);
-+	schedule_work(&rdev->del_work);
- }
- 
- /*
-@@ -3389,6 +3400,9 @@ static int do_md_stop(mddev_t * mddev, i
- 				sysfs_remove_link(&mddev->kobj, nm);
- 			}
- 
-+		/* make sure all delayed_delete calls have finished */
-+		flush_scheduled_work();
-+
- 		export_array(mddev);
- 
- 		mddev->array_size = 0;
-diff -puN include/linux/raid/md_k.h~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs include/linux/raid/md_k.h
---- a/include/linux/raid/md_k.h~md-avoid-a-deadlock-when-removing-a-device-from-an-md-array-via-sysfs
-+++ a/include/linux/raid/md_k.h
-@@ -104,6 +104,7 @@ struct mdk_rdev_s
- 					   * for reporting to userspace and storing
- 					   * in superblock.
- 					   */
-+	struct work_struct del_work;	/* used for delayed sysfs removal */
- };
- 
- struct mddev_s
+ 	clear_bit(SK_DATA, &svsk->sk_flags);
+-	while ((err == kernel_recvmsg(svsk->sk_sock, &msg, NULL,
+-				      0, 0, MSG_PEEK | MSG_DONTWAIT)) < 0 ||
++	while ((err = kernel_recvmsg(svsk->sk_sock, &msg, NULL,
++				     0, 0, MSG_PEEK | MSG_DONTWAIT)) < 0 ||
+ 	       (skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
+ 		if (err == -EAGAIN) {
+ 			svc_sock_received(svsk);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
-the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
-readahead-nfsd-case.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+git-acpi.patch
+git-powerpc.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
+remove-mmc_deselect_cards.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-ubi.patch
+git-netdev-all.patch
+drivers-net-vioc-possible-cleanups.patch
+git-net.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+add-file-position-info-to-proc-fix.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+no-longer-include-asm-kdebugh.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+i386-enable-4k-stacks-by-default.patch
+mutex-subsystem-synchro-test-module.patch
