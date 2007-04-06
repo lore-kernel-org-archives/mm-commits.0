@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch added to -mm tree
-Date: Fri, 06 Apr 2007 14:33:33 -0700
-Message-ID: <200704062133.l36LXXt3019551@shell0.pdx.osdl.net>
+Subject: + blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch added to -mm tree
+Date: Fri, 06 Apr 2007 14:35:37 -0700
+Message-ID: <200704062135.l36LZb0H019610@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34983 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35079 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933120AbXDFVdq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 17:33:46 -0400
+	id S933133AbXDFVfj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 17:35:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fernando@oss.ntt.co.jp, ak@suse.de, ebiederm@xmission.com, tony.luck@intel.com, vgoyal@in.ibm.com
+Cc: bryan.wu@analog.com
 
 
 The patch titled
-     Always ask the hardware to obtain hardware processor id - ia64
+     blackfin arch: 0.4 and 0.5 silicon doesnt exist for BF534, BF536 adn BF537 so dont let people select the option
 has been added to the -mm tree.  Its filename is
-     always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
+     blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Always ask the hardware to obtain hardware processor id - ia64
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: blackfin arch: 0.4 and 0.5 silicon doesnt exist for BF534, BF536 adn BF537 so dont let people select the option
+From: "Wu, Bryan" <bryan.wu@analog.com>
 
-Always ask the hardware to determine the hardware processor id in both UP and
-SMP kernels.
-
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/smp.h |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ arch/blackfin/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-ia64/smp.h~always-ask-the-hardware-to-obtain-hardware-processor-id-ia64 include/asm-ia64/smp.h
---- a/include/asm-ia64/smp.h~always-ask-the-hardware-to-obtain-hardware-processor-id-ia64
-+++ a/include/asm-ia64/smp.h
-@@ -38,6 +38,8 @@ ia64_get_lid (void)
- 	return lid.f.id << 8 | lid.f.eid;
- }
+diff -puN arch/blackfin/Kconfig~blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option arch/blackfin/Kconfig
+--- a/arch/blackfin/Kconfig~blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option
++++ a/arch/blackfin/Kconfig
+@@ -131,11 +131,11 @@ config BF_REV_0_3
  
-+#define hard_smp_processor_id()		ia64_get_lid()
-+
- #ifdef CONFIG_SMP
+ config BF_REV_0_4
+ 	bool "0.4"
+-	depends on (BF561 || BF537 || BF536 || BF534 || BF533 || BF532 || BF531)
++	depends on (BF561 || BF533 || BF532 || BF531)
  
- #define XTP_OFFSET		0x1e0008
-@@ -110,8 +112,6 @@ max_xtp (void)
- 		writeb(0x0f, ipi_base_addr + XTP_OFFSET); /* Set XTP to max */
- }
+ config BF_REV_0_5
+ 	bool "0.5"
+-	depends on (BF561 || BF537 || BF536 || BF534 || BF533 || BF532 || BF531)
++	depends on (BF561 || BF533 || BF532 || BF531)
  
--#define hard_smp_processor_id()		ia64_get_lid()
--
- /* Upping and downing of CPUs */
- extern int __cpu_disable (void);
- extern void __cpu_die (unsigned int cpu);
-@@ -130,7 +130,6 @@ extern int is_multithreading_enabled(voi
- 
- #else /* CONFIG_SMP */
- 
--#define hard_smp_processor_id()		0
- #define cpu_logical_id(i)		0
- #define cpu_physical_id(i)		ia64_get_lid()
+ endchoice
  
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
+usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
+blackfin-Documentation.patch
+blackfin-arch.patch
+blackfin-arch-balance-parenthesis-in-macros.patch
+blackfin-arch-2.6.21-rc4-mm1-update.patch
+blackfin-arch-fix-struct-dmasg-packing-bug.patch
+blackfin-arch-cleanup-cache-header-file.patch
+blackfin-arch-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+blackfin-arch-fix-compiling-error-in-flat-c-file.patch
+blackfin-arch-power-management-replace-firmware-disk-mode.patch
+blackfin-arch-add-kdebug-header-file.patch
+blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
+blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
+blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
+blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
+blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
+blackfin-arch-always-include-linux-kallsysms-header-file.patch
+blackfin-arch-sync-with-uclibc-no-functional-changes.patch
+blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
+blackfin-arch-add-missing-__clear_user-function-to.patch
+blackfin-arch-use-boot_command_line-instead-of.patch
+blackfin-arch-fix-some-coding-style-in-include.patch
+blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
+blackfin-arch-define-a-new-cacheline_aligned-attribute-to-put-it-in-l1-data-memory-with-linkscript-update.patch
+blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch
+blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+blackfin-on-chip-ethernet-mac-controller-driver.patch
+blackfin-on-chip-ethernet-mac-controller-driver-update.patch
+blackfin-patch-add-blackfin-support-in-smc91x.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
+blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+move-die-notifier-handling-to-common-code-fix.patch
+blackfin-blackfin-utrace-patch.patch
+utrace-nommu-fixup-support-utrace.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+vdso-print-fatal-signals-fix-compiling-error-bug-in.patch
