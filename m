@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch added to -mm tree
-Date: Fri, 06 Apr 2007 16:26:31 -0700
-Message-ID: <200704062326.l36NQVjF022514@shell0.pdx.osdl.net>
+Subject: + paravirt_ops-document-asm-i386-paravirth.patch added to -mm tree
+Date: Fri, 06 Apr 2007 16:26:41 -0700
+Message-ID: <200704062326.l36NQfl1022529@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:38353 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:38371 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933450AbXDFX0o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 19:26:44 -0400
+	id S933458AbXDFX0t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 19:26:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, James.Bottomley@SteelEye.com, jeremy@xensource.com, mingo@elte.hu
+Cc: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     paravirt_ops: add hooks to intercept mm creation and destruction
+     paravirt_ops: Document asm-i386/paravirt.h
 has been added to the -mm tree.  Its filename is
-     paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch
+     paravirt_ops-document-asm-i386-paravirth.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,474 +25,291 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: paravirt_ops: add hooks to intercept mm creation and destruction
+Subject: paravirt_ops: Document asm-i386/paravirt.h
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Add hooks to allow a paravirt implementation to track the lifetime of an mm. 
-Paravirtualization requires three hooks, but only two are needed in common
-code.  They are:
-
-arch_dup_mmap, which is called when a new mmap is created at fork
-
-arch_exit_mmap, which is called when the last process reference to an mm is
-dropped, which typically happens on exit and exec.
-
-The third hook is activate_mm, which is called from the arch-specific
-activate_mm() macro/function, and so doesn't need stub versions for other
-architectures.  It's called when an mm is first used.
+Clean things up, and broadly document:
+ - the paravirt_ops functions themselves
+ - the patching mechanism
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: linux-arch@vger.kernel.org
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c         |    4 ++++
- include/asm-alpha/mmu_context.h     |    1 +
- include/asm-arm/mmu_context.h       |    1 +
- include/asm-arm26/mmu_context.h     |    2 ++
- include/asm-avr32/mmu_context.h     |    1 +
- include/asm-cris/mmu_context.h      |    2 ++
- include/asm-frv/mmu_context.h       |    1 +
- include/asm-generic/mm_hooks.h      |   18 ++++++++++++++++++
- include/asm-h8300/mmu_context.h     |    1 +
- include/asm-i386/mmu_context.h      |   17 +++++++++++++++--
- include/asm-i386/paravirt.h         |   23 +++++++++++++++++++++++
- include/asm-ia64/mmu_context.h      |    1 +
- include/asm-m32r/mmu_context.h      |    1 +
- include/asm-m68k/mmu_context.h      |    1 +
- include/asm-m68knommu/mmu_context.h |    1 +
- include/asm-mips/mmu_context.h      |    1 +
- include/asm-parisc/mmu_context.h    |    1 +
- include/asm-powerpc/mmu_context.h   |    1 +
- include/asm-ppc/mmu_context.h       |    1 +
- include/asm-s390/mmu_context.h      |    2 ++
- include/asm-sh/mmu_context.h        |    1 +
- include/asm-sh64/mmu_context.h      |    2 +-
- include/asm-sparc/mmu_context.h     |    2 ++
- include/asm-sparc64/mmu_context.h   |    1 +
- include/asm-um/mmu_context.h        |    2 ++
- include/asm-v850/mmu_context.h      |    2 ++
- include/asm-x86_64/mmu_context.h    |    1 +
- include/asm-xtensa/mmu_context.h    |    1 +
- kernel/fork.c                       |    2 ++
- mm/mmap.c                           |    4 ++++
- 30 files changed, 96 insertions(+), 3 deletions(-)
+ include/asm-i386/paravirt.h |  136 ++++++++++++++++++++++++++++++----
+ 1 file changed, 121 insertions(+), 15 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/arch/i386/kernel/paravirt.c
-@@ -237,6 +237,10 @@ struct paravirt_ops paravirt_ops = {
- 	.irq_enable_sysexit = native_irq_enable_sysexit,
- 	.iret = native_iret,
- 
-+	.dup_mmap = paravirt_nop,
-+	.exit_mmap = paravirt_nop,
-+	.activate_mm = paravirt_nop,
-+
- 	.startup_ipi_hook = paravirt_nop,
- };
- 
-diff -puN include/asm-alpha/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-alpha/mmu_context.h
---- a/include/asm-alpha/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-alpha/mmu_context.h
-@@ -10,6 +10,7 @@
- #include <asm/system.h>
- #include <asm/machvec.h>
- #include <asm/compiler.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * Force a context reload. This is needed when we change the page
-diff -puN include/asm-arm/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-arm/mmu_context.h
---- a/include/asm-arm/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-arm/mmu_context.h
-@@ -16,6 +16,7 @@
- #include <linux/compiler.h>
- #include <asm/cacheflush.h>
- #include <asm/proc-fns.h>
-+#include <asm-generic/mm_hooks.h>
- 
- void __check_kvm_seq(struct mm_struct *mm);
- 
-diff -puN include/asm-arm26/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-arm26/mmu_context.h
---- a/include/asm-arm26/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-arm26/mmu_context.h
-@@ -13,6 +13,8 @@
- #ifndef __ASM_ARM_MMU_CONTEXT_H
- #define __ASM_ARM_MMU_CONTEXT_H
- 
-+#include <asm-generic/mm_hooks.h>
-+
- #define init_new_context(tsk,mm)	0
- #define destroy_context(mm)		do { } while(0)
- 
-diff -puN include/asm-avr32/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-avr32/mmu_context.h
---- a/include/asm-avr32/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-avr32/mmu_context.h
-@@ -15,6 +15,7 @@
- #include <asm/tlbflush.h>
- #include <asm/pgalloc.h>
- #include <asm/sysreg.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * The MMU "context" consists of two things:
-diff -puN include/asm-cris/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-cris/mmu_context.h
---- a/include/asm-cris/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-cris/mmu_context.h
-@@ -1,6 +1,8 @@
- #ifndef __CRIS_MMU_CONTEXT_H
- #define __CRIS_MMU_CONTEXT_H
- 
-+#include <asm-generic/mm_hooks.h>
-+
- extern int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
- extern void get_mmu_context(struct mm_struct *mm);
- extern void destroy_context(struct mm_struct *mm);
-diff -puN include/asm-frv/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-frv/mmu_context.h
---- a/include/asm-frv/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-frv/mmu_context.h
-@@ -15,6 +15,7 @@
- #include <asm/setup.h>
- #include <asm/page.h>
- #include <asm/pgalloc.h>
-+#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN /dev/null include/asm-generic/mm_hooks.h
---- /dev/null
-+++ a/include/asm-generic/mm_hooks.h
-@@ -0,0 +1,18 @@
-+/*
-+ * Define generic no-op hooks for arch_dup_mmap and arch_exit_mmap, to
-+ * be included in asm-FOO/mmu_context.h for any arch FOO which doesn't
-+ * need to hook these.
-+ */
-+#ifndef _ASM_GENERIC_MM_HOOKS_H
-+#define _ASM_GENERIC_MM_HOOKS_H
-+
-+static inline void arch_dup_mmap(struct mm_struct *oldmm,
-+				 struct mm_struct *mm)
-+{
-+}
-+
-+static inline void arch_exit_mmap(struct mm_struct *mm)
-+{
-+}
-+
-+#endif	/* _ASM_GENERIC_MM_HOOKS_H */
-diff -puN include/asm-h8300/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-h8300/mmu_context.h
---- a/include/asm-h8300/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-h8300/mmu_context.h
-@@ -4,6 +4,7 @@
- #include <asm/setup.h>
- #include <asm/page.h>
- #include <asm/pgalloc.h>
-+#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN include/asm-i386/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/mmu_context.h
---- a/include/asm-i386/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-i386/mmu_context.h
-@@ -5,6 +5,16 @@
- #include <asm/atomic.h>
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
-+#include <asm/paravirt.h>
-+#ifndef CONFIG_PARAVIRT
-+#include <asm-generic/mm_hooks.h>
-+
-+static inline void paravirt_activate_mm(struct mm_struct *prev,
-+					struct mm_struct *next)
-+{
-+}
-+#endif	/* !CONFIG_PARAVIRT */
-+
- 
- /*
-  * Used for LDT copy/destruction.
-@@ -65,7 +75,10 @@ static inline void switch_mm(struct mm_s
- #define deactivate_mm(tsk, mm)			\
- 	asm("movl %0,%%gs": :"r" (0));
- 
--#define activate_mm(prev, next) \
--	switch_mm((prev),(next),NULL)
-+#define activate_mm(prev, next)				\
-+	do {						\
-+		paravirt_activate_mm(prev, next);	\
-+		switch_mm((prev),(next),NULL);		\
-+	} while(0);
- 
- #endif
-diff -puN include/asm-i386/paravirt.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
+diff -puN include/asm-i386/paravirt.h~paravirt_ops-document-asm-i386-paravirth include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~paravirt_ops-document-asm-i386-paravirth
 +++ a/include/asm-i386/paravirt.h
-@@ -119,6 +119,12 @@ struct paravirt_ops
+@@ -21,6 +21,14 @@ struct Xgt_desc_struct;
+ struct tss_struct;
+ struct mm_struct;
+ struct desc_struct;
++
++/* Lazy mode for batching updates / context switch */
++enum paravirt_lazy_mode {
++	PARAVIRT_LAZY_NONE = 0,
++	PARAVIRT_LAZY_MMU = 1,
++	PARAVIRT_LAZY_CPU = 2,
++};
++
+ struct paravirt_ops
+ {
+ 	unsigned int kernel_rpl;
+@@ -37,22 +45,33 @@ struct paravirt_ops
+ 	 */
+ 	unsigned (*patch)(u8 type, u16 clobber, void *firstinsn, unsigned len);
  
++	/* Basic arch-specific setup */
+ 	void (*arch_setup)(void);
+ 	char *(*memory_setup)(void);
+ 	void (*init_IRQ)(void);
++	void (*time_init)(void);
+ 
++	/*
++	 * Called before/after init_mm pagetable setup. setup_start
++	 * may reset %cr3, and may pre-install parts of the pagetable;
++	 * pagetable setup is expected to preserve any existing
++	 * mapping.
++	 */
+ 	void (*pagetable_setup_start)(pgd_t *pgd_base);
+ 	void (*pagetable_setup_done)(pgd_t *pgd_base);
+ 
++	/* Print a banner to identify the environment */
+ 	void (*banner)(void);
+ 
++	/* Set and set time of day */
+ 	unsigned long (*get_wallclock)(void);
+ 	int (*set_wallclock)(unsigned long);
+-	void (*time_init)(void);
+ 
++	/* cpuid emulation, mostly so that caps bits can be disabled */
+ 	void (*cpuid)(unsigned int *eax, unsigned int *ebx,
+ 		      unsigned int *ecx, unsigned int *edx);
+ 
++	/* hooks for various privileged instructions */
+ 	unsigned long (*get_debugreg)(int regno);
+ 	void (*set_debugreg)(int regno, unsigned long value);
+ 
+@@ -71,15 +90,23 @@ struct paravirt_ops
+ 	unsigned long (*read_cr4)(void);
+ 	void (*write_cr4)(unsigned long);
+ 
++	/*
++	 * Get/set interrupt state.  save_fl and restore_fl are only
++	 * expected to use X86_EFLAGS_IF; all other bits
++	 * returned from save_fl are undefined, and may be ignored by
++	 * restore_fl.
++	 */
+ 	unsigned long (*save_fl)(void);
+ 	void (*restore_fl)(unsigned long);
+ 	void (*irq_disable)(void);
+ 	void (*irq_enable)(void);
+ 	void (*safe_halt)(void);
+ 	void (*halt)(void);
++
+ 	void (*wbinvd)(void);
+ 
+-	/* err = 0/-EFAULT.  wrmsr returns 0/-EFAULT. */
++	/* MSR, PMC and TSR operations.
++	   err = 0/-EFAULT.  wrmsr returns 0/-EFAULT. */
+ 	u64 (*read_msr)(unsigned int msr, int *err);
+ 	int (*write_msr)(unsigned int msr, u64 val);
+ 
+@@ -88,6 +115,7 @@ struct paravirt_ops
+  	u64 (*get_scheduled_cycles)(void);
+ 	unsigned long (*get_cpu_khz)(void);
+ 
++	/* Segment descriptor handling */
+ 	void (*load_tr_desc)(void);
+ 	void (*load_gdt)(const struct Xgt_desc_struct *);
+ 	void (*load_idt)(const struct Xgt_desc_struct *);
+@@ -105,9 +133,12 @@ struct paravirt_ops
+ 	void (*load_esp0)(struct tss_struct *tss, struct thread_struct *t);
+ 
+ 	void (*set_iopl_mask)(unsigned mask);
+-
  	void (*io_delay)(void);
  
-+	void (*activate_mm)(struct mm_struct *prev,
-+			    struct mm_struct *next);
-+	void (*dup_mmap)(struct mm_struct *oldmm,
-+			 struct mm_struct *mm);
-+	void (*exit_mmap)(struct mm_struct *mm);
-+
++	/*
++	 * Hooks for intercepting the creation/use/destruction of an
++	 * mm_struct.
++	 */
+ 	void (*activate_mm)(struct mm_struct *prev,
+ 			    struct mm_struct *next);
+ 	void (*dup_mmap)(struct mm_struct *oldmm,
+@@ -115,30 +146,43 @@ struct paravirt_ops
+ 	void (*exit_mmap)(struct mm_struct *mm);
+ 
  #ifdef CONFIG_X86_LOCAL_APIC
++	/*
++	 * Direct APIC operations, principally for VMI.  Ideally
++	 * these shouldn't be in this interface.
++	 */
  	void (*apic_write)(unsigned long reg, unsigned long v);
  	void (*apic_write_atomic)(unsigned long reg, unsigned long v);
-@@ -395,6 +401,23 @@ static inline void startup_ipi_hook(int 
- }
+ 	unsigned long (*apic_read)(unsigned long reg);
+ 	void (*setup_boot_clock)(void);
+ 	void (*setup_secondary_clock)(void);
++
++	void (*startup_ipi_hook)(int phys_apicid,
++				 unsigned long start_eip,
++				 unsigned long start_esp);
  #endif
  
-+static inline void paravirt_activate_mm(struct mm_struct *prev,
-+					struct mm_struct *next)
-+{
-+	paravirt_ops.activate_mm(prev, next);
-+}
-+
-+static inline void arch_dup_mmap(struct mm_struct *oldmm,
-+				 struct mm_struct *mm)
-+{
-+	paravirt_ops.dup_mmap(oldmm, mm);
-+}
-+
-+static inline void arch_exit_mmap(struct mm_struct *mm)
-+{
-+	paravirt_ops.exit_mmap(mm);
-+}
-+
- #define __flush_tlb() paravirt_ops.flush_tlb_user()
- #define __flush_tlb_global() paravirt_ops.flush_tlb_kernel()
- #define __flush_tlb_single(addr) paravirt_ops.flush_tlb_single(addr)
-diff -puN include/asm-ia64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-ia64/mmu_context.h
---- a/include/asm-ia64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-ia64/mmu_context.h
-@@ -29,6 +29,7 @@
- #include <linux/spinlock.h>
++	/* TLB operations */
+ 	void (*flush_tlb_user)(void);
+ 	void (*flush_tlb_kernel)(void);
+ 	void (*flush_tlb_single)(unsigned long addr);
  
- #include <asm/processor.h>
-+#include <asm-generic/mm_hooks.h>
+ 	void (*map_pt_hook)(int type, pte_t *va, u32 pfn);
  
- struct ia64_ctx {
- 	spinlock_t lock;
-diff -puN include/asm-m32r/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-m32r/mmu_context.h
---- a/include/asm-m32r/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-m32r/mmu_context.h
-@@ -15,6 +15,7 @@
- #include <asm/pgalloc.h>
- #include <asm/mmu.h>
- #include <asm/tlbflush.h>
-+#include <asm-generic/mm_hooks.h>
++	/* Hooks for allocating/releasing pagetable pages */
+ 	void (*alloc_pt)(u32 pfn);
+ 	void (*alloc_pd)(u32 pfn);
+ 	void (*alloc_pd_clone)(u32 pfn, u32 clonepfn, u32 start, u32 count);
+ 	void (*release_pt)(u32 pfn);
+ 	void (*release_pd)(u32 pfn);
  
- /*
-  * Cache of MMU context last used.
-diff -puN include/asm-m68k/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-m68k/mmu_context.h
---- a/include/asm-m68k/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-m68k/mmu_context.h
-@@ -1,6 +1,7 @@
- #ifndef __M68K_MMU_CONTEXT_H
- #define __M68K_MMU_CONTEXT_H
++	/* Pagetable manipulation functions */
+ 	void (*set_pte)(pte_t *ptep, pte_t pteval);
+-	void (*set_pte_at)(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pteval);
++	void (*set_pte_at)(struct mm_struct *mm, unsigned long addr,
++			   pte_t *ptep, pte_t pteval);
+ 	void (*set_pmd)(pmd_t *pmdp, pmd_t pmdval);
+ 	void (*pte_update)(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
+-	void (*pte_update_defer)(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
++	void (*pte_update_defer)(struct mm_struct *mm,
++				 unsigned long addr, pte_t *ptep);
  
-+#include <asm-generic/mm_hooks.h>
+  	pte_t (*ptep_get_and_clear)(pte_t *ptep);
  
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN include/asm-m68knommu/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-m68knommu/mmu_context.h
---- a/include/asm-m68knommu/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-m68knommu/mmu_context.h
-@@ -4,6 +4,7 @@
- #include <asm/setup.h>
- #include <asm/page.h>
- #include <asm/pgalloc.h>
-+#include <asm-generic/mm_hooks.h>
+@@ -164,13 +208,12 @@ struct paravirt_ops
+ 	pgd_t (*make_pgd)(unsigned long pgd);
+ #endif
  
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN include/asm-mips/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-mips/mmu_context.h
---- a/include/asm-mips/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-mips/mmu_context.h
-@@ -20,6 +20,7 @@
- #include <asm/mipsmtregs.h>
- #include <asm/smtc.h>
- #endif /* SMTC */
-+#include <asm-generic/mm_hooks.h>
+-	void (*set_lazy_mode)(int mode);
++	/* Set deferred update mode, used for batching operations. */
++	void (*set_lazy_mode)(enum paravirt_lazy_mode mode);
  
- /*
-  * For the fast tlb miss handlers, we keep a per cpu array of pointers
-diff -puN include/asm-parisc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-parisc/mmu_context.h
---- a/include/asm-parisc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-parisc/mmu_context.h
-@@ -5,6 +5,7 @@
- #include <asm/atomic.h>
- #include <asm/pgalloc.h>
- #include <asm/pgtable.h>
-+#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-diff -puN include/asm-powerpc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-powerpc/mmu_context.h
---- a/include/asm-powerpc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-powerpc/mmu_context.h
-@@ -10,6 +10,7 @@
- #include <linux/mm.h>	
- #include <asm/mmu.h>	
- #include <asm/cputable.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * Copyright (C) 2001 PPC 64 Team, IBM Corp
-diff -puN include/asm-ppc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-ppc/mmu_context.h
---- a/include/asm-ppc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-ppc/mmu_context.h
-@@ -6,6 +6,7 @@
- #include <asm/bitops.h>
- #include <asm/mmu.h>
- #include <asm/cputable.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * On 32-bit PowerPC 6xx/7xx/7xxx CPUs, we use a set of 16 VSIDs
-diff -puN include/asm-s390/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-s390/mmu_context.h
---- a/include/asm-s390/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-s390/mmu_context.h
-@@ -10,6 +10,8 @@
- #define __S390_MMU_CONTEXT_H
- 
- #include <asm/pgalloc.h>
-+#include <asm-generic/mm_hooks.h>
-+
- /*
-  * get a new mmu context.. S390 don't know about contexts.
-  */
-diff -puN include/asm-sh/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-sh/mmu_context.h
---- a/include/asm-sh/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-sh/mmu_context.h
-@@ -12,6 +12,7 @@
- #include <asm/tlbflush.h>
- #include <asm/uaccess.h>
- #include <asm/io.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * The MMU "context" consists of two things:
-diff -puN include/asm-sh64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-sh64/mmu_context.h
---- a/include/asm-sh64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-sh64/mmu_context.h
-@@ -27,7 +27,7 @@
- extern unsigned long mmu_context_cache;
- 
- #include <asm/page.h>
+ 	/* These two are jmp to, not actually called. */
+ 	void (*irq_enable_sysexit)(void);
+ 	void (*iret)(void);
 -
-+#include <asm-generic/mm_hooks.h>
+-	void (*startup_ipi_hook)(int phys_apicid, unsigned long start_eip, unsigned long start_esp);
+ };
  
- /* Current mm's pgd */
- extern pgd_t *mmu_pdtp_cache;
-diff -puN include/asm-sparc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-sparc/mmu_context.h
---- a/include/asm-sparc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-sparc/mmu_context.h
-@@ -5,6 +5,8 @@
+ /* Mark a paravirt probe function. */
+@@ -188,8 +231,10 @@ extern struct paravirt_ops paravirt_ops;
+ #define paravirt_clobber(clobber)		\
+ 	[paravirt_clobber] "i" (clobber)
  
- #ifndef __ASSEMBLY__
+-#define PARAVIRT_CALL	"call *(paravirt_ops+%c[paravirt_typenum]*4);"
+-
++/*
++ * Generate some code, and mark it as patchable by the
++ * apply_paravirt() alternate instruction patcher.
++ */
+ #define _paravirt_alt(insn_string, type, clobber)	\
+ 	"771:\n\t" insn_string "\n" "772:\n"		\
+ 	".pushsection .parainstructions,\"a\"\n"	\
+@@ -199,9 +244,74 @@ extern struct paravirt_ops paravirt_ops;
+ 	"  .short " clobber "\n"			\
+ 	".popsection\n"
  
-+#include <asm-generic/mm_hooks.h>
++/* Generate patchable code, with the default asm parameters. */
+ #define paravirt_alt(insn_string)					\
+ 	_paravirt_alt(insn_string, "%c[paravirt_typenum]", "%c[paravirt_clobber]")
+ 
++/*
++ * This generates an indirect call based on the operation type number.
++ * The type number, computed in PARAVIRT_PATCH, is derived from the
++ * offset into the paravirt_ops structure, and can therefore be freely
++ * converted back into a structure offset.
++ */
++#define PARAVIRT_CALL	"call *(paravirt_ops+%c[paravirt_typenum]*4);"
 +
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
++/*
++ * These macros are intended to wrap calls into a paravirt_ops
++ * operation, so that they can be later identified and patched at
++ * runtime.
++ *
++ * Normally, a call to a pv_op function is a simple indirect call:
++ * (paravirt_ops.operations)(args...).
++ *
++ * Unfortunately, this is a relatively slow operation for modern CPUs,
++ * because it cannot necessarily determine what the destination
++ * address is.  In this case, the address is a runtime constant, so at
++ * the very least we can patch the call to e a simple direct call, or
++ * ideally, patch an inline implementation into the callsite.  (Direct
++ * calls are essentially free, because the call and return addresses
++ * are completely predictable.)
++ *
++ * These macros rely on the standard gcc "regparm(3)" calling
++ * convention, in which the first three arguments are placed in %eax,
++ * %edx, %ecx (in that order), and the remaining arguments are placed
++ * on the stack.  All caller-save registers (eax,edx,ecx) are expected
++ * to be modified (either clobbered or used for return values).
++ *
++ * The call instruction itself is marked by placing its start address
++ * and size into the .parainstructions section, so that
++ * apply_paravirt() in arch/i386/kernel/alternative.c can do the
++ * appropriate patching under the control of the backend paravirt_ops
++ * implementation.
++ *
++ * Unfortunately there's no way to get gcc to generate the args setup
++ * for the call, and then allow the call itself to be generated by an
++ * inline asm.  Because of this, we must do the complete arg setup and
++ * return value handling from within these macros.  This is fairly
++ * cumbersome.
++ *
++ * There are 5 sets of PVOP_* macros for dealing with 0-4 arguments.
++ * It could be extended to more arguments, but there would be little
++ * to be gained from that.  For each number of arguments, there are
++ * the two VCALL and CALL variants for void and non-void functions.
++ *
++ * When there is a return value, the invoker of the macro must specify
++ * the return type.  The macro then uses sizeof() on that type to
++ * determine whether its a 32 or 64 bit value, and places the return
++ * in the right register(s) (just %eax for 32-bit, and %edx:%eax for
++ * 64-bit).
++ *
++ * 64-bit arguments are passed as a pair of adjacent 32-bit arguments
++ * in low,high order.
++ *
++ * Small structures are passed and returned in registers.  The macro
++ * calling convention can't directly deal with this, so the wrapper
++ * functions must do this.
++ *
++ * These PVOP_* macros are only defined within this header.  This
++ * means that all uses must be wrapped in inline functions.  This also
++ * makes sure the incoming and outgoing types are always correct.
++ */
+ #define PVOP_CALL0(__rettype, __op)					\
+ 	({								\
+ 		__rettype __ret;					\
+@@ -897,11 +1007,6 @@ static inline pte_t raw_ptep_get_and_cle
  }
-diff -puN include/asm-sparc64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-sparc64/mmu_context.h
---- a/include/asm-sparc64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-sparc64/mmu_context.h
-@@ -9,6 +9,7 @@
- #include <linux/spinlock.h>
- #include <asm/system.h>
- #include <asm/spitfire.h>
-+#include <asm-generic/mm_hooks.h>
+ #endif	/* CONFIG_X86_PAE */
  
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+-/* Lazy mode for batching updates / context switch */
+-#define PARAVIRT_LAZY_NONE 0
+-#define PARAVIRT_LAZY_MMU  1
+-#define PARAVIRT_LAZY_CPU  2
+-
+ #define  __HAVE_ARCH_ENTER_LAZY_CPU_MODE
+ static inline void arch_enter_lazy_cpu_mode(void)
  {
-diff -puN include/asm-um/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-um/mmu_context.h
---- a/include/asm-um/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-um/mmu_context.h
-@@ -6,6 +6,8 @@
- #ifndef __UM_MMU_CONTEXT_H
- #define __UM_MMU_CONTEXT_H
+@@ -1012,6 +1117,7 @@ static inline unsigned long __raw_local_
+ 	[paravirt_sti_type] "i" (PARAVIRT_PATCH(irq_enable)),		\
+ 	paravirt_clobber(CLBR_EAX)
  
-+#include <asm-generic/mm_hooks.h>
-+
- #include "linux/sched.h"
- #include "choose-mode.h"
- #include "um_mmu.h"
-diff -puN include/asm-v850/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-v850/mmu_context.h
---- a/include/asm-v850/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-v850/mmu_context.h
-@@ -1,6 +1,8 @@
- #ifndef __V850_MMU_CONTEXT_H__
- #define __V850_MMU_CONTEXT_H__
- 
-+#include <asm-generic/mm_hooks.h>
-+
- #define destroy_context(mm)		((void)0)
- #define init_new_context(tsk,mm)	0
- #define switch_mm(prev,next,tsk)	((void)0)
-diff -puN include/asm-x86_64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-x86_64/mmu_context.h
---- a/include/asm-x86_64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-x86_64/mmu_context.h
-@@ -7,6 +7,7 @@
- #include <asm/pda.h>
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
-+#include <asm-generic/mm_hooks.h>
- 
- /*
-  * possibly do the LDT unload here?
-diff -puN include/asm-xtensa/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-xtensa/mmu_context.h
---- a/include/asm-xtensa/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/include/asm-xtensa/mmu_context.h
-@@ -18,6 +18,7 @@
- #include <asm/pgtable.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
-+#include <asm-generic/mm_hooks.h>
- 
- #define XCHAL_MMU_ASID_BITS	8
- 
-diff -puN kernel/fork.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction kernel/fork.c
---- a/kernel/fork.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/kernel/fork.c
-@@ -287,6 +287,8 @@ static inline int dup_mmap(struct mm_str
- 		if (retval)
- 			goto out;
- 	}
-+	/* a new mm has just been created */
-+	arch_dup_mmap(oldmm, mm);
- 	retval = 0;
- out:
- 	up_write(&mm->mmap_sem);
-diff -puN mm/mmap.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction mm/mmap.c
---- a/mm/mmap.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
-+++ a/mm/mmap.c
-@@ -29,6 +29,7 @@
- #include <asm/uaccess.h>
- #include <asm/cacheflush.h>
- #include <asm/tlb.h>
-+#include <asm/mmu_context.h>
- 
- #ifndef arch_mmap_check
- #define arch_mmap_check(addr, len, flags)	(0)
-@@ -1979,6 +1980,9 @@ void exit_mmap(struct mm_struct *mm)
- 	unsigned long nr_accounted = 0;
- 	unsigned long end;
- 
-+	/* mm's last user has gone, and its about to be pulled down */
-+	arch_exit_mmap(mm);
-+
- 	lru_add_drain();
- 	flush_cache_mm(mm);
- 	tlb = tlb_gather_mmu(mm, 1);
++/* Make sure as little as possible of this mess escapes. */
+ #undef PARAVIRT_CALL
+ #undef PVOP_VCALL0
+ #undef PVOP_CALL0
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
