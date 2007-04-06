@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-replace-more-deprecated-sa_xxx-interrupt-flags.patch added to -mm tree
-Date: Fri, 06 Apr 2007 13:32:06 -0700
-Message-ID: <200704062032.l36KW6mr018313@shell0.pdx.osdl.net>
+Subject: + deprecate-sa_xxx-interrupt-flags-v2.patch added to -mm tree
+Date: Fri, 06 Apr 2007 12:23:10 -0700
+Message-ID: <200704061923.l36JNAue016925@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33560 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60155 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932819AbXDFUc0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 16:32:26 -0400
+	id S1751857AbXDFTXR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 15:23:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, khali@linux-fr.org
+Cc: tglx@linutronix.de
 
 
 The patch titled
-     i2c: replace more deprecated SA_xxx interrupt flags
+     Deprecate SA_xxx interrupt flags -V2
 has been added to the -mm tree.  Its filename is
-     i2c-replace-more-deprecated-sa_xxx-interrupt-flags.patch
+     deprecate-sa_xxx-interrupt-flags-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i2c: replace more deprecated SA_xxx interrupt flags
+Subject: Deprecate SA_xxx interrupt flags -V2
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Fix the obnoxious users of the deprecated SA_xxx interrupt flags.
+The deprecation of the SA_xxx interrupt flags did not emit deprecated
+warnings. Andrew said about the removal of the deprecated flag defines:
+
+> This is going to break a lot of external stuff.  We should have found
+> a way to make usage of SA_* emit deprecated warnings (or _some_
+> warning) to warn people of impending doom.  But I can't immediately
+> find a way of doing that. if we _can_ find a way of doing this, I
+> suspect we'll need to do it, and give people another six months.  It's
+> going to get ugly out there.  We shall see...
+
+Define the deprecated flags as a call to a __deprecated inline function
+so a warning is emitted on compile time.
+
+Extend the reprieve of out of tree drivers to 9/2007.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-bfin-twi.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ Documentation/feature-removal-schedule.txt |    2 -
+ include/linux/interrupt.h                  |   30 +++++++++++--------
+ 2 files changed, 19 insertions(+), 13 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-bfin-twi.c~i2c-replace-more-deprecated-sa_xxx-interrupt-flags drivers/i2c/busses/i2c-bfin-twi.c
---- a/drivers/i2c/busses/i2c-bfin-twi.c~i2c-replace-more-deprecated-sa_xxx-interrupt-flags
-+++ a/drivers/i2c/busses/i2c-bfin-twi.c
-@@ -573,7 +573,7 @@ static int i2c_bfin_twi_probe(struct pla
- 	p_adap->dev.parent = &dev->dev;
+diff -puN Documentation/feature-removal-schedule.txt~deprecate-sa_xxx-interrupt-flags-v2 Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~deprecate-sa_xxx-interrupt-flags-v2
++++ a/Documentation/feature-removal-schedule.txt
+@@ -171,7 +171,7 @@ Who:	Greg Kroah-Hartman <gregkh@suse.de>
+ ---------------------------
  
- 	rc = request_irq(iface->irq, bfin_twi_interrupt_entry,
--		SA_INTERRUPT, dev->name, iface);
-+		IRQF_DISABLED, dev->name, iface);
- 	if (rc) {
- 		dev_err(&(p_adap->dev), "i2c-bfin-twi: can't get IRQ %d !\n",
- 			iface->irq);
+ What:	Interrupt only SA_* flags
+-When:	Januar 2007
++When:	September 2007
+ Why:	The interrupt related SA_* flags are replaced by IRQF_* to move them
+ 	out of the signal namespace.
+ 
+diff -puN include/linux/interrupt.h~deprecate-sa_xxx-interrupt-flags-v2 include/linux/interrupt.h
+--- a/include/linux/interrupt.h~deprecate-sa_xxx-interrupt-flags-v2
++++ a/include/linux/interrupt.h
+@@ -54,20 +54,26 @@
+ #define IRQF_NOBALANCING	0x00000800
+ 
+ /*
+- * Migration helpers. Scheduled for removal in 1/2007
++ * Migration helpers. Scheduled for removal in 9/2007
+  * Do not use for new code !
+  */
+-#define SA_INTERRUPT		IRQF_DISABLED
+-#define SA_SAMPLE_RANDOM	IRQF_SAMPLE_RANDOM
+-#define SA_SHIRQ		IRQF_SHARED
+-#define SA_PROBEIRQ		IRQF_PROBE_SHARED
+-#define SA_PERCPU		IRQF_PERCPU
+-
+-#define SA_TRIGGER_LOW		IRQF_TRIGGER_LOW
+-#define SA_TRIGGER_HIGH		IRQF_TRIGGER_HIGH
+-#define SA_TRIGGER_FALLING	IRQF_TRIGGER_FALLING
+-#define SA_TRIGGER_RISING	IRQF_TRIGGER_RISING
+-#define SA_TRIGGER_MASK		IRQF_TRIGGER_MASK
++static inline
++unsigned long __deprecated deprecated_irq_flag(unsigned long flag)
++{
++	return flag;
++}
++
++#define SA_INTERRUPT		deprecated_irq_flag(IRQF_DISABLED)
++#define SA_SAMPLE_RANDOM	deprecated_irq_flag(IRQF_SAMPLE_RANDOM)
++#define SA_SHIRQ		deprecated_irq_flag(IRQF_SHARED)
++#define SA_PROBEIRQ		deprecated_irq_flag(IRQF_PROBE_SHARED)
++#define SA_PERCPU		deprecated_irq_flag(IRQF_PERCPU)
++
++#define SA_TRIGGER_LOW		deprecated_irq_flag(IRQF_TRIGGER_LOW)
++#define SA_TRIGGER_HIGH		deprecated_irq_flag(IRQF_TRIGGER_HIGH)
++#define SA_TRIGGER_FALLING	deprecated_irq_flag(IRQF_TRIGGER_FALLING)
++#define SA_TRIGGER_RISING	deprecated_irq_flag(IRQF_TRIGGER_RISING)
++#define SA_TRIGGER_MASK		deprecated_irq_flag(IRQF_TRIGGER_MASK)
+ 
+ typedef irqreturn_t (*irq_handler_t)(int, void *);
+ 
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
 
-i2c-replace-more-deprecated-sa_xxx-interrupt-flags.patch
+origin.patch
 git-ieee1394.patch
-vioc-replace-more-deprecated-sa_xxx-interrupt-flags.patch
-input-replace-more-deprecated-sa_xxx-interrupt-flags.patch
 optimize-timespec_trunc.patch
 kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
 add-support-for-deferrable-timers-respun.patch
@@ -67,7 +120,6 @@ irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
 move-timekeeping-code-to-timekeepingc.patch
 move-timekeeping-code-to-timekeepingc-fix.patch
 ignore-stolen-time-in-the-softlockup-watchdog.patch
-replace-deprecated-sa_xxx-interrupt-flags.patch
 deprecate-sa_xxx-interrupt-flags-v2.patch
 sched-fix-idle-load-balancing-in-softirqd-context.patch
 sched-dynticks-idle-load-balancing-v3.patch
