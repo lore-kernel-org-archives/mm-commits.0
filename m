@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + move-die-notifier-handling-to-common-code-fix.patch added to -mm tree
-Date: Fri, 06 Apr 2007 14:23:04 -0700
-Message-ID: <200704062123.l36LN4n9019285@shell0.pdx.osdl.net>
+Subject: + usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch added to -mm tree
+Date: Fri, 06 Apr 2007 14:23:44 -0700
+Message-ID: <200704062123.l36LNin3019308@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34637 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34660 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933058AbXDFVXS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 17:23:18 -0400
+	id S933075AbXDFVXt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 17:23:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, ak@suse.de, hch@lst.de
+Cc: bryan.wu@analog.com, david-b@pacbell.net, greg@kroah.com, jie.zhang@analog.com, roy.huang@analog.com
 
 
 The patch titled
-     move die notifier handling to common code fix vmalloc_sync_all in nommu
+     USB gadget rndis: fix struct rndis_packet_msg_type unaligned bug
 has been added to the -mm tree.  Its filename is
-     move-die-notifier-handling-to-common-code-fix.patch
+     usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: move die notifier handling to common code fix vmalloc_sync_all in nommu
+Subject: USB gadget rndis: fix struct rndis_packet_msg_type unaligned bug
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
+skb_push function may return a pointer which is not aligned as required
+by struct rndis_packet_msg_type. Using attribute trick to fix this bug.
+
+Signed-off-by: Roy Huang <roy.huang@analog.com>
+Signed-off-by: Jie Zhang <jie.zhang@analog.com>
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Andi Kleen <ak@suse.de>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ drivers/usb/gadget/rndis.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~move-die-notifier-handling-to-common-code-fix mm/nommu.c
---- a/mm/nommu.c~move-die-notifier-handling-to-common-code-fix
-+++ a/mm/nommu.c
-@@ -261,6 +261,14 @@ void vunmap(void *addr)
- }
+diff -puN drivers/usb/gadget/rndis.h~usb-gadget-rndis-fix-struct-rndis_packet_msg_type drivers/usb/gadget/rndis.h
+--- a/drivers/usb/gadget/rndis.h~usb-gadget-rndis-fix-struct-rndis_packet_msg_type
++++ a/drivers/usb/gadget/rndis.h
+@@ -195,7 +195,7 @@ struct rndis_packet_msg_type
+ 	__le32	PerPacketInfoLength;
+ 	__le32	VcHandle;
+ 	__le32	Reserved;
+-};
++} __attribute__ ((packed));
  
- /*
-+ * Implement a stub for vmalloc_sync_all() if the architecture chose not to
-+ * have one.
-+ */
-+void  __attribute__((weak)) vmalloc_sync_all(void)
-+{
-+}
-+
-+/*
-  *  sys_brk() for the most part doesn't need the global kernel
-  *  lock, except when an application is doing something nasty
-  *  like trying to un-brk an area that has already been mapped
+ struct rndis_config_parameter
+ {
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
 
+usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
 blackfin-arch-balance-parenthesis-in-macros.patch
@@ -95,6 +95,5 @@ blackfin-arch-sync-with-uclibc-no-functional-changes.patch
 blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
 blackfin-arch-add-missing-__clear_user-function-to.patch
 blackfin-arch-use-boot_command_line-instead-of.patch
-usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
 blackfin-arch-fix-some-coding-style-in-include.patch
 blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
