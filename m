@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-always-include-linux-kallsysms-header-file.patch added to -mm tree
-Date: Fri, 06 Apr 2007 14:24:36 -0700
-Message-ID: <200704062124.l36LOaFZ019314@shell0.pdx.osdl.net>
+Subject: + blackfin-arch-add-missing-__clear_user-function-to.patch added to -mm tree
+Date: Fri, 06 Apr 2007 14:24:42 -0700
+Message-ID: <200704062124.l36LOgET019323@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34689 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933079AbXDFVYi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 17:24:38 -0400
+	id S933089AbXDFVYo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 17:24:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bryan.wu@analog.com
 
 
 The patch titled
-     Blackfin arch: always include linux kallsysms header file in trap c
+     Blackfin arch: add missing __clear_user function to uaccess header file
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-always-include-linux-kallsysms-header-file.patch
+     blackfin-arch-add-missing-__clear_user-function-to.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Blackfin arch: always include linux kallsysms header file in trap c
+Subject: Blackfin arch: add missing __clear_user function to uaccess header file
 From: "Wu, Bryan" <bryan.wu@analog.com>
-
-Just include linux/kallsyms.h all the time as the header will handle
-prototypes/defines when CONFIG_KALLSYMS is disabled ...  fixes build error
-when disabled due to print_ip_sym not being macroed away
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/traps.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ include/asm-blackfin/uaccess.h |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/blackfin/kernel/traps.c~blackfin-arch-always-include-linux-kallsysms-header-file arch/blackfin/kernel/traps.c
---- a/arch/blackfin/kernel/traps.c~blackfin-arch-always-include-linux-kallsysms-header-file
-+++ a/arch/blackfin/kernel/traps.c
-@@ -35,6 +35,8 @@
- #include <asm/irq_handler.h>
- #include <linux/interrupt.h>
- #include <linux/module.h>
-+#include <linux/kallsyms.h>
-+
- #ifdef CONFIG_KGDB
- # include <linux/debugger.h>
- # include <linux/kgdb.h>
-@@ -52,9 +54,6 @@ asmlinkage void trap_c(struct pt_regs *f
+diff -puN include/asm-blackfin/uaccess.h~blackfin-arch-add-missing-__clear_user-function-to include/asm-blackfin/uaccess.h
+--- a/include/asm-blackfin/uaccess.h~blackfin-arch-add-missing-__clear_user-function-to
++++ a/include/asm-blackfin/uaccess.h
+@@ -260,10 +260,12 @@ static inline long strnlen_user(const ch
+  * Zero Userspace
+  */
  
- int kstack_depth_to_print = 48;
- 
--#ifdef CONFIG_KALLSYMS
--#include <linux/kallsyms.h>
--#endif
- static int printk_address(unsigned long address)
+-static inline unsigned long clear_user(void *to, unsigned long n)
++static inline unsigned long __clear_user(void *to, unsigned long n)
  {
- 	struct vm_list_struct *vml;
+ 	memset(to, 0, n);
+ 	return 0;
+ }
+ 
++#define clear_user(to, n) __clear_user(to, n)
++
+ #endif				/* _BLACKFIN_UACCESS_H */
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
