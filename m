@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-remove-vma-from-args-in-the-page-walker.patch added to -mm tree
-Date: Fri, 06 Apr 2007 23:55:37 -0700
-Message-ID: <200704070655.l376tbgr029469@shell0.pdx.osdl.net>
+Subject: + maps2-add-proc-kpagemap-interface.patch added to -mm tree
+Date: Fri, 06 Apr 2007 23:55:57 -0700
+Message-ID: <200704070655.l376tvDc029502@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46434 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46471 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965469AbXDGGzt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 02:55:49 -0400
+	id S965475AbXDGG4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 02:56:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mpm@selenic.com, jeremy@goop.org, rientjes@google.com
 
 
 The patch titled
-     maps: remove vma from args in the page walker
+     maps: add /proc/kpagemap interface
 has been added to the -mm tree.  Its filename is
-     maps2-remove-vma-from-args-in-the-page-walker.patch
+     maps2-add-proc-kpagemap-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,10 +25,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps: remove vma from args in the page walker
+Subject: maps: add /proc/kpagemap interface
 From: Matt Mackall <mpm@selenic.com>
 
-This makes the walker more generic.
+This makes physical page flags and counts available to userspace.  Together
+with /proc/pid/pagemap and /proc/pid/clear_refs, this can be used to measure
+memory usage on a per-page basis.
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
@@ -36,65 +38,145 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ fs/proc/proc_misc.c |   92 ++++++++++++++++++++++++++++++++++++++++++
+ init/Kconfig        |    9 ++++
+ 2 files changed, 101 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~maps2-remove-vma-from-args-in-the-page-walker fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-remove-vma-from-args-in-the-page-walker
-+++ a/fs/proc/task_mmu.c
-@@ -309,25 +309,26 @@ static void walk_pud_range(pgd_t *pgd, u
- }
+diff -puN fs/proc/proc_misc.c~maps2-add-proc-kpagemap-interface fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~maps2-add-proc-kpagemap-interface
++++ a/fs/proc/proc_misc.c
+@@ -47,6 +47,8 @@
+ #include <linux/vmalloc.h>
+ #include <linux/crash_dump.h>
+ #include <linux/pid_namespace.h>
++#include <linux/ptrace.h>
++#include <linux/bootmem.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+ #include <asm/io.h>
+@@ -653,6 +655,91 @@ static const struct file_operations proc
+ };
+ #endif
  
- /*
-- * walk_page_range - walk the page tables of a VMA with a callback
-- * @vma - VMA to walk
-+ * walk_page_range - walk a memory map's page tables with a callback
-+ * @mm - memory map to walk
-+ * @addr - starting address
-+ * @end - ending address
-  * @action - callback invoked for every bottom-level (PTE) page table
-  * @private - private data passed to the callback function
-  *
-  * Recursively walk the page table for the memory area in a VMA, calling
-  * a callback for every bottom-level (PTE) page table.
-  */
--static void walk_page_range(struct vm_area_struct *vma,
-+static void walk_page_range(struct mm_struct *mm,
-+			    unsigned long addr, unsigned long end,
- 			    void (*action)(pmd_t *, unsigned long,
- 					   unsigned long, void *),
- 			    void *private)
- {
--	unsigned long addr = vma->vm_start;
--	unsigned long end = vma->vm_end;
- 	pgd_t *pgd;
- 	unsigned long next;
++#ifdef CONFIG_PROC_KPAGEMAP
++#define KPMSIZE (sizeof(unsigned long) * 2)
++#define KPMMASK (KPMSIZE - 1)
++/* /proc/kpagemap - an array exposing page flags and counts
++ *
++ * Each entry is a pair of unsigned longs representing the
++ * corresponding physical page, the first containing the page flags
++ * and the second containing the page use count.
++ *
++ * The first 4 bytes of this file form a simple header:
++ *
++ * first byte:   0 for big endian, 1 for little
++ * second byte:  page shift (eg 12 for 4096 byte pages)
++ * third byte:   entry size in bytes (currently either 4 or 8)
++ * fourth byte:  header size
++ */
++static ssize_t kpagemap_read(struct file *file, char __user *buf,
++			     size_t count, loff_t *ppos)
++{
++	unsigned long *page;
++	struct page *ppage;
++	unsigned long src = *ppos;
++	unsigned long pfn;
++	ssize_t ret = 0;
++	int chunk, i;
++
++	pfn = src / KPMSIZE - 1;
++	count = min_t(size_t, count, ((max_pfn + 1) * KPMSIZE) - src);
++	if (src & KPMMASK || count & KPMMASK)
++		return -EIO;
++
++	page = (unsigned long *)__get_free_page(GFP_USER);
++	if (!page)
++		return -ENOMEM;
++
++	while (count > 0) {
++		chunk = min_t(size_t, count, PAGE_SIZE);
++		i = 0;
++
++		if (pfn == -1) {
++			page[0] = 0;
++			page[1] = 0;
++			((char *)page)[0] = (ntohl(1) != 1);
++			((char *)page)[1] = PAGE_SHIFT;
++			((char *)page)[2] = sizeof(unsigned long);
++			((char *)page)[3] = KPMSIZE;
++			i = 2;
++			pfn++;
++		}
++
++		for (; i < 2 * chunk / KPMSIZE; i += 2, pfn++) {
++			ppage = pfn_to_page(pfn);
++			if (!ppage) {
++				page[i] = 0;
++				page[i + 1] = 0;
++			} else {
++				page[i] = ppage->flags;
++				page[i + 1] = atomic_read(&ppage->_count);
++			}
++		}
++		chunk = (i / 2) * KPMSIZE;
++
++		if (copy_to_user(buf, page, chunk)) {
++			ret = -EFAULT;
++			break;
++		}
++		ret += chunk;
++		src += chunk;
++		buf += chunk;
++		count -= chunk;
++		cond_resched();
++	}
++	*ppos = src;
++
++	free_page((unsigned long)page);
++	return ret;
++}
++
++struct proc_dir_entry *proc_kpagemap;
++static struct file_operations proc_kpagemap_operations = {
++	.llseek = mem_lseek,
++	.read = kpagemap_read,
++};
++#endif
++
+ struct proc_dir_entry *proc_root_kcore;
  
--	for (pgd = pgd_offset(vma->vm_mm, addr); addr != end;
-+	for (pgd = pgd_offset(mm, addr); addr != end;
- 	     pgd++, addr = next) {
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd))
-@@ -344,7 +345,8 @@ static int show_smap(struct seq_file *m,
- 	memset(&mss, 0, sizeof mss);
- 	mss.vma = vma;
- 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
--		walk_page_range(vma, smaps_pte_range, &mss);
-+		walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
-+				smaps_pte_range, &mss);
- 	return show_map_internal(m, v, &mss);
- }
+ void create_seq_entry(char *name, mode_t mode, const struct file_operations *f)
+@@ -732,6 +819,11 @@ void __init proc_misc_init(void)
+ 				(size_t)high_memory - PAGE_OFFSET + PAGE_SIZE;
+ 	}
+ #endif
++#ifdef CONFIG_PROC_KPAGEMAP
++	proc_kpagemap = create_proc_entry("kpagemap", S_IRUSR, NULL);
++	if (proc_kpagemap)
++		proc_kpagemap->proc_fops = &proc_kpagemap_operations;
++#endif
+ #ifdef CONFIG_PROC_VMCORE
+ 	proc_vmcore = create_proc_entry("vmcore", S_IRUSR, NULL);
+ 	if (proc_vmcore)
+diff -puN init/Kconfig~maps2-add-proc-kpagemap-interface init/Kconfig
+--- a/init/Kconfig~maps2-add-proc-kpagemap-interface
++++ a/init/Kconfig
+@@ -519,6 +519,15 @@ config PROC_PAGEMAP
+           with other processes. Disabling this interface will reduce the
+           size of the kernel for small machines.
  
-@@ -355,7 +357,8 @@ void clear_refs_smap(struct mm_struct *m
- 	down_read(&mm->mmap_sem);
- 	for (vma = mm->mmap; vma; vma = vma->vm_next)
- 		if (vma->vm_mm && !is_vm_hugetlb_page(vma))
--			walk_page_range(vma, clear_refs_pte_range, vma);
-+			walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
-+					clear_refs_pte_range, vma);
- 	flush_tlb_mm(mm);
- 	up_read(&mm->mmap_sem);
- }
++config PROC_KPAGEMAP
++	default y
++	bool "Enable /proc/kpagemap support" if EMBEDDED && PROC_FS
++	help
++	  The /proc/pid/kpagemap interface allows reading the
++          kernel's per-page flag and usage counts to gather precise
++          information on page-level memory usage. Disabling this interface
++          will reduce the size of the kernel for small machines.
++
+ endmenu		# General setup
+ 
+ config RT_MUTEXES
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
