@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lockd-add-code-to-handle-deferred-lock-requests.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:41:14 -0700
-Message-ID: <200704070541.l375fEQh028429@shell0.pdx.osdl.net>
+Subject: + gfs2-nfs-lock-support-for-gfs2.patch added to -mm tree
+Date: Fri, 06 Apr 2007 22:41:16 -0700
+Message-ID: <200704070541.l375fGOx028435@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45374 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45381 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965417AbXDGFl3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:41:29 -0400
+	id S965425AbXDGFlv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:41:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, trond.myklebust@fys.uio.no
+Cc: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, swhiteho@redhat.com, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     lockd: add code to handle deferred lock requests
+     gfs2: nfs lock support for gfs2
 has been added to the -mm tree.  Its filename is
-     lockd-add-code-to-handle-deferred-lock-requests.patch
+     gfs2-nfs-lock-support-for-gfs2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,147 +25,207 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockd: add code to handle deferred lock requests
+Subject: gfs2: nfs lock support for gfs2
 From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
 
-Rewrite nlmsvc_lock() to use the asynchronous interface.
+Add NFS lock support to GFS2.
 
-As with testlock, we answer nlm requests in nlmsvc_lock by first looking up
-the block and then using the results we find in the block if B_QUEUED is set,
-and calling vfs_lock_file() otherwise.
-
-If this a new lock request and we get -EINPROGRESS return on a non-blocking
-request then we defer the request.
-
-Also modify nlmsvc_unlock() to call the filesystem method if appropriate.
-
-Signed-off-by: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Jan Kara <jack@ucw.cz>
 Cc: Marc Eshel <eshel@almaden.ibm.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svc4proc.c |    2 ++
- fs/lockd/svclock.c  |   39 +++++++++++++++++++++++++++++++++------
- fs/lockd/svcproc.c  |    2 ++
- fs/lockd/svcsubs.c  |    2 +-
- 4 files changed, 38 insertions(+), 7 deletions(-)
+ fs/gfs2/locking/dlm/plock.c |  104 ++++++++++++++++++++++++++++++----
+ fs/gfs2/ops_file.c          |    5 +
+ 2 files changed, 99 insertions(+), 10 deletions(-)
 
-diff -puN fs/lockd/svc4proc.c~lockd-add-code-to-handle-deferred-lock-requests fs/lockd/svc4proc.c
---- a/fs/lockd/svc4proc.c~lockd-add-code-to-handle-deferred-lock-requests
-+++ a/fs/lockd/svc4proc.c
-@@ -145,6 +145,8 @@ nlm4svc_proc_lock(struct svc_rqst *rqstp
- 	/* Now try to lock the file */
- 	resp->status = nlmsvc_lock(rqstp, file, &argp->lock,
- 					argp->block, &argp->cookie);
-+	if (resp->status == nlm_drop_reply)
-+		return rpc_drop_reply;
+diff -puN fs/gfs2/locking/dlm/plock.c~gfs2-nfs-lock-support-for-gfs2 fs/gfs2/locking/dlm/plock.c
+--- a/fs/gfs2/locking/dlm/plock.c~gfs2-nfs-lock-support-for-gfs2
++++ a/fs/gfs2/locking/dlm/plock.c
+@@ -25,6 +25,14 @@ struct plock_op {
+ 	struct gdlm_plock_info info;
+ };
  
- 	dprintk("lockd: LOCK          status %d\n", ntohl(resp->status));
- 	nlm_release_host(host);
-diff -puN fs/lockd/svclock.c~lockd-add-code-to-handle-deferred-lock-requests fs/lockd/svclock.c
---- a/fs/lockd/svclock.c~lockd-add-code-to-handle-deferred-lock-requests
-+++ a/fs/lockd/svclock.c
-@@ -397,17 +397,43 @@ nlmsvc_lock(struct svc_rqst *rqstp, stru
- 	} else
- 		lock->fl.fl_flags &= ~FL_SLEEP;
++struct plock_xop {
++	struct plock_op xop;
++	void *callback;
++	void *fl;
++	void *file;
++};
++
++
+ static inline void set_version(struct gdlm_plock_info *info)
+ {
+ 	info->version[0] = GDLM_PLOCK_VERSION_MAJOR;
+@@ -64,12 +72,14 @@ int gdlm_plock(void *lockspace, struct l
+ {
+ 	struct gdlm_ls *ls = lockspace;
+ 	struct plock_op *op;
++	struct plock_xop *xop;
+ 	int rv;
  
--	error = posix_lock_file(file->f_file, &lock->fl, NULL);
--	lock->fl.fl_flags &= ~FL_SLEEP;
-+	if (block->b_flags & B_QUEUED) {
-+		dprintk("lockd: nlmsvc_lock deferred block %p flags %d\n",
-+							block, block->b_flags);
-+		if (block->b_granted) {
-+			nlmsvc_unlink_block(block);
-+			ret = nlm_granted;
-+			goto out;
-+		}
-+		if (block->b_flags & B_TOO_LATE) {
-+			nlmsvc_unlink_block(block);
-+			ret = nlm_lck_denied;
-+			goto out;
-+		}
-+		ret = nlm_drop_reply;
+-	op = kzalloc(sizeof(*op), GFP_KERNEL);
+-	if (!op)
++	xop = kzalloc(sizeof(*xop), GFP_KERNEL);
++	if (!xop)
+ 		return -ENOMEM;
+ 
++	op = &xop->xop;
+ 	op->info.optype		= GDLM_PLOCK_OP_LOCK;
+ 	op->info.pid		= fl->fl_pid;
+ 	op->info.ex		= (fl->fl_type == F_WRLCK);
+@@ -79,9 +89,20 @@ int gdlm_plock(void *lockspace, struct l
+ 	op->info.start		= fl->fl_start;
+ 	op->info.end		= fl->fl_end;
+ 	op->info.owner		= (__u64)(long) fl->fl_owner;
++	if (fl->fl_lmops && fl->fl_lmops->fl_notify) {
++		xop->callback	= fl->fl_lmops->fl_notify;
++		/* might need to make a copy */
++		xop->fl		= fl;
++		xop->file	= file;
++	} else
++		xop->callback	= NULL;
+ 
+ 	send_op(op);
+-	wait_event(recv_wq, (op->done != 0));
++
++	if (xop->callback == NULL)
++		wait_event(recv_wq, (op->done != 0));
++	else
++		return -EINPROGRESS;
+ 
+ 	spin_lock(&ops_lock);
+ 	if (!list_empty(&op->list)) {
+@@ -99,7 +120,60 @@ int gdlm_plock(void *lockspace, struct l
+ 				  (unsigned long long)name->ln_number);
+ 	}
+ 
+-	kfree(op);
++	kfree(xop);
++	return rv;
++}
++
++/* Returns failure iff a succesful lock operation should be canceled */
++static int gdlm_plock_callback(struct plock_op *op)
++{
++	struct file *file;
++	struct file_lock *fl;
++	int (*notify)(void *, void *, int) = NULL;
++	struct plock_xop *xop = (struct plock_xop *)op;
++	int rv = 0;
++
++	spin_lock(&ops_lock);
++	if (!list_empty(&op->list)) {
++		printk(KERN_INFO "plock op on list\n");
++		list_del(&op->list);
++	}
++	spin_unlock(&ops_lock);
++
++	/* check if the following 2 are still valid or make a copy */
++	file = xop->file;
++	fl = xop->fl;
++	notify = xop->callback;
++
++	if (op->info.rv) {
++		notify(fl, NULL, op->info.rv);
 +		goto out;
 +	}
- 
--	dprintk("lockd: posix_lock_file returned %d\n", error);
-+	if (!wait)
-+		lock->fl.fl_flags &= ~FL_SLEEP;
-+	error = vfs_lock_file(file->f_file, F_SETLK, &lock->fl, NULL);
-+	lock->fl.fl_flags &= ~FL_SLEEP;
- 
-+	dprintk("lockd: vfs_lock_file returned %d\n", error);
- 	switch(error) {
- 		case 0:
- 			ret = nlm_granted;
- 			goto out;
- 		case -EAGAIN:
-+			ret = nlm_lck_denied;
- 			break;
-+		case -EINPROGRESS:
-+			if (wait)
-+				break;
-+			/* Filesystem lock operation is in progress
-+			   Add it to the queue waiting for callback */
-+			ret = nlmsvc_defer_lock_rqst(rqstp, block);
-+			goto out;
- 		case -EDEADLK:
- 			ret = nlm_deadlock;
- 			goto out;
-@@ -532,7 +558,7 @@ nlmsvc_unlock(struct nlm_file *file, str
- 	nlmsvc_cancel_blocked(file, lock);
- 
- 	lock->fl.fl_type = F_UNLCK;
--	error = posix_lock_file(file->f_file, &lock->fl, NULL);
-+	error = vfs_lock_file(file->f_file, F_SETLK, &lock->fl, NULL);
- 
- 	return (error < 0)? nlm_lck_denied_nolocks : nlm_granted;
++
++	/* got fs lock; bookkeep locally as well: */
++	if (posix_lock_file(file, fl, NULL)) {
++		/*
++		 * This can only happen in the case of kmalloc() failure.
++		 * The filesystem's own lock is the authoritative lock,
++		 * so a failure to get the lock locally is not a disaster.
++		 * As long as GFS cannot reliably cancel locks (especially
++		 * in a low-memory situation), we're better off ignoring
++		 * this failure than trying to recover.
++		 */
++		log_error("gdlm_plock: vfs lock error file %p fl %p",
++				file, fl);
++	}
++
++	rv = notify(fl, NULL, 0);
++	if (rv) {
++		/* XXX: We need to cancel the fs lock here: */
++		printk("gfs2 lock granted after lock request failed;"
++						" dangling lock!\n");
++		goto out;
++	}
++
++out:
++	kfree(xop);
+ 	return rv;
  }
-@@ -679,14 +705,15 @@ nlmsvc_grant_blocked(struct nlm_block *b
  
- 	/* Try the lock operation again */
- 	lock->fl.fl_flags |= FL_SLEEP;
--	error = posix_lock_file(file->f_file, &lock->fl, NULL);
-+	error = vfs_lock_file(file->f_file, F_SETLK, &lock->fl, NULL);
- 	lock->fl.fl_flags &= ~FL_SLEEP;
+@@ -138,6 +212,9 @@ int gdlm_punlock(void *lockspace, struct
  
- 	switch (error) {
- 	case 0:
- 		break;
- 	case -EAGAIN:
--		dprintk("lockd: lock still blocked\n");
-+	case -EINPROGRESS:
-+		dprintk("lockd: lock still blocked error %d\n", error);
- 		nlmsvc_insert_block(block, NLM_NEVER);
- 		nlmsvc_release_block(block);
- 		return;
-diff -puN fs/lockd/svcproc.c~lockd-add-code-to-handle-deferred-lock-requests fs/lockd/svcproc.c
---- a/fs/lockd/svcproc.c~lockd-add-code-to-handle-deferred-lock-requests
-+++ a/fs/lockd/svcproc.c
-@@ -175,6 +175,8 @@ nlmsvc_proc_lock(struct svc_rqst *rqstp,
- 	/* Now try to lock the file */
- 	resp->status = cast_status(nlmsvc_lock(rqstp, file, &argp->lock,
- 					       argp->block, &argp->cookie));
-+	if (resp->status == nlm_drop_reply)
-+		return rpc_drop_reply;
+ 	rv = op->info.rv;
  
- 	dprintk("lockd: LOCK          status %d\n", ntohl(resp->status));
- 	nlm_release_host(host);
-diff -puN fs/lockd/svcsubs.c~lockd-add-code-to-handle-deferred-lock-requests fs/lockd/svcsubs.c
---- a/fs/lockd/svcsubs.c~lockd-add-code-to-handle-deferred-lock-requests
-+++ a/fs/lockd/svcsubs.c
-@@ -182,7 +182,7 @@ again:
- 			lock.fl_type  = F_UNLCK;
- 			lock.fl_start = 0;
- 			lock.fl_end   = OFFSET_MAX;
--			if (posix_lock_file(file->f_file, &lock, NULL) < 0) {
-+			if (vfs_lock_file(file->f_file, F_SETLK, &lock, NULL) < 0) {
- 				printk("lockd: unlock failure in %s:%d\n",
- 						__FILE__, __LINE__);
- 				return 1;
++	if (rv == -ENOENT)
++		rv = 0;
++
+ 	kfree(op);
+ 	return rv;
+ }
+@@ -161,6 +238,7 @@ int gdlm_plock_get(void *lockspace, stru
+ 	op->info.start		= fl->fl_start;
+ 	op->info.end		= fl->fl_end;
+ 
++
+ 	send_op(op);
+ 	wait_event(recv_wq, (op->done != 0));
+ 
+@@ -173,9 +251,10 @@ int gdlm_plock_get(void *lockspace, stru
+ 
+ 	rv = op->info.rv;
+ 
+-	if (rv == 0)
+-		fl->fl_type = F_UNLCK;
+-	else if (rv > 0) {
++	fl->fl_type = F_UNLCK;
++	if (rv == -ENOENT)
++		rv = 0;
++	else if (rv == 0 && op->info.pid != fl->fl_pid) {
+ 		fl->fl_type = (op->info.ex) ? F_WRLCK : F_RDLCK;
+ 		fl->fl_pid = op->info.pid;
+ 		fl->fl_start = op->info.start;
+@@ -243,9 +322,14 @@ static ssize_t dev_write(struct file *fi
+ 	}
+ 	spin_unlock(&ops_lock);
+ 
+-	if (found)
+-		wake_up(&recv_wq);
+-	else
++	if (found) {
++		struct plock_xop *xop;
++		xop = (struct plock_xop *)op;
++		if (xop->callback)
++			count = gdlm_plock_callback(op);
++		else
++			wake_up(&recv_wq);
++	} else
+ 		printk(KERN_INFO "gdlm dev_write no op %x %llx\n", info.fsid,
+ 			(unsigned long long)info.number);
+ 	return count;
+diff -puN fs/gfs2/ops_file.c~gfs2-nfs-lock-support-for-gfs2 fs/gfs2/ops_file.c
+--- a/fs/gfs2/ops_file.c~gfs2-nfs-lock-support-for-gfs2
++++ a/fs/gfs2/ops_file.c
+@@ -521,6 +521,11 @@ static int gfs2_lock(struct file *file, 
+ 		}
+ 	}
+ 
++	if (cmd == F_CANCELLK) {
++		/* Hack: */
++		cmd = F_SETLK;
++		fl->fl_type = F_UNLCK;
++	}
+ 	if (IS_GETLK(cmd))
+ 		return gfs2_lm_plock_get(sdp, &name, file, fl);
+ 	else if (fl->fl_type == F_UNLCK)
 _
 
 Patches currently in -mm which might be from eshel@almaden.ibm.com are
