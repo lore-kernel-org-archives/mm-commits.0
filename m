@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-serial-convert-legacy-com-ports-to-platform-devices.patch added to -mm tree
-Date: Fri, 06 Apr 2007 17:21:08 -0700
-Message-ID: <200704070021.l370L8oi023688@shell0.pdx.osdl.net>
+Subject: + revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch added to -mm tree
+Date: Fri, 06 Apr 2007 17:04:28 -0700
+Message-ID: <200704070004.l3704ShH023263@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40348 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39580 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933543AbXDGA3H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 20:29:07 -0400
+	id S933450AbXDGAFm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 20:05:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com, castet.matthieu@free.fr, jt@hpl.hp.com, kaos@ocs.com.au, lenb@kernel.org, mjg59@srcf.ucam.org, rmk+serial@arm.linux.org.uk, samuel@sortiz.org, syrjala@sci.fi
+Cc: akpm@linux-foundation.org, dmitry.adamushko@gmail.com, kernel@kolivas.org, mingo@elte.hu
 
 
 The patch titled
-     x86, serial: convert legacy COM ports to platform devices
+     revert sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array
 has been added to the -mm tree.  Its filename is
-     x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+     revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,246 +25,214 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86, serial: convert legacy COM ports to platform devices
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: revert sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make x86 COM ports into platform devices and don't probe for them
-if we have PNP.
+For staircase.
 
-This prevents double discovery, where a device was found both by
-the legacy probe and by 8250_pnp, e.g.,
-
-    serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
-    00:02: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
-
-This also means IRDA devices without a UART PNP ID will no longer be
-claimed by the serial driver, which might require changes in IRDA
-drivers and administration.
-
-In addition to this patch, you may need to configure a setserial init
-script, e.g., /etc/init.d/setserial, so it doesn't poke legacy UART
-stuff back in.  On Debian, "dpkg-reconfigure setserial" with the "kernel"
-option does this.
-
-To force the old legacy probe behavior even when we have PNPBIOS or
-ACPI, load the new legacy_serial module (or build 8250 static) with
-the "legacy_serial.force" option.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Keith Owens <kaos@ocs.com.au>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Matthieu CASTET <castet.matthieu@free.fr>
-Cc: Jean Tourrilhes <jt@hpl.hp.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Ville Syrjala <syrjala@sci.fi>
-Cc: Russell King <rmk+serial@arm.linux.org.uk>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+Cc: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Cc: Con Kolivas <kernel@kolivas.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    5 +
- arch/i386/kernel/Makefile           |    1 
- arch/i386/kernel/legacy_serial.c    |   67 ++++++++++++++++++++++++++
- arch/x86_64/kernel/Makefile         |    1 
- drivers/serial/Kconfig              |   14 +++--
- include/asm-i386/serial.h           |   16 ------
- include/asm-x86_64/serial.h         |   16 ------
- 7 files changed, 83 insertions(+), 37 deletions(-)
+ kernel/sched.c |   31 ++++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~x86-serial-convert-legacy-com-ports-to-platform-devices Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/Documentation/kernel-parameters.txt
-@@ -796,6 +796,11 @@ and is between 256 and 4096 characters. 
- 	lasi=		[HW,SCSI] PARISC LASI driver for the 53c700 chip
- 			Format: addr:<io>,irq:<irq>
+diff -puN kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array kernel/sched.c
+--- a/kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array
++++ a/kernel/sched.c
+@@ -169,7 +169,7 @@ unsigned long long __attribute__((weak))
+ 		(MAX_BONUS / 2 + DELTA((p)) + 1) / MAX_BONUS - 1))
  
-+	legacy_serial.force [HW,IA-32,X86-64]
-+			Probe for COM ports at legacy addresses even
-+			if PNPBIOS or ACPI should describe them.  This
-+			is for working around firmware defects.
-+
- 	llsc*=		[IA64] See function print_params() in
- 			arch/ia64/sn/kernel/llsc4.c.
+ #define TASK_PREEMPTS_CURR(p, rq) \
+-	(((p)->prio < (rq)->curr->prio) && ((p)->array == (rq)->active))
++	((p)->prio < (rq)->curr->prio)
  
-diff -puN arch/i386/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/arch/i386/kernel/Makefile
-@@ -35,6 +35,7 @@ obj-$(CONFIG_ACPI_SRAT) 	+= srat.o
- obj-$(CONFIG_EFI) 		+= efi.o efi_stub.o
- obj-$(CONFIG_MARKERS_ENABLE_OPTIMIZATION)	+= marker.o
- obj-$(CONFIG_DOUBLEFAULT) 	+= doublefault.o
-+obj-$(CONFIG_SERIAL_8250)	+= legacy_serial.o
- obj-$(CONFIG_VM86)		+= vm86.o
- obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
- obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
-diff -puN /dev/null arch/i386/kernel/legacy_serial.c
---- /dev/null
-+++ a/arch/i386/kernel/legacy_serial.c
-@@ -0,0 +1,67 @@
-+/*
-+ * Legacy COM port devices for x86 platforms without PNPBIOS or ACPI.
-+ * Data taken from include/asm-i386/serial.h.
-+ *
-+ * (c) Copyright 2007 Hewlett-Packard Development Company, L.P.
-+ *	Bjorn Helgaas <bjorn.helgaas@hp.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/pnp.h>
-+#include <linux/serial_8250.h>
-+
-+/* Standard COM flags (except for COM4, because of the 8514 problem) */
-+#ifdef CONFIG_SERIAL_DETECT_IRQ
-+#define COM_FLAGS (UPF_BOOT_AUTOCONF | UPF_SKIP_TEST | UPF_AUTO_IRQ)
-+#define COM4_FLAGS (UPF_BOOT_AUTOCONF | UPF_AUTO_IRQ)
-+#else
-+#define COM_FLAGS (UPF_BOOT_AUTOCONF | UPF_SKIP_TEST)
-+#define COM4_FLAGS UPF_BOOT_AUTOCONF
-+#endif
-+
-+#define PORT(_base,_irq,_flags)				\
-+	{						\
-+		.iobase		= _base,		\
-+		.irq		= _irq,			\
-+		.uartclk	= 1843200,		\
-+		.iotype		= UPIO_PORT,		\
-+		.flags		= _flags,		\
-+	}
-+
-+static struct plat_serial8250_port x86_com_data[] = {
-+	PORT(0x3F8, 4, COM_FLAGS),
-+	PORT(0x2F8, 3, COM_FLAGS),
-+	PORT(0x3E8, 4, COM_FLAGS),
-+	PORT(0x2E8, 3, COM4_FLAGS),
-+	{ },
-+};
-+
-+static struct platform_device x86_com_device = {
-+	.name			= "serial8250",
-+	.id			= PLAT8250_DEV_PLATFORM,
-+	.dev			= {
-+		.platform_data	= x86_com_data,
-+	},
-+};
-+
-+static int force_legacy_probe;
-+module_param_named(force, force_legacy_probe, bool, 0);
-+MODULE_PARM_DESC(force, "Force legacy serial port probe");
-+
-+static int __init serial8250_x86_com_init(void)
-+{
-+	if (pnp_platform_devices && !force_legacy_probe)
-+		return -ENODEV;
-+
-+	return platform_device_register(&x86_com_device);
-+}
-+
-+module_init(serial8250_x86_com_init);
-+
-+MODULE_AUTHOR("Bjorn Helgaas");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Generic 8250/16x50 legacy probe module");
-diff -puN arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices arch/x86_64/kernel/Makefile
---- a/arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/arch/x86_64/kernel/Makefile
-@@ -31,6 +31,7 @@ obj-$(CONFIG_EARLY_PRINTK)	+= early_prin
- obj-$(CONFIG_IOMMU)		+= pci-gart.o aperture.o
- obj-$(CONFIG_CALGARY_IOMMU)	+= pci-calgary.o tce.o
- obj-$(CONFIG_SWIOTLB)		+= pci-swiotlb.o
-+obj-$(CONFIG_SERIAL_8250)	+= legacy_serial.o
- obj-$(CONFIG_KPROBES)		+= kprobes.o
- obj-$(CONFIG_X86_PM_TIMER)	+= pmtimer.o
- obj-$(CONFIG_X86_VSMP)		+= vsmp.o
-diff -puN drivers/serial/Kconfig~x86-serial-convert-legacy-com-ports-to-platform-devices drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/drivers/serial/Kconfig
-@@ -73,17 +73,21 @@ config SERIAL_8250_PCI
- 	depends on SERIAL_8250 && PCI
- 	default SERIAL_8250
- 	help
--	  This builds standard PCI serial support. You may be able to
--	  disable this feature if you only need legacy serial support.
--	  Saves about 9K.
-+	  Say Y here if you have PCI serial ports.
-+
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called 8250_pci.
+ #define SCALE_PRIO(x, prio) \
+ 	max(x * (MAX_PRIO - prio) / (MAX_USER_PRIO / 2), MIN_TIMESLICE)
+@@ -4077,13 +4077,13 @@ void rt_mutex_setprio(struct task_struct
+ 	struct prio_array *array;
+ 	unsigned long flags;
+ 	struct rq *rq;
+-	int delta;
++	int oldprio;
  
- config SERIAL_8250_PNP
- 	tristate "8250/16550 PNP device support" if EMBEDDED
- 	depends on SERIAL_8250 && PNP
- 	default SERIAL_8250
- 	help
--	  This builds standard PNP serial support. You may be able to
--	  disable this feature if you only need legacy serial support.
-+	  Say Y here if you have serial ports described by PNPBIOS or ACPI.
-+	  These are typically ports built into the system board.
-+
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called 8250_pnp.
+ 	BUG_ON(prio < 0 || prio > MAX_PRIO);
  
- config SERIAL_8250_HP300
- 	tristate
-diff -puN include/asm-i386/serial.h~x86-serial-convert-legacy-com-ports-to-platform-devices include/asm-i386/serial.h
---- a/include/asm-i386/serial.h~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/include/asm-i386/serial.h
-@@ -11,19 +11,3 @@
-  * megabits/second; but this requires the faster clock.
-  */
- #define BASE_BAUD ( 1843200 / 16 )
--
--/* Standard COM flags (except for COM4, because of the 8514 problem) */
--#ifdef CONFIG_SERIAL_DETECT_IRQ
--#define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST | ASYNC_AUTO_IRQ)
--#define STD_COM4_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_AUTO_IRQ)
--#else
--#define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST)
--#define STD_COM4_FLAGS ASYNC_BOOT_AUTOCONF
--#endif
--
--#define SERIAL_PORT_DFNS			\
--	/* UART CLK   PORT IRQ     FLAGS        */			\
--	{ 0, BASE_BAUD, 0x3F8, 4, STD_COM_FLAGS },	/* ttyS0 */	\
--	{ 0, BASE_BAUD, 0x2F8, 3, STD_COM_FLAGS },	/* ttyS1 */	\
--	{ 0, BASE_BAUD, 0x3E8, 4, STD_COM_FLAGS },	/* ttyS2 */	\
--	{ 0, BASE_BAUD, 0x2E8, 3, STD_COM4_FLAGS },	/* ttyS3 */
-diff -puN include/asm-x86_64/serial.h~x86-serial-convert-legacy-com-ports-to-platform-devices include/asm-x86_64/serial.h
---- a/include/asm-x86_64/serial.h~x86-serial-convert-legacy-com-ports-to-platform-devices
-+++ a/include/asm-x86_64/serial.h
-@@ -11,19 +11,3 @@
-  * megabits/second; but this requires the faster clock.
-  */
- #define BASE_BAUD ( 1843200 / 16 )
--
--/* Standard COM flags (except for COM4, because of the 8514 problem) */
--#ifdef CONFIG_SERIAL_DETECT_IRQ
--#define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST | ASYNC_AUTO_IRQ)
--#define STD_COM4_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_AUTO_IRQ)
--#else
--#define STD_COM_FLAGS (ASYNC_BOOT_AUTOCONF | ASYNC_SKIP_TEST)
--#define STD_COM4_FLAGS ASYNC_BOOT_AUTOCONF
--#endif
--
--#define SERIAL_PORT_DFNS			\
--	/* UART CLK   PORT IRQ     FLAGS        */			\
--	{ 0, BASE_BAUD, 0x3F8, 4, STD_COM_FLAGS },	/* ttyS0 */	\
--	{ 0, BASE_BAUD, 0x2F8, 3, STD_COM_FLAGS },	/* ttyS1 */	\
--	{ 0, BASE_BAUD, 0x3E8, 4, STD_COM_FLAGS },	/* ttyS2 */	\
--	{ 0, BASE_BAUD, 0x2E8, 3, STD_COM4_FLAGS },	/* ttyS3 */
+ 	rq = task_rq_lock(p, &flags);
+ 
+-	delta = prio - p->prio;
++	oldprio = p->prio;
+ 	array = p->array;
+ 	if (array)
+ 		dequeue_task(p, array);
+@@ -4099,10 +4099,13 @@ void rt_mutex_setprio(struct task_struct
+ 		enqueue_task(p, array);
+ 		/*
+ 		 * Reschedule if we are currently running on this runqueue and
+-		 * our priority decreased, or if our priority became higher
+-		 * than the current's.
++		 * our priority decreased, or if we are not currently running on
++		 * this runqueue and our priority is higher than the current's
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) || (delta > 0 && task_running(rq, p)))
++		if (task_running(rq, p)) {
++			if (p->prio > oldprio)
++				resched_task(rq->curr);
++		} else if (TASK_PREEMPTS_CURR(p, rq))
+ 			resched_task(rq->curr);
+ 	}
+ 	task_rq_unlock(rq, &flags);
+@@ -4150,11 +4153,10 @@ void set_user_nice(struct task_struct *p
+ 		enqueue_task(p, array);
+ 		inc_raw_weighted_load(rq, p);
+ 		/*
+-		 * Reschedule if we are currently running on this runqueue and
+-		 * our priority decreased, or if our priority became higher
+-		 * than the current's.
++		 * If the task increased its priority or is running and
++		 * lowered its priority, then reschedule its CPU:
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) || (delta > 0 && task_running(rq, p)))
++		if (delta < 0 || (delta > 0 && task_running(rq, p)))
+ 			resched_task(rq->curr);
+ 	}
+ out_unlock:
+@@ -4381,10 +4383,13 @@ recheck:
+ 		__activate_task(p, rq);
+ 		/*
+ 		 * Reschedule if we are currently running on this runqueue and
+-		 * our priority decreased, or our priority became higher
+-		 * than the current's.
++		 * our priority decreased, or if we are not currently running on
++		 * this runqueue and our priority is higher than the current's
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) || (task_running(rq, p) && p->prio > oldprio))
++		if (task_running(rq, p)) {
++			if (p->prio > oldprio)
++				resched_task(rq->curr);
++		} else if (TASK_PREEMPTS_CURR(p, rq))
+ 			resched_task(rq->curr);
+ 	}
+ 	__task_rq_unlock(rq);
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-ia64.patch
-move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
-pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled.patch
-smsc-ircc2-tidy-up-module-parameter-checking.patch
-smsc-ircc2-add-pnp-support.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-hid-vs-git-input.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+git-ocfs2.patch
+git-parisc.patch
+git-r8169-fixup.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+fix-x86_64-mm-sched-clock-share.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
