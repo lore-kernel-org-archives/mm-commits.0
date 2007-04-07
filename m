@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gfs2-nfs-lock-support-for-gfs2.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:41:16 -0700
-Message-ID: <200704070541.l375fGOx028435@shell0.pdx.osdl.net>
+Subject: + split-mmap.patch added to -mm tree
+Date: Fri, 06 Apr 2007 22:42:04 -0700
+Message-ID: <200704070542.l375g432028450@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45381 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45390 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965425AbXDGFlv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:41:51 -0400
+	id S965417AbXDGFmN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:42:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, swhiteho@redhat.com, trond.myklebust@fys.uio.no
+Cc: mszeredi@suse.cz, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     gfs2: nfs lock support for gfs2
+     split mmap
 has been added to the -mm tree.  Its filename is
-     gfs2-nfs-lock-support-for-gfs2.patch
+     split-mmap.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,225 +25,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gfs2: nfs lock support for gfs2
-From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
+Subject: split mmap
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add NFS lock support to GFS2.
+This is a straightforward split of do_mmap_pgoff() into two functions:
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Marc Eshel <eshel@almaden.ibm.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+ - do_mmap_pgoff() checks the parameters, and calculates the vma
+   flags.  Then it calls
+
+ - mmap_region(), which does the actual mapping
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/locking/dlm/plock.c |  104 ++++++++++++++++++++++++++++++----
- fs/gfs2/ops_file.c          |    5 +
- 2 files changed, 99 insertions(+), 10 deletions(-)
+ include/linux/mm.h |    4 ++++
+ mm/mmap.c          |   27 ++++++++++++++++++++-------
+ 2 files changed, 24 insertions(+), 7 deletions(-)
 
-diff -puN fs/gfs2/locking/dlm/plock.c~gfs2-nfs-lock-support-for-gfs2 fs/gfs2/locking/dlm/plock.c
---- a/fs/gfs2/locking/dlm/plock.c~gfs2-nfs-lock-support-for-gfs2
-+++ a/fs/gfs2/locking/dlm/plock.c
-@@ -25,6 +25,14 @@ struct plock_op {
- 	struct gdlm_plock_info info;
- };
+diff -puN include/linux/mm.h~split-mmap include/linux/mm.h
+--- a/include/linux/mm.h~split-mmap
++++ a/include/linux/mm.h
+@@ -1075,6 +1075,10 @@ extern unsigned long get_unmapped_area(s
+ extern unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot,
+ 	unsigned long flag, unsigned long pgoff);
++extern unsigned long mmap_region(struct file *file, unsigned long addr,
++	unsigned long len, unsigned long flags,
++	unsigned int vm_flags, unsigned long pgoff,
++	int accountable);
  
-+struct plock_xop {
-+	struct plock_op xop;
-+	void *callback;
-+	void *fl;
-+	void *file;
-+};
-+
-+
- static inline void set_version(struct gdlm_plock_info *info)
+ static inline unsigned long do_mmap(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot,
+diff -puN mm/mmap.c~split-mmap mm/mmap.c
+--- a/mm/mmap.c~split-mmap
++++ a/mm/mmap.c
+@@ -893,14 +893,11 @@ unsigned long do_mmap_pgoff(struct file 
+ 			unsigned long flags, unsigned long pgoff)
  {
- 	info->version[0] = GDLM_PLOCK_VERSION_MAJOR;
-@@ -64,12 +72,14 @@ int gdlm_plock(void *lockspace, struct l
- {
- 	struct gdlm_ls *ls = lockspace;
- 	struct plock_op *op;
-+	struct plock_xop *xop;
- 	int rv;
+ 	struct mm_struct * mm = current->mm;
+-	struct vm_area_struct * vma, * prev;
+ 	struct inode *inode;
+ 	unsigned int vm_flags;
+-	int correct_wcount = 0;
+ 	int error;
+-	struct rb_node ** rb_link, * rb_parent;
+ 	int accountable = 1;
+-	unsigned long charged = 0, reqprot = prot;
++	unsigned long reqprot = prot;
  
--	op = kzalloc(sizeof(*op), GFP_KERNEL);
--	if (!op)
-+	xop = kzalloc(sizeof(*xop), GFP_KERNEL);
-+	if (!xop)
- 		return -ENOMEM;
- 
-+	op = &xop->xop;
- 	op->info.optype		= GDLM_PLOCK_OP_LOCK;
- 	op->info.pid		= fl->fl_pid;
- 	op->info.ex		= (fl->fl_type == F_WRLCK);
-@@ -79,9 +89,20 @@ int gdlm_plock(void *lockspace, struct l
- 	op->info.start		= fl->fl_start;
- 	op->info.end		= fl->fl_end;
- 	op->info.owner		= (__u64)(long) fl->fl_owner;
-+	if (fl->fl_lmops && fl->fl_lmops->fl_notify) {
-+		xop->callback	= fl->fl_lmops->fl_notify;
-+		/* might need to make a copy */
-+		xop->fl		= fl;
-+		xop->file	= file;
-+	} else
-+		xop->callback	= NULL;
- 
- 	send_op(op);
--	wait_event(recv_wq, (op->done != 0));
+ 	/*
+ 	 * Does the application expect PROT_READ to imply PROT_EXEC?
+@@ -1025,7 +1022,25 @@ unsigned long do_mmap_pgoff(struct file 
+ 	error = security_file_mmap(file, reqprot, prot, flags);
+ 	if (error)
+ 		return error;
+-		
 +
-+	if (xop->callback == NULL)
-+		wait_event(recv_wq, (op->done != 0));
-+	else
-+		return -EINPROGRESS;
- 
- 	spin_lock(&ops_lock);
- 	if (!list_empty(&op->list)) {
-@@ -99,7 +120,60 @@ int gdlm_plock(void *lockspace, struct l
- 				  (unsigned long long)name->ln_number);
- 	}
- 
--	kfree(op);
-+	kfree(xop);
-+	return rv;
++	return mmap_region(file, addr, len, flags, vm_flags, pgoff,
++			   accountable);
 +}
++EXPORT_SYMBOL(do_mmap_pgoff);
 +
-+/* Returns failure iff a succesful lock operation should be canceled */
-+static int gdlm_plock_callback(struct plock_op *op)
++unsigned long mmap_region(struct file *file, unsigned long addr,
++			  unsigned long len, unsigned long flags,
++			  unsigned int vm_flags, unsigned long pgoff,
++			  int accountable)
 +{
-+	struct file *file;
-+	struct file_lock *fl;
-+	int (*notify)(void *, void *, int) = NULL;
-+	struct plock_xop *xop = (struct plock_xop *)op;
-+	int rv = 0;
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma, *prev;
++	int correct_wcount = 0;
++	int error;
++	struct rb_node **rb_link, *rb_parent;
++	unsigned long charged = 0;
++	struct inode *inode =  file ? file->f_path.dentry->d_inode : NULL;
 +
-+	spin_lock(&ops_lock);
-+	if (!list_empty(&op->list)) {
-+		printk(KERN_INFO "plock op on list\n");
-+		list_del(&op->list);
-+	}
-+	spin_unlock(&ops_lock);
-+
-+	/* check if the following 2 are still valid or make a copy */
-+	file = xop->file;
-+	fl = xop->fl;
-+	notify = xop->callback;
-+
-+	if (op->info.rv) {
-+		notify(fl, NULL, op->info.rv);
-+		goto out;
-+	}
-+
-+	/* got fs lock; bookkeep locally as well: */
-+	if (posix_lock_file(file, fl, NULL)) {
-+		/*
-+		 * This can only happen in the case of kmalloc() failure.
-+		 * The filesystem's own lock is the authoritative lock,
-+		 * so a failure to get the lock locally is not a disaster.
-+		 * As long as GFS cannot reliably cancel locks (especially
-+		 * in a low-memory situation), we're better off ignoring
-+		 * this failure than trying to recover.
-+		 */
-+		log_error("gdlm_plock: vfs lock error file %p fl %p",
-+				file, fl);
-+	}
-+
-+	rv = notify(fl, NULL, 0);
-+	if (rv) {
-+		/* XXX: We need to cancel the fs lock here: */
-+		printk("gfs2 lock granted after lock request failed;"
-+						" dangling lock!\n");
-+		goto out;
-+	}
-+
-+out:
-+	kfree(xop);
- 	return rv;
+ 	/* Clear old maps */
+ 	error = -ENOMEM;
+ munmap_back:
+@@ -1170,8 +1185,6 @@ unacct_error:
+ 	return error;
  }
  
-@@ -138,6 +212,9 @@ int gdlm_punlock(void *lockspace, struct
- 
- 	rv = op->info.rv;
- 
-+	if (rv == -ENOENT)
-+		rv = 0;
-+
- 	kfree(op);
- 	return rv;
- }
-@@ -161,6 +238,7 @@ int gdlm_plock_get(void *lockspace, stru
- 	op->info.start		= fl->fl_start;
- 	op->info.end		= fl->fl_end;
- 
-+
- 	send_op(op);
- 	wait_event(recv_wq, (op->done != 0));
- 
-@@ -173,9 +251,10 @@ int gdlm_plock_get(void *lockspace, stru
- 
- 	rv = op->info.rv;
- 
--	if (rv == 0)
--		fl->fl_type = F_UNLCK;
--	else if (rv > 0) {
-+	fl->fl_type = F_UNLCK;
-+	if (rv == -ENOENT)
-+		rv = 0;
-+	else if (rv == 0 && op->info.pid != fl->fl_pid) {
- 		fl->fl_type = (op->info.ex) ? F_WRLCK : F_RDLCK;
- 		fl->fl_pid = op->info.pid;
- 		fl->fl_start = op->info.start;
-@@ -243,9 +322,14 @@ static ssize_t dev_write(struct file *fi
- 	}
- 	spin_unlock(&ops_lock);
- 
--	if (found)
--		wake_up(&recv_wq);
--	else
-+	if (found) {
-+		struct plock_xop *xop;
-+		xop = (struct plock_xop *)op;
-+		if (xop->callback)
-+			count = gdlm_plock_callback(op);
-+		else
-+			wake_up(&recv_wq);
-+	} else
- 		printk(KERN_INFO "gdlm dev_write no op %x %llx\n", info.fsid,
- 			(unsigned long long)info.number);
- 	return count;
-diff -puN fs/gfs2/ops_file.c~gfs2-nfs-lock-support-for-gfs2 fs/gfs2/ops_file.c
---- a/fs/gfs2/ops_file.c~gfs2-nfs-lock-support-for-gfs2
-+++ a/fs/gfs2/ops_file.c
-@@ -521,6 +521,11 @@ static int gfs2_lock(struct file *file, 
- 		}
- 	}
- 
-+	if (cmd == F_CANCELLK) {
-+		/* Hack: */
-+		cmd = F_SETLK;
-+		fl->fl_type = F_UNLCK;
-+	}
- 	if (IS_GETLK(cmd))
- 		return gfs2_lm_plock_get(sdp, &name, file, fl);
- 	else if (fl->fl_type == F_UNLCK)
+-EXPORT_SYMBOL(do_mmap_pgoff);
+-
+ /* Get an address range which is currently unmapped.
+  * For shmat() with addr=0.
+  *
 _
 
-Patches currently in -mm which might be from eshel@almaden.ibm.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-locks-trivial-removal-of-unnecessary-parentheses.patch
-locks-create-posix-to-flock-helper-functions.patch
-locks-make-lock-release-private-data-before-returning-in-getlk-case.patch
-locks-give-posix_test_lock-same-interface-as-lock.patch
-locks-factor-out-generic-filesystem-switch-from-test_lock.patch
-locks-factor-out-generic-filesystem-switch-from-setlock-code.patch
-locks-allow-vfsposix_lock_file-to-return-conflicting-lock.patch
-locks-add-fl_notify-arguments-for-asynchronous-lock-return.patch
-locks-add-lock-cancel-command.patch
-nfsd4-convert-nfsv4-to-new-lock-interface.patch
-lockd-save-lock-state-on-deferral.patch
-lockd-handle-fl_notify-callbacks.patch
-lockd-pass-cookie-in-nlmsvc_testlock.patch
-lockd-handle-test_lock-deferrals.patch
-lockd-always-preallocate-block-in-nlmsvc_lock.patch
-lockd-add-code-to-handle-deferred-lock-requests.patch
-gfs2-nfs-lock-support-for-gfs2.patch
+fuse-validate-rootmode-mount-option.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-filesystem-subtype-support.patch
+add-file-position-info-to-proc.patch
+add-file-position-info-to-proc-fix.patch
+consolidate-generic_writepages-and-mpage_writepages.patch
