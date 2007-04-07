@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-make-proc-pid-smaps-optional-under-config_embedded.patch added to -mm tree
-Date: Fri, 06 Apr 2007 23:55:51 -0700
-Message-ID: <200704070655.l376tpMg029490@shell0.pdx.osdl.net>
+Subject: + maps2-move-clear_refs-code-to-task_mmuc.patch added to -mm tree
+Date: Fri, 06 Apr 2007 23:55:47 -0700
+Message-ID: <200704070655.l376tlYr029484@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46465 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46455 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965524AbXDGG4A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 02:56:00 -0400
+	id S965509AbXDGGz4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 02:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mpm@selenic.com, jeremy@goop.org, rientjes@google.com
 
 
 The patch titled
-     maps: make /proc/pid/smaps optional under CONFIG_EMBEDDED
+     maps: move clear_refs code to task_mmu.c
 has been added to the -mm tree.  Its filename is
-     maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+     maps2-move-clear_refs-code-to-task_mmuc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,12 +25,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps: make /proc/pid/smaps optional under CONFIG_EMBEDDED
+Subject: maps: move clear_refs code to task_mmu.c
 From: Matt Mackall <mpm@selenic.com>
 
-This interface is primarily useful for doing memory profiling and not much use
-on deployed embedded boxes.  Make it optional.  Together with
-/proc/pid/clear_refs, this save a few K.
+This puts all the clear_refs code where it belongs and probably lets things
+compile on MMU-less systems as well.
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
@@ -38,73 +37,142 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |    4 ++++
- fs/proc/task_mmu.c |    2 ++
- init/Kconfig       |    8 ++++++++
- 3 files changed, 14 insertions(+)
+ fs/proc/base.c          |   34 -----------------------------
+ fs/proc/internal.h      |    6 -----
+ fs/proc/task_mmu.c      |   44 +++++++++++++++++++++++++++++++-------
+ include/linux/proc_fs.h |    1 
+ 4 files changed, 37 insertions(+), 48 deletions(-)
 
-diff -puN fs/proc/base.c~maps2-make-proc-pid-smaps-optional-under-config_embedded fs/proc/base.c
---- a/fs/proc/base.c~maps2-make-proc-pid-smaps-optional-under-config_embedded
+diff -puN fs/proc/base.c~maps2-move-clear_refs-code-to-task_mmuc fs/proc/base.c
+--- a/fs/proc/base.c~maps2-move-clear_refs-code-to-task_mmuc
 +++ a/fs/proc/base.c
-@@ -1853,8 +1853,10 @@ static struct pid_entry tgid_base_stuff[
- 	REG("mountstats", S_IRUSR, mountstats),
- #ifdef CONFIG_MMU
- 	REG("clear_refs", S_IWUSR, clear_refs),
-+#ifdef CONFIG_PROC_SMAPS
- 	REG("smaps",      S_IRUGO, smaps),
- #endif
-+#endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",       S_IRUGO|S_IXUGO, attr_dir),
- #endif
-@@ -2135,8 +2137,10 @@ static struct pid_entry tid_base_stuff[]
- 	REG("mounts",    S_IRUGO, mounts),
- #ifdef CONFIG_MMU
- 	REG("clear_refs", S_IWUSR, clear_refs),
-+#ifdef CONFIG_PROC_SMAPS
- 	REG("smaps",     S_IRUGO, smaps),
- #endif
-+#endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",      S_IRUGO|S_IXUGO, attr_dir),
- #endif
-diff -puN fs/proc/task_mmu.c~maps2-make-proc-pid-smaps-optional-under-config_embedded fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-make-proc-pid-smaps-optional-under-config_embedded
+@@ -715,40 +715,6 @@ static const struct file_operations proc
+ 	.write		= oom_adjust_write,
+ };
+ 
+-static ssize_t clear_refs_write(struct file *file, const char __user *buf,
+-				size_t count, loff_t *ppos)
+-{
+-	struct task_struct *task;
+-	char buffer[PROC_NUMBUF], *end;
+-	struct mm_struct *mm;
+-
+-	memset(buffer, 0, sizeof(buffer));
+-	if (count > sizeof(buffer) - 1)
+-		count = sizeof(buffer) - 1;
+-	if (copy_from_user(buffer, buf, count))
+-		return -EFAULT;
+-	if (!simple_strtol(buffer, &end, 0))
+-		return -EINVAL;
+-	if (*end == '\n')
+-		end++;
+-	task = get_proc_task(file->f_path.dentry->d_inode);
+-	if (!task)
+-		return -ESRCH;
+-	mm = get_task_mm(task);
+-	if (mm) {
+-		clear_refs_smap(mm);
+-		mmput(mm);
+-	}
+-	put_task_struct(task);
+-	if (end - buffer == 0)
+-		return -EIO;
+-	return end - buffer;
+-}
+-
+-static struct file_operations proc_clear_refs_operations = {
+-	.write		= clear_refs_write,
+-};
+-
+ #ifdef CONFIG_AUDITSYSCALL
+ #define TMPBUFLEN 21
+ static ssize_t proc_loginuid_read(struct file * file, char __user * buf,
+diff -puN fs/proc/internal.h~maps2-move-clear_refs-code-to-task_mmuc fs/proc/internal.h
+--- a/fs/proc/internal.h~maps2-move-clear_refs-code-to-task_mmuc
++++ a/fs/proc/internal.h
+@@ -47,11 +47,7 @@ extern int proc_pid_statm(struct task_st
+ extern const struct file_operations proc_maps_operations;
+ extern const struct file_operations proc_numa_maps_operations;
+ extern const struct file_operations proc_smaps_operations;
+-
+-extern const struct file_operations proc_maps_operations;
+-extern const struct file_operations proc_numa_maps_operations;
+-extern const struct file_operations proc_smaps_operations;
+-
++extern const struct file_operations proc_clear_refs_operations;
+ 
+ void free_proc_entry(struct proc_dir_entry *de);
+ 
+diff -puN fs/proc/task_mmu.c~maps2-move-clear_refs-code-to-task_mmuc fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps2-move-clear_refs-code-to-task_mmuc
 +++ a/fs/proc/task_mmu.c
-@@ -310,6 +310,7 @@ const struct file_operations proc_maps_o
- 	.release	= seq_release_private,
- };
+@@ -293,19 +293,47 @@ static int show_smap(struct seq_file *m,
  
-+#ifdef CONFIG_PROC_SMAPS
- struct mem_size_stats
+ static struct mm_walk clear_refs_walk = { .pmd_entry = clear_refs_pte_range };
+ 
+-void clear_refs_smap(struct mm_struct *mm)
++static ssize_t clear_refs_write(struct file *file, const char __user *buf,
++				size_t count, loff_t *ppos)
  {
++	struct task_struct *task;
++	char buffer[13], *end;
++	struct mm_struct *mm;
  	struct vm_area_struct *vma;
-@@ -417,6 +418,7 @@ const struct file_operations proc_smaps_
- 	.llseek		= seq_lseek,
- 	.release	= seq_release_private,
- };
-+#endif
  
- static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
- 				unsigned long end, void *private)
-diff -puN init/Kconfig~maps2-make-proc-pid-smaps-optional-under-config_embedded init/Kconfig
---- a/init/Kconfig~maps2-make-proc-pid-smaps-optional-under-config_embedded
-+++ a/init/Kconfig
-@@ -492,6 +492,14 @@ config VM_EVENT_COUNTERS
- 	  on EMBEDDED systems.  /proc/vmstat will only show page counts
- 	  if VM event counters are disabled.
+-	down_read(&mm->mmap_sem);
+-	for (vma = mm->mmap; vma; vma = vma->vm_next)
+-		if (vma->vm_mm && !is_vm_hugetlb_page(vma))
+-			walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
+-					&clear_refs_walk, vma);
+-	flush_tlb_mm(mm);
+-	up_read(&mm->mmap_sem);
++	memset(buffer, 0, sizeof(buffer));
++	if (count > sizeof(buffer) - 1)
++		count = sizeof(buffer) - 1;
++	if (copy_from_user(buffer, buf, count))
++		return -EFAULT;
++	if (!simple_strtol(buffer, &end, 0))
++		return -EINVAL;
++	if (*end == '\n')
++		end++;
++	task = get_proc_task(file->f_path.dentry->d_inode);
++	if (!task)
++		return -ESRCH;
++	mm = get_task_mm(task);
++	if (mm) {
++		down_read(&mm->mmap_sem);
++		for (vma = mm->mmap; vma; vma = vma->vm_next)
++			if (!is_vm_hugetlb_page(vma))
++				walk_page_range(mm, vma->vm_start, vma->vm_end,
++						&clear_refs_walk, vma);
++		flush_tlb_mm(mm);
++		up_read(&mm->mmap_sem);
++		mmput(mm);
++	}
++	put_task_struct(task);
++	if (end - buffer == 0)
++		return -EIO;
++	return end - buffer;
+ }
  
-+config PROC_SMAPS
-+	default y
-+	bool "Enable /proc/pid/smaps support" if EMBEDDED && PROC_FS && MMU
-+	help
-+	  The /proc/pid/smaps interface reports a process's private and
-+          shared memory per mapping. Disabling this interface will reduce
-+          the size of the kernel for small machines.
++const struct file_operations proc_clear_refs_operations = {
++	.write		= clear_refs_write,
++};
 +
- endmenu		# General setup
+ static void *m_start(struct seq_file *m, loff_t *pos)
+ {
+ 	struct proc_maps_private *priv = m->private;
+diff -puN include/linux/proc_fs.h~maps2-move-clear_refs-code-to-task_mmuc include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~maps2-move-clear_refs-code-to-task_mmuc
++++ a/include/linux/proc_fs.h
+@@ -104,7 +104,6 @@ int proc_pid_readdir(struct file * filp,
+ unsigned long task_vsize(struct mm_struct *);
+ int task_statm(struct mm_struct *, int *, int *, int *, int *);
+ char *task_mem(struct mm_struct *, char *);
+-void clear_refs_smap(struct mm_struct *mm);
  
- config RT_MUTEXES
+ extern struct proc_dir_entry *create_proc_entry(const char *name, mode_t mode,
+ 						struct proc_dir_entry *parent);
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
