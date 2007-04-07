@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lockd-handle-test_lock-deferrals.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:41:10 -0700
-Message-ID: <200704070541.l375fA8i028423@shell0.pdx.osdl.net>
+Subject: + locks-factor-out-generic-filesystem-switch-from-setlock-code.patch added to -mm tree
+Date: Fri, 06 Apr 2007 22:40:54 -0700
+Message-ID: <200704070540.l375es6p028398@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45366 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45319 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965373AbXDGFl0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:41:26 -0400
+	id S1752169AbXDGFlG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:41:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, trond.myklebust@
 
 
 The patch titled
-     lockd: handle test_lock deferrals
+     locks: factor out generic/filesystem switch from setlock code
 has been added to the -mm tree.  Its filename is
-     lockd-handle-test_lock-deferrals.patch
+     locks-factor-out-generic-filesystem-switch-from-setlock-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,198 +25,138 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockd: handle test_lock deferrals
+Subject: locks: factor out generic/filesystem switch from setlock code
 From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
 
-Rewrite nlmsvc_testlock() to use the new asynchronous interface: instead of
-immediately doing a posix_test_lock(), we first look for a matching block.  If
-the subsequent test_lock returns anything other than -EINPROGRESS, we then
-remove the block we've found and return the results.
+Factor out the code that switches between generic and filesystem-specific lock
+methods; eventually we want to call this from lock managers (lockd and nfsd)
+too; currently they only call the generic methods.
 
-If it returns -EINPROGRESS, then we defer the lock request.
+This patch does that for all the setlk code.
 
-In the case where the block we find in the first step has B_QUEUED set,
-we bypass the vfs_test_lock entirely, instead using the block to decide how
-to respond:
-	with nlm_lck_denied if B_TOO_LATE is set.
-	with nlm_granted if B_GOT_CALLBACK is set.
-	by dropping if neither B_TOO_LATE nor B_GOT_CALLBACK is set
-
-Signed-off-by: Marc Eshel <eshel@almaden.ibm.com>
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Jan Kara <jack@ucw.cz>
 Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svc4proc.c |    2 +
- fs/lockd/svclock.c  |   83 +++++++++++++++++++++++++++++++++---------
- fs/lockd/svcproc.c  |    3 +
- 3 files changed, 71 insertions(+), 17 deletions(-)
+ fs/locks.c         |   68 ++++++++++++++++++++++---------------------
+ include/linux/fs.h |    1 
+ 2 files changed, 37 insertions(+), 32 deletions(-)
 
-diff -puN fs/lockd/svc4proc.c~lockd-handle-test_lock-deferrals fs/lockd/svc4proc.c
---- a/fs/lockd/svc4proc.c~lockd-handle-test_lock-deferrals
-+++ a/fs/lockd/svc4proc.c
-@@ -100,6 +100,8 @@ nlm4svc_proc_test(struct svc_rqst *rqstp
- 
- 	/* Now check for conflicting locks */
- 	resp->status = nlmsvc_testlock(rqstp, file, &argp->lock, &resp->lock, &resp->cookie);
-+	if (resp->status == nlm_drop_reply)
-+		return rpc_drop_reply;
- 
- 	dprintk("lockd: TEST4          status %d\n", ntohl(resp->status));
- 	nlm_release_host(host);
-diff -puN fs/lockd/svclock.c~lockd-handle-test_lock-deferrals fs/lockd/svclock.c
---- a/fs/lockd/svclock.c~lockd-handle-test_lock-deferrals
-+++ a/fs/lockd/svclock.c
-@@ -172,7 +172,7 @@ found:
-  */
- static inline struct nlm_block *
- nlmsvc_create_block(struct svc_rqst *rqstp, struct nlm_file *file,
--				struct nlm_lock *lock, struct nlm_cookie *cookie)
-+		struct nlm_lock *lock, struct nlm_cookie *cookie, int conf)
- {
- 	struct nlm_block	*block;
- 	struct nlm_host		*host;
-@@ -205,6 +205,11 @@ nlmsvc_create_block(struct svc_rqst *rqs
- 
- 	dprintk("lockd: created block %p...\n", block);
- 
-+	if (conf) {
-+		block->b_fl = kzalloc(sizeof(struct file_lock), GFP_KERNEL);
-+		if (!block->b_fl)
-+			goto failed_free;
-+	}
- 	/* Create and initialize the block */
- 	block->b_daemon = rqstp->rq_server;
- 	block->b_host   = host;
-@@ -423,7 +428,7 @@ again:
- 	if (newblock == NULL) {
- 		mutex_unlock(&file->f_mutex);
- 		dprintk("lockd: blocking on this lock (allocating).\n");
--		if (!(newblock = nlmsvc_create_block(rqstp, file, lock, cookie)))
-+		if (!(newblock = nlmsvc_create_block(rqstp, file, lock, cookie, 0)))
- 			return nlm_lck_denied_nolocks;
- 		goto again;
- 	}
-@@ -446,6 +451,10 @@ nlmsvc_testlock(struct svc_rqst *rqstp, 
- 		struct nlm_lock *lock, struct nlm_lock *conflock,
- 		struct nlm_cookie *cookie)
- {
-+	struct nlm_block 	*block = NULL;
-+	int			error;
-+	__be32			ret;
-+
- 	dprintk("lockd: nlmsvc_testlock(%s/%ld, ty=%d, %Ld-%Ld)\n",
- 				file->f_file->f_path.dentry->d_inode->i_sb->s_id,
- 				file->f_file->f_path.dentry->d_inode->i_ino,
-@@ -453,22 +462,63 @@ nlmsvc_testlock(struct svc_rqst *rqstp, 
- 				(long long)lock->fl.fl_start,
- 				(long long)lock->fl.fl_end);
- 
--	if (posix_test_lock(file->f_file, &lock->fl)) {
--		dprintk("lockd: conflicting lock(ty=%d, %Ld-%Ld)\n",
--				lock->fl.fl_type,
--				(long long)lock->fl.fl_start,
--				(long long)lock->fl.fl_end);
--		conflock->caller = "somehost";	/* FIXME */
--		conflock->len = strlen(conflock->caller);
--		conflock->oh.len = 0;		/* don't return OH info */
--		conflock->svid = lock->fl.fl_pid;
--		conflock->fl.fl_type = lock->fl.fl_type;
--		conflock->fl.fl_start = lock->fl.fl_start;
--		conflock->fl.fl_end = lock->fl.fl_end;
--		return nlm_lck_denied;
-+	/* Get existing block (in case client is busy-waiting) */
-+	block = nlmsvc_lookup_block(file, lock);
-+
-+	if (block == NULL) {
-+		block = nlmsvc_create_block(rqstp, file, lock, cookie, 1);
-+		if (block == NULL)
-+			return nlm_granted;
-+	}
-+	if (block->b_flags & B_QUEUED) {
-+		dprintk("lockd: nlmsvc_testlock deferred block %p flags %d fl %p\n",
-+			block, block->b_flags, block->b_fl);
-+		if (block->b_flags & B_TOO_LATE) {
-+			nlmsvc_unlink_block(block);
-+			return nlm_lck_denied;
-+		}
-+		if (block->b_flags & B_GOT_CALLBACK) {
-+			if (block->b_fl != NULL
-+					&& block->b_fl->fl_type != F_UNLCK) {
-+				lock->fl = *block->b_fl;
-+				goto conf_lock;
-+			}
-+			else {
-+				nlmsvc_unlink_block(block);
-+				return nlm_granted;
-+			}
-+		}
-+		return nlm_drop_reply;
- 	}
- 
--	return nlm_granted;
-+	error = vfs_test_lock(file->f_file, &lock->fl);
-+	if (error == -EINPROGRESS)
-+		return nlmsvc_defer_lock_rqst(rqstp, block);
-+	if (error) {
-+		ret = nlm_lck_denied_nolocks;
-+		goto out;
-+	}
-+	if (lock->fl.fl_type == F_UNLCK) {
-+		ret = nlm_granted;
-+		goto out;
-+	}
-+
-+conf_lock:
-+	dprintk("lockd: conflicting lock(ty=%d, %Ld-%Ld)\n",
-+		lock->fl.fl_type, (long long)lock->fl.fl_start,
-+		(long long)lock->fl.fl_end);
-+	conflock->caller = "somehost";	/* FIXME */
-+	conflock->len = strlen(conflock->caller);
-+	conflock->oh.len = 0;		/* don't return OH info */
-+	conflock->svid = lock->fl.fl_pid;
-+	conflock->fl.fl_type = lock->fl.fl_type;
-+	conflock->fl.fl_start = lock->fl.fl_start;
-+	conflock->fl.fl_end = lock->fl.fl_end;
-+	ret = nlm_lck_denied;
-+out:
-+	if (block)
-+		nlmsvc_release_block(block);
-+	return ret;
+diff -puN fs/locks.c~locks-factor-out-generic-filesystem-switch-from-setlock-code fs/locks.c
+--- a/fs/locks.c~locks-factor-out-generic-filesystem-switch-from-setlock-code
++++ a/fs/locks.c
+@@ -1699,6 +1699,21 @@ out:
+ 	return error;
  }
  
- /*
-@@ -549,7 +599,6 @@ nlmsvc_update_deferred_block(struct nlm_
- 	else
- 		block->b_flags |= B_TOO_LATE;
- 	if (conf) {
--		block->b_fl = kzalloc(sizeof(struct file_lock), GFP_KERNEL);
- 		if (block->b_fl)
- 			locks_copy_lock(block->b_fl, conf);
- 	}
-diff -puN fs/lockd/svcproc.c~lockd-handle-test_lock-deferrals fs/lockd/svcproc.c
---- a/fs/lockd/svcproc.c~lockd-handle-test_lock-deferrals
-+++ a/fs/lockd/svcproc.c
-@@ -33,6 +33,7 @@ cast_to_nlm(__be32 status, u32 vers)
- 		case nlm_lck_denied_nolocks:
- 		case nlm_lck_blocked:
- 		case nlm_lck_denied_grace_period:
-+		case nlm_drop_reply:
++/**
++ * vfs_lock_file - file byte range lock
++ * @filp: The file to apply the lock to
++ * @cmd: type of locking operation (F_SETLK, F_GETLK, etc.)
++ * @fl: The lock to be applied
++ */
++int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl)
++{
++	if (filp->f_op && filp->f_op->lock)
++		return filp->f_op->lock(filp, cmd, fl);
++	else
++		return posix_lock_file(filp, fl);
++}
++EXPORT_SYMBOL_GPL(vfs_lock_file);
++
+ /* Apply the lock described by l to an open file descriptor.
+  * This implements both the F_SETLK and F_SETLKW commands of fcntl().
+  */
+@@ -1761,21 +1776,17 @@ again:
+ 	if (error)
+ 		goto out;
+ 
+-	if (filp->f_op && filp->f_op->lock != NULL)
+-		error = filp->f_op->lock(filp, cmd, file_lock);
+-	else {
+-		for (;;) {
+-			error = posix_lock_file(filp, file_lock);
+-			if (error != -EAGAIN || cmd == F_SETLK)
+-				break;
+-			error = wait_event_interruptible(file_lock->fl_wait,
+-					!file_lock->fl_next);
+-			if (!error)
+-				continue;
+-
+-			locks_delete_block(file_lock);
++	for (;;) {
++		error = vfs_lock_file(filp, cmd, file_lock);
++		if (error != -EAGAIN || cmd == F_SETLK)
  			break;
- 		case nlm4_deadlock:
- 			status = nlm_lck_denied;
-@@ -128,6 +129,8 @@ nlmsvc_proc_test(struct svc_rqst *rqstp,
+-		}
++		error = wait_event_interruptible(file_lock->fl_wait,
++				!file_lock->fl_next);
++		if (!error)
++			continue;
++
++		locks_delete_block(file_lock);
++		break;
+ 	}
  
- 	/* Now check for conflicting locks */
- 	resp->status = cast_status(nlmsvc_testlock(rqstp, file, &argp->lock, &resp->lock, &resp->cookie));
-+	if (resp->status == nlm_drop_reply)
-+		return rpc_drop_reply;
+ 	/*
+@@ -1891,21 +1902,17 @@ again:
+ 	if (error)
+ 		goto out;
  
- 	dprintk("lockd: TEST          status %d vers %d\n",
- 		ntohl(resp->status), rqstp->rq_vers);
+-	if (filp->f_op && filp->f_op->lock != NULL)
+-		error = filp->f_op->lock(filp, cmd, file_lock);
+-	else {
+-		for (;;) {
+-			error = posix_lock_file(filp, file_lock);
+-			if (error != -EAGAIN || cmd == F_SETLK64)
+-				break;
+-			error = wait_event_interruptible(file_lock->fl_wait,
+-					!file_lock->fl_next);
+-			if (!error)
+-				continue;
+-
+-			locks_delete_block(file_lock);
++	for (;;) {
++		error = vfs_lock_file(filp, cmd, file_lock);
++		if (error != -EAGAIN || cmd == F_SETLK64)
+ 			break;
+-		}
++		error = wait_event_interruptible(file_lock->fl_wait,
++				!file_lock->fl_next);
++		if (!error)
++			continue;
++
++		locks_delete_block(file_lock);
++		break;
+ 	}
+ 
+ 	/*
+@@ -1950,10 +1957,7 @@ void locks_remove_posix(struct file *fil
+ 	lock.fl_ops = NULL;
+ 	lock.fl_lmops = NULL;
+ 
+-	if (filp->f_op && filp->f_op->lock != NULL)
+-		filp->f_op->lock(filp, F_SETLK, &lock);
+-	else
+-		posix_lock_file(filp, &lock);
++	vfs_lock_file(filp, F_SETLK, &lock);
+ 
+ 	if (lock.fl_ops && lock.fl_ops->fl_release_private)
+ 		lock.fl_ops->fl_release_private(&lock);
+diff -puN include/linux/fs.h~locks-factor-out-generic-filesystem-switch-from-setlock-code include/linux/fs.h
+--- a/include/linux/fs.h~locks-factor-out-generic-filesystem-switch-from-setlock-code
++++ a/include/linux/fs.h
+@@ -859,6 +859,7 @@ extern int posix_lock_file(struct file *
+ extern int posix_lock_file_wait(struct file *, struct file_lock *);
+ extern int posix_unblock_lock(struct file *, struct file_lock *);
+ extern int vfs_test_lock(struct file *, struct file_lock *);
++extern int vfs_lock_file(struct file *, unsigned int, struct file_lock *);
+ extern int flock_lock_file_wait(struct file *filp, struct file_lock *fl);
+ extern int __break_lease(struct inode *inode, unsigned int flags);
+ extern void lease_get_mtime(struct inode *, struct timespec *time);
 _
 
 Patches currently in -mm which might be from eshel@almaden.ibm.com are
