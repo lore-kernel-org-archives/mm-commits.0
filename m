@@ -1,93 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: + proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:48:41 -0700
-Message-ID: <200704070548.l375mfji028553@shell0.pdx.osdl.net>
+Subject: - vmi-paravirt-ops-bugfix-for-2621.patch removed from -mm tree
+Date: Fri, 06 Apr 2007 22:49:25 -0700
+Message-ID: <200704070549.l375nPip028559@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45497 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45523 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752169AbXDGFsv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:48:51 -0400
+	id S1752141AbXDGFte (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:49:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: zach@vmware.com, ak@muc.de, jeremy@goop.org
+To: zach@vmware.com, ak@suse.de, jeremy@xensource.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Proper fix for highmem kmap_atomic functions for VMI for 2.6.21
-has been added to the -mm tree.  Its filename is
-     proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+     VMI paravirt-ops bugfix for 2.6.21
+has been removed from the -mm tree.  Its filename was
+     vmi-paravirt-ops-bugfix-for-2621.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Proper fix for highmem kmap_atomic functions for VMI for 2.6.21
+Subject: VMI paravirt-ops bugfix for 2.6.21
 From: Zachary Amsden <zach@vmware.com>
 
-Since lazy MMU batching mode still allows interrupts to enter, it is
-possible for interrupt handlers to try to use kmap_atomic, which fails when
-lazy mode is active, since the PTE update to highmem will be delayed.  The
-best workaround is to issue an explicit flush in kmap_atomic_functions
-case; this is the only way nested PTE updates can happen in the interrupt
-handler.
+Critical bugfix; when using software RAID, potentially USB or AIO in
+highmem configurations, drivers are allowed to use kmap_atomic from
+interrupt context.  This is incompatible with the current implementation of
+lazy MMU mode, and means the kmap will silently fail, causing either memory
+corruption or kernel panics.  This bug is only visible with >970 megs of
+RAM and extreme memory pressure, but nontheless extremely serious.
 
-Thanks to Jeremy Fitzhardinge for noting the bug and suggestions on a fix.
+The fix is to disable interrupts on the CPU when entering a lazy MMU state;
+this is totally safe, as preemption is already disabled, and lazy update
+state can neither be nested nor overlapping.  Thus per-cpu variables to
+track the state and flags can be used to disable interrupts during this
+critical region.
 
 Signed-off-by: Zachary Amsden <zach@vmware.com>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Acked-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmi.c        |   23 ++++++++++++++++++++++-
- arch/i386/mm/highmem.c        |    2 ++
- include/asm-generic/pgtable.h |    2 ++
- include/asm-i386/paravirt.h   |    3 +++
- 4 files changed, 29 insertions(+), 1 deletion(-)
+ arch/i386/kernel/vmi.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/vmi.c~proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621 arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621
+diff -puN arch/i386/kernel/vmi.c~vmi-paravirt-ops-bugfix-for-2621 arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~vmi-paravirt-ops-bugfix-for-2621
 +++ a/arch/i386/kernel/vmi.c
 @@ -69,6 +69,7 @@ struct {
  	void (*flush_tlb)(int);
  	void (*set_initial_ap_state)(int, int);
  	void (*halt)(void);
-+  	void (*set_lazy_mode)(int mode);
++ 	void (*set_lazy_mode)(int mode);
  } vmi_ops;
  
  /* XXX move this to alternative.h */
-@@ -574,6 +575,26 @@ vmi_startup_ipi_hook(int phys_apicid, un
+@@ -574,6 +575,31 @@ vmi_startup_ipi_hook(int phys_apicid, un
  }
  #endif
  
-+static void vmi_set_lazy_mode(int mode)
++static void vmi_set_lazy_mode(int new_mode)
 +{
-+	static DEFINE_PER_CPU(int, lazy_mode);
++	static DEFINE_PER_CPU(int, mode);
++	static DEFINE_PER_CPU(unsigned long, flags);
++	int cpu = smp_processor_id();
 +
 +	if (!vmi_ops.set_lazy_mode)
 +		return;
 +
-+	/* Modes should never nest or overlap */
-+	BUG_ON(__get_cpu_var(lazy_mode) && !(mode == PARAVIRT_LAZY_NONE ||
-+					     mode == PARAVIRT_LAZY_FLUSH));
++	/*
++	 * Modes do not nest or overlap, so we can simply disable
++	 * irqs when entering a mode and re-enable when leaving.
++	 */
++	BUG_ON(per_cpu(mode, cpu) && new_mode);
++	BUG_ON(!new_mode && !per_cpu(mode, cpu));
 +
-+	if (mode == PARAVIRT_LAZY_FLUSH) {
-+		vmi_ops.set_lazy_mode(0);
-+		vmi_ops.set_lazy_mode(__get_cpu_var(lazy_mode));
-+	} else {
-+		vmi_ops.set_lazy_mode(mode);
-+		__get_cpu_var(lazy_mode) = mode;
-+	}
++	if (new_mode)
++		local_irq_save(per_cpu(flags, cpu));
++	else
++		local_irq_restore(per_cpu(flags, cpu));
++
++	vmi_ops.set_lazy_mode(new_mode);
++	per_cpu(mode, cpu) = new_mode;
 +}
 +
  static inline int __init check_vmi_rom(struct vrom_header *rom)
  {
  	struct pci_header *pci;
-@@ -804,7 +825,7 @@ static inline int __init activate_vmi(vo
+@@ -804,7 +830,7 @@ static inline int __init activate_vmi(vo
  	para_wrap(load_esp0, vmi_load_esp0, set_kernel_stack, UpdateKernelStack);
  	para_fill(set_iopl_mask, SetIOPLMask);
  	para_fill(io_delay, IODelay);
@@ -96,65 +99,6 @@ diff -puN arch/i386/kernel/vmi.c~proper-fix-for-highmem-kmap_atomic-functions-fo
  
  	/* user and kernel flush are just handled with different flags to FlushTLB */
  	para_wrap(flush_tlb_user, vmi_flush_tlb_user, flush_tlb, FlushTLB);
-diff -puN arch/i386/mm/highmem.c~proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621 arch/i386/mm/highmem.c
---- a/arch/i386/mm/highmem.c~proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621
-+++ a/arch/i386/mm/highmem.c
-@@ -42,6 +42,7 @@ void *kmap_atomic(struct page *page, enu
- 
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
- 	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
-+	arch_flush_lazy_mmu_mode();
- 
- 	return (void*) vaddr;
- }
-@@ -82,6 +83,7 @@ void *kmap_atomic_pfn(unsigned long pfn,
- 	idx = type + KM_TYPE_NR*smp_processor_id();
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
- 	set_pte(kmap_pte-idx, pfn_pte(pfn, kmap_prot));
-+	arch_flush_lazy_mmu_mode();
- 
- 	return (void*) vaddr;
- }
-diff -puN include/asm-generic/pgtable.h~proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621 include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621
-+++ a/include/asm-generic/pgtable.h
-@@ -180,6 +180,7 @@ static inline void ptep_set_wrprotect(st
- #ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
- #define arch_enter_lazy_mmu_mode()	do {} while (0)
- #define arch_leave_lazy_mmu_mode()	do {} while (0)
-+#define arch_flush_lazy_mmu_mode()	do {} while (0)
- #endif
- 
- /*
-@@ -193,6 +194,7 @@ static inline void ptep_set_wrprotect(st
- #ifndef __HAVE_ARCH_ENTER_LAZY_CPU_MODE
- #define arch_enter_lazy_cpu_mode()	do {} while (0)
- #define arch_leave_lazy_cpu_mode()	do {} while (0)
-+#define arch_flush_lazy_cpu_mode()	do {} while (0)
- #endif
- 
- /*
-diff -puN include/asm-i386/paravirt.h~proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621 include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621
-+++ a/include/asm-i386/paravirt.h
-@@ -421,14 +421,17 @@ static inline void pmd_clear(pmd_t *pmdp
- #define PARAVIRT_LAZY_NONE 0
- #define PARAVIRT_LAZY_MMU  1
- #define PARAVIRT_LAZY_CPU  2
-+#define PARAVIRT_LAZY_FLUSH 3
- 
- #define  __HAVE_ARCH_ENTER_LAZY_CPU_MODE
- #define arch_enter_lazy_cpu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_CPU)
- #define arch_leave_lazy_cpu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_NONE)
-+#define arch_flush_lazy_cpu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_FLUSH)
- 
- #define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
- #define arch_enter_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_MMU)
- #define arch_leave_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_NONE)
-+#define arch_flush_lazy_mmu_mode() paravirt_ops.set_lazy_mode(PARAVIRT_LAZY_FLUSH)
- 
- /* These all sit in the .parainstructions section to tell us what to patch. */
- struct paravirt_patch {
 _
 
 Patches currently in -mm which might be from zach@vmware.com are
