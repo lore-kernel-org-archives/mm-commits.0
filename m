@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lockd-save-lock-state-on-deferral.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:41:04 -0700
-Message-ID: <200704070541.l375f4sd028413@shell0.pdx.osdl.net>
+Subject: + locks-allow-vfsposix_lock_file-to-return-conflicting-lock.patch added to -mm tree
+Date: Fri, 06 Apr 2007 22:40:56 -0700
+Message-ID: <200704070540.l375euIQ028401@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45357 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45338 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965365AbXDGFlT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:41:19 -0400
+	id S965371AbXDGFlM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:41:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, trond.myklebust@
 
 
 The patch titled
-     lockd: save lock state on deferral
+     locks: allow {vfs,posix}_lock_file to return conflicting lock
 has been added to the -mm tree.  Its filename is
-     lockd-save-lock-state-on-deferral.patch
+     locks-allow-vfsposix_lock_file-to-return-conflicting-lock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,91 +25,247 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockd: save lock state on deferral
+Subject: locks: allow {vfs,posix}_lock_file to return conflicting lock
 From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
 
-We need to keep some state for a pending asynchronous lock request, so this
-patch adds that state to struct nlm_block.
+The nfsv4 protocol's lock operation, in the case of a conflict, returns
+information about the conflicting lock.
 
-This also adds a function which defers the request, by calling
-rqstp->rq_chandle.defer and storing the resulting deferred request in a
-nlm_block structure which we insert into lockd's global block list.  That new
-function isn't called yet, so it's dead code until a later patch.
+It's unclear how clients can use this, so for now we're not going so far as to
+add a filesystem method that can return a conflicting lock, but we may as well
+return something in the local case when it's easy to.
 
-Signed-off-by: Marc Eshel <eshel@almaden.ibm.com>
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Jan Kara <jack@ucw.cz>
 Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svclock.c          |   25 +++++++++++++++++++++++++
- include/linux/lockd/lockd.h |   10 ++++++++++
- 2 files changed, 35 insertions(+)
+ fs/lockd/svclock.c  |    6 +++---
+ fs/lockd/svcsubs.c  |    2 +-
+ fs/locks.c          |   38 +++++++++++++-------------------------
+ fs/nfsd/nfs4state.c |   10 ++++++----
+ include/linux/fs.h  |    5 ++---
+ 5 files changed, 25 insertions(+), 36 deletions(-)
 
-diff -puN fs/lockd/svclock.c~lockd-save-lock-state-on-deferral fs/lockd/svclock.c
---- a/fs/lockd/svclock.c~lockd-save-lock-state-on-deferral
+diff -puN fs/lockd/svclock.c~locks-allow-vfsposix_lock_file-to-return-conflicting-lock fs/lockd/svclock.c
+--- a/fs/lockd/svclock.c~locks-allow-vfsposix_lock_file-to-return-conflicting-lock
 +++ a/fs/lockd/svclock.c
-@@ -330,6 +330,31 @@ static void nlmsvc_freegrantargs(struct 
+@@ -362,7 +362,7 @@ again:
+ 	} else
+ 		lock = &block->b_call->a_args.lock;
+ 
+-	error = posix_lock_file(file->f_file, &lock->fl);
++	error = posix_lock_file(file->f_file, &lock->fl, NULL);
+ 	lock->fl.fl_flags &= ~FL_SLEEP;
+ 
+ 	dprintk("lockd: posix_lock_file returned %d\n", error);
+@@ -466,7 +466,7 @@ nlmsvc_unlock(struct nlm_file *file, str
+ 	nlmsvc_cancel_blocked(file, lock);
+ 
+ 	lock->fl.fl_type = F_UNLCK;
+-	error = posix_lock_file(file->f_file, &lock->fl);
++	error = posix_lock_file(file->f_file, &lock->fl, NULL);
+ 
+ 	return (error < 0)? nlm_lck_denied_nolocks : nlm_granted;
+ }
+@@ -568,7 +568,7 @@ nlmsvc_grant_blocked(struct nlm_block *b
+ 
+ 	/* Try the lock operation again */
+ 	lock->fl.fl_flags |= FL_SLEEP;
+-	error = posix_lock_file(file->f_file, &lock->fl);
++	error = posix_lock_file(file->f_file, &lock->fl, NULL);
+ 	lock->fl.fl_flags &= ~FL_SLEEP;
+ 
+ 	switch (error) {
+diff -puN fs/lockd/svcsubs.c~locks-allow-vfsposix_lock_file-to-return-conflicting-lock fs/lockd/svcsubs.c
+--- a/fs/lockd/svcsubs.c~locks-allow-vfsposix_lock_file-to-return-conflicting-lock
++++ a/fs/lockd/svcsubs.c
+@@ -182,7 +182,7 @@ again:
+ 			lock.fl_type  = F_UNLCK;
+ 			lock.fl_start = 0;
+ 			lock.fl_end   = OFFSET_MAX;
+-			if (posix_lock_file(file->f_file, &lock) < 0) {
++			if (posix_lock_file(file->f_file, &lock, NULL) < 0) {
+ 				printk("lockd: unlock failure in %s:%d\n",
+ 						__FILE__, __LINE__);
+ 				return 1;
+diff -puN fs/locks.c~locks-allow-vfsposix_lock_file-to-return-conflicting-lock fs/locks.c
+--- a/fs/locks.c~locks-allow-vfsposix_lock_file-to-return-conflicting-lock
++++ a/fs/locks.c
+@@ -801,7 +801,7 @@ out:
+ 	return error;
  }
  
- /*
-+ * Deferred lock request handling for non-blocking lock
-+ */
-+static u32
-+nlmsvc_defer_lock_rqst(struct svc_rqst *rqstp, struct nlm_block *block)
-+{
-+	u32 status = nlm_lck_denied_nolocks;
-+
-+	block->b_flags |= B_QUEUED;
-+
-+	nlmsvc_insert_block(block, NLM_TIMEOUT);
-+
-+	block->b_cache_req = &rqstp->rq_chandle;
-+	if (rqstp->rq_chandle.defer) {
-+		block->b_deferred_req =
-+			rqstp->rq_chandle.defer(block->b_cache_req);
-+		if (block->b_deferred_req != NULL)
-+			status = nlm_drop_reply;
-+	}
-+	dprintk("lockd: nlmsvc_defer_lock_rqst block %p flags %d status %d\n",
-+		block, block->b_flags, status);
-+
-+	return status;
-+}
-+
-+/*
-  * Attempt to establish a lock, and if it can't be granted, block it
-  * if required.
+-static int __posix_lock_file_conf(struct inode *inode, struct file_lock *request, struct file_lock *conflock)
++static int __posix_lock_file(struct inode *inode, struct file_lock *request, struct file_lock *conflock)
+ {
+ 	struct file_lock *fl;
+ 	struct file_lock *new_fl = NULL;
+@@ -1007,6 +1007,7 @@ static int __posix_lock_file_conf(struct
+  * posix_lock_file - Apply a POSIX-style lock to a file
+  * @filp: The file to apply the lock to
+  * @fl: The lock to be applied
++ * @conflock: Place to return a copy of the conflicting lock, if found.
+  *
+  * Add a POSIX style lock to a file.
+  * We merge adjacent & overlapping locks whenever possible.
+@@ -1016,26 +1017,12 @@ static int __posix_lock_file_conf(struct
+  * whether or not a lock was successfully freed by testing the return
+  * value for -ENOENT.
   */
-diff -puN include/linux/lockd/lockd.h~lockd-save-lock-state-on-deferral include/linux/lockd/lockd.h
---- a/include/linux/lockd/lockd.h~lockd-save-lock-state-on-deferral
-+++ a/include/linux/lockd/lockd.h
-@@ -119,6 +119,9 @@ struct nlm_file {
-  * couldn't be granted because of a conflicting lock).
-  */
- #define NLM_NEVER		(~(unsigned long) 0)
-+/* timeout on non-blocking call: */
-+#define NLM_TIMEOUT		(7 * HZ)
-+
- struct nlm_block {
- 	struct kref		b_count;	/* Reference count */
- 	struct list_head	b_list;		/* linked list of all blocks */
-@@ -130,6 +133,13 @@ struct nlm_block {
- 	unsigned int		b_id;		/* block id */
- 	unsigned char		b_granted;	/* VFS granted lock */
- 	struct nlm_file *	b_file;		/* file in question */
-+	struct cache_req *	b_cache_req;	/* deferred request handling */
-+	struct file_lock *	b_fl;		/* set for GETLK */
-+	struct cache_deferred_req * b_deferred_req;
-+	unsigned int		b_flags;	/* block flags */
-+#define B_QUEUED		1	/* lock queued */
-+#define B_GOT_CALLBACK		2	/* got lock or conflicting lock */
-+#define B_TOO_LATE		4	/* too late for non-blocking lock */
- };
+-int posix_lock_file(struct file *filp, struct file_lock *fl)
+-{
+-	return __posix_lock_file_conf(filp->f_path.dentry->d_inode, fl, NULL);
+-}
+-EXPORT_SYMBOL(posix_lock_file);
+-
+-/**
+- * posix_lock_file_conf - Apply a POSIX-style lock to a file
+- * @filp: The file to apply the lock to
+- * @fl: The lock to be applied
+- * @conflock: Place to return a copy of the conflicting lock, if found.
+- *
+- * Except for the conflock parameter, acts just like posix_lock_file.
+- */
+-int posix_lock_file_conf(struct file *filp, struct file_lock *fl,
++int posix_lock_file(struct file *filp, struct file_lock *fl,
+ 			struct file_lock *conflock)
+ {
+-	return __posix_lock_file_conf(filp->f_path.dentry->d_inode, fl, conflock);
++	return __posix_lock_file(filp->f_path.dentry->d_inode, fl, conflock);
+ }
+-EXPORT_SYMBOL(posix_lock_file_conf);
++EXPORT_SYMBOL(posix_lock_file);
  
- /*
+ /**
+  * posix_lock_file_wait - Apply a POSIX-style lock to a file
+@@ -1051,7 +1038,7 @@ int posix_lock_file_wait(struct file *fi
+ 	int error;
+ 	might_sleep ();
+ 	for (;;) {
+-		error = posix_lock_file(filp, fl);
++		error = posix_lock_file(filp, fl, NULL);
+ 		if ((error != -EAGAIN) || !(fl->fl_flags & FL_SLEEP))
+ 			break;
+ 		error = wait_event_interruptible(fl->fl_wait, !fl->fl_next);
+@@ -1123,7 +1110,7 @@ int locks_mandatory_area(int read_write,
+ 	fl.fl_end = offset + count - 1;
+ 
+ 	for (;;) {
+-		error = __posix_lock_file_conf(inode, &fl, NULL);
++		error = __posix_lock_file(inode, &fl, NULL);
+ 		if (error != -EAGAIN)
+ 			break;
+ 		if (!(fl.fl_flags & FL_SLEEP))
+@@ -1704,13 +1691,14 @@ out:
+  * @filp: The file to apply the lock to
+  * @cmd: type of locking operation (F_SETLK, F_GETLK, etc.)
+  * @fl: The lock to be applied
++ * @conf: Place to return a copy of the conflicting lock, if found.
+  */
+-int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl)
++int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl, struct file_lock *conf)
+ {
+ 	if (filp->f_op && filp->f_op->lock)
+ 		return filp->f_op->lock(filp, cmd, fl);
+ 	else
+-		return posix_lock_file(filp, fl);
++		return posix_lock_file(filp, fl, conf);
+ }
+ EXPORT_SYMBOL_GPL(vfs_lock_file);
+ 
+@@ -1777,7 +1765,7 @@ again:
+ 		goto out;
+ 
+ 	for (;;) {
+-		error = vfs_lock_file(filp, cmd, file_lock);
++		error = vfs_lock_file(filp, cmd, file_lock, NULL);
+ 		if (error != -EAGAIN || cmd == F_SETLK)
+ 			break;
+ 		error = wait_event_interruptible(file_lock->fl_wait,
+@@ -1903,7 +1891,7 @@ again:
+ 		goto out;
+ 
+ 	for (;;) {
+-		error = vfs_lock_file(filp, cmd, file_lock);
++		error = vfs_lock_file(filp, cmd, file_lock, NULL);
+ 		if (error != -EAGAIN || cmd == F_SETLK64)
+ 			break;
+ 		error = wait_event_interruptible(file_lock->fl_wait,
+@@ -1957,7 +1945,7 @@ void locks_remove_posix(struct file *fil
+ 	lock.fl_ops = NULL;
+ 	lock.fl_lmops = NULL;
+ 
+-	vfs_lock_file(filp, F_SETLK, &lock);
++	vfs_lock_file(filp, F_SETLK, &lock, NULL);
+ 
+ 	if (lock.fl_ops && lock.fl_ops->fl_release_private)
+ 		lock.fl_ops->fl_release_private(&lock);
+diff -puN fs/nfsd/nfs4state.c~locks-allow-vfsposix_lock_file-to-return-conflicting-lock fs/nfsd/nfs4state.c
+--- a/fs/nfsd/nfs4state.c~locks-allow-vfsposix_lock_file-to-return-conflicting-lock
++++ a/fs/nfsd/nfs4state.c
+@@ -2657,6 +2657,7 @@ nfsd4_lock(struct svc_rqst *rqstp, struc
+ 	struct file_lock conflock;
+ 	__be32 status = 0;
+ 	unsigned int strhashval;
++	unsigned int cmd;
+ 	int err;
+ 
+ 	dprintk("NFSD: nfsd4_lock: start=%Ld length=%Ld\n",
+@@ -2739,10 +2740,12 @@ nfsd4_lock(struct svc_rqst *rqstp, struc
+ 		case NFS4_READ_LT:
+ 		case NFS4_READW_LT:
+ 			file_lock.fl_type = F_RDLCK;
++			cmd = F_SETLK;
+ 		break;
+ 		case NFS4_WRITE_LT:
+ 		case NFS4_WRITEW_LT:
+ 			file_lock.fl_type = F_WRLCK;
++			cmd = F_SETLK;
+ 		break;
+ 		default:
+ 			status = nfserr_inval;
+@@ -2769,9 +2772,8 @@ nfsd4_lock(struct svc_rqst *rqstp, struc
+ 
+ 	/* XXX?: Just to divert the locks_release_private at the start of
+ 	 * locks_copy_lock: */
+-	conflock.fl_ops = NULL;
+-	conflock.fl_lmops = NULL;
+-	err = posix_lock_file_conf(filp, &file_lock, &conflock);
++	locks_init_lock(&conflock);
++	err = posix_lock_file(filp, &file_lock, &conflock);
+ 	switch (-err) {
+ 	case 0: /* success! */
+ 		update_stateid(&lock_stp->st_stateid);
+@@ -2933,7 +2935,7 @@ nfsd4_locku(struct svc_rqst *rqstp, stru
+ 	/*
+ 	*  Try to unlock the file in the VFS.
+ 	*/
+-	err = posix_lock_file(filp, &file_lock);
++	err = posix_lock_file(filp, &file_lock, NULL);
+ 	if (err) {
+ 		dprintk("NFSD: nfs4_locku: posix_lock_file failed!\n");
+ 		goto out_nfserr;
+diff -puN include/linux/fs.h~locks-allow-vfsposix_lock_file-to-return-conflicting-lock include/linux/fs.h
+--- a/include/linux/fs.h~locks-allow-vfsposix_lock_file-to-return-conflicting-lock
++++ a/include/linux/fs.h
+@@ -854,12 +854,11 @@ extern void locks_copy_lock(struct file_
+ extern void locks_remove_posix(struct file *, fl_owner_t);
+ extern void locks_remove_flock(struct file *);
+ extern int posix_test_lock(struct file *, struct file_lock *);
+-extern int posix_lock_file_conf(struct file *, struct file_lock *, struct file_lock *);
+-extern int posix_lock_file(struct file *, struct file_lock *);
++extern int posix_lock_file(struct file *, struct file_lock *, struct file_lock *);
+ extern int posix_lock_file_wait(struct file *, struct file_lock *);
+ extern int posix_unblock_lock(struct file *, struct file_lock *);
+ extern int vfs_test_lock(struct file *, struct file_lock *);
+-extern int vfs_lock_file(struct file *, unsigned int, struct file_lock *);
++extern int vfs_lock_file(struct file *, unsigned int, struct file_lock *, struct file_lock *);
+ extern int flock_lock_file_wait(struct file *filp, struct file_lock *fl);
+ extern int __break_lease(struct inode *inode, unsigned int flags);
+ extern void lease_get_mtime(struct inode *, struct timespec *time);
 _
 
 Patches currently in -mm which might be from eshel@almaden.ibm.com are
