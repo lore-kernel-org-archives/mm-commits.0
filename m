@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch added to -mm tree
-Date: Sat, 07 Apr 2007 01:41:44 -0700
-Message-ID: <200704070844.l378i3wM031006@shell0.pdx.osdl.net>
+Subject: + fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch added to -mm tree
+Date: Sat, 07 Apr 2007 01:53:46 -0700
+Message-ID: <200704070856.l378u53G031222@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47942 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48174 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751260AbXDGIoU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 04:44:20 -0400
+	id S965524AbXDGI4O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 04:56:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, jeremy@goop.org, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, ak@suse.de, jbeulich@novell.com
 
 
 The patch titled
-     rename-the-parainstructions-symbols-to-be-consistent-with-the-others fix
+     fix x86_64-mm-fix-amd64-agp-aperture-validation
 has been added to the -mm tree.  Its filename is
-     rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+     fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rename-the-parainstructions-symbols-to-be-consistent-with-the-others fix
+Subject: fix x86_64-mm-fix-amd64-agp-aperture-validation
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64:
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:e820 from .text between 'e820_any_mapped' (at offset 0x7c03) and 'early_panic'
 
-arch/x86_64/kernel/../../i386/kernel/alternative.c: In function 'alternative_instructions':
-arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: '__parainstructions' undeclared (first use in this function)
-arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: (Each undeclared identifier is reported only once
-arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: for each function it appears in.)
-arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: '__parainstructions_end' undeclared (first use in this function)
+x86_64's e820_any_mapped() is called from modprobeable
+drivers/char/agp/amd64-agp.c:aperture_valid().  But it references the
+__initdata e820, which will crash.
+
+e820 must be moved into .data.
 
 Cc: Andi Kleen <ak@suse.de>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/alternative.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/e820.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-x86_64/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix include/asm-x86_64/alternative.h
---- a/include/asm-x86_64/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix
-+++ a/include/asm-x86_64/alternative.h
-@@ -141,8 +141,8 @@ void apply_paravirt(struct paravirt_patc
- static inline void
- apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end)
- {}
--#define __start_parainstructions NULL
--#define __stop_parainstructions NULL
-+#define __parainstructions NULL
-+#define __parainstructions_end NULL
- #endif
+diff -puN arch/x86_64/kernel/e820.c~fix-x86_64-mm-fix-amd64-agp-aperture-validation arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~fix-x86_64-mm-fix-amd64-agp-aperture-validation
++++ a/arch/x86_64/kernel/e820.c
+@@ -27,7 +27,7 @@
+ #include <asm/bootsetup.h>
+ #include <asm/sections.h>
  
- #endif /* _X86_64_ALTERNATIVE_H */
+-struct e820map e820 __initdata;
++struct e820map e820;
+ 
+ /* 
+  * PFN of last memory page.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +109,7 @@ git-wireless-vs-git-net-2.patch
 revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
 fix-x86_64-mm-sched-clock-share.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
 xfs-clean-up-shrinker-games.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
@@ -182,4 +180,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
