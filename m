@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-remove-useless-casts.patch added to -mm tree
-Date: Fri, 06 Apr 2007 17:14:20 -0700
-Message-ID: <200704070014.l370EK4p023462@shell0.pdx.osdl.net>
+Subject: + char-cyclades-timer-cleanup.patch added to -mm tree
+Date: Fri, 06 Apr 2007 17:14:18 -0700
+Message-ID: <200704070014.l370EINg023456@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:39892 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39881 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933580AbXDGAOZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 20:14:25 -0400
+	id S933573AbXDGAOV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 20:14:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: cyclades, remove useless casts
+     Char: cyclades, timer cleanup
 has been added to the -mm tree.  Its filename is
-     char-cyclades-remove-useless-casts.patch
+     char-cyclades-timer-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,192 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: cyclades, remove useless casts
+Subject: Char: cyclades, timer cleanup
 From: Jiri Slaby <jirislaby@gmail.com>
 
-cyclades, remove useless casts
+cyclades, timer cleanup
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ drivers/char/cyclades.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-remove-useless-casts drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-remove-useless-casts
+diff -puN drivers/char/cyclades.c~char-cyclades-timer-cleanup drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-timer-cleanup
 +++ a/drivers/char/cyclades.c
-@@ -2636,7 +2636,7 @@ static int cy_open(struct tty_struct *tt
-  */
- static void cy_wait_until_sent(struct tty_struct *tty, int timeout)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	void __iomem *base_addr;
- 	int card, chip, channel, index;
- 	unsigned long orig_jiffies;
-@@ -2713,7 +2713,7 @@ static void cy_wait_until_sent(struct tt
-  */
- static void cy_close(struct tty_struct *tty, struct file *filp)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
+@@ -851,7 +851,6 @@ static void cyz_poll(unsigned long);
+ /* The Cyclades-Z polling cycle is defined by this variable */
+ static long cyz_polling_cycle = CZ_DEF_POLL;
  
- #ifdef CY_DEBUG_OTHER
-@@ -2858,7 +2858,7 @@ static void cy_close(struct tty_struct *
-  */
- static int cy_write(struct tty_struct *tty, const unsigned char *buf, int count)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
- 	int c, ret = 0;
+-static int cyz_timeron = 0;
+ static DEFINE_TIMER(cyz_timerlist, cyz_poll, 0, 0);
  
-@@ -2909,7 +2909,7 @@ static int cy_write(struct tty_struct *t
-  */
- static void cy_put_char(struct tty_struct *tty, unsigned char ch)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
+ #else				/* CONFIG_CYZ_INTR */
+@@ -1906,9 +1905,9 @@ static void cyz_poll(unsigned long arg)
+ 	static volatile struct BOARD_CTRL *board_ctrl;
+ 	static volatile struct CH_CTRL *ch_ctrl;
+ 	static volatile struct BUF_CTRL *buf_ctrl;
++	unsigned long expires = jiffies + HZ;
+ 	int card, port;
  
- #ifdef CY_DEBUG_IO
-@@ -2942,7 +2942,7 @@ static void cy_put_char(struct tty_struc
-  */
- static void cy_flush_chars(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
+-	cyz_timerlist.expires = jiffies + (HZ);
+ 	for (card = 0; card < NR_CARDS; card++) {
+ 		cinfo = &cy_card[card];
  
- #ifdef CY_DEBUG_IO
- 	printk("cyc:cy_flush_chars ttyC%d\n", info->line);	/* */
-@@ -2966,7 +2966,7 @@ static void cy_flush_chars(struct tty_st
-  */
- static int cy_write_room(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int ret;
+@@ -1942,9 +1941,9 @@ static void cyz_poll(unsigned long arg)
+ 			cyz_handle_tx(info, ch_ctrl, buf_ctrl);
+ 		}
+ 		/* poll every 'cyz_polling_cycle' period */
+-		cyz_timerlist.expires = jiffies + cyz_polling_cycle;
++		expires = jiffies + cyz_polling_cycle;
+ 	}
+-	add_timer(&cyz_timerlist);
++	mod_timer(&cyz_timerlist, expires);
+ }				/* cyz_poll */
  
- #ifdef CY_DEBUG_IO
-@@ -2983,7 +2983,7 @@ static int cy_write_room(struct tty_stru
+ #endif				/* CONFIG_CYZ_INTR */
+@@ -5504,10 +5503,8 @@ static int __init cy_init(void)
+ 	}
  
- static int cy_chars_in_buffer(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, channel;
+ #ifndef CONFIG_CYZ_INTR
+-	if (number_z_boards && !cyz_timeron) {
+-		cyz_timeron++;
+-		cyz_timerlist.expires = jiffies + 1;
+-		add_timer(&cyz_timerlist);
++	if (number_z_boards) {
++		mod_timer(&cyz_timerlist, jiffies + 1);
+ #ifdef CY_PCI_DEBUG
+ 		printk("Cyclades-Z polling initialized\n");
+ #endif
+@@ -5523,10 +5520,7 @@ static void __exit cy_cleanup_module(voi
+ 	int i, e1;
  
- 	if (serial_paranoia_check(info, tty->name, "cy_chars_in_buffer"))
-@@ -3572,7 +3572,7 @@ static int get_lsr_info(struct cyclades_
+ #ifndef CONFIG_CYZ_INTR
+-	if (cyz_timeron){
+-		cyz_timeron = 0;
+-		del_timer(&cyz_timerlist);
+-	}
++	del_timer_sync(&cyz_timerlist);
+ #endif /* CONFIG_CYZ_INTR */
  
- static int cy_tiocmget(struct tty_struct *tty, struct file *file)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, chip, channel, index;
- 	void __iomem *base_addr;
- 	unsigned long flags;
-@@ -3646,7 +3646,7 @@ static int
- cy_tiocmset(struct tty_struct *tty, struct file *file,
- 		unsigned int set, unsigned int clear)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, chip, channel, index;
- 	void __iomem *base_addr;
- 	unsigned long flags;
-@@ -3797,7 +3797,7 @@ cy_tiocmset(struct tty_struct *tty, stru
-  */
- static void cy_break(struct tty_struct *tty, int break_state)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
- 
- 	if (serial_paranoia_check(info, tty->name, "cy_break"))
-@@ -3997,7 +3997,7 @@ static int
- cy_ioctl(struct tty_struct *tty, struct file *file,
- 	 unsigned int cmd, unsigned long arg)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	struct cyclades_icount cprev, cnow;	/* kernel counter temps */
- 	struct serial_icounter_struct __user *p_cuser;	/* user space */
- 	int ret_val = 0;
-@@ -4190,7 +4190,7 @@ cy_ioctl(struct tty_struct *tty, struct 
-  */
- static void cy_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 
- #ifdef CY_DEBUG_OTHER
- 	printk("cyc:cy_set_termios ttyC%d\n", info->line);
-@@ -4225,7 +4225,7 @@ static void cy_set_termios(struct tty_st
- */
- static void cy_send_xchar(struct tty_struct *tty, char ch)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, channel;
- 
- 	if (serial_paranoia_check(info, tty->name, "cy_send_xchar"))
-@@ -4255,7 +4255,7 @@ static void cy_send_xchar(struct tty_str
-  */
- static void cy_throttle(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
- 	void __iomem *base_addr;
- 	int card, chip, channel, index;
-@@ -4313,7 +4313,7 @@ static void cy_throttle(struct tty_struc
-  */
- static void cy_unthrottle(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
- 	void __iomem *base_addr;
- 	int card, chip, channel, index;
-@@ -4369,7 +4369,7 @@ static void cy_unthrottle(struct tty_str
- static void cy_stop(struct tty_struct *tty)
- {
- 	struct cyclades_card *cinfo;
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	void __iomem *base_addr;
- 	int chip, channel, index;
- 	unsigned long flags;
-@@ -4404,7 +4404,7 @@ static void cy_stop(struct tty_struct *t
- static void cy_start(struct tty_struct *tty)
- {
- 	struct cyclades_card *cinfo;
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	void __iomem *base_addr;
- 	int chip, channel, index;
- 	unsigned long flags;
-@@ -4437,7 +4437,7 @@ static void cy_start(struct tty_struct *
- 
- static void cy_flush_buffer(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 	int card, channel, retval;
- 	unsigned long flags;
- 
-@@ -4474,7 +4474,7 @@ static void cy_flush_buffer(struct tty_s
-  */
- static void cy_hangup(struct tty_struct *tty)
- {
--	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
-+	struct cyclades_port *info = tty->driver_data;
- 
- #ifdef CY_DEBUG_OTHER
- 	printk("cyc:cy_hangup ttyC%d\n", info->line);	/* */
+ 	if ((e1 = tty_unregister_driver(cy_serial_driver)))
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
