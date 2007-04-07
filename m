@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-irq-locking-commentary.patch added to -mm tree
-Date: Fri, 06 Apr 2007 17:44:25 -0700
-Message-ID: <200704070044.l370iPqB024025@shell0.pdx.osdl.net>
+Subject: + char-cyclades-remove-pause.patch added to -mm tree
+Date: Fri, 06 Apr 2007 17:14:14 -0700
+Message-ID: <200704070014.l370EEMd023439@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40736 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39901 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964785AbXDGAog (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 20:44:36 -0400
+	id S933584AbXDGAOb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 20:14:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     uml: irq locking commentary
+     Char: cyclades, remove PAUSE
 has been added to the -mm tree.  Its filename is
-     uml-irq-locking-commentary.patch
+     char-cyclades-remove-pause.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,88 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: irq locking commentary
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Char: cyclades, remove PAUSE
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Locking commentary.
+cyclades, remove PAUSE
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+PAUSE expands to do {} while (0), it's useless.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/irq.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/char/cyclades.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN arch/um/kernel/irq.c~uml-irq-locking-commentary arch/um/kernel/irq.c
---- a/arch/um/kernel/irq.c~uml-irq-locking-commentary
-+++ a/arch/um/kernel/irq.c
-@@ -78,6 +78,14 @@ skip:
- 	return 0;
- }
+diff -puN drivers/char/cyclades.c~char-cyclades-remove-pause drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-remove-pause
++++ a/drivers/char/cyclades.c
+@@ -624,12 +624,6 @@
+ #undef	CY_ENABLE_MONITORING
+ #undef	CY_PCI_DEBUG
  
-+/*
-+ * This list is accessed under irq_lock, except in sigio_handler,
-+ * where it is safe from being modified.  IRQ handlers won't change it -
-+ * if an IRQ source has vanished, it will be freed by free_irqs just
-+ * before returning from sigio_handler.  That will process a separate
-+ * list of irqs to free, with its own locking, coming back here to
-+ * remove list elements, taking the irq_lock to do so.
-+ */
- static struct irq_fd *active_fds = NULL;
- static struct irq_fd **last_irq_ptr = &active_fds;
+-#if 0
+-#define PAUSE __asm__("nop")
+-#else
+-#define PAUSE do {} while (0)
+-#endif
+-
+ /*
+  * Include section 
+  */
+@@ -5009,7 +5003,6 @@ static int __init cy_detect_pci(void)
+ 				cy_writel(&((struct RUNTIME_9060 *)
+ 					(cy_pci_addr0))->loc_addr_base,
+ 					WIN_CREG);
+-				PAUSE;
+ 				printk("Cyclades-8Zo/PCI: FPGA id %lx, ver "
+ 					"%lx\n", (ulong) (0xff &
+ 					cy_readl(&((struct CUSTOM_REG *)
+@@ -5030,7 +5023,6 @@ static int __init cy_detect_pci(void)
+ 			   ensures that the driver will not attempt to talk to
+ 			   the board until it has been properly initialized.
+ 			 */
+-			PAUSE;
+ 			if ((mailbox == ZO_V1) || (mailbox == ZO_V2))
+ 				cy_writel(cy_pci_addr2 + ID_ADDRESS, 0L);
  
-@@ -243,6 +251,7 @@ void free_irq_by_fd(int fd)
- 	free_irq_by_cb(same_fd, &fd);
- }
+@@ -5129,7 +5121,6 @@ static int __init cy_detect_pci(void)
+ 		printk("Cyclades-Z/PCI: New Cyclades-Z board.  FPGA not "
+ 				"loaded\n");
+ #endif
+-		PAUSE;
+ 		/* This must be the new Cyclades-Ze/PCI. */
+ 		cy_pci_nchan = ZE_V1_NPORTS;
  
-+/* Must be called with irq_lock held */
- static struct irq_fd *find_irq_by_fd(int fd, int irqnum, int *index_out)
- {
- 	struct irq_fd *irq;
-@@ -308,6 +317,12 @@ void deactivate_fd(int fd, int irqnum)
- 	ignore_sigio_fd(fd);
- }
- 
-+/*
-+ * Called just before shutdown in order to provide a clean exec
-+ * environment in case the system is rebooting.  No locking because
-+ * that would cause a pointless shutdown hang if something hadn't
-+ * released the lock.
-+ */
- int deactivate_all_fds(void)
- {
- 	struct irq_fd *irq;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-array_size-check-for-type-uml-fix.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-uml-speed-up-exec.patch
-uml-no-locking-needed-in-tlsc.patch
-uml-tidy-processc.patch
-uml-remove-page_size.patch
-uml-kernel_thread-shouldnt-panic.patch
-uml-tidy-fault-code.patch
-uml-kernel-segfaults-should-dump-proper-registers.patch
-uml-comment-early-boot-locking.patch
-uml-irq-locking-commentary.patch
-sys_futex64-allows-64bit-futexes-workaround-for-uml.patch
-utrace-uml-make-uml-compile-with-utrace-enabled.patch
+char-rocket-add-module_device_table.patch
+char-cs5535_gpio-add-module_device_table.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+char-cyclades-remove-pause.patch
+char-cyclades-cy_readx-writex-cleanup.patch
+char-cyclades-timer-cleanup.patch
+char-cyclades-remove-volatiles.patch
+char-cyclades-remove-useless-casts.patch
+shrink_slab-handle-bad-shrinkers.patch
