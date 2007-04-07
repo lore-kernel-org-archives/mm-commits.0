@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-tidy-processc-fix.patch added to -mm tree
-Date: Fri, 06 Apr 2007 18:12:25 -0700
-Message-ID: <200704070112.l371CP9n024480@shell0.pdx.osdl.net>
+Subject: + 8250_pci-fix-pci-must_checks.patch added to -mm tree
+Date: Fri, 06 Apr 2007 17:49:59 -0700
+Message-ID: <200704070049.l370nxOo024132@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41353 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40856 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933450AbXDGBM3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 21:12:29 -0400
+	id S964804AbXDGAuF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 20:50:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     uml: tidy process.c (fix)
+     8250_pci: fix PCI must_checks
 has been added to the -mm tree.  Its filename is
-     uml-tidy-processc-fix.patch
+     8250_pci-fix-pci-must_checks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,70 +25,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: tidy process.c (fix)
-From: Jeff Dike <jdike@addtoit.com>
+Subject: 8250_pci: fix PCI must_checks
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Use only one ifdef to mark stack_sp as being tt mode only.
+drivers/serial/8250_pci.c:1826: warning: ignoring return value of 'pci_enable_device', declared with attribute warn_unused_result
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/kern_util.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/serial/8250_pci.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/include/kern_util.h~uml-tidy-processc-fix arch/um/include/kern_util.h
---- a/arch/um/include/kern_util.h~uml-tidy-processc-fix
-+++ a/arch/um/include/kern_util.h
-@@ -8,6 +8,7 @@
+diff -puN drivers/serial/8250_pci.c~8250_pci-fix-pci-must_checks drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250_pci-fix-pci-must_checks
++++ a/drivers/serial/8250_pci.c
+@@ -1820,10 +1820,18 @@ static int pciserial_resume_one(struct p
+ 	pci_restore_state(dev);
  
- #include "sysdep/ptrace.h"
- #include "sysdep/faultinfo.h"
-+#include "uml-config.h"
+ 	if (priv) {
++		int err;
++
+ 		/*
+ 		 * The device may have been disabled.  Re-enable it.
+ 		 */
+-		pci_enable_device(dev);
++		err = pci_enable_device(dev);
++		if (err) {
++			printk(KERN_ERR "8250_pci: %s: error %d "
++				"enabling device for resume\n",
++				pci_name(dev), err);
++			return err;
++		}
  
- typedef void (*kern_hndl)(int, union uml_pt_regs *);
- 
-@@ -33,7 +34,7 @@ extern int nsyscalls;
- 	UML_ROUND_DOWN(((unsigned long) addr) + PAGE_SIZE - 1)
- 
- extern int kernel_fork(unsigned long flags, int (*fn)(void *), void * arg);
--#if defined(CONFIG_MODE_TT) || defined(UML_CONFIG_MODE_TT)
-+#ifdef UML_CONFIG_MODE_TT
- extern unsigned long stack_sp(unsigned long page);
- #endif
- extern int kernel_thread_proc(void *data);
+ 		pciserial_resume_ports(priv);
+ 	}
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-array_size-check-for-type-uml-fix.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-uml-speed-up-exec.patch
-uml-no-locking-needed-in-tlsc.patch
-uml-tidy-processc.patch
-uml-tidy-processc-fix.patch
-uml-remove-page_size.patch
-uml-kernel_thread-shouldnt-panic.patch
-uml-tidy-fault-code.patch
-uml-kernel-segfaults-should-dump-proper-registers.patch
-uml-comment-early-boot-locking.patch
-uml-irq-locking-commentary.patch
-sys_futex64-allows-64bit-futexes-workaround-for-uml.patch
-utrace-uml-make-uml-compile-with-utrace-enabled.patch
+git-acpi.patch
+git-drm.patch
+git-ieee1394.patch
+romfs-printk-format-warnings.patch
+git-netdev-all.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+fix-mtrr-sections.patch
+scripts-kernel-doc-whitespace-cleanup.patch
+reiserfs-proc-support-requires-proc_fs.patch
+kprobes-fix-sparse-null-warning.patch
+header-cleaning-dont-include-smp_lockh-when-not-used.patch
+expose-range-checking-functions-from-arch-specific.patch
+ext4-use-null-for-pointers.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+profile-likely-unlikely-macros.patch
+parport_serial-fix-pci-must_checks.patch
+8250_pci-fix-pci-must_checks.patch
+s3fb-fix-pci-must_checks.patch
