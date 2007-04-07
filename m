@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + utrace-kill-assertions.patch added to -mm tree
-Date: Sat, 07 Apr 2007 13:14:56 -0700
-Message-ID: <200704072014.l37KEusS009412@shell0.pdx.osdl.net>
+Subject: + pktgen-add-try_to_freeze.patch added to -mm tree
+Date: Sat, 07 Apr 2007 13:15:50 -0700
+Message-ID: <200704072015.l37KFoVc009454@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33363 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33382 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966304AbXDGUPG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 16:15:06 -0400
+	id S966320AbXDGUQA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 16:16:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, roland@redhat.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, michal.k.k.piotrowski@gmail.com, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     utrace-kill-assertions
+     pktgen: add try_to_freeze()
 has been added to the -mm tree.  Its filename is
-     utrace-kill-assertions.patch
+     pktgen-add-try_to_freeze.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: utrace-kill-assertions
+Subject: pktgen: add try_to_freeze()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It has problems.
+The pktgen module prevents suspend-to-disk.  Fix.  (Not yet confirmed)
 
-Cc: Roland McGrath <roland@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Michal Piotrowski" <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/core/pktgen.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/ptrace.c~utrace-kill-assertions kernel/ptrace.c
---- a/kernel/ptrace.c~utrace-kill-assertions
-+++ a/kernel/ptrace.c
-@@ -26,7 +26,7 @@
- #include <asm/pgtable.h>
- #include <asm/uaccess.h>
+diff -puN net/core/pktgen.c~pktgen-add-try_to_freeze net/core/pktgen.c
+--- a/net/core/pktgen.c~pktgen-add-try_to_freeze
++++ a/net/core/pktgen.c
+@@ -128,6 +128,7 @@
+ #include <linux/ioport.h>
+ #include <linux/interrupt.h>
+ #include <linux/capability.h>
++#include <linux/freezer.h>
+ #include <linux/delay.h>
+ #include <linux/timer.h>
+ #include <linux/list.h>
+@@ -3325,6 +3326,8 @@ static int pktgen_thread_worker(void *ar
+ 			t->control &= ~(T_REMDEV);
+ 		}
  
--#ifdef CONFIG_DEBUG_PREEMPT
-+#if 0
- #define NO_LOCKS	BUG_ON(preempt_count() != 0)
- #define START_CHECK	do { int _dbg_preempt = preempt_count()
- #define	END_CHECK	BUG_ON(preempt_count() != _dbg_preempt); } while (0)
++		try_to_freeze();
++
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
