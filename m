@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + prepare-the-platform-driver-for-multiple-users.patch added to -mm tree
-Date: Fri, 06 Apr 2007 18:32:25 -0700
-Message-ID: <200704070132.l371WPTV024860@shell0.pdx.osdl.net>
+Subject: + update-documentation-and-kconfig-help.patch added to -mm tree
+Date: Fri, 06 Apr 2007 18:32:35 -0700
+Message-ID: <200704070132.l371WZwk024881@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41988 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41985 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964896AbXDGBeW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S964883AbXDGBeW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Fri, 6 Apr 2007 21:34:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: malattia@linux.it, lenb@kernel.org, stelian@popies.net
 
 
 The patch titled
-     sony-laptop: prepare the platform driver for multiple users
+     sony-laptop: update documentation and Kconfig help
 has been added to the -mm tree.  Its filename is
-     prepare-the-platform-driver-for-multiple-users.patch
+     update-documentation-and-kconfig-help.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,12 +25,8 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sony-laptop: prepare the platform driver for multiple users
+Subject: sony-laptop: update documentation and Kconfig help
 From: Mattia Dongili <malattia@linux.it>
-
-Both the SNC and SPIC device drivers will create attributes and thus there's
-the need to have an internal usage count to avoid re-registering or
-de-registering at the wrong time.
 
 Signed-off-by: Mattia Dongili <malattia@linux.it>
 Cc: Len Brown <lenb@kernel.org>
@@ -38,272 +34,88 @@ Cc: Stelian Pop <stelian@popies.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sony-laptop.c |  212 ++++++++++++++++++-----------------
- 1 file changed, 112 insertions(+), 100 deletions(-)
+ Documentation/sony-laptop.txt |   25 ++++++++++++++++++-------
+ drivers/misc/Kconfig          |    9 ++++-----
+ 2 files changed, 22 insertions(+), 12 deletions(-)
 
-diff -puN drivers/misc/sony-laptop.c~prepare-the-platform-driver-for-multiple-users drivers/misc/sony-laptop.c
---- a/drivers/misc/sony-laptop.c~prepare-the-platform-driver-for-multiple-users
-+++ a/drivers/misc/sony-laptop.c
-@@ -54,6 +54,64 @@ module_param(debug, int, 0);
- MODULE_PARM_DESC(debug, "set this to 1 (and RTFM) if you want to help "
- 		 "the development of this driver");
+diff -puN Documentation/sony-laptop.txt~update-documentation-and-kconfig-help Documentation/sony-laptop.txt
+--- a/Documentation/sony-laptop.txt~update-documentation-and-kconfig-help
++++ a/Documentation/sony-laptop.txt
+@@ -3,12 +3,18 @@ Sony Notebook Control Driver (SNC) Readm
+ 	Copyright (C) 2004- 2005 Stelian Pop <stelian@popies.net>
+ 	Copyright (C) 2007 Mattia Dongili <malattia@linux.it>
  
-+/*********** Platform Device ***********/
-+
-+static atomic_t sony_pf_users = ATOMIC_INIT(0);
-+static struct platform_driver sony_pf_driver = {
-+	.driver = {
-+		   .name = "sony-laptop",
-+		   .owner = THIS_MODULE,
-+		   }
-+};
-+static struct platform_device *sony_pf_device;
-+
-+static int sony_pf_add(void)
-+{
-+	int ret = 0;
-+
-+	/* don't run again if already initialized */
-+	if (atomic_add_return(1, &sony_pf_users) > 1)
-+		return 0;
-+
-+	ret = platform_driver_register(&sony_pf_driver);
-+	if (ret)
-+		goto out;
-+
-+	sony_pf_device = platform_device_alloc("sony-laptop", -1);
-+	if (!sony_pf_device) {
-+		ret = -ENOMEM;
-+		goto out_platform_registered;
-+	}
-+
-+	ret = platform_device_add(sony_pf_device);
-+	if (ret)
-+		goto out_platform_alloced;
-+
-+	return 0;
-+
-+      out_platform_alloced:
-+	platform_device_put(sony_pf_device);
-+	sony_pf_device = NULL;
-+      out_platform_registered:
-+	platform_driver_unregister(&sony_pf_driver);
-+      out:
-+	atomic_dec(&sony_pf_users);
-+	return ret;
-+}
-+
-+static void sony_pf_remove(void)
-+{
-+	/* deregister only after the last user has gone */
-+	if (!atomic_dec_and_test(&sony_pf_users))
-+		return;
-+
-+	platform_device_del(sony_pf_device);
-+	platform_device_put(sony_pf_device);
-+	platform_driver_unregister(&sony_pf_driver);
-+}
-+
-+/*********** SNC (SNY5001) Device ***********/
-+
- static ssize_t sony_nc_sysfs_show(struct device *, struct device_attribute *,
- 			      char *);
- static ssize_t sony_nc_sysfs_store(struct device *, struct device_attribute *,
-@@ -279,104 +337,6 @@ static ssize_t sony_nc_sysfs_store(struc
- 	return count;
- }
+-This mini-driver drives the SNC device present in the ACPI BIOS of
+-the Sony Vaio laptops.
++This mini-driver drives the SNC and SPIC device present in the ACPI BIOS of the
++Sony Vaio laptops. This driver mixes both devices functions under the same
++(hopefully consistent) interface. This also means that the sonypi driver is
++obsoleted by sony-laptop now.
  
--/*
-- * Platform device
-- */
--static struct platform_driver sncpf_driver = {
--	.driver = {
--		   .name = "sony-laptop",
--		   .owner = THIS_MODULE,
--		   }
--};
--static struct platform_device *sncpf_device;
--
--static int sony_nc_pf_add(void)
--{
--	acpi_handle handle;
--	struct sony_nc_value *item;
--	int ret = 0;
--
--	ret = platform_driver_register(&sncpf_driver);
--	if (ret)
--		goto out;
--
--	sncpf_device = platform_device_alloc("sony-laptop", -1);
--	if (!sncpf_device) {
--		ret = -ENOMEM;
--		goto out_platform_registered;
--	}
--
--	ret = platform_device_add(sncpf_device);
--	if (ret)
--		goto out_platform_alloced;
--
--	for (item = sony_nc_values; item->name; ++item) {
--
--		if (!debug && item->debug)
--			continue;
--
--		/* find the available acpiget as described in the DSDT */
--		for (; item->acpiget && *item->acpiget; ++item->acpiget) {
--			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
--							 *item->acpiget,
--							 &handle))) {
--				if (debug)
--					printk(LOG_PFX "Found %s getter: %s\n",
--					       item->name, *item->acpiget);
--				item->devattr.attr.mode |= S_IRUGO;
--				break;
--			}
--		}
--
--		/* find the available acpiset as described in the DSDT */
--		for (; item->acpiset && *item->acpiset; ++item->acpiset) {
--			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
--							 *item->acpiset,
--							 &handle))) {
--				if (debug)
--					printk(LOG_PFX "Found %s setter: %s\n",
--					       item->name, *item->acpiset);
--				item->devattr.attr.mode |= S_IWUSR;
--				break;
--			}
--		}
--
--		if (item->devattr.attr.mode != 0) {
--			ret =
--			    device_create_file(&sncpf_device->dev,
--					       &item->devattr);
--			if (ret)
--				goto out_sysfs;
--		}
--	}
--
--	return 0;
--
--      out_sysfs:
--	for (item = sony_nc_values; item->name; ++item) {
--		device_remove_file(&sncpf_device->dev, &item->devattr);
--	}
--	platform_device_del(sncpf_device);
--      out_platform_alloced:
--	platform_device_put(sncpf_device);
--      out_platform_registered:
--	platform_driver_unregister(&sncpf_driver);
--      out:
--	return ret;
--}
--
--static void sony_nc_pf_remove(void)
--{
--	struct sony_nc_value *item;
--
--	for (item = sony_nc_values; item->name; ++item) {
--		device_remove_file(&sncpf_device->dev, &item->devattr);
--	}
--
--	platform_device_del(sncpf_device);
--	platform_device_put(sncpf_device);
--	platform_driver_unregister(&sncpf_driver);
--}
+-It gives access to some extra laptop functionalities. In its current
+-form, this driver let the user set or query the screen brightness
+-through the backlight subsystem and remove/apply power to some devices.
++Fn keys (hotkeys):
++------------------
++Some models report hotkeys through the SNC or SPIC devices, such events are
++reported both through the ACPI subsystem as acpi events and through the INPUT
++subsystem. See the logs of acpid or /proc/acpi/event and
++/proc/bus/input/devices to find out what those events are and which input
++devices are created by the driver.
  
- /*
-  * Backlight device
-@@ -455,6 +415,7 @@ static int sony_nc_add(struct acpi_devic
- 	acpi_status status;
- 	int result = 0;
- 	acpi_handle handle;
-+	struct sony_nc_value *item;
+ Backlight control:
+ ------------------
+@@ -39,6 +45,8 @@ The files are:
+ 	audiopower		power on/off the internal sound card
+ 	lanpower		power on/off the internal ethernet card
+ 				(only in debug mode)
++	bluetoothpower		power on/off the internal bluetooth device
++	fanspeed		get/set the fan speed
  
- 	sony_nc_acpi_device = device;
+ Note that some files may be missing if they are not supported
+ by your particular laptop model.
+@@ -76,9 +84,9 @@ The sony-laptop driver creates, for some
+ current ones found on several Vaio models), an entry under
+ /sys/devices/platform/sony-laptop, just like the 'cdpower' one.
+ You can create other entries corresponding to your own laptop methods by
+-further editing the source (see the 'sony_acpi_values' table, and add a new
++further editing the source (see the 'sony_nc_values' table, and add a new
+ entry to this table with your get/set method names using the
+-HANDLE_NAMES macro).
++SNC_HANDLE_NAMES macro).
  
-@@ -497,13 +458,59 @@ static int sony_nc_add(struct acpi_devic
+ Your mission, should you accept it, is to try finding out what
+ those entries are for, by reading/writing random values from/to those
+@@ -87,6 +95,9 @@ files and find out what is the impact on
+ Should you find anything interesting, please report it back to me,
+ I will not disavow all knowledge of your actions :)
  
- 	}
- 
--	if (sony_nc_pf_add())
-+	if (sony_pf_add())
- 		goto outbacklight;
- 
-+	/* create sony_pf sysfs attributes related to the SNC device */
-+	for (item = sony_nc_values; item->name; ++item) {
++See also http://www.linux.it/~malattia/wiki/index.php/Sony_drivers for other
++useful info.
 +
-+		if (!debug && item->debug)
-+			continue;
-+
-+		/* find the available acpiget as described in the DSDT */
-+		for (; item->acpiget && *item->acpiget; ++item->acpiget) {
-+			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
-+							 *item->acpiget,
-+							 &handle))) {
-+				if (debug)
-+					printk(LOG_PFX "Found %s getter: %s\n",
-+					       item->name, *item->acpiget);
-+				item->devattr.attr.mode |= S_IRUGO;
-+				break;
-+			}
-+		}
-+
-+		/* find the available acpiset as described in the DSDT */
-+		for (; item->acpiset && *item->acpiset; ++item->acpiset) {
-+			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
-+							 *item->acpiset,
-+							 &handle))) {
-+				if (debug)
-+					printk(LOG_PFX "Found %s setter: %s\n",
-+					       item->name, *item->acpiset);
-+				item->devattr.attr.mode |= S_IWUSR;
-+				break;
-+			}
-+		}
-+
-+		if (item->devattr.attr.mode != 0) {
-+			result =
-+			    device_create_file(&sony_pf_device->dev,
-+					       &item->devattr);
-+			if (result)
-+				goto out_sysfs;
-+		}
-+	}
-+
- 	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully installed\n");
+ Bugs/Limitations:
+ -----------------
  
- 	return 0;
+diff -puN drivers/misc/Kconfig~update-documentation-and-kconfig-help drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~update-documentation-and-kconfig-help
++++ a/drivers/misc/Kconfig
+@@ -112,12 +112,11 @@ config SONY_LAPTOP
+ 	depends on X86 && ACPI
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	  ---help---
+-	  This mini-driver drives the SNC device present in the ACPI BIOS of
+-	  the Sony Vaio laptops.
++	  This mini-driver drives the SNC and SPIC devices present in the ACPI
++	  BIOS of the Sony Vaio laptops.
  
-+      out_sysfs:
-+	for (item = sony_nc_values; item->name; ++item) {
-+		device_remove_file(&sony_pf_device->dev, &item->devattr);
-+	}
-+	sony_pf_remove();
-       outbacklight:
- 	if (sony_backlight_device)
- 		backlight_device_unregister(sony_backlight_device);
-@@ -520,6 +527,7 @@ static int sony_nc_add(struct acpi_devic
- static int sony_nc_remove(struct acpi_device *device, int type)
- {
- 	acpi_status status;
-+	struct sony_nc_value *item;
+-	  It gives access to some extra laptop functionalities. In its current
+-	  form, this driver let the user set or query the screen brightness
+-	  through the backlight subsystem and remove/apply power to some
++	  It gives access to some extra laptop functionalities like Bluetooth,
++	  screen brightness control, Fn keys and allows powering on/off some
+ 	  devices.
  
- 	if (sony_backlight_device)
- 		backlight_device_unregister(sony_backlight_device);
-@@ -532,7 +540,11 @@ static int sony_nc_remove(struct acpi_de
- 	if (ACPI_FAILURE(status))
- 		printk(LOG_PFX "unable to remove notify handler\n");
- 
--	sony_nc_pf_remove();
-+	for (item = sony_nc_values; item->name; ++item) {
-+		device_remove_file(&sony_pf_device->dev, &item->devattr);
-+	}
-+
-+	sony_pf_remove();
- 
- 	printk(KERN_INFO SONY_NC_DRIVER_NAME " successfully removed\n");
- 
+ 	  Read <file:Documentation/sony-laptop.txt> for more information.
 _
 
 Patches currently in -mm which might be from malattia@linux.it are
