@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + nfsd4-convert-nfsv4-to-new-lock-interface.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:41:02 -0700
-Message-ID: <200704070541.l375f2LS028410@shell0.pdx.osdl.net>
+Subject: + lockd-always-preallocate-block-in-nlmsvc_lock.patch added to -mm tree
+Date: Fri, 06 Apr 2007 22:41:12 -0700
+Message-ID: <200704070541.l375fCTg028426@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45347 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45369 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965396AbXDGFlO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:41:14 -0400
+	id S965397AbXDGFl1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:41:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, trond.myklebust@
 
 
 The patch titled
-     nfsd4: Convert NFSv4 to new lock interface
+     lockd: always preallocate block in nlmsvc_lock()
 has been added to the -mm tree.  Its filename is
-     nfsd4-convert-nfsv4-to-new-lock-interface.patch
+     lockd-always-preallocate-block-in-nlmsvc_lock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,18 +25,20 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nfsd4: Convert NFSv4 to new lock interface
+Subject: lockd: always preallocate block in nlmsvc_lock()
 From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
 
-Convert NFSv4 to the new lock interface.  We don't define any callback for
-now, so we're not taking advantage of the asynchronous feature--that's less
-critical for the multi-threaded nfsd then it is for the single-threaded lockd.
- But this does allow a cluster filesystems to export cluster-coherent locking
-to NFS.
+Normally we could skip ever having to allocate a block in the case where the
+client asks for a non-blocking lock, or asks for a blocking lock that succeeds
+immediately.
 
-Note that it's cluster filesystems that are the issue--of the filesystems that
-define lock methods (nfs, cifs, etc.), most are not exportable by nfsd.
+However we're going to want to always look up a block first in order to check
+whether we're revisiting a deferred lock call, and to be prepared to handle
+the case where the filesystem returns -EINPROGRESS--in that case we want to
+make sure the lock we've given the filesystem is the one embedded in the block
+that we'll use to track the deferred request.
 
+Signed-off-by: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Jan Kara <jack@ucw.cz>
@@ -44,82 +46,76 @@ Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4state.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ fs/lockd/svclock.c |   34 +++++++++++-----------------------
+ 1 file changed, 11 insertions(+), 23 deletions(-)
 
-diff -puN fs/nfsd/nfs4state.c~nfsd4-convert-nfsv4-to-new-lock-interface fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~nfsd4-convert-nfsv4-to-new-lock-interface
-+++ a/fs/nfsd/nfs4state.c
-@@ -50,6 +50,7 @@
- #include <linux/nfsd/xdr4.h>
- #include <linux/namei.h>
- #include <linux/mutex.h>
-+#include <linux/lockd/bind.h>
+diff -puN fs/lockd/svclock.c~lockd-always-preallocate-block-in-nlmsvc_lock fs/lockd/svclock.c
+--- a/fs/lockd/svclock.c~lockd-always-preallocate-block-in-nlmsvc_lock
++++ a/fs/lockd/svclock.c
+@@ -369,7 +369,7 @@ __be32
+ nlmsvc_lock(struct svc_rqst *rqstp, struct nlm_file *file,
+ 			struct nlm_lock *lock, int wait, struct nlm_cookie *cookie)
+ {
+-	struct nlm_block	*block, *newblock = NULL;
++	struct nlm_block	*block = NULL;
+ 	int			error;
+ 	__be32			ret;
  
- #define NFSDDBG_FACILITY                NFSDDBG_PROC
+@@ -382,17 +382,20 @@ nlmsvc_lock(struct svc_rqst *rqstp, stru
+ 				wait);
  
-@@ -2773,7 +2774,7 @@ nfsd4_lock(struct svc_rqst *rqstp, struc
- 	/* XXX?: Just to divert the locks_release_private at the start of
- 	 * locks_copy_lock: */
- 	locks_init_lock(&conflock);
--	err = posix_lock_file(filp, &file_lock, &conflock);
-+	err = vfs_lock_file(filp, cmd, &file_lock, &conflock);
- 	switch (-err) {
- 	case 0: /* success! */
- 		update_stateid(&lock_stp->st_stateid);
-@@ -2790,7 +2791,7 @@ nfsd4_lock(struct svc_rqst *rqstp, struc
- 		status = nfserr_deadlock;
- 		break;
- 	default:        
--		dprintk("NFSD: nfsd4_lock: posix_lock_file_conf() failed! status %d\n",err);
-+		dprintk("NFSD: nfsd4_lock: vfs_lock_file() failed! status %d\n",err);
- 		status = nfserr_resource;
- 		break;
- 	}
-@@ -2815,6 +2816,7 @@ nfsd4_lockt(struct svc_rqst *rqstp, stru
- 	struct inode *inode;
- 	struct file file;
- 	struct file_lock file_lock;
-+	int error;
- 	__be32 status;
  
- 	if (nfs4_in_grace())
-@@ -2870,16 +2872,20 @@ nfsd4_lockt(struct svc_rqst *rqstp, stru
+-	lock->fl.fl_flags &= ~FL_SLEEP;
+-again:
+ 	/* Lock file against concurrent access */
+ 	mutex_lock(&file->f_mutex);
+-	/* Get existing block (in case client is busy-waiting) */
++	/* Get existing block (in case client is busy-waiting)
++	 * or create new block
++	 */
+ 	block = nlmsvc_lookup_block(file, lock);
+ 	if (block == NULL) {
+-		if (newblock != NULL)
+-			lock = &newblock->b_call->a_args.lock;
+-	} else
++		block = nlmsvc_create_block(rqstp, file, lock, cookie, 0);
++		ret = nlm_lck_denied_nolocks;
++		if (block == NULL)
++			goto out;
+ 		lock = &block->b_call->a_args.lock;
++	} else
++		lock->fl.fl_flags &= ~FL_SLEEP;
  
- 	nfs4_transform_lock_offset(&file_lock);
+ 	error = posix_lock_file(file->f_file, &lock->fl, NULL);
+ 	lock->fl.fl_flags &= ~FL_SLEEP;
+@@ -418,26 +421,11 @@ again:
+ 		goto out;
  
--	/* posix_test_lock uses the struct file _only_ to resolve the inode.
-+	/* vfs_test_lock uses the struct file _only_ to resolve the inode.
- 	 * since LOCKT doesn't require an OPEN, and therefore a struct
--	 * file may not exist, pass posix_test_lock a struct file with
-+	 * file may not exist, pass vfs_test_lock a struct file with
- 	 * only the dentry:inode set.
- 	 */
- 	memset(&file, 0, sizeof (struct file));
- 	file.f_path.dentry = cstate->current_fh.fh_dentry;
+ 	ret = nlm_lck_blocked;
+-	if (block != NULL)
+-		goto out;
+-
+-	/* If we don't have a block, create and initialize it. Then
+-	 * retry because we may have slept in kmalloc. */
+-	/* We have to release f_mutex as nlmsvc_create_block may try to
+-	 * to claim it while doing host garbage collection */
+-	if (newblock == NULL) {
+-		mutex_unlock(&file->f_mutex);
+-		dprintk("lockd: blocking on this lock (allocating).\n");
+-		if (!(newblock = nlmsvc_create_block(rqstp, file, lock, cookie, 0)))
+-			return nlm_lck_denied_nolocks;
+-		goto again;
+-	}
  
- 	status = nfs_ok;
--	posix_test_lock(&file, &file_lock);
-+	error = vfs_test_lock(&file, &file_lock);
-+	if (error) {
-+		status = nfserrno(error);
-+		goto out;
-+	}
- 	if (file_lock.fl_type != F_UNLCK) {
- 		status = nfserr_denied;
- 		nfs4_set_lock_denied(&file_lock, &lockt->lt_denied);
-@@ -2935,9 +2941,9 @@ nfsd4_locku(struct svc_rqst *rqstp, stru
- 	/*
- 	*  Try to unlock the file in the VFS.
- 	*/
--	err = posix_lock_file(filp, &file_lock, NULL);
-+	err = vfs_lock_file(filp, F_SETLK, &file_lock, NULL);
- 	if (err) {
--		dprintk("NFSD: nfs4_locku: posix_lock_file failed!\n");
-+		dprintk("NFSD: nfs4_locku: vfs_lock_file failed!\n");
- 		goto out_nfserr;
- 	}
- 	/*
+ 	/* Append to list of blocked */
+-	nlmsvc_insert_block(newblock, NLM_NEVER);
++	nlmsvc_insert_block(block, NLM_NEVER);
+ out:
+ 	mutex_unlock(&file->f_mutex);
+-	nlmsvc_release_block(newblock);
+ 	nlmsvc_release_block(block);
+ 	dprintk("lockd: nlmsvc_lock returned %u\n", ret);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from eshel@almaden.ibm.com are
