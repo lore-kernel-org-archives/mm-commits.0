@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + locks-factor-out-generic-filesystem-switch-from-setlock-code.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:40:54 -0700
-Message-ID: <200704070540.l375es6p028398@shell0.pdx.osdl.net>
+Subject: + locks-add-lock-cancel-command.patch added to -mm tree
+Date: Fri, 06 Apr 2007 22:41:00 -0700
+Message-ID: <200704070541.l375f0fo028407@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45319 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45343 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752169AbXDGFlG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:41:06 -0400
+	id S965378AbXDGFlN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:41:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, trond.myklebust@
 
 
 The patch titled
-     locks: factor out generic/filesystem switch from setlock code
+     locks: add lock cancel command
 has been added to the -mm tree.  Its filename is
-     locks-factor-out-generic-filesystem-switch-from-setlock-code.patch
+     locks-add-lock-cancel-command.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,14 +25,17 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: locks: factor out generic/filesystem switch from setlock code
+Subject: locks: add lock cancel command
 From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
 
-Factor out the code that switches between generic and filesystem-specific lock
-methods; eventually we want to call this from lock managers (lockd and nfsd)
-too; currently they only call the generic methods.
+Lock managers need to be able to cancel pending lock requests.  In the case
+where the exported filesystem manages its own locks, it's not sufficient just
+to call posix_unblock_lock(); we need to let the filesystem know what's
+happening too.
 
-This patch does that for all the setlk code.
+We do this by adding a new fcntl lock command: FL_CANCELLK.  Some day this
+might also be made available to userspace applications that could benefit from
+an asynchronous locking api.
 
 Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -41,119 +44,60 @@ Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c         |   68 ++++++++++++++++++++++---------------------
- include/linux/fs.h |    1 
- 2 files changed, 37 insertions(+), 32 deletions(-)
+ fs/locks.c            |   17 +++++++++++++++++
+ include/linux/fcntl.h |    4 ++++
+ include/linux/fs.h    |    1 +
+ 3 files changed, 22 insertions(+)
 
-diff -puN fs/locks.c~locks-factor-out-generic-filesystem-switch-from-setlock-code fs/locks.c
---- a/fs/locks.c~locks-factor-out-generic-filesystem-switch-from-setlock-code
+diff -puN fs/locks.c~locks-add-lock-cancel-command fs/locks.c
+--- a/fs/locks.c~locks-add-lock-cancel-command
 +++ a/fs/locks.c
-@@ -1699,6 +1699,21 @@ out:
- 	return error;
- }
+@@ -2041,6 +2041,23 @@ posix_unblock_lock(struct file *filp, st
+ 
+ EXPORT_SYMBOL(posix_unblock_lock);
  
 +/**
-+ * vfs_lock_file - file byte range lock
-+ * @filp: The file to apply the lock to
-+ * @cmd: type of locking operation (F_SETLK, F_GETLK, etc.)
-+ * @fl: The lock to be applied
++ * vfs_cancel_lock - file byte range unblock lock
++ * @filp: The file to apply the unblock to
++ * @fl: The lock to be unblocked
++ *
++ * Used by lock managers to cancel blocked requests
 + */
-+int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl)
++int vfs_cancel_lock(struct file *filp, struct file_lock *fl)
 +{
 +	if (filp->f_op && filp->f_op->lock)
-+		return filp->f_op->lock(filp, cmd, fl);
++		return filp->f_op->lock(filp, F_CANCELLK, fl);
 +	else
-+		return posix_lock_file(filp, fl);
++		return posix_unblock_lock(filp, fl);
 +}
-+EXPORT_SYMBOL_GPL(vfs_lock_file);
 +
- /* Apply the lock described by l to an open file descriptor.
-  * This implements both the F_SETLK and F_SETLKW commands of fcntl().
-  */
-@@ -1761,21 +1776,17 @@ again:
- 	if (error)
- 		goto out;
- 
--	if (filp->f_op && filp->f_op->lock != NULL)
--		error = filp->f_op->lock(filp, cmd, file_lock);
--	else {
--		for (;;) {
--			error = posix_lock_file(filp, file_lock);
--			if (error != -EAGAIN || cmd == F_SETLK)
--				break;
--			error = wait_event_interruptible(file_lock->fl_wait,
--					!file_lock->fl_next);
--			if (!error)
--				continue;
--
--			locks_delete_block(file_lock);
-+	for (;;) {
-+		error = vfs_lock_file(filp, cmd, file_lock);
-+		if (error != -EAGAIN || cmd == F_SETLK)
- 			break;
--		}
-+		error = wait_event_interruptible(file_lock->fl_wait,
-+				!file_lock->fl_next);
-+		if (!error)
-+			continue;
++EXPORT_SYMBOL_GPL(vfs_cancel_lock);
 +
-+		locks_delete_block(file_lock);
-+		break;
- 	}
+ static void lock_get_status(char* out, struct file_lock *fl, int id, char *pfx)
+ {
+ 	struct inode *inode = NULL;
+diff -puN include/linux/fcntl.h~locks-add-lock-cancel-command include/linux/fcntl.h
+--- a/include/linux/fcntl.h~locks-add-lock-cancel-command
++++ a/include/linux/fcntl.h
+@@ -3,6 +3,10 @@
  
- 	/*
-@@ -1891,21 +1902,17 @@ again:
- 	if (error)
- 		goto out;
+ #include <asm/fcntl.h>
  
--	if (filp->f_op && filp->f_op->lock != NULL)
--		error = filp->f_op->lock(filp, cmd, file_lock);
--	else {
--		for (;;) {
--			error = posix_lock_file(filp, file_lock);
--			if (error != -EAGAIN || cmd == F_SETLK64)
--				break;
--			error = wait_event_interruptible(file_lock->fl_wait,
--					!file_lock->fl_next);
--			if (!error)
--				continue;
--
--			locks_delete_block(file_lock);
-+	for (;;) {
-+		error = vfs_lock_file(filp, cmd, file_lock);
-+		if (error != -EAGAIN || cmd == F_SETLK64)
- 			break;
--		}
-+		error = wait_event_interruptible(file_lock->fl_wait,
-+				!file_lock->fl_next);
-+		if (!error)
-+			continue;
++/* Cancel a blocking posix lock; internal use only until we expose an
++ * asynchronous lock api to userspace: */
++#define F_CANCELLK	(F_LINUX_SPECIFIC_BASE+5)
 +
-+		locks_delete_block(file_lock);
-+		break;
- 	}
+ #define F_SETLEASE	(F_LINUX_SPECIFIC_BASE+0)
+ #define F_GETLEASE	(F_LINUX_SPECIFIC_BASE+1)
  
- 	/*
-@@ -1950,10 +1957,7 @@ void locks_remove_posix(struct file *fil
- 	lock.fl_ops = NULL;
- 	lock.fl_lmops = NULL;
- 
--	if (filp->f_op && filp->f_op->lock != NULL)
--		filp->f_op->lock(filp, F_SETLK, &lock);
--	else
--		posix_lock_file(filp, &lock);
-+	vfs_lock_file(filp, F_SETLK, &lock);
- 
- 	if (lock.fl_ops && lock.fl_ops->fl_release_private)
- 		lock.fl_ops->fl_release_private(&lock);
-diff -puN include/linux/fs.h~locks-factor-out-generic-filesystem-switch-from-setlock-code include/linux/fs.h
---- a/include/linux/fs.h~locks-factor-out-generic-filesystem-switch-from-setlock-code
+diff -puN include/linux/fs.h~locks-add-lock-cancel-command include/linux/fs.h
+--- a/include/linux/fs.h~locks-add-lock-cancel-command
 +++ a/include/linux/fs.h
-@@ -859,6 +859,7 @@ extern int posix_lock_file(struct file *
- extern int posix_lock_file_wait(struct file *, struct file_lock *);
+@@ -859,6 +859,7 @@ extern int posix_lock_file_wait(struct f
  extern int posix_unblock_lock(struct file *, struct file_lock *);
  extern int vfs_test_lock(struct file *, struct file_lock *);
-+extern int vfs_lock_file(struct file *, unsigned int, struct file_lock *);
+ extern int vfs_lock_file(struct file *, unsigned int, struct file_lock *, struct file_lock *);
++extern int vfs_cancel_lock(struct file *filp, struct file_lock *fl);
  extern int flock_lock_file_wait(struct file *filp, struct file_lock *fl);
  extern int __break_lease(struct inode *inode, unsigned int flags);
  extern void lease_get_mtime(struct inode *, struct timespec *time);
