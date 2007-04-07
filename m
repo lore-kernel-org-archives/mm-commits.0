@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-clean-up-identify_cpu.patch added to -mm tree
-Date: Sat, 07 Apr 2007 00:21:29 -0700
-Message-ID: <200704070721.l377LTII029884@shell0.pdx.osdl.net>
+Subject: + i386-make-compat_vdso-runtime-selectable.patch added to -mm tree
+Date: Sat, 07 Apr 2007 00:21:33 -0700
+Message-ID: <200704070721.l377LXWe029891@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46706 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46721 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965452AbXDGHVf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 03:21:35 -0400
+	id S965453AbXDGHV7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 03:21:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, ak@suse.de, jeremy@xensource.com
+Cc: jeremy@goop.org, JBeulich@novell.com, ak@suse.de, ebiederm@xmission.com, jeremy@xensource.com, mingo@elte.hu, roland@redhat.com, zach@vmware.com
 
 
 The patch titled
-     i386: clean up identify_cpu
+     i386: make COMPAT_VDSO runtime selectable
 has been added to the -mm tree.  Its filename is
-     i386-clean-up-identify_cpu.patch
+     i386-make-compat_vdso-runtime-selectable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,117 +25,281 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: clean up identify_cpu
+Subject: i386: make COMPAT_VDSO runtime selectable
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-identify_cpu() is used to identify both the boot CPU and secondary
-CPUs, but it performs some actions which only apply to the boot CPU.
-Those functions are therefore really __init functions, but because
-they're called by identify_cpu(), they must be marked __cpuinit.
+Now that relocation of the VDSO for COMPAT_VDSO users is done at runtime
+rather than compile time, it is possible to enable/disable compat mode at
+runtime.
 
-This patch splits identify_cpu() into identify_boot_cpu() and
-identify_secondary_cpu(), and calls the appropriate init functions
-from each.  Also, identify_boot_cpu() and all the functions it
-dominates are marked __init.
+This patch allows you to enable COMPAT_VDSO mode with "vdso=2" on the kernel
+command line, or via sysctl.  (Switching on a running system shouldn't be done
+lightly; any process which was relying on the compat VDSO will be upset if it
+goes away.)
+
+The COMPAT_VDSO config option still exists, but if enabled it just makes
+vdso_enabled default to VDSO_COMPAT.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: "Jan Beulich" <JBeulich@novell.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/common.c    |   21 ++++++++++++++-------
- arch/i386/kernel/cpu/mtrr/main.c |    4 ++--
- arch/i386/kernel/smpboot.c       |    2 +-
- include/asm-i386/processor.h     |    3 ++-
- 4 files changed, 19 insertions(+), 11 deletions(-)
+ Documentation/kernel-parameters.txt |    1 
+ arch/i386/kernel/sysenter.c         |  139 +++++++++++++++++---------
+ include/asm-i386/page.h             |    2 
+ 3 files changed, 93 insertions(+), 49 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/common.c~i386-clean-up-identify_cpu arch/i386/kernel/cpu/common.c
---- a/arch/i386/kernel/cpu/common.c~i386-clean-up-identify_cpu
-+++ a/arch/i386/kernel/cpu/common.c
-@@ -394,7 +394,7 @@ __setup("serialnumber", x86_serial_nr_se
+diff -puN Documentation/kernel-parameters.txt~i386-make-compat_vdso-runtime-selectable Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~i386-make-compat_vdso-runtime-selectable
++++ a/Documentation/kernel-parameters.txt
+@@ -1807,6 +1807,7 @@ and is between 256 and 4096 characters. 
+ 			[USBHID] The interval which mice are to be polled at.
+ 
+ 	vdso=		[IA-32,SH]
++			vdso=2: enable compat VDSO (default with COMPAT_VDSO)
+ 			vdso=1: enable VDSO (default)
+ 			vdso=0: disable VDSO mapping
+ 
+diff -puN arch/i386/kernel/sysenter.c~i386-make-compat_vdso-runtime-selectable arch/i386/kernel/sysenter.c
+--- a/arch/i386/kernel/sysenter.c~i386-make-compat_vdso-runtime-selectable
++++ a/arch/i386/kernel/sysenter.c
+@@ -23,12 +23,25 @@
+ #include <asm/pgtable.h>
+ #include <asm/unistd.h>
+ #include <asm/elf.h>
++#include <asm/tlbflush.h>
++
++enum {
++	VDSO_DISABLED = 0,
++	VDSO_ENABLED = 1,
++	VDSO_COMPAT = 2,
++};
++
++#ifdef CONFIG_COMPAT_VDSO
++#define VDSO_DEFAULT	VDSO_COMPAT
++#else
++#define VDSO_DEFAULT	VDSO_ENABLED
++#endif
+ 
  /*
-  * This does the hard work of actually picking apart the CPU stuff...
+  * Should the kernel map a VDSO page into processes and pass its
+  * address down to glibc upon exec()?
   */
--void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
-+static void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
+-unsigned int __read_mostly vdso_enabled = 1;
++unsigned int __read_mostly vdso_enabled = VDSO_DEFAULT;
+ 
+ EXPORT_SYMBOL_GPL(vdso_enabled);
+ 
+@@ -43,7 +56,6 @@ __setup("vdso=", vdso_setup);
+ 
+ extern asmlinkage void sysenter_entry(void);
+ 
+-#ifdef CONFIG_COMPAT_VDSO
+ static __init void reloc_symtab(Elf32_Ehdr *ehdr,
+ 				unsigned offset, unsigned size)
  {
- 	int i;
+@@ -160,11 +172,6 @@ static __init void relocate_vdso(Elf32_E
+ 				     shdr[i].sh_size);
+ 	}
+ }
+-#else
+-static inline void relocate_vdso(Elf32_Ehdr *ehdr)
+-{
+-}
+-#endif	/* COMPAT_VDSO */
  
-@@ -505,15 +505,22 @@ void __cpuinit identify_cpu(struct cpuin
- 
- 	/* Init Machine Check Exception if available. */
- 	mcheck_init(c);
-+}
- 
--	if (c == &boot_cpu_data)
--		sysenter_setup();
-+void __init identify_boot_cpu(void)
-+{
-+	identify_cpu(&boot_cpu_data);
-+	sysenter_setup();
- 	enable_sep_cpu();
-+	mtrr_bp_init();
-+}
- 
--	if (c == &boot_cpu_data)
--		mtrr_bp_init();
--	else
--		mtrr_ap_init();
-+void __cpuinit identify_secondary_cpu(struct cpuinfo_x86 *c)
-+{
-+	BUG_ON(c == &boot_cpu_data);
-+	identify_cpu(c);
-+	enable_sep_cpu();
-+	mtrr_ap_init();
+ void enable_sep_cpu(void)
+ {
+@@ -184,6 +191,25 @@ void enable_sep_cpu(void)
+ 	put_cpu();	
  }
  
- #ifdef CONFIG_X86_HT
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-clean-up-identify_cpu arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~i386-clean-up-identify_cpu
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -571,7 +571,7 @@ extern void amd_init_mtrr(void);
- extern void cyrix_init_mtrr(void);
- extern void centaur_init_mtrr(void);
++static struct vm_area_struct gate_vma;
++
++static int __init gate_vma_init(void)
++{
++	gate_vma.vm_mm = NULL;
++	gate_vma.vm_start = FIXADDR_USER_START;
++	gate_vma.vm_end = FIXADDR_USER_END;
++	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
++	gate_vma.vm_page_prot = __P101;
++	/*
++	 * Make sure the vDSO gets into every core dump.
++	 * Dumping its contents makes post-mortem fully interpretable later
++	 * without matching up the same kernel and hardware config to see
++	 * what PC values meant.
++	 */
++	gate_vma.vm_flags |= VM_ALWAYSDUMP;
++	return 0;
++}
++
+ /*
+  * These symbols are defined by vsyscall.o to mark the bounds
+  * of the ELF DSO images included therein.
+@@ -192,6 +218,22 @@ extern const char vsyscall_int80_start, 
+ extern const char vsyscall_sysenter_start, vsyscall_sysenter_end;
+ static struct page *syscall_pages[1];
  
--static void __cpuinit init_ifs(void)
-+static void __init init_ifs(void)
++static void map_compat_vdso(int map)
++{
++	static int vdso_mapped;
++
++	if (map == vdso_mapped)
++		return;
++
++	vdso_mapped = map;
++
++	__set_fixmap(FIX_VDSO, page_to_pfn(syscall_pages[0]) << PAGE_SHIFT,
++		     map ? PAGE_READONLY_EXEC : PAGE_NONE);
++
++	/* flush stray tlbs */
++	flush_tlb_all();
++}
++
+ int __init sysenter_setup(void)
  {
- #ifndef CONFIG_X86_64
- 	amd_init_mtrr();
-@@ -639,7 +639,7 @@ static struct sysdev_driver mtrr_sysdev_
-  * initialized (i.e. before smp_init()).
-  * 
-  */
--void __cpuinit mtrr_bp_init(void)
-+void __init mtrr_bp_init(void)
+ 	void *syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
+@@ -200,10 +242,9 @@ int __init sysenter_setup(void)
+ 
+ 	syscall_pages[0] = virt_to_page(syscall_page);
+ 
+-#ifdef CONFIG_COMPAT_VDSO
+-	__set_fixmap(FIX_VDSO, __pa(syscall_page), PAGE_READONLY_EXEC);
++	gate_vma_init();
++
+ 	printk("Compat vDSO mapped to %08lx.\n", __fix_to_virt(FIX_VDSO));
+-#endif
+ 
+ 	if (!boot_cpu_has(X86_FEATURE_SEP)) {
+ 		vsyscall = &vsyscall_int80_start;
+@@ -222,42 +263,57 @@ int __init sysenter_setup(void)
+ /* Defined in vsyscall-sysenter.S */
+ extern void SYSENTER_RETURN;
+ 
+-#ifdef __HAVE_ARCH_GATE_AREA
+ /* Setup a VMA at program startup for the vsyscall page */
+ int arch_setup_additional_pages(struct linux_binprm *bprm, int exstack)
  {
- 	init_ifs();
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long addr;
+ 	int ret;
++	bool compat;
  
-diff -puN arch/i386/kernel/smpboot.c~i386-clean-up-identify_cpu arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~i386-clean-up-identify_cpu
-+++ a/arch/i386/kernel/smpboot.c
-@@ -155,7 +155,7 @@ static void __cpuinit smp_store_cpu_info
+ 	down_write(&mm->mmap_sem);
+-	addr = get_unmapped_area(NULL, 0, PAGE_SIZE, 0, 0);
+-	if (IS_ERR_VALUE(addr)) {
+-		ret = addr;
+-		goto up_fail;
+-	}
  
- 	*c = boot_cpu_data;
- 	if (id!=0)
--		identify_cpu(c);
-+		identify_secondary_cpu(c);
- 	/*
- 	 * Mask B, Pentium, but not Pentium MMX
- 	 */
-diff -puN include/asm-i386/processor.h~i386-clean-up-identify_cpu include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~i386-clean-up-identify_cpu
-+++ a/include/asm-i386/processor.h
-@@ -116,7 +116,8 @@ extern char ignore_fpu_irq;
+-	/*
+-	 * MAYWRITE to allow gdb to COW and set breakpoints
+-	 *
+-	 * Make sure the vDSO gets into every core dump.
+-	 * Dumping its contents makes post-mortem fully interpretable later
+-	 * without matching up the same kernel and hardware config to see
+-	 * what PC values meant.
+-	 */
+-	ret = install_special_mapping(mm, addr, PAGE_SIZE,
+-				      VM_READ|VM_EXEC|
+-				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
+-				      VM_ALWAYSDUMP,
+-				      syscall_pages);
+-	if (ret)
+-		goto up_fail;
++	/* Test compat mode once here, in case someone
++	   changes it via sysctl */
++	compat = (vdso_enabled == VDSO_COMPAT);
++
++	map_compat_vdso(compat);
++
++	if (compat)
++		addr = VDSO_HIGH_BASE;
++	else {
++		addr = get_unmapped_area(NULL, 0, PAGE_SIZE, 0, 0);
++		if (IS_ERR_VALUE(addr)) {
++			ret = addr;
++			goto up_fail;
++		}
++
++		/*
++		 * MAYWRITE to allow gdb to COW and set breakpoints
++		 *
++		 * Make sure the vDSO gets into every core dump.
++		 * Dumping its contents makes post-mortem fully
++		 * interpretable later without matching up the same
++		 * kernel and hardware config to see what PC values
++		 * meant.
++		 */
++		ret = install_special_mapping(mm, addr, PAGE_SIZE,
++					      VM_READ|VM_EXEC|
++					      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
++					      VM_ALWAYSDUMP,
++					      syscall_pages);
++
++		if (ret)
++			goto up_fail;
++	}
  
- void __init cpu_detect(struct cpuinfo_x86 *c);
+ 	current->mm->context.vdso = (void *)addr;
+ 	current_thread_info()->sysenter_return =
+-				    (void *)VDSO_SYM(&SYSENTER_RETURN);
+-up_fail:
++		(void *)VDSO_SYM(&SYSENTER_RETURN);
++
++  up_fail:
+ 	up_write(&mm->mmap_sem);
++
+ 	return ret;
+ }
  
--extern void identify_cpu(struct cpuinfo_x86 *);
-+extern void identify_boot_cpu(void);
-+extern void identify_secondary_cpu(struct cpuinfo_x86 *);
- extern void print_cpu_info(struct cpuinfo_x86 *);
- extern unsigned int init_intel_cacheinfo(struct cpuinfo_x86 *c);
- extern unsigned short num_cache_leaves;
+@@ -270,6 +326,9 @@ const char *arch_vma_name(struct vm_area
+ 
+ struct vm_area_struct *get_gate_vma(struct task_struct *tsk)
+ {
++	/* Check to see if this task was created in compat vdso mode */
++	if (tsk->mm->context.vdso == (void *)VDSO_HIGH_BASE)
++		return &gate_vma;
+ 	return NULL;
+ }
+ 
+@@ -282,17 +341,3 @@ int in_gate_area_no_task(unsigned long a
+ {
+ 	return 0;
+ }
+-#else  /* !__HAVE_ARCH_GATE_AREA */
+-int arch_setup_additional_pages(struct linux_binprm *bprm, int exstack)
+-{
+-	/*
+-	 * If not creating userspace VMA, simply set vdso to point to
+-	 * fixmap page.
+-	 */
+-	current->mm->context.vdso = (void *)VDSO_HIGH_BASE;
+-	current_thread_info()->sysenter_return =
+-		(void *)VDSO_SYM(&SYSENTER_RETURN);
+-
+-	return 0;
+-}
+-#endif	/* __HAVE_ARCH_GATE_AREA */
+diff -puN include/asm-i386/page.h~i386-make-compat_vdso-runtime-selectable include/asm-i386/page.h
+--- a/include/asm-i386/page.h~i386-make-compat_vdso-runtime-selectable
++++ a/include/asm-i386/page.h
+@@ -143,9 +143,7 @@ extern int page_is_ram(unsigned long pag
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/page.h>
+ 
+-#ifndef CONFIG_COMPAT_VDSO
+ #define __HAVE_ARCH_GATE_AREA 1
+-#endif
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _I386_PAGE_H */
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
