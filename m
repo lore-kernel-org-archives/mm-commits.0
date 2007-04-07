@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-move-the-page-walker-code-to-lib-fix.patch added to -mm tree
-Date: Sat, 07 Apr 2007 01:23:03 -0700
-Message-ID: <200704070825.l378PLWa030758@shell0.pdx.osdl.net>
+Subject: + rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch added to -mm tree
+Date: Sat, 07 Apr 2007 01:41:44 -0700
+Message-ID: <200704070844.l378i3wM031006@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47522 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47942 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965626AbXDGIZr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 04:25:47 -0400
+	id S1751260AbXDGIoU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 04:44:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeremy@goop.org, mpm@selenic.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, ak@suse.de, jeremy@goop.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     maps2-move-the-page-walker-code-to-lib-fix
+     rename-the-parainstructions-symbols-to-be-consistent-with-the-others fix
 has been added to the -mm tree.  Its filename is
-     maps2-move-the-page-walker-code-to-lib-fix.patch
+     rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps2-move-the-page-walker-code-to-lib-fix
+Subject: rename-the-parainstructions-symbols-to-be-consistent-with-the-others fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lib/pagewalk.c: In function 'walk_pte_range':
-lib/pagewalk.c:15: warning: implicit declaration of function 'kunmap_atomic'
+x86_64:
 
-Cc: Matt Mackall <mpm@selenic.com>
+arch/x86_64/kernel/../../i386/kernel/alternative.c: In function 'alternative_instructions':
+arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: '__parainstructions' undeclared (first use in this function)
+arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: (Each undeclared identifier is reported only once
+arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: for each function it appears in.)
+arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: '__parainstructions_end' undeclared (first use in this function)
+
+Cc: Andi Kleen <ak@suse.de>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/pagewalk.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-x86_64/alternative.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/pagewalk.c~maps2-move-the-page-walker-code-to-lib-fix lib/pagewalk.c
---- a/lib/pagewalk.c~maps2-move-the-page-walker-code-to-lib-fix
-+++ a/lib/pagewalk.c
-@@ -1,4 +1,5 @@
- #include <linux/mm.h>
-+#include <linux/highmem.h>
+diff -puN include/asm-x86_64/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix include/asm-x86_64/alternative.h
+--- a/include/asm-x86_64/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix
++++ a/include/asm-x86_64/alternative.h
+@@ -141,8 +141,8 @@ void apply_paravirt(struct paravirt_patc
+ static inline void
+ apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end)
+ {}
+-#define __start_parainstructions NULL
+-#define __stop_parainstructions NULL
++#define __parainstructions NULL
++#define __parainstructions_end NULL
+ #endif
  
- static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			  struct mm_walk *walk, void *private)
+ #endif /* _X86_64_ALTERNATIVE_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +120,7 @@ mm-merge-nopfn-into-fault-fix.patch
 i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
 mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
 slab-mark-set_up_list3s-__init.patch
@@ -171,4 +182,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
