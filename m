@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch added to -mm tree
-Date: Fri, 06 Apr 2007 17:56:14 -0700
-Message-ID: <200704070056.l370uE9L024219@shell0.pdx.osdl.net>
+Subject: + pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch added to -mm tree
+Date: Fri, 06 Apr 2007 17:57:35 -0700
+Message-ID: <200704070057.l370vZC9024238@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40950 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40966 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964796AbXDGA43 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 20:56:29 -0400
+	id S964793AbXDGA5u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 20:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, a.p.zijlstra@chello.nl, mingo@elte.hu, nickpiggin@yahoo.com.au, wli@holomorphy.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, linux@dominikbrodowski.net
 
 
 The patch titled
-     only allow nonlinear vmas for ram backed filesystems
+     pcmcia: irq probe can be done without risking an IRQ storm
 has been added to the -mm tree.  Its filename is
-     only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+     pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,71 +25,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: only allow nonlinear vmas for ram backed filesystems
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: pcmcia: irq probe can be done without risking an IRQ storm
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-page_mkclean() doesn't re-protect ptes for non-linear mappings, so a later
-re-dirty through such a mapping will not generate a fault, PG_dirty will
-not reflect the dirty state and the dirty count will be skewed.  This
-implies that msync() is also currently broken for nonlinear mappings.
+Nowdays you can ask for an IRQ to be allocated but not enabled, when PCMCIA
+was written this was not true and this feature is thus not used
 
-The easiest solution is to emulate remap_file_pages on non-linear mappings
-with simple mmap() for non ram-backed filesystems.  Applications continue
-to work (albeit slower), as long as the number of remappings remain below
-the maximum vma count.
-
-However all currently known real uses of non-linear mappings are for ram
-backed filesystems, which this patch doesn't affect.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fremap.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/pcmcia/pcmcia_resource.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/fremap.c~only-allow-nonlinear-vmas-for-ram-backed-filesystems mm/fremap.c
---- a/mm/fremap.c~only-allow-nonlinear-vmas-for-ram-backed-filesystems
-+++ a/mm/fremap.c
-@@ -181,6 +181,24 @@ asmlinkage long sys_remap_file_pages(uns
- 			goto retry;
- 		}
- 		mapping = vma->vm_file->f_mapping;
-+		/*
-+		 * page_mkclean doesn't work on nonlinear vmas, so if dirty
-+		 * pages need to be accounted, emulate with linear vmas.
-+		 */
-+		if (mapping_cap_account_dirty(mapping)) {
-+			unsigned long addr;
+diff -puN drivers/pcmcia/pcmcia_resource.c~pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm drivers/pcmcia/pcmcia_resource.c
+--- a/drivers/pcmcia/pcmcia_resource.c~pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm
++++ a/drivers/pcmcia/pcmcia_resource.c
+@@ -812,6 +812,9 @@ int pcmcia_request_irq(struct pcmcia_dev
+ 		type = IRQF_SHARED;
+ 
+ #ifdef CONFIG_PCMCIA_PROBE
++	if (!(req->Attributes & IRQ_HANDLE_PRESENT))
++		type |= IRQ_NOAUTOEN;
 +
-+			flags &= MAP_NONBLOCK;
-+			addr = mmap_region(vma->vm_file, start, size, flags,
-+					   vma->vm_flags, pgoff, 1);
-+			if (IS_ERR_VALUE(addr))
-+				err = addr;
-+			else {
-+				BUG_ON(addr != start);
-+				err = 0;
-+			}
-+			goto out;
-+		}
- 		spin_lock(&mapping->i_mmap_lock);
- 		flush_dcache_mmap_lock(mapping);
- 		vma->vm_flags |= VM_NONLINEAR;
+ 	if (s->irq.AssignedIRQ != 0) {
+ 		/* If the interrupt is already assigned, it must be the same */
+ 		irq = s->irq.AssignedIRQ;
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-fuse-validate-rootmode-mount-option.patch
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-filesystem-subtype-support.patch
-add-file-position-info-to-proc.patch
-add-file-position-info-to-proc-fix.patch
-consolidate-generic_writepages-and-mpage_writepages.patch
+git-libata-all.patch
+libata-misc-minor-merge-fixups.patch
+pata_hpt37x-further-small-fixes.patch
+pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
+pata_pdc2027x-bring-into-line-with-changes-add-the-mode.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
+git-netdev-all.patch
+pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
+serial-suppress-rts-assertion-with-disabled-crtscts.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+provide-dummy-devm_ioport_-if-has_ioport.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+tty-clarify-documentation-of-write.patch
+tty-i386-x86_64-arbitary-speed-support.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+protect-tty-drivers-list-with-tty_mutex.patch
+fix-82875-pci-setup.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
