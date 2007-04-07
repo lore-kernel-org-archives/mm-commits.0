@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pata_acpi-restore-driver-fix-2.patch added to -mm tree
-Date: Sat, 07 Apr 2007 01:20:47 -0700
-Message-ID: <200704070823.l378N7qc030713@shell0.pdx.osdl.net>
+Subject: + maps2-move-the-page-walker-code-to-lib-fix.patch added to -mm tree
+Date: Sat, 07 Apr 2007 01:23:03 -0700
+Message-ID: <200704070825.l378PLWa030758@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47496 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47522 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965494AbXDGIXZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 04:23:25 -0400
+	id S965626AbXDGIZr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 04:25:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com
+Cc: akpm@linux-foundation.org, jeremy@goop.org, mpm@selenic.com, rientjes@google.com
 
 
 The patch titled
-     pata_acpi-restore-driver-fix-2
+     maps2-move-the-page-walker-code-to-lib-fix
 has been added to the -mm tree.  Its filename is
-     pata_acpi-restore-driver-fix-2.patch
+     maps2-move-the-page-walker-code-to-lib-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_acpi-restore-driver-fix-2
+Subject: maps2-move-the-page-walker-code-to-lib-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/pata_acpi.c: In function 'pacpi_pre_reset':
-drivers/ata/pata_acpi.c:55: error: too few arguments to function 'ata_std_prereset'
-drivers/ata/pata_acpi.c: In function 'pacpi_error_handler':
-drivers/ata/pata_acpi.c:86: warning: passing argument 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_acpi.c: In function 'pacpi_pre_reset':
-drivers/ata/pata_acpi.c:56: warning: control reaches end of non-void function
+lib/pagewalk.c: In function 'walk_pte_range':
+lib/pagewalk.c:15: warning: implicit declaration of function 'kunmap_atomic'
 
-Cc: Alan Cox <alan@redhat.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_acpi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/pagewalk.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix-2 drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix-2
-+++ a/drivers/ata/pata_acpi.c
-@@ -45,14 +45,14 @@ struct pata_acpi {
-  *	Perform the PATA port setup we need.
-  */
+diff -puN lib/pagewalk.c~maps2-move-the-page-walker-code-to-lib-fix lib/pagewalk.c
+--- a/lib/pagewalk.c~maps2-move-the-page-walker-code-to-lib-fix
++++ a/lib/pagewalk.c
+@@ -1,4 +1,5 @@
+ #include <linux/mm.h>
++#include <linux/highmem.h>
  
--static int pacpi_pre_reset(struct ata_port *ap)
-+static int pacpi_pre_reset(struct ata_port *ap, unsigned long deadline)
- {
- 	struct pata_acpi *acpi = ap->private_data;
- 
- 	if (acpi->handle == NULL || ata_acpi_gtm(ap, acpi->handle, &acpi->gtm) < 0)
- 		return -ENODEV;
- 
--	return ata_std_prereset(ap);
-+	return ata_std_prereset(ap, deadline);
- }
- 
- /**
+ static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			  struct mm_walk *walk, void *private)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +70,7 @@ git-kvm.patch
 git-libata-all.patch
 libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
 pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
 revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
 git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
@@ -183,4 +171,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-pata_acpi-restore-driver-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
