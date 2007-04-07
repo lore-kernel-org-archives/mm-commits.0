@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-drivers-get-release-methods.patch added to -mm tree
-Date: Fri, 06 Apr 2007 18:16:33 -0700
-Message-ID: <200704070116.l371GXfW024568@shell0.pdx.osdl.net>
+Subject: + uml-speed-up-page-table-walking.patch added to -mm tree
+Date: Fri, 06 Apr 2007 18:16:37 -0700
+Message-ID: <200704070116.l371GbAm024581@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41430 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41439 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933564AbXDGBQh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 21:16:37 -0400
+	id S964821AbXDGBQl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 21:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: drivers get release methods
+     uml: speed up page table walking
 has been added to the -mm tree.  Its filename is
-     uml-drivers-get-release-methods.patch
+     uml-speed-up-page-table-walking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,125 +25,259 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: drivers get release methods
+Subject: uml: speed up page table walking
 From: Jeff Dike <jdike@addtoit.com>
 
-Define release methods for the ubd and net drivers.  They contain as much of
-the remove methods as make sense.  All error checking must have already been
-done as well as anything else that might be holding a reference on the device
-kobject.
+The previous page table walking code was horribly inefficient.  This patch
+replaces it with code taken from elsewhere in the kernel.
+
+Forking from bash is now ~5% faster and page faults are handled ~10% faster.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/net_kern.c |   19 +++++++++++++++----
- arch/um/drivers/ubd_kern.c |   17 ++++++++++++-----
- 2 files changed, 27 insertions(+), 9 deletions(-)
+ arch/um/kernel/tlb.c |  202 ++++++++++++++++++++++++-----------------
+ 1 file changed, 120 insertions(+), 82 deletions(-)
 
-diff -puN arch/um/drivers/net_kern.c~uml-drivers-get-release-methods arch/um/drivers/net_kern.c
---- a/arch/um/drivers/net_kern.c~uml-drivers-get-release-methods
-+++ a/arch/um/drivers/net_kern.c
-@@ -341,6 +341,19 @@ static struct platform_driver uml_net_dr
- };
- static int driver_registered;
+diff -puN arch/um/kernel/tlb.c~uml-speed-up-page-table-walking arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-speed-up-page-table-walking
++++ a/arch/um/kernel/tlb.c
+@@ -6,6 +6,7 @@
+ #include "linux/mm.h"
+ #include "asm/page.h"
+ #include "asm/pgalloc.h"
++#include "asm/pgtable.h"
+ #include "asm/tlbflush.h"
+ #include "choose-mode.h"
+ #include "mode_kern.h"
+@@ -123,106 +124,143 @@ static int add_mprotect(unsigned long ad
  
-+static void net_device_release(struct device *dev)
+ #define ADD_ROUND(n, inc) (((n) + (inc)) & ~((inc) - 1))
+ 
++static inline int update_pte_range(pmd_t *pmd, unsigned long addr,
++				   unsigned long end, struct host_vm_op *ops,
++				   int last_op, int *op_index, int force,
++				   union mm_context *mmu, void **flush,
++				   int (*do_ops)(union mm_context *,
++						 struct host_vm_op *, int, int,
++						 void **))
 +{
-+	struct uml_net *device = dev->driver_data;
-+	struct net_device *netdev = device->dev;
-+	struct uml_net_private *lp = netdev->priv;
++	pte_t *pte;
++	int r, w, x, ret = 0;
 +
-+	if(lp->remove != NULL)
-+		(*lp->remove)(&lp->user);
-+	list_del(&device->list);
-+	kfree(device);
-+	free_netdev(netdev);
++	pte = pte_offset_kernel(pmd, addr);
++	do {
++		r = pte_read(*pte);
++		w = pte_write(*pte);
++		x = pte_exec(*pte);
++		if (!pte_young(*pte)) {
++			r = 0;
++			w = 0;
++		} else if (!pte_dirty(*pte)) {
++			w = 0;
++		}
++		if(force || pte_newpage(*pte)){
++			if(pte_present(*pte))
++				ret = add_mmap(addr, pte_val(*pte) & PAGE_MASK,
++					       PAGE_SIZE, r, w, x, ops,
++					       op_index, last_op, mmu, flush,
++					       do_ops);
++			else ret = add_munmap(addr, PAGE_SIZE, ops, op_index,
++					      last_op, mmu, flush, do_ops);
++		}
++		else if(pte_newprot(*pte))
++			ret = add_mprotect(addr, PAGE_SIZE, r, w, x, ops,
++					   op_index, last_op, mmu, flush,
++					   do_ops);
++		*pte = pte_mkuptodate(*pte);
++	} while (pte++, addr += PAGE_SIZE, ((addr != end) && !ret));
++	return ret;
 +}
 +
- static void eth_configure(int n, void *init, char *mac,
- 			  struct transport *transport)
- {
-@@ -396,6 +409,8 @@ static void eth_configure(int n, void *i
- 	}
- 	device->pdev.id = n;
- 	device->pdev.name = DRIVER_NAME;
-+	device->pdev.dev.release = net_device_release;
-+	device->pdev.dev.driver_data = device;
- 	if(platform_device_register(&device->pdev))
- 		goto out_free_netdev;
- 	SET_NETDEV_DEV(dev,&device->pdev.dev);
-@@ -689,13 +704,9 @@ static int net_remove(int n, char **erro
- 	lp = dev->priv;
- 	if(lp->fd > 0)
- 		return -EBUSY;
--	if(lp->remove != NULL) (*lp->remove)(&lp->user);
- 	unregister_netdev(dev);
- 	platform_device_unregister(&device->pdev);
- 
--	list_del(&device->list);
--	kfree(device);
--	free_netdev(dev);
- 	return 0;
- }
- 
-diff -puN arch/um/drivers/ubd_kern.c~uml-drivers-get-release-methods arch/um/drivers/ubd_kern.c
---- a/arch/um/drivers/ubd_kern.c~uml-drivers-get-release-methods
-+++ a/arch/um/drivers/ubd_kern.c
-@@ -622,6 +622,14 @@ static int ubd_open_dev(struct ubd *ubd_
- 	return(err);
- }
- 
-+static void ubd_device_release(struct device *dev)
++static inline int update_pmd_range(pud_t *pud, unsigned long addr,
++				   unsigned long end, struct host_vm_op *ops,
++				   int last_op, int *op_index, int force,
++				   union mm_context *mmu, void **flush,
++				   int (*do_ops)(union mm_context *,
++						 struct host_vm_op *, int, int,
++						 void **))
 +{
-+	struct ubd *ubd_dev = dev->driver_data;
++	pmd_t *pmd;
++	unsigned long next;
++	int ret = 0;
 +
-+	blk_cleanup_queue(ubd_dev->queue);
-+	*ubd_dev = ((struct ubd) DEFAULT_UBD);
++	pmd = pmd_offset(pud, addr);
++	do {
++		next = pmd_addr_end(addr, end);
++		if(!pmd_present(*pmd)){
++			if(force || pmd_newpage(*pmd)){
++				ret = add_munmap(addr, next - addr, ops,
++						 op_index, last_op, mmu,
++						 flush, do_ops);
++				pmd_mkuptodate(*pmd);
++			}
++		}
++		else ret = update_pte_range(pmd, addr, next, ops, last_op,
++					    op_index, force, mmu, flush,
++					    do_ops);
++	} while (pmd++, addr = next, ((addr != end) && !ret));
++	return ret;
 +}
 +
- static int ubd_disk_register(int major, u64 size, int unit,
- 			     struct gendisk **disk_out)
++static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
++				   unsigned long end, struct host_vm_op *ops,
++				   int last_op, int *op_index, int force,
++				   union mm_context *mmu, void **flush,
++				   int (*do_ops)(union mm_context *,
++						 struct host_vm_op *, int, int,
++						 void **))
++{
++	pud_t *pud;
++	unsigned long next;
++	int ret = 0;
++
++	pud = pud_offset(pgd, addr);
++	do {
++		next = pud_addr_end(addr, end);
++		if(!pud_present(*pud)){
++			if(force || pud_newpage(*pud)){
++				ret = add_munmap(addr, next - addr, ops,
++						 op_index, last_op, mmu,
++						 flush, do_ops);
++				pud_mkuptodate(*pud);
++			}
++		}
++		else ret = update_pmd_range(pud, addr, next, ops, last_op,
++					    op_index, force, mmu, flush,
++					    do_ops);
++	} while (pud++, addr = next, ((addr != end) && !ret));
++	return ret;
++}
++
+ void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
+ 		      unsigned long end_addr, int force,
+ 		      int (*do_ops)(union mm_context *, struct host_vm_op *,
+ 				    int, int, void **))
  {
-@@ -644,6 +652,8 @@ static int ubd_disk_register(int major, 
- 	if (major == MAJOR_NR) {
- 		ubd_devs[unit].pdev.id   = unit;
- 		ubd_devs[unit].pdev.name = DRIVER_NAME;
-+		ubd_devs[unit].pdev.dev.release = ubd_device_release;
-+		ubd_devs[unit].pdev.dev.driver_data = &ubd_devs[unit];
- 		platform_device_register(&ubd_devs[unit].pdev);
- 		disk->driverfs_dev = &ubd_devs[unit].pdev.dev;
- 	}
-@@ -787,7 +797,7 @@ static int ubd_id(char **str, int *start
+-	pgd_t *npgd;
+-	pud_t *npud;
+-	pmd_t *npmd;
+-	pte_t *npte;
++	pgd_t *pgd;
+ 	union mm_context *mmu = &mm->context;
+-	unsigned long addr, end;
+-	int r, w, x;
+ 	struct host_vm_op ops[1];
++	unsigned long addr = start_addr, next;
++	int ret = 0, last_op = ARRAY_SIZE(ops) - 1, op_index = -1;
+ 	void *flush = NULL;
+-	int op_index = -1, last_op = ARRAY_SIZE(ops) - 1;
+-	int ret = 0;
+-
+-	if(mm == NULL)
+-		return;
++	unsigned long long start_time, end_time;
  
- static int ubd_remove(int n, char **error_out)
- {
--	struct gendisk *disk;
-+	struct gendisk *disk = ubd_gendisk[n];
- 	struct ubd *ubd_dev;
- 	int err = -ENODEV;
++	start_time = os_nsecs();
+ 	ops[0].type = NONE;
+-	for(addr = start_addr; addr < end_addr && !ret;){
+-		npgd = pgd_offset(mm, addr);
+-		if(!pgd_present(*npgd)){
+-			end = ADD_ROUND(addr, PGDIR_SIZE);
+-			if(end > end_addr)
+-				end = end_addr;
+-			if(force || pgd_newpage(*npgd)){
+-				ret = add_munmap(addr, end - addr, ops,
+-						 &op_index, last_op, mmu,
+-						 &flush, do_ops);
+-				pgd_mkuptodate(*npgd);
+-			}
+-			addr = end;
+-			continue;
+-		}
+-
+-		npud = pud_offset(npgd, addr);
+-		if(!pud_present(*npud)){
+-			end = ADD_ROUND(addr, PUD_SIZE);
+-			if(end > end_addr)
+-				end = end_addr;
+-			if(force || pud_newpage(*npud)){
+-				ret = add_munmap(addr, end - addr, ops,
+-						 &op_index, last_op, mmu,
+-						 &flush, do_ops);
+-				pud_mkuptodate(*npud);
+-			}
+-			addr = end;
+-			continue;
+-		}
+-
+-		npmd = pmd_offset(npud, addr);
+-		if(!pmd_present(*npmd)){
+-			end = ADD_ROUND(addr, PMD_SIZE);
+-			if(end > end_addr)
+-				end = end_addr;
+-			if(force || pmd_newpage(*npmd)){
+-				ret = add_munmap(addr, end - addr, ops,
++	pgd = pgd_offset(mm, addr);
++	do {
++		next = pgd_addr_end(addr, end_addr);
++		if(!pgd_present(*pgd)){
++			if (force || pgd_newpage(*pgd)){
++				ret = add_munmap(addr, next - addr, ops,
+ 						 &op_index, last_op, mmu,
+ 						 &flush, do_ops);
+-				pmd_mkuptodate(*npmd);
++				pgd_mkuptodate(*pgd);
+ 			}
+-			addr = end;
+-			continue;
+ 		}
++		else ret = update_pud_range(pgd, addr, next, ops, last_op,
++					    &op_index, force, mmu, &flush,
++					    do_ops);
++	} while (pgd++, addr = next, ((addr != end_addr) && !ret));
++	end_time = os_nsecs();
++	log_info("total flush time - %Ld nsecs\n", end_time - start_time);
  
-@@ -803,7 +813,6 @@ static int ubd_remove(int n, char **erro
- 	if(ubd_dev->count > 0)
- 		goto out;
+-		npte = pte_offset_kernel(npmd, addr);
+-		r = pte_read(*npte);
+-		w = pte_write(*npte);
+-		x = pte_exec(*npte);
+-		if (!pte_young(*npte)) {
+-			r = 0;
+-			w = 0;
+-		} else if (!pte_dirty(*npte)) {
+-			w = 0;
+-		}
+-		if(force || pte_newpage(*npte)){
+-			if(pte_present(*npte))
+-				ret = add_mmap(addr,
+-					       pte_val(*npte) & PAGE_MASK,
+-					       PAGE_SIZE, r, w, x, ops,
+-					       &op_index, last_op, mmu,
+-					       &flush, do_ops);
+-			else ret = add_munmap(addr, PAGE_SIZE, ops,
+-					      &op_index, last_op, mmu,
+-					      &flush, do_ops);
+-		}
+-		else if(pte_newprot(*npte))
+-			ret = add_mprotect(addr, PAGE_SIZE, r, w, x, ops,
+-					   &op_index, last_op, mmu,
+-					   &flush, do_ops);
+-
+-		*npte = pte_mkuptodate(*npte);
+-		addr += PAGE_SIZE;
+-	}
+ 	if(!ret)
+ 		ret = (*do_ops)(mmu, ops, op_index, 1, &flush);
  
-- 	disk = ubd_gendisk[n];
-  	ubd_gendisk[n] = NULL;
- 	if(disk != NULL){
- 		del_gendisk(disk);
-@@ -816,10 +825,8 @@ static int ubd_remove(int n, char **erro
- 		fake_gendisk[n] = NULL;
- 	}
- 
--	blk_cleanup_queue(ubd_dev->queue);
--	platform_device_unregister(&ubd_dev->pdev);
--	*ubd_dev = ((struct ubd) DEFAULT_UBD);
- 	err = 0;
-+	platform_device_unregister(&ubd_dev->pdev);
- out:
- 	mutex_unlock(&ubd_lock);
- 	return err;
+-/* This is not an else because ret is modified above */
++	/* This is not an else because ret is modified above */
+ 	if(ret) {
+ 		printk("fix_range_common: failed, killing current process\n");
+ 		force_sig(SIGKILL, current);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
