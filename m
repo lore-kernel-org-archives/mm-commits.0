@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-add-proc-kpagemap-interface.patch added to -mm tree
-Date: Fri, 06 Apr 2007 23:55:57 -0700
-Message-ID: <200704070655.l376tvDc029502@shell0.pdx.osdl.net>
+Subject: + maps2-move-the-page-walker-code-to-lib.patch added to -mm tree
+Date: Fri, 06 Apr 2007 23:55:43 -0700
+Message-ID: <200704070655.l376thbG029478@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46471 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46446 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965475AbXDGG4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 02:56:06 -0400
+	id S965472AbXDGGzx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 02:55:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mpm@selenic.com, jeremy@goop.org, rientjes@google.com
 
 
 The patch titled
-     maps: add /proc/kpagemap interface
+     maps: move the page walker code to lib/
 has been added to the -mm tree.  Its filename is
-     maps2-add-proc-kpagemap-interface.patch
+     maps2-move-the-page-walker-code-to-lib.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,12 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps: add /proc/kpagemap interface
+Subject: maps: move the page walker code to lib/
 From: Matt Mackall <mpm@selenic.com>
 
-This makes physical page flags and counts available to userspace.  Together
-with /proc/pid/pagemap and /proc/pid/clear_refs, this can be used to measure
-memory usage on a per-page basis.
+This lets it get shared outside of proc/ and linked in only when needed.
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
@@ -38,145 +36,286 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |   92 ++++++++++++++++++++++++++++++++++++++++++
- init/Kconfig        |    9 ++++
- 2 files changed, 101 insertions(+)
+ fs/proc/task_mmu.c |  117 -------------------------------------------
+ include/linux/mm.h |   10 +++
+ lib/Makefile       |    2 
+ lib/pagewalk.c     |  111 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 122 insertions(+), 118 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~maps2-add-proc-kpagemap-interface fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~maps2-add-proc-kpagemap-interface
-+++ a/fs/proc/proc_misc.c
-@@ -47,6 +47,8 @@
- #include <linux/vmalloc.h>
- #include <linux/crash_dump.h>
- #include <linux/pid_namespace.h>
-+#include <linux/ptrace.h>
-+#include <linux/bootmem.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/io.h>
-@@ -653,6 +655,91 @@ static const struct file_operations proc
- };
- #endif
+diff -puN fs/proc/task_mmu.c~maps2-move-the-page-walker-code-to-lib fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps2-move-the-page-walker-code-to-lib
++++ a/fs/proc/task_mmu.c
+@@ -276,123 +276,6 @@ static int clear_refs_pte_range(pmd_t *p
+ 	return 0;
+ }
  
-+#ifdef CONFIG_PROC_KPAGEMAP
-+#define KPMSIZE (sizeof(unsigned long) * 2)
-+#define KPMMASK (KPMSIZE - 1)
-+/* /proc/kpagemap - an array exposing page flags and counts
-+ *
-+ * Each entry is a pair of unsigned longs representing the
-+ * corresponding physical page, the first containing the page flags
-+ * and the second containing the page use count.
-+ *
-+ * The first 4 bytes of this file form a simple header:
-+ *
-+ * first byte:   0 for big endian, 1 for little
-+ * second byte:  page shift (eg 12 for 4096 byte pages)
-+ * third byte:   entry size in bytes (currently either 4 or 8)
-+ * fourth byte:  header size
-+ */
-+static ssize_t kpagemap_read(struct file *file, char __user *buf,
-+			     size_t count, loff_t *ppos)
+-struct mm_walk {
+-	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, void *);
+-	int (*pud_entry)(pud_t *, unsigned long, unsigned long, void *);
+-	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, void *);
+-	int (*pte_entry)(pte_t *, unsigned long, unsigned long, void *);
+-};
+-
+-static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+-			  struct mm_walk *walk, void *private)
+-{
+-	pte_t *pte;
+-	int err;
+-
+-	for (pte = pte_offset_map(pmd, addr); addr != end;
+-	     addr += PAGE_SIZE, pte++) {
+-		if (pte_none(*pte))
+-			continue;
+-		err = walk->pte_entry(pte, addr, addr, private);
+-		if (err) {
+-			pte_unmap(pte);
+-			return err;
+-		}
+-	}
+-	pte_unmap(pte);
+-	return 0;
+-}
+-
+-static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
+-			  struct mm_walk *walk, void *private)
+-{
+-	pmd_t *pmd;
+-	unsigned long next;
+-	int err;
+-
+-	for (pmd = pmd_offset(pud, addr); addr != end;
+-	     pmd++, addr = next) {
+-		next = pmd_addr_end(addr, end);
+-		if (pmd_none_or_clear_bad(pmd))
+-			continue;
+-		if (walk->pmd_entry) {
+-			err = walk->pmd_entry(pmd, addr, next, private);
+-			if (err)
+-				return err;
+-		}
+-		if (walk->pte_entry) {
+-			err = walk_pte_range(pmd, addr, next, walk, private);
+-			if (err)
+-				return err;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
+-			  struct mm_walk *walk, void *private)
+-{
+-	pud_t *pud;
+-	unsigned long next;
+-	int err;
+-
+-	for (pud = pud_offset(pgd, addr); addr != end;
+-	     pud++, addr = next) {
+-		next = pud_addr_end(addr, end);
+-		if (pud_none_or_clear_bad(pud))
+-			continue;
+-		if (walk->pud_entry) {
+-			err = walk->pud_entry(pud, addr, next, private);
+-			if (err)
+-				return err;
+-		}
+-		if (walk->pmd_entry || walk->pte_entry) {
+-			err = walk_pmd_range(pud, addr, next, walk, private);
+-			if (err)
+-				return err;
+-		}
+-	}
+-	return 0;
+-}
+-
+-/*
+- * walk_page_range - walk a memory map's page tables with a callback
+- * @mm - memory map to walk
+- * @addr - starting address
+- * @end - ending address
+- * @action - callback invoked for every bottom-level (PTE) page table
+- * @private - private data passed to the callback function
+- *
+- * Recursively walk the page table for the memory area in a VMA, calling
+- * a callback for every bottom-level (PTE) page table.
+- */
+-static int walk_page_range(struct mm_struct *mm,
+-			   unsigned long addr, unsigned long end,
+-			   struct mm_walk *walk, void *private)
+-{
+-	pgd_t *pgd;
+-	unsigned long next;
+-	int err;
+-
+-	for (pgd = pgd_offset(mm, addr); addr != end;
+-	     pgd++, addr = next) {
+-		next = pgd_addr_end(addr, end);
+-		if (pgd_none_or_clear_bad(pgd))
+-			continue;
+-		if (walk->pgd_entry) {
+-			err = walk->pgd_entry(pgd, addr, next, private);
+-			if (err)
+-				return err;
+-		}
+-		if (walk->pud_entry || walk->pmd_entry || walk->pte_entry) {
+-			err = walk_pud_range(pgd, addr, next, walk, private);
+-			if (err)
+-				return err;
+-		}
+-	}
+-	return 0;
+-}
+-
+ static struct mm_walk smaps_walk = { .pmd_entry = smaps_pte_range };
+ 
+ static int show_smap(struct seq_file *m, void *v)
+diff -puN include/linux/mm.h~maps2-move-the-page-walker-code-to-lib include/linux/mm.h
+--- a/include/linux/mm.h~maps2-move-the-page-walker-code-to-lib
++++ a/include/linux/mm.h
+@@ -744,6 +744,16 @@ unsigned long unmap_vmas(struct mmu_gath
+ 		struct vm_area_struct *start_vma, unsigned long start_addr,
+ 		unsigned long end_addr, unsigned long *nr_accounted,
+ 		struct zap_details *);
++
++struct mm_walk {
++	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, void *);
++	int (*pud_entry)(pud_t *, unsigned long, unsigned long, void *);
++	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, void *);
++	int (*pte_entry)(pte_t *, unsigned long, unsigned long, void *);
++};
++
++int walk_page_range(struct mm_struct *, unsigned long addr, unsigned long end,
++		    struct mm_walk *walk, void *private);
+ void free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
+ 		unsigned long end, unsigned long floor, unsigned long ceiling);
+ void free_pgtables(struct mmu_gather **tlb, struct vm_area_struct *start_vma,
+diff -puN lib/Makefile~maps2-move-the-page-walker-code-to-lib lib/Makefile
+--- a/lib/Makefile~maps2-move-the-page-walker-code-to-lib
++++ a/lib/Makefile
+@@ -7,7 +7,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o
+ 
+-lib-$(CONFIG_MMU) += ioremap.o
++lib-$(CONFIG_MMU) += ioremap.o pagewalk.o
+ lib-$(CONFIG_SMP) += cpumask.o
+ 
+ lib-y	+= kobject.o kref.o kobject_uevent.o klist.o
+diff -puN /dev/null lib/pagewalk.c
+--- /dev/null
++++ a/lib/pagewalk.c
+@@ -0,0 +1,111 @@
++#include <linux/mm.h>
++
++static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
++			  struct mm_walk *walk, void *private)
 +{
-+	unsigned long *page;
-+	struct page *ppage;
-+	unsigned long src = *ppos;
-+	unsigned long pfn;
-+	ssize_t ret = 0;
-+	int chunk, i;
++	pte_t *pte;
++	int err;
 +
-+	pfn = src / KPMSIZE - 1;
-+	count = min_t(size_t, count, ((max_pfn + 1) * KPMSIZE) - src);
-+	if (src & KPMMASK || count & KPMMASK)
-+		return -EIO;
-+
-+	page = (unsigned long *)__get_free_page(GFP_USER);
-+	if (!page)
-+		return -ENOMEM;
-+
-+	while (count > 0) {
-+		chunk = min_t(size_t, count, PAGE_SIZE);
-+		i = 0;
-+
-+		if (pfn == -1) {
-+			page[0] = 0;
-+			page[1] = 0;
-+			((char *)page)[0] = (ntohl(1) != 1);
-+			((char *)page)[1] = PAGE_SHIFT;
-+			((char *)page)[2] = sizeof(unsigned long);
-+			((char *)page)[3] = KPMSIZE;
-+			i = 2;
-+			pfn++;
++	for (pte = pte_offset_map(pmd, addr); addr != end;
++	     addr += PAGE_SIZE, pte++) {
++		if (pte_none(*pte))
++			continue;
++		err = walk->pte_entry(pte, addr, addr, private);
++		if (err) {
++			pte_unmap(pte);
++			return err;
 +		}
-+
-+		for (; i < 2 * chunk / KPMSIZE; i += 2, pfn++) {
-+			ppage = pfn_to_page(pfn);
-+			if (!ppage) {
-+				page[i] = 0;
-+				page[i + 1] = 0;
-+			} else {
-+				page[i] = ppage->flags;
-+				page[i + 1] = atomic_read(&ppage->_count);
-+			}
-+		}
-+		chunk = (i / 2) * KPMSIZE;
-+
-+		if (copy_to_user(buf, page, chunk)) {
-+			ret = -EFAULT;
-+			break;
-+		}
-+		ret += chunk;
-+		src += chunk;
-+		buf += chunk;
-+		count -= chunk;
-+		cond_resched();
 +	}
-+	*ppos = src;
-+
-+	free_page((unsigned long)page);
-+	return ret;
++	pte_unmap(pte);
++	return 0;
 +}
 +
-+struct proc_dir_entry *proc_kpagemap;
-+static struct file_operations proc_kpagemap_operations = {
-+	.llseek = mem_lseek,
-+	.read = kpagemap_read,
-+};
-+#endif
++static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
++			  struct mm_walk *walk, void *private)
++{
++	pmd_t *pmd;
++	unsigned long next;
++	int err;
 +
- struct proc_dir_entry *proc_root_kcore;
- 
- void create_seq_entry(char *name, mode_t mode, const struct file_operations *f)
-@@ -732,6 +819,11 @@ void __init proc_misc_init(void)
- 				(size_t)high_memory - PAGE_OFFSET + PAGE_SIZE;
- 	}
- #endif
-+#ifdef CONFIG_PROC_KPAGEMAP
-+	proc_kpagemap = create_proc_entry("kpagemap", S_IRUSR, NULL);
-+	if (proc_kpagemap)
-+		proc_kpagemap->proc_fops = &proc_kpagemap_operations;
-+#endif
- #ifdef CONFIG_PROC_VMCORE
- 	proc_vmcore = create_proc_entry("vmcore", S_IRUSR, NULL);
- 	if (proc_vmcore)
-diff -puN init/Kconfig~maps2-add-proc-kpagemap-interface init/Kconfig
---- a/init/Kconfig~maps2-add-proc-kpagemap-interface
-+++ a/init/Kconfig
-@@ -519,6 +519,15 @@ config PROC_PAGEMAP
-           with other processes. Disabling this interface will reduce the
-           size of the kernel for small machines.
- 
-+config PROC_KPAGEMAP
-+	default y
-+	bool "Enable /proc/kpagemap support" if EMBEDDED && PROC_FS
-+	help
-+	  The /proc/pid/kpagemap interface allows reading the
-+          kernel's per-page flag and usage counts to gather precise
-+          information on page-level memory usage. Disabling this interface
-+          will reduce the size of the kernel for small machines.
++	for (pmd = pmd_offset(pud, addr); addr != end;
++	     pmd++, addr = next) {
++		next = pmd_addr_end(addr, end);
++		if (pmd_none_or_clear_bad(pmd))
++			continue;
++		if (walk->pmd_entry) {
++			err = walk->pmd_entry(pmd, addr, next, private);
++			if (err)
++				return err;
++		}
++		if (walk->pte_entry) {
++			err = walk_pte_range(pmd, addr, next, walk, private);
++			if (err)
++				return err;
++		}
++	}
++	return 0;
++}
 +
- endmenu		# General setup
- 
- config RT_MUTEXES
++static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
++			  struct mm_walk *walk, void *private)
++{
++	pud_t *pud;
++	unsigned long next;
++	int err;
++
++	for (pud = pud_offset(pgd, addr); addr != end;
++	     pud++, addr = next) {
++		next = pud_addr_end(addr, end);
++		if (pud_none_or_clear_bad(pud))
++			continue;
++		if (walk->pud_entry) {
++			err = walk->pud_entry(pud, addr, next, private);
++			if (err)
++				return err;
++		}
++		if (walk->pmd_entry || walk->pte_entry) {
++			err = walk_pmd_range(pud, addr, next, walk, private);
++			if (err)
++				return err;
++		}
++	}
++	return 0;
++}
++
++/*
++ * walk_page_range - walk a memory map's page tables with a callback
++ * @mm - memory map to walk
++ * @addr - starting address
++ * @end - ending address
++ * @walk - set of callbacks to invoke for each level of the tree
++ * @private - private data passed to the callback function
++ *
++ * Recursively walk the page table for the memory area in a VMA, calling
++ * a callback for every bottom-level (PTE) page table.
++ */
++int walk_page_range(struct mm_struct *mm,
++		    unsigned long addr, unsigned long end,
++		    struct mm_walk *walk, void *private)
++{
++	pgd_t *pgd;
++	unsigned long next;
++	int err;
++
++	for (pgd = pgd_offset(mm, addr); addr != end;
++	     pgd++, addr = next) {
++		next = pgd_addr_end(addr, end);
++		if (pgd_none_or_clear_bad(pgd))
++			continue;
++		if (walk->pgd_entry) {
++			err = walk->pgd_entry(pgd, addr, next, private);
++			if (err)
++				return err;
++		}
++		if (walk->pud_entry || walk->pmd_entry || walk->pte_entry) {
++			err = walk_pud_range(pgd, addr, next, walk, private);
++			if (err)
++				return err;
++		}
++	}
++	return 0;
++}
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
