@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + make-page-private-usable-in-compound-pages-v1.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:23:48 -0700
-Message-ID: <200704070523.l375NmQI028149@shell0.pdx.osdl.net>
+Date: Fri, 06 Apr 2007 22:24:05 -0700
+Message-ID: <200704070524.l375O5ag028152@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44960 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44963 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752062AbXDGFXy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:23:54 -0400
+	id S1752093AbXDGFYI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:24:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,7 +15,7 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     From: Christoph Lameter <clameter@sgi.com>
+     Make page->private usable in compound pages
 has been added to the -mm tree.  Its filename is
      make-page-private-usable-in-compound-pages-v1.patch
 
@@ -25,41 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: From: Christoph Lameter <clameter@sgi.com>
+Subject: Make page->private usable in compound pages
+From: Christoph Lameter <clameter@sgi.com>
 
+If we add a new flag so that we can distinguish between the first page and the
+tail pages then we can avoid to use page->private in the first page. 
+page->private == page for the first page, so there is no real information in
+there.
 
-[PATCH] Free up page->private for compound pages
-
-If we add a new flag so that we can distinguish between the
-first page and the tail pages then we can avoid to use page->private
-in the first page. page->private == page for the first page, so there
-is no real information in there.
-
-Freeing up page->private makes the use of compound pages more transparent.
-They become more usable like real pages. Right now we have to be careful f.e.
-if we are going beyond PAGE_SIZE allocations in the slab on i386 because we
-can then no longer use the private field. This is one of the issues that
+Freeing up page->private makes the use of compound pages more transparent. 
+They become more usable like real pages.  Right now we have to be careful f.e.
+ if we are going beyond PAGE_SIZE allocations in the slab on i386 because we
+can then no longer use the private field.  This is one of the issues that
 cause us not to support debugging for page size slabs in SLAB.
 
-Having page->private available for SLUB would allow more meta information
-in the page struct. I can probably avoid the 16 bit ints that I have in
-there right now.
+Having page->private available for SLUB would allow more meta information in
+the page struct.  I can probably avoid the 16 bit ints that I have in there
+right now.
 
-Also if page->private is available then a compound page may be equipped
-with buffer heads. This may free up the way for filesystems to support
-larger blocks than page size.
+Also if page->private is available then a compound page may be equipped with
+buffer heads.  This may free up the way for filesystems to support larger
+blocks than page size.
 
-We add PageTail as an alias of PageReclaim. Compound pages cannot
-currently be reclaimed. Because of the alias one needs to check
-PageCompound first.
+We add PageTail as an alias of PageReclaim.  Compound pages cannot currently
+be reclaimed.  Because of the alias one needs to check PageCompound first.
 
 The RFC for the this approach was discussed at
 http://marc.info/?t=117574302800001&r=1&w=2
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-
-Index: linux-2.6.21-rc5-mm4/include/linux/mm.h
-===================================================================
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
