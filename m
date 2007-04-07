@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-early-quirks-fix-early_qrk-section-tag.patch added to -mm tree
-Date: Sat, 07 Apr 2007 02:18:19 -0700
-Message-ID: <200704070920.l379Kcad031572@shell0.pdx.osdl.net>
+Subject: + i386-irqbalance_disable-section-fix.patch added to -mm tree
+Date: Sat, 07 Apr 2007 03:09:13 -0700
+Message-ID: <200704071009.l37A9ELL032246@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49095 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49795 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965691AbXDGJUp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 05:20:45 -0400
+	id S965717AbXDGKJ1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 06:09:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     x86_64 early quirks: fix early_qrk[] section tag
+     i386: irqbalance_disable() section fix
 has been added to the -mm tree.  Its filename is
-     x86_64-early-quirks-fix-early_qrk-section-tag.patch
+     i386-irqbalance_disable-section-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64 early quirks: fix early_qrk[] section tag
+Subject: i386: irqbalance_disable() section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:nvidia_bugs from .data between 'early_qrk' (at offset 0x8428) and 'enable_cpu_hotplug'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:via_bugs from .data between 'early_qrk' (at offset 0x8438) and 'enable_cpu_hotplug'
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:ati_bugs from .data between 'early_qrk' (at offset 0x8448) and 'enable_cpu_hotplug'
-
-The compiler is putting it into .data because the __initdata is in the wrong
-place.
+WARNING: arch/i386/kernel/built-in.o - Section mismatch: reference to .init.text:irqbalance_disable from .text between 'quirk_intel_irqbalance' (at offset 0x80a5) and 'i8237A_suspend'
 
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/early-quirks.c |    2 +-
+ arch/i386/kernel/io_apic.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/early-quirks.c~x86_64-early-quirks-fix-early_qrk-section-tag arch/x86_64/kernel/early-quirks.c
---- a/arch/x86_64/kernel/early-quirks.c~x86_64-early-quirks-fix-early_qrk-section-tag
-+++ a/arch/x86_64/kernel/early-quirks.c
-@@ -76,7 +76,7 @@ struct chipset {
- 	void (*f)(void);
- };
+diff -puN arch/i386/kernel/io_apic.c~i386-irqbalance_disable-section-fix arch/i386/kernel/io_apic.c
+--- a/arch/i386/kernel/io_apic.c~i386-irqbalance_disable-section-fix
++++ a/arch/i386/kernel/io_apic.c
+@@ -735,7 +735,7 @@ failed:
+ 	return 0;
+ }
  
--static struct __initdata chipset early_qrk[] = {
-+static struct chipset early_qrk[] __initdata = {
- 	{ PCI_VENDOR_ID_NVIDIA, nvidia_bugs },
- 	{ PCI_VENDOR_ID_VIA, via_bugs },
- 	{ PCI_VENDOR_ID_ATI, ati_bugs },
+-int __init irqbalance_disable(char *str)
++int __devinit irqbalance_disable(char *str)
+ {
+ 	irqbalance_disabled = 1;
+ 	return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+x86_64-early-quirks-fix-early_qrk-section-tag.patch
+i386-irqbalance_disable-section-fix.patch
 slab-introduce-krealloc-fix.patch
 git-acpi.patch
 git-alsa.patch
@@ -180,4 +177,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-x86_64-early-quirks-fix-early_qrk-section-tag.patch
