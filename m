@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-uninline-some-functions-in-the-page-walker.patch added to -mm tree
-Date: Fri, 06 Apr 2007 23:55:33 -0700
-Message-ID: <200704070655.l376tXPt029463@shell0.pdx.osdl.net>
+Subject: + i386-clean-up-asm-i386-bugsh.patch added to -mm tree
+Date: Sat, 07 Apr 2007 00:21:27 -0700
+Message-ID: <200704070721.l377LRAb029881@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46424 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46707 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965449AbXDGGzq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 02:55:46 -0400
+	id S965449AbXDGHVg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 03:21:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com, jeremy@goop.org, rientjes@google.com
+Cc: jeremy@goop.org, ak@suse.de, jeremy@xensource.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     maps: uninline some functions in the page walker
+     i386: clean up asm-i386/bugs.h
 has been added to the -mm tree.  Its filename is
-     maps2-uninline-some-functions-in-the-page-walker.patch
+     i386-clean-up-asm-i386-bugsh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,463 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps: uninline some functions in the page walker
-From: Matt Mackall <mpm@selenic.com>
+Subject: i386: clean up asm-i386/bugs.h
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-This patch series introduces /proc/pid/pagemap and /proc/kpagemap, which allow
-detailed run-time examination of process memory usage at a page granularity.
+Most of asm-i386/bugs.h is code which should be in a C file, so put it there.
 
-The first several patches whip the page-walking code introduced for
-/proc/pid/smaps and clear_refs into a more generic form, the next couple make
-those interfaces optional, and the last two introduce the new interfaces, also
-optional.
-
-This respin adds simple, expandable headers to both pagemap and kpagemap as
-suggested by Nikita.  I haven't moved pagewalk.c from lib/ to mm/ as suggested
-by Nick as I still think lib is a better fit for its automatic conditional
-linking.
-
-
-This patch:
-
-Uninline some functions in the page walker
-
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/i386/kernel/cpu/Makefile  |    2 
+ arch/i386/kernel/cpu/bugs.c    |  191 ++++++++++++++++++++++++++++++
+ include/asm-i386/alternative.h |    1 
+ include/asm-i386/bugs.h        |  194 -------------------------------
+ 4 files changed, 197 insertions(+), 191 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps2-uninline-some-functions-in-the-page-walker fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-uninline-some-functions-in-the-page-walker
-+++ a/fs/proc/task_mmu.c
-@@ -280,7 +280,7 @@ static void clear_refs_pte_range(struct 
- 	cond_resched();
- }
+diff -puN arch/i386/kernel/cpu/Makefile~i386-clean-up-asm-i386-bugsh arch/i386/kernel/cpu/Makefile
+--- a/arch/i386/kernel/cpu/Makefile~i386-clean-up-asm-i386-bugsh
++++ a/arch/i386/kernel/cpu/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for x86-compatible CPU details and quirks
+ #
  
--static inline void walk_pmd_range(struct pmd_walker *walker, pud_t *pud,
-+static void walk_pmd_range(struct pmd_walker *walker, pud_t *pud,
- 				  unsigned long addr, unsigned long end)
- {
- 	pmd_t *pmd;
-@@ -295,7 +295,7 @@ static inline void walk_pmd_range(struct
- 	}
- }
+-obj-y	:=	common.o proc.o
++obj-y	:=	common.o proc.o bugs.o
  
--static inline void walk_pud_range(struct pmd_walker *walker, pgd_t *pgd,
-+static void walk_pud_range(struct pmd_walker *walker, pgd_t *pgd,
- 				  unsigned long addr, unsigned long end)
- {
- 	pud_t *pud;
-@@ -319,11 +319,11 @@ static inline void walk_pud_range(struct
-  * Recursively walk the page table for the memory area in a VMA, calling
-  * a callback for every bottom-level (PTE) page table.
+ obj-y	+=	amd.o
+ obj-y	+=	cyrix.o
+diff -puN /dev/null arch/i386/kernel/cpu/bugs.c
+--- /dev/null
++++ a/arch/i386/kernel/cpu/bugs.c
+@@ -0,0 +1,191 @@
++/*
++ *  arch/i386/cpu/bugs.c
++ *
++ *  Copyright (C) 1994  Linus Torvalds
++ *
++ *  Cyrix stuff, June 1998 by:
++ *	- Rafael R. Reilova (moved everything from head.S),
++ *        <rreilova@ececs.uc.edu>
++ *	- Channing Corn (tests & fixes),
++ *	- Andrew D. Balsa (code cleanup).
++ */
++#include <linux/init.h>
++#include <linux/utsname.h>
++#include <asm/processor.h>
++#include <asm/i387.h>
++#include <asm/msr.h>
++#include <asm/paravirt.h>
++#include <asm/alternative.h>
++
++static int __init no_halt(char *s)
++{
++	boot_cpu_data.hlt_works_ok = 0;
++	return 1;
++}
++
++__setup("no-hlt", no_halt);
++
++static int __init mca_pentium(char *s)
++{
++	mca_pentium_flag = 1;
++	return 1;
++}
++
++__setup("mca-pentium", mca_pentium);
++
++static int __init no_387(char *s)
++{
++	boot_cpu_data.hard_math = 0;
++	write_cr0(0xE | read_cr0());
++	return 1;
++}
++
++__setup("no387", no_387);
++
++static double __initdata x = 4195835.0;
++static double __initdata y = 3145727.0;
++
++/*
++ * This used to check for exceptions..
++ * However, it turns out that to support that,
++ * the XMM trap handlers basically had to
++ * be buggy. So let's have a correct XMM trap
++ * handler, and forget about printing out
++ * some status at boot.
++ *
++ * We should really only care about bugs here
++ * anyway. Not features.
++ */
++static void __init check_fpu(void)
++{
++	if (!boot_cpu_data.hard_math) {
++#ifndef CONFIG_MATH_EMULATION
++		printk(KERN_EMERG "No coprocessor found and no math emulation present.\n");
++		printk(KERN_EMERG "Giving up.\n");
++		for (;;) ;
++#endif
++		return;
++	}
++
++/* trap_init() enabled FXSR and company _before_ testing for FP problems here. */
++	/* Test for the divl bug.. */
++	__asm__("fninit\n\t"
++		"fldl %1\n\t"
++		"fdivl %2\n\t"
++		"fmull %2\n\t"
++		"fldl %1\n\t"
++		"fsubp %%st,%%st(1)\n\t"
++		"fistpl %0\n\t"
++		"fwait\n\t"
++		"fninit"
++		: "=m" (*&boot_cpu_data.fdiv_bug)
++		: "m" (*&x), "m" (*&y));
++	if (boot_cpu_data.fdiv_bug)
++		printk("Hmm, FPU with FDIV bug.\n");
++}
++
++static void __init check_hlt(void)
++{
++	if (paravirt_enabled())
++		return;
++
++	printk(KERN_INFO "Checking 'hlt' instruction... ");
++	if (!boot_cpu_data.hlt_works_ok) {
++		printk("disabled\n");
++		return;
++	}
++	halt();
++	halt();
++	halt();
++	halt();
++	printk("OK.\n");
++}
++
++/*
++ *	Most 386 processors have a bug where a POPAD can lock the
++ *	machine even from user space.
++ */
++
++static void __init check_popad(void)
++{
++#ifndef CONFIG_X86_POPAD_OK
++	int res, inp = (int) &res;
++
++	printk(KERN_INFO "Checking for popad bug... ");
++	__asm__ __volatile__(
++	  "movl $12345678,%%eax; movl $0,%%edi; pusha; popa; movl (%%edx,%%edi),%%ecx "
++	  : "=&a" (res)
++	  : "d" (inp)
++	  : "ecx", "edi" );
++	/* If this fails, it means that any user program may lock the CPU hard. Too bad. */
++	if (res != 12345678) printk( "Buggy.\n" );
++		        else printk( "OK.\n" );
++#endif
++}
++
++/*
++ * Check whether we are able to run this kernel safely on SMP.
++ *
++ * - In order to run on a i386, we need to be compiled for i386
++ *   (for due to lack of "invlpg" and working WP on a i386)
++ * - In order to run on anything without a TSC, we need to be
++ *   compiled for a i486.
++ * - In order to support the local APIC on a buggy Pentium machine,
++ *   we need to be compiled with CONFIG_X86_GOOD_APIC disabled,
++ *   which happens implicitly if compiled for a Pentium or lower
++ *   (unless an advanced selection of CPU features is used) as an
++ *   otherwise config implies a properly working local APIC without
++ *   the need to do extra reads from the APIC.
++*/
++
++static void __init check_config(void)
++{
++/*
++ * We'd better not be a i386 if we're configured to use some
++ * i486+ only features! (WP works in supervisor mode and the
++ * new "invlpg" and "bswap" instructions)
++ */
++#if defined(CONFIG_X86_WP_WORKS_OK) || defined(CONFIG_X86_INVLPG) || defined(CONFIG_X86_BSWAP)
++	if (boot_cpu_data.x86 == 3)
++		panic("Kernel requires i486+ for 'invlpg' and other features");
++#endif
++
++/*
++ * If we configured ourselves for a TSC, we'd better have one!
++ */
++#ifdef CONFIG_X86_TSC
++	if (!cpu_has_tsc && !tsc_disable)
++		panic("Kernel compiled for Pentium+, requires TSC feature!");
++#endif
++
++/*
++ * If we were told we had a good local APIC, check for buggy Pentia,
++ * i.e. all B steppings and the C2 stepping of P54C when using their
++ * integrated APIC (see 11AP erratum in "Pentium Processor
++ * Specification Update").
++ */
++#if defined(CONFIG_X86_LOCAL_APIC) && defined(CONFIG_X86_GOOD_APIC)
++	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL
++	    && cpu_has_apic
++	    && boot_cpu_data.x86 == 5
++	    && boot_cpu_data.x86_model == 2
++	    && (boot_cpu_data.x86_mask < 6 || boot_cpu_data.x86_mask == 11))
++		panic("Kernel compiled for PMMX+, assumes a local APIC without the read-before-write bug!");
++#endif
++}
++
++
++void __init check_bugs(void)
++{
++	identify_boot_cpu();
++#ifndef CONFIG_SMP
++	printk("CPU: ");
++	print_cpu_info(&boot_cpu_data);
++#endif
++	check_config();
++	check_fpu();
++	check_hlt();
++	check_popad();
++	init_utsname()->machine[1] = '0' + (boot_cpu_data.x86 > 6 ? 6 : boot_cpu_data.x86);
++	alternative_instructions();
++}
+diff -puN include/asm-i386/alternative.h~i386-clean-up-asm-i386-bugsh include/asm-i386/alternative.h
+--- a/include/asm-i386/alternative.h~i386-clean-up-asm-i386-bugsh
++++ a/include/asm-i386/alternative.h
+@@ -17,6 +17,7 @@ struct alt_instr {
+ 	u8  pad[3];
+ }  __attribute__ ((packed));
+ 
++extern void alternative_instructions(void);
+ extern void apply_alternatives(struct alt_instr *start, struct alt_instr *end);
+ 
+ struct module;
+diff -puN include/asm-i386/bugs.h~i386-clean-up-asm-i386-bugsh include/asm-i386/bugs.h
+--- a/include/asm-i386/bugs.h~i386-clean-up-asm-i386-bugsh
++++ a/include/asm-i386/bugs.h
+@@ -1,198 +1,12 @@
+ /*
+- *  include/asm-i386/bugs.h
+- *
+- *  Copyright (C) 1994  Linus Torvalds
+- *
+- *  Cyrix stuff, June 1998 by:
+- *	- Rafael R. Reilova (moved everything from head.S),
+- *        <rreilova@ececs.uc.edu>
+- *	- Channing Corn (tests & fixes),
+- *	- Andrew D. Balsa (code cleanup).
+- */
+-
+-/*
+  * This is included by init/main.c to check for architecture-dependent bugs.
+  *
+  * Needs:
+  *	void check_bugs(void);
   */
--static inline void walk_page_range(struct vm_area_struct *vma,
--				   void (*action)(struct vm_area_struct *,
--						  pmd_t *, unsigned long,
--						  unsigned long, void *),
--				   void *private)
-+static void walk_page_range(struct vm_area_struct *vma,
-+			    void (*action)(struct vm_area_struct *,
-+					   pmd_t *, unsigned long,
-+					   unsigned long, void *),
-+			    void *private)
- {
- 	unsigned long addr = vma->vm_start;
- 	unsigned long end = vma->vm_end;
++#ifndef _ASM_I386_BUG_H
++#define _ASM_I386_BUG_H
+ 
+-#include <linux/init.h>
+-#include <asm/processor.h>
+-#include <asm/i387.h>
+-#include <asm/msr.h>
+-#include <asm/paravirt.h>
+-
+-static int __init no_halt(char *s)
+-{
+-	boot_cpu_data.hlt_works_ok = 0;
+-	return 1;
+-}
+-
+-__setup("no-hlt", no_halt);
+-
+-static int __init mca_pentium(char *s)
+-{
+-	mca_pentium_flag = 1;
+-	return 1;
+-}
+-
+-__setup("mca-pentium", mca_pentium);
+-
+-static int __init no_387(char *s)
+-{
+-	boot_cpu_data.hard_math = 0;
+-	write_cr0(0xE | read_cr0());
+-	return 1;
+-}
+-
+-__setup("no387", no_387);
+-
+-static double __initdata x = 4195835.0;
+-static double __initdata y = 3145727.0;
+-
+-/*
+- * This used to check for exceptions.. 
+- * However, it turns out that to support that,
+- * the XMM trap handlers basically had to
+- * be buggy. So let's have a correct XMM trap
+- * handler, and forget about printing out
+- * some status at boot.
+- *
+- * We should really only care about bugs here
+- * anyway. Not features.
+- */
+-static void __init check_fpu(void)
+-{
+-	if (!boot_cpu_data.hard_math) {
+-#ifndef CONFIG_MATH_EMULATION
+-		printk(KERN_EMERG "No coprocessor found and no math emulation present.\n");
+-		printk(KERN_EMERG "Giving up.\n");
+-		for (;;) ;
+-#endif
+-		return;
+-	}
+-
+-/* trap_init() enabled FXSR and company _before_ testing for FP problems here. */
+-	/* Test for the divl bug.. */
+-	__asm__("fninit\n\t"
+-		"fldl %1\n\t"
+-		"fdivl %2\n\t"
+-		"fmull %2\n\t"
+-		"fldl %1\n\t"
+-		"fsubp %%st,%%st(1)\n\t"
+-		"fistpl %0\n\t"
+-		"fwait\n\t"
+-		"fninit"
+-		: "=m" (*&boot_cpu_data.fdiv_bug)
+-		: "m" (*&x), "m" (*&y));
+-	if (boot_cpu_data.fdiv_bug)
+-		printk("Hmm, FPU with FDIV bug.\n");
+-}
+-
+-static void __init check_hlt(void)
+-{
+-	if (paravirt_enabled())
+-		return;
+-
+-	printk(KERN_INFO "Checking 'hlt' instruction... ");
+-	if (!boot_cpu_data.hlt_works_ok) {
+-		printk("disabled\n");
+-		return;
+-	}
+-	halt();
+-	halt();
+-	halt();
+-	halt();
+-	printk("OK.\n");
+-}
+-
+-/*
+- *	Most 386 processors have a bug where a POPAD can lock the 
+- *	machine even from user space.
+- */
+- 
+-static void __init check_popad(void)
+-{
+-#ifndef CONFIG_X86_POPAD_OK
+-	int res, inp = (int) &res;
+-
+-	printk(KERN_INFO "Checking for popad bug... ");
+-	__asm__ __volatile__( 
+-	  "movl $12345678,%%eax; movl $0,%%edi; pusha; popa; movl (%%edx,%%edi),%%ecx "
+-	  : "=&a" (res)
+-	  : "d" (inp)
+-	  : "ecx", "edi" );
+-	/* If this fails, it means that any user program may lock the CPU hard. Too bad. */
+-	if (res != 12345678) printk( "Buggy.\n" );
+-		        else printk( "OK.\n" );
+-#endif
+-}
+-
+-/*
+- * Check whether we are able to run this kernel safely on SMP.
+- *
+- * - In order to run on a i386, we need to be compiled for i386
+- *   (for due to lack of "invlpg" and working WP on a i386)
+- * - In order to run on anything without a TSC, we need to be
+- *   compiled for a i486.
+- * - In order to support the local APIC on a buggy Pentium machine,
+- *   we need to be compiled with CONFIG_X86_GOOD_APIC disabled,
+- *   which happens implicitly if compiled for a Pentium or lower
+- *   (unless an advanced selection of CPU features is used) as an
+- *   otherwise config implies a properly working local APIC without
+- *   the need to do extra reads from the APIC.
+-*/
+-
+-static void __init check_config(void)
+-{
+-/*
+- * We'd better not be a i386 if we're configured to use some
+- * i486+ only features! (WP works in supervisor mode and the
+- * new "invlpg" and "bswap" instructions)
+- */
+-#if defined(CONFIG_X86_WP_WORKS_OK) || defined(CONFIG_X86_INVLPG) || defined(CONFIG_X86_BSWAP)
+-	if (boot_cpu_data.x86 == 3)
+-		panic("Kernel requires i486+ for 'invlpg' and other features");
+-#endif
+-
+-/*
+- * If we configured ourselves for a TSC, we'd better have one!
+- */
+-#ifdef CONFIG_X86_TSC
+-	if (!cpu_has_tsc && !tsc_disable)
+-		panic("Kernel compiled for Pentium+, requires TSC feature!");
+-#endif
+-
+-/*
+- * If we were told we had a good local APIC, check for buggy Pentia,
+- * i.e. all B steppings and the C2 stepping of P54C when using their
+- * integrated APIC (see 11AP erratum in "Pentium Processor
+- * Specification Update").
+- */
+-#if defined(CONFIG_X86_LOCAL_APIC) && defined(CONFIG_X86_GOOD_APIC)
+-	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL
+-	    && cpu_has_apic
+-	    && boot_cpu_data.x86 == 5
+-	    && boot_cpu_data.x86_model == 2
+-	    && (boot_cpu_data.x86_mask < 6 || boot_cpu_data.x86_mask == 11))
+-		panic("Kernel compiled for PMMX+, assumes a local APIC without the read-before-write bug!");
+-#endif
+-}
+-
+-extern void alternative_instructions(void);
++extern void __init check_bugs(void);
+ 
+-static void __init check_bugs(void)
+-{
+-	identify_cpu(&boot_cpu_data);
+-#ifndef CONFIG_SMP
+-	printk("CPU: ");
+-	print_cpu_info(&boot_cpu_data);
+-#endif
+-	check_config();
+-	check_fpu();
+-	check_hlt();
+-	check_popad();
+-	init_utsname()->machine[1] = '0' + (boot_cpu_data.x86 > 6 ? 6 : boot_cpu_data.x86);
+-	alternative_instructions(); 
+-}
++#endif	/* _ASM_I386_BUG_H */
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
+proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+re-enable-vdso-by-default-with-paravirt.patch
+remove-noreplacement-option.patch
+remove-smp_alt_instructions.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
+allow-boot-time-disable-of-smp-altinstructions.patch
+allow-boot-time-disable-of-paravirt_ops-patching.patch
+i386-clean-up-asm-i386-bugsh.patch
+i386-clean-up-identify_cpu.patch
+i386-relocate-vdso-elf-headers-to-match-mapped-location-with-compat_vdso.patch
+i386-make-compat_vdso-runtime-selectable.patch
 maps2-uninline-some-functions-in-the-page-walker.patch
 maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
 maps2-remove-vma-from-args-in-the-page-walker.patch
@@ -113,3 +495,7 @@ maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
 maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
 maps2-add-proc-kpagemap-interface.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+add-touch_all_softlockup_watchdogs.patch
+clean-up-elf-note-generation.patch
