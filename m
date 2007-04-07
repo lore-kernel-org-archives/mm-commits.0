@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + locks-trivial-removal-of-unnecessary-parentheses.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:40:43 -0700
-Message-ID: <200704070540.l375ehPH028383@shell0.pdx.osdl.net>
+Subject: + lockd-handle-test_lock-deferrals.patch added to -mm tree
+Date: Fri, 06 Apr 2007 22:41:10 -0700
+Message-ID: <200704070541.l375fA8i028423@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45294 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45366 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752141AbXDGFk7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:40:59 -0400
+	id S965373AbXDGFl0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:41:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bfields@citi.umich.edu, eshel@almaden.ibm.com, jack@ucw.cz, trond.myklebust@fys.uio.no
+Cc: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     locks: trivial removal of unnecessary parentheses
+     lockd: handle test_lock deferrals
 has been added to the -mm tree.  Its filename is
-     locks-trivial-removal-of-unnecessary-parentheses.patch
+     lockd-handle-test_lock-deferrals.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,202 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: locks: trivial removal of unnecessary parentheses
-From: J. Bruce Fields <bfields@citi.umich.edu> - unquoted
+Subject: lockd: handle test_lock deferrals
+From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
 
-If a filesystem defines a ->lock() method, that method is called when an
-application uses fcntl(), but it isn't called from the code path used by the
-lock managers (lockd (for nfsv2/v3) and nfsd itself (for v4)).  The following
-patches remedy that.  (This hasn't been a problem until recently because the
-filesystems that define ->lock (nfs, cifs, etc.) aren't filesystems that nfsd
-exports.  The arrival of cluster filesystems changes that.)
+Rewrite nlmsvc_testlock() to use the new asynchronous interface: instead of
+immediately doing a posix_test_lock(), we first look for a matching block.  If
+the subsequent test_lock returns anything other than -EINPROGRESS, we then
+remove the block we've found and return the results.
 
+If it returns -EINPROGRESS, then we defer the lock request.
 
-This patch:
+In the case where the block we find in the first step has B_QUEUED set,
+we bypass the vfs_test_lock entirely, instead using the block to decide how
+to respond:
+	with nlm_lck_denied if B_TOO_LATE is set.
+	with nlm_granted if B_GOT_CALLBACK is set.
+	by dropping if neither B_TOO_LATE nor B_GOT_CALLBACK is set
 
-Remove some unnecessary parentheses.
-
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Signed-off-by: Marc Eshel <eshel@almaden.ibm.com>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Jan Kara <jack@ucw.cz>
 Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/lockd/svc4proc.c |    2 +
+ fs/lockd/svclock.c  |   83 +++++++++++++++++++++++++++++++++---------
+ fs/lockd/svcproc.c  |    3 +
+ 3 files changed, 71 insertions(+), 17 deletions(-)
 
-diff -puN fs/locks.c~locks-trivial-removal-of-unnecessary-parentheses fs/locks.c
---- a/fs/locks.c~locks-trivial-removal-of-unnecessary-parentheses
-+++ a/fs/locks.c
-@@ -1738,7 +1738,7 @@ again:
- 	else {
- 		for (;;) {
- 			error = posix_lock_file(filp, file_lock);
--			if ((error != -EAGAIN) || (cmd == F_SETLK))
-+			if (error != -EAGAIN || cmd == F_SETLK)
- 				break;
- 			error = wait_event_interruptible(file_lock->fl_wait,
- 					!file_lock->fl_next);
-@@ -1881,7 +1881,7 @@ again:
- 	else {
- 		for (;;) {
- 			error = posix_lock_file(filp, file_lock);
--			if ((error != -EAGAIN) || (cmd == F_SETLK64))
-+			if (error != -EAGAIN || cmd == F_SETLK64)
- 				break;
- 			error = wait_event_interruptible(file_lock->fl_wait,
- 					!file_lock->fl_next);
+diff -puN fs/lockd/svc4proc.c~lockd-handle-test_lock-deferrals fs/lockd/svc4proc.c
+--- a/fs/lockd/svc4proc.c~lockd-handle-test_lock-deferrals
++++ a/fs/lockd/svc4proc.c
+@@ -100,6 +100,8 @@ nlm4svc_proc_test(struct svc_rqst *rqstp
+ 
+ 	/* Now check for conflicting locks */
+ 	resp->status = nlmsvc_testlock(rqstp, file, &argp->lock, &resp->lock, &resp->cookie);
++	if (resp->status == nlm_drop_reply)
++		return rpc_drop_reply;
+ 
+ 	dprintk("lockd: TEST4          status %d\n", ntohl(resp->status));
+ 	nlm_release_host(host);
+diff -puN fs/lockd/svclock.c~lockd-handle-test_lock-deferrals fs/lockd/svclock.c
+--- a/fs/lockd/svclock.c~lockd-handle-test_lock-deferrals
++++ a/fs/lockd/svclock.c
+@@ -172,7 +172,7 @@ found:
+  */
+ static inline struct nlm_block *
+ nlmsvc_create_block(struct svc_rqst *rqstp, struct nlm_file *file,
+-				struct nlm_lock *lock, struct nlm_cookie *cookie)
++		struct nlm_lock *lock, struct nlm_cookie *cookie, int conf)
+ {
+ 	struct nlm_block	*block;
+ 	struct nlm_host		*host;
+@@ -205,6 +205,11 @@ nlmsvc_create_block(struct svc_rqst *rqs
+ 
+ 	dprintk("lockd: created block %p...\n", block);
+ 
++	if (conf) {
++		block->b_fl = kzalloc(sizeof(struct file_lock), GFP_KERNEL);
++		if (!block->b_fl)
++			goto failed_free;
++	}
+ 	/* Create and initialize the block */
+ 	block->b_daemon = rqstp->rq_server;
+ 	block->b_host   = host;
+@@ -423,7 +428,7 @@ again:
+ 	if (newblock == NULL) {
+ 		mutex_unlock(&file->f_mutex);
+ 		dprintk("lockd: blocking on this lock (allocating).\n");
+-		if (!(newblock = nlmsvc_create_block(rqstp, file, lock, cookie)))
++		if (!(newblock = nlmsvc_create_block(rqstp, file, lock, cookie, 0)))
+ 			return nlm_lck_denied_nolocks;
+ 		goto again;
+ 	}
+@@ -446,6 +451,10 @@ nlmsvc_testlock(struct svc_rqst *rqstp, 
+ 		struct nlm_lock *lock, struct nlm_lock *conflock,
+ 		struct nlm_cookie *cookie)
+ {
++	struct nlm_block 	*block = NULL;
++	int			error;
++	__be32			ret;
++
+ 	dprintk("lockd: nlmsvc_testlock(%s/%ld, ty=%d, %Ld-%Ld)\n",
+ 				file->f_file->f_path.dentry->d_inode->i_sb->s_id,
+ 				file->f_file->f_path.dentry->d_inode->i_ino,
+@@ -453,22 +462,63 @@ nlmsvc_testlock(struct svc_rqst *rqstp, 
+ 				(long long)lock->fl.fl_start,
+ 				(long long)lock->fl.fl_end);
+ 
+-	if (posix_test_lock(file->f_file, &lock->fl)) {
+-		dprintk("lockd: conflicting lock(ty=%d, %Ld-%Ld)\n",
+-				lock->fl.fl_type,
+-				(long long)lock->fl.fl_start,
+-				(long long)lock->fl.fl_end);
+-		conflock->caller = "somehost";	/* FIXME */
+-		conflock->len = strlen(conflock->caller);
+-		conflock->oh.len = 0;		/* don't return OH info */
+-		conflock->svid = lock->fl.fl_pid;
+-		conflock->fl.fl_type = lock->fl.fl_type;
+-		conflock->fl.fl_start = lock->fl.fl_start;
+-		conflock->fl.fl_end = lock->fl.fl_end;
+-		return nlm_lck_denied;
++	/* Get existing block (in case client is busy-waiting) */
++	block = nlmsvc_lookup_block(file, lock);
++
++	if (block == NULL) {
++		block = nlmsvc_create_block(rqstp, file, lock, cookie, 1);
++		if (block == NULL)
++			return nlm_granted;
++	}
++	if (block->b_flags & B_QUEUED) {
++		dprintk("lockd: nlmsvc_testlock deferred block %p flags %d fl %p\n",
++			block, block->b_flags, block->b_fl);
++		if (block->b_flags & B_TOO_LATE) {
++			nlmsvc_unlink_block(block);
++			return nlm_lck_denied;
++		}
++		if (block->b_flags & B_GOT_CALLBACK) {
++			if (block->b_fl != NULL
++					&& block->b_fl->fl_type != F_UNLCK) {
++				lock->fl = *block->b_fl;
++				goto conf_lock;
++			}
++			else {
++				nlmsvc_unlink_block(block);
++				return nlm_granted;
++			}
++		}
++		return nlm_drop_reply;
+ 	}
+ 
+-	return nlm_granted;
++	error = vfs_test_lock(file->f_file, &lock->fl);
++	if (error == -EINPROGRESS)
++		return nlmsvc_defer_lock_rqst(rqstp, block);
++	if (error) {
++		ret = nlm_lck_denied_nolocks;
++		goto out;
++	}
++	if (lock->fl.fl_type == F_UNLCK) {
++		ret = nlm_granted;
++		goto out;
++	}
++
++conf_lock:
++	dprintk("lockd: conflicting lock(ty=%d, %Ld-%Ld)\n",
++		lock->fl.fl_type, (long long)lock->fl.fl_start,
++		(long long)lock->fl.fl_end);
++	conflock->caller = "somehost";	/* FIXME */
++	conflock->len = strlen(conflock->caller);
++	conflock->oh.len = 0;		/* don't return OH info */
++	conflock->svid = lock->fl.fl_pid;
++	conflock->fl.fl_type = lock->fl.fl_type;
++	conflock->fl.fl_start = lock->fl.fl_start;
++	conflock->fl.fl_end = lock->fl.fl_end;
++	ret = nlm_lck_denied;
++out:
++	if (block)
++		nlmsvc_release_block(block);
++	return ret;
+ }
+ 
+ /*
+@@ -549,7 +599,6 @@ nlmsvc_update_deferred_block(struct nlm_
+ 	else
+ 		block->b_flags |= B_TOO_LATE;
+ 	if (conf) {
+-		block->b_fl = kzalloc(sizeof(struct file_lock), GFP_KERNEL);
+ 		if (block->b_fl)
+ 			locks_copy_lock(block->b_fl, conf);
+ 	}
+diff -puN fs/lockd/svcproc.c~lockd-handle-test_lock-deferrals fs/lockd/svcproc.c
+--- a/fs/lockd/svcproc.c~lockd-handle-test_lock-deferrals
++++ a/fs/lockd/svcproc.c
+@@ -33,6 +33,7 @@ cast_to_nlm(__be32 status, u32 vers)
+ 		case nlm_lck_denied_nolocks:
+ 		case nlm_lck_blocked:
+ 		case nlm_lck_denied_grace_period:
++		case nlm_drop_reply:
+ 			break;
+ 		case nlm4_deadlock:
+ 			status = nlm_lck_denied;
+@@ -128,6 +129,8 @@ nlmsvc_proc_test(struct svc_rqst *rqstp,
+ 
+ 	/* Now check for conflicting locks */
+ 	resp->status = cast_status(nlmsvc_testlock(rqstp, file, &argp->lock, &resp->lock, &resp->cookie));
++	if (resp->status == nlm_drop_reply)
++		return rpc_drop_reply;
+ 
+ 	dprintk("lockd: TEST          status %d vers %d\n",
+ 		ntohl(resp->status), rqstp->rq_vers);
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from eshel@almaden.ibm.com are
 
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-remove-nfs4_acl_add_ace.patch
 locks-trivial-removal-of-unnecessary-parentheses.patch
 locks-create-posix-to-flock-helper-functions.patch
 locks-make-lock-release-private-data-before-returning-in-getlk-case.patch
