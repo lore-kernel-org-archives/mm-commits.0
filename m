@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch added to -mm tree
-Date: Sat, 07 Apr 2007 02:06:31 -0700
-Message-ID: <200704070908.l3798oqC031374@shell0.pdx.osdl.net>
+Subject: + x86_64-early-quirks-fix-early_qrk-section-tag.patch added to -mm tree
+Date: Sat, 07 Apr 2007 02:18:19 -0700
+Message-ID: <200704070920.l379Kcad031572@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49002 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49095 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965679AbXDGJRL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 05:17:11 -0400
+	id S965691AbXDGJUp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 05:20:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, castet.matthieu@free.fr, jt@hpl.hp.com, kaos@ocs.com.au, lenb@kernel.org, mjg59@srcf.ucam.org, rmk+serial@arm.linux.org.uk, samuel@sortiz.org, syrjala@sci.fi
+Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     x86-serial-convert-legacy-com-ports-to-platform-devices fix
+     x86_64 early quirks: fix early_qrk[] section tag
 has been added to the -mm tree.  Its filename is
-     x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+     x86_64-early-quirks-fix-early_qrk-section-tag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-serial-convert-legacy-com-ports-to-platform-devices fix
+Subject: x86_64 early quirks: fix early_qrk[] section tag
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make[1]: *** No rule to make target `arch/x86_64/kernel/legacy_serial.c', needed by `arch/x86_64/kernel/legacy_serial.o'.  Stop.
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:nvidia_bugs from .data between 'early_qrk' (at offset 0x8428) and 'enable_cpu_hotplug'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:via_bugs from .data between 'early_qrk' (at offset 0x8438) and 'enable_cpu_hotplug'
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:ati_bugs from .data between 'early_qrk' (at offset 0x8448) and 'enable_cpu_hotplug'
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Keith Owens <kaos@ocs.com.au>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Matthieu CASTET <castet.matthieu@free.fr>
-Cc: Jean Tourrilhes <jt@hpl.hp.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Ville Syrjala <syrjala@sci.fi>
-Cc: Russell King <rmk+serial@arm.linux.org.uk>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+The compiler is putting it into .data because the __initdata is in the wrong
+place.
+
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86_64/kernel/early-quirks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices-fix arch/x86_64/kernel/Makefile
---- a/arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices-fix
-+++ a/arch/x86_64/kernel/Makefile
-@@ -59,3 +59,4 @@ i8237-y				+= ../../i386/kernel/i8237.o
- msr-$(subst m,y,$(CONFIG_X86_MSR))  += ../../i386/kernel/msr.o
- alternative-y			+= ../../i386/kernel/alternative.o
- pcspeaker-y			+= ../../i386/kernel/pcspeaker.o
-+legacy_serial-y			+= ../../i386/kernel/legacy_serial.o
+diff -puN arch/x86_64/kernel/early-quirks.c~x86_64-early-quirks-fix-early_qrk-section-tag arch/x86_64/kernel/early-quirks.c
+--- a/arch/x86_64/kernel/early-quirks.c~x86_64-early-quirks-fix-early_qrk-section-tag
++++ a/arch/x86_64/kernel/early-quirks.c
+@@ -76,7 +76,7 @@ struct chipset {
+ 	void (*f)(void);
+ };
+ 
+-static struct __initdata chipset early_qrk[] = {
++static struct chipset early_qrk[] __initdata = {
+ 	{ PCI_VENDOR_ID_NVIDIA, nvidia_bugs },
+ 	{ PCI_VENDOR_ID_VIA, via_bugs },
+ 	{ PCI_VENDOR_ID_ATI, ati_bugs },
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -169,6 +169,7 @@ signal-timer-event-fds-v9-eventfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
 fbdev-hecuba-framebuffer-driver.patch
 vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
 integrity-new-hooks-fix.patch
@@ -179,4 +180,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+x86_64-early-quirks-fix-early_qrk-section-tag.patch
