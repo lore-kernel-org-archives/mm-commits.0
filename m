@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch added to -mm tree
-Date: Fri, 06 Apr 2007 17:20:58 -0700
-Message-ID: <200704070020.l370Kwu1023670@shell0.pdx.osdl.net>
+Subject: + smsc-ircc2-tidy-up-module-parameter-checking.patch added to -mm tree
+Date: Fri, 06 Apr 2007 17:21:04 -0700
+Message-ID: <200704070021.l370L4EK023676@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:40365 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40354 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933573AbXDGA3R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 20:29:17 -0400
+	id S933450AbXDGA3K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 20:29:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com, castet.matthieu@free.fr, jt@hpl.hp.c
 
 
 The patch titled
-     PNP: notice whether we have PNP devices (PNPBIOS or PNPACPI)
+     smsc-ircc2: tidy up module parameter checking
 has been added to the -mm tree.  Its filename is
-     pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
+     smsc-ircc2-tidy-up-module-parameter-checking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PNP: notice whether we have PNP devices (PNPBIOS or PNPACPI)
+Subject: smsc-ircc2: tidy up module parameter checking
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-This series converts i386 and x86_64 legacy serial ports to be platform
-devices and prevents probing for them if we have PNP.
-
-This prevents double discovery, where a device was found both by the legacy
-probe and by 8250_pnp.
-
-This also prevents the serial driver from claiming IRDA devices (unless they
-have a UART PNP ID).  The serial legacy probe sometimes assumed the wrong IRQ,
-so the user had to use "setserial" to fix it.
-
-Removing the need for setserial to make IRDA devices work seems good, but it
-does break some things.  In particular, you may need to keep setserial from
-poking legacy UART stuff back in by doing something like "dpkg-reconfigure
-setserial" with the "kernel" option.  Otherwise, the setserial-discovered
-"UART" will claim resources and prevent the IRDA driver from loading.
-
-
-
-This patch:
-
-If we can discover devices using PNP, we can skip some legacy probes.  This
-flag ("pnp_platform_devices") indicates that PNPBIOS or PNPACPI is enabled and
-should tell us about builtin devices.
+To determine whether the user specified a module parameter, use some #defines
+instead of checking for bare magic numbers.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Keith Owens <kaos@ocs.com.au>
@@ -65,71 +44,58 @@ Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/core.c         |    8 ++++++++
- drivers/pnp/pnpacpi/core.c |    1 +
- drivers/pnp/pnpbios/core.c |    1 +
- include/linux/pnp.h        |    2 ++
- 4 files changed, 12 insertions(+)
+ drivers/net/irda/smsc-ircc2.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pnp/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi drivers/pnp/core.c
---- a/drivers/pnp/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
-+++ a/drivers/pnp/core.c
-@@ -23,6 +23,14 @@ static LIST_HEAD(pnp_protocols);
- LIST_HEAD(pnp_global);
- DEFINE_SPINLOCK(pnp_lock);
+diff -puN drivers/net/irda/smsc-ircc2.c~smsc-ircc2-tidy-up-module-parameter-checking drivers/net/irda/smsc-ircc2.c
+--- a/drivers/net/irda/smsc-ircc2.c~smsc-ircc2-tidy-up-module-parameter-checking
++++ a/drivers/net/irda/smsc-ircc2.c
+@@ -79,11 +79,13 @@ MODULE_AUTHOR("Daniele Peri <peri@csai.u
+ MODULE_DESCRIPTION("SMC IrCC SIR/FIR controller driver");
+ MODULE_LICENSE("GPL");
  
-+/*
-+ * ACPI or PNPBIOS should tell us about all platform devices, so we can
-+ * skip some blind probes.  ISAPNP typically enumerates only plug-in ISA
-+ * devices, not built-in things like COM ports.
-+ */
-+int pnp_platform_devices;
-+EXPORT_SYMBOL(pnp_platform_devices);
-+
- void *pnp_alloc(long size)
- {
- 	void *result;
-diff -puN drivers/pnp/pnpacpi/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -284,6 +284,7 @@ static int __init pnpacpi_init(void)
- 	acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
- 	pnp_info("PnP ACPI: found %d devices", num);
- 	unregister_acpi_bus_type(&acpi_pnp_bus);
-+	pnp_platform_devices = 1;
- 	return 0;
- }
- subsys_initcall(pnpacpi_init);
-diff -puN drivers/pnp/pnpbios/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi drivers/pnp/pnpbios/core.c
---- a/drivers/pnp/pnpbios/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
-+++ a/drivers/pnp/pnpbios/core.c
-@@ -574,6 +574,7 @@ static int __init pnpbios_init(void)
- 	/* scan for pnpbios devices */
- 	build_devlist();
+-static int ircc_dma = 255;
++#define DMA_INVAL 255
++static int ircc_dma = DMA_INVAL;
+ module_param(ircc_dma, int, 0);
+ MODULE_PARM_DESC(ircc_dma, "DMA channel");
  
-+	pnp_platform_devices = 1;
- 	return 0;
- }
+-static int ircc_irq = 255;
++#define IRQ_INVAL 255
++static int ircc_irq = IRQ_INVAL;
+ module_param(ircc_irq, int, 0);
+ MODULE_PARM_DESC(ircc_irq, "IRQ line");
  
-diff -puN include/linux/pnp.h~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi include/linux/pnp.h
---- a/include/linux/pnp.h~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
-+++ a/include/linux/pnp.h
-@@ -364,6 +364,7 @@ int pnp_add_device(struct pnp_dev *dev);
- int pnp_device_attach(struct pnp_dev *pnp_dev);
- void pnp_device_detach(struct pnp_dev *pnp_dev);
- extern struct list_head pnp_global;
-+extern int pnp_platform_devices;
+@@ -646,7 +648,7 @@ static void smsc_ircc_setup_io(struct sm
+ 	self->io.fifo_size = SMSC_IRCC2_FIFO_SIZE;
+ 	self->io.speed = SMSC_IRCC2_C_IRDA_FALLBACK_SPEED;
  
- /* multidevice card support */
- int pnp_add_card(struct pnp_card *card);
-@@ -411,6 +412,7 @@ static inline int pnp_init_device(struct
- static inline int pnp_add_device(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_device_attach(struct pnp_dev *pnp_dev) { return -ENODEV; }
- static inline void pnp_device_detach(struct pnp_dev *pnp_dev) { ; }
-+#define pnp_platform_devices 0
+-	if (irq < 255) {
++	if (irq != IRQ_INVAL) {
+ 		if (irq != chip_irq)
+ 			IRDA_MESSAGE("%s, Overriding IRQ - chip says %d, using %d\n",
+ 				     driver_name, chip_irq, irq);
+@@ -654,7 +656,7 @@ static void smsc_ircc_setup_io(struct sm
+ 	} else
+ 		self->io.irq = chip_irq;
  
- /* multidevice card support */
- static inline int pnp_add_card(struct pnp_card *card) { return -ENODEV; }
+-	if (dma < 255) {
++	if (dma != DMA_INVAL) {
+ 		if (dma != chip_dma)
+ 			IRDA_MESSAGE("%s, Overriding DMA - chip says %d, using %d\n",
+ 				     driver_name, chip_dma, dma);
+@@ -2836,9 +2838,9 @@ static int __init smsc_ircc_preconfigure
+ 					tmpconf.fir_io = ircc_fir;
+ 				if (ircc_sir != 0)
+ 					tmpconf.sir_io = ircc_sir;
+-				if (ircc_dma != 0xff)
++				if (ircc_dma != DMA_INVAL)
+ 					tmpconf.fir_dma = ircc_dma;
+-				if (ircc_irq != 0xff)
++				if (ircc_irq != IRQ_INVAL)
+ 					tmpconf.fir_irq = ircc_irq;
+ 
+ 				IRDA_MESSAGE("Detected unconfigured %s SMSC IrDA chip, pre-configuring device.\n", conf->name);
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
