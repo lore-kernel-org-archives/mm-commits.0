@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-speed-up-page-table-walking.patch added to -mm tree
-Date: Fri, 06 Apr 2007 18:16:37 -0700
-Message-ID: <200704070116.l371GbAm024581@shell0.pdx.osdl.net>
+Subject: + round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch added to -mm tree
+Date: Fri, 06 Apr 2007 18:08:32 -0700
+Message-ID: <200704070108.l3718WMx024412@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41439 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:41200 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964821AbXDGBQl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 6 Apr 2007 21:16:41 -0400
+	id S933450AbXDGBIe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 6 Apr 2007 21:08:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
+Cc: milindchoudhary@gmail.com
 
 
 The patch titled
-     uml: speed up page table walking
+     ROUND_UP macro cleanup in fs/(select|compat|readdir).c
 has been added to the -mm tree.  Its filename is
-     uml-speed-up-page-table-walking.patch
+     round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,294 +25,220 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: speed up page table walking
-From: Jeff Dike <jdike@addtoit.com>
+Subject: ROUND_UP macro cleanup in fs/(select|compat|readdir).c
+From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-The previous page table walking code was horribly inefficient.  This patch
-replaces it with code taken from elsewhere in the kernel.
+ROUND_UP macro cleanup use,ALIGN or DIV_ROUND_UP where ever appropriate.
 
-Forking from bash is now ~5% faster and page faults are handled ~10% faster.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/tlb.c |  202 ++++++++++++++++++++++++-----------------
- 1 file changed, 120 insertions(+), 82 deletions(-)
+ fs/compat.c  |   20 ++++++++------------
+ fs/readdir.c |    8 +++-----
+ fs/select.c  |    8 ++++----
+ 3 files changed, 15 insertions(+), 21 deletions(-)
 
-diff -puN arch/um/kernel/tlb.c~uml-speed-up-page-table-walking arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-speed-up-page-table-walking
-+++ a/arch/um/kernel/tlb.c
-@@ -6,6 +6,7 @@
- #include "linux/mm.h"
- #include "asm/page.h"
- #include "asm/pgalloc.h"
-+#include "asm/pgtable.h"
- #include "asm/tlbflush.h"
- #include "choose-mode.h"
- #include "mode_kern.h"
-@@ -123,106 +124,143 @@ static int add_mprotect(unsigned long ad
+diff -puN fs/compat.c~round_up-macro-cleanup-in-fs-selectcompatreaddirc fs/compat.c
+--- a/fs/compat.c~round_up-macro-cleanup-in-fs-selectcompatreaddirc
++++ a/fs/compat.c
+@@ -15,6 +15,7 @@
+  *  published by the Free Software Foundation.
+  */
  
- #define ADD_ROUND(n, inc) (((n) + (inc)) & ~((inc) - 1))
++#include <linux/kernel.h>
+ #include <linux/linkage.h>
+ #include <linux/compat.h>
+ #include <linux/errno.h>
+@@ -901,8 +902,6 @@ asmlinkage long compat_sys_mount(char __
+ }
  
-+static inline int update_pte_range(pmd_t *pmd, unsigned long addr,
-+				   unsigned long end, struct host_vm_op *ops,
-+				   int last_op, int *op_index, int force,
-+				   union mm_context *mmu, void **flush,
-+				   int (*do_ops)(union mm_context *,
-+						 struct host_vm_op *, int, int,
-+						 void **))
-+{
-+	pte_t *pte;
-+	int r, w, x, ret = 0;
-+
-+	pte = pte_offset_kernel(pmd, addr);
-+	do {
-+		r = pte_read(*pte);
-+		w = pte_write(*pte);
-+		x = pte_exec(*pte);
-+		if (!pte_young(*pte)) {
-+			r = 0;
-+			w = 0;
-+		} else if (!pte_dirty(*pte)) {
-+			w = 0;
-+		}
-+		if(force || pte_newpage(*pte)){
-+			if(pte_present(*pte))
-+				ret = add_mmap(addr, pte_val(*pte) & PAGE_MASK,
-+					       PAGE_SIZE, r, w, x, ops,
-+					       op_index, last_op, mmu, flush,
-+					       do_ops);
-+			else ret = add_munmap(addr, PAGE_SIZE, ops, op_index,
-+					      last_op, mmu, flush, do_ops);
-+		}
-+		else if(pte_newprot(*pte))
-+			ret = add_mprotect(addr, PAGE_SIZE, r, w, x, ops,
-+					   op_index, last_op, mmu, flush,
-+					   do_ops);
-+		*pte = pte_mkuptodate(*pte);
-+	} while (pte++, addr += PAGE_SIZE, ((addr != end) && !ret));
-+	return ret;
-+}
-+
-+static inline int update_pmd_range(pud_t *pud, unsigned long addr,
-+				   unsigned long end, struct host_vm_op *ops,
-+				   int last_op, int *op_index, int force,
-+				   union mm_context *mmu, void **flush,
-+				   int (*do_ops)(union mm_context *,
-+						 struct host_vm_op *, int, int,
-+						 void **))
-+{
-+	pmd_t *pmd;
-+	unsigned long next;
-+	int ret = 0;
-+
-+	pmd = pmd_offset(pud, addr);
-+	do {
-+		next = pmd_addr_end(addr, end);
-+		if(!pmd_present(*pmd)){
-+			if(force || pmd_newpage(*pmd)){
-+				ret = add_munmap(addr, next - addr, ops,
-+						 op_index, last_op, mmu,
-+						 flush, do_ops);
-+				pmd_mkuptodate(*pmd);
-+			}
-+		}
-+		else ret = update_pte_range(pmd, addr, next, ops, last_op,
-+					    op_index, force, mmu, flush,
-+					    do_ops);
-+	} while (pmd++, addr = next, ((addr != end) && !ret));
-+	return ret;
-+}
-+
-+static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
-+				   unsigned long end, struct host_vm_op *ops,
-+				   int last_op, int *op_index, int force,
-+				   union mm_context *mmu, void **flush,
-+				   int (*do_ops)(union mm_context *,
-+						 struct host_vm_op *, int, int,
-+						 void **))
-+{
-+	pud_t *pud;
-+	unsigned long next;
-+	int ret = 0;
-+
-+	pud = pud_offset(pgd, addr);
-+	do {
-+		next = pud_addr_end(addr, end);
-+		if(!pud_present(*pud)){
-+			if(force || pud_newpage(*pud)){
-+				ret = add_munmap(addr, next - addr, ops,
-+						 op_index, last_op, mmu,
-+						 flush, do_ops);
-+				pud_mkuptodate(*pud);
-+			}
-+		}
-+		else ret = update_pmd_range(pud, addr, next, ops, last_op,
-+					    op_index, force, mmu, flush,
-+					    do_ops);
-+	} while (pud++, addr = next, ((addr != end) && !ret));
-+	return ret;
-+}
-+
- void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
- 		      unsigned long end_addr, int force,
- 		      int (*do_ops)(union mm_context *, struct host_vm_op *,
- 				    int, int, void **))
+ #define NAME_OFFSET(de) ((int) ((de)->d_name - (char __user *) (de)))
+-#define COMPAT_ROUND_UP(x) (((x)+sizeof(compat_long_t)-1) & \
+-				~(sizeof(compat_long_t)-1))
+ 
+ struct compat_old_linux_dirent {
+ 	compat_ulong_t	d_ino;
+@@ -990,7 +989,7 @@ static int compat_filldir(void *__buf, c
+ 	struct compat_linux_dirent __user * dirent;
+ 	struct compat_getdents_callback *buf = __buf;
+ 	compat_ulong_t d_ino;
+-	int reclen = COMPAT_ROUND_UP(NAME_OFFSET(dirent) + namlen + 2);
++	int reclen = ALIGN(NAME_OFFSET(dirent) + namlen + 2, sizeof(compat_long_t));
+ 
+ 	buf->error = -EINVAL;	/* only used if we fail.. */
+ 	if (reclen > buf->count)
+@@ -1065,7 +1064,6 @@ out:
+ }
+ 
+ #ifndef __ARCH_OMIT_COMPAT_SYS_GETDENTS64
+-#define COMPAT_ROUND_UP64(x) (((x)+sizeof(u64)-1) & ~(sizeof(u64)-1))
+ 
+ struct compat_getdents_callback64 {
+ 	struct linux_dirent64 __user *current_dir;
+@@ -1080,7 +1078,7 @@ static int compat_filldir64(void * __buf
+ 	struct linux_dirent64 __user *dirent;
+ 	struct compat_getdents_callback64 *buf = __buf;
+ 	int jj = NAME_OFFSET(dirent);
+-	int reclen = COMPAT_ROUND_UP64(jj + namlen + 1);
++	int reclen = ALIGN(jj + namlen + 1, sizeof(u64));
+ 	u64 off;
+ 
+ 	buf->error = -EINVAL;	/* only used if we fail.. */
+@@ -1593,8 +1591,6 @@ out_ret:
+ 
+ #define __COMPAT_NFDBITS       (8 * sizeof(compat_ulong_t))
+ 
+-#define ROUND_UP(x,y) (((x)+(y)-1)/(y))
+-
+ /*
+  * Ooo, nasty.  We need here to frob 32-bit unsigned longs to
+  * 64-bit unsigned longs.
+@@ -1603,7 +1599,7 @@ static
+ int compat_get_fd_set(unsigned long nr, compat_ulong_t __user *ufdset,
+ 			unsigned long *fdset)
  {
--	pgd_t *npgd;
--	pud_t *npud;
--	pmd_t *npmd;
--	pte_t *npte;
-+	pgd_t *pgd;
- 	union mm_context *mmu = &mm->context;
--	unsigned long addr, end;
--	int r, w, x;
- 	struct host_vm_op ops[1];
-+	unsigned long addr = start_addr, next;
-+	int ret = 0, last_op = ARRAY_SIZE(ops) - 1, op_index = -1;
- 	void *flush = NULL;
--	int op_index = -1, last_op = ARRAY_SIZE(ops) - 1;
--	int ret = 0;
--
--	if(mm == NULL)
--		return;
-+	unsigned long long start_time, end_time;
+-	nr = ROUND_UP(nr, __COMPAT_NFDBITS);
++	nr = DIV_ROUND_UP(nr, __COMPAT_NFDBITS);
+ 	if (ufdset) {
+ 		unsigned long odd;
  
-+	start_time = os_nsecs();
- 	ops[0].type = NONE;
--	for(addr = start_addr; addr < end_addr && !ret;){
--		npgd = pgd_offset(mm, addr);
--		if(!pgd_present(*npgd)){
--			end = ADD_ROUND(addr, PGDIR_SIZE);
--			if(end > end_addr)
--				end = end_addr;
--			if(force || pgd_newpage(*npgd)){
--				ret = add_munmap(addr, end - addr, ops,
--						 &op_index, last_op, mmu,
--						 &flush, do_ops);
--				pgd_mkuptodate(*npgd);
--			}
--			addr = end;
--			continue;
--		}
--
--		npud = pud_offset(npgd, addr);
--		if(!pud_present(*npud)){
--			end = ADD_ROUND(addr, PUD_SIZE);
--			if(end > end_addr)
--				end = end_addr;
--			if(force || pud_newpage(*npud)){
--				ret = add_munmap(addr, end - addr, ops,
--						 &op_index, last_op, mmu,
--						 &flush, do_ops);
--				pud_mkuptodate(*npud);
--			}
--			addr = end;
--			continue;
--		}
--
--		npmd = pmd_offset(npud, addr);
--		if(!pmd_present(*npmd)){
--			end = ADD_ROUND(addr, PMD_SIZE);
--			if(end > end_addr)
--				end = end_addr;
--			if(force || pmd_newpage(*npmd)){
--				ret = add_munmap(addr, end - addr, ops,
-+	pgd = pgd_offset(mm, addr);
-+	do {
-+		next = pgd_addr_end(addr, end_addr);
-+		if(!pgd_present(*pgd)){
-+			if (force || pgd_newpage(*pgd)){
-+				ret = add_munmap(addr, next - addr, ops,
- 						 &op_index, last_op, mmu,
- 						 &flush, do_ops);
--				pmd_mkuptodate(*npmd);
-+				pgd_mkuptodate(*pgd);
- 			}
--			addr = end;
--			continue;
+@@ -1637,7 +1633,7 @@ int compat_set_fd_set(unsigned long nr, 
+ 		      unsigned long *fdset)
+ {
+ 	unsigned long odd;
+-	nr = ROUND_UP(nr, __COMPAT_NFDBITS);
++	nr = DIV_ROUND_UP(nr, __COMPAT_NFDBITS);
+ 
+ 	if (!ufdset)
+ 		return 0;
+@@ -1759,7 +1755,7 @@ asmlinkage long compat_sys_select(int n,
+ 		if ((u64)tv.tv_sec >= (u64)MAX_INT64_SECONDS)
+ 			timeout = -1;	/* infinite */
+ 		else {
+-			timeout = ROUND_UP(tv.tv_usec, 1000000/HZ);
++			timeout = DIV_ROUND_UP(tv.tv_usec, 1000000/HZ);
+ 			timeout += tv.tv_sec * HZ;
  		}
-+		else ret = update_pud_range(pgd, addr, next, ops, last_op,
-+					    &op_index, force, mmu, &flush,
-+					    do_ops);
-+	} while (pgd++, addr = next, ((addr != end_addr) && !ret));
-+	end_time = os_nsecs();
-+	log_info("total flush time - %Ld nsecs\n", end_time - start_time);
+ 	}
+@@ -1827,7 +1823,7 @@ asmlinkage long compat_sys_pselect7(int 
+ 	do {
+ 		if (tsp) {
+ 			if ((unsigned long)ts.tv_sec < MAX_SELECT_SECONDS) {
+-				timeout = ROUND_UP(ts.tv_nsec, 1000000000/HZ);
++				timeout = DIV_ROUND_UP(ts.tv_nsec, 1000000000/HZ);
+ 				timeout += ts.tv_sec * (unsigned long)HZ;
+ 				ts.tv_sec = 0;
+ 				ts.tv_nsec = 0;
+@@ -1923,7 +1919,7 @@ asmlinkage long compat_sys_ppoll(struct 
+ 		/* We assume that ts.tv_sec is always lower than
+ 		   the number of seconds that can be expressed in
+ 		   an s64. Otherwise the compiler bitches at us */
+-		timeout = ROUND_UP(ts.tv_nsec, 1000000000/HZ);
++		timeout = DIV_ROUND_UP(ts.tv_nsec, 1000000000/HZ);
+ 		timeout += ts.tv_sec * HZ;
+ 	}
  
--		npte = pte_offset_kernel(npmd, addr);
--		r = pte_read(*npte);
--		w = pte_write(*npte);
--		x = pte_exec(*npte);
--		if (!pte_young(*npte)) {
--			r = 0;
--			w = 0;
--		} else if (!pte_dirty(*npte)) {
--			w = 0;
--		}
--		if(force || pte_newpage(*npte)){
--			if(pte_present(*npte))
--				ret = add_mmap(addr,
--					       pte_val(*npte) & PAGE_MASK,
--					       PAGE_SIZE, r, w, x, ops,
--					       &op_index, last_op, mmu,
--					       &flush, do_ops);
--			else ret = add_munmap(addr, PAGE_SIZE, ops,
--					      &op_index, last_op, mmu,
--					      &flush, do_ops);
--		}
--		else if(pte_newprot(*npte))
--			ret = add_mprotect(addr, PAGE_SIZE, r, w, x, ops,
--					   &op_index, last_op, mmu,
--					   &flush, do_ops);
+diff -puN fs/readdir.c~round_up-macro-cleanup-in-fs-selectcompatreaddirc fs/readdir.c
+--- a/fs/readdir.c~round_up-macro-cleanup-in-fs-selectcompatreaddirc
++++ a/fs/readdir.c
+@@ -4,6 +4,7 @@
+  *  Copyright (C) 1995  Linus Torvalds
+  */
+ 
++#include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/time.h>
+ #include <linux/mm.h>
+@@ -51,7 +52,6 @@ EXPORT_SYMBOL(vfs_readdir);
+  * case (the low-level handlers don't need to care about this).
+  */
+ #define NAME_OFFSET(de) ((int) ((de)->d_name - (char __user *) (de)))
+-#define ROUND_UP(x) (((x)+sizeof(long)-1) & ~(sizeof(long)-1))
+ 
+ #ifdef __ARCH_WANT_OLD_READDIR
+ 
+@@ -146,7 +146,7 @@ static int filldir(void * __buf, const c
+ 	struct linux_dirent __user * dirent;
+ 	struct getdents_callback * buf = (struct getdents_callback *) __buf;
+ 	unsigned long d_ino;
+-	int reclen = ROUND_UP(NAME_OFFSET(dirent) + namlen + 2);
++	int reclen = ALIGN(NAME_OFFSET(dirent) + namlen + 2, sizeof(long));
+ 
+ 	buf->error = -EINVAL;	/* only used if we fail.. */
+ 	if (reclen > buf->count)
+@@ -219,8 +219,6 @@ out:
+ 	return error;
+ }
+ 
+-#define ROUND_UP64(x) (((x)+sizeof(u64)-1) & ~(sizeof(u64)-1))
 -
--		*npte = pte_mkuptodate(*npte);
--		addr += PAGE_SIZE;
--	}
- 	if(!ret)
- 		ret = (*do_ops)(mmu, ops, op_index, 1, &flush);
+ struct getdents_callback64 {
+ 	struct linux_dirent64 __user * current_dir;
+ 	struct linux_dirent64 __user * previous;
+@@ -233,7 +231,7 @@ static int filldir64(void * __buf, const
+ {
+ 	struct linux_dirent64 __user *dirent;
+ 	struct getdents_callback64 * buf = (struct getdents_callback64 *) __buf;
+-	int reclen = ROUND_UP64(NAME_OFFSET(dirent) + namlen + 1);
++	int reclen = ALIGN(NAME_OFFSET(dirent) + namlen + 1, sizeof(u64));
  
--/* This is not an else because ret is modified above */
-+	/* This is not an else because ret is modified above */
- 	if(ret) {
- 		printk("fix_range_common: failed, killing current process\n");
- 		force_sig(SIGKILL, current);
+ 	buf->error = -EINVAL;	/* only used if we fail.. */
+ 	if (reclen > buf->count)
+diff -puN fs/select.c~round_up-macro-cleanup-in-fs-selectcompatreaddirc fs/select.c
+--- a/fs/select.c~round_up-macro-cleanup-in-fs-selectcompatreaddirc
++++ a/fs/select.c
+@@ -14,6 +14,7 @@
+  *     of fds to overcome nfds < 16390 descriptors limit (Tigran Aivazian).
+  */
+ 
++#include <linux/kernel.h>
+ #include <linux/syscalls.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -25,7 +26,6 @@
+ 
+ #include <asm/uaccess.h>
+ 
+-#define ROUND_UP(x,y) (((x)+(y)-1)/(y))
+ #define DEFAULT_POLLMASK (POLLIN | POLLOUT | POLLRDNORM | POLLWRNORM)
+ 
+ struct poll_table_page {
+@@ -398,7 +398,7 @@ asmlinkage long sys_select(int n, fd_set
+ 		if ((u64)tv.tv_sec >= (u64)MAX_INT64_SECONDS)
+ 			timeout = -1;	/* infinite */
+ 		else {
+-			timeout = ROUND_UP(tv.tv_usec, USEC_PER_SEC/HZ);
++			timeout = DIV_ROUND_UP(tv.tv_usec, USEC_PER_SEC/HZ);
+ 			timeout += tv.tv_sec * HZ;
+ 		}
+ 	}
+@@ -453,7 +453,7 @@ asmlinkage long sys_pselect7(int n, fd_s
+ 		if ((u64)ts.tv_sec >= (u64)MAX_INT64_SECONDS)
+ 			timeout = -1;	/* infinite */
+ 		else {
+-			timeout = ROUND_UP(ts.tv_nsec, NSEC_PER_SEC/HZ);
++			timeout = DIV_ROUND_UP(ts.tv_nsec, NSEC_PER_SEC/HZ);
+ 			timeout += ts.tv_sec * HZ;
+ 		}
+ 	}
+@@ -775,7 +775,7 @@ asmlinkage long sys_ppoll(struct pollfd 
+ 		if ((u64)ts.tv_sec >= (u64)MAX_INT64_SECONDS)
+ 			timeout = -1;	/* infinite */
+ 		else {
+-			timeout = ROUND_UP(ts.tv_nsec, NSEC_PER_SEC/HZ);
++			timeout = DIV_ROUND_UP(ts.tv_nsec, NSEC_PER_SEC/HZ);
+ 			timeout += ts.tv_sec * HZ;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from milindchoudhary@gmail.com are
 
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-array_size-check-for-type-uml-fix.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-uml-speed-up-exec.patch
-uml-no-locking-needed-in-tlsc.patch
-uml-tidy-processc.patch
-uml-tidy-processc-fix.patch
-uml-remove-page_size.patch
-uml-kernel_thread-shouldnt-panic.patch
-uml-tidy-fault-code.patch
-uml-kernel-segfaults-should-dump-proper-registers.patch
-uml-comment-early-boot-locking.patch
-uml-irq-locking-commentary.patch
-uml-delete-host_frame_size.patch
-uml-drivers-get-release-methods.patch
-uml-dump-registers-on-ptrace-or-wait-failure.patch
-uml-speed-up-page-table-walking.patch
-sys_futex64-allows-64bit-futexes-workaround-for-uml.patch
-utrace-uml-make-uml-compile-with-utrace-enabled.patch
+unused-round_up-name_offset-macro-in-arch-powerpc.patch
+round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+round_up-macro-cleanup-in-drivers-pci.patch
+round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
+round_up-macro-cleanup-in-drivers-char-lpc.patch
+round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
