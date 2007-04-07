@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + locks-create-posix-to-flock-helper-functions.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:40:46 -0700
-Message-ID: <200704070540.l375ekof028386@shell0.pdx.osdl.net>
+Subject: + lockd-save-lock-state-on-deferral.patch added to -mm tree
+Date: Fri, 06 Apr 2007 22:41:04 -0700
+Message-ID: <200704070541.l375f4sd028413@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45333 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45357 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752192AbXDGFlK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:41:10 -0400
+	id S965365AbXDGFlT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:41:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bfields@citi.umich.edu, eshel@almaden.ibm.com, hch@infradead.org, jack@ucw.cz, trond.myklebust@fys.uio.no
+Cc: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     locks: create posix-to-flock helper functions
+     lockd: save lock state on deferral
 has been added to the -mm tree.  Its filename is
-     locks-create-posix-to-flock-helper-functions.patch
+     lockd-save-lock-state-on-deferral.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,115 +25,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: locks: create posix-to-flock helper functions
-From: J. Bruce Fields <bfields@citi.umich.edu> - unquoted
+Subject: lockd: save lock state on deferral
+From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
 
-Factor out a bit of messy code by creating posix-to-flock counterparts to the
-existing flock-to-posix helper functions.
+We need to keep some state for a pending asynchronous lock request, so this
+patch adds that state to struct nlm_block.
 
-Cc: Christoph Hellwig <hch@infradead.org>
-Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+This also adds a function which defers the request, by calling
+rqstp->rq_chandle.defer and storing the resulting deferred request in a
+nlm_block structure which we insert into lockd's global block list.  That new
+function isn't called yet, so it's dead code until a later patch.
+
+Signed-off-by: Marc Eshel <eshel@almaden.ibm.com>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Jan Kara <jack@ucw.cz>
 Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |   61 ++++++++++++++++++++++++++++++---------------------
- 1 file changed, 36 insertions(+), 25 deletions(-)
+ fs/lockd/svclock.c          |   25 +++++++++++++++++++++++++
+ include/linux/lockd/lockd.h |   10 ++++++++++
+ 2 files changed, 35 insertions(+)
 
-diff -puN fs/locks.c~locks-create-posix-to-flock-helper-functions fs/locks.c
---- a/fs/locks.c~locks-create-posix-to-flock-helper-functions
-+++ a/fs/locks.c
-@@ -1611,6 +1611,38 @@ asmlinkage long sys_flock(unsigned int f
- 	return error;
+diff -puN fs/lockd/svclock.c~lockd-save-lock-state-on-deferral fs/lockd/svclock.c
+--- a/fs/lockd/svclock.c~lockd-save-lock-state-on-deferral
++++ a/fs/lockd/svclock.c
+@@ -330,6 +330,31 @@ static void nlmsvc_freegrantargs(struct 
  }
  
-+static int posix_lock_to_flock(struct flock *flock, struct file_lock *fl)
+ /*
++ * Deferred lock request handling for non-blocking lock
++ */
++static u32
++nlmsvc_defer_lock_rqst(struct svc_rqst *rqstp, struct nlm_block *block)
 +{
-+	flock->l_pid = fl->fl_pid;
-+#if BITS_PER_LONG == 32
-+	/*
-+	 * Make sure we can represent the posix lock via
-+	 * legacy 32bit flock.
-+	 */
-+	if (fl->fl_start > OFFT_OFFSET_MAX)
-+		return -EOVERFLOW;
-+	if (fl->fl_end != OFFSET_MAX && fl->fl_end > OFFT_OFFSET_MAX)
-+		return -EOVERFLOW;
-+#endif
-+	flock->l_start = fl->fl_start;
-+	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
-+		fl->fl_end - fl->fl_start + 1;
-+	flock->l_whence = 0;
-+	return 0;
++	u32 status = nlm_lck_denied_nolocks;
++
++	block->b_flags |= B_QUEUED;
++
++	nlmsvc_insert_block(block, NLM_TIMEOUT);
++
++	block->b_cache_req = &rqstp->rq_chandle;
++	if (rqstp->rq_chandle.defer) {
++		block->b_deferred_req =
++			rqstp->rq_chandle.defer(block->b_cache_req);
++		if (block->b_deferred_req != NULL)
++			status = nlm_drop_reply;
++	}
++	dprintk("lockd: nlmsvc_defer_lock_rqst block %p flags %d status %d\n",
++		block, block->b_flags, status);
++
++	return status;
 +}
 +
-+#if BITS_PER_LONG == 32
-+static void posix_lock_to_flock64(struct flock64 *flock, struct file_lock *fl)
-+{
-+	flock->l_pid = fl->fl_pid;
-+	flock->l_start = fl->fl_start;
-+	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
-+		fl->fl_end - fl->fl_start + 1;
-+	flock->l_whence = 0;
-+	flock->l_type = fl->fl_type;
-+}
-+#endif
-+
- /* Report the first existing lock that would conflict with l.
-  * This implements the F_GETLK command of fcntl().
++/*
+  * Attempt to establish a lock, and if it can't be granted, block it
+  * if required.
   */
-@@ -1645,24 +1677,9 @@ int fcntl_getlk(struct file *filp, struc
-  
- 	flock.l_type = F_UNLCK;
- 	if (fl != NULL) {
--		flock.l_pid = fl->fl_pid;
--#if BITS_PER_LONG == 32
--		/*
--		 * Make sure we can represent the posix lock via
--		 * legacy 32bit flock.
--		 */
--		error = -EOVERFLOW;
--		if (fl->fl_start > OFFT_OFFSET_MAX)
-+		error = posix_lock_to_flock(&flock, fl);
-+		if (error)
- 			goto out;
--		if ((fl->fl_end != OFFSET_MAX)
--		    && (fl->fl_end > OFFT_OFFSET_MAX))
--			goto out;
--#endif
--		flock.l_start = fl->fl_start;
--		flock.l_len = fl->fl_end == OFFSET_MAX ? 0 :
--			fl->fl_end - fl->fl_start + 1;
--		flock.l_whence = 0;
--		flock.l_type = fl->fl_type;
- 	}
- 	error = -EFAULT;
- 	if (!copy_to_user(l, &flock, sizeof(flock)))
-@@ -1798,14 +1815,8 @@ int fcntl_getlk64(struct file *filp, str
- 	}
-  
- 	flock.l_type = F_UNLCK;
--	if (fl != NULL) {
--		flock.l_pid = fl->fl_pid;
--		flock.l_start = fl->fl_start;
--		flock.l_len = fl->fl_end == OFFSET_MAX ? 0 :
--			fl->fl_end - fl->fl_start + 1;
--		flock.l_whence = 0;
--		flock.l_type = fl->fl_type;
--	}
-+	if (fl != NULL)
-+		posix_lock_to_flock64(&flock, fl);
- 	error = -EFAULT;
- 	if (!copy_to_user(l, &flock, sizeof(flock)))
- 		error = 0;
+diff -puN include/linux/lockd/lockd.h~lockd-save-lock-state-on-deferral include/linux/lockd/lockd.h
+--- a/include/linux/lockd/lockd.h~lockd-save-lock-state-on-deferral
++++ a/include/linux/lockd/lockd.h
+@@ -119,6 +119,9 @@ struct nlm_file {
+  * couldn't be granted because of a conflicting lock).
+  */
+ #define NLM_NEVER		(~(unsigned long) 0)
++/* timeout on non-blocking call: */
++#define NLM_TIMEOUT		(7 * HZ)
++
+ struct nlm_block {
+ 	struct kref		b_count;	/* Reference count */
+ 	struct list_head	b_list;		/* linked list of all blocks */
+@@ -130,6 +133,13 @@ struct nlm_block {
+ 	unsigned int		b_id;		/* block id */
+ 	unsigned char		b_granted;	/* VFS granted lock */
+ 	struct nlm_file *	b_file;		/* file in question */
++	struct cache_req *	b_cache_req;	/* deferred request handling */
++	struct file_lock *	b_fl;		/* set for GETLK */
++	struct cache_deferred_req * b_deferred_req;
++	unsigned int		b_flags;	/* block flags */
++#define B_QUEUED		1	/* lock queued */
++#define B_GOT_CALLBACK		2	/* got lock or conflicting lock */
++#define B_TOO_LATE		4	/* too late for non-blocking lock */
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from eshel@almaden.ibm.com are
 
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-remove-nfs4_acl_add_ace.patch
 locks-trivial-removal-of-unnecessary-parentheses.patch
 locks-create-posix-to-flock-helper-functions.patch
 locks-make-lock-release-private-data-before-returning-in-getlk-case.patch
