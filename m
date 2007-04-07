@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-add-callbacks-for-each-level-to-page-walker.patch added to -mm tree
-Date: Fri, 06 Apr 2007 23:55:41 -0700
-Message-ID: <200704070655.l376tfq4029475@shell0.pdx.osdl.net>
+Subject: + maps2-make-proc-pid-smaps-optional-under-config_embedded.patch added to -mm tree
+Date: Fri, 06 Apr 2007 23:55:51 -0700
+Message-ID: <200704070655.l376tpMg029490@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46452 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46465 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965496AbXDGGzz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 02:55:55 -0400
+	id S965524AbXDGG4A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 02:56:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mpm@selenic.com, jeremy@goop.org, rientjes@google.com
 
 
 The patch titled
-     maps: add callbacks for each level to page walker
+     maps: make /proc/pid/smaps optional under CONFIG_EMBEDDED
 has been added to the -mm tree.  Its filename is
-     maps2-add-callbacks-for-each-level-to-page-walker.patch
+     maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,14 +25,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps: add callbacks for each level to page walker
+Subject: maps: make /proc/pid/smaps optional under CONFIG_EMBEDDED
 From: Matt Mackall <mpm@selenic.com>
 
-This allows iterating over all levels of the page tables.  Recursion continues
-to the depth of the lowest supplied callback.
-
-This makes the page walker nearly completely generic and should allow it to
-replace some other hand-rolled page table walkers.
+This interface is primarily useful for doing memory profiling and not much use
+on deployed embedded boxes.  Make it optional.  Together with
+/proc/pid/clear_refs, this save a few K.
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
@@ -40,164 +38,73 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   89 +++++++++++++++++++++++++++++++------------
- 1 file changed, 66 insertions(+), 23 deletions(-)
+ fs/proc/base.c     |    4 ++++
+ fs/proc/task_mmu.c |    2 ++
+ init/Kconfig       |    8 ++++++++
+ 3 files changed, 14 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~maps2-add-callbacks-for-each-level-to-page-walker fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-add-callbacks-for-each-level-to-page-walker
+diff -puN fs/proc/base.c~maps2-make-proc-pid-smaps-optional-under-config_embedded fs/proc/base.c
+--- a/fs/proc/base.c~maps2-make-proc-pid-smaps-optional-under-config_embedded
++++ a/fs/proc/base.c
+@@ -1853,8 +1853,10 @@ static struct pid_entry tgid_base_stuff[
+ 	REG("mountstats", S_IRUSR, mountstats),
+ #ifdef CONFIG_MMU
+ 	REG("clear_refs", S_IWUSR, clear_refs),
++#ifdef CONFIG_PROC_SMAPS
+ 	REG("smaps",      S_IRUGO, smaps),
+ #endif
++#endif
+ #ifdef CONFIG_SECURITY
+ 	DIR("attr",       S_IRUGO|S_IXUGO, attr_dir),
+ #endif
+@@ -2135,8 +2137,10 @@ static struct pid_entry tid_base_stuff[]
+ 	REG("mounts",    S_IRUGO, mounts),
+ #ifdef CONFIG_MMU
+ 	REG("clear_refs", S_IWUSR, clear_refs),
++#ifdef CONFIG_PROC_SMAPS
+ 	REG("smaps",     S_IRUGO, smaps),
+ #endif
++#endif
+ #ifdef CONFIG_SECURITY
+ 	DIR("attr",      S_IRUGO|S_IXUGO, attr_dir),
+ #endif
+diff -puN fs/proc/task_mmu.c~maps2-make-proc-pid-smaps-optional-under-config_embedded fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps2-make-proc-pid-smaps-optional-under-config_embedded
 +++ a/fs/proc/task_mmu.c
-@@ -276,10 +276,35 @@ static int clear_refs_pte_range(pmd_t *p
- 	return 0;
- }
+@@ -310,6 +310,7 @@ const struct file_operations proc_maps_o
+ 	.release	= seq_release_private,
+ };
  
-+struct mm_walk {
-+	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, void *);
-+	int (*pud_entry)(pud_t *, unsigned long, unsigned long, void *);
-+	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, void *);
-+	int (*pte_entry)(pte_t *, unsigned long, unsigned long, void *);
-+};
-+
-+static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
-+			  struct mm_walk *walk, void *private)
-+{
-+	pte_t *pte;
-+	int err;
-+
-+	for (pte = pte_offset_map(pmd, addr); addr != end;
-+	     addr += PAGE_SIZE, pte++) {
-+		if (pte_none(*pte))
-+			continue;
-+		err = walk->pte_entry(pte, addr, addr, private);
-+		if (err) {
-+			pte_unmap(pte);
-+			return err;
-+		}
-+	}
-+	pte_unmap(pte);
-+	return 0;
-+}
-+
- static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
--			  int (*action)(pmd_t *, unsigned long,
--					unsigned long, void *),
--			  void *private)
-+			  struct mm_walk *walk, void *private)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -290,18 +315,22 @@ static int walk_pmd_range(pud_t *pud, un
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_none_or_clear_bad(pmd))
- 			continue;
--		err = action(pmd, addr, next, private);
--		if (err)
--			return err;
-+		if (walk->pmd_entry) {
-+			err = walk->pmd_entry(pmd, addr, next, private);
-+			if (err)
-+				return err;
-+		}
-+		if (walk->pte_entry) {
-+			err = walk_pte_range(pmd, addr, next, walk, private);
-+			if (err)
-+				return err;
-+		}
- 	}
--
- 	return 0;
- }
- 
- static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
--			  int (*action)(pmd_t *, unsigned long,
--					unsigned long, void *),
--			  void *private)
-+			  struct mm_walk *walk, void *private)
- {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -312,11 +341,17 @@ static int walk_pud_range(pgd_t *pgd, un
- 		next = pud_addr_end(addr, end);
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
--		err = walk_pmd_range(pud, addr, next, action, private);
--		if (err)
--			return err;
-+		if (walk->pud_entry) {
-+			err = walk->pud_entry(pud, addr, next, private);
-+			if (err)
-+				return err;
-+		}
-+		if (walk->pmd_entry || walk->pte_entry) {
-+			err = walk_pmd_range(pud, addr, next, walk, private);
-+			if (err)
-+				return err;
-+		}
- 	}
--
- 	return 0;
- }
- 
-@@ -333,9 +368,7 @@ static int walk_pud_range(pgd_t *pgd, un
-  */
- static int walk_page_range(struct mm_struct *mm,
- 			   unsigned long addr, unsigned long end,
--			   int (*action)(pmd_t *, unsigned long,
--					 unsigned long, void *),
--			   void *private)
-+			   struct mm_walk *walk, void *private)
- {
- 	pgd_t *pgd;
- 	unsigned long next;
-@@ -346,14 +379,22 @@ static int walk_page_range(struct mm_str
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd))
- 			continue;
--		err = walk_pud_range(pgd, addr, next, action, private);
--		if (err)
--			return err;
-+		if (walk->pgd_entry) {
-+			err = walk->pgd_entry(pgd, addr, next, private);
-+			if (err)
-+				return err;
-+		}
-+		if (walk->pud_entry || walk->pmd_entry || walk->pte_entry) {
-+			err = walk_pud_range(pgd, addr, next, walk, private);
-+			if (err)
-+				return err;
-+		}
- 	}
--
- 	return 0;
- }
- 
-+static struct mm_walk smaps_walk = { .pmd_entry = smaps_pte_range };
-+
- static int show_smap(struct seq_file *m, void *v)
- {
- 	struct vm_area_struct *vma = v;
-@@ -363,10 +404,12 @@ static int show_smap(struct seq_file *m,
- 	mss.vma = vma;
- 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
- 		walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
--				smaps_pte_range, &mss);
-+				&smaps_walk, &mss);
- 	return show_map_internal(m, v, &mss);
- }
- 
-+static struct mm_walk clear_refs_walk = { .pmd_entry = clear_refs_pte_range };
-+
- void clear_refs_smap(struct mm_struct *mm)
++#ifdef CONFIG_PROC_SMAPS
+ struct mem_size_stats
  {
  	struct vm_area_struct *vma;
-@@ -375,7 +418,7 @@ void clear_refs_smap(struct mm_struct *m
- 	for (vma = mm->mmap; vma; vma = vma->vm_next)
- 		if (vma->vm_mm && !is_vm_hugetlb_page(vma))
- 			walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
--					clear_refs_pte_range, vma);
-+					&clear_refs_walk, vma);
- 	flush_tlb_mm(mm);
- 	up_read(&mm->mmap_sem);
- }
+@@ -417,6 +418,7 @@ const struct file_operations proc_smaps_
+ 	.llseek		= seq_lseek,
+ 	.release	= seq_release_private,
+ };
++#endif
+ 
+ static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
+ 				unsigned long end, void *private)
+diff -puN init/Kconfig~maps2-make-proc-pid-smaps-optional-under-config_embedded init/Kconfig
+--- a/init/Kconfig~maps2-make-proc-pid-smaps-optional-under-config_embedded
++++ a/init/Kconfig
+@@ -492,6 +492,14 @@ config VM_EVENT_COUNTERS
+ 	  on EMBEDDED systems.  /proc/vmstat will only show page counts
+ 	  if VM event counters are disabled.
+ 
++config PROC_SMAPS
++	default y
++	bool "Enable /proc/pid/smaps support" if EMBEDDED && PROC_FS && MMU
++	help
++	  The /proc/pid/smaps interface reports a process's private and
++          shared memory per mapping. Disabling this interface will reduce
++          the size of the kernel for small machines.
++
+ endmenu		# General setup
+ 
+ config RT_MUTEXES
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
