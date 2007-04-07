@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch added to -mm tree
-Date: Sat, 07 Apr 2007 01:53:46 -0700
-Message-ID: <200704070856.l378u53G031222@shell0.pdx.osdl.net>
+Subject: + x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch added to -mm tree
+Date: Sat, 07 Apr 2007 02:06:31 -0700
+Message-ID: <200704070908.l3798oqC031374@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48174 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49002 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965524AbXDGI4O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 04:56:14 -0400
+	id S965679AbXDGJRL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 05:17:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, jbeulich@novell.com
+Cc: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, castet.matthieu@free.fr, jt@hpl.hp.com, kaos@ocs.com.au, lenb@kernel.org, mjg59@srcf.ucam.org, rmk+serial@arm.linux.org.uk, samuel@sortiz.org, syrjala@sci.fi
 
 
 The patch titled
-     fix x86_64-mm-fix-amd64-agp-aperture-validation
+     x86-serial-convert-legacy-com-ports-to-platform-devices fix
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
+     x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,37 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix x86_64-mm-fix-amd64-agp-aperture-validation
+Subject: x86-serial-convert-legacy-com-ports-to-platform-devices fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:e820 from .text between 'e820_any_mapped' (at offset 0x7c03) and 'early_panic'
+make[1]: *** No rule to make target `arch/x86_64/kernel/legacy_serial.c', needed by `arch/x86_64/kernel/legacy_serial.o'.  Stop.
 
-x86_64's e820_any_mapped() is called from modprobeable
-drivers/char/agp/amd64-agp.c:aperture_valid().  But it references the
-__initdata e820, which will crash.
-
-e820 must be moved into .data.
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Keith Owens <kaos@ocs.com.au>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Matthieu CASTET <castet.matthieu@free.fr>
+Cc: Jean Tourrilhes <jt@hpl.hp.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Ville Syrjala <syrjala@sci.fi>
+Cc: Russell King <rmk+serial@arm.linux.org.uk>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/e820.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86_64/kernel/e820.c~fix-x86_64-mm-fix-amd64-agp-aperture-validation arch/x86_64/kernel/e820.c
---- a/arch/x86_64/kernel/e820.c~fix-x86_64-mm-fix-amd64-agp-aperture-validation
-+++ a/arch/x86_64/kernel/e820.c
-@@ -27,7 +27,7 @@
- #include <asm/bootsetup.h>
- #include <asm/sections.h>
- 
--struct e820map e820 __initdata;
-+struct e820map e820;
- 
- /* 
-  * PFN of last memory page.
+diff -puN arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices-fix arch/x86_64/kernel/Makefile
+--- a/arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices-fix
++++ a/arch/x86_64/kernel/Makefile
+@@ -59,3 +59,4 @@ i8237-y				+= ../../i386/kernel/i8237.o
+ msr-$(subst m,y,$(CONFIG_X86_MSR))  += ../../i386/kernel/msr.o
+ alternative-y			+= ../../i386/kernel/alternative.o
+ pcspeaker-y			+= ../../i386/kernel/pcspeaker.o
++legacy_serial-y			+= ../../i386/kernel/legacy_serial.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +106,7 @@ git-wireless-vs-git-net.patch
 git-wireless-vs-git-net-2.patch
 revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
 fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
@@ -180,4 +179,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
