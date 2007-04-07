@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch added to -mm tree
-Date: Fri, 06 Apr 2007 22:24:53 -0700
-Message-ID: <200704070524.l375OrUN028169@shell0.pdx.osdl.net>
+Subject: + locks-create-posix-to-flock-helper-functions.patch added to -mm tree
+Date: Fri, 06 Apr 2007 22:40:46 -0700
+Message-ID: <200704070540.l375ekof028386@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44972 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45333 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752062AbXDGFYz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 7 Apr 2007 01:24:55 -0400
+	id S1752192AbXDGFlK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 7 Apr 2007 01:41:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: bfields@citi.umich.edu, eshel@almaden.ibm.com, hch@infradead.org, jack@ucw.cz, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     Add virt_to_head_page and consolidate code in slab and slub
+     locks: create posix-to-flock helper functions
 has been added to the -mm tree.  Its filename is
-     add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+     locks-create-posix-to-flock-helper-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,143 +25,129 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add virt_to_head_page and consolidate code in slab and slub
-From: Christoph Lameter <clameter@sgi.com>
+Subject: locks: create posix-to-flock helper functions
+From: J. Bruce Fields <bfields@citi.umich.edu> - unquoted
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Factor out a bit of messy code by creating posix-to-flock counterparts to the
+existing flock-to-posix helper functions.
+
+Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 ++++++
- mm/slab.c          |    9 ++++-----
- mm/slub.c          |   10 ++++------
- 3 files changed, 14 insertions(+), 11 deletions(-)
+ fs/locks.c |   61 ++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 36 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/mm.h~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub include/linux/mm.h
---- a/include/linux/mm.h~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub
-+++ a/include/linux/mm.h
-@@ -320,6 +320,12 @@ static inline void get_page(struct page 
- 	atomic_inc(&page->_count);
+diff -puN fs/locks.c~locks-create-posix-to-flock-helper-functions fs/locks.c
+--- a/fs/locks.c~locks-create-posix-to-flock-helper-functions
++++ a/fs/locks.c
+@@ -1611,6 +1611,38 @@ asmlinkage long sys_flock(unsigned int f
+ 	return error;
  }
  
-+static inline struct page *virt_to_head_page(const void *x)
++static int posix_lock_to_flock(struct flock *flock, struct file_lock *fl)
 +{
-+	struct page *page = virt_to_page(x);
-+	return compound_head(page);
++	flock->l_pid = fl->fl_pid;
++#if BITS_PER_LONG == 32
++	/*
++	 * Make sure we can represent the posix lock via
++	 * legacy 32bit flock.
++	 */
++	if (fl->fl_start > OFFT_OFFSET_MAX)
++		return -EOVERFLOW;
++	if (fl->fl_end != OFFSET_MAX && fl->fl_end > OFFT_OFFSET_MAX)
++		return -EOVERFLOW;
++#endif
++	flock->l_start = fl->fl_start;
++	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
++		fl->fl_end - fl->fl_start + 1;
++	flock->l_whence = 0;
++	return 0;
 +}
 +
- /*
-  * Setup the page count before being freed into the page allocator for
-  * the first time (boot or memory hotplug)
-diff -puN mm/slab.c~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub mm/slab.c
---- a/mm/slab.c~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub
-+++ a/mm/slab.c
-@@ -614,20 +614,19 @@ static inline void page_set_slab(struct 
- 
- static inline struct slab *page_get_slab(struct page *page)
- {
--	page = compound_head(page);
- 	BUG_ON(!PageSlab(page));
- 	return (struct slab *)page->lru.prev;
- }
- 
- static inline struct kmem_cache *virt_to_cache(const void *obj)
- {
--	struct page *page = virt_to_page(obj);
-+	struct page *page = virt_to_head_page(obj);
- 	return page_get_cache(page);
- }
- 
- static inline struct slab *virt_to_slab(const void *obj)
- {
--	struct page *page = virt_to_page(obj);
-+	struct page *page = virt_to_head_page(obj);
- 	return page_get_slab(page);
- }
- 
-@@ -2873,7 +2872,7 @@ static void *cache_free_debugcheck(struc
- 
- 	objp -= obj_offset(cachep);
- 	kfree_debugcheck(objp);
--	page = virt_to_page(objp);
-+	page = virt_to_head_page(objp);
- 
- 	slabp = page_get_slab(page);
- 
-@@ -3097,7 +3096,7 @@ static void *cache_alloc_debugcheck_afte
- 		struct slab *slabp;
- 		unsigned objnr;
- 
--		slabp = page_get_slab(virt_to_page(objp));
-+		slabp = page_get_slab(virt_to_head_page(objp));
- 		objnr = (unsigned)(objp - slabp->s_mem) / cachep->buffer_size;
- 		slab_bufctl(slabp)[objnr] = BUFCTL_ACTIVE;
++#if BITS_PER_LONG == 32
++static void posix_lock_to_flock64(struct flock64 *flock, struct file_lock *fl)
++{
++	flock->l_pid = fl->fl_pid;
++	flock->l_start = fl->fl_start;
++	flock->l_len = fl->fl_end == OFFSET_MAX ? 0 :
++		fl->fl_end - fl->fl_start + 1;
++	flock->l_whence = 0;
++	flock->l_type = fl->fl_type;
++}
++#endif
++
+ /* Report the first existing lock that would conflict with l.
+  * This implements the F_GETLK command of fcntl().
+  */
+@@ -1645,24 +1677,9 @@ int fcntl_getlk(struct file *filp, struc
+  
+ 	flock.l_type = F_UNLCK;
+ 	if (fl != NULL) {
+-		flock.l_pid = fl->fl_pid;
+-#if BITS_PER_LONG == 32
+-		/*
+-		 * Make sure we can represent the posix lock via
+-		 * legacy 32bit flock.
+-		 */
+-		error = -EOVERFLOW;
+-		if (fl->fl_start > OFFT_OFFSET_MAX)
++		error = posix_lock_to_flock(&flock, fl);
++		if (error)
+ 			goto out;
+-		if ((fl->fl_end != OFFSET_MAX)
+-		    && (fl->fl_end > OFFT_OFFSET_MAX))
+-			goto out;
+-#endif
+-		flock.l_start = fl->fl_start;
+-		flock.l_len = fl->fl_end == OFFSET_MAX ? 0 :
+-			fl->fl_end - fl->fl_start + 1;
+-		flock.l_whence = 0;
+-		flock.l_type = fl->fl_type;
  	}
-diff -puN mm/slub.c~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub mm/slub.c
---- a/mm/slub.c~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub
-+++ a/mm/slub.c
-@@ -1271,9 +1271,7 @@ void kmem_cache_free(struct kmem_cache *
- {
- 	struct page * page;
- 
--	page = virt_to_page(x);
--
--	page = compound_head(page);
-+	page = virt_to_head_page(x);
- 
- 	if (unlikely(PageError(page) && (s->flags & SLAB_STORE_USER)))
- 		set_tracking(s, x, 1);
-@@ -1284,7 +1282,7 @@ EXPORT_SYMBOL(kmem_cache_free);
- /* Figure out on which slab object the object resides */
- static struct page *get_object_page(const void *x)
- {
--	struct page *page = compound_head(virt_to_page(x));
-+	struct page *page = virt_to_head_page(x);
- 
- 	if (!PageSlab(page))
- 		return NULL;
-@@ -1891,7 +1889,7 @@ void kfree(const void *x)
- 	if (!x)
- 		return;
- 
--	page = compound_head(virt_to_page(x));
-+	page = virt_to_head_page(x);
- 
- 	s = page->slab;
- 
-@@ -1927,7 +1925,7 @@ void *krealloc(const void *p, size_t new
- 		return NULL;
+ 	error = -EFAULT;
+ 	if (!copy_to_user(l, &flock, sizeof(flock)))
+@@ -1798,14 +1815,8 @@ int fcntl_getlk64(struct file *filp, str
  	}
- 
--	page = compound_head(virt_to_page(p));
-+	page = virt_to_head_page(p);
- 
- 	new_cache = get_slab(new_size, flags);
- 
+  
+ 	flock.l_type = F_UNLCK;
+-	if (fl != NULL) {
+-		flock.l_pid = fl->fl_pid;
+-		flock.l_start = fl->fl_start;
+-		flock.l_len = fl->fl_end == OFFSET_MAX ? 0 :
+-			fl->fl_end - fl->fl_start + 1;
+-		flock.l_whence = 0;
+-		flock.l_type = fl->fl_type;
+-	}
++	if (fl != NULL)
++		posix_lock_to_flock64(&flock, fl);
+ 	error = -EFAULT;
+ 	if (!copy_to_user(l, &flock, sizeof(flock)))
+ 		error = 0;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
-slub-add-slabinfo-tool.patch
-make-page-private-usable-in-compound-pages-v1.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-extend-print_symbol-capability-fix.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-readahead-state-based-method-aging-accounting.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+remove-nfs4_acl_add_ace.patch
+locks-trivial-removal-of-unnecessary-parentheses.patch
+locks-create-posix-to-flock-helper-functions.patch
+locks-make-lock-release-private-data-before-returning-in-getlk-case.patch
+locks-give-posix_test_lock-same-interface-as-lock.patch
+locks-factor-out-generic-filesystem-switch-from-test_lock.patch
+locks-factor-out-generic-filesystem-switch-from-setlock-code.patch
+locks-allow-vfsposix_lock_file-to-return-conflicting-lock.patch
+locks-add-fl_notify-arguments-for-asynchronous-lock-return.patch
+locks-add-lock-cancel-command.patch
+nfsd4-convert-nfsv4-to-new-lock-interface.patch
+lockd-save-lock-state-on-deferral.patch
+lockd-handle-fl_notify-callbacks.patch
+lockd-pass-cookie-in-nlmsvc_testlock.patch
+lockd-handle-test_lock-deferrals.patch
+lockd-always-preallocate-block-in-nlmsvc_lock.patch
+lockd-add-code-to-handle-deferred-lock-requests.patch
+gfs2-nfs-lock-support-for-gfs2.patch
