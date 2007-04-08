@@ -1,52 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - git-hid-vs-git-input.patch removed from -mm tree
-Date: Sun, 08 Apr 2007 01:54:01 -0700
-Message-ID: <200704080854.l388s1Pk019568@shell0.pdx.osdl.net>
+Subject: - utrace-kill-assertions.patch removed from -mm tree
+Date: Sun, 08 Apr 2007 02:02:28 -0700
+Message-ID: <200704080902.l3892SwC019692@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44344 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44639 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751551AbXDHIyD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 8 Apr 2007 04:54:03 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l388s1PD021155
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 8 Apr 2007 01:54:01 -0700
+	id S1752804AbXDHJCj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 8 Apr 2007 05:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-hid-vs-git-input
+     utrace-kill-assertions
 has been removed from the -mm tree.  Its filename was
-     git-hid-vs-git-input.patch
+     utrace-kill-assertions.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-hid-vs-git-input
+Subject: utrace-kill-assertions
 From: Andrew Morton <akpm@linux-foundation.org>
 
+It has problems.
+
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/input/Makefile |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/ptrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/input/Makefile~git-hid-vs-git-input drivers/usb/input/Makefile
---- a/drivers/usb/input/Makefile~git-hid-vs-git-input
-+++ a/drivers/usb/input/Makefile
-@@ -10,9 +10,6 @@ obj-$(CONFIG_USB_ATI_REMOTE)	+= ati_remo
- obj-$(CONFIG_USB_ATI_REMOTE2)	+= ati_remote2.o
- obj-$(CONFIG_USB_KBTAB)		+= kbtab.o
- obj-$(CONFIG_USB_KEYSPAN_REMOTE)	+= keyspan_remote.o
--obj-$(CONFIG_USB_MTOUCH)	+= mtouchusb.o
--obj-$(CONFIG_USB_ITMTOUCH)	+= itmtouch.o
--obj-$(CONFIG_USB_EGALAX)	+= touchkitusb.o
- obj-$(CONFIG_USB_TOUCHSCREEN)	+= usbtouchscreen.o
- obj-$(CONFIG_USB_POWERMATE)	+= powermate.o
- obj-$(CONFIG_USB_WACOM)		+= wacom.o
+diff -puN kernel/ptrace.c~utrace-kill-assertions kernel/ptrace.c
+--- a/kernel/ptrace.c~utrace-kill-assertions
++++ a/kernel/ptrace.c
+@@ -26,7 +26,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/uaccess.h>
+ 
+-#ifdef CONFIG_DEBUG_PREEMPT
++#if 0
+ #define NO_LOCKS	BUG_ON(preempt_count() != 0)
+ #define START_CHECK	do { int _dbg_preempt = preempt_count()
+ #define	END_CHECK	BUG_ON(preempt_count() != _dbg_preempt); } while (0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +65,6 @@ git-gfs2-nmw.patch
 git-ieee1394.patch
 git-input.patch
 git-input-fixup.patch
-git-hid-vs-git-input.patch
 git-kvm.patch
 git-libata-all.patch
 libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
@@ -157,7 +154,6 @@ utrace-prep-2.patch
 undo-utrace-prep-2.patch
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 utrace-printk-borkage.patch
-utrace-fix-bug.patch
 utrace-kill-assertions.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 local_t-powerpc-extension.patch
