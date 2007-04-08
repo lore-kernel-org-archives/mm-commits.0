@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix.patch added to -mm tree
-Date: Sun, 08 Apr 2007 13:07:59 -0700
-Message-ID: <200704082010.l38KAKdv029539@shell0.pdx.osdl.net>
+Subject: + drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch added to -mm tree
+Date: Sun, 08 Apr 2007 13:43:34 -0700
+Message-ID: <200704082045.l38KjsWC030009@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56257 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56593 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751980AbXDHUKc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 8 Apr 2007 16:10:32 -0400
+	id S1751980AbXDHUqE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 8 Apr 2007 16:46:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, bk@suse.de, davej@codemonkey.org.uk
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix
+     drivers/ata/pata_cmd640.c: fix build with CONFIG_PM=n
 has been added to the -mm tree.  Its filename is
-     mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix.patch
+     drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,103 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix
+Subject: drivers/ata/pata_cmd640.c: fix build with CONFIG_PM=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix `make headers_check'.
+This is grubby, but all the ata drivers do it this way.
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Bernhard Kaindl <bk@suse.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Would it not be better to do
+
+#define ata_scsi_device_resume NULL
+
+in libata.h, remove all those ifdefs?
+
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c |   11 +++++++++++
- include/asm-i386/mtrr.h          |   12 +-----------
- include/asm-x86_64/proto.h       |   12 +-----------
- 3 files changed, 13 insertions(+), 22 deletions(-)
+ drivers/ata/pata_cmd640.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/i386/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix arch/i386/kernel/smpboot.c
-diff -puN arch/x86_64/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix arch/x86_64/kernel/smpboot.c
-diff -puN include/asm-i386/mtrr.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix include/asm-i386/mtrr.h
---- a/include/asm-i386/mtrr.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix
-+++ a/include/asm-i386/mtrr.h
-@@ -25,7 +25,6 @@
+diff -puN drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n drivers/ata/pata_cmd640.c
+--- a/drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n
++++ a/drivers/ata/pata_cmd640.c
+@@ -181,8 +181,10 @@ static struct scsi_host_template cmd640_
+ 	.slave_configure	= ata_scsi_slave_config,
+ 	.slave_destroy		= ata_scsi_slave_destroy,
+ 	.bios_param		= ata_std_bios_param,
++#ifdef CONFIG_PM
+ 	.resume			= ata_scsi_device_resume,
+ 	.suspend		= ata_scsi_device_suspend,
++#endif
+ };
  
- #include <linux/ioctl.h>
- #include <linux/errno.h>
--#include <linux/smp.h>
- 
- #define	MTRR_IOCTL_BASE	'M'
- 
-@@ -71,16 +70,7 @@ struct mtrr_gentry
- /*  The following functions are for use by other drivers  */
- # ifdef CONFIG_MTRR
- extern void mtrr_save_fixed_ranges(void *);
--/**
-- * Save current fixed-range MTRR state of the BSP
-- */
--static __inline__ void mtrr_save_state (void)
--{
--	if (smp_processor_id() == 0)
--		mtrr_save_fixed_ranges(NULL);
--	else
--		smp_call_function_single(0, mtrr_save_fixed_ranges, NULL, 1, 1);
--}
-+extern void mtrr_save_state(void);
- extern int mtrr_add (unsigned long base, unsigned long size,
- 		     unsigned int type, char increment);
- extern int mtrr_add_page (unsigned long base, unsigned long size,
-diff -puN include/asm-x86_64/proto.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix
-+++ a/include/asm-x86_64/proto.h
-@@ -2,7 +2,6 @@
- #define _ASM_X8664_PROTO_H 1
- 
- #include <asm/ldt.h>
--#include <linux/smp.h>
- 
- /* misc architecture specific prototypes */
- 
-@@ -19,16 +18,7 @@ extern void mcheck_init(struct cpuinfo_x
- extern void mtrr_ap_init(void);
- extern void mtrr_bp_init(void);
- extern void mtrr_save_fixed_ranges(void *);
--static __inline__ void mtrr_save_state (void)
--{
--	/*
--	 * Save current fixed-range MTRR state of the BSP:
--	 */
--	if (smp_processor_id() == 0)
--		mtrr_save_fixed_ranges(NULL);
--	else
--		smp_call_function_single(0, mtrr_save_fixed_ranges, NULL, 1, 1);
--}
-+extern void mtrr_save_state(void);
- #else
- #define mtrr_ap_init() do {} while (0)
- #define mtrr_bp_init() do {} while (0)
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -729,6 +729,17 @@ void mtrr_ap_init(void)
- 	local_irq_restore(flags);
- }
- 
-+/**
-+ * Save current fixed-range MTRR state of the BSP
-+ */
-+void mtrr_save_state(void)
-+{
-+	if (smp_processor_id() == 0)
-+		mtrr_save_fixed_ranges(NULL);
-+	else
-+		smp_call_function_single(0, mtrr_save_fixed_ranges, NULL, 1, 1);
-+}
-+
- static int __init mtrr_init_finialize(void)
- {
- 	if (!mtrr_if)
+ static struct ata_port_operations cmd640_port_ops = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -253,3 +190,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
