@@ -1,50 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - utrace-kill-assertions.patch removed from -mm tree
-Date: Sun, 08 Apr 2007 02:02:28 -0700
-Message-ID: <200704080902.l3892SwC019692@shell0.pdx.osdl.net>
+Subject: - utrace-fix-bug.patch removed from -mm tree
+Date: Sun, 08 Apr 2007 02:13:08 -0700
+Message-ID: <200704080913.l389D8Nl019809@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44639 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44954 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752804AbXDHJCj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 8 Apr 2007 05:02:39 -0400
+	id S1752848AbXDHJNT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 8 Apr 2007 05:13:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     utrace-kill-assertions
+     utrace: fix BUG()
 has been removed from the -mm tree.  Its filename was
-     utrace-kill-assertions.patch
+     utrace-fix-bug.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: utrace-kill-assertions
+Subject: utrace: fix BUG()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It has problems.
+We hold read_lock(tasklist_lock) in here.
 
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/ptrace.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/ptrace.c~utrace-kill-assertions kernel/ptrace.c
---- a/kernel/ptrace.c~utrace-kill-assertions
+diff -puN kernel/ptrace.c~utrace-fix-bug kernel/ptrace.c
+--- a/kernel/ptrace.c~utrace-fix-bug
 +++ a/kernel/ptrace.c
-@@ -26,7 +26,7 @@
- #include <asm/pgtable.h>
- #include <asm/uaccess.h>
+@@ -1278,8 +1278,6 @@ found:
+ 		 current->pid, tsk->pid, p->pid, exit_code,
+ 		 p->exit_state, p->exit_signal);
  
--#ifdef CONFIG_DEBUG_PREEMPT
-+#if 0
- #define NO_LOCKS	BUG_ON(preempt_count() != 0)
- #define START_CHECK	do { int _dbg_preempt = preempt_count()
- #define	END_CHECK	BUG_ON(preempt_count() != _dbg_preempt); } while (0)
+-	NO_LOCKS;
+-
+ 	/*
+ 	 * If there was a group exit in progress, all threads report that
+ 	 * status.  Most will have SIGKILL in their own exit_code.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,7 +154,6 @@ utrace-prep-2.patch
 undo-utrace-prep-2.patch
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 utrace-printk-borkage.patch
-utrace-kill-assertions.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 local_t-powerpc-extension.patch
 linux-kernel-markers-i386-optimization-fix.patch
