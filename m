@@ -1,217 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch added to -mm tree
-Date: Sun, 08 Apr 2007 13:45:26 -0700
-Message-ID: <200704082047.l38KlkZ7030028@shell0.pdx.osdl.net>
+Subject: - mtrr-implement-mtrr_save_fixed_ranges.patch removed from -mm tree
+Date: Sun, 08 Apr 2007 13:53:32 -0700
+Message-ID: <200704082053.l38Kra3G030109@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56618 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56721 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751806AbXDHUry (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 8 Apr 2007 16:47:54 -0400
+	id S1752009AbXDHUxq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 8 Apr 2007 16:53:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org
+To: bk@suse.de, ak@suse.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ata/pata_cmd640.c: fix build with CONFIG_PM=n
-has been added to the -mm tree.  Its filename is
-     drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+     mtrr: implement mtrr_save_fixed_ranges()
+has been removed from the -mm tree.  Its filename was
+     mtrr-implement-mtrr_save_fixed_ranges.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: drivers/ata/pata_cmd640.c: fix build with CONFIG_PM=n
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mtrr: implement mtrr_save_fixed_ranges()
+From: Bernhard Kaindl <bk@suse.de>
 
-This is grubby, but all the ata drivers do it this way.
+This patch implements mtrr_save_fixed_ranges() which can be called from
+anywhere anytime to retrieve the fixed-range MTRRs from the current CPU and
+saves these MTRR values to the MTRR state struct.
 
-Would it not be better to do
+This function calls get_fixed_ranges(), passing mtrr_state.fixed_ranges which
+is the element of the static struct which stores our current backup of the
+fixed-range MTRR values which all CPUs shall be using.
 
-#define ata_scsi_device_resume NULL
+Because mtrr_save_fixed_ranges calls get_fixed_ranges() after kernel
+initialisation time, __init needs to be removed from the declaration of
+get_fixed_ranges().
 
-in libata.h, remove all those ifdefs?
-
-(updated version, ug, ug)
-
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Bernhard Kaindl <bk@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cmd640.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/i386/kernel/cpu/mtrr/generic.c |   20 +++++++++++++++++---
+ include/asm-i386/mtrr.h             |    2 ++
+ include/asm-x86_64/proto.h          |    2 ++
+ 3 files changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n drivers/ata/pata_cmd640.c
---- a/drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n
-+++ a/drivers/ata/pata_cmd640.c
-@@ -181,8 +181,10 @@ static struct scsi_host_template cmd640_
- 	.slave_configure	= ata_scsi_slave_config,
- 	.slave_destroy		= ata_scsi_slave_destroy,
- 	.bios_param		= ata_std_bios_param,
-+#ifdef CONFIG_PM
- 	.resume			= ata_scsi_device_resume,
- 	.suspend		= ata_scsi_device_suspend,
-+#endif
- };
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~mtrr-implement-mtrr_save_fixed_ranges arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~mtrr-implement-mtrr_save_fixed_ranges
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -29,8 +29,11 @@ static struct mtrr_state mtrr_state = {}
+ static int mtrr_show;
+ module_param_named(show, mtrr_show, bool, 0);
  
- static struct ata_port_operations cmd640_port_ops = {
-@@ -267,7 +269,11 @@ static int cmd640_init_one(struct pci_de
- static int cmd640_reinit_one(struct pci_dev *pdev)
+-/*  Get the MSR pair relating to a var range  */
+-static void __cpuinit
++/**
++ * Retrieves the current fixed-range MTRRs from the current CPU
++ * \param frs address where to write the current MTRR contents
++ */
++static void
+ get_mtrr_var_range(unsigned int index, struct mtrr_var_range *vr)
  {
- 	cmd640_hardware_init(pdev);
-+#ifdef CONFIG_PM
- 	return ata_pci_device_resume(pdev);
-+#else
-+	return 0;
-+#endif
+ 	rdmsr(MTRRphysBase_MSR(index), vr->base_lo, vr->base_hi);
+@@ -51,7 +54,18 @@ get_fixed_ranges(mtrr_type * frs)
+ 		rdmsr(MTRRfix4K_C0000_MSR + i, p[6 + i * 2], p[7 + i * 2]);
  }
  
- static const struct pci_device_id cmd640[] = {
-@@ -280,7 +286,9 @@ static struct pci_driver cmd640_pci_driv
- 	.id_table	= cmd640,
- 	.probe 		= cmd640_init_one,
- 	.remove		= ata_pci_remove_one,
-+#ifdef CONFIG_PM
- 	.suspend	= ata_pci_device_suspend,
-+#endif
- 	.resume		= cmd640_reinit_one,
- };
+-static void __cpuinit print_fixed(unsigned base, unsigned step, const mtrr_type*types)
++/**
++ * Updates our copy of the state of the fixed-range MTRR values
++ * with the current fixed-range MTRR contents from the current CPU
++ * \param info dummy needed for use by smp_call_function_single()
++ */
++void mtrr_save_fixed_ranges(void *info)
++{
++	get_fixed_ranges(mtrr_state.fixed_ranges);
++}
++
++static void __cpuinit print_fixed(unsigned base, unsigned step,
++				const mtrr_type*types)
+ {
+ 	unsigned i;
+ 
+diff -puN include/asm-i386/mtrr.h~mtrr-implement-mtrr_save_fixed_ranges include/asm-i386/mtrr.h
+--- a/include/asm-i386/mtrr.h~mtrr-implement-mtrr_save_fixed_ranges
++++ a/include/asm-i386/mtrr.h
+@@ -69,6 +69,7 @@ struct mtrr_gentry
+ 
+ /*  The following functions are for use by other drivers  */
+ # ifdef CONFIG_MTRR
++extern void mtrr_save_fixed_ranges(void *);
+ extern int mtrr_add (unsigned long base, unsigned long size,
+ 		     unsigned int type, char increment);
+ extern int mtrr_add_page (unsigned long base, unsigned long size,
+@@ -79,6 +80,7 @@ extern void mtrr_centaur_report_mcr(int 
+ extern void mtrr_ap_init(void);
+ extern void mtrr_bp_init(void);
+ #  else
++#define mtrr_save_fixed_ranges(arg) do {} while (0)
+ static __inline__ int mtrr_add (unsigned long base, unsigned long size,
+ 				unsigned int type, char increment)
+ {
+diff -puN include/asm-x86_64/proto.h~mtrr-implement-mtrr_save_fixed_ranges include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~mtrr-implement-mtrr_save_fixed_ranges
++++ a/include/asm-x86_64/proto.h
+@@ -17,9 +17,11 @@ extern void mcheck_init(struct cpuinfo_x
+ #ifdef CONFIG_MTRR
+ extern void mtrr_ap_init(void);
+ extern void mtrr_bp_init(void);
++extern void mtrr_save_fixed_ranges(void *);
+ #else
+ #define mtrr_ap_init() do {} while (0)
+ #define mtrr_bp_init() do {} while (0)
++#define mtrr_save_fixed_ranges(arg) do {} while (0)
+ #endif
+ extern void init_memory_mapping(unsigned long start, unsigned long end);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bk@suse.de are
 
-origin.patch
-x86_64-early-quirks-fix-early_qrk-section-tag.patch
-i386-irqbalance_disable-section-fix.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-avr32.patch
-git-avr32-fixup.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-git-ocfs2.patch
-git-parisc.patch
-git-r8169-fixup.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+mtrr-implement-mtrr_save_fixed_ranges.patch
+mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
 mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap-fix.patch
-xfs-clean-up-shrinker-games.patch
-pktgen-add-try_to_freeze.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+mtrr-bsp-save-and-restore-fixed-range-mtrrs-during-suspend.patch
+mtrr-enable-fixed-range-iorrs-to-sync-rdmem-and-wrmem.patch
