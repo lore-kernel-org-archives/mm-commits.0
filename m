@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch added to -mm tree
-Date: Sun, 08 Apr 2007 02:35:54 -0700
-Message-ID: <200704080935.l389ZsOI020150@shell0.pdx.osdl.net>
+Subject: + paravirt_ops-clean-up-paravirt-patchable-wrappers.patch added to -mm tree
+Date: Sun, 08 Apr 2007 02:37:03 -0700
+Message-ID: <200704080937.l389b3oc020169@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45756 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45776 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752897AbXDHJgN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 8 Apr 2007 05:36:13 -0400
+	id S1752897AbXDHJh0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 8 Apr 2007 05:37:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bk@suse.de, ak@suse.de, davej@codemonkey.org.uk
+Cc: jeremy@goop.org, jeremy@xensource.com, mingo@elte.hu
 
 
 The patch titled
-     mtrr: save the MTRRs of the BSP before booting an AP
+     paravirt_ops: clean up paravirt patchable wrappers
 has been added to the -mm tree.  Its filename is
-     mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
+     paravirt_ops-clean-up-paravirt-patchable-wrappers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,197 +25,356 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mtrr: save the MTRRs of the BSP before booting an AP
-From: Bernhard Kaindl <bk@suse.de>
+Subject: paravirt_ops: clean up paravirt patchable wrappers
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-While I haven't found this as cause of the MTRR suspend issue on the Ferraris,
-AMD and Intel x86 CPU manuals state that it is the responsibility of system
-software to initialize and maintain MTRR consistency across all processors in
-Multi-Processing Environments:
+Replace all the open-coded macros for generating calls with a pair of more
+general macros (__PVOP_CALL/VCALL), and redefine all the PVOP_V?CALL[0-4]
+in terms of them.
 
-Quote from page 188 of the AMD64 System Programming manual (Volume 2):
-
------------------------------------------------------------------------------
-7.6.5 MTRRs in Multi-Processing Environments
-
-"In multi-processing environments, the MTRRs located in all processors must
-characterize memory in the same way. Generally, this means that identical
-values are written to the MTRRs used by the processors." (short omission here)
-"Failure to do so may result in coherency violations or loss of atomicity.
-Processor implementations do not check the MTRR settings in other processors
-to ensure consistency. It is the responsibility of system software to
-initialize and maintain MTRR consistency across all processors."
------------------------------------------------------------------------------
-
-Current Linux MTRR code already implements the above in the case that the BIOS
-does not properly initialize MTRRs on the secondary processors, but the case
-where the fixed-range MTRRs of the boot processor are changed after Linux
-started to boot, before the initialsation of a secondary processor, is not
-handled yet.
-
-In this case, secondary processors are currently initialized by Linux with
-MTRRs which the boot processor had very early, when mtrr_bp_init() did run,
-but not with the MTRRs which the boot processor uses at the time when that
-secondary processors is actually booted, causing differing MTRR contents on
-the secondary processors.
-
-Such situation happens on Acer Ferrari 1000 and 5000 notebooks where the BIOS
-enables and sets AMD-specific IORR bits in the fixed-range MTRRs of the boot
-processor when it transitions the system into ACPI mode.  The SMI handler of
-the BIOS does this in SMM, entered while Linux ACPI code runs acpi_enable().
-
-Other occasions where the SMI handler of the BIOS may change bits in the MTRRs
-could occur as well.  To initialize newly booted secodary processors with the
-fixed-range MTRRs which the boot processor uses at that time, this patch saves
-the fixed-range MTRRs of the boot processor before new secondary processors
-are started.  When the secondary processors run their Linux initialisation
-code, their fixed-range MTRRs will be updated with the saved fixed-range
-MTRRs.
-
-Possible TODOs:
-
-*) CPU-hotplugging outside of SMP suspend/resume is not yet tested
-   with this patch.
-
-*) If, even in this case, an AP never runs i386/do_boot_cpu or x86_64/cpu_up,
-   then the calls to mtrr_save_state() could be replaced by calls to
-   mtrr_save_fixed_ranges(NULL) and  mtrr_save_state() would not be
-   needed.
-
-   That would need either verification of the CPU-hotplug code.
-
-*) The MTRRs of other running processors are not yet checked at this
-   time but it might be interesting to syncronize the MTTRs of all
-   processors before booting new CPUs. That would be an incremental
-   patch, of rather low priority since there is no machine known so
-   far which would require this.
-
-Signed-off-by: Bernhard Kaindl <bk@suse.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smpboot.c   |    7 +++++++
- arch/x86_64/kernel/smpboot.c |    6 ++++++
- include/asm-i386/mtrr.h      |   12 ++++++++++++
- include/asm-x86_64/proto.h   |   12 ++++++++++++
- 4 files changed, 37 insertions(+)
+ include/asm-i386/paravirt.h |  248 ++++++++--------------------------
+ 1 file changed, 60 insertions(+), 188 deletions(-)
 
-diff -puN arch/i386/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/arch/i386/kernel/smpboot.c
-@@ -53,6 +53,7 @@
- #include <asm/desc.h>
- #include <asm/arch_hooks.h>
- #include <asm/nmi.h>
-+#include <asm/mtrr.h
- #include <asm/pda.h>
+diff -puN include/asm-i386/paravirt.h~paravirt_ops-clean-up-paravirt-patchable-wrappers include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~paravirt_ops-clean-up-paravirt-patchable-wrappers
++++ a/include/asm-i386/paravirt.h
+@@ -312,211 +312,81 @@ extern struct paravirt_ops paravirt_ops;
+  * means that all uses must be wrapped in inline functions.  This also
+  * makes sure the incoming and outgoing types are always correct.
+  */
+-#define PVOP_CALL0(__rettype, __op)					\
+-	({								\
+-		__rettype __ret;					\
+-		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
+-			unsigned long long __tmp;			\
+-			unsigned long __ecx;				\
+-			asm volatile(paravirt_alt(PARAVIRT_CALL)	\
+-				     : "=A" (__tmp), "=c" (__ecx)	\
+-				     : paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
+-				     : "memory", "cc");			\
+-			__ret = (__rettype)__tmp;			\
+-		} else {						\
+-			unsigned long __tmp, __edx, __ecx;		\
+-			asm volatile(paravirt_alt(PARAVIRT_CALL)	\
+-				     : "=a" (__tmp), "=d" (__edx),	\
+-				       "=c" (__ecx)			\
+-				     : paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
+-				     : "memory", "cc");			\
+-			__ret = (__rettype)__tmp;			\
+-		}							\
+-		__ret;							\
+-	})
+-#define PVOP_VCALL0(__op)						\
++#define __PVOP_CALL(rettype, op, pre, post, ...)			\
+ 	({								\
++		rettype __ret;						\
+ 		unsigned long __eax, __edx, __ecx;			\
+-		asm volatile(paravirt_alt(PARAVIRT_CALL)		\
+-			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
+-			     : paravirt_type(__op),			\
+-			       paravirt_clobber(CLBR_ANY)		\
+-			     : "memory", "cc");				\
+-	})
+-
+-#define PVOP_CALL1(__rettype, __op, arg1)				\
+-	({								\
+-		__rettype __ret;					\
+-		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
+-			unsigned long long __tmp;			\
+-			unsigned long __ecx;				\
+-			asm volatile(paravirt_alt(PARAVIRT_CALL)	\
+-				     : "=A" (__tmp), "=c" (__ecx)	\
+-				     : "a" ((u32)(arg1)),		\
+-				       paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
+-				     : "memory", "cc");			\
+-			__ret = (__rettype)__tmp;			\
+-		} else {						\
+-			unsigned long __tmp, __edx, __ecx;		\
+-			asm volatile(paravirt_alt(PARAVIRT_CALL)	\
+-				     : "=a" (__tmp), "=d" (__edx),	\
+-				       "=c" (__ecx)			\
+-				     : "0" ((u32)(arg1)),		\
+-				       paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
+-				     : "memory", "cc");			\
+-			__ret = (__rettype)__tmp;			\
+-		}							\
+-		__ret;							\
+-	})
+-#define PVOP_VCALL1(__op, arg1)						\
+-	({								\
+-		unsigned long __eax, __edx, __ecx;			\
+-		asm volatile(paravirt_alt(PARAVIRT_CALL)		\
+-			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
+-			     : "0" ((u32)(arg1)),			\
+-			       paravirt_type(__op),			\
+-			       paravirt_clobber(CLBR_ANY)		\
+-			     : "memory", "cc");				\
+-	})
+-
+-#define PVOP_CALL2(__rettype, __op, arg1, arg2)				\
+-	({								\
+-		__rettype __ret;					\
+-		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
+-			unsigned long long __tmp;			\
+-			unsigned long __ecx;				\
+-			asm volatile(paravirt_alt(PARAVIRT_CALL)	\
+-				     : "=A" (__tmp), "=c" (__ecx)	\
+-				     : "a" ((u32)(arg1)),		\
+-				       "d" ((u32)(arg2)),		\
+-				       paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
+-				     : "memory", "cc");			\
+-			__ret = (__rettype)__tmp;			\
+-		} else {						\
+-			unsigned long __tmp, __edx, __ecx;		\
+-			asm volatile(paravirt_alt(PARAVIRT_CALL)	\
+-				     : "=a" (__tmp), "=d" (__edx),	\
+-				       "=c" (__ecx)			\
+-				     : "0" ((u32)(arg1)),		\
+-				       "1" ((u32)(arg2)),		\
+-				       paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
+-				     : "memory", "cc");			\
+-			__ret = (__rettype)__tmp;			\
+-		}							\
+-		__ret;							\
+-	})
+-#define PVOP_VCALL2(__op, arg1, arg2)					\
+-	({								\
+-		unsigned long __eax, __edx, __ecx;			\
+-		asm volatile(paravirt_alt(PARAVIRT_CALL)		\
+-			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
+-			     : "0" ((u32)(arg1)),			\
+-			       "1" ((u32)(arg2)),			\
+-			       paravirt_type(__op),			\
+-			       paravirt_clobber(CLBR_ANY)		\
+-			     : "memory", "cc");				\
+-	})
+-
+-#define PVOP_CALL3(__rettype, __op, arg1, arg2, arg3)			\
+-	({								\
+-		__rettype __ret;					\
+-		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
+-			unsigned long long __tmp;			\
+-			unsigned long __ecx;				\
+-			asm volatile(paravirt_alt(PARAVIRT_CALL)	\
+-				     : "=A" (__tmp), "=c" (__ecx)	\
+-				     : "a" ((u32)(arg1)),		\
+-				       "d" ((u32)(arg2)),		\
+-				       "1" ((u32)(arg3)),		\
+-				       paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
+-				     : "memory", "cc");			\
+-			__ret = (__rettype)__tmp;			\
+-		} else {						\
+-			unsigned long __tmp, __edx, __ecx;	\
+-			asm volatile(paravirt_alt(PARAVIRT_CALL)	\
+-				     : "=a" (__tmp), "=d" (__edx),	\
++		if (sizeof(rettype) > sizeof(unsigned long)) {		\
++			asm volatile(pre				\
++				     paravirt_alt(PARAVIRT_CALL)	\
++				     post				\
++				     : "=a" (__eax), "=d" (__edx),	\
+ 				       "=c" (__ecx)			\
+-				     : "0" ((u32)(arg1)),		\
+-				       "1" ((u32)(arg2)),		\
+-				       "2" ((u32)(arg3)),		\
+-				       paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
++				     : paravirt_type(op),		\
++				       paravirt_clobber(CLBR_ANY),	\
++				       ##__VA_ARGS__			\
+ 				     : "memory", "cc");			\
+-			__ret = (__rettype)__tmp;			\
+-		}							\
+-		__ret;							\
+-	})
+-#define PVOP_VCALL3(__op, arg1, arg2, arg3)				\
+-	({								\
+-		unsigned long __eax, __edx, __ecx;			\
+-		asm volatile(paravirt_alt(PARAVIRT_CALL)		\
+-			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
+-			     : "0" ((u32)(arg1)),			\
+-			       "1" ((u32)(arg2)),			\
+-			       "2" ((u32)(arg3)),			\
+-			       paravirt_type(__op),			\
+-			       paravirt_clobber(CLBR_ANY)		\
+-			     : "memory", "cc");				\
+-	})
+-
+-#define PVOP_CALL4(__rettype, __op, arg1, arg2, arg3, arg4)		\
+-	({								\
+-		__rettype __ret;					\
+-		if (sizeof(__rettype) > sizeof(unsigned long)) {	\
+-			unsigned long long __tmp;			\
+-			unsigned long __ecx;				\
+-			asm volatile("push %[_arg4]; "			\
+-				     paravirt_alt(PARAVIRT_CALL)	\
+-				     "lea 4(%%esp),%%esp"		\
+-				     : "=A" (__tmp), "=c" (__ecx)	\
+-				     : "a" ((u32)(arg1)),		\
+-				       "d" ((u32)(arg2)),		\
+-				       "1" ((u32)(arg3)),		\
+-				       [_arg4] "mr" ((u32)(arg4)),	\
+-				       paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
+-				     : "memory", "cc",);		\
+-			__ret = (__rettype)__tmp;			\
++			__ret = (rettype)((((u64)__edx) << 32) | __eax); \
+ 		} else {						\
+-			unsigned long __tmp, __edx, __ecx;		\
+-			asm volatile("push %[_arg4]; "			\
++			asm volatile(pre				\
+ 				     paravirt_alt(PARAVIRT_CALL)	\
+-				     "lea 4(%%esp),%%esp"		\
+-				     : "=a" (__tmp), "=d" (__edx), "=c" (__ecx) \
+-				     : "0" ((u32)(arg1)),		\
+-				       "1" ((u32)(arg2)),		\
+-				       "2" ((u32)(arg3)),		\
+-				       [_arg4]"mr" ((u32)(arg4)),	\
+-				       paravirt_type(__op),		\
+-				       paravirt_clobber(CLBR_ANY)	\
++				     post				\
++				     : "=a" (__eax), "=d" (__edx),	\
++				       "=c" (__ecx)			\
++				     : paravirt_type(op),		\
++				       paravirt_clobber(CLBR_ANY),	\
++				       ##__VA_ARGS__			\
+ 				     : "memory", "cc");			\
+-			__ret = (__rettype)__tmp;			\
++			__ret = (rettype)__eax;				\
+ 		}							\
+ 		__ret;							\
+ 	})
+-#define PVOP_VCALL4(__op, arg1, arg2, arg3, arg4)			\
++#define __PVOP_VCALL(op, pre, post, ...)				\
+ 	({								\
+ 		unsigned long __eax, __edx, __ecx;			\
+-		asm volatile("push %[_arg4]; "				\
++		asm volatile(pre					\
+ 			     paravirt_alt(PARAVIRT_CALL)		\
+-			     "lea 4(%%esp),%%esp"			\
++			     post					\
+ 			     : "=a" (__eax), "=d" (__edx), "=c" (__ecx) \
+-			     : "0" ((u32)(arg1)),			\
+-			       "1" ((u32)(arg2)),			\
+-			       "2" ((u32)(arg3)),			\
+-			       [_arg4]"mr" ((u32)(arg4)),		\
+-			       paravirt_type(__op),			\
+-			       paravirt_clobber(CLBR_ANY)		\
++			     : paravirt_type(op),			\
++			       paravirt_clobber(CLBR_ANY),		\
++			       ##__VA_ARGS__				\
+ 			     : "memory", "cc");				\
+ 	})
  
- #include <mach_apic.h>
-@@ -817,6 +818,12 @@ static int __cpuinit do_boot_cpu(int api
- 	unsigned short nmi_high = 0, nmi_low = 0;
- 
- 	/*
-+	 * Save current MTRR state in case it was changed since early boot
-+	 * (e.g. by the ACPI SMI) to initialize new CPUs with MTRRs in sync:
-+	 */
-+	mtrr_save_state();
++#define PVOP_CALL0(rettype, op)						\
++	__PVOP_CALL(rettype, op, "", "")
++#define PVOP_VCALL0(op)							\
++	__PVOP_VCALL(op, "", "")
 +
-+	/*
- 	 * We can't use kernel_thread since we must avoid to
- 	 * reschedule the child.
- 	 */
-diff -puN arch/x86_64/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap arch/x86_64/kernel/smpboot.c
---- a/arch/x86_64/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/arch/x86_64/kernel/smpboot.c
-@@ -944,6 +944,12 @@ int __cpuinit __cpu_up(unsigned int cpu)
-  		return -ENOSYS;
- 	}
- 
-+	/*
-+	 * Save current MTRR state in case it was changed since early boot
-+	 * (e.g. by the ACPI SMI) to initialize new CPUs with MTRRs in sync:
-+	 */
-+	mtrr_save_state();
++#define PVOP_CALL1(rettype, op, arg1)					\
++	__PVOP_CALL(rettype, op, "", "", "0" ((u32)(arg1)))
++#define PVOP_VCALL1(op, arg1)						\
++	__PVOP_VCALL(op, "", "", "0" ((u32)(arg1)))
 +
- 	per_cpu(cpu_state, cpu) = CPU_UP_PREPARE;
- 	/* Boot it! */
- 	err = do_boot_cpu(cpu, apicid);
-diff -puN include/asm-i386/mtrr.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap include/asm-i386/mtrr.h
---- a/include/asm-i386/mtrr.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/include/asm-i386/mtrr.h
-@@ -25,6 +25,7 @@
- 
- #include <linux/ioctl.h>
- #include <linux/errno.h>
-+#include <linux/smp.h>
- 
- #define	MTRR_IOCTL_BASE	'M'
- 
-@@ -70,6 +71,16 @@ struct mtrr_gentry
- /*  The following functions are for use by other drivers  */
- # ifdef CONFIG_MTRR
- extern void mtrr_save_fixed_ranges(void *);
-+/**
-+ * Save current fixed-range MTRR state of the BSP
-+ */
-+static __inline__ void mtrr_save_state (void)
-+{
-+	if (smp_processor_id() == 0)
-+		mtrr_save_fixed_ranges(NULL);
-+	else
-+		smp_call_function_single(0, mtrr_save_fixed_ranges, NULL, 1, 1);
-+}
- extern int mtrr_add (unsigned long base, unsigned long size,
- 		     unsigned int type, char increment);
- extern int mtrr_add_page (unsigned long base, unsigned long size,
-@@ -81,6 +92,7 @@ extern void mtrr_ap_init(void);
- extern void mtrr_bp_init(void);
- #  else
- #define mtrr_save_fixed_ranges(arg) do {} while (0)
-+#define mtrr_save_state() do {} while (0)
- static __inline__ int mtrr_add (unsigned long base, unsigned long size,
- 				unsigned int type, char increment)
++#define PVOP_CALL2(rettype, op, arg1, arg2)				\
++	__PVOP_CALL(rettype, op, "", "", "0" ((u32)(arg1)), "1" ((u32)(arg2)))
++#define PVOP_VCALL2(op, arg1, arg2)					\
++	__PVOP_VCALL(op, "", "", "0" ((u32)(arg1)), "1" ((u32)(arg2)))
++
++#define PVOP_CALL3(rettype, op, arg1, arg2, arg3)			\
++	__PVOP_CALL(rettype, op, "", "", "0" ((u32)(arg1)),		\
++		    "1"((u32)(arg2)), "2"((u32)(arg3)))
++#define PVOP_VCALL3(op, arg1, arg2, arg3)				\
++	__PVOP_VCALL(op, "", "", "0" ((u32)(arg1)), "1"((u32)(arg2)),	\
++		     "2"((u32)(arg3)))
++
++#define PVOP_CALL4(rettype, op, arg1, arg2, arg3, arg4)			\
++	__PVOP_CALL(rettype, op,					\
++		    "push %[_arg4];", "lea 4(%%esp),%%esp;",		\
++		    "0" ((u32)(arg1)), "1" ((u32)(arg2)),		\
++		    "2" ((u32)(arg3)), [_arg4] "mr" ((u32)(arg4)))
++#define PVOP_VCALL4(op, arg1, arg2, arg3, arg4)				\
++	__PVOP_VCALL(op,						\
++		    "push %[_arg4];", "lea 4(%%esp),%%esp;",		\
++		    "0" ((u32)(arg1)), "1" ((u32)(arg2)),		\
++		    "2" ((u32)(arg3)), [_arg4] "mr" ((u32)(arg4)))
++
+ static inline int paravirt_enabled(void)
  {
-diff -puN include/asm-x86_64/proto.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/include/asm-x86_64/proto.h
-@@ -2,6 +2,7 @@
- #define _ASM_X8664_PROTO_H 1
+ 	return paravirt_ops.paravirt_enabled;
+@@ -1119,6 +989,8 @@ static inline unsigned long __raw_local_
  
- #include <asm/ldt.h>
-+#include <linux/smp.h>
- 
- /* misc architecture specific prototypes */
- 
-@@ -18,10 +19,21 @@ extern void mcheck_init(struct cpuinfo_x
- extern void mtrr_ap_init(void);
- extern void mtrr_bp_init(void);
- extern void mtrr_save_fixed_ranges(void *);
-+static __inline__ void mtrr_save_state (void)
-+{
-+	/*
-+	 * Save current fixed-range MTRR state of the BSP:
-+	 */
-+	if (smp_processor_id() == 0)
-+		mtrr_save_fixed_ranges(NULL);
-+	else
-+		smp_call_function_single(0, mtrr_save_fixed_ranges, NULL, 1, 1);
-+}
- #else
- #define mtrr_ap_init() do {} while (0)
- #define mtrr_bp_init() do {} while (0)
- #define mtrr_save_fixed_ranges(arg) do {} while (0)
-+#define mtrr_save_state() do {} while (0)
- #endif
- extern void init_memory_mapping(unsigned long start, unsigned long end);
- 
+ /* Make sure as little as possible of this mess escapes. */
+ #undef PARAVIRT_CALL
++#undef __PVOP_CALL
++#undef __PVOP_VCALL
+ #undef PVOP_VCALL0
+ #undef PVOP_CALL0
+ #undef PVOP_VCALL1
 _
 
-Patches currently in -mm which might be from bk@suse.de are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-mtrr-implement-mtrr_save_fixed_ranges.patch
-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
-mtrr-bsp-save-and-restore-fixed-range-mtrrs-during-suspend.patch
-mtrr-enable-fixed-range-iorrs-to-sync-rdmem-and-wrmem.patch
+proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+paravirt_ops-update-maintainers.patch
+paravirt_ops-remove-config_debug_paravirt.patch
+paravirt_ops-use-paravirt_nop-to-consistently-mark-no-op-operations.patch
+paravirt_ops-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries.patch
+paravirt_ops-hooks-to-set-up-initial-pagetable.patch
+paravirt_ops-allocate-a-fixmap-slot.patch
+paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch
+paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
+paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
+paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
+paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
+paravirt_ops-document-asm-i386-paravirth.patch
+paravirt_ops-clean-up-paravirt-patchable-wrappers.patch
+paravirt_ops-add-common-patching-machinery.patch
+paravirt_ops-add-flush_tlb_others-paravirt_op.patch
+paravirt_ops-revert-map_pt_hook.patch
+paravirt_ops-add-kmap_atomic_pte-for-mapping-highpte-pages.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+re-enable-vdso-by-default-with-paravirt.patch
+remove-noreplacement-option.patch
+remove-smp_alt_instructions.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+allow-boot-time-disable-of-smp-altinstructions.patch
+allow-boot-time-disable-of-paravirt_ops-patching.patch
+i386-clean-up-asm-i386-bugsh.patch
+x86_64-clean-up-asm-x86_64-bugsh.patch
+x86-clean-up-identify_cpu.patch
+x86-clean-up-identify_cpu-update.patch
+i386-relocate-vdso-elf-headers-to-match-mapped-location-with-compat_vdso.patch
+i386-make-compat_vdso-runtime-selectable.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+add-touch_all_softlockup_watchdogs.patch
+clean-up-elf-note-generation.patch
