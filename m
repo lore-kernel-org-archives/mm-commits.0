@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-mce-check-capability.patch added to -mm tree
-Date: Sun, 08 Apr 2007 02:24:08 -0700
-Message-ID: <200704080924.l389O8Yu019977@shell0.pdx.osdl.net>
+Subject: + mtrr-implement-mtrr_save_fixed_ranges.patch added to -mm tree
+Date: Sun, 08 Apr 2007 02:35:52 -0700
+Message-ID: <200704080935.l389Zq4F020147@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45455 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45747 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752864AbXDHJYY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 8 Apr 2007 05:24:24 -0400
+	id S1752869AbXDHJgH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 8 Apr 2007 05:36:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joachim.deguara@amd.com, ak@suse.de
+Cc: bk@suse.de, ak@suse.de, davej@codemonkey.org.uk
 
 
 The patch titled
-     i386 mce: check capability
+     mtrr: implement mtrr_save_fixed_ranges()
 has been added to the -mm tree.  Its filename is
-     i386-mce-check-capability.patch
+     mtrr-implement-mtrr_save_fixed_ranges.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 mce: check capability
-From: "Joachim Deguara" <joachim.deguara@amd.com>
+Subject: mtrr: implement mtrr_save_fixed_ranges()
+From: Bernhard Kaindl <bk@suse.de>
 
-Currently the i386 architecture checks the family for mce capability and this
-removes that and uses the CPUID information.  Tested on a K8 revE and a
-family10h processor.
+This patch implements mtrr_save_fixed_ranges() which can be called from
+anywhere anytime to retrieve the fixed-range MTRRs from the current CPU and
+saves these MTRR values to the MTRR state struct.
 
-This eliminates checking of a set AMD procesor family if mce is 
-allowed and relies on the information being in CPUID.
+This function calls get_fixed_ranges(), passing mtrr_state.fixed_ranges which
+is the element of the static struct which stores our current backup of the
+fixed-range MTRR values which all CPUs shall be using.
 
-Signed-off-by: Joachim Deguara <joachim.deguara@amd.com>
+Because mtrr_save_fixed_ranges calls get_fixed_ranges() after kernel
+initialisation time, __init needs to be removed from the declaration of
+get_fixed_ranges().
+
+Signed-off-by: Bernhard Kaindl <bk@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mcheck/k7.c  |    3 +++
- arch/i386/kernel/cpu/mcheck/mce.c |    3 +--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ arch/i386/kernel/cpu/mtrr/generic.c |   20 +++++++++++++++++---
+ include/asm-i386/mtrr.h             |    2 ++
+ include/asm-x86_64/proto.h          |    2 ++
+ 3 files changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mcheck/k7.c~i386-mce-check-capability arch/i386/kernel/cpu/mcheck/k7.c
---- a/arch/i386/kernel/cpu/mcheck/k7.c~i386-mce-check-capability
-+++ a/arch/i386/kernel/cpu/mcheck/k7.c
-@@ -75,6 +75,9 @@ void amd_mcheck_init(struct cpuinfo_x86 
- 	machine_check_vector = k7_machine_check;
- 	wmb();
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~mtrr-implement-mtrr_save_fixed_ranges arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~mtrr-implement-mtrr_save_fixed_ranges
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -29,8 +29,11 @@ static struct mtrr_state mtrr_state = {}
+ static int mtrr_show;
+ module_param_named(show, mtrr_show, bool, 0);
  
-+	if (!cpu_has(c, X86_FEATURE_MCE))
-+		return;
+-/*  Get the MSR pair relating to a var range  */
+-static void __cpuinit
++/**
++ * Retrieves the current fixed-range MTRRs from the current CPU
++ * \param frs address where to write the current MTRR contents
++ */
++static void
+ get_mtrr_var_range(unsigned int index, struct mtrr_var_range *vr)
+ {
+ 	rdmsr(MTRRphysBase_MSR(index), vr->base_lo, vr->base_hi);
+@@ -51,7 +54,18 @@ get_fixed_ranges(mtrr_type * frs)
+ 		rdmsr(MTRRfix4K_C0000_MSR + i, p[6 + i * 2], p[7 + i * 2]);
+ }
+ 
+-static void __cpuinit print_fixed(unsigned base, unsigned step, const mtrr_type*types)
++/**
++ * Updates our copy of the state of the fixed-range MTRR values
++ * with the current fixed-range MTRR contents from the current CPU
++ * \param info dummy needed for use by smp_call_function_single()
++ */
++void mtrr_save_fixed_ranges(void *info)
++{
++	get_fixed_ranges(mtrr_state.fixed_ranges);
++}
 +
- 	printk (KERN_INFO "Intel machine check architecture supported.\n");
- 	rdmsr (MSR_IA32_MCG_CAP, l, h);
- 	if (l & (1<<8))	/* Control register present ? */
-diff -puN arch/i386/kernel/cpu/mcheck/mce.c~i386-mce-check-capability arch/i386/kernel/cpu/mcheck/mce.c
---- a/arch/i386/kernel/cpu/mcheck/mce.c~i386-mce-check-capability
-+++ a/arch/i386/kernel/cpu/mcheck/mce.c
-@@ -38,8 +38,7 @@ void mcheck_init(struct cpuinfo_x86 *c)
++static void __cpuinit print_fixed(unsigned base, unsigned step,
++				const mtrr_type*types)
+ {
+ 	unsigned i;
  
- 	switch (c->x86_vendor) {
- 		case X86_VENDOR_AMD:
--			if (c->x86==6 || c->x86==15)
--				amd_mcheck_init(c);
-+			amd_mcheck_init(c);
- 			break;
+diff -puN include/asm-i386/mtrr.h~mtrr-implement-mtrr_save_fixed_ranges include/asm-i386/mtrr.h
+--- a/include/asm-i386/mtrr.h~mtrr-implement-mtrr_save_fixed_ranges
++++ a/include/asm-i386/mtrr.h
+@@ -69,6 +69,7 @@ struct mtrr_gentry
  
- 		case X86_VENDOR_INTEL:
+ /*  The following functions are for use by other drivers  */
+ # ifdef CONFIG_MTRR
++extern void mtrr_save_fixed_ranges(void *);
+ extern int mtrr_add (unsigned long base, unsigned long size,
+ 		     unsigned int type, char increment);
+ extern int mtrr_add_page (unsigned long base, unsigned long size,
+@@ -79,6 +80,7 @@ extern void mtrr_centaur_report_mcr(int 
+ extern void mtrr_ap_init(void);
+ extern void mtrr_bp_init(void);
+ #  else
++#define mtrr_save_fixed_ranges(arg) do {} while (0)
+ static __inline__ int mtrr_add (unsigned long base, unsigned long size,
+ 				unsigned int type, char increment)
+ {
+diff -puN include/asm-x86_64/proto.h~mtrr-implement-mtrr_save_fixed_ranges include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~mtrr-implement-mtrr_save_fixed_ranges
++++ a/include/asm-x86_64/proto.h
+@@ -17,9 +17,11 @@ extern void mcheck_init(struct cpuinfo_x
+ #ifdef CONFIG_MTRR
+ extern void mtrr_ap_init(void);
+ extern void mtrr_bp_init(void);
++extern void mtrr_save_fixed_ranges(void *);
+ #else
+ #define mtrr_ap_init() do {} while (0)
+ #define mtrr_bp_init() do {} while (0)
++#define mtrr_save_fixed_ranges(arg) do {} while (0)
+ #endif
+ extern void init_memory_mapping(unsigned long start, unsigned long end);
+ 
 _
 
-Patches currently in -mm which might be from joachim.deguara@amd.com are
+Patches currently in -mm which might be from bk@suse.de are
 
-git-alsa.patch
-i386-mce-check-capability.patch
+mtrr-implement-mtrr_save_fixed_ranges.patch
+mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
+mtrr-bsp-save-and-restore-fixed-range-mtrrs-during-suspend.patch
+mtrr-enable-fixed-range-iorrs-to-sync-rdmem-and-wrmem.patch
