@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hid-add-quirk_hiddev-for-belkin-flip-kvm.patch added to -mm tree
-Date: Sun, 08 Apr 2007 02:22:50 -0700
-Message-ID: <200704080922.l389MoV7019956@shell0.pdx.osdl.net>
+Subject: + i386-mce-check-capability.patch added to -mm tree
+Date: Sun, 08 Apr 2007 02:24:08 -0700
+Message-ID: <200704080924.l389O8Yu019977@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45365 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45455 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752858AbXDHJXF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 8 Apr 2007 05:23:05 -0400
+	id S1752864AbXDHJYY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 8 Apr 2007 05:24:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dengel@sourceharvest.com, dtor@mail.ru, greg@kroah.com, jikos@jikos.cz
+Cc: joachim.deguara@amd.com, ak@suse.de
 
 
 The patch titled
-     hid: add QUIRK_HIDDEV for Belkin Flip KVM
+     i386 mce: check capability
 has been added to the -mm tree.  Its filename is
-     hid-add-quirk_hiddev-for-belkin-flip-kvm.patch
+     i386-mce-check-capability.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hid: add QUIRK_HIDDEV for Belkin Flip KVM
-From: Daniel P. Engel <dengel@sourceharvest.com>
+Subject: i386 mce: check capability
+From: "Joachim Deguara" <joachim.deguara@amd.com>
 
-Add HID_QUIRK_HIDDEV for the Belkin Flip USB KVM to the hid-core blacklist
-table.  The Belkin Flip USB KVM provides for software control of switching
-via a HID class interface.  It overloads three HID LED usages, two of which
-aren't mapped in the ev_dev input subsection, and which it doesn't make
-sense to map.  In order to force the creation of a hiddev device for
-controlling the Flip, this quirk flag is needed.
+Currently the i386 architecture checks the family for mce capability and this
+removes that and uses the CPUID information.  Tested on a K8 revE and a
+family10h processor.
 
-Signed-off-by: Daniel P. Engel <dengel@sourceharvest.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jiri Kosina <jikos@jikos.cz>
+This eliminates checking of a set AMD procesor family if mce is 
+allowed and relies on the information being in CPUID.
+
+Signed-off-by: Joachim Deguara <joachim.deguara@amd.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/usbhid/hid-core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/i386/kernel/cpu/mcheck/k7.c  |    3 +++
+ arch/i386/kernel/cpu/mcheck/mce.c |    3 +--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hid/usbhid/hid-core.c~hid-add-quirk_hiddev-for-belkin-flip-kvm drivers/hid/usbhid/hid-core.c
---- a/drivers/hid/usbhid/hid-core.c~hid-add-quirk_hiddev-for-belkin-flip-kvm
-+++ a/drivers/hid/usbhid/hid-core.c
-@@ -304,6 +304,9 @@ static const struct hid_blacklist {
+diff -puN arch/i386/kernel/cpu/mcheck/k7.c~i386-mce-check-capability arch/i386/kernel/cpu/mcheck/k7.c
+--- a/arch/i386/kernel/cpu/mcheck/k7.c~i386-mce-check-capability
++++ a/arch/i386/kernel/cpu/mcheck/k7.c
+@@ -75,6 +75,9 @@ void amd_mcheck_init(struct cpuinfo_x86 
+ 	machine_check_vector = k7_machine_check;
+ 	wmb();
  
- 	{ USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_RECEIVER, HID_QUIRK_BAD_RELATIVE_KEYS },
++	if (!cpu_has(c, X86_FEATURE_MCE))
++		return;
++
+ 	printk (KERN_INFO "Intel machine check architecture supported.\n");
+ 	rdmsr (MSR_IA32_MCG_CAP, l, h);
+ 	if (l & (1<<8))	/* Control register present ? */
+diff -puN arch/i386/kernel/cpu/mcheck/mce.c~i386-mce-check-capability arch/i386/kernel/cpu/mcheck/mce.c
+--- a/arch/i386/kernel/cpu/mcheck/mce.c~i386-mce-check-capability
++++ a/arch/i386/kernel/cpu/mcheck/mce.c
+@@ -38,8 +38,7 @@ void mcheck_init(struct cpuinfo_x86 *c)
  
-+	{ USB_VENDOR_ID_BELKIN, USB_DEVICE_ID_FLIP_KVM, HID_QUIRK_HIDDEV },
-+
-+
- 	{ USB_VENDOR_ID_AASHIMA, USB_DEVICE_ID_AASHIMA_GAMEPAD, HID_QUIRK_BADPAD },
- 	{ USB_VENDOR_ID_AASHIMA, USB_DEVICE_ID_AASHIMA_PREDATOR, HID_QUIRK_BADPAD },
- 	{ USB_VENDOR_ID_ALPS, USB_DEVICE_ID_IBM_GAMEPAD, HID_QUIRK_BADPAD },
-@@ -763,6 +766,9 @@ static void hid_irq_out(struct urb *urb)
- 	wake_up(&hid->wait);
- }
+ 	switch (c->x86_vendor) {
+ 		case X86_VENDOR_AMD:
+-			if (c->x86==6 || c->x86==15)
+-				amd_mcheck_init(c);
++			amd_mcheck_init(c);
+ 			break;
  
-+#define USB_VENDOR_ID_BELKIN		0x050d
-+#define USB_DEVICE_ID_FLIP_KVM		0x3201
-+
- /*
-  * Control pipe completion handler.
-  */
+ 		case X86_VENDOR_INTEL:
 _
 
-Patches currently in -mm which might be from dengel@sourceharvest.com are
+Patches currently in -mm which might be from joachim.deguara@amd.com are
 
-git-hid.patch
-hid-add-two-led-codes-to-hid-input-mapping.patch
-hid-add-quirk_hiddev-for-belkin-flip-kvm.patch
+git-alsa.patch
+i386-mce-check-capability.patch
