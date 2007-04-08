@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch added to -mm tree
-Date: Sun, 08 Apr 2007 13:43:34 -0700
-Message-ID: <200704082045.l38KjsWC030009@shell0.pdx.osdl.net>
+Date: Sun, 08 Apr 2007 13:45:26 -0700
+Message-ID: <200704082047.l38KlkZ7030028@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56593 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56618 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751980AbXDHUqE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 8 Apr 2007 16:46:04 -0400
+	id S1751806AbXDHUry (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 8 Apr 2007 16:47:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -36,14 +36,16 @@ Would it not be better to do
 
 in libata.h, remove all those ifdefs?
 
+(updated version, ug, ug)
+
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cmd640.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/ata/pata_cmd640.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff -puN drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n drivers/ata/pata_cmd640.c
 --- a/drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n
@@ -59,6 +61,28 @@ diff -puN drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-conf
  };
  
  static struct ata_port_operations cmd640_port_ops = {
+@@ -267,7 +269,11 @@ static int cmd640_init_one(struct pci_de
+ static int cmd640_reinit_one(struct pci_dev *pdev)
+ {
+ 	cmd640_hardware_init(pdev);
++#ifdef CONFIG_PM
+ 	return ata_pci_device_resume(pdev);
++#else
++	return 0;
++#endif
+ }
+ 
+ static const struct pci_device_id cmd640[] = {
+@@ -280,7 +286,9 @@ static struct pci_driver cmd640_pci_driv
+ 	.id_table	= cmd640,
+ 	.probe 		= cmd640_init_one,
+ 	.remove		= ata_pci_remove_one,
++#ifdef CONFIG_PM
+ 	.suspend	= ata_pci_device_suspend,
++#endif
+ 	.resume		= cmd640_reinit_one,
+ };
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +108,7 @@ git-libata-all.patch
 libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
 pata_acpi-restore-driver-fix.patch
 pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
 revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
 git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
@@ -190,4 +215,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
