@@ -1,35 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + git-input-fixup.patch added to -mm tree
-Date: Sun, 08 Apr 2007 01:53:53 -0700
-Message-ID: <200704080853.l388rr3n019565@shell0.pdx.osdl.net>
+Subject: - git-hid-vs-git-input.patch removed from -mm tree
+Date: Sun, 08 Apr 2007 01:54:01 -0700
+Message-ID: <200704080854.l388s1Pk019568@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44332 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44344 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751483AbXDHIxz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 8 Apr 2007 04:53:55 -0400
+	id S1751551AbXDHIyD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sun, 8 Apr 2007 04:54:03 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l388rrPD021137
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l388s1PD021155
 	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 8 Apr 2007 01:53:53 -0700
+	for <mm-commits@vger.kernel.org>; Sun, 8 Apr 2007 01:54:01 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-input-fixup
-has been added to the -mm tree.  Its filename is
-     git-input-fixup.patch
+     git-hid-vs-git-input
+has been removed from the -mm tree.  Its filename was
+     git-hid-vs-git-input.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-input-fixup
+Subject: git-hid-vs-git-input
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -38,8 +34,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/usb/input/Makefile |    3 ---
  1 file changed, 3 deletions(-)
 
-diff -puN drivers/usb/input/Makefile~git-input-fixup drivers/usb/input/Makefile
---- a/drivers/usb/input/Makefile~git-input-fixup
+diff -puN drivers/usb/input/Makefile~git-hid-vs-git-input drivers/usb/input/Makefile
+--- a/drivers/usb/input/Makefile~git-hid-vs-git-input
 +++ a/drivers/usb/input/Makefile
 @@ -10,9 +10,6 @@ obj-$(CONFIG_USB_ATI_REMOTE)	+= ati_remo
  obj-$(CONFIG_USB_ATI_REMOTE2)	+= ati_remote2.o
