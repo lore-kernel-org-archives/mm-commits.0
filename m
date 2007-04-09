@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + swsusp-use-rbtree-for-tracking-allocated-swap.patch added to -mm tree
-Date: Mon, 09 Apr 2007 12:13:44 -0700
-Message-ID: <200704091913.l39JDich021048@shell0.pdx.osdl.net>
+Subject: + kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch added to -mm tree
+Date: Mon, 09 Apr 2007 12:27:50 -0700
+Message-ID: <200704091927.l39JRoFF021335@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56325 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56833 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964989AbXDITOJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 9 Apr 2007 15:14:09 -0400
+	id S1752871AbXDIT17 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 9 Apr 2007 15:27:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz
+Cc: akpm@linux-foundation.org, ananth@in.ibm.com, srinivasa@in.ibm.com
 
 
 The patch titled
-     swsusp: use rbtree for tracking allocated swap
+     kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     swsusp-use-rbtree-for-tracking-allocated-swap.patch
+     kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,401 +25,167 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: swsusp: use rbtree for tracking allocated swap
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make swsusp use extents instead of a bitmap to trace swap pages allocated
-for saving the image (the tracking is only needed in case there's an error,
-so that the allocated swap pages can be released).
-
-This should allow us to reduce the memory usage, practically always, and
-improve performance.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Ananth N Mavinakyanahalli <ananth@in.ibm.com>
+Cc: Srinivasa DS <srinivasa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/power.h  |   27 --------
- kernel/power/swap.c   |   18 +----
- kernel/power/swsusp.c |  135 +++++++++++++++++++++-------------------
- kernel/power/user.c   |   22 +-----
- 4 files changed, 85 insertions(+), 117 deletions(-)
+ kernel/kprobes.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/power/power.h~swsusp-use-rbtree-for-tracking-allocated-swap kernel/power/power.h
---- a/kernel/power/power.h~swsusp-use-rbtree-for-tracking-allocated-swap
-+++ a/kernel/power/power.h
-@@ -143,30 +143,9 @@ struct resume_swap_area {
- /* If unset, the snapshot device cannot be open. */
- extern atomic_t snapshot_device_available;
- 
--/**
-- *	The bitmap is used for tracing allocated swap pages
-- *
-- *	The entire bitmap consists of a number of bitmap_page
-- *	structures linked with the help of the .next member.
-- *	Thus each page can be allocated individually, so we only
-- *	need to make 0-order memory allocations to create
-- *	the bitmap.
-- */
--
--#define BITMAP_PAGE_SIZE	(PAGE_SIZE - sizeof(void *))
--#define BITMAP_PAGE_CHUNKS	(BITMAP_PAGE_SIZE / sizeof(long))
--#define BITS_PER_CHUNK		(sizeof(long) * 8)
--#define BITMAP_PAGE_BITS	(BITMAP_PAGE_CHUNKS * BITS_PER_CHUNK)
--
--struct bitmap_page {
--	unsigned long		chunks[BITMAP_PAGE_CHUNKS];
--	struct bitmap_page	*next;
--};
--
--extern void free_bitmap(struct bitmap_page *bitmap);
--extern struct bitmap_page *alloc_bitmap(unsigned int nr_bits);
--extern sector_t alloc_swapdev_block(int swap, struct bitmap_page *bitmap);
--extern void free_all_swap_pages(int swap, struct bitmap_page *bitmap);
-+extern sector_t alloc_swapdev_block(int swap);
-+extern void free_all_swap_pages(int swap);
-+extern int swsusp_swap_in_use(void);
- 
- extern int swsusp_check(void);
- extern int swsusp_shrink_memory(void);
-diff -puN kernel/power/swap.c~swsusp-use-rbtree-for-tracking-allocated-swap kernel/power/swap.c
---- a/kernel/power/swap.c~swsusp-use-rbtree-for-tracking-allocated-swap
-+++ a/kernel/power/swap.c
-@@ -243,7 +243,6 @@ struct swap_map_page {
- struct swap_map_handle {
- 	struct swap_map_page *cur;
- 	sector_t cur_swap;
--	struct bitmap_page *bitmap;
- 	unsigned int k;
- };
- 
-@@ -252,9 +251,6 @@ static void release_swap_writer(struct s
- 	if (handle->cur)
- 		free_page((unsigned long)handle->cur);
- 	handle->cur = NULL;
--	if (handle->bitmap)
--		free_bitmap(handle->bitmap);
--	handle->bitmap = NULL;
- }
- 
- static int get_swap_writer(struct swap_map_handle *handle)
-@@ -262,12 +258,7 @@ static int get_swap_writer(struct swap_m
- 	handle->cur = (struct swap_map_page *)get_zeroed_page(GFP_KERNEL);
- 	if (!handle->cur)
- 		return -ENOMEM;
--	handle->bitmap = alloc_bitmap(count_swap_pages(root_swap, 0));
--	if (!handle->bitmap) {
--		release_swap_writer(handle);
--		return -ENOMEM;
--	}
--	handle->cur_swap = alloc_swapdev_block(root_swap, handle->bitmap);
-+	handle->cur_swap = alloc_swapdev_block(root_swap);
- 	if (!handle->cur_swap) {
- 		release_swap_writer(handle);
- 		return -ENOSPC;
-@@ -284,7 +275,7 @@ static int swap_write_page(struct swap_m
- 
- 	if (!handle->cur)
- 		return -EINVAL;
--	offset = alloc_swapdev_block(root_swap, handle->bitmap);
-+	offset = alloc_swapdev_block(root_swap);
- 	error = write_page(buf, offset, bio_chain);
- 	if (error)
- 		return error;
-@@ -293,7 +284,7 @@ static int swap_write_page(struct swap_m
- 		error = wait_on_bio_chain(bio_chain);
- 		if (error)
- 			goto out;
--		offset = alloc_swapdev_block(root_swap, handle->bitmap);
-+		offset = alloc_swapdev_block(root_swap);
- 		if (!offset)
- 			return -ENOSPC;
- 		handle->cur->next_swap = offset;
-@@ -430,7 +421,8 @@ int swsusp_write(void)
- 		}
+diff -puN kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix
++++ a/kernel/kprobes.c
+@@ -925,7 +925,7 @@ static void __kprobes enable_all_kprobes
  	}
- 	if (error)
--		free_all_swap_pages(root_swap, handle.bitmap);
-+		free_all_swap_pages(root_swap);
-+
- 	release_swap_writer(&handle);
-  out:
- 	swsusp_close();
-diff -puN kernel/power/swsusp.c~swsusp-use-rbtree-for-tracking-allocated-swap kernel/power/swsusp.c
---- a/kernel/power/swsusp.c~swsusp-use-rbtree-for-tracking-allocated-swap
-+++ a/kernel/power/swsusp.c
-@@ -50,6 +50,7 @@
- #include <linux/syscalls.h>
- #include <linux/highmem.h>
- #include <linux/time.h>
-+#include <linux/rbtree.h>
  
- #include "power.h"
+ 	kprobe_enabled = true;
+-	printk("Kprobes globally enabled\n");
++	printk(KERN_INFO "Kprobes globally enabled\n");
  
-@@ -74,72 +75,69 @@ static inline unsigned int count_highmem
- /**
-  *	The following functions are used for tracing the allocated
-  *	swap pages, so that they can be freed in case of an error.
-- *
-- *	The functions operate on a linked bitmap structure defined
-- *	in power.h
-  */
+ already_enabled:
+ 	mutex_unlock(&kprobe_mutex);
+@@ -946,7 +946,7 @@ static void __kprobes disable_all_kprobe
+ 		goto already_disabled;
  
--void free_bitmap(struct bitmap_page *bitmap)
--{
--	struct bitmap_page *bp;
-+struct swsusp_extent {
-+	struct rb_node node;
-+	unsigned long start;
-+	unsigned long end;
-+};
- 
--	while (bitmap) {
--		bp = bitmap->next;
--		free_page((unsigned long)bitmap);
--		bitmap = bp;
--	}
--}
-+static struct rb_root swsusp_extents = RB_ROOT;
- 
--struct bitmap_page *alloc_bitmap(unsigned int nr_bits)
-+static int swsusp_extents_insert(unsigned long swap_offset)
- {
--	struct bitmap_page *bitmap, *bp;
--	unsigned int n;
--
--	if (!nr_bits)
--		return NULL;
--
--	bitmap = (struct bitmap_page *)get_zeroed_page(GFP_KERNEL);
--	bp = bitmap;
--	for (n = BITMAP_PAGE_BITS; n < nr_bits; n += BITMAP_PAGE_BITS) {
--		bp->next = (struct bitmap_page *)get_zeroed_page(GFP_KERNEL);
--		bp = bp->next;
--		if (!bp) {
--			free_bitmap(bitmap);
--			return NULL;
-+	struct rb_node **new = &(swsusp_extents.rb_node);
-+	struct rb_node *parent = NULL;
-+	struct swsusp_extent *ext;
-+
-+	/* Figure out where to put the new node */
-+	while (*new) {
-+		ext = container_of(*new, struct swsusp_extent, node);
-+		parent = *new;
-+		if (swap_offset < ext->start) {
-+			/* Try to merge */
-+			if (swap_offset == ext->start - 1) {
-+				ext->start--;
-+				return 0;
-+			}
-+			new = &((*new)->rb_left);
-+		} else if (swap_offset > ext->end) {
-+			/* Try to merge */
-+			if (swap_offset == ext->end + 1) {
-+				ext->end++;
-+				return 0;
-+			}
-+			new = &((*new)->rb_right);
-+		} else {
-+			/* It already is in the tree */
-+			return -EINVAL;
- 		}
- 	}
--	return bitmap;
--}
--
--static int bitmap_set(struct bitmap_page *bitmap, unsigned long bit)
--{
--	unsigned int n;
--
--	n = BITMAP_PAGE_BITS;
--	while (bitmap && n <= bit) {
--		n += BITMAP_PAGE_BITS;
--		bitmap = bitmap->next;
--	}
--	if (!bitmap)
--		return -EINVAL;
--	n -= BITMAP_PAGE_BITS;
--	bit -= n;
--	n = 0;
--	while (bit >= BITS_PER_CHUNK) {
--		bit -= BITS_PER_CHUNK;
--		n++;
--	}
--	bitmap->chunks[n] |= (1UL << bit);
-+	/* Add the new node and rebalance the tree. */
-+	ext = kzalloc(sizeof(struct swsusp_extent), GFP_KERNEL);
-+	if (!ext)
-+		return -ENOMEM;
-+
-+	ext->start = swap_offset;
-+	ext->end = swap_offset;
-+	rb_link_node(&ext->node, parent, new);
-+	rb_insert_color(&ext->node, &swsusp_extents);
- 	return 0;
- }
- 
--sector_t alloc_swapdev_block(int swap, struct bitmap_page *bitmap)
-+/**
-+ *	alloc_swapdev_block - allocate a swap page and register that it has
-+ *	been allocated, so that it can be freed in case of an error.
-+ */
-+
-+sector_t alloc_swapdev_block(int swap)
- {
- 	unsigned long offset;
- 
- 	offset = swp_offset(get_swap_page_of_type(swap));
- 	if (offset) {
--		if (bitmap_set(bitmap, offset))
-+		if (swsusp_extents_insert(offset))
- 			swap_free(swp_entry(swap, offset));
- 		else
- 			return swapdev_block(swap, offset);
-@@ -147,23 +145,34 @@ sector_t alloc_swapdev_block(int swap, s
- 	return 0;
- }
- 
--void free_all_swap_pages(int swap, struct bitmap_page *bitmap)
-+/**
-+ *	free_all_swap_pages - free swap pages allocated for saving image data.
-+ *	It also frees the extents used to register which swap entres had been
-+ *	allocated.
-+ */
-+
-+void free_all_swap_pages(int swap)
- {
--	unsigned int bit, n;
--	unsigned long test;
-+	struct rb_node *node;
- 
--	bit = 0;
--	while (bitmap) {
--		for (n = 0; n < BITMAP_PAGE_CHUNKS; n++)
--			for (test = 1UL; test; test <<= 1) {
--				if (bitmap->chunks[n] & test)
--					swap_free(swp_entry(swap, bit));
--				bit++;
--			}
--		bitmap = bitmap->next;
-+	while ((node = swsusp_extents.rb_node)) {
-+		struct swsusp_extent *ext;
-+		unsigned long offset;
-+
-+		ext = container_of(node, struct swsusp_extent, node);
-+		rb_erase(node, &swsusp_extents);
-+		for (offset = ext->start; offset <= ext->end; offset++)
-+			swap_free(swp_entry(swap, offset));
-+
-+		kfree(ext);
- 	}
- }
- 
-+int swsusp_swap_in_use(void)
-+{
-+	return (swsusp_extents.rb_node != NULL);
-+}
-+
- /**
-  *	swsusp_show_speed - print the time elapsed between two events represented by
-  *	@start and @stop
-diff -puN kernel/power/user.c~swsusp-use-rbtree-for-tracking-allocated-swap kernel/power/user.c
---- a/kernel/power/user.c~swsusp-use-rbtree-for-tracking-allocated-swap
-+++ a/kernel/power/user.c
-@@ -33,7 +33,6 @@
- static struct snapshot_data {
- 	struct snapshot_handle handle;
- 	int swap;
--	struct bitmap_page *bitmap;
- 	int mode;
- 	char frozen;
- 	char ready;
-@@ -69,7 +68,6 @@ static int snapshot_open(struct inode *i
- 		data->swap = -1;
- 		data->mode = O_WRONLY;
- 	}
--	data->bitmap = NULL;
- 	data->frozen = 0;
- 	data->ready = 0;
- 	data->platform_suspend = 0;
-@@ -84,8 +82,7 @@ static int snapshot_release(struct inode
- 	swsusp_free();
- 	free_basic_memory_bitmaps();
- 	data = filp->private_data;
--	free_all_swap_pages(data->swap, data->bitmap);
--	free_bitmap(data->bitmap);
-+	free_all_swap_pages(data->swap);
- 	if (data->frozen) {
- 		mutex_lock(&pm_mutex);
- 		thaw_processes();
-@@ -300,14 +297,7 @@ static int snapshot_ioctl(struct inode *
- 			error = -ENODEV;
- 			break;
- 		}
--		if (!data->bitmap) {
--			data->bitmap = alloc_bitmap(count_swap_pages(data->swap, 0));
--			if (!data->bitmap) {
--				error = -ENOMEM;
--				break;
--			}
--		}
--		offset = alloc_swapdev_block(data->swap, data->bitmap);
-+		offset = alloc_swapdev_block(data->swap);
- 		if (offset) {
- 			offset <<= PAGE_SHIFT;
- 			error = put_user(offset, (sector_t __user *)arg);
-@@ -321,13 +311,11 @@ static int snapshot_ioctl(struct inode *
- 			error = -ENODEV;
- 			break;
- 		}
--		free_all_swap_pages(data->swap, data->bitmap);
--		free_bitmap(data->bitmap);
--		data->bitmap = NULL;
-+		free_all_swap_pages(data->swap);
- 		break;
- 
- 	case SNAPSHOT_SET_SWAP_FILE:
--		if (!data->bitmap) {
-+		if (!swsusp_swap_in_use()) {
- 			/*
- 			 * User space encodes device types as two-byte values,
- 			 * so we need to recode them
-@@ -426,7 +414,7 @@ static int snapshot_ioctl(struct inode *
- 		break;
- 
- 	case SNAPSHOT_SET_SWAP_AREA:
--		if (data->bitmap) {
-+		if (swsusp_swap_in_use()) {
- 			error = -EPERM;
- 		} else {
- 			struct resume_swap_area swap_area;
+ 	kprobe_enabled = false;
+-	printk("Kprobes globally disabled\n");
++	printk(KERN_INFO "Kprobes globally disabled\n");
+ 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
+ 		head = &kprobe_table[i];
+ 		hlist_for_each_entry_rcu(p, node, head, hlist) {
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+x86_64-early-quirks-fix-early_qrk-section-tag.patch
+i386-irqbalance_disable-section-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+git-ocfs2.patch
+git-parisc.patch
+git-r8169-fixup.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+xfs-clean-up-shrinker-games.patch
 pktgen-add-try_to_freeze.patch
-fix-refrigerator-vs-thaw_process-race.patch
-swsusp-use-inline-functions-for-changing-page-flags.patch
-swsusp-do-not-use-page-flags.patch
-mm-remove-unused-page-flags.patch
-swsusp-fix-error-paths-in-snapshot_open.patch
-swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-force-pm_opsvalid-callback-to-be.patch
-freezer-remove-pf_nofreeze-from-handle_initrd.patch
-swsusp-use-rbtree-for-tracking-allocated-swap.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-shrink_slab-handle-bad-shrinkers.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
