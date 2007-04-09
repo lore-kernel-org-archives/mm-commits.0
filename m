@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-set-node_possible_map-at-runtime.patch added to -mm tree
-Date: Mon, 09 Apr 2007 13:23:49 -0700
-Message-ID: <200704092023.l39KNn14022558@shell0.pdx.osdl.net>
+Subject: + quicklists-for-page-table-pages.patch added to -mm tree
+Date: Mon, 09 Apr 2007 14:19:48 -0700
+Message-ID: <200704092119.l39LJnsO023743@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58976 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60848 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752259AbXDIUYc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 9 Apr 2007 16:24:32 -0400
+	id S965085AbXDIVUA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 9 Apr 2007 17:20:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suresh.b.siddha@intel.com, andi@firstfloor.org, clameter@engr.sgi.com, dada1@cosmosbay.com, rientjes@google.com
+Cc: clameter@sgi.com, ak@suse.de, davem@davemloft.net, tony.luck@intel.com, wli@holomorphy.com
 
 
 The patch titled
-     x86_64: set node_possible_map at runtime
+     Quicklists for page table pages
 has been added to the -mm tree.  Its filename is
-     x86_64-set-node_possible_map-at-runtime.patch
+     quicklists-for-page-table-pages.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,177 +25,376 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: set node_possible_map at runtime
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: Quicklists for page table pages
+From: Christoph Lameter <clameter@sgi.com>
 
-Set the node_possible_map at runtime on x86_64.  On a non NUMA system,
-num_possible_nodes() will now say '1'.
+On x86_64 this cuts allocation overhead for page table pages down to a
+fraction (kernel compile / editing load.  TSC based measurement of times spend
+in each function):
 
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+no quicklist
+
+pte_alloc               1569048 4.3s(401ns/2.7us/179.7us)
+pmd_alloc                780988 2.1s(337ns/2.7us/86.1us)
+pud_alloc                780072 2.2s(424ns/2.8us/300.6us)
+pgd_alloc                260022 1s(920ns/4us/263.1us)
+
+quicklist:
+
+pte_alloc                452436 573.4ms(8ns/1.3us/121.1us)
+pmd_alloc                196204 174.5ms(7ns/889ns/46.1us)
+pud_alloc                195688 172.4ms(7ns/881ns/151.3us)
+pgd_alloc                 65228 9.8ms(8ns/150ns/6.1us)
+
+pgd allocations are the most complex and there we see the most dramatic
+improvement (may be we can cut down the amount of pgds cached somewhat?).  But
+even the pte allocations still see a doubling of performance.
+
+1. Proven code from the IA64 arch.
+
+	The method used here has been fine tuned for years and
+	is NUMA aware. It is based on the knowledge that accesses
+	to page table pages are sparse in nature. Taking a page
+	off the freelists instead of allocating a zeroed pages
+	allows a reduction of number of cachelines touched
+	in addition to getting rid of the slab overhead. So
+	performance improves. This is particularly useful if pgds
+	contain standard mappings. We can save on the teardown
+	and setup of such a page if we have some on the quicklists.
+	This includes avoiding lists operations that are otherwise
+	necessary on alloc and free to track pgds.
+
+2. Light weight alternative to use slab to manage page size pages
+
+	Slab overhead is significant and even page allocator use
+	is pretty heavy weight. The use of a per cpu quicklist
+	means that we touch only two cachelines for an allocation.
+	There is no need to access the page_struct (unless arch code
+	needs to fiddle around with it). So the fast past just
+	means bringing in one cacheline at the beginning of the
+	page. That same cacheline may then be used to store the
+	page table entry. Or a second cacheline may be used
+	if the page table entry is not in the first cacheline of
+	the page. The current code will zero the page which means
+	touching 32 cachelines (assuming 128 byte). We get down
+	from 32 to 2 cachelines in the fast path.
+
+3. x86_64 gets lightweight page table page management.
+
+	This will allow x86_64 arch code to faster repopulate pgds
+	and other page table entries. The list operations for pgds
+	are reduced in the same way as for i386 to the point where
+	a pgd is allocated from the page allocator and when it is
+	freed back to the page allocator. A pgd can pass through
+	the quicklists without having to be reinitialized.
+
+64 Consolidation of code from multiple arches
+
+	So far arches have their own implementation of quicklist
+	management. This patch moves that feature into the core allowing
+	an easier maintenance and consistent management of quicklists.
+
+Page table pages have the characteristics that they are typically zero or in a
+known state when they are freed.  This is usually the exactly same state as
+needed after allocation.  So it makes sense to build a list of freed page
+table pages and then consume the pages already in use first.  Those pages have
+already been initialized correctly (thus no need to zero them) and are likely
+already cached in such a way that the MMU can use them most effectively.  Page
+table pages are used in a sparse way so zeroing them on allocation is not too
+useful.
+
+Such an implementation already exits for ia64.  Howver, that implementation
+did not support constructors and destructors as needed by i386 / x86_64.  It
+also only supported a single quicklist.  The implementation here has
+constructor and destructor support as well as the ability for an arch to
+specify how many quicklists are needed.
+
+Quicklists are defined by an arch defining CONFIG_QUICKLIST.  If more than one
+quicklist is necessary then we can define NR_QUICK for additional lists.  F.e.
+ i386 needs two and thus has
+
+config NR_QUICK
+	int
+	default 2
+
+If an arch has requested quicklist support then pages can be allocated
+from the quicklist (or from the page allocator if the quicklist is
+empty) via:
+
+quicklist_alloc(<quicklist-nr>, <gfpflags>, <constructor>)
+
+Page table pages can be freed using:
+
+quicklist_free(<quicklist-nr>, <destructor>, <page>)
+
+Pages must have a definite state after allocation and before
+they are freed. If no constructor is specified then pages
+will be zeroed on allocation and must be zeroed before they are
+freed.
+
+If a constructor is used then the constructor will establish
+a definite page state. F.e. the i386 and x86_64 pgd constructors
+establish certain mappings.
+
+Constructors and destructors can also be used to track the pages.
+i386 and x86_64 use a list of pgds in order to be able to dynamically
+update standard mappings.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/k8topology.c |    7 ++-----
- arch/x86_64/mm/numa.c       |    4 ++++
- arch/x86_64/mm/srat.c       |   17 ++++++++---------
- 3 files changed, 14 insertions(+), 14 deletions(-)
+ include/linux/quicklist.h |   94 ++++++++++++++++++++++++++++++++++++
+ mm/Kconfig                |    5 +
+ mm/Makefile               |    2 
+ mm/quicklist.c            |   88 +++++++++++++++++++++++++++++++++
+ 4 files changed, 189 insertions(+)
 
-diff -puN arch/x86_64/mm/k8topology.c~x86_64-set-node_possible_map-at-runtime arch/x86_64/mm/k8topology.c
---- a/arch/x86_64/mm/k8topology.c~x86_64-set-node_possible_map-at-runtime
-+++ a/arch/x86_64/mm/k8topology.c
-@@ -49,11 +49,8 @@ int __init k8_scan_nodes(unsigned long s
- 	int found = 0;
- 	u32 reg;
- 	unsigned numnodes;
--	nodemask_t nodes_parsed;
- 	unsigned dualcore = 0;
- 
--	nodes_clear(nodes_parsed);
--
- 	if (!early_pci_allowed())
- 		return -1;
- 
-@@ -102,7 +99,7 @@ int __init k8_scan_nodes(unsigned long s
- 			       nodeid, (base>>8)&3, (limit>>8) & 3); 
- 			return -1; 
- 		}	
--		if (node_isset(nodeid, nodes_parsed)) { 
-+		if (node_isset(nodeid, node_possible_map)) {
- 			printk(KERN_INFO "Node %d already present. Skipping\n", 
- 			       nodeid);
- 			continue;
-@@ -155,7 +152,7 @@ int __init k8_scan_nodes(unsigned long s
- 
- 		prevbase = base;
- 
--		node_set(nodeid, nodes_parsed);
-+		node_set(nodeid, node_possible_map);
- 	} 
- 
- 	if (!found)
-diff -puN arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime
-+++ a/arch/x86_64/mm/numa.c
-@@ -296,6 +296,7 @@ static int __init setup_node_range(int n
- 	}
- 	nodes[nid].end = *addr;
- 	node_set_online(nid);
-+	node_set(nid, node_possible_map);
- 	printk(KERN_INFO "Faking node %d at %016Lx-%016Lx (%LuMB)\n", nid,
- 	       nodes[nid].start, nodes[nid].end,
- 	       (nodes[nid].end - nodes[nid].start) >> 20);
-@@ -494,6 +495,8 @@ void __init numa_initmem_init(unsigned l
- { 
- 	int i;
- 
-+	nodes_clear(node_possible_map);
+diff -puN /dev/null include/linux/quicklist.h
+--- /dev/null
++++ a/include/linux/quicklist.h
+@@ -0,0 +1,94 @@
++#ifndef LINUX_QUICKLIST_H
++#define LINUX_QUICKLIST_H
++/*
++ * Fast allocations and disposal of pages. Pages must be in the condition
++ * as needed after allocation when they are freed. Per cpu lists of pages
++ * are kept that only contain node local pages.
++ *
++ * (C) 2007, SGI. Christoph Lameter <clameter@sgi.com>
++ */
++#include <linux/kernel.h>
++#include <linux/gfp.h>
++#include <linux/percpu.h>
 +
- #ifdef CONFIG_NUMA_EMU
- 	if (cmdline && !numa_emulation(start_pfn, end_pfn))
-  		return;
-@@ -521,6 +524,7 @@ void __init numa_initmem_init(unsigned l
- 	memnodemap[0] = 0;
- 	nodes_clear(node_online_map);
- 	node_set_online(0);
-+	node_set(0, node_possible_map);
- 	for (i = 0; i < NR_CPUS; i++)
- 		numa_set_node(i, 0);
- 	node_to_cpumask[0] = cpumask_of_cpu(0);
-diff -puN arch/x86_64/mm/srat.c~x86_64-set-node_possible_map-at-runtime arch/x86_64/mm/srat.c
---- a/arch/x86_64/mm/srat.c~x86_64-set-node_possible_map-at-runtime
-+++ a/arch/x86_64/mm/srat.c
-@@ -25,7 +25,6 @@ int acpi_numa __initdata;
++#ifdef CONFIG_QUICKLIST
++
++struct quicklist {
++	void *page;
++	int nr_pages;
++};
++
++DECLARE_PER_CPU(struct quicklist, quicklist)[CONFIG_NR_QUICK];
++
++/*
++ * The two key functions quicklist_alloc and quicklist_free are inline so
++ * that they may be custom compiled for the platform.
++ * Specifying a NULL ctor can remove constructor support. Specifying
++ * a constant quicklist allows the determination of the exact address
++ * in the per cpu area.
++ *
++ * The fast patch in quicklist_alloc touched only a per cpu cacheline and
++ * the first cacheline of the page itself. There is minmal overhead involved.
++ */
++static inline void *quicklist_alloc(int nr, gfp_t flags, void (*ctor)(void *))
++{
++	struct quicklist *q;
++	void **p = NULL;
++
++	q =&get_cpu_var(quicklist)[nr];
++	p = q->page;
++	if (likely(p)) {
++		q->page = p[0];
++		p[0] = NULL;
++		q->nr_pages--;
++	}
++	put_cpu_var(quicklist);
++	if (likely(p))
++		return p;
++
++	p = (void *)__get_free_page(flags | __GFP_ZERO);
++	if (ctor && p)
++		ctor(p);
++	return p;
++}
++
++static inline void __quicklist_free(int nr, void (*dtor)(void *), void *p,
++	struct page *page)
++{
++	struct quicklist *q;
++	int nid = page_to_nid(page);
++
++	if (unlikely(nid != numa_node_id())) {
++		if (dtor)
++			dtor(p);
++		free_page((unsigned long)p);
++		return;
++	}
++
++	q = &get_cpu_var(quicklist)[nr];
++	*(void **)p = q->page;
++	q->page = p;
++	q->nr_pages++;
++	put_cpu_var(quicklist);
++}
++
++static inline void quicklist_free(int nr, void (*dtor)(void *), void *pp)
++{
++	__quicklist_free(nr, dtor, pp, virt_to_page(pp));
++}
++
++static inline void quicklist_free_page(int nr, void (*dtor)(void *),
++							struct page *page)
++{
++	__quicklist_free(nr, dtor, page_address(page), page);
++}
++
++void quicklist_trim(int nr, void (*dtor)(void *),
++	unsigned long min_pages, unsigned long max_free);
++
++unsigned long quicklist_total_size(void);
++
++#endif
++
++#endif /* LINUX_QUICKLIST_H */
++
+diff -puN mm/Kconfig~quicklists-for-page-table-pages mm/Kconfig
+--- a/mm/Kconfig~quicklists-for-page-table-pages
++++ a/mm/Kconfig
+@@ -163,3 +163,8 @@ config ZONE_DMA_FLAG
+ 	default "0" if !ZONE_DMA
+ 	default "1"
  
- static struct acpi_table_slit *acpi_slit;
- 
--static nodemask_t nodes_parsed __initdata;
- static struct bootnode nodes[MAX_NUMNODES] __initdata;
- static struct bootnode nodes_add[MAX_NUMNODES];
- static int found_add_area __initdata;
-@@ -43,7 +42,7 @@ static __init int setup_node(int pxm)
- static __init int conflicting_nodes(unsigned long start, unsigned long end)
- {
- 	int i;
--	for_each_node_mask(i, nodes_parsed) {
-+	for_each_node_mask(i, node_possible_map) {
- 		struct bootnode *nd = &nodes[i];
- 		if (nd->start == nd->end)
- 			continue;
-@@ -321,7 +320,7 @@ acpi_numa_memory_affinity_init(struct ac
- 	}
- 	nd = &nodes[node];
- 	oldnode = *nd;
--	if (!node_test_and_set(node, nodes_parsed)) {
-+	if (!node_test_and_set(node, node_possible_map)) {
- 		nd->start = start;
- 		nd->end = end;
- 	} else {
-@@ -344,7 +343,7 @@ acpi_numa_memory_affinity_init(struct ac
- 		printk(KERN_NOTICE "SRAT: Hotplug region ignored\n");
- 		*nd = oldnode;
- 		if ((nd->start | nd->end) == 0)
--			node_clear(node, nodes_parsed);
-+			node_clear(node, node_possible_map);
- 	}
- }
- 
-@@ -356,7 +355,7 @@ static int nodes_cover_memory(void)
- 	unsigned long pxmram, e820ram;
- 
- 	pxmram = 0;
--	for_each_node_mask(i, nodes_parsed) {
-+	for_each_node_mask(i, node_possible_map) {
- 		unsigned long s = nodes[i].start >> PAGE_SHIFT;
- 		unsigned long e = nodes[i].end >> PAGE_SHIFT;
- 		pxmram += e - s;
-@@ -380,7 +379,7 @@ static int nodes_cover_memory(void)
- static void unparse_node(int node)
- {
- 	int i;
--	node_clear(node, nodes_parsed);
-+	node_clear(node, node_possible_map);
- 	for (i = 0; i < MAX_LOCAL_APIC; i++) {
- 		if (apicid_to_node[i] == node)
- 			apicid_to_node[i] = NUMA_NO_NODE;
-@@ -420,18 +419,18 @@ int __init acpi_scan_nodes(unsigned long
- 	}
- 
- 	/* Finally register nodes */
--	for_each_node_mask(i, nodes_parsed)
-+	for_each_node_mask(i, node_possible_map)
- 		setup_node_bootmem(i, nodes[i].start, nodes[i].end);
- 	/* Try again in case setup_node_bootmem missed one due
- 	   to missing bootmem */
--	for_each_node_mask(i, nodes_parsed)
-+	for_each_node_mask(i, node_possible_map)
- 		if (!node_online(i))
- 			setup_node_bootmem(i, nodes[i].start, nodes[i].end);
- 
- 	for (i = 0; i < NR_CPUS; i++) {
- 		if (cpu_to_node[i] == NUMA_NO_NODE)
- 			continue;
--		if (!node_isset(cpu_to_node[i], nodes_parsed))
-+		if (!node_isset(cpu_to_node[i], node_possible_map))
- 			numa_set_node(i, NUMA_NO_NODE);
- 	}
- 	numa_init_array();
++config NR_QUICK
++	int
++	depends on QUICKLIST
++	default "1"
++
+diff -puN mm/Makefile~quicklists-for-page-table-pages mm/Makefile
+--- a/mm/Makefile~quicklists-for-page-table-pages
++++ a/mm/Makefile
+@@ -30,3 +30,5 @@ obj-$(CONFIG_MEMORY_HOTPLUG) += memory_h
+ obj-$(CONFIG_FS_XIP) += filemap_xip.o
+ obj-$(CONFIG_MIGRATION) += migrate.o
+ obj-$(CONFIG_SMP) += allocpercpu.o
++obj-$(CONFIG_QUICKLIST) += quicklist.o
++
+diff -puN /dev/null mm/quicklist.c
+--- /dev/null
++++ a/mm/quicklist.c
+@@ -0,0 +1,88 @@
++/*
++ * Quicklist support.
++ *
++ * Quicklists are light weight lists of pages that have a defined state
++ * on alloc and free. Pages must be in the quicklist specific defined state
++ * (zero by default) when the page is freed. It seems that the initial idea
++ * for such lists first came from Dave Miller and then various other people
++ * improved on it.
++ *
++ * Copyright (C) 2007 SGI,
++ * 	Christoph Lameter <clameter@sgi.com>
++ * 		Generalized, added support for multiple lists and
++ * 		constructors / destructors.
++ */
++#include <linux/kernel.h>
++
++#include <linux/mm.h>
++#include <linux/mmzone.h>
++#include <linux/module.h>
++#include <linux/quicklist.h>
++
++DEFINE_PER_CPU(struct quicklist, quicklist)[CONFIG_NR_QUICK];
++
++#define FRACTION_OF_NODE_MEM	16
++
++static unsigned long max_pages(unsigned long min_pages)
++{
++	unsigned long node_free_pages, max;
++
++	node_free_pages = node_page_state(numa_node_id(),
++			NR_FREE_PAGES);
++	max = node_free_pages / FRACTION_OF_NODE_MEM;
++	return max(max, min_pages);
++}
++
++static long min_pages_to_free(struct quicklist *q,
++	unsigned long min_pages, long max_free)
++{
++	long pages_to_free;
++
++	pages_to_free = q->nr_pages - max_pages(min_pages);
++
++	return min(pages_to_free, max_free);
++}
++
++/*
++ * Trim down the number of pages in the quicklist
++ */
++void quicklist_trim(int nr, void (*dtor)(void *),
++	unsigned long min_pages, unsigned long max_free)
++{
++	long pages_to_free;
++	struct quicklist *q;
++
++	q = &get_cpu_var(quicklist)[nr];
++	if (q->nr_pages > min_pages) {
++		pages_to_free = min_pages_to_free(q, min_pages, max_free);
++
++		while (pages_to_free > 0) {
++			/*
++			 * We pass a gfp_t of 0 to quicklist_alloc here
++			 * because we will never call into the page allocator.
++			 */
++			void *p = quicklist_alloc(nr, 0, NULL);
++
++			if (dtor)
++				dtor(p);
++			free_page((unsigned long)p);
++			pages_to_free--;
++		}
++	}
++	put_cpu_var(quicklist);
++}
++
++unsigned long quicklist_total_size(void)
++{
++	unsigned long count = 0;
++	int cpu;
++	struct quicklist *ql, *q;
++
++	for_each_online_cpu(cpu) {
++		ql = per_cpu(quicklist, cpu);
++		for (q = ql; q < ql + CONFIG_NR_QUICK; q++)
++			count += q->nr_pages;
++	}
++	return count;
++}
++
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-x86_64-set-node_possible_map-at-runtime.patch
-slab-x86_64-skip-cache_free_alien-on-non-numa.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
-sched-dynticks-idle-load-balancing-v3.patch
-sched-optimize-siblings-status-check-logic-in-wake_idle.patch
-sched-dont-renice-kernel-threads.patch
-sched-remove-sleepavg-from-proc.patch
-sched-implement-staircase-deadline-cpu-scheduler.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
-sched-remove-noninteractive-flag.patch
-sched-document-sd-cpu-scheduler.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-add-slabinfo-tool.patch
+make-page-private-usable-in-compound-pages-v1.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+quicklists-for-page-table-pages.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+extend-print_symbol-capability-fix.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+readahead-state-based-method-aging-accounting.patch
