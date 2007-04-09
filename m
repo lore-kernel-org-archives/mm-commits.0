@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + doc-gpiotxt-describes-open-drain-emulation.patch added to -mm tree
-Date: Mon, 09 Apr 2007 13:05:01 -0700
-Message-ID: <200704092005.l39K5Ghd022154@shell0.pdx.osdl.net>
+Subject: + uml-remove-unused-x86_64-code.patch added to -mm tree
+Date: Mon, 09 Apr 2007 13:44:30 -0700
+Message-ID: <200704092044.l39KiURL022977@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58016 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59604 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965393AbXDIUFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 9 Apr 2007 16:05:24 -0400
+	id S965085AbXDIUoh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 9 Apr 2007 16:44:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     doc: gpio.txt describes open-drain emulation
+     uml: remove unused x86_64 code
 has been added to the -mm tree.  Its filename is
-     doc-gpiotxt-describes-open-drain-emulation.patch
+     uml-remove-unused-x86_64-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,101 +25,143 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: doc: gpio.txt describes open-drain emulation
-From: David Brownell <david-b@pacbell.net>
+Subject: uml: remove unused x86_64 code
+From: Jeff Dike <jdike@addtoit.com>
 
-Update the GPIO docs to describe the idiom whereby open drain signals are
-emulated by toggling the GPIO direction.
+It turns out that essentially none of the x86_64 bugs.c is needed.  So, we can
+delete most of it.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt |   31 ++++++++++++++++++++++++++++++-
- 1 files changed, 30 insertions(+), 1 deletion(-)
+ arch/um/sys-x86_64/bugs.c |   69 ------------------------------------
+ 1 files changed, 69 deletions(-)
 
-diff -puN Documentation/gpio.txt~doc-gpiotxt-describes-open-drain-emulation Documentation/gpio.txt
---- a/Documentation/gpio.txt~doc-gpiotxt-describes-open-drain-emulation
-+++ a/Documentation/gpio.txt
-@@ -27,7 +27,7 @@ The exact capabilities of GPIOs vary bet
-   - Output values are writable (high=1, low=0).  Some chips also have
-     options about how that value is driven, so that for example only one
-     value might be driven ... supporting "wire-OR" and similar schemes
--    for the other value.
-+    for the other value (notably, "open drain" signaling).
+diff -puN arch/um/sys-x86_64/bugs.c~uml-remove-unused-x86_64-code arch/um/sys-x86_64/bugs.c
+--- a/arch/um/sys-x86_64/bugs.c~uml-remove-unused-x86_64-code
++++ a/arch/um/sys-x86_64/bugs.c
+@@ -4,12 +4,7 @@
+  * Licensed under the GPL
+  */
  
-   - Input values are likewise readable (1, 0).  Some chips support readback
-     of pins configured as "output", which is very useful in such "wire-OR"
-@@ -247,6 +247,35 @@ with gpio_get_value(), for example to in
- when the IRQ is edge-triggered.
+-#include "linux/sched.h"
+-#include "linux/errno.h"
+-#include "asm/system.h"
+-#include "asm/pda.h"
+ #include "sysdep/ptrace.h"
+-#include "os.h"
  
- 
-+Emulating Open Drain Signals
-+----------------------------
-+Sometimes shared signals need to use "open drain" signaling, where only the
-+low signal level is actually driven.  (That term applies to CMOS transistors;
-+"open collector" is used for TTL.)  A pullup resistor causes the high signal
-+level.  This is sometimes called a "wire-AND"; or more practically, from the
-+negative logic (low=true) perspective this is a "wire-OR".
-+
-+One common example of an open drain signal is a shared active-low IRQ line.
-+Also, bidirectional data bus signals sometimes use open drain signals.
-+
-+Some GPIO controllers directly support open drain outputs; many don't.  When
-+you need open drain signaling but your hardware doesn't directly support it,
-+there's a common idiom you can use to emulate it with any GPIO pin that can
-+be used as either an input or an output:
-+
-+ LOW:	gpio_direction_output(gpio, 0) ... this drives the signal
-+	and overrides the pullup.
-+
-+ HIGH:	gpio_direction_input(gpio) ... this turns off the output,
-+	so the pullup (or some other device) controls the signal.
-+
-+If you are "driving" the signal high but gpio_get_value(gpio) reports a low
-+value (after the appropriate rise time passes), you know some other component
-+is driving the shared signal low.  That's not necessarily an error.  As one
-+common example, that's how I2C clocks are stretched:  a slave that needs a
-+slower clock delays the rising edge of SCK, and the I2C master adjusts its
-+signaling rate accordingly.
-+
- 
- What do these conventions omit?
- ===============================
+ void arch_init_thread(void)
+ {
+@@ -23,67 +18,3 @@ int arch_handle_signal(int sig, union um
+ {
+ 	return 0;
+ }
+-
+-#define MAXTOKEN 64
+-
+-/* Set during early boot */
+-int host_has_cmov = 1;
+-int host_has_xmm = 0;
+-
+-static char token(int fd, char *buf, int len, char stop)
+-{
+-	int n;
+-	char *ptr, *end, c;
+-
+-	ptr = buf;
+-	end = &buf[len];
+-	do {
+-		n = os_read_file(fd, ptr, sizeof(*ptr));
+-		c = *ptr++;
+-		if(n != sizeof(*ptr)){
+-			if(n == 0)
+-				return 0;
+-			printk("Reading /proc/cpuinfo failed, err = %d\n", -n);
+-			if(n < 0)
+-				return n;
+-			else return -EIO;
+-		}
+-	} while((c != '\n') && (c != stop) && (ptr < end));
+-
+-	if(ptr == end){
+-		printk("Failed to find '%c' in /proc/cpuinfo\n", stop);
+-		return -1;
+-	}
+-	*(ptr - 1) = '\0';
+-	return c;
+-}
+-
+-static int find_cpuinfo_line(int fd, char *key, char *scratch, int len)
+-{
+-	int n;
+-	char c;
+-
+-	scratch[len - 1] = '\0';
+-	while(1){
+-		c = token(fd, scratch, len - 1, ':');
+-		if(c <= 0)
+-			return 0;
+-		else if(c != ':'){
+-			printk("Failed to find ':' in /proc/cpuinfo\n");
+-			return 0;
+-		}
+-
+-		if(!strncmp(scratch, key, strlen(key)))
+-			return 1;
+-
+-		do {
+-			n = os_read_file(fd, &c, sizeof(c));
+-			if(n != sizeof(c)){
+-				printk("Failed to find newline in "
+-				       "/proc/cpuinfo, err = %d\n", -n);
+-				return 0;
+-			}
+-		} while(c != '\n');
+-	}
+-	return 0;
+-}
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-omap_cf-oops-on-suspend-fix.patch
-update-documentation-driver-model-platformtxt.patch
-doc-gpiotxt-describes-open-drain-emulation.patch
-make-proc-acpi-wakeup-more-useful.patch
-at91_cf-minor-fix.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-fix-hotplug-for-legacy-platform-drivers-update.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+array_size-check-for-type-uml-fix.patch
+uml-fix-prototypes.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+uml-speed-up-exec.patch
+uml-no-locking-needed-in-tlsc.patch
+uml-tidy-processc.patch
+uml-tidy-processc-fix.patch
+uml-remove-page_size.patch
+uml-kernel_thread-shouldnt-panic.patch
+uml-tidy-fault-code.patch
+uml-kernel-segfaults-should-dump-proper-registers.patch
+uml-comment-early-boot-locking.patch
+uml-irq-locking-commentary.patch
+uml-delete-host_frame_size.patch
+uml-drivers-get-release-methods.patch
+uml-dump-registers-on-ptrace-or-wait-failure.patch
+uml-speed-up-page-table-walking.patch
+uml-remove-unused-x86_64-code.patch
+uml-start-fixing-os_read_file-and-os_write_file.patch
+uml-tidy-libc-code.patch
+uml-convert-libc-layer-to-call-read-and-write.patch
+sys_futex64-allows-64bit-futexes-workaround-for-uml.patch
+utrace-uml-make-uml-compile-with-utrace-enabled.patch
