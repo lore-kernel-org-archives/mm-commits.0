@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + quicklists-for-page-table-pages.patch added to -mm tree
-Date: Mon, 09 Apr 2007 14:19:48 -0700
-Message-ID: <200704092119.l39LJnsO023743@shell0.pdx.osdl.net>
+Subject: + skeletonfb-various-corrections.patch added to -mm tree
+Date: Mon, 09 Apr 2007 16:35:09 -0700
+Message-ID: <200704092335.l39NZ9jM026444@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60848 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35860 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965085AbXDIVUA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 9 Apr 2007 17:20:00 -0400
+	id S1753655AbXDIXfN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 9 Apr 2007 19:35:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, davem@davemloft.net, tony.luck@intel.com, wli@holomorphy.com
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     Quicklists for page table pages
+     skeletonfb: various corrections
 has been added to the -mm tree.  Its filename is
-     quicklists-for-page-table-pages.patch
+     skeletonfb-various-corrections.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,376 +25,363 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Quicklists for page table pages
-From: Christoph Lameter <clameter@sgi.com>
+Subject: skeletonfb: various corrections
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-On x86_64 this cuts allocation overhead for page table pages down to a
-fraction (kernel compile / editing load.  TSC based measurement of times spend
-in each function):
+This is mainly correction of types, typos and missing characters in the
+skeletonfb.c file found while trying to prepare a new fb driver.
 
-no quicklist
+[adaplas]
+Additions on power management and fixes as per akpm
 
-pte_alloc               1569048 4.3s(401ns/2.7us/179.7us)
-pmd_alloc                780988 2.1s(337ns/2.7us/86.1us)
-pud_alloc                780072 2.2s(424ns/2.8us/300.6us)
-pgd_alloc                260022 1s(920ns/4us/263.1us)
-
-quicklist:
-
-pte_alloc                452436 573.4ms(8ns/1.3us/121.1us)
-pmd_alloc                196204 174.5ms(7ns/889ns/46.1us)
-pud_alloc                195688 172.4ms(7ns/881ns/151.3us)
-pgd_alloc                 65228 9.8ms(8ns/150ns/6.1us)
-
-pgd allocations are the most complex and there we see the most dramatic
-improvement (may be we can cut down the amount of pgds cached somewhat?).  But
-even the pte allocations still see a doubling of performance.
-
-1. Proven code from the IA64 arch.
-
-	The method used here has been fine tuned for years and
-	is NUMA aware. It is based on the knowledge that accesses
-	to page table pages are sparse in nature. Taking a page
-	off the freelists instead of allocating a zeroed pages
-	allows a reduction of number of cachelines touched
-	in addition to getting rid of the slab overhead. So
-	performance improves. This is particularly useful if pgds
-	contain standard mappings. We can save on the teardown
-	and setup of such a page if we have some on the quicklists.
-	This includes avoiding lists operations that are otherwise
-	necessary on alloc and free to track pgds.
-
-2. Light weight alternative to use slab to manage page size pages
-
-	Slab overhead is significant and even page allocator use
-	is pretty heavy weight. The use of a per cpu quicklist
-	means that we touch only two cachelines for an allocation.
-	There is no need to access the page_struct (unless arch code
-	needs to fiddle around with it). So the fast past just
-	means bringing in one cacheline at the beginning of the
-	page. That same cacheline may then be used to store the
-	page table entry. Or a second cacheline may be used
-	if the page table entry is not in the first cacheline of
-	the page. The current code will zero the page which means
-	touching 32 cachelines (assuming 128 byte). We get down
-	from 32 to 2 cachelines in the fast path.
-
-3. x86_64 gets lightweight page table page management.
-
-	This will allow x86_64 arch code to faster repopulate pgds
-	and other page table entries. The list operations for pgds
-	are reduced in the same way as for i386 to the point where
-	a pgd is allocated from the page allocator and when it is
-	freed back to the page allocator. A pgd can pass through
-	the quicklists without having to be reinitialized.
-
-64 Consolidation of code from multiple arches
-
-	So far arches have their own implementation of quicklist
-	management. This patch moves that feature into the core allowing
-	an easier maintenance and consistent management of quicklists.
-
-Page table pages have the characteristics that they are typically zero or in a
-known state when they are freed.  This is usually the exactly same state as
-needed after allocation.  So it makes sense to build a list of freed page
-table pages and then consume the pages already in use first.  Those pages have
-already been initialized correctly (thus no need to zero them) and are likely
-already cached in such a way that the MMU can use them most effectively.  Page
-table pages are used in a sparse way so zeroing them on allocation is not too
-useful.
-
-Such an implementation already exits for ia64.  Howver, that implementation
-did not support constructors and destructors as needed by i386 / x86_64.  It
-also only supported a single quicklist.  The implementation here has
-constructor and destructor support as well as the ability for an arch to
-specify how many quicklists are needed.
-
-Quicklists are defined by an arch defining CONFIG_QUICKLIST.  If more than one
-quicklist is necessary then we can define NR_QUICK for additional lists.  F.e.
- i386 needs two and thus has
-
-config NR_QUICK
-	int
-	default 2
-
-If an arch has requested quicklist support then pages can be allocated
-from the quicklist (or from the page allocator if the quicklist is
-empty) via:
-
-quicklist_alloc(<quicklist-nr>, <gfpflags>, <constructor>)
-
-Page table pages can be freed using:
-
-quicklist_free(<quicklist-nr>, <destructor>, <page>)
-
-Pages must have a definite state after allocation and before
-they are freed. If no constructor is specified then pages
-will be zeroed on allocation and must be zeroed before they are
-freed.
-
-If a constructor is used then the constructor will establish
-a definite page state. F.e. the i386 and x86_64 pgd constructors
-establish certain mappings.
-
-Constructors and destructors can also be used to track the pages.
-i386 and x86_64 use a list of pgds in order to be able to dynamically
-update standard mappings.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quicklist.h |   94 ++++++++++++++++++++++++++++++++++++
- mm/Kconfig                |    5 +
- mm/Makefile               |    2 
- mm/quicklist.c            |   88 +++++++++++++++++++++++++++++++++
- 4 files changed, 189 insertions(+)
+ drivers/video/skeletonfb.c |  195 +++++++++++++++++++++++++----------
+ 1 files changed, 142 insertions(+), 53 deletions(-)
 
-diff -puN /dev/null include/linux/quicklist.h
---- /dev/null
-+++ a/include/linux/quicklist.h
-@@ -0,0 +1,94 @@
-+#ifndef LINUX_QUICKLIST_H
-+#define LINUX_QUICKLIST_H
-+/*
-+ * Fast allocations and disposal of pages. Pages must be in the condition
-+ * as needed after allocation when they are freed. Per cpu lists of pages
-+ * are kept that only contain node local pages.
-+ *
-+ * (C) 2007, SGI. Christoph Lameter <clameter@sgi.com>
+diff -puN drivers/video/skeletonfb.c~skeletonfb-various-corrections drivers/video/skeletonfb.c
+--- a/drivers/video/skeletonfb.c~skeletonfb-various-corrections
++++ a/drivers/video/skeletonfb.c
+@@ -51,6 +51,7 @@
+ #include <linux/delay.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
++#include <linux/pci.h>
+ 
+     /*
+      *  This is just simple sample code.
+@@ -60,6 +61,11 @@
+      */
+ 
+ /*
++ * Driver data
 + */
-+#include <linux/kernel.h>
-+#include <linux/gfp.h>
-+#include <linux/percpu.h>
++static char *mode_option __devinitdata;
 +
-+#ifdef CONFIG_QUICKLIST
++/*
+  *  If your driver supports multiple boards, you should make the  
+  *  below data types arrays, or allocate them dynamically (using kmalloc()). 
+  */ 
+@@ -278,7 +284,7 @@ static int xxxfb_set_par(struct fb_info 
+  */
+ static int xxxfb_setcolreg(unsigned regno, unsigned red, unsigned green,
+ 			   unsigned blue, unsigned transp,
+-			   const struct fb_info *info)
++			   struct fb_info *info)
+ {
+     if (regno >= 256)  /* no. of hw registers */
+        return -EINVAL;
+@@ -416,7 +422,7 @@ static int xxxfb_setcolreg(unsigned regn
+  *      Returns negative errno on error, or zero on success.
+  */
+ static int xxxfb_pan_display(struct fb_var_screeninfo *var,
+-			     const struct fb_info *info)
++			     struct fb_info *info)
+ {
+     /*
+      * If your hardware does not support panning, _do_ _not_ implement this
+@@ -454,7 +460,7 @@ static int xxxfb_pan_display(struct fb_v
+  *      Return !0 for any modes that are unimplemented.
+  *
+  */
+-static int xxxfb_blank(int blank_mode, const struct fb_info *info)
++static int xxxfb_blank(int blank_mode, struct fb_info *info)
+ {
+     /* ... */
+     return 0;
+@@ -483,7 +489,7 @@ static int xxxfb_blank(int blank_mode, c
+  *	depending on the rastering operation with the value of color which
+  *	is in the current color depth format.
+  */
+-void xxfb_fillrect(struct fb_info *p, const struct fb_fillrect *region)
++void xxxfb_fillrect(struct fb_info *p, const struct fb_fillrect *region)
+ {
+ /*	Meaning of struct fb_fillrect
+  *
+@@ -647,21 +653,50 @@ void xxxfb_poll(struct fb_info *info, po
+  *      If the driver has implemented its own hardware-based drawing function,
+  *      implementing this function is highly recommended.
+  */
+-void xxxfb_sync(struct fb_info *info)
++int xxxfb_sync(struct fb_info *info)
+ {
++	return 0;
+ }
+ 
+     /*
++     *  Frame buffer operations
++     */
 +
-+struct quicklist {
-+	void *page;
-+	int nr_pages;
++static struct fb_ops xxxfb_ops = {
++	.owner		= THIS_MODULE,
++	.fb_open	= xxxfb_open,
++	.fb_read	= xxxfb_read,
++	.fb_write	= xxxfb_write,
++	.fb_release	= xxxfb_release,
++	.fb_check_var	= xxxfb_check_var,
++	.fb_set_par	= xxxfb_set_par,
++	.fb_setcolreg	= xxxfb_setcolreg,
++	.fb_blank	= xxxfb_blank,
++	.fb_pan_display	= xxxfb_pan_display,
++	.fb_fillrect	= xxxfb_fillrect, 	/* Needed !!! */
++	.fb_copyarea	= xxxfb_copyarea,	/* Needed !!! */
++	.fb_imageblit	= xxxfb_imageblit,	/* Needed !!! */
++	.fb_cursor	= xxxfb_cursor,		/* Optional !!! */
++	.fb_rotate	= xxxfb_rotate,
++	.fb_poll	= xxxfb_poll,
++	.fb_sync	= xxxfb_sync,
++	.fb_ioctl	= xxxfb_ioctl,
++	.fb_mmap	= xxxfb_mmap,
 +};
 +
-+DECLARE_PER_CPU(struct quicklist, quicklist)[CONFIG_NR_QUICK];
++/* ------------------------------------------------------------------------- */
 +
-+/*
-+ * The two key functions quicklist_alloc and quicklist_free are inline so
-+ * that they may be custom compiled for the platform.
-+ * Specifying a NULL ctor can remove constructor support. Specifying
-+ * a constant quicklist allows the determination of the exact address
-+ * in the per cpu area.
-+ *
-+ * The fast patch in quicklist_alloc touched only a per cpu cacheline and
-+ * the first cacheline of the page itself. There is minmal overhead involved.
-+ */
-+static inline void *quicklist_alloc(int nr, gfp_t flags, void (*ctor)(void *))
-+{
-+	struct quicklist *q;
-+	void **p = NULL;
-+
-+	q =&get_cpu_var(quicklist)[nr];
-+	p = q->page;
-+	if (likely(p)) {
-+		q->page = p[0];
-+		p[0] = NULL;
-+		q->nr_pages--;
-+	}
-+	put_cpu_var(quicklist);
-+	if (likely(p))
-+		return p;
-+
-+	p = (void *)__get_free_page(flags | __GFP_ZERO);
-+	if (ctor && p)
-+		ctor(p);
-+	return p;
-+}
-+
-+static inline void __quicklist_free(int nr, void (*dtor)(void *), void *p,
-+	struct page *page)
-+{
-+	struct quicklist *q;
-+	int nid = page_to_nid(page);
-+
-+	if (unlikely(nid != numa_node_id())) {
-+		if (dtor)
-+			dtor(p);
-+		free_page((unsigned long)p);
-+		return;
-+	}
-+
-+	q = &get_cpu_var(quicklist)[nr];
-+	*(void **)p = q->page;
-+	q->page = p;
-+	q->nr_pages++;
-+	put_cpu_var(quicklist);
-+}
-+
-+static inline void quicklist_free(int nr, void (*dtor)(void *), void *pp)
-+{
-+	__quicklist_free(nr, dtor, pp, virt_to_page(pp));
-+}
-+
-+static inline void quicklist_free_page(int nr, void (*dtor)(void *),
-+							struct page *page)
-+{
-+	__quicklist_free(nr, dtor, page_address(page), page);
-+}
-+
-+void quicklist_trim(int nr, void (*dtor)(void *),
-+	unsigned long min_pages, unsigned long max_free);
-+
-+unsigned long quicklist_total_size(void);
-+
-+#endif
-+
-+#endif /* LINUX_QUICKLIST_H */
-+
-diff -puN mm/Kconfig~quicklists-for-page-table-pages mm/Kconfig
---- a/mm/Kconfig~quicklists-for-page-table-pages
-+++ a/mm/Kconfig
-@@ -163,3 +163,8 @@ config ZONE_DMA_FLAG
- 	default "0" if !ZONE_DMA
- 	default "1"
++    /*
+      *  Initialization
+      */
  
-+config NR_QUICK
-+	int
-+	depends on QUICKLIST
-+	default "1"
-+
-diff -puN mm/Makefile~quicklists-for-page-table-pages mm/Makefile
---- a/mm/Makefile~quicklists-for-page-table-pages
-+++ a/mm/Makefile
-@@ -30,3 +30,5 @@ obj-$(CONFIG_MEMORY_HOTPLUG) += memory_h
- obj-$(CONFIG_FS_XIP) += filemap_xip.o
- obj-$(CONFIG_MIGRATION) += migrate.o
- obj-$(CONFIG_SMP) += allocpercpu.o
-+obj-$(CONFIG_QUICKLIST) += quicklist.o
-+
-diff -puN /dev/null mm/quicklist.c
---- /dev/null
-+++ a/mm/quicklist.c
-@@ -0,0 +1,88 @@
-+/*
-+ * Quicklist support.
+ /* static int __init xxfb_probe (struct device *device) -- for platform devs */
+-static int __init xxxfb_probe(struct pci_dev *dev,
++static int __devinit xxxfb_probe(struct pci_dev *dev,
+ 			      const_struct pci_device_id *ent)
+ {
+     struct fb_info *info;
+     struct xxx_par *par;
+-    struct device = &dev->dev; /* for pci drivers */
++    struct device* device = &dev->dev; /* for pci drivers */
+     int cmap_len, retval;	
+    
+     /*
+@@ -760,7 +795,7 @@ static int __init xxxfb_probe(struct pci
+      *
+      * NOTE: This field is currently unused.
+      */
+-    info->pixmap.scan_align = 32
++    info->pixmap.scan_align = 32;
+ /***************************** End optional stage ***************************/
+ 
+     /*
+@@ -770,13 +805,13 @@ static int __init xxxfb_probe(struct pci
+     if (!mode_option)
+ 	mode_option = "640x480@60";	 	
+ 
+-    retval = fb_find_mode(info->var, info, mode_option, NULL, 0, NULL, 8);
++    retval = fb_find_mode(&info->var, info, mode_option, NULL, 0, NULL, 8);
+   
+     if (!retval || retval == 4)
+ 	return -EINVAL;			
+ 
+     /* This has to been done !!! */	
+-    fb_alloc_cmap(info->cmap, cmap_len, 0);
++    fb_alloc_cmap(&info->cmap, cmap_len, 0);
+ 	
+     /* 
+      * The following is done in the case of having hardware with a static 
+@@ -811,15 +846,15 @@ static int __init xxxfb_probe(struct pci
+     /*
+      *  Cleanup
+      */
+-/* static void __exit xxxfb_remove(struct device *device) */
+-static void __exit xxxfb_remove(struct pci_dev *dev)
++/* static void __devexit xxxfb_remove(struct device *device) */
++static void __devexit xxxfb_remove(struct pci_dev *dev)
+ {
+-	struct fb_info *info = pci_get_drv_data(dev);
+-	/* or dev_get_drv_data(device); */
++	struct fb_info *info = pci_get_drvdata(dev);
++	/* or dev_get_drvdata(device); */
+ 
+ 	if (info) {
+ 		unregister_framebuffer(info);
+-		fb_dealloc_cmap(&info.cmap);
++		fb_dealloc_cmap(&info->cmap);
+ 		/* ... */
+ 		framebuffer_release(info);
+ 	}
+@@ -827,18 +862,61 @@ static void __exit xxxfb_remove(struct p
+ 	return 0;
+ }
+ 
+-#if CONFIG_PCI
++#ifdef CONFIG_PCI
++#ifdef CONFIG_PM
++/**
++ *	xxxfb_suspend - Optional but recommended function. Suspend the device.
++ *	@dev: PCI device
++ *	@msg: the suspend event code.
 + *
-+ * Quicklists are light weight lists of pages that have a defined state
-+ * on alloc and free. Pages must be in the quicklist specific defined state
-+ * (zero by default) when the page is freed. It seems that the initial idea
-+ * for such lists first came from Dave Miller and then various other people
-+ * improved on it.
++ *      See Documentation/power/devices.txt for more information
++ */
++static int xxxfb_suspend(struct pci_dev *dev, pm_message_t msg)
++{
++	struct fb_info *info = pci_get_drvdata(dev);
++	struct xxxfb_par *par = info->par;
++
++	/* suspend here */
++	return 0;
++}
++
++/**
++ *	xxxfb_resume - Optional but recommended function. Resume the device.
++ *	@dev: PCI device
 + *
-+ * Copyright (C) 2007 SGI,
-+ * 	Christoph Lameter <clameter@sgi.com>
-+ * 		Generalized, added support for multiple lists and
-+ * 		constructors / destructors.
++ *      See Documentation/power/devices.txt for more information
 + */
-+#include <linux/kernel.h>
-+
-+#include <linux/mm.h>
-+#include <linux/mmzone.h>
-+#include <linux/module.h>
-+#include <linux/quicklist.h>
-+
-+DEFINE_PER_CPU(struct quicklist, quicklist)[CONFIG_NR_QUICK];
-+
-+#define FRACTION_OF_NODE_MEM	16
-+
-+static unsigned long max_pages(unsigned long min_pages)
++static int xxxfb_resume(struct pci_dev *dev)
 +{
-+	unsigned long node_free_pages, max;
++	struct fb_info *info = pci_get_drvdata(dev);
++	struct xxxfb_par *par = info->par;
 +
-+	node_free_pages = node_page_state(numa_node_id(),
-+			NR_FREE_PAGES);
-+	max = node_free_pages / FRACTION_OF_NODE_MEM;
-+	return max(max, min_pages);
++	/* resume here */
++	return 0;
 +}
++#else
++#define xxxfb_suspend NULL
++#define xxxfb_resume NULL
++#endif /* CONFIG_PM */
 +
-+static long min_pages_to_free(struct quicklist *q,
-+	unsigned long min_pages, long max_free)
-+{
-+	long pages_to_free;
++static struct pci_device_id xxxfb_id_table[] = {
++	{ PCI_VENDOR_ID_XXX, PCI_DEVICE_ID_XXX,
++	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
++	  ADDR, 0 },
++	{ 0, }
++};
 +
-+	pages_to_free = q->nr_pages - max_pages(min_pages);
+ /* For PCI drivers */
+ static struct pci_driver xxxfb_driver = {
+ 	.name =		"xxxfb",
+-	.id_table =	xxxfb_devices,
++	.id_table =	xxxfb_id_table,
+ 	.probe =	xxxfb_probe,
+ 	.remove =	__devexit_p(xxxfb_remove),
+-	.suspend =      xxxfb_suspend, /* optional */
+-	.resume =       xxxfb_resume,  /* optional */
++	.suspend =      xxxfb_suspend, /* optional but recommended */
++	.resume =       xxxfb_resume,  /* optional but recommended */
+ };
+ 
+-static int __init xxxfb_init(void)
++int __init xxxfb_init(void)
+ {
+ 	/*
+ 	 *  For kernel boot options (in 'video=xxxfb:<options>' format)
+@@ -858,16 +936,53 @@ static void __exit xxxfb_exit(void)
+ {
+ 	pci_unregister_driver(&xxxfb_driver);
+ }
+-#else
++#else /* non PCI, platform drivers */
+ #include <linux/platform_device.h>
+ /* for platform devices */
 +
-+	return min(pages_to_free, max_free);
-+}
-+
-+/*
-+ * Trim down the number of pages in the quicklist
++#ifdef CONFIG_PM
++/**
++ *	xxxfb_suspend - Optional but recommended function. Suspend the device.
++ *	@dev: platform device
++ *	@msg: the suspend event code.
++ *
++ *      See Documentation/power/devices.txt for more information
 + */
-+void quicklist_trim(int nr, void (*dtor)(void *),
-+	unsigned long min_pages, unsigned long max_free)
++static int xxxfb_suspend(struct platform_device *dev, pm_message_t msg)
 +{
-+	long pages_to_free;
-+	struct quicklist *q;
++	struct fb_info *info = platform_get_drvdata(dev);
++	struct xxxfb_par *par = info->par;
 +
-+	q = &get_cpu_var(quicklist)[nr];
-+	if (q->nr_pages > min_pages) {
-+		pages_to_free = min_pages_to_free(q, min_pages, max_free);
-+
-+		while (pages_to_free > 0) {
-+			/*
-+			 * We pass a gfp_t of 0 to quicklist_alloc here
-+			 * because we will never call into the page allocator.
-+			 */
-+			void *p = quicklist_alloc(nr, 0, NULL);
-+
-+			if (dtor)
-+				dtor(p);
-+			free_page((unsigned long)p);
-+			pages_to_free--;
-+		}
-+	}
-+	put_cpu_var(quicklist);
++	/* suspend here */
++	return 0;
 +}
 +
-+unsigned long quicklist_total_size(void)
++/**
++ *	xxxfb_resume - Optional but recommended function. Resume the device.
++ *	@dev: PCI device
++ *
++ *      See Documentation/power/devices.txt for more information
++ */
++static int xxxfb_suspend(struct platform_dev *dev)
 +{
-+	unsigned long count = 0;
-+	int cpu;
-+	struct quicklist *ql, *q;
++	struct fb_info *info = platform_get_drvdata(dev);
++	struct xxxfb_par *par = info->par;
 +
-+	for_each_online_cpu(cpu) {
-+		ql = per_cpu(quicklist, cpu);
-+		for (q = ql; q < ql + CONFIG_NR_QUICK; q++)
-+			count += q->nr_pages;
-+	}
-+	return count;
++	/* resume here */
++	return 0;
 +}
++#else
++#define xxxfb_suspend NULL
++#define xxxfb_resume NULL
++#endif /* CONFIG_PM */
 +
+ static struct device_driver xxxfb_driver = {
+ 	.name = "xxxfb",
+ 	.bus  = &platform_bus_type,
+ 	.probe = xxxfb_probe,
+ 	.remove = xxxfb_remove,
+-	.suspend = xxxfb_suspend, /* optional */
+-	.resume = xxxfb_resume,   /* optional */
++	.suspend = xxxfb_suspend, /* optional but recommended */
++	.resume = xxxfb_resume,   /* optional but recommended */
+ };
+ 
+ static struct platform_device xxxfb_device = {
+@@ -903,8 +1018,9 @@ static void __exit xxxfb_exit(void)
+ 	platform_device_unregister(&xxxfb_device);
+ 	driver_unregister(&xxxfb_driver);
+ }
+-#endif
++#endif /* CONFIG_PCI */
+ 
++#ifdef MODULE
+     /*
+      *  Setup
+      */
+@@ -917,34 +1033,7 @@ int __init xxxfb_setup(char *options)
+ {
+     /* Parse user speficied options (`video=xxxfb:') */
+ }
+-
+-/* ------------------------------------------------------------------------- */
+-
+-    /*
+-     *  Frame buffer operations
+-     */
+-
+-static struct fb_ops xxxfb_ops = {
+-	.owner		= THIS_MODULE,
+-	.fb_open	= xxxfb_open,
+-	.fb_read	= xxxfb_read,
+-	.fb_write	= xxxfb_write,
+-	.fb_release	= xxxfb_release,
+-	.fb_check_var	= xxxfb_check_var,
+-	.fb_set_par	= xxxfb_set_par,	
+-	.fb_setcolreg	= xxxfb_setcolreg,
+-	.fb_blank	= xxxfb_blank,
+-	.fb_pan_display	= xxxfb_pan_display,	
+-	.fb_fillrect	= xxxfb_fillrect, 	/* Needed !!! */ 
+-	.fb_copyarea	= xxxfb_copyarea,	/* Needed !!! */ 
+-	.fb_imageblit	= xxxfb_imageblit,	/* Needed !!! */
+-	.fb_cursor	= xxxfb_cursor,		/* Optional !!! */
+-	.fb_rotate	= xxxfb_rotate,
+-	.fb_poll	= xxxfb_poll,
+-	.fb_sync	= xxxfb_sync,
+-	.fb_ioctl	= xxxfb_ioctl,
+-	.fb_mmap	= xxxfb_mmap,	
+-};
++#endif /* MODULE *?
+ 
+ /* ------------------------------------------------------------------------- */
+ 
+@@ -954,6 +1043,6 @@ static struct fb_ops xxxfb_ops = {
+      */
+ 
+ module_init(xxxfb_init);
+-module_exit(xxxfb_cleanup);
++module_exit(xxxfb_remove);
+ 
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
-slub-add-slabinfo-tool.patch
-make-page-private-usable-in-compound-pages-v1.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-quicklists-for-page-table-pages.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-extend-print_symbol-capability-fix.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-readahead-state-based-method-aging-accounting.patch
+skeletonfb-various-corrections.patch
