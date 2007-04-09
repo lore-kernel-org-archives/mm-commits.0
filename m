@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + zap_other_threads-remove-unneeded-exit_signal-change.patch added to -mm tree
-Date: Mon, 09 Apr 2007 12:16:23 -0700
-Message-ID: <200704091916.l39JGNlQ021124@shell0.pdx.osdl.net>
+Subject: + worker_thread-fix-racy-try_to_freeze-usage.patch added to -mm tree
+Date: Mon, 09 Apr 2007 12:16:20 -0700
+Message-ID: <200704091916.l39JGKmv021121@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56423 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:56418 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965085AbXDITQs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 9 Apr 2007 15:16:48 -0400
+	id S965051AbXDITQo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 9 Apr 2007 15:16:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru
 
 
 The patch titled
-     zap_other_threads: remove unneeded ->exit_signal change
+     worker_thread: fix racy try_to_freeze() usage
 has been added to the -mm tree.  Its filename is
-     zap_other_threads-remove-unneeded-exit_signal-change.patch
+     worker_thread-fix-racy-try_to_freeze-usage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: zap_other_threads: remove unneeded ->exit_signal change
+Subject: worker_thread: fix racy try_to_freeze() usage
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-We already depend on fact that all sub-threads have ->exit_signal == -1, no
-need to set it in zap_other_threads().
+worker_thread() can miss freeze_process()->signal_wake_up() if it happens
+between try_to_freeze() and prepare_to_wait().  We should check freezing()
+before entering schedule().
+
+This race was introduced by me in
+
+	[PATCH 1/1] workqueue: don't migrate pending works from the dead CPU
+
+Looks like mm/vmscan.c:kswapd() has the same race.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   11 -----------
- 1 files changed, 11 deletions(-)
+ kernel/workqueue.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/signal.c~zap_other_threads-remove-unneeded-exit_signal-change kernel/signal.c
---- a/kernel/signal.c~zap_other_threads-remove-unneeded-exit_signal-change
-+++ a/kernel/signal.c
-@@ -1032,17 +1032,6 @@ void zap_other_threads(struct task_struc
- 		if (t->exit_state)
- 			continue;
+diff -puN kernel/workqueue.c~worker_thread-fix-racy-try_to_freeze-usage kernel/workqueue.c
+--- a/kernel/workqueue.c~worker_thread-fix-racy-try_to_freeze-usage
++++ a/kernel/workqueue.c
+@@ -308,14 +308,14 @@ static int worker_thread(void *__cwq)
+ 	do_sigaction(SIGCHLD, &sa, (struct k_sigaction *)0);
  
--		/*
--		 * We don't want to notify the parent, since we are
--		 * killed as part of a thread group due to another
--		 * thread doing an execve() or similar. So set the
--		 * exit signal to -1 to allow immediate reaping of
--		 * the process.  But don't detach the thread group
--		 * leader.
--		 */
--		if (t != p->group_leader)
--			t->exit_signal = -1;
+ 	for (;;) {
+-		if (cwq->wq->freezeable)
+-			try_to_freeze();
 -
- 		/* SIGKILL will be handled before any pending SIGSTOP */
- 		sigaddset(&t->pending.signal, SIGKILL);
- 		signal_wake_up(t, 1);
+ 		prepare_to_wait(&cwq->more_work, &wait, TASK_INTERRUPTIBLE);
+-		if (!cwq->should_stop && list_empty(&cwq->worklist))
++		if (!freezing(current) && !cwq->should_stop
++		    && list_empty(&cwq->worklist))
+ 			schedule();
+ 		finish_wait(&cwq->more_work, &wait);
+ 
++		try_to_freeze();
++
+ 		if (cwq_should_stop(cwq))
+ 			break;
+ 
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
