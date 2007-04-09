@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + quicklist-support-for-ia64.patch added to -mm tree
-Date: Mon, 09 Apr 2007 14:19:51 -0700
-Message-ID: <200704092119.l39LJp1F023748@shell0.pdx.osdl.net>
+Subject: + uml-convert-libc-layer-to-call-read-and-write.patch added to -mm tree
+Date: Mon, 09 Apr 2007 13:44:38 -0700
+Message-ID: <200704092044.l39Kicu7022989@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60852 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59620 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965570AbXDIVUC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 9 Apr 2007 17:20:02 -0400
+	id S965589AbXDIUoo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 9 Apr 2007 16:44:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, davem@davemloft.net, tony.luck@intel.com, wli@holomorphy.com
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     Quicklist support for IA64
+     uml: convert libc layer to call read and write
 has been added to the -mm tree.  Its filename is
-     quicklist-support-for-ia64.patch
+     uml-convert-libc-layer-to-call-read-and-write.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,309 +25,490 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Quicklist support for IA64
-From: Christoph Lameter <clameter@sgi.com>
+Subject: uml: convert libc layer to call read and write
+From: Jeff Dike <jdike@addtoit.com>
 
-IA64 is the origin of the quicklist implementation.  So cut out the pieces
-that are now in core code and modify the functions called.
+This patch converts calls in the os layer to os_{read,write}_file to calls
+directly to libc read() and write() where it is clear that the I/O buffer is
+in the kernel.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+We can do that here instead of calling os_{read,write}_file_k since we are in
+libc code and can call libc directly.
+
+With the change in the calls, error handling needs to be changed to refer to
+errno directly rather than the return value of the call.
+
+CATCH_EINTR wrappers were also added where needed.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig          |    4 +
- arch/ia64/mm/contig.c      |    2 
- arch/ia64/mm/discontig.c   |    2 
- arch/ia64/mm/init.c        |   51 ---------------------
- include/asm-ia64/pgalloc.h |   82 ++++++-----------------------------
- 5 files changed, 22 insertions(+), 119 deletions(-)
+ arch/um/os-Linux/aio.c                   |   36 +++++++++++----------
+ arch/um/os-Linux/drivers/ethertap_user.c |   11 +++---
+ arch/um/os-Linux/helper.c                |    5 +-
+ arch/um/os-Linux/mem.c                   |    5 +-
+ arch/um/os-Linux/process.c               |    8 ++--
+ arch/um/os-Linux/sigio.c                 |   21 ++++++------
+ arch/um/os-Linux/skas/mem.c              |   19 +++++++----
+ arch/um/os-Linux/skas/process.c          |    9 ++---
+ arch/um/os-Linux/tty_log.c               |   14 ++++----
+ 9 files changed, 71 insertions(+), 57 deletions(-)
 
-diff -puN arch/ia64/Kconfig~quicklist-support-for-ia64 arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~quicklist-support-for-ia64
-+++ a/arch/ia64/Kconfig
-@@ -30,6 +30,10 @@ config ZONE_DMA
- 	def_bool y
- 	depends on !IA64_SGI_SN2
- 
-+config QUICKLIST
-+	bool
-+	default y
-+
- config MMU
- 	bool
- 	default y
-diff -puN arch/ia64/mm/contig.c~quicklist-support-for-ia64 arch/ia64/mm/contig.c
---- a/arch/ia64/mm/contig.c~quicklist-support-for-ia64
-+++ a/arch/ia64/mm/contig.c
-@@ -88,7 +88,7 @@ void show_mem(void)
- 	printk(KERN_INFO "%d pages shared\n", total_shared);
- 	printk(KERN_INFO "%d pages swap cached\n", total_cached);
- 	printk(KERN_INFO "Total of %ld pages in page table cache\n",
--	       pgtable_quicklist_total_size());
-+	       quicklist_total_size());
- 	printk(KERN_INFO "%d free buffer pages\n", nr_free_buffer_pages());
- }
- 
-diff -puN arch/ia64/mm/discontig.c~quicklist-support-for-ia64 arch/ia64/mm/discontig.c
---- a/arch/ia64/mm/discontig.c~quicklist-support-for-ia64
-+++ a/arch/ia64/mm/discontig.c
-@@ -561,7 +561,7 @@ void show_mem(void)
- 	printk(KERN_INFO "%d pages shared\n", total_shared);
- 	printk(KERN_INFO "%d pages swap cached\n", total_cached);
- 	printk(KERN_INFO "Total of %ld pages in page table cache\n",
--	       pgtable_quicklist_total_size());
-+	       quicklist_total_size());
- 	printk(KERN_INFO "%d free buffer pages\n", nr_free_buffer_pages());
- }
- 
-diff -puN arch/ia64/mm/init.c~quicklist-support-for-ia64 arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~quicklist-support-for-ia64
-+++ a/arch/ia64/mm/init.c
-@@ -39,9 +39,6 @@
- 
- DEFINE_PER_CPU(struct mmu_gather, mmu_gathers);
- 
--DEFINE_PER_CPU(unsigned long *, __pgtable_quicklist);
--DEFINE_PER_CPU(long, __pgtable_quicklist_size);
--
- extern void ia64_tlb_init (void);
- 
- unsigned long MAX_DMA_ADDRESS = PAGE_OFFSET + 0x100000000UL;
-@@ -56,54 +53,6 @@ EXPORT_SYMBOL(vmem_map);
- struct page *zero_page_memmap_ptr;	/* map entry for zero page */
- EXPORT_SYMBOL(zero_page_memmap_ptr);
- 
--#define MIN_PGT_PAGES			25UL
--#define MAX_PGT_FREES_PER_PASS		16L
--#define PGT_FRACTION_OF_NODE_MEM	16
--
--static inline long
--max_pgt_pages(void)
--{
--	u64 node_free_pages, max_pgt_pages;
--
--#ifndef	CONFIG_NUMA
--	node_free_pages = nr_free_pages();
--#else
--	node_free_pages = node_page_state(numa_node_id(), NR_FREE_PAGES);
--#endif
--	max_pgt_pages = node_free_pages / PGT_FRACTION_OF_NODE_MEM;
--	max_pgt_pages = max(max_pgt_pages, MIN_PGT_PAGES);
--	return max_pgt_pages;
--}
--
--static inline long
--min_pages_to_free(void)
--{
--	long pages_to_free;
--
--	pages_to_free = pgtable_quicklist_size - max_pgt_pages();
--	pages_to_free = min(pages_to_free, MAX_PGT_FREES_PER_PASS);
--	return pages_to_free;
--}
--
--void
--check_pgt_cache(void)
--{
--	long pages_to_free;
--
--	if (unlikely(pgtable_quicklist_size <= MIN_PGT_PAGES))
--		return;
--
--	preempt_disable();
--	while (unlikely((pages_to_free = min_pages_to_free()) > 0)) {
--		while (pages_to_free--) {
--			free_page((unsigned long)pgtable_quicklist_alloc());
--		}
--		preempt_enable();
--		preempt_disable();
--	}
--	preempt_enable();
--}
--
- void
- lazy_mmu_prot_update (pte_t pte)
+diff -puN arch/um/os-Linux/aio.c~uml-convert-libc-layer-to-call-read-and-write arch/um/os-Linux/aio.c
+--- a/arch/um/os-Linux/aio.c~uml-convert-libc-layer-to-call-read-and-write
++++ a/arch/um/os-Linux/aio.c
+@@ -132,10 +132,10 @@ static int aio_thread(void *arg)
+ 				{ .data = (void *) (long) event.data,
+ 						.err	= event.res });
+ 			reply_fd = ((struct aio_context *) reply.data)->reply_fd;
+-			err = os_write_file(reply_fd, &reply, sizeof(reply));
++			err = write(reply_fd, &reply, sizeof(reply));
+ 			if(err != sizeof(reply))
+ 				printk("aio_thread - write failed, fd = %d, "
+-				       "err = %d\n", reply_fd, -err);
++				       "err = %d\n", reply_fd, errno);
+ 		}
+ 	}
+ 	return 0;
+@@ -147,7 +147,7 @@ static int do_not_aio(struct aio_thread_
  {
-diff -puN include/asm-ia64/pgalloc.h~quicklist-support-for-ia64 include/asm-ia64/pgalloc.h
---- a/include/asm-ia64/pgalloc.h~quicklist-support-for-ia64
-+++ a/include/asm-ia64/pgalloc.h
-@@ -18,71 +18,18 @@
- #include <linux/mm.h>
- #include <linux/page-flags.h>
- #include <linux/threads.h>
-+#include <linux/quicklist.h>
+ 	char c;
+ 	unsigned long long actual;
+-	int err;
++	int n;
  
- #include <asm/mmu_context.h>
+ 	actual = lseek64(req->io_fd, req->offset, SEEK_SET);
+ 	if(actual != req->offset)
+@@ -155,21 +155,22 @@ static int do_not_aio(struct aio_thread_
  
--DECLARE_PER_CPU(unsigned long *, __pgtable_quicklist);
--#define pgtable_quicklist __ia64_per_cpu_var(__pgtable_quicklist)
--DECLARE_PER_CPU(long, __pgtable_quicklist_size);
--#define pgtable_quicklist_size __ia64_per_cpu_var(__pgtable_quicklist_size)
--
--static inline long pgtable_quicklist_total_size(void)
--{
--	long ql_size = 0;
--	int cpuid;
--
--	for_each_online_cpu(cpuid) {
--		ql_size += per_cpu(__pgtable_quicklist_size, cpuid);
--	}
--	return ql_size;
--}
--
--static inline void *pgtable_quicklist_alloc(void)
--{
--	unsigned long *ret = NULL;
--
--	preempt_disable();
--
--	ret = pgtable_quicklist;
--	if (likely(ret != NULL)) {
--		pgtable_quicklist = (unsigned long *)(*ret);
--		ret[0] = 0;
--		--pgtable_quicklist_size;
--		preempt_enable();
--	} else {
--		preempt_enable();
--		ret = (unsigned long *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
--	}
--
--	return ret;
--}
--
--static inline void pgtable_quicklist_free(void *pgtable_entry)
--{
--#ifdef CONFIG_NUMA
--	int nid = page_to_nid(virt_to_page(pgtable_entry));
--
--	if (unlikely(nid != numa_node_id())) {
--		free_page((unsigned long)pgtable_entry);
--		return;
--	}
--#endif
--
--	preempt_disable();
--	*(unsigned long *)pgtable_entry = (unsigned long)pgtable_quicklist;
--	pgtable_quicklist = (unsigned long *)pgtable_entry;
--	++pgtable_quicklist_size;
--	preempt_enable();
--}
--
- static inline pgd_t *pgd_alloc(struct mm_struct *mm)
- {
--	return pgtable_quicklist_alloc();
-+	return quicklist_alloc(0, GFP_KERNEL, NULL);
+ 	switch(req->type){
+ 	case AIO_READ:
+-		err = os_read_file(req->io_fd, req->buf, req->len);
++		n = read(req->io_fd, req->buf, req->len);
+ 		break;
+ 	case AIO_WRITE:
+-		err = os_write_file(req->io_fd, req->buf, req->len);
++		n = write(req->io_fd, req->buf, req->len);
+ 		break;
+ 	case AIO_MMAP:
+-		err = os_read_file(req->io_fd, &c, sizeof(c));
++		n = read(req->io_fd, &c, sizeof(c));
+ 		break;
+ 	default:
+ 		printk("do_not_aio - bad request type : %d\n", req->type);
+-		err = -EINVAL;
+-		break;
++		return -EINVAL;
+ 	}
+ 
+-	return err;
++	if(n < 0)
++		return -errno;
++	return 0;
  }
  
- static inline void pgd_free(pgd_t * pgd)
- {
--	pgtable_quicklist_free(pgd);
-+	quicklist_free(0, NULL, pgd);
+ /* These are initialized in initcalls and not changed */
+@@ -185,12 +186,12 @@ static int not_aio_thread(void *arg)
+ 
+ 	signal(SIGWINCH, SIG_IGN);
+ 	while(1){
+-		err = os_read_file(aio_req_fd_r, &req, sizeof(req));
++		err = read(aio_req_fd_r, &req, sizeof(req));
+ 		if(err != sizeof(req)){
+ 			if(err < 0)
+ 				printk("not_aio_thread - read failed, "
+ 				       "fd = %d, err = %d\n", aio_req_fd_r,
+-				       -err);
++				       errno);
+ 			else {
+ 				printk("not_aio_thread - short read, fd = %d, "
+ 				       "length = %d\n", aio_req_fd_r, err);
+@@ -200,10 +201,10 @@ static int not_aio_thread(void *arg)
+ 		err = do_not_aio(&req);
+ 		reply = ((struct aio_thread_reply) { .data 	= req.aio,
+ 						     .err	= err });
+-		err = os_write_file(req.aio->reply_fd, &reply, sizeof(reply));
++		err = write(req.aio->reply_fd, &reply, sizeof(reply));
+ 		if(err != sizeof(reply))
+ 			printk("not_aio_thread - write failed, fd = %d, "
+-			       "err = %d\n", req.aio->reply_fd, -err);
++			       "err = %d\n", req.aio->reply_fd, errno);
+ 	}
+ 
+ 	return 0;
+@@ -277,10 +278,12 @@ static int submit_aio_26(enum aio_type t
+ 	if(err){
+ 		reply = ((struct aio_thread_reply) { .data = aio,
+ 					 .err  = err });
+-		err = os_write_file(aio->reply_fd, &reply, sizeof(reply));
+-		if(err != sizeof(reply))
++		err = write(aio->reply_fd, &reply, sizeof(reply));
++		if(err != sizeof(reply)){
++			err = -errno;
+ 			printk("submit_aio_26 - write failed, "
+ 			       "fd = %d, err = %d\n", aio->reply_fd, -err);
++		}
+ 		else err = 0;
+ 	}
+ 
+@@ -375,9 +378,10 @@ static int submit_aio_24(enum aio_type t
+ 	};
+ 	int err;
+ 
+-	err = os_write_file(aio_req_fd_w, &req, sizeof(req));
++	err = write(aio_req_fd_w, &req, sizeof(req));
+ 	if(err == sizeof(req))
+ 		err = 0;
++	else err = -errno;
+ 
+ 	return err;
+ }
+diff -puN arch/um/os-Linux/drivers/ethertap_user.c~uml-convert-libc-layer-to-call-read-and-write arch/um/os-Linux/drivers/ethertap_user.c
+--- a/arch/um/os-Linux/drivers/ethertap_user.c~uml-convert-libc-layer-to-call-read-and-write
++++ a/arch/um/os-Linux/drivers/ethertap_user.c
+@@ -48,9 +48,9 @@ static void etap_change(int op, unsigned
+ 	change.what = op;
+ 	memcpy(change.addr, addr, sizeof(change.addr));
+ 	memcpy(change.netmask, netmask, sizeof(change.netmask));
+-	n = os_write_file(fd, &change, sizeof(change));
++	CATCH_EINTR(n = write(fd, &change, sizeof(change)));
+ 	if(n != sizeof(change)){
+-		printk("etap_change - request failed, err = %d\n", -n);
++		printk("etap_change - request failed, err = %d\n", errno);
+ 		return;
+ 	}
+ 
+@@ -123,10 +123,11 @@ static int etap_tramp(char *dev, char *g
+ 		err = pid;
+ 	os_close_file(data_remote);
+ 	os_close_file(control_remote);
+-	n = os_read_file(control_me, &c, sizeof(c));
++	CATCH_EINTR(n = read(control_me, &c, sizeof(c)));
+ 	if(n != sizeof(c)){
+-		printk("etap_tramp : read of status failed, err = %d\n", -n);
+-		return -EINVAL;
++		err = -errno;
++		printk("etap_tramp : read of status failed, err = %d\n", -err);
++		return err;
+ 	}
+ 	if(c != 1){
+ 		printk("etap_tramp : uml_net failed\n");
+diff -puN arch/um/os-Linux/helper.c~uml-convert-libc-layer-to-call-read-and-write arch/um/os-Linux/helper.c
+--- a/arch/um/os-Linux/helper.c~uml-convert-libc-layer-to-call-read-and-write
++++ a/arch/um/os-Linux/helper.c
+@@ -36,7 +36,7 @@ static int helper_child(void *arg)
+ 	errval = execvp_noalloc(data->buf, argv[0], argv);
+ 	printk("helper_child - execvp of '%s' failed - errno = %d\n", argv[0],
+ 	       -errval);
+-	os_write_file(data->fd, &errval, sizeof(errval));
++	write(data->fd, &errval, sizeof(errval));
+ 	kill(os_getpid(), SIGKILL);
+ 	return 0;
+ }
+@@ -92,11 +92,12 @@ int run_helper(void (*pre_exec)(void *),
+ 	 * Read the errno value from the child, if the exec failed, or get 0 if
+ 	 * the exec succeeded because the pipe fd was set as close-on-exec.
+ 	 */
+-	n = os_read_file(fds[0], &ret, sizeof(ret));
++	n = read(fds[0], &ret, sizeof(ret));
+ 	if (n == 0) {
+ 		ret = pid;
+ 	} else {
+ 		if (n < 0) {
++			n = -errno;
+ 			printk("run_helper : read on pipe failed, ret = %d\n",
+ 			       -n);
+ 			ret = n;
+diff -puN arch/um/os-Linux/mem.c~uml-convert-libc-layer-to-call-read-and-write arch/um/os-Linux/mem.c
+--- a/arch/um/os-Linux/mem.c~uml-convert-libc-layer-to-call-read-and-write
++++ a/arch/um/os-Linux/mem.c
+@@ -232,10 +232,9 @@ int __init create_tmp_file(unsigned long
+ 
+ 	zero = 0;
+ 
+-	err = os_write_file(fd, &zero, 1);
++	err = write(fd, &zero, 1);
+ 	if(err != 1){
+-		errno = -err;
+-		perror("os_write_file");
++		perror("write");
+ 		exit(1);
+ 	}
+ 
+diff -puN arch/um/os-Linux/process.c~uml-convert-libc-layer-to-call-read-and-write arch/um/os-Linux/process.c
+--- a/arch/um/os-Linux/process.c~uml-convert-libc-layer-to-call-read-and-write
++++ a/arch/um/os-Linux/process.c
+@@ -42,10 +42,10 @@ unsigned long os_process_pc(int pid)
+ 		       proc_stat, -fd);
+ 		return ARBITRARY_ADDR;
+ 	}
+-	err = os_read_file(fd, buf, sizeof(buf));
++	CATCH_EINTR(err = read(fd, buf, sizeof(buf)));
+ 	if(err < 0){
+ 		printk("os_process_pc - couldn't read '%s', err = %d\n",
+-		       proc_stat, -err);
++		       proc_stat, errno);
+ 		os_close_file(fd);
+ 		return ARBITRARY_ADDR;
+ 	}
+@@ -75,11 +75,11 @@ int os_process_parent(int pid)
+ 		return FAILURE_PID;
+ 	}
+ 
+-	n = os_read_file(fd, data, sizeof(data));
++	CATCH_EINTR(n = read(fd, data, sizeof(data)));
+ 	os_close_file(fd);
+ 
+ 	if(n < 0){
+-		printk("Couldn't read '%s', err = %d\n", stat, -n);
++		printk("Couldn't read '%s', err = %d\n", stat, errno);
+ 		return FAILURE_PID;
+ 	}
+ 
+diff -puN arch/um/os-Linux/sigio.c~uml-convert-libc-layer-to-call-read-and-write arch/um/os-Linux/sigio.c
+--- a/arch/um/os-Linux/sigio.c~uml-convert-libc-layer-to-call-read-and-write
++++ a/arch/um/os-Linux/sigio.c
+@@ -69,11 +69,12 @@ static int write_sigio_thread(void *unus
+ 			p = &fds->poll[i];
+ 			if(p->revents == 0) continue;
+ 			if(p->fd == sigio_private[1]){
+-				n = os_read_file(sigio_private[1], &c, sizeof(c));
++				CATCH_EINTR(n = read(sigio_private[1], &c,
++						     sizeof(c)));
+ 				if(n != sizeof(c))
+ 					printk("write_sigio_thread : "
+ 					       "read on socket failed, "
+-					       "err = %d\n", -n);
++					       "err = %d\n", errno);
+ 				tmp = current_poll;
+ 				current_poll = next_poll;
+ 				next_poll = tmp;
+@@ -86,10 +87,10 @@ static int write_sigio_thread(void *unus
+ 					(fds->used - i) * sizeof(*fds->poll));
+ 			}
+ 
+-			n = os_write_file(respond_fd, &c, sizeof(c));
++			CATCH_EINTR(n = write(respond_fd, &c, sizeof(c)));
+ 			if(n != sizeof(c))
+ 				printk("write_sigio_thread : write on socket "
+-				       "failed, err = %d\n", -n);
++				       "failed, err = %d\n", errno);
+ 		}
+ 	}
+ 
+@@ -127,15 +128,15 @@ static void update_thread(void)
+ 	char c;
+ 
+ 	flags = set_signals(0);
+-	n = os_write_file(sigio_private[0], &c, sizeof(c));
++	n = write(sigio_private[0], &c, sizeof(c));
+ 	if(n != sizeof(c)){
+-		printk("update_thread : write failed, err = %d\n", -n);
++		printk("update_thread : write failed, err = %d\n", errno);
+ 		goto fail;
+ 	}
+ 
+-	n = os_read_file(sigio_private[0], &c, sizeof(c));
++	CATCH_EINTR(n = read(sigio_private[0], &c, sizeof(c)));
+ 	if(n != sizeof(c)){
+-		printk("update_thread : read failed, err = %d\n", -n);
++		printk("update_thread : read failed, err = %d\n", errno);
+ 		goto fail;
+ 	}
+ 
+@@ -459,10 +460,10 @@ static void tty_output(int master, int s
+ 
+ 	memset(buf, 0, sizeof(buf));
+ 
+-	while(os_write_file(master, buf, sizeof(buf)) > 0) ;
++	while(write(master, buf, sizeof(buf)) > 0) ;
+ 	if(errno != EAGAIN)
+ 		panic("tty_output : write failed, errno = %d\n", errno);
+-	while(((n = os_read_file(slave, buf, sizeof(buf))) > 0) && !got_sigio) ;
++	while(((n = read(slave, buf, sizeof(buf))) > 0) && !got_sigio) ;
+ 
+ 	if(got_sigio){
+ 		printk("Yes\n");
+diff -puN arch/um/os-Linux/skas/mem.c~uml-convert-libc-layer-to-call-read-and-write arch/um/os-Linux/skas/mem.c
+--- a/arch/um/os-Linux/skas/mem.c~uml-convert-libc-layer-to-call-read-and-write
++++ a/arch/um/os-Linux/skas/mem.c
+@@ -6,6 +6,7 @@
+ #include <signal.h>
+ #include <errno.h>
+ #include <string.h>
++#include <unistd.h>
+ #include <sys/mman.h>
+ #include <sys/wait.h>
+ #include <asm/page.h>
+@@ -199,9 +200,11 @@ int map(struct mm_id * mm_idp, unsigned 
+ 					   .fd	= phys_fd,
+ 					   .offset= offset
+ 					 } } } );
+-		ret = os_write_file(fd, &map, sizeof(map));
+-		if(ret != sizeof(map))
++		CATCH_EINTR(ret = write(fd, &map, sizeof(map)));
++		if(ret != sizeof(map)){
++			ret = -errno;
+ 			printk("map : /proc/mm map failed, err = %d\n", -ret);
++		}
+ 		else ret = 0;
+ 	}
+ 	else {
+@@ -231,9 +234,11 @@ int unmap(struct mm_id * mm_idp, void *a
+ 					   { .addr	=
+ 					     (unsigned long) addr,
+ 					     .len		= len } } } );
+-		ret = os_write_file(fd, &unmap, sizeof(unmap));
+-		if(ret != sizeof(unmap))
++		CATCH_EINTR(ret = write(fd, &unmap, sizeof(unmap)));
++		if(ret != sizeof(unmap)){
++			ret = -errno;
+ 			printk("unmap - proc_mm write returned %d\n", ret);
++		}
+ 		else ret = 0;
+ 	}
+ 	else {
+@@ -266,9 +271,11 @@ int protect(struct mm_id * mm_idp, unsig
+ 					       .len	= len,
+ 					       .prot	= prot } } } );
+ 
+-		ret = os_write_file(fd, &protect, sizeof(protect));
+-		if(ret != sizeof(protect))
++		CATCH_EINTR(ret = write(fd, &protect, sizeof(protect)));
++		if(ret != sizeof(protect)){
++			ret = -errno;
+ 			printk("protect failed, err = %d", -ret);
++		}
+ 		else ret = 0;
+ 	}
+ 	else {
+diff -puN arch/um/os-Linux/skas/process.c~uml-convert-libc-layer-to-call-read-and-write arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-convert-libc-layer-to-call-read-and-write
++++ a/arch/um/os-Linux/skas/process.c
+@@ -431,12 +431,13 @@ void map_stub_pages(int fd, unsigned lon
+ 					  .fd      = code_fd,
+ 					  .offset  = code_offset
+ 	} } });
+-	n = os_write_file(fd, &mmop, sizeof(mmop));
++	CATCH_EINTR(n = write(fd, &mmop, sizeof(mmop)));
+ 	if(n != sizeof(mmop)){
++		n = errno;
+ 		printk("mmap args - addr = 0x%lx, fd = %d, offset = %llx\n",
+ 		       code, code_fd, (unsigned long long) code_offset);
+ 		panic("map_stub_pages : /proc/mm map for code failed, "
+-		      "err = %d\n", -n);
++		      "err = %d\n", n);
+ 	}
+ 
+ 	if ( stack ) {
+@@ -453,10 +454,10 @@ void map_stub_pages(int fd, unsigned lon
+ 				      .fd      = map_fd,
+ 				      .offset  = map_offset
+ 		} } });
+-		n = os_write_file(fd, &mmop, sizeof(mmop));
++		CATCH_EINTR(n = write(fd, &mmop, sizeof(mmop)));
+ 		if(n != sizeof(mmop))
+ 			panic("map_stub_pages : /proc/mm map for data failed, "
+-			      "err = %d\n", -n);
++			      "err = %d\n", errno);
+ 	}
  }
  
- #ifdef CONFIG_PGTABLE_4
-@@ -94,12 +41,12 @@ pgd_populate(struct mm_struct *mm, pgd_t
+diff -puN arch/um/os-Linux/tty_log.c~uml-convert-libc-layer-to-call-read-and-write arch/um/os-Linux/tty_log.c
+--- a/arch/um/os-Linux/tty_log.c~uml-convert-libc-layer-to-call-read-and-write
++++ a/arch/um/os-Linux/tty_log.c
+@@ -53,8 +53,8 @@ int open_tty_log(void *tty, void *curren
+ 					       .direction = 0,
+ 					       .sec = tv.tv_sec,
+ 					       .usec = tv.tv_usec } );
+-		os_write_file(tty_log_fd, &data, sizeof(data));
+-		os_write_file(tty_log_fd, &current_tty, data.len);
++		write(tty_log_fd, &data, sizeof(data));
++		write(tty_log_fd, &current_tty, data.len);
+ 		return tty_log_fd;
+ 	}
  
- static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
--	return pgtable_quicklist_alloc();
-+	return quicklist_alloc(0, GFP_KERNEL, NULL);
- }
+@@ -83,7 +83,7 @@ void close_tty_log(int fd, void *tty)
+ 					       .direction = 0,
+ 					       .sec = tv.tv_sec,
+ 					       .usec = tv.tv_usec } );
+-		os_write_file(tty_log_fd, &data, sizeof(data));
++		write(tty_log_fd, &data, sizeof(data));
+ 		return;
+ 	}
+ 	os_close_file(fd);
+@@ -98,10 +98,10 @@ static int log_chunk(int fd, const char 
+ 		try = (len > sizeof(chunk)) ? sizeof(chunk) : len;
+ 		missed = copy_from_user_proc(chunk, (char *) buf, try);
+ 		try -= missed;
+-		n = os_write_file(fd, chunk, try);
++		n = write(fd, chunk, try);
+ 		if(n != try) {
+ 			if(n < 0)
+-				return n;
++				return -errno;
+ 			return -EIO;
+ 		}
+ 		if(missed != 0)
+@@ -130,7 +130,7 @@ int write_tty_log(int fd, const char *bu
+ 					       .direction = direction,
+ 					       .sec = tv.tv_sec,
+ 					       .usec = tv.tv_usec } );
+-		os_write_file(tty_log_fd, &data, sizeof(data));
++		write(tty_log_fd, &data, sizeof(data));
+ 	}
  
- static inline void pud_free(pud_t * pud)
- {
--	pgtable_quicklist_free(pud);
-+	quicklist_free(0, NULL, pud);
- }
- #define __pud_free_tlb(tlb, pud)	pud_free(pud)
- #endif /* CONFIG_PGTABLE_4 */
-@@ -112,12 +59,12 @@ pud_populate(struct mm_struct *mm, pud_t
+ 	return log_chunk(fd, buf, len);
+@@ -161,7 +161,7 @@ void log_exec(char **argv, void *tty)
+ 				       .direction = 0,
+ 				       .sec = tv.tv_sec,
+ 				       .usec = tv.tv_usec } );
+-	os_write_file(tty_log_fd, &data, sizeof(data));
++	write(tty_log_fd, &data, sizeof(data));
  
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
--	return pgtable_quicklist_alloc();
-+	return quicklist_alloc(0, GFP_KERNEL, NULL);
- }
- 
- static inline void pmd_free(pmd_t * pmd)
- {
--	pgtable_quicklist_free(pmd);
-+	quicklist_free(0, NULL, pmd);
- }
- 
- #define __pmd_free_tlb(tlb, pmd)	pmd_free(pmd)
-@@ -137,28 +84,31 @@ pmd_populate_kernel(struct mm_struct *mm
- static inline struct page *pte_alloc_one(struct mm_struct *mm,
- 					 unsigned long addr)
- {
--	void *pg = pgtable_quicklist_alloc();
-+	void *pg = quicklist_alloc(0, GFP_KERNEL, NULL);
- 	return pg ? virt_to_page(pg) : NULL;
- }
- 
- static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
- 					  unsigned long addr)
- {
--	return pgtable_quicklist_alloc();
-+	return quicklist_alloc(0, GFP_KERNEL, NULL);
- }
- 
- static inline void pte_free(struct page *pte)
- {
--	pgtable_quicklist_free(page_address(pte));
-+	quicklist_free_page(0, NULL, pte);
- }
- 
- static inline void pte_free_kernel(pte_t * pte)
- {
--	pgtable_quicklist_free(pte);
-+	quicklist_free(0, NULL, pte);
- }
- 
--#define __pte_free_tlb(tlb, pte)	pte_free(pte)
-+static inline void check_pgt_cache(void)
-+{
-+	quicklist_trim(0, NULL, 25, 16);
-+}
- 
--extern void check_pgt_cache(void);
-+#define __pte_free_tlb(tlb, pte)	pte_free(pte)
- 
- #endif				/* _ASM_IA64_PGALLOC_H */
+ 	for(ptr = argv; ; ptr++){
+ 		if(copy_from_user_proc(&arg, ptr, sizeof(arg)))
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
-slub-add-slabinfo-tool.patch
-make-page-private-usable-in-compound-pages-v1.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-quicklists-for-page-table-pages.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-extend-print_symbol-capability-fix.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-readahead-state-based-method-aging-accounting.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+array_size-check-for-type-uml-fix.patch
+uml-fix-prototypes.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+uml-speed-up-exec.patch
+uml-no-locking-needed-in-tlsc.patch
+uml-tidy-processc.patch
+uml-tidy-processc-fix.patch
+uml-remove-page_size.patch
+uml-kernel_thread-shouldnt-panic.patch
+uml-tidy-fault-code.patch
+uml-kernel-segfaults-should-dump-proper-registers.patch
+uml-comment-early-boot-locking.patch
+uml-irq-locking-commentary.patch
+uml-delete-host_frame_size.patch
+uml-drivers-get-release-methods.patch
+uml-dump-registers-on-ptrace-or-wait-failure.patch
+uml-speed-up-page-table-walking.patch
+uml-remove-unused-x86_64-code.patch
+uml-start-fixing-os_read_file-and-os_write_file.patch
+uml-tidy-libc-code.patch
+uml-convert-libc-layer-to-call-read-and-write.patch
+sys_futex64-allows-64bit-futexes-workaround-for-uml.patch
+utrace-uml-make-uml-compile-with-utrace-enabled.patch
