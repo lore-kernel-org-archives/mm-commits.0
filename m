@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-set-node_possible_map-at-runtime-fix.patch added to -mm tree
-Date: Mon, 09 Apr 2007 15:05:01 -0700
-Message-ID: <200704092205.l39M57AA024903@shell0.pdx.osdl.net>
+Subject: + apple-smc-driver-hardware-monitoring-and-control-fix.patch added to -mm tree
+Date: Mon, 09 Apr 2007 13:02:33 -0700
+Message-ID: <200704092002.l39K2XXn022094@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34033 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:57884 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753532AbXDIWFs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 9 Apr 2007 18:05:48 -0400
+	id S965345AbXDIUDB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 9 Apr 2007 16:03:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, andi@firstfloor.org, clameter@engr.sgi.com, dada1@cosmosbay.com, suresh.b.siddha@intel.com
+Cc: nicolas@boichat.ch, benh@kernel.crashing.org, dtor@mail.ru, khali@linux-fr.org, paulus@samba.org
 
 
 The patch titled
-     x86_64-set-node_possible_map-at-runtime fix
+     Apple SMC driver: fix input device
 has been added to the -mm tree.  Its filename is
-     x86_64-set-node_possible_map-at-runtime-fix.patch
+     apple-smc-driver-hardware-monitoring-and-control-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-set-node_possible_map-at-runtime fix
-From: David Rientjes <rientjes@google.com>
+Subject: Apple SMC driver: fix input device
+From: Nicolas Boichat <nicolas@boichat.ch>
 
-Clear node_possible_map if numa_emulation() fails for some reason, such as
-a failed hash shift, but setup_node_range() has already set some fake nodes
-as online.
+- Invert y axis on input device.
+- Only activate the input device polling timer when the device is open.
+- Others minor fixes asked by Dmitry Torokhov.
 
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/numa.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/hwmon/applesmc.c |   29 +++++++++++++++++++++++++----
+ 1 files changed, 25 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime-fix arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime-fix
-+++ a/arch/x86_64/mm/numa.c
-@@ -500,6 +500,7 @@ void __init numa_initmem_init(unsigned l
- #ifdef CONFIG_NUMA_EMU
- 	if (cmdline && !numa_emulation(start_pfn, end_pfn))
-  		return;
-+	nodes_clear(node_possible_map);
- #endif
+diff -puN drivers/hwmon/applesmc.c~apple-smc-driver-hardware-monitoring-and-control-fix drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~apple-smc-driver-hardware-monitoring-and-control-fix
++++ a/drivers/hwmon/applesmc.c
+@@ -349,9 +349,22 @@ static void applesmc_calibrate(void)
+ {
+ 	applesmc_read_motion_sensor(SENSOR_X, &rest_x);
+ 	applesmc_read_motion_sensor(SENSOR_Y, &rest_y);
++	rest_x = -rest_x;
+ }
  
- #ifdef CONFIG_ACPI_NUMA
+-static void applesmc_mousedev_poll(unsigned long unused)
++static int applesmc_idev_open(struct input_dev *dev)
++{
++	add_timer(&applesmc_timer);
++
++	return 0;
++}
++
++static void applesmc_idev_close(struct input_dev *dev)
++{
++	del_timer_sync(&applesmc_timer);
++}
++
++static void applesmc_idev_poll(unsigned long unused)
+ {
+ 	s16 x, y;
+ 
+@@ -366,6 +379,7 @@ static void applesmc_mousedev_poll(unsig
+ 	if (applesmc_read_motion_sensor(SENSOR_Y, &y))
+ 		goto out;
+ 
++	x = -x;
+ 	input_report_abs(applesmc_idev, ABS_X, x - rest_x);
+ 	input_report_abs(applesmc_idev, ABS_Y, y - rest_y);
+ 	input_sync(applesmc_idev);
+@@ -739,23 +753,30 @@ static int applesmc_create_accelerometer
+ 
+ 	/* initialize the input class */
+ 	applesmc_idev->name = "applesmc";
++	applesmc_idev->id.bustype = BUS_HOST;
+ 	applesmc_idev->cdev.dev = &pdev->dev;
+ 	applesmc_idev->evbit[0] = BIT(EV_ABS);
++	applesmc_idev->open = applesmc_idev_open;
++	applesmc_idev->close = applesmc_idev_close;
+ 	input_set_abs_params(applesmc_idev, ABS_X,
+ 			-256, 256, APPLESMC_INPUT_FUZZ, APPLESMC_INPUT_FLAT);
+ 	input_set_abs_params(applesmc_idev, ABS_Y,
+ 			-256, 256, APPLESMC_INPUT_FUZZ, APPLESMC_INPUT_FLAT);
+ 
+-	input_register_device(applesmc_idev);
++	ret = input_register_device(applesmc_idev);
++	if (ret)
++		goto out_idev;
+ 
+ 	/* start up our timer for the input device */
+ 	init_timer(&applesmc_timer);
+-	applesmc_timer.function = applesmc_mousedev_poll;
++	applesmc_timer.function = applesmc_idev_poll;
+ 	applesmc_timer.expires = jiffies + APPLESMC_POLL_PERIOD;
+-	add_timer(&applesmc_timer);
+ 
+ 	return 0;
+ 
++out_idev:
++	input_free_device(applesmc_idev);
++
+ out:
+ 	printk(KERN_WARNING "applesmc: driver init failed (ret=%d)!\n", ret);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from nicolas@boichat.ch are
 
-x86_64-set-node_possible_map-at-runtime.patch
-x86_64-set-node_possible_map-at-runtime-fix.patch
-slab-x86_64-skip-cache_free_alien-on-non-numa.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
-smaps-use-ptep_test_and_clear_young.patch
-smaps-add-clear_refs-file-to-clear-reference-docs.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
+git-alsa.patch
+apple-smc-driver-hardware-monitoring-and-control.patch
+apple-smc-driver-hardware-monitoring-and-control-fix.patch
