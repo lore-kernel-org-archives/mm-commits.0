@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-enable-tracking-of-full-slabs.patch added to -mm tree
-Date: Tue, 10 Apr 2007 12:35:13 -0700
-Message-ID: <200704101935.l3AJZDvI015656@shell0.pdx.osdl.net>
+Subject: + slub-core-drop-version-number.patch added to -mm tree
+Date: Tue, 10 Apr 2007 12:37:21 -0700
+Message-ID: <200704101937.l3AJbLgC015683@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42678 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42751 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753329AbXDJTfP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 15:35:15 -0400
+	id S1753807AbXDJThY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 15:37:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     slub: enable tracking of full slabs
+     slub: drop version number
 has been added to the -mm tree.  Its filename is
-     slub-enable-tracking-of-full-slabs.patch
+     slub-core-drop-version-number.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,108 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: enable tracking of full slabs
+Subject: slub: drop version number
 From: Christoph Lameter <clameter@sgi.com>
 
-If slab tracking is on then build a list of full slabs so that we can verify
-the integrity of all slabs and are also able to built list of alloc/free
-callers.
+Drop the version number since we do not have to manage patchsets anymore.
+
+I hope that the set of features for SLUB is complete now.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    1 
- mm/slub.c                |   38 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 38 insertions(+), 1 deletion(-)
+ mm/slub.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/slub_def.h~slub-enable-tracking-of-full-slabs include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-enable-tracking-of-full-slabs
-+++ a/include/linux/slub_def.h
-@@ -16,6 +16,7 @@ struct kmem_cache_node {
- 	unsigned long nr_partial;
- 	atomic_long_t nr_slabs;
- 	struct list_head partial;
-+	struct list_head full;
- };
- 
- /*
-diff -puN mm/slub.c~slub-enable-tracking-of-full-slabs mm/slub.c
---- a/mm/slub.c~slub-enable-tracking-of-full-slabs
+diff -puN mm/slub.c~slub-core-drop-version-number mm/slub.c
+--- a/mm/slub.c~slub-core-drop-version-number
 +++ a/mm/slub.c
-@@ -572,6 +572,36 @@ static int on_freelist(struct kmem_cache
- 	return 0;
- }
+@@ -2027,7 +2027,7 @@ void __init kmem_cache_init(void)
+ 		kmem_size = offsetof(struct kmem_cache, cpu_slab)
+ 			 + nr_cpu_ids * sizeof(struct page *);
  
-+/*
-+ * Tracking of fully allocated slabs for debugging
-+ */
-+static void add_full(struct kmem_cache *s, struct page *page)
-+{
-+	struct kmem_cache_node *n;
-+
-+	if (!(s->flags & SLAB_STORE_USER))
-+		return;
-+
-+	n = get_node(s, page_to_nid(page));
-+	spin_lock(&n->list_lock);
-+	list_add(&page->lru, &n->full);
-+	spin_unlock(&n->list_lock);
-+}
-+
-+static void remove_full(struct kmem_cache *s, struct page *page)
-+{
-+	struct kmem_cache_node *n;
-+
-+	if (!(s->flags & SLAB_STORE_USER))
-+		return;
-+
-+	n = get_node(s, page_to_nid(page));
-+
-+	spin_lock(&n->list_lock);
-+	list_del(&page->lru);
-+	spin_unlock(&n->list_lock);
-+}
-+
- static int alloc_object_checks(struct kmem_cache *s, struct page *page,
- 							void *object)
- {
-@@ -990,6 +1020,9 @@ static void putback_slab(struct kmem_cac
- 	if (page->inuse) {
- 		if (page->freelist)
- 			add_partial(s, page);
-+		else
-+		if (PageError(page))
-+			add_full(s, page);
- 		slab_unlock(page);
- 	} else {
- 		slab_unlock(page);
-@@ -1253,7 +1286,7 @@ out_unlock:
- slab_empty:
- 	if (prior)
- 		/*
--		 * Partially used slab that is on the partial list.
-+		 * Slab on the partial list.
- 		 */
- 		remove_partial(s, page);
- 
-@@ -1265,6 +1298,8 @@ slab_empty:
- debug:
- 	if (!free_object_checks(s, page, x))
- 		goto out_unlock;
-+	if (!PageActive(page) && !page->freelist)
-+		remove_full(s, page);
- 	if (s->flags & SLAB_STORE_USER)
- 		set_track(s, x, TRACK_FREE, addr);
- 	goto checks_ok;
-@@ -1383,6 +1418,7 @@ static void init_kmem_cache_node(struct 
- 	atomic_long_set(&n->nr_slabs, 0);
- 	spin_lock_init(&n->list_lock);
- 	INIT_LIST_HEAD(&n->partial);
-+	INIT_LIST_HEAD(&n->full);
- }
- 
- #ifdef CONFIG_NUMA
+-	printk(KERN_INFO "SLUB V6: General Slabs=%d, HW alignment=%d, "
++	printk(KERN_INFO "SLUB: General Slabs=%d, HW alignment=%d, "
+ 		"Processors=%d, Nodes=%d\n",
+ 		KMALLOC_SHIFT_HIGH, L1_CACHE_BYTES,
+ 		nr_cpu_ids, nr_node_ids);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -153,6 +77,7 @@ slub-core-minor-fixes.patch
 slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
 slub-core-fix-another-numa-bootstrap-issue.patch
 slub-core-fix-object-counting.patch
+slub-core-drop-version-number.patch
 slub-add-slabinfo-tool.patch
 slub-add-slabinfo-tool-update-slabinfoc.patch
 make-page-private-usable-in-compound-pages-v1.patch
@@ -161,9 +86,8 @@ optimize-compound_head-by-avoiding-a-shared-page.patch
 add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
 slub-fix-object-tracking.patch
 slub-enable-tracking-of-full-slabs.patch
-validation-of-slabs-metadata-and-guard-zones.patch
-add-ability-to-list-alloc--free-callers-per-slab.patch
-drop-version-number.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
 quicklists-for-page-table-pages.patch
 quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
 quicklist-support-for-ia64.patch
