@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-tidy-3.patch added to -mm tree
-Date: Tue, 10 Apr 2007 13:00:19 -0700
-Message-ID: <200704102000.l3AK0Jv5016040@shell0.pdx.osdl.net>
+Subject: + slub-core-tidy-4.patch added to -mm tree
+Date: Tue, 10 Apr 2007 13:08:40 -0700
+Message-ID: <200704102008.l3AK8elP016158@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43212 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43411 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932224AbXDJUAY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 16:00:24 -0400
+	id S1030427AbXDJUIo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 16:08:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     slub-core-tidy-3
+     slub-core-tidy-4
 has been added to the -mm tree.  Its filename is
-     slub-core-tidy-3.patch
+     slub-core-tidy-4.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,75 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-core-tidy-3
+Subject: slub-core-tidy-4
 From: Andrew Morton <akpm@linux-foundation.org>
-
-Diddle whitespace
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   29 ++++++++++++++---------------
- 1 files changed, 14 insertions(+), 15 deletions(-)
+ mm/slub.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-core-tidy-3 mm/slub.c
---- a/mm/slub.c~slub-core-tidy-3
+diff -puN mm/slub.c~slub-core-tidy-4 mm/slub.c
+--- a/mm/slub.c~slub-core-tidy-4
 +++ a/mm/slub.c
-@@ -462,14 +462,14 @@ static int check_object(struct kmem_cach
- 					"Redzone Inactive check fails");
- 				return 0;
- 		}
--	} else
--	if ((s->flags & SLAB_POISON) && s->objsize < s->inuse &&
--	    !check_bytes(endobject, POISON_INUSE, s->inuse - s->objsize))
-+	} else if ((s->flags & SLAB_POISON) && s->objsize < s->inuse &&
-+			!check_bytes(endobject, POISON_INUSE,
-+					s->inuse - s->objsize))
- 		object_err(s, page, p, "Alignment padding check fails");
+@@ -755,7 +755,7 @@ static struct page *new_slab(struct kmem
+ 		memset(start, POISON_INUSE, PAGE_SIZE << s->order);
  
- 	if (s->flags & SLAB_POISON) {
--		if (!active && (s->flags & __OBJECT_POISON)
--			&& (!check_bytes(p, POISON_FREE, s->objsize - 1) ||
-+		if (!active && (s->flags & __OBJECT_POISON) &&
-+			(!check_bytes(p, POISON_FREE, s->objsize - 1) ||
- 				p[s->objsize -1] != POISON_END)) {
- 			object_err(s, page, p, "Poison check failed");
- 			return 0;
-@@ -487,14 +487,14 @@ static int check_object(struct kmem_cach
- 
- 	/* Check free pointer validity */
- 	if (!check_valid_pointer(s, page, get_freepointer(s, p))) {
--			object_err(s, page, p, "Freepointer corrupt");
--			/*
--			 * No choice but to zap it. This may cause
--			 * another error because the object count
--			 * is now wrong.
--			 */
--			set_freepointer(s, p, NULL);
--			return 0;
-+		object_err(s, page, p, "Freepointer corrupt");
-+		/*
-+		 * No choice but to zap it. This may cause
-+		 * another error because the object count
-+		 * is now wrong.
-+		 */
-+		set_freepointer(s, p, NULL);
-+		return 0;
- 	}
- 	return 1;
- }
-@@ -619,9 +619,8 @@ bad:
- static int free_object_checks(struct kmem_cache *s, struct page *page,
- 							void *object)
- {
--	if (!check_slab(s, page)) {
-+	if (!check_slab(s, page))
- 		goto fail;
--	}
- 
- 	if (!check_valid_pointer(s, page, object)) {
- 		printk(KERN_ERR "SLUB: %s slab 0x%p invalid "
+ 	last = start;
+-	for(p = start + s->size; p < end; p += s->size) {
++	for (p = start + s->size; p < end; p += s->size) {
+ 		setup_object(s, page, last);
+ 		set_freepointer(s, last, p);
+ 		last = p;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -171,6 +124,7 @@ slab-mark-set_up_list3s-__init.patch
 slub-core-tidy.patch
 slub-core-tidy-2.patch
 slub-core-tidy-3.patch
+slub-core-tidy-4.patch
 slub-enable-tracking-of-full-slabs-fix.patch
 driver_bfin_serial_core-update.patch
 uml-driver-formatting-fixes-fix.patch
