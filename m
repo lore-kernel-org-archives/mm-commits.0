@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-mcheck-p4-grotesque-and-needless-warning-fix.patch added to -mm tree
-Date: Mon, 09 Apr 2007 22:18:04 -0700
-Message-ID: <200704100518.l3A5I4db032077@shell0.pdx.osdl.net>
+Subject: + fix-buslogic-to-stop-using-check_region.patch added to -mm tree
+Date: Mon, 09 Apr 2007 22:19:12 -0700
+Message-ID: <200704100519.l3A5JCfH032106@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44469 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44501 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966059AbXDJFSI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 01:18:08 -0400
+	id S966082AbXDJFTQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 01:19:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zach@vmware.com, ak@suse.de
+Cc: zach@vmware.com, James.Bottomley@steeleye.com
 
 
 The patch titled
-     i386 mcheck p4 grotesque and needless warning fix
+     Fix BusLogic to stop using check_region
 has been added to the -mm tree.  Its filename is
-     i386-mcheck-p4-grotesque-and-needless-warning-fix.patch
+     fix-buslogic-to-stop-using-check_region.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,183 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 mcheck p4 grotesque and needless warning fix
+Subject: Fix BusLogic to stop using check_region
 From: Zachary Amsden <zach@vmware.com>
 
-No, just no.  You do not use goto to skip a code block.  You do not return an
-obvious variable from a singly-inlined function and give the function a return
-value.  You don't put unexplained comments about kmalloc in code which doesn't
-do dynamic allocation.  And you don't leave stray warnings around for no good
-reason.
-
-Also, when possible, it is better to use block scoped variables because gcc
-can sometime generate better code.
+I got so sick of seing the check_region warnings from BusLogic.c I actually
+fixed it properly.  Never use check region, reserve it before the probe
+with request region instead and check the error result; free region if
+setup fails.  Should be functionally identical to the original except for
+fixing the potential race.
 
 Signed-off-by: Zachary Amsden <zach@vmware.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mcheck/p4.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ drivers/scsi/BusLogic.c |   73 ++++++++++++++++++++++++--------------
+ 1 file changed, 48 insertions(+), 25 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mcheck/p4.c~i386-mcheck-p4-grotesque-and-needless-warning-fix arch/i386/kernel/cpu/mcheck/p4.c
---- a/arch/i386/kernel/cpu/mcheck/p4.c~i386-mcheck-p4-grotesque-and-needless-warning-fix
-+++ a/arch/i386/kernel/cpu/mcheck/p4.c
-@@ -124,13 +124,10 @@ static void intel_init_thermal(struct cp
- 
- 
- /* P4/Xeon Extended MCE MSR retrieval, return 0 if unsupported */
--static inline int intel_get_extended_msrs(struct intel_mce_extended_msrs *r)
-+static inline void intel_get_extended_msrs(struct intel_mce_extended_msrs *r)
- {
- 	u32 h;
- 
--	if (mce_num_extended_msrs == 0)
--		goto done;
--
- 	rdmsr (MSR_IA32_MCG_EAX, r->eax, h);
- 	rdmsr (MSR_IA32_MCG_EBX, r->ebx, h);
- 	rdmsr (MSR_IA32_MCG_ECX, r->ecx, h);
-@@ -141,12 +138,6 @@ static inline int intel_get_extended_msr
- 	rdmsr (MSR_IA32_MCG_ESP, r->esp, h);
- 	rdmsr (MSR_IA32_MCG_EFLAGS, r->eflags, h);
- 	rdmsr (MSR_IA32_MCG_EIP, r->eip, h);
--
--	/* can we rely on kmalloc to do a dynamic
--	 * allocation for the reserved registers?
--	 */
--done:
--	return mce_num_extended_msrs;
+diff -puN drivers/scsi/BusLogic.c~fix-buslogic-to-stop-using-check_region drivers/scsi/BusLogic.c
+--- a/drivers/scsi/BusLogic.c~fix-buslogic-to-stop-using-check_region
++++ a/drivers/scsi/BusLogic.c
+@@ -579,17 +579,17 @@ static void __init BusLogic_InitializePr
+ 	/*
+ 	   Append the list of standard BusLogic MultiMaster ISA I/O Addresses.
+ 	 */
+-	if (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe330 : check_region(0x330, BusLogic_MultiMasterAddressCount) == 0)
++	if (!BusLogic_ProbeOptions.LimitedProbeISA || BusLogic_ProbeOptions.Probe330)
+ 		BusLogic_AppendProbeAddressISA(0x330);
+-	if (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe334 : check_region(0x334, BusLogic_MultiMasterAddressCount) == 0)
++	if (!BusLogic_ProbeOptions.LimitedProbeISA || BusLogic_ProbeOptions.Probe334)
+ 		BusLogic_AppendProbeAddressISA(0x334);
+-	if (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe230 : check_region(0x230, BusLogic_MultiMasterAddressCount) == 0)
++	if (!BusLogic_ProbeOptions.LimitedProbeISA || BusLogic_ProbeOptions.Probe230)
+ 		BusLogic_AppendProbeAddressISA(0x230);
+-	if (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe234 : check_region(0x234, BusLogic_MultiMasterAddressCount) == 0)
++	if (!BusLogic_ProbeOptions.LimitedProbeISA || BusLogic_ProbeOptions.Probe234)
+ 		BusLogic_AppendProbeAddressISA(0x234);
+-	if (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe130 : check_region(0x130, BusLogic_MultiMasterAddressCount) == 0)
++	if (!BusLogic_ProbeOptions.LimitedProbeISA || BusLogic_ProbeOptions.Probe130)
+ 		BusLogic_AppendProbeAddressISA(0x130);
+-	if (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe134 : check_region(0x134, BusLogic_MultiMasterAddressCount) == 0)
++	if (!BusLogic_ProbeOptions.LimitedProbeISA || BusLogic_ProbeOptions.Probe134)
+ 		BusLogic_AppendProbeAddressISA(0x134);
  }
  
- static fastcall void intel_machine_check(struct pt_regs * regs, long error_code)
-@@ -155,7 +146,6 @@ static fastcall void intel_machine_check
- 	u32 alow, ahigh, high, low;
- 	u32 mcgstl, mcgsth;
- 	int i;
--	struct intel_mce_extended_msrs dbg;
+@@ -795,7 +795,9 @@ static int __init BusLogic_InitializeMul
+ 	   host adapters are probed.
+ 	 */
+ 	if (!BusLogic_ProbeOptions.NoProbeISA)
+-		if (PrimaryProbeInfo->IO_Address == 0 && (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe330 : check_region(0x330, BusLogic_MultiMasterAddressCount) == 0)) {
++		if (PrimaryProbeInfo->IO_Address == 0 &&
++				(!BusLogic_ProbeOptions.LimitedProbeISA ||
++				 BusLogic_ProbeOptions.Probe330)) {
+ 			PrimaryProbeInfo->HostAdapterType = BusLogic_MultiMaster;
+ 			PrimaryProbeInfo->HostAdapterBusType = BusLogic_ISA_Bus;
+ 			PrimaryProbeInfo->IO_Address = 0x330;
+@@ -805,15 +807,25 @@ static int __init BusLogic_InitializeMul
+ 	   omitting the Primary I/O Address which has already been handled.
+ 	 */
+ 	if (!BusLogic_ProbeOptions.NoProbeISA) {
+-		if (!StandardAddressSeen[1] && (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe334 : check_region(0x334, BusLogic_MultiMasterAddressCount) == 0))
++		if (!StandardAddressSeen[1] &&
++				(!BusLogic_ProbeOptions.LimitedProbeISA ||
++				 BusLogic_ProbeOptions.Probe334))
+ 			BusLogic_AppendProbeAddressISA(0x334);
+-		if (!StandardAddressSeen[2] && (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe230 : check_region(0x230, BusLogic_MultiMasterAddressCount) == 0))
++		if (!StandardAddressSeen[2] &&
++				(!BusLogic_ProbeOptions.LimitedProbeISA ||
++				 BusLogic_ProbeOptions.Probe230))
+ 			BusLogic_AppendProbeAddressISA(0x230);
+-		if (!StandardAddressSeen[3] && (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe234 : check_region(0x234, BusLogic_MultiMasterAddressCount) == 0))
++		if (!StandardAddressSeen[3] &&
++				(!BusLogic_ProbeOptions.LimitedProbeISA ||
++				 BusLogic_ProbeOptions.Probe234))
+ 			BusLogic_AppendProbeAddressISA(0x234);
+-		if (!StandardAddressSeen[4] && (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe130 : check_region(0x130, BusLogic_MultiMasterAddressCount) == 0))
++		if (!StandardAddressSeen[4] &&
++				(!BusLogic_ProbeOptions.LimitedProbeISA ||
++				 BusLogic_ProbeOptions.Probe130))
+ 			BusLogic_AppendProbeAddressISA(0x130);
+-		if (!StandardAddressSeen[5] && (BusLogic_ProbeOptions.LimitedProbeISA ? BusLogic_ProbeOptions.Probe134 : check_region(0x134, BusLogic_MultiMasterAddressCount) == 0))
++		if (!StandardAddressSeen[5] &&
++				(!BusLogic_ProbeOptions.LimitedProbeISA ||
++				 BusLogic_ProbeOptions.Probe134))
+ 			BusLogic_AppendProbeAddressISA(0x134);
+ 	}
+ 	/*
+@@ -2220,22 +2232,35 @@ static int __init BusLogic_init(void)
+ 		HostAdapter->PCI_Device = ProbeInfo->PCI_Device;
+ 		HostAdapter->IRQ_Channel = ProbeInfo->IRQ_Channel;
+ 		HostAdapter->AddressCount = BusLogic_HostAdapterAddressCount[HostAdapter->HostAdapterType];
++
++		/*
++		   Make sure region is free prior to probing.
++		 */
++		if (!request_region(HostAdapter->IO_Address, HostAdapter->AddressCount,
++					"BusLogic"))
++			continue;
+ 		/*
+ 		   Probe the Host Adapter.  If unsuccessful, abort further initialization.
+ 		 */
+-		if (!BusLogic_ProbeHostAdapter(HostAdapter))
++		if (!BusLogic_ProbeHostAdapter(HostAdapter)) {
++			release_region(HostAdapter->IO_Address, HostAdapter->AddressCount);
+ 			continue;
++		}
+ 		/*
+ 		   Hard Reset the Host Adapter.  If unsuccessful, abort further
+ 		   initialization.
+ 		 */
+-		if (!BusLogic_HardwareResetHostAdapter(HostAdapter, true))
++		if (!BusLogic_HardwareResetHostAdapter(HostAdapter, true)) {
++			release_region(HostAdapter->IO_Address, HostAdapter->AddressCount);
+ 			continue;
++		}
+ 		/*
+ 		   Check the Host Adapter.  If unsuccessful, abort further initialization.
+ 		 */
+-		if (!BusLogic_CheckHostAdapter(HostAdapter))
++		if (!BusLogic_CheckHostAdapter(HostAdapter)) {
++			release_region(HostAdapter->IO_Address, HostAdapter->AddressCount);
+ 			continue;
++		}
+ 		/*
+ 		   Initialize the Driver Options field if provided.
+ 		 */
+@@ -2247,16 +2272,6 @@ static int __init BusLogic_init(void)
+ 		 */
+ 		BusLogic_AnnounceDriver(HostAdapter);
+ 		/*
+-		   Register usage of the I/O Address range.  From this point onward, any
+-		   failure will be assumed to be due to a problem with the Host Adapter,
+-		   rather than due to having mistakenly identified this port as belonging
+-		   to a BusLogic Host Adapter.  The I/O Address range will not be
+-		   released, thereby preventing it from being incorrectly identified as
+-		   any other type of Host Adapter.
+-		 */
+-		if (!request_region(HostAdapter->IO_Address, HostAdapter->AddressCount, "BusLogic"))
+-			continue;
+-		/*
+ 		   Register the SCSI Host structure.
+ 		 */
  
- 	rdmsr (MSR_IA32_MCG_STATUS, mcgstl, mcgsth);
- 	if (mcgstl & (1<<0))	/* Recoverable ? */
-@@ -164,7 +154,9 @@ static fastcall void intel_machine_check
- 	printk (KERN_EMERG "CPU %d: Machine Check Exception: %08x%08x\n",
- 		smp_processor_id(), mcgsth, mcgstl);
+@@ -2280,6 +2295,12 @@ static int __init BusLogic_init(void)
+ 		   Acquire the System Resources necessary to use the Host Adapter, then
+ 		   Create the Initial CCBs, Initialize the Host Adapter, and finally
+ 		   perform Target Device Inquiry.
++
++		   From this point onward, any failure will be assumed to be due to a
++		   problem with the Host Adapter, rather than due to having mistakenly
++		   identified this port as belonging to a BusLogic Host Adapter.  The
++		   I/O Address range will not be released, thereby preventing it from
++		   being incorrectly identified as any other type of Host Adapter.
+ 		 */
+ 		if (BusLogic_ReadHostAdapterConfiguration(HostAdapter) &&
+ 		    BusLogic_ReportHostAdapterConfiguration(HostAdapter) &&
+@@ -3598,6 +3619,7 @@ static void __exit BusLogic_exit(void)
  
--	if (intel_get_extended_msrs(&dbg)) {
-+	if (mce_num_extended_msrs > 0) {
-+		struct intel_mce_extended_msrs dbg;
-+		intel_get_extended_msrs(&dbg);
- 		printk (KERN_DEBUG "CPU %d: EIP: %08x EFLAGS: %08x\n",
- 			smp_processor_id(), dbg.eip, dbg.eflags);
- 		printk (KERN_DEBUG "\teax: %08x ebx: %08x ecx: %08x edx: %08x\n",
+ __setup("BusLogic=", BusLogic_Setup);
+ 
++#ifdef MODULE
+ static struct pci_device_id BusLogic_pci_tbl[] __devinitdata = {
+ 	{ PCI_VENDOR_ID_BUSLOGIC, PCI_DEVICE_ID_BUSLOGIC_MULTIMASTER,
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+@@ -3607,6 +3629,7 @@ static struct pci_device_id BusLogic_pci
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+ 	{ }
+ };
++#endif
+ MODULE_DEVICE_TABLE(pci, BusLogic_pci_tbl);
+ 
+ module_init(BusLogic_init);
 _
 
 Patches currently in -mm which might be from zach@vmware.com are
 
 proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+fix-buslogic-to-stop-using-check_region.patch
 revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
 paravirt_ops-update-maintainers.patch
 paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
@@ -120,7 +222,6 @@ vmi-supports-compat-vdso.patch
 resurrect-the-vmi-lazy-mode-fixes.patch
 vmi-kmap_atomic_pte-fix.patch
 vmi-timer-update.patch
-fix-buslogic-to-stop-using-check_region.patch
 i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
 i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
 ignore-stolen-time-in-the-softlockup-watchdog.patch
