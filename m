@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-s390-fixup.patch added to -mm tree
-Date: Tue, 10 Apr 2007 13:54:52 -0700
-Message-ID: <200704102054.l3AKsqlj017099@shell0.pdx.osdl.net>
+Subject: + cxgb3-mac-watchdog-update.patch added to -mm tree
+Date: Tue, 10 Apr 2007 14:41:06 -0700
+Message-ID: <200704102141.l3ALf6Ev018193@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45008 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46996 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030636AbXDJUyy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 16:54:54 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l3AKsqVZ011136
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 10 Apr 2007 13:54:52 -0700
+	id S1753622AbXDJVlQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 17:41:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: divy@chelsio.com
 
 
 The patch titled
-     git-s390-fixup
+     cxgb3: MAC watchdog update
 has been added to the -mm tree.  Its filename is
-     git-s390-fixup.patch
+     cxgb3-mac-watchdog-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,282 +25,216 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-s390-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cxgb3: MAC watchdog update
+From: Divy Le Ray <divy@chelsio.com>
 
+The MAC watchdog was failing if the peer interface was brought down.
+
+Signed-off-by: Divy Le Ray <divy@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/chsc.c |  107 --------------------------------------
- 1 files changed, 107 deletions(-)
+ drivers/net/cxgb3/common.h     |    7 +-
+ drivers/net/cxgb3/cxgb3_main.c |   10 +-
+ drivers/net/cxgb3/xgmac.c      |  105 +++++++++++++++++++++++--------
+ 3 files changed, 88 insertions(+), 34 deletions(-)
 
-diff -puN drivers/s390/cio/chsc.c~git-s390-fixup drivers/s390/cio/chsc.c
---- a/drivers/s390/cio/chsc.c~git-s390-fixup
-+++ a/drivers/s390/cio/chsc.c
-@@ -764,116 +764,9 @@ int chsc_chp_vary(struct chp_id chpid, i
- 	if (on)
- 		/* Scan for new devices on varied on path. */
- 		for_each_subchannel(__s390_vary_chpid_on, NULL);
--	if (need_rescan || css_slow_subchannels_exist())
--		queue_work(slow_path_wq, &slow_path_work);
+diff -puN drivers/net/cxgb3/common.h~cxgb3-mac-watchdog-update drivers/net/cxgb3/common.h
+--- a/drivers/net/cxgb3/common.h~cxgb3-mac-watchdog-update
++++ a/drivers/net/cxgb3/common.h
+@@ -478,8 +478,11 @@ struct cmac {
+ 	struct adapter *adapter;
+ 	unsigned int offset;
+ 	unsigned int nucast;	/* # of address filters for unicast MACs */
+-	unsigned int tcnt;
+-	unsigned int xcnt;
++	unsigned int tx_tcnt;
++	unsigned int tx_xcnt;
++	u64 tx_mcnt;
++	unsigned int rx_xcnt;
++	u64 rx_mcnt;
+ 	unsigned int toggle_cnt;
+ 	unsigned int txen;
+ 	struct mac_stats stats;
+diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-mac-watchdog-update drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-mac-watchdog-update
++++ a/drivers/net/cxgb3/cxgb3_main.c
+@@ -194,15 +194,13 @@ void t3_os_link_changed(struct adapter *
+ 
+ 	if (link_stat != netif_carrier_ok(dev)) {
+ 		if (link_stat) {
+-			t3_set_reg_field(adapter,
+-					 A_XGM_TXFIFO_CFG + mac->offset,
+-					 F_ENDROPPKT, 0);
++			t3_mac_enable(mac, MAC_DIRECTION_RX);
+ 			netif_carrier_on(dev);
+ 		} else {
+ 			netif_carrier_off(dev);
+-			t3_set_reg_field(adapter,
+-					 A_XGM_TXFIFO_CFG + mac->offset,
+-					 F_ENDROPPKT, F_ENDROPPKT);
++			pi->phy.ops->power_down(&pi->phy, 1);
++			t3_mac_disable(mac, MAC_DIRECTION_RX);
++			t3_link_start(&pi->phy, mac, &pi->link_config);
+ 		}
+ 
+ 		link_report(dev);
+diff -puN drivers/net/cxgb3/xgmac.c~cxgb3-mac-watchdog-update drivers/net/cxgb3/xgmac.c
+--- a/drivers/net/cxgb3/xgmac.c~cxgb3-mac-watchdog-update
++++ a/drivers/net/cxgb3/xgmac.c
+@@ -367,6 +367,7 @@ int t3_mac_enable(struct cmac *mac, int 
+ 	int idx = macidx(mac);
+ 	struct adapter *adap = mac->adapter;
+ 	unsigned int oft = mac->offset;
++	struct mac_stats *s = &mac->stats;
+ 
+ 	if (which & MAC_DIRECTION_TX) {
+ 		t3_write_reg(adap, A_XGM_TX_CTRL + oft, F_TXEN);
+@@ -376,10 +377,16 @@ int t3_mac_enable(struct cmac *mac, int 
+ 		t3_set_reg_field(adap, A_TP_PIO_DATA, 1 << idx, 1 << idx);
+ 
+ 		t3_write_reg(adap, A_TP_PIO_ADDR, A_TP_TX_DROP_CNT_CH0 + idx);
+-		mac->tcnt = (G_TXDROPCNTCH0RCVD(t3_read_reg(adap,
+-							    A_TP_PIO_DATA)));
+-		mac->xcnt = (G_TXSPI4SOPCNT(t3_read_reg(adap,
+-						A_XGM_TX_SPI4_SOP_EOP_CNT)));
++		mac->tx_mcnt = s->tx_frames;
++		mac->tx_tcnt = (G_TXDROPCNTCH0RCVD(t3_read_reg(adap,
++							A_TP_PIO_DATA)));
++		mac->tx_xcnt = (G_TXSPI4SOPCNT(t3_read_reg(adap,
++						A_XGM_TX_SPI4_SOP_EOP_CNT +
++						oft)));
++		mac->rx_mcnt = s->rx_frames;
++		mac->rx_xcnt = (G_TXSPI4SOPCNT(t3_read_reg(adap,
++						A_XGM_RX_SPI4_SOP_EOP_CNT +
++						oft)));
+ 		mac->txen = F_TXEN;
+ 		mac->toggle_cnt = 0;
+ 	}
+@@ -392,6 +399,7 @@ int t3_mac_disable(struct cmac *mac, int
+ {
+ 	int idx = macidx(mac);
+ 	struct adapter *adap = mac->adapter;
++	int val;
+ 
+ 	if (which & MAC_DIRECTION_TX) {
+ 		t3_write_reg(adap, A_XGM_TX_CTRL + mac->offset, 0);
+@@ -401,44 +409,89 @@ int t3_mac_disable(struct cmac *mac, int
+ 		t3_set_reg_field(adap, A_TP_PIO_DATA, 1 << idx, 1 << idx);
+ 		mac->txen = 0;
+ 	}
+-	if (which & MAC_DIRECTION_RX)
++	if (which & MAC_DIRECTION_RX) {
++		t3_set_reg_field(mac->adapter, A_XGM_RESET_CTRL + mac->offset,
++				 F_PCS_RESET_, 0);
++		msleep(100);
+ 		t3_write_reg(adap, A_XGM_RX_CTRL + mac->offset, 0);
++		val = F_MAC_RESET_;
++		if (is_10G(adap))
++			val |= F_PCS_RESET_;
++		else if (uses_xaui(adap))
++			val |= F_PCS_RESET_ | F_XG2G_RESET_;
++		else
++			val |= F_RGMII_RESET_ | F_XG2G_RESET_;
++		t3_write_reg(mac->adapter, A_XGM_RESET_CTRL + mac->offset, val);
++	}
  	return 0;
  }
  
--/*
-- * Channel measurement related functions
-- */
--static ssize_t
--chp_measurement_chars_read(struct kobject *kobj, char *buf, loff_t off,
--			   size_t count)
--{
--	struct channel_path *chp;
--	unsigned int size;
--
--	chp = to_channelpath(container_of(kobj, struct device, kobj));
--	if (!chp->cmg_chars)
--		return 0;
--
--	size = sizeof(struct cmg_chars);
--
--	if (off > size)
--		return 0;
--	if (off + count > size)
--		count = size - off;
--	memcpy(buf, chp->cmg_chars + off, count);
--	return count;
--}
--
--static struct bin_attribute chp_measurement_chars_attr = {
--	.attr = {
--		.name = "measurement_chars",
--		.mode = S_IRUSR,
--	},
--	.size = sizeof(struct cmg_chars),
--	.read = chp_measurement_chars_read,
--};
--
--static void
--chp_measurement_copy_block(struct cmg_entry *buf,
--			   struct channel_subsystem *css, int chpid)
--{
--	void *area;
--	struct cmg_entry *entry, reference_buf;
--	int idx;
--
--	if (chpid < 128) {
--		area = css->cub_addr1;
--		idx = chpid;
--	} else {
--		area = css->cub_addr2;
--		idx = chpid - 128;
--	}
--	entry = area + (idx * sizeof(struct cmg_entry));
--	do {
--		memcpy(buf, entry, sizeof(*entry));
--		memcpy(&reference_buf, entry, sizeof(*entry));
--	} while (reference_buf.values[0] != buf->values[0]);
--}
--
--static ssize_t
--chp_measurement_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
--{
--	struct channel_path *chp;
--	struct channel_subsystem *css;
--	unsigned int size;
--
--	chp = to_channelpath(container_of(kobj, struct device, kobj));
--	css = to_css(chp->dev.parent);
--
--	size = sizeof(struct cmg_entry);
--
--	/* Only allow single reads. */
--	if (off || count < size)
--		return 0;
--	chp_measurement_copy_block((struct cmg_entry *)buf, css, chp->id);
--	count = size;
--	return count;
--}
--
--static struct bin_attribute chp_measurement_attr = {
--	.attr = {
--		.name = "measurement",
--		.mode = S_IRUSR,
--	},
--	.size = sizeof(struct cmg_entry),
--	.read = chp_measurement_read,
--};
--
--static void
--chsc_remove_chp_cmg_attr(struct channel_path *chp)
--{
--	device_remove_bin_file(&chp->dev, &chp_measurement_chars_attr);
--	device_remove_bin_file(&chp->dev, &chp_measurement_attr);
--}
--
--static int
--chsc_add_chp_cmg_attr(struct channel_path *chp)
--{
--	int ret;
--
--	ret = device_create_bin_file(&chp->dev, &chp_measurement_chars_attr);
--	if (ret)
--		return ret;
--	ret = device_create_bin_file(&chp->dev, &chp_measurement_attr);
--	if (ret)
--		device_remove_bin_file(&chp->dev, &chp_measurement_chars_attr);
--	return ret;
--}
--
- static void
- chsc_remove_cmg_attr(struct channel_subsystem *css)
+ int t3b2_mac_watchdog_task(struct cmac *mac)
  {
+ 	struct adapter *adap = mac->adapter;
+-	unsigned int tcnt, xcnt;
++	struct mac_stats *s = &mac->stats;
++	unsigned int tx_tcnt, tx_xcnt;
++	unsigned int tx_mcnt = s->tx_frames;
++	unsigned int rx_mcnt = s->rx_frames;
++	unsigned int rx_xcnt;
+ 	int status;
+ 
+-	t3_write_reg(adap, A_TP_PIO_ADDR, A_TP_TX_DROP_CNT_CH0 + macidx(mac));
+-	tcnt = (G_TXDROPCNTCH0RCVD(t3_read_reg(adap, A_TP_PIO_DATA)));
+-	xcnt = (G_TXSPI4SOPCNT(t3_read_reg(adap, 
+-					   A_XGM_TX_SPI4_SOP_EOP_CNT +
+-					   mac->offset)));
+-
+-	if (tcnt != mac->tcnt && xcnt == 0 && mac->xcnt == 0) {
+-		if (mac->toggle_cnt > 4) {
+-			t3b2_mac_reset(mac);
++	if (tx_mcnt == mac->tx_mcnt) {
++		tx_xcnt = (G_TXSPI4SOPCNT(t3_read_reg(adap,
++						A_XGM_TX_SPI4_SOP_EOP_CNT +
++					       	mac->offset)));
++		if (tx_xcnt == 0) {
++			t3_write_reg(adap, A_TP_PIO_ADDR,
++				     A_TP_TX_DROP_CNT_CH0 + macidx(mac));
++			tx_tcnt = (G_TXDROPCNTCH0RCVD(t3_read_reg(adap,
++						      A_TP_PIO_DATA)));
++		} else {
+ 			mac->toggle_cnt = 0;
++			return 0;
++		}
++	} else {
++		mac->toggle_cnt = 0;
++		return 0;
++	}
++
++	if (((tx_tcnt != mac->tx_tcnt) &&
++	     (tx_xcnt == 0) && (mac->tx_xcnt == 0)) ||
++	    ((mac->tx_mcnt == tx_mcnt) &&
++	     (tx_xcnt != 0) && (mac->tx_xcnt != 0))) {
++		if (mac->toggle_cnt > 4)
+ 			status = 2;
+-		} else {
+-			t3_write_reg(adap, A_XGM_TX_CTRL + mac->offset, 0);
+-			t3_read_reg(adap, A_XGM_TX_CTRL + mac->offset);
+-			t3_write_reg(adap, A_XGM_TX_CTRL + mac->offset,
+-				     mac->txen);
+-			t3_read_reg(adap, A_XGM_TX_CTRL + mac->offset);
+-			mac->toggle_cnt++;
++		else
+ 			status = 1;
+-		}	
+ 	} else {
+ 		mac->toggle_cnt = 0;
+-		status = 0;
++		return 0;
+ 	}
+-	mac->tcnt = tcnt;
+-	mac->xcnt = xcnt;
+ 
++	if (rx_mcnt != mac->rx_mcnt)
++		rx_xcnt = (G_TXSPI4SOPCNT(t3_read_reg(adap,
++						A_XGM_RX_SPI4_SOP_EOP_CNT +
++						mac->offset)));
++	else
++		return 0;
++
++	if (mac->rx_mcnt != s->rx_frames && rx_xcnt == 0 && mac->rx_xcnt == 0)
++		status = 2;
++
++	mac->tx_tcnt = tx_tcnt;
++	mac->tx_xcnt = tx_xcnt;
++	mac->tx_mcnt = s->tx_frames;
++	mac->rx_xcnt = rx_xcnt;
++	mac->rx_mcnt = s->rx_frames;
++	if (status == 1) {
++		t3_write_reg(adap, A_XGM_TX_CTRL + mac->offset, 0);
++		t3_read_reg(adap, A_XGM_TX_CTRL + mac->offset);  /* flush */
++		t3_write_reg(adap, A_XGM_TX_CTRL + mac->offset, mac->txen);
++		t3_read_reg(adap, A_XGM_TX_CTRL + mac->offset);  /* flush */
++		mac->toggle_cnt++;
++	} else if (status == 2) {
++		t3b2_mac_reset(mac);
++		mac->toggle_cnt = 0;
++	}
+ 	return status;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from divy@chelsio.com are
 
-origin.patch
-x86_64-early-quirks-fix-early_qrk-section-tag.patch
-i386-irqbalance_disable-section-fix.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-avr32.patch
-git-avr32-fixup.patch
-revert-gregkh-driver-sysfs-crash-debugging.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-git-ocfs2.patch
-git-parisc.patch
-git-r8169-fixup.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-xfs-clean-up-shrinker-games.patch
-pktgen-add-try_to_freeze.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-s390-fixup.patch
+cxgb3-avoid-deadlock-with-mac-watchdog.patch
+cxgb3-mac-watchdog-update.patch
+cxgb3-missing-cpl-handler-and-register-setting.patch
