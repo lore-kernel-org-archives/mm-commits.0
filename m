@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-fix-i_ino-handling-in-sysfs.patch added to -mm tree
-Date: Tue, 10 Apr 2007 13:47:23 -0700
-Message-ID: <200704102047.l3AKlN5c016922@shell0.pdx.osdl.net>
+Subject: + quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch added to -mm tree
+Date: Tue, 10 Apr 2007 12:31:26 -0700
+Message-ID: <200704101931.l3AJVQsZ015571@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44744 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42534 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030626AbXDJUr6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 16:47:58 -0400
+	id S1753195AbXDJTbd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 15:31:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com
+Cc: clameter@sgi.com
 
 
 The patch titled
-     sysfs: fix i_ino handling in sysfs
+     quicklist: avoid useless virt_to_page conversion
 has been added to the -mm tree.  Its filename is
-     sysfs-fix-i_ino-handling-in-sysfs.patch
+     quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,111 +25,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysfs: fix i_ino handling in sysfs
-From: Tejun Heo <htejun@gmail.com>
+Subject: quicklist: avoid useless virt_to_page conversion
+From: Christoph Lameter <clameter@sgi.com>
 
-Inode number handling was incorrect in two ways.
+We already have the pointer to the page struct in __quicklist free.  So use
+that instead of the page address when freeing the page.  This will avoid
+one virt_to_page in the page allocator.
 
-1. sysfs uses the inode number allocated by new_inode() and never hashes
-   it.  When reporting the inode number, it uses iunique() if inode is
-   inaccessible.  This is incorrect because iunique() assumes the inodes are
-   hashed.  This can cause duplicate inode numbers and the condition is likely
-   to happen because new_inode() and iunique() use separate increasing static
-   counters to scan for empty slot.
-
-2. sysfs_dirent->s_dentry can go away anytime and can't be referenced
-   unless the caller knows the dentry is not and not going to be deleted.
-
-This patch makes sysfs report the pointer to sysfs_dirent as ino.  ino_t is
-always as big as or larger than unsigned long && sysfs_dirent hierarchy is the
-internal representation of the sysfs tree, so it makes sense and simple to
-implement.
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Cc: Maneesh Soni <maneesh@in.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/dir.c   |   11 ++++-------
- fs/sysfs/inode.c |    1 +
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ include/linux/quicklist.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/sysfs/dir.c~sysfs-fix-i_ino-handling-in-sysfs fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~sysfs-fix-i_ino-handling-in-sysfs
-+++ a/fs/sysfs/dir.c
-@@ -504,19 +504,19 @@ static int sysfs_readdir(struct file * f
- 	struct sysfs_dirent * parent_sd = dentry->d_fsdata;
- 	struct sysfs_dirent *cursor = filp->private_data;
- 	struct list_head *p, *q = &cursor->s_sibling;
--	ino_t ino;
-+	unsigned long ino;
- 	int i = filp->f_pos;
+diff -puN include/linux/quicklist.h~quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion include/linux/quicklist.h
+--- a/include/linux/quicklist.h~quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion
++++ a/include/linux/quicklist.h
+@@ -61,7 +61,7 @@ static inline void __quicklist_free(int 
+ 	if (unlikely(nid != numa_node_id())) {
+ 		if (dtor)
+ 			dtor(p);
+-		free_page((unsigned long)p);
++		free_hot_page(page);
+ 		return;
+ 	}
  
- 	switch (i) {
- 		case 0:
--			ino = dentry->d_inode->i_ino;
-+			ino = (unsigned long)parent_sd;
- 			if (filldir(dirent, ".", 1, i, ino, DT_DIR) < 0)
- 				break;
- 			filp->f_pos++;
- 			i++;
- 			/* fallthrough */
- 		case 1:
--			ino = parent_ino(dentry);
-+			ino = (unsigned long)dentry->d_parent->d_fsdata;
- 			if (filldir(dirent, "..", 2, i, ino, DT_DIR) < 0)
- 				break;
- 			filp->f_pos++;
-@@ -538,10 +538,7 @@ static int sysfs_readdir(struct file * f
- 
- 				name = sysfs_get_name(next);
- 				len = strlen(name);
--				if (next->s_dentry)
--					ino = next->s_dentry->d_inode->i_ino;
--				else
--					ino = iunique(sysfs_sb, 2);
-+				ino = (unsigned long)next;
- 
- 				if (filldir(dirent, name, len, filp->f_pos, ino,
- 						 dt_type(next)) < 0)
-diff -puN fs/sysfs/inode.c~sysfs-fix-i_ino-handling-in-sysfs fs/sysfs/inode.c
---- a/fs/sysfs/inode.c~sysfs-fix-i_ino-handling-in-sysfs
-+++ a/fs/sysfs/inode.c
-@@ -140,6 +140,7 @@ struct inode * sysfs_new_inode(mode_t mo
- 		inode->i_mapping->a_ops = &sysfs_aops;
- 		inode->i_mapping->backing_dev_info = &sysfs_backing_dev_info;
- 		inode->i_op = &sysfs_inode_operations;
-+		inode->i_ino = (unsigned long)sd;
- 		lockdep_set_class(&inode->i_mutex, &sysfs_inode_imutex_key);
- 
- 		if (sd->s_iattr) {
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-origin.patch
-revert-gregkh-driver-sysfs-crash-debugging.patch
-sysfs-fix-i_ino-handling-in-sysfs.patch
-sysfs-fix-error-handling-in-binattr-write.patch
-sysfs-move-release_sysfs_dirent-to-dirc.patch
-sysfs-flatten-cleanup-paths-in-sysfs_add_link-and-create_dir.patch
-sysfs-consolidate-sysfs_dirent-creation-functions.patch
-sysfs-add-sysfs_dirent-s_parent.patch
-sysfs-add-sysfs_dirent-s_name.patch
-sysfs-make-sysfs_dirent-s_element-a-union.patch
-sysfs-implement-kobj_sysfs_assoc_lock.patch
-sysfs-reimplement-symlink-using-sysfs_dirent-tree.patch
-sysfs-implement-bin_buffer.patch
-sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect.patch
-sysfs-kill-attribute-file-orphaning.patch
-sysfs-kill-unnecessary-attribute-owner.patch
-sysfs-kill-unnecessary-attribute-owner-fix.patch
-git-libata-all.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-optional-led-trigger-for-libata.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-git-scsi-misc.patch
-introduce-config_has_dma.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-core-minor-fixes.patch
+slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+slub-core-fix-another-numa-bootstrap-issue.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+extend-print_symbol-capability-fix.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+readahead-state-based-method-aging-accounting.patch
