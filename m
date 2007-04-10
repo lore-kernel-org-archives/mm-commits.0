@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-spaces-on-either-side-of-case-operator.patch added to -mm tree
-Date: Tue, 10 Apr 2007 15:04:58 -0700
-Message-ID: <200704102204.l3AM4w4u018771@shell0.pdx.osdl.net>
+Subject: + video-add-spaces-on-either-side-of-the-case-operator.patch added to -mm tree
+Date: Tue, 10 Apr 2007 15:07:44 -0700
+Message-ID: <200704102207.l3AM7n14018856@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48612 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48798 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965148AbXDJWFC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 18:05:02 -0400
+	id S1753952AbXDJWHx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 18:07:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, viro@zeniv.linux.org.uk
+Cc: rpjday@mindspring.com, adaplas@pol.net
 
 
 The patch titled
-     audit: add spaces on either side of case "..." operator.
+     VIDEO: add spaces on either side of the case "..." operator
 has been added to the -mm tree.  Its filename is
-     add-spaces-on-either-side-of-case-operator.patch
+     video-add-spaces-on-either-side-of-the-case-operator.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: audit: add spaces on either side of case "..." operator.
+Subject: VIDEO: add spaces on either side of the case "..." operator
 From: "Robert P. J. Day" <rpjday@mindspring.com>
 
 Following the programming advice laid down in the gcc manual, make
 sure the case "..." operator has spaces on either side.
 
-According to:
-
-http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Case-Ranges.html#Case-Ranges:
-
-  "Be careful: Write spaces around the ..., for otherwise it may be
-parsed wrong when you use it with integer values."
-
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/modedb.c |    4 ++--
+ drivers/video/pxafb.c  |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/audit.c~add-spaces-on-either-side-of-case-operator kernel/audit.c
---- a/kernel/audit.c~add-spaces-on-either-side-of-case-operator
-+++ a/kernel/audit.c
-@@ -515,8 +515,8 @@ static int audit_netlink_ok(struct sk_bu
- 			err = -EPERM;
- 		break;
- 	case AUDIT_USER:
--	case AUDIT_FIRST_USER_MSG...AUDIT_LAST_USER_MSG:
--	case AUDIT_FIRST_USER_MSG2...AUDIT_LAST_USER_MSG2:
-+	case AUDIT_FIRST_USER_MSG ... AUDIT_LAST_USER_MSG:
-+	case AUDIT_FIRST_USER_MSG2 ... AUDIT_LAST_USER_MSG2:
- 		if (security_netlink_recv(skb, CAP_AUDIT_WRITE))
- 			err = -EPERM;
- 		break;
-@@ -614,8 +614,8 @@ static int audit_receive_msg(struct sk_b
- 							loginuid, sid);
- 		break;
- 	case AUDIT_USER:
--	case AUDIT_FIRST_USER_MSG...AUDIT_LAST_USER_MSG:
--	case AUDIT_FIRST_USER_MSG2...AUDIT_LAST_USER_MSG2:
-+	case AUDIT_FIRST_USER_MSG ... AUDIT_LAST_USER_MSG:
-+	case AUDIT_FIRST_USER_MSG2 ... AUDIT_LAST_USER_MSG2:
- 		if (!audit_enabled && msg_type != AUDIT_USER_AVC)
- 			return 0;
+diff -puN drivers/video/modedb.c~video-add-spaces-on-either-side-of-the-case-operator drivers/video/modedb.c
+--- a/drivers/video/modedb.c~video-add-spaces-on-either-side-of-the-case-operator
++++ a/drivers/video/modedb.c
+@@ -395,7 +395,7 @@ static int my_atoi(const char *name)
  
+     for (;; name++) {
+ 	switch (*name) {
+-	    case '0'...'9':
++	    case '0' ... '9':
+ 		val = 10*val+(*name-'0');
+ 		break;
+ 	    default:
+@@ -548,7 +548,7 @@ int fb_find_mode(struct fb_var_screeninf
+ 		    } else
+ 			goto done;
+ 		    break;
+-		case '0'...'9':
++		case '0' ... '9':
+ 		    break;
+ 		case 'M':
+ 		    if (!yres_specified)
+diff -puN drivers/video/pxafb.c~video-add-spaces-on-either-side-of-the-case-operator drivers/video/pxafb.c
+--- a/drivers/video/pxafb.c~video-add-spaces-on-either-side-of-the-case-operator
++++ a/drivers/video/pxafb.c
+@@ -1203,7 +1203,7 @@ static int __init pxafb_parse_options(st
+ 					} else
+ 						goto done;
+ 					break;
+-				case '0'...'9':
++				case '0' ... '9':
+ 					break;
+ 				default:
+ 					goto done;
 _
 
 Patches currently in -mm which might be from rpjday@mindspring.com are
@@ -103,3 +105,4 @@ delete-unused-header-file-linux-awe_voiceh.patch
 add-spaces-on-either-side-of-case-operator.patch
 some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
 remove-unused-header-file-drivers-video-riva-nv4refh.patch
+video-add-spaces-on-either-side-of-the-case-operator.patch
