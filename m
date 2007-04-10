@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ehea-fix-for-dlpar-and-sysfs-entries.patch added to -mm tree
-Date: Mon, 09 Apr 2007 17:03:23 -0700
-Message-ID: <200704100003.l3A03Ntr026950@shell0.pdx.osdl.net>
+Subject: + acpi-thermal-fix-mod_timer-interval.patch added to -mm tree
+Date: Mon, 09 Apr 2007 17:48:16 -0700
+Message-ID: <200704100048.l3A0mGNa027814@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36402 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:39001 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752784AbXDJADv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 9 Apr 2007 20:03:51 -0400
+	id S966039AbXDJAtk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 9 Apr 2007 20:49:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ossthema@de.ibm.com, themann@de.ibm.com
+Cc: akpm@linux-foundation.org, jilee@google.com, lenb@kernel.org
 
 
 The patch titled
-     ehea: fix for dlpar and sysfs entries
+     acpi-thermal: fix mod_timer() interval
 has been added to the -mm tree.  Its filename is
-     ehea-fix-for-dlpar-and-sysfs-entries.patch
+     acpi-thermal-fix-mod_timer-interval.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,319 +25,165 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ehea: fix for dlpar and sysfs entries
-From: Jan-Bernd Themann <ossthema@de.ibm.com>
+Subject: acpi-thermal: fix mod_timer() interval
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- dlpar fix:
-	certain resources may only be allocated when first
-	logical port is available, and must be removed when
-	last logical port has been removed
+Use relative time, not absolute.  Discovered by Jung-Ik (John) Lee
+<jilee@google.com>.
 
-- sysfs entries:
-	create symbolic link from each logical port to ehea driver
-
-Signed-off-by: Jan-Bernd Themann <themann@de.ibm.com>
+Cc: Jung-Ik (John) Lee <jilee@google.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea.h      |    2 
- drivers/net/ehea/ehea_main.c |  144 ++++++++++++++++++++++++---------
- 2 files changed, 107 insertions(+), 39 deletions(-)
+ drivers/acpi/thermal.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/ehea/ehea.h~ehea-fix-for-dlpar-and-sysfs-entries drivers/net/ehea/ehea.h
---- a/drivers/net/ehea/ehea.h~ehea-fix-for-dlpar-and-sysfs-entries
-+++ a/drivers/net/ehea/ehea.h
-@@ -39,7 +39,7 @@
- #include <asm/io.h>
- 
- #define DRV_NAME	"ehea"
--#define DRV_VERSION	"EHEA_0055"
-+#define DRV_VERSION	"EHEA_0056"
- 
- #define EHEA_MSG_DEFAULT (NETIF_MSG_LINK | NETIF_MSG_TIMER \
- 	| NETIF_MSG_RX_ERR | NETIF_MSG_TX_ERR)
-diff -puN drivers/net/ehea/ehea_main.c~ehea-fix-for-dlpar-and-sysfs-entries drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~ehea-fix-for-dlpar-and-sysfs-entries
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -78,6 +78,28 @@ MODULE_PARM_DESC(sq_entries, " Number of
- 		 __MODULE_STRING(EHEA_DEF_ENTRIES_SQ) ")");
- MODULE_PARM_DESC(use_mcs, " 0:NAPI, 1:Multiple receive queues, Default = 1 ");
- 
-+static int port_name_cnt = 0;
-+
-+static int __devinit ehea_probe_adapter(struct ibmebus_dev *dev,
-+                                        const struct of_device_id *id);
-+
-+static int __devexit ehea_remove(struct ibmebus_dev *dev);
-+
-+static struct of_device_id ehea_device_table[] = {
-+	{
-+		.name = "lhea",
-+		.compatible = "IBM,lhea",
-+	},
-+	{},
-+};
-+
-+static struct ibmebus_driver ehea_driver = {
-+	.name = "ehea",
-+	.id_table = ehea_device_table,
-+	.probe = ehea_probe_adapter,
-+	.remove = ehea_remove,
-+};
-+
- void ehea_dump(void *adr, int len, char *msg) {
- 	int x;
- 	unsigned char *deb = adr;
-@@ -2111,6 +2133,28 @@ static int ehea_clean_all_portres(struct
- 	return ret;
- }
- 
-+static void ehea_remove_adapter_mr (struct ehea_adapter *adapter)
-+{
-+	int i;
-+
-+	for (i=0; i < EHEA_MAX_PORTS; i++)
-+		if (adapter->port[i])
-+			return;
-+
-+	ehea_rem_mr(&adapter->mr);
-+}
-+
-+static int ehea_add_adapter_mr (struct ehea_adapter *adapter)
-+{
-+	int i;
-+
-+	for (i=0; i < EHEA_MAX_PORTS; i++)
-+		if (adapter->port[i])
-+			return 0;
-+
-+	return ehea_reg_kernel_mr(adapter, &adapter->mr);
-+}
-+
- static int ehea_up(struct net_device *dev)
- {
- 	int ret, i;
-@@ -2364,6 +2408,34 @@ static void __devinit logical_port_relea
- 	of_node_put(port->ofdev.node);
- }
- 
-+static int ehea_driver_sysfs_add(struct device *dev,
-+                                 struct device_driver *driver)
-+{
-+	int ret;
-+
-+	ret = sysfs_create_link(&driver->kobj, &dev->kobj,
-+				kobject_name(&dev->kobj));
-+	if (ret == 0) {
-+		ret = sysfs_create_link(&dev->kobj, &driver->kobj,
-+					"driver");
-+		if (ret)
-+			sysfs_remove_link(&driver->kobj,
-+					  kobject_name(&dev->kobj));
-+	}
-+	return ret;
-+}
-+
-+static void ehea_driver_sysfs_remove(struct device *dev,
-+                                     struct device_driver *driver)
-+{
-+	struct device_driver *drv = driver;
-+
-+	if (drv) {
-+		sysfs_remove_link(&drv->kobj, kobject_name(&dev->kobj));
-+		sysfs_remove_link(&dev->kobj, "driver");
-+	}
-+}
-+
- static struct device *ehea_register_port(struct ehea_port *port,
- 					 struct device_node *dn)
- {
-@@ -2371,8 +2443,9 @@ static struct device *ehea_register_port
- 
- 	port->ofdev.node = of_node_get(dn);
- 	port->ofdev.dev.parent = &port->adapter->ebus_dev->ofdev.dev;
-+	port->ofdev.dev.bus = &ibmebus_bus_type;
- 
--	sprintf(port->ofdev.dev.bus_id, "port%d", port->logical_port_id);
-+	sprintf(port->ofdev.dev.bus_id, "port%d", port_name_cnt++);
- 	port->ofdev.dev.release = logical_port_release;
- 
- 	ret = of_device_register(&port->ofdev);
-@@ -2387,8 +2460,16 @@ static struct device *ehea_register_port
- 		goto out_unreg_of_dev;
- 	}
- 
-+	ret = ehea_driver_sysfs_add(&port->ofdev.dev, &ehea_driver.driver);
-+	if (ret) {
-+		ehea_error("failed to register sysfs driver link");
-+		goto out_rem_dev_file;
-+	}
-+
- 	return &port->ofdev.dev;
- 
-+out_rem_dev_file:
-+	device_remove_file(&port->ofdev.dev, &dev_attr_log_port_id);
- out_unreg_of_dev:
- 	of_device_unregister(&port->ofdev);
- out:
-@@ -2397,6 +2478,7 @@ out:
- 
- static void ehea_unregister_port(struct ehea_port *port)
- {
-+	ehea_driver_sysfs_remove(&port->ofdev.dev, &ehea_driver.driver);
- 	device_remove_file(&port->ofdev.dev, &dev_attr_log_port_id);
- 	of_device_unregister(&port->ofdev);
- }
-@@ -2523,7 +2605,6 @@ static int ehea_setup_ports(struct ehea_
- 	struct device_node *eth_dn = NULL;
- 
- 	u32 *dn_log_port_id;
--	int port_setup_ok = 0;
- 	int i = 0;
- 
- 	lhea_dn = adapter->ebus_dev->ofdev.node;
-@@ -2537,6 +2618,12 @@ static int ehea_setup_ports(struct ehea_
- 			continue;
- 		}
- 
-+		if (ehea_add_adapter_mr(adapter)) {
-+			ehea_error("creating MR failed");
-+			of_node_put(eth_dn);
-+			return -EIO;
-+		}
-+
- 		adapter->port[i] = ehea_setup_single_port(adapter,
- 							  *dn_log_port_id,
- 							  eth_dn);
-@@ -2544,18 +2631,13 @@ static int ehea_setup_ports(struct ehea_
- 			ehea_info("%s -> logical port id #%d",
- 				  adapter->port[i]->netdev->name,
- 				  *dn_log_port_id);
-+		else
-+			ehea_remove_adapter_mr(adapter);
-+
- 		i++;
- 	};
- 
--	/* Check for succesfully set up ports */
--	for (i = 0; i < EHEA_MAX_PORTS; i++)
--		if (adapter->port[i])
--			port_setup_ok++;
--
--	if (port_setup_ok)
--		return 0;	/* At least some ports are setup correctly */
--
--	return -EINVAL;
-+	return 0;
- }
- 
- static struct device_node *ehea_get_eth_dn(struct ehea_adapter *adapter,
-@@ -2607,6 +2689,11 @@ static ssize_t ehea_probe_port(struct de
- 		return -EINVAL;
- 	}
- 
-+	if (ehea_add_adapter_mr(adapter)) {
-+		ehea_error("creating MR failed");
-+		return -EIO;
-+	}
-+
- 	port = ehea_setup_single_port(adapter, logical_port_id, eth_dn);
- 
- 	of_node_put(eth_dn);
-@@ -2620,8 +2707,10 @@ static ssize_t ehea_probe_port(struct de
- 
- 		ehea_info("added %s (logical port id=%d)", port->netdev->name,
- 			  logical_port_id);
--	} else
-+	} else {
-+		ehea_remove_adapter_mr(adapter);
- 		return -EIO;
-+	}
- 
- 	return (ssize_t) count;
- }
-@@ -2656,6 +2745,8 @@ static ssize_t ehea_remove_port(struct d
- 		return -EINVAL;
- 	}
- 
-+	ehea_remove_adapter_mr(adapter);
-+
- 	return (ssize_t) count;
- }
- 
-@@ -2716,18 +2807,13 @@ static int __devinit ehea_probe_adapter(
- 
- 	dev->ofdev.dev.driver_data = adapter;
- 
--	ret = ehea_reg_kernel_mr(adapter, &adapter->mr);
--	if (ret) {
--		dev_err(&dev->ofdev.dev, "reg_mr_adapter failed\n");
--		goto out_free_ad;
--	}
- 
- 	/* initialize adapter and ports */
- 	/* get adapter properties */
- 	ret = ehea_sense_adapter_attr(adapter);
- 	if (ret) {
- 		dev_err(&dev->ofdev.dev, "sense_adapter_attr failed: %d", ret);
--		goto out_free_res;
-+		goto out_free_ad;
- 	}
- 
- 	adapter->neq = ehea_create_eq(adapter,
-@@ -2735,7 +2821,7 @@ static int __devinit ehea_probe_adapter(
- 	if (!adapter->neq) {
- 		ret = -EIO;
- 		dev_err(&dev->ofdev.dev, "NEQ creation failed");
--		goto out_free_res;
-+		goto out_free_ad;
- 	}
- 
- 	tasklet_init(&adapter->neq_tasklet, ehea_neq_tasklet,
-@@ -2780,9 +2866,6 @@ out_free_irq:
- out_kill_eq:
- 	ehea_destroy_eq(adapter->neq);
- 
--out_free_res:
--	ehea_rem_mr(&adapter->mr);
--
- out_free_ad:
- 	kfree(adapter);
- out:
-@@ -2808,7 +2891,7 @@ static int __devexit ehea_remove(struct 
- 	tasklet_kill(&adapter->neq_tasklet);
- 
- 	ehea_destroy_eq(adapter->neq);
--	ehea_rem_mr(&adapter->mr);
-+	ehea_remove_adapter_mr(adapter);
- 	kfree(adapter);
- 	return 0;
- }
-@@ -2841,21 +2924,6 @@ static int check_module_parm(void)
- 	return ret;
- }
- 
--static struct of_device_id ehea_device_table[] = {
--	{
--		.name = "lhea",
--		.compatible = "IBM,lhea",
--	},
--	{},
--};
--
--static struct ibmebus_driver ehea_driver = {
--	.name = "ehea",
--	.id_table = ehea_device_table,
--	.probe = ehea_probe_adapter,
--	.remove = ehea_remove,
--};
--
- int __init ehea_module_init(void)
- {
- 	int ret;
+diff -puN drivers/acpi/thermal.c~acpi-thermal-fix-mod_timer-interval drivers/acpi/thermal.c
+--- a/drivers/acpi/thermal.c~acpi-thermal-fix-mod_timer-interval
++++ a/drivers/acpi/thermal.c
+@@ -758,7 +758,8 @@ static void acpi_thermal_check(void *dat
+ 			del_timer(&(tz->timer));
+ 	} else {
+ 		if (timer_pending(&(tz->timer)))
+-			mod_timer(&(tz->timer), (HZ * sleep_time) / 1000);
++			mod_timer(&(tz->timer),
++					jiffies + (HZ * sleep_time) / 1000);
+ 		else {
+ 			tz->timer.data = (unsigned long)tz;
+ 			tz->timer.function = acpi_thermal_run;
 _
 
-Patches currently in -mm which might be from ossthema@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+x86_64-early-quirks-fix-early_qrk-section-tag.patch
+i386-irqbalance_disable-section-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
 git-netdev-all.patch
-ehea-fix-for-dlpar-and-sysfs-entries.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+git-ocfs2.patch
+git-parisc.patch
+git-r8169-fixup.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+xfs-clean-up-shrinker-games.patch
+pktgen-add-try_to_freeze.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
