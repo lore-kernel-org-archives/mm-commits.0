@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-validation-of-slabs-metadata-and-guard-zones.patch added to -mm tree
-Date: Tue, 10 Apr 2007 12:35:57 -0700
-Message-ID: <200704101935.l3AJZvhp015676@shell0.pdx.osdl.net>
+Subject: + slub-core-tidy-9.patch added to -mm tree
+Date: Tue, 10 Apr 2007 13:22:55 -0700
+Message-ID: <200704102022.l3AKMtvP016450@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42698 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43947 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753781AbXDJTgB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 15:36:01 -0400
+	id S1753854AbXDJUW5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 16:22:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     slub: validation of slabs (metadata and guard zones)
+     slub-core-tidy-9
 has been added to the -mm tree.  Its filename is
-     slub-validation-of-slabs-metadata-and-guard-zones.patch
+     slub-core-tidy-9.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,226 +25,172 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: validation of slabs (metadata and guard zones)
-From: Christoph Lameter <clameter@sgi.com>
+Subject: slub-core-tidy-9
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This enables validation of slab.  Validation means that all objects are
-checked to see if there are redzone violations, if padding has been
-overwritten or any pointers have been corrupted.  Also checks the consistency
-of slab counters.
-
-Validation enables the detection of metadata corruption without the kernel
-having to execute code that actually uses (allocs/frees) and object.  It
-allows one to make sure that the slab metainformation and the guard values
-around an object have not been compromised.
-
-A single slabcache can be checked by writing a 1 to the "validate" file.
-
-i.e.
-
-echo 1 >/sys/slab/kmalloc-128/validate
-
-or use the slabinfo tool to check all slabs
-
-slabinfo -v
-
-Error messages will show up in the syslog.
-
-Note that validation can only reach slabs that are on a list.  This means that
-we are usually restricted to partial slabs and active slabs unless
-SLAB_STORE_USER is active which will build a full slab list and allows
-validation of slabs that are fully in use.  Booting with "slub_debug" set will
-enable SLAB_STORE_USER and then full diagnostic are available.
-
-Note that we attempt to push cpu slabs back to the lists when we start the
-check.  If the cpu slab is reactivated before we get to it (another processor
-grabs it before we get to it) then it cannot be checked.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |  104 +++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 103 insertions(+), 1 deletion(-)
+ mm/slub.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones mm/slub.c
---- a/mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones
+diff -puN mm/slub.c~slub-core-tidy-9 mm/slub.c
+--- a/mm/slub.c~slub-core-tidy-9
 +++ a/mm/slub.c
-@@ -2321,6 +2321,92 @@ void *__kmalloc_node_track_caller(size_t
- 
- #ifdef CONFIG_SYSFS
- 
-+static int validate_slab(struct kmem_cache *s, struct page *page)
-+{
-+	void *p;
-+	void *addr = page_address(page);
-+	unsigned long map[BITS_TO_LONGS(s->objects)];
-+
-+	if (!check_slab(s, page) ||
-+			!on_freelist(s, page, NULL))
-+		return 0;
-+
-+	/* Now we know that a valid freelist exists */
-+	bitmap_zero(map, s->objects);
-+
-+	for(p = page->freelist; p; p = get_freepointer(s, p)) {
-+		set_bit((p - addr) / s->size, map);
-+		if (!check_object(s, page, p, 0))
-+			return 0;
-+	}
-+
-+	for(p = addr; p < addr + s->objects * s->size; p += s->size)
-+		if (!test_bit((p - addr) / s->size, map))
-+			if (!check_object(s, page, p, 1))
-+				return 0;
-+	return 1;
-+}
-+
-+static void validate_slab_slab(struct kmem_cache *s, struct page *page)
-+{
-+	if (slab_trylock(page)) {
-+		validate_slab(s, page);
-+		slab_unlock(page);
-+	} else
-+		printk(KERN_INFO "SLUB: %s Skipped busy slab %p\n",
-+			s->name, page);
-+
-+	if (!PageError(page))
-+		printk(KERN_ERR "SLUB: %s PageError not set on slab %p\n",
-+			s->name, page);
-+}
-+
-+static int validate_slab_node(struct kmem_cache *s, struct kmem_cache_node *n)
-+{
-+	unsigned long count = 0;
+@@ -1915,7 +1915,7 @@ EXPORT_SYMBOL(ksize);
+ void kfree(const void *x)
+ {
+ 	struct kmem_cache *s;
+-	struct page * page;
 +	struct page *page;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&n->list_lock, flags);
-+
-+	list_for_each_entry(page, &n->partial, lru) {
-+		validate_slab_slab(s, page);
-+		count++;
-+	}
-+	if (count != n->nr_partial)
-+		printk("SLUB: %s %ld partial slabs counted but counter=%ld\n",
-+			s->name, count, n->nr_partial);
-+
-+	if (!(s->flags & SLAB_STORE_USER))
-+		goto out;
-+
-+	list_for_each_entry(page, &n->full, lru) {
-+		validate_slab_slab(s, page);
-+		count++;
-+	}
-+	if (count != atomic_long_read(&n->nr_slabs))
-+		printk("SLUB: %s %ld slabs counted but counter=%ld\n",
-+		s->name, count, atomic_long_read(&n->nr_slabs));
-+
-+out:
-+	spin_unlock_irqrestore(&n->list_lock, flags);
-+	return count;
-+}
-+
-+static unsigned long validate_slab_cache(struct kmem_cache *s)
-+{
-+	int node;
-+	unsigned long count = 0;
-+
-+	flush_all(s);
-+	for_each_online_node(node) {
-+		struct kmem_cache_node *n = get_node(s, node);
-+
-+		count += validate_slab_node(s, n);
-+	}
-+	return count;
-+}
-+
- static unsigned long count_partial(struct kmem_cache_node *n)
- {
- 	unsigned long flags;
-@@ -2450,7 +2536,6 @@ struct slab_attribute {
- 	static struct slab_attribute _name##_attr =  \
- 	__ATTR(_name, 0644, _name##_show, _name##_store)
  
--
- static ssize_t slab_size_show(struct kmem_cache *s, char *buf)
- {
- 	return sprintf(buf, "%d\n", s->size);
-@@ -2656,6 +2741,22 @@ static ssize_t store_user_store(struct k
- }
- SLAB_ATTR(store_user);
- 
-+static ssize_t validate_show(struct kmem_cache *s, char *buf)
-+{
-+	return 0;
-+}
-+
-+static ssize_t validate_store(struct kmem_cache *s,
-+			const char *buf, size_t length)
-+{
-+	if (buf[0] == '1')
-+		validate_slab_cache(s);
-+	else
-+		return -EINVAL;
-+	return length;
-+}
-+SLAB_ATTR(validate);
-+
- #ifdef CONFIG_NUMA
- static ssize_t defrag_ratio_show(struct kmem_cache *s, char *buf)
- {
-@@ -2695,6 +2796,7 @@ static struct attribute * slab_attrs[] =
- 	&red_zone_attr.attr,
- 	&poison_attr.attr,
- 	&store_user_attr.attr,
-+	&validate_attr.attr,
- #ifdef CONFIG_ZONE_DMA
- 	&cache_dma_attr.attr,
- #endif
+ 	if (!x)
+ 		return;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slab-introduce-krealloc.patch
+origin.patch
+x86_64-early-quirks-fix-early_qrk-section-tag.patch
+i386-irqbalance_disable-section-fix.patch
 slab-introduce-krealloc-fix.patch
-paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-avr32.patch
+git-avr32-fixup.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+git-ocfs2.patch
+git-parisc.patch
+git-r8169-fixup.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+xfs-clean-up-shrinker-games.patch
+pktgen-add-try_to_freeze.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
-slub-core-minor-fixes.patch
-slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
-slub-core-fix-another-numa-bootstrap-issue.patch
-slub-core-fix-object-counting.patch
-slub-add-slabinfo-tool.patch
-slub-add-slabinfo-tool-update-slabinfoc.patch
-make-page-private-usable-in-compound-pages-v1.patch
-make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-add-ability-to-list-alloc--free-callers-per-slab.patch
-drop-version-number.patch
-quicklists-for-page-table-pages.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-extend-print_symbol-capability-fix.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-readahead-state-based-method-aging-accounting.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
