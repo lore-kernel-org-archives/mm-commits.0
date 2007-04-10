@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + i386-sysenter-arch-pages-fix.patch added to -mm tree
-Date: Mon, 09 Apr 2007 22:18:01 -0700
-Message-ID: <200704100518.l3A5I1PP032065@shell0.pdx.osdl.net>
+Subject: + i386-pgd-clone-under-lock-fix.patch added to -mm tree
+Date: Mon, 09 Apr 2007 22:18:06 -0700
+Message-ID: <200704100518.l3A5I6Po032080@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44465 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44477 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965990AbXDJFSG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 01:18:06 -0400
+	id S965990AbXDJFSK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 01:18:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: zach@vmware.com, ak@suse.de
 
 
 The patch titled
-     i386 sysenter arch pages fix
+     i386 pgd clone under lock fix
 has been added to the -mm tree.  Its filename is
-     i386-sysenter-arch-pages-fix.patch
+     i386-pgd-clone-under-lock-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 sysenter arch pages fix
+Subject: i386 pgd clone under lock fix
 From: Zachary Amsden <zach@vmware.com>
 
-In compat mode, the return value here was uninitialized.
+Copying of the pgd range must happen under the pgd_lock.  This got broken by
+the paravirt changes in the -mm tree.  Badness can result if you copy the pgd
+before being added to the list when splitting or rejoining large pages.
 
 Signed-off-by: Zachary Amsden <zach@vmware.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sysenter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/mm/pgtable.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/sysenter.c~i386-sysenter-arch-pages-fix arch/i386/kernel/sysenter.c
---- a/arch/i386/kernel/sysenter.c~i386-sysenter-arch-pages-fix
-+++ a/arch/i386/kernel/sysenter.c
-@@ -268,7 +268,7 @@ int arch_setup_additional_pages(struct l
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr;
--	int ret;
-+	int ret = 0;
- 	bool compat;
+diff -puN arch/i386/mm/pgtable.c~i386-pgd-clone-under-lock-fix arch/i386/mm/pgtable.c
+--- a/arch/i386/mm/pgtable.c~i386-pgd-clone-under-lock-fix
++++ a/arch/i386/mm/pgtable.c
+@@ -241,18 +241,16 @@ void pgd_ctor(void *pgd, struct kmem_cac
+ 	/* !PAE, no pagetable sharing */
+ 	memset(pgd, 0, USER_PTRS_PER_PGD*sizeof(pgd_t));
  
- 	down_write(&mm->mmap_sem);
+-	clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
+-			swapper_pg_dir + USER_PTRS_PER_PGD,
+-			KERNEL_PGD_PTRS);
+-
+ 	spin_lock_irqsave(&pgd_lock, flags);
+ 
+ 	/* must happen under lock */
++	clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
++			swapper_pg_dir + USER_PTRS_PER_PGD,
++			KERNEL_PGD_PTRS);
+ 	paravirt_alloc_pd_clone(__pa(pgd) >> PAGE_SHIFT,
+ 				__pa(swapper_pg_dir) >> PAGE_SHIFT,
+ 				USER_PTRS_PER_PGD,
+ 				KERNEL_PGD_PTRS);
+-
+ 	pgd_list_add(pgd);
+ 	spin_unlock_irqrestore(&pgd_lock, flags);
+ }
 _
 
 Patches currently in -mm which might be from zach@vmware.com are
