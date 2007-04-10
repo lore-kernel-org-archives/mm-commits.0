@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + i386-pgd-clone-under-lock-fix.patch added to -mm tree
-Date: Mon, 09 Apr 2007 22:18:06 -0700
-Message-ID: <200704100518.l3A5I6Po032080@shell0.pdx.osdl.net>
+Subject: + vmi-kmap_atomic_pte-fix.patch added to -mm tree
+Date: Mon, 09 Apr 2007 22:18:10 -0700
+Message-ID: <200704100518.l3A5IA5m032089@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44477 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44484 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965990AbXDJFSK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 01:18:10 -0400
+	id S966082AbXDJFSO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 01:18:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: zach@vmware.com, ak@suse.de
 
 
 The patch titled
-     i386 pgd clone under lock fix
+     Vmi kmap_atomic_pte fix
 has been added to the -mm tree.  Its filename is
-     i386-pgd-clone-under-lock-fix.patch
+     vmi-kmap_atomic_pte-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,122 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 pgd clone under lock fix
+Subject: Vmi kmap_atomic_pte fix
 From: Zachary Amsden <zach@vmware.com>
 
-Copying of the pgd range must happen under the pgd_lock.  This got broken by
-the paravirt changes in the -mm tree.  Badness can result if you copy the pgd
-before being added to the list when splitting or rejoining large pages.
+Implement vmi_kmap_atomic_pte in terms of the backend set_linear_mapping
+operation.  The conversion is rather straighforward; call kmap_atomic and then
+inform the hypervisor of the page mapping.
+
+The _flush_tlb damage is due to macros being pulled in from highmem.h.
 
 Signed-off-by: Zachary Amsden <zach@vmware.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/pgtable.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/i386/kernel/vmi.c |   34 ++++++++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
 
-diff -puN arch/i386/mm/pgtable.c~i386-pgd-clone-under-lock-fix arch/i386/mm/pgtable.c
---- a/arch/i386/mm/pgtable.c~i386-pgd-clone-under-lock-fix
-+++ a/arch/i386/mm/pgtable.c
-@@ -241,18 +241,16 @@ void pgd_ctor(void *pgd, struct kmem_cac
- 	/* !PAE, no pagetable sharing */
- 	memset(pgd, 0, USER_PTRS_PER_PGD*sizeof(pgd_t));
+diff -puN arch/i386/kernel/vmi.c~vmi-kmap_atomic_pte-fix arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~vmi-kmap_atomic_pte-fix
++++ a/arch/i386/kernel/vmi.c
+@@ -26,6 +26,7 @@
+ #include <linux/cpu.h>
+ #include <linux/bootmem.h>
+ #include <linux/mm.h>
++#include <linux/highmem.h>
+ #include <asm/vmi.h>
+ #include <asm/io.h>
+ #include <asm/fixmap.h>
+@@ -65,8 +66,8 @@ static struct {
+ 	void (*release_page)(u32, u32);
+ 	void (*set_pte)(pte_t, pte_t *, unsigned);
+ 	void (*update_pte)(pte_t *, unsigned);
+-	void (*set_linear_mapping)(int, u32, u32, u32);
+-	void (*flush_tlb)(int);
++	void (*set_linear_mapping)(int, void *, u32, u32);
++	void (*_flush_tlb)(int);
+ 	void (*set_initial_ap_state)(int, int);
+ 	void (*halt)(void);
+   	void (*set_lazy_mode)(int mode);
+@@ -221,12 +222,12 @@ static void vmi_load_esp0(struct tss_str
  
--	clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
--			swapper_pg_dir + USER_PTRS_PER_PGD,
--			KERNEL_PGD_PTRS);
--
- 	spin_lock_irqsave(&pgd_lock, flags);
- 
- 	/* must happen under lock */
-+	clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
-+			swapper_pg_dir + USER_PTRS_PER_PGD,
-+			KERNEL_PGD_PTRS);
- 	paravirt_alloc_pd_clone(__pa(pgd) >> PAGE_SHIFT,
- 				__pa(swapper_pg_dir) >> PAGE_SHIFT,
- 				USER_PTRS_PER_PGD,
- 				KERNEL_PGD_PTRS);
--
- 	pgd_list_add(pgd);
- 	spin_unlock_irqrestore(&pgd_lock, flags);
+ static void vmi_flush_tlb_user(void)
+ {
+-	vmi_ops.flush_tlb(VMI_FLUSH_TLB);
++	vmi_ops._flush_tlb(VMI_FLUSH_TLB);
  }
+ 
+ static void vmi_flush_tlb_kernel(void)
+ {
+-	vmi_ops.flush_tlb(VMI_FLUSH_TLB | VMI_FLUSH_GLOBAL);
++	vmi_ops._flush_tlb(VMI_FLUSH_TLB | VMI_FLUSH_GLOBAL);
+ }
+ 
+ /* Stub to do nothing at all; used for delays and unimplemented calls */
+@@ -349,8 +350,11 @@ static void vmi_check_page_type(u32 pfn,
+ #define vmi_check_page_type(p,t) do { } while (0)
+ #endif
+ 
+-static void vmi_map_pt_hook(int type, pte_t *va, u32 pfn)
++#ifdef CONFIG_HIGHPTE
++static void *vmi_kmap_atomic_pte(struct page *page, enum km_type type)
+ {
++	void *va = kmap_atomic(page, type);
++
+ 	/*
+ 	 * Internally, the VMI ROM must map virtual addresses to physical
+ 	 * addresses for processing MMU updates.  By the time MMU updates
+@@ -364,8 +368,11 @@ static void vmi_map_pt_hook(int type, pt
+ 	 *  args:                 SLOT                 VA    COUNT PFN
+ 	 */
+ 	BUG_ON(type != KM_PTE0 && type != KM_PTE1);
+-	vmi_ops.set_linear_mapping((type - KM_PTE0)+1, (u32)va, 1, pfn);
++	vmi_ops.set_linear_mapping((type - KM_PTE0)+1, va, 1, page_to_pfn(page));
++
++	return va;
+ }
++#endif
+ 
+ static void vmi_allocate_pt(u32 pfn)
+ {
+@@ -664,7 +671,7 @@ void vmi_bringup(void)
+ {
+  	/* We must establish the lowmem mapping for MMU ops to work */
+ 	if (vmi_ops.set_linear_mapping)
+-		vmi_ops.set_linear_mapping(0, __PAGE_OFFSET, max_low_pfn, 0);
++		vmi_ops.set_linear_mapping(0, (void *)__PAGE_OFFSET, max_low_pfn, 0);
+ }
+ 
+ /*
+@@ -801,8 +808,8 @@ static inline int __init activate_vmi(vo
+ 	para_wrap(set_lazy_mode, vmi_set_lazy_mode, set_lazy_mode, SetLazyMode);
+ 
+ 	/* user and kernel flush are just handled with different flags to FlushTLB */
+-	para_wrap(flush_tlb_user, vmi_flush_tlb_user, flush_tlb, FlushTLB);
+-	para_wrap(flush_tlb_kernel, vmi_flush_tlb_kernel, flush_tlb, FlushTLB);
++	para_wrap(flush_tlb_user, vmi_flush_tlb_user, _flush_tlb, FlushTLB);
++	para_wrap(flush_tlb_kernel, vmi_flush_tlb_kernel, _flush_tlb, FlushTLB);
+ 	para_fill(flush_tlb_single, InvalPage);
+ 
+ 	/*
+@@ -848,9 +855,12 @@ static inline int __init activate_vmi(vo
+ 		paravirt_ops.release_pt = vmi_release_pt;
+ 		paravirt_ops.release_pd = vmi_release_pd;
+ 	}
+-#if 0
+-	para_wrap(map_pt_hook, vmi_map_pt_hook, set_linear_mapping,
+-		  SetLinearMapping);
++
++	/* Set linear is needed in all cases */
++	vmi_ops.set_linear_mapping = vmi_get_function(VMI_CALL_SetLinearMapping);
++#ifdef CONFIG_HIGHPTE
++	if (vmi_ops.set_linear_mapping)
++		paravirt_ops.kmap_atomic_pte = vmi_kmap_atomic_pte;
+ #endif
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from zach@vmware.com are
