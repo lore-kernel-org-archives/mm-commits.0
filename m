@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch added to -mm tree
-Date: Tue, 10 Apr 2007 13:26:59 -0700
-Message-ID: <200704102026.l3AKQxla016525@shell0.pdx.osdl.net>
+Subject: + slub-core-tidy-8.patch added to -mm tree
+Date: Tue, 10 Apr 2007 13:20:46 -0700
+Message-ID: <200704102020.l3AKKkPb016417@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44081 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43783 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030573AbXDJU1D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 16:27:03 -0400
+	id S1753846AbXDJUUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 16:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     slub-add-ability-to-list-alloc--free-callers-per-slab-tidy
+     slub-core-tidy-8
 has been added to the -mm tree.  Its filename is
-     slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+     slub-core-tidy-8.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-add-ability-to-list-alloc--free-callers-per-slab-tidy
+Subject: slub-core-tidy-8
 From: Andrew Morton <akpm@linux-foundation.org>
+
+expression-with-side-effects inside an assertion is not a good idea.
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ mm/slub.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-add-ability-to-list-alloc--free-callers-per-slab-tidy mm/slub.c
---- a/mm/slub.c~slub-add-ability-to-list-alloc--free-callers-per-slab-tidy
+diff -puN mm/slub.c~slub-core-tidy-8 mm/slub.c
+--- a/mm/slub.c~slub-core-tidy-8
 +++ a/mm/slub.c
-@@ -2460,7 +2460,7 @@ static int add_location(struct loc_track
- 	start = -1;
- 	end = t->count;
- 
--	for(;;) {
-+	for ( ; ; ) {
- 		pos = start + (end - start + 1) / 2;
- 
- 		/*
-@@ -2506,10 +2506,10 @@ static void process_slab(struct loc_trac
- 	void *p;
- 
- 	bitmap_zero(map, s->objects);
--	for(p = page->freelist; p; p = get_freepointer(s, p))
-+	for (p = page->freelist; p; p = get_freepointer(s, p))
- 		set_bit((p - addr) / s->size, map);
- 
--	for(p = addr; p < addr + s->objects * s->size; p += s->size)
-+	for (p = addr; p < addr + s->objects * s->size; p += s->size)
- 		if (!test_bit((p - addr) / s->size, map)) {
- 			void *addr = get_track(s, p, alloc)->addr;
- 
+@@ -1696,7 +1696,8 @@ void kmem_cache_destroy(struct kmem_cach
+ 		s->refcount--;
+ 	else {
+ 		list_del(&s->list);
+-		WARN_ON(kmem_cache_close(s));
++		if (kmem_cache_close(s))
++			WARN_ON(1);
+ 		sysfs_slab_remove(s);
+ 		kfree(s);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -142,9 +132,7 @@ slub-core-tidy-5.patch
 slub-core-tidy-6.patch
 slub-core-tidy-7.patch
 slub-core-tidy-8.patch
-slub-core-tidy-9.patch
 slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
 driver_bfin_serial_core-update.patch
 uml-driver-formatting-fixes-fix.patch
 reduce-size-of-task_struct-on-64-bit-machines.patch
