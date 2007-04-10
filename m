@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + frv-update-the-frv-arch-maintainer-record-to-get-a-hit-on.patch added to -mm tree
-Date: Tue, 10 Apr 2007 16:15:07 -0700
-Message-ID: <200704102315.l3ANF7wg022678@shell0.pdx.osdl.net>
+Subject: + freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch added to -mm tree
+Date: Tue, 10 Apr 2007 16:22:04 -0700
+Message-ID: <200704102322.l3ANM4QU022822@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:51278 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51430 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161062AbXDJXPT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 19:15:19 -0400
+	id S1753398AbXDJXWj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 19:22:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: rjw@sisk.pl, pavel@ucw.cz
 
 
 The patch titled
-     FRV: Update the FRV arch MAINTAINER record to get a hit on "grep -i frv"
+     freezer: fix racy usage of try_to_freeze in kswapd
 has been added to the -mm tree.  Its filename is
-     frv-update-the-frv-arch-maintainer-record-to-get-a-hit-on.patch
+     freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: FRV: Update the FRV arch MAINTAINER record to get a hit on "grep -i frv"
-From: David Howells <dhowells@redhat.com>
+Subject: freezer: fix racy usage of try_to_freeze in kswapd
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Update the FRV arch MAINTAINER record to get a hit on "grep -i frv".  Whilst
-FR-V is technically correct, it's normally thought of as FRV.
+Currently we can miss freeze_process()->signal_wake_up() in kswapd() if it
+happens between try_to_freeze() and prepare_to_wait().  To prevent this
+from happening we should check freezing(current) before calling schedule().
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   13 +++++++++----
+ 1 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~frv-update-the-frv-arch-maintainer-record-to-get-a-hit-on MAINTAINERS
---- a/MAINTAINERS~frv-update-the-frv-arch-maintainer-record-to-get-a-hit-on
-+++ a/MAINTAINERS
-@@ -1404,7 +1404,7 @@ M:	hch@infradead.org
- W:	ftp://ftp.openlinux.org/pub/people/hch/vxfs
- S:	Maintained
+diff -puN mm/vmscan.c~freezer-fix-racy-usage-of-try_to_freeze-in-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~freezer-fix-racy-usage-of-try_to_freeze-in-kswapd
++++ a/mm/vmscan.c
+@@ -1393,8 +1393,6 @@ static int kswapd(void *p)
+ 	for ( ; ; ) {
+ 		unsigned long new_order;
  
--FUJITSU FR-V PORT
-+FUJITSU FR-V (FRV) PORT
- P:	David Howells
- M:	dhowells@redhat.com
- S:	Maintained
+-		try_to_freeze();
+-
+ 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+ 		new_order = pgdat->kswapd_max_order;
+ 		pgdat->kswapd_max_order = 0;
+@@ -1405,12 +1403,19 @@ static int kswapd(void *p)
+ 			 */
+ 			order = new_order;
+ 		} else {
+-			schedule();
++			if (!freezing(current))
++				schedule();
++
+ 			order = pgdat->kswapd_max_order;
+ 		}
+ 		finish_wait(&pgdat->kswapd_wait, &wait);
+ 
+-		balance_pgdat(pgdat, order);
++		if (!try_to_freeze()) {
++			/* We can speed up thawing tasks if we don't call
++			 * balance_pgdat after returning from the refrigerator
++			 */
++			balance_pgdat(pgdat, order);
++		}
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-frv-update-the-frv-arch-maintainer-record-to-get-a-hit-on.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-romfs-printk-format-warnings.patch
-git-net.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-use-symbolic-constants-in-generic-lseek-code.patch
-use-use-seek_max-to-validate-user-lseek-arguments.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-use-slab_panic-flag-cleanup.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-workqueue-kill-noautorel-works.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-mutex-subsystem-synchro-test-module.patch
+pktgen-add-try_to_freeze.patch
+fix-refrigerator-vs-thaw_process-race.patch
+swsusp-use-inline-functions-for-changing-page-flags.patch
+swsusp-do-not-use-page-flags.patch
+mm-remove-unused-page-flags.patch
+swsusp-fix-error-paths-in-snapshot_open.patch
+swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-force-pm_opsvalid-callback-to-be.patch
+freezer-remove-pf_nofreeze-from-handle_initrd.patch
+swsusp-use-rbtree-for-tracking-allocated-swap.patch
+freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+shrink_slab-handle-bad-shrinkers.patch
