@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch added to -mm tree
-Date: Tue, 10 Apr 2007 14:59:00 -0700
-Message-ID: <200704102159.l3ALx5RD018614@shell0.pdx.osdl.net>
+Subject: + lguest-the-console-driver.patch added to -mm tree
+Date: Tue, 10 Apr 2007 15:03:57 -0700
+Message-ID: <200704102204.l3AM40gb018745@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48142 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48550 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753930AbXDJV7j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 17:59:39 -0400
+	id S1753951AbXDJWEI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 18:04:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, pierre.peiffer@bull.net
+Cc: rusty@rustcorp.com.au, ak@suse.de
 
 
 The patch titled
-     get_futex_key() must check proper alignement for 64bit futexes
+     lguest: the console driver
 has been added to the -mm tree.  Its filename is
-     sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+     lguest-the-console-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,304 +25,179 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get_futex_key() must check proper alignement for 64bit futexes
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: lguest: the console driver
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-get_futex_key() does an alignment check against sizeof(u32) regardless of
-futex being 64bits or not.
+A simple console driver for lguest.
 
-So it is possible a 64bit futex spans two pages of memory, and some
-malicious user code can trigger data corruption.
-
-We must add a 'fsize' parameter to get_futex_key(), telling it the size of
-the futex (4 or 8 bytes)
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Pierre Peiffer <pierre.peiffer@bull.net>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/futex.h |    2 -
- kernel/futex.c        |   78 ++++++++++++++++++++++++++--------------
- 2 files changed, 52 insertions(+), 28 deletions(-)
+ drivers/char/Makefile     |    1 
+ drivers/char/hvc_lguest.c |   99 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 100 insertions(+)
 
-diff -puN include/linux/futex.h~sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes include/linux/futex.h
---- a/include/linux/futex.h~sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
-+++ a/include/linux/futex.h
-@@ -135,7 +135,7 @@ union futex_key {
- 		int offset;
- 	} both;
- };
--int get_futex_key(void __user *uaddr, union futex_key *key);
-+int get_futex_key(void __user *uaddr, int size, union futex_key *key);
- void get_futex_key_refs(union futex_key *key);
- void drop_futex_key_refs(union futex_key *key);
- 
-diff -puN kernel/futex.c~sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes kernel/futex.c
---- a/kernel/futex.c~sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
-+++ a/kernel/futex.c
-@@ -189,19 +189,22 @@ static inline int match_futex(union fute
- 		&& key1->both.offset == key2->both.offset);
- }
- 
--/*
-- * Get parameters which are the keys for a futex.
-+/**
-+ * get_futex_key - Get parameters which are the keys for a futex.
-+ * @uaddr: virtual address of the futex
-+ * @size: size of futex (4 or 8)
-+ * @key: address where result is stored.
+diff -puN drivers/char/Makefile~lguest-the-console-driver drivers/char/Makefile
+--- a/drivers/char/Makefile~lguest-the-console-driver
++++ a/drivers/char/Makefile
+@@ -44,6 +44,7 @@ obj-$(CONFIG_AMIGA_BUILTIN_SERIAL) += am
+ obj-$(CONFIG_SX)		+= sx.o generic_serial.o
+ obj-$(CONFIG_RIO)		+= rio/ generic_serial.o
+ obj-$(CONFIG_HVC_CONSOLE)	+= hvc_vio.o hvsi.o
++obj-$(CONFIG_LGUEST_GUEST)	+= hvc_lguest.o
+ obj-$(CONFIG_HVC_ISERIES)	+= hvc_iseries.o
+ obj-$(CONFIG_HVC_RTAS)		+= hvc_rtas.o
+ obj-$(CONFIG_HVC_BEAT)		+= hvc_beat.o
+diff -puN /dev/null drivers/char/hvc_lguest.c
+--- /dev/null
++++ a/drivers/char/hvc_lguest.c
+@@ -0,0 +1,99 @@
++/* Simple console for lguest.
 + *
-+ * Returns a negative error code or 0
-+ * The key words are stored in *key on success.
-  *
-  * For shared mappings, it's (page->index, vma->vm_file->f_path.dentry->d_inode,
-  * offset_within_page).  For private mappings, it's (uaddr, current->mm).
-  * We can usually work out the index without swapping in the page.
-  *
-- * Returns: 0, or negative error code.
-- * The key words are stored in *key on success.
-- *
-  * Should be called with &current->mm->mmap_sem but NOT any spinlocks.
-  */
--int get_futex_key(void __user *uaddr, union futex_key *key)
-+int get_futex_key(void __user *uaddr, int size, union futex_key *key)
- {
- 	unsigned long address = (unsigned long)uaddr;
- 	struct mm_struct *mm = current->mm;
-@@ -213,7 +216,7 @@ int get_futex_key(void __user *uaddr, un
- 	 * The futex address must be "naturally" aligned.
- 	 */
- 	key->both.offset = address % PAGE_SIZE;
--	if (unlikely((key->both.offset % sizeof(u32)) != 0))
-+	if (unlikely((key->both.offset & (size - 1)) != 0))
- 		return -EINVAL;
- 	address -= key->both.offset;
- 
-@@ -705,17 +708,18 @@ double_lock_hb(struct futex_hash_bucket 
-  * Wake up all waiters hashed on the physical page that is mapped
-  * to this virtual address:
-  */
--static int futex_wake(unsigned long __user *uaddr, int nr_wake)
-+static int futex_wake(unsigned long __user *uaddr, int futex64, int nr_wake)
- {
- 	struct futex_hash_bucket *hb;
- 	struct futex_q *this, *next;
- 	struct plist_head *head;
- 	union futex_key key;
- 	int ret;
-+	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
- 
- 	down_read(&current->mm->mmap_sem);
- 
--	ret = get_futex_key(uaddr, &key);
-+	ret = get_futex_key(uaddr, fsize, &key);
- 	if (unlikely(ret != 0))
- 		goto out;
- 
-@@ -817,6 +821,7 @@ futex_requeue_pi(unsigned long __user *u
- 	struct rt_mutex_waiter *waiter, *top_waiter = NULL;
- 	struct rt_mutex *lock2 = NULL;
- 	int ret, drop_count = 0;
-+	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
- 
- 	if (refill_pi_state_cache())
- 		return -ENOMEM;
-@@ -827,10 +832,10 @@ retry:
- 	 */
- 	down_read(&current->mm->mmap_sem);
- 
--	ret = get_futex_key(uaddr1, &key1);
-+	ret = get_futex_key(uaddr1, fsize, &key1);
- 	if (unlikely(ret != 0))
- 		goto out;
--	ret = get_futex_key(uaddr2, &key2);
-+	ret = get_futex_key(uaddr2, fsize, &key2);
- 	if (unlikely(ret != 0))
- 		goto out;
- 
-@@ -1005,14 +1010,15 @@ futex_wake_op(unsigned long __user *uadd
- 	struct plist_head *head;
- 	struct futex_q *this, *next;
- 	int ret, op_ret, attempt = 0;
-+	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
- 
- retryfull:
- 	down_read(&current->mm->mmap_sem);
- 
--	ret = get_futex_key(uaddr1, &key1);
-+	ret = get_futex_key(uaddr1, fsize, &key1);
- 	if (unlikely(ret != 0))
- 		goto out;
--	ret = get_futex_key(uaddr2, &key2);
-+	ret = get_futex_key(uaddr2, fsize, &key2);
- 	if (unlikely(ret != 0))
- 		goto out;
- 
-@@ -1125,14 +1131,15 @@ futex_requeue(unsigned long __user *uadd
- 	struct plist_head *head1;
- 	struct futex_q *this, *next;
- 	int ret, drop_count = 0;
-+	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
- 
-  retry:
- 	down_read(&current->mm->mmap_sem);
- 
--	ret = get_futex_key(uaddr1, &key1);
-+	ret = get_futex_key(uaddr1, fsize, &key1);
- 	if (unlikely(ret != 0))
- 		goto out;
--	ret = get_futex_key(uaddr2, &key2);
-+	ret = get_futex_key(uaddr2, fsize, &key2);
- 	if (unlikely(ret != 0))
- 		goto out;
- 
-@@ -1390,9 +1397,15 @@ static int fixup_pi_state_owner(unsigned
- 	return ret;
- }
- 
-+/*
-+ * In case we must use restart_block to restart a futex_wait,
-+ * we encode in the 'arg3' futex64 capability
++ * Copyright (C) 2006 Rusty Russell, IBM Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + */
-+#define ARG3_FUTEX64 1
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/lguest_bus.h>
++#include "hvc_console.h"
 +
- static long futex_wait_restart(struct restart_block *restart);
--static int futex_wait(unsigned long __user *uaddr, unsigned long val,
--		      ktime_t *abs_time, int futex64)
-+static int futex_wait(unsigned long __user *uaddr, int futex64,
-+		      unsigned long val, ktime_t *abs_time)
- {
- 	struct task_struct *curr = current;
- 	DECLARE_WAITQUEUE(wait, curr);
-@@ -1402,12 +1415,13 @@ static int futex_wait(unsigned long __us
- 	int ret;
- 	struct hrtimer_sleeper t, *to = NULL;
- 	int rem = 0;
-+	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
- 
- 	q.pi_state = NULL;
-  retry:
- 	down_read(&curr->mm->mmap_sem);
- 
--	ret = get_futex_key(uaddr, &q.key);
-+	ret = get_futex_key(uaddr, fsize, &q.key);
- 	if (unlikely(ret != 0))
- 		goto out_release_sem;
- 
-@@ -1597,7 +1611,11 @@ static int futex_wait(unsigned long __us
- 		restart->arg0 = (unsigned long)uaddr;
- 		restart->arg1 = val;
- 		restart->arg2 = (unsigned long)abs_time;
--		restart->arg3 = (unsigned long)futex64;
-+		restart->arg3 = 0;
-+#ifdef CONFIG_64BIT
-+		if (futex64)
-+			restart->arg3 |= ARG3_FUTEX64;
-+#endif
- 		return -ERESTART_RESTARTBLOCK;
- 	}
- 
-@@ -1615,10 +1633,14 @@ static long futex_wait_restart(struct re
- 	unsigned long __user *uaddr = (unsigned long __user *)restart->arg0;
- 	unsigned long val = restart->arg1;
- 	ktime_t *abs_time = (ktime_t *)restart->arg2;
--	int futex64 = (int)restart->arg3;
-+	int futex64 = 0;
- 
-+#ifdef CONFIG_64BIT
-+	if (restart->arg3 & ARG3_FUTEX64)
-+		futex64 = 1;
-+#endif
- 	restart->fn = do_no_restart_syscall;
--	return (long)futex_wait(uaddr, val, abs_time, futex64);
-+	return (long)futex_wait(uaddr, futex64, val, abs_time);
- }
- 
- 
-@@ -1682,6 +1704,7 @@ static int futex_lock_pi(unsigned long _
- 	unsigned long uval, newval, curval;
- 	struct futex_q q;
- 	int ret, lock_held, attempt = 0;
-+	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
- 
- 	if (refill_pi_state_cache())
- 		return -ENOMEM;
-@@ -1697,7 +1720,7 @@ static int futex_lock_pi(unsigned long _
-  retry:
- 	down_read(&curr->mm->mmap_sem);
- 
--	ret = get_futex_key(uaddr, &q.key);
-+	ret = get_futex_key(uaddr, fsize, &q.key);
- 	if (unlikely(ret != 0))
- 		goto out_release_sem;
- 
-@@ -1907,6 +1930,7 @@ static int futex_unlock_pi(unsigned long
- 	struct plist_head *head;
- 	union futex_key key;
- 	int ret, attempt = 0;
-+	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
- 
- retry:
- 	if (futex_get_user(&uval, uaddr, futex64))
-@@ -1921,7 +1945,7 @@ retry:
- 	 */
- 	down_read(&current->mm->mmap_sem);
- 
--	ret = get_futex_key(uaddr, &key);
-+	ret = get_futex_key(uaddr, fsize, &key);
- 	if (unlikely(ret != 0))
- 		goto out;
- 
-@@ -2094,7 +2118,7 @@ static int futex_fd(u32 __user *uaddr, i
- 	q->pi_state = NULL;
- 
- 	down_read(&current->mm->mmap_sem);
--	err = get_futex_key(uaddr, &q->key);
-+	err = get_futex_key(uaddr, sizeof(u32), &q->key);
- 
- 	if (unlikely(err != 0)) {
- 		up_read(&current->mm->mmap_sem);
-@@ -2238,7 +2262,7 @@ retry:
- 		 */
- 		if (!pi) {
- 			if (uval & FUTEX_WAITERS)
--				futex_wake((unsigned long __user *)uaddr, 1);
-+				futex_wake((unsigned long __user *)uaddr, 0, 1);
- 		}
- 	}
- 	return 0;
-@@ -2329,10 +2353,10 @@ long do_futex(unsigned long __user *uadd
- 
- 	switch (op) {
- 	case FUTEX_WAIT:
--		ret = futex_wait(uaddr, val, timeout, fut64);
-+		ret = futex_wait(uaddr, fut64, val, timeout);
- 		break;
- 	case FUTEX_WAKE:
--		ret = futex_wake(uaddr, val);
-+		ret = futex_wake(uaddr, fut64, val);
- 		break;
- 	case FUTEX_FD:
- 		if (fut64)
++static char inbuf[256];
++static struct lguest_dma cons_input = { .used_len = 0,
++					.addr[0] = __pa(inbuf),
++					.len[0] = sizeof(inbuf),
++					.len[1] = 0 };
++
++static int put_chars(u32 vtermno, const char *buf, int count)
++{
++	struct lguest_dma dma;
++
++	/* FIXME: what if it's over a page boundary? */
++	dma.len[0] = count;
++	dma.len[1] = 0;
++	dma.addr[0] = __pa(buf);
++
++	hcall(LHCALL_SEND_DMA, LGUEST_CONSOLE_DMA_KEY, __pa(&dma), 0);
++	return count;
++}
++
++static int get_chars(u32 vtermno, char *buf, int count)
++{
++	static int cons_offset;
++
++	if (!cons_input.used_len)
++		return 0;
++
++	if (cons_input.used_len - cons_offset < count)
++		count = cons_input.used_len - cons_offset;
++
++	memcpy(buf, inbuf + cons_offset, count);
++	cons_offset += count;
++	if (cons_offset == cons_input.used_len) {
++		cons_offset = 0;
++		cons_input.used_len = 0;
++	}
++	return count;
++}
++
++struct hv_ops lguest_cons = {
++	.get_chars = get_chars,
++	.put_chars = put_chars,
++};
++
++static int __init cons_init(void)
++{
++	if (strcmp(paravirt_ops.name, "lguest") != 0)
++		return 0;
++
++	return hvc_instantiate(0, 0, &lguest_cons);
++}
++console_initcall(cons_init);
++
++static int lguestcons_probe(struct lguest_device *lgdev)
++{
++	lgdev->private = hvc_alloc(0, lgdev->index+1, &lguest_cons, 256);
++	if (IS_ERR(lgdev->private))
++		return PTR_ERR(lgdev->private);
++
++	if (!hcall(LHCALL_BIND_DMA, LGUEST_CONSOLE_DMA_KEY, __pa(&cons_input),
++		   (1<<8) + lgdev->index+1))
++		printk("lguest console: failed to bind buffer.\n");
++	return 0;
++}
++
++static struct lguest_driver lguestcons_drv = {
++	.name = "lguestcons",
++	.owner = THIS_MODULE,
++	.device_type = LGUEST_DEVICE_T_CONSOLE,
++	.probe = lguestcons_probe,
++};
++
++static int __init hvc_lguest_init(void)
++{
++	return register_lguest_driver(&lguestcons_drv);
++}
++module_init(hvc_lguest_init);
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
+fix-kernel-oops-with-badly-formatted-module-option.patch
+git-kbuild.patch
 git-net.patch
-x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone.patch
-x86_64-set-node_possible_map-at-runtime.patch
-x86_64-set-node_possible_map-at-runtime-fix.patch
-slab-x86_64-skip-cache_free_alien-on-non-numa.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-slab-dont-allocate-empty-shared-caches.patch
-slab-numa-kmem_cache-diet.patch
-optimize-timespec_trunc.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-vfs-delay-the-dentry-name-generation-on-sockets-and.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+paravirt_ops-update-maintainers.patch
+paravirt_ops-remove-config_debug_paravirt.patch
+paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
+paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
+paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
+paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
+paravirt_ops-document-asm-i386-paravirth.patch
+paravirt_ops-add-common-patching-machinery.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+allow-boot-time-disable-of-paravirt_ops-patching.patch
+allow-per-cpu-variables-to-be-page-aligned.patch
+xfs-clean-up-shrinker-games.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+extend-print_symbol-capability.patch
+extend-print_symbol-capability-fix.patch
+array_size-check-for-type.patch
+array_size-check-for-type-uml-fix.patch
+module-use-krealloc.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+simplify-module_get_kallsym-by-dropping-length-arg.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms.patch
+simplify-kallsyms_lookup.patch
+fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
+fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
+expose-range-checking-functions-from-arch-specific.patch
+____call_usermodehelper-dont-flush_signals.patch
+lguest-the-guest-code.patch
+lguest-the-host-code.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
+lguest-the-net-driver.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
