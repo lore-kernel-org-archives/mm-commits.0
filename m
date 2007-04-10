@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-makefile-and-kconfig.patch added to -mm tree
-Date: Tue, 10 Apr 2007 15:03:55 -0700
-Message-ID: <200704102203.l3AM3tPl018738@shell0.pdx.osdl.net>
+Subject: + lguest-the-asm-offsets.patch added to -mm tree
+Date: Tue, 10 Apr 2007 15:03:53 -0700
+Message-ID: <200704102203.l3AM3r8g018735@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48539 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48533 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753945AbXDJWEE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 18:04:04 -0400
+	id S1753944AbXDJWED (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 18:04:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rusty@rustcorp.com.au, ak@suse.de
 
 
 The patch titled
-     lguest: the Makefile and Kconfig
+     lguest: the asm offsets
 has been added to the -mm tree.  Its filename is
-     lguest-the-makefile-and-kconfig.patch
+     lguest-the-asm-offsets.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,76 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: the Makefile and Kconfig
+Subject: lguest: the asm offsets
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-This is the Kconfig and Makefile to allow lguest to actually be
-compiled.
+This is the structure offsets required by lg.ko's switcher.S.
+
+Unfortunately we don't have infrastructure for private asm-offsets
+creation.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Kconfig         |    2 ++
- drivers/Makefile        |    1 +
- drivers/lguest/Kconfig  |   20 ++++++++++++++++++++
- drivers/lguest/Makefile |    7 +++++++
- 4 files changed, 30 insertions(+)
+ arch/i386/kernel/asm-offsets.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+)
 
-diff -puN drivers/Kconfig~lguest-the-makefile-and-kconfig drivers/Kconfig
---- a/drivers/Kconfig~lguest-the-makefile-and-kconfig
-+++ a/drivers/Kconfig
-@@ -87,4 +87,6 @@ source "drivers/auxdisplay/Kconfig"
- source "drivers/kvm/Kconfig"
+diff -puN arch/i386/kernel/asm-offsets.c~lguest-the-asm-offsets arch/i386/kernel/asm-offsets.c
+--- a/arch/i386/kernel/asm-offsets.c~lguest-the-asm-offsets
++++ a/arch/i386/kernel/asm-offsets.c
+@@ -16,6 +16,10 @@
+ #include <asm/thread_info.h>
+ #include <asm/elf.h>
+ #include <asm/pda.h>
++#ifdef CONFIG_LGUEST_GUEST
++#include <linux/lguest.h>
++#include "../../../drivers/lguest/lg.h"
++#endif
  
- source "drivers/uio/Kconfig"
+ #define DEFINE(sym, val) \
+         asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+@@ -114,4 +118,19 @@ void foo(void)
+ 	OFFSET(PARAVIRT_iret, paravirt_ops, iret);
+ 	OFFSET(PARAVIRT_read_cr0, paravirt_ops, read_cr0);
+ #endif
 +
-+source "drivers/lguest/Kconfig"
- endmenu
-diff -puN drivers/Makefile~lguest-the-makefile-and-kconfig drivers/Makefile
---- a/drivers/Makefile~lguest-the-makefile-and-kconfig
-+++ a/drivers/Makefile
-@@ -86,3 +86,4 @@ obj-$(CONFIG_DMA_ENGINE)	+= dma/
- obj-$(CONFIG_HID)		+= hid/
- obj-$(CONFIG_PPC_PS3)		+= ps3/
- obj-$(CONFIG_SSB)		+= ssb/
-+obj-$(CONFIG_LGUEST_GUEST)	+= lguest/
-diff -puN /dev/null drivers/lguest/Kconfig
---- /dev/null
-+++ a/drivers/lguest/Kconfig
-@@ -0,0 +1,20 @@
-+config LGUEST
-+	tristate "Linux hypervisor example code"
-+	depends on X86 && PARAVIRT && NET && EXPERIMENTAL && !X86_PAE
-+	select LGUEST_GUEST
-+	select HVC_DRIVER
-+	---help---
-+	  This is a very simple module which allows you to run
-+	  multiple instances of the same Linux kernel, using the
-+	  "lguest" command found in the Documentation/lguest directory.
-+	  Note that "lguest" is pronounced to rhyme with "fell quest",
-+	  not "rustyvisor".  See Documentation/lguest/lguest.txt.
-+
-+	  If unsure, say N.  If curious, say M.  If masochistic, say Y.
-+
-+config LGUEST_GUEST
-+	bool
-+	help
-+	  The guest needs code built-in, even if the host has lguest
-+	  support as a module.  The drivers are tiny, so we build them
-+	  in too.
-diff -puN /dev/null drivers/lguest/Makefile
---- /dev/null
-+++ a/drivers/lguest/Makefile
-@@ -0,0 +1,7 @@
-+# Guest requires the paravirt_ops replacement and the bus driver.
-+obj-$(CONFIG_LGUEST_GUEST) += lguest.o lguest_asm.o lguest_bus.o
-+
-+# Host requires the other files, which can be a module.
-+obj-$(CONFIG_LGUEST)	+= lg.o
-+lg-objs := core.o hypercalls.o page_tables.o interrupts_and_traps.o \
-+	segments.o io.o lguest_user.o switcher.o
++#ifdef CONFIG_LGUEST_GUEST
++	BLANK();
++	OFFSET(LGUEST_DATA_irq_enabled, lguest_data, irq_enabled);
++	OFFSET(LGUEST_PAGES_host_gdt_desc, lguest_pages, state.host_gdt_desc);
++	OFFSET(LGUEST_PAGES_host_idt_desc, lguest_pages, state.host_idt_desc);
++	OFFSET(LGUEST_PAGES_host_cr3, lguest_pages, state.host_cr3);
++	OFFSET(LGUEST_PAGES_host_sp, lguest_pages, state.host_sp);
++	OFFSET(LGUEST_PAGES_guest_gdt_desc, lguest_pages,state.guest_gdt_desc);
++	OFFSET(LGUEST_PAGES_guest_idt_desc, lguest_pages,state.guest_idt_desc);
++	OFFSET(LGUEST_PAGES_guest_gdt, lguest_pages, state.guest_gdt);
++	OFFSET(LGUEST_PAGES_regs_trapnum, lguest_pages, regs.trapnum);
++	OFFSET(LGUEST_PAGES_regs_errcode, lguest_pages, regs.errcode);
++	OFFSET(LGUEST_PAGES_regs, lguest_pages, regs);
++#endif
+ }
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
