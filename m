@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-documentation-example-launcher.patch added to -mm tree
-Date: Tue, 10 Apr 2007 15:04:06 -0700
-Message-ID: <200704102204.l3AM46hJ018756@shell0.pdx.osdl.net>
+Subject: + sysfs-kill-unnecessary-attribute-owner.patch added to -mm tree
+Date: Tue, 10 Apr 2007 13:47:59 -0700
+Message-ID: <200704102048.l3AKm3Fk016967@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48568 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44804 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753952AbXDJWEU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 18:04:20 -0400
+	id S1030632AbXDJUst (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 16:48:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de
+Cc: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com
 
 
 The patch titled
-     lguest: the documentation, example launcher
+     sysfs: kill unnecessary attribute->owner
 has been added to the -mm tree.  Its filename is
-     lguest-the-documentation-example-launcher.patch
+     sysfs-kill-unnecessary-attribute-owner.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,1206 +25,1047 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: the documentation, example launcher
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: sysfs: kill unnecessary attribute->owner
+From: Tejun Heo <htejun@gmail.com>
 
-A brief document describing how to use lguest.  Because lguest doesn't have an
-ABI we also include an example launcher in the Documentation directory.
+sysfs is now completely out of driver/module lifetime game.  After deletion, a
+sysfs node doesn't access anything outside sysfs proper, so there's no reason
+to hold onto the attribute owners.  Note that often the wrong modules were
+accounted for as owners leading to accessing removed modules.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+This patch kills now unnecessary attribute->owner.  Note that with this
+change, userland holding a sysfs node does not prevent the backing module from
+being unloaded.
+
+For more info regarding lifetime rule cleanup, please read the following
+message.
+
+  http://article.gmane.org/gmane.linux.kernel/510293
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Cc: Maneesh Soni <maneesh@in.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/lguest/Makefile   |   20 
- Documentation/lguest/lguest.c   |  982 ++++++++++++++++++++++++++++++
- Documentation/lguest/lguest.txt |  125 +++
- 3 files changed, 1127 insertions(+)
+ drivers/base/class.c                        |    2 -
+ drivers/base/core.c                         |    4 ---
+ drivers/base/firmware_class.c               |    2 -
+ drivers/block/pktcdvd.c                     |    3 --
+ drivers/char/ipmi/ipmi_msghandler.c         |   10 --------
+ drivers/cpufreq/cpufreq_stats.c             |    3 --
+ drivers/cpufreq/cpufreq_userspace.c         |    2 -
+ drivers/cpufreq/freq_table.c                |    1 
+ drivers/firmware/dcdbas.h                   |    3 --
+ drivers/firmware/dell_rbu.c                 |    6 ++---
+ drivers/firmware/edd.c                      |    2 -
+ drivers/firmware/efivars.c                  |    6 ++---
+ drivers/i2c/chips/eeprom.c                  |    1 
+ drivers/i2c/chips/max6875.c                 |    1 
+ drivers/infiniband/core/sysfs.c             |    1 
+ drivers/input/mouse/psmouse.h               |    1 
+ drivers/media/video/pvrusb2/pvrusb2-sysfs.c |   13 -----------
+ drivers/misc/asus-laptop.c                  |    3 --
+ drivers/pci/hotplug/acpiphp_ibm.c           |    1 
+ drivers/pci/pci-sysfs.c                     |    4 ---
+ drivers/pcmcia/socket_sysfs.c               |    2 -
+ drivers/rtc/rtc-ds1553.c                    |    1 
+ drivers/rtc/rtc-ds1742.c                    |    1 
+ drivers/scsi/arcmsr/arcmsr_attr.c           |    3 --
+ drivers/scsi/lpfc/lpfc_attr.c               |    2 -
+ drivers/scsi/qla2xxx/qla_attr.c             |    6 -----
+ drivers/spi/at25.c                          |    1 
+ drivers/video/aty/radeon_base.c             |    2 -
+ drivers/video/backlight/backlight.c         |    2 -
+ drivers/video/backlight/lcd.c               |    2 -
+ drivers/w1/slaves/w1_ds2433.c               |    1 
+ drivers/w1/slaves/w1_therm.c                |    1 
+ drivers/w1/w1.c                             |    2 -
+ fs/ecryptfs/main.c                          |    2 -
+ fs/ocfs2/cluster/masklog.c                  |    1 
+ fs/partitions/check.c                       |    1 
+ fs/sysfs/bin.c                              |   19 ++++------------
+ fs/sysfs/file.c                             |   21 ++++--------------
+ include/linux/sysdev.h                      |    3 --
+ include/linux/sysfs.h                       |    7 ++----
+ kernel/module.c                             |    9 ++-----
+ kernel/params.c                             |    1 
+ net/bridge/br_sysfs_br.c                    |    3 --
+ net/bridge/br_sysfs_if.c                    |    3 --
+ 44 files changed, 35 insertions(+), 130 deletions(-)
 
-diff -puN /dev/null Documentation/lguest/Makefile
---- /dev/null
-+++ a/Documentation/lguest/Makefile
-@@ -0,0 +1,20 @@
-+# This creates the demonstration utility "lguest" which runs a Linux guest.
-+
-+# We rely on CONFIG_PAGE_OFFSET to know where to put lguest binary.
-+include ../../.config
-+LGUEST_GUEST_TOP := ($(CONFIG_PAGE_OFFSET) - 0x08000000)
-+
-+CFLAGS:=-Wall -Wmissing-declarations -Wmissing-prototypes -O3 \
-+	-static -DLGUEST_GUEST_TOP="$(LGUEST_GUEST_TOP)" -Wl,-T,lguest.lds
-+LDLIBS:=-lz
-+
-+all: lguest.lds lguest
-+
-+# The linker script on x86 is so complex the only way of creating one
-+# which will link our binary in the right place is to mangle the
-+# default one.
-+lguest.lds:
-+	$(LD) --verbose | awk '/^==========/ { PRINT=1; next; } /SIZEOF_HEADERS/ { gsub(/0x[0-9A-F]*/, "$(LGUEST_GUEST_TOP)") } { if (PRINT) print $$0; }' > $@
-+
-+clean:
-+	rm -f lguest.lds lguest
-diff -puN /dev/null Documentation/lguest/lguest.c
---- /dev/null
-+++ a/Documentation/lguest/lguest.c
-@@ -0,0 +1,982 @@
-+/* Simple program to layout "physical" memory for new lguest guest.
-+ * Linked high to avoid likely physical memory.  */
-+#define _LARGEFILE64_SOURCE
-+#define _GNU_SOURCE
-+#include <stdio.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <err.h>
-+#include <stdint.h>
-+#include <stdlib.h>
-+#include <elf.h>
-+#include <sys/mman.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <sys/wait.h>
-+#include <fcntl.h>
-+#include <stdbool.h>
-+#include <errno.h>
-+#include <signal.h>
-+#include <ctype.h>
-+#include <sys/socket.h>
-+#include <sys/ioctl.h>
-+#include <sys/time.h>
-+#include <time.h>
-+#include <netinet/in.h>
-+#include <net/if.h>
-+#include <linux/sockios.h>
-+#include <linux/if_tun.h>
-+#include <sys/uio.h>
-+#include <termios.h>
-+#include <getopt.h>
-+#include <zlib.h>
-+typedef uint32_t u32;
-+typedef uint16_t u16;
-+typedef uint8_t u8;
-+#include "../../include/linux/lguest_launcher.h"
-+
-+#define PAGE_PRESENT 0x7 	/* Present, RW, Execute */
-+#define NET_PEERNUM 1
-+#define BRIDGE_PFX "bridge:"
-+
-+static bool verbose;
-+#define verbose(args...) \
-+	do { if (verbose) printf(args); } while(0)
-+
-+struct device_list
-+{
-+	fd_set infds;
-+	int max_infd;
-+
-+	struct device *dev;
-+	struct device **lastdev;
-+};
-+
-+struct device
-+{
-+	struct device *next;
-+	struct lguest_device_desc *desc;
-+	void *mem;
-+
-+	/* Watch this fd if handle_input non-NULL. */
-+	int fd;
-+	bool (*handle_input)(int fd, struct device *me);
-+
-+	/* Watch DMA to this key if handle_input non-NULL. */
-+	unsigned long watch_key;
-+	u32 (*handle_output)(int fd, const struct iovec *iov,
-+			     unsigned int num, struct device *me);
-+
-+	/* Device-specific data. */
-+	void *priv;
-+};
-+
-+static int open_or_die(const char *name, int flags)
-+{
-+	int fd = open(name, flags);
-+	if (fd < 0)
-+		err(1, "Failed to open %s", name);
-+	return fd;
-+}
-+
-+static void *map_zeroed_pages(unsigned long addr, unsigned int num)
-+{
-+	static int fd = -1;
-+
-+	if (fd == -1)
-+		fd = open_or_die("/dev/zero", O_RDONLY);
-+
-+	if (mmap((void *)addr, getpagesize() * num,
-+		 PROT_READ|PROT_WRITE|PROT_EXEC, MAP_FIXED|MAP_PRIVATE, fd, 0)
-+	    != (void *)addr)
-+		err(1, "Mmaping %u pages of /dev/zero @%p", num, (void *)addr);
-+	return (void *)addr;
-+}
-+
-+/* Returns the entry point */
-+static unsigned long map_elf(int elf_fd, const Elf32_Ehdr *ehdr,
-+			     unsigned long *page_offset)
-+{
-+	void *addr;
-+	Elf32_Phdr phdr[ehdr->e_phnum];
-+	unsigned int i;
-+
-+	/* Sanity checks. */
-+	if (ehdr->e_type != ET_EXEC
-+	    || ehdr->e_machine != EM_386
-+	    || ehdr->e_phentsize != sizeof(Elf32_Phdr)
-+	    || ehdr->e_phnum < 1 || ehdr->e_phnum > 65536U/sizeof(Elf32_Phdr))
-+		errx(1, "Malformed elf header");
-+
-+	if (lseek(elf_fd, ehdr->e_phoff, SEEK_SET) < 0)
-+		err(1, "Seeking to program headers");
-+	if (read(elf_fd, phdr, sizeof(phdr)) != sizeof(phdr))
-+		err(1, "Reading program headers");
-+
-+	*page_offset = 0;
-+	/* We map the loadable segments at virtual addresses corresponding
-+	 * to their physical addresses (our virtual == guest physical). */
-+	for (i = 0; i < ehdr->e_phnum; i++) {
-+		if (phdr[i].p_type != PT_LOAD)
-+			continue;
-+
-+		verbose("Section %i: size %i addr %p\n",
-+			i, phdr[i].p_memsz, (void *)phdr[i].p_paddr);
-+
-+		/* We expect linear address space. */
-+		if (!*page_offset)
-+			*page_offset = phdr[i].p_vaddr - phdr[i].p_paddr;
-+		else if (*page_offset != phdr[i].p_vaddr - phdr[i].p_paddr)
-+			errx(1, "Page offset of section %i different", i);
-+
-+		/* We map everything private, writable. */
-+		addr = mmap((void *)phdr[i].p_paddr,
-+			    phdr[i].p_filesz,
-+			    PROT_READ|PROT_WRITE|PROT_EXEC,
-+			    MAP_FIXED|MAP_PRIVATE,
-+			    elf_fd, phdr[i].p_offset);
-+		if (addr != (void *)phdr[i].p_paddr)
-+			err(1, "Mmaping vmlinux seg %i gave %p not %p",
-+			    i, addr, (void *)phdr[i].p_paddr);
-+	}
-+
-+	/* Entry is physical address: convert to virtual */
-+	return ehdr->e_entry + *page_offset;
-+}
-+
-+/* This is amazingly reliable. */
-+static unsigned long intuit_page_offset(unsigned char *img, unsigned long len)
-+{
-+	unsigned int i, possibilities[256] = { 0 };
-+
-+	for (i = 0; i + 4 < len; i++) {
-+		/* mov 0xXXXXXXXX,%eax */
-+		if (img[i] == 0xA1 && ++possibilities[img[i+4]] > 3)
-+			return (unsigned long)img[i+4] << 24;
-+	}
-+	errx(1, "could not determine page offset");
-+}
-+
-+static unsigned long unpack_bzimage(int fd, unsigned long *page_offset)
-+{
-+	gzFile f;
-+	int ret, len = 0;
-+	void *img = (void *)0x100000;
-+
-+	f = gzdopen(fd, "rb");
-+	if (gzdirect(f))
-+		errx(1, "did not find correct gzip header");
-+	while ((ret = gzread(f, img + len, 65536)) > 0)
-+		len += ret;
-+	if (ret < 0)
-+		err(1, "reading image from bzImage");
-+
-+	verbose("Unpacked size %i addr %p\n", len, img);
-+	*page_offset = intuit_page_offset(img, len);
-+
-+	/* Entry is physical address: convert to virtual */
-+	return (unsigned long)img + *page_offset;
-+}
-+
-+static unsigned long load_bzimage(int fd, unsigned long *page_offset)
-+{
-+	unsigned char c;
-+	int state = 0;
-+
-+	/* Ugly brute force search for gzip header. */
-+	while (read(fd, &c, 1) == 1) {
-+		switch (state) {
-+		case 0:
-+			if (c == 0x1F)
-+				state++;
-+			break;
-+		case 1:
-+			if (c == 0x8B)
-+				state++;
-+			else
-+				state = 0;
-+			break;
-+		case 2 ... 8:
-+			state++;
-+			break;
-+		case 9:
-+			lseek(fd, -10, SEEK_CUR);
-+			if (c != 0x03) /* Compressed under UNIX. */
-+				state = -1;
-+			else
-+				return unpack_bzimage(fd, page_offset);
-+		}
-+	}
-+	errx(1, "Could not find kernel in bzImage");
-+}
-+
-+static unsigned long load_kernel(int fd, unsigned long *page_offset)
-+{
-+	Elf32_Ehdr hdr;
-+
-+	if (read(fd, &hdr, sizeof(hdr)) != sizeof(hdr))
-+		err(1, "Reading kernel");
-+
-+	if (memcmp(hdr.e_ident, ELFMAG, SELFMAG) == 0)
-+		return map_elf(fd, &hdr, page_offset);
-+
-+	return load_bzimage(fd, page_offset);
-+}
-+
-+/* initrd gets loaded at top of memory: return length. */
-+static unsigned long load_initrd(const char *name, unsigned long mem)
-+{
-+	int ifd;
-+	struct stat st;
-+	void *iaddr;
-+
-+	ifd = open_or_die(name, O_RDONLY);
-+	if (fstat(ifd, &st) < 0)
-+		err(1, "fstat() on initrd '%s'", name);
-+
-+	iaddr = mmap((void *)mem - st.st_size, st.st_size,
-+		     PROT_READ|PROT_EXEC|PROT_WRITE,
-+		     MAP_FIXED|MAP_PRIVATE, ifd, 0);
-+	if (iaddr != (void *)mem - st.st_size)
-+		err(1, "Mmaping initrd '%s' returned %p not %p",
-+		    name, iaddr, (void *)mem - st.st_size);
-+	close(ifd);
-+	verbose("mapped initrd %s size=%lu @ %p\n", name, st.st_size, iaddr);
-+	return st.st_size;
-+}
-+
-+static inline unsigned long page_align(unsigned long addr)
-+{
-+	return ((addr + getpagesize()-1) & ~(getpagesize()-1));
-+}
-+
-+static unsigned long setup_pagetables(unsigned long mem,
-+				      unsigned long initrd_size,
-+				      unsigned long page_offset)
-+{
-+	u32 *pgdir, *linear;
-+	unsigned int mapped_pages, i, linear_pages;
-+	unsigned int ptes_per_page = getpagesize()/sizeof(u32);
-+
-+	/* If we can map all of memory above page_offset, we do so. */
-+	if (mem > -page_offset)
-+		mapped_pages = mem/getpagesize();
-+	else
-+		mapped_pages = -page_offset/getpagesize();
-+
-+	/* Each linear PTE page can map ptes_per_page pages. */
-+	linear_pages = (mapped_pages + ptes_per_page-1)/ptes_per_page;
-+
-+	/* We lay out top-level then linear mapping immediately below initrd */
-+	pgdir = (void *)mem - initrd_size - getpagesize();
-+	linear = (void *)pgdir - linear_pages*getpagesize();
-+
-+	for (i = 0; i < mapped_pages; i++)
-+		linear[i] = ((i * getpagesize()) | PAGE_PRESENT);
-+
-+	/* Now set up pgd so that this memory is at page_offset */
-+	for (i = 0; i < mapped_pages; i += ptes_per_page) {
-+		pgdir[(i + page_offset/getpagesize())/ptes_per_page]
-+			= (((u32)linear + i*sizeof(u32)) | PAGE_PRESENT);
-+	}
-+
-+	verbose("Linear mapping of %u pages in %u pte pages at %p\n",
-+		mapped_pages, linear_pages, linear);
-+
-+	return (unsigned long)pgdir;
-+}
-+
-+static void concat(char *dst, char *args[])
-+{
-+	unsigned int i, len = 0;
-+
-+	for (i = 0; args[i]; i++) {
-+		strcpy(dst+len, args[i]);
-+		strcat(dst+len, " ");
-+		len += strlen(args[i]) + 1;
-+	}
-+	/* In case it's empty. */
-+	dst[len] = '\0';
-+}
-+
-+static int tell_kernel(u32 pgdir, u32 start, u32 page_offset)
-+{
-+	u32 args[] = { LHREQ_INITIALIZE,
-+		       LGUEST_GUEST_TOP/getpagesize(), /* Just below us */
-+		       pgdir, start, page_offset };
-+	int fd;
-+
-+	fd = open_or_die("/dev/lguest", O_RDWR);
-+	if (write(fd, args, sizeof(args)) < 0)
-+		err(1, "Writing to /dev/lguest");
-+	return fd;
-+}
-+
-+static void set_fd(int fd, struct device_list *devices)
-+{
-+	FD_SET(fd, &devices->infds);
-+	if (fd > devices->max_infd)
-+		devices->max_infd = fd;
-+}
-+
-+/* We send lguest_add signals while input is pending: avoids races. */
-+static void wake_parent(int pipefd, struct device_list *devices)
-+{
-+	nice(19);
-+
-+	set_fd(pipefd, devices);
-+
-+	for (;;) {
-+		fd_set rfds = devices->infds;
-+
-+		select(devices->max_infd+1, &rfds, NULL, NULL, NULL);
-+		if (FD_ISSET(pipefd, &rfds)) {
-+			int ignorefd;
-+			if (read(pipefd, &ignorefd, sizeof(ignorefd)) == 0)
-+				exit(0);
-+			FD_CLR(ignorefd, &devices->infds);
-+		}
-+		kill(getppid(), SIGUSR1);
-+	}
-+}
-+
-+/* We don't want signal to kill us, just jerk us out of kernel. */
-+static void wakeup(int signo)
-+{
-+}
-+
-+static int setup_waker(struct device_list *device_list)
-+{
-+	int pipefd[2], child;
-+	struct sigaction act;
-+
-+	act.sa_handler = wakeup;
-+	sigemptyset(&act.sa_mask);
-+	act.sa_flags = 0;
-+	sigaction(SIGUSR1, &act, NULL);
-+
-+	pipe(pipefd);
-+	child = fork();
-+	if (child == -1)
-+		err(1, "forking");
-+
-+	if (child == 0) {
-+		close(pipefd[1]);
-+		wake_parent(pipefd[0], device_list);
-+	}
-+	close(pipefd[0]);
-+
-+	return pipefd[1];
-+}
-+
-+static void *_check_pointer(unsigned long addr, unsigned int size,
-+			    unsigned int line)
-+{
-+	if (addr >= LGUEST_GUEST_TOP || addr + size >= LGUEST_GUEST_TOP)
-+		errx(1, "%s:%i: Invalid address %li", __FILE__, line, addr);
-+	return (void *)addr;
-+}
-+#define check_pointer(addr,size) _check_pointer(addr, size, __LINE__)
-+
-+/* Returns pointer to dma->used_len */
-+static u32 *dma2iov(unsigned long dma, struct iovec iov[], unsigned *num)
-+{
-+	unsigned int i;
-+	struct lguest_dma *udma;
-+
-+	udma = check_pointer(dma, sizeof(*udma));
-+	for (i = 0; i < LGUEST_MAX_DMA_SECTIONS; i++) {
-+		if (!udma->len[i])
-+			break;
-+
-+		iov[i].iov_base = check_pointer(udma->addr[i], udma->len[i]);
-+		iov[i].iov_len = udma->len[i];
-+	}
-+	*num = i;
-+	return &udma->used_len;
-+}
-+
-+static u32 *get_dma_buffer(int fd, void *key,
-+			   struct iovec iov[], unsigned int *num, u32 *irq)
-+{
-+	u32 buf[] = { LHREQ_GETDMA, (u32)key };
-+	unsigned long udma;
-+	u32 *res;
-+
-+	udma = write(fd, buf, sizeof(buf));
-+	if (udma == (unsigned long)-1)
-+		return NULL;
-+
-+	/* Kernel stashes irq in ->used_len. */
-+	res = dma2iov(udma, iov, num);
-+	*irq = *res;
-+	return res;
-+}
-+
-+static void trigger_irq(int fd, u32 irq)
-+{
-+	u32 buf[] = { LHREQ_IRQ, irq };
-+	if (write(fd, buf, sizeof(buf)) != 0)
-+		err(1, "Triggering irq %i", irq);
-+}
-+
-+static void discard_iovec(struct iovec *iov, unsigned int *num)
-+{
-+	static char discard_buf[1024];
-+	*num = 1;
-+	iov->iov_base = discard_buf;
-+	iov->iov_len = sizeof(discard_buf);
-+}
-+
-+static struct termios orig_term;
-+static void restore_term(void)
-+{
-+	tcsetattr(STDIN_FILENO, TCSANOW, &orig_term);
-+}
-+
-+struct console_abort
-+{
-+	int count;
-+	struct timeval start;
-+};
-+
-+/* We DMA input to buffer bound at start of console page. */
-+static bool handle_console_input(int fd, struct device *dev)
-+{
-+	u32 irq = 0, *lenp;
-+	int len;
-+	unsigned int num;
-+	struct iovec iov[LGUEST_MAX_DMA_SECTIONS];
-+	struct console_abort *abort = dev->priv;
-+
-+	lenp = get_dma_buffer(fd, dev->mem, iov, &num, &irq);
-+	if (!lenp) {
-+		warn("console: no dma buffer!");
-+		discard_iovec(iov, &num);
-+	}
-+
-+	len = readv(dev->fd, iov, num);
-+	if (len <= 0) {
-+		warnx("Failed to get console input, ignoring console.");
-+		len = 0;
-+	}
-+
-+	if (lenp) {
-+		*lenp = len;
-+		trigger_irq(fd, irq);
-+	}
-+
-+	/* Three ^C within one second?  Exit. */
-+	if (len == 1 && ((char *)iov[0].iov_base)[0] == 3) {
-+		if (!abort->count++)
-+			gettimeofday(&abort->start, NULL);
-+		else if (abort->count == 3) {
-+			struct timeval now;
-+			gettimeofday(&now, NULL);
-+			if (now.tv_sec <= abort->start.tv_sec+1)
-+				exit(2);
-+			abort->count = 0;
-+		}
-+	} else
-+		abort->count = 0;
-+
-+	if (!len) {
-+		restore_term();
-+		return false;
-+	}
-+	return true;
-+}
-+
-+static u32 handle_console_output(int fd, const struct iovec *iov,
-+				 unsigned num, struct device*dev)
-+{
-+	return writev(STDOUT_FILENO, iov, num);
-+}
-+
-+static u32 handle_tun_output(int fd, const struct iovec *iov,
-+			     unsigned num, struct device *dev)
-+{
-+	/* Now we've seen output, we should warn if we can't get buffers. */
-+	*(bool *)dev->priv = true;
-+	return writev(dev->fd, iov, num);
-+}
-+
-+static unsigned long peer_offset(unsigned int peernum)
-+{
-+	return 4 * peernum;
-+}
-+
-+static bool handle_tun_input(int fd, struct device *dev)
-+{
-+	u32 irq = 0, *lenp;
-+	int len;
-+	unsigned num;
-+	struct iovec iov[LGUEST_MAX_DMA_SECTIONS];
-+
-+	lenp = get_dma_buffer(fd, dev->mem+peer_offset(NET_PEERNUM), iov, &num,
-+			      &irq);
-+	if (!lenp) {
-+		if (*(bool *)dev->priv)
-+			warn("network: no dma buffer!");
-+		discard_iovec(iov, &num);
-+	}
-+
-+	len = readv(dev->fd, iov, num);
-+	if (len <= 0)
-+		err(1, "reading network");
-+	if (lenp) {
-+		*lenp = len;
-+		trigger_irq(fd, irq);
-+	}
-+	verbose("tun input packet len %i [%02x %02x] (%s)\n", len,
-+		((u8 *)iov[0].iov_base)[0], ((u8 *)iov[0].iov_base)[1],
-+		lenp ? "sent" : "discarded");
-+	return true;
-+}
-+
-+static u32 handle_block_output(int fd, const struct iovec *iov,
-+			       unsigned num, struct device *dev)
-+{
-+	struct lguest_block_page *p = dev->mem;
-+	u32 irq, *lenp;
-+	unsigned int len, reply_num;
-+	struct iovec reply[LGUEST_MAX_DMA_SECTIONS];
-+	off64_t device_len, off = (off64_t)p->sector * 512;
-+
-+	device_len = *(off64_t *)dev->priv;
-+
-+	if (off >= device_len)
-+		err(1, "Bad offset %llu vs %llu", off, device_len);
-+	if (lseek64(dev->fd, off, SEEK_SET) != off)
-+		err(1, "Bad seek to sector %i", p->sector);
-+
-+	verbose("Block: %s at offset %llu\n", p->type ? "WRITE" : "READ", off);
-+
-+	lenp = get_dma_buffer(fd, dev->mem, reply, &reply_num, &irq);
-+	if (!lenp)
-+		err(1, "Block request didn't give us a dma buffer");
-+
-+	if (p->type) {
-+		len = writev(dev->fd, iov, num);
-+		if (off + len > device_len) {
-+			ftruncate(dev->fd, device_len);
-+			errx(1, "Write past end %llu+%u", off, len);
-+		}
-+		*lenp = 0;
-+	} else {
-+		len = readv(dev->fd, reply, reply_num);
-+		*lenp = len;
-+	}
-+
-+	p->result = 1 + (p->bytes != len);
-+	trigger_irq(fd, irq);
-+	return 0;
-+}
-+
-+static void handle_output(int fd, unsigned long dma, unsigned long key,
-+			  struct device_list *devices)
-+{
-+	struct device *i;
-+	u32 *lenp;
-+	struct iovec iov[LGUEST_MAX_DMA_SECTIONS];
-+	unsigned num = 0;
-+
-+	lenp = dma2iov(dma, iov, &num);
-+	for (i = devices->dev; i; i = i->next) {
-+		if (i->handle_output && key == i->watch_key) {
-+			*lenp = i->handle_output(fd, iov, num, i);
-+			return;
-+		}
-+	}
-+	warnx("Pending dma %p, key %p", (void *)dma, (void *)key);
-+}
-+
-+static void handle_input(int fd, int childfd, struct device_list *devices)
-+{
-+	struct timeval poll = { .tv_sec = 0, .tv_usec = 0 };
-+
-+	for (;;) {
-+		struct device *i;
-+		fd_set fds = devices->infds;
-+
-+		if (select(devices->max_infd+1, &fds, NULL, NULL, &poll) == 0)
-+			break;
-+
-+		for (i = devices->dev; i; i = i->next) {
-+			if (i->handle_input && FD_ISSET(i->fd, &fds)) {
-+				if (!i->handle_input(fd, i)) {
-+					FD_CLR(i->fd, &devices->infds);
-+					/* Tell child to ignore it too... */
-+					write(childfd, &i->fd, sizeof(i->fd));
-+				}
-+			}
-+		}
-+	}
-+}
-+
-+static struct lguest_device_desc *new_dev_desc(u16 type, u16 features,
-+					       u16 num_pages)
-+{
-+	static unsigned long top = LGUEST_GUEST_TOP;
-+	struct lguest_device_desc *desc;
-+
-+	desc = malloc(sizeof(*desc));
-+	desc->type = type;
-+	desc->num_pages = num_pages;
-+	desc->features = features;
-+	desc->status = 0;
-+	if (num_pages) {
-+		top -= num_pages*getpagesize();
-+		map_zeroed_pages(top, num_pages);
-+		desc->pfn = top / getpagesize();
-+	} else
-+		desc->pfn = 0;
-+	return desc;
-+}
-+
-+static struct device *new_device(struct device_list *devices,
-+				 u16 type, u16 num_pages, u16 features,
-+				 int fd,
-+				 bool (*handle_input)(int, struct device *),
-+				 unsigned long watch_off,
-+				 u32 (*handle_output)(int,
-+						      const struct iovec *,
-+						      unsigned,
-+						      struct device *))
-+{
-+	struct device *dev = malloc(sizeof(*dev));
-+
-+	/* Append to device list. */
-+	*devices->lastdev = dev;
-+	dev->next = NULL;
-+	devices->lastdev = &dev->next;
-+
-+	dev->fd = fd;
-+	if (handle_input)
-+		set_fd(dev->fd, devices);
-+	dev->desc = new_dev_desc(type, features, num_pages);
-+	dev->mem = (void *)(dev->desc->pfn * getpagesize());
-+	dev->handle_input = handle_input;
-+	dev->watch_key = (unsigned long)dev->mem + watch_off;
-+	dev->handle_output = handle_output;
-+	return dev;
-+}
-+
-+static void setup_console(struct device_list *devices)
-+{
-+	struct device *dev;
-+
-+	if (tcgetattr(STDIN_FILENO, &orig_term) == 0) {
-+		struct termios term = orig_term;
-+		term.c_lflag &= ~(ISIG|ICANON|ECHO);
-+		tcsetattr(STDIN_FILENO, TCSANOW, &term);
-+		atexit(restore_term);
-+	}
-+
-+	/* We don't currently require a page for the console. */
-+	dev = new_device(devices, LGUEST_DEVICE_T_CONSOLE, 0, 0,
-+			 STDIN_FILENO, handle_console_input,
-+			 LGUEST_CONSOLE_DMA_KEY, handle_console_output);
-+	dev->priv = malloc(sizeof(struct console_abort));
-+	((struct console_abort *)dev->priv)->count = 0;
-+	verbose("device %p: console\n",
-+		(void *)(dev->desc->pfn * getpagesize()));
-+}
-+
-+static void setup_block_file(const char *filename, struct device_list *devices)
-+{
-+	int fd;
-+	struct device *dev;
-+	off64_t *device_len;
-+	struct lguest_block_page *p;
-+
-+	fd = open_or_die(filename, O_RDWR|O_LARGEFILE|O_DIRECT);
-+	dev = new_device(devices, LGUEST_DEVICE_T_BLOCK, 1,
-+			 LGUEST_DEVICE_F_RANDOMNESS,
-+			 fd, NULL, 0, handle_block_output);
-+	device_len = dev->priv = malloc(sizeof(*device_len));
-+	*device_len = lseek64(fd, 0, SEEK_END);
-+	p = dev->mem;
-+
-+	p->num_sectors = *device_len/512;
-+	verbose("device %p: block %i sectors\n",
-+		(void *)(dev->desc->pfn * getpagesize()), p->num_sectors);
-+}
-+
-+/* We use fnctl locks to reserve network slots (autocleanup!) */
-+static unsigned int find_slot(int netfd, const char *filename)
-+{
-+	struct flock fl;
-+
-+	fl.l_type = F_WRLCK;
-+	fl.l_whence = SEEK_SET;
-+	fl.l_len = 1;
-+	for (fl.l_start = 0;
-+	     fl.l_start < getpagesize()/sizeof(struct lguest_net);
-+	     fl.l_start++) {
-+		if (fcntl(netfd, F_SETLK, &fl) == 0)
-+			return fl.l_start;
-+	}
-+	errx(1, "No free slots in network file %s", filename);
-+}
-+
-+static void setup_net_file(const char *filename,
-+			   struct device_list *devices)
-+{
-+	int netfd;
-+	struct device *dev;
-+
-+	netfd = open(filename, O_RDWR, 0);
-+	if (netfd < 0) {
-+		if (errno == ENOENT) {
-+			netfd = open(filename, O_RDWR|O_CREAT, 0600);
-+			if (netfd >= 0) {
-+				char page[getpagesize()];
-+				memset(page, 0, sizeof(page));
-+				write(netfd, page, sizeof(page));
-+			}
-+		}
-+		if (netfd < 0)
-+			err(1, "cannot open net file '%s'", filename);
-+	}
-+
-+	dev = new_device(devices, LGUEST_DEVICE_T_NET, 1,
-+			 find_slot(netfd, filename)|LGUEST_NET_F_NOCSUM,
-+			 -1, NULL, 0, NULL);
-+
-+	/* We overwrite the /dev/zero mapping with the actual file. */
-+	if (mmap(dev->mem, getpagesize(), PROT_READ|PROT_WRITE,
-+			 MAP_FIXED|MAP_SHARED, netfd, 0) != dev->mem)
-+			err(1, "could not mmap '%s'", filename);
-+	verbose("device %p: shared net %s, peer %i\n",
-+		(void *)(dev->desc->pfn * getpagesize()), filename,
-+		dev->desc->features & ~LGUEST_NET_F_NOCSUM);
-+}
-+
-+static u32 str2ip(const char *ipaddr)
-+{
-+	unsigned int byte[4];
-+
-+	sscanf(ipaddr, "%u.%u.%u.%u", &byte[0], &byte[1], &byte[2], &byte[3]);
-+	return (byte[0] << 24) | (byte[1] << 16) | (byte[2] << 8) | byte[3];
-+}
-+
-+/* adapted from libbridge */
-+static void add_to_bridge(int fd, const char *if_name, const char *br_name)
-+{
-+	int ifidx;
-+	struct ifreq ifr;
-+
-+	if (!*br_name)
-+		errx(1, "must specify bridge name");
-+
-+	ifidx = if_nametoindex(if_name);
-+	if (!ifidx)
-+		errx(1, "interface %s does not exist!", if_name);
-+
-+	strncpy(ifr.ifr_name, br_name, IFNAMSIZ);
-+	ifr.ifr_ifindex = ifidx;
-+	if (ioctl(fd, SIOCBRADDIF, &ifr) < 0)
-+		err(1, "can't add %s to bridge %s", if_name, br_name);
-+}
-+
-+static void configure_device(int fd, const char *devname, u32 ipaddr,
-+			     unsigned char hwaddr[6])
-+{
-+	struct ifreq ifr;
-+	struct sockaddr_in *sin = (struct sockaddr_in *)&ifr.ifr_addr;
-+
-+	memset(&ifr, 0, sizeof(ifr));
-+	strcpy(ifr.ifr_name, devname);
-+	sin->sin_family = AF_INET;
-+	sin->sin_addr.s_addr = htonl(ipaddr);
-+	if (ioctl(fd, SIOCSIFADDR, &ifr) != 0)
-+		err(1, "Setting %s interface address", devname);
-+	ifr.ifr_flags = IFF_UP;
-+	if (ioctl(fd, SIOCSIFFLAGS, &ifr) != 0)
-+		err(1, "Bringing interface %s up", devname);
-+
-+	if (ioctl(fd, SIOCGIFHWADDR, &ifr) != 0)
-+		err(1, "getting hw address for %s", devname);
-+
-+	memcpy(hwaddr, ifr.ifr_hwaddr.sa_data, 6);
-+}
-+
-+static void setup_tun_net(const char *arg, struct device_list *devices)
-+{
-+	struct device *dev;
-+	struct ifreq ifr;
-+	int netfd, ipfd;
-+	u32 ip;
-+	const char *br_name = NULL;
-+
-+	netfd = open_or_die("/dev/net/tun", O_RDWR);
-+	memset(&ifr, 0, sizeof(ifr));
-+	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-+	strcpy(ifr.ifr_name, "tap%d");
-+	if (ioctl(netfd, TUNSETIFF, &ifr) != 0)
-+		err(1, "configuring /dev/net/tun");
-+
-+	/* You will be peer 1: we should create enough jitter to randomize */
-+	dev = new_device(devices, LGUEST_DEVICE_T_NET, 1,
-+			 NET_PEERNUM|LGUEST_DEVICE_F_RANDOMNESS, netfd,
-+			 handle_tun_input, peer_offset(0), handle_tun_output);
-+	dev->priv = malloc(sizeof(bool));
-+	*(bool *)dev->priv = false;
-+
-+	ipfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
-+	if (ipfd < 0)
-+		err(1, "opening IP socket");
-+
-+	if (!strncmp(BRIDGE_PFX, arg, strlen(BRIDGE_PFX))) {
-+		ip = INADDR_ANY;
-+		br_name = arg + strlen(BRIDGE_PFX);
-+		add_to_bridge(ipfd, ifr.ifr_name, br_name);
-+	} else
-+		ip = str2ip(arg);
-+
-+	/* We are peer 0, ie. first slot. */
-+	configure_device(ipfd, ifr.ifr_name, ip, dev->mem);
-+	close(ipfd);
-+
-+	verbose("device %p: tun net %u.%u.%u.%u\n",
-+		(void *)(dev->desc->pfn * getpagesize()),
-+		(u8)(ip>>24), (u8)(ip>>16), (u8)(ip>>8), (u8)ip);
-+	if (br_name)
-+		verbose("attached to bridge: %s\n", br_name);
-+}
-+
-+/* Now we know how much memory we have, we copy in device descriptors */
-+static void map_device_descriptors(struct device_list *devs, unsigned long mem)
-+{
-+	struct device *i;
-+	unsigned int num;
-+	struct lguest_device_desc *descs;
-+
-+	/* Device descriptor array sits just above top of normal memory */
-+	descs = map_zeroed_pages(mem, 1);
-+
-+	for (i = devs->dev, num = 0; i; i = i->next, num++) {
-+		if (num == LGUEST_MAX_DEVICES)
-+			errx(1, "too many devices");
-+		verbose("Device %i: %s\n", num,
-+			i->desc->type == LGUEST_DEVICE_T_NET ? "net"
-+			: i->desc->type == LGUEST_DEVICE_T_CONSOLE ? "console"
-+			: i->desc->type == LGUEST_DEVICE_T_BLOCK ? "block"
-+			: "unknown");
-+		descs[num] = *i->desc;
-+		free(i->desc);
-+		i->desc = &descs[num];
-+	}
-+}
-+
-+static void __attribute__((noreturn))
-+run_guest(int lguest_fd, int waker_fd, struct device_list *device_list)
-+{
-+	sigset_t sigset;
-+
-+	sigemptyset(&sigset);
-+	sigaddset(&sigset, SIGUSR1);
-+	for (;;) {
-+		unsigned long arr[2];
-+		int readval;
-+
-+		sigprocmask(SIG_UNBLOCK, &sigset, NULL);
-+		readval = read(lguest_fd, arr, sizeof(arr));
-+		sigprocmask(SIG_BLOCK, &sigset, NULL);
-+
-+		if (readval == sizeof(arr))
-+			handle_output(lguest_fd, arr[0], arr[1], device_list);
-+		else if (errno == ENOENT) {
-+			char reason[1024] = { 0 };
-+			read(lguest_fd, reason, sizeof(reason)-1);
-+			errx(1, "%s", reason);
-+		} else if (errno != EINTR)
-+			err(1, "Running guest failed");
-+		handle_input(lguest_fd, waker_fd, device_list);
-+	}
-+}
-+
-+static struct option opts[] = {
-+	{ "verbose", 0, NULL, 'v' },
-+	{ "sharenet", 1, NULL, 's' },
-+	{ "tunnet", 1, NULL, 't' },
-+	{ "block", 1, NULL, 'b' },
-+	{ "initrd", 1, NULL, 'i' },
-+};
-+static void usage(void)
-+{
-+	errx(1, "Usage: lguest [--verbose] "
-+	     "[--sharenet=<filename>|--tunnet=(<ipaddr>|bridge:<bridgename>)\n"
-+	     "|--block=<filename>|--initrd=<filename>]...\n"
-+	     "<mem-in-mb> vmlinux [args...]");
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	unsigned long mem, pgdir, start, page_offset;
-+	int c, lguest_fd, waker_fd;
-+	struct device_list device_list;
-+	struct lguest_boot_info *boot = (void *)0;
-+	const char *initrd_name = NULL;
-+
-+	device_list.max_infd = -1;
-+	device_list.dev = NULL;
-+	device_list.lastdev = &device_list.dev;
-+	FD_ZERO(&device_list.infds);
-+
-+	while ((c = getopt_long(argc, argv, "v", opts, NULL)) != EOF) {
-+		switch (c) {
-+		case 'v':
-+			verbose = true;
-+			break;
-+		case 's':
-+			setup_net_file(optarg, &device_list);
-+			break;
-+		case 't':
-+			setup_tun_net(optarg, &device_list);
-+			break;
-+		case 'b':
-+			setup_block_file(optarg, &device_list);
-+			break;
-+		case 'i':
-+			initrd_name = optarg;
-+			break;
-+		default:
-+			warnx("Unknown argument %s", argv[optind]);
-+			usage();
-+		}
-+	}
-+	if (optind + 2 > argc)
-+		usage();
-+
-+	/* We need a console device */
-+	setup_console(&device_list);
-+
-+	/* First we map /dev/zero over all of guest-physical memory. */
-+	mem = atoi(argv[optind]) * 1024 * 1024;
-+	map_zeroed_pages(0, mem / getpagesize());
-+
-+	/* Now we load the kernel */
-+	start = load_kernel(open_or_die(argv[optind+1], O_RDONLY),
-+			    &page_offset);
-+
-+	/* Write the device descriptors into memory. */
-+	map_device_descriptors(&device_list, mem);
-+
-+	/* Map the initrd image if requested */
-+	if (initrd_name)
-+		boot->initrd_size = load_initrd(initrd_name, mem);
-+
-+	/* Set up the initial linar pagetables. */
-+	pgdir = setup_pagetables(mem, boot->initrd_size, page_offset);
-+
-+	/* Give the guest the boot information it needs. */
-+	concat(boot->cmdline, argv+optind+2);
-+	boot->max_pfn = mem/getpagesize();
-+
-+	lguest_fd = tell_kernel(pgdir, start, page_offset);
-+	waker_fd = setup_waker(&device_list);
-+
-+	run_guest(lguest_fd, waker_fd, &device_list);
-+}
-diff -puN /dev/null Documentation/lguest/lguest.txt
---- /dev/null
-+++ a/Documentation/lguest/lguest.txt
-@@ -0,0 +1,125 @@
-+Rusty's Remarkably Unreliable Guide to Lguest
-+	- or, A Young Coder's Illustrated Hypervisor
-+http://lguest.ozlabs.org
-+
-+Lguest is designed to be a minimal hypervisor for the Linux kernel, for
-+Linux developers and users to experiment with virtualization with the
-+minimum of complexity.  Nonetheless, it should have sufficient
-+features to make it useful for specific tasks, and, of course, you are
-+encouraged to fork and enhance it.
-+
-+Features:
-+
-+- Kernel module which runs in a normal kernel.
-+- Simple I/O model for communication.
-+- Simple program to create new guests.
-+- Logo contains cute puppies: http://lguest.ozlabs.org
-+
-+Developer features:
-+
-+- Fun to hack on.
-+- No ABI: being tied to a specific kernel anyway, you can change anything.
-+- Many opportunities for improvement or feature implementation.
-+
-+Running Lguest:
-+
-+- You will need to configure your kernel with the following options:
-+
-+  CONFIG_HIGHMEM64G=n ("High Memory Support" "64GB")[1]
-+  CONFIG_TUN=y/m ("Universal TUN/TAP device driver support")
-+  CONFIG_EXPERIMENTAL=y ("Prompt for development and/or incomplete code/drivers")
-+  CONFIG_PARAVIRT=y ("Paravirtualization support (EXPERIMENTAL)")
-+  CONFIG_LGUEST=y/m ("Linux hypervisor example code")
-+
-+  and I recommend:
-+  CONFIG_HZ=100 ("Timer frequency")[2]
-+
-+- A tool called "lguest" is available in this directory: type "make"
-+  to build it.
-+
-+- Create or find a root disk image.  There are several useful ones
-+  around, such as the xm-test tiny root image at
-+	  http://xm-test.xensource.com/ramdisks/initrd-1.1-i386.img
-+
-+  For more serious work, I usually use a distribution ISO image and
-+  install it under qemu, then make multiple copies:
-+
-+	  dd if=/dev/zero of=rootfile bs=1M count=2048
-+	  qemu -cdrom image.iso -hda rootfile -net user -net nic -boot d
-+
-+- "modprobe lg" if you built it as a module.
-+
-+- Run an lguest as root:
-+
-+      Documentation/lguest/lguest 64m vmlinux --tunnet=192.168.19.1 --block=rootfile root=/dev/lgba
-+
-+   Explanation:
-+    64m: the amount of memory to use.
-+
-+    vmlinux: the kernel image found in the top of your build directory.  You
-+       can also use a standard bzImage.
-+
-+    --tunnet=192.168.19.1: configures a "tap" device for networking with this
-+       IP address.
-+
-+    --block=rootfile: a file or block device which becomes /dev/lgba
-+       inside the guest.
-+
-+    root=/dev/lgba: this (and anything else on the command line) are
-+       kernel boot parameters.
-+
-+- Configuring networking.  I usually have the host masquerade, using
-+  "iptables -t nat -o eth0 -j MASQUERADE" and "echo 1 >
-+  /proc/sys/net/ipv4/ip_forward".  In this example, I would configure
-+  eth0 inside the guest at 192.168.19.2.
-+
-+  Another method is to bridge the tap device to an external interface
-+  using --tunnet=bridge:<bridgename>, and perhaps run dhcp on the guest
-+  to obtain an IP address.  The bridge needs to be configured first:
-+  this option simply adds the tap interface to it.
-+
-+  A simple example on my system:
-+
-+    ifconfig eth0 0.0.0.0
-+    brctl addbr lg0
-+    ifconfig lg0 up
-+    brctl addif lg0 eth0
-+    dhclient lg0
-+
-+  Then use --tunnet=bridge:lg0 when launching the guest.
-+
-+  See http://linux-net.osdl.org/index.php/Bridge for general information
-+  on how to get bridging working.
-+
-+- You can also create an inter-guest network using
-+  "--sharenet=<filename>": any two guests using the same file are on
-+  the same network.  This file is created if it does not exist.
-+
-+Lguest I/O model:
-+
-+Lguest uses a simplified DMA model plus shared memory for I/O.  Guests
-+can communicate with each other if they share underlying memory
-+(usually by the lguest program mmaping the same file), but they can
-+use any non-shared memory to communicate with the lguest process.
-+
-+Guests can register DMA buffers at any key (must be a valid physical
-+address) using the LHCALL_BIND_DMA(key, dmabufs, num<<8|irq)
-+hypercall.  "dmabufs" is the physical address of an array of "num"
-+"struct lguest_dma": each contains a used_len, and an array of
-+physical addresses and lengths.  When a transfer occurs, the
-+"used_len" field of one of the buffers which has used_len 0 will be
-+set to the length transferred and the irq will fire.
-+
-+Using an irq value of 0 unbinds the dma buffers.
-+
-+To send DMA, the LHCALL_SEND_DMA(key, dma_physaddr) hypercall is used,
-+and the bytes used is written to the used_len field.  This can be 0 if
-+noone else has bound a DMA buffer to that key or some other error.
-+DMA buffers bound by the same guest are ignored.
-+
-+Cheers!
-+Rusty Russell rusty@rustcorp.com.au.
-+
-+[1] These are on various places on the TODO list, waiting for you to
-+    get annoyed enough at the limitation to fix it.
-+[2] Lguest is not yet tickless when idle.  See [1].
+diff -puN drivers/base/class.c~sysfs-kill-unnecessary-attribute-owner drivers/base/class.c
+--- a/drivers/base/class.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/base/class.c
+@@ -624,7 +624,6 @@ int class_device_add(struct class_device
+ 		goto out3;
+ 	class_dev->uevent_attr.attr.name = "uevent";
+ 	class_dev->uevent_attr.attr.mode = S_IWUSR;
+-	class_dev->uevent_attr.attr.owner = parent_class->owner;
+ 	class_dev->uevent_attr.store = store_uevent;
+ 	error = class_device_create_file(class_dev, &class_dev->uevent_attr);
+ 	if (error)
+@@ -639,7 +638,6 @@ int class_device_add(struct class_device
+ 		}
+ 		attr->attr.name = "dev";
+ 		attr->attr.mode = S_IRUGO;
+-		attr->attr.owner = parent_class->owner;
+ 		attr->show = show_dev;
+ 		error = class_device_create_file(class_dev, attr);
+ 		if (error) {
+diff -puN drivers/base/core.c~sysfs-kill-unnecessary-attribute-owner drivers/base/core.c
+--- a/drivers/base/core.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/base/core.c
+@@ -622,8 +622,6 @@ int device_add(struct device *dev)
+ 
+ 	dev->uevent_attr.attr.name = "uevent";
+ 	dev->uevent_attr.attr.mode = S_IWUSR;
+-	if (dev->driver)
+-		dev->uevent_attr.attr.owner = dev->driver->owner;
+ 	dev->uevent_attr.store = store_uevent;
+ 	error = device_create_file(dev, &dev->uevent_attr);
+ 	if (error)
+@@ -638,8 +636,6 @@ int device_add(struct device *dev)
+ 		}
+ 		attr->attr.name = "dev";
+ 		attr->attr.mode = S_IRUGO;
+-		if (dev->driver)
+-			attr->attr.owner = dev->driver->owner;
+ 		attr->show = show_dev;
+ 		error = device_create_file(dev, attr);
+ 		if (error) {
+diff -puN drivers/base/firmware_class.c~sysfs-kill-unnecessary-attribute-owner drivers/base/firmware_class.c
+--- a/drivers/base/firmware_class.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/base/firmware_class.c
+@@ -271,7 +271,7 @@ out:
+ }
+ 
+ static struct bin_attribute firmware_attr_data_tmpl = {
+-	.attr = {.name = "data", .mode = 0644, .owner = THIS_MODULE},
++	.attr = {.name = "data", .mode = 0644},
+ 	.size = 0,
+ 	.read = firmware_data_read,
+ 	.write = firmware_data_write,
+diff -puN drivers/block/pktcdvd.c~sysfs-kill-unnecessary-attribute-owner drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/block/pktcdvd.c
+@@ -146,8 +146,7 @@ static void pkt_kobj_release(struct kobj
+  **********************************************************/
+ 
+ #define DEF_ATTR(_obj,_name,_mode) \
+-	static struct attribute _obj = { \
+-		.name = _name, .owner = THIS_MODULE, .mode = _mode }
++	static struct attribute _obj = { .name = _name, .mode = _mode }
+ 
+ /**********************************************************
+   /sys/class/pktcdvd/pktcdvd[0-7]/
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~sysfs-kill-unnecessary-attribute-owner drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -2171,52 +2171,42 @@ static int create_files(struct bmc_devic
+ 	int err;
+ 
+ 	bmc->device_id_attr.attr.name = "device_id";
+-	bmc->device_id_attr.attr.owner = THIS_MODULE;
+ 	bmc->device_id_attr.attr.mode = S_IRUGO;
+ 	bmc->device_id_attr.show = device_id_show;
+ 
+ 	bmc->provides_dev_sdrs_attr.attr.name = "provides_device_sdrs";
+-	bmc->provides_dev_sdrs_attr.attr.owner = THIS_MODULE;
+ 	bmc->provides_dev_sdrs_attr.attr.mode = S_IRUGO;
+ 	bmc->provides_dev_sdrs_attr.show = provides_dev_sdrs_show;
+ 
+ 	bmc->revision_attr.attr.name = "revision";
+-	bmc->revision_attr.attr.owner = THIS_MODULE;
+ 	bmc->revision_attr.attr.mode = S_IRUGO;
+ 	bmc->revision_attr.show = revision_show;
+ 
+ 	bmc->firmware_rev_attr.attr.name = "firmware_revision";
+-	bmc->firmware_rev_attr.attr.owner = THIS_MODULE;
+ 	bmc->firmware_rev_attr.attr.mode = S_IRUGO;
+ 	bmc->firmware_rev_attr.show = firmware_rev_show;
+ 
+ 	bmc->version_attr.attr.name = "ipmi_version";
+-	bmc->version_attr.attr.owner = THIS_MODULE;
+ 	bmc->version_attr.attr.mode = S_IRUGO;
+ 	bmc->version_attr.show = ipmi_version_show;
+ 
+ 	bmc->add_dev_support_attr.attr.name = "additional_device_support";
+-	bmc->add_dev_support_attr.attr.owner = THIS_MODULE;
+ 	bmc->add_dev_support_attr.attr.mode = S_IRUGO;
+ 	bmc->add_dev_support_attr.show = add_dev_support_show;
+ 
+ 	bmc->manufacturer_id_attr.attr.name = "manufacturer_id";
+-	bmc->manufacturer_id_attr.attr.owner = THIS_MODULE;
+ 	bmc->manufacturer_id_attr.attr.mode = S_IRUGO;
+ 	bmc->manufacturer_id_attr.show = manufacturer_id_show;
+ 
+ 	bmc->product_id_attr.attr.name = "product_id";
+-	bmc->product_id_attr.attr.owner = THIS_MODULE;
+ 	bmc->product_id_attr.attr.mode = S_IRUGO;
+ 	bmc->product_id_attr.show = product_id_show;
+ 
+ 	bmc->guid_attr.attr.name = "guid";
+-	bmc->guid_attr.attr.owner = THIS_MODULE;
+ 	bmc->guid_attr.attr.mode = S_IRUGO;
+ 	bmc->guid_attr.show = guid_show;
+ 
+ 	bmc->aux_firmware_rev_attr.attr.name = "aux_firmware_revision";
+-	bmc->aux_firmware_rev_attr.attr.owner = THIS_MODULE;
+ 	bmc->aux_firmware_rev_attr.attr.mode = S_IRUGO;
+ 	bmc->aux_firmware_rev_attr.show = aux_firmware_rev_show;
+ 
+diff -puN drivers/cpufreq/cpufreq_stats.c~sysfs-kill-unnecessary-attribute-owner drivers/cpufreq/cpufreq_stats.c
+--- a/drivers/cpufreq/cpufreq_stats.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/cpufreq/cpufreq_stats.c
+@@ -25,8 +25,7 @@ static spinlock_t cpufreq_stats_lock;
+ 
+ #define CPUFREQ_STATDEVICE_ATTR(_name,_mode,_show) \
+ static struct freq_attr _attr_##_name = {\
+-	.attr = {.name = __stringify(_name), .owner = THIS_MODULE, \
+-		.mode = _mode, }, \
++	.attr = {.name = __stringify(_name), .mode = _mode, }, \
+ 	.show = _show,\
+ };
+ 
+diff -puN drivers/cpufreq/cpufreq_userspace.c~sysfs-kill-unnecessary-attribute-owner drivers/cpufreq/cpufreq_userspace.c
+--- a/drivers/cpufreq/cpufreq_userspace.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/cpufreq/cpufreq_userspace.c
+@@ -120,7 +120,7 @@ store_speed (struct cpufreq_policy *poli
+ 
+ static struct freq_attr freq_attr_scaling_setspeed =
+ {
+-	.attr = { .name = "scaling_setspeed", .mode = 0644, .owner = THIS_MODULE },
++	.attr = { .name = "scaling_setspeed", .mode = 0644 },
+ 	.show = show_speed,
+ 	.store = store_speed,
+ };
+diff -puN drivers/cpufreq/freq_table.c~sysfs-kill-unnecessary-attribute-owner drivers/cpufreq/freq_table.c
+--- a/drivers/cpufreq/freq_table.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/cpufreq/freq_table.c
+@@ -199,7 +199,6 @@ static ssize_t show_available_freqs (str
+ struct freq_attr cpufreq_freq_attr_scaling_available_freqs = {
+ 	.attr = { .name = "scaling_available_frequencies",
+ 		  .mode = 0444,
+-		  .owner=THIS_MODULE
+ 		},
+ 	.show = show_available_freqs,
+ };
+diff -puN drivers/firmware/dcdbas.h~sysfs-kill-unnecessary-attribute-owner drivers/firmware/dcdbas.h
+--- a/drivers/firmware/dcdbas.h~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/firmware/dcdbas.h
+@@ -67,8 +67,7 @@
+ #define DCDBAS_BIN_ATTR_RW(_name) \
+ struct bin_attribute bin_attr_##_name = { \
+ 	.attr =  { .name = __stringify(_name), \
+-		   .mode = 0600, \
+-		   .owner = THIS_MODULE }, \
++		   .mode = 0600 }, \
+ 	.read =  _name##_read, \
+ 	.write = _name##_write, \
+ }
+diff -puN drivers/firmware/dell_rbu.c~sysfs-kill-unnecessary-attribute-owner drivers/firmware/dell_rbu.c
+--- a/drivers/firmware/dell_rbu.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/firmware/dell_rbu.c
+@@ -687,18 +687,18 @@ static ssize_t write_rbu_packet_size(str
+ }
+ 
+ static struct bin_attribute rbu_data_attr = {
+-	.attr = {.name = "data",.owner = THIS_MODULE,.mode = 0444},
++	.attr = {.name = "data", .mode = 0444},
+ 	.read = read_rbu_data,
+ };
+ 
+ static struct bin_attribute rbu_image_type_attr = {
+-	.attr = {.name = "image_type",.owner = THIS_MODULE,.mode = 0644},
++	.attr = {.name = "image_type", .mode = 0644},
+ 	.read = read_rbu_image_type,
+ 	.write = write_rbu_image_type,
+ };
+ 
+ static struct bin_attribute rbu_packet_size_attr = {
+-	.attr = {.name = "packet_size",.owner = THIS_MODULE,.mode = 0644},
++	.attr = {.name = "packet_size", .mode = 0644},
+ 	.read = read_rbu_packet_size,
+ 	.write = write_rbu_packet_size,
+ };
+diff -puN drivers/firmware/edd.c~sysfs-kill-unnecessary-attribute-owner drivers/firmware/edd.c
+--- a/drivers/firmware/edd.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/firmware/edd.c
+@@ -74,7 +74,7 @@ static struct edd_device *edd_devices[ED
+ 
+ #define EDD_DEVICE_ATTR(_name,_mode,_show,_test) \
+ struct edd_attribute edd_attr_##_name = { 	\
+-	.attr = {.name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE },	\
++	.attr = {.name = __stringify(_name), .mode = _mode },	\
+ 	.show	= _show,				\
+ 	.test	= _test,				\
+ };
+diff -puN drivers/firmware/efivars.c~sysfs-kill-unnecessary-attribute-owner drivers/firmware/efivars.c
+--- a/drivers/firmware/efivars.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/firmware/efivars.c
+@@ -131,21 +131,21 @@ struct efivar_attribute {
+ 
+ #define EFI_ATTR(_name, _mode, _show, _store) \
+ struct subsys_attribute efi_attr_##_name = { \
+-	.attr = {.name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE}, \
++	.attr = {.name = __stringify(_name), .mode = _mode}, \
+ 	.show = _show, \
+ 	.store = _store, \
+ };
+ 
+ #define EFIVAR_ATTR(_name, _mode, _show, _store) \
+ struct efivar_attribute efivar_attr_##_name = { \
+-	.attr = {.name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE}, \
++	.attr = {.name = __stringify(_name), .mode = _mode}, \
+ 	.show = _show, \
+ 	.store = _store, \
+ };
+ 
+ #define VAR_SUBSYS_ATTR(_name, _mode, _show, _store) \
+ struct subsys_attribute var_subsys_attr_##_name = { \
+-	.attr = {.name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE}, \
++	.attr = {.name = __stringify(_name), .mode = _mode}, \
+ 	.show = _show, \
+ 	.store = _store, \
+ };
+diff -puN drivers/i2c/chips/eeprom.c~sysfs-kill-unnecessary-attribute-owner drivers/i2c/chips/eeprom.c
+--- a/drivers/i2c/chips/eeprom.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/i2c/chips/eeprom.c
+@@ -143,7 +143,6 @@ static struct bin_attribute eeprom_attr 
+ 	.attr = {
+ 		.name = "eeprom",
+ 		.mode = S_IRUGO,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = EEPROM_SIZE,
+ 	.read = eeprom_read,
+diff -puN drivers/i2c/chips/max6875.c~sysfs-kill-unnecessary-attribute-owner drivers/i2c/chips/max6875.c
+--- a/drivers/i2c/chips/max6875.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/i2c/chips/max6875.c
+@@ -152,7 +152,6 @@ static struct bin_attribute user_eeprom_
+ 	.attr = {
+ 		.name = "eeprom",
+ 		.mode = S_IRUGO,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = USER_EEPROM_SIZE,
+ 	.read = max6875_read,
+diff -puN drivers/infiniband/core/sysfs.c~sysfs-kill-unnecessary-attribute-owner drivers/infiniband/core/sysfs.c
+--- a/drivers/infiniband/core/sysfs.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/infiniband/core/sysfs.c
+@@ -479,7 +479,6 @@ alloc_group_attrs(ssize_t (*show)(struct
+ 
+ 		element->attr.attr.name  = element->name;
+ 		element->attr.attr.mode  = S_IRUGO;
+-		element->attr.attr.owner = THIS_MODULE;
+ 		element->attr.show       = show;
+ 		element->index		 = i;
+ 
+diff -puN drivers/input/mouse/psmouse.h~sysfs-kill-unnecessary-attribute-owner drivers/input/mouse/psmouse.h
+--- a/drivers/input/mouse/psmouse.h~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/input/mouse/psmouse.h
+@@ -117,7 +117,6 @@ static struct psmouse_attribute psmouse_
+ 		.attr	= {							\
+ 			.name	= __stringify(_name),				\
+ 			.mode	= _mode,					\
+-			.owner	= THIS_MODULE,					\
+ 		},								\
+ 		.show	= psmouse_attr_show_helper,				\
+ 		.store	= psmouse_attr_set_helper,				\
+diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~sysfs-kill-unnecessary-attribute-owner drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+--- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+@@ -516,40 +516,32 @@ static void pvr2_sysfs_add_control(struc
+ 	}
+ 	sfp->item_last = cip;
+ 
+-	cip->attr_name.attr.owner = THIS_MODULE;
+ 	cip->attr_name.attr.name = "name";
+ 	cip->attr_name.attr.mode = S_IRUGO;
+ 	cip->attr_name.show = fp->show_name;
+ 
+-	cip->attr_type.attr.owner = THIS_MODULE;
+ 	cip->attr_type.attr.name = "type";
+ 	cip->attr_type.attr.mode = S_IRUGO;
+ 	cip->attr_type.show = fp->show_type;
+ 
+-	cip->attr_min.attr.owner = THIS_MODULE;
+ 	cip->attr_min.attr.name = "min_val";
+ 	cip->attr_min.attr.mode = S_IRUGO;
+ 	cip->attr_min.show = fp->show_min;
+ 
+-	cip->attr_max.attr.owner = THIS_MODULE;
+ 	cip->attr_max.attr.name = "max_val";
+ 	cip->attr_max.attr.mode = S_IRUGO;
+ 	cip->attr_max.show = fp->show_max;
+ 
+-	cip->attr_val.attr.owner = THIS_MODULE;
+ 	cip->attr_val.attr.name = "cur_val";
+ 	cip->attr_val.attr.mode = S_IRUGO;
+ 
+-	cip->attr_custom.attr.owner = THIS_MODULE;
+ 	cip->attr_custom.attr.name = "custom_val";
+ 	cip->attr_custom.attr.mode = S_IRUGO;
+ 
+-	cip->attr_enum.attr.owner = THIS_MODULE;
+ 	cip->attr_enum.attr.name = "enum_val";
+ 	cip->attr_enum.attr.mode = S_IRUGO;
+ 	cip->attr_enum.show = fp->show_enum;
+ 
+-	cip->attr_bits.attr.owner = THIS_MODULE;
+ 	cip->attr_bits.attr.name = "bit_val";
+ 	cip->attr_bits.attr.mode = S_IRUGO;
+ 	cip->attr_bits.show = fp->show_bits;
+@@ -614,12 +606,10 @@ static void pvr2_sysfs_add_debugifc(stru
+ 
+ 	dip = kzalloc(sizeof(*dip),GFP_KERNEL);
+ 	if (!dip) return;
+-	dip->attr_debugcmd.attr.owner = THIS_MODULE;
+ 	dip->attr_debugcmd.attr.name = "debugcmd";
+ 	dip->attr_debugcmd.attr.mode = S_IRUGO|S_IWUSR|S_IWGRP;
+ 	dip->attr_debugcmd.show = debugcmd_show;
+ 	dip->attr_debugcmd.store = debugcmd_store;
+-	dip->attr_debuginfo.attr.owner = THIS_MODULE;
+ 	dip->attr_debuginfo.attr.name = "debuginfo";
+ 	dip->attr_debuginfo.attr.mode = S_IRUGO;
+ 	dip->attr_debuginfo.show = debuginfo_show;
+@@ -795,7 +785,6 @@ static void class_dev_create(struct pvr2
+ 		return;
+ 	}
+ 
+-	sfp->attr_v4l_minor_number.attr.owner = THIS_MODULE;
+ 	sfp->attr_v4l_minor_number.attr.name = "v4l_minor_number";
+ 	sfp->attr_v4l_minor_number.attr.mode = S_IRUGO;
+ 	sfp->attr_v4l_minor_number.show = v4l_minor_number_show;
+@@ -809,7 +798,6 @@ static void class_dev_create(struct pvr2
+ 		sfp->v4l_minor_number_created_ok = !0;
+ 	}
+ 
+-	sfp->attr_v4l_radio_minor_number.attr.owner = THIS_MODULE;
+ 	sfp->attr_v4l_radio_minor_number.attr.name = "v4l_radio_minor_number";
+ 	sfp->attr_v4l_radio_minor_number.attr.mode = S_IRUGO;
+ 	sfp->attr_v4l_radio_minor_number.show = v4l_radio_minor_number_show;
+@@ -823,7 +811,6 @@ static void class_dev_create(struct pvr2
+ 		sfp->v4l_radio_minor_number_created_ok = !0;
+ 	}
+ 
+-	sfp->attr_unit_number.attr.owner = THIS_MODULE;
+ 	sfp->attr_unit_number.attr.name = "unit_number";
+ 	sfp->attr_unit_number.attr.mode = S_IRUGO;
+ 	sfp->attr_unit_number.show = unit_number_show;
+diff -puN drivers/misc/asus-laptop.c~sysfs-kill-unnecessary-attribute-owner drivers/misc/asus-laptop.c
+--- a/drivers/misc/asus-laptop.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/misc/asus-laptop.c
+@@ -695,8 +695,7 @@ static void asus_hotk_notify(acpi_handle
+ 	struct device_attribute dev_attr_##_name = {			\
+ 		.attr = {						\
+ 			.name = __stringify(_name),			\
+-			.mode = 0,					\
+-			.owner = THIS_MODULE },				\
++			.mode = 0 },					\
+ 		.show   = NULL,						\
+ 		.store  = NULL,						\
+ 	}
+diff -puN drivers/pci/hotplug/acpiphp_ibm.c~sysfs-kill-unnecessary-attribute-owner drivers/pci/hotplug/acpiphp_ibm.c
+--- a/drivers/pci/hotplug/acpiphp_ibm.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/pci/hotplug/acpiphp_ibm.c
+@@ -117,7 +117,6 @@ static struct notification ibm_note;
+ static struct bin_attribute ibm_apci_table_attr = {
+ 	    .attr = {
+ 		    .name = "apci_table",
+-		    .owner = THIS_MODULE,
+ 		    .mode = S_IRUGO,
+ 	    },
+ 	    .read = ibm_read_apci_table,
+diff -puN drivers/pci/pci-sysfs.c~sysfs-kill-unnecessary-attribute-owner drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/pci/pci-sysfs.c
+@@ -499,7 +499,6 @@ static int pci_create_resource_files(str
+ 			sprintf(res_attr_name, "resource%d", i);
+ 			res_attr->attr.name = res_attr_name;
+ 			res_attr->attr.mode = S_IRUSR | S_IWUSR;
+-			res_attr->attr.owner = THIS_MODULE;
+ 			res_attr->size = pci_resource_len(pdev, i);
+ 			res_attr->mmap = pci_mmap_resource;
+ 			res_attr->private = &pdev->resource[i];
+@@ -582,7 +581,6 @@ static struct bin_attribute pci_config_a
+ 	.attr =	{
+ 		.name = "config",
+ 		.mode = S_IRUGO | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 256,
+ 	.read = pci_read_config,
+@@ -593,7 +591,6 @@ static struct bin_attribute pcie_config_
+ 	.attr =	{
+ 		.name = "config",
+ 		.mode = S_IRUGO | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 4096,
+ 	.read = pci_read_config,
+@@ -628,7 +625,6 @@ int __must_check pci_create_sysfs_dev_fi
+ 			rom_attr->size = pci_resource_len(pdev, PCI_ROM_RESOURCE);
+ 			rom_attr->attr.name = "rom";
+ 			rom_attr->attr.mode = S_IRUSR;
+-			rom_attr->attr.owner = THIS_MODULE;
+ 			rom_attr->read = pci_read_rom;
+ 			rom_attr->write = pci_write_rom;
+ 			retval = sysfs_create_bin_file(&pdev->dev.kobj, rom_attr);
+diff -puN drivers/pcmcia/socket_sysfs.c~sysfs-kill-unnecessary-attribute-owner drivers/pcmcia/socket_sysfs.c
+--- a/drivers/pcmcia/socket_sysfs.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/pcmcia/socket_sysfs.c
+@@ -367,7 +367,7 @@ static struct device_attribute *pccard_s
+ };
+ 
+ static struct bin_attribute pccard_cis_attr = {
+-	.attr = { .name = "cis", .mode = S_IRUGO | S_IWUSR, .owner = THIS_MODULE},
++	.attr = { .name = "cis", .mode = S_IRUGO | S_IWUSR },
+ 	.size = 0x200,
+ 	.read = pccard_show_cis,
+ 	.write = pccard_store_cis,
+diff -puN drivers/rtc/rtc-ds1553.c~sysfs-kill-unnecessary-attribute-owner drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -290,7 +290,6 @@ static struct bin_attribute ds1553_nvram
+ 	.attr = {
+ 		.name = "nvram",
+ 		.mode = S_IRUGO | S_IWUGO,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = RTC_OFFSET,
+ 	.read = ds1553_nvram_read,
+diff -puN drivers/rtc/rtc-ds1742.c~sysfs-kill-unnecessary-attribute-owner drivers/rtc/rtc-ds1742.c
+--- a/drivers/rtc/rtc-ds1742.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/rtc/rtc-ds1742.c
+@@ -159,7 +159,6 @@ static struct bin_attribute ds1742_nvram
+ 	.attr = {
+ 		.name = "nvram",
+ 		.mode = S_IRUGO | S_IWUGO,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.read = ds1742_nvram_read,
+ 	.write = ds1742_nvram_write,
+diff -puN drivers/scsi/arcmsr/arcmsr_attr.c~sysfs-kill-unnecessary-attribute-owner drivers/scsi/arcmsr/arcmsr_attr.c
+--- a/drivers/scsi/arcmsr/arcmsr_attr.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/scsi/arcmsr/arcmsr_attr.c
+@@ -189,7 +189,6 @@ static struct bin_attribute arcmsr_sysfs
+ 	.attr = {
+ 		.name = "mu_read",
+ 		.mode = S_IRUSR ,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 1032,
+ 	.read = arcmsr_sysfs_iop_message_read,
+@@ -199,7 +198,6 @@ static struct bin_attribute arcmsr_sysfs
+ 	.attr = {
+ 		.name = "mu_write",
+ 		.mode = S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 1032,
+ 	.write = arcmsr_sysfs_iop_message_write,
+@@ -209,7 +207,6 @@ static struct bin_attribute arcmsr_sysfs
+ 	.attr = {
+ 		.name = "mu_clear",
+ 		.mode = S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 1,
+ 	.write = arcmsr_sysfs_iop_message_clear,
+diff -puN drivers/scsi/lpfc/lpfc_attr.c~sysfs-kill-unnecessary-attribute-owner drivers/scsi/lpfc/lpfc_attr.c
+--- a/drivers/scsi/lpfc/lpfc_attr.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/scsi/lpfc/lpfc_attr.c
+@@ -1145,7 +1145,6 @@ static struct bin_attribute sysfs_ctlreg
+ 	.attr = {
+ 		.name = "ctlreg",
+ 		.mode = S_IRUSR | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 256,
+ 	.read = sysfs_ctlreg_read,
+@@ -1356,7 +1355,6 @@ static struct bin_attribute sysfs_mbox_a
+ 	.attr = {
+ 		.name = "mbox",
+ 		.mode = S_IRUSR | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = sizeof(MAILBOX_t),
+ 	.read = sysfs_mbox_read,
+diff -puN drivers/scsi/qla2xxx/qla_attr.c~sysfs-kill-unnecessary-attribute-owner drivers/scsi/qla2xxx/qla_attr.c
+--- a/drivers/scsi/qla2xxx/qla_attr.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/scsi/qla2xxx/qla_attr.c
+@@ -73,7 +73,6 @@ static struct bin_attribute sysfs_fw_dum
+ 	.attr = {
+ 		.name = "fw_dump",
+ 		.mode = S_IRUSR | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 0,
+ 	.read = qla2x00_sysfs_read_fw_dump,
+@@ -149,7 +148,6 @@ static struct bin_attribute sysfs_nvram_
+ 	.attr = {
+ 		.name = "nvram",
+ 		.mode = S_IRUSR | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 512,
+ 	.read = qla2x00_sysfs_read_nvram,
+@@ -198,7 +196,6 @@ static struct bin_attribute sysfs_optrom
+ 	.attr = {
+ 		.name = "optrom",
+ 		.mode = S_IRUSR | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = OPTROM_SIZE_24XX,
+ 	.read = qla2x00_sysfs_read_optrom,
+@@ -279,7 +276,6 @@ static struct bin_attribute sysfs_optrom
+ 	.attr = {
+ 		.name = "optrom_ctl",
+ 		.mode = S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 0,
+ 	.write = qla2x00_sysfs_write_optrom_ctl,
+@@ -327,7 +323,6 @@ static struct bin_attribute sysfs_vpd_at
+ 	.attr = {
+ 		.name = "vpd",
+ 		.mode = S_IRUSR | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = 0,
+ 	.read = qla2x00_sysfs_read_vpd,
+@@ -375,7 +370,6 @@ static struct bin_attribute sysfs_sfp_at
+ 	.attr = {
+ 		.name = "sfp",
+ 		.mode = S_IRUSR | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = SFP_DEV_SIZE * 2,
+ 	.read = qla2x00_sysfs_read_sfp,
+diff -puN drivers/spi/at25.c~sysfs-kill-unnecessary-attribute-owner drivers/spi/at25.c
+--- a/drivers/spi/at25.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/spi/at25.c
+@@ -314,7 +314,6 @@ static int at25_probe(struct spi_device 
+ 	 */
+ 	at25->bin.attr.name = "eeprom";
+ 	at25->bin.attr.mode = S_IRUSR;
+-	at25->bin.attr.owner = THIS_MODULE;
+ 	at25->bin.read = at25_bin_read;
+ 
+ 	at25->bin.size = at25->chip.byte_len;
+diff -puN drivers/video/aty/radeon_base.c~sysfs-kill-unnecessary-attribute-owner drivers/video/aty/radeon_base.c
+--- a/drivers/video/aty/radeon_base.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/video/aty/radeon_base.c
+@@ -2123,7 +2123,6 @@ static ssize_t radeon_show_edid2(struct 
+ static struct bin_attribute edid1_attr = {
+ 	.attr   = {
+ 		.name	= "edid1",
+-		.owner	= THIS_MODULE,
+ 		.mode	= 0444,
+ 	},
+ 	.size	= EDID_LENGTH,
+@@ -2133,7 +2132,6 @@ static struct bin_attribute edid1_attr =
+ static struct bin_attribute edid2_attr = {
+ 	.attr   = {
+ 		.name	= "edid2",
+-		.owner	= THIS_MODULE,
+ 		.mode	= 0444,
+ 	},
+ 	.size	= EDID_LENGTH,
+diff -puN drivers/video/backlight/backlight.c~sysfs-kill-unnecessary-attribute-owner drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/video/backlight/backlight.c
+@@ -172,7 +172,7 @@ static struct class backlight_class = {
+ 
+ #define DECLARE_ATTR(_name,_mode,_show,_store)			\
+ {							 	\
+-	.attr	= { .name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE },	\
++	.attr	= { .name = __stringify(_name), .mode = _mode }, \
+ 	.show	= _show,					\
+ 	.store	= _store,					\
+ }
+diff -puN drivers/video/backlight/lcd.c~sysfs-kill-unnecessary-attribute-owner drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/video/backlight/lcd.c
+@@ -157,7 +157,7 @@ static struct class lcd_class = {
+ 
+ #define DECLARE_ATTR(_name,_mode,_show,_store)			\
+ {							 	\
+-	.attr	= { .name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE },	\
++	.attr	= { .name = __stringify(_name), .mode = _mode }, \
+ 	.show	= _show,					\
+ 	.store	= _store,					\
+ }
+diff -puN drivers/w1/slaves/w1_ds2433.c~sysfs-kill-unnecessary-attribute-owner drivers/w1/slaves/w1_ds2433.c
+--- a/drivers/w1/slaves/w1_ds2433.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/w1/slaves/w1_ds2433.c
+@@ -252,7 +252,6 @@ static struct bin_attribute w1_f23_bin_a
+ 	.attr = {
+ 		.name = "eeprom",
+ 		.mode = S_IRUGO | S_IWUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = W1_EEPROM_SIZE,
+ 	.read = w1_f23_read_bin,
+diff -puN drivers/w1/slaves/w1_therm.c~sysfs-kill-unnecessary-attribute-owner drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -48,7 +48,6 @@ static struct bin_attribute w1_therm_bin
+ 	.attr = {
+ 		.name = "w1_slave",
+ 		.mode = S_IRUGO,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = W1_SLAVE_DATA_SIZE,
+ 	.read = w1_therm_read_bin,
+diff -puN drivers/w1/w1.c~sysfs-kill-unnecessary-attribute-owner drivers/w1/w1.c
+--- a/drivers/w1/w1.c~sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/w1/w1.c
+@@ -128,7 +128,6 @@ static struct bin_attribute w1_slave_att
+       .attr = {
+               .name = "id",
+               .mode = S_IRUGO,
+-              .owner = THIS_MODULE,
+       },
+       .size = 8,
+       .read = w1_slave_read_id,
+@@ -167,7 +166,6 @@ static struct bin_attribute w1_default_a
+       .attr = {
+               .name = "rw",
+               .mode = S_IRUGO | S_IWUSR,
+-              .owner = THIS_MODULE,
+       },
+       .size = PAGE_SIZE,
+       .read = w1_default_read,
+diff -puN fs/ecryptfs/main.c~sysfs-kill-unnecessary-attribute-owner fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~sysfs-kill-unnecessary-attribute-owner
++++ a/fs/ecryptfs/main.c
+@@ -842,8 +842,6 @@ static int __init ecryptfs_init(void)
+ 		goto out;
+ 	}
+ 	kset_set_kset_s(&ecryptfs_subsys, fs_subsys);
+-	sysfs_attr_version.attr.owner = THIS_MODULE;
+-	sysfs_attr_version_str.attr.owner = THIS_MODULE;
+ 	rc = do_sysfs_registration();
+ 	if (rc) {
+ 		printk(KERN_ERR "sysfs registration failed\n");
+diff -puN fs/ocfs2/cluster/masklog.c~sysfs-kill-unnecessary-attribute-owner fs/ocfs2/cluster/masklog.c
+--- a/fs/ocfs2/cluster/masklog.c~sysfs-kill-unnecessary-attribute-owner
++++ a/fs/ocfs2/cluster/masklog.c
+@@ -74,7 +74,6 @@ struct mlog_attribute {
+ #define define_mask(_name) {			\
+ 	.attr = {				\
+ 		.name = #_name,			\
+-		.owner = THIS_MODULE,		\
+ 		.mode = S_IRUGO | S_IWUSR,	\
+ 	},					\
+ 	.mask = ML_##_name,			\
+diff -puN fs/partitions/check.c~sysfs-kill-unnecessary-attribute-owner fs/partitions/check.c
+--- a/fs/partitions/check.c~sysfs-kill-unnecessary-attribute-owner
++++ a/fs/partitions/check.c
+@@ -393,7 +393,6 @@ void add_partition(struct gendisk *disk,
+ 		static struct attribute addpartattr = {
+ 			.name = "whole_disk",
+ 			.mode = S_IRUSR | S_IRGRP | S_IROTH,
+-			.owner = THIS_MODULE,
+ 		};
+ 
+ 		sysfs_create_file(&p->kobj, &addpartattr);
+diff -puN fs/sysfs/bin.c~sysfs-kill-unnecessary-attribute-owner fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-kill-unnecessary-attribute-owner
++++ a/fs/sysfs/bin.c
+@@ -175,25 +175,20 @@ static int open(struct inode * inode, st
+ 	if (!sysfs_get_active(attr_sd))
+ 		return -ENODEV;
+ 
+-	/* Grab the module reference for this attribute */
+-	error = -ENODEV;
+-	if (!try_module_get(attr->attr.owner))
+-		goto err_sput;
+-
+ 	error = -EACCES;
+ 	if ((file->f_mode & FMODE_WRITE) && !(attr->write || attr->mmap))
+-		goto err_mput;
++		goto err_out;
+ 	if ((file->f_mode & FMODE_READ) && !(attr->read || attr->mmap))
+-		goto err_mput;
++		goto err_out;
+ 
+ 	error = -ENOMEM;
+ 	bb = kzalloc(sizeof(*bb), GFP_KERNEL);
+ 	if (!bb)
+-		goto err_mput;
++		goto err_out;
+ 
+ 	bb->buffer = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 	if (!bb->buffer)
+-		goto err_mput;
++		goto err_out;
+ 
+ 	mutex_init(&bb->mutex);
+ 	file->private_data = bb;
+@@ -203,9 +198,7 @@ static int open(struct inode * inode, st
+ 	sysfs_get(attr_sd);
+ 	return 0;
+ 
+- err_mput:
+-	module_put(attr->attr.owner);
+- err_sput:
++ err_out:
+ 	sysfs_put_active(attr_sd);
+ 	kfree(bb);
+ 	return error;
+@@ -214,13 +207,11 @@ static int open(struct inode * inode, st
+ static int release(struct inode * inode, struct file * file)
+ {
+ 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+-	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
+ 	struct bin_buffer *bb = file->private_data;
+ 
+ 	if (bb->mmapped)
+ 		sysfs_put_active_two(attr_sd);
+ 	sysfs_put(attr_sd);
+-	module_put(attr->attr.owner);
+ 	kfree(bb->buffer);
+ 	kfree(bb);
+ 	return 0;
+diff -puN fs/sysfs/file.c~sysfs-kill-unnecessary-attribute-owner fs/sysfs/file.c
+--- a/fs/sysfs/file.c~sysfs-kill-unnecessary-attribute-owner
++++ a/fs/sysfs/file.c
+@@ -271,7 +271,6 @@ sysfs_write_file(struct file *file, cons
+ static int sysfs_open_file(struct inode *inode, struct file *file)
+ {
+ 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+-	struct attribute *attr = attr_sd->s_elem.attr.attr;
+ 	struct kobject *kobj = attr_sd->s_parent->s_elem.dir.kobj;
+ 	struct sysfs_buffer * buffer;
+ 	struct sysfs_ops * ops = NULL;
+@@ -281,11 +280,6 @@ static int sysfs_open_file(struct inode 
+ 	if (!sysfs_get_active_two(attr_sd))
+ 		return -ENODEV;
+ 
+-	/* Grab the module reference for this attribute */
+-	error = -ENODEV;
+-	if (!try_module_get(attr->owner))
+-		goto err_sput;
+-
+ 	/* if the kobject has no ktype, then we assume that it is a subsystem
+ 	 * itself, and use ops for it.
+ 	 */
+@@ -302,7 +296,7 @@ static int sysfs_open_file(struct inode 
+ 	 * or the subsystem have no operations.
+ 	 */
+ 	if (!ops)
+-		goto err_mput;
++		goto err_out;
+ 
+ 	/* File needs write support.
+ 	 * The inode's perms must say it's ok, 
+@@ -310,7 +304,7 @@ static int sysfs_open_file(struct inode 
+ 	 */
+ 	if (file->f_mode & FMODE_WRITE) {
+ 		if (!(inode->i_mode & S_IWUGO) || !ops->store)
+-			goto err_mput;
++			goto err_out;
+ 	}
+ 
+ 	/* File needs read support.
+@@ -319,7 +313,7 @@ static int sysfs_open_file(struct inode 
+ 	 */
+ 	if (file->f_mode & FMODE_READ) {
+ 		if (!(inode->i_mode & S_IRUGO) || !ops->show)
+-			goto err_mput;
++			goto err_out;
+ 	}
+ 
+ 	/* No error? Great, allocate a buffer for the file, and store it
+@@ -328,7 +322,7 @@ static int sysfs_open_file(struct inode 
+ 	error = -ENOMEM;
+ 	buffer = kzalloc(sizeof(struct sysfs_buffer), GFP_KERNEL);
+ 	if (!buffer)
+-		goto err_mput;
++		goto err_out;
+ 
+ 	init_MUTEX(&buffer->sem);
+ 	buffer->needs_read_fill = 1;
+@@ -340,9 +334,7 @@ static int sysfs_open_file(struct inode 
+ 	sysfs_get(attr_sd);
+ 	return 0;
+ 
+- err_mput:
+-	module_put(attr->owner);
+- err_sput:
++ err_out:
+ 	sysfs_put_active_two(attr_sd);
+ 	return error;
+ }
+@@ -350,12 +342,9 @@ static int sysfs_open_file(struct inode 
+ static int sysfs_release(struct inode * inode, struct file * filp)
+ {
+ 	struct sysfs_dirent *attr_sd = filp->f_path.dentry->d_fsdata;
+-	struct attribute *attr = attr_sd->s_elem.attr.attr;
+ 	struct sysfs_buffer *buffer = filp->private_data;
+ 
+ 	sysfs_put(attr_sd);
+-	/* After this point, attr should not be accessed. */
+-	module_put(attr->owner);
+ 
+ 	if (buffer) {
+ 		if (buffer->page)
+diff -puN include/linux/sysdev.h~sysfs-kill-unnecessary-attribute-owner include/linux/sysdev.h
+--- a/include/linux/sysdev.h~sysfs-kill-unnecessary-attribute-owner
++++ a/include/linux/sysdev.h
+@@ -100,8 +100,7 @@ struct sysdev_attribute { 
+ 
+ #define _SYSDEV_ATTR(_name,_mode,_show,_store)			\
+ {								\
+-	.attr = { .name = __stringify(_name), .mode = _mode,	\
+-		 .owner = THIS_MODULE },			\
++	.attr = { .name = __stringify(_name), .mode = _mode },	\
+ 	.show	= _show,					\
+ 	.store	= _store,					\
+ }
+diff -puN include/linux/sysfs.h~sysfs-kill-unnecessary-attribute-owner include/linux/sysfs.h
+--- a/include/linux/sysfs.h~sysfs-kill-unnecessary-attribute-owner
++++ a/include/linux/sysfs.h
+@@ -22,7 +22,6 @@ struct dentry;
+ 
+ struct attribute {
+ 	const char		* name;
+-	struct module 		* owner;
+ 	mode_t			mode;
+ };
+ 
+@@ -39,14 +38,14 @@ struct attribute_group {
+  */
+ 
+ #define __ATTR(_name,_mode,_show,_store) { \
+-	.attr = {.name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE },	\
++	.attr = {.name = __stringify(_name), .mode = _mode },	\
+ 	.show	= _show,					\
+ 	.store	= _store,					\
+ }
+ 
+ #define __ATTR_RO(_name) { \
+-	.attr	= { .name = __stringify(_name), .mode = 0444, .owner = THIS_MODULE },	\
+-	.show	= _name##_show,	\
++	.attr	= { .name = __stringify(_name), .mode = 0444 },	\
++	.show	= _name##_show,					\
+ }
+ 
+ #define __ATTR_NULL { .attr = { .name = NULL } }
+diff -puN kernel/module.c~sysfs-kill-unnecessary-attribute-owner kernel/module.c
+--- a/kernel/module.c~sysfs-kill-unnecessary-attribute-owner
++++ a/kernel/module.c
+@@ -485,8 +485,7 @@ static void free_modinfo_##field(struct 
+         mod->field = NULL;                                            \
+ }                                                                     \
+ static struct module_attribute modinfo_##field = {                    \
+-	.attr = { .name = __stringify(field), .mode = 0444,           \
+-		  .owner = THIS_MODULE },                             \
++	.attr = { .name = __stringify(field), .mode = 0444 },         \
+ 	.show = show_modinfo_##field,                                 \
+ 	.setup = setup_modinfo_##field,                               \
+ 	.test = modinfo_##field##_exists,                             \
+@@ -790,7 +789,7 @@ static ssize_t show_refcnt(struct module
+ }
+ 
+ static struct module_attribute refcnt = {
+-	.attr = { .name = "refcnt", .mode = 0444, .owner = THIS_MODULE },
++	.attr = { .name = "refcnt", .mode = 0444 },
+ 	.show = show_refcnt,
+ };
+ 
+@@ -848,7 +847,7 @@ static ssize_t show_initstate(struct mod
+ }
+ 
+ static struct module_attribute initstate = {
+-	.attr = { .name = "initstate", .mode = 0444, .owner = THIS_MODULE },
++	.attr = { .name = "initstate", .mode = 0444 },
+ 	.show = show_initstate,
+ };
+ 
+@@ -1029,7 +1028,6 @@ static void add_sect_attrs(struct module
+ 		sattr->mattr.show = module_sect_show;
+ 		sattr->mattr.store = NULL;
+ 		sattr->mattr.attr.name = sattr->name;
+-		sattr->mattr.attr.owner = mod;
+ 		sattr->mattr.attr.mode = S_IRUGO;
+ 		*(gattr++) = &(sattr++)->mattr.attr;
+ 	}
+@@ -1087,7 +1085,6 @@ int module_add_modinfo_attrs(struct modu
+ 		if (!attr->test ||
+ 		    (attr->test && attr->test(mod))) {
+ 			memcpy(temp_attr, attr, sizeof(*temp_attr));
+-			temp_attr->attr.owner = mod;
+ 			error = sysfs_create_file(&mod->mkobj.kobj,&temp_attr->attr);
+ 			++temp_attr;
+ 		}
+diff -puN kernel/params.c~sysfs-kill-unnecessary-attribute-owner kernel/params.c
+--- a/kernel/params.c~sysfs-kill-unnecessary-attribute-owner
++++ a/kernel/params.c
+@@ -491,7 +491,6 @@ param_sysfs_setup(struct module_kobject 
+ 			pattr->mattr.show = param_attr_show;
+ 			pattr->mattr.store = param_attr_store;
+ 			pattr->mattr.attr.name = (char *)&kp->name[name_skip];
+-			pattr->mattr.attr.owner = mk->mod;
+ 			pattr->mattr.attr.mode = kp->perm;
+ 			*(gattr++) = &(pattr++)->mattr.attr;
+ 		}
+diff -puN net/bridge/br_sysfs_br.c~sysfs-kill-unnecessary-attribute-owner net/bridge/br_sysfs_br.c
+--- a/net/bridge/br_sysfs_br.c~sysfs-kill-unnecessary-attribute-owner
++++ a/net/bridge/br_sysfs_br.c
+@@ -365,8 +365,7 @@ static ssize_t brforward_read(struct kob
+ 
+ static struct bin_attribute bridge_forward = {
+ 	.attr = { .name = SYSFS_BRIDGE_FDB,
+-		  .mode = S_IRUGO,
+-		  .owner = THIS_MODULE, },
++		  .mode = S_IRUGO, },
+ 	.read = brforward_read,
+ };
+ 
+diff -puN net/bridge/br_sysfs_if.c~sysfs-kill-unnecessary-attribute-owner net/bridge/br_sysfs_if.c
+--- a/net/bridge/br_sysfs_if.c~sysfs-kill-unnecessary-attribute-owner
++++ a/net/bridge/br_sysfs_if.c
+@@ -29,8 +29,7 @@ struct brport_attribute {
+ #define BRPORT_ATTR(_name,_mode,_show,_store)		        \
+ struct brport_attribute brport_attr_##_name = { 	        \
+ 	.attr = {.name = __stringify(_name), 			\
+-		 .mode = _mode, 				\
+-		 .owner = THIS_MODULE, },			\
++		 .mode = _mode },				\
+ 	.show	= _show,					\
+ 	.store	= _store,					\
+ };
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-fix-kernel-oops-with-badly-formatted-module-option.patch
-git-kbuild.patch
-git-net.patch
-paravirt_ops-update-maintainers.patch
-paravirt_ops-remove-config_debug_paravirt.patch
-paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
-paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
-paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
-paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
-paravirt_ops-document-asm-i386-paravirth.patch
-paravirt_ops-add-common-patching-machinery.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-allow-boot-time-disable-of-paravirt_ops-patching.patch
-allow-per-cpu-variables-to-be-page-aligned.patch
-xfs-clean-up-shrinker-games.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-extend-print_symbol-capability.patch
-extend-print_symbol-capability-fix.patch
-array_size-check-for-type.patch
-array_size-check-for-type-uml-fix.patch
-module-use-krealloc.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-simplify-module_get_kallsym-by-dropping-length-arg.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-simplify-kallsyms_lookup.patch
-fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
-fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
-expose-range-checking-functions-from-arch-specific.patch
-____call_usermodehelper-dont-flush_signals.patch
-lguest-the-guest-code.patch
-lguest-the-host-code.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+origin.patch
+revert-gregkh-driver-sysfs-crash-debugging.patch
+sysfs-fix-i_ino-handling-in-sysfs.patch
+sysfs-fix-error-handling-in-binattr-write.patch
+sysfs-move-release_sysfs_dirent-to-dirc.patch
+sysfs-flatten-cleanup-paths-in-sysfs_add_link-and-create_dir.patch
+sysfs-consolidate-sysfs_dirent-creation-functions.patch
+sysfs-add-sysfs_dirent-s_parent.patch
+sysfs-add-sysfs_dirent-s_name.patch
+sysfs-make-sysfs_dirent-s_element-a-union.patch
+sysfs-implement-kobj_sysfs_assoc_lock.patch
+sysfs-reimplement-symlink-using-sysfs_dirent-tree.patch
+sysfs-implement-bin_buffer.patch
+sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect.patch
+sysfs-kill-attribute-file-orphaning.patch
+sysfs-kill-unnecessary-attribute-owner.patch
+sysfs-kill-unnecessary-attribute-owner-fix.patch
+git-libata-all.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+optional-led-trigger-for-libata.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+git-scsi-misc.patch
+introduce-config_has_dma.patch
