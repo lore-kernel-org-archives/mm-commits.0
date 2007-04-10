@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-tidy-4.patch added to -mm tree
-Date: Tue, 10 Apr 2007 13:08:40 -0700
-Message-ID: <200704102008.l3AK8elP016158@shell0.pdx.osdl.net>
+Subject: + slub-core-tidy-6.patch added to -mm tree
+Date: Tue, 10 Apr 2007 13:14:24 -0700
+Message-ID: <200704102014.l3AKERUM016271@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43411 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43520 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030427AbXDJUIo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 16:08:44 -0400
+	id S1030457AbXDJUOc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 16:14:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     slub-core-tidy-4
+     slub-core-tidy-6
 has been added to the -mm tree.  Its filename is
-     slub-core-tidy-4.patch
+     slub-core-tidy-6.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-core-tidy-4
+Subject: slub-core-tidy-6
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-core-tidy-4 mm/slub.c
---- a/mm/slub.c~slub-core-tidy-4
+diff -puN mm/slub.c~slub-core-tidy-6 mm/slub.c
+--- a/mm/slub.c~slub-core-tidy-6
 +++ a/mm/slub.c
-@@ -755,7 +755,7 @@ static struct page *new_slab(struct kmem
- 		memset(start, POISON_INUSE, PAGE_SIZE << s->order);
+@@ -1384,7 +1384,6 @@ static unsigned long calculate_alignment
+ 	return ALIGN(align, sizeof(void *));
+ }
  
- 	last = start;
--	for(p = start + s->size; p < end; p += s->size) {
-+	for (p = start + s->size; p < end; p += s->size) {
- 		setup_object(s, page, last);
- 		set_freepointer(s, last, p);
- 		last = p;
+-
+ static void init_kmem_cache_node(struct kmem_cache_node *n)
+ {
+ 	n->nr_partial = 0;
+@@ -1402,13 +1401,14 @@ static void init_kmem_cache_node(struct 
+  * Note that this function only works on the kmalloc_node_cache
+  * when allocating for the kmalloc_node_cache.
+  */
+-struct kmem_cache_node * __init early_kmem_cache_node_alloc(
+-					gfp_t gfpflags, int node)
++struct kmem_cache_node * __init early_kmem_cache_node_alloc(gfp_t gfpflags,
++								int node)
+ {
+ 	struct page *page;
+ 	struct kmem_cache_node *n;
+ 
+ 	BUG_ON(kmalloc_caches->size < sizeof(struct kmem_cache_node));
++
+ 	page = new_slab(kmalloc_caches, gfpflags | GFP_THISNODE, node);
+ 	/* new_slab() disables interupts */
+ 	local_irq_enable();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,6 +141,8 @@ slub-core-tidy.patch
 slub-core-tidy-2.patch
 slub-core-tidy-3.patch
 slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
 slub-enable-tracking-of-full-slabs-fix.patch
 driver_bfin_serial_core-update.patch
 uml-driver-formatting-fixes-fix.patch
