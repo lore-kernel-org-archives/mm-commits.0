@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-add-explanation-for-locking-fix.patch added to -mm tree
-Date: Tue, 10 Apr 2007 14:56:05 -0700
-Message-ID: <200704102156.l3ALu5m3018567@shell0.pdx.osdl.net>
+Subject: + sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch added to -mm tree
+Date: Tue, 10 Apr 2007 14:59:00 -0700
+Message-ID: <200704102159.l3ALx5RD018614@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47871 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:48142 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753840AbXDJV4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 17:56:09 -0400
+	id S1753930AbXDJV7j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 17:59:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com
+Cc: dada1@cosmosbay.com, pierre.peiffer@bull.net
 
 
 The patch titled
-     slub-core-add-explanation-for-locking-fix
+     get_futex_key() must check proper alignement for 64bit futexes
 has been added to the -mm tree.  Its filename is
-     slub-core-add-explanation-for-locking-fix.patch
+     sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,203 +25,304 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-core-add-explanation-for-locking-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: get_futex_key() must check proper alignement for 64bit futexes
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+get_futex_key() does an alignment check against sizeof(u32) regardless of
+futex being 64bits or not.
+
+So it is possible a 64bit futex spans two pages of memory, and some
+malicious user code can trigger data corruption.
+
+We must add a 'fsize' parameter to get_futex_key(), telling it the size of
+the futex (4 or 8 bytes)
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Pierre Peiffer <pierre.peiffer@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/futex.h |    2 -
+ kernel/futex.c        |   78 ++++++++++++++++++++++++++--------------
+ 2 files changed, 52 insertions(+), 28 deletions(-)
 
-diff -puN mm/slub.c~slub-core-add-explanation-for-locking-fix mm/slub.c
---- a/mm/slub.c~slub-core-add-explanation-for-locking-fix
-+++ a/mm/slub.c
-@@ -28,7 +28,7 @@
+diff -puN include/linux/futex.h~sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes include/linux/futex.h
+--- a/include/linux/futex.h~sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
++++ a/include/linux/futex.h
+@@ -135,7 +135,7 @@ union futex_key {
+ 		int offset;
+ 	} both;
+ };
+-int get_futex_key(void __user *uaddr, union futex_key *key);
++int get_futex_key(void __user *uaddr, int size, union futex_key *key);
+ void get_futex_key_refs(union futex_key *key);
+ void drop_futex_key_refs(union futex_key *key);
+ 
+diff -puN kernel/futex.c~sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes kernel/futex.c
+--- a/kernel/futex.c~sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
++++ a/kernel/futex.c
+@@ -189,19 +189,22 @@ static inline int match_futex(union fute
+ 		&& key1->both.offset == key2->both.offset);
+ }
+ 
+-/*
+- * Get parameters which are the keys for a futex.
++/**
++ * get_futex_key - Get parameters which are the keys for a futex.
++ * @uaddr: virtual address of the futex
++ * @size: size of futex (4 or 8)
++ * @key: address where result is stored.
++ *
++ * Returns a negative error code or 0
++ * The key words are stored in *key on success.
   *
-  *   The slab_lock protects operations on the object of a particular
-  *   slab and its metadata in the page struct. If the slab lock
-- *   has been taken the no allocations nor frees can be performed
-+ *   has been taken then no allocations nor frees can be performed
-  *   on the objects in the slab nor can the slab be added or removed
-  *   from the partial or full lists since this would mean modifying
-  *   the page_struct of the slab.
-@@ -48,19 +48,19 @@
-  *   off a list. We take the list_lock and then look for a page on the list
-  *   to use. While we do that objects in the slabs may be freed so we can
-  *   only operate on the slab if we have also taken the slab_lock. So we use
-- *   a slab_try_lock() on the page. If trylock was successful then no frees
-+ *   a slab_trylock() on the page. If trylock was successful then no frees
-  *   can occur anymore and we can use the slab for allocations etc. If the
-- *   slab_try_lock does not succeed then frees are occur to the slab and
-- *   we better stay away from it for awhile since we may cause a bouncing
-- *   cacheline if we would try to acquire the lock. So go onto the next slab.
-+ *   slab_trylock() does not succeed then frees are in progress in the slab and
-+ *   we must stay away from it for a while since we may cause a bouncing
-+ *   cacheline if we try to acquire the lock. So go onto the next slab.
-  *   If all pages are busy then we may allocate a new slab instead of reusing
-- *   a partial slab. A new slab has no one operating on it and thus there is
-+ *   a partial slab. A new slab has noone operating on it and thus there is
-  *   no danger of cacheline contention.
+  * For shared mappings, it's (page->index, vma->vm_file->f_path.dentry->d_inode,
+  * offset_within_page).  For private mappings, it's (uaddr, current->mm).
+  * We can usually work out the index without swapping in the page.
   *
-  *   Interrupts are disabled during allocation and deallocation in order to
-  *   make the slab allocator safe to use in the context of an irq. In addition
-- *   interrupts are disabled to insure that the processor does not change
-- *   while handling per_cpu slabs.
-+ *   interrupts are disabled to ensure that the processor does not change
-+ *   while handling per_cpu slabs, due to kernel preemption.
-  *
-  * SLUB assigns one slab for allocation to each processor.
-  * Allocations only occur from these slabs called cpu slabs.
+- * Returns: 0, or negative error code.
+- * The key words are stored in *key on success.
+- *
+  * Should be called with &current->mm->mmap_sem but NOT any spinlocks.
+  */
+-int get_futex_key(void __user *uaddr, union futex_key *key)
++int get_futex_key(void __user *uaddr, int size, union futex_key *key)
+ {
+ 	unsigned long address = (unsigned long)uaddr;
+ 	struct mm_struct *mm = current->mm;
+@@ -213,7 +216,7 @@ int get_futex_key(void __user *uaddr, un
+ 	 * The futex address must be "naturally" aligned.
+ 	 */
+ 	key->both.offset = address % PAGE_SIZE;
+-	if (unlikely((key->both.offset % sizeof(u32)) != 0))
++	if (unlikely((key->both.offset & (size - 1)) != 0))
+ 		return -EINVAL;
+ 	address -= key->both.offset;
+ 
+@@ -705,17 +708,18 @@ double_lock_hb(struct futex_hash_bucket 
+  * Wake up all waiters hashed on the physical page that is mapped
+  * to this virtual address:
+  */
+-static int futex_wake(unsigned long __user *uaddr, int nr_wake)
++static int futex_wake(unsigned long __user *uaddr, int futex64, int nr_wake)
+ {
+ 	struct futex_hash_bucket *hb;
+ 	struct futex_q *this, *next;
+ 	struct plist_head *head;
+ 	union futex_key key;
+ 	int ret;
++	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
+ 
+ 	down_read(&current->mm->mmap_sem);
+ 
+-	ret = get_futex_key(uaddr, &key);
++	ret = get_futex_key(uaddr, fsize, &key);
+ 	if (unlikely(ret != 0))
+ 		goto out;
+ 
+@@ -817,6 +821,7 @@ futex_requeue_pi(unsigned long __user *u
+ 	struct rt_mutex_waiter *waiter, *top_waiter = NULL;
+ 	struct rt_mutex *lock2 = NULL;
+ 	int ret, drop_count = 0;
++	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
+ 
+ 	if (refill_pi_state_cache())
+ 		return -ENOMEM;
+@@ -827,10 +832,10 @@ retry:
+ 	 */
+ 	down_read(&current->mm->mmap_sem);
+ 
+-	ret = get_futex_key(uaddr1, &key1);
++	ret = get_futex_key(uaddr1, fsize, &key1);
+ 	if (unlikely(ret != 0))
+ 		goto out;
+-	ret = get_futex_key(uaddr2, &key2);
++	ret = get_futex_key(uaddr2, fsize, &key2);
+ 	if (unlikely(ret != 0))
+ 		goto out;
+ 
+@@ -1005,14 +1010,15 @@ futex_wake_op(unsigned long __user *uadd
+ 	struct plist_head *head;
+ 	struct futex_q *this, *next;
+ 	int ret, op_ret, attempt = 0;
++	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
+ 
+ retryfull:
+ 	down_read(&current->mm->mmap_sem);
+ 
+-	ret = get_futex_key(uaddr1, &key1);
++	ret = get_futex_key(uaddr1, fsize, &key1);
+ 	if (unlikely(ret != 0))
+ 		goto out;
+-	ret = get_futex_key(uaddr2, &key2);
++	ret = get_futex_key(uaddr2, fsize, &key2);
+ 	if (unlikely(ret != 0))
+ 		goto out;
+ 
+@@ -1125,14 +1131,15 @@ futex_requeue(unsigned long __user *uadd
+ 	struct plist_head *head1;
+ 	struct futex_q *this, *next;
+ 	int ret, drop_count = 0;
++	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
+ 
+  retry:
+ 	down_read(&current->mm->mmap_sem);
+ 
+-	ret = get_futex_key(uaddr1, &key1);
++	ret = get_futex_key(uaddr1, fsize, &key1);
+ 	if (unlikely(ret != 0))
+ 		goto out;
+-	ret = get_futex_key(uaddr2, &key2);
++	ret = get_futex_key(uaddr2, fsize, &key2);
+ 	if (unlikely(ret != 0))
+ 		goto out;
+ 
+@@ -1390,9 +1397,15 @@ static int fixup_pi_state_owner(unsigned
+ 	return ret;
+ }
+ 
++/*
++ * In case we must use restart_block to restart a futex_wait,
++ * we encode in the 'arg3' futex64 capability
++ */
++#define ARG3_FUTEX64 1
++
+ static long futex_wait_restart(struct restart_block *restart);
+-static int futex_wait(unsigned long __user *uaddr, unsigned long val,
+-		      ktime_t *abs_time, int futex64)
++static int futex_wait(unsigned long __user *uaddr, int futex64,
++		      unsigned long val, ktime_t *abs_time)
+ {
+ 	struct task_struct *curr = current;
+ 	DECLARE_WAITQUEUE(wait, curr);
+@@ -1402,12 +1415,13 @@ static int futex_wait(unsigned long __us
+ 	int ret;
+ 	struct hrtimer_sleeper t, *to = NULL;
+ 	int rem = 0;
++	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
+ 
+ 	q.pi_state = NULL;
+  retry:
+ 	down_read(&curr->mm->mmap_sem);
+ 
+-	ret = get_futex_key(uaddr, &q.key);
++	ret = get_futex_key(uaddr, fsize, &q.key);
+ 	if (unlikely(ret != 0))
+ 		goto out_release_sem;
+ 
+@@ -1597,7 +1611,11 @@ static int futex_wait(unsigned long __us
+ 		restart->arg0 = (unsigned long)uaddr;
+ 		restart->arg1 = val;
+ 		restart->arg2 = (unsigned long)abs_time;
+-		restart->arg3 = (unsigned long)futex64;
++		restart->arg3 = 0;
++#ifdef CONFIG_64BIT
++		if (futex64)
++			restart->arg3 |= ARG3_FUTEX64;
++#endif
+ 		return -ERESTART_RESTARTBLOCK;
+ 	}
+ 
+@@ -1615,10 +1633,14 @@ static long futex_wait_restart(struct re
+ 	unsigned long __user *uaddr = (unsigned long __user *)restart->arg0;
+ 	unsigned long val = restart->arg1;
+ 	ktime_t *abs_time = (ktime_t *)restart->arg2;
+-	int futex64 = (int)restart->arg3;
++	int futex64 = 0;
+ 
++#ifdef CONFIG_64BIT
++	if (restart->arg3 & ARG3_FUTEX64)
++		futex64 = 1;
++#endif
+ 	restart->fn = do_no_restart_syscall;
+-	return (long)futex_wait(uaddr, val, abs_time, futex64);
++	return (long)futex_wait(uaddr, futex64, val, abs_time);
+ }
+ 
+ 
+@@ -1682,6 +1704,7 @@ static int futex_lock_pi(unsigned long _
+ 	unsigned long uval, newval, curval;
+ 	struct futex_q q;
+ 	int ret, lock_held, attempt = 0;
++	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
+ 
+ 	if (refill_pi_state_cache())
+ 		return -ENOMEM;
+@@ -1697,7 +1720,7 @@ static int futex_lock_pi(unsigned long _
+  retry:
+ 	down_read(&curr->mm->mmap_sem);
+ 
+-	ret = get_futex_key(uaddr, &q.key);
++	ret = get_futex_key(uaddr, fsize, &q.key);
+ 	if (unlikely(ret != 0))
+ 		goto out_release_sem;
+ 
+@@ -1907,6 +1930,7 @@ static int futex_unlock_pi(unsigned long
+ 	struct plist_head *head;
+ 	union futex_key key;
+ 	int ret, attempt = 0;
++	int fsize = futex64 ? sizeof(u64) : sizeof(u32);
+ 
+ retry:
+ 	if (futex_get_user(&uval, uaddr, futex64))
+@@ -1921,7 +1945,7 @@ retry:
+ 	 */
+ 	down_read(&current->mm->mmap_sem);
+ 
+-	ret = get_futex_key(uaddr, &key);
++	ret = get_futex_key(uaddr, fsize, &key);
+ 	if (unlikely(ret != 0))
+ 		goto out;
+ 
+@@ -2094,7 +2118,7 @@ static int futex_fd(u32 __user *uaddr, i
+ 	q->pi_state = NULL;
+ 
+ 	down_read(&current->mm->mmap_sem);
+-	err = get_futex_key(uaddr, &q->key);
++	err = get_futex_key(uaddr, sizeof(u32), &q->key);
+ 
+ 	if (unlikely(err != 0)) {
+ 		up_read(&current->mm->mmap_sem);
+@@ -2238,7 +2262,7 @@ retry:
+ 		 */
+ 		if (!pi) {
+ 			if (uval & FUTEX_WAITERS)
+-				futex_wake((unsigned long __user *)uaddr, 1);
++				futex_wake((unsigned long __user *)uaddr, 0, 1);
+ 		}
+ 	}
+ 	return 0;
+@@ -2329,10 +2353,10 @@ long do_futex(unsigned long __user *uadd
+ 
+ 	switch (op) {
+ 	case FUTEX_WAIT:
+-		ret = futex_wait(uaddr, val, timeout, fut64);
++		ret = futex_wait(uaddr, fut64, val, timeout);
+ 		break;
+ 	case FUTEX_WAKE:
+-		ret = futex_wake(uaddr, val);
++		ret = futex_wake(uaddr, fut64, val);
+ 		break;
+ 	case FUTEX_FD:
+ 		if (fut64)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-origin.patch
-x86_64-early-quirks-fix-early_qrk-section-tag.patch
-i386-irqbalance_disable-section-fix.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-avr32.patch
-git-avr32-fixup.patch
-revert-gregkh-driver-sysfs-crash-debugging.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
 git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-git-ocfs2.patch
-git-parisc.patch
-git-r8169-fixup.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-xfs-clean-up-shrinker-games.patch
-pktgen-add-try_to_freeze.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
+x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone.patch
+x86_64-set-node_possible_map-at-runtime.patch
+x86_64-set-node_possible_map-at-runtime-fix.patch
+slab-x86_64-skip-cache_free_alien-on-non-numa.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+slab-dont-allocate-empty-shared-caches.patch
+slab-numa-kmem_cache-diet.patch
+optimize-timespec_trunc.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+vfs-delay-the-dentry-name-generation-on-sockets-and.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
 time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
