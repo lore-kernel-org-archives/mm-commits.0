@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-implement-bin_buffer.patch added to -mm tree
-Date: Tue, 10 Apr 2007 13:47:52 -0700
-Message-ID: <200704102047.l3AKlqQn016956@shell0.pdx.osdl.net>
+Subject: + git-s390-fixup.patch added to -mm tree
+Date: Tue, 10 Apr 2007 13:54:52 -0700
+Message-ID: <200704102054.l3AKsqlj017099@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44789 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45008 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030656AbXDJUs1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 16:48:27 -0400
+	id S1030636AbXDJUyy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 16:54:54 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l3AKsqVZ011136
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 10 Apr 2007 13:54:52 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     sysfs: implement bin_buffer
+     git-s390-fixup
 has been added to the -mm tree.  Its filename is
-     sysfs-implement-bin_buffer.patch
+     git-s390-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,201 +29,282 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysfs: implement bin_buffer
-From: Tejun Heo <htejun@gmail.com>
+Subject: git-s390-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Implement bin_buffer which contains a mutex and pointer to PAGE_SIZE buffer to
-properly synchronize accesses to per-openfile buffer and prepare for
-immediate-kobj-disconnect.
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Cc: Maneesh Soni <maneesh@in.ibm.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |   64 +++++++++++++++++++++++++++++++++++------------
- 1 files changed, 49 insertions(+), 15 deletions(-)
+ drivers/s390/cio/chsc.c |  107 --------------------------------------
+ 1 files changed, 107 deletions(-)
 
-diff -puN fs/sysfs/bin.c~sysfs-implement-bin_buffer fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~sysfs-implement-bin_buffer
-+++ a/fs/sysfs/bin.c
-@@ -20,6 +20,11 @@
- 
- #include "sysfs.h"
- 
-+struct bin_buffer {
-+	struct mutex	mutex;
-+	void		*buffer;
-+};
-+
- static int
- fill_read(struct dentry *dentry, char *buffer, loff_t off, size_t count)
- {
-@@ -36,7 +41,7 @@ fill_read(struct dentry *dentry, char *b
- static ssize_t
- read(struct file *file, char __user *userbuf, size_t bytes, loff_t *off)
- {
--	char *buffer = file->private_data;
-+	struct bin_buffer *bb = file->private_data;
- 	struct dentry *dentry = file->f_path.dentry;
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
-@@ -49,17 +54,23 @@ read(struct file *file, char __user *use
- 			count = size - offs;
- 	}
- 
--	count = fill_read(dentry, buffer, offs, count);
-+	mutex_lock(&bb->mutex);
-+
-+	count = fill_read(dentry, bb->buffer, offs, count);
- 	if (count < 0)
--		return count;
-+		goto out_unlock;
- 
--	if (copy_to_user(userbuf, buffer, count))
--		return -EFAULT;
-+	if (copy_to_user(userbuf, bb->buffer, count)) {
-+		count = -EFAULT;
-+		goto out_unlock;
-+	}
- 
- 	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
- 
- 	*off = offs + count;
- 
-+ out_unlock:
-+	mutex_unlock(&bb->mutex);
- 	return count;
- }
- 
-@@ -79,7 +90,7 @@ flush_write(struct dentry *dentry, char 
- static ssize_t write(struct file *file, const char __user *userbuf,
- 		     size_t bytes, loff_t *off)
- {
--	char *buffer = file->private_data;
-+	struct bin_buffer *bb = file->private_data;
- 	struct dentry *dentry = file->f_path.dentry;
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
-@@ -92,25 +103,38 @@ static ssize_t write(struct file *file, 
- 			count = size - offs;
- 	}
- 
--	if (copy_from_user(buffer, userbuf, count))
--		return -EFAULT;
-+	mutex_lock(&bb->mutex);
-+
-+	if (copy_from_user(bb->buffer, userbuf, count)) {
-+		count = -EFAULT;
-+		goto out_unlock;
-+	}
- 
--	count = flush_write(dentry, buffer, offs, count);
-+	count = flush_write(dentry, bb->buffer, offs, count);
- 	if (count > 0)
- 		*off = offs + count;
-+
-+ out_unlock:
-+	mutex_unlock(&bb->mutex);
- 	return count;
- }
- 
- static int mmap(struct file *file, struct vm_area_struct *vma)
- {
-+	struct bin_buffer *bb = file->private_data;
- 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
- 	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
- 	struct kobject *kobj = to_kobj(file->f_path.dentry->d_parent);
-+	int rc;
- 
- 	if (!attr->mmap)
- 		return -EINVAL;
- 
--	return attr->mmap(kobj, attr, vma);
-+	mutex_lock(&bb->mutex);
-+	rc = attr->mmap(kobj, attr, vma);
-+	mutex_unlock(&bb->mutex);
-+
-+	return rc;
- }
- 
- static int open(struct inode * inode, struct file * file)
-@@ -118,6 +142,7 @@ static int open(struct inode * inode, st
- 	struct kobject *kobj = sysfs_get_kobject(file->f_path.dentry->d_parent);
- 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
- 	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
-+	struct bin_buffer *bb = NULL;
- 	int error = -EINVAL;
- 
- 	if (!kobj || !attr)
-@@ -135,14 +160,22 @@ static int open(struct inode * inode, st
- 		goto Error;
- 
- 	error = -ENOMEM;
--	file->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
--	if (!file->private_data)
-+	bb = kzalloc(sizeof(*bb), GFP_KERNEL);
-+	if (!bb)
- 		goto Error;
- 
-+	bb->buffer = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	if (!bb->buffer)
-+		goto Error;
-+
-+	mutex_init(&bb->mutex);
-+	file->private_data = bb;
-+
- 	error = 0;
--    goto Done;
-+	goto Done;
- 
-  Error:
-+	kfree(bb);
- 	module_put(attr->attr.owner);
-  Done:
- 	if (error)
-@@ -155,11 +188,12 @@ static int release(struct inode * inode,
- 	struct kobject * kobj = to_kobj(file->f_path.dentry->d_parent);
- 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
- 	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
--	u8 * buffer = file->private_data;
-+	struct bin_buffer *bb = file->private_data;
- 
- 	kobject_put(kobj);
- 	module_put(attr->attr.owner);
--	kfree(buffer);
-+	kfree(bb->buffer);
-+	kfree(bb);
+diff -puN drivers/s390/cio/chsc.c~git-s390-fixup drivers/s390/cio/chsc.c
+--- a/drivers/s390/cio/chsc.c~git-s390-fixup
++++ a/drivers/s390/cio/chsc.c
+@@ -764,116 +764,9 @@ int chsc_chp_vary(struct chp_id chpid, i
+ 	if (on)
+ 		/* Scan for new devices on varied on path. */
+ 		for_each_subchannel(__s390_vary_chpid_on, NULL);
+-	if (need_rescan || css_slow_subchannels_exist())
+-		queue_work(slow_path_wq, &slow_path_work);
  	return 0;
  }
  
+-/*
+- * Channel measurement related functions
+- */
+-static ssize_t
+-chp_measurement_chars_read(struct kobject *kobj, char *buf, loff_t off,
+-			   size_t count)
+-{
+-	struct channel_path *chp;
+-	unsigned int size;
+-
+-	chp = to_channelpath(container_of(kobj, struct device, kobj));
+-	if (!chp->cmg_chars)
+-		return 0;
+-
+-	size = sizeof(struct cmg_chars);
+-
+-	if (off > size)
+-		return 0;
+-	if (off + count > size)
+-		count = size - off;
+-	memcpy(buf, chp->cmg_chars + off, count);
+-	return count;
+-}
+-
+-static struct bin_attribute chp_measurement_chars_attr = {
+-	.attr = {
+-		.name = "measurement_chars",
+-		.mode = S_IRUSR,
+-	},
+-	.size = sizeof(struct cmg_chars),
+-	.read = chp_measurement_chars_read,
+-};
+-
+-static void
+-chp_measurement_copy_block(struct cmg_entry *buf,
+-			   struct channel_subsystem *css, int chpid)
+-{
+-	void *area;
+-	struct cmg_entry *entry, reference_buf;
+-	int idx;
+-
+-	if (chpid < 128) {
+-		area = css->cub_addr1;
+-		idx = chpid;
+-	} else {
+-		area = css->cub_addr2;
+-		idx = chpid - 128;
+-	}
+-	entry = area + (idx * sizeof(struct cmg_entry));
+-	do {
+-		memcpy(buf, entry, sizeof(*entry));
+-		memcpy(&reference_buf, entry, sizeof(*entry));
+-	} while (reference_buf.values[0] != buf->values[0]);
+-}
+-
+-static ssize_t
+-chp_measurement_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
+-{
+-	struct channel_path *chp;
+-	struct channel_subsystem *css;
+-	unsigned int size;
+-
+-	chp = to_channelpath(container_of(kobj, struct device, kobj));
+-	css = to_css(chp->dev.parent);
+-
+-	size = sizeof(struct cmg_entry);
+-
+-	/* Only allow single reads. */
+-	if (off || count < size)
+-		return 0;
+-	chp_measurement_copy_block((struct cmg_entry *)buf, css, chp->id);
+-	count = size;
+-	return count;
+-}
+-
+-static struct bin_attribute chp_measurement_attr = {
+-	.attr = {
+-		.name = "measurement",
+-		.mode = S_IRUSR,
+-	},
+-	.size = sizeof(struct cmg_entry),
+-	.read = chp_measurement_read,
+-};
+-
+-static void
+-chsc_remove_chp_cmg_attr(struct channel_path *chp)
+-{
+-	device_remove_bin_file(&chp->dev, &chp_measurement_chars_attr);
+-	device_remove_bin_file(&chp->dev, &chp_measurement_attr);
+-}
+-
+-static int
+-chsc_add_chp_cmg_attr(struct channel_path *chp)
+-{
+-	int ret;
+-
+-	ret = device_create_bin_file(&chp->dev, &chp_measurement_chars_attr);
+-	if (ret)
+-		return ret;
+-	ret = device_create_bin_file(&chp->dev, &chp_measurement_attr);
+-	if (ret)
+-		device_remove_bin_file(&chp->dev, &chp_measurement_chars_attr);
+-	return ret;
+-}
+-
+ static void
+ chsc_remove_cmg_attr(struct channel_subsystem *css)
+ {
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+x86_64-early-quirks-fix-early_qrk-section-tag.patch
+i386-irqbalance_disable-section-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-avr32.patch
+git-avr32-fixup.patch
 revert-gregkh-driver-sysfs-crash-debugging.patch
-sysfs-fix-i_ino-handling-in-sysfs.patch
-sysfs-fix-error-handling-in-binattr-write.patch
-sysfs-move-release_sysfs_dirent-to-dirc.patch
-sysfs-flatten-cleanup-paths-in-sysfs_add_link-and-create_dir.patch
-sysfs-consolidate-sysfs_dirent-creation-functions.patch
-sysfs-add-sysfs_dirent-s_parent.patch
-sysfs-add-sysfs_dirent-s_name.patch
-sysfs-make-sysfs_dirent-s_element-a-union.patch
-sysfs-implement-kobj_sysfs_assoc_lock.patch
-sysfs-reimplement-symlink-using-sysfs_dirent-tree.patch
-sysfs-implement-bin_buffer.patch
-sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect.patch
-sysfs-kill-attribute-file-orphaning.patch
-sysfs-kill-unnecessary-attribute-owner.patch
-sysfs-kill-unnecessary-attribute-owner-fix.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
 git-libata-all.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-optional-led-trigger-for-libata.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
 drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+git-ocfs2.patch
+git-parisc.patch
+git-r8169-fixup.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
 git-scsi-misc.patch
-introduce-config_has_dma.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+xfs-clean-up-shrinker-games.patch
+pktgen-add-try_to_freeze.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-s390-fixup.patch
