@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-tidy-5.patch added to -mm tree
-Date: Tue, 10 Apr 2007 13:10:09 -0700
-Message-ID: <200704102010.l3AKA9HV016179@shell0.pdx.osdl.net>
+Subject: + slub-enable-tracking-of-full-slabs-fix.patch added to -mm tree
+Date: Tue, 10 Apr 2007 12:41:04 -0700
+Message-ID: <200704101941.l3AJf42H015737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43442 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42887 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030501AbXDJUKM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 16:10:12 -0400
+	id S1753809AbXDJTlI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 15:41:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     slub-core-tidy-5
+     slub-enable-tracking-of-full-slabs-fix
 has been added to the -mm tree.  Its filename is
-     slub-core-tidy-5.patch
+     slub-enable-tracking-of-full-slabs-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-core-tidy-5
+Subject: slub-enable-tracking-of-full-slabs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ mm/slub.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-core-tidy-5 mm/slub.c
---- a/mm/slub.c~slub-core-tidy-5
+diff -puN include/linux/slub_def.h~slub-enable-tracking-of-full-slabs-fix include/linux/slub_def.h
+diff -puN mm/slub.c~slub-enable-tracking-of-full-slabs-fix mm/slub.c
+--- a/mm/slub.c~slub-enable-tracking-of-full-slabs-fix
 +++ a/mm/slub.c
-@@ -1324,7 +1324,7 @@ static struct page *get_object_page(cons
-  * and increases the number of allocations possible without having to
-  * take the list_lock.
-  */
--static int slub_min_order = 0;
-+static int slub_min_order;
- static int slub_max_order = 4;
- 
- /*
-@@ -1336,14 +1336,14 @@ static int slub_min_objects = 8;
- /*
-  * Merge control. If this is set then no merging of slab caches will occur.
-  */
--static int slub_nomerge = 0;
-+static int slub_nomerge;
- 
- /*
-  * Debug settings:
-  */
--static int slub_debug = 0;
-+static int slub_debug;
- 
--static char *slub_debug_slabs = NULL;
-+static char *slub_debug_slabs;
- 
- static int calculate_order(int size)
- {
+@@ -1020,8 +1020,7 @@ static void putback_slab(struct kmem_cac
+ 	if (page->inuse) {
+ 		if (page->freelist)
+ 			add_partial(s, page);
+-		else
+-		if (PageError(page))
++		else if (PageError(page))
+ 			add_full(s, page);
+ 		slab_unlock(page);
+ 	} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,11 +123,6 @@ maps2-move-the-page-walker-code-to-lib-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
 mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
 slab-mark-set_up_list3s-__init.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
 slub-enable-tracking-of-full-slabs-fix.patch
 driver_bfin_serial_core-update.patch
 uml-driver-formatting-fixes-fix.patch
