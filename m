@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-printk-facility-level-cleanup.patch added to -mm tree
-Date: Tue, 10 Apr 2007 14:49:57 -0700
-Message-ID: <200704102149.l3ALnvRY018447@shell0.pdx.osdl.net>
+Subject: + slub-core-add-explanation-for-defrag_ratio-=-100.patch added to -mm tree
+Date: Tue, 10 Apr 2007 14:51:24 -0700
+Message-ID: <200704102151.l3ALpOGh018492@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47449 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47551 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753682AbXDJVuA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 17:50:00 -0400
+	id S1753797AbXDJVv0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 17:51:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: printk facility level cleanup
+     SLUB: add explanation for defrag_ratio = 100
 has been added to the -mm tree.  Its filename is
-     slub-core-printk-facility-level-cleanup.patch
+     slub-core-add-explanation-for-defrag_ratio-=-100.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,112 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: printk facility level cleanup
+Subject: SLUB: add explanation for defrag_ratio = 100
 From: Christoph Lameter <clameter@sgi.com>
-
-Consistently use KERN_ERR instead of KERN_CRIT.  Fixup one location where
-we did not use a facility level.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+ mm/slub.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN mm/slub.c~slub-core-printk-facility-level-cleanup mm/slub.c
---- a/mm/slub.c~slub-core-printk-facility-level-cleanup
+diff -puN mm/slub.c~slub-core-add-explanation-for-defrag_ratio-=-100 mm/slub.c
+--- a/mm/slub.c~slub-core-add-explanation-for-defrag_ratio-=-100
 +++ a/mm/slub.c
-@@ -502,14 +502,14 @@ static int check_object(struct kmem_cach
- static int check_slab(struct kmem_cache *s, struct page *page)
- {
- 	if (!PageSlab(page)) {
--		printk(KERN_CRIT "SLUB: %s Not a valid slab page @0x%p "
-+		printk(KERN_ERR "SLUB: %s Not a valid slab page @0x%p "
- 			"flags=%lx mapping=0x%p count=%d \n",
- 			s->name, page, page->flags, page->mapping,
- 			page_count(page));
- 		return 0;
- 	}
- 	if (page->offset * sizeof(void *) != s->offset) {
--		printk(KERN_CRIT "SLUB: %s Corrupted offset %lu in slab @0x%p"
-+		printk(KERN_ERR "SLUB: %s Corrupted offset %lu in slab @0x%p"
- 			" flags=0x%lx mapping=0x%p count=%d\n",
- 			s->name,
- 			(unsigned long)(page->offset * sizeof(void *)),
-@@ -520,7 +520,7 @@ static int check_slab(struct kmem_cache 
- 		return 0;
- 	}
- 	if (page->inuse > s->objects) {
--		printk(KERN_CRIT "SLUB: %s Inuse %u > max %u in slab "
-+		printk(KERN_ERR "SLUB: %s Inuse %u > max %u in slab "
- 			"page @0x%p flags=%lx mapping=0x%p count=%d\n",
- 			s->name, page->inuse, s->objects, page, page->flags,
- 			page->mapping, page_count(page));
-@@ -566,7 +566,7 @@ static int on_freelist(struct kmem_cache
- 	}
- 
- 	if (page->inuse != s->objects - nr) {
--		printk(KERN_CRIT "slab %s: page 0x%p wrong object count."
-+		printk(KERN_ERR "slab %s: page 0x%p wrong object count."
- 			" counter is %d but counted were %d\n",
- 			s->name, page, page->inuse,
- 			s->objects - nr);
-@@ -601,7 +601,7 @@ static int alloc_object_checks(struct km
- 	init_object(s, object, 1);
- 
- 	if (s->flags & SLAB_TRACE) {
--		printk("TRACE %s alloc 0x%p inuse=%d fp=0x%p\n",
-+		printk(KERN_INFO "TRACE %s alloc 0x%p inuse=%d fp=0x%p\n",
- 			s->name, object, page->inuse,
- 			page->freelist);
- 		dump_stack();
-@@ -630,7 +630,7 @@ static int free_object_checks(struct kme
- 	}
- 
- 	if (on_freelist(s, page, object)) {
--		printk(KERN_CRIT "SLUB: %s slab 0x%p object "
-+		printk(KERN_ERR "SLUB: %s slab 0x%p object "
- 			"0x%p already free.\n", s->name, page, object);
- 		goto fail;
- 	}
-@@ -640,23 +640,23 @@ static int free_object_checks(struct kme
- 
- 	if (unlikely(s != page->slab)) {
- 		if (!PageSlab(page))
--			printk(KERN_CRIT "slab_free %s size %d: attempt to"
-+			printk(KERN_ERR "slab_free %s size %d: attempt to"
- 				"free object(0x%p) outside of slab.\n",
- 				s->name, s->size, object);
- 		else
- 		if (!page->slab)
--			printk(KERN_CRIT
-+			printk(KERN_ERR
- 				"slab_free : no slab(NULL) for object 0x%p.\n",
- 						object);
- 		else
--		printk(KERN_CRIT "slab_free %s(%d): object at 0x%p"
-+		printk(KERN_ERR "slab_free %s(%d): object at 0x%p"
- 				" belongs to slab %s(%d)\n",
- 				s->name, s->size, object,
- 				page->slab->name, page->slab->size);
- 		goto fail;
- 	}
- 	if (s->flags & SLAB_TRACE) {
--		printk("TRACE %s free 0x%p inuse=%d fp=0x%p\n",
-+		printk(KERN_INFO "TRACE %s free 0x%p inuse=%d fp=0x%p\n",
- 			s->name, object, page->inuse,
- 			page->freelist);
- 		print_section("Object", object, s->objsize);
-@@ -1772,7 +1772,7 @@ static int __init setup_slub_debug(char 
- 				slub_debug |= SLAB_TRACE;
- 				break;
- 			default:
--				printk(KERN_CRIT "slub_debug option '%c' "
-+				printk(KERN_ERR "slub_debug option '%c' "
- 					"unknown. skipped\n",*str);
- 			}
- 	}
+@@ -937,6 +937,12 @@ static struct page *get_any_partial(stru
+ 	 *
+ 	 * A higher ratio means slabs may be taken from other nodes
+ 	 * thus reducing the number of partial slabs on those nodes.
++	 *
++	 * If /sys/slab/xx/defrag_ratio is set to 100 (which makes
++	 * defrag_ratio = 1000) then every (well almost) allocation
++	 * will first attempt to defrag slab caches on other nodes. This
++	 * means scanning over all nodes to look for partial slabs which
++	 * may be a bit expensive to do on every slab allocation.
+ 	 */
+ 	if (!s->defrag_ratio || get_cycles() % 1024 > s->defrag_ratio)
+ 		return NULL;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -170,6 +90,8 @@ slub-core-tidy-8.patch
 slub-core-tidy-9.patch
 slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
 slub-core-printk-facility-level-cleanup.patch
+slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
+slub-core-add-explanation-for-defrag_ratio-=-100.patch
 slub-add-slabinfo-tool.patch
 slub-add-slabinfo-tool-update-slabinfoc.patch
 make-page-private-usable-in-compound-pages-v1.patch
