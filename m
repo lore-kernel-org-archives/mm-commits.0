@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-driver-sysfs-crash-debugging.patch added to -mm tree
-Date: Tue, 10 Apr 2007 13:43:47 -0700
-Message-ID: <200704102043.l3AKhlcI016831@shell0.pdx.osdl.net>
+Subject: + slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch added to -mm tree
+Date: Tue, 10 Apr 2007 13:26:59 -0700
+Message-ID: <200704102026.l3AKQxla016525@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:44537 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44081 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030591AbXDJUnv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 16:43:51 -0400
+	id S1030573AbXDJU1D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 16:27:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     revert gregkh-driver-sysfs-crash-debugging
+     slub-add-ability-to-list-alloc--free-callers-per-slab-tidy
 has been added to the -mm tree.  Its filename is
-     revert-gregkh-driver-sysfs-crash-debugging.patch
+     slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,105 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert gregkh-driver-sysfs-crash-debugging
+Subject: slub-add-ability-to-list-alloc--free-callers-per-slab-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It gets tangled up with Tejun's stuff
-
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/traps.c   |    1 -
- arch/x86_64/kernel/traps.c |    1 -
- fs/sysfs/file.c            |   14 --------------
- include/linux/sysfs.h      |    6 ------
- 4 files changed, 22 deletions(-)
+ mm/slub.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/traps.c~revert-gregkh-driver-sysfs-crash-debugging arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~revert-gregkh-driver-sysfs-crash-debugging
-+++ a/arch/i386/kernel/traps.c
-@@ -425,7 +425,6 @@ void die(const char * str, struct pt_reg
- #endif
- 		if (nl)
- 			printk("\n");
--		sysfs_printk_last_file();
- 		if (notify_die(DIE_OOPS, str, regs, err,
- 					current->thread.trap_no, SIGSEGV) !=
- 				NOTIFY_STOP) {
-diff -puN arch/x86_64/kernel/traps.c~revert-gregkh-driver-sysfs-crash-debugging arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~revert-gregkh-driver-sysfs-crash-debugging
-+++ a/arch/x86_64/kernel/traps.c
-@@ -533,7 +533,6 @@ void __kprobes __die(const char * str, s
- 	printk("DEBUG_PAGEALLOC");
- #endif
- 	printk("\n");
--	sysfs_printk_last_file();
- 	notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV);
- 	show_registers(regs);
- 	/* Executive summary in case the oops scrolled away */
-diff -puN fs/sysfs/file.c~revert-gregkh-driver-sysfs-crash-debugging fs/sysfs/file.c
---- a/fs/sysfs/file.c~revert-gregkh-driver-sysfs-crash-debugging
-+++ a/fs/sysfs/file.c
-@@ -8,7 +8,6 @@
- #include <linux/namei.h>
- #include <linux/poll.h>
- #include <linux/list.h>
--#include <linux/limits.h>
- #include <asm/uaccess.h>
- #include <asm/semaphore.h>
+diff -puN mm/slub.c~slub-add-ability-to-list-alloc--free-callers-per-slab-tidy mm/slub.c
+--- a/mm/slub.c~slub-add-ability-to-list-alloc--free-callers-per-slab-tidy
++++ a/mm/slub.c
+@@ -2460,7 +2460,7 @@ static int add_location(struct loc_track
+ 	start = -1;
+ 	end = t->count;
  
-@@ -17,13 +16,6 @@
- #define to_subsys(k) container_of(k,struct subsystem,kset.kobj)
- #define to_sattr(a) container_of(a,struct subsys_attribute,attr)
+-	for(;;) {
++	for ( ; ; ) {
+ 		pos = start + (end - start + 1) / 2;
  
--/* used in crash dumps to help with debugging */
--static char last_sysfs_file[PATH_MAX];
--void sysfs_printk_last_file(void)
--{
--	printk(KERN_EMERG "last sysfs file: %s\n", last_sysfs_file);
--}
--
- /*
-  * Subsystem file operations.
-  * These operations allow subsystems to have files that can be 
-@@ -291,12 +283,6 @@ static int sysfs_open_file(struct inode 
- 	struct sysfs_buffer * buffer;
- 	struct sysfs_ops * ops = NULL;
- 	int error = 0;
--	char *p;
--
--	p = d_path(file->f_dentry, sysfs_mount, last_sysfs_file,
--		   sizeof(last_sysfs_file));
--	if (p)
--		memmove(last_sysfs_file, p, strlen(p) + 1);
+ 		/*
+@@ -2506,10 +2506,10 @@ static void process_slab(struct loc_trac
+ 	void *p;
  
- 	if (!kobj || !attr)
- 		goto Einval;
-diff -puN include/linux/sysfs.h~revert-gregkh-driver-sysfs-crash-debugging include/linux/sysfs.h
---- a/include/linux/sysfs.h~revert-gregkh-driver-sysfs-crash-debugging
-+++ a/include/linux/sysfs.h
-@@ -125,7 +125,6 @@ void sysfs_remove_file_from_group(struct
- 		const struct attribute *attr, const char *group);
+ 	bitmap_zero(map, s->objects);
+-	for(p = page->freelist; p; p = get_freepointer(s, p))
++	for (p = page->freelist; p; p = get_freepointer(s, p))
+ 		set_bit((p - addr) / s->size, map);
  
- void sysfs_notify(struct kobject * k, char *dir, char *attr);
--void sysfs_printk_last_file(void);
+-	for(p = addr; p < addr + s->objects * s->size; p += s->size)
++	for (p = addr; p < addr + s->objects * s->size; p += s->size)
+ 		if (!test_bit((p - addr) / s->size, map)) {
+ 			void *addr = get_track(s, p, alloc)->addr;
  
- 
- extern int sysfs_make_shadowed_dir(struct kobject *kobj,
-@@ -241,11 +240,6 @@ static inline int __must_check sysfs_ini
- 	return 0;
- }
- 
--static inline void sysfs_printk_last_file(void)
--{
--	;
--}
--
- #endif /* CONFIG_SYSFS */
- 
- #endif /* _SYSFS_H_ */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,7 +74,6 @@ git-alsa-fixup.patch
 git-agpgart.patch
 git-avr32.patch
 git-avr32-fixup.patch
-revert-gregkh-driver-sysfs-crash-debugging.patch
 git-drm.patch
 git-dvb.patch
 git-gfs2-nmw.patch
