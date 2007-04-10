@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + partitions-check-the-return-value-of-kobject_add-etc.patch added to -mm tree
-Date: Tue, 10 Apr 2007 15:18:21 -0700
-Message-ID: <200704102218.l3AMILRZ019236@shell0.pdx.osdl.net>
+Subject: + reiserfs-fix-key-decrementing.patch added to -mm tree
+Date: Tue, 10 Apr 2007 15:24:39 -0700
+Message-ID: <200704102224.l3AMOdh5019556@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49360 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49599 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965714AbXDJWSv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 18:18:51 -0400
+	id S1030412AbXDJWYn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 18:24:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, cornelia.huck@de.ibm.com
+Cc: vs@namesys.com, reiserfs-dev@namesys.com
 
 
 The patch titled
-     partitions: check the return value of kobject_add etc
+     reiserfs: fix key decrementing
 has been added to the -mm tree.  Its filename is
-     partitions-check-the-return-value-of-kobject_add-etc.patch
+     reiserfs-fix-key-decrementing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: partitions: check the return value of kobject_add etc
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: reiserfs: fix key decrementing
+From: Vladimir Saveliev <vs@namesys.com>
 
-Since kobject_add, sysfs_create_link and sysfs_create_file are marked as
-'__must_check', we must always check their return values.
+This patch fixes a bug in function decrementing a key of stat data item.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Acked-by: Cornelia Huck <cornelia.huck@de.ibm.com>
+Offset of reiserfs keys are compared as signed values.  To set key offset
+to maximal possible value maximal signed value has to be used.
+
+This bug is responsible for severe reiserfs filesystem corruption which
+shows itself as warning vs-13060.  reiserfsck fixes this corruption by
+filesystem tree rebuilding.
+
+Signed-off-by: Vladimir Saveliev <vs@namesys.com>
+Cc: <reiserfs-dev@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |   25 ++++++++++++++++++++-----
- 1 files changed, 20 insertions(+), 5 deletions(-)
+ fs/reiserfs/item_ops.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/partitions/check.c~partitions-check-the-return-value-of-kobject_add-etc fs/partitions/check.c
---- a/fs/partitions/check.c~partitions-check-the-return-value-of-kobject_add-etc
-+++ a/fs/partitions/check.c
-@@ -383,26 +383,41 @@ void add_partition(struct gendisk *disk,
- 	p->policy = disk->policy;
- 
- 	if (isdigit(disk->kobj.name[strlen(disk->kobj.name)-1]))
--		snprintf(p->kobj.name,KOBJ_NAME_LEN,"%sp%d",disk->kobj.name,part);
-+		snprintf(p->kobj.name, KOBJ_NAME_LEN, "%sp%d",
-+				disk->kobj.name, part);
- 	else
--		snprintf(p->kobj.name,KOBJ_NAME_LEN,"%s%d",disk->kobj.name,part);
-+		snprintf(p->kobj.name, KOBJ_NAME_LEN, "%s%d",
-+				disk->kobj.name, part);
- 	p->kobj.parent = &disk->kobj;
- 	p->kobj.ktype = &ktype_part;
- 	kobject_init(&p->kobj);
--	kobject_add(&p->kobj);
-+	if (kobject_add(&p->kobj))
-+		goto out_put;
- 	if (!disk->part_uevent_suppress)
- 		kobject_uevent(&p->kobj, KOBJ_ADD);
--	sysfs_create_link(&p->kobj, &block_subsys.kset.kobj, "subsystem");
-+	if (sysfs_create_link(&p->kobj, &block_subsys.kset.kobj, "subsystem"))
-+		goto out_uevent;
- 	if (flags & ADDPART_FLAG_WHOLEDISK) {
- 		static struct attribute addpartattr = {
- 			.name = "whole_disk",
- 			.mode = S_IRUSR | S_IRGRP | S_IROTH,
- 		};
- 
--		sysfs_create_file(&p->kobj, &addpartattr);
-+		if (sysfs_create_file(&p->kobj, &addpartattr))
-+			goto out_link;
- 	}
- 	partition_sysfs_add_subdir(p);
- 	disk->part[part-1] = p;
-+	return;
-+
-+out_link:
-+	sysfs_remove_link(&p->kobj, "subsystem");
-+out_uevent:
-+	if (!disk->part_uevent_suppress)
-+		kobject_uevent(&p->kobj, KOBJ_REMOVE);
-+	kobject_del(&p->kobj);
-+out_put:
-+	kobject_put(&p->kobj);
+diff -puN fs/reiserfs/item_ops.c~reiserfs-fix-key-decrementing fs/reiserfs/item_ops.c
+--- a/fs/reiserfs/item_ops.c~reiserfs-fix-key-decrementing
++++ a/fs/reiserfs/item_ops.c
+@@ -23,7 +23,7 @@ static void sd_decrement_key(struct cpu_
+ {
+ 	key->on_disk_key.k_objectid--;
+ 	set_cpu_key_k_type(key, TYPE_ANY);
+-	set_cpu_key_k_offset(key, (loff_t) (-1));
++	set_cpu_key_k_offset(key, (loff_t)(~0ULL >> 1));
  }
  
- static char *make_block_name(struct gendisk *disk)
+ static int sd_is_left_mergeable(struct reiserfs_key *key, unsigned long bsize)
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from vs@namesys.com are
 
-partitions-check-the-return-value-of-kobject_add-etc.patch
+reiserfs-fix-key-decrementing.patch
+reiser4.patch
+reiser4-use-simple_prepare_write-to-zero-page-data.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
