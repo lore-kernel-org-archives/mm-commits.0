@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-tidy.patch added to -mm tree
-Date: Tue, 10 Apr 2007 12:49:24 -0700
-Message-ID: <200704101949.l3AJnOWv015848@shell0.pdx.osdl.net>
+Subject: + slub-core-tidy-2.patch added to -mm tree
+Date: Tue, 10 Apr 2007 12:55:17 -0700
+Message-ID: <200704101955.l3AJtHB6015943@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43048 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43113 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753808AbXDJTt1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 15:49:27 -0400
+	id S1753844AbXDJTzU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 15:55:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     slub-core-tidy
+     slub-core-tidy-2
 has been added to the -mm tree.  Its filename is
-     slub-core-tidy.patch
+     slub-core-tidy-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-core-tidy
+Subject: slub-core-tidy-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+It's a ptrdiff_t
+
+Cc: Christoph Lameter <clameter@sgi.com> 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ mm/slub.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/frv/Kconfig~slub-core-tidy arch/frv/Kconfig
-diff -puN arch/i386/Kconfig~slub-core-tidy arch/i386/Kconfig
-diff -puN include/linux/mm_types.h~slub-core-tidy include/linux/mm_types.h
-diff -puN include/linux/poison.h~slub-core-tidy include/linux/poison.h
-diff -puN include/linux/slab.h~slub-core-tidy include/linux/slab.h
-diff -puN include/linux/slub_def.h~slub-core-tidy include/linux/slub_def.h
-diff -puN init/Kconfig~slub-core-tidy init/Kconfig
-diff -puN mm/Makefile~slub-core-tidy mm/Makefile
-diff -puN mm/slub.c~slub-core-tidy mm/slub.c
---- a/mm/slub.c~slub-core-tidy
+diff -puN mm/slub.c~slub-core-tidy-2 mm/slub.c
+--- a/mm/slub.c~slub-core-tidy-2
 +++ a/mm/slub.c
-@@ -116,10 +116,6 @@ static enum {
- 	SYSFS		/* Sysfs up */
- } slab_state = DOWN;
+@@ -319,9 +319,8 @@ static void object_err(struct kmem_cache
  
--int slab_is_available(void) {
--	return slab_state >= UP;
--}
--
- /* A list of all slab caches on the system */
- static DECLARE_RWSEM(slub_lock);
- LIST_HEAD(slab_caches);
-@@ -138,6 +134,11 @@ static void sysfs_slab_remove(struct kme
-  * 			Core slab cache functions
-  *******************************************************************/
- 
-+int slab_is_available(void)
-+{
-+	return slab_state >= UP;
-+}
-+
- struct kmem_cache_node *get_node(struct kmem_cache *s, int node)
- {
- #ifdef CONFIG_NUMA
+ 	printk(KERN_ERR "*** SLUB: %s in %s@0x%p Slab 0x%p\n",
+ 			reason, s->name, object, page);
+-	printk(KERN_ERR "    offset=%u flags=0x%04lx inuse=%u freelist=0x%p\n",
+-		(int)(object - addr), page->flags, page->inuse,
+-		page->freelist);
++	printk(KERN_ERR "    offset=%tu flags=0x%04lx inuse=%u freelist=0x%p\n",
++		object - addr, page->flags, page->inuse, page->freelist);
+ 	if (object > addr + 16)
+ 		print_section("Bytes b4", object - 16, 16);
+ 	print_section("Object", object, s->objsize);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,6 +127,7 @@ bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pa
 mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
 slab-mark-set_up_list3s-__init.patch
 slub-core-tidy.patch
+slub-core-tidy-2.patch
 slub-enable-tracking-of-full-slabs-fix.patch
 driver_bfin_serial_core-update.patch
 uml-driver-formatting-fixes-fix.patch
