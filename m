@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-ucb1400-set-up-drivers-name-to-show-in-sysfs.patch added to -mm tree
-Date: Mon, 09 Apr 2007 21:32:50 -0700
-Message-ID: <200704100432.l3A4WoZU031322@shell0.pdx.osdl.net>
+Subject: + partition-add-support-for-sysv68-partitions.patch added to -mm tree
+Date: Mon, 09 Apr 2007 22:00:36 -0700
+Message-ID: <200704100500.l3A50aLf031796@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:43306 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44130 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030332AbXDJEc7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 00:32:59 -0400
+	id S1752325AbXDJFAl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 01:00:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cbrake@bec-systems.com, dtor@mail.ru
+Cc: phdm@macqel.be
 
 
 The patch titled
-     input: ucb1400: set up driver's name to show in sysfs
+     partition: add support for sysv68 partitions
 has been added to the -mm tree.  Its filename is
-     input-ucb1400-set-up-drivers-name-to-show-in-sysfs.patch
+     partition-add-support-for-sysv68-partitions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,171 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: input: ucb1400: set up driver's name to show in sysfs
-From: Cliff Brake <cbrake@bec-systems.com>
+Subject: partition: add support for sysv68 partitions
+From: Philippe De Muyter <phdm@macqel.be>
 
-The UCB1400 is missing a name parameter in the device_driver struct.  This
-causes missing information in the /sys tree and seems to cause other
-problems with the AC97 functionality.  This was tested on a PXA270 system.
+Add support for the Motorola sysv68 disk partition (slices in motorola
+doc).
 
-Signed-off-by: Cliff Brake <cbrake@bec-systems.com>
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/ucb1400_ts.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/partitions/Kconfig  |    9 +++
+ fs/partitions/Makefile |    1 
+ fs/partitions/check.c  |    4 +
+ fs/partitions/sysv68.c |   92 +++++++++++++++++++++++++++++++++++++++
+ fs/partitions/sysv68.h |    1 
+ 5 files changed, 107 insertions(+)
 
-diff -puN drivers/input/touchscreen/ucb1400_ts.c~input-ucb1400-set-up-drivers-name-to-show-in-sysfs drivers/input/touchscreen/ucb1400_ts.c
---- a/drivers/input/touchscreen/ucb1400_ts.c~input-ucb1400-set-up-drivers-name-to-show-in-sysfs
-+++ a/drivers/input/touchscreen/ucb1400_ts.c
-@@ -553,6 +553,7 @@ static int ucb1400_ts_remove(struct devi
- }
+diff -puN fs/partitions/Kconfig~partition-add-support-for-sysv68-partitions fs/partitions/Kconfig
+--- a/fs/partitions/Kconfig~partition-add-support-for-sysv68-partitions
++++ a/fs/partitions/Kconfig
+@@ -236,3 +236,12 @@ config EFI_PARTITION
+ 	help
+ 	  Say Y here if you would like to use hard disks under Linux which
+ 	  were partitioned using EFI GPT.
++
++config SYSV68_PARTITION
++	bool "SYSV68 partition table support" if PARTITION_ADVANCED
++	default y if M68K
++	help
++	  Say Y here if you would like to be able to read the hard disk
++	  partition table format used by Motorola Delta machines (using
++	  sysv68).
+++ 	  Otherwise, say N.
+diff -puN fs/partitions/Makefile~partition-add-support-for-sysv68-partitions fs/partitions/Makefile
+--- a/fs/partitions/Makefile~partition-add-support-for-sysv68-partitions
++++ a/fs/partitions/Makefile
+@@ -17,3 +17,4 @@ obj-$(CONFIG_ULTRIX_PARTITION) += ultrix
+ obj-$(CONFIG_IBM_PARTITION) += ibm.o
+ obj-$(CONFIG_EFI_PARTITION) += efi.o
+ obj-$(CONFIG_KARMA_PARTITION) += karma.o
++obj-$(CONFIG_SYSV68_PARTITION) += sysv68.o
+diff -puN fs/partitions/check.c~partition-add-support-for-sysv68-partitions fs/partitions/check.c
+--- a/fs/partitions/check.c~partition-add-support-for-sysv68-partitions
++++ a/fs/partitions/check.c
+@@ -34,6 +34,7 @@
+ #include "ultrix.h"
+ #include "efi.h"
+ #include "karma.h"
++#include "sysv68.h"
  
- static struct device_driver ucb1400_ts_driver = {
-+	.name		= "ucb1400_ts",
- 	.owner		= THIS_MODULE,
- 	.bus		= &ac97_bus_type,
- 	.probe		= ucb1400_ts_probe,
+ #ifdef CONFIG_BLK_DEV_MD
+ extern void md_autodetect_dev(dev_t dev);
+@@ -105,6 +106,9 @@ static int (*check_part[])(struct parsed
+ #ifdef CONFIG_KARMA_PARTITION
+ 	karma_partition,
+ #endif
++#ifdef CONFIG_SYSV68_PARTITION
++	sysv68_partition,
++#endif
+ 	NULL
+ };
+  
+diff -puN /dev/null fs/partitions/sysv68.c
+--- /dev/null
++++ a/fs/partitions/sysv68.c
+@@ -0,0 +1,92 @@
++/*
++ *  fs/partitions/sysv68.c
++ *
++ *  Copyright (C) 2007 Philippe De Muyter <phdm@macqel.be>
++ */
++
++#include "check.h"
++#include "sysv68.h"
++
++/*
++ *	Volume ID structure: on first 256-bytes sector of disk
++ */
++
++struct volumeid {
++	u8	vid_unused[248];
++	u8	vid_mac[8];	/* ASCII string "MOTOROLA" */
++};
++
++/*
++ *	config block: second 256-bytes sector on disk
++ */
++
++struct dkconfig {
++	u8	ios_unused0[128];
++	__be32	ios_slcblk;	/* Slice table block number */
++	__be16	ios_slccnt;	/* Number of entries in slice table */
++	u8	ios_unused1[122];
++};
++
++/*
++ *	combined volumeid and dkconfig block
++ */
++
++struct dkblk0 {
++	struct volumeid dk_vid;
++	struct dkconfig dk_ios;
++};
++
++/*
++ *	Slice Table Structure
++ */
++
++struct slice {
++	__be32	nblocks;		/* slice size (in blocks) */
++	__be32	blkoff;			/* block offset of slice */
++};
++
++
++int sysv68_partition(struct parsed_partitions *state, struct block_device *bdev)
++{
++	int i, slices;
++	int slot = 1;
++	Sector sect;
++	unsigned char *data;
++	struct dkblk0 *b;
++	struct slice *slice;
++
++	data = read_dev_sector(bdev, 0, &sect);
++	if (!data)
++		return -1;
++
++	b = (struct dkblk0 *)data;
++	if (memcmp(b->dk_vid.vid_mac, "MOTOROLA", sizeof(b->dk_vid.vid_mac))) {
++		put_dev_sector(sect);
++		return 0;
++	}
++	slices = be16_to_cpu(b->dk_ios.ios_slccnt);
++	i = be32_to_cpu(b->dk_ios.ios_slcblk);
++	put_dev_sector(sect);
++
++	data = read_dev_sector(bdev, i, &sect);
++	if (!data)
++		return -1;
++
++	slices -= 1; /* last slice is the whole disk */
++	printk("sysV68: %s(s%u)", state->name, slices);
++	slice = (struct slice *)data;
++	for (i = 0; i < slices; i++, slice++) {
++		if (slot == state->limit)
++			break;
++		if (be32_to_cpu(slice->nblocks)) {
++			put_partition(state, slot,
++				be32_to_cpu(slice->blkoff),
++				be32_to_cpu(slice->nblocks));
++			printk("(s%u)", i);
++		}
++		slot++;
++	}
++	printk("\n");
++	put_dev_sector(sect);
++	return 1;
++}
+diff -puN /dev/null fs/partitions/sysv68.h
+--- /dev/null
++++ a/fs/partitions/sysv68.h
+@@ -0,0 +1 @@
++extern int sysv68_partition(struct parsed_partitions *state, struct block_device *bdev);
 _
 
-Patches currently in -mm which might be from cbrake@bec-systems.com are
+Patches currently in -mm which might be from phdm@macqel.be are
 
-input-ucb1400-set-up-drivers-name-to-show-in-sysfs.patch
+partition-add-support-for-sysv68-partitions.patch
