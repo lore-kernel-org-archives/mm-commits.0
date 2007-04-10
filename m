@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-key-decrementing.patch added to -mm tree
-Date: Tue, 10 Apr 2007 15:24:39 -0700
-Message-ID: <200704102224.l3AMOdh5019556@shell0.pdx.osdl.net>
+Subject: + git-powerpc-arch-powerpc-sysdev-timerc-build-fix.patch added to -mm tree
+Date: Tue, 10 Apr 2007 15:27:25 -0700
+Message-ID: <200704102227.l3AMRPPF019670@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49599 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49678 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030412AbXDJWYn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 18:24:43 -0400
+	id S1030506AbXDJW2B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 18:28:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vs@namesys.com, reiserfs-dev@namesys.com
+Cc: srinivasa@in.ibm.com, benh@kernel.crashing.org, johannes@sipsolutions.net, paulus@samba.org
 
 
 The patch titled
-     reiserfs: fix key decrementing
+     git-powerpc: arch/powerpc/sysdev/timer.c build fix
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-key-decrementing.patch
+     git-powerpc-arch-powerpc-sysdev-timerc-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: fix key decrementing
-From: Vladimir Saveliev <vs@namesys.com>
+Subject: git-powerpc: arch/powerpc/sysdev/timer.c build fix
+From: Srinivasa Ds <srinivasa@in.ibm.com>
 
-This patch fixes a bug in function decrementing a key of stat data item.
+arch/powerpc/sysdev/timer.c:51: error: variable \u2018timer_sysclass\u2019 has 
+initializer but incomplete type
+arch/powerpc/sysdev/timer.c:52: error: unknown field \u2018resume\u2019 specified in initializer
+<etc>
 
-Offset of reiserfs keys are compared as signed values.  To set key offset
-to maximal possible value maximal signed value has to be used.
-
-This bug is responsible for severe reiserfs filesystem corruption which
-shows itself as warning vs-13060.  reiserfsck fixes this corruption by
-filesystem tree rebuilding.
-
-Signed-off-by: Vladimir Saveliev <vs@namesys.com>
-Cc: <reiserfs-dev@namesys.com>
+Signed-off-by: Srinivasa Ds <srinivasa@in.ibm.com>
+Acked-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/item_ops.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/sysdev/timer.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN fs/reiserfs/item_ops.c~reiserfs-fix-key-decrementing fs/reiserfs/item_ops.c
---- a/fs/reiserfs/item_ops.c~reiserfs-fix-key-decrementing
-+++ a/fs/reiserfs/item_ops.c
-@@ -23,7 +23,7 @@ static void sd_decrement_key(struct cpu_
- {
- 	key->on_disk_key.k_objectid--;
- 	set_cpu_key_k_type(key, TYPE_ANY);
--	set_cpu_key_k_offset(key, (loff_t) (-1));
-+	set_cpu_key_k_offset(key, (loff_t)(~0ULL >> 1));
- }
+diff -puN arch/powerpc/sysdev/timer.c~git-powerpc-arch-powerpc-sysdev-timerc-build-fix arch/powerpc/sysdev/timer.c
+--- a/arch/powerpc/sysdev/timer.c~git-powerpc-arch-powerpc-sysdev-timerc-build-fix
++++ a/arch/powerpc/sysdev/timer.c
+@@ -7,6 +7,7 @@
+  */
  
- static int sd_is_left_mergeable(struct reiserfs_key *key, unsigned long bsize)
+ #include <linux/time.h>
++#include <linux/sysdev.h>
+ #include <asm/rtc.h>
+ 
+ static unsigned long suspend_rtc_time;
 _
 
-Patches currently in -mm which might be from vs@namesys.com are
+Patches currently in -mm which might be from srinivasa@in.ibm.com are
 
-reiserfs-fix-key-decrementing.patch
-reiser4.patch
-reiser4-use-simple_prepare_write-to-zero-page-data.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+git-powerpc-arch-powerpc-sysdev-timerc-build-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
