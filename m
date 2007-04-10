@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-fix-object-counting.patch added to -mm tree
-Date: Tue, 10 Apr 2007 12:34:34 -0700
-Message-ID: <200704101934.l3AJYYGV015624@shell0.pdx.osdl.net>
+Subject: + intel_agp-pci-id-update-for-intel-965gm.patch added to -mm tree
+Date: Tue, 10 Apr 2007 13:38:40 -0700
+Message-ID: <200704102038.l3AKceO3016745@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42659 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:44305 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753789AbXDJTei (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 15:34:38 -0400
+	id S1753509AbXDJUi6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 16:38:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: zhenyu.z.wang@intel.com, davej@codemonkey.org.uk
 
 
 The patch titled
-     slub: fix object counting
+     intel_agp: PCI id update for Intel 965GM
 has been added to the -mm tree.  Its filename is
-     slub-core-fix-object-counting.patch
+     intel_agp-pci-id-update-for-intel-965gm.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,150 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: fix object counting
-From: Christoph Lameter <clameter@sgi.com>
+Subject: intel_agp: PCI id update for Intel 965GM
+From: Wang Zhenyu <zhenyu.z.wang@intel.com>
 
-Object counting did not take into account that the number of full slabs is the
-total number of slabs - number of partial - number of cpu slabs.  As a results
-the counts were off a bit.  This issue surfaced when slab validation was
-implemented.
+Update PCI id info for Intel 965GM chipset.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Wang Zhenyu <zhenyu.z.wang@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   61 ++++++++++++++++++++++++++++------------------------
- 1 files changed, 34 insertions(+), 27 deletions(-)
+ drivers/char/agp/intel-agp.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-core-fix-object-counting mm/slub.c
---- a/mm/slub.c~slub-core-fix-object-counting
-+++ a/mm/slub.c
-@@ -2348,23 +2348,34 @@ static unsigned long slab_objects(struct
- 	int node;
- 	int x;
- 	unsigned long *nodes;
-+	unsigned long *per_cpu;
+diff -puN drivers/char/agp/intel-agp.c~intel_agp-pci-id-update-for-intel-965gm drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~intel_agp-pci-id-update-for-intel-965gm
++++ a/drivers/char/agp/intel-agp.c
+@@ -18,11 +18,14 @@
+ #define PCI_DEVICE_ID_INTEL_82965Q_IG       0x2992
+ #define PCI_DEVICE_ID_INTEL_82965G_HB       0x29A0
+ #define PCI_DEVICE_ID_INTEL_82965G_IG       0x29A2
++#define PCI_DEVICE_ID_INTEL_82965GM_HB      0x2A00
++#define PCI_DEVICE_ID_INTEL_82965GM_IG      0x2A02
  
--	nodes = kmalloc(sizeof(unsigned long) * nr_node_ids, GFP_KERNEL);
-+	nodes = kzalloc(2 * sizeof(unsigned long) * nr_node_ids, GFP_KERNEL);
-+	per_cpu = nodes + nr_node_ids;
-+
-+	for_each_possible_cpu(cpu) {
-+		struct page *page = s->cpu_slab[cpu];
-+		int node;
-+
-+		if (page) {
-+			node = page_to_nid(page);
-+			if (flags & SO_CPU) {
-+				int x = 0;
-+
-+				if (flags & SO_OBJECTS)
-+					x = page->inuse;
-+				else
-+					x = 1;
-+				total += x;
-+				nodes[node] += x;
-+			}
-+			per_cpu[node]++;
-+		}
-+	}
+ #define IS_I965 (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82946GZ_HB || \
+                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_1_HB || \
+                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965Q_HB || \
+-                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_HB)
++                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_HB || \
++                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GM_HB)
  
- 	for_each_online_node(node) {
- 		struct kmem_cache_node *n = get_node(s, node);
  
--		nodes[node] = 0;
+ extern int agp_memory_reserved;
+@@ -1919,7 +1922,13 @@ static int __devinit agp_intel_probe(str
+ 			bridge->driver = &intel_845_driver;
+ 		name = "965G";
+ 		break;
 -
--		if (flags & SO_FULL) {
--			if (flags & SO_OBJECTS)
--				x = atomic_read(&n->nr_slabs)
--						* s->objects;
--			else
--				x = atomic_read(&n->nr_slabs);
--			total += x;
--			nodes[node] += x;
--		}
- 		if (flags & SO_PARTIAL) {
- 			if (flags & SO_OBJECTS)
- 				x = count_partial(n);
-@@ -2373,24 +2384,20 @@ static unsigned long slab_objects(struct
- 			total += x;
- 			nodes[node] += x;
- 		}
--	}
--
--	if (flags & SO_CPU)
--		for_each_possible_cpu(cpu) {
--			struct page *page = s->cpu_slab[cpu];
++	case PCI_DEVICE_ID_INTEL_82965GM_HB:
++		if (find_i830(PCI_DEVICE_ID_INTEL_82965GM_IG))
++			bridge->driver = &intel_i965_driver;
++		else
++			bridge->driver = &intel_845_driver;
++		name = "965GM";
++		break;
+ 	case PCI_DEVICE_ID_INTEL_7505_0:
+ 		bridge->driver = &intel_7505_driver;
+ 		name = "E7505";
+@@ -2078,6 +2087,7 @@ static struct pci_device_id agp_intel_pc
+ 	ID(PCI_DEVICE_ID_INTEL_82965G_1_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_82965Q_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_82965G_HB),
++	ID(PCI_DEVICE_ID_INTEL_82965GM_HB),
+ 	{ }
+ };
  
--			if (page) {
--				int x = 0;
--				int node = page_to_nid(page);
-+		if (flags & SO_FULL) {
-+			int full_slabs = atomic_read(&n->nr_slabs)
-+					- per_cpu[node]
-+					- n->nr_partial;
- 
--				if (flags & SO_OBJECTS)
--					x = page->inuse;
--				else
--					x = 1;
--				total += x;
--				nodes[node] += x;
--			}
-+			if (flags & SO_OBJECTS)
-+				x = full_slabs * s->objects;
-+			else
-+				x = full_slabs;
-+			total += x;
-+			nodes[node] += x;
- 		}
-+	}
- 
- 	x = sprintf(buf, "%lu", total);
- #ifdef CONFIG_NUMA
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from zhenyu.z.wang@intel.com are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
-slub-core-minor-fixes.patch
-slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
-slub-core-fix-another-numa-bootstrap-issue.patch
-slub-core-fix-object-counting.patch
-slub-add-slabinfo-tool.patch
-slub-add-slabinfo-tool-update-slabinfoc.patch
-make-page-private-usable-in-compound-pages-v1.patch
-make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-enable-tracking-of-full-slabs.patch
-validation-of-slabs-metadata-and-guard-zones.patch
-add-ability-to-list-alloc--free-callers-per-slab.patch
-drop-version-number.patch
-quicklists-for-page-table-pages.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-extend-print_symbol-capability-fix.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-readahead-state-based-method-aging-accounting.patch
+intel_agp-pci-id-update-for-intel-965gm.patch
