@@ -1,126 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - remove-mmc_deselect_cards.patch removed from -mm tree
-Date: Wed, 11 Apr 2007 16:21:07 -0700
-Message-ID: <200704112321.l3BNL7PT017548@shell0.pdx.osdl.net>
+Subject: + x86_64-set-node_possible_map-at-runtime-fix-2.patch added to -mm tree
+Date: Wed, 11 Apr 2007 16:42:49 -0700
+Message-ID: <200704112342.l3BNgnde018169@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35990 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36693 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030473AbXDKXY1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:24:27 -0400
+	id S1753707AbXDKXnD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:43:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, drzeus@drzeus.cx, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: suresh.b.siddha@intel.com, rientjes@google.com
 
 
 The patch titled
-     remove mmc_deselect_cards()
-has been removed from the -mm tree.  Its filename was
-     remove-mmc_deselect_cards.patch
+     x86_64: more fixes to node_possible_map runtime setup
+has been added to the -mm tree.  Its filename is
+     x86_64-set-node_possible_map-at-runtime-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: remove mmc_deselect_cards()
-From: Adrian Bunk <bunk@stusta.de>
+Subject: x86_64: more fixes to node_possible_map runtime setup
+From: Suresh Siddha <suresh.b.siddha@intel.com>
 
-mmc_deselect_cards() is no longer used.
+More fixes in the failure cases and a small cleanup in numa emulation case.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc_ops.c |    5 -----
- drivers/mmc/core/mmc_ops.h |    1 -
- 2 files changed, 6 deletions(-)
+ arch/x86_64/mm/numa.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/core/mmc_ops.c~remove-mmc_deselect_cards drivers/mmc/core/mmc_ops.c
---- a/drivers/mmc/core/mmc_ops.c~remove-mmc_deselect_cards
-+++ a/drivers/mmc/core/mmc_ops.c
-@@ -53,11 +53,6 @@ int mmc_select_card(struct mmc_card *car
- 	return _mmc_select_card(card->host, card);
- }
+diff -puN arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime-fix-2 arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime-fix-2
++++ a/arch/x86_64/mm/numa.c
+@@ -295,7 +295,6 @@ static int __init setup_node_range(int n
+ 		ret = -1;
+ 	}
+ 	nodes[nid].end = *addr;
+-	node_set_online(nid);
+ 	node_set(nid, node_possible_map);
+ 	printk(KERN_INFO "Faking node %d at %016Lx-%016Lx (%LuMB)\n", nid,
+ 	       nodes[nid].start, nodes[nid].end,
+@@ -480,7 +479,7 @@ out:
+ 	 * SRAT.
+ 	 */
+ 	remove_all_active_ranges();
+-	for_each_online_node(i) {
++	for_each_node_mask(i, node_possible_map) {
+ 		e820_register_active_regions(i, nodes[i].start >> PAGE_SHIFT,
+ 						nodes[i].end >> PAGE_SHIFT);
+  		setup_node_bootmem(i, nodes[i].start, nodes[i].end);
+@@ -507,11 +506,13 @@ void __init numa_initmem_init(unsigned l
+ 	if (!numa_off && !acpi_scan_nodes(start_pfn << PAGE_SHIFT,
+ 					  end_pfn << PAGE_SHIFT))
+  		return;
++	nodes_clear(node_possible_map);
+ #endif
  
--int mmc_deselect_cards(struct mmc_host *host)
--{
--	return _mmc_select_card(host, NULL);
--}
--
- int mmc_go_idle(struct mmc_host *host)
- {
- 	int err;
-diff -puN drivers/mmc/core/mmc_ops.h~remove-mmc_deselect_cards drivers/mmc/core/mmc_ops.h
---- a/drivers/mmc/core/mmc_ops.h~remove-mmc_deselect_cards
-+++ a/drivers/mmc/core/mmc_ops.h
-@@ -13,7 +13,6 @@
- #define _MMC_MMC_OPS_H
- 
- int mmc_select_card(struct mmc_card *card);
--int mmc_deselect_cards(struct mmc_host *host);
- int mmc_go_idle(struct mmc_host *host);
- int mmc_send_op_cond(struct mmc_host *host, u32 ocr, u32 *rocr);
- int mmc_all_send_cid(struct mmc_host *host, u32 *cid);
+ #ifdef CONFIG_K8_NUMA
+ 	if (!numa_off && !k8_scan_nodes(start_pfn<<PAGE_SHIFT, end_pfn<<PAGE_SHIFT))
+ 		return;
++	nodes_clear(node_possible_map);
+ #endif
+ 	printk(KERN_INFO "%s\n",
+ 	       numa_off ? "NUMA turned off" : "No NUMA configuration found");
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
-git-acpi.patch
-git-powerpc.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-ubi.patch
-git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-git-net.patch
-net-possible-cleanups.patch
-fs-ocfs2-make-3-functions-static.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-maps2-add-proc-kpagemap-interface-fix.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-add-file-position-info-to-proc-fix.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-unexport-pci_proc_attach_device.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+x86_64-set-node_possible_map-at-runtime.patch
+x86_64-set-node_possible_map-at-runtime-fix.patch
+x86_64-set-node_possible_map-at-runtime-fix-2.patch
+slab-x86_64-skip-cache_free_alien-on-non-numa.patch
+pad-irq_desc-to-internode-cacheline-size.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
+sched-dynticks-idle-load-balancing-v3.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-align-rq-to-cacheline-boundary.patch
+sched-dont-renice-kernel-threads.patch
+sched-remove-sleepavg-from-proc.patch
+sched-implement-staircase-deadline-cpu-scheduler.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+sched-remove-noninteractive-flag.patch
+sched-document-sd-cpu-scheduler.patch
