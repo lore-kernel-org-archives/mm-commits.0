@@ -1,105 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - cxgb3-missing-cpl-handler-and-register-setting.patch removed from -mm tree
-Date: Wed, 11 Apr 2007 16:21:16 -0700
-Message-ID: <200704112321.l3BNLGok017560@shell0.pdx.osdl.net>
+Subject: - intel_agp-pci-id-update-for-intel-965gm.patch removed from -mm tree
+Date: Wed, 11 Apr 2007 16:21:10 -0700
+Message-ID: <200704112321.l3BNLAjN017551@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35897 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35896 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161383AbXDKXVZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:21:25 -0400
+	id S1161372AbXDKXVY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:21:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: divy@chelsio.com, mm-commits@vger.kernel.org
+To: zhenyu.z.wang@intel.com, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cxgb3: missing CPL handler and register setting
+     intel_agp: PCI id update for Intel 965GM
 has been removed from the -mm tree.  Its filename was
-     cxgb3-missing-cpl-handler-and-register-setting.patch
+     intel_agp-pci-id-update-for-intel-965gm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cxgb3: missing CPL handler and register setting
-From: Divy Le Ray <divy@chelsio.com>
+Subject: intel_agp: PCI id update for Intel 965GM
+From: Wang Zhenyu <zhenyu.z.wang@intel.com>
 
-Remove specific CPL handler.  Add missing CPL handler.  Add missing register
-setting when the interface is brought up.
+Update PCI id info for Intel 965GM chipset.
 
-Signed-off-by: Divy Le Ray <divy@chelsio.com>
+Signed-off-by: Wang Zhenyu <zhenyu.z.wang@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c    |    2 ++
- drivers/net/cxgb3/cxgb3_offload.c |   14 ++------------
- drivers/net/cxgb3/regs.h          |    6 ++++++
- 3 files changed, 10 insertions(+), 12 deletions(-)
+ drivers/char/agp/intel-agp.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-missing-cpl-handler-and-register-setting drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-missing-cpl-handler-and-register-setting
-+++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -770,6 +770,8 @@ static int cxgb_up(struct adapter *adap)
- 		if (err)
- 			goto out;
+diff -puN drivers/char/agp/intel-agp.c~intel_agp-pci-id-update-for-intel-965gm drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~intel_agp-pci-id-update-for-intel-965gm
++++ a/drivers/char/agp/intel-agp.c
+@@ -18,11 +18,14 @@
+ #define PCI_DEVICE_ID_INTEL_82965Q_IG       0x2992
+ #define PCI_DEVICE_ID_INTEL_82965G_HB       0x29A0
+ #define PCI_DEVICE_ID_INTEL_82965G_IG       0x29A2
++#define PCI_DEVICE_ID_INTEL_82965GM_HB      0x2A00
++#define PCI_DEVICE_ID_INTEL_82965GM_IG      0x2A02
  
-+		t3_write_reg(adap, A_ULPRX_TDDP_PSZ, V_HPZ0(PAGE_SHIFT - 12));
-+
- 		err = setup_sge_qsets(adap);
- 		if (err)
- 			goto out;
-diff -puN drivers/net/cxgb3/cxgb3_offload.c~cxgb3-missing-cpl-handler-and-register-setting drivers/net/cxgb3/cxgb3_offload.c
---- a/drivers/net/cxgb3/cxgb3_offload.c~cxgb3-missing-cpl-handler-and-register-setting
-+++ a/drivers/net/cxgb3/cxgb3_offload.c
-@@ -743,17 +743,6 @@ static int do_act_establish(struct t3cde
- 	}
- }
+ #define IS_I965 (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82946GZ_HB || \
+                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_1_HB || \
+                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965Q_HB || \
+-                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_HB)
++                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_HB || \
++                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GM_HB)
  
--static int do_set_tcb_rpl(struct t3cdev *dev, struct sk_buff *skb)
--{
--	struct cpl_set_tcb_rpl *rpl = cplhdr(skb);
+ 
+ extern int agp_memory_reserved;
+@@ -1919,7 +1922,13 @@ static int __devinit agp_intel_probe(str
+ 			bridge->driver = &intel_845_driver;
+ 		name = "965G";
+ 		break;
 -
--	if (rpl->status != CPL_ERR_NONE)
--		printk(KERN_ERR
--		       "Unexpected SET_TCB_RPL status %u for tid %u\n",
--		       rpl->status, GET_TID(rpl));
--	return CPL_RET_BUF_DONE;
--}
--
- static int do_trace(struct t3cdev *dev, struct sk_buff *skb)
- {
- 	struct cpl_trace_pkt *p = cplhdr(skb);
-@@ -1215,7 +1204,8 @@ void __init cxgb3_offload_init(void)
- 	t3_register_cpl_handler(CPL_CLOSE_CON_RPL, do_hwtid_rpl);
- 	t3_register_cpl_handler(CPL_ABORT_REQ_RSS, do_abort_req_rss);
- 	t3_register_cpl_handler(CPL_ACT_ESTABLISH, do_act_establish);
--	t3_register_cpl_handler(CPL_SET_TCB_RPL, do_set_tcb_rpl);
-+	t3_register_cpl_handler(CPL_SET_TCB_RPL, do_hwtid_rpl);
-+	t3_register_cpl_handler(CPL_GET_TCB_RPL, do_hwtid_rpl);
- 	t3_register_cpl_handler(CPL_RDMA_TERMINATE, do_term);
- 	t3_register_cpl_handler(CPL_RDMA_EC_STATUS, do_hwtid_rpl);
- 	t3_register_cpl_handler(CPL_TRACE_PKT, do_trace);
-diff -puN drivers/net/cxgb3/regs.h~cxgb3-missing-cpl-handler-and-register-setting drivers/net/cxgb3/regs.h
---- a/drivers/net/cxgb3/regs.h~cxgb3-missing-cpl-handler-and-register-setting
-+++ a/drivers/net/cxgb3/regs.h
-@@ -1234,9 +1234,15 @@
- 
- #define A_ULPRX_ISCSI_TAGMASK 0x514
- 
-+#define S_HPZ0    0
-+#define M_HPZ0    0xf
-+#define V_HPZ0(x) ((x) << S_HPZ0)
-+#define G_HPZ0(x) (((x) >> S_HPZ0) & M_HPZ0)
-+
- #define A_ULPRX_TDDP_LLIMIT 0x51c
- 
- #define A_ULPRX_TDDP_ULIMIT 0x520
-+#define A_ULPRX_TDDP_PSZ 0x528
- 
- #define A_ULPRX_STAG_LLIMIT 0x52c
++	case PCI_DEVICE_ID_INTEL_82965GM_HB:
++		if (find_i830(PCI_DEVICE_ID_INTEL_82965GM_IG))
++			bridge->driver = &intel_i965_driver;
++		else
++			bridge->driver = &intel_845_driver;
++		name = "965GM";
++		break;
+ 	case PCI_DEVICE_ID_INTEL_7505_0:
+ 		bridge->driver = &intel_7505_driver;
+ 		name = "E7505";
+@@ -2078,6 +2087,7 @@ static struct pci_device_id agp_intel_pc
+ 	ID(PCI_DEVICE_ID_INTEL_82965G_1_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_82965Q_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_82965G_HB),
++	ID(PCI_DEVICE_ID_INTEL_82965GM_HB),
+ 	{ }
+ };
  
 _
 
-Patches currently in -mm which might be from divy@chelsio.com are
+Patches currently in -mm which might be from zhenyu.z.wang@intel.com are
 
-git-netdev-all.patch
+origin.patch
