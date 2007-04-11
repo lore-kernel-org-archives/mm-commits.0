@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch added to -mm tree
-Date: Tue, 10 Apr 2007 21:38:40 -0700
-Message-ID: <200704110438.l3B4ce5Q028226@shell0.pdx.osdl.net>
+Subject: + generate-main-index-page-when-building-htmldocs.patch added to -mm tree
+Date: Tue, 10 Apr 2007 22:10:07 -0700
+Message-ID: <200704110510.l3B5A7Eu029015@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58760 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59361 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161196AbXDKEmd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 00:42:33 -0400
+	id S1161194AbXDKFKh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 01:10:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, adobriyan@sw.ru
+Cc: bbpetkov@yahoo.de, randy.dunlap@oracle.com
 
 
 The patch titled
-     make kernel/module.c:is_exported() static
+     kernel-doc: generate main index page when building 'htmldocs'
 has been added to the -mm tree.  Its filename is
-     fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
+     generate-main-index-page-when-building-htmldocs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,116 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make kernel/module.c:is_exported() static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: kernel-doc: generate main index page when building 'htmldocs'
+From: Borislav Petkov <bbpetkov@yahoo.de>
 
-is_exported() can now become static.
+A patch for kernel-doc that enables the generation of a global, TOC-like
+index.html page after building 'htmldocs'
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |    7 -------
- kernel/module.c        |    2 +-
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ Documentation/DocBook/Makefile |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/module.h~fix-race-between-rmmod-and-cat-proc-kallsyms-fix include/linux/module.h
---- a/include/linux/module.h~fix-race-between-rmmod-and-cat-proc-kallsyms-fix
-+++ a/include/linux/module.h
-@@ -379,8 +379,6 @@ int module_get_kallsym(unsigned int symn
- /* Look for this name: can be of form module:name. */
- unsigned long module_kallsyms_lookup_name(const char *name);
+diff -puN Documentation/DocBook/Makefile~generate-main-index-page-when-building-htmldocs Documentation/DocBook/Makefile
+--- a/Documentation/DocBook/Makefile~generate-main-index-page-when-building-htmldocs
++++ a/Documentation/DocBook/Makefile
+@@ -43,6 +43,7 @@ pdfdocs: $(PDF)
  
--int is_exported(const char *name, const struct module *mod);
--
- extern void __module_put_and_exit(struct module *mod, long code)
- 	__attribute__((noreturn));
- #define module_put_and_exit(code) __module_put_and_exit(THIS_MODULE, code);
-@@ -542,11 +540,6 @@ static inline unsigned long module_kalls
- 	return 0;
- }
+ HTML := $(patsubst %.xml, %.html, $(BOOKS))
+ htmldocs: $(HTML)
++	$(call build_main_index)
  
--static inline int is_exported(const char *name, const struct module *mod)
--{
--	return 0;
--}
--
- static inline int register_module_notifier(struct notifier_block * nb)
- {
- 	/* no events will happen anyway, so this can always succeed */
-diff -puN kernel/module.c~fix-race-between-rmmod-and-cat-proc-kallsyms-fix kernel/module.c
---- a/kernel/module.c~fix-race-between-rmmod-and-cat-proc-kallsyms-fix
-+++ a/kernel/module.c
-@@ -1545,7 +1545,7 @@ static void setup_modinfo(struct module 
- }
+ MAN := $(patsubst %.xml, %.9, $(BOOKS))
+ mandocs: $(MAN)
+@@ -132,10 +133,17 @@ quiet_cmd_db2pdf = PDF      $@
+ %.pdf : %.xml
+ 	$(call cmd,db2pdf)
  
- #ifdef CONFIG_KALLSYMS
--int is_exported(const char *name, const struct module *mod)
-+static int is_exported(const char *name, const struct module *mod)
- {
- 	if (!mod && lookup_symbol(name, __start___ksymtab, __stop___ksymtab))
- 		return 1;
++
++main_idx = Documentation/DocBook/index.html
++build_main_index = rm -rf $(main_idx) && \
++		   echo '<h1>Linux Kernel HTML Documentation</h1>' >> $(main_idx) && \
++		   echo '<h2>Kernel Version: $(KERNELVERSION)</h2>' >> $(main_idx) && \
++		   cat $(HTML) >> $(main_idx)
++
+ quiet_cmd_db2html = HTML   $@
+       cmd_db2html = xmlto xhtml $(XMLTOFLAGS) -o $(patsubst %.html,%,$@) $< && \
+ 		echo '<a HREF="$(patsubst %.html,%,$(notdir $@))/index.html"> \
+-         Goto $(patsubst %.html,%,$(notdir $@))</a><p>' > $@
++        $(patsubst %.html,%,$(notdir $@))</a><p>' > $@
+ 
+ %.html:	%.xml
+ 	@(which xmlto > /dev/null 2>&1) || \
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from bbpetkov@yahoo.de are
 
-git-acpi.patch
-git-powerpc.patch
-git-drm.patch
-git-dvb.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
-remove-mmc_deselect_cards.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-ubi.patch
-git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-git-net.patch
-net-possible-cleanups.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-unionfs.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-maps2-add-proc-kpagemap-interface-fix.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-add-file-position-info-to-proc-fix.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-unexport-pci_proc_attach_device.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
-ext2-reservations.patch
-drivers-edac-make-code-static.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+drivers-acpi-kconfig-formulation-fixpatch.patch
+kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
+generate-main-index-page-when-building-htmldocs.patch
