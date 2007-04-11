@@ -1,76 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - frv-update-the-frv-arch-maintainer-record-to-get-a-hit-on.patch removed from -mm tree
-Date: Wed, 11 Apr 2007 16:20:33 -0700
-Message-ID: <200704112320.l3BNKXmk017493@shell0.pdx.osdl.net>
+Subject: - mmc-consolidate-voltage-definitions.patch removed from -mm tree
+Date: Wed, 11 Apr 2007 16:21:03 -0700
+Message-ID: <200704112321.l3BNL3NV017542@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35833 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35869 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932195AbXDKXUl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:20:41 -0400
+	id S932192AbXDKXVI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:21:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: philipl@overt.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FRV: Update the FRV arch MAINTAINER record to get a hit on "grep -i frv"
+     MMC: consolidate voltage definitions
 has been removed from the -mm tree.  Its filename was
-     frv-update-the-frv-arch-maintainer-record-to-get-a-hit-on.patch
+     mmc-consolidate-voltage-definitions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: FRV: Update the FRV arch MAINTAINER record to get a hit on "grep -i frv"
-From: David Howells <dhowells@redhat.com>
+Subject: MMC: consolidate voltage definitions
+From: Philip Langdale <philipl@overt.org>
 
-Update the FRV arch MAINTAINER record to get a hit on "grep -i frv".  Whilst
-FR-V is technically correct, it's normally thought of as FRV.
+Consolidate the list of available voltages.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Up until now, a separate set of defines has been used for host->vdd than
+that used for the OCR voltage mask values.  Having two sets of defines
+allows them to get out of sync and the current sets are already
+inconsistent with one claiming to describe ranges and the other specific
+voltages.
+
+Only the SDHCI driver uses the host->vdd defines and it is easily fixed to
+use the OCR defines.
+
+Signed-off-by: Philip Langdale <philipl@overt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/sdhci.c |   17 +++++++----------
+ include/linux/mmc/host.h |   25 +------------------------
+ 2 files changed, 8 insertions(+), 34 deletions(-)
 
-diff -puN MAINTAINERS~frv-update-the-frv-arch-maintainer-record-to-get-a-hit-on MAINTAINERS
---- a/MAINTAINERS~frv-update-the-frv-arch-maintainer-record-to-get-a-hit-on
-+++ a/MAINTAINERS
-@@ -1404,7 +1404,7 @@ M:	hch@infradead.org
- W:	ftp://ftp.openlinux.org/pub/people/hch/vxfs
- S:	Maintained
+diff -puN drivers/mmc/host/sdhci.c~mmc-consolidate-voltage-definitions drivers/mmc/host/sdhci.c
+--- a/drivers/mmc/host/sdhci.c~mmc-consolidate-voltage-definitions
++++ a/drivers/mmc/host/sdhci.c
+@@ -668,20 +668,17 @@ static void sdhci_set_power(struct sdhci
  
--FUJITSU FR-V PORT
-+FUJITSU FR-V (FRV) PORT
- P:	David Howells
- M:	dhowells@redhat.com
- S:	Maintained
+ 	pwr = SDHCI_POWER_ON;
+ 
+-	switch (power) {
+-	case MMC_VDD_170:
+-	case MMC_VDD_180:
+-	case MMC_VDD_190:
++	switch (1 << power) {
++	case MMC_VDD_17_18:
++	case MMC_VDD_18_19:
+ 		pwr |= SDHCI_POWER_180;
+ 		break;
+-	case MMC_VDD_290:
+-	case MMC_VDD_300:
+-	case MMC_VDD_310:
++	case MMC_VDD_29_30:
++	case MMC_VDD_30_31:
+ 		pwr |= SDHCI_POWER_300;
+ 		break;
+-	case MMC_VDD_320:
+-	case MMC_VDD_330:
+-	case MMC_VDD_340:
++	case MMC_VDD_32_33:
++	case MMC_VDD_33_34:
+ 		pwr |= SDHCI_POWER_330;
+ 		break;
+ 	default:
+diff -puN include/linux/mmc/host.h~mmc-consolidate-voltage-definitions include/linux/mmc/host.h
+--- a/include/linux/mmc/host.h~mmc-consolidate-voltage-definitions
++++ a/include/linux/mmc/host.h
+@@ -16,30 +16,7 @@ struct mmc_ios {
+ 	unsigned int	clock;			/* clock rate */
+ 	unsigned short	vdd;
+ 
+-#define	MMC_VDD_150	0
+-#define	MMC_VDD_155	1
+-#define	MMC_VDD_160	2
+-#define	MMC_VDD_165	3
+-#define	MMC_VDD_170	4
+-#define	MMC_VDD_180	5
+-#define	MMC_VDD_190	6
+-#define	MMC_VDD_200	7
+-#define	MMC_VDD_210	8
+-#define	MMC_VDD_220	9
+-#define	MMC_VDD_230	10
+-#define	MMC_VDD_240	11
+-#define	MMC_VDD_250	12
+-#define	MMC_VDD_260	13
+-#define	MMC_VDD_270	14
+-#define	MMC_VDD_280	15
+-#define	MMC_VDD_290	16
+-#define	MMC_VDD_300	17
+-#define	MMC_VDD_310	18
+-#define	MMC_VDD_320	19
+-#define	MMC_VDD_330	20
+-#define	MMC_VDD_340	21
+-#define	MMC_VDD_350	22
+-#define	MMC_VDD_360	23
++/* vdd stores the bit number of the selected voltage range from below. */
+ 
+ 	unsigned char	bus_mode;		/* command output mode */
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from philipl@overt.org are
 
-origin.patch
-nommu-fix-bug-ip_conntrack-does-not-work-on-nommu.patch
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-romfs-printk-format-warnings.patch
-git-net.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-use-symbolic-constants-in-generic-lseek-code.patch
-use-use-seek_max-to-validate-user-lseek-arguments.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-use-slab_panic-flag-cleanup.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-workqueue-kill-noautorel-works.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-mutex-subsystem-synchro-test-module.patch
+git-mmc.patch
