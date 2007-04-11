@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-workaround-bf561-anomaly-05000266.patch added to -mm tree
-Date: Wed, 11 Apr 2007 13:08:57 -0700
-Message-ID: <200704112008.l3BK8v3R013209@shell0.pdx.osdl.net>
+Subject: + nommu-fix-bug-ip_conntrack-does-not-work-on-nommu.patch added to -mm tree
+Date: Wed, 11 Apr 2007 13:09:43 -0700
+Message-ID: <200704112009.l3BK9hhZ013227@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58687 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58713 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030468AbXDKUJA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 16:09:00 -0400
+	id S1030369AbXDKUJz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 16:09:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, sonic.zhang@analog.com
+Cc: bryan.wu@analog.com, dhowells@redhat.com
 
 
 The patch titled
-     blackfin arch: workaround BF561 anomaly 05000266
+     nommu: fix bug ip_conntrack does not work on nommu
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-workaround-bf561-anomaly-05000266.patch
+     nommu-fix-bug-ip_conntrack-does-not-work-on-nommu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: blackfin arch: workaround BF561 anomaly 05000266
+Subject: nommu: fix bug ip_conntrack does not work on nommu
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
-http://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_item_id=2958
+num_physpages is not exported out in mm/nommu.c, so the ip_conntrack module
+link will fail.
 
-Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Acked-By: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/setup.c |    5 +++++
- 1 files changed, 5 insertions(+)
+ mm/nommu.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-workaround-bf561-anomaly-05000266 arch/blackfin/kernel/setup.c
---- a/arch/blackfin/kernel/setup.c~blackfin-arch-workaround-bf561-anomaly-05000266
-+++ a/arch/blackfin/kernel/setup.c
-@@ -210,6 +210,11 @@ void __init setup_arch(char **cmdline_p)
- 		panic("ANOMALY 05000273, SCLK can not be same as CCLK");
- #endif
+diff -puN mm/nommu.c~nommu-fix-bug-ip_conntrack-does-not-work-on-nommu mm/nommu.c
+--- a/mm/nommu.c~nommu-fix-bug-ip_conntrack-does-not-work-on-nommu
++++ a/mm/nommu.c
+@@ -45,6 +45,7 @@ int heap_stack_gap = 0;
  
-+#if defined(ANOMALY_05000266)
-+	bfin_read_IMDMA_D0_IRQ_STATUS();
-+	bfin_read_IMDMA_D1_IRQ_STATUS();
-+#endif
-+
- #ifdef DEBUG_SERIAL_EARLY_INIT
- 	bfin_console_init();	/* early console registration */
- 	/* this give a chance to get printk() working before crash. */
+ EXPORT_SYMBOL(mem_map);
+ EXPORT_SYMBOL(__vm_enough_memory);
++EXPORT_SYMBOL(num_physpages);
+ 
+ /* list of shareable VMAs */
+ struct rb_root nommu_vma_tree = RB_ROOT;
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
 
+nommu-fix-bug-ip_conntrack-does-not-work-on-nommu.patch
 usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
@@ -103,4 +101,3 @@ revoke-core-code-generic_file_revoke-stub-for-nommu.patch
 blackfin-blackfin-utrace-patch.patch
 utrace-nommu-fixup-support-utrace.patch
 vdso-print-fatal-signals-fix-compiling-error-bug-in.patch
-nommu-fix-bug-ip_conntrack-does-not-work-on-nommu.patch
