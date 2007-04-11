@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-kill-unnecessary-attribute-owner-update-fix.patch added to -mm tree
-Date: Wed, 11 Apr 2007 01:02:00 -0700
-Message-ID: <200704110804.l3B84NKU031944@shell0.pdx.osdl.net>
+Subject: + resurrect-the-vmi-lazy-mode-fixes-fix.patch added to -mm tree
+Date: Wed, 11 Apr 2007 01:07:25 -0700
+Message-ID: <200704110809.l3B89mDX032015@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36852 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36983 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750755AbXDKIFB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 04:05:01 -0400
+	id S1751121AbXDKIJx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 04:09:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, htejun@gmail.com, maneesh@in.ibm.com
+Cc: akpm@linux-foundation.org, ak@suse.de, zach@vmware.com
 
 
 The patch titled
-     sysfs-kill-unnecessary-attribute-owner-update-fix
+     resurrect-the-vmi-lazy-mode-fixes-fix
 has been added to the -mm tree.  Its filename is
-     sysfs-kill-unnecessary-attribute-owner-update-fix.patch
+     resurrect-the-vmi-lazy-mode-fixes-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysfs-kill-unnecessary-attribute-owner-update-fix
+Subject: resurrect-the-vmi-lazy-mode-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-is why developent against Greg's tree (or -mm) is sometimes better.
-
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Maneesh Soni <maneesh@in.ibm.com>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/bus.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/asm-i386/paravirt.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/s390/kernel/ipl.c~sysfs-kill-unnecessary-attribute-owner-update-fix arch/s390/kernel/ipl.c
-diff -puN drivers/s390/cio/chsc.c~sysfs-kill-unnecessary-attribute-owner-update-fix drivers/s390/cio/chsc.c
-diff -puN drivers/s390/net/qeth_sys.c~sysfs-kill-unnecessary-attribute-owner-update-fix drivers/s390/net/qeth_sys.c
-diff -puN drivers/base/bus.c~sysfs-kill-unnecessary-attribute-owner-update-fix drivers/base/bus.c
---- a/drivers/base/bus.c~sysfs-kill-unnecessary-attribute-owner-update-fix
-+++ a/drivers/base/bus.c
-@@ -551,7 +551,6 @@ static int add_probe_files(struct bus_ty
+diff -puN include/asm-i386/paravirt.h~resurrect-the-vmi-lazy-mode-fixes-fix include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~resurrect-the-vmi-lazy-mode-fixes-fix
++++ a/include/asm-i386/paravirt.h
+@@ -30,6 +30,7 @@ enum paravirt_lazy_mode {
+ 	PARAVIRT_LAZY_NONE = 0,
+ 	PARAVIRT_LAZY_MMU = 1,
+ 	PARAVIRT_LAZY_CPU = 2,
++	PARAVIRT_LAZY_FLUSH = 3,
+ };
  
- 	bus->drivers_probe_attr.attr.name = "drivers_probe";
- 	bus->drivers_probe_attr.attr.mode = S_IWUSR;
--	bus->drivers_probe_attr.attr.owner = bus->owner;
- 	bus->drivers_probe_attr.store = store_drivers_probe;
- 	retval = bus_create_file(bus, &bus->drivers_probe_attr);
- 	if (retval)
-@@ -559,7 +558,6 @@ static int add_probe_files(struct bus_ty
- 
- 	bus->drivers_autoprobe_attr.attr.name = "drivers_autoprobe";
- 	bus->drivers_autoprobe_attr.attr.mode = S_IWUSR | S_IRUGO;
--	bus->drivers_autoprobe_attr.attr.owner = bus->owner;
- 	bus->drivers_autoprobe_attr.show = show_drivers_autoprobe;
- 	bus->drivers_autoprobe_attr.store = store_drivers_autoprobe;
- 	retval = bus_create_file(bus, &bus->drivers_autoprobe_attr);
+ struct paravirt_ops
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +63,7 @@ git-avr32.patch
 git-avr32-fixup.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-sysfs-crash-debugging.patch
+sysfs-kill-unnecessary-attribute-owner-update-fix.patch
 device_schedule_callback-needs-a-module-reference-fix.patch
 git-drm.patch
 git-dvb.patch
@@ -129,6 +114,7 @@ fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
 xfs-clean-up-shrinker-games.patch
 pktgen-add-try_to_freeze.patch
 acpi-thermal-fix-mod_timer-interval.patch
@@ -223,4 +209,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-sysfs-kill-unnecessary-attribute-owner-update-fix.patch
