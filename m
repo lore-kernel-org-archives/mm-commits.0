@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch added to -mm tree
-Date: Wed, 11 Apr 2007 01:17:30 -0700
-Message-ID: <200704110819.l3B8JrwB032191@shell0.pdx.osdl.net>
+Subject: + input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch added to -mm tree
+Date: Wed, 11 Apr 2007 01:19:17 -0700
+Message-ID: <200704110821.l3B8LepO032243@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37288 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37369 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751187AbXDKIU3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 04:20:29 -0400
+	id S1751218AbXDKIWg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 04:22:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dada1@cosmosbay.com, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, IvDoorn@gmail.com, davem@davemloft.net, dtor@mail.ru, linville@tuxdriver.com, marcel@holtmann.org
 
 
 The patch titled
-     lguest-the-host-code vs sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
+     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2
 has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest-the-host-code vs sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
+Subject: input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+CAP_NET_ADMIN.
+
+Cc: Ivo van Doorn <IvDoorn@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/io.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/rfkill/rfkill.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/lguest/io.c~lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes drivers/lguest/io.c
---- a/drivers/lguest/io.c~lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
-+++ a/drivers/lguest/io.c
-@@ -108,7 +108,7 @@ int bind_dma(struct lguest *lg,
- 
- 	mutex_lock(&lguest_lock);
- 	down_read(&current->mm->mmap_sem);
--	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
-+	if (get_futex_key((u32 __user *)ukey, sizeof(u32), &key) != 0) {
- 		kill_guest(lg, "bad dma key %#lx", ukey);
- 		goto unlock;
- 	}
-@@ -311,7 +311,7 @@ void send_dma(struct lguest *lg, unsigne
- again:
- 	mutex_lock(&lguest_lock);
- 	down_read(&current->mm->mmap_sem);
--	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
-+	if (get_futex_key((u32 __user *)ukey, sizeof(u32), &key) != 0) {
- 		kill_guest(lg, "bad sending DMA key");
- 		goto unlock;
- 	}
-@@ -385,7 +385,7 @@ unsigned long get_dma_buffer(struct lgue
- 
- 	mutex_lock(&lguest_lock);
- 	down_read(&current->mm->mmap_sem);
--	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
-+	if (get_futex_key((u32 __user *)ukey, sizeof(u32), &key) != 0) {
- 		kill_guest(lg, "bad registered DMA buffer");
- 		goto unlock;
- 	}
+diff -puN net/rfkill/rfkill.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2 net/rfkill/rfkill.c
+--- a/net/rfkill/rfkill.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2
++++ a/net/rfkill/rfkill.c
+@@ -22,6 +22,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/workqueue.h>
++#include <linux/capability.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/rfkill.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -197,6 +183,7 @@ lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
 declare-struct-ktime.patch
 make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
 sys_futex64-allows-64bit-futexes-workaround.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
@@ -228,4 +215,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
