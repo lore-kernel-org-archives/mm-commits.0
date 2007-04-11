@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + only-send-pdeath_signal-when-getppid-changes.patch added to -mm tree
-Date: Tue, 10 Apr 2007 16:58:58 -0700
-Message-ID: <200704102359.l3ANwwMw023527@shell0.pdx.osdl.net>
+Subject: + readahead-improve-heuristic-detecting-sequential-reads.patch added to -mm tree
+Date: Tue, 10 Apr 2007 19:17:54 -0700
+Message-ID: <200704110217.l3B2HsvR025872@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52929 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55975 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161104AbXDJX7R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 19:59:17 -0400
+	id S1161135AbXDKCSW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 22:18:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, acahalan@gmail.com, oleg@tv-sign.ru, roland@redhat.com
+Cc: jack@suse.cz, nickpiggin@yahoo.com.au, wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     Only send pdeath_signal when getppid changes
+     readahead: improve heuristic detecting sequential reads
 has been added to the -mm tree.  Its filename is
-     only-send-pdeath_signal-when-getppid-changes.patch
+     readahead-improve-heuristic-detecting-sequential-reads.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Only send pdeath_signal when getppid changes
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: readahead: improve heuristic detecting sequential reads
+From: Jan Kara <jack@suse.cz>
 
-Currently each thread can requrest to be notified when it's parent terminates,
-and receive a thread specific signal when that occurs.  That we set this on a
-per thread granularity and then send it to the whole thread group seems silly,
-but whatever.
+Introduce ra.offset and store in it an offset where the previous read
+ended.  This way we can detect whether reads are really sequential (and
+thus we should not mark the page as accessed repeatedly) or whether they
+are random and just happen to be in the same page (and the page should
+really be marked accessed again).
 
-Currently we send a signal when the results of getppid don't change if our
-parent thread dies and we are reparented to a different thread.  This seems
-counterintuitive to what I would expect when programming in user space and is
-a major maitenance issue to continue doing.
-
-The only users I recall using this have non threaded parents and pdeath_signal
-predates CLONE_THREAD so arguably this code has been broken with threaded
-parents since the day CLONE_THREAD was introduced and no one ever screamed
-loudly enough to get it fixed.
-
-So this patch fixes the pdeath_signal behaviour only sending a signal when the
-results of getppid would change.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Albert Cahalan <acahalan@gmail.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/fs.h |    1 +
+ mm/filemap.c       |    9 ++++++---
+ mm/readahead.c     |    3 +++
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN kernel/exit.c~only-send-pdeath_signal-when-getppid-changes kernel/exit.c
---- a/kernel/exit.c~only-send-pdeath_signal-when-getppid-changes
-+++ a/kernel/exit.c
-@@ -598,10 +598,6 @@ choose_new_parent(struct task_struct *p,
- static void
- reparent_thread(struct task_struct *p, struct task_struct *father, int traced)
- {
--	if (p->pdeath_signal)
--		/* We already hold the tasklist_lock here.  */
--		group_send_sig_info(p->pdeath_signal, SEND_SIG_NOINFO, p);
--
- 	/* Move the child from its dying parent to the new one.  */
- 	if (unlikely(traced)) {
- 		/* Preserve ptrace links if someone else is tracing this child.  */
-@@ -637,6 +633,10 @@ reparent_thread(struct task_struct *p, s
- 	if (p->exit_signal != -1)
- 		p->exit_signal = SIGCHLD;
+diff -puN include/linux/fs.h~readahead-improve-heuristic-detecting-sequential-reads include/linux/fs.h
+--- a/include/linux/fs.h~readahead-improve-heuristic-detecting-sequential-reads
++++ a/include/linux/fs.h
+@@ -702,6 +702,7 @@ struct file_ra_state {
+ 	unsigned long ra_pages;		/* Maximum readahead window */
+ 	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
+ 	unsigned long mmap_miss;	/* Cache miss stat for mmap accesses */
++	unsigned int offset;		/* Offset where last read() ended in a page */
+ };
+ #define RA_FLAG_MISS 0x01	/* a cache miss occured against this file */
+ #define RA_FLAG_INCACHE 0x02	/* file is already in cache */
+diff -puN mm/filemap.c~readahead-improve-heuristic-detecting-sequential-reads mm/filemap.c
+--- a/mm/filemap.c~readahead-improve-heuristic-detecting-sequential-reads
++++ a/mm/filemap.c
+@@ -869,6 +869,7 @@ void do_generic_mapping_read(struct addr
+ 	unsigned long last_index;
+ 	unsigned long next_index;
+ 	unsigned long prev_index;
++	unsigned int prev_offset;
+ 	loff_t isize;
+ 	struct page *cached_page;
+ 	int error;
+@@ -878,6 +879,7 @@ void do_generic_mapping_read(struct addr
+ 	index = *ppos >> PAGE_CACHE_SHIFT;
+ 	next_index = index;
+ 	prev_index = ra.prev_page;
++	prev_offset = ra.offset;
+ 	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
+ 	offset = *ppos & ~PAGE_CACHE_MASK;
  
-+	if (p->pdeath_signal)
-+		/* We already hold the tasklist_lock here.  */
-+		group_send_sig_info(p->pdeath_signal, SEND_SIG_NOINFO, p);
-+
- 	/* If we'd notified the old parent about this child's death,
- 	 * also notify the new parent.
- 	 */
+@@ -925,10 +927,10 @@ page_ok:
+ 			flush_dcache_page(page);
+ 
+ 		/*
+-		 * When (part of) the same page is read multiple times
+-		 * in succession, only mark it as accessed the first time.
++		 * When a sequential read accesses a page several times,
++		 * only mark it as accessed the first time.
+ 		 */
+-		if (prev_index != index)
++		if (prev_index != index || offset != prev_offset)
+ 			mark_page_accessed(page);
+ 		prev_index = index;
+ 
+@@ -946,6 +948,7 @@ page_ok:
+ 		offset += ret;
+ 		index += offset >> PAGE_CACHE_SHIFT;
+ 		offset &= ~PAGE_CACHE_MASK;
++		prev_offset = ra.offset = offset;
+ 
+ 		page_cache_release(page);
+ 		if (ret == nr && desc->count)
+diff -puN mm/readahead.c~readahead-improve-heuristic-detecting-sequential-reads mm/readahead.c
+--- a/mm/readahead.c~readahead-improve-heuristic-detecting-sequential-reads
++++ a/mm/readahead.c
+@@ -207,6 +207,8 @@ out:
+  *              If page_cache_readahead sees that it is again being called for
+  *              a page which it just looked at, it can return immediately without
+  *              making any state changes.
++ * offset:      Offset in the prev_page where the last read ended - used for
++ *              detection of sequential file reading.
+  * ahead_start,
+  * ahead_size:  Together, these form the "ahead window".
+  * ra_pages:	The externally controlled max readahead for this fd.
+@@ -473,6 +475,7 @@ page_cache_readahead(struct address_spac
+ 	/* Note that prev_page == -1 if it is a first read */
+ 	sequential = (offset == ra->prev_page + 1);
+ 	ra->prev_page = offset;
++	ra->offset = 0;
+ 
+ 	max = get_max_readahead(ra);
+ 	newsize = min(req_size, max);
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-fix-x86_64-mm-relocatable-kernel-support.patch
-i386-irq-kill-irq-compression.patch
-i386-relocate-vdso-elf-headers-to-match-mapped-location-with-compat_vdso.patch
-i386-make-compat_vdso-runtime-selectable.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-clean-up-elf-note-generation.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
-only-send-pdeath_signal-when-getppid-changes.patch
-edac-k8-driver-coding-tidy.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+readahead-improve-heuristic-detecting-sequential-reads.patch
+make-remove_inode_dquot_ref-static.patch
+udf-use-sector_t-and-loff_t-for-file-offsets.patch
+udf-introduce-struct-extent_position.patch
+udf-use-get_bh.patch
+udf-add-assertions.patch
+udf-support-files-larger-than-1g.patch
+udf-fix-link-counts.patch
