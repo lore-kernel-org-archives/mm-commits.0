@@ -1,59 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - ieee1394_transactions-needs-schedh.patch removed from -mm tree
-Date: Wed, 11 Apr 2007 16:20:58 -0700
-Message-ID: <200704112320.l3BNKw6Y017533@shell0.pdx.osdl.net>
+Subject: - i2c-replace-more-deprecated-sa_xxx-interrupt-flags.patch removed from -mm tree
+Date: Wed, 11 Apr 2007 16:20:55 -0700
+Message-ID: <200704112320.l3BNKtpU017525@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35879 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35888 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932244AbXDKXVN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:21:13 -0400
+	id S1161346AbXDKXVS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:21:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: just.for.lkml@googlemail.com, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ieee1394_transactions needs sched.h
+     i2c: replace more deprecated SA_xxx interrupt flags
 has been removed from the -mm tree.  Its filename was
-     ieee1394_transactions-needs-schedh.patch
+     i2c-replace-more-deprecated-sa_xxx-interrupt-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ieee1394_transactions needs sched.h
-From: "Torsten Kaiser" <just.for.lkml@googlemail.com>
+Subject: i2c: replace more deprecated SA_xxx interrupt flags
+From: Thomas Gleixner <tglx@linutronix.de>
 
-drivers/ieee1394/ieee1394_transactions.c fails for me if CONFIG_SMP=n
+Fix the obnoxious users of the deprecated SA_xxx interrupt flags.
 
-gcc complains:
-  CC      drivers/ieee1394/ieee1394_transactions.o
-drivers/ieee1394/ieee1394_transactions.c: In function 'hpsb_get_tlabel':
-drivers/ieee1394/ieee1394_transactions.c:183: error:
-'TASK_INTERRUPTIBLE' undeclared (first use in this function)
-drivers/ieee1394/ieee1394_transactions.c:183: error: (Each undeclared
-identifier is reported only once
-
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/ieee1394_transactions.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/i2c/busses/i2c-bfin-twi.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ieee1394/ieee1394_transactions.c~ieee1394_transactions-needs-schedh drivers/ieee1394/ieee1394_transactions.c
---- a/drivers/ieee1394/ieee1394_transactions.c~ieee1394_transactions-needs-schedh
-+++ a/drivers/ieee1394/ieee1394_transactions.c
-@@ -12,6 +12,7 @@
- #include <linux/bitops.h>
- #include <linux/hardirq.h>
- #include <linux/spinlock.h>
-+#include <linux/sched.h>
- #include <linux/wait.h>
+diff -puN drivers/i2c/busses/i2c-bfin-twi.c~i2c-replace-more-deprecated-sa_xxx-interrupt-flags drivers/i2c/busses/i2c-bfin-twi.c
+--- a/drivers/i2c/busses/i2c-bfin-twi.c~i2c-replace-more-deprecated-sa_xxx-interrupt-flags
++++ a/drivers/i2c/busses/i2c-bfin-twi.c
+@@ -573,7 +573,7 @@ static int i2c_bfin_twi_probe(struct pla
+ 	p_adap->dev.parent = &dev->dev;
  
- #include <asm/bug.h>
+ 	rc = request_irq(iface->irq, bfin_twi_interrupt_entry,
+-		SA_INTERRUPT, dev->name, iface);
++		IRQF_DISABLED, dev->name, iface);
+ 	if (rc) {
+ 		dev_err(&(p_adap->dev), "i2c-bfin-twi: can't get IRQ %d !\n",
+ 			iface->irq);
 _
 
-Patches currently in -mm which might be from just.for.lkml@googlemail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
+origin.patch
+git-arm.patch
 git-ieee1394.patch
+git-input.patch
+vioc-replace-more-deprecated-sa_xxx-interrupt-flags.patch
+i386-tsc-remove-xtime_locking-around-cpufreq-notifier.patch
+optimize-timespec_trunc.patch
+kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
+move-timekeeping-code-to-timekeepingc.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+replace-deprecated-sa_xxx-interrupt-flags.patch
+deprecate-sa_xxx-interrupt-flags-v2.patch
+pad-irq_desc-to-internode-cacheline-size.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+declare-struct-ktime.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
