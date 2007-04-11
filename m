@@ -1,53 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - cxgb3-avoid-deadlock-with-mac-watchdog.patch removed from -mm tree
-Date: Wed, 11 Apr 2007 16:21:12 -0700
-Message-ID: <200704112321.l3BNLCpo017554@shell0.pdx.osdl.net>
+Subject: - cxgb3-missing-cpl-handler-and-register-setting.patch removed from -mm tree
+Date: Wed, 11 Apr 2007 16:21:16 -0700
+Message-ID: <200704112321.l3BNLGok017560@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35894 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35897 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161357AbXDKXVX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:21:23 -0400
+	id S1161383AbXDKXVZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:21:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: divy@chelsio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cxgb3: avoid deadlock with mac watchdog
+     cxgb3: missing CPL handler and register setting
 has been removed from the -mm tree.  Its filename was
-     cxgb3-avoid-deadlock-with-mac-watchdog.patch
+     cxgb3-missing-cpl-handler-and-register-setting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cxgb3: avoid deadlock with mac watchdog
+Subject: cxgb3: missing CPL handler and register setting
 From: Divy Le Ray <divy@chelsio.com>
 
-Fix a deadlock when the interface s configured down and the watchdog task is
-sleeping on rtnl_lock.
+Remove specific CPL handler.  Add missing CPL handler.  Add missing register
+setting when the interface is brought up.
 
 Signed-off-by: Divy Le Ray <divy@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_main.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/net/cxgb3/cxgb3_main.c    |    2 ++
+ drivers/net/cxgb3/cxgb3_offload.c |   14 ++------------
+ drivers/net/cxgb3/regs.h          |    6 ++++++
+ 3 files changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-avoid-deadlock-with-mac-watchdog drivers/net/cxgb3/cxgb3_main.c
---- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-avoid-deadlock-with-mac-watchdog
+diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-missing-cpl-handler-and-register-setting drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-missing-cpl-handler-and-register-setting
 +++ a/drivers/net/cxgb3/cxgb3_main.c
-@@ -2119,7 +2119,9 @@ static void check_t3b2_mac(struct adapte
- {
- 	int i;
+@@ -770,6 +770,8 @@ static int cxgb_up(struct adapter *adap)
+ 		if (err)
+ 			goto out;
  
--	rtnl_lock();                      /* synchronize with ifdown */
-+	if (!rtnl_trylock())	/* synchronize with ifdown */
-+		return;
++		t3_write_reg(adap, A_ULPRX_TDDP_PSZ, V_HPZ0(PAGE_SHIFT - 12));
 +
- 	for_each_port(adapter, i) {
- 		struct net_device *dev = adapter->port[i];
- 		struct port_info *p = netdev_priv(dev);
+ 		err = setup_sge_qsets(adap);
+ 		if (err)
+ 			goto out;
+diff -puN drivers/net/cxgb3/cxgb3_offload.c~cxgb3-missing-cpl-handler-and-register-setting drivers/net/cxgb3/cxgb3_offload.c
+--- a/drivers/net/cxgb3/cxgb3_offload.c~cxgb3-missing-cpl-handler-and-register-setting
++++ a/drivers/net/cxgb3/cxgb3_offload.c
+@@ -743,17 +743,6 @@ static int do_act_establish(struct t3cde
+ 	}
+ }
+ 
+-static int do_set_tcb_rpl(struct t3cdev *dev, struct sk_buff *skb)
+-{
+-	struct cpl_set_tcb_rpl *rpl = cplhdr(skb);
+-
+-	if (rpl->status != CPL_ERR_NONE)
+-		printk(KERN_ERR
+-		       "Unexpected SET_TCB_RPL status %u for tid %u\n",
+-		       rpl->status, GET_TID(rpl));
+-	return CPL_RET_BUF_DONE;
+-}
+-
+ static int do_trace(struct t3cdev *dev, struct sk_buff *skb)
+ {
+ 	struct cpl_trace_pkt *p = cplhdr(skb);
+@@ -1215,7 +1204,8 @@ void __init cxgb3_offload_init(void)
+ 	t3_register_cpl_handler(CPL_CLOSE_CON_RPL, do_hwtid_rpl);
+ 	t3_register_cpl_handler(CPL_ABORT_REQ_RSS, do_abort_req_rss);
+ 	t3_register_cpl_handler(CPL_ACT_ESTABLISH, do_act_establish);
+-	t3_register_cpl_handler(CPL_SET_TCB_RPL, do_set_tcb_rpl);
++	t3_register_cpl_handler(CPL_SET_TCB_RPL, do_hwtid_rpl);
++	t3_register_cpl_handler(CPL_GET_TCB_RPL, do_hwtid_rpl);
+ 	t3_register_cpl_handler(CPL_RDMA_TERMINATE, do_term);
+ 	t3_register_cpl_handler(CPL_RDMA_EC_STATUS, do_hwtid_rpl);
+ 	t3_register_cpl_handler(CPL_TRACE_PKT, do_trace);
+diff -puN drivers/net/cxgb3/regs.h~cxgb3-missing-cpl-handler-and-register-setting drivers/net/cxgb3/regs.h
+--- a/drivers/net/cxgb3/regs.h~cxgb3-missing-cpl-handler-and-register-setting
++++ a/drivers/net/cxgb3/regs.h
+@@ -1234,9 +1234,15 @@
+ 
+ #define A_ULPRX_ISCSI_TAGMASK 0x514
+ 
++#define S_HPZ0    0
++#define M_HPZ0    0xf
++#define V_HPZ0(x) ((x) << S_HPZ0)
++#define G_HPZ0(x) (((x) >> S_HPZ0) & M_HPZ0)
++
+ #define A_ULPRX_TDDP_LLIMIT 0x51c
+ 
+ #define A_ULPRX_TDDP_ULIMIT 0x520
++#define A_ULPRX_TDDP_PSZ 0x528
+ 
+ #define A_ULPRX_STAG_LLIMIT 0x52c
+ 
 _
 
 Patches currently in -mm which might be from divy@chelsio.com are
