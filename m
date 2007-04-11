@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-move-slab_state-into-sysfs-if-config_sysfs=n.patch added to -mm tree
-Date: Wed, 11 Apr 2007 14:51:15 -0700
-Message-ID: <200704112151.l3BLpFjV015360@shell0.pdx.osdl.net>
+Subject: + slub-core-more-statics.patch added to -mm tree
+Date: Wed, 11 Apr 2007 14:55:14 -0700
+Message-ID: <200704112155.l3BLtEmL015440@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33982 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34057 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161252AbXDKVvS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 17:51:18 -0400
+	id S1161252AbXDKVzY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 17:55:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com
+Cc: akpm@linux-foundation.org, clameter@engr.sgi.com
 
 
 The patch titled
-     slub: move slab_state into SYSFS if CONFIG_SYSFS=n
+     slub-core-more-statics
 has been added to the -mm tree.  Its filename is
-     slub-move-slab_state-into-sysfs-if-config_sysfs=n.patch
+     slub-core-more-statics.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: move slab_state into SYSFS if CONFIG_SYSFS=n
+Subject: slub-core-more-statics
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ mm/slub.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-move-slab_state-into-sysfs-if-config_sysfs=n mm/slub.c
---- a/mm/slub.c~slub-move-slab_state-into-sysfs-if-config_sysfs=n
+diff -puN mm/slub.c~slub-core-more-statics mm/slub.c
+--- a/mm/slub.c~slub-core-more-statics
 +++ a/mm/slub.c
-@@ -2958,6 +2958,11 @@ int __init slab_sysfs_init(void)
- 
+@@ -2926,7 +2926,7 @@ static int sysfs_slab_alias(struct kmem_
  	return 0;
  }
--
--__initcall(slab_sysfs_init);
-+#else
-+int __init slab_sysfs_init(void)
-+{
-+	slab_state = SYSFS;
-+	return 0;
-+}
- #endif
-+__initcall(slab_sysfs_init);
+ 
+-int __init slab_sysfs_init(void)
++static int __init slab_sysfs_init(void)
+ {
+ 	int err;
+ 	struct list_head *h;
+@@ -2959,7 +2959,7 @@ int __init slab_sysfs_init(void)
+ 	return 0;
+ }
+ #else
+-int __init slab_sysfs_init(void)
++static int __init slab_sysfs_init(void)
+ {
+ 	slab_state = SYSFS;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -220,3 +224,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+slub-core-more-statics.patch
