@@ -1,119 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - sony-laptop-update-documentation-and-kconfig-help.patch removed from -mm tree
-Date: Wed, 11 Apr 2007 16:20:51 -0700
-Message-ID: <200704112320.l3BNKpDu017517@shell0.pdx.osdl.net>
+Subject: - remove-mmc_deselect_cards.patch removed from -mm tree
+Date: Wed, 11 Apr 2007 16:21:07 -0700
+Message-ID: <200704112321.l3BNL7PT017548@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35944 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35990 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161429AbXDKXWO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:22:14 -0400
+	id S1030473AbXDKXY1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:24:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: malattia@linux.it, lenb@kernel.org, stelian@popies.net, mm-commits@vger.kernel.org
+To: bunk@stusta.de, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sony-laptop: update documentation and Kconfig help
+     remove mmc_deselect_cards()
 has been removed from the -mm tree.  Its filename was
-     sony-laptop-update-documentation-and-kconfig-help.patch
+     remove-mmc_deselect_cards.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sony-laptop: update documentation and Kconfig help
-From: Mattia Dongili <malattia@linux.it>
+Subject: remove mmc_deselect_cards()
+From: Adrian Bunk <bunk@stusta.de>
 
-Signed-off-by: Mattia Dongili <malattia@linux.it>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Stelian Pop <stelian@popies.net>
+mmc_deselect_cards() is no longer used.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sony-laptop.txt |   25 ++++++++++++++++++-------
- drivers/misc/Kconfig          |    9 ++++-----
- 2 files changed, 22 insertions(+), 12 deletions(-)
+ drivers/mmc/core/mmc_ops.c |    5 -----
+ drivers/mmc/core/mmc_ops.h |    1 -
+ 2 files changed, 6 deletions(-)
 
-diff -puN Documentation/sony-laptop.txt~update-documentation-and-kconfig-help Documentation/sony-laptop.txt
---- a/Documentation/sony-laptop.txt~update-documentation-and-kconfig-help
-+++ a/Documentation/sony-laptop.txt
-@@ -3,12 +3,18 @@ Sony Notebook Control Driver (SNC) Readm
- 	Copyright (C) 2004- 2005 Stelian Pop <stelian@popies.net>
- 	Copyright (C) 2007 Mattia Dongili <malattia@linux.it>
+diff -puN drivers/mmc/core/mmc_ops.c~remove-mmc_deselect_cards drivers/mmc/core/mmc_ops.c
+--- a/drivers/mmc/core/mmc_ops.c~remove-mmc_deselect_cards
++++ a/drivers/mmc/core/mmc_ops.c
+@@ -53,11 +53,6 @@ int mmc_select_card(struct mmc_card *car
+ 	return _mmc_select_card(card->host, card);
+ }
  
--This mini-driver drives the SNC device present in the ACPI BIOS of
--the Sony Vaio laptops.
-+This mini-driver drives the SNC and SPIC device present in the ACPI BIOS of the
-+Sony Vaio laptops. This driver mixes both devices functions under the same
-+(hopefully consistent) interface. This also means that the sonypi driver is
-+obsoleted by sony-laptop now.
+-int mmc_deselect_cards(struct mmc_host *host)
+-{
+-	return _mmc_select_card(host, NULL);
+-}
+-
+ int mmc_go_idle(struct mmc_host *host)
+ {
+ 	int err;
+diff -puN drivers/mmc/core/mmc_ops.h~remove-mmc_deselect_cards drivers/mmc/core/mmc_ops.h
+--- a/drivers/mmc/core/mmc_ops.h~remove-mmc_deselect_cards
++++ a/drivers/mmc/core/mmc_ops.h
+@@ -13,7 +13,6 @@
+ #define _MMC_MMC_OPS_H
  
--It gives access to some extra laptop functionalities. In its current
--form, this driver let the user set or query the screen brightness
--through the backlight subsystem and remove/apply power to some devices.
-+Fn keys (hotkeys):
-+------------------
-+Some models report hotkeys through the SNC or SPIC devices, such events are
-+reported both through the ACPI subsystem as acpi events and through the INPUT
-+subsystem. See the logs of acpid or /proc/acpi/event and
-+/proc/bus/input/devices to find out what those events are and which input
-+devices are created by the driver.
- 
- Backlight control:
- ------------------
-@@ -39,6 +45,8 @@ The files are:
- 	audiopower		power on/off the internal sound card
- 	lanpower		power on/off the internal ethernet card
- 				(only in debug mode)
-+	bluetoothpower		power on/off the internal bluetooth device
-+	fanspeed		get/set the fan speed
- 
- Note that some files may be missing if they are not supported
- by your particular laptop model.
-@@ -76,9 +84,9 @@ The sony-laptop driver creates, for some
- current ones found on several Vaio models), an entry under
- /sys/devices/platform/sony-laptop, just like the 'cdpower' one.
- You can create other entries corresponding to your own laptop methods by
--further editing the source (see the 'sony_acpi_values' table, and add a new
-+further editing the source (see the 'sony_nc_values' table, and add a new
- entry to this table with your get/set method names using the
--HANDLE_NAMES macro).
-+SNC_HANDLE_NAMES macro).
- 
- Your mission, should you accept it, is to try finding out what
- those entries are for, by reading/writing random values from/to those
-@@ -87,6 +95,9 @@ files and find out what is the impact on
- Should you find anything interesting, please report it back to me,
- I will not disavow all knowledge of your actions :)
- 
-+See also http://www.linux.it/~malattia/wiki/index.php/Sony_drivers for other
-+useful info.
-+
- Bugs/Limitations:
- -----------------
- 
-diff -puN drivers/misc/Kconfig~update-documentation-and-kconfig-help drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~update-documentation-and-kconfig-help
-+++ a/drivers/misc/Kconfig
-@@ -112,12 +112,11 @@ config SONY_LAPTOP
- 	depends on X86 && ACPI
- 	select BACKLIGHT_CLASS_DEVICE
- 	  ---help---
--	  This mini-driver drives the SNC device present in the ACPI BIOS of
--	  the Sony Vaio laptops.
-+	  This mini-driver drives the SNC and SPIC devices present in the ACPI
-+	  BIOS of the Sony Vaio laptops.
- 
--	  It gives access to some extra laptop functionalities. In its current
--	  form, this driver let the user set or query the screen brightness
--	  through the backlight subsystem and remove/apply power to some
-+	  It gives access to some extra laptop functionalities like Bluetooth,
-+	  screen brightness control, Fn keys and allows powering on/off some
- 	  devices.
- 
- 	  Read <file:Documentation/sony-laptop.txt> for more information.
+ int mmc_select_card(struct mmc_card *card);
+-int mmc_deselect_cards(struct mmc_host *host);
+ int mmc_go_idle(struct mmc_host *host);
+ int mmc_send_op_cond(struct mmc_host *host, u32 ocr, u32 *rocr);
+ int mmc_all_send_cid(struct mmc_host *host, u32 *cid);
 _
 
-Patches currently in -mm which might be from malattia@linux.it are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-git-cpufreq.patch
+git-acpi.patch
+git-powerpc.patch
+git-drm.patch
+git-dvb.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-ubi.patch
+git-netdev-all.patch
+drivers-net-vioc-possible-cleanups.patch
+git-net.patch
+net-possible-cleanups.patch
+fs-ocfs2-make-3-functions-static.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-unionfs.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+maps2-add-proc-kpagemap-interface-fix.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+add-file-position-info-to-proc-fix.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
+unexport-pci_proc_attach_device.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+no-longer-include-asm-kdebugh.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+mutex-subsystem-synchro-test-module.patch
