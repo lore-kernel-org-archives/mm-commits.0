@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-convert-core-functions-to-zero_user_page-fix-2.patch added to -mm tree
-Date: Wed, 11 Apr 2007 00:56:14 -0700
-Message-ID: <200704110758.l3B7wd6G031841@shell0.pdx.osdl.net>
+Subject: + input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio.patch added to -mm tree
+Date: Wed, 11 Apr 2007 01:23:26 -0700
+Message-ID: <200704110825.l3B8PneN032291@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36701 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37402 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052AbXDKH6n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 03:58:43 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l3B7wfVZ030361
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 11 Apr 2007 00:58:41 -0700
+	id S1751131AbXDKIZx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 04:25:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com
 
 
 The patch titled
-     fs-convert-core-functions-to-zero_user_page-fix-2
+     sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
 has been added to the -mm tree.  Its filename is
-     fs-convert-core-functions-to-zero_user_page-fix-2.patch
+     input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,35 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs-convert-core-functions-to-zero_user_page-fix-2
+Subject: sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/uio/uio.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/truncate.c~fs-convert-core-functions-to-zero_user_page-fix-2 mm/truncate.c
---- a/mm/truncate.c~fs-convert-core-functions-to-zero_user_page-fix-2
-+++ a/mm/truncate.c
-@@ -12,6 +12,7 @@
- #include <linux/swap.h>
- #include <linux/module.h>
- #include <linux/pagemap.h>
-+#include <linux/highmem.h>
- #include <linux/pagevec.h>
- #include <linux/task_io_accounting_ops.h>
- #include <linux/buffer_head.h>	/* grr. try_to_release_page,
-@@ -46,7 +47,7 @@ void do_invalidatepage(struct page *page
+diff -puN drivers/uio/uio.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio drivers/uio/uio.c
+--- a/drivers/uio/uio.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio
++++ a/drivers/uio/uio.c
+@@ -52,13 +52,11 @@ static struct uio_class {
+  */
  
- static inline void truncate_partial_page(struct page *page, unsigned partial)
- {
--	zero_user_page(page, partial, PAGE_CACHE_SIZE-partial);
-+	zero_user_page(page, partial, PAGE_CACHE_SIZE - partial, KM_USER0);
- 	if (PagePrivate(page))
- 		do_invalidatepage(page, partial);
- }
+ static struct attribute attr_addr = {
+-	.owner = THIS_MODULE,
+ 	.name  = "addr",
+ 	.mode  = S_IRUGO,
+ };
+ 
+ static struct attribute attr_size = {
+-	.owner = THIS_MODULE,
+ 	.name  = "size",
+ 	.mode  = S_IRUGO,
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +69,7 @@ git-avr32.patch
 git-avr32-fixup.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-sysfs-crash-debugging.patch
+sysfs-kill-unnecessary-attribute-owner-update-fix.patch
 device_schedule_callback-needs-a-module-reference-fix.patch
 git-drm.patch
 git-dvb.patch
@@ -101,6 +97,7 @@ git-net.patch
 git-net-fixup.patch
 git-net-vs-git-netdev-all.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
 git-ocfs2.patch
 git-parisc.patch
 git-r8169-fixup.patch
@@ -124,6 +121,7 @@ fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
 xfs-clean-up-shrinker-games.patch
 pktgen-add-try_to_freeze.patch
 acpi-thermal-fix-mod_timer-interval.patch
@@ -187,6 +185,7 @@ lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
 declare-struct-ktime.patch
 make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
 sys_futex64-allows-64bit-futexes-workaround.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
@@ -218,3 +217,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio.patch
