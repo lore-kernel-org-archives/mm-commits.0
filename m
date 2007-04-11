@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch added to -mm tree
-Date: Wed, 11 Apr 2007 01:24:29 -0700
-Message-ID: <200704110826.l3B8QqQJ032314@shell0.pdx.osdl.net>
+Subject: + input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch added to -mm tree
+Date: Wed, 11 Apr 2007 01:25:48 -0700
+Message-ID: <200704110828.l3B8SBcP032337@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37430 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37467 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751187AbXDKI04 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 04:26:56 -0400
+	id S1751197AbXDKI3C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 04:29:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com
+Cc: akpm@linux-foundation.org, IvDoorn@gmail.com, davem@davemloft.net, dtor@mail.ru, linville@tuxdriver.com, marcel@holtmann.org
 
 
 The patch titled
-     sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
+     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3
 has been added to the -mm tree.  Its filename is
-     sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch
+     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
+Subject: input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+net/rfkill/rfkill-input.c:24: error: field 'work' has incomplete type
+net/rfkill/rfkill-input.c: In function 'rfkill_task_handler':
+net/rfkill/rfkill-input.c:35: warning: type defaults to 'int' in declaration of '__mptr'
+net/rfkill/rfkill-input.c:35: warning: initialization from incompatible pointer type
+net/rfkill/rfkill-input.c: In function 'rfkill_schedule_toggle':
+net/rfkill/rfkill-input.c:61: warning: implicit declaration of function 'schedule_work'
+net/rfkill/rfkill-input.c: At top level:
+net/rfkill/rfkill-input.c:78: warning: implicit declaration of function '__WORK_INITIALIZER'
+net/rfkill/rfkill-input.c:78: error: initializer element is not constant
+net/rfkill/rfkill-input.c:78: error: (near initialization for 'rfkill_wlan.mutex.wait_lock')
+net/rfkill/rfkill-input.c:78: error: initializer element is not constant
+net/rfkill/rfkill-input.c:78: error: (near initialization for 'rfkill_wlan.lock')
+net/rfkill/rfkill-input.c:79: error: initializer element is not constant
+net/rfkill/rfkill-input.c:79: error: (near initialization for 'rfkill_bt.mutex.wait_lock')
+net/rfkill/rfkill-input.c:79: error: initializer element is not constant
+net/rfkill/rfkill-input.c:79: error: (near initialization for 'rfkill_bt.lock')
+net/rfkill/rfkill-input.c: In function 'rfkill_handler_exit':
+net/rfkill/rfkill-input.c:166: warning: implicit declaration of function 'flush_scheduled_work'
+
+Cc: Ivo van Doorn <IvDoorn@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uio/uio.c |    2 --
- 1 file changed, 2 deletions(-)
+ net/rfkill/rfkill-input.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/uio/uio.c~sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio drivers/uio/uio.c
---- a/drivers/uio/uio.c~sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio
-+++ a/drivers/uio/uio.c
-@@ -52,13 +52,11 @@ static struct uio_class {
-  */
+diff -puN net/rfkill/rfkill-input.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3 net/rfkill/rfkill-input.c
+--- a/net/rfkill/rfkill-input.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3
++++ a/net/rfkill/rfkill-input.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/input.h>
+ #include <linux/slab.h>
++#include <linux/workqueue.h>
+ #include <linux/init.h>
+ #include <linux/rfkill.h>
  
- static struct attribute attr_addr = {
--	.owner = THIS_MODULE,
- 	.name  = "addr",
- 	.mode  = S_IRUGO,
- };
- 
- static struct attribute attr_size = {
--	.owner = THIS_MODULE,
- 	.name  = "size",
- 	.mode  = S_IRUGO,
- };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -218,3 +234,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
