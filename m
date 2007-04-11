@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-update-to-class-device-removal-patches.patch added to -mm tree
-Date: Wed, 11 Apr 2007 14:14:47 -0700
-Message-ID: <200704112114.l3BLElb2014536@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-documentation-fix-typo-and-use-array_size.patch added to -mm tree
+Date: Wed, 11 Apr 2007 14:35:45 -0700
+Message-ID: <200704112135.l3BLZjnB014972@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:32884 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33451 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753644AbXDKVPD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 17:15:03 -0400
+	id S965292AbXDKVfz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 17:35:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     rtc: update to class device removal patches
+     Linux Kernel Markers documentation fix typo and use ARRAY_SIZE
 has been added to the -mm tree.  Its filename is
-     rtc-update-to-class-device-removal-patches.patch
+     linux-kernel-markers-documentation-fix-typo-and-use-array_size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,117 +25,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: update to class device removal patches
-From: David Brownell <david-b@pacbell.net>
+Subject: Linux Kernel Markers documentation fix typo and use ARRAY_SIZE
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Fix a goof in the revised classdev support for RTCs: make sure the /dev
-node info is ready before the device is registered, not after.  Otherwise
-the /sys/class/rtc/rtcN/dev attribute won't be created and then udev won't
-have the information it needs to create the /dev/rtcN node.
+Linux Kernel Markers documentation fix typo and use ARRAY_SIZE
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c    |    2 ++
- drivers/rtc/rtc-core.h |    5 +++++
- drivers/rtc/rtc-dev.c  |    5 ++++-
- 3 files changed, 11 insertions(+), 1 deletion(-)
+ Documentation/marker.txt |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-update-to-class-device-removal-patches drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-update-to-class-device-removal-patches
-+++ a/drivers/rtc/class.c
-@@ -156,6 +156,8 @@ struct rtc_device *rtc_device_register(c
- 	strlcpy(rtc->name, name, RTC_DEVICE_NAME_SIZE);
- 	snprintf(rtc->dev.bus_id, BUS_ID_SIZE, "rtc%d", id);
+diff -puN Documentation/marker.txt~linux-kernel-markers-documentation-fix-typo-and-use-array_size Documentation/marker.txt
+--- a/Documentation/marker.txt~linux-kernel-markers-documentation-fix-typo-and-use-array_size
++++ a/Documentation/marker.txt
+@@ -103,7 +103,7 @@ clean:
+ ------------------------------ CUT -------------------------------------
+ /* probe-example.c
+  *
+- * Connects a two functions to marker call sites.
++ * Connects two functions to marker call sites.
+  *
+  * (C) Copyright 2007 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+  *
+@@ -117,7 +117,7 @@ clean:
+ #include <linux/marker.h>
+ #include <asm/atomic.h>
  
-+	rtc_dev_prepare(rtc);
-+
- 	err = device_register(&rtc->dev);
- 	if (err)
- 		goto exit_kfree;
-diff -puN drivers/rtc/rtc-core.h~rtc-update-to-class-device-removal-patches drivers/rtc/rtc-core.h
---- a/drivers/rtc/rtc-core.h~rtc-update-to-class-device-removal-patches
-+++ a/drivers/rtc/rtc-core.h
-@@ -2,6 +2,7 @@
+-#define NUM_PROBES (sizeof(probe_array) / sizeof(struct probe_data))
++#define NUM_PROBES ARRAY_SIZE(probe_array)
  
- extern void __init rtc_dev_init(void);
- extern void __exit rtc_dev_exit(void);
-+extern void rtc_dev_prepare(struct rtc_device *rtc);
- extern void rtc_dev_add_device(struct rtc_device *rtc);
- extern void rtc_dev_del_device(struct rtc_device *rtc);
- 
-@@ -15,6 +16,10 @@ static inline void rtc_dev_exit(void)
- {
- }
- 
-+static inline void rtc_dev_prepare(struct rtc_device *rtc)
-+{
-+}
-+
- static inline void rtc_dev_add_device(struct rtc_device *rtc)
- {
- }
-diff -puN drivers/rtc/rtc-dev.c~rtc-update-to-class-device-removal-patches drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-update-to-class-device-removal-patches
-+++ a/drivers/rtc/rtc-dev.c
-@@ -395,7 +395,7 @@ static const struct file_operations rtc_
- 
- /* insertion/removal hooks */
- 
--void rtc_dev_add_device(struct rtc_device *rtc)
-+void rtc_dev_prepare(struct rtc_device *rtc)
- {
- 	if (!rtc_devt)
- 		return;
-@@ -417,7 +417,10 @@ void rtc_dev_add_device(struct rtc_devic
- 
- 	cdev_init(&rtc->char_dev, &rtc_dev_fops);
- 	rtc->char_dev.owner = rtc->owner;
-+}
- 
-+void rtc_dev_add_device(struct rtc_device *rtc)
-+{
- 	if (cdev_add(&rtc->char_dev, rtc->dev.devt, 1))
- 		printk(KERN_WARNING "%s: failed to add char device %d:%d\n",
- 			rtc->name, MAJOR(rtc_devt), rtc->id);
+ struct probe_data {
+ 	const char *name;
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-omap_cf-oops-on-suspend-fix.patch
-doc-gpiotxt-describes-open-drain-emulation.patch
-make-proc-acpi-wakeup-more-useful.patch
-update-documentation-driver-model-platformtxt.patch
-at91_cf-minor-fix.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-fix-hotplug-for-legacy-platform-drivers-update.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnpacpi-sets-pnpdev-devarchdata-fix.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-update-to-class-device-removal-patches.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
+avr32-remove-unneeded-cast-in-atomich.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header.patch
+linux-kernel-markers-architecture-independant-code-markers-add-documentation-to-the-modulec-marker-functions.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-powerpc-optimization-markers-changes-to-the-powerpc-marker-header.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-i386-optimization-fix.patch
+linux-kernel-markers-i386-optimization-markers-document-the-i386-marker-header.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
+linux-kernel-markers-non-optimized-architectures.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-markers-update-documentation.patch
+linux-kernel-markers-documentation-fix-typo-and-use-array_size.patch
+markers-define-the-linker-macro-extra_rwdata.patch
+markers-use-extra_rwdata-in-architectures.patch
