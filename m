@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch added to -mm tree
-Date: Tue, 10 Apr 2007 17:49:44 -0700
-Message-ID: <200704110049.l3B0ni7q024549@shell0.pdx.osdl.net>
+Subject: + slub-core-add-checks-for-interrupts-disabled.patch added to -mm tree
+Date: Tue, 10 Apr 2007 17:48:48 -0700
+Message-ID: <200704110048.l3B0mmV7024537@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54254 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54187 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933214AbXDKAtr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 20:49:47 -0400
+	id S933187AbXDKAsu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 20:48:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: clameter@sgi.com
 The patch titled
      SLUB: add checks for interrupts disabled
 has been added to the -mm tree.  Its filename is
-     slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+     slub-core-add-checks-for-interrupts-disabled.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -36,30 +36,21 @@ Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ mm/slub.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN mm/slub.c~slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled mm/slub.c
---- a/mm/slub.c~slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled
+diff -puN mm/slub.c~slub-core-add-checks-for-interrupts-disabled mm/slub.c
+--- a/mm/slub.c~slub-core-add-checks-for-interrupts-disabled
 +++ a/mm/slub.c
-@@ -617,6 +617,8 @@ static void add_full(struct kmem_cache *
- {
- 	struct kmem_cache_node *n;
+@@ -537,6 +537,8 @@ static int check_object(struct kmem_cach
  
+ static int check_slab(struct kmem_cache *s, struct page *page)
+ {
 +	VM_BUG_ON(!irqs_disabled());
 +
- 	if (!(s->flags & SLAB_STORE_USER))
- 		return;
- 
-@@ -630,6 +632,8 @@ static void remove_full(struct kmem_cach
- {
- 	struct kmem_cache_node *n;
- 
-+	VM_BUG_ON(!irqs_disabled());
-+
- 	if (!(s->flags & SLAB_STORE_USER))
- 		return;
- 
+ 	if (!PageSlab(page)) {
+ 		printk(KERN_ERR "SLUB: %s Not a valid slab page @0x%p "
+ 			"flags=%lx mapping=0x%p count=%d \n",
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -116,10 +107,10 @@ add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
 slub-fix-object-tracking.patch
 slub-enable-tracking-of-full-slabs.patch
 slub-enable-tracking-of-full-slabs-fix.patch
-slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
 slub-validation-of-slabs-metadata-and-guard-zones.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-add-checks-for-interrupts-disabled.patch
 quicklists-for-page-table-pages.patch
 quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
 quicklist-support-for-ia64.patch
