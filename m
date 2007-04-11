@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + change-reparent_to_init-to-reparent_to_kthreadd.patch added to -mm tree
-Date: Wed, 11 Apr 2007 13:41:21 -0700
-Message-ID: <200704112041.l3BKfL82013879@shell0.pdx.osdl.net>
+Subject: + slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch added to -mm tree
+Date: Wed, 11 Apr 2007 13:48:45 -0700
+Message-ID: <200704112048.l3BKmjFD014039@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59857 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60256 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030751AbXDKUl2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 16:41:28 -0400
+	id S1161002AbXDKUst (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 16:48:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, oleg@tv-sign.ru
+Cc: clameter@sgi.com
 
 
 The patch titled
-     Change reparent_to_init to reparent_to_kthreadd
+     SLUB: fix PageError checks during validation
 has been added to the -mm tree.  Its filename is
-     change-reparent_to_init-to-reparent_to_kthreadd.patch
+     slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,116 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Change reparent_to_init to reparent_to_kthreadd
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: SLUB: fix PageError checks during validation
+From: Christoph Lameter <clameter@sgi.com>
 
-When a kernel thread calls daemonize, instead of reparenting the thread to
-init reparent the thread to kthreadd next to the threads created by
-kthread_create.
+If validation is run without slub_debug then we report uselessly that slabs
+do not have the pageerror flag set (which they should not since debug is
+off....)
 
-This is really just a stop gap until daemonize goes away, but it does
-ensure no kernel threads are under init and they are all in one place that
-is easy to find.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ mm/slub.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN kernel/exit.c~change-reparent_to_init-to-reparent_to_kthreadd kernel/exit.c
---- a/kernel/exit.c~change-reparent_to_init-to-reparent_to_kthreadd
-+++ a/kernel/exit.c
-@@ -26,6 +26,7 @@
- #include <linux/profile.h>
- #include <linux/mount.h>
- #include <linux/proc_fs.h>
-+#include <linux/kthread.h>
- #include <linux/mempolicy.h>
- #include <linux/taskstats_kern.h>
- #include <linux/delayacct.h>
-@@ -257,26 +258,25 @@ static int has_stopped_jobs(struct pid *
+diff -puN mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation mm/slub.c
+--- a/mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation
++++ a/mm/slub.c
+@@ -2462,9 +2462,15 @@ static void validate_slab_slab(struct km
+ 		printk(KERN_INFO "SLUB: %s Skipped busy slab %p\n",
+ 			s->name, page);
+ 
+-	if (!PageError(page))
+-		printk(KERN_ERR "SLUB: %s PageError not set on slab %p\n",
+-			s->name, page);
++	if (s->flags & DEBUG_DEFAULT_FLAGS) {
++		if (!PageError(page))
++			printk(KERN_ERR "SLUB: %s PageError not set "
++				"on slab %p\n", s->name, page);
++	} else {
++		if (PageError(page))
++			printk(KERN_ERR "SLUB: %s PageError set on "
++				"slab %p\n", s->name, page);
++	}
  }
  
- /**
-- * reparent_to_init - Reparent the calling kernel thread to the init task of the pid space that the thread belongs to.
-+ * reparent_to_kthreadd - Reparent the calling kernel thread to kthreadd
-  *
-  * If a kernel thread is launched as a result of a system call, or if
-- * it ever exits, it should generally reparent itself to init so that
-- * it is correctly cleaned up on exit.
-+ * it ever exits, it should generally reparent itself to kthreadd so it
-+ * isn't in the way of other processes and is correctly cleaned up on exit.
-  *
-  * The various task state such as scheduling policy and priority may have
-  * been inherited from a user process, so we reset them to sane values here.
-  *
-- * NOTE that reparent_to_init() gives the caller full capabilities.
-+ * NOTE that reparent_to_kthreadd() gives the caller full capabilities.
-  */
--static void reparent_to_init(void)
-+static void reparent_to_kthreadd(void)
- {
- 	write_lock_irq(&tasklist_lock);
- 
- 	ptrace_unlink(current);
- 	/* Reparent to init */
- 	remove_parent(current);
--	current->parent = child_reaper(current);
--	current->real_parent = child_reaper(current);
-+	current->real_parent = current->parent = kthreadd_task;
- 	add_parent(current);
- 
- 	/* Set the exit signal to SIGCHLD so we signal init on exit */
-@@ -403,7 +403,7 @@ void daemonize(const char *name, ...)
- 	current->files = init_task.files;
- 	atomic_inc(&current->files->count);
- 
--	reparent_to_init();
-+	reparent_to_kthreadd();
- }
- 
- EXPORT_SYMBOL(daemonize);
+ static int validate_slab_node(struct kmem_cache *s, struct kmem_cache_node *n)
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-powerpc-rtas-msi-support.patch
-fix-i-oat-for-kexec.patch
-fix-x86_64-mm-relocatable-kernel-support.patch
-account-for-module-percpu-space-separately-from-kernel.patch
-i386-irq-kill-irq-compression.patch
-i386-relocate-vdso-elf-headers-to-match-mapped-location-with-compat_vdso.patch
-i386-make-compat_vdso-runtime-selectable.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-clean-up-elf-note-generation.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
-proc-cleanup-use-seq_release_private-where-appropriate.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-edac-k8-driver-coding-tidy.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+extend-print_symbol-capability-fix.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-core-minor-fixes.patch
+slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+slub-core-fix-another-numa-bootstrap-issue.patch
+slub-core-fix-object-counting.patch
+slub-core-drop-version-number.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
+slub-core-printk-facility-level-cleanup.patch
+slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
+slub-core-add-explanation-for-defrag_ratio-=-100.patch
+slub-core-add-explanation-for-locking.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-the-64k-limits.patch
+slub-core-explain-sizing-of-slabs-in-detail.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-add-checks-for-interrupts-disabled.patch
+slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation.patch
+slub-user-documentation-fix.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+readahead-state-based-method-aging-accounting.patch
+slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
