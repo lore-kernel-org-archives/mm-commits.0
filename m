@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ieee1394-remove-use-of-subsys-rwsem.patch added to -mm tree
-Date: Wed, 11 Apr 2007 16:46:44 -0700
-Message-ID: <200704112349.l3BNn9c4018311@shell0.pdx.osdl.net>
+Subject: + git-wireless-vs-git-net-3.patch added to -mm tree
+Date: Wed, 11 Apr 2007 16:49:44 -0700
+Message-ID: <200704112352.l3BNq8Fb018351@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36956 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37022 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932192AbXDKXt0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:49:26 -0400
+	id S932190AbXDKXwq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:52:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, stefanr@s5r6.in-berlin.de
+Cc: akpm@linux-foundation.org, davem@davemloft.net, linville@tuxdriver.com
 
 
 The patch titled
-     ieee1394: remove use of subsys rwsem
+     git-wireless-vs-git-net-3
 has been added to the -mm tree.  Its filename is
-     ieee1394-remove-use-of-subsys-rwsem.patch
+     git-wireless-vs-git-net-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ieee1394: remove use of subsys rwsem
+Subject: git-wireless-vs-git-net-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-See http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-01-driver/devices_subsys-rwsem-removal.patch
-
-and http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-01-driver/ieee1394-rwsem-removal.patch
-
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Greg KH <greg@kroah.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/fw-card.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ net/mac80211/ieee80211.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/firewire/fw-card.c~ieee1394-remove-use-of-subsys-rwsem drivers/firewire/fw-card.c
---- a/drivers/firewire/fw-card.c~ieee1394-remove-use-of-subsys-rwsem
-+++ a/drivers/firewire/fw-card.c
-@@ -162,16 +162,12 @@ fw_core_add_descriptor (struct fw_descri
- 	if (i != desc->length)
- 		return -EINVAL;
+diff -puN net/mac80211/ieee80211.c~git-wireless-vs-git-net-3 net/mac80211/ieee80211.c
+--- a/net/mac80211/ieee80211.c~git-wireless-vs-git-net-3
++++ a/net/mac80211/ieee80211.c
+@@ -2545,7 +2545,7 @@ ieee80211_rx_h_data_agg(struct ieee80211
+ 			return TXRX_DROP;
  
--	down_write(&fw_bus_type.subsys.rwsem);
--
- 	list_add_tail (&desc->link, &descriptor_list);
- 	descriptor_count++;
- 	if (desc->immediate > 0)
- 		descriptor_count++;
- 	update_config_roms();
+ 		memcpy(skb_put(frame, subframe_len), (u8*)eth, subframe_len);
+-		frame->mac.raw = frame->data;
++		skb_set_mac_header(frame, 0);
+ 		skb2 = NULL;
  
--	up_write(&fw_bus_type.subsys.rwsem);
--
- 	return 0;
- }
- EXPORT_SYMBOL(fw_core_add_descriptor);
-@@ -179,15 +175,11 @@ EXPORT_SYMBOL(fw_core_add_descriptor);
- void
- fw_core_remove_descriptor (struct fw_descriptor *desc)
- {
--	down_write(&fw_bus_type.subsys.rwsem);
--
- 	list_del(&desc->link);
- 	descriptor_count--;
- 	if (desc->immediate > 0)
- 		descriptor_count--;
- 	update_config_roms();
--
--	up_write(&fw_bus_type.subsys.rwsem);
- }
- EXPORT_SYMBOL(fw_core_remove_descriptor);
- 
-@@ -404,10 +396,8 @@ fw_card_add(struct fw_card *card,
- 	 * drops it when the driver calls fw_core_remove_card. */
- 	fw_card_get(card);
- 
--	down_write(&fw_bus_type.subsys.rwsem);
- 	config_rom = generate_config_rom (card, &length);
- 	list_add_tail(&card->link, &card_list);
--	up_write(&fw_bus_type.subsys.rwsem);
- 
- 	return card->driver->enable(card, config_rom, length);
- }
-@@ -487,9 +477,7 @@ fw_core_remove_card(struct fw_card *card
- 				     PHY_LINK_ACTIVE | PHY_CONTENDER, 0);
- 	fw_core_initiate_bus_reset(card, 1);
- 
--	down_write(&fw_bus_type.subsys.rwsem);
- 	list_del(&card->link);
--	up_write(&fw_bus_type.subsys.rwsem);
- 
- 	/* Set up the dummy driver. */
- 	card->driver = &dummy_driver;
+ 		sdata->stats.rx_packets++;
+@@ -2594,7 +2594,8 @@ ieee80211_rx_h_data_agg(struct ieee80211
+ 		if (skb2) {
+ 			/* send to wireless media */
+ 			skb2->protocol = __constant_htons(ETH_P_802_3);
+-			skb2->mac.raw = skb2->nh.raw = skb2->data;
++			skb_set_mac_header(skb2, 0);
++			skb_set_network_header(skb2, 0);
+ 			skb2->priority = skb->priority;
+ 			skb2->dev = dev;
+ 			dev_queue_xmit(skb2);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -159,6 +120,7 @@ git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-git-net.patch
 git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
 revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
 revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
 fix-x86_64-mm-sched-clock-share.patch
