@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch added to -mm tree
-Date: Tue, 10 Apr 2007 22:56:50 -0700
-Message-ID: <200704110556.l3B5uoIA029760@shell0.pdx.osdl.net>
+Date: Tue, 10 Apr 2007 23:10:43 -0700
+Message-ID: <200704110610.l3B6AhIs029972@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60776 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:32839 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161209AbXDKF44 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 01:56:56 -0400
+	id S1751570AbXDKGKw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 02:10:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -194,12 +194,12 @@ diff -puN include/linux/highmem.h~fs-convert-core-functions-to-zero_user_page-pa
 +	do {							\
 +		void *kaddr;					\
 +								\
-+		BUG_ON(offset + size > PAGE_SIZE);		\
++		BUG_ON((offset) + (size) > PAGE_SIZE);		\
 +								\
 +		kaddr = kmap_atomic(page, km_type);		\
-+		memset((char *)kaddr + offset, 0, size);	\
++		memset((char *)kaddr + (offset), 0, (size));	\
 +		flush_dcache_page(page);			\
-+		kunmap_atomic(kaddr, km_type);			\
++		kunmap_atomic(kaddr, (km_type));		\
 +	} while (0)
  
 -	kaddr = kmap_atomic(page, KM_USER0);
@@ -209,11 +209,11 @@ diff -puN include/linux/highmem.h~fs-convert-core-functions-to-zero_user_page-pa
 -}
  
 -static inline void memclear_highpage_flush(struct page *page, unsigned int offset, unsigned int size)
-+static inline void memclear_highpage_flush(struct page *page,
-+			unsigned int offset, unsigned int size) __deprecated
++static inline void __deprecated memclear_highpage_flush(struct page *page,
++			unsigned int offset, unsigned int size)
  {
 -	return zero_user_page(page, offset, size);
-+	zero_user_page(page, offset, size);
++	zero_user_page(page, offset, size, KM_USER0);
  }
  
  #ifndef __HAVE_ARCH_COPY_USER_HIGHPAGE
