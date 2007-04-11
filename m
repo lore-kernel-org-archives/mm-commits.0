@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reduce-reparent_to_init.patch added to -mm tree
-Date: Tue, 10 Apr 2007 17:27:13 -0700
-Message-ID: <200704110027.l3B0RDss024075@shell0.pdx.osdl.net>
+Subject: + slub-user-documentation.patch added to -mm tree
+Date: Tue, 10 Apr 2007 18:32:19 -0700
+Message-ID: <200704110132.l3B1WJfs025263@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53637 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55141 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030285AbXDKA1m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 20:27:42 -0400
+	id S965927AbXDKBcX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 21:32:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, davidel@xmailserver.org, ebiederm@xmission.com, holt@sgi.com, jengelh@linux01.gwdg.de, mingo@elte.hu, roland@redhat.com, serge@hallyn.com, torvalds@linux-foundation.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     reduce reparent_to_init()
+     slub: user documentation
 has been added to the -mm tree.  Its filename is
-     reduce-reparent_to_init.patch
+     slub-user-documentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,141 +25,203 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reduce reparent_to_init()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: slub: user documentation
+From: Christoph Lameter <clameter@sgi.com>
 
-Move some random stuff which doesn't need tasklist_lock from reparent_to_init()
-to its caller, daemonize(). Strictly speaking, rlim is protected by task_lock()
-but we don't need it to copy init_task->rlim.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   21 +++++++++++----------
- 1 files changed, 11 insertions(+), 10 deletions(-)
+ Documentation/vm/slub.txt |  114 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 114 insertions(+)
 
-diff -puN kernel/exit.c~reduce-reparent_to_init kernel/exit.c
---- a/kernel/exit.c~reduce-reparent_to_init
-+++ a/kernel/exit.c
-@@ -273,7 +273,6 @@ static void reparent_to_init(void)
- 	write_lock_irq(&tasklist_lock);
- 
- 	ptrace_unlink(current);
--	/* Reparent to init */
- 	remove_parent(current);
- 	current->parent = child_reaper(current);
- 	current->real_parent = child_reaper(current);
-@@ -282,17 +281,8 @@ static void reparent_to_init(void)
- 	/* Set the exit signal to SIGCHLD so we signal init on exit */
- 	current->exit_signal = SIGCHLD;
- 
--	if (!has_rt_policy(current) && (task_nice(current) < 0))
--		set_user_nice(current, 0);
--	/* cpus_allowed? */
--	/* rt_priority? */
--	/* signals? */
- 	security_task_reparent_to_init(current);
--	memcpy(current->signal->rlim, init_task.signal->rlim,
--	       sizeof(current->signal->rlim));
--	atomic_inc(&(INIT_USER->__count));
- 	write_unlock_irq(&tasklist_lock);
--	switch_uid(INIT_USER);
- }
- 
- void __set_special_pids(pid_t session, pid_t pgrp)
-@@ -404,6 +394,17 @@ void daemonize(const char *name, ...)
- 	atomic_inc(&current->files->count);
- 
- 	reparent_to_init();
+diff -puN /dev/null Documentation/vm/slub.txt
+--- /dev/null
++++ a/Documentation/vm/slub.txt
+@@ -0,0 +1,114 @@
++Short users guide for SLUB
++--------------------------
 +
-+	if (!has_rt_policy(current) && (task_nice(current) < 0))
-+		set_user_nice(current, 0);
-+	/* cpus_allowed? */
-+	/* rt_priority? */
-+	/* signals? */
-+	memcpy(current->signal->rlim, init_task.signal->rlim,
-+	       sizeof(current->signal->rlim));
++First of all slub should transparently replace SLAB. If you enable
++SLUB then everything should work the same (Note the word "should".
++There is likely not much value in that word at this point).
 +
-+	atomic_inc(&(INIT_USER->__count));
-+	switch_uid(INIT_USER);
- }
- 
- EXPORT_SYMBOL(daemonize);
++The basic philosophy of SLUB is very different from SLAB. SLAB
++requires rebuilding the kernel to activate debug options for all
++SLABS. SLUB always includes full debugging but its off by default.
++SLUB can enable debugging only for selected slabs in order to avoid
++an impact on overall system performance which may make a bug more
++difficult to find.
++
++In order to switch debugging on one can add a option "slub_debug"
++to the kernel command line. That will enable full debugging for
++all slabs.
++
++Typically one would then use the "slabinfo" command to get statistical
++data and perform operation on the slabs. By default slabinfo only lists
++slabs that have data in them. See "slabinfo -h" for more options when
++running the command. slabinfo is included in this directory and can
++be compiled with
++
++gcc -o slabinfo slabinfo.c
++
++Some of the modes of operation of slabinfo require that slub debugging
++be enabled on the command line. F.e. no tracking information will be
++available without debugging on and validation can only partially
++be performed if debugging was not switched on.
++
++Some more sophisticated uses of slub_debug:
++-------------------------------------------
++
++Parameters may be given to slub_debug. If none is specified then full
++debugging is enabled. Format:
++
++slub_debug=<Debug-Options>       Enable options for all slabs
++slub_debug=<Debug-Options>,<slab name>
++				Enable options only for select slabs
++
++Possible debug options are
++	F		Sanity checks on (enables SLAB_DEBUG_FREE. Sorry
++			SLAB legacy issues)
++	Z		Red zoning
++	P		Poisoning (object and padding)
++	U		User tracking (free and alloc)
++	T		Trace (please only use on single slabs)
++
++F.e. in order to boot just with sanity checks and red zoning one would specify:
++
++	slub_debug=FZ
++
++Trying to find an issue in the dentry cache? Try
++
++	slub_debug=,dentry_cache
++
++to only enable debugging on the dentry cache.
++
++Red zoning and tracking may realign the slab. We can just apply sanity checks to
++the dentry cache with
++
++	slub_debug=F,dentry_cache
++
++In case you forgot to enable debugging on the kernel command line: It is
++possible to enable debugging manually when the kernel is up. Look at the
++contents of:
++
++/sys/slab/<slab name>/
++
++Look at the writable files. Writing 1 to them will enable the
++corresponding debug option. All options can be set on a slab that does
++not contain objects. If the slab already contains objects then sanity checks
++and tracing may only be enabled. The other options may cause the realignment
++of objects.
++
++Careful with tracing: It may spew out lots of information and never stop if
++used on the wrong slab.
++
++SLAB Merging
++------------
++
++If no debugging is specified then SLUB may merge similar slabs together
++in order to reduce overhead and increase cache hotness of objects.
++slabinfo -a displays which slabs were merged together.
++
++Getting more performance
++------------------------
++
++To some degree SLUBs performance is limited by the need to take the
++list_lock once in a while to deal with partial slabs. That overhead is
++governed by the order of the allocation for each slab. The allocations
++can be influenced by kernel parameters:
++
++slub_min_objects=x		(default 8)
++slub_min_order=x		(default 0)
++slub_max_order=x		(default 4)
++
++slub_min_objects allows to specify how many objects must at least fit
++into one slab in order for the allocation order to be acceptable.
++In general slub will be able to perform this number of allocations
++on a slab without consulting centralized resources (list_lock) where
++contention may occur.
++
++slub_min_order specifies a minim order of slabs. A similar effect like
++slub_min_objects.
++
++slub_max_order specified the order at which slub_min_objects should no
++longer be checked. This is useful to avoid SLUB trying to generate
++super large order pages to fit slub_min_objects of a slab cache with
++large object sizes into one high order page.
++
++
++Christoph Lameter, <clameter@sgi.com>, April 10, 2007
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-dvb.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-refrigerator-vs-thaw_process-race.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-add-support-for-deferrable-timers-respun.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-add-support-for-deferrable-timers-respun-fix.patch
-add-a-new-deferrable-delayed-work-init.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-make-queue_delayed_work-friendly-to-flush_fork.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-workqueue-introduce-wq_per_cpu-helper.patch
-make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
-ipvs-flush-defense_work-before-module-unload.patch
-workqueue-kill-noautorel-works.patch
-worker_thread-dont-play-with-signals.patch
-worker_thread-fix-racy-try_to_freeze-usage.patch
-zap_other_threads-remove-unneeded-exit_signal-change.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+extend-print_symbol-capability-fix.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-core-minor-fixes.patch
+slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+slub-core-fix-another-numa-bootstrap-issue.patch
+slub-core-fix-object-counting.patch
+slub-core-drop-version-number.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
+slub-core-printk-facility-level-cleanup.patch
+slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
+slub-core-add-explanation-for-defrag_ratio-=-100.patch
+slub-core-add-explanation-for-locking.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-the-64k-limits.patch
+slub-core-explain-sizing-of-slabs-in-detail.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-add-checks-for-interrupts-disabled.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation.patch
+slub-user-documentation-fix.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
 slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-____call_usermodehelper-dont-flush_signals.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-reduce-reparent_to_init.patch
-make-kernel-threads-invisible-to-sbin-init.patch
-reparent-kernel-threads-to-swapper.patch
-only-send-pdeath_signal-when-getppid-changes.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
+mm-implement-swap-prefetching.patch
+readahead-state-based-method-aging-accounting.patch
