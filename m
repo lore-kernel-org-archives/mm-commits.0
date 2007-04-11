@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + markers-define-the-linker-macro-extra_rwdata.patch added to -mm tree
-Date: Tue, 10 Apr 2007 21:46:34 -0700
-Message-ID: <200704110446.l3B4kZf8028596@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header.patch added to -mm tree
+Date: Tue, 10 Apr 2007 22:00:43 -0700
+Message-ID: <200704110500.l3B50hGm028873@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58833 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59148 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030781AbXDKEqz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 00:46:55 -0400
+	id S1161175AbXDKFA4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 01:00:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, linux-arch@vger.kernel.org
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     markers: define the linker macro EXTRA_RWDATA
+     markers: document the linux/marker.h header
 has been added to the -mm tree.  Its filename is
-     markers-define-the-linker-macro-extra_rwdata.patch
+     linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,146 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: markers: define the linker macro EXTRA_RWDATA
+Subject: markers: document the linux/marker.h header
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Defines the linker macro EXTRA_RWDATA for the marker data section.  It puts
-the marker data in a separate section that will not pollute the normal .data
-section, which minimize the cache impact.  Markers need such a special section
-because they define a lot of spreaded and small data structures at multiple
-sites.
+Fix a bitwise flag manipulation mistake in the MARK_GENERIC macro.
 
-This patch also creates the __markers_strings section (ro marker strings) and
-makes sure the __markers section is aligned by putting it before the
-__ksymtab_strings (not after).
+Use the __marker (ro), new __marker_strings (ro) and __marker_data (rw)
+sections.  It depends on the linker modification which defines this last
+section.
+
+It allows the use of a probe "private" data : upon probe connexion, it can
+provide a pointer to its own data structure which will be available at the
+probe call site as the pdata field of the mdata structure.
+
+With the new __marker_data section, much less data has to be defined in the
+kernel .data segment : only the enable flag, in non-optimized markers, is left
+in .data because it is used very often.
+
+The marker flags now only define MF_* which are bitmasks.  There is no way to
+use the bitmask shift value, so it is less error prone.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ include/linux/marker.h |   65 +++++++++++++++++++++++----------------
+ 1 file changed, 39 insertions(+), 26 deletions(-)
 
-diff -puN include/asm-generic/vmlinux.lds.h~markers-define-the-linker-macro-extra_rwdata include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~markers-define-the-linker-macro-extra_rwdata
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -116,21 +116,19 @@
- 		*(__kcrctab_gpl_future)					\
- 		VMLINUX_SYMBOL(__stop___kcrctab_gpl_future) = .;	\
- 	}								\
--									\
--	/* Kernel symbol table: strings */				\
--        __ksymtab_strings : AT(ADDR(__ksymtab_strings) - LOAD_OFFSET) {	\
--		*(__ksymtab_strings)					\
--	}								\
- 	/* Kernel markers : pointers */					\
--	.markers : AT(ADDR(.markers) - LOAD_OFFSET) {			\
-+	__markers : AT(ADDR(__markers) - LOAD_OFFSET) {			\
- 		VMLINUX_SYMBOL(__start___markers) = .;			\
--		*(.markers)						\
-+		*(__markers)						\
- 		VMLINUX_SYMBOL(__stop___markers) = .;			\
- 	}								\
--	.markers.c : AT(ADDR(.markers.c) - LOAD_OFFSET) {		\
--		VMLINUX_SYMBOL(__start___markers_c) = .;		\
--		*(.markers.c)						\
--		VMLINUX_SYMBOL(__stop___markers_c) = .;			\
-+	/* Kernel symbol table: strings */				\
-+        __ksymtab_strings : AT(ADDR(__ksymtab_strings) - LOAD_OFFSET) {	\
-+		*(__ksymtab_strings)					\
-+	}								\
-+	/* Kernel markers : strings */					\
-+	__markers_strings : AT(ADDR(__markers_strings) - LOAD_OFFSET) {	\
-+		*(__markers_strings)					\
- 	}								\
- 	__end_rodata = .;						\
- 	. = ALIGN(4096);						\
-@@ -147,6 +145,10 @@
- 									\
- 	. = ALIGN(4096);
+diff -puN include/linux/marker.h~linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header include/linux/marker.h
+--- a/include/linux/marker.h~linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header
++++ a/include/linux/marker.h
+@@ -16,48 +16,59 @@
  
-+#define EXTRA_RWDATA							\
-+	. = ALIGN(8);							\
-+	*(__markers_data)						\
+ #ifdef __KERNEL__
+ 
+-typedef void marker_probe_func(const char *fmt, ...);
++struct __mark_marker_data;
+ 
+-struct __mark_marker_c {
++typedef void marker_probe_func(const struct __mark_marker_data *mdata,
++	const char *fmt, ...);
 +
- #define SECURITY_INIT							\
- 	.security_initcall.init : AT(ADDR(.security_initcall.init) - LOAD_OFFSET) { \
- 		VMLINUX_SYMBOL(__security_initcall_start) = .;		\
-@@ -263,4 +265,3 @@
-   	*(.initcall6s.init)						\
-   	*(.initcall7.init)						\
-   	*(.initcall7s.init)
++struct __mark_marker_data {
+ 	const char *name;
+-	marker_probe_func **call;
+ 	const char *format;
+ 	int flags;
++	marker_probe_func *call;
++	void *pdata;
+ } __attribute__((packed));
+ 
+ struct __mark_marker {
+-	const struct __mark_marker_c *cmark;
++	struct __mark_marker_data *mdata;
+ 	void *enable;
+ } __attribute__((packed));
+ 
+-/* Generic marker flavor always available */
+ #ifdef CONFIG_MARKERS
+ 
+-#define MF_OPTIMIZED 1	/* Use optimized markers */
+-#define MF_LOCKDEP 2	/* Can call lockdep */
+-#define MF_PRINTK 3	/* vprintk can be called in the probe */
 -
+-#define _MF_OPTIMIZED (1 << MF_OPTIMIZED)
+-#define _MF_LOCKDEP (1 << MF_LOCKDEP)
+-#define _MF_PRINTK (1 << MF_PRINTK)
++/* Marker flags : selects the mechanism used to connect the probes to the
++ * markers and what can be executed within the probes. This is primarily
++ * used at reentrancy-unfriendly sites. */
++#define MF_OPTIMIZED	(1 << 0)	/* Use optimized markers */
++#define MF_LOCKDEP	(1 << 1)	/* Can call lockdep */
++#define MF_PRINTK	(1 << 2)	/* vprintk can be called in the probe */
++#define _MF_NR		3		/* Number of marker flags */
+ 
++#define DECLARE_MARKER_DATA(flags, name, format) \
++
++/* Generic marker flavor always available */
+ #define MARK_GENERIC(flags, name, format, args...) \
+ 	do { \
+-		static marker_probe_func *__mark_call_##name = \
+-					__mark_empty_function; \
++		static const char __mstrtab_name_##name[] \
++		__attribute__((section("__markers_strings"))) \
++		= #name; \
++		static const char __mstrtab_format_##name[] \
++		__attribute__((section("__markers_strings"))) \
++		= format; \
++		static struct __mark_marker_data __mark_data_##name \
++		__attribute__((section("__markers_data"))) = \
++		{ __mstrtab_name_##name,  __mstrtab_format_##name, \
++		(flags) & ~MF_OPTIMIZED, __mark_empty_function, NULL }; \
+ 		static char __marker_enable_##name = 0; \
+-		static const struct __mark_marker_c __mark_c_##name \
+-			__attribute__((section(".markers.c"))) = \
+-			{ #name, &__mark_call_##name, format, \
+-			(flags) | ~_MF_OPTIMIZED } ; \
+ 		static const struct __mark_marker __mark_##name \
+-			__attribute__((section(".markers"))) = \
+-			{ &__mark_c_##name, &__marker_enable_##name } ; \
++			__attribute__((section("__markers"))) = \
++			{ &__mark_data_##name, &__marker_enable_##name } ; \
+ 		asm volatile ( "" : : "i" (&__mark_##name)); \
+ 		__mark_check_format(format, ## args); \
+ 		if (unlikely(__marker_enable_##name)) { \
+ 			preempt_disable(); \
+-			(*__mark_call_##name)(format, ## args); \
++			(*__mark_data_##name.call)(&__mark_data_##name, \
++						format, ## args); \
+ 			preempt_enable(); \
+ 		} \
+ 	} while (0)
+@@ -87,21 +98,23 @@ static inline int marker_generic_set_ena
+ #endif
+ 
+ #define MARK_MAX_FORMAT_LEN	1024
++/* Pass this as a format string for a marker with no argument */
+ #define MARK_NOARGS " "
+ 
+-static inline __attribute__ ((format (printf, 1, 2)))
++/* To be used for string format validity checking with sparse */
++static inline
+ void __mark_check_format(const char *fmt, ...)
+ { }
+ 
+ extern marker_probe_func __mark_empty_function;
+ 
+ extern int _marker_set_probe(int flags, const char *name, const char *format,
+-				marker_probe_func *probe);
++				marker_probe_func *probe, void *pdata);
+ 
+-#define marker_set_probe(name, format, probe) \
+-	_marker_set_probe(_MF_DEFAULT, name, format, probe)
++#define marker_set_probe(name, format, probe, pdata) \
++	_marker_set_probe(MF_DEFAULT, name, format, probe, pdata)
+ 
+-extern int marker_remove_probe(marker_probe_func *probe);
++extern int marker_remove_probe(const char *name);
+ extern int marker_list_probe(marker_probe_func *probe);
+ 
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -125,10 +194,17 @@ local_t-sparc64-cleanup.patch
 local_t-x86_64-extension.patch
 linux-kernel-markers-kconfig-menus.patch
 linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header.patch
 linux-kernel-markers-powerpc-optimization.patch
 linux-kernel-markers-i386-optimization.patch
 linux-kernel-markers-i386-optimization-fix.patch
 linux-kernel-markers-non-optimized-architectures.patch
 linux-kernel-markers-documentation.patch
 markers-define-the-linker-macro-extra_rwdata.patch
-markers-linker-m68knommu.patch
+markers-use-extra_rwdata-in-architectures.patch
+markers-document-the-i386-marker-header.patch
+markers-changes-to-the-powerpc-marker-header.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+markers-update-documentation.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
+markers-add-documentation-to-the-modulec-marker-functions.patch
