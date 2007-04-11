@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-more-fixes-for-specific-machine-types.patch added to -mm tree
-Date: Wed, 11 Apr 2007 12:58:07 -0700
-Message-ID: <200704111958.l3BJw7Fb013000@shell0.pdx.osdl.net>
+Subject: + alpha-prctl-macros.patch added to -mm tree
+Date: Wed, 11 Apr 2007 12:58:02 -0700
+Message-ID: <200704111958.l3BJw3CO012991@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58439 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58430 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030320AbXDKT6L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 15:58:11 -0400
+	id S1030320AbXDKT6I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 15:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net
 
 
 The patch titled
-     ALPHA: more fixes for specific machine types
+     ALPHA: "prctl" macros
 has been added to the -mm tree.  Its filename is
-     alpha-more-fixes-for-specific-machine-types.patch
+     alpha-prctl-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALPHA: more fixes for specific machine types
+Subject: ALPHA: "prctl" macros
 From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-arch/alpha/kernel/sys_sx164.c
+Files:
 
-	Earlier firmware revisions need MVI fix as well.
+include/asm-alpha/thread_info.h
 
-arch/alpha/kernel/sys_nautilus.c
+	Provide "prctl" macros for ALPHA.
 
-	On UP1500 firmware reports wrong AGP IRQ (10 instead of 5).
-	This causes interrupt storm if there is a PCI device that
-	uses IRQ 5.
-
+Signed-off-by: Jay Estabrook <jay.estabrook@hp.com>
 Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/sys_nautilus.c |    6 ++++++
- arch/alpha/kernel/sys_sx164.c    |    2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ include/asm-alpha/thread_info.h |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+)
 
-diff -puN arch/alpha/kernel/sys_nautilus.c~alpha-more-fixes-for-specific-machine-types arch/alpha/kernel/sys_nautilus.c
---- a/arch/alpha/kernel/sys_nautilus.c~alpha-more-fixes-for-specific-machine-types
-+++ a/arch/alpha/kernel/sys_nautilus.c
-@@ -70,6 +70,12 @@ nautilus_map_irq(struct pci_dev *dev, u8
- 	/* Preserve the IRQ set up by the console.  */
+diff -puN include/asm-alpha/thread_info.h~alpha-prctl-macros include/asm-alpha/thread_info.h
+--- a/include/asm-alpha/thread_info.h~alpha-prctl-macros
++++ a/include/asm-alpha/thread_info.h
+@@ -92,5 +92,27 @@ register struct thread_info *__current_t
+ #define _TIF_ALLWORK_MASK	(_TIF_WORK_MASK		\
+ 				 | _TIF_SYSCALL_TRACE)
  
- 	u8 irq;
-+	/* UP1500: AGP INTA is actually routed to IRQ 5, not IRQ 10 as
-+	   console reports. Check the device id of AGP bridge to distinguish
-+	   UP1500 from UP1000/1100. Note: 'pin' is 2 due to bridge swizzle. */
-+	if (slot == 1 && pin == 2 &&
-+	    dev->bus->self && dev->bus->self->device == 0x700f)
-+		return 5;
- 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
- 	return irq;
- }
-diff -puN arch/alpha/kernel/sys_sx164.c~alpha-more-fixes-for-specific-machine-types arch/alpha/kernel/sys_sx164.c
---- a/arch/alpha/kernel/sys_sx164.c~alpha-more-fixes-for-specific-machine-types
-+++ a/arch/alpha/kernel/sys_sx164.c
-@@ -132,7 +132,7 @@ sx164_init_arch(void)
- 
- 	if (amask(AMASK_MAX) != 0
- 	    && alpha_using_srm
--	    && (cpu->pal_revision & 0xffff) == 0x117) {
-+	    && (cpu->pal_revision & 0xffff) <= 0x117) {
- 		__asm__ __volatile__(
- 		"lda	$16,8($31)\n"
- 		"call_pal 9\n"		/* Allow PALRES insns in kernel mode */
++#define ALPHA_UAC_SHIFT		6
++#define ALPHA_UAC_MASK		(1 << TIF_UAC_NOPRINT | 1 << TIF_UAC_NOFIX | \
++				 1 << TIF_UAC_SIGBUS)
++
++#define SET_UNALIGN_CTL(task,value)	({				     \
++	(task)->thread_info->flags = (((task)->thread_info->flags &	     \
++		~ALPHA_UAC_MASK)					     \
++		| (((value) << ALPHA_UAC_SHIFT)       & (1<<TIF_UAC_NOPRINT))\
++		| (((value) << (ALPHA_UAC_SHIFT + 1)) & (1<<TIF_UAC_SIGBUS)) \
++		| (((value) << (ALPHA_UAC_SHIFT - 1)) & (1<<TIF_UAC_NOFIX)));\
++	0; })
++
++#define GET_UNALIGN_CTL(task,value)	({				\
++	put_user(((task)->thread_info->flags & (1 << TIF_UAC_NOPRINT))	\
++		  >> ALPHA_UAC_SHIFT					\
++		 | ((task)->thread_info->flags & (1 << TIF_UAC_SIGBUS))	\
++		 >> (ALPHA_UAC_SHIFT + 1)				\
++		 | ((task)->thread_info->flags & (1 << TIF_UAC_NOFIX))	\
++		 >> (ALPHA_UAC_SHIFT - 1),				\
++		 (int __user *)(value));				\
++	})
++
+ #endif /* __KERNEL__ */
+ #endif /* _ALPHA_THREAD_INFO_H */
 _
 
 Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
