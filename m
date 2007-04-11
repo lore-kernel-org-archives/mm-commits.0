@@ -1,83 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - intel_agp-pci-id-update-for-intel-965gm.patch removed from -mm tree
-Date: Wed, 11 Apr 2007 16:21:10 -0700
-Message-ID: <200704112321.l3BNLAjN017551@shell0.pdx.osdl.net>
+Subject: - sony-laptop-add-debug-macros-also-used-by-the-sonypi-reimplementation.patch removed from -mm tree
+Date: Wed, 11 Apr 2007 16:20:41 -0700
+Message-ID: <200704112320.l3BNKfct017502@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35896 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35919 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161372AbXDKXVY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:21:24 -0400
+	id S1161412AbXDKXV6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:21:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhenyu.z.wang@intel.com, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: malattia@linux.it, lenb@kernel.org, stelian@popies.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel_agp: PCI id update for Intel 965GM
+     sony-laptop: add debug macros also used by the sonypi reimplementation
 has been removed from the -mm tree.  Its filename was
-     intel_agp-pci-id-update-for-intel-965gm.patch
+     sony-laptop-add-debug-macros-also-used-by-the-sonypi-reimplementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: intel_agp: PCI id update for Intel 965GM
-From: Wang Zhenyu <zhenyu.z.wang@intel.com>
+Subject: sony-laptop: add debug macros also used by the sonypi reimplementation
+From: Mattia Dongili <malattia@linux.it>
 
-Update PCI id info for Intel 965GM chipset.
-
-Signed-off-by: Wang Zhenyu <zhenyu.z.wang@intel.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Stelian Pop <stelian@popies.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+ drivers/misc/sony-laptop.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel_agp-pci-id-update-for-intel-965gm drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel_agp-pci-id-update-for-intel-965gm
-+++ a/drivers/char/agp/intel-agp.c
-@@ -18,11 +18,14 @@
- #define PCI_DEVICE_ID_INTEL_82965Q_IG       0x2992
- #define PCI_DEVICE_ID_INTEL_82965G_HB       0x29A0
- #define PCI_DEVICE_ID_INTEL_82965G_IG       0x29A2
-+#define PCI_DEVICE_ID_INTEL_82965GM_HB      0x2A00
-+#define PCI_DEVICE_ID_INTEL_82965GM_IG      0x2A02
+diff -puN drivers/misc/sony-laptop.c~add-debug-macros-also-used-by-the-sonypi-reimplementation drivers/misc/sony-laptop.c
+--- a/drivers/misc/sony-laptop.c~add-debug-macros-also-used-by-the-sonypi-reimplementation
++++ a/drivers/misc/sony-laptop.c
+@@ -35,6 +35,11 @@
+ #include <acpi/acpi_bus.h>
+ #include <asm/uaccess.h>
  
- #define IS_I965 (agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82946GZ_HB || \
-                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_1_HB || \
-                  agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965Q_HB || \
--                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_HB)
-+                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965G_HB || \
-+                 agp_bridge->dev->device == PCI_DEVICE_ID_INTEL_82965GM_HB)
++#define LOG_PFX			KERN_WARNING "sony-laptop: "
++#define dprintk(msg...)		do {			\
++	if (debug) printk(KERN_WARNING LOG_PFX  msg);	\
++} while (0)
++
+ #define SONY_NC_CLASS		"sony"
+ #define SONY_NC_HID		"SNY5001"
+ #define SONY_NC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.4"
+@@ -43,8 +48,6 @@
+    0-based values */
+ #define SONY_MAX_BRIGHTNESS	8
  
- 
- extern int agp_memory_reserved;
-@@ -1919,7 +1922,13 @@ static int __devinit agp_intel_probe(str
- 			bridge->driver = &intel_845_driver;
- 		name = "965G";
- 		break;
+-#define LOG_PFX			KERN_WARNING "sony-laptop: "
 -
-+	case PCI_DEVICE_ID_INTEL_82965GM_HB:
-+		if (find_i830(PCI_DEVICE_ID_INTEL_82965GM_IG))
-+			bridge->driver = &intel_i965_driver;
-+		else
-+			bridge->driver = &intel_845_driver;
-+		name = "965GM";
-+		break;
- 	case PCI_DEVICE_ID_INTEL_7505_0:
- 		bridge->driver = &intel_7505_driver;
- 		name = "E7505";
-@@ -2078,6 +2087,7 @@ static struct pci_device_id agp_intel_pc
- 	ID(PCI_DEVICE_ID_INTEL_82965G_1_HB),
- 	ID(PCI_DEVICE_ID_INTEL_82965Q_HB),
- 	ID(PCI_DEVICE_ID_INTEL_82965G_HB),
-+	ID(PCI_DEVICE_ID_INTEL_82965GM_HB),
- 	{ }
- };
+ MODULE_AUTHOR("Stelian Pop, Mattia Dongili");
+ MODULE_DESCRIPTION(SONY_NC_DRIVER_NAME);
+ MODULE_LICENSE("GPL");
+@@ -368,8 +371,7 @@ static struct backlight_ops sony_backlig
+  */
+ static void sony_acpi_notify(acpi_handle handle, u32 event, void *data)
+ {
+-	if (debug)
+-		printk(LOG_PFX "sony_acpi_notify, event: %d\n", event);
++	dprintk("sony_acpi_notify, event: %d\n", event);
+ 	acpi_bus_generate_event(sony_nc_acpi_device, 1, event);
+ }
  
+@@ -472,9 +474,8 @@ static int sony_nc_add(struct acpi_devic
+ 			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
+ 							 *item->acpiget,
+ 							 &handle))) {
+-				if (debug)
+-					printk(LOG_PFX "Found %s getter: %s\n",
+-					       item->name, *item->acpiget);
++				dprintk("Found %s getter: %s\n",
++						item->name, *item->acpiget);
+ 				item->devattr.attr.mode |= S_IRUGO;
+ 				break;
+ 			}
+@@ -485,9 +486,8 @@ static int sony_nc_add(struct acpi_devic
+ 			if (ACPI_SUCCESS(acpi_get_handle(sony_nc_acpi_handle,
+ 							 *item->acpiset,
+ 							 &handle))) {
+-				if (debug)
+-					printk(LOG_PFX "Found %s setter: %s\n",
+-					       item->name, *item->acpiset);
++				dprintk("Found %s setter: %s\n",
++						item->name, *item->acpiset);
+ 				item->devattr.attr.mode |= S_IWUSR;
+ 				break;
+ 			}
 _
 
-Patches currently in -mm which might be from zhenyu.z.wang@intel.com are
+Patches currently in -mm which might be from malattia@linux.it are
 
-origin.patch
+git-cpufreq.patch
