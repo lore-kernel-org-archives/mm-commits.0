@@ -1,35 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - reparent-kernel-threads-to-swapper.patch removed from -mm tree
-Date: Tue, 10 Apr 2007 23:49:51 -0700
-Message-ID: <200704110649.l3B6npKR030710@shell0.pdx.osdl.net>
+Subject: - reduce-reparent_to_init.patch removed from -mm tree
+Date: Tue, 10 Apr 2007 23:49:34 -0700
+Message-ID: <200704110649.l3B6nYI1030701@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33837 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33826 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753215AbXDKGuX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 02:50:23 -0400
+	id S1750978AbXDKGuM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 02:50:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, davidel@xmailserver.org, ebiederm@xmission.com, holt@sgi.com, jengelh@linux01.gwdg.de, mingo@elte.hu, roland@redhat.com, serge@hallyn.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reparent kernel threads to swapper
+     reduce reparent_to_init()
 has been removed from the -mm tree.  Its filename was
-     reparent-kernel-threads-to-swapper.patch
+     reduce-reparent_to_init.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: reparent kernel threads to swapper
+Subject: reduce reparent_to_init()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-A lot of kernel threads parented to /sbin/init slow down do_wait() when a
-non-detached (user-space) process exits.  Change reparent_kthread() to use
-init_task as a parent.  Since init_task can't go away, we don't need to put
-the caller on init_task.children list.
-
-NOTE: pstree doesn't show kernel threads with this patch.
+Move some random stuff which doesn't need tasklist_lock from reparent_to_init()
+to its caller, daemonize(). Strictly speaking, rlim is protected by task_lock()
+but we don't need it to copy init_task->rlim.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Davide Libenzi <davidel@xmailserver.org>
@@ -43,38 +40,56 @@ Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ kernel/exit.c |   21 +++++++++++----------
+ 1 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN kernel/exit.c~reparent-kernel-threads-to-swapper kernel/exit.c
---- a/kernel/exit.c~reparent-kernel-threads-to-swapper
+diff -puN kernel/exit.c~reduce-reparent_to_init kernel/exit.c
+--- a/kernel/exit.c~reduce-reparent_to_init
 +++ a/kernel/exit.c
-@@ -257,11 +257,11 @@ static int has_stopped_jobs(struct pid *
- }
- 
- /**
-- * reparent_kthread - Reparent the calling kernel thread to the init task of the pid space that the thread belongs to.
-+ * reparent_kthread - Reparent the calling kernel thread to swapper.
-  *
-  * If a kernel thread is launched as a result of a system call, or if
-- * it ever exits, it should generally reparent itself to init so that
-- * it is correctly cleaned up on exit.
-+ * it ever exits, it should generally reparent itself so that it is
-+ * correctly cleaned up on exit.
-  *
-  * The various task state such as scheduling policy and priority may have
-  * been inherited from a user process, so we reset them to sane values here.
-@@ -274,9 +274,8 @@ void reparent_kthread(void)
+@@ -273,7 +273,6 @@ static void reparent_to_init(void)
+ 	write_lock_irq(&tasklist_lock);
  
  	ptrace_unlink(current);
+-	/* Reparent to init */
  	remove_parent(current);
--	current->parent = init_pid_ns.child_reaper;
-+	current->parent = &init_task;
- 	current->real_parent = current->parent;
--	add_parent(current);
+ 	current->parent = child_reaper(current);
+ 	current->real_parent = child_reaper(current);
+@@ -282,17 +281,8 @@ static void reparent_to_init(void)
+ 	/* Set the exit signal to SIGCHLD so we signal init on exit */
+ 	current->exit_signal = SIGCHLD;
  
- 	/* make the task auto-reap */
- 	current->exit_signal = -1;
+-	if (!has_rt_policy(current) && (task_nice(current) < 0))
+-		set_user_nice(current, 0);
+-	/* cpus_allowed? */
+-	/* rt_priority? */
+-	/* signals? */
+ 	security_task_reparent_to_init(current);
+-	memcpy(current->signal->rlim, init_task.signal->rlim,
+-	       sizeof(current->signal->rlim));
+-	atomic_inc(&(INIT_USER->__count));
+ 	write_unlock_irq(&tasklist_lock);
+-	switch_uid(INIT_USER);
+ }
+ 
+ void __set_special_pids(pid_t session, pid_t pgrp)
+@@ -404,6 +394,17 @@ void daemonize(const char *name, ...)
+ 	atomic_inc(&current->files->count);
+ 
+ 	reparent_to_init();
++
++	if (!has_rt_policy(current) && (task_nice(current) < 0))
++		set_user_nice(current, 0);
++	/* cpus_allowed? */
++	/* rt_priority? */
++	/* signals? */
++	memcpy(current->signal->rlim, init_task.signal->rlim,
++	       sizeof(current->signal->rlim));
++
++	atomic_inc(&(INIT_USER->__count));
++	switch_uid(INIT_USER);
+ }
+ 
+ EXPORT_SYMBOL(daemonize);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -139,5 +154,7 @@ freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
 freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
 freezer-fix-vfork-problem.patch
 freezer-take-kernel_execve-into-consideration.patch
+reduce-reparent_to_init.patch
+make-kernel-threads-invisible-to-sbin-init.patch
 reparent-kernel-threads-to-swapper.patch
 dont-init-pgrp-and-__session-in-init_signals.patch
