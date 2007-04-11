@@ -1,211 +1,242 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-improve-heuristic-detecting-sequential-reads-tidy.patch removed from -mm tree
-Date: Tue, 10 Apr 2007 21:20:59 -0700
-Message-ID: <200704110421.l3B4L0fm027959@shell0.pdx.osdl.net>
+Subject: + fs-ocfs2-make-3-functions-static.patch added to -mm tree
+Date: Tue, 10 Apr 2007 21:40:37 -0700
+Message-ID: <200704110440.l3B4ebN2028268@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58397 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58779 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161173AbXDKEVk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 00:21:40 -0400
+	id S1030413AbXDKEnz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 00:43:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, nickpiggin@yahoo.com.au, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bunk@stusta.de
 
 
 The patch titled
-     readahead-improve-heuristic-detecting-sequential-reads-tidy
-has been removed from the -mm tree.  Its filename was
-     readahead-improve-heuristic-detecting-sequential-reads-tidy.patch
+     fs/ocfs2/: make 3 functions static
+has been added to the -mm tree.  Its filename is
+     fs-ocfs2-make-3-functions-static.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: readahead-improve-heuristic-detecting-sequential-reads-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/ocfs2/: make 3 functions static
+From: Adrian Bunk <bunk@stusta.de>
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
+This patch makes the following needlessly global functions static:
+- aops.c: ocfs2_write_data_page()
+- dlmglue.c: ocfs2_dump_meta_lvb_info()
+- file.c: ocfs2_set_inode_size()
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/aops.c    |    6 ++--
+ fs/ocfs2/dlmglue.c |   54 +++++++++++++++++++++++--------------------
+ fs/ocfs2/dlmglue.h |    7 -----
+ fs/ocfs2/file.c    |    8 +++---
+ fs/ocfs2/file.h    |    5 ---
+ 5 files changed, 36 insertions(+), 44 deletions(-)
 
-diff -puN mm/filemap.c~readahead-improve-heuristic-detecting-sequential-reads-tidy mm/filemap.c
---- a/mm/filemap.c~readahead-improve-heuristic-detecting-sequential-reads-tidy
-+++ a/mm/filemap.c
-@@ -933,6 +933,7 @@ page_ok:
- 		if (prev_index != index || offset != prev_offset)
- 			mark_page_accessed(page);
- 		prev_index = index;
-+		prev_offset = ra.offset = offset;
+diff -puN fs/ocfs2/aops.c~fs-ocfs2-make-3-functions-static fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~fs-ocfs2-make-3-functions-static
++++ a/fs/ocfs2/aops.c
+@@ -934,9 +934,9 @@ out:
+  * Returns a negative error code or the number of bytes copied into
+  * the page.
+  */
+-int ocfs2_write_data_page(struct inode *inode, handle_t *handle,
+-			  u64 *p_blkno, struct page *page,
+-			  struct ocfs2_write_ctxt *wc, int new)
++static int ocfs2_write_data_page(struct inode *inode, handle_t *handle,
++				 u64 *p_blkno, struct page *page,
++				 struct ocfs2_write_ctxt *wc, int new)
+ {
+ 	int ret, copied = 0;
+ 	unsigned int from = 0, to = 0;
+diff -puN fs/ocfs2/dlmglue.c~fs-ocfs2-make-3-functions-static fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~fs-ocfs2-make-3-functions-static
++++ a/fs/ocfs2/dlmglue.c
+@@ -104,6 +104,35 @@ static int ocfs2_dentry_convert_worker(s
+ static void ocfs2_dentry_post_unlock(struct ocfs2_super *osb,
+ 				     struct ocfs2_lock_res *lockres);
  
- 		/*
- 		 * Ok, we have the page, and it's up-to-date, so
-@@ -948,7 +949,6 @@ page_ok:
- 		offset += ret;
- 		index += offset >> PAGE_CACHE_SHIFT;
- 		offset &= ~PAGE_CACHE_MASK;
--		prev_offset = ra.offset = offset;
++
++#define mlog_meta_lvb(__level, __lockres) ocfs2_dump_meta_lvb_info(__level, __PRETTY_FUNCTION__, __LINE__, __lockres)
++
++/* This aids in debugging situations where a bad LVB might be involved. */
++static void ocfs2_dump_meta_lvb_info(u64 level,
++				     const char *function,
++				     unsigned int line,
++				     struct ocfs2_lock_res *lockres)
++{
++	struct ocfs2_meta_lvb *lvb = (struct ocfs2_meta_lvb *) lockres->l_lksb.lvb;
++
++	mlog(level, "LVB information for %s (called from %s:%u):\n",
++	     lockres->l_name, function, line);
++	mlog(level, "version: %u, clusters: %u, generation: 0x%x\n",
++	     lvb->lvb_version, be32_to_cpu(lvb->lvb_iclusters),
++	     be32_to_cpu(lvb->lvb_igeneration));
++	mlog(level, "size: %llu, uid %u, gid %u, mode 0x%x\n",
++	     (unsigned long long)be64_to_cpu(lvb->lvb_isize),
++	     be32_to_cpu(lvb->lvb_iuid), be32_to_cpu(lvb->lvb_igid),
++	     be16_to_cpu(lvb->lvb_imode));
++	mlog(level, "nlink %u, atime_packed 0x%llx, ctime_packed 0x%llx, "
++	     "mtime_packed 0x%llx iattr 0x%x\n", be16_to_cpu(lvb->lvb_inlink),
++	     (long long)be64_to_cpu(lvb->lvb_iatime_packed),
++	     (long long)be64_to_cpu(lvb->lvb_ictime_packed),
++	     (long long)be64_to_cpu(lvb->lvb_imtime_packed),
++	     be32_to_cpu(lvb->lvb_iattr));
++}
++
++
+ /*
+  * OCFS2 Lock Resource Operations
+  *
+@@ -3079,28 +3108,3 @@ static void ocfs2_schedule_blocked_lock(
  
- 		page_cache_release(page);
- 		if (ret == nr && desc->count)
+ 	mlog_exit_void();
+ }
+-
+-/* This aids in debugging situations where a bad LVB might be involved. */
+-void ocfs2_dump_meta_lvb_info(u64 level,
+-			      const char *function,
+-			      unsigned int line,
+-			      struct ocfs2_lock_res *lockres)
+-{
+-	struct ocfs2_meta_lvb *lvb = (struct ocfs2_meta_lvb *) lockres->l_lksb.lvb;
+-
+-	mlog(level, "LVB information for %s (called from %s:%u):\n",
+-	     lockres->l_name, function, line);
+-	mlog(level, "version: %u, clusters: %u, generation: 0x%x\n",
+-	     lvb->lvb_version, be32_to_cpu(lvb->lvb_iclusters),
+-	     be32_to_cpu(lvb->lvb_igeneration));
+-	mlog(level, "size: %llu, uid %u, gid %u, mode 0x%x\n",
+-	     (unsigned long long)be64_to_cpu(lvb->lvb_isize),
+-	     be32_to_cpu(lvb->lvb_iuid), be32_to_cpu(lvb->lvb_igid),
+-	     be16_to_cpu(lvb->lvb_imode));
+-	mlog(level, "nlink %u, atime_packed 0x%llx, ctime_packed 0x%llx, "
+-	     "mtime_packed 0x%llx iattr 0x%x\n", be16_to_cpu(lvb->lvb_inlink),
+-	     (long long)be64_to_cpu(lvb->lvb_iatime_packed),
+-	     (long long)be64_to_cpu(lvb->lvb_ictime_packed),
+-	     (long long)be64_to_cpu(lvb->lvb_imtime_packed),
+-	     be32_to_cpu(lvb->lvb_iattr));
+-}
+diff -puN fs/ocfs2/dlmglue.h~fs-ocfs2-make-3-functions-static fs/ocfs2/dlmglue.h
+--- a/fs/ocfs2/dlmglue.h~fs-ocfs2-make-3-functions-static
++++ a/fs/ocfs2/dlmglue.h
+@@ -119,11 +119,4 @@ void ocfs2_process_blocked_lock(struct o
+ struct ocfs2_dlm_debug *ocfs2_new_dlm_debug(void);
+ void ocfs2_put_dlm_debug(struct ocfs2_dlm_debug *dlm_debug);
+ 
+-/* aids in debugging and tracking lvbs */
+-void ocfs2_dump_meta_lvb_info(u64 level,
+-			      const char *function,
+-			      unsigned int line,
+-			      struct ocfs2_lock_res *lockres);
+-#define mlog_meta_lvb(__level, __lockres) ocfs2_dump_meta_lvb_info(__level, __PRETTY_FUNCTION__, __LINE__, __lockres)
+-
+ #endif	/* DLMGLUE_H */
+diff -puN fs/ocfs2/file.c~fs-ocfs2-make-3-functions-static fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~fs-ocfs2-make-3-functions-static
++++ a/fs/ocfs2/file.c
+@@ -207,10 +207,10 @@ out:
+ 	return ret;
+ }
+ 
+-int ocfs2_set_inode_size(handle_t *handle,
+-			 struct inode *inode,
+-			 struct buffer_head *fe_bh,
+-			 u64 new_i_size)
++static int ocfs2_set_inode_size(handle_t *handle,
++				struct inode *inode,
++				struct buffer_head *fe_bh,
++				u64 new_i_size)
+ {
+ 	int status;
+ 
+diff -puN fs/ocfs2/file.h~fs-ocfs2-make-3-functions-static fs/ocfs2/file.h
+--- a/fs/ocfs2/file.h~fs-ocfs2-make-3-functions-static
++++ a/fs/ocfs2/file.h
+@@ -56,11 +56,6 @@ int ocfs2_getattr(struct vfsmount *mnt, 
+ int ocfs2_permission(struct inode *inode, int mask,
+ 		     struct nameidata *nd);
+ 
+-int ocfs2_set_inode_size(handle_t *handle,
+-			 struct inode *inode,
+-			 struct buffer_head *fe_bh,
+-			 u64 new_i_size);
+-
+ int ocfs2_should_update_atime(struct inode *inode,
+ 			      struct vfsmount *vfsmnt);
+ int ocfs2_update_inode_atime(struct inode *inode,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-origin.patch
-x86_64-early-quirks-fix-early_qrk-section-tag.patch
-i386-irqbalance_disable-section-fix.patch
-slab-introduce-krealloc-fix.patch
 git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-avr32.patch
-git-avr32-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-sysfs-crash-debugging.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
+git-powerpc.patch
 git-drm.patch
 git-dvb.patch
-git-gfs2-nmw.patch
 git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
+remove-mmc_deselect_cards.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
 git-ubi.patch
 git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
+drivers-net-vioc-possible-cleanups.patch
 git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-git-ocfs2.patch
-git-parisc.patch
-git-r8169-fixup.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
+net-possible-cleanups.patch
+fs-ocfs2-make-3-functions-static.patch
 git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
 git-unionfs.patch
 git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-xfs-clean-up-shrinker-games.patch
-pktgen-add-try_to_freeze.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-readahead-improve-heuristic-detecting-sequential-reads-tidy.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+git-ipwireless_cs.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+maps2-add-proc-kpagemap-interface-fix.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+add-file-position-info-to-proc-fix.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
+unexport-pci_proc_attach_device.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
+ext2-reservations.patch
+drivers-edac-make-code-static.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+no-longer-include-asm-kdebugh.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+mutex-subsystem-synchro-test-module.patch
