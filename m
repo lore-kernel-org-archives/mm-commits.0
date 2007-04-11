@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-kill-unnecessary-attribute-owner-fix.patch removed from -mm tree
-Date: Tue, 10 Apr 2007 23:34:16 -0700
-Message-ID: <200704110634.l3B6YGZV030390@shell0.pdx.osdl.net>
+Subject: + sysfs-kill-unnecessary-attribute-owner-update.patch added to -mm tree
+Date: Tue, 10 Apr 2007 23:34:06 -0700
+Message-ID: <200704110634.l3B6Y64e030387@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33492 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33605 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161221AbXDKGef (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 02:34:35 -0400
+	id S1751479AbXDKGiC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 02:38:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, htejun@gmail.com, maneesh@in.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com
 
 
 The patch titled
-     sysfs: kill unnecessary attribute->owner (s390 fix)
-has been removed from the -mm tree.  Its filename was
-     sysfs-kill-unnecessary-attribute-owner-fix.patch
+     sysfs: kill unnecessary attribute->owner (update)
+has been added to the -mm tree.  Its filename is
+     sysfs-kill-unnecessary-attribute-owner-update.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: sysfs: kill unnecessary attribute->owner (s390 fix)
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
+Subject: sysfs: kill unnecessary attribute->owner (update)
+From: Tejun Heo <htejun@gmail.com>
 
-You missed some s390 attributes :)
-
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
 Cc: Dipankar Sarma <dipankar@in.ibm.com>
 Cc: Maneesh Soni <maneesh@in.ibm.com>
 Cc: Greg KH <greg@kroah.com>
@@ -38,8 +40,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/s390/net/qeth_sys.c |    2 +-
  3 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/s390/kernel/ipl.c~sysfs-kill-unnecessary-attribute-owner-fix arch/s390/kernel/ipl.c
---- a/arch/s390/kernel/ipl.c~sysfs-kill-unnecessary-attribute-owner-fix
+diff -puN arch/s390/kernel/ipl.c~sysfs-kill-unnecessary-attribute-owner-update arch/s390/kernel/ipl.c
+--- a/arch/s390/kernel/ipl.c~sysfs-kill-unnecessary-attribute-owner-update
 +++ a/arch/s390/kernel/ipl.c
 @@ -255,7 +255,6 @@ static struct bin_attribute ipl_paramete
  	.attr = {
@@ -57,8 +59,8 @@ diff -puN arch/s390/kernel/ipl.c~sysfs-kill-unnecessary-attribute-owner-fix arch
  	},
  	.size = PAGE_SIZE,
  	.read = &ipl_scp_data_read,
-diff -puN drivers/s390/cio/chsc.c~sysfs-kill-unnecessary-attribute-owner-fix drivers/s390/cio/chsc.c
---- a/drivers/s390/cio/chsc.c~sysfs-kill-unnecessary-attribute-owner-fix
+diff -puN drivers/s390/cio/chsc.c~sysfs-kill-unnecessary-attribute-owner-update drivers/s390/cio/chsc.c
+--- a/drivers/s390/cio/chsc.c~sysfs-kill-unnecessary-attribute-owner-update
 +++ a/drivers/s390/cio/chsc.c
 @@ -898,7 +898,6 @@ static struct bin_attribute chp_measurem
  	.attr = {
@@ -76,8 +78,8 @@ diff -puN drivers/s390/cio/chsc.c~sysfs-kill-unnecessary-attribute-owner-fix dri
  	},
  	.size = sizeof(struct cmg_entry),
  	.read = chp_measurement_read,
-diff -puN drivers/s390/net/qeth_sys.c~sysfs-kill-unnecessary-attribute-owner-fix drivers/s390/net/qeth_sys.c
---- a/drivers/s390/net/qeth_sys.c~sysfs-kill-unnecessary-attribute-owner-fix
+diff -puN drivers/s390/net/qeth_sys.c~sysfs-kill-unnecessary-attribute-owner-update drivers/s390/net/qeth_sys.c
+--- a/drivers/s390/net/qeth_sys.c~sysfs-kill-unnecessary-attribute-owner-update
 +++ a/drivers/s390/net/qeth_sys.c
 @@ -993,7 +993,7 @@ static struct attribute_group qeth_osn_d
  
@@ -90,12 +92,10 @@ diff -puN drivers/s390/net/qeth_sys.c~sysfs-kill-unnecessary-attribute-owner-fix
  };
 _
 
-Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-driver-core-suppress-uevents-via-filter.patch
-driver-core-switch-firmware_class-to.patch
-s390-cio-delay-uevents-for-subchannels.patch
-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+origin.patch
+revert-gregkh-driver-sysfs-crash-debugging.patch
 sysfs-fix-i_ino-handling-in-sysfs.patch
 sysfs-fix-error-handling-in-binattr-write.patch
 sysfs-move-release_sysfs_dirent-to-dirc.patch
@@ -113,8 +113,9 @@ sysfs-kill-attribute-file-orphaning.patch
 sysfs-kill-unnecessary-attribute-owner.patch
 sysfs-kill-unnecessary-attribute-owner-update.patch
 sysfs-kill-unnecessary-attribute-owner-fix.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-kobject-kobject_add-reference-leak.patch
-git-s390.patch
-partitions-check-the-return-value-of-kobject_add-etc.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-s390-fix.patch
+git-libata-all.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+optional-led-trigger-for-libata.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+git-scsi-misc.patch
+introduce-config_has_dma.patch
