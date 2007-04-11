@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-vs-futex-new-private-futexes.patch added to -mm tree
-Date: Wed, 11 Apr 2007 14:03:09 -0700
-Message-ID: <200704112103.l3BL3Mfb014324@shell0.pdx.osdl.net>
+Subject: + rtc-update-to-class-device-removal-patches.patch added to -mm tree
+Date: Wed, 11 Apr 2007 14:14:47 -0700
+Message-ID: <200704112114.l3BLElb2014536@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60912 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:32884 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030314AbXDKVDz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 17:03:55 -0400
+	id S1753644AbXDKVPD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 17:15:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dada1@cosmosbay.com, rusty@rustcorp.com.au
+Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     lguest-the-host-code-vs-futex-new-private-futexes
+     rtc: update to class device removal patches
 has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-vs-futex-new-private-futexes.patch
+     rtc-update-to-class-device-removal-patches.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,257 +25,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest-the-host-code-vs-futex-new-private-futexes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc: update to class device removal patches
+From: David Brownell <david-b@pacbell.net>
 
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Fix a goof in the revised classdev support for RTCs: make sure the /dev
+node info is ready before the device is registered, not after.  Otherwise
+the /sys/class/rtc/rtcN/dev attribute won't be created and then udev won't
+have the information it needs to create the /dev/rtcN node.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/io.c |   21 ++++++++++++---------
- 1 files changed, 12 insertions(+), 9 deletions(-)
+ drivers/rtc/class.c    |    2 ++
+ drivers/rtc/rtc-core.h |    5 +++++
+ drivers/rtc/rtc-dev.c  |    5 ++++-
+ 3 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/lguest/io.c~lguest-the-host-code-vs-futex-new-private-futexes drivers/lguest/io.c
---- a/drivers/lguest/io.c~lguest-the-host-code-vs-futex-new-private-futexes
-+++ a/drivers/lguest/io.c
-@@ -102,13 +102,14 @@ int bind_dma(struct lguest *lg,
- 	unsigned int i;
- 	int ret = 0;
- 	union futex_key key;
-+	struct rw_semaphore *fshared = &current->mm->mmap_sem;
+diff -puN drivers/rtc/class.c~rtc-update-to-class-device-removal-patches drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc-update-to-class-device-removal-patches
++++ a/drivers/rtc/class.c
+@@ -156,6 +156,8 @@ struct rtc_device *rtc_device_register(c
+ 	strlcpy(rtc->name, name, RTC_DEVICE_NAME_SIZE);
+ 	snprintf(rtc->dev.bus_id, BUS_ID_SIZE, "rtc%d", id);
  
- 	if (interrupt >= LGUEST_IRQS)
- 		return 0;
++	rtc_dev_prepare(rtc);
++
+ 	err = device_register(&rtc->dev);
+ 	if (err)
+ 		goto exit_kfree;
+diff -puN drivers/rtc/rtc-core.h~rtc-update-to-class-device-removal-patches drivers/rtc/rtc-core.h
+--- a/drivers/rtc/rtc-core.h~rtc-update-to-class-device-removal-patches
++++ a/drivers/rtc/rtc-core.h
+@@ -2,6 +2,7 @@
  
- 	mutex_lock(&lguest_lock);
--	down_read(&current->mm->mmap_sem);
--	if (get_futex_key((u32 __user *)ukey, sizeof(u32), &key) != 0) {
-+	down_read(fshared);
-+	if (get_futex_key((u32 __user *)ukey, sizeof(u32), fshared, &key)) {
- 		kill_guest(lg, "bad dma key %#lx", ukey);
- 		goto unlock;
- 	}
-@@ -134,7 +135,7 @@ int bind_dma(struct lguest *lg,
- 	}
- 	drop_futex_key_refs(&key);
- unlock:
-- 	up_read(&current->mm->mmap_sem);
-+ 	up_read(fshared);
- 	mutex_unlock(&lguest_lock);
- 	return ret;
- }
-@@ -307,11 +308,12 @@ void send_dma(struct lguest *lg, unsigne
+ extern void __init rtc_dev_init(void);
+ extern void __exit rtc_dev_exit(void);
++extern void rtc_dev_prepare(struct rtc_device *rtc);
+ extern void rtc_dev_add_device(struct rtc_device *rtc);
+ extern void rtc_dev_del_device(struct rtc_device *rtc);
+ 
+@@ -15,6 +16,10 @@ static inline void rtc_dev_exit(void)
  {
- 	union futex_key key;
- 	int empty = 0;
-+	struct rw_semaphore *fshared = &current->mm->mmap_sem;
- 
- again:
- 	mutex_lock(&lguest_lock);
--	down_read(&current->mm->mmap_sem);
--	if (get_futex_key((u32 __user *)ukey, sizeof(u32), &key) != 0) {
-+	down_read(fshared);
-+	if (get_futex_key((u32 __user *)ukey, sizeof(u32), fshared, &key)) {
- 		kill_guest(lg, "bad sending DMA key");
- 		goto unlock;
- 	}
-@@ -342,7 +344,7 @@ again:
- 		lg->pending_key = ukey;
- 	}
- unlock:
--	up_read(&current->mm->mmap_sem);
-+	up_read(fshared);
- 	mutex_unlock(&lguest_lock);
  }
  
-@@ -382,10 +384,11 @@ unsigned long get_dma_buffer(struct lgue
- 	unsigned long ret = 0;
- 	union futex_key key;
- 	struct lguest_dma_info *i;
-+	struct rw_semaphore *fshared = &current->mm->mmap_sem;
- 
- 	mutex_lock(&lguest_lock);
--	down_read(&current->mm->mmap_sem);
--	if (get_futex_key((u32 __user *)ukey, sizeof(u32), &key) != 0) {
-+	down_read(fshared);
-+	if (get_futex_key((u32 __user *)ukey, sizeof(u32), fshared, &key)) {
- 		kill_guest(lg, "bad registered DMA buffer");
- 		goto unlock;
- 	}
-@@ -405,7 +408,7 @@ unsigned long get_dma_buffer(struct lgue
- 		}
- 	}
- unlock:
--	up_read(&current->mm->mmap_sem);
-+	up_read(fshared);
- 	mutex_unlock(&lguest_lock);
- 	return ret;
++static inline void rtc_dev_prepare(struct rtc_device *rtc)
++{
++}
++
+ static inline void rtc_dev_add_device(struct rtc_device *rtc)
+ {
  }
+diff -puN drivers/rtc/rtc-dev.c~rtc-update-to-class-device-removal-patches drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-update-to-class-device-removal-patches
++++ a/drivers/rtc/rtc-dev.c
+@@ -395,7 +395,7 @@ static const struct file_operations rtc_
+ 
+ /* insertion/removal hooks */
+ 
+-void rtc_dev_add_device(struct rtc_device *rtc)
++void rtc_dev_prepare(struct rtc_device *rtc)
+ {
+ 	if (!rtc_devt)
+ 		return;
+@@ -417,7 +417,10 @@ void rtc_dev_add_device(struct rtc_devic
+ 
+ 	cdev_init(&rtc->char_dev, &rtc_dev_fops);
+ 	rtc->char_dev.owner = rtc->owner;
++}
+ 
++void rtc_dev_add_device(struct rtc_device *rtc)
++{
+ 	if (cdev_add(&rtc->char_dev, rtc->dev.devt, 1))
+ 		printk(KERN_WARNING "%s: failed to add char device %d:%d\n",
+ 			rtc->name, MAJOR(rtc_devt), rtc->id);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-origin.patch
-x86_64-early-quirks-fix-early_qrk-section-tag.patch
-i386-irqbalance_disable-section-fix.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-avr32.patch
-git-avr32-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-sysfs-crash-debugging.patch
-sysfs-kill-unnecessary-attribute-owner-update-fix.patch
-sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-git-ocfs2.patch
-git-parisc.patch
-git-r8169-fixup.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-xfs-clean-up-shrinker-games.patch
-pktgen-add-try_to_freeze.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+omap_cf-oops-on-suspend-fix.patch
+doc-gpiotxt-describes-open-drain-emulation.patch
+make-proc-acpi-wakeup-more-useful.patch
+update-documentation-driver-model-platformtxt.patch
+at91_cf-minor-fix.patch
+scsi-newstyle-hotplug-coldplug-support.patch
+usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
+fix-hotplug-for-legacy-platform-drivers.patch
+fix-hotplug-for-legacy-platform-drivers-update.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+init-dma-masks-in-pnp_dev.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+char-cs5535_gpio-add-module_device_table.patch
+parport-dev-driver-model-support.patch
 parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+layered-parport-code-uses-parport-dev.patch
+pnpacpi-sets-pnpdev-devarchdata.patch
+pnpacpi-sets-pnpdev-devarchdata-fix.patch
+minor-spi_butterfly-cleanup.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+rtc-update-to-class-device-removal-patches.patch
+rtc-kconfig-cleanup.patch
+rtc-cmos-wakeup-interface.patch
+acpi-wakeup-hooks-for-rtc-cmos.patch
