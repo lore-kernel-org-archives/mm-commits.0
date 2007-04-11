@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-user-documentation-fix.patch added to -mm tree
-Date: Tue, 10 Apr 2007 17:58:40 -0700
-Message-ID: <200704110058.l3B0weeM024693@shell0.pdx.osdl.net>
+Subject: + ppc4xx_sgdma-needs-dma_mappingh.patch added to -mm tree
+Date: Tue, 10 Apr 2007 18:10:53 -0700
+Message-ID: <200704110110.l3B1Arr3024900@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54457 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54736 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933286AbXDKA6o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 20:58:44 -0400
+	id S1030200AbXDKBLF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 21:11:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca, paulus@samba.org
 
 
 The patch titled
-     slub-user-documentation-fix
+     ppc4xx_sgdma needs dma-mapping.h
 has been added to the -mm tree.  Its filename is
-     slub-user-documentation-fix.patch
+     ppc4xx_sgdma-needs-dma_mappingh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-user-documentation-fix
+Subject: ppc4xx_sgdma needs dma-mapping.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+For dma_alloc_*()
+
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.txt |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ arch/ppc/syslib/ppc4xx_sgdma.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN Documentation/vm/slub.txt~slub-user-documentation-fix Documentation/vm/slub.txt
---- a/Documentation/vm/slub.txt~slub-user-documentation-fix
-+++ a/Documentation/vm/slub.txt
-@@ -19,10 +19,9 @@ all slabs.
- Typically one would then use the "slabinfo" command to get statistical
- data and perform operation on the slabs. By default slabinfo only lists
- slabs that have data in them. See "slabinfo -h" for more options when
--running the command. slabinfo is included in this directory and can
--be compiled with
-+running the command. slabinfo can be compiled with
+diff -puN arch/ppc/syslib/ppc4xx_sgdma.c~ppc4xx_sgdma-needs-dma_mappingh arch/ppc/syslib/ppc4xx_sgdma.c
+--- a/arch/ppc/syslib/ppc4xx_sgdma.c~ppc4xx_sgdma-needs-dma_mappingh
++++ a/arch/ppc/syslib/ppc4xx_sgdma.c
+@@ -27,6 +27,7 @@
  
--gcc -o slabinfo slabinfo.c
-+gcc -o slabinfo Documentation/vm/slabinfo.c
+ #include <asm/system.h>
+ #include <asm/io.h>
++#include <asm/dma-mapping.h>
+ #include <asm/ppc4xx_dma.h>
  
- Some of the modes of operation of slabinfo require that slub debugging
- be enabled on the command line. F.e. no tracking information will be
-@@ -57,8 +56,8 @@ Trying to find an issue in the dentry ca
- 
- to only enable debugging on the dentry cache.
- 
--Red zoning and tracking may realign the slab. We can just apply sanity checks to
--the dentry cache with
-+Red zoning and tracking may realign the slab.  We can just apply sanity checks
-+to the dentry cache with
- 
- 	slub_debug=F,dentry_cache
- 
-@@ -87,7 +86,7 @@ slabinfo -a displays which slabs were me
- Getting more performance
- ------------------------
- 
--To some degree SLUBs performance is limited by the need to take the
-+To some degree SLUB's performance is limited by the need to take the
- list_lock once in a while to deal with partial slabs. That overhead is
- governed by the order of the allocation for each slab. The allocations
- can be influenced by kernel parameters:
+ void
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -162,6 +141,7 @@ slub-core-add-explanation-for-locking-fix.patch
 slub-core-explain-sizing-of-slabs-in-detail-fix.patch
 slub-enable-tracking-of-full-slabs-fix.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
 driver_bfin_serial_core-update.patch
 uml-driver-formatting-fixes-fix.patch
 reduce-size-of-task_struct-on-64-bit-machines.patch
@@ -199,11 +179,6 @@ make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
 sys_futex64-allows-64bit-futexes-workaround.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 local_t-powerpc-extension.patch
 linux-kernel-markers-i386-optimization-fix.patch
@@ -215,6 +190,11 @@ signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 revoke-wire-up-i386-system-calls-x86_64-fix.patch
 x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
 fbdev-hecuba-framebuffer-driver.patch
 vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
 integrity-new-hooks-fix.patch
@@ -225,4 +205,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-slub-user-documentation-fix.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
