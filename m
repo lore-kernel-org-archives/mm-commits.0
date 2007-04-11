@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-add-sg_io-ioctl-to-cciss.patch added to -mm tree
-Date: Tue, 10 Apr 2007 17:36:20 -0700
-Message-ID: <200704110036.l3B0aKTq024289@shell0.pdx.osdl.net>
+Subject: + cciss-set-rq-errors-more-correctly-in-driver.patch added to -mm tree
+Date: Tue, 10 Apr 2007 17:36:22 -0700
+Message-ID: <200704110036.l3B0aMSl024292@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54024 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54023 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933145AbXDKAjr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S932411AbXDKAjr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Tue, 10 Apr 2007 20:39:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mikem@beardog.cca.cpqcorp.net, James.Bottomley@steeleye.com, jens.axboe@orac
 
 
 The patch titled
-     cciss: add SG_IO ioctl to cciss
+     cciss: set rq->errors more correctly in driver
 has been added to the -mm tree.  Its filename is
-     cciss-add-sg_io-ioctl-to-cciss.patch
+     cciss-set-rq-errors-more-correctly-in-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,16 +25,15 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cciss: add SG_IO ioctl to cciss
+Subject: cciss: set rq->errors more correctly in driver
 From: "Mike Miller (OS Dev)" <mikem@beardog.cca.cpqcorp.net>
 
-For all of you that think cciss should be a scsi driver here is the patch that
-you have been waiting for all these years. This patch actually adds the SG_IO
-ioctl to cciss. The primary purpose is for clustering and high-availibilty.
-But now anyone can exploit this ioctl in any manner they wish.
-
-Note, SCSI_IOCTL_SEND_COMMAND doesn't work with this patch due to rq->errors
-being set incorrectly.  Subsequent patch fixes that.
+Set rq->errors more correctly in cciss driver.  Previously we had set it
+synonymously with the meaning of the last parameter of end_that_last_request
+and complete_buffers (the "uptodate" parameter) and had gotten away with it
+for all this time because nobody ever looked at rq->errors. 
+SCSI_IOCTL_SEND_COMMAND looks at rq->errors, so now it matters that it be
+right.
 
 Signed-off-by: Stephen M. Cameron <steve.cameron@hp.com>
 Signed-off-by: Mike Miller <mike.miller@hp.com>
@@ -43,225 +42,164 @@ Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |  164 +++++++++++++++++++++++++++-------------
- 1 files changed, 111 insertions(+), 53 deletions(-)
+ drivers/block/cciss.c |   43 ++++++++++++++++++++--------------------
+ 1 files changed, 22 insertions(+), 21 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-add-sg_io-ioctl-to-cciss drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-add-sg_io-ioctl-to-cciss
+diff -puN drivers/block/cciss.c~cciss-set-rq-errors-more-correctly-in-driver drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-set-rq-errors-more-correctly-in-driver
 +++ a/drivers/block/cciss.c
-@@ -45,6 +45,9 @@
- #include <linux/blkdev.h>
- #include <linux/genhd.h>
- #include <linux/completion.h>
-+#include <scsi/sg.h>
-+#include <scsi/scsi_ioctl.h>
-+#include <linux/cdrom.h>
- 
- #define CCISS_DRIVER_VERSION(maj,min,submin) ((maj<<16)|(min<<8)|(submin))
- #define DRIVER_NAME "HP CISS Driver (v 3.6.14)"
-@@ -1152,6 +1155,30 @@ static int cciss_ioctl(struct inode *ino
- 			kfree(ioc);
- 			return status;
- 		}
-+
-+	/* scsi_cmd_ioctl handles these, below, though some are not */
-+	/* very meaningful for cciss.  SG_IO is the main one people want. */
-+
-+	case SG_GET_VERSION_NUM:
-+	case SG_SET_TIMEOUT:
-+	case SG_GET_TIMEOUT:
-+	case SG_GET_RESERVED_SIZE:
-+	case SG_SET_RESERVED_SIZE:
-+	case SG_EMULATED_HOST:
-+	case SG_IO:
-+	case SCSI_IOCTL_SEND_COMMAND:
-+		return scsi_cmd_ioctl(filep, disk, cmd, argp);
-+
-+	/* scsi_cmd_ioctl would normally handle these, below, but */
-+	/* they aren't a good fit for cciss, as CD-ROMs are */
-+	/* not supported, and we don't have any bus/target/lun */
-+	/* which we present to the kernel. */
-+
-+	case CDROM_SEND_PACKET:
-+	case CDROMCLOSETRAY:
-+	case CDROMEJECT:
-+	case SCSI_IOCTL_GET_IDLUN:
-+	case SCSI_IOCTL_GET_BUS_NUMBER:
- 	default:
- 		return -ENOTTY;
+@@ -1261,7 +1261,7 @@ static void cciss_softirq_done(struct re
+ 		pci_unmap_page(h->pdev, temp64.val, cmd->SG[i].Len, ddir);
  	}
-@@ -2336,6 +2363,44 @@ static inline void resend_cciss_cmd(ctlr
- 	start_io(h);
+ 
+-	complete_buffers(rq->bio, rq->errors);
++	complete_buffers(rq->bio, (rq->errors == 0));
+ 
+ 	if (blk_fs_request(rq)) {
+ 		const int rw = rq_data_dir(rq);
+@@ -1275,7 +1275,7 @@ static void cciss_softirq_done(struct re
+ 
+ 	add_disk_randomness(rq->rq_disk);
+ 	spin_lock_irqsave(&h->lock, flags);
+-	end_that_request_last(rq, rq->errors);
++	end_that_request_last(rq, (rq->errors == 0));
+ 	cmd_free(h, cmd, 1);
+ 	cciss_check_queues(h);
+ 	spin_unlock_irqrestore(&h->lock, flags);
+@@ -2366,27 +2366,27 @@ static inline void resend_cciss_cmd(ctlr
+ static inline int evaluate_target_status(CommandList_struct *cmd)
+ {
+ 	unsigned char sense_key;
+-	int status = 0; /* 0 means bad, 1 means good. */
++	int error_count = 1;
+ 
+ 	if (cmd->err_info->ScsiStatus != 0x02) { /* not check condition? */
+ 		if (!blk_pc_request(cmd->rq))
+ 			printk(KERN_WARNING "cciss: cmd %p "
+ 			       "has SCSI Status 0x%x\n",
+ 			       cmd, cmd->err_info->ScsiStatus);
+-		return status;
++		return error_count;
+ 	}
+ 
+ 	/* check the sense key */
+ 	sense_key = 0xf & cmd->err_info->SenseInfo[2];
+ 	/* no status or recovered error */
+ 	if ((sense_key == 0x0) || (sense_key == 0x1))
+-		status = 1;
++		error_count = 0;
+ 
+ 	if (!blk_pc_request(cmd->rq)) { /* Not SG_IO or similar? */
+-		if (status == 0)
++		if (error_count != 0)
+ 			printk(KERN_WARNING "cciss: cmd %p has CHECK CONDITION"
+ 			       " sense key = 0x%x\n", cmd, sense_key);
+-		return status;
++		return error_count;
+ 	}
+ 
+ 	/* SG_IO or similar, copy sense data back */
+@@ -2398,7 +2398,7 @@ static inline int evaluate_target_status
+ 	} else
+ 		cmd->rq->sense_len = 0;
+ 
+-	return status;
++	return error_count;
  }
  
-+static inline int evaluate_target_status(CommandList_struct *cmd)
-+{
-+	unsigned char sense_key;
-+	int status = 0; /* 0 means bad, 1 means good. */
-+
-+	if (cmd->err_info->ScsiStatus != 0x02) { /* not check condition? */
-+		if (!blk_pc_request(cmd->rq))
-+			printk(KERN_WARNING "cciss: cmd %p "
-+			       "has SCSI Status 0x%x\n",
-+			       cmd, cmd->err_info->ScsiStatus);
-+		return status;
-+	}
-+
-+	/* check the sense key */
-+	sense_key = 0xf & cmd->err_info->SenseInfo[2];
-+	/* no status or recovered error */
-+	if ((sense_key == 0x0) || (sense_key == 0x1))
-+		status = 1;
-+
-+	if (!blk_pc_request(cmd->rq)) { /* Not SG_IO or similar? */
-+		if (status == 0)
-+			printk(KERN_WARNING "cciss: cmd %p has CHECK CONDITION"
-+			       " sense key = 0x%x\n", cmd, sense_key);
-+		return status;
-+	}
-+
-+	/* SG_IO or similar, copy sense data back */
-+	if (cmd->rq->sense) {
-+		if (cmd->rq->sense_len > cmd->err_info->SenseLen)
-+			cmd->rq->sense_len = cmd->err_info->SenseLen;
-+		memcpy(cmd->rq->sense, cmd->err_info->SenseInfo,
-+			cmd->rq->sense_len);
-+	} else
-+		cmd->rq->sense_len = 0;
-+
-+	return status;
-+}
-+
  /* checks the status of the job and calls complete buffers to mark all
-  * buffers for the completed job. Note that this function does not need
-  * to hold the hba/queue lock.
-@@ -2353,37 +2418,22 @@ static inline void complete_command(ctlr
+@@ -2408,18 +2408,20 @@ static inline int evaluate_target_status
+ static inline void complete_command(ctlr_info_t *h, CommandList_struct *cmd,
+ 				    int timeout)
+ {
+-	int status = 1;
+ 	int retry_cmd = 0;
++	struct request *rq = cmd->rq;
++
++	rq->errors = 0;
+ 
+ 	if (timeout)
+-		status = 0;
++		rq->errors = 1;
+ 
+ 	if (cmd->err_info->CommandStatus == 0)	/* no error has occurred */
  		goto after_error_processing;
  
  	switch (cmd->err_info->CommandStatus) {
--		unsigned char sense_key;
  	case CMD_TARGET_STATUS:
--		status = 0;
--
--		if (cmd->err_info->ScsiStatus == 0x02) {
--			printk(KERN_WARNING "cciss: cmd %p "
--			       "has CHECK CONDITION "
--			       " byte 2 = 0x%x\n", cmd,
--			       cmd->err_info->SenseInfo[2]
--			    );
--			/* check the sense key */
--			sense_key = 0xf & cmd->err_info->SenseInfo[2];
--			/* no status or recovered error */
--			if ((sense_key == 0x0) || (sense_key == 0x1)) {
--				status = 1;
--			}
--		} else {
--			printk(KERN_WARNING "cciss: cmd %p "
--			       "has SCSI Status 0x%x\n",
--			       cmd, cmd->err_info->ScsiStatus);
--		}
-+		status = evaluate_target_status(cmd);
+-		status = evaluate_target_status(cmd);
++		rq->errors = evaluate_target_status(cmd);
  		break;
  	case CMD_DATA_UNDERRUN:
--		printk(KERN_WARNING "cciss: cmd %p has"
--		       " completed with data underrun "
--		       "reported\n", cmd);
-+		if (blk_fs_request(cmd->rq)) {
-+			printk(KERN_WARNING "cciss: cmd %p has"
-+			       " completed with data underrun "
-+			       "reported\n", cmd);
-+			cmd->rq->data_len = cmd->err_info->ResidualCnt;
-+		}
- 		break;
- 	case CMD_DATA_OVERRUN:
--		printk(KERN_WARNING "cciss: cmd %p has"
--		       " completed with data overrun "
--		       "reported\n", cmd);
-+		if (blk_fs_request(cmd->rq))
-+			printk(KERN_WARNING "cciss: cmd %p has"
-+			       " completed with data overrun "
-+			       "reported\n", cmd);
- 		break;
+ 		if (blk_fs_request(cmd->rq)) {
+@@ -2438,32 +2440,32 @@ static inline void complete_command(ctlr
  	case CMD_INVALID:
  		printk(KERN_WARNING "cciss: cmd %p is "
-@@ -2447,9 +2497,9 @@ after_error_processing:
- 		resend_cciss_cmd(h, cmd);
+ 		       "reported invalid\n", cmd);
+-		status = 0;
++		rq->errors = 1;
+ 		break;
+ 	case CMD_PROTOCOL_ERR:
+ 		printk(KERN_WARNING "cciss: cmd %p has "
+ 		       "protocol error \n", cmd);
+-		status = 0;
++		rq->errors = 1;
+ 		break;
+ 	case CMD_HARDWARE_ERR:
+ 		printk(KERN_WARNING "cciss: cmd %p had "
+ 		       " hardware error\n", cmd);
+-		status = 0;
++		rq->errors = 1;
+ 		break;
+ 	case CMD_CONNECTION_LOST:
+ 		printk(KERN_WARNING "cciss: cmd %p had "
+ 		       "connection lost\n", cmd);
+-		status = 0;
++		rq->errors = 1;
+ 		break;
+ 	case CMD_ABORTED:
+ 		printk(KERN_WARNING "cciss: cmd %p was "
+ 		       "aborted\n", cmd);
+-		status = 0;
++		rq->errors = 1;
+ 		break;
+ 	case CMD_ABORT_FAILED:
+ 		printk(KERN_WARNING "cciss: cmd %p reports "
+ 		       "abort failed\n", cmd);
+-		status = 0;
++		rq->errors = 1;
+ 		break;
+ 	case CMD_UNSOLICITED_ABORT:
+ 		printk(KERN_WARNING "cciss%d: unsolicited "
+@@ -2477,17 +2479,17 @@ static inline void complete_command(ctlr
+ 			printk(KERN_WARNING
+ 			       "cciss%d: %p retried too "
+ 			       "many times\n", h->ctlr, cmd);
+-		status = 0;
++		rq->errors = 1;
+ 		break;
+ 	case CMD_TIMEOUT:
+ 		printk(KERN_WARNING "cciss: cmd %p timedout\n", cmd);
+-		status = 0;
++		rq->errors = 1;
+ 		break;
+ 	default:
+ 		printk(KERN_WARNING "cciss: cmd %p returned "
+ 		       "unknown status %x\n", cmd,
+ 		       cmd->err_info->CommandStatus);
+-		status = 0;
++		rq->errors = 1;
+ 	}
+ 
+ after_error_processing:
+@@ -2498,7 +2500,6 @@ after_error_processing:
  		return;
  	}
--
--	cmd->rq->completion_data = cmd;
-+	cmd->rq->data_len = 0;
- 	cmd->rq->errors = status;
-+	cmd->rq->completion_data = cmd;
+ 	cmd->rq->data_len = 0;
+-	cmd->rq->errors = status;
+ 	cmd->rq->completion_data = cmd;
  	blk_add_trace_rq(cmd->rq->q, cmd->rq, BLK_TA_COMPLETE);
  	blk_complete_request(cmd->rq);
- }
-@@ -2543,32 +2593,40 @@ static void do_cciss_request(request_que
- #endif				/* CCISS_DEBUG */
- 
- 	c->Header.SGList = c->Header.SGTotal = seg;
--	if(h->cciss_read == CCISS_READ_10) {
--		c->Request.CDB[1] = 0;
--		c->Request.CDB[2] = (start_blk >> 24) & 0xff;	//MSB
--		c->Request.CDB[3] = (start_blk >> 16) & 0xff;
--		c->Request.CDB[4] = (start_blk >> 8) & 0xff;
--		c->Request.CDB[5] = start_blk & 0xff;
--		c->Request.CDB[6] = 0;	// (sect >> 24) & 0xff; MSB
--		c->Request.CDB[7] = (creq->nr_sectors >> 8) & 0xff;
--		c->Request.CDB[8] = creq->nr_sectors & 0xff;
--		c->Request.CDB[9] = c->Request.CDB[11] = c->Request.CDB[12] = 0;
-+	if (likely(blk_fs_request(creq))) {
-+		if(h->cciss_read == CCISS_READ_10) {
-+			c->Request.CDB[1] = 0;
-+			c->Request.CDB[2] = (start_blk >> 24) & 0xff;	//MSB
-+			c->Request.CDB[3] = (start_blk >> 16) & 0xff;
-+			c->Request.CDB[4] = (start_blk >> 8) & 0xff;
-+			c->Request.CDB[5] = start_blk & 0xff;
-+			c->Request.CDB[6] = 0;	// (sect >> 24) & 0xff; MSB
-+			c->Request.CDB[7] = (creq->nr_sectors >> 8) & 0xff;
-+			c->Request.CDB[8] = creq->nr_sectors & 0xff;
-+			c->Request.CDB[9] = c->Request.CDB[11] = c->Request.CDB[12] = 0;
-+		} else {
-+			c->Request.CDBLen = 16;
-+			c->Request.CDB[1]= 0;
-+			c->Request.CDB[2]= (start_blk >> 56) & 0xff;	//MSB
-+			c->Request.CDB[3]= (start_blk >> 48) & 0xff;
-+			c->Request.CDB[4]= (start_blk >> 40) & 0xff;
-+			c->Request.CDB[5]= (start_blk >> 32) & 0xff;
-+			c->Request.CDB[6]= (start_blk >> 24) & 0xff;
-+			c->Request.CDB[7]= (start_blk >> 16) & 0xff;
-+			c->Request.CDB[8]= (start_blk >>  8) & 0xff;
-+			c->Request.CDB[9]= start_blk & 0xff;
-+			c->Request.CDB[10]= (creq->nr_sectors >>  24) & 0xff;
-+			c->Request.CDB[11]= (creq->nr_sectors >>  16) & 0xff;
-+			c->Request.CDB[12]= (creq->nr_sectors >>  8) & 0xff;
-+			c->Request.CDB[13]= creq->nr_sectors & 0xff;
-+			c->Request.CDB[14] = c->Request.CDB[15] = 0;
-+		}
-+	} else if (blk_pc_request(creq)) {
-+		c->Request.CDBLen = creq->cmd_len;
-+		memcpy(c->Request.CDB, creq->cmd, BLK_MAX_CDB);
- 	} else {
--		c->Request.CDBLen = 16;
--		c->Request.CDB[1]= 0;
--		c->Request.CDB[2]= (start_blk >> 56) & 0xff;	//MSB
--		c->Request.CDB[3]= (start_blk >> 48) & 0xff;
--		c->Request.CDB[4]= (start_blk >> 40) & 0xff;
--		c->Request.CDB[5]= (start_blk >> 32) & 0xff;
--		c->Request.CDB[6]= (start_blk >> 24) & 0xff;
--		c->Request.CDB[7]= (start_blk >> 16) & 0xff;
--		c->Request.CDB[8]= (start_blk >>  8) & 0xff;
--		c->Request.CDB[9]= start_blk & 0xff;
--		c->Request.CDB[10]= (creq->nr_sectors >>  24) & 0xff;
--		c->Request.CDB[11]= (creq->nr_sectors >>  16) & 0xff;
--		c->Request.CDB[12]= (creq->nr_sectors >>  8) & 0xff;
--		c->Request.CDB[13]= creq->nr_sectors & 0xff;
--		c->Request.CDB[14] = c->Request.CDB[15] = 0;
-+		printk(KERN_WARNING "cciss%d: bad request type %d\n", h->ctlr, creq->cmd_type);
-+		BUG();
- 	}
- 
- 	spin_lock_irq(q->queue_lock);
 _
 
 Patches currently in -mm which might be from mikem@beardog.cca.cpqcorp.net are
