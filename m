@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sunrpc-cleanup-use-seq_release_private-where-appropriate.patch added to -mm tree
-Date: Tue, 10 Apr 2007 17:08:31 -0700
-Message-ID: <200704110008.l3B08Xxm023724@shell0.pdx.osdl.net>
+Subject: + add-a-configure-option-to-group-pages-by-mobility-speedup.patch added to -mm tree
+Date: Tue, 10 Apr 2007 17:16:12 -0700
+Message-ID: <200704110016.l3B0GCjM023879@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53133 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53394 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161062AbXDKAJM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 20:09:12 -0400
+	id S1161062AbXDKAQY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 20:16:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mp3@de.ibm.com, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no
+Cc: mel@csn.ul.ie, apw@shadowen.org
 
 
 The patch titled
-     sunrpc: cleanup: use seq_release_private() where appropriate
+     Reduce the amount of time spent in the per-cpu allocator
 has been added to the -mm tree.  Its filename is
-     sunrpc-cleanup-use-seq_release_private-where-appropriate.patch
+     add-a-configure-option-to-group-pages-by-mobility-speedup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sunrpc: cleanup: use seq_release_private() where appropriate
-From: Martin Peschke <mp3@de.ibm.com>
+Subject: Reduce the amount of time spent in the per-cpu allocator
+From: Mel Gorman <mel@csn.ul.ie>
 
-We can save some lines of code by using seq_release_private().
+The per-cpu allocator is the most frequently entered path in the page
+allocator as the majority of allocations are order-0 allocations that use it. 
+This patch is mainly a re-ordering to give the patch a cleaner flow and make
+it more human-readable.
 
-Signed-off-by: Martin Peschke <mp3@de.ibm.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+Performance wise, an unlikely() is added for a branch that is rarely executed
+which improves performance very slightly.  A VM_BUG_ON() is removed because
+when the situation does occur, it means we are just really low on memory not
+that the VM is buggy.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/cache.c |   10 +---------
- 1 files changed, 1 insertion(+), 9 deletions(-)
+ mm/page_alloc.c |   22 +++++++---------------
+ 1 files changed, 7 insertions(+), 15 deletions(-)
 
-diff -puN net/sunrpc/cache.c~sunrpc-cleanup-use-seq_release_private-where-appropriate net/sunrpc/cache.c
---- a/net/sunrpc/cache.c~sunrpc-cleanup-use-seq_release_private-where-appropriate
-+++ a/net/sunrpc/cache.c
-@@ -1237,20 +1237,12 @@ static int content_open(struct inode *in
+diff -puN mm/page_alloc.c~add-a-configure-option-to-group-pages-by-mobility-speedup mm/page_alloc.c
+--- a/mm/page_alloc.c~add-a-configure-option-to-group-pages-by-mobility-speedup
++++ a/mm/page_alloc.c
+@@ -996,33 +996,25 @@ again:
+ 			if (unlikely(!pcp->count))
+ 				goto failed;
+ 		}
++
+ #ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ 		/* Find a page of the appropriate migrate type */
+-		list_for_each_entry(page, &pcp->list, lru) {
+-			if (page_private(page) == migratetype) {
+-				list_del(&page->lru);
+-				pcp->count--;
++		list_for_each_entry(page, &pcp->list, lru)
++			if (page_private(page) == migratetype)
+ 				break;
+-			}
+-		}
  
- 	return res;
- }
--static int content_release(struct inode *inode, struct file *file)
--{
--	struct seq_file *m = (struct seq_file *)file->private_data;
--	struct handle *han = m->private;
--	kfree(han);
--	m->private = NULL;
--	return seq_release(inode, file);
--}
- 
- static const struct file_operations content_file_operations = {
- 	.open		= content_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= content_release,
-+	.release	= seq_release_private,
- };
- 
- static ssize_t read_flush(struct file *file, char __user *buf,
+-		/*
+-		 * Check if a page of the appropriate migrate type
+-		 * was found. If not, allocate more to the pcp list
+-		 */
+-		if (&page->lru == &pcp->list) {
++		/* Allocate more to the pcp list if necessary */
++		if (unlikely(&page->lru == &pcp->list)) {
+ 			pcp->count += rmqueue_bulk(zone, 0,
+ 					pcp->batch, &pcp->list, migratetype);
+ 			page = list_entry(pcp->list.next, struct page, lru);
+-			VM_BUG_ON(page_private(page) != migratetype);
+-			list_del(&page->lru);
+-			pcp->count--;
+ 		}
+ #else
+ 		page = list_entry(pcp->list.next, struct page, lru);
++#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
++
+ 		list_del(&page->lru);
+ 		pcp->count--;
+-#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
+ 	} else {
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 		page = __rmqueue(zone, order, migratetype);
 _
 
-Patches currently in -mm which might be from mp3@de.ibm.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-statistics-infrastructure-prerequisite-list.patch
-statistics-infrastructure-prerequisite-parser.patch
-statistics-infrastructure-prerequisite-parser-fix.patch
-add-for_each_substring-and-match_substring.patch
-statistics-infrastructure-prerequisite-timestamp.patch
-statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution.patch
-statistics-infrastructure-documentation.patch
-statistics-infrastructure.patch
-statistics-infrastructure-add-for_each_substring-and-match_substring-exploitation.patch
-statistics-infrastructure-fix-parsing-of-statistics-type-attribute.patch
-statistics-infrastructure-simplify-statistics-debugfs-write-function.patch
-statistics-infrastructure-simplify-statistics-debugfs-read-functions.patch
-statistics-infrastructure-fix-string-termination.patch
-statistics-infrastructure-small-cleanup-in-debugfs-write-function.patch
-statistics-infrastructure-fix-cpu-hot-unplug-related-memory-leak.patch
-statistics-infrastructure-exploitation-zfcp.patch
-md-cleanup-use-seq_release_private-where-appropriate.patch
-kallsyms-cleanup-use-seq_release_private-where-appropriate.patch
-proc-cleanup-use-seq_release_private-where-appropriate.patch
-sunrpc-cleanup-use-seq_release_private-where-appropriate.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+add-a-configure-option-to-group-pages-by-mobility-speedup.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+move-free-pages-between-lists-on-steal-fix.patch
+move-free-pages-between-lists-on-steal-fix-2.patch
+move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
+move-free-pages-between-lists-on-steal-do-not-cross-section-boundary-when-moving-pages-between-mobility-lists.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+x86-specify-amount-of-kernel-memory-at-boot-time.patch
+ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
+x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
+ia64-specify-amount-of-kernel-memory-at-boot-time.patch
+add-documentation-for-additional-boot-parameter-and-sysctl.patch
+lumpy-reclaim-v4.patch
+lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
+lumpy-only-count-taken-pages-as-scanned.patch
+add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
+anti-fragmentation-switch-over-to-pfn_valid_within.patch
+lumpy-move-to-using-pfn_valid_within.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
+do-not-block-align-pfn-when-looking-up-the-pageblock-pfn.patch
+do-not-disable-interrupts-when-reading-min_free_kbytes.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
