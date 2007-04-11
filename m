@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-cleanup-use-seq_release_private-where-appropriate.patch added to -mm tree
-Date: Tue, 10 Apr 2007 17:08:29 -0700
-Message-ID: <200704110008.l3B08T5B023721@shell0.pdx.osdl.net>
+Subject: + kallsyms-cleanup-use-seq_release_private-where-appropriate.patch added to -mm tree
+Date: Tue, 10 Apr 2007 17:08:27 -0700
+Message-ID: <200704110008.l3B08R7n023718@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53126 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53122 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161148AbXDKAIg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 20:08:36 -0400
+	id S1161142AbXDKAId (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 20:08:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mp3@de.ibm.com, ebiederm@xmission.com
+Cc: mp3@de.ibm.com
 
 
 The patch titled
-     proc: cleanup: use seq_release_private() where appropriate
+     kallsyms: cleanup: use seq_release_private() where appropriate
 has been added to the -mm tree.  Its filename is
-     proc-cleanup-use-seq_release_private-where-appropriate.patch
+     kallsyms-cleanup-use-seq_release_private-where-appropriate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc: cleanup: use seq_release_private() where appropriate
+Subject: kallsyms: cleanup: use seq_release_private() where appropriate
 From: Martin Peschke <mp3@de.ibm.com>
 
 We can save some lines of code by using seq_release_private().
 
 Signed-off-by: Martin Peschke <mp3@de.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    9 +--------
+ kernel/kallsyms.c |    9 +--------
  1 files changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~proc-cleanup-use-seq_release_private-where-appropriate fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~proc-cleanup-use-seq_release_private-where-appropriate
-+++ a/fs/proc/proc_misc.c
-@@ -430,18 +430,11 @@ static int slabstats_open(struct inode *
+diff -puN kernel/kallsyms.c~kallsyms-cleanup-use-seq_release_private-where-appropriate kernel/kallsyms.c
+--- a/kernel/kallsyms.c~kallsyms-cleanup-use-seq_release_private-where-appropriate
++++ a/kernel/kallsyms.c
+@@ -470,18 +470,11 @@ static int kallsyms_open(struct inode *i
  	return ret;
  }
  
--static int slabstats_release(struct inode *inode, struct file *file)
+-static int kallsyms_release(struct inode *inode, struct file *file)
 -{
--	struct seq_file *m = file->private_data;
+-	struct seq_file *m = (struct seq_file *)file->private_data;
 -	kfree(m->private);
 -	return seq_release(inode, file);
 -}
 -
- static const struct file_operations proc_slabstats_operations = {
- 	.open		= slabstats_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= slabstats_release,
-+	.release	= seq_release_private,
+ static const struct file_operations kallsyms_operations = {
+ 	.open = kallsyms_open,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+-	.release = kallsyms_release,
++	.release = seq_release_private,
  };
- #endif
- #endif
+ 
+ static int __init kallsyms_init(void)
 _
 
 Patches currently in -mm which might be from mp3@de.ibm.com are
