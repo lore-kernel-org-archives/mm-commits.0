@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + resurrect-the-vmi-lazy-mode-fixes-fix.patch added to -mm tree
-Date: Wed, 11 Apr 2007 01:07:25 -0700
-Message-ID: <200704110809.l3B89mDX032015@shell0.pdx.osdl.net>
+Subject: + lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch added to -mm tree
+Date: Wed, 11 Apr 2007 01:17:30 -0700
+Message-ID: <200704110819.l3B8JrwB032191@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36983 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37288 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751121AbXDKIJx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 04:09:53 -0400
+	id S1751187AbXDKIU3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 04:20:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, zach@vmware.com
+Cc: akpm@linux-foundation.org, dada1@cosmosbay.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     resurrect-the-vmi-lazy-mode-fixes-fix
+     lguest-the-host-code vs sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
 has been added to the -mm tree.  Its filename is
-     resurrect-the-vmi-lazy-mode-fixes-fix.patch
+     lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: resurrect-the-vmi-lazy-mode-fixes-fix
+Subject: lguest-the-host-code vs sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Zachary Amsden <zach@vmware.com>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/paravirt.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/lguest/io.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-i386/paravirt.h~resurrect-the-vmi-lazy-mode-fixes-fix include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~resurrect-the-vmi-lazy-mode-fixes-fix
-+++ a/include/asm-i386/paravirt.h
-@@ -30,6 +30,7 @@ enum paravirt_lazy_mode {
- 	PARAVIRT_LAZY_NONE = 0,
- 	PARAVIRT_LAZY_MMU = 1,
- 	PARAVIRT_LAZY_CPU = 2,
-+	PARAVIRT_LAZY_FLUSH = 3,
- };
+diff -puN drivers/lguest/io.c~lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes drivers/lguest/io.c
+--- a/drivers/lguest/io.c~lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes
++++ a/drivers/lguest/io.c
+@@ -108,7 +108,7 @@ int bind_dma(struct lguest *lg,
  
- struct paravirt_ops
+ 	mutex_lock(&lguest_lock);
+ 	down_read(&current->mm->mmap_sem);
+-	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
++	if (get_futex_key((u32 __user *)ukey, sizeof(u32), &key) != 0) {
+ 		kill_guest(lg, "bad dma key %#lx", ukey);
+ 		goto unlock;
+ 	}
+@@ -311,7 +311,7 @@ void send_dma(struct lguest *lg, unsigne
+ again:
+ 	mutex_lock(&lguest_lock);
+ 	down_read(&current->mm->mmap_sem);
+-	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
++	if (get_futex_key((u32 __user *)ukey, sizeof(u32), &key) != 0) {
+ 		kill_guest(lg, "bad sending DMA key");
+ 		goto unlock;
+ 	}
+@@ -385,7 +385,7 @@ unsigned long get_dma_buffer(struct lgue
+ 
+ 	mutex_lock(&lguest_lock);
+ 	down_read(&current->mm->mmap_sem);
+-	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
++	if (get_futex_key((u32 __user *)ukey, sizeof(u32), &key) != 0) {
+ 		kill_guest(lg, "bad registered DMA buffer");
+ 		goto unlock;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -209,3 +228,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
