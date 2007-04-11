@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-source-kernel-preemption-option.patch added to -mm tree
-Date: Wed, 11 Apr 2007 13:08:55 -0700
-Message-ID: <200704112008.l3BK8tO7013206@shell0.pdx.osdl.net>
+Subject: + blackfin-arch-workaround-bf561-anomaly-05000266.patch added to -mm tree
+Date: Wed, 11 Apr 2007 13:08:57 -0700
+Message-ID: <200704112008.l3BK8v3R013209@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58684 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58687 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030461AbXDKUI6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 16:08:58 -0400
+	id S1030468AbXDKUJA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 16:09:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, aubrey.li@analog.com
+Cc: bryan.wu@analog.com, sonic.zhang@analog.com
 
 
 The patch titled
-     blackfin arch: source kernel preemption option
+     blackfin arch: workaround BF561 anomaly 05000266
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-source-kernel-preemption-option.patch
+     blackfin-arch-workaround-bf561-anomaly-05000266.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: blackfin arch: source kernel preemption option
+Subject: blackfin arch: workaround BF561 anomaly 05000266
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
-Signed-off-by: Aubrey Li <aubrey.li@analog.com>
+http://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_item_id=2958
+
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/Kconfig              |    1 +
- arch/blackfin/kernel/vmlinux.lds.S |    1 +
- 2 files changed, 2 insertions(+)
+ arch/blackfin/kernel/setup.c |    5 +++++
+ 1 files changed, 5 insertions(+)
 
-diff -puN arch/blackfin/Kconfig~blackfin-arch-source-kernel-preemption-option arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~blackfin-arch-source-kernel-preemption-option
-+++ a/arch/blackfin/Kconfig
-@@ -70,6 +70,7 @@ config IRQCHIP_DEMUX_GPIO
- 	default y
+diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-workaround-bf561-anomaly-05000266 arch/blackfin/kernel/setup.c
+--- a/arch/blackfin/kernel/setup.c~blackfin-arch-workaround-bf561-anomaly-05000266
++++ a/arch/blackfin/kernel/setup.c
+@@ -210,6 +210,11 @@ void __init setup_arch(char **cmdline_p)
+ 		panic("ANOMALY 05000273, SCLK can not be same as CCLK");
+ #endif
  
- source "init/Kconfig"
-+source "kernel/Kconfig.preempt"
- 
- menu "Blackfin Processor Options"
- 
-diff -puN arch/blackfin/kernel/vmlinux.lds.S~blackfin-arch-source-kernel-preemption-option arch/blackfin/kernel/vmlinux.lds.S
---- a/arch/blackfin/kernel/vmlinux.lds.S~blackfin-arch-source-kernel-preemption-option
-+++ a/arch/blackfin/kernel/vmlinux.lds.S
-@@ -68,6 +68,7 @@ SECTIONS
- 		*(__vermagic)		/* Kernel version magic */
- 		*(.rodata1)
- 		*(.fixup)
-+		*(.spinlock.text)
- 
- 		/* Kernel symbol table: Normal symbols */
- 		. = ALIGN(4);
++#if defined(ANOMALY_05000266)
++	bfin_read_IMDMA_D0_IRQ_STATUS();
++	bfin_read_IMDMA_D1_IRQ_STATUS();
++#endif
++
+ #ifdef DEBUG_SERIAL_EARLY_INIT
+ 	bfin_console_init();	/* early console registration */
+ 	/* this give a chance to get printk() working before crash. */
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
