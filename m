@@ -1,13 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header.patch added to -mm tree
-Date: Tue, 10 Apr 2007 22:00:43 -0700
-Message-ID: <200704110500.l3B50hGm028873@shell0.pdx.osdl.net>
+Subject: + linux-kernel-markers-i386-optimization-markers-document-the-i386-marker-header.patch added to -mm tree
+Date: Tue, 10 Apr 2007 22:01:21 -0700
+Message-ID: <200704110501.l3B51LAR028894@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59148 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59156 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161175AbXDKFA4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 01:00:56 -0400
+	id S1161186AbXDKFBd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 01:01:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,120 +18,121 @@ Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     markers: document the linux/marker.h header
+     markers: document the i386 marker header
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header.patch
+     linux-kernel-markers-i386-optimization-markers-document-the-i386-m=
+arker-header.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: markers: document the linux/marker.h header
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: markers: document the i386 marker header
+=46rom: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Fix a bitwise flag manipulation mistake in the MARK_GENERIC macro.
-
-Use the __marker (ro), new __marker_strings (ro) and __marker_data (rw)
-sections.  It depends on the linker modification which defines this last
-section.
-
-It allows the use of a probe "private" data : upon probe connexion, it can
-provide a pointer to its own data structure which will be available at the
-probe call site as the pdata field of the mdata structure.
-
-With the new __marker_data section, much less data has to be defined in the
-kernel .data segment : only the enable flag, in non-optimized markers, is left
-in .data because it is used very often.
-
-The marker flags now only define MF_* which are bitmasks.  There is no way to
-use the bitmask shift value, so it is less error prone.
+Document the i386 marker header, change it to use the __marker, __marke=
+r_data
+and __marker_strings sections.  Change the flag usage to use MF_* direc=
+tly
+(which is now a bitmask).  In marker.c, for the i386 optimized marker
+enabling, check the a simple test is the value will be changed.  If not=
+,
+simply return : we would set it to the same value anyway.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/marker.h |   65 +++++++++++++++++++++++----------------
- 1 file changed, 39 insertions(+), 26 deletions(-)
+ arch/i386/kernel/marker.c |    8 +++++--
+ include/asm-i386/marker.h |   40 +++++++++++++++++++++++++-----------
+ 2 files changed, 34 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/marker.h~linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header include/linux/marker.h
---- a/include/linux/marker.h~linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header
-+++ a/include/linux/marker.h
-@@ -16,48 +16,59 @@
- 
- #ifdef __KERNEL__
- 
--typedef void marker_probe_func(const char *fmt, ...);
-+struct __mark_marker_data;
- 
--struct __mark_marker_c {
-+typedef void marker_probe_func(const struct __mark_marker_data *mdata,
-+	const char *fmt, ...);
+diff -puN arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimizat=
+ion-markers-document-the-i386-marker-header arch/i386/kernel/marker.c
+--- a/arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-=
+markers-document-the-i386-marker-header
++++ a/arch/i386/kernel/marker.c
+@@ -4,7 +4,9 @@
+  *
+  * Permits marker activation by XMC with correct serialization.
+  *
+- * Reentrant for NMI and trap handler instrumentation.=C2=A0:-)
++ * Reentrant for NMI and trap handler instrumentation. Permits XMC to =
+a
++ * location that has preemption enabled because it involves no tempora=
+ry or
++ * reused data structure.
+  *
+  * Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+  */
+@@ -63,8 +65,10 @@ int marker_optimized_set_enable(void *ad
+ 	int ret;
+ 	char *dest =3D address;
+=20
++	if (!(enable ^ dest[1])) /* Must be a state change 0<->1 to execute *=
+/
++		return 0;
 +
-+struct __mark_marker_data {
- 	const char *name;
--	marker_probe_func **call;
- 	const char *format;
- 	int flags;
-+	marker_probe_func *call;
-+	void *pdata;
- } __attribute__((packed));
- 
- struct __mark_marker {
--	const struct __mark_marker_c *cmark;
-+	struct __mark_marker_data *mdata;
- 	void *enable;
- } __attribute__((packed));
- 
--/* Generic marker flavor always available */
+ 	mutex_lock(&mark_mutex);
+-	BUG_ON(!(enable ^ dest[1]));	/* Must be a state change 0<->1 */
+ 	target_eip =3D (long)address + BREAKPOINT_INS_LEN;
+ 	/* register_die_notifier has memory barriers */
+ 	register_die_notifier(&mark_notify);
+diff -puN include/asm-i386/marker.h~linux-kernel-markers-i386-optimizat=
+ion-markers-document-the-i386-marker-header include/asm-i386/marker.h
+--- a/include/asm-i386/marker.h~linux-kernel-markers-i386-optimization-=
+markers-document-the-i386-marker-header
++++ a/include/asm-i386/marker.h
+@@ -1,3 +1,6 @@
++#ifndef _ASM_I386_MARKER_H
++#define _ASM_I386_MARKER_H
++
+ /*
+  * marker.h
+  *
+@@ -12,42 +15,54 @@
+=20
  #ifdef CONFIG_MARKERS
- 
--#define MF_OPTIMIZED 1	/* Use optimized markers */
--#define MF_LOCKDEP 2	/* Can call lockdep */
--#define MF_PRINTK 3	/* vprintk can be called in the probe */
--
--#define _MF_OPTIMIZED (1 << MF_OPTIMIZED)
--#define _MF_LOCKDEP (1 << MF_LOCKDEP)
--#define _MF_PRINTK (1 << MF_PRINTK)
-+/* Marker flags : selects the mechanism used to connect the probes to the
-+ * markers and what can be executed within the probes. This is primarily
-+ * used at reentrancy-unfriendly sites. */
-+#define MF_OPTIMIZED	(1 << 0)	/* Use optimized markers */
-+#define MF_LOCKDEP	(1 << 1)	/* Can call lockdep */
-+#define MF_PRINTK	(1 << 2)	/* vprintk can be called in the probe */
-+#define _MF_NR		3		/* Number of marker flags */
- 
-+#define DECLARE_MARKER_DATA(flags, name, format) \
-+
-+/* Generic marker flavor always available */
- #define MARK_GENERIC(flags, name, format, args...) \
+=20
+-#define _MF_DEFAULT (_MF_OPTIMIZED | _MF_LOCKDEP | _MF_PRINTK)
++#define MF_DEFAULT (MF_OPTIMIZED | MF_LOCKDEP | MF_PRINTK)
+=20
++/* Optimized version of the markers */
+ #define MARK_OPTIMIZED(flags, name, format, args...) \
  	do { \
--		static marker_probe_func *__mark_call_##name = \
+-		static marker_probe_func *__mark_call_##name =3D \
 -					__mark_empty_function; \
+-		static const struct __mark_marker_c __mark_c_##name \
+-			__attribute__((section(".markers.c"))) =3D \
+-			{ #name, &__mark_call_##name, format, \
+-			(flags) | _MF_OPTIMIZED } ; \
 +		static const char __mstrtab_name_##name[] \
 +		__attribute__((section("__markers_strings"))) \
-+		= #name; \
++		=3D #name; \
 +		static const char __mstrtab_format_##name[] \
 +		__attribute__((section("__markers_strings"))) \
-+		= format; \
++		=3D format; \
 +		static struct __mark_marker_data __mark_data_##name \
-+		__attribute__((section("__markers_data"))) = \
++		__attribute__((section("__markers_data"))) =3D \
 +		{ __mstrtab_name_##name,  __mstrtab_format_##name, \
-+		(flags) & ~MF_OPTIMIZED, __mark_empty_function, NULL }; \
- 		static char __marker_enable_##name = 0; \
--		static const struct __mark_marker_c __mark_c_##name \
--			__attribute__((section(".markers.c"))) = \
--			{ #name, &__mark_call_##name, format, \
--			(flags) | ~_MF_OPTIMIZED } ; \
- 		static const struct __mark_marker __mark_##name \
--			__attribute__((section(".markers"))) = \
--			{ &__mark_c_##name, &__marker_enable_##name } ; \
-+			__attribute__((section("__markers"))) = \
-+			{ &__mark_data_##name, &__marker_enable_##name } ; \
- 		asm volatile ( "" : : "i" (&__mark_##name)); \
++		(flags) | MF_OPTIMIZED, __mark_empty_function, NULL }; \
+ 		char condition; \
+-		asm volatile(	".section .markers, \"a\", @progbits;\n\t" \
++		asm volatile(	".section __markers, \"a\", @progbits;\n\t" \
+ 					".long %1, 0f;\n\t" \
+ 					".previous;\n\t" \
+ 					".align 2\n\t" \
+ 					"0:\n\t" \
+ 					"movb $0,%0;\n\t" \
+ 				: "=3Dr" (condition) \
+-				: "m" (__mark_c_##name)); \
++				: "m" (__mark_data_##name)); \
  		__mark_check_format(format, ## args); \
- 		if (unlikely(__marker_enable_##name)) { \
+ 		if (unlikely(condition)) { \
  			preempt_disable(); \
 -			(*__mark_call_##name)(format, ## args); \
 +			(*__mark_data_##name.call)(&__mark_data_##name, \
@@ -136,38 +140,39 @@ diff -puN include/linux/marker.h~linux-kernel-markers-architecture-independant-c
  			preempt_enable(); \
  		} \
  	} while (0)
-@@ -87,21 +98,23 @@ static inline int marker_generic_set_ena
+=20
++/* Marker macro selecting the generic or optimized version of marker, =
+depending
++ * on the flags specified. */
+ #define _MARK(flags, format, args...) \
+ do { \
+-	if (((flags) & _MF_LOCKDEP) && ((flags) & _MF_OPTIMIZED)) \
++	if (((flags) & MF_LOCKDEP) && ((flags) & MF_OPTIMIZED)) \
+ 		MARK_OPTIMIZED(flags, format, ## args); \
+ 	else \
+ 		MARK_GENERIC(flags, format, ## args); \
+ } while (0)
+=20
+-#define MARK(format, args...) _MARK(_MF_DEFAULT, format, ## args)
++/* Marker with default behavior */
++#define MARK(format, args...) _MARK(MF_DEFAULT, format, ## args)
++
++/* Architecture dependant marker information, used internally for mark=
+er
++ * activation. */
+=20
+ /* Offset of the immediate value from the start of the movb instructio=
+n, in
+  * bytes. */
+@@ -61,3 +76,4 @@ do { \
+ extern int marker_optimized_set_enable(void *address, char enable);
+=20
  #endif
- 
- #define MARK_MAX_FORMAT_LEN	1024
-+/* Pass this as a format string for a marker with no argument */
- #define MARK_NOARGS " "
- 
--static inline __attribute__ ((format (printf, 1, 2)))
-+/* To be used for string format validity checking with sparse */
-+static inline
- void __mark_check_format(const char *fmt, ...)
- { }
- 
- extern marker_probe_func __mark_empty_function;
- 
- extern int _marker_set_probe(int flags, const char *name, const char *format,
--				marker_probe_func *probe);
-+				marker_probe_func *probe, void *pdata);
- 
--#define marker_set_probe(name, format, probe) \
--	_marker_set_probe(_MF_DEFAULT, name, format, probe)
-+#define marker_set_probe(name, format, probe, pdata) \
-+	_marker_set_probe(MF_DEFAULT, name, format, probe, pdata)
- 
--extern int marker_remove_probe(marker_probe_func *probe);
-+extern int marker_remove_probe(const char *name);
- extern int marker_list_probe(marker_probe_func *probe);
- 
- #endif /* __KERNEL__ */
++#endif //_ASM_I386_MARKER_H
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.=
+ca are
 
 avr32-remove-unneeded-cast-in-atomich.patch
 git-powerpc.patch
@@ -182,7 +187,8 @@ atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
-atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dep=
+endency.patch
 local_t-architecture-independant-extension.patch
 local_t-alpha-extension.patch
 local_t-i386-extension.patch
@@ -194,17 +200,20 @@ local_t-sparc64-cleanup.patch
 local_t-x86_64-extension.patch
 linux-kernel-markers-kconfig-menus.patch
 linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header.patch
+linux-kernel-markers-architecture-independant-code-markers-document-the=
+-linux-markerh-header.patch
 linux-kernel-markers-powerpc-optimization.patch
 linux-kernel-markers-i386-optimization.patch
 linux-kernel-markers-i386-optimization-fix.patch
+linux-kernel-markers-i386-optimization-markers-document-the-i386-marker=
+-header.patch
 linux-kernel-markers-non-optimized-architectures.patch
 linux-kernel-markers-documentation.patch
 markers-define-the-linker-macro-extra_rwdata.patch
 markers-use-extra_rwdata-in-architectures.patch
-markers-document-the-i386-marker-header.patch
 markers-changes-to-the-powerpc-marker-header.patch
-markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patc=
+h
 markers-update-documentation.patch
 markers-add-instrumentation-markers-menus-to-avr32.patch
 markers-add-documentation-to-the-modulec-marker-functions.patch
