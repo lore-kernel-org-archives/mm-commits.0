@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch added to -mm tree
-Date: Tue, 10 Apr 2007 17:17:00 -0700
-Message-ID: <200704110017.l3B0H0Y2023887@shell0.pdx.osdl.net>
+Subject: + revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch added to -mm tree
+Date: Tue, 10 Apr 2007 17:18:47 -0700
+Message-ID: <200704110018.l3B0IvZD023905@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53409 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53485 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161137AbXDKARH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 20:17:07 -0400
+	id S1030200AbXDKATH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 20:19:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, apw@shadowen.org
+Cc: akpm@linux-foundation.org, ak@suse.de, jeremy@goop.org
 
 
 The patch titled
-     Do not block align PFN when looking up the pageblock PFN
+     revert x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu
 has been added to the -mm tree.  Its filename is
-     add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
+     revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,190 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Do not block align PFN when looking up the pageblock PFN
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: revert x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The pageblock flags store bits representing a MAX_ORDER_NR_PAGES block of
-pages.  When calling get_pageblock_bitmap(), a non-aligned PFN is passed which
-is then aligned to the MAX_ORDER_NR_PAGES block.  This alignment is
-unnecessary.
+knock old patch out of Andi's tree.
 
-This patch should be considered a fix to the patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch .
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ include/asm-i386/percpu.h |   10 ----------
+ 1 files changed, 10 deletions(-)
 
-diff -puN mm/page_alloc.c~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix mm/page_alloc.c
---- a/mm/page_alloc.c~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix
-+++ a/mm/page_alloc.c
-@@ -3432,9 +3432,7 @@ static inline unsigned long *get_pageblo
- 							unsigned long pfn)
- {
- #ifdef CONFIG_SPARSEMEM
--	unsigned long blockpfn;
--	blockpfn = pfn & ~(MAX_ORDER_NR_PAGES - 1);
--	return __pfn_to_section(blockpfn)->pageblock_flags;
-+	return __pfn_to_section(pfn)->pageblock_flags;
+diff -puN include/asm-i386/percpu.h~revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu include/asm-i386/percpu.h
+--- a/include/asm-i386/percpu.h~revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu
++++ a/include/asm-i386/percpu.h
+@@ -5,16 +5,6 @@
+ #include <asm-generic/percpu.h>
  #else
- 	return zone->pageblock_flags;
- #endif /* CONFIG_SPARSEMEM */
+ 
+-#ifdef CONFIG_MODULES
+-# define PERCPU_MODULE_RESERVE 8192
+-#else
+-# define PERCPU_MODULE_RESERVE 0
+-#endif
+-
+-#define PERCPU_ENOUGH_ROOM \
+-	(ALIGN(__per_cpu_end - __per_cpu_start, SMP_CACHE_BYTES) + \
+-	 PERCPU_MODULE_RESERVE)
+-
+ /*
+  * PER_CPU finds an address of a per-cpu variable.
+  *
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+origin.patch
+x86_64-early-quirks-fix-early_qrk-section-tag.patch
+i386-irqbalance_disable-section-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-avr32.patch
+git-avr32-fixup.patch
+revert-gregkh-driver-sysfs-crash-debugging.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+git-ocfs2.patch
+git-parisc.patch
+git-r8169-fixup.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+xfs-clean-up-shrinker-games.patch
+pktgen-add-try_to_freeze.patch
+acpi-thermal-fix-mod_timer-interval.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
-split-the-free-lists-for-movable-and-unmovable-allocations.patch
-choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-add-a-configure-option-to-group-pages-by-mobility-speedup.patch
-drain-per-cpu-lists-when-high-order-allocations-fail.patch
-move-free-pages-between-lists-on-steal.patch
-move-free-pages-between-lists-on-steal-fix.patch
-move-free-pages-between-lists-on-steal-fix-2.patch
-move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
-move-free-pages-between-lists-on-steal-do-not-cross-section-boundary-when-moving-pages-between-mobility-lists.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-group-high-order-atomic-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-bias-the-placement-of-kernel-pages-at-lower-pfns.patch
-be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-x86-specify-amount-of-kernel-memory-at-boot-time.patch
-ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
-x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
-ia64-specify-amount-of-kernel-memory-at-boot-time.patch
-add-documentation-for-additional-boot-parameter-and-sysctl.patch
-lumpy-reclaim-v4.patch
-lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
-lumpy-only-count-taken-pages-as-scanned.patch
-add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
-anti-fragmentation-switch-over-to-pfn_valid_within.patch
-lumpy-move-to-using-pfn_valid_within.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
-do-not-disable-interrupts-when-reading-min_free_kbytes.patch
-ext2-reservations.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
