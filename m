@@ -1,151 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-fix-handling-of-low-voltage-cards.patch removed from -mm tree
-Date: Wed, 11 Apr 2007 16:21:05 -0700
-Message-ID: <200704112321.l3BNL5Vw017545@shell0.pdx.osdl.net>
+Subject: - input-replace-more-deprecated-sa_xxx-interrupt-flags.patch removed from -mm tree
+Date: Wed, 11 Apr 2007 16:21:01 -0700
+Message-ID: <200704112321.l3BNL1Sh017536@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35874 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35875 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932203AbXDKXVI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:21:08 -0400
+	id S932212AbXDKXVJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:21:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipl@overt.org, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MMC: fix handling of low-voltage cards
+     input: replace more deprecated SA_xxx interrupt flags
 has been removed from the -mm tree.  Its filename was
-     mmc-fix-handling-of-low-voltage-cards.patch
+     input-replace-more-deprecated-sa_xxx-interrupt-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MMC: fix handling of low-voltage cards
-From: Philip Langdale <philipl@overt.org>
+Subject: input: replace more deprecated SA_xxx interrupt flags
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Fix handling of low voltage MMC cards.
+Fix the obnoxious users of the deprecated SA_xxx interrupt flags.
 
-The latest MMC and SD specs both agree that support for low-voltage
-operations is indicated by bit 7 in the OCR.  The MMC spec states that the
-low voltage range is 1.65-1.95V while the SD spec leaves the actual voltage
-range undefined - meaning that there is still no such thing as a low
-voltage SD card.
-
-However, an old Sandisk spec implied that bits 7.0 represented voltages
-below 2.0V in 1V or 0.5V increments, and the code was accordingly written
-with that expectation.
-
-This confusion meant that host drivers attempting to support the typical
-low voltage (1.8V) would set the wrong bits in the host OCR mask (usually
-bits 5 and/or 6) resulting in the the low voltage mode never being used.
-
-This change corrects the low voltage range and adds sanity checks on the
-reserved bits (0-6) and for SD cards that claim to support low-voltage
-operations.
-
-Signed-off-by: Philip Langdale <philipl@overt.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc.c   |   11 +++++++++++
- drivers/mmc/core/sd.c    |   18 ++++++++++++++++++
- drivers/mmc/host/sdhci.c |    5 ++---
- include/linux/mmc/host.h |    9 +--------
- 4 files changed, 32 insertions(+), 11 deletions(-)
+ drivers/input/keyboard/pxa27x_keyboard.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/core/mmc.c~mmc-fix-handling-of-low-voltage-cards drivers/mmc/core/mmc.c
---- a/drivers/mmc/core/mmc.c~mmc-fix-handling-of-low-voltage-cards
-+++ a/drivers/mmc/core/mmc.c
-@@ -319,6 +319,17 @@ int mmc_attach_mmc(struct mmc_host *host
+diff -puN drivers/input/keyboard/pxa27x_keyboard.c~input-replace-more-deprecated-sa_xxx-interrupt-flags drivers/input/keyboard/pxa27x_keyboard.c
+--- a/drivers/input/keyboard/pxa27x_keyboard.c~input-replace-more-deprecated-sa_xxx-interrupt-flags
++++ a/drivers/input/keyboard/pxa27x_keyboard.c
+@@ -181,7 +181,7 @@ static int __devinit pxakbd_probe(struct
+ 		}
+ 	}
  
- 	mmc_attach_bus(host, &mmc_ops);
- 
-+	/*
-+	 * Sanity check the voltages that the card claims to
-+	 * support.
-+	 */
-+	if (ocr & 0x7F) {
-+		printk(KERN_WARNING "%s: card claims to support voltages "
-+		       "below the defined range. These will be ignored.\n",
-+		       mmc_hostname(host));
-+		ocr &= ~0x7F;
-+	}
-+
- 	host->ocr = mmc_select_voltage(host, ocr);
- 
- 	/*
-diff -puN drivers/mmc/core/sd.c~mmc-fix-handling-of-low-voltage-cards drivers/mmc/core/sd.c
---- a/drivers/mmc/core/sd.c~mmc-fix-handling-of-low-voltage-cards
-+++ a/drivers/mmc/core/sd.c
-@@ -297,6 +297,24 @@ int mmc_attach_sd(struct mmc_host *host,
- 
- 	mmc_attach_bus(host, &mmc_sd_ops);
- 
-+	/*
-+	 * Sanity check the voltages that the card claims to
-+	 * support.
-+	 */
-+	if (ocr & 0x7F) {
-+		printk(KERN_WARNING "%s: card claims to support voltages "
-+		       "below the defined range. These will be ignored.\n",
-+		       mmc_hostname(host));
-+		ocr &= ~0x7F;
-+	}
-+
-+	if (ocr & MMC_VDD_165_195) {
-+		printk(KERN_WARNING "%s: SD card claims to support the "
-+		       "incompletely defined 'low voltage range'. This "
-+		       "will be ignored.\n", mmc_hostname(host));
-+		ocr &= ~MMC_VDD_165_195;
-+	}
-+
- 	host->ocr = mmc_select_voltage(host, ocr);
- 
- 	/*
-diff -puN drivers/mmc/host/sdhci.c~mmc-fix-handling-of-low-voltage-cards drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~mmc-fix-handling-of-low-voltage-cards
-+++ a/drivers/mmc/host/sdhci.c
-@@ -669,8 +669,7 @@ static void sdhci_set_power(struct sdhci
- 	pwr = SDHCI_POWER_ON;
- 
- 	switch (1 << power) {
--	case MMC_VDD_17_18:
--	case MMC_VDD_18_19:
-+	case MMC_VDD_165_195:
- 		pwr |= SDHCI_POWER_180;
- 		break;
- 	case MMC_VDD_29_30:
-@@ -1290,7 +1289,7 @@ static int __devinit sdhci_probe_slot(st
- 	if (caps & SDHCI_CAN_VDD_300)
- 		mmc->ocr_avail |= MMC_VDD_29_30|MMC_VDD_30_31;
- 	if (caps & SDHCI_CAN_VDD_180)
--		mmc->ocr_avail |= MMC_VDD_17_18|MMC_VDD_18_19;
-+		mmc->ocr_avail |= MMC_VDD_165_195;
- 
- 	if (mmc->ocr_avail == 0) {
- 		printk(KERN_ERR "%s: Hardware doesn't report any "
-diff -puN include/linux/mmc/host.h~mmc-fix-handling-of-low-voltage-cards include/linux/mmc/host.h
---- a/include/linux/mmc/host.h~mmc-fix-handling-of-low-voltage-cards
-+++ a/include/linux/mmc/host.h
-@@ -65,14 +65,7 @@ struct mmc_host {
- 	unsigned int		f_max;
- 	u32			ocr_avail;
- 
--#define MMC_VDD_145_150		0x00000001	/* VDD voltage 1.45 - 1.50 */
--#define MMC_VDD_150_155		0x00000002	/* VDD voltage 1.50 - 1.55 */
--#define MMC_VDD_155_160		0x00000004	/* VDD voltage 1.55 - 1.60 */
--#define MMC_VDD_160_165		0x00000008	/* VDD voltage 1.60 - 1.65 */
--#define MMC_VDD_165_170		0x00000010	/* VDD voltage 1.65 - 1.70 */
--#define MMC_VDD_17_18		0x00000020	/* VDD voltage 1.7 - 1.8 */
--#define MMC_VDD_18_19		0x00000040	/* VDD voltage 1.8 - 1.9 */
--#define MMC_VDD_19_20		0x00000080	/* VDD voltage 1.9 - 2.0 */
-+#define MMC_VDD_165_195		0x00000080	/* VDD voltage 1.65 - 1.95 */
- #define MMC_VDD_20_21		0x00000100	/* VDD voltage 2.0 ~ 2.1 */
- #define MMC_VDD_21_22		0x00000200	/* VDD voltage 2.1 ~ 2.2 */
- #define MMC_VDD_22_23		0x00000400	/* VDD voltage 2.2 ~ 2.3 */
+-	error = request_irq(IRQ_KEYPAD, pxakbd_irq_handler, SA_INTERRUPT,
++	error = request_irq(IRQ_KEYPAD, pxakbd_irq_handler, IRQF_DISABLED,
+ 			    DRIVER_NAME, pdev);
+ 	if (error) {
+ 		printk(KERN_ERR "Cannot request keypad IRQ\n");
 _
 
-Patches currently in -mm which might be from philipl@overt.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-git-mmc.patch
+origin.patch
+git-arm.patch
+git-ieee1394.patch
+git-input.patch
+vioc-replace-more-deprecated-sa_xxx-interrupt-flags.patch
+i386-tsc-remove-xtime_locking-around-cpufreq-notifier.patch
+optimize-timespec_trunc.patch
+kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
+move-timekeeping-code-to-timekeepingc.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+replace-deprecated-sa_xxx-interrupt-flags.patch
+deprecate-sa_xxx-interrupt-flags-v2.patch
+pad-irq_desc-to-internode-cacheline-size.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+declare-struct-ktime.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
