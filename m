@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio.patch added to -mm tree
-Date: Wed, 11 Apr 2007 01:23:26 -0700
-Message-ID: <200704110825.l3B8PneN032291@shell0.pdx.osdl.net>
+Subject: + sysfs-kill-unnecessary-attribute-owner-update-fix.patch added to -mm tree
+Date: Wed, 11 Apr 2007 01:02:00 -0700
+Message-ID: <200704110804.l3B84NKU031944@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37402 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36852 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751131AbXDKIZx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 04:25:53 -0400
+	id S1750755AbXDKIFB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 04:05:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com
+Cc: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, htejun@gmail.com, maneesh@in.ibm.com
 
 
 The patch titled
-     sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
+     sysfs-kill-unnecessary-attribute-owner-update-fix
 has been added to the -mm tree.  Its filename is
-     input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio.patch
+     sysfs-kill-unnecessary-attribute-owner-update-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
+Subject: sysfs-kill-unnecessary-attribute-owner-update-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Tejun Heo <htejun@gmail.com>
+is why developent against Greg's tree (or -mm) is sometimes better.
+
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Maneesh Soni <maneesh@in.ibm.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uio/uio.c |    2 --
+ drivers/base/bus.c |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN drivers/uio/uio.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio drivers/uio/uio.c
---- a/drivers/uio/uio.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio
-+++ a/drivers/uio/uio.c
-@@ -52,13 +52,11 @@ static struct uio_class {
-  */
+diff -puN arch/s390/kernel/ipl.c~sysfs-kill-unnecessary-attribute-owner-update-fix arch/s390/kernel/ipl.c
+diff -puN drivers/s390/cio/chsc.c~sysfs-kill-unnecessary-attribute-owner-update-fix drivers/s390/cio/chsc.c
+diff -puN drivers/s390/net/qeth_sys.c~sysfs-kill-unnecessary-attribute-owner-update-fix drivers/s390/net/qeth_sys.c
+diff -puN drivers/base/bus.c~sysfs-kill-unnecessary-attribute-owner-update-fix drivers/base/bus.c
+--- a/drivers/base/bus.c~sysfs-kill-unnecessary-attribute-owner-update-fix
++++ a/drivers/base/bus.c
+@@ -551,7 +551,6 @@ static int add_probe_files(struct bus_ty
  
- static struct attribute attr_addr = {
--	.owner = THIS_MODULE,
- 	.name  = "addr",
- 	.mode  = S_IRUGO,
- };
+ 	bus->drivers_probe_attr.attr.name = "drivers_probe";
+ 	bus->drivers_probe_attr.attr.mode = S_IWUSR;
+-	bus->drivers_probe_attr.attr.owner = bus->owner;
+ 	bus->drivers_probe_attr.store = store_drivers_probe;
+ 	retval = bus_create_file(bus, &bus->drivers_probe_attr);
+ 	if (retval)
+@@ -559,7 +558,6 @@ static int add_probe_files(struct bus_ty
  
- static struct attribute attr_size = {
--	.owner = THIS_MODULE,
- 	.name  = "size",
- 	.mode  = S_IRUGO,
- };
+ 	bus->drivers_autoprobe_attr.attr.name = "drivers_autoprobe";
+ 	bus->drivers_autoprobe_attr.attr.mode = S_IWUSR | S_IRUGO;
+-	bus->drivers_autoprobe_attr.attr.owner = bus->owner;
+ 	bus->drivers_autoprobe_attr.show = show_drivers_autoprobe;
+ 	bus->drivers_autoprobe_attr.store = store_drivers_autoprobe;
+ 	retval = bus_create_file(bus, &bus->drivers_autoprobe_attr);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +79,6 @@ git-avr32.patch
 git-avr32-fixup.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-sysfs-crash-debugging.patch
-sysfs-kill-unnecessary-attribute-owner-update-fix.patch
 device_schedule_callback-needs-a-module-reference-fix.patch
 git-drm.patch
 git-dvb.patch
@@ -97,7 +106,6 @@ git-net.patch
 git-net-fixup.patch
 git-net-vs-git-netdev-all.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
 git-ocfs2.patch
 git-parisc.patch
 git-r8169-fixup.patch
@@ -121,7 +129,6 @@ fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
 xfs-clean-up-shrinker-games.patch
 pktgen-add-try_to_freeze.patch
 acpi-thermal-fix-mod_timer-interval.patch
@@ -185,7 +192,6 @@ lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
 declare-struct-ktime.patch
 make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
 sys_futex64-allows-64bit-futexes-workaround.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
@@ -217,4 +223,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-vs-gregkh-driver-uio.patch
+sysfs-kill-unnecessary-attribute-owner-update-fix.patch
