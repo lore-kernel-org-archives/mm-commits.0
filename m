@@ -1,145 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch added to -mm tree
-Date: Tue, 10 Apr 2007 20:05:32 -0700
-Message-ID: <200704110305.l3B35WFY026637@shell0.pdx.osdl.net>
+Subject: - reparent-kernel-threads-to-swapper.patch removed from -mm tree
+Date: Tue, 10 Apr 2007 23:49:51 -0700
+Message-ID: <200704110649.l3B6npKR030710@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:56824 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33837 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161143AbXDKDFj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 23:05:39 -0400
+	id S1753215AbXDKGuX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 02:50:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+To: oleg@tv-sign.ru, davidel@xmailserver.org, ebiederm@xmission.com, holt@sgi.com, jengelh@linux01.gwdg.de, mingo@elte.hu, roland@redhat.com, serge@hallyn.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Use __print_symbol instead of kallsyms_lookup
-has been added to the -mm tree.  Its filename is
-     slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
+     reparent kernel threads to swapper
+has been removed from the -mm tree.  Its filename was
+     reparent-kernel-threads-to-swapper.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: SLUB: Use __print_symbol instead of kallsyms_lookup
-From: Christoph Lameter <clameter@sgi.com>
+Subject: reparent kernel threads to swapper
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-SLUB contains a complicated section with #ifdef CONFIG_KALLSYSM and yadda
-dadda.  Remove that and replace with __print_symbol.
+A lot of kernel threads parented to /sbin/init slow down do_wait() when a
+non-detached (user-space) process exits.  Change reparent_kthread() to use
+init_task as a parent.  Since init_task can't go away, we don't need to put
+the caller on init_task.children list.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+NOTE: pstree doesn't show kernel threads with this patch.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   20 ++------------------
- 1 file changed, 2 insertions(+), 18 deletions(-)
+ kernel/exit.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/slub.c~slub-core-use-__print_symbol-instead-of-kallsyms_lookup mm/slub.c
---- a/mm/slub.c~slub-core-use-__print_symbol-instead-of-kallsyms_lookup
-+++ a/mm/slub.c
-@@ -296,27 +296,11 @@ static void init_tracking(struct kmem_ca
- 
- static void print_track(const char *s, struct track *t)
- {
--#ifdef CONFIG_KALLSYMS
--	char *modname;
--	const char *name;
--	unsigned long offset, size;
--	char namebuf[KSYM_NAME_LEN + 1];
--#endif
--
- 	if (!t->addr)
- 		return;
- 
--#ifdef CONFIG_KALLSYMS
--	name = kallsyms_lookup((unsigned long)t->addr, &size, &offset,
--		&modname, namebuf);
--
--	if (name) {
--		printk(KERN_ERR "%s: %s+%#lx/%#lx", s, name, offset, size);
--		if (modname)
--			printk(" [%s]", modname);
--	} else
--#endif
--		printk(KERN_ERR "%s: 0x%p", s, t->addr);
-+	printk(KERN_ERR "%s: ", s);
-+	__print_symbol("%s", (unsigned long)t->addr);
- 	printk(" jiffies_ago=%lu cpu=%u pid=%d\n", jiffies - t->when, t->cpu, t->pid);
+diff -puN kernel/exit.c~reparent-kernel-threads-to-swapper kernel/exit.c
+--- a/kernel/exit.c~reparent-kernel-threads-to-swapper
++++ a/kernel/exit.c
+@@ -257,11 +257,11 @@ static int has_stopped_jobs(struct pid *
  }
  
+ /**
+- * reparent_kthread - Reparent the calling kernel thread to the init task of the pid space that the thread belongs to.
++ * reparent_kthread - Reparent the calling kernel thread to swapper.
+  *
+  * If a kernel thread is launched as a result of a system call, or if
+- * it ever exits, it should generally reparent itself to init so that
+- * it is correctly cleaned up on exit.
++ * it ever exits, it should generally reparent itself so that it is
++ * correctly cleaned up on exit.
+  *
+  * The various task state such as scheduling policy and priority may have
+  * been inherited from a user process, so we reset them to sane values here.
+@@ -274,9 +274,8 @@ void reparent_kthread(void)
+ 
+ 	ptrace_unlink(current);
+ 	remove_parent(current);
+-	current->parent = init_pid_ns.child_reaper;
++	current->parent = &init_task;
+ 	current->real_parent = current->parent;
+-	add_parent(current);
+ 
+ 	/* make the task auto-reap */
+ 	current->exit_signal = -1;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
+git-dvb.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-extend-print_symbol-capability-fix.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
-slub-core-minor-fixes.patch
-slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
-slub-core-fix-another-numa-bootstrap-issue.patch
-slub-core-fix-object-counting.patch
-slub-core-drop-version-number.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
-slub-core-printk-facility-level-cleanup.patch
-slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
-slub-core-add-explanation-for-defrag_ratio-=-100.patch
-slub-core-add-explanation-for-locking.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-the-64k-limits.patch
-slub-core-explain-sizing-of-slabs-in-detail.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-add-checks-for-interrupts-disabled.patch
-slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
-slub-add-slabinfo-tool.patch
-slub-add-slabinfo-tool-update-slabinfoc.patch
-make-page-private-usable-in-compound-pages-v1.patch
-make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation.patch
-slub-user-documentation-fix.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-quicklists-for-page-table-pages.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
+fix-refrigerator-vs-thaw_process-race.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+add-a-new-deferrable-delayed-work-init.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+worker_thread-dont-play-with-signals.patch
+worker_thread-fix-racy-try_to_freeze-usage.patch
+zap_other_threads-remove-unneeded-exit_signal-change.patch
 slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-readahead-state-based-method-aging-accounting.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+reparent-kernel-threads-to-swapper.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
