@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + affs-use-zero_user_page.patch added to -mm tree
-Date: Tue, 10 Apr 2007 23:16:34 -0700
-Message-ID: <200704110616.l3B6GYWs030097@shell0.pdx.osdl.net>
+Subject: + nfs-use-zero_user_page.patch added to -mm tree
+Date: Tue, 10 Apr 2007 23:18:03 -0700
+Message-ID: <200704110618.l3B6I3LM030122@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:32979 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33058 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161213AbXDKGQk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 02:16:40 -0400
+	id S1161223AbXDKGSI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 02:18:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: nate.diller@gmail.com
 
 
 The patch titled
-     affs: use zero_user_page
+     nfs: use zero_user_page
 has been added to the -mm tree.  Its filename is
-     affs-use-zero_user_page.patch
+     nfs-use-zero_user_page.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: affs: use zero_user_page
+Subject: nfs: use zero_user_page
 From: Nate Diller <nate.diller@gmail.com>
 
-Use zero_user_page() instead of open-coding it.
+Use zero_user_page() instead of the newly deprecated memclear_highpage_flush().
 
 Signed-off-by: Nate Diller <nate.diller@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ fs/nfs/read.c  |   10 +++++-----
+ fs/nfs/write.c |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/affs/file.c~affs-use-zero_user_page fs/affs/file.c
---- a/fs/affs/file.c~affs-use-zero_user_page
-+++ a/fs/affs/file.c
-@@ -628,11 +628,7 @@ static int affs_prepare_write_ofs(struct
- 			return err;
+diff -puN fs/nfs/read.c~nfs-use-zero_user_page fs/nfs/read.c
+--- a/fs/nfs/read.c~nfs-use-zero_user_page
++++ a/fs/nfs/read.c
+@@ -79,7 +79,7 @@ void nfs_readdata_release(void *data)
+ static
+ int nfs_return_empty_page(struct page *page)
+ {
+-	memclear_highpage_flush(page, 0, PAGE_CACHE_SIZE);
++	zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
+ 	SetPageUptodate(page);
+ 	unlock_page(page);
+ 	return 0;
+@@ -103,10 +103,10 @@ static void nfs_readpage_truncate_uninit
+ 	pglen = PAGE_CACHE_SIZE - base;
+ 	for (;;) {
+ 		if (remainder <= pglen) {
+-			memclear_highpage_flush(*pages, base, remainder);
++			zero_user_page(*pages, base, remainder, KM_USER0);
+ 			break;
+ 		}
+-		memclear_highpage_flush(*pages, base, pglen);
++		zero_user_page(*pages, base, pglen, KM_USER0);
+ 		pages++;
+ 		remainder -= pglen;
+ 		pglen = PAGE_CACHE_SIZE;
+@@ -130,7 +130,7 @@ static int nfs_readpage_async(struct nfs
+ 		return PTR_ERR(new);
  	}
- 	if (to < PAGE_CACHE_SIZE) {
--		char *kaddr = kmap_atomic(page, KM_USER0);
--
--		memset(kaddr + to, 0, PAGE_CACHE_SIZE - to);
--		flush_dcache_page(page);
--		kunmap_atomic(kaddr, KM_USER0);
-+		zero_user_page(page, to, PAGE_CACHE_SIZE - to, KM_USER0);
- 		if (size > offset + to) {
- 			if (size < offset + PAGE_CACHE_SIZE)
- 				tmp = size & ~PAGE_CACHE_MASK;
+ 	if (len < PAGE_CACHE_SIZE)
+-		memclear_highpage_flush(page, len, PAGE_CACHE_SIZE - len);
++		zero_user_page(page, len, PAGE_CACHE_SIZE - len, KM_USER0);
+ 
+ 	nfs_list_add_request(new, &one_request);
+ 	nfs_pagein_one(&one_request, inode);
+@@ -561,7 +561,7 @@ readpage_async_filler(void *data, struct
+ 			return PTR_ERR(new);
+ 	}
+ 	if (len < PAGE_CACHE_SIZE)
+-		memclear_highpage_flush(page, len, PAGE_CACHE_SIZE - len);
++		zero_user_page(page, len, PAGE_CACHE_SIZE - len, KM_USER0);
+ 	nfs_list_add_request(new, desc->head);
+ 	return 0;
+ }
+diff -puN fs/nfs/write.c~nfs-use-zero_user_page fs/nfs/write.c
+--- a/fs/nfs/write.c~nfs-use-zero_user_page
++++ a/fs/nfs/write.c
+@@ -169,7 +169,7 @@ static void nfs_mark_uptodate(struct pag
+ 	if (count != nfs_page_length(page))
+ 		return;
+ 	if (count != PAGE_CACHE_SIZE)
+-		memclear_highpage_flush(page, count, PAGE_CACHE_SIZE - count);
++		zero_user_page(page, count, PAGE_CACHE_SIZE - count, KM_USER0);
+ 	SetPageUptodate(page);
+ }
+ 
 _
 
 Patches currently in -mm which might be from nate.diller@gmail.com are
