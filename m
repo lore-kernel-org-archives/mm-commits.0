@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-fix-bootp-image-creation.patch added to -mm tree
-Date: Wed, 11 Apr 2007 12:57:57 -0700
-Message-ID: <200704111957.l3BJvwvf012980@shell0.pdx.osdl.net>
+Subject: + alpha-more-fixes-for-specific-machine-types.patch added to -mm tree
+Date: Wed, 11 Apr 2007 12:58:07 -0700
+Message-ID: <200704111958.l3BJw7Fb013000@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58427 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58439 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030314AbXDKT6I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 15:58:08 -0400
+	id S1030320AbXDKT6L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 15:58:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net
+Cc: ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     ALPHA: fix BOOTP image creation
+     ALPHA: more fixes for specific machine types
 has been added to the -mm tree.  Its filename is
-     alpha-fix-bootp-image-creation.patch
+     alpha-more-fixes-for-specific-machine-types.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALPHA: fix BOOTP image creation
+Subject: ALPHA: more fixes for specific machine types
 From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Files:
+arch/alpha/kernel/sys_sx164.c
 
-arch/alpha/boot/bootpz.c
+	Earlier firmware revisions need MVI fix as well.
 
-	Create a dummy "__kmalloc()" to satisfy the loader; never called.
+arch/alpha/kernel/sys_nautilus.c
 
-arch/alpha/boot/tools/objstrip.c
+	On UP1500 firmware reports wrong AGP IRQ (10 instead of 5).
+	This causes interrupt storm if there is a PCI device that
+	uses IRQ 5.
 
-	Remove an include that is now (2.6.x) unnecessary.
-
-Signed-off-by: Jay Estabrook <jay.estabrook@hp.com>
 Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/boot/bootpz.c         |    6 ++++++
- arch/alpha/boot/tools/objstrip.c |    1 -
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ arch/alpha/kernel/sys_nautilus.c |    6 ++++++
+ arch/alpha/kernel/sys_sx164.c    |    2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN arch/alpha/boot/bootpz.c~alpha-fix-bootp-image-creation arch/alpha/boot/bootpz.c
---- a/arch/alpha/boot/bootpz.c~alpha-fix-bootp-image-creation
-+++ a/arch/alpha/boot/bootpz.c
-@@ -467,3 +467,9 @@ start_kernel(void)
- #endif
- 	runkernel();
+diff -puN arch/alpha/kernel/sys_nautilus.c~alpha-more-fixes-for-specific-machine-types arch/alpha/kernel/sys_nautilus.c
+--- a/arch/alpha/kernel/sys_nautilus.c~alpha-more-fixes-for-specific-machine-types
++++ a/arch/alpha/kernel/sys_nautilus.c
+@@ -70,6 +70,12 @@ nautilus_map_irq(struct pci_dev *dev, u8
+ 	/* Preserve the IRQ set up by the console.  */
+ 
+ 	u8 irq;
++	/* UP1500: AGP INTA is actually routed to IRQ 5, not IRQ 10 as
++	   console reports. Check the device id of AGP bridge to distinguish
++	   UP1500 from UP1000/1100. Note: 'pin' is 2 due to bridge swizzle. */
++	if (slot == 1 && pin == 2 &&
++	    dev->bus->self && dev->bus->self->device == 0x700f)
++		return 5;
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
+ 	return irq;
  }
-+
-+ /* dummy function, should never be called. */
-+void *__kmalloc(size_t size, gfp_t flags)
-+{
-+	return (void *)NULL;
-+}
-diff -puN arch/alpha/boot/tools/objstrip.c~alpha-fix-bootp-image-creation arch/alpha/boot/tools/objstrip.c
---- a/arch/alpha/boot/tools/objstrip.c~alpha-fix-bootp-image-creation
-+++ a/arch/alpha/boot/tools/objstrip.c
-@@ -25,7 +25,6 @@
- #include <linux/a.out.h>
- #include <linux/coff.h>
- #include <linux/param.h>
--#include <linux/string.h>
- #ifdef __ELF__
- # include <linux/elf.h>
- #endif
+diff -puN arch/alpha/kernel/sys_sx164.c~alpha-more-fixes-for-specific-machine-types arch/alpha/kernel/sys_sx164.c
+--- a/arch/alpha/kernel/sys_sx164.c~alpha-more-fixes-for-specific-machine-types
++++ a/arch/alpha/kernel/sys_sx164.c
+@@ -132,7 +132,7 @@ sx164_init_arch(void)
+ 
+ 	if (amask(AMASK_MAX) != 0
+ 	    && alpha_using_srm
+-	    && (cpu->pal_revision & 0xffff) == 0x117) {
++	    && (cpu->pal_revision & 0xffff) <= 0x117) {
+ 		__asm__ __volatile__(
+ 		"lda	$16,8($31)\n"
+ 		"call_pal 9\n"		/* Allow PALRES insns in kernel mode */
 _
 
 Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
