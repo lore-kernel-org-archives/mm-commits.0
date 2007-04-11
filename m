@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-add-proc-pid-pagemap-interface-fix.patch added to -mm tree
-Date: Tue, 10 Apr 2007 17:29:38 -0700
-Message-ID: <200704110029.l3B0TcIC024146@shell0.pdx.osdl.net>
+Subject: + i386-update-smp_call_function-comments.patch added to -mm tree
+Date: Tue, 10 Apr 2007 17:31:29 -0700
+Message-ID: <200704110031.l3B0VTSe024221@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53708 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53741 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932255AbXDKAa0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 20:30:26 -0400
+	id S932359AbXDKAbc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 20:31:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com, adobriyan@sw.ru
+Cc: jeremy@goop.org, jeremy@xensource.com, rdunlap@xenotime.net
 
 
 The patch titled
-     maps2-add-proc-pid-pagemap-interface fix
+     i386: update smp_call_function* comments
 has been added to the -mm tree.  Its filename is
-     maps2-add-proc-pid-pagemap-interface-fix.patch
+     i386-update-smp_call_function-comments.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,109 +25,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps2-add-proc-pid-pagemap-interface fix
-From: Matt Mackall <mpm@selenic.com>
+Subject: i386: update smp_call_function* comments
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-When CONFIG_HIGHPTE is enabled, use double-buffering in pagemap to
-avoid calling copy_to_user while preemption is disabled.
+Update documentation for i386 smp_call_function* functions.
 
-Tested on x86 with HIGHPTE with DEBUG_SPINLOCK_SLEEP and
-PROVE_LOCKING.
-
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   28 ++++++++++++++++++++++++++--
- 1 files changed, 26 insertions(+), 2 deletions(-)
+ arch/i386/kernel/smp.c |   25 +++++++++++++++----------
+ 1 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix
-+++ a/fs/proc/task_mmu.c
-@@ -520,6 +520,7 @@ struct pagemapread {
- 	struct mm_struct *mm;
- 	unsigned long next;
- 	unsigned long *buf;
-+	pte_t *ptebuf;
- 	unsigned long pos;
- 	size_t count;
- 	int index;
-@@ -558,6 +559,14 @@ static int pagemap_pte_range(pmd_t *pmd,
- 	int err;
- 
- 	pte = pte_offset_map(pmd, addr);
-+
-+#ifdef CONFIG_HIGHPTE
-+	/* copy PTE directory to temporary buffer and unmap it */
-+	memcpy(pm->ptebuf, pte, PAGE_ALIGN((unsigned long)pte) - (unsigned long)pte);
-+	pte_unmap(pte);
-+	pte = pm->ptebuf;
-+#endif
-+
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
- 		if (addr < pm->next)
- 			continue;
-@@ -568,7 +577,11 @@ static int pagemap_pte_range(pmd_t *pmd,
- 		if (err)
- 			return err;
- 	}
-+
-+#ifndef CONFIG_HIGHPTE
- 	pte_unmap(pte - 1);
-+#endif
-+
- 	return 0;
+diff -puN arch/i386/kernel/smp.c~i386-update-smp_call_function-comments arch/i386/kernel/smp.c
+--- a/arch/i386/kernel/smp.c~i386-update-smp_call_function-comments
++++ a/arch/i386/kernel/smp.c
+@@ -547,8 +547,10 @@ static void __smp_call_function(void (*f
+  * @info: An arbitrary pointer to pass to the function.
+  * @wait: If true, wait (atomically) until function has completed on other CPUs.
+  *
+- * Returns 0 on success, else a negative status code. Does not return until
+- * remote CPUs are nearly ready to execute <<func>> or are or have finished.
++  * Returns 0 on success, else a negative status code.
++ *
++ * If @wait is true, then returns once @func has returned; otherwise
++ * it returns just before the target cpu calls @func.
+  *
+  * You must not call this function with disabled interrupts or from a
+  * hardware interrupt handler or from a bottom half handler.
+@@ -610,11 +612,13 @@ int native_smp_call_function_mask(cpumas
+  * smp_call_function(): Run a function on all other CPUs.
+  * @func: The function to run. This must be fast and non-blocking.
+  * @info: An arbitrary pointer to pass to the function.
+- * @nonatomic: currently unused.
++ * @nonatomic: Unused.
+  * @wait: If true, wait (atomically) until function has completed on other CPUs.
+  *
+- * Returns 0 on success, else a negative status code. Does not return until
+- * remote CPUs are nearly ready to execute <<func>> or are or have executed.
++ * Returns 0 on success, else a negative status code.
++ *
++ * If @wait is true, then returns once @func has returned; otherwise
++ * it returns just before the target cpu calls @func.
+  *
+  * You must not call this function with disabled interrupts or from a
+  * hardware interrupt handler or from a bottom half handler.
+@@ -626,17 +630,18 @@ int smp_call_function(void (*func) (void
  }
+ EXPORT_SYMBOL(smp_call_function);
  
-@@ -640,10 +653,16 @@ static ssize_t pagemap_read(struct file 
- 	if (!page)
- 		goto out;
- 
-+#ifdef CONFIG_HIGHPTE
-+	pm.ptebuf = kzalloc(PAGE_SIZE, GFP_USER);
-+	if (!pm.ptebuf)
-+		goto out_free;
-+#endif
-+
- 	ret = 0;
- 	mm = get_task_mm(task);
- 	if (!mm)
--		goto out_free;
-+		goto out_freepte;
- 
- 	pm.mm = mm;
- 	pm.next = addr;
-@@ -666,7 +685,7 @@ static ssize_t pagemap_read(struct file 
- 	while (pm.count > 0 && vma) {
- 		if (!ptrace_may_attach(task)) {
- 			ret = -EIO;
--			goto out;
-+			goto out_mm;
- 		}
- 		vend = min(vma->vm_start - 1, end - 1) + 1;
- 		ret = pagemap_fill(&pm, vend);
-@@ -685,8 +704,13 @@ static ssize_t pagemap_read(struct file 
- 	if (!ret)
- 		ret = pm.pos - src;
- 
-+out_mm:
- 	mmput(mm);
-+out_freepte:
-+#ifdef CONFIG_HIGHPTE
-+	kfree(pm.ptebuf);
- out_free:
-+#endif
- 	kfree(page);
- out:
- 	put_task_struct(task);
+-/*
++/**
+  * smp_call_function_single - Run a function on another CPU
++ * @cpu: The target CPU.  Cannot be the calling CPU.
+  * @func: The function to run. This must be fast and non-blocking.
+  * @info: An arbitrary pointer to pass to the function.
+- * @nonatomic: Currently unused.
++ * @nonatomic: Unused.
+  * @wait: If true, wait until function has completed on other CPUs.
+  *
+- * Retrurns 0 on success, else a negative status code.
++ * Returns 0 on success, else a negative status code.
+  *
+- * Does not return until the remote CPU is nearly ready to execute <func>
+- * or is or has executed.
++ * If @wait is true, then returns once @func has returned; otherwise
++ * it returns just before the target cpu calls @func.
+  */
+ int smp_call_function_single(int cpu, void (*func) (void *info), void *info,
+ 			     int nonatomic, int wait)
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
+proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+account-for-module-percpu-space-separately-from-kernel.patch
+paravirt_ops-update-maintainers.patch
+paravirt_ops-remove-config_debug_paravirt.patch
+paravirt_ops-use-paravirt_nop-to-consistently-mark-no-op-operations.patch
+paravirt_ops-add-pagetable-accessors-to-pack-and-unpack-pagetable-entries.patch
+paravirt_ops-hooks-to-set-up-initial-pagetable.patch
+paravirt_ops-allocate-a-fixmap-slot.patch
+paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch
+paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
+paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
+paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
+paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
+paravirt_ops-document-asm-i386-paravirth.patch
+paravirt_ops-clean-up-paravirt-patchable-wrappers.patch
+paravirt_ops-add-common-patching-machinery.patch
+paravirt_ops-add-flush_tlb_others-paravirt_op.patch
+paravirt_ops-revert-map_pt_hook.patch
+paravirt_ops-add-kmap_atomic_pte-for-mapping-highpte-pages.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+re-enable-vdso-by-default-with-paravirt.patch
+remove-noreplacement-option.patch
+remove-smp_alt_instructions.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+allow-boot-time-disable-of-smp-altinstructions.patch
+allow-boot-time-disable-of-paravirt_ops-patching.patch
+i386-clean-up-asm-i386-bugsh.patch
+x86_64-clean-up-asm-x86_64-bugsh.patch
+x86-clean-up-identify_cpu.patch
+x86-clean-up-identify_cpu-update.patch
+i386-relocate-vdso-elf-headers-to-match-mapped-location-with-compat_vdso.patch
+i386-make-compat_vdso-runtime-selectable.patch
+i386-update-smp_call_function-comments.patch
 maps2-uninline-some-functions-in-the-page-walker.patch
 maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
 maps2-remove-vma-from-args-in-the-page-walker.patch
@@ -141,6 +149,8 @@ maps2-regroup-task_mmu-by-interface.patch
 maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
 maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-pid-pagemap-interface-fix.patch
 maps2-add-proc-kpagemap-interface.patch
-slob-handle-slab_panic-flag.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+add-touch_all_softlockup_watchdogs.patch
+clean-up-elf-note-generation.patch
