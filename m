@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-vs-git-net-3.patch added to -mm tree
-Date: Wed, 11 Apr 2007 16:49:44 -0700
-Message-ID: <200704112352.l3BNq8Fb018351@shell0.pdx.osdl.net>
+Subject: + ieee1394-remove-use-of-subsys-rwsem-2.patch added to -mm tree
+Date: Wed, 11 Apr 2007 16:54:31 -0700
+Message-ID: <200704112356.l3BNutOa018423@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37022 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37140 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932190AbXDKXwq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 19:52:46 -0400
+	id S932238AbXDKX5I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 19:57:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     git-wireless-vs-git-net-3
+     ieee1394-remove-use-of-subsys-rwsem-2
 has been added to the -mm tree.  Its filename is
-     git-wireless-vs-git-net-3.patch
+     ieee1394-remove-use-of-subsys-rwsem-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-wireless-vs-git-net-3
+Subject: ieee1394-remove-use-of-subsys-rwsem-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Probably adds lots of races, but at least it compiles
+
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/ieee80211.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/firewire/fw-device.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN net/mac80211/ieee80211.c~git-wireless-vs-git-net-3 net/mac80211/ieee80211.c
---- a/net/mac80211/ieee80211.c~git-wireless-vs-git-net-3
-+++ a/net/mac80211/ieee80211.c
-@@ -2545,7 +2545,7 @@ ieee80211_rx_h_data_agg(struct ieee80211
- 			return TXRX_DROP;
+diff -puN drivers/firewire/fw-device.c~ieee1394-remove-use-of-subsys-rwsem-2 drivers/firewire/fw-device.c
+--- a/drivers/firewire/fw-device.c~ieee1394-remove-use-of-subsys-rwsem-2
++++ a/drivers/firewire/fw-device.c
+@@ -555,13 +555,7 @@ int fw_cdev_major;
  
- 		memcpy(skb_put(frame, subframe_len), (u8*)eth, subframe_len);
--		frame->mac.raw = frame->data;
-+		skb_set_mac_header(frame, 0);
- 		skb2 = NULL;
+ struct fw_device *fw_device_from_devt(dev_t devt)
+ {
+-	struct fw_device *device;
+-
+-	down_read(&fw_bus_type.subsys.rwsem);
+-	device = idr_find(&fw_device_idr, MINOR(devt));
+-	up_read(&fw_bus_type.subsys.rwsem);
+-
+-	return device;
++	return idr_find(&fw_device_idr, MINOR(devt));
+ }
  
- 		sdata->stats.rx_packets++;
-@@ -2594,7 +2594,8 @@ ieee80211_rx_h_data_agg(struct ieee80211
- 		if (skb2) {
- 			/* send to wireless media */
- 			skb2->protocol = __constant_htons(ETH_P_802_3);
--			skb2->mac.raw = skb2->nh.raw = skb2->data;
-+			skb_set_mac_header(skb2, 0);
-+			skb_set_network_header(skb2, 0);
- 			skb2->priority = skb->priority;
- 			skb2->dev = dev;
- 			dev_queue_xmit(skb2);
+ static void fw_device_shutdown(struct work_struct *work)
+@@ -570,9 +564,7 @@ static void fw_device_shutdown(struct wo
+ 		container_of(work, struct fw_device, work.work);
+ 	int minor = MINOR(device->device.devt);
+ 
+-	down_write(&fw_bus_type.subsys.rwsem);
+ 	idr_remove(&fw_device_idr, minor);
+-	up_write(&fw_bus_type.subsys.rwsem);
+ 
+ 	fw_device_cdev_remove(device);
+ 	device_for_each_child(&device->device, NULL, shutdown_unit);
+@@ -621,10 +613,8 @@ static void fw_device_init(struct work_s
+ 	}
+ 
+ 	err = -ENOMEM;
+-	down_write(&fw_bus_type.subsys.rwsem);
+ 	if (idr_pre_get(&fw_device_idr, GFP_KERNEL))
+ 		err = idr_get_new(&fw_device_idr, device, &minor);
+-	up_write(&fw_bus_type.subsys.rwsem);
+ 	if (err < 0)
+ 		goto error;
+ 
+@@ -670,9 +660,7 @@ static void fw_device_init(struct work_s
+ 	return;
+ 
+  error_with_cdev:
+-	down_write(&fw_bus_type.subsys.rwsem);
+ 	idr_remove(&fw_device_idr, minor);
+-	up_write(&fw_bus_type.subsys.rwsem);
+  error:
+ 	put_device(&device->device);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -226,3 +255,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+ieee1394-remove-use-of-subsys-rwsem-2.patch
