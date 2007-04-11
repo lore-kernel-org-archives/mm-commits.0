@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnpacpi-sets-pnpdev-devarchdata-fix.patch added to -mm tree
-Date: Tue, 10 Apr 2007 17:45:39 -0700
-Message-ID: <200704110045.l3B0jdmu024462@shell0.pdx.osdl.net>
+Subject: + slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch added to -mm tree
+Date: Tue, 10 Apr 2007 17:49:44 -0700
+Message-ID: <200704110049.l3B0ni7q024549@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54132 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54254 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933190AbXDKArS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 10 Apr 2007 20:47:18 -0400
+	id S933214AbXDKAtr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 10 Apr 2007 20:49:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, ambx1@neo.rr.com, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, greg@kroah.com, lenb@kernel.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     pnpacpi-sets-pnpdev-devarchdata fix
+     SLUB: add checks for interrupts disabled
 has been added to the -mm tree.  Its filename is
-     pnpacpi-sets-pnpdev-devarchdata-fix.patch
+     slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,81 +25,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pnpacpi-sets-pnpdev-devarchdata fix
-From: David Brownell <david-b@pacbell.net>
+Subject: SLUB: add checks for interrupts disabled
+From: Christoph Lameter <clameter@sgi.com>
 
-Handle PNP devices that have the same IDs a bit more sanely ...  this at
-least arranges multiple one-to-one mappings between PNP nodes and ACPI
-nodes that all share the same PNP0c02 id.  (Maybe mapped to the wrong node
-though...)
+This only adds interrupt disabled checks to code paths taken if debugging
+is on.  I want to avoid constant checks in hot paths (like in SLAB). 
+VM_BUG_ON may be enabled by distributors who want to play it safe.
 
-This remains a hack, since it masks failures where PNP0a03 (a PCI root
-bridge) is handled by ACPI special case code (/sys/devices/pci0000:00 on my
-systems instead of /sys/devices/pnp0/pnp00:0/pci0000:00!) not pure PNPACPI
-logic.
-
-I suspect that pnp_dev.number and some acpi_device field need to be
-compared, (so the right PNP0c02 nodes hook up to each other, PNP0a03
-likewise) but I'll leave that to someone who knows how those ACPI table
-lookups "should" work.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/core.c |    1 +
- 1 files changed, 1 insertion(+)
+ mm/slub.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-sets-pnpdev-devarchdata-fix drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~pnpacpi-sets-pnpdev-devarchdata-fix
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -243,6 +243,7 @@ static int __init acpi_pnp_match(struct 
+diff -puN mm/slub.c~slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled mm/slub.c
+--- a/mm/slub.c~slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled
++++ a/mm/slub.c
+@@ -617,6 +617,8 @@ static void add_full(struct kmem_cache *
+ {
+ 	struct kmem_cache_node *n;
  
- 	/* true means it matched */
- 	return acpi->flags.hardware_id
-+		&& !acpi_get_physical_device(acpi->handle)
- 		&& compare_pnp_id(pnp->id, acpi->pnp.hardware_id);
- }
++	VM_BUG_ON(!irqs_disabled());
++
+ 	if (!(s->flags & SLAB_STORE_USER))
+ 		return;
+ 
+@@ -630,6 +632,8 @@ static void remove_full(struct kmem_cach
+ {
+ 	struct kmem_cache_node *n;
+ 
++	VM_BUG_ON(!irqs_disabled());
++
+ 	if (!(s->flags & SLAB_STORE_USER))
+ 		return;
  
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-omap_cf-oops-on-suspend-fix.patch
-doc-gpiotxt-describes-open-drain-emulation.patch
-make-proc-acpi-wakeup-more-useful.patch
-update-documentation-driver-model-platformtxt.patch
-at91_cf-minor-fix.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-fix-hotplug-for-legacy-platform-drivers-update.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnpacpi-sets-pnpdev-devarchdata-fix.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+extend-print_symbol-capability-fix.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-core-minor-fixes.patch
+slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+slub-core-fix-another-numa-bootstrap-issue.patch
+slub-core-fix-object-counting.patch
+slub-core-drop-version-number.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
+slub-core-printk-facility-level-cleanup.patch
+slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
+slub-core-add-explanation-for-defrag_ratio-=-100.patch
+slub-core-add-explanation-for-locking.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-the-64k-limits.patch
+slub-core-explain-sizing-of-slabs-in-detail.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-add-checks-for-interrupts-disabled.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+readahead-state-based-method-aging-accounting.patch
