@@ -1,38 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - kthread-dont-depend-on-work-queues.patch removed from -mm tree
-Date: Wed, 11 Apr 2007 13:36:27 -0700
-Message-ID: <200704112036.l3BKaRAC013781@shell0.pdx.osdl.net>
+Subject: + kthread-dont-depend-on-work-queues-take-2.patch added to -mm tree
+Date: Wed, 11 Apr 2007 13:38:14 -0700
+Message-ID: <200704112038.l3BKcEke013825@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59775 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59797 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932173AbXDKUhF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 16:37:05 -0400
+	id S1030241AbXDKUia (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 16:38:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, davidel@xmailserver.org, holt@sgi.com, jengelh@linux01.gwdg.de, mingo@elte.hu, oleg@tv-sign.ru, roland@redhat.com, serge@hallyn.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ebiederm@xmission.com, oleg@tv-sign.ru
 
 
 The patch titled
-     kthread: Don't depend on work queues
-has been removed from the -mm tree.  Its filename was
-     kthread-dont-depend-on-work-queues.patch
+     kthread: don't depend on work queues
+has been added to the -mm tree.  Its filename is
+     kthread-dont-depend-on-work-queues-take-2.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: kthread: Don't depend on work queues
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: kthread: don't depend on work queues
+From: ebiederm@xmission.com (Eric W. Biederman)
 
 Currently there is a circular reference between work queue initialization
 and kthread initialization.  This prevents the kthread infrastructure from
 initializing until after work queues have been initialized.
 
-For kthreads we want something that is as close as possible to the
-init_task and is not contaminated by user processes.  The later we start
-our kthreadd that forks the rest of the kernel threads the harder this is
-to do and the more of a mess we have to clean up because the defaults have
-changed on us.
+We want the properties of tasks created with kthread_create to be as close
+as possible to the init_task and to not be contaminated by user processes. 
+The later we start our kthreadd that creates these tasks the harder it is
+to avoid contamination from user processes and the more of a mess we have
+to clean up because the defaults have changed on us.
 
 So this patch modifies the kthread support to not use work queues but to
 instead use a simple list of structures, and to have kthreadd start from
@@ -40,42 +44,37 @@ init_task immediately after our kernel thread that execs /sbin/init.
 
 By being a true child of init_task we only have to change those process
 settings that we want to have different from init_task, such as our process
-name, blocking all signals and setting SIGCHLD to SIG_IGN so that all of
-our children are reaped automatically.
+name, the cpus that are allowed, blocking all signals and setting SIGCHLD
+to SIG_IGN so that all of our children are reaped automatically.
 
 By being a true child of init_task we also naturally get our ppid set to 0
-and do not wind up as a child of PID == 1.  Ensuring that kernel threads
-will not slow down the functioning of the wait family of functions.
+and do not wind up as a child of PID == 1.  Ensuring that tasks generated
+by kthread_create will not slow down the functioning of the wait family of
+functions.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kthread.h |    2 
- init/main.c             |    2 
- kernel/kthread.c        |  119 ++++++++++++++++++++------------------
- 3 files changed, 68 insertions(+), 55 deletions(-)
+ include/linux/kthread.h |    3 
+ init/main.c             |    5 +
+ kernel/kthread.c        |  122 ++++++++++++++++++++------------------
+ 3 files changed, 75 insertions(+), 55 deletions(-)
 
-diff -puN include/linux/kthread.h~kthread-dont-depend-on-work-queues include/linux/kthread.h
---- a/include/linux/kthread.h~kthread-dont-depend-on-work-queues
+diff -puN include/linux/kthread.h~kthread-dont-depend-on-work-queues-take-2 include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-dont-depend-on-work-queues-take-2
 +++ a/include/linux/kthread.h
-@@ -30,4 +30,6 @@ void kthread_bind(struct task_struct *k,
+@@ -30,4 +30,7 @@ void kthread_bind(struct task_struct *k,
  int kthread_stop(struct task_struct *k);
  int kthread_should_stop(void);
  
 +int kthreadd(void *unused);
++extern struct task_struct *kthreadd_task;
 +
  #endif /* _LINUX_KTHREAD_H */
-diff -puN init/main.c~kthread-dont-depend-on-work-queues init/main.c
---- a/init/main.c~kthread-dont-depend-on-work-queues
+diff -puN init/main.c~kthread-dont-depend-on-work-queues-take-2 init/main.c
+--- a/init/main.c~kthread-dont-depend-on-work-queues-take-2
 +++ a/init/main.c
 @@ -54,6 +54,7 @@
  #include <linux/lockdep.h>
@@ -85,16 +84,21 @@ diff -puN init/main.c~kthread-dont-depend-on-work-queues init/main.c
  
  #include <asm/io.h>
  #include <asm/bugs.h>
-@@ -428,6 +429,7 @@ static void noinline rest_init(void)
+@@ -426,8 +427,12 @@ static void __init setup_command_line(ch
+ static void noinline rest_init(void)
+ 	__releases(kernel_lock)
  {
++	int pid;
++
  	kernel_thread(kernel_init, NULL, CLONE_FS | CLONE_SIGHAND);
  	numa_default_policy();
-+	kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
++	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
++	kthreadd_task = find_task_by_pid(pid);
  	unlock_kernel();
  
  	/*
-diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues kernel/kthread.c
---- a/kernel/kthread.c~kthread-dont-depend-on-work-queues
+diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues-take-2 kernel/kthread.c
+--- a/kernel/kthread.c~kthread-dont-depend-on-work-queues-take-2
 +++ a/kernel/kthread.c
 @@ -1,7 +1,7 @@
  /* Kernel thread helper functions.
@@ -116,7 +120,7 @@ diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues kernel/kthread.c
 -static struct workqueue_struct *helper_wq;
 +static DEFINE_SPINLOCK(kthread_create_lock);
 +static LIST_HEAD(kthread_create_list);
-+static DECLARE_WAIT_QUEUE_HEAD(kthread_create_work);
++struct task_struct *kthreadd_task;
  
  struct kthread_create_info
  {
@@ -210,7 +214,7 @@ diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues kernel/kthread.c
 -	}
 +	spin_lock(&kthread_create_lock);
 +	list_add_tail(&create.list, &kthread_create_list);
-+	wake_up(&kthread_create_work);
++	wake_up_process(kthreadd_task);
 +	spin_unlock(&kthread_create_lock);
 +
 +	wait_for_completion(&create.done);
@@ -226,18 +230,21 @@ diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues kernel/kthread.c
  	return create.result;
  }
  EXPORT_SYMBOL(kthread_create);
-@@ -245,12 +211,55 @@ int kthread_stop(struct task_struct *k)
+@@ -245,12 +211,58 @@ int kthread_stop(struct task_struct *k)
  }
  EXPORT_SYMBOL(kthread_stop);
  
 -static __init int helper_init(void)
 +
 +static __init void kthreadd_setup(void)
-+{
+ {
+-	helper_wq = create_singlethread_workqueue("kthread");
+-	BUG_ON(!helper_wq);
 +	struct task_struct *tsk = current;
 +	struct k_sigaction sa;
 +	sigset_t blocked;
-+
+ 
+-	return 0;
 +	strcpy(tsk->comm, "kthreadd");
 +
 +	/* Block and flush all signals */
@@ -252,20 +259,22 @@ diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues kernel/kthread.c
 +	do_sigaction(SIGCHLD, &sa, (struct k_sigaction *)0);
 +
 +	set_user_nice(current, -5);
-+}
-+
++	set_cpus_allowed(current, CPU_MASK_ALL);
+ }
+ 
+-core_initcall(helper_init);
 +int kthreadd(void *unused)
- {
--	helper_wq = create_singlethread_workqueue("kthread");
--	BUG_ON(!helper_wq);
++{
 +	/* Setup a clean context for our children to inherit. */
 +	kthreadd_setup();
 +
 +	current->flags |= PF_NOFREEZE;
 +
 +	for (;;) {
-+		wait_event_interruptible(kthread_create_work,
-+			   !list_empty(&kthread_create_list));
++		set_current_state(TASK_INTERRUPTIBLE);
++		if (list_empty(&kthread_create_list))
++			schedule();
++		__set_current_state(TASK_RUNNING);
 +
 +		spin_lock(&kthread_create_lock);
 +		while (!list_empty(&kthread_create_list)) {
@@ -282,11 +291,9 @@ diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues kernel/kthread.c
 +		}
 +		spin_unlock(&kthread_create_lock);
 +	}
- 
- 	return 0;
- }
--
--core_initcall(helper_init);
++
++	return 0;
++}
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -315,7 +322,7 @@ use-the-apic-to-determine-the-hardware-processor-id-i386.patch
 use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
 always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
 proc-cleanup-use-seq_release_private-where-appropriate.patch
-kthread-dont-depend-on-work-queues.patch
+kthread-dont-depend-on-work-queues-take-2.patch
 edac-k8-driver-coding-tidy.patch
 statically-initialize-struct-pid-for-swapper.patch
 explicitly-set-pgid-and-sid-of-init-process.patch
