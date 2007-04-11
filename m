@@ -1,32 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - reduce-reparent_to_init.patch removed from -mm tree
-Date: Tue, 10 Apr 2007 23:49:34 -0700
-Message-ID: <200704110649.l3B6nYI1030701@shell0.pdx.osdl.net>
+Subject: - make-kernel-threads-invisible-to-sbin-init.patch removed from -mm tree
+Date: Tue, 10 Apr 2007 23:49:44 -0700
+Message-ID: <200704110649.l3B6niCv030704@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33826 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:33832 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750978AbXDKGuM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 02:50:12 -0400
+	id S1752512AbXDKGuT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 02:50:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, davidel@xmailserver.org, ebiederm@xmission.com, holt@sgi.com, jengelh@linux01.gwdg.de, mingo@elte.hu, roland@redhat.com, serge@hallyn.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reduce reparent_to_init()
+     make kernel threads invisible to /sbin/init
 has been removed from the -mm tree.  Its filename was
-     reduce-reparent_to_init.patch
+     make-kernel-threads-invisible-to-sbin-init.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: reduce reparent_to_init()
+Subject: make kernel threads invisible to /sbin/init
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Move some random stuff which doesn't need tasklist_lock from reparent_to_init()
-to its caller, daemonize(). Strictly speaking, rlim is protected by task_lock()
-but we don't need it to copy init_task->rlim.
+1. rename reparent_to_init() to reparent_kthread() and export it
+
+2. use init_pid_ns.child_reaper instead of child_reaper(current)
+
+3. set ->exit_signal = -1, so init can't see us and we don't use
+   it to reap the task.
+
+4. add reparent_kthread() to kthread() and stopmachine()
+
+See also
+
+	http://marc.info/?t=117580282200003&r=1
+	http://marc.info/?t=95299284800003&r=1
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Davide Libenzi <davidel@xmailserver.org>
@@ -40,56 +50,93 @@ Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   21 +++++++++++----------
- 1 files changed, 11 insertions(+), 10 deletions(-)
+ include/linux/sched.h |    1 +
+ kernel/exit.c         |   16 ++++++++--------
+ kernel/kthread.c      |    1 +
+ kernel/stop_machine.c |    1 +
+ 4 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN kernel/exit.c~reduce-reparent_to_init kernel/exit.c
---- a/kernel/exit.c~reduce-reparent_to_init
+diff -puN include/linux/sched.h~make-kernel-threads-invisible-to-sbin-init include/linux/sched.h
+--- a/include/linux/sched.h~make-kernel-threads-invisible-to-sbin-init
++++ a/include/linux/sched.h
+@@ -1404,6 +1404,7 @@ extern void exit_itimers(struct signal_s
+ 
+ extern NORET_TYPE void do_group_exit(int);
+ 
++extern void reparent_kthread(void);
+ extern void daemonize(const char *, ...);
+ extern int allow_signal(int);
+ extern int disallow_signal(int);
+diff -puN kernel/exit.c~make-kernel-threads-invisible-to-sbin-init kernel/exit.c
+--- a/kernel/exit.c~make-kernel-threads-invisible-to-sbin-init
 +++ a/kernel/exit.c
-@@ -273,7 +273,6 @@ static void reparent_to_init(void)
+@@ -257,7 +257,7 @@ static int has_stopped_jobs(struct pid *
+ }
+ 
+ /**
+- * reparent_to_init - Reparent the calling kernel thread to the init task of the pid space that the thread belongs to.
++ * reparent_kthread - Reparent the calling kernel thread to the init task of the pid space that the thread belongs to.
+  *
+  * If a kernel thread is launched as a result of a system call, or if
+  * it ever exits, it should generally reparent itself to init so that
+@@ -266,20 +266,20 @@ static int has_stopped_jobs(struct pid *
+  * The various task state such as scheduling policy and priority may have
+  * been inherited from a user process, so we reset them to sane values here.
+  *
+- * NOTE that reparent_to_init() gives the caller full capabilities.
++ * NOTE that reparent_kthread() gives the caller full capabilities.
+  */
+-static void reparent_to_init(void)
++void reparent_kthread(void)
+ {
  	write_lock_irq(&tasklist_lock);
  
  	ptrace_unlink(current);
--	/* Reparent to init */
  	remove_parent(current);
- 	current->parent = child_reaper(current);
- 	current->real_parent = child_reaper(current);
-@@ -282,17 +281,8 @@ static void reparent_to_init(void)
- 	/* Set the exit signal to SIGCHLD so we signal init on exit */
- 	current->exit_signal = SIGCHLD;
+-	current->parent = child_reaper(current);
+-	current->real_parent = child_reaper(current);
++	current->parent = init_pid_ns.child_reaper;
++	current->real_parent = current->parent;
+ 	add_parent(current);
  
--	if (!has_rt_policy(current) && (task_nice(current) < 0))
--		set_user_nice(current, 0);
--	/* cpus_allowed? */
--	/* rt_priority? */
--	/* signals? */
+-	/* Set the exit signal to SIGCHLD so we signal init on exit */
+-	current->exit_signal = SIGCHLD;
++	/* make the task auto-reap */
++	current->exit_signal = -1;
+ 
  	security_task_reparent_to_init(current);
--	memcpy(current->signal->rlim, init_task.signal->rlim,
--	       sizeof(current->signal->rlim));
--	atomic_inc(&(INIT_USER->__count));
  	write_unlock_irq(&tasklist_lock);
--	switch_uid(INIT_USER);
- }
- 
- void __set_special_pids(pid_t session, pid_t pgrp)
-@@ -404,6 +394,17 @@ void daemonize(const char *name, ...)
+@@ -393,7 +393,7 @@ void daemonize(const char *name, ...)
+ 	current->files = init_task.files;
  	atomic_inc(&current->files->count);
  
- 	reparent_to_init();
-+
-+	if (!has_rt_policy(current) && (task_nice(current) < 0))
-+		set_user_nice(current, 0);
-+	/* cpus_allowed? */
-+	/* rt_priority? */
-+	/* signals? */
-+	memcpy(current->signal->rlim, init_task.signal->rlim,
-+	       sizeof(current->signal->rlim));
-+
-+	atomic_inc(&(INIT_USER->__count));
-+	switch_uid(INIT_USER);
- }
+-	reparent_to_init();
++	reparent_kthread();
  
- EXPORT_SYMBOL(daemonize);
+ 	if (!has_rt_policy(current) && (task_nice(current) < 0))
+ 		set_user_nice(current, 0);
+diff -puN kernel/kthread.c~make-kernel-threads-invisible-to-sbin-init kernel/kthread.c
+--- a/kernel/kthread.c~make-kernel-threads-invisible-to-sbin-init
++++ a/kernel/kthread.c
+@@ -82,6 +82,7 @@ static int kthread(void *_create)
+ 	sigset_t blocked;
+ 	int ret = -EINTR;
+ 
++	reparent_kthread();
+ 	kthread_exit_files();
+ 
+ 	/* Copy data: it's on keventd's stack */
+diff -puN kernel/stop_machine.c~make-kernel-threads-invisible-to-sbin-init kernel/stop_machine.c
+--- a/kernel/stop_machine.c~make-kernel-threads-invisible-to-sbin-init
++++ a/kernel/stop_machine.c
+@@ -34,6 +34,7 @@ static int stopmachine(void *cpu)
+ 	int irqs_disabled = 0;
+ 	int prepared = 0;
+ 
++	reparent_kthread();
+ 	set_cpus_allowed(current, cpumask_of_cpu((int)(long)cpu));
+ 
+ 	/* Ack: we are alive */
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -154,7 +201,6 @@ freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
 freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
 freezer-fix-vfork-problem.patch
 freezer-take-kernel_execve-into-consideration.patch
-reduce-reparent_to_init.patch
 make-kernel-threads-invisible-to-sbin-init.patch
 reparent-kernel-threads-to-swapper.patch
 dont-init-pgrp-and-__session-in-init_signals.patch
