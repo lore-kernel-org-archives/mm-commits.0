@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch added to -mm tree
-Date: Wed, 11 Apr 2007 01:19:17 -0700
-Message-ID: <200704110821.l3B8LepO032243@shell0.pdx.osdl.net>
+Subject: + sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch added to -mm tree
+Date: Wed, 11 Apr 2007 01:24:29 -0700
+Message-ID: <200704110826.l3B8QqQJ032314@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:37369 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:37430 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751218AbXDKIWg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 04:22:36 -0400
+	id S1751187AbXDKI04 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 04:26:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, IvDoorn@gmail.com, davem@davemloft.net, dtor@mail.ru, linville@tuxdriver.com, marcel@holtmann.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com
 
 
 The patch titled
-     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2
+     sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
 has been added to the -mm tree.  Its filename is
-     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+     sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2
+Subject: sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-CAP_NET_ADMIN.
-
-Cc: Ivo van Doorn <IvDoorn@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/rfkill/rfkill.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/uio/uio.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN net/rfkill/rfkill.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2 net/rfkill/rfkill.c
---- a/net/rfkill/rfkill.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2
-+++ a/net/rfkill/rfkill.c
-@@ -22,6 +22,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/workqueue.h>
-+#include <linux/capability.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/rfkill.h>
+diff -puN drivers/uio/uio.c~sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio drivers/uio/uio.c
+--- a/drivers/uio/uio.c~sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio
++++ a/drivers/uio/uio.c
+@@ -52,13 +52,11 @@ static struct uio_class {
+  */
+ 
+ static struct attribute attr_addr = {
+-	.owner = THIS_MODULE,
+ 	.name  = "addr",
+ 	.mode  = S_IRUGO,
+ };
+ 
+ static struct attribute attr_size = {
+-	.owner = THIS_MODULE,
+ 	.name  = "size",
+ 	.mode  = S_IRUGO,
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +70,7 @@ git-avr32-fixup.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-sysfs-crash-debugging.patch
 sysfs-kill-unnecessary-attribute-owner-update-fix.patch
+sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch
 device_schedule_callback-needs-a-module-reference-fix.patch
 git-drm.patch
 git-dvb.patch
@@ -96,6 +98,7 @@ git-net.patch
 git-net-fixup.patch
 git-net-vs-git-netdev-all.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
 git-ocfs2.patch
 git-parisc.patch
 git-r8169-fixup.patch
@@ -215,4 +218,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
