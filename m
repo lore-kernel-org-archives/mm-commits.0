@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kthread-dont-depend-on-work-queues-fix.patch added to -mm tree
-Date: Wed, 11 Apr 2007 00:02:51 -0700
-Message-ID: <200704110702.l3B72pLn030941@shell0.pdx.osdl.net>
+Subject: + kthread-dont-depend-on-work-queues.patch added to -mm tree
+Date: Wed, 11 Apr 2007 00:02:43 -0700
+Message-ID: <200704110702.l3B72hdQ030938@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:34381 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:34439 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750699AbXDKHC4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Wed, 11 Apr 2007 03:02:56 -0400
+	id S1750719AbXDKHD2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Wed, 11 Apr 2007 03:03:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com
+Cc: ebiederm@xmission.com, davidel@xmailserver.org, holt@sgi.com, jengelh@linux01.gwdg.de, mingo@elte.hu, oleg@tv-sign.ru, roland@redhat.com, serge@hallyn.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     kthread-dont-depend-on-work-queues-fix
+     kthread: Don't depend on work queues
 has been added to the -mm tree.  Its filename is
-     kthread-dont-depend-on-work-queues-fix.patch
+     kthread-dont-depend-on-work-queues.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,184 +25,309 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kthread-dont-depend-on-work-queues-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kthread: Don't depend on work queues
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Currently there is a circular reference between work queue initialization
+and kthread initialization.  This prevents the kthread infrastructure from
+initializing until after work queues have been initialized.
+
+For kthreads we want something that is as close as possible to the
+init_task and is not contaminated by user processes.  The later we start
+our kthreadd that forks the rest of the kernel threads the harder this is
+to do and the more of a mess we have to clean up because the defaults have
+changed on us.
+
+So this patch modifies the kthread support to not use work queues but to
+instead use a simple list of structures, and to have kthreadd start from
+init_task immediately after our kernel thread that execs /sbin/init.
+
+By being a true child of init_task we only have to change those process
+settings that we want to have different from init_task, such as our process
+name, blocking all signals and setting SIGCHLD to SIG_IGN so that all of
+our children are reaped automatically.
+
+By being a true child of init_task we also naturally get our ppid set to 0
+and do not wind up as a child of PID == 1.  Ensuring that kernel threads
+will not slow down the functioning of the wait family of functions.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kthread.h |    2 
+ init/main.c             |    2 
+ kernel/kthread.c        |  119 ++++++++++++++++++++------------------
+ 3 files changed, 68 insertions(+), 55 deletions(-)
 
-diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues-fix kernel/kthread.c
---- a/kernel/kthread.c~kthread-dont-depend-on-work-queues-fix
+diff -puN include/linux/kthread.h~kthread-dont-depend-on-work-queues include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-dont-depend-on-work-queues
++++ a/include/linux/kthread.h
+@@ -30,4 +30,6 @@ void kthread_bind(struct task_struct *k,
+ int kthread_stop(struct task_struct *k);
+ int kthread_should_stop(void);
+ 
++int kthreadd(void *unused);
++
+ #endif /* _LINUX_KTHREAD_H */
+diff -puN init/main.c~kthread-dont-depend-on-work-queues init/main.c
+--- a/init/main.c~kthread-dont-depend-on-work-queues
++++ a/init/main.c
+@@ -54,6 +54,7 @@
+ #include <linux/lockdep.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/device.h>
++#include <linux/kthread.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -428,6 +429,7 @@ static void noinline rest_init(void)
+ {
+ 	kernel_thread(kernel_init, NULL, CLONE_FS | CLONE_SIGHAND);
+ 	numa_default_policy();
++	kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+ 	unlock_kernel();
+ 
+ 	/*
+diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues kernel/kthread.c
+--- a/kernel/kthread.c~kthread-dont-depend-on-work-queues
 +++ a/kernel/kthread.c
-@@ -242,7 +242,7 @@ int kthreadd(void *unused)
- 	current->flags |= PF_NOFREEZE;
+@@ -1,7 +1,7 @@
+ /* Kernel thread helper functions.
+  *   Copyright (C) 2004 IBM Corporation, Rusty Russell.
+  *
+- * Creation is done via keventd, so that we get a clean environment
++ * Creation is done via kthreadd, so that we get a clean environment
+  * even if we're invoked from userspace (think modprobe, hotplug cpu,
+  * etc.).
+  */
+@@ -15,24 +15,22 @@
+ #include <linux/mutex.h>
+ #include <asm/semaphore.h>
  
- 	for (;;) {
--		wait_event(kthread_create_work,
-+		wait_event_interruptible(kthread_create_work,
- 			   !list_empty(&kthread_create_list));
+-/*
+- * We dont want to execute off keventd since it might
+- * hold a semaphore our callers hold too:
+- */
+-static struct workqueue_struct *helper_wq;
++static DEFINE_SPINLOCK(kthread_create_lock);
++static LIST_HEAD(kthread_create_list);
++static DECLARE_WAIT_QUEUE_HEAD(kthread_create_work);
  
- 		spin_lock(&kthread_create_lock);
+ struct kthread_create_info
+ {
+-	/* Information passed to kthread() from keventd. */
++	/* Information passed to kthread() from kthreadd. */
+ 	int (*threadfn)(void *data);
+ 	void *data;
+ 	struct completion started;
+ 
+-	/* Result passed back to kthread_create() from keventd. */
++	/* Result passed back to kthread_create() from kthreadd. */
+ 	struct task_struct *result;
+ 	struct completion done;
+ 
+-	struct work_struct work;
++	struct list_head list;
+ };
+ 
+ struct kthread_stop_info
+@@ -60,42 +58,17 @@ int kthread_should_stop(void)
+ }
+ EXPORT_SYMBOL(kthread_should_stop);
+ 
+-static void kthread_exit_files(void)
+-{
+-	struct fs_struct *fs;
+-	struct task_struct *tsk = current;
+-
+-	exit_fs(tsk);		/* current->fs->count--; */
+-	fs = init_task.fs;
+-	tsk->fs = fs;
+-	atomic_inc(&fs->count);
+- 	exit_files(tsk);
+-	current->files = init_task.files;
+-	atomic_inc(&tsk->files->count);
+-}
+-
+ static int kthread(void *_create)
+ {
+ 	struct kthread_create_info *create = _create;
+ 	int (*threadfn)(void *data);
+ 	void *data;
+-	sigset_t blocked;
+ 	int ret = -EINTR;
+ 
+-	kthread_exit_files();
+-
+-	/* Copy data: it's on keventd's stack */
++	/* Copy data: it's on kthread's stack */
+ 	threadfn = create->threadfn;
+ 	data = create->data;
+ 
+-	/* Block and flush all signals (in case we're not from keventd). */
+-	sigfillset(&blocked);
+-	sigprocmask(SIG_BLOCK, &blocked, NULL);
+-	flush_signals(current);
+-
+-	/* By default we can run anywhere, unlike keventd. */
+-	set_cpus_allowed(current, CPU_MASK_ALL);
+-
+ 	/* OK, tell user we're spawned, wait for stop or wakeup */
+ 	__set_current_state(TASK_INTERRUPTIBLE);
+ 	complete(&create->started);
+@@ -112,11 +85,8 @@ static int kthread(void *_create)
+ 	return 0;
+ }
+ 
+-/* We are keventd: create a thread. */
+-static void keventd_create_kthread(struct work_struct *work)
++static void create_kthread(struct kthread_create_info *create)
+ {
+-	struct kthread_create_info *create =
+-		container_of(work, struct kthread_create_info, work);
+ 	int pid;
+ 
+ 	/* We want our own signal handler (we take no signals by default). */
+@@ -162,17 +132,14 @@ struct task_struct *kthread_create(int (
+ 	create.data = data;
+ 	init_completion(&create.started);
+ 	init_completion(&create.done);
+-	INIT_WORK(&create.work, keventd_create_kthread);
+ 
+-	/*
+-	 * The workqueue needs to start up first:
+-	 */
+-	if (!helper_wq)
+-		create.work.func(&create.work);
+-	else {
+-		queue_work(helper_wq, &create.work);
+-		wait_for_completion(&create.done);
+-	}
++	spin_lock(&kthread_create_lock);
++	list_add_tail(&create.list, &kthread_create_list);
++	wake_up(&kthread_create_work);
++	spin_unlock(&kthread_create_lock);
++
++	wait_for_completion(&create.done);
++
+ 	if (!IS_ERR(create.result)) {
+ 		va_list args;
+ 		va_start(args, namefmt);
+@@ -180,7 +147,6 @@ struct task_struct *kthread_create(int (
+ 			  namefmt, args);
+ 		va_end(args);
+ 	}
+-
+ 	return create.result;
+ }
+ EXPORT_SYMBOL(kthread_create);
+@@ -245,12 +211,55 @@ int kthread_stop(struct task_struct *k)
+ }
+ EXPORT_SYMBOL(kthread_stop);
+ 
+-static __init int helper_init(void)
++
++static __init void kthreadd_setup(void)
++{
++	struct task_struct *tsk = current;
++	struct k_sigaction sa;
++	sigset_t blocked;
++
++	strcpy(tsk->comm, "kthreadd");
++
++	/* Block and flush all signals */
++	sigfillset(&blocked);
++	sigprocmask(SIG_BLOCK, &blocked, NULL);
++	flush_signals(tsk);
++
++	/* SIG_IGN makes children autoreap: see do_notify_parent(). */
++	sa.sa.sa_handler = SIG_IGN;
++	sa.sa.sa_flags = 0;
++	siginitset(&sa.sa.sa_mask, sigmask(SIGCHLD));
++	do_sigaction(SIGCHLD, &sa, (struct k_sigaction *)0);
++
++	set_user_nice(current, -5);
++}
++
++int kthreadd(void *unused)
+ {
+-	helper_wq = create_singlethread_workqueue("kthread");
+-	BUG_ON(!helper_wq);
++	/* Setup a clean context for our children to inherit. */
++	kthreadd_setup();
++
++	current->flags |= PF_NOFREEZE;
++
++	for (;;) {
++		wait_event(kthread_create_work,
++			   !list_empty(&kthread_create_list));
++
++		spin_lock(&kthread_create_lock);
++		while (!list_empty(&kthread_create_list)) {
++			struct kthread_create_info *create;
++
++			create = list_entry(kthread_create_list.next,
++					    struct kthread_create_info, list);
++			list_del_init(&create->list);
++			spin_unlock(&kthread_create_lock);
++
++			create_kthread(create);
++
++			spin_lock(&kthread_create_lock);
++		}
++		spin_unlock(&kthread_create_lock);
++	}
+ 
+ 	return 0;
+ }
+-
+-core_initcall(helper_init);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-origin.patch
-x86_64-early-quirks-fix-early_qrk-section-tag.patch
-i386-irqbalance_disable-section-fix.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-avr32.patch
-git-avr32-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-sysfs-crash-debugging.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-git-ocfs2.patch
-git-parisc.patch
-git-r8169-fixup.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
-revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-xfs-clean-up-shrinker-games.patch
-pktgen-add-try_to_freeze.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+powerpc-rtas-msi-support.patch
+fix-i-oat-for-kexec.patch
+fix-x86_64-mm-relocatable-kernel-support.patch
+account-for-module-percpu-space-separately-from-kernel.patch
+i386-irq-kill-irq-compression.patch
+i386-relocate-vdso-elf-headers-to-match-mapped-location-with-compat_vdso.patch
+i386-make-compat_vdso-runtime-selectable.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+clean-up-elf-note-generation.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
+proc-cleanup-use-seq_release_private-where-appropriate.patch
+kthread-dont-depend-on-work-queues.patch
 kthread-dont-depend-on-work-queues-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-ntfs-use-zero_user_page-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+edac-k8-driver-coding-tidy.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
