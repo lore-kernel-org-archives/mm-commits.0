@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-crypto-hw.patch added to -mm tree
-Date: Thu, 12 Apr 2007 15:47:32 -0700
-Message-ID: <200704122247.l3CMlW84018703@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-block-layer.patch added to -mm tree
+Date: Thu, 12 Apr 2007 15:47:19 -0700
+Message-ID: <200704122247.l3CMlPdn018691@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35500 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35502 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752057AbXDLWrk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 18:47:40 -0400
+	id S1752064AbXDLWrm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 18:47:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, jens.axboe@oracle.com
 
 
 The patch titled
-     Use menuconfig objects: crypto hw
+     Use menuconfig objects: block layer
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-crypto-hw.patch
+     use-menuconfig-objects-block-layer.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: crypto hw
+Subject: Use menuconfig objects: block layer
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Use menuconfigs instead of menus, so the whole menu can be disabled at once
 instead of going through all options.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/Kconfig |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ block/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/crypto/Kconfig~use-menuconfig-objects-crypto-hw drivers/crypto/Kconfig
---- a/drivers/crypto/Kconfig~use-menuconfig-objects-crypto-hw
-+++ a/drivers/crypto/Kconfig
-@@ -1,4 +1,9 @@
--menu "Hardware crypto devices"
-+
-+menuconfig CRYPTO_HW
-+	bool "Hardware crypto devices"
-+	default y
-+
-+if CRYPTO_HW
+diff -puN block/Kconfig~use-menuconfig-objects-block-layer block/Kconfig
+--- a/block/Kconfig~use-menuconfig-objects-block-layer
++++ a/block/Kconfig
+@@ -1,7 +1,7 @@
+ #
+ # Block layer core configuration
+ #
+-config BLOCK
++menuconfig BLOCK
+        bool "Enable the block layer" if EMBEDDED
+        default y
+        help
+@@ -49,6 +49,6 @@ config LSF
  
- config CRYPTO_DEV_PADLOCK
- 	tristate "Support for VIA PadLock ACE"
-@@ -66,4 +71,4 @@ config CRYPTO_DEV_GEODE
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called geode-aes.
+ 	  If unsure, say Y.
  
--endmenu
-+endif # CRYPTO_HW
+-endif
++endif # BLOCK
+ 
+ source block/Kconfig.iosched
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
