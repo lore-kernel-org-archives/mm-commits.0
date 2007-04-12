@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-ide.patch added to -mm tree
-Date: Thu, 12 Apr 2007 15:47:59 -0700
-Message-ID: <200704122247.l3CMlxNc018722@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-dccp.patch added to -mm tree
+Date: Thu, 12 Apr 2007 15:47:34 -0700
+Message-ID: <200704122247.l3CMlYXm018709@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35532 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35546 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752159AbXDLWsM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 18:48:12 -0400
+	id S1752192AbXDLWsR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 18:48:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, bzolnier@gmail.com, jengelh@gmx.de
+Cc: jengelh@linux01.gwdg.de, acme@conectiva.com.br, jengelh@gmx.de
 
 
 The patch titled
-     Use menuconfig objects: IDE
+     Use menuconfig objects: DCCP
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-ide.patch
+     use-menuconfig-objects-dccp.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,48 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: IDE
+Subject: Use menuconfig objects: DCCP
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Use menuconfigs instead of menus, so the whole menu can be disabled at once
 instead of going through all options.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/Kconfig |   13 +++----------
- 1 files changed, 3 insertions(+), 10 deletions(-)
+ net/dccp/Kconfig |   15 +++++++--------
+ 1 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/ide/Kconfig~use-menuconfig-objects-ide drivers/ide/Kconfig
---- a/drivers/ide/Kconfig~use-menuconfig-objects-ide
-+++ a/drivers/ide/Kconfig
-@@ -4,12 +4,9 @@
- # Andre Hedrick <andre@linux-ide.org>
- #
- 
--if BLOCK
+diff -puN net/dccp/Kconfig~use-menuconfig-objects-dccp net/dccp/Kconfig
+--- a/net/dccp/Kconfig~use-menuconfig-objects-dccp
++++ a/net/dccp/Kconfig
+@@ -1,8 +1,6 @@
+-menu "DCCP Configuration (EXPERIMENTAL)"
+-	depends on INET && EXPERIMENTAL
 -
--menu "ATA/ATAPI/MFM/RLL support"
--
--config IDE
-+menuconfig IDE
- 	tristate "ATA/ATAPI/MFM/RLL support"
-+	depends on BLOCK
+-config IP_DCCP
++menuconfig IP_DCCP
+ 	tristate "The DCCP Protocol (EXPERIMENTAL)"
++	depends on INET && EXPERIMENTAL
  	---help---
- 	  If you say Y here, your kernel will be able to manage low cost mass
- 	  storage units such as ATA/(E)IDE and ATAPI units. The most common
-@@ -1097,8 +1094,4 @@ config BLK_DEV_HD_ONLY
- config BLK_DEV_HD
- 	def_bool BLK_DEV_HD_IDE || BLK_DEV_HD_ONLY
+ 	  Datagram Congestion Control Protocol (RFC 4340)
  
--endif
--
+@@ -19,19 +17,20 @@ config IP_DCCP
+ 
+ 	  If in doubt, say N.
+ 
++if IP_DCCP
++
+ config INET_DCCP_DIAG
+-	depends on IP_DCCP && INET_DIAG
++	depends on INET_DIAG
+ 	def_tristate y if (IP_DCCP = y && INET_DIAG = y)
+ 	def_tristate m
+ 
+ config IP_DCCP_ACKVEC
+-	depends on IP_DCCP
+ 	bool
+ 
+ source "net/dccp/ccids/Kconfig"
+ 
+ menu "DCCP Kernel Hacking"
+-	depends on IP_DCCP && DEBUG_KERNEL=y
++	depends on DEBUG_KERNEL=y
+ 
+ config IP_DCCP_DEBUG
+ 	bool "DCCP debug messages"
+@@ -61,4 +60,4 @@ config NET_DCCPPROBE
+ 
+ endmenu
+ 
 -endmenu
--
--endif
-+endif # IDE
++endif # IP_DDCP
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
