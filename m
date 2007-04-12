@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-block-layer.patch added to -mm tree
-Date: Thu, 12 Apr 2007 15:47:19 -0700
-Message-ID: <200704122247.l3CMlPdn018691@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-connector.patch added to -mm tree
+Date: Thu, 12 Apr 2007 15:47:27 -0700
+Message-ID: <200704122247.l3CMlRjb018694@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35502 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35508 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752064AbXDLWrm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 18:47:42 -0400
+	id S1752100AbXDLWrr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 18:47:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, jens.axboe@oracle.com
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     Use menuconfig objects: block layer
+     Use menuconfig objects: connector
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-block-layer.patch
+     use-menuconfig-objects-connector.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: block layer
+Subject: Use menuconfig objects: connector
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Use menuconfigs instead of menus, so the whole menu can be disabled at once
 instead of going through all options.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/connector/Kconfig |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN block/Kconfig~use-menuconfig-objects-block-layer block/Kconfig
---- a/block/Kconfig~use-menuconfig-objects-block-layer
-+++ a/block/Kconfig
-@@ -1,7 +1,7 @@
- #
- # Block layer core configuration
- #
--config BLOCK
-+menuconfig BLOCK
-        bool "Enable the block layer" if EMBEDDED
-        default y
-        help
-@@ -49,6 +49,6 @@ config LSF
+diff -puN drivers/connector/Kconfig~use-menuconfig-objects-connector drivers/connector/Kconfig
+--- a/drivers/connector/Kconfig~use-menuconfig-objects-connector
++++ a/drivers/connector/Kconfig
+@@ -1,6 +1,5 @@
+-menu "Connector - unified userspace <-> kernelspace linker"
  
- 	  If unsure, say Y.
+-config CONNECTOR
++menuconfig CONNECTOR
+ 	tristate "Connector - unified userspace <-> kernelspace linker"
+ 	depends on NET
+ 	---help---
+@@ -10,6 +9,8 @@ config CONNECTOR
+ 	  Connector support can also be built as a module.  If so, the module
+ 	  will be called cn.ko.
  
--endif
-+endif # BLOCK
++if CONNECTOR
++
+ config PROC_EVENTS
+ 	boolean "Report process events to userspace"
+ 	depends on CONNECTOR=y
+@@ -18,4 +19,4 @@ config PROC_EVENTS
+ 	  Provide a connector that reports process events to userspace. Send
+ 	  events such as fork, exec, id change (uid, gid, suid, etc), and exit.
  
- source block/Kconfig.iosched
+-endmenu
++endif # CONNECTOR
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
