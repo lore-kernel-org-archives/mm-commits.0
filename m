@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-oldcd.patch added to -mm tree
-Date: Thu, 12 Apr 2007 15:48:26 -0700
-Message-ID: <200704122248.l3CMmQcU018749@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-w1.patch added to -mm tree
+Date: Thu, 12 Apr 2007 15:48:36 -0700
+Message-ID: <200704122248.l3CMmauC018767@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35605 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35637 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752354AbXDLWsi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 18:48:38 -0400
+	id S1753532AbXDLWsy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 18:48:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, jens.axboe@oracle.com
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     Use menuconfig objects: oldcd
+     Use menuconfig objects: W1
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-oldcd.patch
+     use-menuconfig-objects-w1.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,130 +25,116 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: oldcd
+Subject: Use menuconfig objects: W1
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Use menuconfigs instead of menus, so the whole menu can be disabled at once
 instead of going through all options.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/Kconfig |   23 ++++++++---------------
- 1 files changed, 8 insertions(+), 15 deletions(-)
+ drivers/w1/Kconfig         |   12 ++++++------
+ drivers/w1/masters/Kconfig |    7 +++----
+ drivers/w1/slaves/Kconfig  |    4 ----
+ 3 files changed, 9 insertions(+), 14 deletions(-)
 
-diff -puN drivers/cdrom/Kconfig~use-menuconfig-objects-oldcd drivers/cdrom/Kconfig
---- a/drivers/cdrom/Kconfig~use-menuconfig-objects-oldcd
-+++ a/drivers/cdrom/Kconfig
-@@ -2,11 +2,9 @@
- # CDROM driver configuration
- #
- 
--menu "Old CD-ROM drivers (not SCSI, not IDE)"
-+menuconfig CD_NO_IDESCSI
-+	bool "Old CD-ROM drivers (not SCSI, not IDE)"
- 	depends on ISA && BLOCK
+diff -puN drivers/w1/Kconfig~use-menuconfig-objects-w1 drivers/w1/Kconfig
+--- a/drivers/w1/Kconfig~use-menuconfig-objects-w1
++++ a/drivers/w1/Kconfig
+@@ -1,7 +1,5 @@
+-menu "Dallas's 1-wire bus"
 -
--config CD_NO_IDESCSI
--	bool "Support non-SCSI/IDE/ATAPI CDROM drives"
+-config W1
+-	tristate "Dallas's 1-wire support"
++menuconfig W1
++	tristate "Dallas's 1-wire bus support"
  	---help---
- 	  If you have a CD-ROM drive that is neither SCSI nor IDE/ATAPI, say Y
- 	  here, otherwise N. Read the CD-ROM-HOWTO, available from
-@@ -31,9 +29,10 @@ config CD_NO_IDESCSI
- 	  answer will get "defaulted" for you if you enable any of the Linux
- 	  CD-ROM drivers).
+ 	  Dallas' 1-wire bus is useful to connect slow 1-pin devices
+ 	  such as iButtons and thermal sensors.
+@@ -11,8 +9,10 @@ config W1
+ 	  This W1 support can also be built as a module.  If so, the module
+ 	  will be called wire.ko.
  
-+if CD_NO_IDESCSI
++if W1
 +
- config AZTCD
- 	tristate "Aztech/Orchid/Okano/Wearnes/TXC/CyDROM  CDROM support"
--	depends on CD_NO_IDESCSI
- 	---help---
- 	  This is your driver if you have an Aztech CDA268-01A, Orchid
- 	  CD-3110, Okano or Wearnes CDD110, Conrad TXC, or CyCD-ROM CR520 or
-@@ -51,7 +50,6 @@ config AZTCD
- 
- config GSCD
- 	tristate "Goldstar R420 CDROM support"
--	depends on CD_NO_IDESCSI
- 	---help---
- 	  If this is your CD-ROM drive, say Y here.  As described in the file
- 	  <file:Documentation/cdrom/gscd>, you might have to change a setting
-@@ -67,7 +65,7 @@ config GSCD
- 
- config SBPCD
- 	tristate "Matsushita/Panasonic/Creative, Longshine, TEAC CDROM support"
--	depends on CD_NO_IDESCSI && BROKEN_ON_SMP
-+	depends on BROKEN_ON_SMP
- 	---help---
- 	  This driver supports most of the drives which use the Panasonic or
- 	  Sound Blaster interface.  Please read the file
-@@ -105,7 +103,6 @@ config SBPCD
- 
- config MCDX
- 	tristate "Mitsumi CDROM support"
--	depends on CD_NO_IDESCSI
- 	---help---
- 	  Use this driver if you want to be able to use your Mitsumi LU-005,
- 	  FX-001 or FX-001D CD-ROM drive.
-@@ -121,7 +118,6 @@ config MCDX
- 
- config OPTCD
- 	tristate "Optics Storage DOLPHIN 8000AT CDROM support"
--	depends on CD_NO_IDESCSI
- 	---help---
- 	  This is the driver for the 'DOLPHIN' drive with a 34-pin Sony
- 	  compatible interface. It also works with the Lasermate CR328A. If
-@@ -138,7 +134,7 @@ config OPTCD
- 
- config CM206
- 	tristate "Philips/LMS CM206 CDROM support"
--	depends on CD_NO_IDESCSI && BROKEN_ON_SMP
-+	depends on BROKEN_ON_SMP
- 	---help---
- 	  If you have a Philips/LMS CD-ROM drive cm206 in combination with a
- 	  cm260 host adapter card, say Y here. Please also read the file
-@@ -153,7 +149,6 @@ config CM206
- 
- config SJCD
- 	tristate "Sanyo CDR-H94A CDROM support"
--	depends on CD_NO_IDESCSI
- 	help
- 	  If this is your CD-ROM drive, say Y here and read the file
- 	  <file:Documentation/cdrom/sjcd>. You should then also say Y or M to
-@@ -165,7 +160,6 @@ config SJCD
- 
- config ISP16_CDI
- 	tristate "ISP16/MAD16/Mozart soft configurable cdrom interface support"
--	depends on CD_NO_IDESCSI
- 	---help---
- 	  These are sound cards with built-in cdrom interfaces using the OPTi
- 	  82C928 or 82C929 chips. Say Y here to have them detected and
-@@ -178,7 +172,7 @@ config ISP16_CDI
- 
- config CDU31A
- 	tristate "Sony CDU31A/CDU33A CDROM support"
--	depends on CD_NO_IDESCSI && BROKEN_ON_SMP
-+	depends on BROKEN_ON_SMP
- 	---help---
- 	  These CD-ROM drives have a spring-pop-out caddyless drawer, and a
- 	  rectangular green LED centered beneath it.  NOTE: these CD-ROM
-@@ -198,7 +192,6 @@ config CDU31A
- 
- config CDU535
- 	tristate "Sony CDU535 CDROM support"
--	depends on CD_NO_IDESCSI
- 	---help---
- 	  This is the driver for the older Sony CDU-535 and CDU-531 CD-ROM
- 	  drives. Please read the file <file:Documentation/cdrom/sonycd535>.
-@@ -210,4 +203,4 @@ config CDU535
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called sonycd535.
+ config W1_CON
+-	depends on CONNECTOR && W1
++	depends on CONNECTOR
+ 	bool "Userspace communication over connector"
+ 	default y
+ 	--- help ---
+@@ -26,4 +26,4 @@ config W1_CON
+ source drivers/w1/masters/Kconfig
+ source drivers/w1/slaves/Kconfig
  
 -endmenu
-+endif # CD_NO_IDESCSI
++endif # W1
+diff -puN drivers/w1/masters/Kconfig~use-menuconfig-objects-w1 drivers/w1/masters/Kconfig
+--- a/drivers/w1/masters/Kconfig~use-menuconfig-objects-w1
++++ a/drivers/w1/masters/Kconfig
+@@ -3,11 +3,10 @@
+ #
+ 
+ menu "1-wire Bus Masters"
+-	depends on W1
+ 
+ config W1_MASTER_MATROX
+ 	tristate "Matrox G400 transport layer for 1-wire"
+-	depends on W1 && PCI
++	depends on PCI
+ 	help
+ 	  Say Y here if you want to communicate with your 1-wire devices
+ 	  using Matrox's G400 GPIO pins.
+@@ -17,7 +16,7 @@ config W1_MASTER_MATROX
+ 
+ config W1_MASTER_DS2490
+ 	tristate "DS2490 USB <-> W1 transport layer for 1-wire"
+-  	depends on W1 && USB
++  	depends on USB
+   	help
+ 	  Say Y here if you want to have a driver for DS2490 based USB <-> W1 bridges,
+ 	  for example DS9490*.
+@@ -27,7 +26,7 @@ config W1_MASTER_DS2490
+ 
+ config W1_MASTER_DS2482
+ 	tristate "Maxim DS2482 I2C to 1-Wire bridge"
+-	depends on I2C && W1 && EXPERIMENTAL
++	depends on I2C && EXPERIMENTAL
+ 	help
+ 	  If you say yes here you get support for the Maxim DS2482
+ 	  I2C to 1-Wire bridge.
+diff -puN drivers/w1/slaves/Kconfig~use-menuconfig-objects-w1 drivers/w1/slaves/Kconfig
+--- a/drivers/w1/slaves/Kconfig~use-menuconfig-objects-w1
++++ a/drivers/w1/slaves/Kconfig
+@@ -3,25 +3,21 @@
+ #
+ 
+ menu "1-wire Slaves"
+-	depends on W1
+ 
+ config W1_SLAVE_THERM
+ 	tristate "Thermal family implementation"
+-	depends on W1
+ 	help
+ 	  Say Y here if you want to connect 1-wire thermal sensors to your
+ 	  wire.
+ 
+ config W1_SLAVE_SMEM
+ 	tristate "Simple 64bit memory family implementation"
+-	depends on W1
+ 	help
+ 	  Say Y here if you want to connect 1-wire
+ 	  simple 64bit memory rom(ds2401/ds2411/ds1990*) to your wire.
+ 
+ config W1_SLAVE_DS2433
+ 	tristate "4kb EEPROM family support (DS2433)"
+-	depends on W1
+ 	help
+ 	  Say Y here if you want to use a 1-wire
+ 	  4kb EEPROM family device (DS2433).
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
