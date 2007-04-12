@@ -1,85 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - fix-irq-problem-with-napi-netpoll.patch removed from -mm tree
-Date: Thu, 12 Apr 2007 13:57:19 -0700
-Message-ID: <200704122057.l3CKvJjD015164@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-libata.patch added to -mm tree
+Date: Thu, 12 Apr 2007 15:47:17 -0700
+Message-ID: <200704122247.l3CMlHVg018683@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59813 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35490 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753653AbXDLU5e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 16:57:34 -0400
+	id S1752000AbXDLWre (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 18:47:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, davem@davemloft.net, jeff@garzik.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jengelh@linux01.gwdg.de, jeff@garzik.org, jengelh@gmx.de
 
 
 The patch titled
-     fix irq problem with NAPI + NETPOLL
-has been removed from the -mm tree.  Its filename was
-     fix-irq-problem-with-napi-netpoll.patch
+     Use menuconfig objects: libata
+has been added to the -mm tree.  Its filename is
+     use-menuconfig-objects-libata.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix irq problem with NAPI + NETPOLL
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: Use menuconfig objects: libata
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-This patch is to make netif_receive_skb() robust on NAPI+NETPOLL case.
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
-1. netpoll_send_skb() calls netpoll_poll() with interrupt disabled.
-2. netpoll_poll() calls poll_napi().
-3. poll_napi() calls dev->poll().
-4. dev->poll() (for example rtl8139_poll()) calls rtl8139_rx().
-5. rtl8139_rx() calls netif_receive_skb().
-6. netif_receive_skb() calls netpoll_rx().
-
-If netpoll_rx() returned 1, no problem.  If netpoll_rx() returned 0,
-netif_receive_skb() continues to processing the skb with interrupt
-disabled.  It might cause some problems, for example,
-
-netif_receive_skb() -> deliver_skb() -> arp_rcv() -> arp_process() ->
-neigh_lookup() -> read_unlock_bh() -> local_bh_enable() ->
-WARN_ON_ONCE(irqs_disabled()).
-
-The patch tries to avoid this by redirecting skb to netif_rx() if
-netif_receive_skb() was called from irq context or irq disabled.
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Francois Romieu <romieu@fr.zoreil.com>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/dev.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/ata/Kconfig |   10 +++-------
+ 1 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN net/core/dev.c~fix-irq-problem-with-napi-netpoll net/core/dev.c
---- a/net/core/dev.c~fix-irq-problem-with-napi-netpoll
-+++ a/net/core/dev.c
-@@ -1755,8 +1755,15 @@ int netif_receive_skb(struct sk_buff *sk
- 	__be16 type;
+diff -puN drivers/ata/Kconfig~use-menuconfig-objects-libata drivers/ata/Kconfig
+--- a/drivers/ata/Kconfig~use-menuconfig-objects-libata
++++ a/drivers/ata/Kconfig
+@@ -2,10 +2,8 @@
+ # SATA/PATA driver configuration
+ #
  
- 	/* if we've gotten here through NAPI, check netpoll */
--	if (skb->dev->poll && netpoll_rx(skb))
--		return NET_RX_DROP;
-+#ifdef CONFIG_NET_POLL_CONTROLLER
-+	if (skb->dev->poll && skb->dev->poll_controller) {
-+		/* NAPI poll might be called in irq context on NETPOLL */
-+		if (in_irq() || irqs_disabled())
-+			return netif_rx(skb);
-+		if (netpoll_rx(skb))
-+			return NET_RX_DROP;
-+	}
-+#endif
+-menu "Serial ATA (prod) and Parallel ATA (experimental) drivers"
+-
+-config ATA
+-	tristate "ATA device support"
++menuconfig ATA
++	tristate "Serial ATA (prod) and Parallel ATA (experimental) drivers"
+ 	depends on BLOCK
+ 	depends on !(M32R || M68K) || BROKEN
+ 	depends on !SUN4 || BROKEN
+@@ -585,6 +583,4 @@ config PATA_SCC
  
- 	if (!skb->tstamp.tv64)
- 		net_timestamp(skb);
+ 	  If unsure, say N.
+ 
+-endif
+-endmenu
+-
++endif # ATA
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 git-kbuild.patch
-git-mips.patch
-git-netdev-all.patch
-fix-irq-problem-with-napi-netpoll.patch
+remove-artificial-software-max_loop-limit.patch
+fix-kevents-childs-priority-greediness.patch
+vt-allow-for-the-palette-to-be-exposed-and-changed-via-sysfs.patch
+vt-add-color-support-to-the-underline-and-italic-attributes.patch
+vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
+use-menuconfig-objects-acpi.patch
+use-menuconfig-objects-libata.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-dccp.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-ide.patch
+use-menuconfig-objects-mtd.patch
+use-menuconfig-objects-ipvs.patch
+use-menuconfig-objects-sctp.patch
+use-menuconfig-objects-tipc.patch
+use-menuconfig-objects-arcnet.patch
+use-menuconfig-objects-phy.patch
+use-menuconfig-objects-toeknring.patch
+use-menuconfig-objects-netdev.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pcihotplug.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
