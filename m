@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-connector.patch added to -mm tree
-Date: Thu, 12 Apr 2007 15:47:27 -0700
-Message-ID: <200704122247.l3CMlRjb018694@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-crypto.patch added to -mm tree
+Date: Thu, 12 Apr 2007 15:47:30 -0700
+Message-ID: <200704122247.l3CMlURR018700@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35508 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35506 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752100AbXDLWrr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	id S1752082AbXDLWrr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
 	Thu, 12 Apr 2007 18:47:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, johnpol@2ka.mipt.ru
+Cc: jengelh@linux01.gwdg.de, herbert@gondor.apana.org.au, jengelh@gmx.de
 
 
 The patch titled
-     Use menuconfig objects: connector
+     Use menuconfig objects: crypto
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-connector.patch
+     use-menuconfig-objects-crypto.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: connector
+Subject: Use menuconfig objects: crypto
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Use menuconfigs instead of menus, so the whole menu can be disabled at once
 instead of going through all options.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/connector/Kconfig |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ crypto/Kconfig |    6 +-----
+ 1 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/connector/Kconfig~use-menuconfig-objects-connector drivers/connector/Kconfig
---- a/drivers/connector/Kconfig~use-menuconfig-objects-connector
-+++ a/drivers/connector/Kconfig
-@@ -1,6 +1,5 @@
--menu "Connector - unified userspace <-> kernelspace linker"
+diff -puN crypto/Kconfig~use-menuconfig-objects-crypto crypto/Kconfig
+--- a/crypto/Kconfig~use-menuconfig-objects-crypto
++++ a/crypto/Kconfig
+@@ -2,9 +2,7 @@
+ # Cryptographic API Configuration
+ #
  
--config CONNECTOR
-+menuconfig CONNECTOR
- 	tristate "Connector - unified userspace <-> kernelspace linker"
- 	depends on NET
- 	---help---
-@@ -10,6 +9,8 @@ config CONNECTOR
- 	  Connector support can also be built as a module.  If so, the module
- 	  will be called cn.ko.
+-menu "Cryptographic options"
+-
+-config CRYPTO
++menuconfig CRYPTO
+ 	bool "Cryptographic API"
+ 	help
+ 	  This option provides the core Cryptographic API.
+@@ -450,5 +448,3 @@ config CRYPTO_TEST
+ source "drivers/crypto/Kconfig"
  
-+if CONNECTOR
-+
- config PROC_EVENTS
- 	boolean "Report process events to userspace"
- 	depends on CONNECTOR=y
-@@ -18,4 +19,4 @@ config PROC_EVENTS
- 	  Provide a connector that reports process events to userspace. Send
- 	  events such as fork, exec, id change (uid, gid, suid, etc), and exit.
- 
+ endif	# if CRYPTO
+-
 -endmenu
-+endif # CONNECTOR
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
