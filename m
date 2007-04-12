@@ -1,82 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + remove-redundant-check-from-proc_sys_setattr.patch added to -mm tree
-Date: Thu, 12 Apr 2007 12:00:32 -0700
-Message-ID: <200704121900.l3CJ0Wma007319@shell0.pdx.osdl.net>
+Subject: - fix-irq-problem-with-napi-netpoll.patch removed from -mm tree
+Date: Thu, 12 Apr 2007 13:57:19 -0700
+Message-ID: <200704122057.l3CKvJjD015164@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55197 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59813 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751450AbXDLTB2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 15:01:28 -0400
+	id S1753653AbXDLU5e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 16:57:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jjohansen@suse.de, agruen@suse.de, alan@lxorguk.ukuu.org.uk, chrisw@sous-sol.org, jmorris@namei.org, sbeattie@suse.de, sds@tycho.nsa.gov
+To: anemo@mba.ocn.ne.jp, davem@davemloft.net, jeff@garzik.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove redundant check from proc_sys_setattr()
-has been added to the -mm tree.  Its filename is
-     remove-redundant-check-from-proc_sys_setattr.patch
+     fix irq problem with NAPI + NETPOLL
+has been removed from the -mm tree.  Its filename was
+     fix-irq-problem-with-napi-netpoll.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: Remove redundant check from proc_sys_setattr()
-From: John Johansen <jjohansen@suse.de>
+Subject: fix irq problem with NAPI + NETPOLL
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-notify_change() already calls security_inode_setattr() before
-calling iop->setattr.
+This patch is to make netif_receive_skb() robust on NAPI+NETPOLL case.
 
-Alan sayeth
+1. netpoll_send_skb() calls netpoll_poll() with interrupt disabled.
+2. netpoll_poll() calls poll_napi().
+3. poll_napi() calls dev->poll().
+4. dev->poll() (for example rtl8139_poll()) calls rtl8139_rx().
+5. rtl8139_rx() calls netif_receive_skb().
+6. netif_receive_skb() calls netpoll_rx().
 
-  This is a behaviour change on all of these and limits some behaviour of
-  existing established security modules
+If netpoll_rx() returned 1, no problem.  If netpoll_rx() returned 0,
+netif_receive_skb() continues to processing the skb with interrupt
+disabled.  It might cause some problems, for example,
 
-  When inode_change_ok is called it has side effects.  This includes
-  clearing the SGID bit on attribute changes caused by chmod.  If you make
-  this change the results of some rulesets may be different before or after
-  the change is made.
+netif_receive_skb() -> deliver_skb() -> arp_rcv() -> arp_process() ->
+neigh_lookup() -> read_unlock_bh() -> local_bh_enable() ->
+WARN_ON_ONCE(irqs_disabled()).
 
-  I'm not saying the change is wrong but it does change behaviour so that
-  needs looking at closely (ditto all other attribute twiddles)
+The patch tries to avoid this by redirecting skb to netif_rx() if
+netif_receive_skb() was called from irq context or irq disabled.
 
-Signed-off-by: Steve Beattie <sbeattie@suse.de>
-Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
-Signed-off-by: John Johansen <jjohansen@suse.de>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Francois Romieu <romieu@fr.zoreil.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ net/core/dev.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/proc_sysctl.c~remove-redundant-check-from-proc_sys_setattr fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~remove-redundant-check-from-proc_sys_setattr
-+++ a/fs/proc/proc_sysctl.c
-@@ -429,11 +429,8 @@ static int proc_sys_setattr(struct dentr
- 		return -EPERM;
+diff -puN net/core/dev.c~fix-irq-problem-with-napi-netpoll net/core/dev.c
+--- a/net/core/dev.c~fix-irq-problem-with-napi-netpoll
++++ a/net/core/dev.c
+@@ -1755,8 +1755,15 @@ int netif_receive_skb(struct sk_buff *sk
+ 	__be16 type;
  
- 	error = inode_change_ok(inode, attr);
--	if (!error) {
--		error = security_inode_setattr(dentry, attr);
--		if (!error)
--			error = inode_setattr(inode, attr);
--	}
-+	if (!error)
-+		error = inode_setattr(inode, attr);
+ 	/* if we've gotten here through NAPI, check netpoll */
+-	if (skb->dev->poll && netpoll_rx(skb))
+-		return NET_RX_DROP;
++#ifdef CONFIG_NET_POLL_CONTROLLER
++	if (skb->dev->poll && skb->dev->poll_controller) {
++		/* NAPI poll might be called in irq context on NETPOLL */
++		if (in_irq() || irqs_disabled())
++			return netif_rx(skb);
++		if (netpoll_rx(skb))
++			return NET_RX_DROP;
++	}
++#endif
  
- 	return error;
- }
+ 	if (!skb->tstamp.tv64)
+ 		net_timestamp(skb);
 _
 
-Patches currently in -mm which might be from jjohansen@suse.de are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-remove-redundant-check-from-proc_setattr.patch
-remove-redundant-check-from-proc_sys_setattr.patch
+git-kbuild.patch
+git-mips.patch
+git-netdev-all.patch
+fix-irq-problem-with-napi-netpoll.patch
