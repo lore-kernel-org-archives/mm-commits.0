@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-toeknring.patch added to -mm tree
-Date: Thu, 12 Apr 2007 15:48:22 -0700
-Message-ID: <200704122248.l3CMmM0U018743@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-arcnet.patch added to -mm tree
+Date: Thu, 12 Apr 2007 15:48:18 -0700
+Message-ID: <200704122248.l3CMmIX6018737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35584 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35572 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752261AbXDLWsa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 18:48:30 -0400
+	id S1752219AbXDLWs1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 18:48:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de
 
 
 The patch titled
-     Use menuconfig objects: tokenring
+     Use menuconfig objects: ARCNET
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-toeknring.patch
+     use-menuconfig-objects-arcnet.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,7 +25,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: tokenring
+Subject: Use menuconfig objects: ARCNET
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Use menuconfigs instead of menus, so the whole menu can be disabled at once
@@ -35,137 +35,99 @@ Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/Kconfig |   33 +++++++++++++++-----------------
- 1 files changed, 16 insertions(+), 17 deletions(-)
+ drivers/net/arcnet/Kconfig |   17 ++++-------------
+ 1 files changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN drivers/net/tokenring/Kconfig~use-menuconfig-objects-toeknring drivers/net/tokenring/Kconfig
---- a/drivers/net/tokenring/Kconfig~use-menuconfig-objects-toeknring
-+++ a/drivers/net/tokenring/Kconfig
-@@ -2,12 +2,10 @@
- # Token Ring driver configuration
+diff -puN drivers/net/arcnet/Kconfig~use-menuconfig-objects-arcnet drivers/net/arcnet/Kconfig
+--- a/drivers/net/arcnet/Kconfig~use-menuconfig-objects-arcnet
++++ a/drivers/net/arcnet/Kconfig
+@@ -2,10 +2,8 @@
+ # Arcnet configuration
  #
  
--menu "Token Ring devices"
--	depends on NETDEVICES && !UML
+-menu "ARCnet devices"
++menuconfig ARCNET
+ 	depends on NETDEVICES && (ISA || PCI)
 -
- # So far, we only have PCI, ISA, and MCA token ring devices
--config TR
-+menuconfig TR
- 	bool "Token Ring driver support"
-+	depends on NETDEVICES && !UML
- 	depends on (PCI || ISA || MCA || CCW)
- 	select LLC
- 	help
-@@ -20,9 +18,11 @@ config TR
- 	  from <http://www.tldp.org/docs.html#howto>. Most people can
- 	  say N here.
+-config ARCNET
+ 	tristate "ARCnet support"
+ 	---help---
+ 	  If you have a network card of this type, say Y and check out the
+@@ -25,9 +23,10 @@ config ARCNET
+ 	  <file:Documentation/networking/net-modules.txt>.  The module will
+ 	  be called arcnet.
  
-+if TR
++if ARCNET
 +
- config IBMTR
- 	tristate "IBM Tropic chipset based adapter support"
--	depends on TR && (ISA || MCA)
-+	depends on ISA || MCA
- 	---help---
- 	  This is support for all IBM Token Ring cards that don't use DMA. If
- 	  you have such a beast, say Y and read the Token-Ring mini-HOWTO,
-@@ -36,7 +36,7 @@ config IBMTR
- 
- config IBMOL
- 	tristate "IBM Olympic chipset PCI adapter support"
--	depends on TR && PCI
-+	depends on PCI
- 	---help---
- 	  This is support for all non-Lanstreamer IBM PCI Token Ring Cards.
- 	  Specifically this is all IBM PCI, PCI Wake On Lan, PCI II, PCI II
-@@ -54,7 +54,7 @@ config IBMOL
- 
- config IBMLS
- 	tristate "IBM Lanstreamer chipset PCI adapter support"
--	depends on TR && PCI && !64BIT
-+	depends on PCI && !64BIT
+ config ARCNET_1201
+ 	tristate "Enable standard ARCNet packet format (RFC 1201)"
+-	depends on ARCNET
  	help
- 	  This is support for IBM Lanstreamer PCI Token Ring Cards.
+ 	  This allows you to use RFC1201 with your ARCnet card via the virtual
+ 	  arc0 device.  You need to say Y here to communicate with
+@@ -38,7 +37,6 @@ config ARCNET_1201
  
-@@ -66,7 +66,7 @@ config IBMLS
- 
- config 3C359
- 	tristate "3Com 3C359 Token Link Velocity XL adapter support"
--	depends on TR && PCI
-+	depends on PCI
+ config ARCNET_1051
+ 	tristate "Enable old ARCNet packet format (RFC 1051)"
+-	depends on ARCNET
  	---help---
- 	  This is support for the 3Com PCI Velocity XL cards, specifically
- 	  the 3Com 3C359, please note this is not for the 3C339 cards, you
-@@ -84,7 +84,7 @@ config 3C359
+ 	  This allows you to use RFC1051 with your ARCnet card via the virtual
+ 	  arc0s device. You only need arc0s if you want to talk to ARCnet
+@@ -53,7 +51,6 @@ config ARCNET_1051
  
- config TMS380TR
- 	tristate "Generic TMS380 Token Ring ISA/PCI adapter support"
--	depends on TR && (PCI || ISA && ISA_DMA_API || MCA)
-+	depends on PCI || ISA && ISA_DMA_API || MCA
- 	select FW_LOADER
+ config ARCNET_RAW
+ 	tristate "Enable raw mode packet interface"
+-	depends on ARCNET
+ 	help
+ 	  ARCnet "raw mode" packet encapsulation, no soft headers.  Unlikely
+ 	  to work unless talking to a copy of the same Linux arcnet driver,
+@@ -61,7 +58,6 @@ config ARCNET_RAW
+ 
+ config ARCNET_CAP
+ 	tristate "Enable CAP mode packet interface"
+-	depends on ARCNET
+ 	help
+ 	  ARCnet "cap mode" packet encapsulation. Used to get the hardware
+           acknowledge back to userspace. After the initial protocol byte every
+@@ -80,7 +76,6 @@ config ARCNET_CAP
+ 
+ config ARCNET_COM90xx
+ 	tristate "ARCnet COM90xx (normal) chipset driver"
+-	depends on ARCNET
+ 	help
+ 	  This is the chipset driver for the standard COM90xx cards. If you
+ 	  have always used the old ARCnet driver without knowing what type of
+@@ -92,7 +87,6 @@ config ARCNET_COM90xx
+ 
+ config ARCNET_COM90xxIO
+ 	tristate "ARCnet COM90xx (IO mapped) chipset driver"
+-	depends on ARCNET
  	---help---
- 	  This driver provides generic support for token ring adapters
-@@ -108,7 +108,7 @@ config TMS380TR
+ 	  This is the chipset driver for the COM90xx cards, using them in
+ 	  IO-mapped mode instead of memory-mapped mode. This is slower than
+@@ -105,7 +99,6 @@ config ARCNET_COM90xxIO
  
- config TMSPCI
- 	tristate "Generic TMS380 PCI support"
--	depends on TR && TMS380TR && PCI
-+	depends on TMS380TR && PCI
+ config ARCNET_RIM_I
+ 	tristate "ARCnet COM90xx (RIM I) chipset driver"
+-	depends on ARCNET
  	---help---
- 	  This tms380 module supports generic TMS380-based PCI cards.
+ 	  This is yet another chipset driver for the COM90xx cards, but this
+ 	  time only using memory-mapped mode, and no IO ports at all. This
+@@ -118,7 +111,6 @@ config ARCNET_RIM_I
  
-@@ -123,7 +123,7 @@ config TMSPCI
- 
- config SKISA
- 	tristate "SysKonnect TR4/16 ISA support"
--	depends on TR && TMS380TR && ISA
-+	depends on TMS380TR && ISA
+ config ARCNET_COM20020
+ 	tristate "ARCnet COM20020 chipset driver"
+-	depends on ARCNET
  	help
- 	  This tms380 module supports SysKonnect TR4/16 ISA cards.
- 
-@@ -135,7 +135,7 @@ config SKISA
- 
- config PROTEON
- 	tristate "Proteon ISA support"
--	depends on TR && TMS380TR && ISA
-+	depends on TMS380TR && ISA
- 	help
- 	  This tms380 module supports Proteon ISA cards.
- 
-@@ -148,7 +148,7 @@ config PROTEON
- 
- config ABYSS
- 	tristate "Madge Smart 16/4 PCI Mk2 support"
--	depends on TR && TMS380TR && PCI
-+	depends on TMS380TR && PCI
- 	help
- 	  This tms380 module supports the Madge Smart 16/4 PCI Mk2
- 	  cards (51-02).
-@@ -158,7 +158,7 @@ config ABYSS
- 
- config MADGEMC
- 	tristate "Madge Smart 16/4 Ringnode MicroChannel"
--	depends on TR && TMS380TR && MCA
-+	depends on TMS380TR && MCA
- 	help
- 	  This tms380 module supports the Madge Smart 16/4 MC16 and MC32
- 	  MicroChannel adapters.
-@@ -168,7 +168,7 @@ config MADGEMC
- 
- config SMCTR
- 	tristate "SMC ISA/MCA adapter support"
--	depends on TR && (ISA || MCA_LEGACY) && (BROKEN || !64BIT)
-+	depends on (ISA || MCA_LEGACY) && (BROKEN || !64BIT)
- 	---help---
- 	  This is support for the ISA and MCA SMC Token Ring cards,
- 	  specifically SMC TokenCard Elite (8115T) and SMC TokenCard Elite/A
-@@ -182,5 +182,4 @@ config SMCTR
- 	  To compile this driver as a module, choose M here: the module will be
- 	  called smctr.
+ 	  This is the driver for the new COM20020 chipset. It supports such
+ 	  things as promiscuous mode, so packet sniffing is possible, and
+@@ -136,5 +128,4 @@ config ARCNET_COM20020_PCI
+ 	tristate "Support for COM20020 on PCI"
+ 	depends on ARCNET_COM20020 && PCI
  
 -endmenu
 -
-+endif # TR
++endif # ARCNET
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
