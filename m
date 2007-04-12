@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-pcihotplug.patch added to -mm tree
-Date: Thu, 12 Apr 2007 15:48:30 -0700
-Message-ID: <200704122248.l3CMmUoX018755@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-acpi.patch added to -mm tree
+Date: Thu, 12 Apr 2007 15:47:15 -0700
+Message-ID: <200704122247.l3CMlF0G018679@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35610 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35619 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753400AbXDLWsj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 18:48:39 -0400
+	id S1753370AbXDLWso (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 18:48:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, kristen.c.accardi@intel.com
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de, lenb@kernel.org
 
 
 The patch titled
-     Use menuconfig objects: pcihotplug
+     Use menuconfig objects: ACPI
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-pcihotplug.patch
+     use-menuconfig-objects-acpi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,130 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: pcihotplug
+Subject: Use menuconfig objects: ACPI
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Use menuconfigs instead of menus, so the whole menu can be disabled at once
 instead of going through all options.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/Kconfig |   25 ++++++++++---------------
- 1 files changed, 10 insertions(+), 15 deletions(-)
+ drivers/acpi/Kconfig |   13 ++-----------
+ 1 files changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/pci/hotplug/Kconfig~use-menuconfig-objects-pcihotplug drivers/pci/hotplug/Kconfig
---- a/drivers/pci/hotplug/Kconfig~use-menuconfig-objects-pcihotplug
-+++ a/drivers/pci/hotplug/Kconfig
-@@ -2,9 +2,7 @@
- # PCI Hotplug support
+diff -puN drivers/acpi/Kconfig~use-menuconfig-objects-acpi drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~use-menuconfig-objects-acpi
++++ a/drivers/acpi/Kconfig
+@@ -2,16 +2,12 @@
+ # ACPI Configuration
  #
  
--menu "PCI Hotplug Support"
+-menu "ACPI (Advanced Configuration and Power Interface) Support"
++menuconfig ACPI
++	bool "ACPI Support (Advanced Configuration and Power Interface) Support"
+ 	depends on !X86_NUMAQ
+ 	depends on !X86_VISWS
+ 	depends on !IA64_HP_SIM
+ 	depends on IA64 || X86
+-	depends on PM
 -
--config HOTPLUG_PCI
-+menuconfig HOTPLUG_PCI
- 	tristate "Support for PCI Hotplug (EXPERIMENTAL)"
- 	depends on PCI && EXPERIMENTAL && HOTPLUG
+-config ACPI
+-	bool "ACPI Support"
+-	depends on IA64 || X86
+ 	depends on PCI
+ 	depends on PM
+ 	select PNP
+@@ -49,7 +45,6 @@ if ACPI
+ config ACPI_SLEEP
+ 	bool "Sleep States"
+ 	depends on X86 && (!SMP || SUSPEND_SMP)
+-	depends on PM
+ 	default y
  	---help---
-@@ -17,9 +15,10 @@ config HOTPLUG_PCI
+ 	  This option adds support for ACPI suspend states. 
+@@ -82,7 +77,6 @@ config ACPI_SLEEP_PROC_SLEEP
  
- 	  When in doubt, say N.
+ config ACPI_PROCFS
+ 	bool "Procfs interface (deprecated)"
+-	depends on ACPI
+ 	default y
+ 	---help---
+ 	  The Procfs interface for ACPI is made optional for backward compatibility.
+@@ -330,7 +324,6 @@ config ACPI_CONTAINER
  
-+if HOTPLUG_PCI
-+
- config HOTPLUG_PCI_FAKE
- 	tristate "Fake PCI Hotplug driver"
--	depends on HOTPLUG_PCI
+ config ACPI_HOTPLUG_MEMORY
+ 	tristate "Memory Hotplug"
+-	depends on ACPI
+ 	depends on MEMORY_HOTPLUG
+ 	default n
  	help
- 	  Say Y here if you want to use the fake PCI hotplug driver. It can
- 	  be used to simulate PCI hotplug events if even if your system is
-@@ -42,7 +41,7 @@ config HOTPLUG_PCI_FAKE
+@@ -359,5 +352,3 @@ config ACPI_SBS
+ 	  to today's ACPI "Control Method" battery.
  
- config HOTPLUG_PCI_COMPAQ
- 	tristate "Compaq PCI Hotplug driver"
--	depends on HOTPLUG_PCI && X86 && PCI_BIOS
-+	depends on X86 && PCI_BIOS
- 	help
- 	  Say Y here if you have a motherboard with a Compaq PCI Hotplug
- 	  controller.
-@@ -64,7 +63,7 @@ config HOTPLUG_PCI_COMPAQ_NVRAM
- 
- config HOTPLUG_PCI_IBM
- 	tristate "IBM PCI Hotplug driver"
--	depends on HOTPLUG_PCI && X86_IO_APIC && X86 && PCI_BIOS
-+	depends on X86_IO_APIC && X86 && PCI_BIOS
- 	help
- 	  Say Y here if you have a motherboard with a IBM PCI Hotplug
- 	  controller.
-@@ -76,7 +75,6 @@ config HOTPLUG_PCI_IBM
- 
- config HOTPLUG_PCI_ACPI
- 	tristate "ACPI PCI Hotplug driver"
--	depends on HOTPLUG_PCI
- 	depends on (!ACPI_DOCK && ACPI) || (ACPI_DOCK)
- 	help
- 	  Say Y here if you have a system that supports PCI Hotplug using
-@@ -101,7 +99,6 @@ config HOTPLUG_PCI_ACPI_IBM
- 
- config HOTPLUG_PCI_CPCI
- 	bool "CompactPCI Hotplug driver"
--	depends on HOTPLUG_PCI
- 	help
- 	  Say Y here if you have a CompactPCI system card with CompactPCI
- 	  hotswap support per the PICMG 2.1 specification.
-@@ -110,7 +107,7 @@ config HOTPLUG_PCI_CPCI
- 
- config HOTPLUG_PCI_CPCI_ZT5550
- 	tristate "Ziatech ZT5550 CompactPCI Hotplug driver"
--	depends on HOTPLUG_PCI && HOTPLUG_PCI_CPCI && X86
-+	depends on HOTPLUG_PCI_CPCI && X86
- 	help
- 	  Say Y here if you have an Performance Technologies (formerly Intel,
-           formerly just Ziatech) Ziatech ZT5550 CompactPCI system card.
-@@ -122,7 +119,7 @@ config HOTPLUG_PCI_CPCI_ZT5550
- 
- config HOTPLUG_PCI_CPCI_GENERIC
- 	tristate "Generic port I/O CompactPCI Hotplug driver"
--	depends on HOTPLUG_PCI && HOTPLUG_PCI_CPCI && X86
-+	depends on HOTPLUG_PCI_CPCI && X86
- 	help
- 	  Say Y here if you have a CompactPCI system card that exposes the #ENUM
- 	  hotswap signal as a bit in a system register that can be read through
-@@ -135,7 +132,6 @@ config HOTPLUG_PCI_CPCI_GENERIC
- 
- config HOTPLUG_PCI_SHPC
- 	tristate "SHPC PCI Hotplug driver"
--	depends on HOTPLUG_PCI
- 	help
- 	  Say Y here if you have a motherboard with a SHPC PCI Hotplug
- 	  controller.
-@@ -147,7 +143,7 @@ config HOTPLUG_PCI_SHPC
- 
- config HOTPLUG_PCI_RPA
- 	tristate "RPA PCI Hotplug driver"
--	depends on HOTPLUG_PCI && PPC_PSERIES && PPC64 && !HOTPLUG_PCI_FAKE
-+	depends on PPC_PSERIES && PPC64 && !HOTPLUG_PCI_FAKE
- 	help
- 	  Say Y here if you have a RPA system that supports PCI Hotplug.
- 
-@@ -170,12 +166,11 @@ config HOTPLUG_PCI_RPA_DLPAR
- 
- config HOTPLUG_PCI_SGI
- 	tristate "SGI PCI Hotplug Support"
--	depends on HOTPLUG_PCI && (IA64_SGI_SN2 || IA64_GENERIC)
-+	depends on IA64_SGI_SN2 || IA64_GENERIC
- 	help
- 	  Say Y here if you want to use the SGI Altix Hotplug
- 	  Driver for PCI devices.
- 
- 	  When in doubt, say N.
- 
--endmenu
+ endif	# ACPI
 -
-+endif # HOTPLUG_PCI
+-endmenu
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
