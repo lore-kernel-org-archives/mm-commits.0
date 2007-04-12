@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-tipc.patch added to -mm tree
-Date: Thu, 12 Apr 2007 15:48:14 -0700
-Message-ID: <200704122248.l3CMmG1w018734@shell0.pdx.osdl.net>
+Subject: + use-menuconfig-objects-parport.patch added to -mm tree
+Date: Thu, 12 Apr 2007 15:48:28 -0700
+Message-ID: <200704122248.l3CMmShQ018752@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35577 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:35601 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752257AbXDLWs2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 18:48:28 -0400
+	id S1752354AbXDLWsg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 18:48:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, allan.stephens@windriver.com, jengelh@gmx.de, jon.maloy@ericsson.com, per.liden@ericsson.com
+Cc: jengelh@linux01.gwdg.de, jengelh@gmx.de
 
 
 The patch titled
-     Use menuconfig objects: TIPC
+     Use menuconfig objects: parport
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-tipc.patch
+     use-menuconfig-objects-parport.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,119 +25,119 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: TIPC
+Subject: Use menuconfig objects: parport
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
 Use menuconfigs instead of menus, so the whole menu can be disabled at once
 instead of going through all options.
 
 Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Per Liden <per.liden@ericsson.com>
-Cc: Jon Maloy <jon.maloy@ericsson.com>
-Cc: Allan Stephens <allan.stephens@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/tipc/Kconfig |   24 +++++++++++-------------
- 1 files changed, 11 insertions(+), 13 deletions(-)
+ drivers/parport/Kconfig |   24 ++++++++++--------------
+ 1 files changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN net/tipc/Kconfig~use-menuconfig-objects-tipc net/tipc/Kconfig
---- a/net/tipc/Kconfig~use-menuconfig-objects-tipc
-+++ a/net/tipc/Kconfig
-@@ -2,11 +2,9 @@
- # TIPC configuration
+diff -puN drivers/parport/Kconfig~use-menuconfig-objects-parport drivers/parport/Kconfig
+--- a/drivers/parport/Kconfig~use-menuconfig-objects-parport
++++ a/drivers/parport/Kconfig
+@@ -5,9 +5,7 @@
+ # Parport configuration.
  #
  
--menu "TIPC Configuration (EXPERIMENTAL)"
--	depends on INET && EXPERIMENTAL
+-menu "Parallel port support"
 -
--config TIPC
-+menuconfig TIPC
- 	tristate "The TIPC Protocol (EXPERIMENTAL)"
-+	depends on INET && EXPERIMENTAL
+-config PARPORT
++menuconfig PARPORT
+ 	tristate "Parallel port support"
  	---help---
- 	  The Transparent Inter Process Communication (TIPC) protocol is
- 	  specially designed for intra cluster communication. This protocol
-@@ -22,9 +20,10 @@ config TIPC
+ 	  If you want to use devices connected to your machine's parallel port
+@@ -32,9 +30,11 @@ config PARPORT
  
- 	  If in doubt, say N.
+ 	  If unsure, say Y.
  
-+if TIPC
++if PARPORT
 +
- config TIPC_ADVANCED
- 	bool "TIPC: Advanced configuration"
--	depends on TIPC
- 	default n
- 	help
- 	  Saying Y here will open some advanced configuration
-@@ -33,7 +32,7 @@ config TIPC_ADVANCED
+ config PARPORT_PC
+ 	tristate "PC-style hardware"
+-	depends on PARPORT && (!SPARC64 || PCI) && !SPARC32 && !M32R && !FRV
++	depends on (!SPARC64 || PCI) && !SPARC32 && !M32R && !FRV
+ 	---help---
+ 	  You should say Y here if you have a PC-style parallel port. All
+ 	  IBM PC compatible computers and some Alphas have PC-style
+@@ -84,7 +84,7 @@ config PARPORT_PC_PCMCIA
  
- config TIPC_ZONES
- 	int "Maximum number of zones in network"
--	depends on TIPC && TIPC_ADVANCED
-+	depends on TIPC_ADVANCED
- 	default "3"
+ config PARPORT_IP32
+ 	tristate "SGI IP32 builtin port (EXPERIMENTAL)"
+-	depends on SGI_IP32 && PARPORT && EXPERIMENTAL
++	depends on SGI_IP32 && EXPERIMENTAL
+ 	select PARPORT_NOT_PC
  	help
- 	 Max number of zones inside TIPC network. Max supported value 
-@@ -44,7 +43,7 @@ config TIPC_ZONES
+ 	  Say Y here if you need support for the parallel port on
+@@ -93,7 +93,7 @@ config PARPORT_IP32
  
- config TIPC_CLUSTERS
- 	int "Maximum number of clusters in a zone"
--	depends on TIPC && TIPC_ADVANCED
-+	depends on TIPC_ADVANCED
- 	default "1"
+ config PARPORT_AMIGA
+ 	tristate "Amiga builtin port"
+-	depends on AMIGA && PARPORT
++	depends on AMIGA
+ 	select PARPORT_NOT_PC
  	help
-           ***Only 1 (one cluster in a zone) is supported by current code.
-@@ -59,7 +58,7 @@ config TIPC_CLUSTERS
+ 	  Say Y here if you need support for the parallel port hardware on
+@@ -102,7 +102,7 @@ config PARPORT_AMIGA
  
- config TIPC_NODES
- 	int "Maximum number of nodes in cluster"
--	depends on TIPC && TIPC_ADVANCED
-+	depends on TIPC_ADVANCED
- 	default "255"
+ config PARPORT_MFC3
+ 	tristate "Multiface III parallel port"
+-	depends on ZORRO && PARPORT
++	depends on ZORRO
+ 	select PARPORT_NOT_PC
  	help
- 	  Maximum number of nodes inside a TIPC cluster. Maximum 
-@@ -70,7 +69,7 @@ config TIPC_NODES
+ 	  Say Y here if you need parallel port support for the MFC3 card.
+@@ -111,7 +111,7 @@ config PARPORT_MFC3
  
- config TIPC_SLAVE_NODES
- 	int "Maximum number of slave nodes in cluster"
--	depends on TIPC && TIPC_ADVANCED
-+	depends on TIPC_ADVANCED
- 	default "0"
+ config PARPORT_ATARI
+ 	tristate "Atari hardware"
+-	depends on ATARI && PARPORT
++	depends on ATARI
+ 	select PARPORT_NOT_PC
  	help
-           ***This capability is not supported by current code.***
-@@ -83,7 +82,7 @@ config TIPC_SLAVE_NODES
+ 	  Say Y here if you need support for the parallel port hardware on
+@@ -121,12 +121,11 @@ config PARPORT_ATARI
+ config PARPORT_GSC
+ 	tristate
+ 	default GSC
+-	depends on PARPORT
+ 	select PARPORT_NOT_PC
  
- config TIPC_PORTS
- 	int "Maximum number of ports in a node"
--	depends on TIPC && TIPC_ADVANCED
-+	depends on TIPC_ADVANCED
- 	default "8191"
+ config PARPORT_SUNBPP
+ 	tristate "Sparc hardware (EXPERIMENTAL)"
+-	depends on SBUS && PARPORT && EXPERIMENTAL
++	depends on SBUS && EXPERIMENTAL
+ 	select PARPORT_NOT_PC
  	help
- 	  Maximum number of ports within a node. Maximum 
-@@ -94,7 +93,7 @@ config TIPC_PORTS
+ 	  This driver provides support for the bidirectional parallel port
+@@ -135,7 +134,6 @@ config PARPORT_SUNBPP
  
- config TIPC_LOG
- 	int "Size of log buffer"
--	depends on TIPC && TIPC_ADVANCED
-+	depends on TIPC_ADVANCED
- 	default 0
+ config PARPORT_AX88796
+ 	tristate "AX88796 Parallel Port"
+-	depends on PARPORT
+ 	select PARPORT_NOT_PC
  	help
-  	  Size (in bytes) of TIPC's internal log buffer, which records the
-@@ -106,7 +105,6 @@ config TIPC_LOG
+ 	  Say Y here if you need support for the parallel port hardware on
+@@ -147,7 +145,6 @@ config PARPORT_AX88796
  
- config TIPC_DEBUG
- 	bool "Enable debugging support"
--	depends on TIPC
- 	default n
+ config PARPORT_1284
+ 	bool "IEEE 1284 transfer modes"
+-	depends on PARPORT
  	help
-  	  This will enable debugging of TIPC.
-@@ -114,4 +112,4 @@ config TIPC_DEBUG
- 	  Only say Y here if you are having trouble with TIPC.  It will
- 	  enable the display of detailed information about what is going on.
+ 	  If you have a printer that supports status readback or device ID, or
+ 	  want to use a device that uses enhanced parallel port transfer modes
+@@ -158,5 +155,4 @@ config PARPORT_1284
+ config PARPORT_NOT_PC
+ 	bool
  
 -endmenu
-+endif # TIPC
+-
++endif # PARPORT
 _
 
 Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
