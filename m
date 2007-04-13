@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-map-enough-initial-memory-to-create-lowmem-mappings.patch added to -mm tree
-Date: Fri, 13 Apr 2007 14:44:05 -0700
-Message-ID: <200704132144.l3DLi5Gr010199@shell0.pdx.osdl.net>
+Subject: - i386-map-enough-initial-memory-to-create-lowmem-mappings.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 14:48:49 -0700
+Message-ID: <200704132148.l3DLmov3010318@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53969 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54337 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030844AbXDMVoM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 17:44:12 -0400
+	id S1030694AbXDMVsz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 17:48:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, zach@vmware.com
+To: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      i386: map enough initial memory to create lowmem mappings
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: i386: map enough initial memory to create lowmem mappings
