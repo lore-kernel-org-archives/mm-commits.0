@@ -1,54 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + make-kthread_create-more-scalable-fix.patch added to -mm tree
-Date: Fri, 13 Apr 2007 15:04:44 -0700
-Message-ID: <200704132204.l3DM4iKq010694@shell0.pdx.osdl.net>
+Subject: - git-avr32-fixup.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 15:48:53 -0700
+Message-ID: <200704132248.l3DMmrbw011703@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:55365 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:58585 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753679AbXDMWEw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 18:04:52 -0400
+	id S965645AbXDMWsz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 18:48:55 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l3DMmsIs004987
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 13 Apr 2007 15:48:54 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, oleg@tv-sign.ru
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make-kthread_create-more-scalable-fix
-has been added to the -mm tree.  Its filename is
-     make-kthread_create-more-scalable-fix.patch
+     git-avr32-fixup
+has been removed from the -mm tree.  Its filename was
+     git-avr32-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: make-kthread_create-more-scalable-fix
+Subject: git-avr32-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    2 ++
- 1 files changed, 2 insertions(+)
+ arch/avr32/kernel/traps.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN kernel/kthread.c~make-kthread_create-more-scalable-fix kernel/kthread.c
---- a/kernel/kthread.c~make-kthread_create-more-scalable-fix
-+++ a/kernel/kthread.c
-@@ -139,7 +139,9 @@ struct task_struct *kthread_create(int (
- 		return ERR_PTR(create.result);
+diff -puN arch/avr32/kernel/traps.c~git-avr32-fixup arch/avr32/kernel/traps.c
+--- a/arch/avr32/kernel/traps.c~git-avr32-fixup
++++ a/arch/avr32/kernel/traps.c
+@@ -17,9 +17,8 @@
+ #include <asm/addrspace.h>
+ #include <asm/mmu_context.h>
+ #include <asm/ocd.h>
+-<<<<<<< HEAD/arch/avr32/kernel/traps.c
+-#include <asm/mmu_context.h>
+-#include <asm/uaccess.h>
++#include <asm/sysreg.h>
++#include <asm/traps.h>
  
- 	wait_for_completion(&create.started);
-+	read_lock(&tasklist_lock);
- 	ret = find_task_by_pid(create.result);
-+	read_unlock(&tasklist_lock);
+ static void dump_mem(const char *str, unsigned long bottom, unsigned long top)
+ {
+@@ -152,10 +151,6 @@ void dump_stack(void)
+ 	show_stack(NULL, NULL);
+ }
+ EXPORT_SYMBOL(dump_stack);
+-=======
+-#include <asm/sysreg.h>
+-#include <asm/traps.h>
+->>>>>>> /arch/avr32/kernel/traps.c
  
- 	va_start(args, namefmt);
- 	vsnprintf(ret->comm, sizeof(ret->comm), namefmt, args);
+ ATOMIC_NOTIFIER_HEAD(avr32_die_chain);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,8 +70,8 @@ git-acpi.patch
 git-alsa.patch
 git-alsa-fixup.patch
 git-agpgart.patch
-git-avr32.patch
 git-avr32-fixup.patch
+git-powerpc.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-sysfs-crash-debugging.patch
 sysfs-kill-unnecessary-attribute-owner-update-fix.patch
