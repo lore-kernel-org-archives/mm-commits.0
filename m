@@ -1,176 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - remove-smp_alt_instructions.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:30:41 -0700
-Message-ID: <200704132330.l3DNUfwD012760@shell0.pdx.osdl.net>
+Subject: - paravirt_ops-update-maintainers.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:29:54 -0700
+Message-ID: <200704132329.l3DNTscP012660@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60716 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60709 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161235AbXDMXaq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:30:46 -0400
+	id S1161258AbXDMXao (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:30:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, chrisw@sous-sol.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove smp_alt_instructions
+     paravirt_ops: update MAINTAINERS
 has been removed from the -mm tree.  Its filename was
-     remove-smp_alt_instructions.patch
+     paravirt_ops-update-maintainers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove smp_alt_instructions
+Subject: paravirt_ops: update MAINTAINERS
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-The .smp_altinstructions section and its corresponding symbols are completely
-unused, so remove them.
-
-Also, remove stray #ifdef __KENREL__ in asm-i386/alternative.h
-
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |   38 +------------------------------
- arch/i386/kernel/vmlinux.lds.S |   11 --------
- include/asm-i386/alternative.h |    6 ----
- 3 files changed, 3 insertions(+), 52 deletions(-)
+ MAINTAINERS |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN arch/i386/kernel/alternative.c~remove-smp_alt_instructions arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~remove-smp_alt_instructions
-+++ a/arch/i386/kernel/alternative.c
-@@ -132,11 +132,8 @@ static void nop_out(void *insns, unsigne
- }
+diff -puN MAINTAINERS~paravirt_ops-update-maintainers MAINTAINERS
+--- a/MAINTAINERS~paravirt_ops-update-maintainers
++++ a/MAINTAINERS
+@@ -2679,6 +2679,19 @@ T:	git kernel.org:/pub/scm/linux/kernel/
+ T:	cvs cvs.parisc-linux.org:/var/cvs/linux-2.6
+ S:	Maintained
  
- extern struct alt_instr __alt_instructions[], __alt_instructions_end[];
--extern struct alt_instr __smp_alt_instructions[], __smp_alt_instructions_end[];
- extern u8 *__smp_locks[], *__smp_locks_end[];
++PARAVIRT_OPS INTERFACE
++P:	Jeremy Fitzhardinge
++M:	jeremy@xensource.com
++P:	Chris Wright
++M:	chrisw@sous-sol.org
++P:	Zachary Amsden
++M:	zach@vmware.com
++P:	Rusty Russell
++M:	rusty@rustcorp.com.au
++L:	virtualization@lists.osdl.org
++L:	linux-kernel@vger.kernel.org
++S:	Supported
++
+ PC87360 HARDWARE MONITORING DRIVER
+ P:	Jim Cromie
+ M:	jim.cromie@gmail.com
+@@ -3936,6 +3949,15 @@ M:	eis@baty.hanse.de
+ L:	linux-x25@vger.kernel.org
+ S:	Maintained
  
--extern u8 __smp_alt_begin[], __smp_alt_end[];
--
- /* Replace instructions with better alternatives for this CPU type.
-    This runs before SMP is initialized to avoid SMP problems with
-    self modifying code. This implies that assymetric systems where
-@@ -171,29 +168,6 @@ void apply_alternatives(struct alt_instr
- 
- #ifdef CONFIG_SMP
- 
--static void alternatives_smp_save(struct alt_instr *start, struct alt_instr *end)
--{
--	struct alt_instr *a;
--
--	DPRINTK("%s: alt table %p-%p\n", __FUNCTION__, start, end);
--	for (a = start; a < end; a++) {
--		memcpy(a->replacement + a->replacementlen,
--		       a->instr,
--		       a->instrlen);
--	}
--}
--
--static void alternatives_smp_apply(struct alt_instr *start, struct alt_instr *end)
--{
--	struct alt_instr *a;
--
--	for (a = start; a < end; a++) {
--		memcpy(a->instr,
--		       a->replacement + a->replacementlen,
--		       a->instrlen);
--	}
--}
--
- static void alternatives_smp_lock(u8 **start, u8 **end, u8 *text, u8 *text_end)
- {
- 	u8 **ptr;
-@@ -319,8 +293,6 @@ void alternatives_smp_switch(int smp)
- 		printk(KERN_INFO "SMP alternatives: switching to SMP code\n");
- 		clear_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
- 		clear_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
--		alternatives_smp_apply(__smp_alt_instructions,
--				       __smp_alt_instructions_end);
- 		list_for_each_entry(mod, &smp_alt_modules, next)
- 			alternatives_smp_lock(mod->locks, mod->locks_end,
- 					      mod->text, mod->text_end);
-@@ -328,8 +300,6 @@ void alternatives_smp_switch(int smp)
- 		printk(KERN_INFO "SMP alternatives: switching to UP code\n");
- 		set_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
- 		set_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
--		apply_alternatives(__smp_alt_instructions,
--				   __smp_alt_instructions_end);
- 		list_for_each_entry(mod, &smp_alt_modules, next)
- 			alternatives_smp_unlock(mod->locks, mod->locks_end,
- 						mod->text, mod->text_end);
-@@ -388,17 +358,13 @@ void __init alternative_instructions(voi
- 			printk(KERN_INFO "SMP alternatives: switching to UP code\n");
- 			set_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
- 			set_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
--			apply_alternatives(__smp_alt_instructions,
--					   __smp_alt_instructions_end);
- 			alternatives_smp_unlock(__smp_locks, __smp_locks_end,
- 						_text, _etext);
- 		}
- 		free_init_pages("SMP alternatives",
--				__pa_symbol(&__smp_alt_begin),
--				__pa_symbol(&__smp_alt_end));
-+				__pa_symbol(&__smp_locks),
-+				__pa_symbol(&__smp_locks_end));
- 	} else {
--		alternatives_smp_save(__smp_alt_instructions,
--				      __smp_alt_instructions_end);
- 		alternatives_smp_module_add(NULL, "core kernel",
- 					    __smp_locks, __smp_locks_end,
- 					    _text, _etext);
-diff -puN arch/i386/kernel/vmlinux.lds.S~remove-smp_alt_instructions arch/i386/kernel/vmlinux.lds.S
---- a/arch/i386/kernel/vmlinux.lds.S~remove-smp_alt_instructions
-+++ a/arch/i386/kernel/vmlinux.lds.S
-@@ -119,22 +119,11 @@ SECTIONS
- 
-   /* might get freed after init */
-   . = ALIGN(4096);
--  .smp_altinstructions : AT(ADDR(.smp_altinstructions) - LOAD_OFFSET) {
--	__smp_alt_begin = .;
--	__smp_alt_instructions = .;
--	*(.smp_altinstructions)
--	__smp_alt_instructions_end = .;
--  }
--  . = ALIGN(4);
-   .smp_locks : AT(ADDR(.smp_locks) - LOAD_OFFSET) {
-   	__smp_locks = .;
- 	*(.smp_locks)
- 	__smp_locks_end = .;
-   }
--  .smp_altinstr_replacement : AT(ADDR(.smp_altinstr_replacement) - LOAD_OFFSET) {
--	*(.smp_altinstr_replacement)
--  	__smp_alt_end = .;
--  }
-   /* will be freed after init
-    * Following ALIGN() is required to make sure no other data falls on the
-    * same page where __smp_alt_end is pointing as that page might be freed
-diff -puN include/asm-i386/alternative.h~remove-smp_alt_instructions include/asm-i386/alternative.h
---- a/include/asm-i386/alternative.h~remove-smp_alt_instructions
-+++ a/include/asm-i386/alternative.h
-@@ -1,8 +1,6 @@
- #ifndef _I386_ALTERNATIVE_H
- #define _I386_ALTERNATIVE_H
- 
--#ifdef __KERNEL__
--
- #include <asm/types.h>
- #include <linux/stddef.h>
- #include <linux/types.h>
-@@ -31,9 +29,7 @@ static inline void alternatives_smp_modu
- 					void *text, void *text_end) {}
- static inline void alternatives_smp_module_del(struct module *mod) {}
- static inline void alternatives_smp_switch(int smp) {}
--#endif
--
--#endif
-+#endif	/* CONFIG_SMP */
- 
- /*
-  * Alternative instructions for different CPU types or capabilities.
++XEN HYPERVISOR INTERFACE
++P:	Jeremy Fitzhardinge
++M:	jeremy@xensource.com
++P:	Chris Wright
++M:	chrisw@sous-sol.org
++L:	virtualization@lists.osdl.org
++L:	xen-devel@lists.xensource.com
++S:	Supported
++
+ XFS FILESYSTEM
+ P:	Silicon Graphics Inc
+ P:	Tim Shimmin, David Chatterton
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
