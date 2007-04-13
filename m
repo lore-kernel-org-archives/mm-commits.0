@@ -1,69 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - md-fix-calculation-for-size-of-filemap_attr-array-in-md-bitmap.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:28:19 -0700
-Message-ID: <200704132328.l3DNSJbS012511@shell0.pdx.osdl.net>
+Subject: - sysfs-implement-bin_buffer.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:29:16 -0700
+Message-ID: <200704132329.l3DNTG9V012607@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60499 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60484 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161130AbXDMX3d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:29:33 -0400
+	id S1161139AbXDMX33 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:29:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: fix calculation for size of filemap_attr array in md/bitmap
+     sysfs: implement bin_buffer
 has been removed from the -mm tree.  Its filename was
-     md-fix-calculation-for-size-of-filemap_attr-array-in-md-bitmap.patch
+     sysfs-implement-bin_buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: fix calculation for size of filemap_attr array in md/bitmap
-From: Neil Brown <neilb@suse.de>
+Subject: sysfs: implement bin_buffer
+From: Tejun Heo <htejun@gmail.com>
 
-If 'num_pages' were ever 1 more than a multiple of 8 (32bit platforms) for
-of 16 (64 bit platforms).  filemap_attr would be allocated one 'unsigned
-long' shorter than required.  We need a round-up in there.
+Implement bin_buffer which contains a mutex and pointer to PAGE_SIZE buffer to
+properly synchronize accesses to per-openfile buffer and prepare for
+immediate-kobj-disconnect.
 
-Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Cc: Maneesh Soni <maneesh@in.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/sysfs/bin.c |   64 +++++++++++++++++++++++++++++++++++------------
+ 1 files changed, 49 insertions(+), 15 deletions(-)
 
-diff -puN drivers/md/bitmap.c~md-fix-calculation-for-size-of-filemap_attr-array-in-md-bitmap drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~md-fix-calculation-for-size-of-filemap_attr-array-in-md-bitmap
-+++ a/drivers/md/bitmap.c
-@@ -863,9 +863,7 @@ static int bitmap_init_from_disk(struct 
+diff -puN fs/sysfs/bin.c~sysfs-implement-bin_buffer fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-implement-bin_buffer
++++ a/fs/sysfs/bin.c
+@@ -20,6 +20,11 @@
  
- 	/* We need 4 bits per page, rounded up to a multiple of sizeof(unsigned long) */
- 	bitmap->filemap_attr = kzalloc(
--		(((num_pages*4/8)+sizeof(unsigned long)-1)
--		 /sizeof(unsigned long))
--		*sizeof(unsigned long),
-+		roundup( DIV_ROUND_UP(num_pages*4, 8), sizeof(unsigned long)),
- 		GFP_KERNEL);
- 	if (!bitmap->filemap_attr)
- 		goto out;
+ #include "sysfs.h"
+ 
++struct bin_buffer {
++	struct mutex	mutex;
++	void		*buffer;
++};
++
+ static int
+ fill_read(struct dentry *dentry, char *buffer, loff_t off, size_t count)
+ {
+@@ -36,7 +41,7 @@ fill_read(struct dentry *dentry, char *b
+ static ssize_t
+ read(struct file *file, char __user *userbuf, size_t bytes, loff_t *off)
+ {
+-	char *buffer = file->private_data;
++	struct bin_buffer *bb = file->private_data;
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	int size = dentry->d_inode->i_size;
+ 	loff_t offs = *off;
+@@ -49,17 +54,23 @@ read(struct file *file, char __user *use
+ 			count = size - offs;
+ 	}
+ 
+-	count = fill_read(dentry, buffer, offs, count);
++	mutex_lock(&bb->mutex);
++
++	count = fill_read(dentry, bb->buffer, offs, count);
+ 	if (count < 0)
+-		return count;
++		goto out_unlock;
+ 
+-	if (copy_to_user(userbuf, buffer, count))
+-		return -EFAULT;
++	if (copy_to_user(userbuf, bb->buffer, count)) {
++		count = -EFAULT;
++		goto out_unlock;
++	}
+ 
+ 	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
+ 
+ 	*off = offs + count;
+ 
++ out_unlock:
++	mutex_unlock(&bb->mutex);
+ 	return count;
+ }
+ 
+@@ -79,7 +90,7 @@ flush_write(struct dentry *dentry, char 
+ static ssize_t write(struct file *file, const char __user *userbuf,
+ 		     size_t bytes, loff_t *off)
+ {
+-	char *buffer = file->private_data;
++	struct bin_buffer *bb = file->private_data;
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	int size = dentry->d_inode->i_size;
+ 	loff_t offs = *off;
+@@ -92,25 +103,38 @@ static ssize_t write(struct file *file, 
+ 			count = size - offs;
+ 	}
+ 
+-	if (copy_from_user(buffer, userbuf, count))
+-		return -EFAULT;
++	mutex_lock(&bb->mutex);
++
++	if (copy_from_user(bb->buffer, userbuf, count)) {
++		count = -EFAULT;
++		goto out_unlock;
++	}
+ 
+-	count = flush_write(dentry, buffer, offs, count);
++	count = flush_write(dentry, bb->buffer, offs, count);
+ 	if (count > 0)
+ 		*off = offs + count;
++
++ out_unlock:
++	mutex_unlock(&bb->mutex);
+ 	return count;
+ }
+ 
+ static int mmap(struct file *file, struct vm_area_struct *vma)
+ {
++	struct bin_buffer *bb = file->private_data;
+ 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+ 	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
+ 	struct kobject *kobj = to_kobj(file->f_path.dentry->d_parent);
++	int rc;
+ 
+ 	if (!attr->mmap)
+ 		return -EINVAL;
+ 
+-	return attr->mmap(kobj, attr, vma);
++	mutex_lock(&bb->mutex);
++	rc = attr->mmap(kobj, attr, vma);
++	mutex_unlock(&bb->mutex);
++
++	return rc;
+ }
+ 
+ static int open(struct inode * inode, struct file * file)
+@@ -118,6 +142,7 @@ static int open(struct inode * inode, st
+ 	struct kobject *kobj = sysfs_get_kobject(file->f_path.dentry->d_parent);
+ 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+ 	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
++	struct bin_buffer *bb = NULL;
+ 	int error = -EINVAL;
+ 
+ 	if (!kobj || !attr)
+@@ -135,14 +160,22 @@ static int open(struct inode * inode, st
+ 		goto Error;
+ 
+ 	error = -ENOMEM;
+-	file->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
+-	if (!file->private_data)
++	bb = kzalloc(sizeof(*bb), GFP_KERNEL);
++	if (!bb)
+ 		goto Error;
+ 
++	bb->buffer = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!bb->buffer)
++		goto Error;
++
++	mutex_init(&bb->mutex);
++	file->private_data = bb;
++
+ 	error = 0;
+-    goto Done;
++	goto Done;
+ 
+  Error:
++	kfree(bb);
+ 	module_put(attr->attr.owner);
+  Done:
+ 	if (error)
+@@ -155,11 +188,12 @@ static int release(struct inode * inode,
+ 	struct kobject * kobj = to_kobj(file->f_path.dentry->d_parent);
+ 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+ 	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
+-	u8 * buffer = file->private_data;
++	struct bin_buffer *bb = file->private_data;
+ 
+ 	kobject_put(kobj);
+ 	module_put(attr->attr.owner);
+-	kfree(buffer);
++	kfree(bb->buffer);
++	kfree(bb);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
-device_schedule_callback-needs-a-module-reference.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-sunrpc-cleanup-use-seq_release_private-where-appropriate.patch
-slub-core-fix-kmem_cache_destroy.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
-readahead-nfsd-case.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-cleanup-use-seq_release_private-where-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+git-libata-all.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+optional-led-trigger-for-libata.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+git-scsi-misc.patch
+introduce-config_has_dma.patch
