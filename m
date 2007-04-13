@@ -1,85 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + 3c509-remove-unnecessary-include-of-linux-pm_legacyh.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:32:58 -0700
-Message-ID: <200704132032.l3DKWwgg008780@shell0.pdx.osdl.net>
+Subject: - x86_64-acpi-make-kernel-to-be-compiled-when-config_acpi_numa-is-set-and-power-management-with-acpi-is-not-enabled.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 13:34:03 -0700
+Message-ID: <200704132034.l3DKY3cc008795@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49714 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49853 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965233AbXDMUdA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:33:00 -0400
+	id S1030185AbXDMUfV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:35:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com
+To: yinghai.lu@amd.com, ak@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     3C509: Remove unnecessary include of <linux/pm_legacy.h>
-has been added to the -mm tree.  Its filename is
-     3c509-remove-unnecessary-include-of-linux-pm_legacyh.patch
+     x86_64/acpi: make kernel to be compiled when CONFIG_ACPI_NUMA is set and power management with acpi is not enabled
+has been removed from the -mm tree.  Its filename was
+     x86_64-acpi-make-kernel-to-be-compiled-when-config_acpi_numa-is-set-and-power-management-with-acpi-is-not-enabled.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: 3C509: Remove unnecessary include of <linux/pm_legacy.h>
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: x86_64/acpi: make kernel to be compiled when CONFIG_ACPI_NUMA is set and power management with acpi is not enabled
+From: "Yinghai Lu" <yinghai.lu@amd.com>
 
-Remove the apparently redundant include of <linux/pm_legacy.h>.
+When CONFIG_ACPI_NUMA is set, and power management with acpi is not used.  the
+kernel can not be compiled.  so use CONFIG_ACPI_POWER and CONFIG_ACPI_SYTEM to
+comment function about set/get power and event.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Yinghai Lu <yinghai.lu@amd.com> 
+Cc: Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/3c509.c |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/acpi/bus.c     |    4 ++++
+ drivers/pci/pci-acpi.c |    6 ++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/3c509.c~3c509-remove-unnecessary-include-of-linux-pm_legacyh drivers/net/3c509.c
---- a/drivers/net/3c509.c~3c509-remove-unnecessary-include-of-linux-pm_legacyh
-+++ a/drivers/net/3c509.c
-@@ -83,7 +83,6 @@ static int max_interrupt_work = 10;
- #include <linux/netdevice.h>
- #include <linux/etherdevice.h>
- #include <linux/pm.h>
--#include <linux/pm_legacy.h>
- #include <linux/skbuff.h>
- #include <linux/delay.h>	/* for udelay() */
- #include <linux/spinlock.h>
+diff -puN drivers/acpi/bus.c~x86_64-acpi-make-kernel-to-be-compiled-when-config_acpi_numa-is-set-and-power-management-with-acpi-is-not-enabled drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~x86_64-acpi-make-kernel-to-be-compiled-when-config_acpi_numa-is-set-and-power-management-with-acpi-is-not-enabled
++++ a/drivers/acpi/bus.c
+@@ -121,6 +121,7 @@ int acpi_bus_get_status(struct acpi_devi
+ 
+ EXPORT_SYMBOL(acpi_bus_get_status);
+ 
++#ifdef CONFIG_ACPI_POWER
+ /* --------------------------------------------------------------------------
+                                  Power Management
+    -------------------------------------------------------------------------- */
+@@ -269,7 +270,9 @@ int acpi_bus_set_power(acpi_handle handl
+ }
+ 
+ EXPORT_SYMBOL(acpi_bus_set_power);
++#endif
+ 
++#ifdef CONFIG_ACPI_SYSTEM
+ /* --------------------------------------------------------------------------
+                                 Event Management
+    -------------------------------------------------------------------------- */
+@@ -358,6 +361,7 @@ int acpi_bus_receive_event(struct acpi_b
+ }
+ 
+ EXPORT_SYMBOL(acpi_bus_receive_event);
++#endif
+ 
+ /* --------------------------------------------------------------------------
+                              Notification Handling
+diff -puN drivers/pci/pci-acpi.c~x86_64-acpi-make-kernel-to-be-compiled-when-config_acpi_numa-is-set-and-power-management-with-acpi-is-not-enabled drivers/pci/pci-acpi.c
+--- a/drivers/pci/pci-acpi.c~x86_64-acpi-make-kernel-to-be-compiled-when-config_acpi_numa-is-set-and-power-management-with-acpi-is-not-enabled
++++ a/drivers/pci/pci-acpi.c
+@@ -255,7 +255,7 @@ static int acpi_pci_choose_state(struct 
+ 
+ 	return -ENODEV;
+ }
+-
++#ifdef CONFIG_ACPI_POWER
+ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+ {
+ 	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
+@@ -272,7 +272,7 @@ static int acpi_pci_set_power_state(stru
+ 		return -ENODEV;
+ 	return acpi_bus_set_power(handle, acpi_state);
+ }
+-
++#endif
+ 
+ /* ACPI bus type */
+ static int acpi_pci_find_device(struct device *dev, acpi_handle *handle)
+@@ -321,7 +321,9 @@ static int __init acpi_pci_init(void)
+ 	if (ret)
+ 		return 0;
+ 	platform_pci_choose_state = acpi_pci_choose_state;
++#ifdef CONFIG_ACPI_POWER
+ 	platform_pci_set_power_state = acpi_pci_set_power_state;
++#endif
+ 	return 0;
+ }
+ arch_initcall(acpi_pci_init);
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
-
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-git-powerpc.patch
-remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
-remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
-git-drm.patch
-git-infiniband.patch
-git-input.patch
-git-mtd.patch
-git-netdev-all.patch
-3c509-remove-unnecessary-include-of-linux-pm_legacyh.patch
-delete-unused-header-file-linux-sdla_frh.patch
-delete-unused-header-file-linux-if_wanpipe_commonh.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-scsi-misc.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-cris-remove-code-related-to-pre-22-kernel.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-math-emu-extendedh.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-add-spaces-on-either-side-of-case-operator.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
-video-add-spaces-on-either-side-of-the-case-operator.patch
+Patches currently in -mm which might be from yinghai.lu@amd.com are
