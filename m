@@ -1,30 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - i386-map-enough-initial-memory-to-create-lowmem-mappings.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 14:48:49 -0700
-Message-ID: <200704132148.l3DLmov3010318@shell0.pdx.osdl.net>
+Subject: + i386-map-enough-initial-memory-to-create-lowmem-mappings.patch added to -mm tree
+Date: Fri, 13 Apr 2007 14:51:10 -0700
+Message-ID: <200704132151.l3DLpAFc010392@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54337 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:54428 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030694AbXDMVsz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 17:48:55 -0400
+	id S1030855AbXDMVvR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 17:51:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, zach@vmware.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, ebiederm@xmission.com, hpa@zytor.com, jeremy@xensource.com, torvalds@linux-foundation.org, zach@vmware.com
 
 
 The patch titled
      i386: map enough initial memory to create lowmem mappings
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: i386: map enough initial memory to create lowmem mappings
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-head.S creates the very initial pagetable for the kernel.  It maps maps
+head.S creates the very initial pagetable for the kernel.  This just maps
 enough space for the kernel itself, and an allocation bitmap.  The amount
 of mapped memory is rounded up to 4Mbytes, and so this typically ends up
 mapping 8Mbytes of memory.
@@ -37,23 +41,41 @@ page.  This will only happen with specific combinations of kernel size and
 memory size.
 
 This patch makes sure that head.S also maps enough space to fit the kernel
-pagetables as well as the kernel itself.  It ends up using an additional
-two pages of unreclaimable memory.
+pagetables as well as the kernel itself.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Acked-by: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Zachary Amsden <zach@vmware.com>
 Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Linus Torvalds <torvalds@osdl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ arch/i386/kernel/asm-offsets.c |    5 +++++
+ arch/i386/kernel/head.S        |   23 +++++++++++++++++++----
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
+diff -puN arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings arch/i386/kernel/asm-offsets.c
+--- a/arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings
++++ a/arch/i386/kernel/asm-offsets.c
+@@ -97,6 +97,11 @@ void foo(void)
+ 		 sizeof(struct tss_struct));
+ 
+ 	DEFINE(PAGE_SIZE_asm, PAGE_SIZE);
++	DEFINE(PAGE_SHIFT_asm, PAGE_SHIFT);
++	DEFINE(PTRS_PER_PTE, PTRS_PER_PTE);
++	DEFINE(PTRS_PER_PMD, PTRS_PER_PMD);
++	DEFINE(PTRS_PER_PGD, PTRS_PER_PGD);
++
+ 	DEFINE(VDSO_PRELINK_asm, VDSO_PRELINK);
+ 
+ 	OFFSET(crypto_tfm_ctx_offset, crypto_tfm, __crt_ctx);
 diff -puN arch/i386/kernel/head.S~i386-map-enough-initial-memory-to-create-lowmem-mappings arch/i386/kernel/head.S
 --- a/arch/i386/kernel/head.S~i386-map-enough-initial-memory-to-create-lowmem-mappings
 +++ a/arch/i386/kernel/head.S
-@@ -34,16 +34,19 @@
+@@ -34,17 +34,32 @@
  
  /*
   * This is how much memory *in addition to the memory covered up to
@@ -65,7 +87,10 @@ diff -puN arch/i386/kernel/head.S~i386-map-enough-initial-memory-to-create-lowme
 + *  - one bit for each possible page, but only in low memory, which means
 + *     2^32/4096/8 = 128K worst case (4G/4G split.)
 + *  - enough space to map all low memory, which means
++ *     (2^32/4096) / 1024 pages (worst case, non PAE)
 + *     (2^32/4096) / 512 + 4 pages (worst case for PAE)
++ *  - a few pages for allocator use before the kernel pagetable has
++ *     been set up
   *
   * Modulo rounding, each megabyte assigned here requires a kilobyte of
   * memory, which is currently unreclaimed.
@@ -73,10 +98,20 @@ diff -puN arch/i386/kernel/head.S~i386-map-enough-initial-memory-to-create-lowme
   * This should be a multiple of a page.
   */
 -#define INIT_MAP_BEYOND_END	(128*1024)
-+#define INIT_MAP_BEYOND_END	(128*1024 + (2048 + 4)*4096)
++LOW_PAGES = 1<<(32-PAGE_SHIFT_asm)
  
++#if PTRS_PER_PMD > 1
++PAGE_TABLE_SIZE = (LOW_PAGES / PTRS_PER_PMD) + PTRS_PER_PGD
++#else
++PAGE_TABLE_SIZE = (LOW_PAGES / PTRS_PER_PGD)
++#endif
++BOOTBITMAP_SIZE = LOW_PAGES / 8
++ALLOCATOR_SLOP = 4
++
++INIT_MAP_BEYOND_END = BOOTBITMAP_SIZE + (PAGE_TABLE_SIZE + ALLOCATOR_SLOP)*PAGE_SIZE_asm
  
  /*
+  * 32-bit kernel entrypoint; only used by the boot CPU.  On entry,
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
