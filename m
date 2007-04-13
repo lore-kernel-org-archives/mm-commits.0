@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + deflate-stack-usage-in-lib-inflatec-update.patch added to -mm tree
-Date: Fri, 13 Apr 2007 12:10:31 -0700
-Message-ID: <200704131910.l3DJAV9w007267@shell0.pdx.osdl.net>
+Subject: - deflate-stack-usage-in-lib-inflatec-update.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 12:10:39 -0700
+Message-ID: <200704131910.l3DJAd3O007275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46870 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46879 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753286AbXDMTKe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 15:10:34 -0400
+	id S1754137AbXDMTKm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 15:10:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org
+To: jeremy@goop.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      deflate-stack-usage-in-lib-inflatec update
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      deflate-stack-usage-in-lib-inflatec-update.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into deflate-stack-usage-in-lib-inflatec.patch
 
 ------------------------------------------------------
 Subject: deflate-stack-usage-in-lib-inflatec update
