@@ -1,95 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:28:31 -0700
-Message-ID: <200704132328.l3DNSV24012526@shell0.pdx.osdl.net>
+Subject: - unused-round_up-name_offset-macro-in-arch-powerpc.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:28:41 -0700
+Message-ID: <200704132328.l3DNSfEX012541@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60353 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60367 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030892AbXDMX2f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:28:35 -0400
+	id S1161024AbXDMX2m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:28:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: milindchoudhary@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused header file: arch/powerpc/platforms/83xx/mpc834x_itx.h
+     Unused ROUND_UP, NAME_OFFSET macro in arch/powerpc
 has been removed from the -mm tree.  Its filename was
-     remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
+     unused-round_up-name_offset-macro-in-arch-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove unused header file: arch/powerpc/platforms/83xx/mpc834x_itx.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: Unused ROUND_UP, NAME_OFFSET macro in arch/powerpc
+From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Unused ROUND_UP, NAME_OFFSET  macro cleanup
+
+Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/83xx/mpc834x_itx.h |   23 --------------------
- 1 file changed, 23 deletions(-)
+ arch/powerpc/kernel/sys_ppc32.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/powerpc/platforms/83xx/mpc834x_itx.h~remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh /dev/null
---- a/arch/powerpc/platforms/83xx/mpc834x_itx.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/*
-- * arch/powerpc/platforms/83xx/mpc834x_itx.h
-- *
-- * MPC834X ITX common board definitions
-- *
-- * Maintainer: Kumar Gala <galak@kernel.crashing.org>
-- *
-- * This program is free software; you can redistribute  it and/or modify it
-- * under  the terms of  the GNU General  Public License as published by the
-- * Free Software Foundation;  either version 2 of the  License, or (at your
-- * option) any later version.
-- *
-- */
+diff -puN arch/powerpc/kernel/sys_ppc32.c~unused-round_up-name_offset-macro-in-arch-powerpc arch/powerpc/kernel/sys_ppc32.c
+--- a/arch/powerpc/kernel/sys_ppc32.c~unused-round_up-name_offset-macro-in-arch-powerpc
++++ a/arch/powerpc/kernel/sys_ppc32.c
+@@ -53,10 +53,6 @@
+ #include <asm/ppc-pci.h>
+ #include <asm/syscalls.h>
+ 
+-/* readdir & getdents */
+-#define NAME_OFFSET(de) ((int) ((de)->d_name - (char __user *) (de)))
+-#define ROUND_UP(x) (((x)+sizeof(u32)-1) & ~(sizeof(u32)-1))
 -
--#ifndef __MACH_MPC83XX_ITX_H__
--#define __MACH_MPC83XX_ITX_H__
--
--#define PIRQA	MPC83xx_IRQ_EXT4
--#define PIRQB	MPC83xx_IRQ_EXT5
--#define PIRQC	MPC83xx_IRQ_EXT6
--#define PIRQD	MPC83xx_IRQ_EXT7
--
--#endif				/* __MACH_MPC83XX_ITX_H__ */
+ struct old_linux_dirent32 {
+ 	u32		d_ino;
+ 	u32		d_offset;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from milindchoudhary@gmail.com are
 
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
 git-powerpc.patch
-git-drm.patch
-git-infiniband.patch
-git-input.patch
-git-mtd.patch
-git-netdev-all.patch
-3c509-remove-unnecessary-include-of-linux-pm_legacyh.patch
-delete-unused-header-file-linux-sdla_frh.patch
-delete-unused-header-file-linux-if_wanpipe_commonh.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-scsi-misc.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-remove-unused-header-file-arch-m68k-atari-atasoundh.patch
-remove-unused-header-file-drivers-serial-crisv10h.patch
-cris-remove-code-related-to-pre-22-kernel.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-math-emu-extendedh.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-add-spaces-on-either-side-of-case-operator.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
-video-add-spaces-on-either-side-of-the-case-operator.patch
+spin_lock_unlocked-cleanup-in-arch-powerpc.patch
+git-ieee1394.patch
+spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
+round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+round_up-macro-cleanup-in-drivers-pci.patch
+pcie-remove-spin_lock_unlocked.patch
+round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
+round_up-macro-cleanup-in-drivers-char-lpc.patch
+round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
+round_up-macro-cleanup-in-fs-smbfs-requestc.patch
