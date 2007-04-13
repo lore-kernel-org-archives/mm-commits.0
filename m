@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gitpowerpc-ehea-changes.patch added to -mm tree
-Date: Fri, 13 Apr 2007 16:02:13 -0700
-Message-ID: <200704132302.l3DN2DDM012015@shell0.pdx.osdl.net>
+Subject: + reapply-gitpowerpc-ehea-changes.patch added to -mm tree
+Date: Fri, 13 Apr 2007 16:02:17 -0700
+Message-ID: <200704132302.l3DN2Hc1012018@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59232 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59234 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030875AbXDMXCX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:02:23 -0400
+	id S1030879AbXDMXCZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:02:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, jeff@garzik.org, paulus@samba.org
 
 
 The patch titled
-     revert-gitpowerpc-ehea-changes
+     reapply-gitpowerpc-ehea-changes
 has been added to the -mm tree.  Its filename is
-     revert-gitpowerpc-ehea-changes.patch
+     reapply-gitpowerpc-ehea-changes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert-gitpowerpc-ehea-changes
+Subject: reapply-gitpowerpc-ehea-changes
 From: Andrew Morton <akpm@linux-foundation.org>
-
-Prevent git-netdev-all from throwing a megareject
 
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea_main.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/ehea/ehea_main.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/ehea/ehea_main.c~revert-gitpowerpc-ehea-changes drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~revert-gitpowerpc-ehea-changes
+diff -puN drivers/net/ehea/ehea_main.c~reapply-gitpowerpc-ehea-changes drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~reapply-gitpowerpc-ehea-changes
 +++ a/drivers/net/ehea/ehea_main.c
-@@ -2320,7 +2320,7 @@ static int ehea_setup_single_port(struct
- 	struct net_device *dev = port->netdev;
- 	struct ehea_adapter *adapter = port->adapter;
- 	struct hcp_ehea_port_cb4 *cb4;
--	const u32 *dn_log_port_id;
-+	u32 *dn_log_port_id;
- 	int jumbo = 0;
+@@ -2518,15 +2518,14 @@ static int ehea_setup_ports(struct ehea_
+ {
+ 	struct device_node *lhea_dn;
+ 	struct device_node *eth_dn = NULL;
+-
+-	u32 *dn_log_port_id;
++	const u32 *dn_log_port_id;
+ 	int port_setup_ok = 0;
+ 	int i = 0;
  
- 	sema_init(&port->port_lock, 1);
-@@ -2336,7 +2336,7 @@ static int ehea_setup_single_port(struct
- 	port->of_dev_node = dn;
+ 	lhea_dn = adapter->ebus_dev->ofdev.node;
+ 	while ((eth_dn = of_get_next_child(lhea_dn, eth_dn))) {
  
- 	/* Determine logical port id */
--	dn_log_port_id = of_get_property(dn, "ibm,hea-port-no", NULL);
-+	dn_log_port_id = (u32*)get_property(dn, "ibm,hea-port-no", NULL);
- 
- 	if (!dn_log_port_id) {
- 		ehea_error("bad device node: dn_log_port_id=%p",
-@@ -2492,7 +2492,7 @@ static int __devinit ehea_probe(struct i
- 				const struct of_device_id *id)
+-		dn_log_port_id = (u32*)get_property(eth_dn, "ibm,hea-port-no",
++		dn_log_port_id = of_get_property(eth_dn, "ibm,hea-port-no",
+ 						    NULL);
+ 		if (!dn_log_port_id) {
+ 			ehea_error("bad device node: eth_dn name=%s",
+@@ -2680,7 +2679,7 @@ static int __devinit ehea_probe_adapter(
+ 					const struct of_device_id *id)
  {
  	struct ehea_adapter *adapter;
--	const u64 *adapter_handle;
-+	u64 *adapter_handle;
+-	u64 *adapter_handle;
++	const u64 *adapter_handle;
  	int ret;
  
- 	adapter = kzalloc(sizeof(*adapter), GFP_KERNEL);
-@@ -2502,7 +2502,7 @@ static int __devinit ehea_probe(struct i
- 		goto out;
- 	}
+ 	if (!dev || !dev->ofdev.node) {
+@@ -2697,7 +2696,7 @@ static int __devinit ehea_probe_adapter(
  
--	adapter_handle = of_get_property(dev->ofdev.node, "ibm,hea-handle",
-+	adapter_handle = (u64*)get_property(dev->ofdev.node, "ibm,hea-handle",
+ 	adapter->ebus_dev = dev;
+ 
+-	adapter_handle = (u64*)get_property(dev->ofdev.node, "ibm,hea-handle",
++	adapter_handle = of_get_property(dev->ofdev.node, "ibm,hea-handle",
  					    NULL);
  	if (adapter_handle)
  		adapter->handle = *adapter_handle;
