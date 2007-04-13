@@ -1,78 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - paravirt_ops-update-maintainers.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:29:54 -0700
-Message-ID: <200704132329.l3DNTscP012660@shell0.pdx.osdl.net>
+Subject: - allow-boot-time-disable-of-smp-altinstructions.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:30:43 -0700
+Message-ID: <200704132330.l3DNUhwo012766@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60709 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60722 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161258AbXDMXao (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:30:44 -0400
+	id S1161222AbXDMXat (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:30:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, chrisw@sous-sol.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@suse.de, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     paravirt_ops: update MAINTAINERS
+     Allow boot-time disable of SMP altinstructions
 has been removed from the -mm tree.  Its filename was
-     paravirt_ops-update-maintainers.patch
+     allow-boot-time-disable-of-smp-altinstructions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: paravirt_ops: update MAINTAINERS
+Subject: Allow boot-time disable of SMP altinstructions
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
+Add "noreplace-smp" to disable SMP instruction replacement.
+
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ Documentation/kernel-parameters.txt |    6 ++++++
+ arch/i386/kernel/alternative.c      |   23 +++++++++++++++++++----
+ 2 files changed, 25 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~paravirt_ops-update-maintainers MAINTAINERS
---- a/MAINTAINERS~paravirt_ops-update-maintainers
-+++ a/MAINTAINERS
-@@ -2679,6 +2679,19 @@ T:	git kernel.org:/pub/scm/linux/kernel/
- T:	cvs cvs.parisc-linux.org:/var/cvs/linux-2.6
- S:	Maintained
+diff -puN Documentation/kernel-parameters.txt~allow-boot-time-disable-of-smp-altinstructions Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~allow-boot-time-disable-of-smp-altinstructions
++++ a/Documentation/kernel-parameters.txt
+@@ -1135,6 +1135,9 @@ and is between 256 and 4096 characters. 
  
-+PARAVIRT_OPS INTERFACE
-+P:	Jeremy Fitzhardinge
-+M:	jeremy@xensource.com
-+P:	Chris Wright
-+M:	chrisw@sous-sol.org
-+P:	Zachary Amsden
-+M:	zach@vmware.com
-+P:	Rusty Russell
-+M:	rusty@rustcorp.com.au
-+L:	virtualization@lists.osdl.org
-+L:	linux-kernel@vger.kernel.org
-+S:	Supported
-+
- PC87360 HARDWARE MONITORING DRIVER
- P:	Jim Cromie
- M:	jim.cromie@gmail.com
-@@ -3936,6 +3949,15 @@ M:	eis@baty.hanse.de
- L:	linux-x25@vger.kernel.org
- S:	Maintained
+ 	nomce		[IA-32] Machine Check Exception
  
-+XEN HYPERVISOR INTERFACE
-+P:	Jeremy Fitzhardinge
-+M:	jeremy@xensource.com
-+P:	Chris Wright
-+M:	chrisw@sous-sol.org
-+L:	virtualization@lists.osdl.org
-+L:	xen-devel@lists.xensource.com
-+S:	Supported
++	noreplace-smp	[IA-32,SMP] Don't replace SMP instructions
++			with UP alternatives
 +
- XFS FILESYSTEM
- P:	Silicon Graphics Inc
- P:	Tim Shimmin, David Chatterton
+ 	noresidual	[PPC] Don't use residual data on PReP machines.
+ 
+ 	noresume	[SWSUSP] Disables resume and restores original swap
+@@ -1540,6 +1543,9 @@ and is between 256 and 4096 characters. 
+ 	smart2=		[HW]
+ 			Format: <io1>[,<io2>[,...,<io8>]]
+ 
++	smp-alt-once	[IA-32,SMP] On a hotplug CPU system, only
++			attempt to substitute SMP alternatives once at boot.
++
+ 	snd-ad1816a=	[HW,ALSA]
+ 
+ 	snd-ad1848=	[HW,ALSA]
+diff -puN arch/i386/kernel/alternative.c~allow-boot-time-disable-of-smp-altinstructions arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~allow-boot-time-disable-of-smp-altinstructions
++++ a/arch/i386/kernel/alternative.c
+@@ -5,6 +5,7 @@
+ #include <asm/alternative.h>
+ #include <asm/sections.h>
+ 
++static int noreplace_smp     = 0;
+ static int smp_alt_once      = 0;
+ static int debug_alternative = 0;
+ 
+@@ -13,15 +14,23 @@ static int __init bootonly(char *str)
+ 	smp_alt_once = 1;
+ 	return 1;
+ }
++__setup("smp-alt-boot", bootonly);
++
+ static int __init debug_alt(char *str)
+ {
+ 	debug_alternative = 1;
+ 	return 1;
+ }
+-
+-__setup("smp-alt-boot", bootonly);
+ __setup("debug-alternative", debug_alt);
+ 
++static int __init setup_noreplace_smp(char *str)
++{
++	noreplace_smp = 1;
++	return 1;
++}
++__setup("noreplace-smp", setup_noreplace_smp);
++
++
+ #define DPRINTK(fmt, args...) if (debug_alternative) \
+ 	printk(KERN_DEBUG fmt, args)
+ 
+@@ -185,6 +194,9 @@ static void alternatives_smp_unlock(u8 *
+ {
+ 	u8 **ptr;
+ 
++	if (noreplace_smp)
++		return;
++
+ 	for (ptr = start; ptr < end; ptr++) {
+ 		if (*ptr < text)
+ 			continue;
+@@ -219,6 +231,9 @@ void alternatives_smp_module_add(struct 
+ 	struct smp_alt_module *smp;
+ 	unsigned long flags;
+ 
++	if (noreplace_smp)
++		return;
++
+ 	if (smp_alt_once) {
+ 		if (boot_cpu_has(X86_FEATURE_UP))
+ 			alternatives_smp_unlock(locks, locks_end,
+@@ -253,7 +268,7 @@ void alternatives_smp_module_del(struct 
+ 	struct smp_alt_module *item;
+ 	unsigned long flags;
+ 
+-	if (smp_alt_once)
++	if (smp_alt_once || noreplace_smp)
+ 		return;
+ 
+ 	spin_lock_irqsave(&smp_alt, flags);
+@@ -284,7 +299,7 @@ void alternatives_smp_switch(int smp)
+ 	return;
+ #endif
+ 
+-	if (smp_alt_once)
++	if (noreplace_smp || smp_alt_once)
+ 		return;
+ 	BUG_ON(!smp && (num_online_cpus() > 1));
+ 
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
