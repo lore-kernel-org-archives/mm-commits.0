@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nlmclnt_recovery-dont-use-clone_sighand.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:39:08 -0700
-Message-ID: <200704132039.l3DKd8ho008887@shell0.pdx.osdl.net>
+Subject: + usb-bandrich-bandluxe-hsdpa-data-card-driver.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:44:31 -0700
+Message-ID: <200704132044.l3DKiVw0008997@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50104 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50422 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030250AbXDMUjl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:39:41 -0400
+	id S965271AbXDMUog (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:44:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, bfields@fieldses.org, neilb@suse.de, trond.myklebust@fys.uio.no
+Cc: upleong@bandrich.com, greg@kroah.com
 
 
 The patch titled
-     nlmclnt_recovery: don't use CLONE_SIGHAND
+     USB: BandRich BandLuxe HSDPA Data Card Driver
 has been added to the -mm tree.  Its filename is
-     nlmclnt_recovery-dont-use-clone_sighand.patch
+     usb-bandrich-bandluxe-hsdpa-data-card-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,102 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nlmclnt_recovery: don't use CLONE_SIGHAND
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: USB: BandRich BandLuxe HSDPA Data Card Driver
+From: Leon Leong <upleong@bandrich.com>
 
-reclaimer() calls allow_signal() which plays with parent process's ->sighand.
+Add the detection for the BandRich BandLuxe C100/C100S/C120 HSDPA Data
+Card.  With the vendor and product IDs are set properly, the data card can
+be detected and works fine.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Leon Leong <upleong@bandrich.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/clntlock.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/option.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN fs/lockd/clntlock.c~nlmclnt_recovery-dont-use-clone_sighand fs/lockd/clntlock.c
---- a/fs/lockd/clntlock.c~nlmclnt_recovery-dont-use-clone_sighand
-+++ a/fs/lockd/clntlock.c
-@@ -153,7 +153,7 @@ nlmclnt_recovery(struct nlm_host *host)
- 	if (!host->h_reclaiming++) {
- 		nlm_get_host(host);
- 		__module_get(THIS_MODULE);
--		if (kernel_thread(reclaimer, host, CLONE_KERNEL) < 0)
-+		if (kernel_thread(reclaimer, host, CLONE_FS | CLONE_FILES) < 0)
- 			module_put(THIS_MODULE);
- 	}
- }
+diff -puN drivers/usb/serial/option.c~usb-bandrich-bandluxe-hsdpa-data-card-driver drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~usb-bandrich-bandluxe-hsdpa-data-card-driver
++++ a/drivers/usb/serial/option.c
+@@ -113,6 +113,10 @@ static int  option_send_setup(struct usb
+ #define ANYDATA_VENDOR_ID			0x16d5
+ #define ANYDATA_PRODUCT_ID			0x6501
+ 
++#define BANDRICH_VENDOR_ID			0x1A8D
++#define BANDRICH_PRODUCT_C100_1			0x1002
++#define BANDRICH_PRODUCT_C100_2			0x1003
++
+ static struct usb_device_id option_ids[] = {
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
+@@ -165,6 +169,8 @@ static struct usb_device_id option_ids[]
+ 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, 0x2130) }, /* Novatel Merlin ES620 SM Bus */
+ 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, 0x2410) }, /* Novatel EU740 */
+ 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
++	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_1) },
++	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_2) },
+ 	{ } /* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, option_ids);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from upleong@bandrich.com are
 
-kernel-doc-fix-plisth-comments.patch
-git-dvb.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-fix-refrigerator-vs-thaw_process-race.patch
-doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-add-support-for-deferrable-timers-respun.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-add-support-for-deferrable-timers-respun-fix.patch
-add-a-new-deferrable-delayed-work-init.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-implement-flush_work-sanity.patch
-implement-flush_work_keventd.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-relayfs-use-flush_keventd_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-make-queue_delayed_work-friendly-to-flush_fork.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-workqueue-introduce-wq_per_cpu-helper.patch
-make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
-ipvs-flush-defense_work-before-module-unload.patch
-workqueue-kill-noautorel-works.patch
-worker_thread-dont-play-with-signals.patch
-worker_thread-fix-racy-try_to_freeze-usage.patch
-zap_other_threads-remove-unneeded-exit_signal-change.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-____call_usermodehelper-dont-flush_signals.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-usbatm_heavy_init-dont-use-clone_sighand.patch
-pnpbios_thread_init-dont-use-clone_sighand.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
+usb-bandrich-bandluxe-hsdpa-data-card-driver.patch
