@@ -1,63 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:28:36 -0700
-Message-ID: <200704132328.l3DNSaWS012533@shell0.pdx.osdl.net>
+Subject: - pm-use-kobject_name-to-access-kobject-names.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:28:48 -0700
+Message-ID: <200704132328.l3DNSmZE012550@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60365 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60389 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161020AbXDMX2m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:28:42 -0400
+	id S1161048AbXDMX2y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:28:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bart.vanassche@gmail.com, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: dtor@insightbb.com, dtor@mail.ru, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Ocotea board: ntpd complains that the frequency error exceeds the tolerance
+     PM: use kobject_name() to access kobject names
 has been removed from the -mm tree.  Its filename was
-     ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance.patch
+     pm-use-kobject_name-to-access-kobject-names.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Ocotea board: ntpd complains that the frequency error exceeds the tolerance
-From: Bart Van Assche <bart.vanassche@gmail.com>
+Subject: PM: use kobject_name() to access kobject names
+From: Dmitry Torokhov <dtor@insightbb.com>
 
-Lifted from http://bugzilla.kernel.org/show_bug.cgi?id=8182
+Noone should use kobj.name directly since it may contain garbage.  Objects
+with longer names have them stored in separately allocated memory pointed
+to by kobj->k_name.
 
-Steps to reproduce:
-- Boot an Ocotea board with the mainline 2.6.20.1 kernel.
-- Create an /etc/ntp.conf file with at least one NTP server and iburst mode set.
-- Issue the command "ntpd -g".
-- Wait about two minutes.
-- Verify ntpd's status via "ntpq -pn" and by looking in /var/log/ntp.
-
-Patch that fixes this problem:
-
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ppc/platforms/4xx/ocotea.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/power/main.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/ppc/platforms/4xx/ocotea.c~ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance arch/ppc/platforms/4xx/ocotea.c
---- a/arch/ppc/platforms/4xx/ocotea.c~ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance
-+++ a/arch/ppc/platforms/4xx/ocotea.c
-@@ -289,7 +289,7 @@ ocotea_setup_arch(void)
- 	 * from FPGA, because it can be changed by on-board switches
- 	 * --ebs
- 	 */
--	ibm440gx_get_clocks(&clocks, 33333333, 6 * 1843200);
-+	ibm440gx_get_clocks(&clocks, 33300000, 6 * 1843200);
- 	ocp_sys_info.opb_bus_freq = clocks.opb;
+diff -puN drivers/base/power/main.c~pm-use-kobject_name-to-access-kobject-names drivers/base/power/main.c
+--- a/drivers/base/power/main.c~pm-use-kobject_name-to-access-kobject-names
++++ a/drivers/base/power/main.c
+@@ -54,7 +54,8 @@ int device_pm_add(struct device * dev)
+ 	int error;
  
- 	/* Setup TODC access */
+ 	pr_debug("PM: Adding info for %s:%s\n",
+-		 dev->bus ? dev->bus->name : "No Bus", dev->kobj.name);
++		 dev->bus ? dev->bus->name : "No Bus",
++		 kobject_name(&dev->kobj));
+ 	down(&dpm_list_sem);
+ 	list_add_tail(&dev->power.entry, &dpm_active);
+ 	device_pm_set_parent(dev, dev->parent);
+@@ -67,7 +68,8 @@ int device_pm_add(struct device * dev)
+ void device_pm_remove(struct device * dev)
+ {
+ 	pr_debug("PM: Removing info for %s:%s\n",
+-		 dev->bus ? dev->bus->name : "No Bus", dev->kobj.name);
++		 dev->bus ? dev->bus->name : "No Bus",
++		 kobject_name(&dev->kobj));
+ 	down(&dpm_list_sem);
+ 	dpm_sysfs_remove(dev);
+ 	put_device(dev->power.pm_parent);
 _
 
-Patches currently in -mm which might be from bart.vanassche@gmail.com are
+Patches currently in -mm which might be from dtor@insightbb.com are
 
-git-powerpc.patch
+origin.patch
+git-input.patch
+input-convert-from-class-devices-to-standard-devices.patch
+input-evdev-implement-proper-locking.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
