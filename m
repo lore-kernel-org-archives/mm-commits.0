@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-add-after-object-padding.patch added to -mm tree
-Date: Fri, 13 Apr 2007 12:37:03 -0700
-Message-ID: <200704131937.l3DJb3YX007757@shell0.pdx.osdl.net>
+Subject: + slub-core-resiliency-fixups-fix.patch added to -mm tree
+Date: Fri, 13 Apr 2007 12:37:07 -0700
+Message-ID: <200704131937.l3DJb7A0007763@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47699 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47708 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932451AbXDMThG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 15:37:06 -0400
+	id S932451AbXDMThJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 15:37:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     slub: add after object padding
+     slub: resiliency fixups fix
 has been added to the -mm tree.  Its filename is
-     slub-core-add-after-object-padding.patch
+     slub-core-resiliency-fixups-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: add after object padding
+Subject: slub: resiliency fixups fix
 From: Christoph Lameter <clameter@sgi.com>
 
-Without padding there is the danger that we do not notice writing before the
-allocated object.  So increase the slab size by another word in the debug
-case.  That will force the creation of some fill space which SLUB will
-continue to check.
+Eek.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletion(-)
+ mm/slub.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-core-add-after-object-padding mm/slub.c
---- a/mm/slub.c~slub-core-add-after-object-padding
+diff -puN mm/slub.c~slub-core-resiliency-fixups-fix mm/slub.c
+--- a/mm/slub.c~slub-core-resiliency-fixups-fix
 +++ a/mm/slub.c
-@@ -490,7 +490,7 @@ static int check_object(struct kmem_cach
- 	if (s->flags & SLAB_POISON) {
- 		if (!active && (s->flags & __OBJECT_POISON) &&
- 			(!check_bytes(p, POISON_FREE, s->objsize - 1) ||
--				p[s->objsize -1] != POISON_END)) {
-+				p[s->objsize - 1] != POISON_END)) {
- 			object_err(s, page, p, "Poison check failed");
- 			return 0;
- 		}
-@@ -1596,6 +1596,15 @@ static int calculate_sizes(struct kmem_c
- 		 */
- 		size += 2 * sizeof(struct track);
- 
-+	if (flags & DEBUG_DEFAULT_FLAGS)
-+		/*
-+		 * Add some empty padding so that we can catch
-+		 * overwrites from earlier objects rather than let
-+		 * tracking information or the free pointer be
-+		 * corrupted if an user writes before the start
-+		 * of the object.
-+		 */
-+		size += sizeof(void *);
- 	/*
- 	 * Determine the alignment based on various parameters that the
- 	 * user specified (this is unecessarily complex due to the attempt
+@@ -572,7 +572,7 @@ static int check_slab(struct kmem_cache 
+ 			page,
+ 			page->flags,
+ 			page->mapping,
+-			page_count(page));\
++			page_count(page));
+ 		dump_stack();
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
