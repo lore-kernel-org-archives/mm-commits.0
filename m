@@ -1,311 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - paravirt_ops-document-asm-i386-paravirth.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:30:22 -0700
-Message-ID: <200704132330.l3DNUM1V012732@shell0.pdx.osdl.net>
+Subject: - paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:30:16 -0700
+Message-ID: <200704132330.l3DNUGnH012726@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60664 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60629 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161218AbXDMXab (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:30:31 -0400
+	id S1030896AbXDMXaY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:30:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: jeremy@goop.org, jeremy@xensource.com, rusty@rustcorp.com.au, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     paravirt_ops: Document asm-i386/paravirt.h
+     paravirt_ops: Fix patch site clobbers to include return register
 has been removed from the -mm tree.  Its filename was
-     paravirt_ops-document-asm-i386-paravirth.patch
+     paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: paravirt_ops: Document asm-i386/paravirt.h
+Subject: paravirt_ops: Fix patch site clobbers to include return register
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Clean things up, and broadly document:
- - the paravirt_ops functions themselves
- - the patching mechanism
+Fix a few clobbers to include the return register.  The clobbers set is the
+set of all registers modified (or may be modified) by the code snippet,
+regardless of whether it was deliberate or accidental.
+
+Also, make sure that callsites which are used in contexts which don't allow
+clobbers actually save and restore all clobberable registers.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/paravirt.h |  136 ++++++++++++++++++++++++++++++----
- 1 file changed, 121 insertions(+), 15 deletions(-)
+ arch/i386/kernel/entry.S    |    2 +-
+ include/asm-i386/paravirt.h |   18 ++++++++++--------
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-i386/paravirt.h~paravirt_ops-document-asm-i386-paravirth include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~paravirt_ops-document-asm-i386-paravirth
+diff -puN arch/i386/kernel/entry.S~paravirt_ops-fix-patch-site-clobbers-to-include-return-register arch/i386/kernel/entry.S
+--- a/arch/i386/kernel/entry.S~paravirt_ops-fix-patch-site-clobbers-to-include-return-register
++++ a/arch/i386/kernel/entry.S
+@@ -342,7 +342,7 @@ sysenter_past_esp:
+ 	jae syscall_badsys
+ 	call *sys_call_table(,%eax,4)
+ 	movl %eax,PT_EAX(%esp)
+-	DISABLE_INTERRUPTS(CLBR_ECX|CLBR_EDX)
++	DISABLE_INTERRUPTS(CLBR_ANY)
+ 	TRACE_IRQS_OFF
+ 	movl TI_flags(%ebp), %ecx
+ 	testw $_TIF_ALLWORK_MASK, %cx
+diff -puN include/asm-i386/paravirt.h~paravirt_ops-fix-patch-site-clobbers-to-include-return-register include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~paravirt_ops-fix-patch-site-clobbers-to-include-return-register
 +++ a/include/asm-i386/paravirt.h
-@@ -21,6 +21,14 @@ struct Xgt_desc_struct;
- struct tss_struct;
- struct mm_struct;
- struct desc_struct;
-+
-+/* Lazy mode for batching updates / context switch */
-+enum paravirt_lazy_mode {
-+	PARAVIRT_LAZY_NONE = 0,
-+	PARAVIRT_LAZY_MMU = 1,
-+	PARAVIRT_LAZY_CPU = 2,
-+};
-+
- struct paravirt_ops
- {
- 	unsigned int kernel_rpl;
-@@ -37,22 +45,33 @@ struct paravirt_ops
- 	 */
- 	unsigned (*patch)(u8 type, u16 clobber, void *firstinsn, unsigned len);
- 
-+	/* Basic arch-specific setup */
- 	void (*arch_setup)(void);
- 	char *(*memory_setup)(void);
- 	void (*init_IRQ)(void);
-+	void (*time_init)(void);
- 
-+	/*
-+	 * Called before/after init_mm pagetable setup. setup_start
-+	 * may reset %cr3, and may pre-install parts of the pagetable;
-+	 * pagetable setup is expected to preserve any existing
-+	 * mapping.
-+	 */
- 	void (*pagetable_setup_start)(pgd_t *pgd_base);
- 	void (*pagetable_setup_done)(pgd_t *pgd_base);
- 
-+	/* Print a banner to identify the environment */
- 	void (*banner)(void);
- 
-+	/* Set and set time of day */
- 	unsigned long (*get_wallclock)(void);
- 	int (*set_wallclock)(unsigned long);
--	void (*time_init)(void);
- 
-+	/* cpuid emulation, mostly so that caps bits can be disabled */
- 	void (*cpuid)(unsigned int *eax, unsigned int *ebx,
- 		      unsigned int *ecx, unsigned int *edx);
- 
-+	/* hooks for various privileged instructions */
- 	unsigned long (*get_debugreg)(int regno);
- 	void (*set_debugreg)(int regno, unsigned long value);
- 
-@@ -71,15 +90,23 @@ struct paravirt_ops
- 	unsigned long (*read_cr4)(void);
- 	void (*write_cr4)(unsigned long);
- 
-+	/*
-+	 * Get/set interrupt state.  save_fl and restore_fl are only
-+	 * expected to use X86_EFLAGS_IF; all other bits
-+	 * returned from save_fl are undefined, and may be ignored by
-+	 * restore_fl.
-+	 */
- 	unsigned long (*save_fl)(void);
- 	void (*restore_fl)(unsigned long);
- 	void (*irq_disable)(void);
- 	void (*irq_enable)(void);
- 	void (*safe_halt)(void);
- 	void (*halt)(void);
-+
- 	void (*wbinvd)(void);
- 
--	/* err = 0/-EFAULT.  wrmsr returns 0/-EFAULT. */
-+	/* MSR, PMC and TSR operations.
-+	   err = 0/-EFAULT.  wrmsr returns 0/-EFAULT. */
- 	u64 (*read_msr)(unsigned int msr, int *err);
- 	int (*write_msr)(unsigned int msr, u64 val);
- 
-@@ -88,6 +115,7 @@ struct paravirt_ops
-  	u64 (*get_scheduled_cycles)(void);
- 	unsigned long (*get_cpu_khz)(void);
- 
-+	/* Segment descriptor handling */
- 	void (*load_tr_desc)(void);
- 	void (*load_gdt)(const struct Xgt_desc_struct *);
- 	void (*load_idt)(const struct Xgt_desc_struct *);
-@@ -105,9 +133,12 @@ struct paravirt_ops
- 	void (*load_esp0)(struct tss_struct *tss, struct thread_struct *t);
- 
- 	void (*set_iopl_mask)(unsigned mask);
--
- 	void (*io_delay)(void);
- 
-+	/*
-+	 * Hooks for intercepting the creation/use/destruction of an
-+	 * mm_struct.
-+	 */
- 	void (*activate_mm)(struct mm_struct *prev,
- 			    struct mm_struct *next);
- 	void (*dup_mmap)(struct mm_struct *oldmm,
-@@ -115,30 +146,43 @@ struct paravirt_ops
- 	void (*exit_mmap)(struct mm_struct *mm);
- 
- #ifdef CONFIG_X86_LOCAL_APIC
-+	/*
-+	 * Direct APIC operations, principally for VMI.  Ideally
-+	 * these shouldn't be in this interface.
-+	 */
- 	void (*apic_write)(unsigned long reg, unsigned long v);
- 	void (*apic_write_atomic)(unsigned long reg, unsigned long v);
- 	unsigned long (*apic_read)(unsigned long reg);
- 	void (*setup_boot_clock)(void);
- 	void (*setup_secondary_clock)(void);
-+
-+	void (*startup_ipi_hook)(int phys_apicid,
-+				 unsigned long start_eip,
-+				 unsigned long start_esp);
- #endif
- 
-+	/* TLB operations */
- 	void (*flush_tlb_user)(void);
- 	void (*flush_tlb_kernel)(void);
- 	void (*flush_tlb_single)(unsigned long addr);
- 
- 	void (*map_pt_hook)(int type, pte_t *va, u32 pfn);
- 
-+	/* Hooks for allocating/releasing pagetable pages */
- 	void (*alloc_pt)(u32 pfn);
- 	void (*alloc_pd)(u32 pfn);
- 	void (*alloc_pd_clone)(u32 pfn, u32 clonepfn, u32 start, u32 count);
- 	void (*release_pt)(u32 pfn);
- 	void (*release_pd)(u32 pfn);
- 
-+	/* Pagetable manipulation functions */
- 	void (*set_pte)(pte_t *ptep, pte_t pteval);
--	void (*set_pte_at)(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pteval);
-+	void (*set_pte_at)(struct mm_struct *mm, unsigned long addr,
-+			   pte_t *ptep, pte_t pteval);
- 	void (*set_pmd)(pmd_t *pmdp, pmd_t pmdval);
- 	void (*pte_update)(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
--	void (*pte_update_defer)(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
-+	void (*pte_update_defer)(struct mm_struct *mm,
-+				 unsigned long addr, pte_t *ptep);
- 
-  	pte_t (*ptep_get_and_clear)(pte_t *ptep);
- 
-@@ -164,13 +208,12 @@ struct paravirt_ops
- 	pgd_t (*make_pgd)(unsigned long pgd);
- #endif
- 
--	void (*set_lazy_mode)(int mode);
-+	/* Set deferred update mode, used for batching operations. */
-+	void (*set_lazy_mode)(enum paravirt_lazy_mode mode);
- 
- 	/* These two are jmp to, not actually called. */
- 	void (*irq_enable_sysexit)(void);
- 	void (*iret)(void);
--
--	void (*startup_ipi_hook)(int phys_apicid, unsigned long start_eip, unsigned long start_esp);
- };
- 
- /* Mark a paravirt probe function. */
-@@ -188,8 +231,10 @@ extern struct paravirt_ops paravirt_ops;
- #define paravirt_clobber(clobber)		\
- 	[paravirt_clobber] "i" (clobber)
- 
--#define PARAVIRT_CALL	"call *(paravirt_ops+%c[paravirt_typenum]*4);"
--
-+/*
-+ * Generate some code, and mark it as patchable by the
-+ * apply_paravirt() alternate instruction patcher.
-+ */
- #define _paravirt_alt(insn_string, type, clobber)	\
- 	"771:\n\t" insn_string "\n" "772:\n"		\
- 	".pushsection .parainstructions,\"a\"\n"	\
-@@ -199,9 +244,74 @@ extern struct paravirt_ops paravirt_ops;
- 	"  .short " clobber "\n"			\
- 	".popsection\n"
- 
-+/* Generate patchable code, with the default asm parameters. */
- #define paravirt_alt(insn_string)					\
- 	_paravirt_alt(insn_string, "%c[paravirt_typenum]", "%c[paravirt_clobber]")
- 
-+/*
-+ * This generates an indirect call based on the operation type number.
-+ * The type number, computed in PARAVIRT_PATCH, is derived from the
-+ * offset into the paravirt_ops structure, and can therefore be freely
-+ * converted back into a structure offset.
-+ */
-+#define PARAVIRT_CALL	"call *(paravirt_ops+%c[paravirt_typenum]*4);"
-+
-+/*
-+ * These macros are intended to wrap calls into a paravirt_ops
-+ * operation, so that they can be later identified and patched at
-+ * runtime.
-+ *
-+ * Normally, a call to a pv_op function is a simple indirect call:
-+ * (paravirt_ops.operations)(args...).
-+ *
-+ * Unfortunately, this is a relatively slow operation for modern CPUs,
-+ * because it cannot necessarily determine what the destination
-+ * address is.  In this case, the address is a runtime constant, so at
-+ * the very least we can patch the call to e a simple direct call, or
-+ * ideally, patch an inline implementation into the callsite.  (Direct
-+ * calls are essentially free, because the call and return addresses
-+ * are completely predictable.)
-+ *
-+ * These macros rely on the standard gcc "regparm(3)" calling
-+ * convention, in which the first three arguments are placed in %eax,
-+ * %edx, %ecx (in that order), and the remaining arguments are placed
-+ * on the stack.  All caller-save registers (eax,edx,ecx) are expected
-+ * to be modified (either clobbered or used for return values).
-+ *
-+ * The call instruction itself is marked by placing its start address
-+ * and size into the .parainstructions section, so that
-+ * apply_paravirt() in arch/i386/kernel/alternative.c can do the
-+ * appropriate patching under the control of the backend paravirt_ops
-+ * implementation.
-+ *
-+ * Unfortunately there's no way to get gcc to generate the args setup
-+ * for the call, and then allow the call itself to be generated by an
-+ * inline asm.  Because of this, we must do the complete arg setup and
-+ * return value handling from within these macros.  This is fairly
-+ * cumbersome.
-+ *
-+ * There are 5 sets of PVOP_* macros for dealing with 0-4 arguments.
-+ * It could be extended to more arguments, but there would be little
-+ * to be gained from that.  For each number of arguments, there are
-+ * the two VCALL and CALL variants for void and non-void functions.
-+ *
-+ * When there is a return value, the invoker of the macro must specify
-+ * the return type.  The macro then uses sizeof() on that type to
-+ * determine whether its a 32 or 64 bit value, and places the return
-+ * in the right register(s) (just %eax for 32-bit, and %edx:%eax for
-+ * 64-bit).
-+ *
-+ * 64-bit arguments are passed as a pair of adjacent 32-bit arguments
-+ * in low,high order.
-+ *
-+ * Small structures are passed and returned in registers.  The macro
-+ * calling convention can't directly deal with this, so the wrapper
-+ * functions must do this.
-+ *
-+ * These PVOP_* macros are only defined within this header.  This
-+ * means that all uses must be wrapped in inline functions.  This also
-+ * makes sure the incoming and outgoing types are always correct.
-+ */
- #define PVOP_CALL0(__rettype, __op)					\
- 	({								\
- 		__rettype __ret;					\
-@@ -897,11 +1007,6 @@ static inline pte_t raw_ptep_get_and_cle
+@@ -532,7 +532,7 @@ static inline unsigned long __raw_local_
+ 				  "popl %%edx; popl %%ecx")
+ 		     : "=a"(f)
+ 		     : paravirt_type(save_fl),
+-		       paravirt_clobber(CLBR_NONE)
++		       paravirt_clobber(CLBR_EAX)
+ 		     : "memory", "cc");
+ 	return f;
  }
- #endif	/* CONFIG_X86_PAE */
+@@ -617,27 +617,29 @@ static inline unsigned long __raw_local_
+ 	.popsection
  
--/* Lazy mode for batching updates / context switch */
--#define PARAVIRT_LAZY_NONE 0
--#define PARAVIRT_LAZY_MMU  1
--#define PARAVIRT_LAZY_CPU  2
--
- #define  __HAVE_ARCH_ENTER_LAZY_CPU_MODE
- static inline void arch_enter_lazy_cpu_mode(void)
- {
-@@ -1012,6 +1117,7 @@ static inline unsigned long __raw_local_
- 	[paravirt_sti_type] "i" (PARAVIRT_PATCH(irq_enable)),		\
- 	paravirt_clobber(CLBR_EAX)
+ #define INTERRUPT_RETURN					\
+-	PARA_SITE(PARA_PATCH(PARAVIRT_iret), CLBR_ANY,		\
++	PARA_SITE(PARA_PATCH(PARAVIRT_iret), CLBR_NONE,		\
+ 		  jmp *%cs:paravirt_ops+PARAVIRT_iret)
  
-+/* Make sure as little as possible of this mess escapes. */
- #undef PARAVIRT_CALL
- #undef PVOP_VCALL0
- #undef PVOP_CALL0
+ #define DISABLE_INTERRUPTS(clobbers)					\
+ 	PARA_SITE(PARA_PATCH(PARAVIRT_irq_disable), clobbers,		\
+-		  pushl %ecx; pushl %edx;				\
++		  pushl %eax; pushl %ecx; pushl %edx;			\
+ 		  call *%cs:paravirt_ops+PARAVIRT_irq_disable;		\
+-		  popl %edx; popl %ecx)					\
++		  popl %edx; popl %ecx; popl %eax)			\
+ 
+ #define ENABLE_INTERRUPTS(clobbers)					\
+ 	PARA_SITE(PARA_PATCH(PARAVIRT_irq_enable), clobbers,		\
+-		  pushl %ecx; pushl %edx;				\
++		  pushl %eax; pushl %ecx; pushl %edx;			\
+ 		  call *%cs:paravirt_ops+PARAVIRT_irq_enable;		\
+-		  popl %edx; popl %ecx)
++		  popl %edx; popl %ecx; popl %eax)
+ 
+ #define ENABLE_INTERRUPTS_SYSEXIT					\
+-	PARA_SITE(PARA_PATCH(PARAVIRT_irq_enable_sysexit), CLBR_ANY,	\
++	PARA_SITE(PARA_PATCH(PARAVIRT_irq_enable_sysexit), CLBR_NONE,	\
+ 		  jmp *%cs:paravirt_ops+PARAVIRT_irq_enable_sysexit)
+ 
+ #define GET_CR0_INTO_EAX			\
+-	call *paravirt_ops+PARAVIRT_read_cr0
++	push %ecx; push %edx;			\
++	call *paravirt_ops+PARAVIRT_read_cr0;	\
++	pop %edx; pop %ecx
+ 
+ #endif /* __ASSEMBLY__ */
+ #endif /* CONFIG_PARAVIRT */
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
