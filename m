@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-add-debug-information-to-resource-collision-message.patch added to -mm tree
-Date: Fri, 13 Apr 2007 11:32:24 -0700
-Message-ID: <200704131832.l3DIWOYf006470@shell0.pdx.osdl.net>
+Subject: + include-kern_-constant-in-printk-calls-in-mm-slabc.patch added to -mm tree
+Date: Fri, 13 Apr 2007 11:34:54 -0700
+Message-ID: <200704131834.l3DIYsFg006503@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45433 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45484 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754128AbXDMSe2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 14:34:28 -0400
+	id S1754126AbXDMSfI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 14:35:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cebbert@redhat.com, greg@kroah.com
+Cc: matze@riseup.net, matthias.kaehlcke@gmail.com
 
 
 The patch titled
-     PCI: add debug information to resource collision message
+     include KERN_* constant in printk() calls in mm/slab.c
 has been added to the -mm tree.  Its filename is
-     pci-add-debug-information-to-resource-collision-message.patch
+     include-kern_-constant-in-printk-calls-in-mm-slabc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PCI: add debug information to resource collision message
-From: Chuck Ebbert <cebbert@redhat.com>
+Subject: include KERN_* constant in printk() calls in mm/slab.c
+From: matze <matze@riseup.net>
 
-Add more information to PCI resource collision message to help with
-debugging.
-
-Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/i386.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ mm/slab.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/pci/i386.c~pci-add-debug-information-to-resource-collision-message arch/i386/pci/i386.c
---- a/arch/i386/pci/i386.c~pci-add-debug-information-to-resource-collision-message
-+++ a/arch/i386/pci/i386.c
-@@ -246,8 +246,8 @@ int pcibios_enable_resources(struct pci_
+diff -puN mm/slab.c~include-kern_-constant-in-printk-calls-in-mm-slabc mm/slab.c
+--- a/mm/slab.c~include-kern_-constant-in-printk-calls-in-mm-slabc
++++ a/mm/slab.c
+@@ -2168,13 +2168,15 @@ kmem_cache_create (const char *name, siz
+ 		 */
+ 		res = probe_kernel_address(pc->name, tmp);
+ 		if (res) {
+-			printk("SLAB: cache with size %d has lost its name\n",
++			printk(KERN_ERR
++			       "SLAB: cache with size %d has lost its name\n",
+ 			       pc->buffer_size);
  			continue;
- 		if (!r->start && r->end) {
- 			printk(KERN_ERR "PCI: Device %s not available "
--				"because of resource collisions\n",
--				pci_name(dev));
-+				"because of resource %d collisions\n",
-+				pci_name(dev), idx);
- 			return -EINVAL;
  		}
- 		if (r->flags & IORESOURCE_IO)
+ 
+ 		if (!strcmp(pc->name, name)) {
+-			printk("kmem_cache_create: duplicate cache %s\n", name);
++			printk(KERN_ERR
++			       "kmem_cache_create: duplicate cache %s\n", name);
+ 			dump_stack();
+ 			goto oops;
+ 		}
+@@ -2311,7 +2313,8 @@ kmem_cache_create (const char *name, siz
+ 	left_over = calculate_slab_order(cachep, size, align, flags);
+ 
+ 	if (!cachep->num) {
+-		printk("kmem_cache_create: couldn't create cache %s.\n", name);
++		printk(KERN_ERR
++		       "kmem_cache_create: couldn't create cache %s.\n", name);
+ 		kmem_cache_free(&cache_cache, cachep);
+ 		cachep = NULL;
+ 		goto oops;
 _
 
-Patches currently in -mm which might be from cebbert@redhat.com are
+Patches currently in -mm which might be from matze@riseup.net are
 
-pci-add-debug-information-to-resource-collision-message.patch
+include-kern_-constant-in-printk-calls-in-mm-slabc.patch
