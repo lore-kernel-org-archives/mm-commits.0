@@ -1,44 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - worker_thread-dont-play-with-sigchld.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 13:55:18 -0700
-Message-ID: <200704132055.l3DKtII3009199@shell0.pdx.osdl.net>
+Subject: + worker_thread-dont-play-with-sigchld-and-numa-policy.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:56:01 -0700
+Message-ID: <200704132056.l3DKu1G3009208@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50970 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:51034 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965388AbXDMUzb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:55:31 -0400
+	id S965626AbXDMU4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, ebiederm@xmission.com
 
 
 The patch titled
-     worker_thread: don't play with SIGCHLD
-has been removed from the -mm tree.  Its filename was
-     worker_thread-dont-play-with-sigchld.patch
+     worker_thread: don't play with SIGCHLD and numa policy
+has been added to the -mm tree.  Its filename is
+     worker_thread-dont-play-with-sigchld-and-numa-policy.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: worker_thread: don't play with SIGCHLD
+Subject: worker_thread: don't play with SIGCHLD and numa policy
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-worker_thread() inherits ignored SIGCHLD from its parent, kthreadd.  We can
-remove unneeded do_sigaction().
+worker_thread() inherits ignored SIGCHLD and numa_default_policy() from its
+parent, kthreadd.  No need to setup this again.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    7 -------
- 1 files changed, 7 deletions(-)
+ kernel/workqueue.c |   12 ------------
+ 1 files changed, 12 deletions(-)
 
-diff -puN kernel/workqueue.c~worker_thread-dont-play-with-sigchld kernel/workqueue.c
---- a/kernel/workqueue.c~worker_thread-dont-play-with-sigchld
+diff -puN kernel/workqueue.c~worker_thread-dont-play-with-sigchld-and-numa-policy kernel/workqueue.c
+--- a/kernel/workqueue.c~worker_thread-dont-play-with-sigchld-and-numa-policy
 +++ a/kernel/workqueue.c
-@@ -289,7 +289,6 @@ static int worker_thread(void *__cwq)
+@@ -289,23 +289,11 @@ static int worker_thread(void *__cwq)
  {
  	struct cpu_workqueue_struct *cwq = __cwq;
  	DEFINE_WAIT(wait);
@@ -46,19 +50,22 @@ diff -puN kernel/workqueue.c~worker_thread-dont-play-with-sigchld kernel/workque
  
  	if (!cwq->wq->freezeable)
  		current->flags |= PF_NOFREEZE;
-@@ -301,12 +300,6 @@ static int worker_thread(void *__cwq)
- 	 */
- 	numa_default_policy();
  
+ 	set_user_nice(current, -5);
+-	/*
+-	 * We inherited MPOL_INTERLEAVE from the booting kernel.
+-	 * Set MPOL_DEFAULT to insure node local allocations.
+-	 */
+-	numa_default_policy();
+-
 -	/* SIG_IGN makes children autoreap: see do_notify_parent(). */
 -	sa.sa.sa_handler = SIG_IGN;
 -	sa.sa.sa_flags = 0;
 -	siginitset(&sa.sa.sa_mask, sigmask(SIGCHLD));
 -	do_sigaction(SIGCHLD, &sa, (struct k_sigaction *)0);
--
+ 
  	for (;;) {
  		prepare_to_wait(&cwq->more_work, &wait, TASK_INTERRUPTIBLE);
- 		if (!freezing(current) && !cwq->should_stop
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -131,6 +138,5 @@ nlmclnt_recovery-dont-use-clone_sighand.patch
 usbatm_heavy_init-dont-use-clone_sighand.patch
 pnpbios_thread_init-dont-use-clone_sighand.patch
 wait_for_helper-remove-unneeded-do_sigaction.patch
-worker_thread-dont-play-with-sigchld.patch
 worker_thread-dont-play-with-sigchld-and-numa-policy.patch
 dont-init-pgrp-and-__session-in-init_signals.patch
