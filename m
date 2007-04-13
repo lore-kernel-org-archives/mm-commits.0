@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-aio-deadlock-avoidance.patch added to -mm tree
-Date: Fri, 13 Apr 2007 12:32:03 -0700
-Message-ID: <200704131932.l3DJW3XM007662@shell0.pdx.osdl.net>
+Subject: + slub-core-fix-kmem_cache_destroy.patch added to -mm tree
+Date: Fri, 13 Apr 2007 12:33:18 -0700
+Message-ID: <200704131933.l3DJXIj2007687@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47530 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47569 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754144AbXDMTcI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 15:32:08 -0400
+	id S932140AbXDMTdX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 15:33:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
+Cc: clameter@sgi.com, neilb@suse.de
 
 
 The patch titled
-     uml: aIO deadlock avoidance
+     slub: fix kmem_cache_destroy
 has been added to the -mm tree.  Its filename is
-     uml-aio-deadlock-avoidance.patch
+     slub-core-fix-kmem_cache_destroy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,84 +25,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: aIO deadlock avoidance
-From: Jeff Dike <jdike@addtoit.com>
+Subject: slub: fix kmem_cache_destroy
+From: Christoph Lameter <clameter@sgi.com>
 
-Allow deadlocks to be avoided in the AIO code by setting the pipe to the I/O
-thread non-blocking.
+The refcounter needs to be decremented before checking it.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Tested-and-approved-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/aio.c |    5 +++++
- 1 files changed, 5 insertions(+)
+ mm/slub.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/os-Linux/aio.c~uml-aio-deadlock-avoidance arch/um/os-Linux/aio.c
---- a/arch/um/os-Linux/aio.c~uml-aio-deadlock-avoidance
-+++ a/arch/um/os-Linux/aio.c
-@@ -221,6 +221,11 @@ static int init_aio_24(void)
- 
- 	aio_req_fd_w = fds[0];
- 	aio_req_fd_r = fds[1];
-+
-+	err = os_set_fd_block(aio_req_fd_w, 0);
-+	if(err)
-+		goto out_close_pipe;
-+
- 	err = run_helper_thread(not_aio_thread, NULL,
- 				CLONE_FILES | CLONE_VM | SIGCHLD, &stack, 0);
- 	if(err < 0)
+diff -puN mm/slub.c~slub-core-fix-kmem_cache_destroy mm/slub.c
+--- a/mm/slub.c~slub-core-fix-kmem_cache_destroy
++++ a/mm/slub.c
+@@ -1832,9 +1832,8 @@ static int kmem_cache_close(struct kmem_
+ void kmem_cache_destroy(struct kmem_cache *s)
+ {
+ 	down_write(&slub_lock);
+-	if (s->refcount)
+-		s->refcount--;
+-	else {
++	s->refcount--;
++	if (!s->refcount) {
+ 		list_del(&s->list);
+ 		if (kmem_cache_close(s))
+ 			WARN_ON(1);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-array_size-check-for-type-uml-fix.patch
-uml-fix-prototypes.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-uml-speed-up-exec.patch
-uml-no-locking-needed-in-tlsc.patch
-uml-tidy-processc.patch
-uml-tidy-processc-fix.patch
-uml-remove-page_size.patch
-uml-kernel_thread-shouldnt-panic.patch
-uml-tidy-fault-code.patch
-uml-kernel-segfaults-should-dump-proper-registers.patch
-uml-comment-early-boot-locking.patch
-uml-irq-locking-commentary.patch
-uml-delete-host_frame_size.patch
-uml-drivers-get-release-methods.patch
-uml-dump-registers-on-ptrace-or-wait-failure.patch
-uml-speed-up-page-table-walking.patch
-uml-remove-unused-x86_64-code.patch
-uml-start-fixing-os_read_file-and-os_write_file.patch
-uml-tidy-libc-code.patch
-uml-convert-libc-layer-to-call-read-and-write.patch
-uml-batch-i-o-requests.patch
-uml-send-pointers-instead-of-structures-to-i-o-thread.patch
-uml-dump-core-on-panic.patch
-uml-dont-try-to-handle-signals-on-initial-process-stack.patch
-uml-change-remaining-callers-of-os_read_write_file.patch
-uml-formatting-fixes-around-os_read_write_file-callers.patch
-uml-remove-debugging-remnants.patch
-uml-rename-os_read_write_file_k-back-to-os_read_write_file.patch
-uml-aio-deadlock-avoidance.patch
-uml-speed-page-fault-path.patch
-sys_futex64-allows-64bit-futexes-workaround-for-uml.patch
-utrace-uml-make-uml-compile-with-utrace-enabled.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+extend-print_symbol-capability-fix.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-core-minor-fixes.patch
+slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+slub-core-fix-another-numa-bootstrap-issue.patch
+slub-core-fix-object-counting.patch
+slub-core-drop-version-number.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
+slub-core-printk-facility-level-cleanup.patch
+slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
+slub-core-add-explanation-for-defrag_ratio-=-100.patch
+slub-core-add-explanation-for-locking.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-the-64k-limits.patch
+slub-core-explain-sizing-of-slabs-in-detail.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-add-checks-for-interrupts-disabled.patch
+slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
+slub-core-missing-inlines-and-statics.patch
+slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
+slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
+slub-core-fix-kmem_cache_destroy.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation.patch
+slub-user-documentation-fix.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+readahead-state-based-method-aging-accounting.patch
