@@ -1,198 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - paravirt_ops-add-flush_tlb_others-paravirt_op.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:30:29 -0700
-Message-ID: <200704132330.l3DNUTtE012741@shell0.pdx.osdl.net>
+Subject: - paravirt_ops-revert-map_pt_hook.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:30:31 -0700
+Message-ID: <200704132330.l3DNUVrB012744@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60668 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60676 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161222AbXDMXad (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:30:33 -0400
+	id S1161232AbXDMXae (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:30:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, jeremy@xensource.com, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     paravirt_ops: add flush_tlb_others paravirt_op
+     paravirt_ops: revert map_pt_hook.
 has been removed from the -mm tree.  Its filename was
-     paravirt_ops-add-flush_tlb_others-paravirt_op.patch
+     paravirt_ops-revert-map_pt_hook.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: paravirt_ops: add flush_tlb_others paravirt_op
+Subject: paravirt_ops: revert map_pt_hook.
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-This patch adds a pv_op for flush_tlb_others.  Linux running on native
-hardware uses cross-CPU IPIs to flush the TLB on any CPU which may have a
-particular mm's pagetable entries cached in its TLB.  This is inefficient in a
-paravirtualized environment, since the hypervisor knows which real CPUs
-actually contain cached mappings, which may be a small subset of a guest's
-VCPUs.
+Back out the map_pt_hook to clear the way for kmap_atomic_pte.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |    1 +
- arch/i386/kernel/smp.c      |   13 +++++++------
- include/asm-i386/paravirt.h |    9 +++++++++
- include/asm-i386/tlbflush.h |   19 +++++++++++++++++--
- 4 files changed, 34 insertions(+), 8 deletions(-)
+ arch/i386/kernel/paravirt.c |    2 --
+ arch/i386/kernel/vmi.c      |    2 ++
+ include/asm-i386/paravirt.h |    7 -------
+ include/asm-i386/pgtable.h  |   23 ++++-------------------
+ 4 files changed, 6 insertions(+), 28 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-add-flush_tlb_others-paravirt_op arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~paravirt_ops-add-flush_tlb_others-paravirt_op
+diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-revert-map_pt_hook arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~paravirt_ops-revert-map_pt_hook
 +++ a/arch/i386/kernel/paravirt.c
-@@ -300,6 +300,7 @@ struct paravirt_ops paravirt_ops = {
- 	.flush_tlb_user = native_flush_tlb,
- 	.flush_tlb_kernel = native_flush_tlb_global,
+@@ -302,8 +302,6 @@ struct paravirt_ops paravirt_ops = {
  	.flush_tlb_single = native_flush_tlb_single,
-+	.flush_tlb_others = native_flush_tlb_others,
+ 	.flush_tlb_others = native_flush_tlb_others,
  
- 	.map_pt_hook = paravirt_nop,
- 
-diff -puN arch/i386/kernel/smp.c~paravirt_ops-add-flush_tlb_others-paravirt_op arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~paravirt_ops-add-flush_tlb_others-paravirt_op
-+++ a/arch/i386/kernel/smp.c
-@@ -256,7 +256,6 @@ static cpumask_t flush_cpumask;
- static struct mm_struct * flush_mm;
- static unsigned long flush_va;
- static DEFINE_SPINLOCK(tlbstate_lock);
--#define FLUSH_ALL	0xffffffff
- 
- /*
-  * We cannot call mmdrop() because we are in interrupt context, 
-@@ -338,7 +337,7 @@ fastcall void smp_invalidate_interrupt(s
- 		 
- 	if (flush_mm == per_cpu(cpu_tlbstate, cpu).active_mm) {
- 		if (per_cpu(cpu_tlbstate, cpu).state == TLBSTATE_OK) {
--			if (flush_va == FLUSH_ALL)
-+			if (flush_va == TLB_FLUSH_ALL)
- 				local_flush_tlb();
- 			else
- 				__flush_tlb_one(flush_va);
-@@ -353,9 +352,11 @@ out:
- 	put_cpu_no_resched();
- }
- 
--static void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
--						unsigned long va)
-+void native_flush_tlb_others(const cpumask_t *cpumaskp, struct mm_struct *mm,
-+			     unsigned long va)
- {
-+	cpumask_t cpumask = *cpumaskp;
-+
- 	/*
- 	 * A couple of (to be removed) sanity checks:
- 	 *
-@@ -417,7 +418,7 @@ void flush_tlb_current_task(void)
- 
- 	local_flush_tlb();
- 	if (!cpus_empty(cpu_mask))
--		flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
-+		flush_tlb_others(cpu_mask, mm, TLB_FLUSH_ALL);
- 	preempt_enable();
- }
- 
-@@ -436,7 +437,7 @@ void flush_tlb_mm (struct mm_struct * mm
- 			leave_mm(smp_processor_id());
- 	}
- 	if (!cpus_empty(cpu_mask))
--		flush_tlb_others(cpu_mask, mm, FLUSH_ALL);
-+		flush_tlb_others(cpu_mask, mm, TLB_FLUSH_ALL);
- 
- 	preempt_enable();
- }
-diff -puN include/asm-i386/paravirt.h~paravirt_ops-add-flush_tlb_others-paravirt_op include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~paravirt_ops-add-flush_tlb_others-paravirt_op
-+++ a/include/asm-i386/paravirt.h
-@@ -15,6 +15,7 @@
- 
- #ifndef __ASSEMBLY__
- #include <linux/types.h>
-+#include <linux/cpumask.h>
- 
- struct thread_struct;
- struct Xgt_desc_struct;
-@@ -165,6 +166,8 @@ struct paravirt_ops
- 	void (*flush_tlb_user)(void);
- 	void (*flush_tlb_kernel)(void);
- 	void (*flush_tlb_single)(unsigned long addr);
-+	void (*flush_tlb_others)(const cpumask_t *cpus, struct mm_struct *mm,
-+				 unsigned long va);
- 
- 	void (*map_pt_hook)(int type, pte_t *va, u32 pfn);
- 
-@@ -723,6 +726,12 @@ static inline void __flush_tlb_single(un
- 	PVOP_VCALL1(flush_tlb_single, addr);
- }
- 
-+static inline void flush_tlb_others(cpumask_t cpumask, struct mm_struct *mm,
-+				    unsigned long va)
-+{
-+	PVOP_VCALL3(flush_tlb_others, &cpumask, mm, va);
-+}
-+
- static inline void paravirt_map_pt_hook(int type, pte_t *va, u32 pfn)
- {
- 	PVOP_VCALL3(map_pt_hook, type, va, pfn);
-diff -puN include/asm-i386/tlbflush.h~paravirt_ops-add-flush_tlb_others-paravirt_op include/asm-i386/tlbflush.h
---- a/include/asm-i386/tlbflush.h~paravirt_ops-add-flush_tlb_others-paravirt_op
-+++ a/include/asm-i386/tlbflush.h
-@@ -79,11 +79,15 @@
-  *  - flush_tlb_range(vma, start, end) flushes a range of pages
-  *  - flush_tlb_kernel_range(start, end) flushes a range of kernel pages
-  *  - flush_tlb_pgtables(mm, start, end) flushes a range of page tables
-+ *  - flush_tlb_others(cpumask, mm, va) flushes a TLBs on other cpus
-  *
-  * ..but the i386 has somewhat limited tlb flushing capabilities,
-  * and page-granular flushes are available only on i486 and up.
-  */
- 
-+#define TLB_FLUSH_ALL	0xffffffff
-+
-+
- #ifndef CONFIG_SMP
- 
- #define flush_tlb() __flush_tlb()
-@@ -110,7 +114,12 @@ static inline void flush_tlb_range(struc
- 		__flush_tlb();
- }
- 
--#else
-+static inline void native_flush_tlb_others(const cpumask_t *cpumask,
-+					   struct mm_struct *mm, unsigned long va)
-+{
-+}
-+
-+#else  /* SMP */
- 
- #include <asm/smp.h>
- 
-@@ -129,6 +138,9 @@ static inline void flush_tlb_range(struc
- 	flush_tlb_mm(vma->vm_mm);
- }
- 
-+void native_flush_tlb_others(const cpumask_t *cpumask, struct mm_struct *mm,
-+			     unsigned long va);
-+
- #define TLBSTATE_OK	1
- #define TLBSTATE_LAZY	2
- 
-@@ -139,8 +151,11 @@ struct tlb_state
- 	char __cacheline_padding[L1_CACHE_BYTES-8];
- };
- DECLARE_PER_CPU(struct tlb_state, cpu_tlbstate);
-+#endif	/* SMP */
- 
+-	.map_pt_hook = paravirt_nop,
 -
-+#ifndef CONFIG_PARAVIRT
-+#define flush_tlb_others(mask, mm, va)		\
-+	native_flush_tlb_others(&mask, mm, va)
+ 	.alloc_pt = paravirt_nop,
+ 	.alloc_pd = paravirt_nop,
+ 	.alloc_pd_clone = paravirt_nop,
+diff -puN arch/i386/kernel/vmi.c~paravirt_ops-revert-map_pt_hook arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~paravirt_ops-revert-map_pt_hook
++++ a/arch/i386/kernel/vmi.c
+@@ -827,8 +827,10 @@ static inline int __init activate_vmi(vo
+ 		paravirt_ops.release_pt = vmi_release_pt;
+ 		paravirt_ops.release_pd = vmi_release_pd;
+ 	}
++#if 0
+ 	para_wrap(map_pt_hook, vmi_map_pt_hook, set_linear_mapping,
+ 		  SetLinearMapping);
++#endif
+ 
+ 	/*
+ 	 * These MUST always be patched.  Don't support indirect jumps
+diff -puN include/asm-i386/paravirt.h~paravirt_ops-revert-map_pt_hook include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~paravirt_ops-revert-map_pt_hook
++++ a/include/asm-i386/paravirt.h
+@@ -169,8 +169,6 @@ struct paravirt_ops
+ 	void (*flush_tlb_others)(const cpumask_t *cpus, struct mm_struct *mm,
+ 				 unsigned long va);
+ 
+-	void (*map_pt_hook)(int type, pte_t *va, u32 pfn);
+-
+ 	/* Hooks for allocating/releasing pagetable pages */
+ 	void (*alloc_pt)(u32 pfn);
+ 	void (*alloc_pd)(u32 pfn);
+@@ -732,11 +730,6 @@ static inline void flush_tlb_others(cpum
+ 	PVOP_VCALL3(flush_tlb_others, &cpumask, mm, va);
+ }
+ 
+-static inline void paravirt_map_pt_hook(int type, pte_t *va, u32 pfn)
+-{
+-	PVOP_VCALL3(map_pt_hook, type, va, pfn);
+-}
+-
+ static inline void paravirt_alloc_pt(unsigned pfn)
+ {
+ 	PVOP_VCALL1(alloc_pt, pfn);
+diff -puN include/asm-i386/pgtable.h~paravirt_ops-revert-map_pt_hook include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~paravirt_ops-revert-map_pt_hook
++++ a/include/asm-i386/pgtable.h
+@@ -267,7 +267,6 @@ extern void vmalloc_sync_all(void);
+  */
+ #define pte_update(mm, addr, ptep)		do { } while (0)
+ #define pte_update_defer(mm, addr, ptep)	do { } while (0)
+-#define paravirt_map_pt_hook(slot, va, pfn)	do { } while (0)
+ 
+ #define raw_ptep_get_and_clear(xp)     native_ptep_get_and_clear(xp)
+ #endif
+@@ -476,24 +475,10 @@ extern pte_t *lookup_address(unsigned lo
  #endif
  
- #define flush_tlb_kernel_range(start, end) flush_tlb_all()
+ #if defined(CONFIG_HIGHPTE)
+-#define pte_offset_map(dir, address)				\
+-({								\
+-	pte_t *__ptep;						\
+-	unsigned pfn = pmd_val(*(dir)) >> PAGE_SHIFT;	   	\
+-	__ptep = (pte_t *)kmap_atomic(pfn_to_page(pfn),KM_PTE0);\
+-	paravirt_map_pt_hook(KM_PTE0,__ptep, pfn);		\
+-	__ptep = __ptep + pte_index(address);			\
+-	__ptep;							\
+-})
+-#define pte_offset_map_nested(dir, address)			\
+-({								\
+-	pte_t *__ptep;						\
+-	unsigned pfn = pmd_val(*(dir)) >> PAGE_SHIFT;	   	\
+-	__ptep = (pte_t *)kmap_atomic(pfn_to_page(pfn),KM_PTE1);\
+-	paravirt_map_pt_hook(KM_PTE1,__ptep, pfn);		\
+-	__ptep = __ptep + pte_index(address);			\
+-	__ptep;							\
+-})
++#define pte_offset_map(dir, address) \
++	((pte_t *)kmap_atomic(pmd_page(*(dir)),KM_PTE0) + pte_index(address))
++#define pte_offset_map_nested(dir, address) \
++	((pte_t *)kmap_atomic(pmd_page(*(dir)),KM_PTE1) + pte_index(address))
+ #define pte_unmap(pte) kunmap_atomic(pte, KM_PTE0)
+ #define pte_unmap_nested(pte) kunmap_atomic(pte, KM_PTE1)
+ #else
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
