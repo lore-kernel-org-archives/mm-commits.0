@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-resiliency-test.patch added to -mm tree
-Date: Fri, 13 Apr 2007 12:37:09 -0700
-Message-ID: <200704131937.l3DJbAhi007766@shell0.pdx.osdl.net>
+Subject: + slub-remove-object-activities-out-of-checking-functions.patch added to -mm tree
+Date: Fri, 13 Apr 2007 12:39:22 -0700
+Message-ID: <200704131939.l3DJdMVW007818@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47712 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47796 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932431AbXDMThM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 15:37:12 -0400
+	id S932431AbXDMTjY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 15:39:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     slub: resiliency test
+     slub: remove object activities out of checking functions
 has been added to the -mm tree.  Its filename is
-     slub-core-resiliency-test.patch
+     slub-remove-object-activities-out-of-checking-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,102 +25,115 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: resiliency test
+Subject: slub: remove object activities out of checking functions
 From: Christoph Lameter <clameter@sgi.com>
 
-Add a test that can be performed on bootup to test the recoverability
-from slab corruption.
-
-Note that 2 of those tests are potentially dangerous. Off by default
+Make sure that the check function really only check things and do not perform
+activities.  Extract the tracing and object seeding out of the two check
+functions and place them into slab_alloc and slab_free
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   59 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 59 insertions(+)
+ mm/slub.c |   41 ++++++++++++++++++++---------------------
+ 1 files changed, 20 insertions(+), 21 deletions(-)
 
-diff -puN mm/slub.c~slub-core-resiliency-test mm/slub.c
---- a/mm/slub.c~slub-core-resiliency-test
+diff -puN mm/slub.c~slub-remove-object-activities-out-of-checking-functions mm/slub.c
+--- a/mm/slub.c~slub-remove-object-activities-out-of-checking-functions
 +++ a/mm/slub.c
-@@ -112,6 +112,9 @@
-  * - Variable sizing of the per node arrays
-  */
- 
-+/* Enable to test recovery from slab corruption on boot */
-+#undef SLUB_RESILIENCY_TEST
-+
- /*
-  * Flags from the regular SLAB that SLUB does not support:
-  */
-@@ -2473,6 +2476,61 @@ static int __init cpucache_init(void)
- __initcall(cpucache_init);
- #endif
- 
-+#ifdef SLUB_RESILIENCY_TEST
-+static void resiliency_test(void)
-+{
-+	u8 *p;
-+
-+	printk(KERN_ERR "SLUB resiliency testing\n");
-+	printk(KERN_ERR "-----------------------\n");
-+	printk(KERN_ERR "A. Corruption after allocation\n");
-+
-+	p = kzalloc(16, GFP_KERNEL);
-+	p[16] = 0x12;
-+	printk(KERN_ERR "\n1. kmalloc-16: Clobber Redzone/next pointer"
-+			" 0x12->%p\n\n", p + 16);
-+
-+	validate_slab_cache(kmalloc_caches + 4);
-+
-+	/* Hmmm... The next two are dangerous */
-+	p = kzalloc(32, GFP_KERNEL);
-+	p[32 + sizeof(void *)] = 0x34;
-+	printk(KERN_ERR "\n2. kmalloc-32: Clobber next pointer/next slab"
-+		 	" 0x34 -> %p\n", p);
-+	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
-+
-+	validate_slab_cache(kmalloc_caches + 5);
-+	p = kzalloc(64, GFP_KERNEL);
-+	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
-+	*p = 0x56;
-+	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->%p\n",
-+									p);
-+	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
-+	validate_slab_cache(kmalloc_caches + 6);
-+
-+	printk(KERN_ERR "\nB. Corruption after free\n");
-+	p = kzalloc(128, GFP_KERNEL);
-+	kfree(p);
-+	*p = 0x78;
-+	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->%p\n\n", p);
-+	validate_slab_cache(kmalloc_caches + 7);
-+
-+	p = kzalloc(256, GFP_KERNEL);
-+	kfree(p);
-+	p[50] = 0x9a;
-+	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->%p\n\n", p);
-+	validate_slab_cache(kmalloc_caches + 8);
-+
-+	p = kzalloc(512, GFP_KERNEL);
-+	kfree(p);
-+	p[512] = 0xab;
-+	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->%p\n\n", p);
-+	validate_slab_cache(kmalloc_caches + 9);
-+}
-+#else
-+static void resiliency_test(void) {};
-+#endif
-+
- /*
-  * These are not as efficient as kmalloc for the non debug case.
-  * We do not have the page struct available so we have to touch one
-@@ -3042,6 +3100,7 @@ static int __init slab_sysfs_init(void)
- 		kfree(al);
+@@ -574,7 +574,7 @@ static int check_slab(struct kmem_cache 
+ 		return 0;
+ 	}
+ 	if (page->inuse > s->objects) {
+-		printk(KERN_ERR "SLUB: %s Inuse %u > max %u in slab "
++		printk(KERN_ERR "SLUB: %s inuse %u > max %u in slab "
+ 			"page @0x%p flags=%lx mapping=0x%p count=%d\n",
+ 			s->name, page->inuse, s->objects, page, page->flags,
+ 			page->mapping, page_count(page));
+@@ -676,12 +676,13 @@ static int alloc_object_checks(struct km
+ 		printk(KERN_ERR "SLUB: %s Object 0x%p@0x%p "
+ 			"already allocated.\n",
+ 			s->name, object, page);
+-		goto dump;
++		dump_stack();
++		goto bad;
  	}
  
-+	resiliency_test();
- 	return 0;
+ 	if (!check_valid_pointer(s, page, object)) {
+ 		object_err(s, page, object, "Freelist Pointer check fails");
+-		goto dump;
++		goto bad;
+ 	}
+ 
+ 	if (!object)
+@@ -689,17 +690,8 @@ static int alloc_object_checks(struct km
+ 
+ 	if (!check_object(s, page, object, 0))
+ 		goto bad;
+-	init_object(s, object, 1);
+ 
+-	if (s->flags & SLAB_TRACE) {
+-		printk(KERN_INFO "TRACE %s alloc 0x%p inuse=%d fp=0x%p\n",
+-			s->name, object, page->inuse,
+-			page->freelist);
+-		dump_stack();
+-	}
+ 	return 1;
+-dump:
+-	dump_stack();
+ bad:
+ 	if (PageSlab(page)) {
+ 		/*
+@@ -750,20 +742,12 @@ static int free_object_checks(struct kme
+ 				"slab_free : no slab(NULL) for object 0x%p.\n",
+ 						object);
+ 		else
+-		printk(KERN_ERR "slab_free %s(%d): object at 0x%p"
++			printk(KERN_ERR "slab_free %s(%d): object at 0x%p"
+ 				" belongs to slab %s(%d)\n",
+ 				s->name, s->size, object,
+ 				page->slab->name, page->slab->size);
+ 		goto fail;
+ 	}
+-	if (s->flags & SLAB_TRACE) {
+-		printk(KERN_INFO "TRACE %s free 0x%p inuse=%d fp=0x%p\n",
+-			s->name, object, page->inuse,
+-			page->freelist);
+-		print_section("Object", object, s->objsize);
+-		dump_stack();
+-	}
+-	init_object(s, object, 0);
+ 	return 1;
+ fail:
+ 	dump_stack();
+@@ -1294,6 +1278,13 @@ debug:
+ 		goto another_slab;
+ 	if (s->flags & SLAB_STORE_USER)
+ 		set_track(s, object, TRACK_ALLOC, addr);
++	if (s->flags & SLAB_TRACE) {
++		printk(KERN_INFO "TRACE %s alloc 0x%p inuse=%d fp=0x%p\n",
++			s->name, object, page->inuse,
++			page->freelist);
++		dump_stack();
++	}
++	init_object(s, object, 1);
+ 	goto have_object;
+ }
+ 
+@@ -1376,6 +1367,14 @@ debug:
+ 		remove_full(s, page);
+ 	if (s->flags & SLAB_STORE_USER)
+ 		set_track(s, x, TRACK_FREE, addr);
++	if (s->flags & SLAB_TRACE) {
++		printk(KERN_INFO "TRACE %s free 0x%p inuse=%d fp=0x%p\n",
++			s->name, object, page->inuse,
++			page->freelist);
++		print_section("Object", (void *)object, s->objsize);
++		dump_stack();
++	}
++	init_object(s, object, 0);
+ 	goto checks_ok;
  }
  
 _
@@ -180,8 +193,6 @@ slub-core-add-after-object-padding.patch
 slub-core-resiliency-fixups.patch
 slub-core-resiliency-fixups-fix.patch
 slub-core-resiliency-test.patch
-slub-add-slabinfo-tool.patch
-slub-add-slabinfo-tool-update-slabinfoc.patch
 make-page-private-usable-in-compound-pages-v1.patch
 make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
 optimize-compound_head-by-avoiding-a-shared-page.patch
@@ -194,10 +205,12 @@ slub-validation-of-slabs-metadata-and-guard-zones.patch
 slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-remove-object-activities-out-of-checking-functions.patch
 slub-user-documentation.patch
 slub-user-documentation-fix.patch
 slub-mm-only-make-slub-the-default-slab-allocator.patch
-remove-object-activities-out-of-checking-functions.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
 quicklists-for-page-table-pages.patch
 quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
 quicklist-support-for-ia64.patch
