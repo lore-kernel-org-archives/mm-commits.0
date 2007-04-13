@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-only-i386-for-debugging-make-the-initial-page-table-setup-less-forgiving.patch added to -mm tree
-Date: Fri, 13 Apr 2007 14:57:08 -0700
-Message-ID: <200704132157.l3DLv8Ma010522@shell0.pdx.osdl.net>
+Subject: + make-kthread_create-more-scalable-fix.patch added to -mm tree
+Date: Fri, 13 Apr 2007 15:04:44 -0700
+Message-ID: <200704132204.l3DM4iKq010694@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:54861 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:55365 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753667AbXDMV5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 17:57:14 -0400
+	id S1753679AbXDMWEw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 18:04:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hpa@zytor.com, ak@suse.de, jeremy@goop.org
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, oleg@tv-sign.ru
 
 
 The patch titled
-     i386: for debugging, make the initial page table setup less forgiving.
+     make-kthread_create-more-scalable-fix
 has been added to the -mm tree.  Its filename is
-     mm-only-i386-for-debugging-make-the-initial-page-table-setup-less-forgiving.patch
+     make-kthread_create-more-scalable-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,71 +25,199 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: for debugging, make the initial page table setup less forgiving.
-From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: make-kthread_create-more-scalable-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We just discovered that the accounting for initial memory usage (head.S:
-INIT_MAP_BEYOND_END) has been way, way off for a very long time.  This
-patch makes the initial page table not round up to the nearest 4M boundary,
-but instead stop dead (and zero the rest of the final page table) as soon
-as it hits the configured limit.
-
-This patch is intended as a debugging aid.  If it goes into the kernel, it
-should go in at the very beginning of a review cycle, as it may very well
-expose real failures (without Jeremy's patch to fix the accounting, it
-*will* crash.)
-
-Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Andi Kleen <ak@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/head.S |   22 +++++++++++++++++-----
- 1 files changed, 17 insertions(+), 5 deletions(-)
+ kernel/kthread.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN arch/i386/kernel/head.S~mm-only-i386-for-debugging-make-the-initial-page-table-setup-less-forgiving arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~mm-only-i386-for-debugging-make-the-initial-page-table-setup-less-forgiving
-+++ a/arch/i386/kernel/head.S
-@@ -146,15 +146,27 @@ page_pde_offset = (__PAGE_OFFSET >> 20);
- 	movl %ecx,page_pde_offset(%edx)		/* Store kernel PDE entry */
- 	addl $4,%edx
- 	movl $1024, %ecx
-+	/*
-+	 * End condition: we must map up to and including
-+	 * INIT_MAP_BEYOND_END bytes beyond the end of our
-+	 * own page tables; 0x1000 is the size of the page
-+	 * table were about to write, and +0x007 is the
-+	 * attribute bits.
-+	 */
-+	leal (INIT_MAP_BEYOND_END+0x1000+0x007)(%edi),%ebp
- 11:
- 	stosl
- 	addl $0x1000,%eax
--	loop 11b
--	/* End condition: we must map up to and including INIT_MAP_BEYOND_END */
--	/* bytes beyond the end of our own page tables; the +0x007 is the attribute bits */
--	leal (INIT_MAP_BEYOND_END+0x007)(%edi),%ebp
- 	cmpl %ebp,%eax
--	jb 10b
-+	jae 12f
-+	loop 11b
-+	jmp 10b
-+12:
-+	/* Clear the remainder of the last page table */
-+	decl %ecx
-+	xorl %eax,%eax
-+	rep; stosl
-+
- 	movl %edi,(init_pg_tables_end - __PAGE_OFFSET)
+diff -puN kernel/kthread.c~make-kthread_create-more-scalable-fix kernel/kthread.c
+--- a/kernel/kthread.c~make-kthread_create-more-scalable-fix
++++ a/kernel/kthread.c
+@@ -139,7 +139,9 @@ struct task_struct *kthread_create(int (
+ 		return ERR_PTR(create.result);
  
- 	xorl %ebx,%ebx				/* This is the boot CPU (BSP) */
+ 	wait_for_completion(&create.started);
++	read_lock(&tasklist_lock);
+ 	ret = find_task_by_pid(create.result);
++	read_unlock(&tasklist_lock);
+ 
+ 	va_start(args, namefmt);
+ 	vsnprintf(ret->comm, sizeof(ret->comm), namefmt, args);
 _
 
-Patches currently in -mm which might be from hpa@zytor.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-kbuild.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
-mm-only-i386-for-debugging-make-the-initial-page-table-setup-less-forgiving.patch
-devpts-add-fsnotify-create-event.patch
-vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-avr32.patch
+git-avr32-fixup.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-sysfs-crash-debugging.patch
+sysfs-kill-unnecessary-attribute-owner-update-fix.patch
+sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+ieee1394-remove-use-of-subsys-rwsem.patch
+ieee1394-remove-use-of-subsys-rwsem-2.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+git-ocfs2.patch
+git-parisc.patch
+git-r8169-fixup.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+fix-x86_64-mm-sched-clock-share.patch
+fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
+revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+xfs-clean-up-shrinker-games.patch
+pktgen-add-try_to_freeze.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+make-kthread_create-more-scalable-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
