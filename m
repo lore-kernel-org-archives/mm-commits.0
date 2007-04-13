@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-madvise-avoid-exclusive-mmap_sem.patch added to -mm tree
-Date: Fri, 13 Apr 2007 11:57:34 -0700
-Message-ID: <200704131857.l3DIvYV4006942@shell0.pdx.osdl.net>
+Subject: + round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch added to -mm tree
+Date: Fri, 13 Apr 2007 11:59:38 -0700
+Message-ID: <200704131859.l3DIxci7006993@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46267 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46306 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754137AbXDMS5w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 14:57:52 -0400
+	id S1754141AbXDMS7m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 14:59:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, hugh@veritas.com, riel@redhat.com
+Cc: milindchoudhary@gmail.com, lethal@linux-sh.org
 
 
 The patch titled
-     mm: madvise avoid exclusive mmap_sem
+     ROUND_UP macro cleanup in arch/sh64/kernel/pci_sh5.c
 has been added to the -mm tree.  Its filename is
-     mm-madvise-avoid-exclusive-mmap_sem.patch
+     round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,103 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: madvise avoid exclusive mmap_sem
-From: Nick Piggin <npiggin@suse.de>
+Subject: ROUND_UP macro cleanup in arch/sh64/kernel/pci_sh5.c
+From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-Avoid down_write of the mmap_sem in madvise when we can help it.
+ROUND_UP macro cleanup, use ALIGN where ever appropriate.
 
-Acked-by: Hugh Dickins <hugh@veritas.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   33 +++++++++++++++++++++++++++++----
- 1 files changed, 29 insertions(+), 4 deletions(-)
+ arch/sh64/kernel/pci_sh5.c |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN mm/madvise.c~mm-madvise-avoid-exclusive-mmap_sem mm/madvise.c
---- a/mm/madvise.c~mm-madvise-avoid-exclusive-mmap_sem
-+++ a/mm/madvise.c
-@@ -12,6 +12,24 @@
- #include <linux/hugetlb.h>
- 
- /*
-+ * Any behaviour which results in changes to the vma->vm_flags needs to
-+ * take mmap_sem for writing. Others, which simply traverse vmas, need
-+ * to only take it for reading.
-+ */
-+static int madvise_need_mmap_write(int behavior)
-+{
-+	switch (behavior) {
-+	case MADV_REMOVE:
-+	case MADV_WILLNEED:
-+	case MADV_DONTNEED:
-+		return 0;
-+	default:
-+		/* be safe, default to 1. list exceptions explicitly */
-+		return 1;
-+	}
-+}
-+
-+/*
-  * We can potentially split a vm area into separate
-  * areas, each area with its own behavior.
-  */
-@@ -183,9 +201,9 @@ static long madvise_remove(struct vm_are
- 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
- 
- 	/* vmtruncate_range needs to take i_mutex and i_alloc_sem */
--	up_write(&current->mm->mmap_sem);
-+	up_read(&current->mm->mmap_sem);
- 	error = vmtruncate_range(mapping->host, offset, endoff);
--	down_write(&current->mm->mmap_sem);
-+	down_read(&current->mm->mmap_sem);
- 	return error;
+diff -puN arch/sh64/kernel/pci_sh5.c~round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c arch/sh64/kernel/pci_sh5.c
+--- a/arch/sh64/kernel/pci_sh5.c~round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c
++++ a/arch/sh64/kernel/pci_sh5.c
+@@ -375,8 +375,6 @@ irqreturn_t pcish5_serr_irq(int irq, voi
+ 	return IRQ_NONE;
  }
  
-@@ -270,7 +288,10 @@ asmlinkage long sys_madvise(unsigned lon
- 	int error = -EINVAL;
- 	size_t len;
+-#define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+-
+ static void __init
+ pcibios_size_bridge(struct pci_bus *bus, struct resource *ior,
+ 		    struct resource *memr)
+@@ -433,8 +431,8 @@ pcibios_size_bridge(struct pci_bus *bus,
+ 	mem_res.end -= mem_res.start;
  
--	down_write(&current->mm->mmap_sem);
-+	if (madvise_need_mmap_write(behavior))
-+		down_write(&current->mm->mmap_sem);
-+	else
-+		down_read(&current->mm->mmap_sem);
+ 	/* Align the sizes up by bridge rules */
+-	io_res.end = ROUND_UP(io_res.end, 4*1024) - 1;
+-	mem_res.end = ROUND_UP(mem_res.end, 1*1024*1024) - 1;
++	io_res.end = ALIGN(io_res.end, 4*1024) - 1;
++	mem_res.end = ALIGN(mem_res.end, 1*1024*1024) - 1;
  
- 	if (start & ~PAGE_MASK)
- 		goto out;
-@@ -332,6 +353,10 @@ asmlinkage long sys_madvise(unsigned lon
- 			vma = find_vma(current->mm, start);
+ 	/* Adjust the bridge's allocation requirements */
+ 	bridge->resource[0].end = bridge->resource[0].start + io_res.end;
+@@ -447,18 +445,16 @@ pcibios_size_bridge(struct pci_bus *bus,
+ 
+ 	/* adjust parent's resource requirements */
+ 	if (ior) {
+-		ior->end = ROUND_UP(ior->end, 4*1024);
++		ior->end = ALIGN(ior->end, 4*1024);
+ 		ior->end += io_res.end;
  	}
- out:
--	up_write(&current->mm->mmap_sem);
-+	if (madvise_need_mmap_write(behavior))
-+		up_write(&current->mm->mmap_sem);
-+	else
-+		up_read(&current->mm->mmap_sem);
-+
- 	return error;
+ 
+ 	if (memr) {
+-		memr->end = ROUND_UP(memr->end, 1*1024*1024);
++		memr->end = ALIGN(memr->end, 1*1024*1024);
+ 		memr->end += mem_res.end;
+ 	}
  }
+ 
+-#undef ROUND_UP
+-
+ static void __init pcibios_size_bridges(void)
+ {
+ 	struct resource io_res, mem_res;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from milindchoudhary@gmail.com are
 
-mm-remove-gcc-workaround.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-mm-simplify-filemap_nopage.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault.patch
-mm-remove-legacy-cruft.patch
-mm-debug-check-for-the-fault-vs-invalidate-race.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-mm-madvise-avoid-exclusive-mmap_sem.patch
-exec-fix-remove_arg_zero.patch
-exec-fix-remove_arg_zero-add-comment.patch
-as-fix-antic_expire-check.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
+unused-round_up-name_offset-macro-in-arch-powerpc.patch
+spin_lock_unlocked-cleanup-in-arch-powerpc.patch
+git-ieee1394.patch
+spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
+round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+round_up-macro-cleanup-in-drivers-pci.patch
+pcie-remove-spin_lock_unlocked.patch
+round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
+round_up-macro-cleanup-in-drivers-char-lpc.patch
+round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
+round_up-macro-cleanup-in-fs-smbfs-requestc.patch
