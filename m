@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + wait_for_helper-remove-unneeded-do_sigaction.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:53:17 -0700
-Message-ID: <200704132053.l3DKrHIb009146@shell0.pdx.osdl.net>
+Subject: + worker_thread-dont-play-with-sigchld.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:54:10 -0700
+Message-ID: <200704132054.l3DKsA2j009165@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50885 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50911 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965345AbXDMUxc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:53:32 -0400
+	id S965356AbXDMUyV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:54:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ebiederm@xmission.com, rusty@rustcorp.com.au
+Cc: oleg@tv-sign.ru, ebiederm@xmission.com
 
 
 The patch titled
-     wait_for_helper: remove unneeded do_sigaction()
+     worker_thread: don't play with SIGCHLD
 has been added to the -mm tree.  Its filename is
-     wait_for_helper-remove-unneeded-do_sigaction.patch
+     worker_thread-dont-play-with-sigchld.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: wait_for_helper: remove unneeded do_sigaction()
+Subject: worker_thread: don't play with SIGCHLD
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-allow_signal(SIGCHLD) does all necessary job, no need to call do_sigaction()
-prior to.
+worker_thread() inherits ignored SIGCHLD from its parent, kthreadd.  We can
+remove unneeded do_sigaction().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    5 -----
- 1 files changed, 5 deletions(-)
+ kernel/workqueue.c |    7 -------
+ 1 files changed, 7 deletions(-)
 
-diff -puN kernel/kmod.c~wait_for_helper-remove-unneeded-do_sigaction kernel/kmod.c
---- a/kernel/kmod.c~wait_for_helper-remove-unneeded-do_sigaction
-+++ a/kernel/kmod.c
-@@ -185,14 +185,9 @@ static int wait_for_helper(void *data)
+diff -puN kernel/workqueue.c~worker_thread-dont-play-with-sigchld kernel/workqueue.c
+--- a/kernel/workqueue.c~worker_thread-dont-play-with-sigchld
++++ a/kernel/workqueue.c
+@@ -289,7 +289,6 @@ static int worker_thread(void *__cwq)
  {
- 	struct subprocess_info *sub_info = data;
- 	pid_t pid;
+ 	struct cpu_workqueue_struct *cwq = __cwq;
+ 	DEFINE_WAIT(wait);
 -	struct k_sigaction sa;
  
- 	/* Install a handler: if SIGCLD isn't handled sys_wait4 won't
- 	 * populate the status, but will return -ECHILD. */
+ 	if (!cwq->wq->freezeable)
+ 		current->flags |= PF_NOFREEZE;
+@@ -301,12 +300,6 @@ static int worker_thread(void *__cwq)
+ 	 */
+ 	numa_default_policy();
+ 
+-	/* SIG_IGN makes children autoreap: see do_notify_parent(). */
 -	sa.sa.sa_handler = SIG_IGN;
 -	sa.sa.sa_flags = 0;
 -	siginitset(&sa.sa.sa_mask, sigmask(SIGCHLD));
--	do_sigaction(SIGCHLD, &sa, NULL);
- 	allow_signal(SIGCHLD);
- 
- 	pid = kernel_thread(____call_usermodehelper, sub_info, SIGCHLD);
+-	do_sigaction(SIGCHLD, &sa, (struct k_sigaction *)0);
+-
+ 	for (;;) {
+ 		prepare_to_wait(&cwq->more_work, &wait, TASK_INTERRUPTIBLE);
+ 		if (!freezing(current) && !cwq->should_stop
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -130,4 +135,5 @@ nlmclnt_recovery-dont-use-clone_sighand.patch
 usbatm_heavy_init-dont-use-clone_sighand.patch
 pnpbios_thread_init-dont-use-clone_sighand.patch
 wait_for_helper-remove-unneeded-do_sigaction.patch
+worker_thread-dont-play-with-sigchld.patch
 dont-init-pgrp-and-__session-in-init_signals.patch
