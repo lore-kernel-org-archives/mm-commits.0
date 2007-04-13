@@ -1,65 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - git-avr32-fixup.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 15:48:53 -0700
-Message-ID: <200704132248.l3DMmrbw011703@shell0.pdx.osdl.net>
+Subject: + revert-gitpowerpc-ehea-changes.patch added to -mm tree
+Date: Fri, 13 Apr 2007 16:02:13 -0700
+Message-ID: <200704132302.l3DN2DDM012015@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:58585 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59232 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965645AbXDMWsz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 18:48:55 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l3DMmsIs004987
-	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 13 Apr 2007 15:48:54 -0700
+	id S1030875AbXDMXCX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:02:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org, paulus@samba.org
 
 
 The patch titled
-     git-avr32-fixup
-has been removed from the -mm tree.  Its filename was
-     git-avr32-fixup.patch
+     revert-gitpowerpc-ehea-changes
+has been added to the -mm tree.  Its filename is
+     revert-gitpowerpc-ehea-changes.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-avr32-fixup
+Subject: revert-gitpowerpc-ehea-changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Prevent git-netdev-all from throwing a megareject
+
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/kernel/traps.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/net/ehea/ehea_main.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/avr32/kernel/traps.c~git-avr32-fixup arch/avr32/kernel/traps.c
---- a/arch/avr32/kernel/traps.c~git-avr32-fixup
-+++ a/arch/avr32/kernel/traps.c
-@@ -17,9 +17,8 @@
- #include <asm/addrspace.h>
- #include <asm/mmu_context.h>
- #include <asm/ocd.h>
--<<<<<<< HEAD/arch/avr32/kernel/traps.c
--#include <asm/mmu_context.h>
--#include <asm/uaccess.h>
-+#include <asm/sysreg.h>
-+#include <asm/traps.h>
+diff -puN drivers/net/ehea/ehea_main.c~revert-gitpowerpc-ehea-changes drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~revert-gitpowerpc-ehea-changes
++++ a/drivers/net/ehea/ehea_main.c
+@@ -2320,7 +2320,7 @@ static int ehea_setup_single_port(struct
+ 	struct net_device *dev = port->netdev;
+ 	struct ehea_adapter *adapter = port->adapter;
+ 	struct hcp_ehea_port_cb4 *cb4;
+-	const u32 *dn_log_port_id;
++	u32 *dn_log_port_id;
+ 	int jumbo = 0;
  
- static void dump_mem(const char *str, unsigned long bottom, unsigned long top)
+ 	sema_init(&port->port_lock, 1);
+@@ -2336,7 +2336,7 @@ static int ehea_setup_single_port(struct
+ 	port->of_dev_node = dn;
+ 
+ 	/* Determine logical port id */
+-	dn_log_port_id = of_get_property(dn, "ibm,hea-port-no", NULL);
++	dn_log_port_id = (u32*)get_property(dn, "ibm,hea-port-no", NULL);
+ 
+ 	if (!dn_log_port_id) {
+ 		ehea_error("bad device node: dn_log_port_id=%p",
+@@ -2492,7 +2492,7 @@ static int __devinit ehea_probe(struct i
+ 				const struct of_device_id *id)
  {
-@@ -152,10 +151,6 @@ void dump_stack(void)
- 	show_stack(NULL, NULL);
- }
- EXPORT_SYMBOL(dump_stack);
--=======
--#include <asm/sysreg.h>
--#include <asm/traps.h>
-->>>>>>> /arch/avr32/kernel/traps.c
+ 	struct ehea_adapter *adapter;
+-	const u64 *adapter_handle;
++	u64 *adapter_handle;
+ 	int ret;
  
- ATOMIC_NOTIFIER_HEAD(avr32_die_chain);
+ 	adapter = kzalloc(sizeof(*adapter), GFP_KERNEL);
+@@ -2502,7 +2502,7 @@ static int __devinit ehea_probe(struct i
+ 		goto out;
+ 	}
  
+-	adapter_handle = of_get_property(dev->ofdev.node, "ibm,hea-handle",
++	adapter_handle = (u64*)get_property(dev->ofdev.node, "ibm,hea-handle",
+ 					    NULL);
+ 	if (adapter_handle)
+ 		adapter->handle = *adapter_handle;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,12 +87,8 @@ git-acpi.patch
 git-alsa.patch
 git-alsa-fixup.patch
 git-agpgart.patch
-git-avr32-fixup.patch
 git-powerpc.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-sysfs-crash-debugging.patch
-sysfs-kill-unnecessary-attribute-owner-update-fix.patch
-sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch
 device_schedule_callback-needs-a-module-reference-fix.patch
 git-drm.patch
 git-dvb.patch
@@ -96,7 +109,9 @@ git-md-accel-fix.patch
 git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 git-mtd.patch
 git-ubi.patch
+revert-gitpowerpc-ehea-changes.patch
 git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
 vioc-warning-fix.patch
 vioc-cast-warning-fix.patch
 git-e1000.patch
