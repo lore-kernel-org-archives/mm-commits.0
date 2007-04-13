@@ -1,80 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + reapply-gitpowerpc-ehea-changes.patch added to -mm tree
-Date: Fri, 13 Apr 2007 16:02:17 -0700
-Message-ID: <200704132302.l3DN2Hc1012018@shell0.pdx.osdl.net>
+Subject: - revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:09:21 -0700
+Message-ID: <200704132309.l3DN9Lh8012158@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:59234 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:59559 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030879AbXDMXCZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:02:25 -0400
+	id S965686AbXDMXJ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:09:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org, paulus@samba.org
+To: akpm@linux-foundation.org, ak@muc.de, mingo@elte.hu, prarit@redhat.com, zwane@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reapply-gitpowerpc-ehea-changes
-has been added to the -mm tree.  Its filename is
-     reapply-gitpowerpc-ehea-changes.patch
+     revert x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata
+has been removed from the -mm tree.  Its filename was
+     revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: reapply-gitpowerpc-ehea-changes
+Subject: revert x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+arch/i386/kernel/vsyscall.S: Assembler messages:
+arch/i386/kernel/vsyscall.S:3: Warning: ignoring changed section attributes for .data
+
+Patch needs an update: drop it.
+
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Zwane Mwaikambo <zwane@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea_main.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/i386/kernel/sysenter.c |    2 +-
+ include/linux/init.h        |    7 +------
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/ehea/ehea_main.c~reapply-gitpowerpc-ehea-changes drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~reapply-gitpowerpc-ehea-changes
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -2518,15 +2518,14 @@ static int ehea_setup_ports(struct ehea_
+diff -puN arch/i386/kernel/sysenter.c~revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata arch/i386/kernel/sysenter.c
+--- a/arch/i386/kernel/sysenter.c~revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata
++++ a/arch/i386/kernel/sysenter.c
+@@ -72,7 +72,7 @@ extern const char vsyscall_int80_start, 
+ extern const char vsyscall_sysenter_start, vsyscall_sysenter_end;
+ static struct page *syscall_pages[1];
+ 
+-int __cpuinit sysenter_setup(void)
++int __init sysenter_setup(void)
  {
- 	struct device_node *lhea_dn;
- 	struct device_node *eth_dn = NULL;
--
--	u32 *dn_log_port_id;
-+	const u32 *dn_log_port_id;
- 	int port_setup_ok = 0;
- 	int i = 0;
+ 	void *syscall_page = (void *)get_zeroed_page(GFP_ATOMIC);
+ 	syscall_pages[0] = virt_to_page(syscall_page);
+diff -puN include/linux/init.h~revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata include/linux/init.h
+--- a/include/linux/init.h~revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata
++++ a/include/linux/init.h
+@@ -52,14 +52,9 @@
+ #endif
  
- 	lhea_dn = adapter->ebus_dev->ofdev.node;
- 	while ((eth_dn = of_get_next_child(lhea_dn, eth_dn))) {
+ /* For assembly routines */
+-#ifdef CONFIG_HOTPLUG_CPU
+-#define __INIT		.section	".text","ax"
+-#define __INITDATA	.section	".data","aw"
+-#else
+ #define __INIT		.section	".init.text","ax"
+-#define __INITDATA	.section	".init.data","aw"
+-#endif
+ #define __FINIT		.previous
++#define __INITDATA	.section	".init.data","aw"
  
--		dn_log_port_id = (u32*)get_property(eth_dn, "ibm,hea-port-no",
-+		dn_log_port_id = of_get_property(eth_dn, "ibm,hea-port-no",
- 						    NULL);
- 		if (!dn_log_port_id) {
- 			ehea_error("bad device node: eth_dn name=%s",
-@@ -2680,7 +2679,7 @@ static int __devinit ehea_probe_adapter(
- 					const struct of_device_id *id)
- {
- 	struct ehea_adapter *adapter;
--	u64 *adapter_handle;
-+	const u64 *adapter_handle;
- 	int ret;
- 
- 	if (!dev || !dev->ofdev.node) {
-@@ -2697,7 +2696,7 @@ static int __devinit ehea_probe_adapter(
- 
- 	adapter->ebus_dev = dev;
- 
--	adapter_handle = (u64*)get_property(dev->ofdev.node, "ibm,hea-handle",
-+	adapter_handle = of_get_property(dev->ofdev.node, "ibm,hea-handle",
- 					    NULL);
- 	if (adapter_handle)
- 		adapter->handle = *adapter_handle;
+ #ifndef __ASSEMBLY__
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,8 +135,6 @@ git-wireless-vs-git-net-2.patch
 git-wireless-vs-git-net-3.patch
 revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
 revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-fix-x86_64-mm-sched-clock-share.patch
-fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
 revert-x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
 rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
