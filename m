@@ -1,96 +1,283 @@
 From: akpm@linux-foundation.org
-Subject: - i386-update-smp_call_function-comments.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:31:02 -0700
-Message-ID: <200704132331.l3DNV2Zr012792@shell0.pdx.osdl.net>
+Subject: - x86-clean-up-identify_cpu.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:30:54 -0700
+Message-ID: <200704132330.l3DNUsHE012781@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60756 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60747 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161257AbXDMXbF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:31:05 -0400
+	id S1161274AbXDMXbA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:31:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, jeremy@xensource.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@suse.de, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: update smp_call_function* comments
+     x86: clean up identify_cpu
 has been removed from the -mm tree.  Its filename was
-     i386-update-smp_call_function-comments.patch
+     x86-clean-up-identify_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: update smp_call_function* comments
+Subject: x86: clean up identify_cpu
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Update documentation for i386 smp_call_function* functions.
+identify_cpu() is used to identify both the boot CPU and secondary CPUs,
+but it performs some actions which only apply to the boot CPU.  Those
+functions are therefore really __init functions, but because they're called
+by identify_cpu(), they must be marked __cpuinit.
+
+This patch splits identify_cpu() into identify_boot_cpu() and
+identify_secondary_cpu(), and calls the appropriate init functions from
+each.  Also, identify_boot_cpu() and all the functions it dominates are
+marked __init.
+
+The same change applies to both i386 and x86_64, and both have to be
+changed together because they share the mtrr setup code.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smp.c |   25 +++++++++++++++----------
- 1 files changed, 15 insertions(+), 10 deletions(-)
+ arch/i386/kernel/cpu/common.c    |   37 ++++++++++++++++-------
+ arch/i386/kernel/cpu/mtrr/main.c |    4 +-
+ arch/i386/kernel/smpboot.c       |    2 -
+ arch/x86_64/kernel/bugs.c        |    2 -
+ arch/x86_64/kernel/setup.c       |   45 ++++++++++++++++++++---------
+ arch/x86_64/kernel/smpboot.c     |    2 -
+ include/asm-i386/processor.h     |    3 +
+ include/asm-x86_64/processor.h   |    3 +
+ 8 files changed, 66 insertions(+), 32 deletions(-)
 
-diff -puN arch/i386/kernel/smp.c~i386-update-smp_call_function-comments arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~i386-update-smp_call_function-comments
-+++ a/arch/i386/kernel/smp.c
-@@ -547,8 +547,10 @@ static void __smp_call_function(void (*f
-  * @info: An arbitrary pointer to pass to the function.
-  * @wait: If true, wait (atomically) until function has completed on other CPUs.
-  *
-- * Returns 0 on success, else a negative status code. Does not return until
-- * remote CPUs are nearly ready to execute <<func>> or are or have finished.
-+  * Returns 0 on success, else a negative status code.
-+ *
-+ * If @wait is true, then returns once @func has returned; otherwise
-+ * it returns just before the target cpu calls @func.
-  *
-  * You must not call this function with disabled interrupts or from a
-  * hardware interrupt handler or from a bottom half handler.
-@@ -610,11 +612,13 @@ int native_smp_call_function_mask(cpumas
-  * smp_call_function(): Run a function on all other CPUs.
-  * @func: The function to run. This must be fast and non-blocking.
-  * @info: An arbitrary pointer to pass to the function.
-- * @nonatomic: currently unused.
-+ * @nonatomic: Unused.
-  * @wait: If true, wait (atomically) until function has completed on other CPUs.
-  *
-- * Returns 0 on success, else a negative status code. Does not return until
-- * remote CPUs are nearly ready to execute <<func>> or are or have executed.
-+ * Returns 0 on success, else a negative status code.
-+ *
-+ * If @wait is true, then returns once @func has returned; otherwise
-+ * it returns just before the target cpu calls @func.
-  *
-  * You must not call this function with disabled interrupts or from a
-  * hardware interrupt handler or from a bottom half handler.
-@@ -626,17 +630,18 @@ int smp_call_function(void (*func) (void
- }
- EXPORT_SYMBOL(smp_call_function);
- 
--/*
-+/**
-  * smp_call_function_single - Run a function on another CPU
-+ * @cpu: The target CPU.  Cannot be the calling CPU.
-  * @func: The function to run. This must be fast and non-blocking.
-  * @info: An arbitrary pointer to pass to the function.
-- * @nonatomic: Currently unused.
-+ * @nonatomic: Unused.
-  * @wait: If true, wait until function has completed on other CPUs.
-  *
-- * Retrurns 0 on success, else a negative status code.
-+ * Returns 0 on success, else a negative status code.
-  *
-- * Does not return until the remote CPU is nearly ready to execute <func>
-- * or is or has executed.
-+ * If @wait is true, then returns once @func has returned; otherwise
-+ * it returns just before the target cpu calls @func.
+diff -puN arch/i386/kernel/cpu/common.c~x86-clean-up-identify_cpu arch/i386/kernel/cpu/common.c
+--- a/arch/i386/kernel/cpu/common.c~x86-clean-up-identify_cpu
++++ a/arch/i386/kernel/cpu/common.c
+@@ -394,7 +394,7 @@ __setup("serialnumber", x86_serial_nr_se
+ /*
+  * This does the hard work of actually picking apart the CPU stuff...
   */
- int smp_call_function_single(int cpu, void (*func) (void *info), void *info,
- 			     int nonatomic, int wait)
+-void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
++static void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
+ {
+ 	int i;
+ 
+@@ -490,30 +490,43 @@ void __cpuinit identify_cpu(struct cpuin
+ 	for (i = 0; i < NCAPINTS; i++)
+ 		printk(" %08lx", c->x86_capability[i]);
+ 	printk("\n");
++}
++
++void __init identify_boot_cpu(void)
++{
++	identify_cpu(&boot_cpu_data);
++
++	/* Init Machine Check Exception if available. */
++	mcheck_init(&boot_cpu_data);
++
++	sysenter_setup();
++	enable_sep_cpu();
+ 
++	mtrr_bp_init();
++}
++
++void __cpuinit identify_secondary_cpu(struct cpuinfo_x86 *c)
++{
++	int i;
++
++	BUG_ON(c == &boot_cpu_data);
++	identify_cpu(c);
+ 	/*
+ 	 * On SMP, boot_cpu_data holds the common feature set between
+ 	 * all CPUs; so make sure that we indicate which features are
+ 	 * common between the CPUs.  The first time this routine gets
+ 	 * executed, c == &boot_cpu_data.
++	 * AND the already accumulated flags with these
+ 	 */
+-	if ( c != &boot_cpu_data ) {
+-		/* AND the already accumulated flags with these */
+-		for ( i = 0 ; i < NCAPINTS ; i++ )
+-			boot_cpu_data.x86_capability[i] &= c->x86_capability[i];
+-	}
++	for ( i = 0 ; i < NCAPINTS ; i++ )
++		boot_cpu_data.x86_capability[i] &= c->x86_capability[i];
+ 
+ 	/* Init Machine Check Exception if available. */
+ 	mcheck_init(c);
+ 
+-	if (c == &boot_cpu_data)
+-		sysenter_setup();
+ 	enable_sep_cpu();
+ 
+-	if (c == &boot_cpu_data)
+-		mtrr_bp_init();
+-	else
+-		mtrr_ap_init();
++	mtrr_ap_init();
+ }
+ 
+ #ifdef CONFIG_X86_HT
+diff -puN arch/i386/kernel/cpu/mtrr/main.c~x86-clean-up-identify_cpu arch/i386/kernel/cpu/mtrr/main.c
+--- a/arch/i386/kernel/cpu/mtrr/main.c~x86-clean-up-identify_cpu
++++ a/arch/i386/kernel/cpu/mtrr/main.c
+@@ -571,7 +571,7 @@ extern void amd_init_mtrr(void);
+ extern void cyrix_init_mtrr(void);
+ extern void centaur_init_mtrr(void);
+ 
+-static void __cpuinit init_ifs(void)
++static void __init init_ifs(void)
+ {
+ #ifndef CONFIG_X86_64
+ 	amd_init_mtrr();
+@@ -639,7 +639,7 @@ static struct sysdev_driver mtrr_sysdev_
+  * initialized (i.e. before smp_init()).
+  * 
+  */
+-void __cpuinit mtrr_bp_init(void)
++void __init mtrr_bp_init(void)
+ {
+ 	init_ifs();
+ 
+diff -puN arch/i386/kernel/smpboot.c~x86-clean-up-identify_cpu arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~x86-clean-up-identify_cpu
++++ a/arch/i386/kernel/smpboot.c
+@@ -155,7 +155,7 @@ static void __cpuinit smp_store_cpu_info
+ 
+ 	*c = boot_cpu_data;
+ 	if (id!=0)
+-		identify_cpu(c);
++		identify_secondary_cpu(c);
+ 	/*
+ 	 * Mask B, Pentium, but not Pentium MMX
+ 	 */
+diff -puN arch/i386/kernel/sysenter.c~x86-clean-up-identify_cpu arch/i386/kernel/sysenter.c
+diff -puN arch/x86_64/kernel/bugs.c~x86-clean-up-identify_cpu arch/x86_64/kernel/bugs.c
+--- a/arch/x86_64/kernel/bugs.c~x86-clean-up-identify_cpu
++++ a/arch/x86_64/kernel/bugs.c
+@@ -19,7 +19,7 @@
+ 
+ void __init check_bugs(void)
+ {
+-	identify_cpu(&boot_cpu_data);
++	identify_boot_cpu();
+ #if !defined(CONFIG_SMP)
+ 	printk("CPU: ");
+ 	print_cpu_info(&boot_cpu_data);
+diff -puN arch/x86_64/kernel/setup.c~x86-clean-up-identify_cpu arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~x86-clean-up-identify_cpu
++++ a/arch/x86_64/kernel/setup.c
+@@ -814,7 +814,7 @@ void __cpuinit early_identify_cpu(struct
+ /*
+  * This does the hard work of actually picking apart the CPU stuff...
+  */
+-void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
++static void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
+ {
+ 	int i;
+ 	u32 xlvl;
+@@ -870,31 +870,50 @@ void __cpuinit identify_cpu(struct cpuin
+ 
+ 	select_idle_routine(c);
+ 	detect_ht(c); 
++}
++
++void __init identify_boot_cpu(void)
++{
++	identify_cpu(&boot_cpu_data);
++
++#ifdef CONFIG_X86_MCE
++	mcheck_init(&boot_cpu_data);
++#endif
++
++	mtrr_bp_init();
++
++#ifdef CONFIG_NUMA
++	numa_add_cpu(smp_processor_id());
++#endif
++}
++
++void __cpuinit identify_secondary_cpu(struct cpuinfo_x86 *c)
++{
++	int i;
++
++	BUG_ON(c == &boot_cpu_data);
++
++	identify_cpu(c);
+ 
+ 	/*
+ 	 * On SMP, boot_cpu_data holds the common feature set between
+ 	 * all CPUs; so make sure that we indicate which features are
+-	 * common between the CPUs.  The first time this routine gets
+-	 * executed, c == &boot_cpu_data.
++	 * common between the CPUs.
++	 * AND the already accumulated flags with these
+ 	 */
+-	if (c != &boot_cpu_data) {
+-		/* AND the already accumulated flags with these */
+-		for (i = 0 ; i < NCAPINTS ; i++)
+-			boot_cpu_data.x86_capability[i] &= c->x86_capability[i];
+-	}
++	for (i = 0 ; i < NCAPINTS ; i++)
++		boot_cpu_data.x86_capability[i] &= c->x86_capability[i];
+ 
+ #ifdef CONFIG_X86_MCE
+ 	mcheck_init(c);
+ #endif
+-	if (c == &boot_cpu_data)
+-		mtrr_bp_init();
+-	else
+-		mtrr_ap_init();
++
++	mtrr_ap_init();
++
+ #ifdef CONFIG_NUMA
+ 	numa_add_cpu(smp_processor_id());
+ #endif
+ }
+- 
+ 
+ void __cpuinit print_cpu_info(struct cpuinfo_x86 *c)
+ {
+diff -puN arch/x86_64/kernel/smpboot.c~x86-clean-up-identify_cpu arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~x86-clean-up-identify_cpu
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -143,7 +143,7 @@ static void __cpuinit smp_store_cpu_info
+ 	struct cpuinfo_x86 *c = cpu_data + id;
+ 
+ 	*c = boot_cpu_data;
+-	identify_cpu(c);
++	identify_secondary_cpu(c);
+ 	print_cpu_info(c);
+ }
+ 
+diff -puN include/asm-i386/processor.h~x86-clean-up-identify_cpu include/asm-i386/processor.h
+--- a/include/asm-i386/processor.h~x86-clean-up-identify_cpu
++++ a/include/asm-i386/processor.h
+@@ -116,7 +116,8 @@ extern char ignore_fpu_irq;
+ 
+ void __init cpu_detect(struct cpuinfo_x86 *c);
+ 
+-extern void identify_cpu(struct cpuinfo_x86 *);
++extern void identify_boot_cpu(void);
++extern void identify_secondary_cpu(struct cpuinfo_x86 *);
+ extern void print_cpu_info(struct cpuinfo_x86 *);
+ extern unsigned int init_intel_cacheinfo(struct cpuinfo_x86 *c);
+ extern unsigned short num_cache_leaves;
+diff -puN include/asm-x86_64/processor.h~x86-clean-up-identify_cpu include/asm-x86_64/processor.h
+--- a/include/asm-x86_64/processor.h~x86-clean-up-identify_cpu
++++ a/include/asm-x86_64/processor.h
+@@ -98,7 +98,8 @@ extern struct cpuinfo_x86 cpu_data[];
+ 
+ extern char ignore_irq13;
+ 
+-extern void identify_cpu(struct cpuinfo_x86 *);
++extern void identify_boot_cpu(void);
++extern void identify_secondary_cpu(struct cpuinfo_x86 *);
+ extern void print_cpu_info(struct cpuinfo_x86 *);
+ extern unsigned int init_intel_cacheinfo(struct cpuinfo_x86 *c);
+ extern unsigned short num_cache_leaves;
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
