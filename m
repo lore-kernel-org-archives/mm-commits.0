@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-fix-plisth-comments.patch added to -mm tree
-Date: Fri, 13 Apr 2007 11:48:05 -0700
-Message-ID: <200704131848.l3DIm5kW006769@shell0.pdx.osdl.net>
+Subject: + mm-madvise-avoid-exclusive-mmap_sem.patch added to -mm tree
+Date: Fri, 13 Apr 2007 11:57:34 -0700
+Message-ID: <200704131857.l3DIvYV4006942@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45821 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46267 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754133AbXDMSsr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 14:48:47 -0400
+	id S1754137AbXDMS5w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 14:57:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dwalker@mvista.com, inaky.perez-gonzalez@intel.com, oleg@tv-sign.ru, tglx@linutronix.de
+Cc: npiggin@suse.de, hugh@veritas.com, riel@redhat.com
 
 
 The patch titled
-     kernel-doc: fix plist.h comments
+     mm: madvise avoid exclusive mmap_sem
 has been added to the -mm tree.  Its filename is
-     kernel-doc-fix-plisth-comments.patch
+     mm-madvise-avoid-exclusive-mmap_sem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,206 +25,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel-doc: fix plist.h comments
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mm: madvise avoid exclusive mmap_sem
+From: Nick Piggin <npiggin@suse.de>
 
-Make kernel-doc comments match macro names.
-Correct parameter names in a few places.
-Remove '#' from beginning of kernel-doc comment macro names.
-Remove extra (erroneous) blank lines in kernel-doc.
+Avoid down_write of the mmap_sem in madvise when we can help it.
 
-Warning(plist.h:100): Cannot understand  * #PLIST_HEAD_INIT - static struct plist_head initializer on line 100 - I thought it was a doc line
-Warning(plist.h:112): Cannot understand  * #PLIST_NODE_INIT - static struct plist_node initializer on line 112 - I thought it was a doc line
-Warning(plist.h:103): No description found for parameter '_lock'
-Warning(plist.h:129): No description found for parameter 'lock'
-Warning(plist.h:158): No description found for parameter 'pos'
-Warning(plist.h:169): No description found for parameter 'pos'
-Warning(plist.h:169): No description found for parameter 'n'
-Warning(plist.h:179): No description found for parameter 'mem'
-
-This still leaves one warning & one error that need attention:
-Error(plist.h:219): cannot understand prototype: '('
-Warning(plist.h): no structured comments found
-
-Acked-by: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
-Cc: Daniel Walker <dwalker@mvista.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/plist.h |   54 +++++++++++++++++-----------------------
- 1 files changed, 23 insertions(+), 31 deletions(-)
+ mm/madvise.c |   33 +++++++++++++++++++++++++++++----
+ 1 files changed, 29 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/plist.h~kernel-doc-fix-plisth-comments include/linux/plist.h
---- a/include/linux/plist.h~kernel-doc-fix-plisth-comments
-+++ a/include/linux/plist.h
-@@ -97,9 +97,9 @@ struct plist_node {
- #endif
+diff -puN mm/madvise.c~mm-madvise-avoid-exclusive-mmap_sem mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-avoid-exclusive-mmap_sem
++++ a/mm/madvise.c
+@@ -12,6 +12,24 @@
+ #include <linux/hugetlb.h>
  
- /**
-- * #PLIST_HEAD_INIT - static struct plist_head initializer
-- *
-+ * PLIST_HEAD_INIT - static struct plist_head initializer
-  * @head:	struct plist_head variable name
-+ * @_lock:	lock to initialize for this list
+ /*
++ * Any behaviour which results in changes to the vma->vm_flags needs to
++ * take mmap_sem for writing. Others, which simply traverse vmas, need
++ * to only take it for reading.
++ */
++static int madvise_need_mmap_write(int behavior)
++{
++	switch (behavior) {
++	case MADV_REMOVE:
++	case MADV_WILLNEED:
++	case MADV_DONTNEED:
++		return 0;
++	default:
++		/* be safe, default to 1. list exceptions explicitly */
++		return 1;
++	}
++}
++
++/*
+  * We can potentially split a vm area into separate
+  * areas, each area with its own behavior.
   */
- #define PLIST_HEAD_INIT(head, _lock)			\
- {							\
-@@ -109,8 +109,7 @@ struct plist_node {
+@@ -183,9 +201,9 @@ static long madvise_remove(struct vm_are
+ 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
+ 
+ 	/* vmtruncate_range needs to take i_mutex and i_alloc_sem */
+-	up_write(&current->mm->mmap_sem);
++	up_read(&current->mm->mmap_sem);
+ 	error = vmtruncate_range(mapping->host, offset, endoff);
+-	down_write(&current->mm->mmap_sem);
++	down_read(&current->mm->mmap_sem);
+ 	return error;
  }
  
- /**
-- * #PLIST_NODE_INIT - static struct plist_node initializer
-- *
-+ * PLIST_NODE_INIT - static struct plist_node initializer
-  * @node:	struct plist_node variable name
-  * @__prio:	initial node priority
-  */
-@@ -122,8 +121,8 @@ struct plist_node {
+@@ -270,7 +288,10 @@ asmlinkage long sys_madvise(unsigned lon
+ 	int error = -EINVAL;
+ 	size_t len;
  
- /**
-  * plist_head_init - dynamic struct plist_head initializer
-- *
-  * @head:	&struct plist_head pointer
-+ * @lock:	list spinlock, remembered for debugging
-  */
- static inline void
- plist_head_init(struct plist_head *head, spinlock_t *lock)
-@@ -137,7 +136,6 @@ plist_head_init(struct plist_head *head,
+-	down_write(&current->mm->mmap_sem);
++	if (madvise_need_mmap_write(behavior))
++		down_write(&current->mm->mmap_sem);
++	else
++		down_read(&current->mm->mmap_sem);
  
- /**
-  * plist_node_init - Dynamic struct plist_node initializer
-- *
-  * @node:	&struct plist_node pointer
-  * @prio:	initial node priority
-  */
-@@ -152,49 +150,46 @@ extern void plist_del(struct plist_node 
- 
- /**
-  * plist_for_each - iterate over the plist
-- *
-- * @pos1:	the type * to use as a loop counter.
-- * @head:	the head for your list.
-+ * @pos:	the type * to use as a loop counter
-+ * @head:	the head for your list
-  */
- #define plist_for_each(pos, head)	\
- 	 list_for_each_entry(pos, &(head)->node_list, plist.node_list)
- 
- /**
-- * plist_for_each_entry_safe - iterate over a plist of given type safe
-- * against removal of list entry
-+ * plist_for_each_safe - iterate safely over a plist of given type
-+ * @pos:	the type * to use as a loop counter
-+ * @n:	another type * to use as temporary storage
-+ * @head:	the head for your list
-  *
-- * @pos1:	the type * to use as a loop counter.
-- * @n1:	another type * to use as temporary storage
-- * @head:	the head for your list.
-+ * Iterate over a plist of given type, safe against removal of list entry.
-  */
- #define plist_for_each_safe(pos, n, head)	\
- 	 list_for_each_entry_safe(pos, n, &(head)->node_list, plist.node_list)
- 
- /**
-  * plist_for_each_entry	- iterate over list of given type
-- *
-- * @pos:	the type * to use as a loop counter.
-- * @head:	the head for your list.
-- * @member:	the name of the list_struct within the struct.
-+ * @pos:	the type * to use as a loop counter
-+ * @head:	the head for your list
-+ * @mem:	the name of the list_struct within the struct
-  */
- #define plist_for_each_entry(pos, head, mem)	\
- 	 list_for_each_entry(pos, &(head)->node_list, mem.plist.node_list)
- 
- /**
-- * plist_for_each_entry_safe - iterate over list of given type safe against
-- * removal of list entry
-- *
-- * @pos:	the type * to use as a loop counter.
-+ * plist_for_each_entry_safe - iterate safely over list of given type
-+ * @pos:	the type * to use as a loop counter
-  * @n:		another type * to use as temporary storage
-- * @head:	the head for your list.
-- * @m:		the name of the list_struct within the struct.
-+ * @head:	the head for your list
-+ * @m:		the name of the list_struct within the struct
-+ *
-+ * Iterate over list of given type, safe against removal of list entry.
-  */
- #define plist_for_each_entry_safe(pos, n, head, m)	\
- 	list_for_each_entry_safe(pos, n, &(head)->node_list, m.plist.node_list)
- 
- /**
-  * plist_head_empty - return !0 if a plist_head is empty
-- *
-  * @head:	&struct plist_head pointer
-  */
- static inline int plist_head_empty(const struct plist_head *head)
-@@ -204,7 +199,6 @@ static inline int plist_head_empty(const
- 
- /**
-  * plist_node_empty - return !0 if plist_node is not on a list
-- *
-  * @node:	&struct plist_node pointer
-  */
- static inline int plist_node_empty(const struct plist_node *node)
-@@ -216,10 +210,9 @@ static inline int plist_node_empty(const
- 
- /**
-  * plist_first_entry - get the struct for the first entry
-- *
-- * @ptr:	the &struct plist_head pointer.
-- * @type:	the type of the struct this is embedded in.
-- * @member:	the name of the list_struct within the struct.
-+ * @head:	the &struct plist_head pointer
-+ * @type:	the type of the struct this is embedded in
-+ * @member:	the name of the list_struct within the struct
-  */
- #ifdef CONFIG_DEBUG_PI_LIST
- # define plist_first_entry(head, type, member)	\
-@@ -234,7 +227,6 @@ static inline int plist_node_empty(const
- 
- /**
-  * plist_first - return the first node (and thus, highest priority)
-- *
-  * @head:	the &struct plist_head pointer
-  *
-  * Assumes the plist is _not_ empty.
+ 	if (start & ~PAGE_MASK)
+ 		goto out;
+@@ -332,6 +353,10 @@ asmlinkage long sys_madvise(unsigned lon
+ 			vma = find_vma(current->mm, start);
+ 	}
+ out:
+-	up_write(&current->mm->mmap_sem);
++	if (madvise_need_mmap_write(behavior))
++		up_write(&current->mm->mmap_sem);
++	else
++		up_read(&current->mm->mmap_sem);
++
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-fix-kernel-oops-with-badly-formatted-module-option.patch
-kernel-doc-fix-plisth-comments.patch
-git-acpi.patch
-git-drm.patch
-git-ieee1394.patch
-romfs-printk-format-warnings.patch
-git-netdev-all.patch
-8250_pci-fix-pci-must_checks.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-mtrr-sections.patch
-scripts-kernel-doc-whitespace-cleanup.patch
-reiserfs-proc-support-requires-proc_fs.patch
-kprobes-fix-sparse-null-warning.patch
-header-cleaning-dont-include-smp_lockh-when-not-used.patch
-expose-range-checking-functions-from-arch-specific.patch
-expose-range-checking-functions-from-arch-specific-update.patch
-parport_serial-fix-pci-must_checks.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
-generate-main-index-page-when-building-htmldocs.patch
-alphabetically-sorted-entries-in.patch
-kernel-doc-html-mode-struct-highlights.patch
-ext4-use-null-for-pointers.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-s3fb-fix-pci-must_checks.patch
-profile-likely-unlikely-macros.patch
+mm-remove-gcc-workaround.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+mm-simplify-filemap_nopage.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault.patch
+mm-remove-legacy-cruft.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+mm-madvise-avoid-exclusive-mmap_sem.patch
+exec-fix-remove_arg_zero.patch
+exec-fix-remove_arg_zero-add-comment.patch
+as-fix-antic_expire-check.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
