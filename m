@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + apple-smc-driver-implement-key-enumeration.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:51:07 -0700
-Message-ID: <200704132051.l3DKp7rB009130@shell0.pdx.osdl.net>
+Subject: + wait_for_helper-remove-unneeded-do_sigaction.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:53:17 -0700
+Message-ID: <200704132053.l3DKrHIb009146@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50759 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50885 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965180AbXDMUvZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:51:25 -0400
+	id S965345AbXDMUxc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:53:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas@boichat.ch, khali@linux-fr.org
+Cc: oleg@tv-sign.ru, ebiederm@xmission.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     Apple SMC driver: implement key enumeration
+     wait_for_helper: remove unneeded do_sigaction()
 has been added to the -mm tree.  Its filename is
-     apple-smc-driver-implement-key-enumeration.patch
+     wait_for_helper-remove-unneeded-do_sigaction.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,374 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Apple SMC driver: implement key enumeration
-From: Nicolas Boichat <nicolas@boichat.ch>
+Subject: wait_for_helper: remove unneeded do_sigaction()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Apple SMC allows to enumerate all keys available on the device. This is
-useful to discover new sensors. With this feature, I'll be able to ask
-people with different macintel for their key lists, and update the
-driver accordingly. (note: I don't think it is reasonable to auto-detect
-temperature sensors when the driver is loaded, as enumerating all the
-keys takes a long time)
+allow_signal(SIGCHLD) does all necessary job, no need to call do_sigaction()
+prior to.
 
-It works this way:
-# cd /sys/devices/platform/applesmc
-# echo 2 > key_at_index
-(replace 2 with any number between 0 and the value you can read in
-key_count)
-# cat key_at_index_name
-ACID
-# cat key_at_index_type
-ch8*
-# cat key_at_index_data_length
-8
-# hexdump -C key_at_index_data
-00000000  ba 31 96 0b 50 05 10 74 |.1..P..t|
-(key_at_index_data output is binary, is it acceptable for a sysfs file?)
-
-Signed-off-by: Nicolas Boichat <nicolas@boichat.ch>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |  263 ++++++++++++++++++++++++++++++++++++-
- 1 files changed, 262 insertions(+), 1 deletion(-)
+ kernel/kmod.c |    5 -----
+ 1 files changed, 5 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~apple-smc-driver-implement-key-enumeration drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~apple-smc-driver-implement-key-enumeration
-+++ a/drivers/hwmon/applesmc.c
-@@ -51,6 +51,10 @@
- #define APPLESMC_STATUS_MASK	0x0f
- #define APPLESMC_READ_CMD	0x10
- #define APPLESMC_WRITE_CMD	0x11
-+#define APPLESMC_GET_KEY_BY_INDEX_CMD	0x12
-+#define APPLESMC_GET_KEY_TYPE_CMD	0x13
-+
-+#define KEY_COUNT_KEY		"#KEY" /* r-o ui32 */
+diff -puN kernel/kmod.c~wait_for_helper-remove-unneeded-do_sigaction kernel/kmod.c
+--- a/kernel/kmod.c~wait_for_helper-remove-unneeded-do_sigaction
++++ a/kernel/kmod.c
+@@ -185,14 +185,9 @@ static int wait_for_helper(void *data)
+ {
+ 	struct subprocess_info *sub_info = data;
+ 	pid_t pid;
+-	struct k_sigaction sa;
  
- #define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6 bytes) */
- #define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6 bytes) */
-@@ -132,6 +136,12 @@ static unsigned int applesmc_temperature
- static struct mutex applesmc_lock;
+ 	/* Install a handler: if SIGCLD isn't handled sys_wait4 won't
+ 	 * populate the status, but will return -ECHILD. */
+-	sa.sa.sa_handler = SIG_IGN;
+-	sa.sa.sa_flags = 0;
+-	siginitset(&sa.sa.sa_mask, sigmask(SIGCHLD));
+-	do_sigaction(SIGCHLD, &sa, NULL);
+ 	allow_signal(SIGCHLD);
  
- /*
-+ * Last index written to key_at_index sysfs file, and value to use for all other
-+ * key_at_index_* sysfs files.
-+ */
-+static unsigned int key_at_index;
-+
-+/*
-  * __wait_status - Wait up to 100ms for the status port to get a certain value
-  * (masked with 0x0f), returning zero if the value is obtained.  Callers must
-  * hold applesmc_lock.
-@@ -235,6 +245,73 @@ static int applesmc_write_key(const char
- }
- 
- /*
-+ * applesmc_get_key_at_index - get key at index, and put the result in key
-+ * (char[6]). Returns zero on success or a negative error on failure. Callers
-+ * must hold applesmc_lock.
-+ */
-+static int applesmc_get_key_at_index(int index, char* key)
-+{
-+	int i;
-+	u8 readkey[4];
-+	readkey[0] = index >> 24;
-+	readkey[1] = index >> 16;
-+	readkey[2] = index >> 8;
-+	readkey[3] = index;
-+
-+	outb(APPLESMC_GET_KEY_BY_INDEX_CMD, APPLESMC_CMD_PORT);
-+	if (__wait_status(0x0c))
-+		return -EIO;
-+
-+	for (i = 0; i < 4; i++) {
-+		outb(readkey[i], APPLESMC_DATA_PORT);
-+		if (__wait_status(0x04))
-+			return -EIO;
-+	}
-+
-+	outb(4, APPLESMC_DATA_PORT);
-+
-+	for (i = 0; i < 4; i++) {
-+		if (__wait_status(0x05))
-+			return -EIO;
-+		key[i] = inb(APPLESMC_DATA_PORT);
-+	}
-+	key[4] = 0;
-+
-+	return 0;
-+}
-+
-+/*
-+ * applesmc_get_key_type - get key type, and put the result in type (char[6]).
-+ * Returns zero on success or a negative error on failure. Callers must
-+ * hold applesmc_lock.
-+ */
-+static int applesmc_get_key_type(char* key, char* type)
-+{
-+	int i;
-+
-+	outb(APPLESMC_GET_KEY_TYPE_CMD, APPLESMC_CMD_PORT);
-+	if (__wait_status(0x0c))
-+		return -EIO;
-+
-+	for (i = 0; i < 4; i++) {
-+		outb(key[i], APPLESMC_DATA_PORT);
-+		if (__wait_status(0x04))
-+			return -EIO;
-+	}
-+
-+	outb(5, APPLESMC_DATA_PORT);
-+
-+	for (i = 0; i < 6; i++) {
-+		if (__wait_status(0x05))
-+			return -EIO;
-+		type[i] = inb(APPLESMC_DATA_PORT);
-+	}
-+	type[5] = 0;
-+
-+	return 0;
-+}
-+
-+/*
-  * applesmc_read_motion_sensor - Read motion sensor (X, Y or Z). Callers must
-  * hold applesmc_lock.
-  */
-@@ -656,6 +733,157 @@ static void applesmc_backlight_set(struc
- 	mutex_unlock(&applesmc_lock);
- }
- 
-+static ssize_t applesmc_key_count_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	int ret;
-+	u8 buffer[4];
-+	u32 count;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_key(KEY_COUNT_KEY, buffer, 4);
-+	count = ((u32)buffer[0]<<24) + ((u32)buffer[1]<<16) +
-+						((u32)buffer[2]<<8) + buffer[3];
-+
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%d\n", count);
-+}
-+
-+static ssize_t applesmc_key_at_index_read_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	char key[5];
-+	char info[6];
-+	int ret;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_get_key_at_index(key_at_index, key);
-+
-+	if (ret || !key[0]) {
-+		mutex_unlock(&applesmc_lock);
-+
-+		return -EINVAL;
-+	}
-+
-+	ret = applesmc_get_key_type(key, info);
-+
-+	if (ret) {
-+		mutex_unlock(&applesmc_lock);
-+
-+		return ret;
-+	}
-+
-+	/*
-+	 * info[0] maximum value (APPLESMC_MAX_DATA_LENGTH) is much lower than
-+	 * PAGE_SIZE, so we don't need any checks before writing to sysfsbuf.
-+	 */
-+	ret = applesmc_read_key(key, sysfsbuf, info[0]);
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	if (!ret) {
-+		return info[0];
-+	}
-+	else {
-+		return ret;
-+	}
-+}
-+
-+static ssize_t applesmc_key_at_index_data_length_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	char key[5];
-+	char info[6];
-+	int ret;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_get_key_at_index(key_at_index, key);
-+
-+	if (ret || !key[0]) {
-+		mutex_unlock(&applesmc_lock);
-+
-+		return -EINVAL;
-+	}
-+
-+	ret = applesmc_get_key_type(key, info);
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	if (!ret)
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%d\n", info[0]);
-+	else
-+		return ret;
-+}
-+
-+static ssize_t applesmc_key_at_index_type_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	char key[5];
-+	char info[6];
-+	int ret;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_get_key_at_index(key_at_index, key);
-+
-+	if (ret || !key[0]) {
-+		mutex_unlock(&applesmc_lock);
-+
-+		return -EINVAL;
-+	}
-+
-+	ret = applesmc_get_key_type(key, info);
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	if (!ret)
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", info+1);
-+	else
-+		return ret;
-+}
-+
-+static ssize_t applesmc_key_at_index_name_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	char key[5];
-+	int ret;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_get_key_at_index(key_at_index, key);
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	if (!ret && key[0])
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", key);
-+	else
-+		return -EINVAL;
-+}
-+
-+static ssize_t applesmc_key_at_index_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	return snprintf(sysfsbuf, PAGE_SIZE, "%d\n", key_at_index);
-+}
-+
-+static ssize_t applesmc_key_at_index_store(struct device *dev,
-+	struct device_attribute *attr, const char *sysfsbuf, size_t count)
-+{
-+	mutex_lock(&applesmc_lock);
-+
-+	key_at_index = simple_strtoul(sysfsbuf, NULL, 10);
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	return count;
-+}
-+
- static struct led_classdev applesmc_backlight = {
- 	.name			= "smc:kbd_backlight",
- 	.default_trigger	= "nand-disk",
-@@ -677,6 +905,31 @@ static const struct attribute_group acce
- 
- static DEVICE_ATTR(light, 0444, applesmc_light_show, NULL);
- 
-+static DEVICE_ATTR(key_count, 0444, applesmc_key_count_show, NULL);
-+static DEVICE_ATTR(key_at_index, 0644,
-+		applesmc_key_at_index_show, applesmc_key_at_index_store);
-+static DEVICE_ATTR(key_at_index_name, 0444,
-+					applesmc_key_at_index_name_show, NULL);
-+static DEVICE_ATTR(key_at_index_type, 0444,
-+					applesmc_key_at_index_type_show, NULL);
-+static DEVICE_ATTR(key_at_index_data_length, 0444,
-+				applesmc_key_at_index_data_length_show, NULL);
-+static DEVICE_ATTR(key_at_index_data, 0444,
-+				applesmc_key_at_index_read_show, NULL);
-+
-+static struct attribute *key_enumeration_attributes[] = {
-+	&dev_attr_key_count.attr,
-+	&dev_attr_key_at_index.attr,
-+	&dev_attr_key_at_index_name.attr,
-+	&dev_attr_key_at_index_type.attr,
-+	&dev_attr_key_at_index_data_length.attr,
-+	&dev_attr_key_at_index_data.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group key_enumeration_group =
-+	{ .attrs = key_enumeration_attributes };
-+
- /*
-  * Macro defining SENSOR_DEVICE_ATTR for a fan sysfs entries.
-  *  - show actual speed
-@@ -920,6 +1173,11 @@ static int __init applesmc_init(void)
- 		goto out_driver;
- 	}
- 
-+	/* Create key enumeration sysfs files */
-+	ret = sysfs_create_group(&pdev->dev.kobj, &key_enumeration_group);
-+	if (ret)
-+		goto out_device;
-+
- 	/* create fan files */
- 	count = applesmc_get_fan_count();
- 	if (count < 0) {
-@@ -936,7 +1194,7 @@ static int __init applesmc_init(void)
- 			ret = sysfs_create_group(&pdev->dev.kobj,
- 						 &fan_attribute_groups[1]);
- 			if (ret)
--				goto out_device;
-+				goto out_key_enumeration;
- 		case 1:
- 			ret = sysfs_create_group(&pdev->dev.kobj,
- 						 &fan_attribute_groups[0]);
-@@ -1006,6 +1264,8 @@ out_temperature:
- 	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
- out_fan_1:
- 	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[1]);
-+out_key_enumeration:
-+	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
- out_device:
- 	platform_device_unregister(pdev);
- out_driver:
-@@ -1027,6 +1287,7 @@ static void __exit applesmc_exit(void)
- 	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
- 	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
- 	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[1]);
-+	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
- 	platform_device_unregister(pdev);
- 	platform_driver_unregister(&applesmc_driver);
- 	release_region(APPLESMC_DATA_PORT, APPLESMC_NR_PORTS);
+ 	pid = kernel_thread(____call_usermodehelper, sub_info, SIGCHLD);
 _
 
-Patches currently in -mm which might be from nicolas@boichat.ch are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-git-alsa.patch
-apple-smc-driver-hardware-monitoring-and-control.patch
-apple-smc-driver-hardware-monitoring-and-control-fix.patch
-apple-smc-driver-standardize-and-sanitize-sysfs-tree.patch
-apple-smc-driver-implement-key-enumeration.patch
+kernel-doc-fix-plisth-comments.patch
+git-dvb.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+add-a-new-deferrable-delayed-work-init.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+worker_thread-dont-play-with-signals.patch
+worker_thread-fix-racy-try_to_freeze-usage.patch
+zap_other_threads-remove-unneeded-exit_signal-change.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+change-reparent_to_init-to-reparent_to_kthreadd.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+usbatm_heavy_init-dont-use-clone_sighand.patch
+pnpbios_thread_init-dont-use-clone_sighand.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
