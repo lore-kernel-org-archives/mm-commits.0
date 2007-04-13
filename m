@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-menuconfig-objects-pnp.patch added to -mm tree
-Date: Thu, 12 Apr 2007 15:48:34 -0700
-Message-ID: <200704122248.l3CMmYaC018764@shell0.pdx.osdl.net>
+Subject: + vmi-logic-error.patch added to -mm tree
+Date: Thu, 12 Apr 2007 19:37:46 -0700
+Message-ID: <200704130237.l3D2bkML022890@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:35648 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:43831 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753540AbXDLWtF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Thu, 12 Apr 2007 18:49:05 -0400
+	id S1753119AbXDMCh4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Thu, 12 Apr 2007 22:37:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@linux01.gwdg.de, ambx1@neo.rr.com, bjorn.helgaas@hp.com, jengelh@gmx.de
+Cc: zach@vmware.com, ak@suse.de, aliguori@us.ibm.com
 
 
 The patch titled
-     Use menuconfig objects: PNP
+     VMI logic error
 has been added to the -mm tree.  Its filename is
-     use-menuconfig-objects-pnp.patch
+     vmi-logic-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,116 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: PNP
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: VMI logic error
+From: Zachary Amsden <zach@vmware.com>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+Fix logic error in VMI relocation processing.  NOPs would always cause a
+BUG_ON to fire because the != RELOCATION_NONE in the first if clause
+precluding the == VMI_RELOCATION_NOP in the second clause.  Make these
+direct equality tests and just warn for unsupported relocation types (which
+should never happen), falling back to native in that case.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Thanks to Anthony Liguori for noting this!
+
+Signed-off-by: Zachary Amsden <zach@vmware.com>
+Cc: Anthony Liguori <aliguori@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/Kconfig         |   11 ++++-------
- drivers/pnp/isapnp/Kconfig  |    2 +-
- drivers/pnp/pnpbios/Kconfig |    2 +-
- 3 files changed, 6 insertions(+), 9 deletions(-)
+ arch/i386/kernel/vmi.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pnp/Kconfig~use-menuconfig-objects-pnp drivers/pnp/Kconfig
---- a/drivers/pnp/Kconfig~use-menuconfig-objects-pnp
-+++ a/drivers/pnp/Kconfig
-@@ -2,9 +2,7 @@
- # Plug and Play configuration
- #
+diff -puN arch/i386/kernel/vmi.c~vmi-logic-error arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~vmi-logic-error
++++ a/arch/i386/kernel/vmi.c
+@@ -712,11 +712,14 @@ static void *vmi_get_function(int vmical
+ do {								\
+ 	reloc = call_vrom_long_func(vmi_rom, get_reloc,		\
+ 				    VMI_CALL_##vmicall);	\
+-	if (rel->type != VMI_RELOCATION_NONE) {			\
+-		BUG_ON(rel->type != VMI_RELOCATION_CALL_REL);	\
++	if (rel->type == VMI_RELOCATION_CALL_REL) 		\
+ 		paravirt_ops.opname = (void *)rel->eip;		\
+-	} else if (rel->type == VMI_RELOCATION_NOP) 		\
++	else if (rel->type == VMI_RELOCATION_NOP) 		\
+ 		paravirt_ops.opname = (void *)vmi_nop;		\
++	else if (rel->type != VMI_RELOCATION_NONE)		\
++		printk(KERN_WARNING "VMI: Unknown relocation "	\
++				    "type %d for " #vmicall"\n",\
++					rel->type);		\
+ } while (0)
  
--menu "Plug and Play support"
--
--config PNP
-+menuconfig PNP
- 	bool "Plug and Play support"
- 	depends on ISA || ACPI
- 	---help---
-@@ -21,15 +19,15 @@ config PNP
- 
- 	  If unsure, say Y.
- 
-+if PNP
-+
- config PNP_DEBUG
- 	bool "PnP Debug Messages"
--	depends on PNP
- 	help
- 	  Say Y if you want the Plug and Play Layer to print debug messages.
- 	  This is useful if you are developing a PnP driver or troubleshooting.
- 
- comment "Protocols"
--	depends on PNP
- 
- source "drivers/pnp/isapnp/Kconfig"
- 
-@@ -37,5 +35,4 @@ source "drivers/pnp/pnpbios/Kconfig"
- 
- source "drivers/pnp/pnpacpi/Kconfig"
- 
--endmenu
--
-+endif # PNP
-diff -puN drivers/pnp/isapnp/Kconfig~use-menuconfig-objects-pnp drivers/pnp/isapnp/Kconfig
---- a/drivers/pnp/isapnp/Kconfig~use-menuconfig-objects-pnp
-+++ a/drivers/pnp/isapnp/Kconfig
-@@ -3,7 +3,7 @@
- #
- config ISAPNP
- 	bool "ISA Plug and Play support"
--	depends on PNP && ISA
-+	depends on ISA
- 	help
- 	  Say Y here if you would like support for ISA Plug and Play devices.
- 	  Some information is in <file:Documentation/isapnp.txt>.
-diff -puN drivers/pnp/pnpbios/Kconfig~use-menuconfig-objects-pnp drivers/pnp/pnpbios/Kconfig
---- a/drivers/pnp/pnpbios/Kconfig~use-menuconfig-objects-pnp
-+++ a/drivers/pnp/pnpbios/Kconfig
-@@ -3,7 +3,7 @@
- #
- config PNPBIOS
- 	bool "Plug and Play BIOS support (EXPERIMENTAL)"
--	depends on PNP && ISA && X86 && EXPERIMENTAL
-+	depends on ISA && X86 && EXPERIMENTAL
- 	default n
- 	---help---
- 	  Linux uses the PNPBIOS as defined in "Plug and Play BIOS
+ /*
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from zach@vmware.com are
 
-git-kbuild.patch
-remove-artificial-software-max_loop-limit.patch
-fix-kevents-childs-priority-greediness.patch
-vt-allow-for-the-palette-to-be-exposed-and-changed-via-sysfs.patch
-vt-add-color-support-to-the-underline-and-italic-attributes.patch
-vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
-use-menuconfig-objects-acpi.patch
-use-menuconfig-objects-libata.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-dccp.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-ide.patch
-use-menuconfig-objects-mtd.patch
-use-menuconfig-objects-ipvs.patch
-use-menuconfig-objects-sctp.patch
-use-menuconfig-objects-tipc.patch
-use-menuconfig-objects-arcnet.patch
-use-menuconfig-objects-phy.patch
-use-menuconfig-objects-toeknring.patch
-use-menuconfig-objects-netdev.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pcihotplug.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
+origin.patch
+vmi-logic-error.patch
+fix-buslogic-to-stop-using-check_region.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+paravirt_ops-update-maintainers.patch
+paravirt_ops-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+paravirt_ops-rename-struct-paravirt_patch-to-paravirt_patch_site-for-clarity.patch
+paravirt_ops-use-patch-site-ids-computed-from-offset-in-paravirt_ops-structure.patch
+paravirt_ops-fix-patch-site-clobbers-to-include-return-register.patch
+paravirt_ops-consistently-wrap-paravirt-ops-callsites-to-make-them-patchable.patch
+paravirt_ops-add-common-patching-machinery.patch
+paravirt_ops-revert-map_pt_hook.patch
+paravirt_ops-add-kmap_atomic_pte-for-mapping-highpte-pages.patch
+i386-relocate-vdso-elf-headers-to-match-mapped-location-with-compat_vdso.patch
+i386-make-compat_vdso-runtime-selectable.patch
+i386-sysenter-arch-pages-fix.patch
+i386-acpi-remove-earlyquirk-warning.patch
+i386-mcheck-p4-grotesque-and-needless-warning-fix.patch
+i386-pgd-clone-under-lock-fix.patch
+vmi-supports-compat-vdso.patch
+resurrect-the-vmi-lazy-mode-fixes.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+vmi-kmap_atomic_pte-fix.patch
+vmi-timer-update.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
