@@ -1,359 +1,494 @@
 From: akpm@linux-foundation.org
-Subject: - paravirt_ops-hooks-to-set-up-initial-pagetable.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:30:02 -0700
-Message-ID: <200704132330.l3DNU27Y012704@shell0.pdx.osdl.net>
+Subject: - paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:30:10 -0700
+Message-ID: <200704132330.l3DNUAiU012714@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60635 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60645 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030899AbXDMXaZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:30:25 -0400
+	id S1161182AbXDMXa0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:30:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, bill.irwin@oracle.com, jeremy@xensource.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: jeremy@goop.org, James.Bottomley@SteelEye.com, jeremy@xensource.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     paravirt_ops: Hooks to set up initial pagetable
+     paravirt_ops: add hooks to intercept mm creation and destruction
 has been removed from the -mm tree.  Its filename was
-     paravirt_ops-hooks-to-set-up-initial-pagetable.patch
+     paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: paravirt_ops: Hooks to set up initial pagetable
+Subject: paravirt_ops: add hooks to intercept mm creation and destruction
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-This patch introduces paravirt_ops hooks to control how the kernel's initial
-pagetable is set up.
+Add hooks to allow a paravirt implementation to track the lifetime of an mm. 
+Paravirtualization requires three hooks, but only two are needed in common
+code.  They are:
 
-In the case of a native boot, the very early bootstrap code creates a simple
-non-PAE pagetable to map the kernel and physical memory.  When the VM
-subsystem is initialized, it creates a proper pagetable which respects the PAE
-mode, large pages, etc.
+arch_dup_mmap, which is called when a new mmap is created at fork
 
-When booting under a hypervisor, there are many possibilities for what paging
-environment the hypervisor establishes for the guest kernel, so the
-constructon of the kernel's pagetable depends on the hypervisor.
+arch_exit_mmap, which is called when the last process reference to an mm is
+dropped, which typically happens on exit and exec.
 
-In the case of Xen, the hypervisor boots the kernel with a fully constructed
-pagetable, which is already using PAE if necessary.  Also, Xen requires
-particular care when constructing pagetables to make sure all pagetables are
-always mapped read-only.
-
-In order to make this easier, kernel's initial pagetable construction has been
-changed to only allocate and initialize a pagetable page if there's no page
-already present in the pagetable.  This allows the Xen paravirt backend to
-make a copy of the hypervisor-provided pagetable, allowing the kernel to
-establish any more mappings it needs while keeping the existing ones.
-
-A slightly subtle point which is worth highlighting here is that Xen requires
-all kernel mappings to share the same pte_t pages between all pagetables, so
-that updating a kernel page's mapping in one pagetable is reflected in all
-other pagetables.  This makes it possible to allocate a page and attach it to
-a pagetable without having to explicitly enumerate that page's mapping in all
-pagetables.
+The third hook is activate_mm, which is called from the arch-specific
+activate_mm() macro/function, and so doesn't need stub versions for other
+architectures.  It's called when an mm is first used.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Acked-by: William Irwin <bill.irwin@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: linux-arch@vger.kernel.org
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/paravirt.c |    3 
- arch/i386/mm/init.c         |  128 ++++++++++++++++++++++++----------
- include/asm-i386/paravirt.h |   17 ++++
- include/asm-i386/pgtable.h  |   16 ++++
- 4 files changed, 127 insertions(+), 37 deletions(-)
+ arch/i386/kernel/paravirt.c         |    4 ++++
+ include/asm-alpha/mmu_context.h     |    1 +
+ include/asm-arm/mmu_context.h       |    1 +
+ include/asm-arm26/mmu_context.h     |    2 ++
+ include/asm-avr32/mmu_context.h     |    1 +
+ include/asm-cris/mmu_context.h      |    2 ++
+ include/asm-frv/mmu_context.h       |    1 +
+ include/asm-generic/mm_hooks.h      |   18 ++++++++++++++++++
+ include/asm-h8300/mmu_context.h     |    1 +
+ include/asm-i386/mmu_context.h      |   17 +++++++++++++++--
+ include/asm-i386/paravirt.h         |   23 +++++++++++++++++++++++
+ include/asm-ia64/mmu_context.h      |    1 +
+ include/asm-m32r/mmu_context.h      |    1 +
+ include/asm-m68k/mmu_context.h      |    1 +
+ include/asm-m68knommu/mmu_context.h |    1 +
+ include/asm-mips/mmu_context.h      |    1 +
+ include/asm-parisc/mmu_context.h    |    1 +
+ include/asm-powerpc/mmu_context.h   |    1 +
+ include/asm-ppc/mmu_context.h       |    1 +
+ include/asm-s390/mmu_context.h      |    2 ++
+ include/asm-sh/mmu_context.h        |    1 +
+ include/asm-sh64/mmu_context.h      |    2 +-
+ include/asm-sparc/mmu_context.h     |    2 ++
+ include/asm-sparc64/mmu_context.h   |    1 +
+ include/asm-um/mmu_context.h        |    2 ++
+ include/asm-v850/mmu_context.h      |    2 ++
+ include/asm-x86_64/mmu_context.h    |    1 +
+ include/asm-xtensa/mmu_context.h    |    1 +
+ kernel/fork.c                       |    2 ++
+ mm/mmap.c                           |    4 ++++
+ 30 files changed, 96 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-hooks-to-set-up-initial-pagetable arch/i386/kernel/paravirt.c
---- a/arch/i386/kernel/paravirt.c~paravirt_ops-hooks-to-set-up-initial-pagetable
+diff -puN arch/i386/kernel/paravirt.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction arch/i386/kernel/paravirt.c
+--- a/arch/i386/kernel/paravirt.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
 +++ a/arch/i386/kernel/paravirt.c
-@@ -193,6 +193,9 @@ struct paravirt_ops paravirt_ops = {
- #endif
- 	.set_lazy_mode = paravirt_nop,
+@@ -237,6 +237,10 @@ struct paravirt_ops paravirt_ops = {
+ 	.irq_enable_sysexit = native_irq_enable_sysexit,
+ 	.iret = native_iret,
  
-+	.pagetable_setup_start = native_pagetable_setup_start,
-+	.pagetable_setup_done = native_pagetable_setup_done,
++	.dup_mmap = paravirt_nop,
++	.exit_mmap = paravirt_nop,
++	.activate_mm = paravirt_nop,
 +
- 	.flush_tlb_user = native_flush_tlb,
- 	.flush_tlb_kernel = native_flush_tlb_global,
- 	.flush_tlb_single = native_flush_tlb_single,
-diff -puN arch/i386/mm/init.c~paravirt_ops-hooks-to-set-up-initial-pagetable arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~paravirt_ops-hooks-to-set-up-initial-pagetable
-+++ a/arch/i386/mm/init.c
-@@ -43,6 +43,7 @@
- #include <asm/tlb.h>
+ 	.startup_ipi_hook = paravirt_nop,
+ };
+ 
+diff -puN include/asm-alpha/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-alpha/mmu_context.h
+--- a/include/asm-alpha/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-alpha/mmu_context.h
+@@ -10,6 +10,7 @@
+ #include <asm/system.h>
+ #include <asm/machvec.h>
+ #include <asm/compiler.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ /*
+  * Force a context reload. This is needed when we change the page
+diff -puN include/asm-arm/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-arm/mmu_context.h
+--- a/include/asm-arm/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-arm/mmu_context.h
+@@ -16,6 +16,7 @@
+ #include <linux/compiler.h>
+ #include <asm/cacheflush.h>
+ #include <asm/proc-fns.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ void __check_kvm_seq(struct mm_struct *mm);
+ 
+diff -puN include/asm-arm26/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-arm26/mmu_context.h
+--- a/include/asm-arm26/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-arm26/mmu_context.h
+@@ -13,6 +13,8 @@
+ #ifndef __ASM_ARM_MMU_CONTEXT_H
+ #define __ASM_ARM_MMU_CONTEXT_H
+ 
++#include <asm-generic/mm_hooks.h>
++
+ #define init_new_context(tsk,mm)	0
+ #define destroy_context(mm)		do { } while(0)
+ 
+diff -puN include/asm-avr32/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-avr32/mmu_context.h
+--- a/include/asm-avr32/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-avr32/mmu_context.h
+@@ -15,6 +15,7 @@
  #include <asm/tlbflush.h>
- #include <asm/sections.h>
-+#include <asm/paravirt.h>
+ #include <asm/pgalloc.h>
+ #include <asm/sysreg.h>
++#include <asm-generic/mm_hooks.h>
  
- unsigned int __VMALLOC_RESERVE = 128 << 20;
+ /*
+  * The MMU "context" consists of two things:
+diff -puN include/asm-cris/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-cris/mmu_context.h
+--- a/include/asm-cris/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-cris/mmu_context.h
+@@ -1,6 +1,8 @@
+ #ifndef __CRIS_MMU_CONTEXT_H
+ #define __CRIS_MMU_CONTEXT_H
  
-@@ -63,6 +64,7 @@ static pmd_t * __init one_md_table_init(
- 		
- #ifdef CONFIG_X86_PAE
- 	pmd_table = (pmd_t *) alloc_bootmem_low_pages(PAGE_SIZE);
++#include <asm-generic/mm_hooks.h>
 +
- 	paravirt_alloc_pd(__pa(pmd_table) >> PAGE_SHIFT);
- 	set_pgd(pgd, __pgd(__pa(pmd_table) | _PAGE_PRESENT));
- 	pud = pud_offset(pgd, 0);
-@@ -84,12 +86,10 @@ static pte_t * __init one_page_table_ini
- {
- 	if (pmd_none(*pmd)) {
- 		pte_t *page_table = (pte_t *) alloc_bootmem_low_pages(PAGE_SIZE);
-+
- 		paravirt_alloc_pt(__pa(page_table) >> PAGE_SHIFT);
- 		set_pmd(pmd, __pmd(__pa(page_table) | _PAGE_TABLE));
--		if (page_table != pte_offset_kernel(pmd, 0))
--			BUG();	
--
--		return page_table;
-+		BUG_ON(page_table != pte_offset_kernel(pmd, 0));
- 	}
- 	
- 	return pte_offset_kernel(pmd, 0);
-@@ -120,7 +120,7 @@ static void __init page_table_range_init
- 	pgd = pgd_base + pgd_idx;
- 
- 	for ( ; (pgd_idx < PTRS_PER_PGD) && (vaddr != end); pgd++, pgd_idx++) {
--		if (pgd_none(*pgd)) 
-+		if (!(pgd_val(*pgd) & _PAGE_PRESENT))
- 			one_md_table_init(pgd);
- 		pud = pud_offset(pgd, vaddr);
- 		pmd = pmd_offset(pud, vaddr);
-@@ -159,7 +159,11 @@ static void __init kernel_physical_mappi
- 	pfn = 0;
- 
- 	for (; pgd_idx < PTRS_PER_PGD; pgd++, pgd_idx++) {
--		pmd = one_md_table_init(pgd);
-+		if (!(pgd_val(*pgd) & _PAGE_PRESENT))
-+			pmd = one_md_table_init(pgd);
-+		else
-+			pmd = pmd_offset(pud_offset(pgd, PAGE_OFFSET), PAGE_OFFSET);
-+
- 		if (pfn >= max_low_pfn)
- 			continue;
- 		for (pmd_idx = 0; pmd_idx < PTRS_PER_PMD && pfn < max_low_pfn; pmd++, pmd_idx++) {
-@@ -168,20 +172,26 @@ static void __init kernel_physical_mappi
- 			/* Map with big pages if possible, otherwise create normal page tables. */
- 			if (cpu_has_pse) {
- 				unsigned int address2 = (pfn + PTRS_PER_PTE - 1) * PAGE_SIZE + PAGE_OFFSET + PAGE_SIZE-1;
--
--				if (is_kernel_text(address) || is_kernel_text(address2))
--					set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE_EXEC));
--				else
--					set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE));
-+				if (!pmd_present(*pmd)) {
-+					if (is_kernel_text(address) || is_kernel_text(address2))
-+						set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE_EXEC));
-+					else
-+						set_pmd(pmd, pfn_pmd(pfn, PAGE_KERNEL_LARGE));
-+				}
- 				pfn += PTRS_PER_PTE;
- 			} else {
- 				pte = one_page_table_init(pmd);
- 
--				for (pte_ofs = 0; pte_ofs < PTRS_PER_PTE && pfn < max_low_pfn; pte++, pfn++, pte_ofs++) {
--						if (is_kernel_text(address))
--							set_pte(pte, pfn_pte(pfn, PAGE_KERNEL_EXEC));
--						else
--							set_pte(pte, pfn_pte(pfn, PAGE_KERNEL));
-+				for (pte_ofs = 0;
-+				     pte_ofs < PTRS_PER_PTE && pfn < max_low_pfn;
-+				     pte++, pfn++, pte_ofs++, address += PAGE_SIZE) {
-+					if (pte_present(*pte))
-+						continue;
-+
-+					if (is_kernel_text(address))
-+						set_pte(pte, pfn_pte(pfn, PAGE_KERNEL_EXEC));
-+					else
-+						set_pte(pte, pfn_pte(pfn, PAGE_KERNEL));
- 				}
- 			}
- 		}
-@@ -338,24 +348,78 @@ extern void __init remap_numa_kva(void);
- #define remap_numa_kva() do {} while (0)
- #endif
- 
--static void __init pagetable_init (void)
-+void __init native_pagetable_setup_start(pgd_t *base)
- {
--	unsigned long vaddr;
--	pgd_t *pgd_base = swapper_pg_dir;
--
- #ifdef CONFIG_X86_PAE
- 	int i;
--	/* Init entries of the first-level page table to the zero page */
--	for (i = 0; i < PTRS_PER_PGD; i++)
--		set_pgd(pgd_base + i, __pgd(__pa(empty_zero_page) | _PAGE_PRESENT));
-+
-+	/*
-+	 * Init entries of the first-level page table to the
-+	 * zero page, if they haven't already been set up.
-+	 *
-+	 * In a normal native boot, we'll be running on a
-+	 * pagetable rooted in swapper_pg_dir, but not in PAE
-+	 * mode, so this will end up clobbering the mappings
-+	 * for the lower 24Mbytes of the address space,
-+	 * without affecting the kernel address space.
-+	 */
-+	for (i = 0; i < USER_PTRS_PER_PGD; i++)
-+		set_pgd(&base[i],
-+			__pgd(__pa(empty_zero_page) | _PAGE_PRESENT));
-+
-+	/* Make sure kernel address space is empty so that a pagetable
-+	   will be allocated for it. */
-+	memset(&base[USER_PTRS_PER_PGD], 0,
-+	       KERNEL_PGD_PTRS * sizeof(pgd_t));
- #else
- 	paravirt_alloc_pd(__pa(swapper_pg_dir) >> PAGE_SHIFT);
- #endif
-+}
-+
-+void __init native_pagetable_setup_done(pgd_t *base)
-+{
-+#ifdef CONFIG_X86_PAE
-+	/*
-+	 * Add low memory identity-mappings - SMP needs it when
-+	 * starting up on an AP from real-mode. In the non-PAE
-+	 * case we already have these mappings through head.S.
-+	 * All user-space mappings are explicitly cleared after
-+	 * SMP startup.
-+	 */
-+	set_pgd(&base[0], base[USER_PTRS_PER_PGD]);
-+#endif
-+}
-+
-+/*
-+ * Build a proper pagetable for the kernel mappings.  Up until this
-+ * point, we've been running on some set of pagetables constructed by
-+ * the boot process.
-+ *
-+ * If we're booting on native hardware, this will be a pagetable
-+ * constructed in arch/i386/kernel/head.S, and not running in PAE mode
-+ * (even if we'll end up running in PAE).  The root of the pagetable
-+ * will be swapper_pg_dir.
-+ *
-+ * If we're booting paravirtualized under a hypervisor, then there are
-+ * more options: we may already be running PAE, and the pagetable may
-+ * or may not be based in swapper_pg_dir.  In any case,
-+ * paravirt_pagetable_setup_start() will set up swapper_pg_dir
-+ * appropriately for the rest of the initialization to work.
-+ *
-+ * In general, pagetable_init() assumes that the pagetable may already
-+ * be partially populated, and so it avoids stomping on any existing
-+ * mappings.
-+ */
-+static void __init pagetable_init (void)
-+{
-+	unsigned long vaddr, end;
-+	pgd_t *pgd_base = swapper_pg_dir;
-+
-+	paravirt_pagetable_setup_start(pgd_base);
- 
- 	/* Enable PSE if available */
--	if (cpu_has_pse) {
-+	if (cpu_has_pse)
- 		set_in_cr4(X86_CR4_PSE);
--	}
- 
- 	/* Enable PGE if available */
- 	if (cpu_has_pge) {
-@@ -372,20 +436,12 @@ static void __init pagetable_init (void)
- 	 * created - mappings will be set by set_fixmap():
- 	 */
- 	vaddr = __fix_to_virt(__end_of_fixed_addresses - 1) & PMD_MASK;
--	page_table_range_init(vaddr, 0, pgd_base);
-+	end = (FIXADDR_TOP + PMD_SIZE - 1) & PMD_MASK;
-+	page_table_range_init(vaddr, end, pgd_base);
- 
- 	permanent_kmaps_init(pgd_base);
- 
--#ifdef CONFIG_X86_PAE
--	/*
--	 * Add low memory identity-mappings - SMP needs it when
--	 * starting up on an AP from real-mode. In the non-PAE
--	 * case we already have these mappings through head.S.
--	 * All user-space mappings are explicitly cleared after
--	 * SMP startup.
--	 */
--	set_pgd(&pgd_base[0], pgd_base[USER_PTRS_PER_PGD]);
--#endif
-+	paravirt_pagetable_setup_done(pgd_base);
- }
- 
- #if defined(CONFIG_SOFTWARE_SUSPEND) || defined(CONFIG_ACPI_SLEEP)
-diff -puN include/asm-i386/paravirt.h~paravirt_ops-hooks-to-set-up-initial-pagetable include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~paravirt_ops-hooks-to-set-up-initial-pagetable
-+++ a/include/asm-i386/paravirt.h
-@@ -2,10 +2,11 @@
- #define __ASM_PARAVIRT_H
- /* Various instructions on x86 need to be replaced for
-  * para-virtualization: those hooks are defined here. */
-+
-+#ifdef CONFIG_PARAVIRT
- #include <linux/stringify.h>
+ extern int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
+ extern void get_mmu_context(struct mm_struct *mm);
+ extern void destroy_context(struct mm_struct *mm);
+diff -puN include/asm-frv/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-frv/mmu_context.h
+--- a/include/asm-frv/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-frv/mmu_context.h
+@@ -15,6 +15,7 @@
+ #include <asm/setup.h>
  #include <asm/page.h>
+ #include <asm/pgalloc.h>
++#include <asm-generic/mm_hooks.h>
  
--#ifdef CONFIG_PARAVIRT
- /* These are the most performance critical ops, so we want to be able to patch
-  * callers */
- #define PARAVIRT_IRQ_DISABLE 0
-@@ -50,6 +51,9 @@ struct paravirt_ops
- 	char *(*memory_setup)(void);
- 	void (*init_IRQ)(void);
- 
-+	void (*pagetable_setup_start)(pgd_t *pgd_base);
-+	void (*pagetable_setup_done)(pgd_t *pgd_base);
+ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ {
+diff -puN /dev/null include/asm-generic/mm_hooks.h
+--- /dev/null
++++ a/include/asm-generic/mm_hooks.h
+@@ -0,0 +1,18 @@
++/*
++ * Define generic no-op hooks for arch_dup_mmap and arch_exit_mmap, to
++ * be included in asm-FOO/mmu_context.h for any arch FOO which doesn't
++ * need to hook these.
++ */
++#ifndef _ASM_GENERIC_MM_HOOKS_H
++#define _ASM_GENERIC_MM_HOOKS_H
 +
- 	void (*banner)(void);
- 
- 	unsigned long (*get_wallclock)(void);
-@@ -370,6 +374,17 @@ static inline void setup_secondary_clock
- }
- #endif
- 
-+static inline void paravirt_pagetable_setup_start(pgd_t *base)
++static inline void arch_dup_mmap(struct mm_struct *oldmm,
++				 struct mm_struct *mm)
 +{
-+	if (paravirt_ops.pagetable_setup_start)
-+		(*paravirt_ops.pagetable_setup_start)(base);
 +}
 +
-+static inline void paravirt_pagetable_setup_done(pgd_t *base)
++static inline void arch_exit_mmap(struct mm_struct *mm)
 +{
-+	if (paravirt_ops.pagetable_setup_done)
-+		(*paravirt_ops.pagetable_setup_done)(base);
 +}
++
++#endif	/* _ASM_GENERIC_MM_HOOKS_H */
+diff -puN include/asm-h8300/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-h8300/mmu_context.h
+--- a/include/asm-h8300/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-h8300/mmu_context.h
+@@ -4,6 +4,7 @@
+ #include <asm/setup.h>
+ #include <asm/page.h>
+ #include <asm/pgalloc.h>
++#include <asm-generic/mm_hooks.h>
  
- #ifdef CONFIG_SMP
- static inline void startup_ipi_hook(int phys_apicid, unsigned long start_eip,
-diff -puN include/asm-i386/pgtable.h~paravirt_ops-hooks-to-set-up-initial-pagetable include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~paravirt_ops-hooks-to-set-up-initial-pagetable
-+++ a/include/asm-i386/pgtable.h
-@@ -514,6 +514,22 @@ do {									\
-  * tables contain all the necessary information.
-  */
- #define update_mmu_cache(vma,address,pte) do { } while (0)
-+
-+void native_pagetable_setup_start(pgd_t *base);
-+void native_pagetable_setup_done(pgd_t *base);
-+
+ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ {
+diff -puN include/asm-i386/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/mmu_context.h
+--- a/include/asm-i386/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-i386/mmu_context.h
+@@ -5,6 +5,16 @@
+ #include <asm/atomic.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
++#include <asm/paravirt.h>
 +#ifndef CONFIG_PARAVIRT
-+static inline void paravirt_pagetable_setup_start(pgd_t *base)
-+{
-+	native_pagetable_setup_start(base);
-+}
++#include <asm-generic/mm_hooks.h>
 +
-+static inline void paravirt_pagetable_setup_done(pgd_t *base)
++static inline void paravirt_activate_mm(struct mm_struct *prev,
++					struct mm_struct *next)
 +{
-+	native_pagetable_setup_done(base);
 +}
 +#endif	/* !CONFIG_PARAVIRT */
 +
- #endif /* !__ASSEMBLY__ */
  
- #ifdef CONFIG_FLATMEM
+ /*
+  * Used for LDT copy/destruction.
+@@ -65,7 +75,10 @@ static inline void switch_mm(struct mm_s
+ #define deactivate_mm(tsk, mm)			\
+ 	asm("movl %0,%%gs": :"r" (0));
+ 
+-#define activate_mm(prev, next) \
+-	switch_mm((prev),(next),NULL)
++#define activate_mm(prev, next)				\
++	do {						\
++		paravirt_activate_mm(prev, next);	\
++		switch_mm((prev),(next),NULL);		\
++	} while(0);
+ 
+ #endif
+diff -puN include/asm-i386/paravirt.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-i386/paravirt.h
+@@ -119,6 +119,12 @@ struct paravirt_ops
+ 
+ 	void (*io_delay)(void);
+ 
++	void (*activate_mm)(struct mm_struct *prev,
++			    struct mm_struct *next);
++	void (*dup_mmap)(struct mm_struct *oldmm,
++			 struct mm_struct *mm);
++	void (*exit_mmap)(struct mm_struct *mm);
++
+ #ifdef CONFIG_X86_LOCAL_APIC
+ 	void (*apic_write)(unsigned long reg, unsigned long v);
+ 	void (*apic_write_atomic)(unsigned long reg, unsigned long v);
+@@ -395,6 +401,23 @@ static inline void startup_ipi_hook(int 
+ }
+ #endif
+ 
++static inline void paravirt_activate_mm(struct mm_struct *prev,
++					struct mm_struct *next)
++{
++	paravirt_ops.activate_mm(prev, next);
++}
++
++static inline void arch_dup_mmap(struct mm_struct *oldmm,
++				 struct mm_struct *mm)
++{
++	paravirt_ops.dup_mmap(oldmm, mm);
++}
++
++static inline void arch_exit_mmap(struct mm_struct *mm)
++{
++	paravirt_ops.exit_mmap(mm);
++}
++
+ #define __flush_tlb() paravirt_ops.flush_tlb_user()
+ #define __flush_tlb_global() paravirt_ops.flush_tlb_kernel()
+ #define __flush_tlb_single(addr) paravirt_ops.flush_tlb_single(addr)
+diff -puN include/asm-ia64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-ia64/mmu_context.h
+--- a/include/asm-ia64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-ia64/mmu_context.h
+@@ -29,6 +29,7 @@
+ #include <linux/spinlock.h>
+ 
+ #include <asm/processor.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ struct ia64_ctx {
+ 	spinlock_t lock;
+diff -puN include/asm-m32r/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-m32r/mmu_context.h
+--- a/include/asm-m32r/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-m32r/mmu_context.h
+@@ -15,6 +15,7 @@
+ #include <asm/pgalloc.h>
+ #include <asm/mmu.h>
+ #include <asm/tlbflush.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ /*
+  * Cache of MMU context last used.
+diff -puN include/asm-m68k/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-m68k/mmu_context.h
+--- a/include/asm-m68k/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-m68k/mmu_context.h
+@@ -1,6 +1,7 @@
+ #ifndef __M68K_MMU_CONTEXT_H
+ #define __M68K_MMU_CONTEXT_H
+ 
++#include <asm-generic/mm_hooks.h>
+ 
+ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ {
+diff -puN include/asm-m68knommu/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-m68knommu/mmu_context.h
+--- a/include/asm-m68knommu/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-m68knommu/mmu_context.h
+@@ -4,6 +4,7 @@
+ #include <asm/setup.h>
+ #include <asm/page.h>
+ #include <asm/pgalloc.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ {
+diff -puN include/asm-mips/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-mips/mmu_context.h
+--- a/include/asm-mips/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-mips/mmu_context.h
+@@ -20,6 +20,7 @@
+ #include <asm/mipsmtregs.h>
+ #include <asm/smtc.h>
+ #endif /* SMTC */
++#include <asm-generic/mm_hooks.h>
+ 
+ /*
+  * For the fast tlb miss handlers, we keep a per cpu array of pointers
+diff -puN include/asm-parisc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-parisc/mmu_context.h
+--- a/include/asm-parisc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-parisc/mmu_context.h
+@@ -5,6 +5,7 @@
+ #include <asm/atomic.h>
+ #include <asm/pgalloc.h>
+ #include <asm/pgtable.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ {
+diff -puN include/asm-powerpc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-powerpc/mmu_context.h
+--- a/include/asm-powerpc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-powerpc/mmu_context.h
+@@ -10,6 +10,7 @@
+ #include <linux/mm.h>	
+ #include <asm/mmu.h>	
+ #include <asm/cputable.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ /*
+  * Copyright (C) 2001 PPC 64 Team, IBM Corp
+diff -puN include/asm-ppc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-ppc/mmu_context.h
+--- a/include/asm-ppc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-ppc/mmu_context.h
+@@ -6,6 +6,7 @@
+ #include <asm/bitops.h>
+ #include <asm/mmu.h>
+ #include <asm/cputable.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ /*
+  * On 32-bit PowerPC 6xx/7xx/7xxx CPUs, we use a set of 16 VSIDs
+diff -puN include/asm-s390/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-s390/mmu_context.h
+--- a/include/asm-s390/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-s390/mmu_context.h
+@@ -10,6 +10,8 @@
+ #define __S390_MMU_CONTEXT_H
+ 
+ #include <asm/pgalloc.h>
++#include <asm-generic/mm_hooks.h>
++
+ /*
+  * get a new mmu context.. S390 don't know about contexts.
+  */
+diff -puN include/asm-sh/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-sh/mmu_context.h
+--- a/include/asm-sh/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-sh/mmu_context.h
+@@ -12,6 +12,7 @@
+ #include <asm/tlbflush.h>
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ /*
+  * The MMU "context" consists of two things:
+diff -puN include/asm-sh64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-sh64/mmu_context.h
+--- a/include/asm-sh64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-sh64/mmu_context.h
+@@ -27,7 +27,7 @@
+ extern unsigned long mmu_context_cache;
+ 
+ #include <asm/page.h>
+-
++#include <asm-generic/mm_hooks.h>
+ 
+ /* Current mm's pgd */
+ extern pgd_t *mmu_pdtp_cache;
+diff -puN include/asm-sparc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-sparc/mmu_context.h
+--- a/include/asm-sparc/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-sparc/mmu_context.h
+@@ -5,6 +5,8 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
++#include <asm-generic/mm_hooks.h>
++
+ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ {
+ }
+diff -puN include/asm-sparc64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-sparc64/mmu_context.h
+--- a/include/asm-sparc64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-sparc64/mmu_context.h
+@@ -9,6 +9,7 @@
+ #include <linux/spinlock.h>
+ #include <asm/system.h>
+ #include <asm/spitfire.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ {
+diff -puN include/asm-um/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-um/mmu_context.h
+--- a/include/asm-um/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-um/mmu_context.h
+@@ -6,6 +6,8 @@
+ #ifndef __UM_MMU_CONTEXT_H
+ #define __UM_MMU_CONTEXT_H
+ 
++#include <asm-generic/mm_hooks.h>
++
+ #include "linux/sched.h"
+ #include "choose-mode.h"
+ #include "um_mmu.h"
+diff -puN include/asm-v850/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-v850/mmu_context.h
+--- a/include/asm-v850/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-v850/mmu_context.h
+@@ -1,6 +1,8 @@
+ #ifndef __V850_MMU_CONTEXT_H__
+ #define __V850_MMU_CONTEXT_H__
+ 
++#include <asm-generic/mm_hooks.h>
++
+ #define destroy_context(mm)		((void)0)
+ #define init_new_context(tsk,mm)	0
+ #define switch_mm(prev,next,tsk)	((void)0)
+diff -puN include/asm-x86_64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-x86_64/mmu_context.h
+--- a/include/asm-x86_64/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-x86_64/mmu_context.h
+@@ -7,6 +7,7 @@
+ #include <asm/pda.h>
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ /*
+  * possibly do the LDT unload here?
+diff -puN include/asm-xtensa/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction include/asm-xtensa/mmu_context.h
+--- a/include/asm-xtensa/mmu_context.h~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/include/asm-xtensa/mmu_context.h
+@@ -18,6 +18,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
++#include <asm-generic/mm_hooks.h>
+ 
+ #define XCHAL_MMU_ASID_BITS	8
+ 
+diff -puN kernel/fork.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction kernel/fork.c
+--- a/kernel/fork.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/kernel/fork.c
+@@ -287,6 +287,8 @@ static inline int dup_mmap(struct mm_str
+ 		if (retval)
+ 			goto out;
+ 	}
++	/* a new mm has just been created */
++	arch_dup_mmap(oldmm, mm);
+ 	retval = 0;
+ out:
+ 	up_write(&mm->mmap_sem);
+diff -puN mm/mmap.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction mm/mmap.c
+--- a/mm/mmap.c~paravirt_ops-add-hooks-to-intercept-mm-creation-and-destruction
++++ a/mm/mmap.c
+@@ -29,6 +29,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/cacheflush.h>
+ #include <asm/tlb.h>
++#include <asm/mmu_context.h>
+ 
+ #ifndef arch_mmap_check
+ #define arch_mmap_check(addr, len, flags)	(0)
+@@ -1979,6 +1980,9 @@ void exit_mmap(struct mm_struct *mm)
+ 	unsigned long nr_accounted = 0;
+ 	unsigned long end;
+ 
++	/* mm's last user has gone, and its about to be pulled down */
++	arch_exit_mmap(mm);
++
+ 	lru_add_drain();
+ 	flush_cache_mm(mm);
+ 	tlb = tlb_gather_mmu(mm, 1);
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
