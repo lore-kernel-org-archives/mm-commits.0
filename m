@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnpbios_thread_init-dont-use-clone_sighand.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:39:12 -0700
-Message-ID: <200704132039.l3DKdCoU008906@shell0.pdx.osdl.net>
+Subject: + nlmclnt_recovery-dont-use-clone_sighand.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:39:08 -0700
+Message-ID: <200704132039.l3DKd8ho008887@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50100 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50104 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030224AbXDMUjj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:39:39 -0400
+	id S1030250AbXDMUjl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:39:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ambx1@neo.rr.com, bjorn.helgaas@hp.com
+Cc: oleg@tv-sign.ru, bfields@fieldses.org, neilb@suse.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     pnpbios_thread_init: don't use CLONE_SIGHAND
+     nlmclnt_recovery: don't use CLONE_SIGHAND
 has been added to the -mm tree.  Its filename is
-     pnpbios_thread_init-dont-use-clone_sighand.patch
+     nlmclnt_recovery-dont-use-clone_sighand.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pnpbios_thread_init: don't use CLONE_SIGHAND
+Subject: nlmclnt_recovery: don't use CLONE_SIGHAND
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-pnp_dock_thread() calls allow_signal() which plays with parent process's
-->sighand.
+reclaimer() calls allow_signal() which plays with parent process's ->sighand.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpbios/core.c |    2 +-
+ fs/lockd/clntlock.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pnp/pnpbios/core.c~pnpbios_thread_init-dont-use-clone_sighand drivers/pnp/pnpbios/core.c
---- a/drivers/pnp/pnpbios/core.c~pnpbios_thread_init-dont-use-clone_sighand
-+++ a/drivers/pnp/pnpbios/core.c
-@@ -589,7 +589,7 @@ static int __init pnpbios_thread_init(vo
- 		return 0;
- #ifdef CONFIG_HOTPLUG
- 	init_completion(&unload_sem);
--	if (kernel_thread(pnp_dock_thread, NULL, CLONE_KERNEL) > 0)
-+	if (kernel_thread(pnp_dock_thread, NULL, CLONE_FS | CLONE_FILES) > 0)
- 		unloading = 0;
- #endif
- 	return 0;
+diff -puN fs/lockd/clntlock.c~nlmclnt_recovery-dont-use-clone_sighand fs/lockd/clntlock.c
+--- a/fs/lockd/clntlock.c~nlmclnt_recovery-dont-use-clone_sighand
++++ a/fs/lockd/clntlock.c
+@@ -153,7 +153,7 @@ nlmclnt_recovery(struct nlm_host *host)
+ 	if (!host->h_reclaiming++) {
+ 		nlm_get_host(host);
+ 		__module_get(THIS_MODULE);
+-		if (kernel_thread(reclaimer, host, CLONE_KERNEL) < 0)
++		if (kernel_thread(reclaimer, host, CLONE_FS | CLONE_FILES) < 0)
+ 			module_put(THIS_MODULE);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
