@@ -1,232 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:28:38 -0700
-Message-ID: <200704132328.l3DNSccQ012538@shell0.pdx.osdl.net>
+Subject: - nommu-fix-bug-ip_conntrack-does-not-work-on-nommu.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:28:27 -0700
+Message-ID: <200704132328.l3DNSRCx012520@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60378 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60371 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161020AbXDMX2r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:28:47 -0400
+	id S1161020AbXDMX2n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:28:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fenkes@de.ibm.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: bryan.wu@analog.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ibmebus: change probe/remove interface from using loc-code to DT path
+     nommu: fix bug ip_conntrack does not work on nommu
 has been removed from the -mm tree.  Its filename was
-     ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path.patch
+     nommu-fix-bug-ip_conntrack-does-not-work-on-nommu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ibmebus: change probe/remove interface from using loc-code to DT path
-From: Joachim Fenkes <fenkes@de.ibm.com>
+Subject: nommu: fix bug ip_conntrack does not work on nommu
+From: "Wu, Bryan" <bryan.wu@analog.com>
 
-In some cases, multiple OFDT nodes might share the same location code, so
-the location code is not a unique identifier for an OFDT node.  Changed the
-ibmebus probe/remove interface to use the DT path of the device node
-instead of the location code.
+num_physpages is not exported out in mm/nommu.c, so the ip_conntrack module
+link will fail.
 
-The DT path must be written into probe/remove right as it would appear in
-the "devspec" attribute of the ebus device: relative to the DT root, with a
-leading slash and without a trailing slash.  One trailing newline will not
-hurt; multiple newlines will (like perl's chomp()).
-
-Example:
-
- Add a device "/proc/device-tree/foo@12345678" to ibmebus like this:
-    echo /foo@12345678 > /sys/bus/ibmebus/probe
-
- Remove the device like this:
-    echo /foo@12345678 > /sys/bus/ibmebus/remove
-
-Signed-off-by: Joachim Fenkes <fenkes@de.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Acked-By: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/ibmebus.c |  118 ++++++++++++++++----------------
- 1 file changed, 61 insertions(+), 57 deletions(-)
+ mm/nommu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/kernel/ibmebus.c~ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path arch/powerpc/kernel/ibmebus.c
---- a/arch/powerpc/kernel/ibmebus.c~ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path
-+++ a/arch/powerpc/kernel/ibmebus.c
-@@ -44,8 +44,6 @@
- #include <asm/ibmebus.h>
- #include <asm/abs_addr.h>
+diff -puN mm/nommu.c~nommu-fix-bug-ip_conntrack-does-not-work-on-nommu mm/nommu.c
+--- a/mm/nommu.c~nommu-fix-bug-ip_conntrack-does-not-work-on-nommu
++++ a/mm/nommu.c
+@@ -45,6 +45,7 @@ int heap_stack_gap = 0;
  
--#define MAX_LOC_CODE_LENGTH 80
--
- static struct device ibmebus_bus_device = { /* fake "parent" device */
- 	.bus_id = "ibmebus",
- };
-@@ -253,7 +251,7 @@ static void ibmebus_add_devices_by_id(st
- 	return;
- }
+ EXPORT_SYMBOL(mem_map);
+ EXPORT_SYMBOL(__vm_enough_memory);
++EXPORT_SYMBOL(num_physpages);
  
--static int ibmebus_match_helper_name(struct device *dev, void *data)
-+static int ibmebus_match_name(struct device *dev, void *data)
- {
- 	const struct ibmebus_dev *ebus_dev = to_ibmebus_dev(dev);
- 	char *name;
-@@ -281,7 +279,7 @@ static void ibmebus_remove_devices_by_id
- 	while (strlen(idt->name) > 0) {
- 		while ((dev = bus_find_device(&ibmebus_bus_type, NULL,
- 					      (void*)idt->name,
--					      ibmebus_match_helper_name))) {
-+					      ibmebus_match_name))) {
- 			ibmebus_unregister_device(dev);
- 		}
- 		idt++;
-@@ -372,18 +370,30 @@ static struct device_attribute ibmebus_d
- 	__ATTR_NULL
- };
- 
--static int ibmebus_match_helper_loc_code(struct device *dev, void *data)
-+static int ibmebus_match_path(struct device *dev, void *data)
- {
--	const struct ibmebus_dev *ebus_dev = to_ibmebus_dev(dev);
--	char *loc_code;
-+	int rc;
-+	struct device_node *dn =
-+		of_node_get(to_ibmebus_dev(dev)->ofdev.node);
- 
--	loc_code = (char*)get_property(
--		ebus_dev->ofdev.node, "ibm,loc-code", NULL);
-+	rc = (dn->full_name && (strcasecmp((char*)data, dn->full_name) == 0));
- 
--	if (loc_code && (strcmp((char*)data, loc_code) == 0))
--		return 1;
-+	of_node_put(dn);
-+	return rc;
-+}
- 
--	return 0;
-+static char *ibmebus_chomp(const char *in, size_t count)
-+{
-+	char *out = (char*)kmalloc(count + 1, GFP_KERNEL);
-+	if (!out)
-+		return NULL;
-+
-+	memcpy(out, in, count);
-+	out[count] = '\0';
-+	if (out[count - 1] == '\n')
-+		out[count - 1] = '\0';
-+
-+	return out;
- }
- 
- static ssize_t ibmebus_store_probe(struct bus_type *bus,
-@@ -391,65 +401,59 @@ static ssize_t ibmebus_store_probe(struc
- {
- 	struct device_node *dn = NULL;
- 	struct ibmebus_dev *dev;
--	char *loc_code;
--	char parm[MAX_LOC_CODE_LENGTH];
--
--	if (count >= MAX_LOC_CODE_LENGTH)
--		return -EINVAL;
--	memcpy(parm, buf, count);
--	parm[count] = '\0';
--	if (parm[count-1] == '\n')
--		parm[count-1] = '\0';
--
--	if (bus_find_device(&ibmebus_bus_type, NULL, parm,
--			     ibmebus_match_helper_loc_code)) {
--		printk(KERN_WARNING "%s: loc_code %s has already been probed\n",
--		       __FUNCTION__, parm);
--		return -EINVAL;
--	}
-+	char *path;
-+	ssize_t rc;
- 
--	while ((dn = of_find_all_nodes(dn))) {
--		loc_code = (char *)get_property(dn, "ibm,loc-code", NULL);
--		if (loc_code && (strncmp(loc_code, parm, count) == 0)) {
--			dev = ibmebus_register_device_node(dn);
--			if (IS_ERR(dev)) {
--				of_node_put(dn);
--				return PTR_ERR(dev);
--			} else
--				return count; /* success */
--		}
-+	path = ibmebus_chomp(buf, count);
-+	if (!path)
-+		return -ENOMEM;
-+
-+	if (bus_find_device(&ibmebus_bus_type, NULL, path,
-+			     ibmebus_match_path)) {
-+		printk(KERN_WARNING "%s: %s has already been probed\n",
-+		       __FUNCTION__, path);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	if ((dn = of_find_node_by_path(path))) {
-+		dev = ibmebus_register_device_node(dn);
-+		of_node_put(dn);
-+		rc = IS_ERR(dev) ? PTR_ERR(dev) : count;
-+	} else {
-+		printk(KERN_WARNING "%s: no such device node: %s",
-+		       __FUNCTION__, path);
-+		rc = -ENODEV;
- 	}
- 
--	/* if we drop out of the loop, the loc code was invalid */
--	printk(KERN_WARNING "%s: no device with loc_code %s found\n",
--	       __FUNCTION__, parm);
--	return -ENODEV;
-+out:
-+	kfree(path);
-+	return rc;
- }
- 
- static ssize_t ibmebus_store_remove(struct bus_type *bus,
- 				    const char *buf, size_t count)
- {
- 	struct device *dev;
--	char parm[MAX_LOC_CODE_LENGTH];
-+	char *path;
- 
--	if (count >= MAX_LOC_CODE_LENGTH)
--		return -EINVAL;
--	memcpy(parm, buf, count);
--	parm[count] = '\0';
--	if (parm[count-1] == '\n')
--		parm[count-1] = '\0';
--
--	/* The location code is unique, so we will find one device at most */
--	if ((dev = bus_find_device(&ibmebus_bus_type, NULL, parm,
--				   ibmebus_match_helper_loc_code))) {
-+	path = ibmebus_chomp(buf, count);
-+	if (!path)
-+		return -ENOMEM;
-+
-+	if ((dev = bus_find_device(&ibmebus_bus_type, NULL, path,
-+				   ibmebus_match_path))) {
- 		ibmebus_unregister_device(dev);
-+
-+		kfree(path);
-+		return count;
- 	} else {
--		printk(KERN_WARNING "%s: loc_code %s not on the bus\n",
--		       __FUNCTION__, parm);
-+		printk(KERN_WARNING "%s: %s not on the bus\n",
-+		       __FUNCTION__, path);
-+
-+		kfree(path);
- 		return -ENODEV;
- 	}
--
--	return count;
- }
- 
- static struct bus_attribute ibmebus_bus_attrs[] = {
+ /* list of shareable VMAs */
+ struct rb_root nommu_vma_tree = RB_ROOT;
 _
 
-Patches currently in -mm which might be from fenkes@de.ibm.com are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
-git-powerpc.patch
+origin.patch
+usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
+blackfin-Documentation.patch
+blackfin-arch.patch
+blackfin-arch-balance-parenthesis-in-macros.patch
+blackfin-arch-2.6.21-rc4-mm1-update.patch
+blackfin-arch-fix-struct-dmasg-packing-bug.patch
+blackfin-arch-cleanup-cache-header-file.patch
+blackfin-arch-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+blackfin-arch-fix-compiling-error-in-flat-c-file.patch
+blackfin-arch-power-management-replace-firmware-disk-mode.patch
+blackfin-arch-add-kdebug-header-file.patch
+blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
+blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
+blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
+blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
+blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
+blackfin-arch-always-include-linux-kallsysms-header-file.patch
+blackfin-arch-sync-with-uclibc-no-functional-changes.patch
+blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
+blackfin-arch-add-missing-__clear_user-function-to.patch
+blackfin-arch-use-boot_command_line-instead-of.patch
+blackfin-arch-fix-some-coding-style-in-include.patch
+blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
+blackfin-arch-add-missing-blackfin-support-in-lib.patch
+blackfin-arch-fix-bug-data-cannot-be-put-into-l1-data.patch
+blackfin-arch-source-kernel-preemption-option.patch
+blackfin-arch-workaround-bf561-anomaly-05000266.patch
+blackfin-arch-define-a-new-cacheline_aligned-attribute-to-put-it-in-l1-data-memory-with-linkscript-update.patch
+blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch
+blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+blackfin-on-chip-ethernet-mac-controller-driver.patch
+blackfin-on-chip-ethernet-mac-controller-driver-update.patch
+blackfin-patch-add-blackfin-support-in-smc91x.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
+blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+blackfin-blackfin-utrace-patch.patch
+utrace-nommu-fixup-support-utrace.patch
+vdso-print-fatal-signals-fix-compiling-error-bug-in.patch
