@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-optimize-acorn-partition-truncate.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:01:29 -0700
-Message-ID: <200704132001.l3DK1Tls008215@shell0.pdx.osdl.net>
+Subject: + efi-warn-only-for-pre-100-system-tables.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:29:45 -0700
+Message-ID: <200704132029.l3DKTjAQ008713@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:48500 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:49573 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964821AbXDMUBe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:01:34 -0400
+	id S965084AbXDMU3w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:29:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl
+Cc: bjorn.helgaas@hp.com, ak@suse.de, tony.luck@intel.com
 
 
 The patch titled
-     mm: optimize acorn partition truncate
+     EFI: warn only for pre-1.00 system tables
 has been added to the -mm tree.  Its filename is
-     mm-optimize-acorn-partition-truncate.patch
+     efi-warn-only-for-pre-100-system-tables.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,105 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: optimize acorn partition truncate
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: EFI: warn only for pre-1.00 system tables
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-invalidate_bdev() is superfluous when truncate_inode_pages() is also
-called.  do call invalidate_bh_lrus() though, to avoid stale pointers.
+We used to warn unless the EFI system table major revision was exactly 1. 
+But EFI 2.00 firmware is starting to appear, and the 2.00 changes don't
+affect anything in Linux.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/acorn.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/efi.c         |   12 +++++-------
+ arch/ia64/hp/sim/boot/fw-emu.c |    2 +-
+ arch/ia64/kernel/efi.c         |   10 +++++-----
+ include/linux/efi.h            |    1 -
+ 4 files changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN fs/partitions/acorn.c~mm-optimize-acorn-partition-truncate fs/partitions/acorn.c
---- a/fs/partitions/acorn.c~mm-optimize-acorn-partition-truncate
-+++ a/fs/partitions/acorn.c
-@@ -271,7 +271,7 @@ adfspart_check_ADFS(struct parsed_partit
- 		extern void xd_set_geometry(struct block_device *,
- 			unsigned char, unsigned char, unsigned int);
- 		xd_set_geometry(bdev, dr->secspertrack, heads, 1);
--		invalidate_bdev(bdev);
-+		invalidate_bh_lrus();
- 		truncate_inode_pages(bdev->bd_inode->i_mapping, 0);
- 	}
- #endif
+diff -puN arch/i386/kernel/efi.c~efi-warn-only-for-pre-100-system-tables arch/i386/kernel/efi.c
+--- a/arch/i386/kernel/efi.c~efi-warn-only-for-pre-100-system-tables
++++ a/arch/i386/kernel/efi.c
+@@ -347,14 +347,12 @@ void __init efi_init(void)
+ 		printk(KERN_ERR PFX "Woah! Couldn't map the EFI system table.\n");
+ 	if (efi.systab->hdr.signature != EFI_SYSTEM_TABLE_SIGNATURE)
+ 		printk(KERN_ERR PFX "Woah! EFI system table signature incorrect\n");
+-	if ((efi.systab->hdr.revision ^ EFI_SYSTEM_TABLE_REVISION) >> 16 != 0)
+-		printk(KERN_ERR PFX
+-		       "Warning: EFI system table major version mismatch: "
+-		       "got %d.%02d, expected %d.%02d\n",
++	if ((efi.systab->hdr.revision >> 16) == 0)
++		printk(KERN_ERR PFX "Warning: EFI system table version "
++		       "%d.%02d, expected 1.00 or greater\n",
+ 		       efi.systab->hdr.revision >> 16,
+-		       efi.systab->hdr.revision & 0xffff,
+-		       EFI_SYSTEM_TABLE_REVISION >> 16,
+-		       EFI_SYSTEM_TABLE_REVISION & 0xffff);
++		       efi.systab->hdr.revision & 0xffff);
++
+ 	/*
+ 	 * Grab some details from the system table
+ 	 */
+diff -puN arch/ia64/hp/sim/boot/fw-emu.c~efi-warn-only-for-pre-100-system-tables arch/ia64/hp/sim/boot/fw-emu.c
+--- a/arch/ia64/hp/sim/boot/fw-emu.c~efi-warn-only-for-pre-100-system-tables
++++ a/arch/ia64/hp/sim/boot/fw-emu.c
+@@ -287,7 +287,7 @@ sys_fw_init (const char *args, int argle
+ 
+ 	memset(efi_systab, 0, sizeof(efi_systab));
+ 	efi_systab->hdr.signature = EFI_SYSTEM_TABLE_SIGNATURE;
+-	efi_systab->hdr.revision  = EFI_SYSTEM_TABLE_REVISION;
++	efi_systab->hdr.revision  = ((1 << 16) | 00);
+ 	efi_systab->hdr.headersize = sizeof(efi_systab->hdr);
+ 	efi_systab->fw_vendor = __pa("H\0e\0w\0l\0e\0t\0t\0-\0P\0a\0c\0k\0a\0r\0d\0\0");
+ 	efi_systab->fw_revision = 1;
+diff -puN arch/ia64/kernel/efi.c~efi-warn-only-for-pre-100-system-tables arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~efi-warn-only-for-pre-100-system-tables
++++ a/arch/ia64/kernel/efi.c
+@@ -445,11 +445,11 @@ efi_init (void)
+ 		panic("Woah! Can't find EFI system table.\n");
+ 	if (efi.systab->hdr.signature != EFI_SYSTEM_TABLE_SIGNATURE)
+ 		panic("Woah! EFI system table signature incorrect\n");
+-	if ((efi.systab->hdr.revision ^ EFI_SYSTEM_TABLE_REVISION) >> 16 != 0)
+-		printk(KERN_WARNING "Warning: EFI system table major version mismatch: "
+-		       "got %d.%02d, expected %d.%02d\n",
+-		       efi.systab->hdr.revision >> 16, efi.systab->hdr.revision & 0xffff,
+-		       EFI_SYSTEM_TABLE_REVISION >> 16, EFI_SYSTEM_TABLE_REVISION & 0xffff);
++	if ((efi.systab->hdr.revision >> 16) == 0)
++		printk(KERN_WARNING "Warning: EFI system table version "
++		       "%d.%02d, expected 1.00 or greater\n",
++		       efi.systab->hdr.revision >> 16,
++		       efi.systab->hdr.revision & 0xffff);
+ 
+ 	config_tables = __va(efi.systab->tables);
+ 
+diff -puN include/linux/efi.h~efi-warn-only-for-pre-100-system-tables include/linux/efi.h
+--- a/include/linux/efi.h~efi-warn-only-for-pre-100-system-tables
++++ a/include/linux/efi.h
+@@ -213,7 +213,6 @@ typedef struct {
+ } efi_config_table_t;
+ 
+ #define EFI_SYSTEM_TABLE_SIGNATURE ((u64)0x5453595320494249ULL)
+-#define EFI_SYSTEM_TABLE_REVISION  ((1 << 16) | 00)
+ 
+ typedef struct {
+ 	efi_table_hdr_t hdr;
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-lumpy-reclaim-v4.patch
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-mm-remove-destroy_dirty_buffers-from-invalidate_bdev.patch
-mm-optimize-kill_bdev.patch
-mm-optimize-kill_bdev-fix.patch
-mm-optimize-acorn-partition-truncate.patch
-exec-fix-remove_arg_zero-add-comment.patch
-lockdep-treats-down_write_trylock-like-regular-down_write.patch
-nfs-fix-congestion-control-use-atomic_longs.patch
+cciss-unregister-from-scsi-before-tearing-down-device-resources.patch
+git-ia64.patch
+move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
+pnpacpi-sets-pnpdev-devarchdata.patch
+pnpacpi-sets-pnpdev-devarchdata-fix.patch
+efi-warn-only-for-pre-100-system-tables.patch
+pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
+pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled.patch
+smsc-ircc2-tidy-up-module-parameter-checking.patch
+smsc-ircc2-add-pnp-support.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+use-menuconfig-objects-pnp.patch
