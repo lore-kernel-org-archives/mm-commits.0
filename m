@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + worker_thread-dont-play-with-sigchld.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:54:10 -0700
-Message-ID: <200704132054.l3DKsA2j009165@shell0.pdx.osdl.net>
+Subject: - worker_thread-dont-play-with-sigchld.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 13:55:18 -0700
+Message-ID: <200704132055.l3DKtII3009199@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50911 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50970 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965356AbXDMUyV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:54:21 -0400
+	id S965388AbXDMUzb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ebiederm@xmission.com
+To: oleg@tv-sign.ru, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      worker_thread: don't play with SIGCHLD
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      worker_thread-dont-play-with-sigchld.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: worker_thread: don't play with SIGCHLD
@@ -136,4 +132,5 @@ usbatm_heavy_init-dont-use-clone_sighand.patch
 pnpbios_thread_init-dont-use-clone_sighand.patch
 wait_for_helper-remove-unneeded-do_sigaction.patch
 worker_thread-dont-play-with-sigchld.patch
+worker_thread-dont-play-with-sigchld-and-numa-policy.patch
 dont-init-pgrp-and-__session-in-init_signals.patch
