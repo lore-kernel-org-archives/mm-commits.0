@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-fix-kmem_cache_destroy.patch added to -mm tree
-Date: Fri, 13 Apr 2007 12:33:18 -0700
-Message-ID: <200704131933.l3DJXIj2007687@shell0.pdx.osdl.net>
+Subject: + slub-core-fix-validation.patch added to -mm tree
+Date: Fri, 13 Apr 2007 12:37:01 -0700
+Message-ID: <200704131937.l3DJb1or007754@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47569 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47697 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932140AbXDMTdX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 15:33:23 -0400
+	id S932469AbXDMThE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 15:37:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, neilb@suse.de
+Cc: clameter@sgi.com
 
 
 The patch titled
-     slub: fix kmem_cache_destroy
+     slub: fix validation
 has been added to the -mm tree.  Its filename is
-     slub-core-fix-kmem_cache_destroy.patch
+     slub-core-fix-validation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: fix kmem_cache_destroy
+Subject: slub: fix validation
 From: Christoph Lameter <clameter@sgi.com>
 
-The refcounter needs to be decremented before checking it.
+Some parts of object validation will never occur because on_freelist does
+return the wrong exit code for a NULL object.
+
+Fix that.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Tested-and-approved-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ mm/slub.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-core-fix-kmem_cache_destroy mm/slub.c
---- a/mm/slub.c~slub-core-fix-kmem_cache_destroy
+diff -puN mm/slub.c~slub-core-fix-validation mm/slub.c
+--- a/mm/slub.c~slub-core-fix-validation
 +++ a/mm/slub.c
-@@ -1832,9 +1832,8 @@ static int kmem_cache_close(struct kmem_
- void kmem_cache_destroy(struct kmem_cache *s)
- {
- 	down_write(&slub_lock);
--	if (s->refcount)
--		s->refcount--;
--	else {
-+	s->refcount--;
-+	if (!s->refcount) {
- 		list_del(&s->list);
- 		if (kmem_cache_close(s))
- 			WARN_ON(1);
+@@ -594,7 +594,7 @@ static int on_freelist(struct kmem_cache
+ 			s->objects - nr);
+ 		page->inuse = s->objects - nr;
+ 	}
+-	return 0;
++	return search == NULL;
+ }
+ 
+ static int alloc_object_checks(struct kmem_cache *s, struct page *page,
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -105,6 +104,11 @@ slub-core-missing-inlines-and-statics.patch
 slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
 slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
 slub-core-fix-kmem_cache_destroy.patch
+slub-core-fix-validation.patch
+slub-core-add-after-object-padding.patch
+slub-core-resiliency-fixups.patch
+slub-core-resiliency-fixups-fix.patch
+slub-core-resiliency-test.patch
 slub-add-slabinfo-tool.patch
 slub-add-slabinfo-tool-update-slabinfoc.patch
 make-page-private-usable-in-compound-pages-v1.patch
@@ -122,6 +126,7 @@ slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
 slub-user-documentation.patch
 slub-user-documentation-fix.patch
 slub-mm-only-make-slub-the-default-slab-allocator.patch
+remove-object-activities-out-of-checking-functions.patch
 quicklists-for-page-table-pages.patch
 quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
 quicklist-support-for-ia64.patch
