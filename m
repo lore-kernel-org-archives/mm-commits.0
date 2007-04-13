@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aacraid-2621-rc6-mm1-aacraid-not-finding-device.patch added to -mm tree
-Date: Fri, 13 Apr 2007 14:18:22 -0700
-Message-ID: <200704132118.l3DLIMtx009640@shell0.pdx.osdl.net>
+Subject: + apm-fix-incorrect-comment.patch added to -mm tree
+Date: Fri, 13 Apr 2007 14:19:23 -0700
+Message-ID: <200704132119.l3DLJPlL009675@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52677 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:52766 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030323AbXDMVS2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 17:18:28 -0400
+	id S1030455AbXDMVTi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 17:19:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mark_salyzyn@adaptec.com, James.Bottomley@steeleye.com, aacraid@adaptec.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     aacraid: 2.6.21-rc6-mm1 aacraid not finding device
+     apm: fix incorrect comment
 has been added to the -mm tree.  Its filename is
-     aacraid-2621-rc6-mm1-aacraid-not-finding-device.patch
+     apm-fix-incorrect-comment.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aacraid: 2.6.21-rc6-mm1 aacraid not finding device
-From: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
+Subject: apm: fix incorrect comment
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Thanks for the help from Steve Fox and Duane Cox investigating this
-issue, I'd like to report that we found the problem. The issue is with
-the patch Steve Fox isolated below, by not accommodating older adapters
-properly and issuing a command they do not support when retrieving
-storage parameters about the arrays. This simple patch resolves the
-problem (and more accurately mimics the logic of the original code
-before the patch).
+HZ has not always been 100Hz for some time.
 
-Signed-off-by: Mark Salyzyn <aacraid@adaptec.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/aachba.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ arch/i386/kernel/apm.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/aacraid/aachba.c~aacraid-2621-rc6-mm1-aacraid-not-finding-device drivers/scsi/aacraid/aachba.c
---- a/drivers/scsi/aacraid/aachba.c~aacraid-2621-rc6-mm1-aacraid-not-finding-device
-+++ a/drivers/scsi/aacraid/aachba.c
-@@ -503,8 +503,7 @@ static int _aac_probe_container1(void * 
- 	dresp = (struct aac_mount *) fib_data(fibptr);
- 	dresp->mnt[0].capacityhigh = 0;
- 	if ((le32_to_cpu(dresp->status) != ST_OK) ||
--	    ((le32_to_cpu(dresp->mnt[0].vol) != CT_NONE) &&
--	     (le32_to_cpu(dresp->mnt[0].state) == FSCS_HIDDEN)))
-+	    (le32_to_cpu(dresp->mnt[0].vol) != CT_NONE))
- 		return _aac_probe_container2(context, fibptr);
- 	scsicmd = (struct scsi_cmnd *) context;
- 	scsicmd->SCp.phase = AAC_OWNER_MIDLEVEL;
+diff -puN arch/i386/kernel/apm.c~apm-fix-incorrect-comment arch/i386/kernel/apm.c
+--- a/arch/i386/kernel/apm.c~apm-fix-incorrect-comment
++++ a/arch/i386/kernel/apm.c
+@@ -1181,7 +1181,7 @@ static void reinit_timer(void)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&i8253_lock, flags);
+-	/* set the clock to 100 Hz */
++	/* set the clock to HZ */
+ 	outb_p(0x34, PIT_MODE);		/* binary, mode 2, LSB/MSB, ch 0 */
+ 	udelay(10);
+ 	outb_p(LATCH & 0xff, PIT_CH0);	/* LSB */
 _
 
-Patches currently in -mm which might be from mark_salyzyn@adaptec.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-scsi-misc.patch
-aacraid-2621-rc6-mm1-aacraid-not-finding-device.patch
+origin.patch
+execc-fix-coredump-to-pipe-problem-and-obscure-security.patch
+provide-dummy-devm_ioport_-if-has_ioport.patch
+git-libata-all.patch
+libata-misc-minor-merge-fixups.patch
+pata_hpt37x-further-small-fixes.patch
+pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
+pata_pdc2027x-bring-into-line-with-changes-add-the-mode.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
+git-netdev-all.patch
+pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
+serial-suppress-rts-assertion-with-disabled-crtscts.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+tty-clarify-documentation-of-write.patch
+tty-i386-x86_64-arbitary-speed-support.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+protect-tty-drivers-list-with-tty_mutex.patch
+fix-82875-pci-setup.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+remove-redundant-check-from-proc_sys_setattr.patch
+apm-fix-incorrect-comment.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+edac-k8-driver-coding-tidy.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
