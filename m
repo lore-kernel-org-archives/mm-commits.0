@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + workaround-rtc-related-acpi-table-bugs.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:36:49 -0700
-Message-ID: <200704132036.l3DKanAk008841@shell0.pdx.osdl.net>
+Subject: + usbatm_heavy_init-dont-use-clone_sighand.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:39:10 -0700
+Message-ID: <200704132039.l3DKdAdD008898@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:49991 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50082 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030224AbXDMUiL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:38:11 -0400
+	id S1030202AbXDMUjV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:39:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, lenb@kernel.org
+Cc: oleg@tv-sign.ru, duncan.sands@free.fr, greg@kroah.com
 
 
 The patch titled
-     workaround rtc-related acpi table bugs
+     usbatm_heavy_init: don't use CLONE_SIGHAND
 has been added to the -mm tree.  Its filename is
-     workaround-rtc-related-acpi-table-bugs.patch
+     usbatm_heavy_init-dont-use-clone_sighand.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,97 +25,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: workaround rtc-related acpi table bugs
-From: David Brownell <david-b@pacbell.net>
+Subject: usbatm_heavy_init: don't use CLONE_SIGHAND
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This works around a bug seen in some RTC-related ACPI table entries, and
-tweaks related diagnostics to follow the ACPI convention.
+usbatm_do_heavy_init() calls allow_signal() which plays with parent process's
+->sighand.
 
-The bug prevents misleading boot-time messages: platforms affected by this
-bug wrongly report they can support alarms up to one year in the future,
-when in fact the longest alarm is just 24 hours.  That will surprise anyone
-trying to use those extended alarms.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Duncan Sands <duncan.sands@free.fr>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/glue.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/usb/atm/usbatm.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/glue.c~workaround-rtc-related-acpi-table-bugs drivers/acpi/glue.c
---- a/drivers/acpi/glue.c~workaround-rtc-related-acpi-table-bugs
-+++ a/drivers/acpi/glue.c
-@@ -316,13 +316,19 @@ static int __init acpi_rtc_init(void)
- 		rtc_info.wake_on = rtc_wake_on;
- 		rtc_info.wake_off = rtc_wake_off;
+diff -puN drivers/usb/atm/usbatm.c~usbatm_heavy_init-dont-use-clone_sighand drivers/usb/atm/usbatm.c
+--- a/drivers/usb/atm/usbatm.c~usbatm_heavy_init-dont-use-clone_sighand
++++ a/drivers/usb/atm/usbatm.c
+@@ -1030,7 +1030,7 @@ static int usbatm_do_heavy_init(void *ar
  
-+		if (acpi_gbl_FADT.month_alarm && !acpi_gbl_FADT.day_alarm) {
-+			DBG("bogus FADT month_alarm\n");
-+			acpi_gbl_FADT.month_alarm = 0;
-+		}
-+
- 		rtc_info.rtc_day_alarm = acpi_gbl_FADT.day_alarm;
- 		rtc_info.rtc_mon_alarm = acpi_gbl_FADT.month_alarm;
- 		rtc_info.rtc_century = acpi_gbl_FADT.century;
+ static int usbatm_heavy_init(struct usbatm_data *instance)
+ {
+-	int ret = kernel_thread(usbatm_do_heavy_init, instance, CLONE_KERNEL);
++	int ret = kernel_thread(usbatm_do_heavy_init, instance, CLONE_FS | CLONE_FILES);
  
- 		/* NOTE:  S4_RTC_WAKE is NOT currently useful to Linux */
- 		if (acpi_gbl_FADT.flags & ACPI_FADT_S4_RTC_WAKE)
--			printk("ACPI: RTC can wake from S4\n");
-+			printk(PREFIX "RTC can wake from S4\n");
-+
- 
- 		dev->platform_data = &rtc_info;
- 
-@@ -331,7 +337,7 @@ static int __init acpi_rtc_init(void)
- 
- 		put_device(dev);
- 	} else
--		pr_debug("ACPI: RTC unavailable?\n");
-+		DBG("RTC unavailable?\n");
- 	return 0;
- }
- /* do this between RTC subsys_initcall() and rtc_cmos driver_initcall() */
+ 	if (ret < 0) {
+ 		usb_err(instance, "%s: failed to create kernel_thread (%d)!\n", __func__, ret);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-origin.patch
-doc-gpiotxt-describes-open-drain-emulation.patch
-make-proc-acpi-wakeup-more-useful.patch
-update-documentation-driver-model-platformtxt.patch
-at91_cf-minor-fix.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnpacpi-sets-pnpdev-devarchdata-fix.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-update-to-class-device-removal-patches.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
-workaround-rtc-related-acpi-table-bugs.patch
-revert-rtc-add-rtc_merge_alarm.patch
-remove-rtc_alm_set-mode-bugs.patch
+kernel-doc-fix-plisth-comments.patch
+git-dvb.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+add-a-new-deferrable-delayed-work-init.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+worker_thread-dont-play-with-signals.patch
+worker_thread-fix-racy-try_to_freeze-usage.patch
+zap_other_threads-remove-unneeded-exit_signal-change.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+change-reparent_to_init-to-reparent_to_kthreadd.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+usbatm_heavy_init-dont-use-clone_sighand.patch
+pnpbios_thread_init-dont-use-clone_sighand.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
