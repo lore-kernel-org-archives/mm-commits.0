@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch added to -mm tree
-Date: Fri, 13 Apr 2007 11:59:38 -0700
-Message-ID: <200704131859.l3DIxci7006993@shell0.pdx.osdl.net>
+Subject: + fix-bogon-in-dev-mem-mmaping-on-nommu.patch added to -mm tree
+Date: Fri, 13 Apr 2007 11:58:43 -0700
+Message-ID: <200704131858.l3DIwhHa006970@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:46306 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:46312 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754141AbXDMS7m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 14:59:42 -0400
+	id S1754144AbXDMTAF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 15:00:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: milindchoudhary@gmail.com, lethal@linux-sh.org
+Cc: benh@kernel.crashing.org, dhowells@redhat.com, stable@kernel.org
 
 
 The patch titled
-     ROUND_UP macro cleanup in arch/sh64/kernel/pci_sh5.c
+     fix bogon in /dev/mem mmap'ing on nommu
 has been added to the -mm tree.  Its filename is
-     round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+     fix-bogon-in-dev-mem-mmaping-on-nommu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ROUND_UP macro cleanup in arch/sh64/kernel/pci_sh5.c
-From: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Subject: fix bogon in /dev/mem mmap'ing on nommu
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-ROUND_UP macro cleanup, use ALIGN where ever appropriate.
+While digging through my MAP_FIXED changes, I found that rather obvious
+bug in /dev/mem mmap implementation for nommu archs. get_unmapped_area()
+is expected to return an address, not a pfn.
 
-Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-By: David Howells <dhowells@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh64/kernel/pci_sh5.c |   12 ++++--------
- 1 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/char/mem.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sh64/kernel/pci_sh5.c~round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c arch/sh64/kernel/pci_sh5.c
---- a/arch/sh64/kernel/pci_sh5.c~round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c
-+++ a/arch/sh64/kernel/pci_sh5.c
-@@ -375,8 +375,6 @@ irqreturn_t pcish5_serr_irq(int irq, voi
- 	return IRQ_NONE;
- }
- 
--#define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
--
- static void __init
- pcibios_size_bridge(struct pci_bus *bus, struct resource *ior,
- 		    struct resource *memr)
-@@ -433,8 +431,8 @@ pcibios_size_bridge(struct pci_bus *bus,
- 	mem_res.end -= mem_res.start;
- 
- 	/* Align the sizes up by bridge rules */
--	io_res.end = ROUND_UP(io_res.end, 4*1024) - 1;
--	mem_res.end = ROUND_UP(mem_res.end, 1*1024*1024) - 1;
-+	io_res.end = ALIGN(io_res.end, 4*1024) - 1;
-+	mem_res.end = ALIGN(mem_res.end, 1*1024*1024) - 1;
- 
- 	/* Adjust the bridge's allocation requirements */
- 	bridge->resource[0].end = bridge->resource[0].start + io_res.end;
-@@ -447,18 +445,16 @@ pcibios_size_bridge(struct pci_bus *bus,
- 
- 	/* adjust parent's resource requirements */
- 	if (ior) {
--		ior->end = ROUND_UP(ior->end, 4*1024);
-+		ior->end = ALIGN(ior->end, 4*1024);
- 		ior->end += io_res.end;
- 	}
- 
- 	if (memr) {
--		memr->end = ROUND_UP(memr->end, 1*1024*1024);
-+		memr->end = ALIGN(memr->end, 1*1024*1024);
- 		memr->end += mem_res.end;
- 	}
- }
- 
--#undef ROUND_UP
--
- static void __init pcibios_size_bridges(void)
+diff -puN drivers/char/mem.c~fix-bogon-in-dev-mem-mmaping-on-nommu drivers/char/mem.c
+--- a/drivers/char/mem.c~fix-bogon-in-dev-mem-mmaping-on-nommu
++++ a/drivers/char/mem.c
+@@ -247,7 +247,7 @@ static unsigned long get_unmapped_area_m
  {
- 	struct resource io_res, mem_res;
+ 	if (!valid_mmap_phys_addr_range(pgoff, len))
+ 		return (unsigned long) -EINVAL;
+-	return pgoff;
++	return pgoff << PAGE_SHIFT;
+ }
+ 
+ /* can't do an in-place private mapping if there's no MMU */
 _
 
-Patches currently in -mm which might be from milindchoudhary@gmail.com are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-unused-round_up-name_offset-macro-in-arch-powerpc.patch
+allow-vmsplice-to-work-in-32-bit-mode-on-ppc64.patch
+fix-bogon-in-dev-mem-mmaping-on-nommu.patch
+git-powerpc.patch
+git-powerpc-arch-powerpc-sysdev-timerc-build-fix.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+powerpc-rtas-msi-support.patch
+remove-unused-header-file-arch-ppc-syslib-cpc710h.patch
+remove-unused-header-file-arch-powerpc-platforms-83xx-mpc834x_itxh.patch
+powerpc-fix-breakage-caused-by-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc.patch
+ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance.patch
+ibmebus-change-probe-remove-interface-from-using-loc-code-to-dt-path.patch
 spin_lock_unlocked-cleanup-in-arch-powerpc.patch
-git-ieee1394.patch
-spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
-round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
-round_up-macro-cleanup-in-drivers-parisc.patch
-round_up-macro-cleanup-in-drivers-pci.patch
-pcie-remove-spin_lock_unlocked.patch
-round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
-round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
-round_up-macro-cleanup-in-drivers-char-lpc.patch
-round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
-round_up-macro-cleanup-in-fs-smbfs-requestc.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+use-slab_panic-flag-cleanup.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-powerpc-optimization.patch
+ps3fb-thread-updates.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3av-misc-updates.patch
+aty128fb-fix-blanking.patch
+radeonfb-add-support-for-radeon-xpress-200m.patch
