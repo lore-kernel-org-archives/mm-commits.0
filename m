@@ -1,32 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-implement-bin_buffer.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:29:16 -0700
-Message-ID: <200704132329.l3DNTG9V012607@shell0.pdx.osdl.net>
+Subject: - sysfs-add-sysfs_dirent-s_parent.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:29:03 -0700
+Message-ID: <200704132329.l3DNT3N5012569@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60484 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60472 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161139AbXDMX33 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:29:29 -0400
+	id S1161123AbXDMX30 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:29:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: implement bin_buffer
+     sysfs: add sysfs_dirent->s_parent
 has been removed from the -mm tree.  Its filename was
-     sysfs-implement-bin_buffer.patch
+     sysfs-add-sysfs_dirent-s_parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysfs: implement bin_buffer
+Subject: sysfs: add sysfs_dirent->s_parent
 From: Tejun Heo <htejun@gmail.com>
 
-Implement bin_buffer which contains a mutex and pointer to PAGE_SIZE buffer to
-properly synchronize accesses to per-openfile buffer and prepare for
-immediate-kobj-disconnect.
+Add sysfs_dirent->s_parent.  With this patch, each sd points to and holds a
+reference to its parent.  This allows walking sysfs tree without referencing
+sd->s_dentry which can go away anytime if the user doesn't control when it's
+deleted.
+
+sd->s_parent is initialized and parent is referenced in sysfs_attach_dirent().
+ Reference to parent is released when the sd is released, so as long as
+reference to a sd is held, s_parent can be followed.
+
+dentry walk in sysfs_readdir() is convereted to s_parent walk.
+
+This will be used to reimplement symlink such that it uses only sysfs_dirent
+tree.
 
 Signed-off-by: Tejun Heo <htejun@gmail.com>
 Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
@@ -36,162 +46,107 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |   64 +++++++++++++++++++++++++++++++++++------------
- 1 files changed, 49 insertions(+), 15 deletions(-)
+ fs/sysfs/dir.c   |   27 ++++++++++++++++++++-------
+ fs/sysfs/mount.c |    1 +
+ fs/sysfs/sysfs.h |    1 +
+ 3 files changed, 22 insertions(+), 7 deletions(-)
 
-diff -puN fs/sysfs/bin.c~sysfs-implement-bin_buffer fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~sysfs-implement-bin_buffer
-+++ a/fs/sysfs/bin.c
-@@ -20,6 +20,11 @@
+diff -puN fs/sysfs/dir.c~sysfs-add-sysfs_dirent-s_parent fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~sysfs-add-sysfs_dirent-s_parent
++++ a/fs/sysfs/dir.c
+@@ -16,6 +16,11 @@ DECLARE_RWSEM(sysfs_rename_sem);
  
- #include "sysfs.h"
- 
-+struct bin_buffer {
-+	struct mutex	mutex;
-+	void		*buffer;
-+};
+ void release_sysfs_dirent(struct sysfs_dirent * sd)
+ {
++	struct sysfs_dirent *parent_sd;
 +
- static int
- fill_read(struct dentry *dentry, char *buffer, loff_t off, size_t count)
- {
-@@ -36,7 +41,7 @@ fill_read(struct dentry *dentry, char *b
- static ssize_t
- read(struct file *file, char __user *userbuf, size_t bytes, loff_t *off)
- {
--	char *buffer = file->private_data;
-+	struct bin_buffer *bb = file->private_data;
- 	struct dentry *dentry = file->f_path.dentry;
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
-@@ -49,17 +54,23 @@ read(struct file *file, char __user *use
- 			count = size - offs;
++ repeat:
++	parent_sd = sd->s_parent;
++
+ 	if (sd->s_type & SYSFS_KOBJ_LINK) {
+ 		struct sysfs_symlink * sl = sd->s_element;
+ 		kfree(sl->link_name);
+@@ -24,6 +29,10 @@ void release_sysfs_dirent(struct sysfs_d
+ 	}
+ 	kfree(sd->s_iattr);
+ 	kmem_cache_free(sysfs_dir_cachep, sd);
++
++	sd = parent_sd;
++	if (sd && atomic_dec_and_test(&sd->s_count))
++		goto repeat;
+ }
+ 
+ static void sysfs_d_iput(struct dentry * dentry, struct inode * inode)
+@@ -71,8 +80,10 @@ void sysfs_attach_dirent(struct sysfs_di
+ 		dentry->d_op = &sysfs_dentry_ops;
  	}
  
--	count = fill_read(dentry, buffer, offs, count);
-+	mutex_lock(&bb->mutex);
-+
-+	count = fill_read(dentry, bb->buffer, offs, count);
- 	if (count < 0)
--		return count;
-+		goto out_unlock;
- 
--	if (copy_to_user(userbuf, buffer, count))
--		return -EFAULT;
-+	if (copy_to_user(userbuf, bb->buffer, count)) {
-+		count = -EFAULT;
-+		goto out_unlock;
+-	if (parent_sd)
++	if (parent_sd) {
++		sd->s_parent = sysfs_get(parent_sd);
+ 		list_add(&sd->s_sibling, &parent_sd->s_children);
 +	}
- 
- 	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
- 
- 	*off = offs + count;
- 
-+ out_unlock:
-+	mutex_unlock(&bb->mutex);
- 	return count;
  }
  
-@@ -79,7 +90,7 @@ flush_write(struct dentry *dentry, char 
- static ssize_t write(struct file *file, const char __user *userbuf,
- 		     size_t bytes, loff_t *off)
+ /*
+@@ -508,7 +519,7 @@ static int sysfs_readdir(struct file * f
+ 			i++;
+ 			/* fallthrough */
+ 		case 1:
+-			ino = (unsigned long)dentry->d_parent->d_fsdata;
++			ino = (unsigned long)parent_sd->s_parent;
+ 			if (filldir(dirent, "..", 2, i, ino, DT_DIR) < 0)
+ 				break;
+ 			filp->f_pos++;
+@@ -625,13 +636,13 @@ int sysfs_make_shadowed_dir(struct kobje
+ 
+ struct dentry *sysfs_create_shadow_dir(struct kobject *kobj)
  {
--	char *buffer = file->private_data;
-+	struct bin_buffer *bb = file->private_data;
- 	struct dentry *dentry = file->f_path.dentry;
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
-@@ -92,25 +103,38 @@ static ssize_t write(struct file *file, 
- 			count = size - offs;
- 	}
++	struct dentry *dir = kobj->dentry;
++	struct inode *inode = dir->d_inode;
++	struct dentry *parent = dir->d_parent;
++	struct sysfs_dirent *parent_sd = parent->d_fsdata;
++	struct dentry *shadow;
+ 	struct sysfs_dirent *sd;
+-	struct dentry *parent, *dir, *shadow;
+-	struct inode *inode;
  
--	if (copy_from_user(buffer, userbuf, count))
--		return -EFAULT;
-+	mutex_lock(&bb->mutex);
-+
-+	if (copy_from_user(bb->buffer, userbuf, count)) {
-+		count = -EFAULT;
-+		goto out_unlock;
-+	}
+-	dir = kobj->dentry;
+-	inode = dir->d_inode;
+-	parent = dir->d_parent;
+ 	shadow = ERR_PTR(-EINVAL);
+ 	if (!sysfs_is_shadowed_inode(inode))
+ 		goto out;
+@@ -643,6 +654,8 @@ struct dentry *sysfs_create_shadow_dir(s
+ 	sd = sysfs_new_dirent(kobj, inode->i_mode, SYSFS_DIR);
+ 	if (!sd)
+ 		goto nomem;
++	/* point to parent_sd but don't attach to it */
++	sd->s_parent = sysfs_get(parent_sd);
+ 	sysfs_attach_dirent(sd, NULL, shadow);
  
--	count = flush_write(dentry, buffer, offs, count);
-+	count = flush_write(dentry, bb->buffer, offs, count);
- 	if (count > 0)
- 		*off = offs + count;
-+
-+ out_unlock:
-+	mutex_unlock(&bb->mutex);
- 	return count;
- }
+ 	d_instantiate(shadow, igrab(inode));
+diff -puN fs/sysfs/mount.c~sysfs-add-sysfs_dirent-s_parent fs/sysfs/mount.c
+--- a/fs/sysfs/mount.c~sysfs-add-sysfs_dirent-s_parent
++++ a/fs/sysfs/mount.c
+@@ -28,6 +28,7 @@ static const struct super_operations sys
+ };
  
- static int mmap(struct file *file, struct vm_area_struct *vma)
- {
-+	struct bin_buffer *bb = file->private_data;
- 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
- 	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
- 	struct kobject *kobj = to_kobj(file->f_path.dentry->d_parent);
-+	int rc;
- 
- 	if (!attr->mmap)
- 		return -EINVAL;
- 
--	return attr->mmap(kobj, attr, vma);
-+	mutex_lock(&bb->mutex);
-+	rc = attr->mmap(kobj, attr, vma);
-+	mutex_unlock(&bb->mutex);
-+
-+	return rc;
- }
- 
- static int open(struct inode * inode, struct file * file)
-@@ -118,6 +142,7 @@ static int open(struct inode * inode, st
- 	struct kobject *kobj = sysfs_get_kobject(file->f_path.dentry->d_parent);
- 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
- 	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
-+	struct bin_buffer *bb = NULL;
- 	int error = -EINVAL;
- 
- 	if (!kobj || !attr)
-@@ -135,14 +160,22 @@ static int open(struct inode * inode, st
- 		goto Error;
- 
- 	error = -ENOMEM;
--	file->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
--	if (!file->private_data)
-+	bb = kzalloc(sizeof(*bb), GFP_KERNEL);
-+	if (!bb)
- 		goto Error;
- 
-+	bb->buffer = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	if (!bb->buffer)
-+		goto Error;
-+
-+	mutex_init(&bb->mutex);
-+	file->private_data = bb;
-+
- 	error = 0;
--    goto Done;
-+	goto Done;
- 
-  Error:
-+	kfree(bb);
- 	module_put(attr->attr.owner);
-  Done:
- 	if (error)
-@@ -155,11 +188,12 @@ static int release(struct inode * inode,
- 	struct kobject * kobj = to_kobj(file->f_path.dentry->d_parent);
- 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
- 	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
--	u8 * buffer = file->private_data;
-+	struct bin_buffer *bb = file->private_data;
- 
- 	kobject_put(kobj);
- 	module_put(attr->attr.owner);
--	kfree(buffer);
-+	kfree(bb->buffer);
-+	kfree(bb);
- 	return 0;
- }
- 
+ static struct sysfs_dirent sysfs_root = {
++	.s_count	= ATOMIC_INIT(1),
+ 	.s_sibling	= LIST_HEAD_INIT(sysfs_root.s_sibling),
+ 	.s_children	= LIST_HEAD_INIT(sysfs_root.s_children),
+ 	.s_element	= NULL,
+diff -puN fs/sysfs/sysfs.h~sysfs-add-sysfs_dirent-s_parent fs/sysfs/sysfs.h
+--- a/fs/sysfs/sysfs.h~sysfs-add-sysfs_dirent-s_parent
++++ a/fs/sysfs/sysfs.h
+@@ -1,5 +1,6 @@
+ struct sysfs_dirent {
+ 	atomic_t		s_count;
++	struct sysfs_dirent	* s_parent;
+ 	struct list_head	s_sibling;
+ 	struct list_head	s_children;
+ 	void 			* s_element;
 _
 
 Patches currently in -mm which might be from htejun@gmail.com are
