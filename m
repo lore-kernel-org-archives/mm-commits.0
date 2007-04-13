@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + power-management-change-sys-power-disk-display.patch added to -mm tree
-Date: Fri, 13 Apr 2007 11:46:36 -0700
-Message-ID: <200704131846.l3DIkat2006734@shell0.pdx.osdl.net>
+Date: Fri, 13 Apr 2007 11:47:21 -0700
+Message-ID: <200704131847.l3DIlLlk006737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45754 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45765 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753286AbXDMSrE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 14:47:04 -0400
+	id S1754136AbXDMSrb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 14:47:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johannes@sipsolutions.net, rjw@sisk.pl
+Cc: johannes@sipsolutions.net, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
@@ -36,12 +36,13 @@ some userspace developers)
 
 Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
 Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/interface.txt |    8 ++++--
- kernel/power/disk.c               |   34 +++++++++++++++++++++++++---
- 2 files changed, 37 insertions(+), 5 deletions(-)
+ Documentation/power/interface.txt |    8 +++++--
+ kernel/power/disk.c               |   29 +++++++++++++++++++++++++++-
+ 2 files changed, 34 insertions(+), 3 deletions(-)
 
 diff -puN Documentation/power/interface.txt~power-management-change-sys-power-disk-display Documentation/power/interface.txt
 --- a/Documentation/power/interface.txt~power-management-change-sys-power-disk-display
@@ -100,18 +101,6 @@ diff -puN kernel/power/disk.c~power-management-change-sys-power-disk-display ker
  }
  
  
-@@ -391,8 +418,9 @@ static ssize_t disk_store(struct subsyst
- 		error = -EINVAL;
- 	}
- 
--	pr_debug("PM: suspend-to-disk mode set to '%s'\n",
--		 pm_disk_modes[mode]);
-+	if (!error)
-+		pr_debug("PM: suspend-to-disk mode set to '%s'\n",
-+			 pm_disk_modes[mode]);
- 	mutex_unlock(&pm_mutex);
- 	return error ? error : n;
- }
 _
 
 Patches currently in -mm which might be from johannes@sipsolutions.net are
