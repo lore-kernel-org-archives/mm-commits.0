@@ -1,89 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86_64-mm-sched-clock-share.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:29:42 -0700
-Message-ID: <200704132329.l3DNTgIt012645@shell0.pdx.osdl.net>
+Subject: - fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:29:47 -0700
+Message-ID: <200704132329.l3DNTlRJ012651@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60553 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60560 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161162AbXDMX3x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:29:53 -0400
+	id S1161202AbXDMX34 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:29:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, jbeulich@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix x86_64-mm-sched-clock-share
+     fix x86_64-mm-fix-amd64-agp-aperture-validation
 has been removed from the -mm tree.  Its filename was
-     fix-x86_64-mm-sched-clock-share.patch
+     fix-x86_64-mm-fix-amd64-agp-aperture-validation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix x86_64-mm-sched-clock-share
+Subject: fix x86_64-mm-fix-amd64-agp-aperture-validation
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:e820 from .text between 'e820_any_mapped' (at offset 0x7c03) and 'early_panic'
 
-arch/i386/kernel/built-in.o: In function `call_r_s_f':
-sched-clock.c:(.text+0x755a): undefined reference to `cpufreq_get'
-arch/i386/kernel/built-in.o: In function `init_sched_clock':
-sched-clock.c:(.init.text+0x201c): undefined reference to `cpufreq_register_notifier'
+x86_64's e820_any_mapped() is called from modprobeable
+drivers/char/agp/amd64-agp.c:aperture_valid().  But it references the
+__initdata e820, which will crash.
+
+e820 must be moved into .data.
 
 Cc: Andi Kleen <ak@suse.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpufreq.h |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ arch/x86_64/kernel/e820.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cpufreq.h~fix-x86_64-mm-sched-clock-share include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~fix-x86_64-mm-sched-clock-share
-+++ a/include/linux/cpufreq.h
-@@ -32,7 +32,15 @@
-  *                     CPUFREQ NOTIFIER INTERFACE                    *
-  *********************************************************************/
+diff -puN arch/x86_64/kernel/e820.c~fix-x86_64-mm-fix-amd64-agp-aperture-validation arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~fix-x86_64-mm-fix-amd64-agp-aperture-validation
++++ a/arch/x86_64/kernel/e820.c
+@@ -25,7 +25,7 @@
+ #include <asm/bootsetup.h>
+ #include <asm/sections.h>
  
-+#ifdef CONFIG_CPU_FREQ
- int cpufreq_register_notifier(struct notifier_block *nb, unsigned int list);
-+#else
-+static inline int cpufreq_register_notifier(struct notifier_block *nb,
-+						unsigned int list)
-+{
-+	return 0;
-+}
-+#endif
- int cpufreq_unregister_notifier(struct notifier_block *nb, unsigned int list);
+-struct e820map e820 __initdata;
++struct e820map e820;
  
- #define CPUFREQ_TRANSITION_NOTIFIER	(0)
-@@ -262,17 +270,22 @@ int cpufreq_set_policy(struct cpufreq_po
- int cpufreq_get_policy(struct cpufreq_policy *policy, unsigned int cpu);
- int cpufreq_update_policy(unsigned int cpu);
- 
--/* query the current CPU frequency (in kHz). If zero, cpufreq couldn't detect it */
--unsigned int cpufreq_get(unsigned int cpu);
- 
--/* query the last known CPU freq (in kHz). If zero, cpufreq couldn't detect it */
-+/*
-+ * query the last known CPU freq (in kHz). If zero, cpufreq couldn't detect it
-+ */
- #ifdef CONFIG_CPU_FREQ
- unsigned int cpufreq_quick_get(unsigned int cpu);
-+unsigned int cpufreq_get(unsigned int cpu);
- #else
- static inline unsigned int cpufreq_quick_get(unsigned int cpu)
- {
- 	return 0;
- }
-+static inline unsigned int cpufreq_get(unsigned int cpu)
-+{
-+	return 0;
-+}
- #endif
- 
- 
+ /* 
+  * PFN of last memory page.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
