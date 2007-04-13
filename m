@@ -1,98 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - nommu-fix-bug-ip_conntrack-does-not-work-on-nommu.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:28:27 -0700
-Message-ID: <200704132328.l3DNSRCx012520@shell0.pdx.osdl.net>
+Subject: - powerpc-fix-breakage-caused-by-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:28:33 -0700
+Message-ID: <200704132328.l3DNSXLl012530@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60371 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60375 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161020AbXDMX2n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:28:43 -0400
+	id S1161049AbXDMX2p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:28:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@analog.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: pochini@shiny.it, benh@kernel.crashing.org, paulus@samba.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nommu: fix bug ip_conntrack does not work on nommu
+     powerpc: fix breakage caused by 72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc
 has been removed from the -mm tree.  Its filename was
-     nommu-fix-bug-ip_conntrack-does-not-work-on-nommu.patch
+     powerpc-fix-breakage-caused-by-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nommu: fix bug ip_conntrack does not work on nommu
-From: "Wu, Bryan" <bryan.wu@analog.com>
+Subject: powerpc: fix breakage caused by 72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc
+From: Giuliano Pochini <pochini@shiny.it>
 
-num_physpages is not exported out in mm/nommu.c, so the ip_conntrack module
-link will fail.
+72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc inverted the sense for enabling
+hotplug CPU controls without reference to any other architecture other than
+i386, ia64 and PowerPC.  This left everyone else without hotplug CPU control.
 
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Acked-By: David Howells <dhowells@redhat.com>
+Fix powerpc for this brain damage.
+
+(akpm: patch adapted from rmk's ARM fix.  Changelog stolen from rmk)
+
+Signed-off-by: Giuliano Pochini <pochini@shiny.it>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/kernel/setup_32.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN mm/nommu.c~nommu-fix-bug-ip_conntrack-does-not-work-on-nommu mm/nommu.c
---- a/mm/nommu.c~nommu-fix-bug-ip_conntrack-does-not-work-on-nommu
-+++ a/mm/nommu.c
-@@ -45,6 +45,7 @@ int heap_stack_gap = 0;
+diff -puN arch/powerpc/kernel/setup_32.c~powerpc-fix-breakage-caused-by-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc arch/powerpc/kernel/setup_32.c
+--- a/arch/powerpc/kernel/setup_32.c~powerpc-fix-breakage-caused-by-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc
++++ a/arch/powerpc/kernel/setup_32.c
+@@ -196,18 +196,22 @@ EXPORT_SYMBOL(nvram_sync);
  
- EXPORT_SYMBOL(mem_map);
- EXPORT_SYMBOL(__vm_enough_memory);
-+EXPORT_SYMBOL(num_physpages);
+ #endif /* CONFIG_NVRAM */
  
- /* list of shareable VMAs */
- struct rb_root nommu_vma_tree = RB_ROOT;
+-static struct cpu cpu_devices[NR_CPUS];
++static DEFINE_PER_CPU(struct cpu, cpu_devices);
+ 
+ int __init ppc_init(void)
+ {
+-	int i;
++	int cpu;
+ 
+ 	/* clear the progress line */
+-	if ( ppc_md.progress ) ppc_md.progress("             ", 0xffff);
++	if (ppc_md.progress)
++		ppc_md.progress("             ", 0xffff);
+ 
+ 	/* register CPU devices */
+-	for_each_possible_cpu(i)
+-		register_cpu(&cpu_devices[i], i);
++	for_each_possible_cpu(cpu) {
++		struct cpu *c = &per_cpu(cpu_devices, cpu);
++		c->hotpluggable = 1;
++		register_cpu(c, cpu);
++	}
+ 
+ 	/* call platform init */
+ 	if (ppc_md.init != NULL) {
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from pochini@shiny.it are
 
-origin.patch
-usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
-blackfin-Documentation.patch
-blackfin-arch.patch
-blackfin-arch-balance-parenthesis-in-macros.patch
-blackfin-arch-2.6.21-rc4-mm1-update.patch
-blackfin-arch-fix-struct-dmasg-packing-bug.patch
-blackfin-arch-cleanup-cache-header-file.patch
-blackfin-arch-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
-blackfin-arch-fix-compiling-error-in-flat-c-file.patch
-blackfin-arch-power-management-replace-firmware-disk-mode.patch
-blackfin-arch-add-kdebug-header-file.patch
-blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
-blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
-blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
-blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
-blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
-blackfin-arch-always-include-linux-kallsysms-header-file.patch
-blackfin-arch-sync-with-uclibc-no-functional-changes.patch
-blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
-blackfin-arch-add-missing-__clear_user-function-to.patch
-blackfin-arch-use-boot_command_line-instead-of.patch
-blackfin-arch-fix-some-coding-style-in-include.patch
-blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
-blackfin-arch-add-missing-blackfin-support-in-lib.patch
-blackfin-arch-fix-bug-data-cannot-be-put-into-l1-data.patch
-blackfin-arch-source-kernel-preemption-option.patch
-blackfin-arch-workaround-bf561-anomaly-05000266.patch
-blackfin-arch-define-a-new-cacheline_aligned-attribute-to-put-it-in-l1-data-memory-with-linkscript-update.patch
-blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch
-blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-blackfin-on-chip-ethernet-mac-controller-driver.patch
-blackfin-on-chip-ethernet-mac-controller-driver-update.patch
-blackfin-patch-add-blackfin-support-in-smc91x.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
-blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-revoke-core-code-generic_file_revoke-stub-for-nommu.patch
-blackfin-blackfin-utrace-patch.patch
-utrace-nommu-fixup-support-utrace.patch
-vdso-print-fatal-signals-fix-compiling-error-bug-in.patch
+git-alsa.patch
+git-powerpc.patch
