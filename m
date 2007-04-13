@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-code-cleanup.patch added to -mm tree
-Date: Fri, 13 Apr 2007 12:29:45 -0700
-Message-ID: <200704131929.l3DJTj00007598@shell0.pdx.osdl.net>
+Subject: + uml-change-remaining-callers-of-os_read_write_file.patch added to -mm tree
+Date: Fri, 13 Apr 2007 12:31:55 -0700
+Message-ID: <200704131931.l3DJVt0J007650@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:47459 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:47501 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754137AbXDMTaB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 15:30:01 -0400
+	id S1754143AbXDMTcA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 15:32:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, nickpiggin@yahoo.com.au, wfg@mail.ustc.edu.cn
+Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     readahead: code cleanup
+     uml: change remaining callers of os_{read_write}_file
 has been added to the -mm tree.  Its filename is
-     readahead-code-cleanup.patch
+     uml-change-remaining-callers-of-os_read_write_file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,180 +25,186 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: code cleanup
-From: Jan Kara <jack@suse.cz>
+Subject: uml: change remaining callers of os_{read_write}_file
+From: Jeff Dike <jdike@addtoit.com>
 
-Rename file_ra_state.prev_page to prev_index and file_ra_state.offset to
-prev_offset.  Also update of prev_index in do_generic_mapping_read() is now
-moved close to the update of prev_offset.
+Convert all remaining os_{read_write}_file users to use the simple
+{read,write} wrappers, os_{read_write}_file_k.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    4 ++--
- mm/filemap.c       |    8 ++++----
- mm/readahead.c     |   30 +++++++++++++++---------------
- 3 files changed, 21 insertions(+), 21 deletions(-)
+ arch/um/drivers/chan_kern.c |    4 ++--
+ arch/um/drivers/cow_sys.h   |    2 +-
+ arch/um/drivers/net_user.c  |    6 +++---
+ arch/um/drivers/ubd_kern.c  |    2 +-
+ arch/um/kernel/initrd.c     |    2 +-
+ arch/um/kernel/physmem.c    |    2 +-
+ arch/um/sys-i386/bugs.c     |    2 +-
+ 7 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/fs.h~readahead-code-cleanup include/linux/fs.h
---- a/include/linux/fs.h~readahead-code-cleanup
-+++ a/include/linux/fs.h
-@@ -696,13 +696,13 @@ struct file_ra_state {
- 	unsigned long size;
- 	unsigned long flags;		/* ra flags RA_FLAG_xxx*/
- 	unsigned long cache_hit;	/* cache hit count*/
--	unsigned long prev_page;	/* Cache last read() position */
-+	unsigned long prev_index;	/* Cache last read() position */
- 	unsigned long ahead_start;	/* Ahead window */
- 	unsigned long ahead_size;
- 	unsigned long ra_pages;		/* Maximum readahead window */
- 	unsigned long mmap_hit;		/* Cache hit stat for mmap accesses */
- 	unsigned long mmap_miss;	/* Cache miss stat for mmap accesses */
--	unsigned int offset;		/* Offset where last read() ended in a page */
-+	unsigned int prev_offset;	/* Offset where last read() ended in a page */
- };
- #define RA_FLAG_MISS 0x01	/* a cache miss occured against this file */
- #define RA_FLAG_INCACHE 0x02	/* file is already in cache */
-diff -puN mm/filemap.c~readahead-code-cleanup mm/filemap.c
---- a/mm/filemap.c~readahead-code-cleanup
-+++ a/mm/filemap.c
-@@ -878,8 +878,8 @@ void do_generic_mapping_read(struct addr
- 	cached_page = NULL;
- 	index = *ppos >> PAGE_CACHE_SHIFT;
- 	next_index = index;
--	prev_index = ra.prev_page;
--	prev_offset = ra.offset;
-+	prev_index = ra.prev_index;
-+	prev_offset = ra.prev_offset;
- 	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
- 	offset = *ppos & ~PAGE_CACHE_MASK;
- 
-@@ -932,7 +932,6 @@ page_ok:
- 		 */
- 		if (prev_index != index || offset != prev_offset)
- 			mark_page_accessed(page);
--		prev_index = index;
- 
- 		/*
- 		 * Ok, we have the page, and it's up-to-date, so
-@@ -948,7 +947,8 @@ page_ok:
- 		offset += ret;
- 		index += offset >> PAGE_CACHE_SHIFT;
- 		offset &= ~PAGE_CACHE_MASK;
--		prev_offset = ra.offset = offset;
-+		prev_index = index;
-+		prev_offset = ra.prev_offset = offset;
- 
- 		page_cache_release(page);
- 		if (ret == nr && desc->count)
-diff -puN mm/readahead.c~readahead-code-cleanup mm/readahead.c
---- a/mm/readahead.c~readahead-code-cleanup
-+++ a/mm/readahead.c
-@@ -37,7 +37,7 @@ void
- file_ra_state_init(struct file_ra_state *ra, struct address_space *mapping)
+diff -puN arch/um/drivers/chan_kern.c~uml-change-remaining-callers-of-os_read_write_file arch/um/drivers/chan_kern.c
+--- a/arch/um/drivers/chan_kern.c~uml-change-remaining-callers-of-os_read_write_file
++++ a/arch/um/drivers/chan_kern.c
+@@ -98,7 +98,7 @@ int generic_read(int fd, char *c_out, vo
  {
- 	ra->ra_pages = mapping->backing_dev_info->ra_pages;
--	ra->prev_page = -1;
-+	ra->prev_index = -1;
+ 	int n;
+ 
+-	n = os_read_file(fd, c_out, sizeof(*c_out));
++	n = os_read_file_k(fd, c_out, sizeof(*c_out));
+ 
+ 	if(n == -EAGAIN)
+ 		return 0;
+@@ -111,7 +111,7 @@ int generic_read(int fd, char *c_out, vo
+ 
+ int generic_write(int fd, const char *buf, int n, void *unused)
+ {
+-	return os_write_file(fd, buf, n);
++	return os_write_file_k(fd, buf, n);
  }
- EXPORT_SYMBOL_GPL(file_ra_state_init);
  
-@@ -202,19 +202,19 @@ out:
-  * size:	Number of pages in that read
-  *              Together, these form the "current window".
-  *              Together, start and size represent the `readahead window'.
-- * prev_page:   The page which the readahead algorithm most-recently inspected.
-+ * prev_index:  The page which the readahead algorithm most-recently inspected.
-  *              It is mainly used to detect sequential file reading.
-  *              If page_cache_readahead sees that it is again being called for
-  *              a page which it just looked at, it can return immediately without
-  *              making any state changes.
-- * offset:      Offset in the prev_page where the last read ended - used for
-+ * offset:      Offset in the prev_index where the last read ended - used for
-  *              detection of sequential file reading.
-  * ahead_start,
-  * ahead_size:  Together, these form the "ahead window".
-  * ra_pages:	The externally controlled max readahead for this fd.
-  *
-  * When readahead is in the off state (size == 0), readahead is disabled.
-- * In this state, prev_page is used to detect the resumption of sequential I/O.
-+ * In this state, prev_index is used to detect the resumption of sequential I/O.
-  *
-  * The readahead code manages two windows - the "current" and the "ahead"
-  * windows.  The intent is that while the application is walking the pages
-@@ -417,7 +417,7 @@ static int make_ahead_window(struct addr
- 	ra->ahead_size = get_next_ra_size(ra);
- 	ra->ahead_start = ra->start + ra->size;
+ int generic_window_size(int fd, void *unused, unsigned short *rows_out,
+diff -puN arch/um/drivers/cow_sys.h~uml-change-remaining-callers-of-os_read_write_file arch/um/drivers/cow_sys.h
+--- a/arch/um/drivers/cow_sys.h~uml-change-remaining-callers-of-os_read_write_file
++++ a/arch/um/drivers/cow_sys.h
+@@ -35,7 +35,7 @@ static inline int cow_file_size(char *fi
  
--	block = force || (ra->prev_page >= ra->ahead_start);
-+	block = force || (ra->prev_index >= ra->ahead_start);
- 	ret = blockable_page_cache_readahead(mapping, filp,
- 			ra->ahead_start, ra->ahead_size, ra, block);
+ static inline int cow_write_file(int fd, void *buf, int size)
+ {
+-	return(os_write_file(fd, buf, size));
++	return(os_write_file_k(fd, buf, size));
+ }
  
-@@ -469,13 +469,13 @@ page_cache_readahead(struct address_spac
- 	 * We avoid doing extra work and bogusly perturbing the readahead
- 	 * window expansion logic.
- 	 */
--	if (offset == ra->prev_page && --req_size)
-+	if (offset == ra->prev_index && --req_size)
- 		++offset;
+ #endif
+diff -puN arch/um/drivers/net_user.c~uml-change-remaining-callers-of-os_read_write_file arch/um/drivers/net_user.c
+--- a/arch/um/drivers/net_user.c~uml-change-remaining-callers-of-os_read_write_file
++++ a/arch/um/drivers/net_user.c
+@@ -73,7 +73,7 @@ void read_output(int fd, char *output, i
  
--	/* Note that prev_page == -1 if it is a first read */
--	sequential = (offset == ra->prev_page + 1);
--	ra->prev_page = offset;
--	ra->offset = 0;
-+	/* Note that prev_index == -1 if it is a first read */
-+	sequential = (offset == ra->prev_index + 1);
-+	ra->prev_index = offset;
-+	ra->prev_offset = 0;
+ 	while(remain != 0){
+ 		expected = (remain < len) ? remain : len;
+-		ret = os_read_file(fd, output, expected);
++		ret = os_read_file_k(fd, output, expected);
+ 		if (ret != expected) {
+ 			str = "data";
+ 			goto err;
+@@ -94,7 +94,7 @@ int net_read(int fd, void *buf, int len)
+ {
+ 	int n;
  
- 	max = get_max_readahead(ra);
- 	newsize = min(req_size, max);
-@@ -484,7 +484,7 @@ page_cache_readahead(struct address_spac
- 	if (newsize == 0 || (ra->flags & RA_FLAG_INCACHE))
- 		goto out;
+-	n = os_read_file(fd,  buf,  len);
++	n = os_read_file_k(fd,  buf,  len);
  
--	ra->prev_page += newsize - 1;
-+	ra->prev_index += newsize - 1;
+ 	if(n == -EAGAIN)
+ 		return 0;
+@@ -122,7 +122,7 @@ int net_write(int fd, void *buf, int len
+ {
+ 	int n;
  
- 	/*
- 	 * Special case - first read at start of file. We'll assume it's
-@@ -540,18 +540,18 @@ page_cache_readahead(struct address_spac
- 	 * we get called back on the first page of the ahead window which
- 	 * will allow us to submit more IO.
- 	 */
--	if (ra->prev_page >= ra->ahead_start) {
-+	if (ra->prev_index >= ra->ahead_start) {
- 		ra->start = ra->ahead_start;
- 		ra->size = ra->ahead_size;
- 		make_ahead_window(mapping, filp, ra, 0);
- recheck:
--		/* prev_page shouldn't overrun the ahead window */
--		ra->prev_page = min(ra->prev_page,
-+		/* prev_index shouldn't overrun the ahead window */
-+		ra->prev_index = min(ra->prev_index,
- 			ra->ahead_start + ra->ahead_size - 1);
+-	n = os_write_file(fd, buf, len);
++	n = os_write_file_k(fd, buf, len);
+ 
+ 	if(n == -EAGAIN)
+ 		return 0;
+diff -puN arch/um/drivers/ubd_kern.c~uml-change-remaining-callers-of-os_read_write_file arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~uml-change-remaining-callers-of-os_read_write_file
++++ a/arch/um/drivers/ubd_kern.c
+@@ -1246,7 +1246,7 @@ int read_cow_bitmap(int fd, void *buf, i
+ 	if(err < 0)
+ 		return(err);
+ 
+-	err = os_read_file(fd, buf, len);
++	err = os_read_file_k(fd, buf, len);
+ 	if(err < 0)
+ 		return(err);
+ 
+diff -puN arch/um/kernel/initrd.c~uml-change-remaining-callers-of-os_read_write_file arch/um/kernel/initrd.c
+--- a/arch/um/kernel/initrd.c~uml-change-remaining-callers-of-os_read_write_file
++++ a/arch/um/kernel/initrd.c
+@@ -55,7 +55,7 @@ int load_initrd(char *filename, void *bu
+ 		printk("Opening '%s' failed - err = %d\n", filename, -fd);
+ 		return(-1);
  	}
- 
- out:
--	return ra->prev_page + 1;
-+	return ra->prev_index + 1;
- }
- EXPORT_SYMBOL_GPL(page_cache_readahead);
- 
+-	n = os_read_file(fd, buf, size);
++	n = os_read_file_k(fd, buf, size);
+ 	if(n != size){
+ 		printk("Read of %d bytes from '%s' failed, err = %d\n", size,
+ 		       filename, -n);
+diff -puN arch/um/kernel/physmem.c~uml-change-remaining-callers-of-os_read_write_file arch/um/kernel/physmem.c
+--- a/arch/um/kernel/physmem.c~uml-change-remaining-callers-of-os_read_write_file
++++ a/arch/um/kernel/physmem.c
+@@ -211,7 +211,7 @@ void physmem_forget_descriptor(int fd)
+ 			panic("physmem_forget_descriptor - failed to seek "
+ 			      "to %lld in fd %d, error = %d\n",
+ 			      offset, fd, -err);
+-		err = os_read_file(fd, addr, PAGE_SIZE);
++		err = os_read_file_k(fd, addr, PAGE_SIZE);
+ 		if(err < 0)
+ 			panic("physmem_forget_descriptor - failed to read "
+ 			      "from fd %d to 0x%p, error = %d\n",
+diff -puN arch/um/sys-i386/bugs.c~uml-change-remaining-callers-of-os_read_write_file arch/um/sys-i386/bugs.c
+--- a/arch/um/sys-i386/bugs.c~uml-change-remaining-callers-of-os_read_write_file
++++ a/arch/um/sys-i386/bugs.c
+@@ -28,7 +28,7 @@ static char token(int fd, char *buf, int
+ 	ptr = buf;
+ 	end = &buf[len];
+ 	do {
+-		n = os_read_file(fd, ptr, sizeof(*ptr));
++		n = os_read_file_k(fd, ptr, sizeof(*ptr));
+ 		c = *ptr++;
+ 		if(n != sizeof(*ptr)){
+ 			if(n == 0)
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-readahead-improve-heuristic-detecting-sequential-reads.patch
-readahead-code-cleanup.patch
-make-remove_inode_dquot_ref-static.patch
-udf-use-sector_t-and-loff_t-for-file-offsets.patch
-udf-introduce-struct-extent_position.patch
-udf-use-get_bh.patch
-udf-add-assertions.patch
-udf-support-files-larger-than-1g.patch
-udf-fix-link-counts.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+array_size-check-for-type-uml-fix.patch
+uml-fix-prototypes.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+uml-speed-up-exec.patch
+uml-no-locking-needed-in-tlsc.patch
+uml-tidy-processc.patch
+uml-tidy-processc-fix.patch
+uml-remove-page_size.patch
+uml-kernel_thread-shouldnt-panic.patch
+uml-tidy-fault-code.patch
+uml-kernel-segfaults-should-dump-proper-registers.patch
+uml-comment-early-boot-locking.patch
+uml-irq-locking-commentary.patch
+uml-delete-host_frame_size.patch
+uml-drivers-get-release-methods.patch
+uml-dump-registers-on-ptrace-or-wait-failure.patch
+uml-speed-up-page-table-walking.patch
+uml-remove-unused-x86_64-code.patch
+uml-start-fixing-os_read_file-and-os_write_file.patch
+uml-tidy-libc-code.patch
+uml-convert-libc-layer-to-call-read-and-write.patch
+uml-batch-i-o-requests.patch
+uml-send-pointers-instead-of-structures-to-i-o-thread.patch
+uml-dump-core-on-panic.patch
+uml-dont-try-to-handle-signals-on-initial-process-stack.patch
+uml-change-remaining-callers-of-os_read_write_file.patch
+uml-formatting-fixes-around-os_read_write_file-callers.patch
+uml-remove-debugging-remnants.patch
+uml-rename-os_read_write_file_k-back-to-os_read_write_file.patch
+uml-aio-deadlock-avoidance.patch
+uml-speed-page-fault-path.patch
+sys_futex64-allows-64bit-futexes-workaround-for-uml.patch
+utrace-uml-make-uml-compile-with-utrace-enabled.patch
