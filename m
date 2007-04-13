@@ -1,216 +1,476 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:29:35 -0700
-Message-ID: <200704132329.l3DNTZd0012633@shell0.pdx.osdl.net>
+Subject: - sysfs-make-sysfs_dirent-s_element-a-union.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:29:08 -0700
+Message-ID: <200704132329.l3DNT84l012580@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60512 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60519 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161143AbXDMX3i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:29:38 -0400
+	id S1161152AbXDMX3l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:29:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
+     sysfs: make sysfs_dirent->s_element a union
 has been removed from the -mm tree.  Its filename was
-     sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio.patch
+     sysfs-make-sysfs_dirent-s_element-a-union.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect-more-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysfs: make sysfs_dirent->s_element a union
+From: Tejun Heo <htejun@gmail.com>
 
-Cc: Tejun Heo <htejun@gmail.com>
+Make sd->s_element a union of sysfs_elem_{dir|symlink|attr|bin_attr} and
+rename it to s_elem.  This is to achieve...
+
+* some level of type checking : changing symlink to point to
+  sysfs_dirent instead of kobject is much safer and less painful now.
+* easier / standardized dereferencing
+* allow sysfs_elem_* to contain more than one entry
+
+Where possible, pointer is obtained by directly deferencing from sd instead of
+going through other entities.  This reduces dependencies to dentry, inode and
+kobject.  to_attr() and to_bin_attr() are unused now and removed.
+
+This is in preparation of object reference simplification.
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Cc: Maneesh Soni <maneesh@in.ibm.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uio/uio.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/sysfs/bin.c     |   18 ++++++++-----
+ fs/sysfs/dir.c     |   31 ++++++++++-------------
+ fs/sysfs/file.c    |   19 +++++++-------
+ fs/sysfs/inode.c   |    2 -
+ fs/sysfs/mount.c   |    1 
+ fs/sysfs/symlink.c |   23 +++--------------
+ fs/sysfs/sysfs.h   |   56 +++++++++++++++++++++++--------------------
+ 7 files changed, 71 insertions(+), 79 deletions(-)
 
-diff -puN drivers/uio/uio.c~sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio drivers/uio/uio.c
---- a/drivers/uio/uio.c~sysfs-kill-unnecessary-attribute-owner-vs-gregkh-driver-uio
-+++ a/drivers/uio/uio.c
-@@ -52,13 +52,11 @@ static struct uio_class {
-  */
+diff -puN fs/sysfs/bin.c~sysfs-make-sysfs_dirent-s_element-a-union fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-make-sysfs_dirent-s_element-a-union
++++ a/fs/sysfs/bin.c
+@@ -23,7 +23,8 @@
+ static int
+ fill_read(struct dentry *dentry, char *buffer, loff_t off, size_t count)
+ {
+-	struct bin_attribute * attr = to_bin_attr(dentry);
++	struct sysfs_dirent *attr_sd = dentry->d_fsdata;
++	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
+ 	struct kobject * kobj = to_kobj(dentry->d_parent);
  
- static struct attribute attr_addr = {
--	.owner = THIS_MODULE,
- 	.name  = "addr",
- 	.mode  = S_IRUGO,
+ 	if (!attr->read)
+@@ -65,7 +66,8 @@ read(struct file *file, char __user *use
+ static int
+ flush_write(struct dentry *dentry, char *buffer, loff_t offset, size_t count)
+ {
+-	struct bin_attribute *attr = to_bin_attr(dentry);
++	struct sysfs_dirent *attr_sd = dentry->d_fsdata;
++	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
+ 	struct kobject *kobj = to_kobj(dentry->d_parent);
+ 
+ 	if (!attr->write)
+@@ -101,9 +103,9 @@ static ssize_t write(struct file *file, 
+ 
+ static int mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	struct dentry *dentry = file->f_path.dentry;
+-	struct bin_attribute *attr = to_bin_attr(dentry);
+-	struct kobject *kobj = to_kobj(dentry->d_parent);
++	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
++	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
++	struct kobject *kobj = to_kobj(file->f_path.dentry->d_parent);
+ 
+ 	if (!attr->mmap)
+ 		return -EINVAL;
+@@ -114,7 +116,8 @@ static int mmap(struct file *file, struc
+ static int open(struct inode * inode, struct file * file)
+ {
+ 	struct kobject *kobj = sysfs_get_kobject(file->f_path.dentry->d_parent);
+-	struct bin_attribute * attr = to_bin_attr(file->f_path.dentry);
++	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
++	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
+ 	int error = -EINVAL;
+ 
+ 	if (!kobj || !attr)
+@@ -150,7 +153,8 @@ static int open(struct inode * inode, st
+ static int release(struct inode * inode, struct file * file)
+ {
+ 	struct kobject * kobj = to_kobj(file->f_path.dentry->d_parent);
+-	struct bin_attribute * attr = to_bin_attr(file->f_path.dentry);
++	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
++	struct bin_attribute *attr = attr_sd->s_elem.bin_attr.bin_attr;
+ 	u8 * buffer = file->private_data;
+ 
+ 	kobject_put(kobj);
+diff -puN fs/sysfs/dir.c~sysfs-make-sysfs_dirent-s_element-a-union fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~sysfs-make-sysfs_dirent-s_element-a-union
++++ a/fs/sysfs/dir.c
+@@ -21,11 +21,8 @@ void release_sysfs_dirent(struct sysfs_d
+  repeat:
+ 	parent_sd = sd->s_parent;
+ 
+-	if (sd->s_type & SYSFS_KOBJ_LINK) {
+-		struct sysfs_symlink * sl = sd->s_element;
+-		kobject_put(sl->target_kobj);
+-		kfree(sl);
+-	}
++	if (sd->s_type & SYSFS_KOBJ_LINK)
++		kobject_put(sd->s_elem.symlink.target_kobj);
+ 	if (sd->s_type & SYSFS_COPY_NAME)
+ 		kfree(sd->s_name);
+ 	kfree(sd->s_iattr);
+@@ -52,8 +49,7 @@ static struct dentry_operations sysfs_de
+ 	.d_iput		= sysfs_d_iput,
  };
  
- static struct attribute attr_size = {
--	.owner = THIS_MODULE,
- 	.name  = "size",
- 	.mode  = S_IRUGO,
+-struct sysfs_dirent *sysfs_new_dirent(const char *name, void *element,
+-				      umode_t mode, int type)
++struct sysfs_dirent *sysfs_new_dirent(const char *name, umode_t mode, int type)
+ {
+ 	char *dup_name = NULL;
+ 	struct sysfs_dirent * sd;
+@@ -76,7 +72,6 @@ struct sysfs_dirent *sysfs_new_dirent(co
+ 	INIT_LIST_HEAD(&sd->s_sibling);
+ 
+ 	sd->s_name = name;
+-	sd->s_element = element;
+ 	sd->s_mode = mode;
+ 	sd->s_type = type;
+ 
+@@ -111,7 +106,7 @@ int sysfs_dirent_exist(struct sysfs_dire
+ 	struct sysfs_dirent * sd;
+ 
+ 	list_for_each_entry(sd, &parent_sd->s_children, s_sibling) {
+-		if (sd->s_element) {
++		if (sd->s_type) {
+ 			if (strcmp(sd->s_name, new))
+ 				continue;
+ 			else
+@@ -166,9 +161,10 @@ static int create_dir(struct kobject *ko
+ 		goto out_dput;
+ 
+ 	error = -ENOMEM;
+-	sd = sysfs_new_dirent(name, kobj, mode, SYSFS_DIR);
++	sd = sysfs_new_dirent(name, mode, SYSFS_DIR);
+ 	if (!sd)
+ 		goto out_drop;
++	sd->s_elem.dir.kobj = kobj;
+ 	sysfs_attach_dirent(sd, parent->d_fsdata, dentry);
+ 
+ 	error = sysfs_create(dentry, mode, init_dir);
+@@ -241,10 +237,10 @@ static int sysfs_attach_attr(struct sysf
+ 	int error = 0;
+ 
+         if (sd->s_type & SYSFS_KOBJ_BIN_ATTR) {
+-                bin_attr = sd->s_element;
++                bin_attr = sd->s_elem.bin_attr.bin_attr;
+                 attr = &bin_attr->attr;
+         } else {
+-                attr = sd->s_element;
++                attr = sd->s_elem.attr.attr;
+                 init = init_file;
+         }
+ 
+@@ -349,7 +345,7 @@ static void __sysfs_remove_dir(struct de
+ 	mutex_lock(&dentry->d_inode->i_mutex);
+ 	parent_sd = dentry->d_fsdata;
+ 	list_for_each_entry_safe(sd, tmp, &parent_sd->s_children, s_sibling) {
+-		if (!sd->s_element || !(sd->s_type & SYSFS_NOT_PINNED))
++		if (!sd->s_type || !(sd->s_type & SYSFS_NOT_PINNED))
+ 			continue;
+ 		list_del_init(&sd->s_sibling);
+ 		sysfs_drop_dentry(sd, dentry);
+@@ -481,7 +477,7 @@ static int sysfs_dir_open(struct inode *
+ 	struct sysfs_dirent * sd;
+ 
+ 	mutex_lock(&dentry->d_inode->i_mutex);
+-	sd = sysfs_new_dirent("_DIR_", NULL, 0, 0);
++	sd = sysfs_new_dirent("_DIR_", 0, 0);
+ 	if (sd)
+ 		sysfs_attach_dirent(sd, parent_sd, NULL);
+ 	mutex_unlock(&dentry->d_inode->i_mutex);
+@@ -545,7 +541,7 @@ static int sysfs_readdir(struct file * f
+ 
+ 				next = list_entry(p, struct sysfs_dirent,
+ 						   s_sibling);
+-				if (!next->s_element)
++				if (!next->s_type)
+ 					continue;
+ 
+ 				name = next->s_name;
+@@ -593,7 +589,7 @@ static loff_t sysfs_dir_lseek(struct fil
+ 				struct sysfs_dirent *next;
+ 				next = list_entry(p, struct sysfs_dirent,
+ 						   s_sibling);
+-				if (next->s_element)
++				if (next->s_type)
+ 					n--;
+ 				p = p->next;
+ 			}
+@@ -660,9 +656,10 @@ struct dentry *sysfs_create_shadow_dir(s
+ 	if (!shadow)
+ 		goto nomem;
+ 
+-	sd = sysfs_new_dirent("_SHADOW_", kobj, inode->i_mode, SYSFS_DIR);
++	sd = sysfs_new_dirent("_SHADOW_", inode->i_mode, SYSFS_DIR);
+ 	if (!sd)
+ 		goto nomem;
++	sd->s_elem.dir.kobj = kobj;
+ 	/* point to parent_sd but don't attach to it */
+ 	sd->s_parent = sysfs_get(parent_sd);
+ 	sysfs_attach_dirent(sd, NULL, shadow);
+diff -puN fs/sysfs/file.c~sysfs-make-sysfs_dirent-s_element-a-union fs/sysfs/file.c
+--- a/fs/sysfs/file.c~sysfs-make-sysfs_dirent-s_element-a-union
++++ a/fs/sysfs/file.c
+@@ -89,7 +89,6 @@ remove_from_collection(struct sysfs_buff
+ static int fill_read_buffer(struct dentry * dentry, struct sysfs_buffer * buffer)
+ {
+ 	struct sysfs_dirent * sd = dentry->d_fsdata;
+-	struct attribute * attr = to_attr(dentry);
+ 	struct kobject * kobj = to_kobj(dentry->d_parent);
+ 	struct sysfs_ops * ops = buffer->ops;
+ 	int ret = 0;
+@@ -101,7 +100,7 @@ static int fill_read_buffer(struct dentr
+ 		return -ENOMEM;
+ 
+ 	buffer->event = atomic_read(&sd->s_event);
+-	count = ops->show(kobj,attr,buffer->page);
++	count = ops->show(kobj, sd->s_elem.attr.attr, buffer->page);
+ 	BUG_ON(count > (ssize_t)PAGE_SIZE);
+ 	if (count >= 0) {
+ 		buffer->needs_read_fill = 0;
+@@ -229,11 +228,11 @@ fill_write_buffer(struct sysfs_buffer * 
+ static int 
+ flush_write_buffer(struct dentry * dentry, struct sysfs_buffer * buffer, size_t count)
+ {
+-	struct attribute * attr = to_attr(dentry);
++	struct sysfs_dirent *attr_sd = dentry->d_fsdata;
+ 	struct kobject * kobj = to_kobj(dentry->d_parent);
+ 	struct sysfs_ops * ops = buffer->ops;
+ 
+-	return ops->store(kobj,attr,buffer->page,count);
++	return ops->store(kobj, attr_sd->s_elem.attr.attr, buffer->page, count);
+ }
+ 
+ 
+@@ -278,7 +277,8 @@ out:
+ static int sysfs_open_file(struct inode *inode, struct file *file)
+ {
+ 	struct kobject *kobj = sysfs_get_kobject(file->f_path.dentry->d_parent);
+-	struct attribute * attr = to_attr(file->f_path.dentry);
++	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
++	struct attribute *attr = attr_sd->s_elem.attr.attr;
+ 	struct sysfs_buffer_collection *set;
+ 	struct sysfs_buffer * buffer;
+ 	struct sysfs_ops * ops = NULL;
+@@ -371,15 +371,15 @@ static int sysfs_open_file(struct inode 
+ static int sysfs_release(struct inode * inode, struct file * filp)
+ {
+ 	struct kobject * kobj = to_kobj(filp->f_path.dentry->d_parent);
+-	struct attribute * attr = to_attr(filp->f_path.dentry);
+-	struct module * owner = attr->owner;
++	struct sysfs_dirent *attr_sd = filp->f_path.dentry->d_fsdata;
++	struct attribute *attr = attr_sd->s_elem.attr.attr;
+ 	struct sysfs_buffer * buffer = filp->private_data;
+ 
+ 	if (buffer)
+ 		remove_from_collection(buffer, inode);
+ 	kobject_put(kobj);
+ 	/* After this point, attr should not be accessed. */
+-	module_put(owner);
++	module_put(attr->owner);
+ 
+ 	if (buffer) {
+ 		if (buffer->page)
+@@ -484,11 +484,12 @@ int sysfs_add_file(struct dentry * dir, 
+ 		goto out_unlock;
+ 	}
+ 
+-	sd = sysfs_new_dirent(attr->name, (void *)attr, mode, type);
++	sd = sysfs_new_dirent(attr->name, mode, type);
+ 	if (!sd) {
+ 		error = -ENOMEM;
+ 		goto out_unlock;
+ 	}
++	sd->s_elem.attr.attr = (void *)attr;
+ 	sysfs_attach_dirent(sd, parent_sd, NULL);
+ 
+  out_unlock:
+diff -puN fs/sysfs/inode.c~sysfs-make-sysfs_dirent-s_element-a-union fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~sysfs-make-sysfs_dirent-s_element-a-union
++++ a/fs/sysfs/inode.c
+@@ -255,7 +255,7 @@ int sysfs_hash_and_remove(struct dentry 
+ 	parent_sd = dir->d_fsdata;
+ 	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_PARENT);
+ 	list_for_each_entry(sd, &parent_sd->s_children, s_sibling) {
+-		if (!sd->s_element)
++		if (!sd->s_type)
+ 			continue;
+ 		if (!strcmp(sd->s_name, name)) {
+ 			list_del_init(&sd->s_sibling);
+diff -puN fs/sysfs/mount.c~sysfs-make-sysfs_dirent-s_element-a-union fs/sysfs/mount.c
+--- a/fs/sysfs/mount.c~sysfs-make-sysfs_dirent-s_element-a-union
++++ a/fs/sysfs/mount.c
+@@ -31,7 +31,6 @@ static struct sysfs_dirent sysfs_root = 
+ 	.s_count	= ATOMIC_INIT(1),
+ 	.s_sibling	= LIST_HEAD_INIT(sysfs_root.s_sibling),
+ 	.s_children	= LIST_HEAD_INIT(sysfs_root.s_children),
+-	.s_element	= NULL,
+ 	.s_type		= SYSFS_ROOT,
+ 	.s_iattr	= NULL,
  };
+diff -puN fs/sysfs/symlink.c~sysfs-make-sysfs_dirent-s_element-a-union fs/sysfs/symlink.c
+--- a/fs/sysfs/symlink.c~sysfs-make-sysfs_dirent-s_element-a-union
++++ a/fs/sysfs/symlink.c
+@@ -48,30 +48,15 @@ static void fill_object_path(struct kobj
+ static int sysfs_add_link(struct dentry * parent, const char * name, struct kobject * target)
+ {
+ 	struct sysfs_dirent * parent_sd = parent->d_fsdata;
+-	struct sysfs_symlink * sl;
+ 	struct sysfs_dirent * sd;
+-	int error;
+ 
+-	error = -ENOMEM;
+-	sl = kzalloc(sizeof(*sl), GFP_KERNEL);
+-	if (!sl)
+-		goto err_out;
+-
+-	sl->target_kobj = kobject_get(target);
+-
+-	sd = sysfs_new_dirent(name, sl, S_IFLNK|S_IRWXUGO, SYSFS_KOBJ_LINK);
++	sd = sysfs_new_dirent(name, S_IFLNK|S_IRWXUGO, SYSFS_KOBJ_LINK);
+ 	if (!sd)
+-		goto err_out;
+-	sysfs_attach_dirent(sd, parent_sd, NULL);
++		return -ENOMEM;
+ 
++	sd->s_elem.symlink.target_kobj = kobject_get(target);
++	sysfs_attach_dirent(sd, parent_sd, NULL);
+ 	return 0;
+-
+- err_out:
+-	if (sl) {
+-		kobject_put(sl->target_kobj);
+-		kfree(sl);
+-	}
+-	return error;
+ }
+ 
+ /**
+diff -puN fs/sysfs/sysfs.h~sysfs-make-sysfs_dirent-s_element-a-union fs/sysfs/sysfs.h
+--- a/fs/sysfs/sysfs.h~sysfs-make-sysfs_dirent-s_element-a-union
++++ a/fs/sysfs/sysfs.h
+@@ -1,10 +1,33 @@
++struct sysfs_elem_dir {
++	struct kobject		* kobj;
++};
++
++struct sysfs_elem_symlink {
++	struct kobject		* target_kobj;
++};
++
++struct sysfs_elem_attr {
++	struct attribute	* attr;
++};
++
++struct sysfs_elem_bin_attr {
++	struct bin_attribute	* bin_attr;
++};
++
+ struct sysfs_dirent {
+ 	atomic_t		s_count;
+ 	struct sysfs_dirent	* s_parent;
+ 	struct list_head	s_sibling;
+ 	struct list_head	s_children;
+ 	const char		* s_name;
+-	void 			* s_element;
++
++	union {
++		struct sysfs_elem_dir		dir;
++		struct sysfs_elem_symlink	symlink;
++		struct sysfs_elem_attr		attr;
++		struct sysfs_elem_bin_attr	bin_attr;
++	}			s_elem;
++
+ 	int			s_type;
+ 	umode_t			s_mode;
+ 	struct dentry		* s_dentry;
+@@ -21,8 +44,8 @@ extern int sysfs_create(struct dentry *,
+ 
+ extern void release_sysfs_dirent(struct sysfs_dirent * sd);
+ extern int sysfs_dirent_exist(struct sysfs_dirent *, const unsigned char *);
+-extern struct sysfs_dirent *sysfs_new_dirent(const char *name, void *element,
+-					     umode_t mode, int type);
++extern struct sysfs_dirent *sysfs_new_dirent(const char *name, umode_t mode,
++					     int type);
+ extern void sysfs_attach_dirent(struct sysfs_dirent *sd,
+ 				struct sysfs_dirent *parent_sd,
+ 				struct dentry *dentry);
+@@ -45,10 +68,6 @@ extern const struct file_operations bin_
+ extern const struct inode_operations sysfs_dir_inode_operations;
+ extern const struct inode_operations sysfs_symlink_inode_operations;
+ 
+-struct sysfs_symlink {
+-	struct kobject * target_kobj;
+-};
+-
+ struct sysfs_buffer {
+ 	struct list_head		associates;
+ 	size_t				count;
+@@ -68,19 +87,7 @@ struct sysfs_buffer_collection {
+ static inline struct kobject * to_kobj(struct dentry * dentry)
+ {
+ 	struct sysfs_dirent * sd = dentry->d_fsdata;
+-	return ((struct kobject *) sd->s_element);
+-}
+-
+-static inline struct attribute * to_attr(struct dentry * dentry)
+-{
+-	struct sysfs_dirent * sd = dentry->d_fsdata;
+-	return ((struct attribute *) sd->s_element);
+-}
+-
+-static inline struct bin_attribute * to_bin_attr(struct dentry * dentry)
+-{
+-	struct sysfs_dirent * sd = dentry->d_fsdata;
+-	return ((struct bin_attribute *) sd->s_element);
++	return sd->s_elem.dir.kobj;
+ }
+ 
+ static inline struct kobject *sysfs_get_kobject(struct dentry *dentry)
+@@ -90,11 +97,10 @@ static inline struct kobject *sysfs_get_
+ 	spin_lock(&dcache_lock);
+ 	if (!d_unhashed(dentry)) {
+ 		struct sysfs_dirent * sd = dentry->d_fsdata;
+-		if (sd->s_type & SYSFS_KOBJ_LINK) {
+-			struct sysfs_symlink * sl = sd->s_element;
+-			kobj = kobject_get(sl->target_kobj);
+-		} else
+-			kobj = kobject_get(sd->s_element);
++		if (sd->s_type & SYSFS_KOBJ_LINK)
++			kobj = kobject_get(sd->s_elem.symlink.target_kobj);
++		else
++			kobj = kobject_get(sd->s_elem.dir.kobj);
+ 	}
+ 	spin_unlock(&dcache_lock);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-ieee1394-remove-use-of-subsys-rwsem.patch
-ieee1394-remove-use-of-subsys-rwsem-2.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
 git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+optional-led-trigger-for-libata.patch
 drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-git-ocfs2.patch
-git-parisc.patch
-git-r8169-fixup.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
 git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-git-wireless-vs-git-net-3.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-xfs-clean-up-shrinker-games.patch
-pktgen-add-try_to_freeze.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-make-kthread_create-more-scalable-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+introduce-config_has_dma.patch
