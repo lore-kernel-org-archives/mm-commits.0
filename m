@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-kthread_create-vs-freezer-theoretical-race.patch added to -mm tree
-Date: Fri, 13 Apr 2007 14:23:01 -0700
-Message-ID: <200704132123.l3DLN1xg009749@shell0.pdx.osdl.net>
+Subject: + make-kthread_create-more-scalable.patch added to -mm tree
+Date: Fri, 13 Apr 2007 14:31:25 -0700
+Message-ID: <200704132131.l3DLVP1M009906@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:52941 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53236 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030476AbXDMVXM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 17:23:12 -0400
+	id S1030495AbXDMVbi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 17:31:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru
+Cc: oleg@tv-sign.ru, ebiederm@xmission.com
 
 
 The patch titled
-     fix kthread_create() vs freezer theoretical race
+     make kthread_create() more scalable
 has been added to the -mm tree.  Its filename is
-     fix-kthread_create-vs-freezer-theoretical-race.patch
+     make-kthread_create-more-scalable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix kthread_create() vs freezer theoretical race
+Subject: make kthread_create() more scalable
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-kthread() sleeps in TASK_INTERRUPTIBLE state waiting for the first wakeup.  In
-theory, this wakeup may come from freeze_process()->signal_wake_up(), so the
-task can disappear even before kthread_create() sets its ->comm.
+If kernel_thread(kthread) succeeds, kthread() can not fail on its path to
+complete(&create->started) + schedule(). After that it can't be woken because
+nobody can see the new task yet. This means:
 
-Change kthread() to use TASK_UNINTERRUPTIBLE.
+	- we don't need tasklist_lock for find_task_by_pid().
+
+	- create_kthread() doesn't need to wait for create->started. Instead,
+	  kthread_create() first waits for create->created to get the result of
+	  kernel_thread(), then waits for create->started to synchronize with
+	  kthread().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/kthread.c |   42 ++++++++++++++++++++----------------------
+ 1 files changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN kernel/kthread.c~fix-kthread_create-vs-freezer-theoretical-race kernel/kthread.c
---- a/kernel/kthread.c~fix-kthread_create-vs-freezer-theoretical-race
+diff -puN kernel/kthread.c~make-kthread_create-more-scalable kernel/kthread.c
+--- a/kernel/kthread.c~make-kthread_create-more-scalable
 +++ a/kernel/kthread.c
-@@ -70,7 +70,7 @@ static int kthread(void *_create)
- 	data = create->data;
+@@ -24,11 +24,11 @@ struct kthread_create_info
+ 	/* Information passed to kthread() from kthreadd. */
+ 	int (*threadfn)(void *data);
+ 	void *data;
++	struct completion created;
+ 	struct completion started;
  
- 	/* OK, tell user we're spawned, wait for stop or wakeup */
--	__set_current_state(TASK_INTERRUPTIBLE);
-+	__set_current_state(TASK_UNINTERRUPTIBLE);
- 	complete(&create->started);
- 	schedule();
+ 	/* Result passed back to kthread_create() from kthreadd. */
+-	struct task_struct *result;
+-	struct completion done;
++	pid_t result;
  
-@@ -162,7 +162,7 @@ EXPORT_SYMBOL(kthread_create);
-  */
- void kthread_bind(struct task_struct *k, unsigned int cpu)
+ 	struct list_head list;
+ };
+@@ -91,15 +91,9 @@ static void create_kthread(struct kthrea
+ 
+ 	/* We want our own signal handler (we take no signals by default). */
+ 	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
+-	if (pid < 0) {
+-		create->result = ERR_PTR(pid);
+-	} else {
+-		wait_for_completion(&create->started);
+-		read_lock(&tasklist_lock);
+-		create->result = find_task_by_pid(pid);
+-		read_unlock(&tasklist_lock);
+-	}
+-	complete(&create->done);
++	create->result = pid;
++
++	complete(&create->created);
+ }
+ 
+ /**
+@@ -127,27 +121,31 @@ struct task_struct *kthread_create(int (
+ 				   ...)
  {
--	BUG_ON(k->state != TASK_INTERRUPTIBLE);
-+	BUG_ON(k->state != TASK_UNINTERRUPTIBLE);
- 	/* Must have done schedule() in kthread() before we set_task_cpu */
- 	wait_task_inactive(k);
- 	set_task_cpu(k, cpu);
+ 	struct kthread_create_info create;
++	struct task_struct *ret;
++	va_list args;
+ 
+ 	create.threadfn = threadfn;
+ 	create.data = data;
++	init_completion(&create.created);
+ 	init_completion(&create.started);
+-	init_completion(&create.done);
+ 
+ 	spin_lock(&kthread_create_lock);
+ 	list_add_tail(&create.list, &kthread_create_list);
+-	wake_up_process(kthreadd_task);
+ 	spin_unlock(&kthread_create_lock);
++	wake_up_process(kthreadd_task);
+ 
+-	wait_for_completion(&create.done);
++	wait_for_completion(&create.created);
++	if (create.result < 0)
++		return ERR_PTR(create.result);
++
++	wait_for_completion(&create.started);
++	ret = find_task_by_pid(create.result);
++
++	va_start(args, namefmt);
++	vsnprintf(ret->comm, sizeof(ret->comm), namefmt, args);
++	va_end(args);
+ 
+-	if (!IS_ERR(create.result)) {
+-		va_list args;
+-		va_start(args, namefmt);
+-		vsnprintf(create.result->comm, sizeof(create.result->comm),
+-			  namefmt, args);
+-		va_end(args);
+-	}
+-	return create.result;
++	return ret;
+ }
+ EXPORT_SYMBOL(kthread_create);
+ 
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
