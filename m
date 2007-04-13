@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc.patch added to -mm tree
-Date: Fri, 13 Apr 2007 14:36:03 -0700
-Message-ID: <200704132136.l3DLa3aG010005@shell0.pdx.osdl.net>
+Subject: + mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches.patch added to -mm tree
+Date: Fri, 13 Apr 2007 14:39:30 -0700
+Message-ID: <200704132139.l3DLdUUM010118@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:53516 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:53747 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030801AbXDMVgF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 17:36:05 -0400
+	id S1030608AbXDMVji (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 17:39:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kernel@kolivas.org
+Cc: bk@suse.de, ak@suse.de, davej@codemonkey.org.uk
 
 
 The patch titled
-     sched: implement staircase deadline scheduler rework priomatrix (doc)
+     mtrr: adds mtrr_save_fixed_ranges() for use in two later  patches
 has been added to the -mm tree.  Its filename is
-     sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc.patch
+     mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sched: implement staircase deadline scheduler rework priomatrix (doc)
-From: Con Kolivas <kernel@kolivas.org>
+Subject: mtrr: adds mtrr_save_fixed_ranges() for use in two later  patches
+From: Bernhard Kaindl <bk@suse.de>
 
-Rework the priority matrix used by the staircase-deadline cpu scheduler.
+In this current implementation which is used in other patches,
+mtrr_save_fixed_ranges() accepts a dummy void pointer because in the current
+implementation of one of these patches, this function may be called from
+smp_call_function_single() which requires that this function takes a void
+pointer argument.
 
-Ensuring every nice level uses priority slot 139 means that niced tasks will
-not cause expiration prematurely for less niced tasks that have been sleeping.
+This function calls get_fixed_ranges(), passing mtrr_state.fixed_ranges which
+is the element of the static struct which stores our current backup of the
+fixed-range MTRR values which all CPUs shall be using.
 
-This also increases the frequency less niced tasks preempt niced tasks, and
-simplifies greatly the code that generates the priority matrix.
+Because mtrr_save_fixed_ranges calls get_fixed_ranges after kernel
+initialisation time, __init needs to be removed from the declaration of
+get_fixed_ranges().
 
-Update the documentation accordingly and explain why the priority matrix
-exists in the first place.
+If CONFIG_MTRR is not set, we define mtrr_save_fixed_ranges as an empty
+statement because there is nothing to do.
 
-Signed-off-by: Con Kolivas <kernel@kolivas.org>
+Signed-off-by: Bernhard Kaindl <bk@suse.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sched-design.txt |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ arch/i386/kernel/cpu/mtrr/generic.c |   16 +++++++++++++++-
+ include/asm-i386/mtrr.h             |    2 ++
+ include/asm-x86_64/proto.h          |    2 ++
+ 3 files changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/sched-design.txt~sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc Documentation/sched-design.txt
---- a/Documentation/sched-design.txt~sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc
-+++ a/Documentation/sched-design.txt
-@@ -268,13 +268,14 @@ there are 40 priority slots where a task
- and the allocation of slots is dependant on nice level. In the
- following table, a zero represents a slot where the task may run.
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -37,7 +37,11 @@ get_mtrr_var_range(unsigned int index, s
+ 	rdmsr(MTRRphysMask_MSR(index), vr->mask_lo, vr->mask_hi);
+ }
  
-+PRIORITY:0..................20.................39
- nice -20 0000000000000000000000000000000000000000
--nice -10 1001000100100010001001000100010010001000
--nice   0 0101010101010101010101010101010101010101
--nice   5 1101011010110101101011010110101101011011
--nice  10 0110111011011101110110111011101101110111
--nice  15 0111110111111011111101111101111110111111
--nice  19 1111111111111111111011111111111111111111
-+nice -10 1000100010001000100010001000100010010000
-+nice   0 1010101010101010101010101010101010101010
-+nice   5 1011010110110101101101011011010110110110
-+nice  10 1110111011101110111011101110111011101110
-+nice  15 1111111011111110111111101111111011111110
-+nice  19 1111111111111111111111111111111111111110
+-static void __cpuinit
++/**
++ * Retrieves the current fixed-range MTRRs from the current CPU
++ * \param frs address where to write the current MTRR contents
++ */
++static void
+ get_fixed_ranges(mtrr_type * frs)
+ {
+ 	unsigned int *p = (unsigned int *) frs;
+@@ -51,6 +55,16 @@ get_fixed_ranges(mtrr_type * frs)
+ 		rdmsr(MTRRfix4K_C0000_MSR + i, p[6 + i * 2], p[7 + i * 2]);
+ }
  
- As can be seen, a nice -20 task runs in every priority slot whereas a nice 19
- task only runs one slot per major rotation. This dithered table allows for the
++/**
++ * Updates our copy of the state of the fixed-range MTRR values
++ * with the current fixed-range MTRR contents from the current CPU
++ * \param info dummy needed for use by smp_call_function_single()
++ */
++void mtrr_save_fixed_ranges(void *info)
++{
++	get_fixed_ranges(mtrr_state.fixed_ranges);
++}
++
+ static void __cpuinit print_fixed(unsigned base, unsigned step, const mtrr_type*types)
+ {
+ 	unsigned i;
+diff -puN include/asm-i386/mtrr.h~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches include/asm-i386/mtrr.h
+--- a/include/asm-i386/mtrr.h~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches
++++ a/include/asm-i386/mtrr.h
+@@ -69,6 +69,7 @@ struct mtrr_gentry
+ 
+ /*  The following functions are for use by other drivers  */
+ # ifdef CONFIG_MTRR
++extern void mtrr_save_fixed_ranges(void *);
+ extern int mtrr_add (unsigned long base, unsigned long size,
+ 		     unsigned int type, char increment);
+ extern int mtrr_add_page (unsigned long base, unsigned long size,
+@@ -79,6 +80,7 @@ extern void mtrr_centaur_report_mcr(int 
+ extern void mtrr_ap_init(void);
+ extern void mtrr_bp_init(void);
+ #  else
++#define mtrr_save_fixed_ranges(arg) do {} while (0)
+ static __inline__ int mtrr_add (unsigned long base, unsigned long size,
+ 				unsigned int type, char increment)
+ {
+diff -puN include/asm-x86_64/proto.h~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches
++++ a/include/asm-x86_64/proto.h
+@@ -17,9 +17,11 @@ extern void mcheck_init(struct cpuinfo_x
+ #ifdef CONFIG_MTRR
+ extern void mtrr_ap_init(void);
+ extern void mtrr_bp_init(void);
++extern void mtrr_save_fixed_ranges(void *);
+ #else
+ #define mtrr_ap_init() do {} while (0)
+ #define mtrr_bp_init() do {} while (0)
++#define mtrr_save_fixed_ranges(arg) do {} while (0)
+ #endif
+ extern void init_memory_mapping(unsigned long start, unsigned long end);
+ 
 _
 
-Patches currently in -mm which might be from kernel@kolivas.org are
+Patches currently in -mm which might be from bk@suse.de are
 
-sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-sched-dont-renice-kernel-threads.patch
-sched-remove-sleepavg-from-proc.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-implement-staircase-deadline-cpu-scheduler.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
-sched-implement-staircase-deadline-cpu-scheduler-staircase-improvements.patch
-sched-implement-staircase-deadline-cpu-scheduler-improvements-fix.patch
-sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
-sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
-sched-implement-staircase-deadline-scheduler-rework-priomatrix.patch
-sched-remove-noninteractive-flag.patch
-sched-document-sd-cpu-scheduler.patch
-sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc.patch
-sched-consolidate-sched_clock-drift-adjustments.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-swap-prefetch-avoid-repeating-entry.patch
+mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches.patch
+mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
+mtrr-save-and-restore-the-fixed-range-mtrrs-of-the-bsp-when-suspending.patch
+mtrr-enable-support-for-fixed-range-iorrs-to-keep-rdmem-wrmem-in-sync.patch
