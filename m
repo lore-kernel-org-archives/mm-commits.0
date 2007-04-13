@@ -1,81 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-fix-breakage-caused-by-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:28:33 -0700
-Message-ID: <200704132328.l3DNSXLl012530@shell0.pdx.osdl.net>
+Subject: - ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:28:36 -0700
+Message-ID: <200704132328.l3DNSaWS012533@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60375 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60365 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161049AbXDMX2p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:28:45 -0400
+	id S1161020AbXDMX2m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:28:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pochini@shiny.it, benh@kernel.crashing.org, paulus@samba.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: bart.vanassche@gmail.com, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: fix breakage caused by 72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc
+     Ocotea board: ntpd complains that the frequency error exceeds the tolerance
 has been removed from the -mm tree.  Its filename was
-     powerpc-fix-breakage-caused-by-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc.patch
+     ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: fix breakage caused by 72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc
-From: Giuliano Pochini <pochini@shiny.it>
+Subject: Ocotea board: ntpd complains that the frequency error exceeds the tolerance
+From: Bart Van Assche <bart.vanassche@gmail.com>
 
-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc inverted the sense for enabling
-hotplug CPU controls without reference to any other architecture other than
-i386, ia64 and PowerPC.  This left everyone else without hotplug CPU control.
+Lifted from http://bugzilla.kernel.org/show_bug.cgi?id=8182
 
-Fix powerpc for this brain damage.
+Steps to reproduce:
+- Boot an Ocotea board with the mainline 2.6.20.1 kernel.
+- Create an /etc/ntp.conf file with at least one NTP server and iburst mode set.
+- Issue the command "ntpd -g".
+- Wait about two minutes.
+- Verify ntpd's status via "ntpq -pn" and by looking in /var/log/ntp.
 
-(akpm: patch adapted from rmk's ARM fix.  Changelog stolen from rmk)
+Patch that fixes this problem:
 
-Signed-off-by: Giuliano Pochini <pochini@shiny.it>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/setup_32.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ arch/ppc/platforms/4xx/ocotea.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/setup_32.c~powerpc-fix-breakage-caused-by-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc arch/powerpc/kernel/setup_32.c
---- a/arch/powerpc/kernel/setup_32.c~powerpc-fix-breakage-caused-by-72486f1f8f0a2bc828b9d30cf4690cf2dd6807fc
-+++ a/arch/powerpc/kernel/setup_32.c
-@@ -196,18 +196,22 @@ EXPORT_SYMBOL(nvram_sync);
+diff -puN arch/ppc/platforms/4xx/ocotea.c~ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance arch/ppc/platforms/4xx/ocotea.c
+--- a/arch/ppc/platforms/4xx/ocotea.c~ocotea-board-ntpd-complains-that-the-frequency-error-exceeds-the-tolerance
++++ a/arch/ppc/platforms/4xx/ocotea.c
+@@ -289,7 +289,7 @@ ocotea_setup_arch(void)
+ 	 * from FPGA, because it can be changed by on-board switches
+ 	 * --ebs
+ 	 */
+-	ibm440gx_get_clocks(&clocks, 33333333, 6 * 1843200);
++	ibm440gx_get_clocks(&clocks, 33300000, 6 * 1843200);
+ 	ocp_sys_info.opb_bus_freq = clocks.opb;
  
- #endif /* CONFIG_NVRAM */
- 
--static struct cpu cpu_devices[NR_CPUS];
-+static DEFINE_PER_CPU(struct cpu, cpu_devices);
- 
- int __init ppc_init(void)
- {
--	int i;
-+	int cpu;
- 
- 	/* clear the progress line */
--	if ( ppc_md.progress ) ppc_md.progress("             ", 0xffff);
-+	if (ppc_md.progress)
-+		ppc_md.progress("             ", 0xffff);
- 
- 	/* register CPU devices */
--	for_each_possible_cpu(i)
--		register_cpu(&cpu_devices[i], i);
-+	for_each_possible_cpu(cpu) {
-+		struct cpu *c = &per_cpu(cpu_devices, cpu);
-+		c->hotpluggable = 1;
-+		register_cpu(c, cpu);
-+	}
- 
- 	/* call platform init */
- 	if (ppc_md.init != NULL) {
+ 	/* Setup TODC access */
 _
 
-Patches currently in -mm which might be from pochini@shiny.it are
+Patches currently in -mm which might be from bart.vanassche@gmail.com are
 
-git-alsa.patch
 git-powerpc.patch
