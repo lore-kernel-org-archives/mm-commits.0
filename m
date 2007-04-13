@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-usb-remote-fix-oops-when-changing-keymap.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:45:22 -0700
-Message-ID: <200704132045.l3DKjMYC009026@shell0.pdx.osdl.net>
+Subject: + ia64-specify-amount-of-kernel-memory-at-boot-time-fix.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:48:07 -0700
+Message-ID: <200704132048.l3DKm7hg009064@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50465 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50622 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965277AbXDMUpg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:45:36 -0400
+	id S965337AbXDMUsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:48:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olaf.kirch@oracle.com, dtor@mail.ru, mchehab@infradead.org
+Cc: y-goto@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     dvb-usb-remote: fix oops when changing keymap
+     ia64: fix parsing kernelcore boot option
 has been added to the -mm tree.  Its filename is
-     dvb-usb-remote-fix-oops-when-changing-keymap.patch
+     ia64-specify-amount-of-kernel-memory-at-boot-time-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dvb-usb-remote: fix oops when changing keymap
-From: Olaf Kirch <olaf.kirch@oracle.com>
+Subject: ia64: fix parsing kernelcore boot option
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-DVB USB remotes do not support changing keycode maps but set
-input_dev->keycodesize and input_dev->keycodemax without setting
-input_dev->keycode.  This causes kernel oops when user tries to look up (or
-change) current keymap.
+cmdline_parse_kernelcore() should return the next pointer of boot option
+like memparse() doing.  If not, it is cause of eternal loop on ia64 box. 
 
-While the proper fix would be to make remotes handle keymap changes we'll
-just remove keycodemax and keycodesize initialization so EVIOCGKEYCODE and
-EVIOCSKEYCODE will simply return -EINVAL.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=8312
-
-Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/dvb-usb-remote.c |    2 --
- 1 files changed, 2 deletions(-)
+ arch/ia64/kernel/efi.c |    2 +-
+ include/linux/mm.h     |    2 +-
+ mm/page_alloc.c        |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-usb/dvb-usb-remote.c~dvb-usb-remote-fix-oops-when-changing-keymap drivers/media/dvb/dvb-usb/dvb-usb-remote.c
---- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c~dvb-usb-remote-fix-oops-when-changing-keymap
-+++ a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-@@ -107,8 +107,6 @@ int dvb_usb_remote_init(struct dvb_usb_d
- 		return -ENOMEM;
+diff -puN arch/ia64/kernel/efi.c~ia64-specify-amount-of-kernel-memory-at-boot-time-fix arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~ia64-specify-amount-of-kernel-memory-at-boot-time-fix
++++ a/arch/ia64/kernel/efi.c
+@@ -424,7 +424,7 @@ efi_init (void)
+ 		} else if (memcmp(cp, "max_addr=", 9) == 0) {
+ 			max_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
+ 		} else if (memcmp(cp, "kernelcore=",11) == 0) {
+-			cmdline_parse_kernelcore(cp+11);
++			cmdline_parse_kernelcore(cp+11, &cp);
+ 		} else if (memcmp(cp, "min_addr=", 9) == 0) {
+ 			min_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
+ 		} else {
+diff -puN include/linux/mm.h~ia64-specify-amount-of-kernel-memory-at-boot-time-fix include/linux/mm.h
+--- a/include/linux/mm.h~ia64-specify-amount-of-kernel-memory-at-boot-time-fix
++++ a/include/linux/mm.h
+@@ -988,7 +988,7 @@ extern unsigned long find_max_pfn_with_a
+ extern void free_bootmem_with_active_regions(int nid,
+ 						unsigned long max_low_pfn);
+ extern void sparse_memory_present_with_active_regions(int nid);
+-extern int cmdline_parse_kernelcore(char *p);
++extern int cmdline_parse_kernelcore(char *p, char **retp);
+ #ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
+ extern int early_pfn_to_nid(unsigned long pfn);
+ #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+diff -puN mm/page_alloc.c~ia64-specify-amount-of-kernel-memory-at-boot-time-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~ia64-specify-amount-of-kernel-memory-at-boot-time-fix
++++ a/mm/page_alloc.c
+@@ -3528,13 +3528,13 @@ void __init free_area_init_nodes(unsigne
+  * kernelcore=size sets the amount of memory for use for allocations that
+  * cannot be reclaimed or migrated.
+  */
+-int __init cmdline_parse_kernelcore(char *p)
++int __init cmdline_parse_kernelcore(char *p, char **retp)
+ {
+ 	unsigned long long coremem;
+ 	if (!p)
+ 		return -EINVAL;
  
- 	input_dev->evbit[0] = BIT(EV_KEY);
--	input_dev->keycodesize = sizeof(unsigned char);
--	input_dev->keycodemax = KEY_MAX;
- 	input_dev->name = "IR-receiver inside an USB DVB receiver";
- 	input_dev->phys = d->rc_phys;
- 	usb_to_input_id(d->udev, &input_dev->id);
+-	coremem = memparse(p, &p);
++	coremem = memparse(p, retp);
+ 	required_kernelcore = coremem >> PAGE_SHIFT;
+ 
+ 	/* Paranoid check that UL is enough for required_kernelcore */
 _
 
-Patches currently in -mm which might be from olaf.kirch@oracle.com are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-dvb-usb-remote-fix-oops-when-changing-keymap.patch
-dm-call-clone_init-early.patch
-dm-do-not-access-the-bio-after-generic_make_request.patch
-dm-get-rid-of-first_clone-in-dm-crypt.patch
-dm-allocate-smaller-clones.patch
+move-free-pages-between-lists-on-steal-fix-2.patch
+move-free-pages-between-lists-on-steal-do-not-cross-section-boundary-when-moving-pages-between-mobility-lists.patch
+ia64-specify-amount-of-kernel-memory-at-boot-time-fix.patch
+fix-section-mismatch-of-memory-hotplug-related-code.patch
+add-white-list-into-modpostc-for-memory-hotplug-code-and-ia64s-machvec-section.patch
