@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-bandrich-bandluxe-hsdpa-data-card-driver.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:44:31 -0700
-Message-ID: <200704132044.l3DKiVw0008997@shell0.pdx.osdl.net>
+Subject: + dvb-usb-remote-fix-oops-when-changing-keymap.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:45:22 -0700
+Message-ID: <200704132045.l3DKjMYC009026@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50422 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50465 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965271AbXDMUog (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:44:36 -0400
+	id S965277AbXDMUpg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:45:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: upleong@bandrich.com, greg@kroah.com
+Cc: olaf.kirch@oracle.com, dtor@mail.ru, mchehab@infradead.org
 
 
 The patch titled
-     USB: BandRich BandLuxe HSDPA Data Card Driver
+     dvb-usb-remote: fix oops when changing keymap
 has been added to the -mm tree.  Its filename is
-     usb-bandrich-bandluxe-hsdpa-data-card-driver.patch
+     dvb-usb-remote-fix-oops-when-changing-keymap.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: USB: BandRich BandLuxe HSDPA Data Card Driver
-From: Leon Leong <upleong@bandrich.com>
+Subject: dvb-usb-remote: fix oops when changing keymap
+From: Olaf Kirch <olaf.kirch@oracle.com>
 
-Add the detection for the BandRich BandLuxe C100/C100S/C120 HSDPA Data
-Card.  With the vendor and product IDs are set properly, the data card can
-be detected and works fine.
+DVB USB remotes do not support changing keycode maps but set
+input_dev->keycodesize and input_dev->keycodemax without setting
+input_dev->keycode.  This causes kernel oops when user tries to look up (or
+change) current keymap.
 
-Signed-off-by: Leon Leong <upleong@bandrich.com>
-Cc: Greg KH <greg@kroah.com>
+While the proper fix would be to make remotes handle keymap changes we'll
+just remove keycodemax and keycodesize initialization so EVIOCGKEYCODE and
+EVIOCSKEYCODE will simply return -EINVAL.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=8312
+
+Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ drivers/media/dvb/dvb-usb/dvb-usb-remote.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~usb-bandrich-bandluxe-hsdpa-data-card-driver drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-bandrich-bandluxe-hsdpa-data-card-driver
-+++ a/drivers/usb/serial/option.c
-@@ -113,6 +113,10 @@ static int  option_send_setup(struct usb
- #define ANYDATA_VENDOR_ID			0x16d5
- #define ANYDATA_PRODUCT_ID			0x6501
+diff -puN drivers/media/dvb/dvb-usb/dvb-usb-remote.c~dvb-usb-remote-fix-oops-when-changing-keymap drivers/media/dvb/dvb-usb/dvb-usb-remote.c
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c~dvb-usb-remote-fix-oops-when-changing-keymap
++++ a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
+@@ -107,8 +107,6 @@ int dvb_usb_remote_init(struct dvb_usb_d
+ 		return -ENOMEM;
  
-+#define BANDRICH_VENDOR_ID			0x1A8D
-+#define BANDRICH_PRODUCT_C100_1			0x1002
-+#define BANDRICH_PRODUCT_C100_2			0x1003
-+
- static struct usb_device_id option_ids[] = {
- 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
- 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
-@@ -165,6 +169,8 @@ static struct usb_device_id option_ids[]
- 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, 0x2130) }, /* Novatel Merlin ES620 SM Bus */
- 	{ USB_DEVICE(NOVATELWIRELESS_VENDOR_ID, 0x2410) }, /* Novatel EU740 */
- 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ID) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_1) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_2) },
- 	{ } /* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, option_ids);
+ 	input_dev->evbit[0] = BIT(EV_KEY);
+-	input_dev->keycodesize = sizeof(unsigned char);
+-	input_dev->keycodemax = KEY_MAX;
+ 	input_dev->name = "IR-receiver inside an USB DVB receiver";
+ 	input_dev->phys = d->rc_phys;
+ 	usb_to_input_id(d->udev, &input_dev->id);
 _
 
-Patches currently in -mm which might be from upleong@bandrich.com are
+Patches currently in -mm which might be from olaf.kirch@oracle.com are
 
-usb-bandrich-bandluxe-hsdpa-data-card-driver.patch
+dvb-usb-remote-fix-oops-when-changing-keymap.patch
+dm-call-clone_init-early.patch
+dm-do-not-access-the-bio-after-generic_make_request.patch
+dm-get-rid-of-first_clone-in-dm-crypt.patch
+dm-allocate-smaller-clones.patch
