@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usbatm_heavy_init-dont-use-clone_sighand.patch added to -mm tree
-Date: Fri, 13 Apr 2007 13:39:10 -0700
-Message-ID: <200704132039.l3DKdAdD008898@shell0.pdx.osdl.net>
+Subject: + pnpbios_thread_init-dont-use-clone_sighand.patch added to -mm tree
+Date: Fri, 13 Apr 2007 13:39:12 -0700
+Message-ID: <200704132039.l3DKdCoU008906@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:50082 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:50100 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030202AbXDMUjV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 16:39:21 -0400
+	id S1030224AbXDMUjj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 16:39:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, duncan.sands@free.fr, greg@kroah.com
+Cc: oleg@tv-sign.ru, ambx1@neo.rr.com, bjorn.helgaas@hp.com
 
 
 The patch titled
-     usbatm_heavy_init: don't use CLONE_SIGHAND
+     pnpbios_thread_init: don't use CLONE_SIGHAND
 has been added to the -mm tree.  Its filename is
-     usbatm_heavy_init-dont-use-clone_sighand.patch
+     pnpbios_thread_init-dont-use-clone_sighand.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usbatm_heavy_init: don't use CLONE_SIGHAND
+Subject: pnpbios_thread_init: don't use CLONE_SIGHAND
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-usbatm_do_heavy_init() calls allow_signal() which plays with parent process's
+pnp_dock_thread() calls allow_signal() which plays with parent process's
 ->sighand.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Duncan Sands <duncan.sands@free.fr>
-Cc: Greg KH <greg@kroah.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/usbatm.c |    2 +-
+ drivers/pnp/pnpbios/core.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/atm/usbatm.c~usbatm_heavy_init-dont-use-clone_sighand drivers/usb/atm/usbatm.c
---- a/drivers/usb/atm/usbatm.c~usbatm_heavy_init-dont-use-clone_sighand
-+++ a/drivers/usb/atm/usbatm.c
-@@ -1030,7 +1030,7 @@ static int usbatm_do_heavy_init(void *ar
- 
- static int usbatm_heavy_init(struct usbatm_data *instance)
- {
--	int ret = kernel_thread(usbatm_do_heavy_init, instance, CLONE_KERNEL);
-+	int ret = kernel_thread(usbatm_do_heavy_init, instance, CLONE_FS | CLONE_FILES);
- 
- 	if (ret < 0) {
- 		usb_err(instance, "%s: failed to create kernel_thread (%d)!\n", __func__, ret);
+diff -puN drivers/pnp/pnpbios/core.c~pnpbios_thread_init-dont-use-clone_sighand drivers/pnp/pnpbios/core.c
+--- a/drivers/pnp/pnpbios/core.c~pnpbios_thread_init-dont-use-clone_sighand
++++ a/drivers/pnp/pnpbios/core.c
+@@ -589,7 +589,7 @@ static int __init pnpbios_thread_init(vo
+ 		return 0;
+ #ifdef CONFIG_HOTPLUG
+ 	init_completion(&unload_sem);
+-	if (kernel_thread(pnp_dock_thread, NULL, CLONE_KERNEL) > 0)
++	if (kernel_thread(pnp_dock_thread, NULL, CLONE_FS | CLONE_FILES) > 0)
+ 		unloading = 0;
+ #endif
+ 	return 0;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
