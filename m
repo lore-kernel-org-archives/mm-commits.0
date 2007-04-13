@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-webpages-url-and-summarize-3-lines.patch added to -mm tree
-Date: Fri, 13 Apr 2007 11:45:09 -0700
-Message-ID: <200704131845.l3DIj9d7006707@shell0.pdx.osdl.net>
+Subject: + power-management-change-sys-power-disk-display.patch added to -mm tree
+Date: Fri, 13 Apr 2007 11:46:36 -0700
+Message-ID: <200704131846.l3DIkat2006734@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:45713 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:45754 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754135AbXDMSpN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 14:45:13 -0400
+	id S1753286AbXDMSrE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 14:47:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maxextreme@gmail.com
+Cc: johannes@sipsolutions.net, rjw@sisk.pl
 
 
 The patch titled
-     Add webpages' URL and summarize 3 lines.
+     power management: change /sys/power/disk display
 has been added to the -mm tree.  Its filename is
-     add-webpages-url-and-summarize-3-lines.patch
+     power-management-change-sys-power-disk-display.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add webpages' URL and summarize 3 lines.
-From: "Miguel Ojeda" <maxextreme@gmail.com>
+Subject: power management: change /sys/power/disk display
+From: Johannes Berg <johannes@sipsolutions.net>
 
-CREDITS:
- - Summarize 3 lines into one.
- - Add webpage.
+Change /sys/power/disk to display all valid modes as well as the currently
+selected one in a fashion known from the LED subsystem.
 
-MAINTAINERS:
- - Add auxdisplay drivers/tree webpages.
+This changes userspace API, but it is apparently not used much (we asked
+some userspace developers)
 
-Signed-off-by: Miguel Ojeda Sandonis <maxextreme@gmail.com>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |    7 +++----
- MAINTAINERS |    4 ++++
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ Documentation/power/interface.txt |    8 ++++--
+ kernel/power/disk.c               |   34 +++++++++++++++++++++++++---
+ 2 files changed, 37 insertions(+), 5 deletions(-)
 
-diff -puN CREDITS~add-webpages-url-and-summarize-3-lines CREDITS
---- a/CREDITS~add-webpages-url-and-summarize-3-lines
-+++ a/CREDITS
-@@ -2596,10 +2596,9 @@ S: Australia
+diff -puN Documentation/power/interface.txt~power-management-change-sys-power-disk-display Documentation/power/interface.txt
+--- a/Documentation/power/interface.txt~power-management-change-sys-power-disk-display
++++ a/Documentation/power/interface.txt
+@@ -34,8 +34,12 @@ for 5 seconds, resume devices, unfreeze 
+ we are able to look in the log messages and work out, for example, which code
+ is being slow and which device drivers are misbehaving.
  
- N: Miguel Ojeda Sandonis
- E: maxextreme@gmail.com
--D: Author: Auxiliary LCD Controller driver (ks0108)
--D: Author: Auxiliary LCD driver (cfag12864b)
--D: Author: Auxiliary LCD framebuffer driver (cfag12864bfb)
--D: Maintainer: Auxiliary display drivers tree (drivers/auxdisplay/*)
-+W: http://maxextreme.googlepages.com/
-+D: Author of the ks0108, cfag12864b and cfag12864bfb auxiliary display drivers.
-+D: Maintainer of the auxiliary display drivers tree (drivers/auxdisplay/*)
- S: C/ Mieses 20, 9-B
- S: Valladolid 47009
- S: Spain
-diff -puN MAINTAINERS~add-webpages-url-and-summarize-3-lines MAINTAINERS
---- a/MAINTAINERS~add-webpages-url-and-summarize-3-lines
-+++ a/MAINTAINERS
-@@ -667,6 +667,7 @@ AUXILIARY DISPLAY DRIVERS
- P:	Miguel Ojeda Sandonis
- M:	maxextreme@gmail.com
- L:	linux-kernel@vger.kernel.org
-+W:	http://auxdisplay.googlepages.com/
- S:	Maintained
+-Reading from this file will display what the mode is currently set
+-to. Writing to this file will accept one of
++Reading from this file will display all supported modes and the currently
++selected one in brackets, for example
++
++	[shutdown] reboot test testproc
++
++Writing to this file will accept one of
  
- AVR32 ARCHITECTURE
-@@ -940,12 +941,14 @@ CFAG12864B LCD DRIVER
- P:	Miguel Ojeda Sandonis
- M:	maxextreme@gmail.com
- L:	linux-kernel@vger.kernel.org
-+W:	http://auxdisplay.googlepages.com/
- S:	Maintained
+        'platform' (only if the platform supports it)
+        'shutdown'
+diff -puN kernel/power/disk.c~power-management-change-sys-power-disk-display kernel/power/disk.c
+--- a/kernel/power/disk.c~power-management-change-sys-power-disk-display
++++ a/kernel/power/disk.c
+@@ -350,7 +350,34 @@ static const char * const pm_disk_modes[
  
- CFAG12864BFB LCD FRAMEBUFFER DRIVER
- P:	Miguel Ojeda Sandonis
- M:	maxextreme@gmail.com
- L:	linux-kernel@vger.kernel.org
-+W:	http://auxdisplay.googlepages.com/
- S:	Maintained
+ static ssize_t disk_show(struct subsystem * subsys, char * buf)
+ {
+-	return sprintf(buf, "%s\n", pm_disk_modes[pm_disk_mode]);
++	int i;
++	char *start = buf;
++
++	for (i = PM_DISK_PLATFORM; i < PM_DISK_MAX; i++) {
++		if (!pm_disk_modes[i])
++			continue;
++		switch (i) {
++		case PM_DISK_SHUTDOWN:
++		case PM_DISK_REBOOT:
++		case PM_DISK_TEST:
++		case PM_DISK_TESTPROC:
++			break;
++		default:
++			if (pm_ops && pm_ops->enter &&
++			    (i == pm_ops->pm_disk_mode))
++				break;
++			/* not a valid mode, continue with loop */
++			continue;
++		}
++		if (i == pm_disk_mode)
++			buf += sprintf(buf, "[%s]", pm_disk_modes[i]);
++		else
++			buf += sprintf(buf, "%s", pm_disk_modes[i]);
++		if (i+1 != PM_DISK_MAX)
++			buf += sprintf(buf, " ");
++	}
++	buf += sprintf(buf, "\n");
++	return buf-start;
+ }
  
- CFG80211 and NL80211
-@@ -2094,6 +2097,7 @@ KS0108 LCD CONTROLLER DRIVER
- P:	Miguel Ojeda Sandonis
- M:	maxextreme@gmail.com
- L:	linux-kernel@vger.kernel.org
-+W:	http://auxdisplay.googlepages.com/
- S:	Maintained
  
- LAPB module
+@@ -391,8 +418,9 @@ static ssize_t disk_store(struct subsyst
+ 		error = -EINVAL;
+ 	}
+ 
+-	pr_debug("PM: suspend-to-disk mode set to '%s'\n",
+-		 pm_disk_modes[mode]);
++	if (!error)
++		pr_debug("PM: suspend-to-disk mode set to '%s'\n",
++			 pm_disk_modes[mode]);
+ 	mutex_unlock(&pm_mutex);
+ 	return error ? error : n;
+ }
 _
 
-Patches currently in -mm which might be from maxextreme@gmail.com are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
-add-webpages-url-and-summarize-3-lines.patch
+git-alsa.patch
+git-powerpc.patch
+git-powerpc-arch-powerpc-sysdev-timerc-build-fix.patch
+git-net.patch
+git-wireless.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-force-pm_opsvalid-callback-to-be.patch
+remove-software_suspend.patch
+power-management-change-sys-power-disk-display.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+kernel-doc-html-mode-struct-highlights.patch
