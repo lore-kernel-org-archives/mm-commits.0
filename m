@@ -1,313 +1,294 @@
 From: akpm@linux-foundation.org
-Subject: - pci-do-not-mark-exported-functions-as-__devinit.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:29:39 -0700
-Message-ID: <200704132329.l3DNTdsp012642@shell0.pdx.osdl.net>
+Subject: - sysfs-kill-attribute-file-orphaning.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:29:25 -0700
+Message-ID: <200704132329.l3DNTP71012621@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60536 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60539 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161159AbXDMX3r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:29:47 -0400
+	id S1161162AbXDMX3s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:29:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: do not mark exported functions as __devinit
+     sysfs: kill attribute file orphaning
 has been removed from the -mm tree.  Its filename was
-     pci-do-not-mark-exported-functions-as-__devinit.patch
+     sysfs-kill-attribute-file-orphaning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pci: do not mark exported functions as __devinit
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: sysfs: kill attribute file orphaning
+From: Tejun Heo <htejun@gmail.com>
 
-Functions marked __devinit will be removed after kernel init.  But being
-exported they are potentially called by a module much later.
+Now that sysfs_dirent can be disconnected from kobject on deletion, there is
+no need to orphan each attribute files.  All [bin_]attribute nodes are
+automatically orphaned when the parent node is deleted.  Kill attribute file
+orphaning.
 
-So the safer choice seems to be to keep the function even in the non
-CONFIG_HOTPLUG case.
-
-This silence the follwoing section mismatch warnings:
-WARNING: drivers/built-in.o - Section mismatch: reference to .init.text:pci_bus_add_device from __ksymtab_gpl between '__ksymtab_pci_bus_add_device' (at offset 0x20) and '__ksymtab_pci_walk_bus'
-WARNING: drivers/built-in.o - Section mismatch: reference to .init.text:pci_create_bus from __ksymtab_gpl between '__ksymtab_pci_create_bus' (at offset 0x40) and '__ksymtab_pci_stop_bus_device'
-WARNING: drivers/built-in.o - Section mismatch: reference to .init.text:pci_bus_max_busnr from __ksymtab_gpl between '__ksymtab_pci_bus_max_busnr' (at offset 0xc0) and '__ksymtab_pci_assign_resource_fixed'
-WARNING: drivers/built-in.o - Section mismatch: reference to .init.text:pci_claim_resource from __ksymtab_gpl between '__ksymtab_pci_claim_resource' (at offset 0xe0) and '__ksymtab_pcie_port_bus_type'
-WARNING: drivers/built-in.o - Section mismatch: reference to .init.text:pci_bus_add_devices from __ksymtab between '__ksymtab_pci_bus_add_devices' (at offset 0x70) and '__ksymtab_pci_bus_alloc_resource'
-WARNING: drivers/built-in.o - Section mismatch: reference to .init.text:pci_scan_bus_parented from __ksymtab between '__ksymtab_pci_scan_bus_parented' (at offset 0x90) and '__ksymtab_pci_root_buses'
-WARNING: drivers/built-in.o - Section mismatch: reference to .init.text:pci_bus_assign_resources from __ksymtab between '__ksymtab_pci_bus_assign_resources' (at offset 0x4d0) and '__ksymtab_pci_bus_size_bridges'
-WARNING: drivers/built-in.o - Section mismatch: reference to .init.text:pci_bus_size_bridges from __ksymtab between '__ksymtab_pci_bus_size_bridges' (at offset 0x4e0) and '__ksymtab_pci_setup_cardbus'
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Cc: Maneesh Soni <maneesh@in.ibm.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/bus.c       |    4 ++--
- drivers/pci/pci.c       |    3 +--
- drivers/pci/probe.c     |   23 +++++++++++------------
- drivers/pci/search.c    |    3 +--
- drivers/pci/setup-bus.c |   21 +++++++--------------
- drivers/pci/setup-res.c |    6 ++----
- 6 files changed, 24 insertions(+), 36 deletions(-)
+ fs/sysfs/file.c  |   65 +++++++++------------------------------------
+ fs/sysfs/inode.c |   25 -----------------
+ fs/sysfs/mount.c |    8 -----
+ fs/sysfs/sysfs.h |   16 -----------
+ 4 files changed, 13 insertions(+), 101 deletions(-)
 
-diff -puN drivers/pci/bus.c~pci-do-not-mark-exported-functions-as-__devinit drivers/pci/bus.c
---- a/drivers/pci/bus.c~pci-do-not-mark-exported-functions-as-__devinit
-+++ a/drivers/pci/bus.c
-@@ -77,7 +77,7 @@ pci_bus_alloc_resource(struct pci_bus *b
-  * This adds a single pci device to the global
-  * device list and adds sysfs and procfs entries
-  */
--int __devinit pci_bus_add_device(struct pci_dev *dev)
-+int pci_bus_add_device(struct pci_dev *dev)
- {
- 	int retval;
- 	retval = device_add(&dev->dev);
-@@ -105,7 +105,7 @@ int __devinit pci_bus_add_device(struct 
-  *
-  * Call hotplug for each new devices.
-  */
--void __devinit pci_bus_add_devices(struct pci_bus *bus)
-+void pci_bus_add_devices(struct pci_bus *bus)
- {
- 	struct pci_dev *dev;
- 	int retval;
-diff -puN drivers/pci/pci.c~pci-do-not-mark-exported-functions-as-__devinit drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-do-not-mark-exported-functions-as-__devinit
-+++ a/drivers/pci/pci.c
-@@ -34,8 +34,7 @@ unsigned long pci_cardbus_mem_size = DEF
-  * Given a PCI bus, returns the highest PCI bus number present in the set
-  * including the given PCI bus and its list of child PCI buses.
-  */
--unsigned char __devinit
--pci_bus_max_busnr(struct pci_bus* bus)
-+unsigned char pci_bus_max_busnr(struct pci_bus* bus)
- {
- 	struct list_head *tmp;
- 	unsigned char max, n;
-diff -puN drivers/pci/probe.c~pci-do-not-mark-exported-functions-as-__devinit drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-do-not-mark-exported-functions-as-__devinit
-+++ a/drivers/pci/probe.c
-@@ -364,7 +364,7 @@ void __devinit pci_read_bridge_bases(str
+diff -puN fs/sysfs/file.c~sysfs-kill-attribute-file-orphaning fs/sysfs/file.c
+--- a/fs/sysfs/file.c~sysfs-kill-attribute-file-orphaning
++++ a/fs/sysfs/file.c
+@@ -51,29 +51,15 @@ static struct sysfs_ops subsys_sysfs_ops
+ 	.store	= subsys_attr_store,
+ };
+ 
+-/**
+- *	add_to_collection - add buffer to a collection
+- *	@buffer:	buffer to be added
+- *	@node:		inode of set to add to
+- */
+-
+-static inline void
+-add_to_collection(struct sysfs_buffer *buffer, struct inode *node)
+-{
+-	struct sysfs_buffer_collection *set = node->i_private;
+-
+-	mutex_lock(&node->i_mutex);
+-	list_add(&buffer->associates, &set->associates);
+-	mutex_unlock(&node->i_mutex);
+-}
+-
+-static inline void
+-remove_from_collection(struct sysfs_buffer *buffer, struct inode *node)
+-{
+-	mutex_lock(&node->i_mutex);
+-	list_del(&buffer->associates);
+-	mutex_unlock(&node->i_mutex);
+-}
++struct sysfs_buffer {
++	size_t			count;
++	loff_t			pos;
++	char			* page;
++	struct sysfs_ops	* ops;
++	struct semaphore	sem;
++	int			needs_read_fill;
++	int			event;
++};
+ 
+ /**
+  *	fill_read_buffer - allocate and fill buffer from object.
+@@ -175,10 +161,7 @@ sysfs_read_file(struct file *file, char 
+ 
+ 	down(&buffer->sem);
+ 	if (buffer->needs_read_fill) {
+-		if (buffer->orphaned)
+-			retval = -ENODEV;
+-		else
+-			retval = fill_read_buffer(file->f_path.dentry,buffer);
++		retval = fill_read_buffer(file->f_path.dentry,buffer);
+ 		if (retval)
+ 			goto out;
  	}
+@@ -276,16 +259,11 @@ sysfs_write_file(struct file *file, cons
+ 	ssize_t len;
+ 
+ 	down(&buffer->sem);
+-	if (buffer->orphaned) {
+-		len = -ENODEV;
+-		goto out;
+-	}
+ 	len = fill_write_buffer(buffer, buf, count);
+ 	if (len > 0)
+ 		len = flush_write_buffer(file->f_path.dentry, buffer, len);
+ 	if (len > 0)
+ 		*ppos += len;
+-out:
+ 	up(&buffer->sem);
+ 	return len;
  }
- 
--static struct pci_bus * __devinit pci_alloc_bus(void)
-+static struct pci_bus * pci_alloc_bus(void)
- {
- 	struct pci_bus *b;
- 
-@@ -432,7 +432,7 @@ error_register:
- 	return NULL;
- }
- 
--struct pci_bus * __devinit pci_add_new_bus(struct pci_bus *parent, struct pci_dev *dev, int busnr)
-+struct pci_bus *pci_add_new_bus(struct pci_bus *parent, struct pci_dev *dev, int busnr)
- {
- 	struct pci_bus *child;
- 
-@@ -461,7 +461,7 @@ static void pci_enable_crs(struct pci_de
- 	pci_write_config_word(dev, rpcap + PCI_EXP_RTCTL, rpctl);
- }
- 
--static void __devinit pci_fixup_parent_subordinate_busnr(struct pci_bus *child, int max)
-+static void pci_fixup_parent_subordinate_busnr(struct pci_bus *child, int max)
- {
- 	struct pci_bus *parent = child->parent;
- 
-@@ -477,7 +477,7 @@ static void __devinit pci_fixup_parent_s
- 	}
- }
- 
--unsigned int __devinit pci_scan_child_bus(struct pci_bus *bus);
-+unsigned int pci_scan_child_bus(struct pci_bus *bus);
- 
- /*
-  * If it's a bridge, configure it and scan the bus behind it.
-@@ -489,7 +489,7 @@ unsigned int __devinit pci_scan_child_bu
-  * them, we proceed to assigning numbers to the remaining buses in
-  * order to avoid overlaps between old and new bus numbers.
-  */
--int __devinit pci_scan_bridge(struct pci_bus *bus, struct pci_dev * dev, int max, int pass)
-+int pci_scan_bridge(struct pci_bus *bus, struct pci_dev * dev, int max, int pass)
- {
- 	struct pci_bus *child;
- 	int is_cardbus = (dev->hdr_type == PCI_HEADER_TYPE_CARDBUS);
-@@ -931,7 +931,7 @@ pci_scan_device(struct pci_bus *bus, int
- 	return dev;
- }
- 
--void __devinit pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
-+void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
- {
- 	device_initialize(&dev->dev);
- 	dev->dev.release = pci_release_dev;
-@@ -954,8 +954,7 @@ void __devinit pci_device_add(struct pci
- 	up_write(&pci_bus_sem);
- }
- 
--struct pci_dev * __devinit
--pci_scan_single_device(struct pci_bus *bus, int devfn)
-+struct pci_dev *pci_scan_single_device(struct pci_bus *bus, int devfn)
- {
- 	struct pci_dev *dev;
- 
-@@ -977,7 +976,7 @@ pci_scan_single_device(struct pci_bus *b
-  * discovered devices to the @bus->devices list.  New devices
-  * will have an empty dev->global_list head.
-  */
--int __devinit pci_scan_slot(struct pci_bus *bus, int devfn)
-+int pci_scan_slot(struct pci_bus *bus, int devfn)
- {
- 	int func, nr = 0;
- 	int scan_all_fns;
-@@ -1010,7 +1009,7 @@ int __devinit pci_scan_slot(struct pci_b
- 	return nr;
- }
- 
--unsigned int __devinit pci_scan_child_bus(struct pci_bus *bus)
-+unsigned int pci_scan_child_bus(struct pci_bus *bus)
- {
- 	unsigned int devfn, pass, max = bus->secondary;
- 	struct pci_dev *dev;
-@@ -1060,7 +1059,7 @@ unsigned int __devinit pci_do_scan_bus(s
- 	return max;
- }
- 
--struct pci_bus * __devinit pci_create_bus(struct device *parent,
-+struct pci_bus * pci_create_bus(struct device *parent,
- 		int bus, struct pci_ops *ops, void *sysdata)
- {
+@@ -295,7 +273,6 @@ static int sysfs_open_file(struct inode 
+ 	struct sysfs_dirent *attr_sd = file->f_path.dentry->d_fsdata;
+ 	struct attribute *attr = attr_sd->s_elem.attr.attr;
+ 	struct kobject *kobj = attr_sd->s_parent->s_elem.dir.kobj;
+-	struct sysfs_buffer_collection *set;
+ 	struct sysfs_buffer * buffer;
+ 	struct sysfs_ops * ops = NULL;
  	int error;
-@@ -1138,7 +1137,7 @@ err_out:
- }
- EXPORT_SYMBOL_GPL(pci_create_bus);
+@@ -319,26 +296,14 @@ static int sysfs_open_file(struct inode 
+ 	else
+ 		ops = &subsys_sysfs_ops;
  
--struct pci_bus * __devinit pci_scan_bus_parented(struct device *parent,
-+struct pci_bus *pci_scan_bus_parented(struct device *parent,
- 		int bus, struct pci_ops *ops, void *sysdata)
- {
- 	struct pci_bus *b;
-diff -puN drivers/pci/search.c~pci-do-not-mark-exported-functions-as-__devinit drivers/pci/search.c
---- a/drivers/pci/search.c~pci-do-not-mark-exported-functions-as-__devinit
-+++ a/drivers/pci/search.c
-@@ -15,8 +15,7 @@
++	error = -EACCES;
++
+ 	/* No sysfs operations, either from having no subsystem,
+ 	 * or the subsystem have no operations.
+ 	 */
+-	error = -EACCES;
+ 	if (!ops)
+ 		goto err_mput;
  
- DECLARE_RWSEM(pci_bus_sem);
+-	/* make sure we have a collection to add our buffers to */
+-	mutex_lock(&inode->i_mutex);
+-	if (!(set = inode->i_private)) {
+-		error = -ENOMEM;
+-		if (!(set = inode->i_private = kmalloc(sizeof(struct sysfs_buffer_collection), GFP_KERNEL)))
+-			goto err_mput;
+-		else
+-			INIT_LIST_HEAD(&set->associates);
+-	}
+-	mutex_unlock(&inode->i_mutex);
+-
+-	error = -EACCES;
+-
+ 	/* File needs write support.
+ 	 * The inode's perms must say it's ok, 
+ 	 * and we must have a store method.
+@@ -365,11 +330,9 @@ static int sysfs_open_file(struct inode 
+ 	if (!buffer)
+ 		goto err_mput;
  
--static struct pci_bus *
--pci_do_find_bus(struct pci_bus* bus, unsigned char busnr)
-+static struct pci_bus *pci_do_find_bus(struct pci_bus *bus, unsigned char busnr)
- {
- 	struct pci_bus* child;
- 	struct list_head *tmp;
-diff -puN drivers/pci/setup-bus.c~pci-do-not-mark-exported-functions-as-__devinit drivers/pci/setup-bus.c
---- a/drivers/pci/setup-bus.c~pci-do-not-mark-exported-functions-as-__devinit
-+++ a/drivers/pci/setup-bus.c
-@@ -36,8 +36,7 @@
+-	INIT_LIST_HEAD(&buffer->associates);
+ 	init_MUTEX(&buffer->sem);
+ 	buffer->needs_read_fill = 1;
+ 	buffer->ops = ops;
+-	add_to_collection(buffer, inode);
+ 	file->private_data = buffer;
  
- #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+ 	/* open succeeded, put active references and pin attr_sd */
+@@ -388,10 +351,8 @@ static int sysfs_release(struct inode * 
+ {
+ 	struct sysfs_dirent *attr_sd = filp->f_path.dentry->d_fsdata;
+ 	struct attribute *attr = attr_sd->s_elem.attr.attr;
+-	struct sysfs_buffer * buffer = filp->private_data;
++	struct sysfs_buffer *buffer = filp->private_data;
  
--static void __devinit
--pbus_assign_resources_sorted(struct pci_bus *bus)
-+static void pbus_assign_resources_sorted(struct pci_bus *bus)
- {
- 	struct pci_dev *dev;
- 	struct resource *res;
-@@ -220,8 +219,7 @@ pci_setup_bridge(struct pci_bus *bus)
- /* Check whether the bridge supports optional I/O and
-    prefetchable memory ranges. If not, the respective
-    base/limit registers must be read-only and read as 0. */
--static void __devinit
--pci_bridge_check_ranges(struct pci_bus *bus)
-+static void pci_bridge_check_ranges(struct pci_bus *bus)
- {
- 	u16 io;
- 	u32 pmem;
-@@ -259,8 +257,7 @@ pci_bridge_check_ranges(struct pci_bus *
-    bus resource of a given type. Note: we intentionally skip
-    the bus resources which have already been assigned (that is,
-    have non-NULL parent resource). */
--static struct resource * __devinit
--find_free_bus_resource(struct pci_bus *bus, unsigned long type)
-+static struct resource *find_free_bus_resource(struct pci_bus *bus, unsigned long type)
- {
- 	int i;
- 	struct resource *r;
-@@ -281,8 +278,7 @@ find_free_bus_resource(struct pci_bus *b
-    since these windows have 4K granularity and the IO ranges
-    of non-bridge PCI devices are limited to 256 bytes.
-    We must be careful with the ISA aliasing though. */
--static void __devinit
--pbus_size_io(struct pci_bus *bus)
-+static void pbus_size_io(struct pci_bus *bus)
- {
- 	struct pci_dev *dev;
- 	struct resource *b_res = find_free_bus_resource(bus, IORESOURCE_IO);
-@@ -326,8 +322,7 @@ pbus_size_io(struct pci_bus *bus)
- 
- /* Calculate the size of the bus and minimal alignment which
-    guarantees that all child resources fit in this size. */
--static int __devinit
--pbus_size_mem(struct pci_bus *bus, unsigned long mask, unsigned long type)
-+static int pbus_size_mem(struct pci_bus *bus, unsigned long mask, unsigned long type)
- {
- 	struct pci_dev *dev;
- 	unsigned long min_align, align, size;
-@@ -447,8 +442,7 @@ pci_bus_size_cardbus(struct pci_bus *bus
- 	}
+-	if (buffer)
+-		remove_from_collection(buffer, inode);
+ 	sysfs_put(attr_sd);
+ 	/* After this point, attr should not be accessed. */
+ 	module_put(attr->owner);
+diff -puN fs/sysfs/inode.c~sysfs-kill-attribute-file-orphaning fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~sysfs-kill-attribute-file-orphaning
++++ a/fs/sysfs/inode.c
+@@ -190,24 +190,6 @@ int sysfs_create(struct dentry * dentry,
+ 	return error;
  }
  
--void __devinit
--pci_bus_size_bridges(struct pci_bus *bus)
-+void pci_bus_size_bridges(struct pci_bus *bus)
+-static inline void orphan_all_buffers(struct inode *node)
+-{
+-	struct sysfs_buffer_collection *set;
+-	struct sysfs_buffer *buf;
+-
+-	mutex_lock_nested(&node->i_mutex, I_MUTEX_CHILD);
+-	set = node->i_private;
+-	if (set) {
+-		list_for_each_entry(buf, &set->associates, associates) {
+-			down(&buf->sem);
+-			buf->orphaned = 1;
+-			up(&buf->sem);
+-		}
+-	}
+-	mutex_unlock(&node->i_mutex);
+-}
+-
+-
+ /*
+  * Unhashes the dentry corresponding to given sysfs_dirent
+  * Called with parent inode's i_mutex held.
+@@ -215,23 +197,16 @@ static inline void orphan_all_buffers(st
+ void sysfs_drop_dentry(struct sysfs_dirent * sd, struct dentry * parent)
  {
- 	struct pci_dev *dev;
- 	unsigned long mask, prefmask;
-@@ -498,8 +492,7 @@ pci_bus_size_bridges(struct pci_bus *bus
- }
- EXPORT_SYMBOL(pci_bus_size_bridges);
+ 	struct dentry * dentry = sd->s_dentry;
+-	struct inode *inode;
  
--void __devinit
--pci_bus_assign_resources(struct pci_bus *bus)
-+void pci_bus_assign_resources(struct pci_bus *bus)
+ 	if (dentry) {
+ 		spin_lock(&dcache_lock);
+ 		spin_lock(&dentry->d_lock);
+ 		if (!(d_unhashed(dentry) && dentry->d_inode)) {
+-			inode = dentry->d_inode;
+-			spin_lock(&inode->i_lock);
+-			__iget(inode);
+-			spin_unlock(&inode->i_lock);
+ 			dget_locked(dentry);
+ 			__d_drop(dentry);
+ 			spin_unlock(&dentry->d_lock);
+ 			spin_unlock(&dcache_lock);
+ 			simple_unlink(parent->d_inode, dentry);
+-			orphan_all_buffers(inode);
+-			iput(inode);
+ 		} else {
+ 			spin_unlock(&dentry->d_lock);
+ 			spin_unlock(&dcache_lock);
+diff -puN fs/sysfs/mount.c~sysfs-kill-attribute-file-orphaning fs/sysfs/mount.c
+--- a/fs/sysfs/mount.c~sysfs-kill-attribute-file-orphaning
++++ a/fs/sysfs/mount.c
+@@ -19,12 +19,9 @@ struct vfsmount *sysfs_mount;
+ struct super_block * sysfs_sb = NULL;
+ struct kmem_cache *sysfs_dir_cachep;
+ 
+-static void sysfs_clear_inode(struct inode *inode);
+-
+ static const struct super_operations sysfs_ops = {
+ 	.statfs		= simple_statfs,
+ 	.drop_inode	= sysfs_delete_inode,
+-	.clear_inode	= sysfs_clear_inode,
+ };
+ 
+ static struct sysfs_dirent sysfs_root = {
+@@ -35,11 +32,6 @@ static struct sysfs_dirent sysfs_root = 
+ 	.s_iattr	= NULL,
+ };
+ 
+-static void sysfs_clear_inode(struct inode *inode)
+-{
+-	kfree(inode->i_private);
+-}
+-
+ static int sysfs_fill_super(struct super_block *sb, void *data, int silent)
  {
- 	struct pci_bus *b;
- 	struct pci_dev *dev;
-diff -puN drivers/pci/setup-res.c~pci-do-not-mark-exported-functions-as-__devinit drivers/pci/setup-res.c
---- a/drivers/pci/setup-res.c~pci-do-not-mark-exported-functions-as-__devinit
-+++ a/drivers/pci/setup-res.c
-@@ -101,8 +101,7 @@ pci_update_resource(struct pci_dev *dev,
- 		new & ~PCI_REGION_FLAG_MASK);
- }
+ 	struct inode *inode;
+diff -puN fs/sysfs/sysfs.h~sysfs-kill-attribute-file-orphaning fs/sysfs/sysfs.h
+--- a/fs/sysfs/sysfs.h~sysfs-kill-attribute-file-orphaning
++++ a/fs/sysfs/sysfs.h
+@@ -75,22 +75,6 @@ extern const struct file_operations bin_
+ extern const struct inode_operations sysfs_dir_inode_operations;
+ extern const struct inode_operations sysfs_symlink_inode_operations;
  
--int __devinit
--pci_claim_resource(struct pci_dev *dev, int resource)
-+int pci_claim_resource(struct pci_dev *dev, int resource)
+-struct sysfs_buffer {
+-	struct list_head		associates;
+-	size_t				count;
+-	loff_t				pos;
+-	char				* page;
+-	struct sysfs_ops		* ops;
+-	struct semaphore		sem;
+-	int				orphaned;
+-	int				needs_read_fill;
+-	int				event;
+-};
+-
+-struct sysfs_buffer_collection {
+-	struct list_head	associates;
+-};
+-
+ static inline struct sysfs_dirent * sysfs_get(struct sysfs_dirent * sd)
  {
- 	struct resource *res = &dev->resource[resource];
- 	struct resource *root = NULL;
-@@ -212,8 +211,7 @@ EXPORT_SYMBOL_GPL(pci_assign_resource_fi
- #endif
- 
- /* Sort resources by alignment */
--void __devinit
--pdev_sort_resources(struct pci_dev *dev, struct resource_list *head)
-+void pdev_sort_resources(struct pci_dev *dev, struct resource_list *head)
- {
- 	int i;
- 
+ 	if (sd) {
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-arm-fix-section-mismatch-warning-in-board-sam9260.patch
-git-kbuild.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-git-netdev-all.patch
-add-white-list-into-modpostc-for-memory-hotplug-code-and-ia64s-machvec-section.patch
-extend-print_symbol-capability.patch
-extend-print_symbol-capability-fix.patch
-fix-section-mismatch-warning-in-lib-swiotlbc.patch
+origin.patch
+git-libata-all.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+optional-led-trigger-for-libata.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+git-scsi-misc.patch
+introduce-config_has_dma.patch
