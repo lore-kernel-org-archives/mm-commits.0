@@ -1,274 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-reimplement-symlink-using-sysfs_dirent-tree.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:29:13 -0700
-Message-ID: <200704132329.l3DNTDgP012603@shell0.pdx.osdl.net>
+Subject: - md-fix-calculation-for-size-of-filemap_attr-array-in-md-bitmap.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:28:19 -0700
+Message-ID: <200704132328.l3DNSJbS012511@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60475 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60499 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161113AbXDMX30 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:29:26 -0400
+	id S1161130AbXDMX3d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:29:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: reimplement symlink using sysfs_dirent tree
+     md: fix calculation for size of filemap_attr array in md/bitmap
 has been removed from the -mm tree.  Its filename was
-     sysfs-reimplement-symlink-using-sysfs_dirent-tree.patch
+     md-fix-calculation-for-size-of-filemap_attr-array-in-md-bitmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysfs: reimplement symlink using sysfs_dirent tree
-From: Tejun Heo <htejun@gmail.com>
+Subject: md: fix calculation for size of filemap_attr array in md/bitmap
+From: Neil Brown <neilb@suse.de>
 
-sysfs symlink is implemented by referencing dentry and kobject from
-sysfs_dirent - symlink entry references kobject, dentry is used to walk the
-tree.  This complicates object lifetimes rules and is dangerous - for example,
-there is no way to tell to which module the target of a symlink belongs and
-referencing that kobject can make it linger after the module is gone.
+If 'num_pages' were ever 1 more than a multiple of 8 (32bit platforms) for
+of 16 (64 bit platforms).  filemap_attr would be allocated one 'unsigned
+long' shorter than required.  We need a round-up in there.
 
-This patch reimplements symlink using only sysfs_dirent tree.  sd for a
-symlink points and holds reference to the target sysfs_dirent and all walking
-is done using sysfs_dirent tree.  Simpler and safer.
-
-Please read the following message for more info.
-
-  http://article.gmane.org/gmane.linux.kernel/510293
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Cc: Maneesh Soni <maneesh@in.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/dir.c     |    2 
- fs/sysfs/symlink.c |   88 ++++++++++++++++++++++---------------------
- fs/sysfs/sysfs.h   |    9 ++--
- 3 files changed, 53 insertions(+), 46 deletions(-)
+ drivers/md/bitmap.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/sysfs/dir.c~sysfs-reimplement-symlink-using-sysfs_dirent-tree fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~sysfs-reimplement-symlink-using-sysfs_dirent-tree
-+++ a/fs/sysfs/dir.c
-@@ -23,7 +23,7 @@ void release_sysfs_dirent(struct sysfs_d
- 	parent_sd = sd->s_parent;
+diff -puN drivers/md/bitmap.c~md-fix-calculation-for-size-of-filemap_attr-array-in-md-bitmap drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~md-fix-calculation-for-size-of-filemap_attr-array-in-md-bitmap
++++ a/drivers/md/bitmap.c
+@@ -863,9 +863,7 @@ static int bitmap_init_from_disk(struct 
  
- 	if (sd->s_type & SYSFS_KOBJ_LINK)
--		kobject_put(sd->s_elem.symlink.target_kobj);
-+		sysfs_put(sd->s_elem.symlink.target_sd);
- 	if (sd->s_type & SYSFS_COPY_NAME)
- 		kfree(sd->s_name);
- 	kfree(sd->s_iattr);
-diff -puN fs/sysfs/symlink.c~sysfs-reimplement-symlink-using-sysfs_dirent-tree fs/sysfs/symlink.c
---- a/fs/sysfs/symlink.c~sysfs-reimplement-symlink-using-sysfs_dirent-tree
-+++ a/fs/sysfs/symlink.c
-@@ -11,50 +11,49 @@
- 
- #include "sysfs.h"
- 
--static int object_depth(struct kobject * kobj)
-+static int object_depth(struct sysfs_dirent *sd)
- {
--	struct kobject * p = kobj;
- 	int depth = 0;
--	do { depth++; } while ((p = p->parent));
-+
-+	for (; sd->s_parent; sd = sd->s_parent)
-+		depth++;
-+
- 	return depth;
- }
- 
--static int object_path_length(struct kobject * kobj)
-+static int object_path_length(struct sysfs_dirent * sd)
- {
--	struct kobject * p = kobj;
- 	int length = 1;
--	do {
--		length += strlen(kobject_name(p)) + 1;
--		p = p->parent;
--	} while (p);
-+
-+	for (; sd->s_parent; sd = sd->s_parent)
-+		length += strlen(sd->s_name) + 1;
-+
- 	return length;
- }
- 
--static void fill_object_path(struct kobject * kobj, char * buffer, int length)
-+static void fill_object_path(struct sysfs_dirent *sd, char *buffer, int length)
- {
--	struct kobject * p;
--
- 	--length;
--	for (p = kobj; p; p = p->parent) {
--		int cur = strlen(kobject_name(p));
-+	for (; sd->s_parent; sd = sd->s_parent) {
-+		int cur = strlen(sd->s_name);
- 
- 		/* back up enough to print this bus id with '/' */
- 		length -= cur;
--		strncpy(buffer + length,kobject_name(p),cur);
-+		strncpy(buffer + length, sd->s_name, cur);
- 		*(buffer + --length) = '/';
- 	}
- }
- 
--static int sysfs_add_link(struct dentry * parent, const char * name, struct kobject * target)
-+static int sysfs_add_link(struct sysfs_dirent * parent_sd, const char * name,
-+			  struct sysfs_dirent * target_sd)
- {
--	struct sysfs_dirent * parent_sd = parent->d_fsdata;
- 	struct sysfs_dirent * sd;
- 
- 	sd = sysfs_new_dirent(name, S_IFLNK|S_IRWXUGO, SYSFS_KOBJ_LINK);
- 	if (!sd)
- 		return -ENOMEM;
- 
--	sd->s_elem.symlink.target_kobj = kobject_get(target);
-+	sd->s_elem.symlink.target_sd = target_sd;
- 	sysfs_attach_dirent(sd, parent_sd, NULL);
- 	return 0;
- }
-@@ -68,6 +67,8 @@ static int sysfs_add_link(struct dentry 
- int sysfs_create_link(struct kobject * kobj, struct kobject * target, const char * name)
- {
- 	struct dentry *dentry = NULL;
-+	struct sysfs_dirent *parent_sd = NULL;
-+	struct sysfs_dirent *target_sd = NULL;
- 	int error = -EEXIST;
- 
- 	BUG_ON(!name);
-@@ -80,11 +81,27 @@ int sysfs_create_link(struct kobject * k
- 
- 	if (!dentry)
- 		return -EFAULT;
-+	parent_sd = dentry->d_fsdata;
-+
-+	/* target->dentry can go away beneath us but is protected with
-+	 * kobj_sysfs_assoc_lock.  Fetch target_sd from it.
-+	 */
-+	spin_lock(&kobj_sysfs_assoc_lock);
-+	if (target->dentry)
-+		target_sd = sysfs_get(target->dentry->d_fsdata);
-+	spin_unlock(&kobj_sysfs_assoc_lock);
-+
-+	if (!target_sd)
-+		return -ENOENT;
- 
- 	mutex_lock(&dentry->d_inode->i_mutex);
- 	if (!sysfs_dirent_exist(dentry->d_fsdata, name))
--		error = sysfs_add_link(dentry, name, target);
-+		error = sysfs_add_link(parent_sd, name, target_sd);
- 	mutex_unlock(&dentry->d_inode->i_mutex);
-+
-+	if (error)
-+		sysfs_put(target_sd);
-+
- 	return error;
- }
- 
-@@ -100,14 +117,14 @@ void sysfs_remove_link(struct kobject * 
- 	sysfs_hash_and_remove(kobj->dentry,name);
- }
- 
--static int sysfs_get_target_path(struct kobject * kobj, struct kobject * target,
--				 char *path)
-+static int sysfs_get_target_path(struct sysfs_dirent * parent_sd,
-+				 struct sysfs_dirent * target_sd, char *path)
- {
- 	char * s;
- 	int depth, size;
- 
--	depth = object_depth(kobj);
--	size = object_path_length(target) + depth * 3 - 1;
-+	depth = object_depth(parent_sd);
-+	size = object_path_length(target_sd) + depth * 3 - 1;
- 	if (size > PATH_MAX)
- 		return -ENAMETOOLONG;
- 
-@@ -116,7 +133,7 @@ static int sysfs_get_target_path(struct 
- 	for (s = path; depth--; s += 3)
- 		strcpy(s,"../");
- 
--	fill_object_path(target, path, size);
-+	fill_object_path(target_sd, path, size);
- 	pr_debug("%s: path = '%s'\n", __FUNCTION__, path);
- 
- 	return 0;
-@@ -124,27 +141,16 @@ static int sysfs_get_target_path(struct 
- 
- static int sysfs_getlink(struct dentry *dentry, char * path)
- {
--	struct kobject *kobj, *target_kobj;
--	int error = 0;
--
--	kobj = sysfs_get_kobject(dentry->d_parent);
--	if (!kobj)
--		return -EINVAL;
--
--	target_kobj = sysfs_get_kobject(dentry);
--	if (!target_kobj) {
--		kobject_put(kobj);
--		return -EINVAL;
--	}
-+	struct sysfs_dirent *sd = dentry->d_fsdata;
-+	struct sysfs_dirent *parent_sd = sd->s_parent;
-+	struct sysfs_dirent *target_sd = sd->s_elem.symlink.target_sd;
-+	int error;
- 
- 	down_read(&sysfs_rename_sem);
--	error = sysfs_get_target_path(kobj, target_kobj, path);
-+	error = sysfs_get_target_path(parent_sd, target_sd, path);
- 	up_read(&sysfs_rename_sem);
--	
--	kobject_put(kobj);
--	kobject_put(target_kobj);
--	return error;
- 
-+	return error;
- }
- 
- static void *sysfs_follow_link(struct dentry *dentry, struct nameidata *nd)
-diff -puN fs/sysfs/sysfs.h~sysfs-reimplement-symlink-using-sysfs_dirent-tree fs/sysfs/sysfs.h
---- a/fs/sysfs/sysfs.h~sysfs-reimplement-symlink-using-sysfs_dirent-tree
-+++ a/fs/sysfs/sysfs.h
-@@ -3,7 +3,7 @@ struct sysfs_elem_dir {
- };
- 
- struct sysfs_elem_symlink {
--	struct kobject		* target_kobj;
-+	struct sysfs_dirent	* target_sd;
- };
- 
- struct sysfs_elem_attr {
-@@ -98,10 +98,11 @@ static inline struct kobject *sysfs_get_
- 	spin_lock(&dcache_lock);
- 	if (!d_unhashed(dentry)) {
- 		struct sysfs_dirent * sd = dentry->d_fsdata;
-+
- 		if (sd->s_type & SYSFS_KOBJ_LINK)
--			kobj = kobject_get(sd->s_elem.symlink.target_kobj);
--		else
--			kobj = kobject_get(sd->s_elem.dir.kobj);
-+			sd = sd->s_elem.symlink.target_sd;
-+
-+		kobj = kobject_get(sd->s_elem.dir.kobj);
- 	}
- 	spin_unlock(&dcache_lock);
- 
+ 	/* We need 4 bits per page, rounded up to a multiple of sizeof(unsigned long) */
+ 	bitmap->filemap_attr = kzalloc(
+-		(((num_pages*4/8)+sizeof(unsigned long)-1)
+-		 /sizeof(unsigned long))
+-		*sizeof(unsigned long),
++		roundup( DIV_ROUND_UP(num_pages*4, 8), sizeof(unsigned long)),
+ 		GFP_KERNEL);
+ 	if (!bitmap->filemap_attr)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from htejun@gmail.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-git-libata-all.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
-optional-led-trigger-for-libata.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-git-scsi-misc.patch
-introduce-config_has_dma.patch
+device_schedule_callback-needs-a-module-reference.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+sunrpc-cleanup-use-seq_release_private-where-appropriate.patch
+slub-core-fix-kmem_cache_destroy.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
+readahead-nfsd-case.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
+md-cleanup-use-seq_release_private-where-appropriate.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
