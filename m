@@ -1,34 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-fix-error-handling-in-binattr-write.patch removed from -mm tree
-Date: Fri, 13 Apr 2007 16:28:54 -0700
-Message-ID: <200704132328.l3DNSs2c012557@shell0.pdx.osdl.net>
+Subject: - sysfs-fix-i_ino-handling-in-sysfs.patch removed from -mm tree
+Date: Fri, 13 Apr 2007 16:28:51 -0700
+Message-ID: <200704132328.l3DNSp8W012553@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60437 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:60445 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161094AbXDMX3Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Fri, 13 Apr 2007 19:29:16 -0400
+	id S1161098AbXDMX3S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Fri, 13 Apr 2007 19:29:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: htejun@gmail.com, cornelia.huck@de.ibm.com, dipankar@in.ibm.com, greg@kroah.com, maneesh@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: fix error handling in binattr write()
+     sysfs: fix i_ino handling in sysfs
 has been removed from the -mm tree.  Its filename was
-     sysfs-fix-error-handling-in-binattr-write.patch
+     sysfs-fix-i_ino-handling-in-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysfs: fix error handling in binattr write()
+Subject: sysfs: fix i_ino handling in sysfs
 From: Tejun Heo <htejun@gmail.com>
 
-Error handling in fs/sysfs/bin.c:write() was wrong because size_t count is
-used to receive return value from flush_write() which is negative on failure.
+Inode number handling was incorrect in two ways.
 
-This patch updates write() such that int variable is used instead.  read() is
-updated the same way for consistency.
+1. sysfs uses the inode number allocated by new_inode() and never hashes
+   it.  When reporting the inode number, it uses iunique() if inode is
+   inaccessible.  This is incorrect because iunique() assumes the inodes are
+   hashed.  This can cause duplicate inode numbers and the condition is likely
+   to happen because new_inode() and iunique() use separate increasing static
+   counters to scan for empty slot.
+
+2. sysfs_dirent->s_dentry can go away anytime and can't be referenced
+   unless the caller knows the dentry is not and not going to be deleted.
+
+This patch makes sysfs report the pointer to sysfs_dirent as ino.  ino_t is
+always as big as or larger than unsigned long && sysfs_dirent hierarchy is the
+internal representation of the sysfs tree, so it makes sense and simple to
+implement.
 
 Signed-off-by: Tejun Heo <htejun@gmail.com>
 Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
@@ -38,65 +49,59 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |   21 ++++++++-------------
- 1 files changed, 8 insertions(+), 13 deletions(-)
+ fs/sysfs/dir.c   |   11 ++++-------
+ fs/sysfs/inode.c |    1 +
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN fs/sysfs/bin.c~sysfs-fix-error-handling-in-binattr-write fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~sysfs-fix-error-handling-in-binattr-write
-+++ a/fs/sysfs/bin.c
-@@ -33,16 +33,13 @@ fill_read(struct dentry *dentry, char *b
- }
+diff -puN fs/sysfs/dir.c~sysfs-fix-i_ino-handling-in-sysfs fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~sysfs-fix-i_ino-handling-in-sysfs
++++ a/fs/sysfs/dir.c
+@@ -504,19 +504,19 @@ static int sysfs_readdir(struct file * f
+ 	struct sysfs_dirent * parent_sd = dentry->d_fsdata;
+ 	struct sysfs_dirent *cursor = filp->private_data;
+ 	struct list_head *p, *q = &cursor->s_sibling;
+-	ino_t ino;
++	unsigned long ino;
+ 	int i = filp->f_pos;
  
- static ssize_t
--read(struct file * file, char __user * userbuf, size_t count, loff_t * off)
-+read(struct file *file, char __user *userbuf, size_t bytes, loff_t *off)
- {
- 	char *buffer = file->private_data;
- 	struct dentry *dentry = file->f_path.dentry;
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
--	int ret;
--
--	if (count > PAGE_SIZE)
--		count = PAGE_SIZE;
-+	int count = min_t(size_t, bytes, PAGE_SIZE);
+ 	switch (i) {
+ 		case 0:
+-			ino = dentry->d_inode->i_ino;
++			ino = (unsigned long)parent_sd;
+ 			if (filldir(dirent, ".", 1, i, ino, DT_DIR) < 0)
+ 				break;
+ 			filp->f_pos++;
+ 			i++;
+ 			/* fallthrough */
+ 		case 1:
+-			ino = parent_ino(dentry);
++			ino = (unsigned long)dentry->d_parent->d_fsdata;
+ 			if (filldir(dirent, "..", 2, i, ino, DT_DIR) < 0)
+ 				break;
+ 			filp->f_pos++;
+@@ -538,10 +538,7 @@ static int sysfs_readdir(struct file * f
  
- 	if (size) {
- 		if (offs > size)
-@@ -51,10 +48,9 @@ read(struct file * file, char __user * u
- 			count = size - offs;
- 	}
+ 				name = sysfs_get_name(next);
+ 				len = strlen(name);
+-				if (next->s_dentry)
+-					ino = next->s_dentry->d_inode->i_ino;
+-				else
+-					ino = iunique(sysfs_sb, 2);
++				ino = (unsigned long)next;
  
--	ret = fill_read(dentry, buffer, offs, count);
--	if (ret < 0) 
--		return ret;
--	count = ret;
-+	count = fill_read(dentry, buffer, offs, count);
-+	if (count < 0)
-+		return count;
+ 				if (filldir(dirent, name, len, filp->f_pos, ino,
+ 						 dt_type(next)) < 0)
+diff -puN fs/sysfs/inode.c~sysfs-fix-i_ino-handling-in-sysfs fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~sysfs-fix-i_ino-handling-in-sysfs
++++ a/fs/sysfs/inode.c
+@@ -140,6 +140,7 @@ struct inode * sysfs_new_inode(mode_t mo
+ 		inode->i_mapping->a_ops = &sysfs_aops;
+ 		inode->i_mapping->backing_dev_info = &sysfs_backing_dev_info;
+ 		inode->i_op = &sysfs_inode_operations;
++		inode->i_ino = (unsigned long)sd;
+ 		lockdep_set_class(&inode->i_mutex, &sysfs_inode_imutex_key);
  
- 	if (copy_to_user(userbuf, buffer, count))
- 		return -EFAULT;
-@@ -78,16 +74,15 @@ flush_write(struct dentry *dentry, char 
- 	return attr->write(kobj, buffer, offset, count);
- }
- 
--static ssize_t write(struct file * file, const char __user * userbuf,
--		     size_t count, loff_t * off)
-+static ssize_t write(struct file *file, const char __user *userbuf,
-+		     size_t bytes, loff_t *off)
- {
- 	char *buffer = file->private_data;
- 	struct dentry *dentry = file->f_path.dentry;
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
-+	int count = min_t(size_t, bytes, PAGE_SIZE);
- 
--	if (count > PAGE_SIZE)
--		count = PAGE_SIZE;
- 	if (size) {
- 		if (offs > size)
- 			return 0;
+ 		if (sd->s_iattr) {
 _
 
 Patches currently in -mm which might be from htejun@gmail.com are
