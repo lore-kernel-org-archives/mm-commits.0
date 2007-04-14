@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + readahead-code-cleanup-fix.patch added to -mm tree
-Date: Sat, 14 Apr 2007 00:13:42 -0700
-Message-ID: <200704140713.l3E7DgF3020795@shell0.pdx.osdl.net>
+Subject: - readahead-code-cleanup-fix.patch removed from -mm tree
+Date: Sat, 14 Apr 2007 01:04:46 -0700
+Message-ID: <200704140804.l3E84kFx021457@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:41530 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42739 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161128AbXDNHOD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 14 Apr 2007 03:14:03 -0400
+	id S1750712AbXDNIFE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 14 Apr 2007 04:05:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz, nickpiggin@yahoo.com.au, wfg@mail.ustc.edu.cn
+To: akpm@linux-foundation.org, jack@suse.cz, nickpiggin@yahoo.com.au, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
      readahead-code-cleanup-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      readahead-code-cleanup-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: readahead-code-cleanup-fix
