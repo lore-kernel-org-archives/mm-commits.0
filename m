@@ -1,32 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-code-cleanup-fix.patch removed from -mm tree
-Date: Sat, 14 Apr 2007 01:04:46 -0700
-Message-ID: <200704140804.l3E84kFx021457@shell0.pdx.osdl.net>
+Subject: + readahead-code-cleanup-fix.patch added to -mm tree
+Date: Sat, 14 Apr 2007 01:06:19 -0700
+Message-ID: <200704140806.l3E86JPw021477@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:42739 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:42805 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750712AbXDNIFE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sat, 14 Apr 2007 04:05:04 -0400
+	id S1750808AbXDNIGg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Sat, 14 Apr 2007 04:06:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, nickpiggin@yahoo.com.au, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: wfg@mail.ustc.edu.cn, jack@suse.cz, nickpiggin@yahoo.com.au
 
 
 The patch titled
      readahead-code-cleanup-fix
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      readahead-code-cleanup-fix.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: readahead-code-cleanup-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -36,190 +40,72 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 diff -puN mm/filemap.c~readahead-code-cleanup-fix mm/filemap.c
 --- a/mm/filemap.c~readahead-code-cleanup-fix
 +++ a/mm/filemap.c
-@@ -925,6 +925,7 @@ page_ok:
+@@ -932,6 +932,7 @@ page_ok:
  		 */
- 		if (mapping_writably_mapped(mapping))
- 			flush_dcache_page(page);
+ 		if (prev_index != index || offset != prev_offset)
+ 			mark_page_accessed(page);
 +		prev_index = index;
  
  		/*
- 		 * When a sequential read accesses a page several times,
+ 		 * Ok, we have the page, and it's up-to-date, so
 @@ -947,8 +948,8 @@ page_ok:
  		offset += ret;
  		index += offset >> PAGE_CACHE_SHIFT;
  		offset &= ~PAGE_CACHE_MASK;
 -		prev_index = index;
 -		prev_offset = ra.prev_offset = offset;
-+		prev_offset = = offset;
++		prev_offset = offset;
 +		ra.prev_offset = offset;
  
  		page_cache_release(page);
  		if (ret == nr && desc->count)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-ieee1394-remove-use-of-subsys-rwsem.patch
-ieee1394-remove-use-of-subsys-rwsem-2.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-git-ocfs2.patch
-git-parisc.patch
-git-r8169-fixup.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-git-wireless-vs-git-net-3.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-pktgen-add-try_to_freeze.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
+readahead-improve-heuristic-detecting-sequential-reads.patch
+readahead-code-cleanup.patch
 readahead-code-cleanup-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+readahead-kconfig-options.patch
+radixtree-introduce-scan-hole-data-functions.patch
+mm-introduce-probe_page.patch
+mm-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-insert-cond_resched-calls.patch
+readahead-minmax_ra_pages.patch
+readahead-events-accounting.patch
+readahead-rescue_pages.patch
+readahead-sysctl-parameters.patch
+readahead-min-max-sizes.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-routines.patch
+readahead-state-based-method.patch
+readahead-state-based-method-check-node-id.patch
+readahead-state-based-method-decouple-readahead_ratio-from-growth_limit.patch
+readahead-state-based-method-cancel-lookahead-gracefully.patch
+readahead-context-based-method.patch
+readahead-initial-method-guiding-sizes.patch
+readahead-initial-method-thrashing-guard-size.patch
+readahead-initial-method-user-recommended-size.patch
+readahead-initial-method.patch
+readahead-backward-prefetching-method.patch
+readahead-thrashing-recovery-method.patch
+readahead-thrashing-recovery-method-check-unbalanced-aging.patch
+readahead-thrashing-recovery-method-refill-holes.patch
+readahead-call-scheme.patch
+readahead-call-scheme-cleanup.patch
+readahead-call-scheme-catch-thrashing-on-lookahead-time.patch
+readahead-laptop-mode.patch
+readahead-loop-case.patch
+readahead-nfsd-case.patch
+readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead.patch
+readahead-remove-parameter-ra_max-from-adjust_rala.patch
+readahead-state-based-method-protect-against-tiny-size.patch
+readahead-rename-state_based_readahead-to-clock_based_readahead.patch
+readahead-account-i-o-block-times-for-stock-readahead.patch
+readahead-rescue_pages-updates.patch
+readahead-remove-noaction-shrink-events.patch
+readahead-remove-size-limit-on-read_ahead_kb.patch
+readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
+readahead-partial-sendfile-fix.patch
+readahead-turn-on-by-default.patch
