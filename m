@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-proper-handling-of-zero-link-case.patch added to -mm tree
-Date: Sun, 15 Apr 2007 12:22:28 -0700
-Message-ID: <200704151922.l3FJMS8b018713@shell0.pdx.osdl.net>
+Subject: + drivers-macintosh-smuc-fix-locking-snafu.patch added to -mm tree
+Date: Mon, 16 Apr 2007 09:26:24 -0700
+Message-ID: <200704161626.l3GGQORP006751@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:33372 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:40530 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753395AbXDOTWl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Sun, 15 Apr 2007 15:22:41 -0400
+	id S1030843AbXDPQ0d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Mon, 16 Apr 2007 12:26:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dushistov@mail.ru, jim@jtan.com
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, matthias.kaehlcke@gmail.com, paulus@samba.org
 
 
 The patch titled
-     ufs proper handling of zero link case
+     drivers/macintosh/smu.c: fix locking snafu
 has been added to the -mm tree.  Its filename is
-     ufs-proper-handling-of-zero-link-case.patch
+     drivers-macintosh-smuc-fix-locking-snafu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,136 +25,202 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ufs proper handling of zero link case
-From: Evgeniy Dushistov <dushistov@mail.ru>
+Subject: drivers/macintosh/smu.c: fix locking snafu
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch should fix or partly fix this bug:
-http://bugzilla.kernel.org/show_bug.cgi?id=8276
+It got its lock and unlock backwards.
 
-The problem is:
+Fixes http://bugzilla.kernel.org/show_bug.cgi?id=8334
 
-- if we see "zero link case" during reading inode operation, we call
-  ufs_error(which remount fs readonly), but not "mark" inode as bad (1)
-
-- in readonly case we do not fill some data structures, which are used in
-  read and write case (2)
-
-- VFS call ufs_delete_inode if link count is zero (3)
-
-so (1)->(3)->(2) cause oops, this patch should fix such scenario
-
-Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Jim Paris <jim@jtan.com>
+Cc: <matthias.kaehlcke@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/inode.c |   29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+ drivers/macintosh/smu.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ufs/inode.c~ufs-proper-handling-of-zero-link-case fs/ufs/inode.c
---- a/fs/ufs/inode.c~ufs-proper-handling-of-zero-link-case
-+++ a/fs/ufs/inode.c
-@@ -601,7 +601,7 @@ static void ufs_set_inode_ops(struct ino
- 				   ufs_get_inode_dev(inode->i_sb, UFS_I(inode)));
- }
- 
--static void ufs1_read_inode(struct inode *inode, struct ufs_inode *ufs_inode)
-+static int ufs1_read_inode(struct inode *inode, struct ufs_inode *ufs_inode)
- {
- 	struct ufs_inode_info *ufsi = UFS_I(inode);
- 	struct super_block *sb = inode->i_sb;
-@@ -613,8 +613,10 @@ static void ufs1_read_inode(struct inode
- 	 */
- 	inode->i_mode = mode = fs16_to_cpu(sb, ufs_inode->ui_mode);
- 	inode->i_nlink = fs16_to_cpu(sb, ufs_inode->ui_nlink);
--	if (inode->i_nlink == 0)
-+	if (inode->i_nlink == 0) {
- 		ufs_error (sb, "ufs_read_inode", "inode %lu has zero nlink\n", inode->i_ino);
-+		return -1;
-+	}
- 	
- 	/*
- 	 * Linux now has 32-bit uid and gid, so we can support EFT.
-@@ -643,9 +645,10 @@ static void ufs1_read_inode(struct inode
- 		for (i = 0; i < (UFS_NDADDR + UFS_NINDIR) * 4; i++)
- 			ufsi->i_u1.i_symlink[i] = ufs_inode->ui_u2.ui_symlink[i];
- 	}
-+	return 0;
- }
- 
--static void ufs2_read_inode(struct inode *inode, struct ufs2_inode *ufs2_inode)
-+static int ufs2_read_inode(struct inode *inode, struct ufs2_inode *ufs2_inode)
- {
- 	struct ufs_inode_info *ufsi = UFS_I(inode);
- 	struct super_block *sb = inode->i_sb;
-@@ -658,8 +661,10 @@ static void ufs2_read_inode(struct inode
- 	 */
- 	inode->i_mode = mode = fs16_to_cpu(sb, ufs2_inode->ui_mode);
- 	inode->i_nlink = fs16_to_cpu(sb, ufs2_inode->ui_nlink);
--	if (inode->i_nlink == 0)
-+	if (inode->i_nlink == 0) {
- 		ufs_error (sb, "ufs_read_inode", "inode %lu has zero nlink\n", inode->i_ino);
-+		return -1;
-+	}
- 
-         /*
-          * Linux now has 32-bit uid and gid, so we can support EFT.
-@@ -690,6 +695,7 @@ static void ufs2_read_inode(struct inode
- 		for (i = 0; i < (UFS_NDADDR + UFS_NINDIR) * 4; i++)
- 			ufsi->i_u1.i_symlink[i] = ufs2_inode->ui_u2.ui_symlink[i];
- 	}
-+	return 0;
- }
- 
- void ufs_read_inode(struct inode * inode)
-@@ -698,6 +704,7 @@ void ufs_read_inode(struct inode * inode
- 	struct super_block * sb;
- 	struct ufs_sb_private_info * uspi;
- 	struct buffer_head * bh;
-+	int err;
- 
- 	UFSD("ENTER, ino %lu\n", inode->i_ino);
- 
-@@ -720,14 +727,17 @@ void ufs_read_inode(struct inode * inode
- 	if ((UFS_SB(sb)->s_flags & UFS_TYPE_MASK) == UFS_TYPE_UFS2) {
- 		struct ufs2_inode *ufs2_inode = (struct ufs2_inode *)bh->b_data;
- 
--		ufs2_read_inode(inode,
--				ufs2_inode + ufs_inotofsbo(inode->i_ino));
-+		err = ufs2_read_inode(inode,
-+				      ufs2_inode + ufs_inotofsbo(inode->i_ino));
- 	} else {
- 		struct ufs_inode *ufs_inode = (struct ufs_inode *)bh->b_data;
- 
--		ufs1_read_inode(inode, ufs_inode + ufs_inotofsbo(inode->i_ino));
-+		err = ufs1_read_inode(inode,
-+				      ufs_inode + ufs_inotofsbo(inode->i_ino));
- 	}
- 
-+	if (err)
-+		goto bad_inode;
- 	inode->i_version++;
- 	ufsi->i_lastfrag =
- 		(inode->i_size + uspi->s_fsize - 1) >> uspi->s_fshift;
-@@ -888,6 +898,8 @@ void ufs_delete_inode (struct inode * in
- 	loff_t old_i_size;
- 
- 	truncate_inode_pages(&inode->i_data, 0);
-+	if (is_bad_inode(inode))
-+		goto no_delete;
- 	/*UFS_I(inode)->i_dtime = CURRENT_TIME;*/
- 	lock_kernel();
- 	mark_inode_dirty(inode);
-@@ -898,4 +910,7 @@ void ufs_delete_inode (struct inode * in
- 		ufs_warning(inode->i_sb, __FUNCTION__, "ufs_truncate failed\n");
- 	ufs_free_inode (inode);
- 	unlock_kernel();
-+	return;
-+no_delete:
-+	clear_inode(inode);	/* We must guarantee clearing of inode... */
- }
+diff -puN drivers/macintosh/smu.c~drivers-macintosh-smuc-fix-locking-snafu drivers/macintosh/smu.c
+--- a/drivers/macintosh/smu.c~drivers-macintosh-smuc-fix-locking-snafu
++++ a/drivers/macintosh/smu.c
+@@ -1259,9 +1259,9 @@ static int smu_release(struct inode *ino
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
+ 			if (pp->cmd.status != 1)
+ 				break;
+-			spin_lock_irqsave(&pp->lock, flags);
+-			schedule();
+ 			spin_unlock_irqrestore(&pp->lock, flags);
++			schedule();
++			spin_lock_irqsave(&pp->lock, flags);
+ 		}
+ 		set_current_state(TASK_RUNNING);
+ 		remove_wait_queue(&pp->wait, &wait);
 _
 
-Patches currently in -mm which might be from dushistov@mail.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ufs-proper-handling-of-zero-link-case.patch
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+ieee1394-remove-use-of-subsys-rwsem.patch
+ieee1394-remove-use-of-subsys-rwsem-2.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+git-ocfs2.patch
+git-parisc.patch
+git-r8169-fixup.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+pktgen-add-try_to_freeze.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+drivers-macintosh-smuc-fix-locking-snafu.patch
