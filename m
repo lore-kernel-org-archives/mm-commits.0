@@ -1,173 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-rename-sk_defer_lock-to-sk_lock.patch added to -mm tree
-Date: Mon, 16 Apr 2007 19:15:23 -0700
-Message-ID: <200704170215.l3H2FNQs017951@shell0.pdx.osdl.net>
+Subject: - dm-call-clone_init-early.patch removed from -mm tree
+Date: Mon, 16 Apr 2007 22:17:05 -0700
+Message-ID: <200704170517.l3H5H501020991@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:60535 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36150 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754284AbXDQCPi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Apr 2007 22:15:38 -0400
+	id S1753970AbXDQFRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 17 Apr 2007 01:17:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+To: olaf.kirch@oracle.com, agk@redhat.com, christophe@saout.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: rename sk_defer_lock to sk_lock
-has been added to the -mm tree.  Its filename is
-     knfsd-rename-sk_defer_lock-to-sk_lock.patch
+     dm: call clone_init early
+has been removed from the -mm tree.  Its filename was
+     dm-call-clone_init-early.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because changes in the dm tree broke it
 
 ------------------------------------------------------
-Subject: knfsd: rename sk_defer_lock to sk_lock
-From: NeilBrown <neilb@suse.de>
+Subject: dm: call clone_init early
+From: Olaf Kirch <olaf.kirch@oracle.com>
 
-Now that sk_defer_lock protects two different things, make the name more
-generic.
+We need to call clone_init as early as possible - at least before call
+bio_put(clone) in any error path.  Otherwise, the destructor will try to
+dereference bi_private, which may still be NULL.
 
-Also don't bother with disabling _bh as the lock is only ever taken from
-process context.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
+Acked-by: Christophe Saout <christophe@saout.de>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/svcsock.h |    3 ++-
- net/sunrpc/svcauth_unix.c      |   10 +++++-----
- net/sunrpc/svcsock.c           |   13 +++++++------
- 3 files changed, 14 insertions(+), 12 deletions(-)
+ drivers/md/dm-crypt.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/sunrpc/svcsock.h~knfsd-rename-sk_defer_lock-to-sk_lock include/linux/sunrpc/svcsock.h
---- a/include/linux/sunrpc/svcsock.h~knfsd-rename-sk_defer_lock-to-sk_lock
-+++ a/include/linux/sunrpc/svcsock.h
-@@ -37,7 +37,8 @@ struct svc_sock {
+diff -puN drivers/md/dm-crypt.c~dm-call-clone_init-early drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~dm-call-clone_init-early
++++ a/drivers/md/dm-crypt.c
+@@ -138,6 +138,8 @@ struct crypt_config {
  
- 	atomic_t    	    	sk_reserved;	/* space on outq that is reserved */
+ static struct kmem_cache *_crypt_io_pool;
  
--	spinlock_t		sk_defer_lock;	/* protects sk_deferred */
-+	spinlock_t		sk_lock;	/* protects sk_deferred and
-+						 * sk_info_authunix */
- 	struct list_head	sk_deferred;	/* deferred requests that need to
- 						 * be revisted */
- 	struct mutex		sk_mutex;	/* to serialize sending data */
-diff -puN net/sunrpc/svcauth_unix.c~knfsd-rename-sk_defer_lock-to-sk_lock net/sunrpc/svcauth_unix.c
---- a/net/sunrpc/svcauth_unix.c~knfsd-rename-sk_defer_lock-to-sk_lock
-+++ a/net/sunrpc/svcauth_unix.c
-@@ -385,7 +385,7 @@ ip_map_cached_get(struct svc_rqst *rqstp
- {
- 	struct ip_map *ipm;
- 	struct svc_sock *svsk = rqstp->rq_sock;
--	spin_lock_bh(&svsk->sk_defer_lock);
-+	spin_lock(&svsk->sk_lock);
- 	ipm = svsk->sk_info_authunix;
- 	if (ipm != NULL) {
- 		if (!cache_valid(&ipm->h)) {
-@@ -395,13 +395,13 @@ ip_map_cached_get(struct svc_rqst *rqstp
- 			 * same IP address.
- 			 */
- 			svsk->sk_info_authunix = NULL;
--			spin_unlock_bh(&svsk->sk_defer_lock);
-+			spin_unlock(&svsk->sk_lock);
- 			cache_put(&ipm->h, &ip_map_cache);
- 			return NULL;
- 		}
- 		cache_get(&ipm->h);
- 	}
--	spin_unlock_bh(&svsk->sk_defer_lock);
-+	spin_unlock(&svsk->sk_lock);
- 	return ipm;
- }
- 
-@@ -410,14 +410,14 @@ ip_map_cached_put(struct svc_rqst *rqstp
- {
- 	struct svc_sock *svsk = rqstp->rq_sock;
- 
--	spin_lock_bh(&svsk->sk_defer_lock);
-+	spin_lock(&svsk->sk_lock);
- 	if (svsk->sk_sock->type == SOCK_STREAM &&
- 	    svsk->sk_info_authunix == NULL) {
- 		/* newly cached, keep the reference */
- 		svsk->sk_info_authunix = ipm;
- 		ipm = NULL;
- 	}
--	spin_unlock_bh(&svsk->sk_defer_lock);
-+	spin_unlock(&svsk->sk_lock);
- 	if (ipm)
- 		cache_put(&ipm->h, &ip_map_cache);
- }
-diff -puN net/sunrpc/svcsock.c~knfsd-rename-sk_defer_lock-to-sk_lock net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~knfsd-rename-sk_defer_lock-to-sk_lock
-+++ a/net/sunrpc/svcsock.c
-@@ -53,7 +53,8 @@
-  * 	svc_serv->sv_lock protects sv_tempsocks, sv_permsocks, sv_tmpcnt.
-  *	when both need to be taken (rare), svc_serv->sv_lock is first.
-  *	BKL protects svc_serv->sv_nrthread.
-- *	svc_sock->sk_defer_lock protects the svc_sock->sk_deferred list
-+ *	svc_sock->sk_lock protects the svc_sock->sk_deferred list
-+ *             and the ->sk_info_authunix cache.
-  *	svc_sock->sk_flags.SK_BUSY prevents a svc_sock being enqueued multiply.
++static void clone_init(struct crypt_io *, struct bio *);
++
+ /*
+  * Different IV generation algorithms:
   *
-  *	Some flags can be set to certain values at any time
-@@ -1625,7 +1626,7 @@ static struct svc_sock *svc_setup_socket
- 	svsk->sk_server = serv;
- 	atomic_set(&svsk->sk_inuse, 1);
- 	svsk->sk_lastrecv = get_seconds();
--	spin_lock_init(&svsk->sk_defer_lock);
-+	spin_lock_init(&svsk->sk_lock);
- 	INIT_LIST_HEAD(&svsk->sk_deferred);
- 	INIT_LIST_HEAD(&svsk->sk_ready);
- 	mutex_init(&svsk->sk_mutex);
-@@ -1849,9 +1850,9 @@ static void svc_revisit(struct cache_def
- 	dprintk("revisit queued\n");
- 	svsk = dr->svsk;
- 	dr->svsk = NULL;
--	spin_lock_bh(&svsk->sk_defer_lock);
-+	spin_lock(&svsk->sk_lock);
- 	list_add(&dr->handle.recent, &svsk->sk_deferred);
--	spin_unlock_bh(&svsk->sk_defer_lock);
-+	spin_unlock(&svsk->sk_lock);
- 	set_bit(SK_DEFERRED, &svsk->sk_flags);
- 	svc_sock_enqueue(svsk);
- 	svc_sock_put(svsk);
-@@ -1917,7 +1918,7 @@ static struct svc_deferred_req *svc_defe
- 
- 	if (!test_bit(SK_DEFERRED, &svsk->sk_flags))
+@@ -492,9 +494,10 @@ static int crypt_convert(struct crypt_co
+  * May return a smaller bio when running out of pages
+  */
+ static struct bio *
+-crypt_alloc_buffer(struct crypt_config *cc, unsigned int size,
++crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
+                    struct bio *base_bio, unsigned int *bio_vec_idx)
+ {
++	struct crypt_config *cc = io->target->private;
+ 	struct bio *clone;
+ 	unsigned int nr_iovecs = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	gfp_t gfp_mask = GFP_NOIO | __GFP_HIGHMEM;
+@@ -509,7 +512,7 @@ crypt_alloc_buffer(struct crypt_config *
+ 	if (!clone)
  		return NULL;
--	spin_lock_bh(&svsk->sk_defer_lock);
-+	spin_lock(&svsk->sk_lock);
- 	clear_bit(SK_DEFERRED, &svsk->sk_flags);
- 	if (!list_empty(&svsk->sk_deferred)) {
- 		dr = list_entry(svsk->sk_deferred.next,
-@@ -1926,6 +1927,6 @@ static struct svc_deferred_req *svc_defe
- 		list_del_init(&dr->handle.recent);
- 		set_bit(SK_DEFERRED, &svsk->sk_flags);
- 	}
--	spin_unlock_bh(&svsk->sk_defer_lock);
-+	spin_unlock(&svsk->sk_lock);
- 	return dr;
+ 
+-	clone->bi_destructor = dm_crypt_bio_destructor;
++	clone_init(io, clone);
+ 
+ 	/* if the last bio was not complete, continue where that one ended */
+ 	clone->bi_idx = *bio_vec_idx;
+@@ -692,6 +695,7 @@ static void clone_init(struct crypt_io *
+ 	clone->bi_end_io  = crypt_endio;
+ 	clone->bi_bdev    = cc->dev->bdev;
+ 	clone->bi_rw      = io->base_bio->bi_rw;
++	clone->bi_destructor = dm_crypt_bio_destructor;
  }
+ 
+ static void process_read(struct crypt_io *io)
+@@ -715,7 +719,6 @@ static void process_read(struct crypt_io
+ 	}
+ 
+ 	clone_init(io, clone);
+-	clone->bi_destructor = dm_crypt_bio_destructor;
+ 	clone->bi_idx = 0;
+ 	clone->bi_vcnt = bio_segments(base_bio);
+ 	clone->bi_size = base_bio->bi_size;
+@@ -738,7 +741,7 @@ static void crypt_write_loop(struct cryp
+ 	do {
+ 		struct bio *clone;
+ 
+-		clone = crypt_alloc_buffer(cc, base_bio->bi_size,
++		clone = crypt_alloc_buffer(io, base_bio->bi_size,
+ 					   io->first_clone, &io->bvec_idx);
+ 		if (unlikely(!clone)) {
+ 			dec_pending(io, -ENOMEM);
+@@ -788,7 +791,6 @@ static void crypt_write_done(struct conv
+ 		return;
+ 	}
+ 
+-	clone_init(io, clone);
+ 	clone->bi_sector = cc->start + io->sector;
+ 
+ 	if (!io->first_clone) {
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from olaf.kirch@oracle.com are
 
 origin.patch
-knfsd-use-a-spinlock-to-protect-sk_info_authunix.patch
-device_schedule_callback-needs-a-module-reference.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-sunrpc-cleanup-use-seq_release_private-where-appropriate.patch
-slub-core-fix-kmem_cache_destroy.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
-knfsd-rename-sk_defer_lock-to-sk_lock.patch
-readahead-nfsd-case.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-cleanup-use-seq_release_private-where-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+dm-call-clone_init-early.patch
+dm-do-not-access-the-bio-after-generic_make_request.patch
+dm-get-rid-of-first_clone-in-dm-crypt.patch
+dm-allocate-smaller-clones.patch
