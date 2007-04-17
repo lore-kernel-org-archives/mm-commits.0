@@ -1,90 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - vmi-logic-error.patch removed from -mm tree
-Date: Mon, 16 Apr 2007 22:19:59 -0700
-Message-ID: <200704170519.l3H5JxqR021030@shell0.pdx.osdl.net>
+Subject: - git-r8169-fixup.patch removed from -mm tree
+Date: Mon, 16 Apr 2007 22:20:10 -0700
+Message-ID: <200704170520.l3H5KAd3021048@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp.osdl.org ([65.172.181.24]:36229 "EHLO smtp.osdl.org"
+Received: from smtp.osdl.org ([65.172.181.24]:36234 "EHLO smtp.osdl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753993AbXDQFUJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-	Tue, 17 Apr 2007 01:20:09 -0400
+	id S1031096AbXDQFUM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 17 Apr 2007 01:20:12 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp.osdl.org (8.12.8/8.12.8) with ESMTP id l3H5KAIs018492
+	(version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2007 22:20:10 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach@vmware.com, ak@suse.de, aliguori@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     VMI logic error
+     git-r8169-fixup
 has been removed from the -mm tree.  Its filename was
-     vmi-logic-error.patch
+     git-r8169-fixup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: VMI logic error
-From: Zachary Amsden <zach@vmware.com>
+Subject: git-r8169-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix logic error in VMI relocation processing.  NOPs would always cause a
-BUG_ON to fire because the != RELOCATION_NONE in the first if clause
-precluding the == VMI_RELOCATION_NOP in the second clause.  Make these
-direct equality tests and just warn for unsupported relocation types (which
-should never happen), falling back to native in that case.
-
-Thanks to Anthony Liguori for noting this!
-
-Signed-off-by: Zachary Amsden <zach@vmware.com>
-Cc: Anthony Liguori <aliguori@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmi.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/net/r8169.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN arch/i386/kernel/vmi.c~vmi-logic-error arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~vmi-logic-error
-+++ a/arch/i386/kernel/vmi.c
-@@ -712,11 +712,14 @@ static void *vmi_get_function(int vmical
- do {								\
- 	reloc = call_vrom_long_func(vmi_rom, get_reloc,		\
- 				    VMI_CALL_##vmicall);	\
--	if (rel->type != VMI_RELOCATION_NONE) {			\
--		BUG_ON(rel->type != VMI_RELOCATION_CALL_REL);	\
-+	if (rel->type == VMI_RELOCATION_CALL_REL) 		\
- 		paravirt_ops.opname = (void *)rel->eip;		\
--	} else if (rel->type == VMI_RELOCATION_NOP) 		\
-+	else if (rel->type == VMI_RELOCATION_NOP) 		\
- 		paravirt_ops.opname = (void *)vmi_nop;		\
-+	else if (rel->type != VMI_RELOCATION_NONE)		\
-+		printk(KERN_WARNING "VMI: Unknown relocation "	\
-+				    "type %d for " #vmicall"\n",\
-+					rel->type);		\
- } while (0)
+diff -puN drivers/net/r8169.c~git-r8169-fixup drivers/net/r8169.c
+--- a/drivers/net/r8169.c~git-r8169-fixup
++++ a/drivers/net/r8169.c
+@@ -1870,16 +1870,6 @@ static int rtl8169_open(struct net_devic
  
- /*
+ 	INIT_DELAYED_WORK(&tp->task, NULL);
+ 
+-<<<<<<< HEAD/drivers/net/r8169.c
+-	smp_mb();
+-
+-	retval = request_irq(dev->irq, rtl8169_interrupt, IRQF_SHARED,
+-			     dev->name, dev);
+-	if (retval < 0)
+-		goto err_release_ring_2;
+-
+-	rtl8169_hw_start(dev);
+-=======
+ 	smp_mb();
+ 
+ 	retval = request_irq(dev->irq, rtl8169_interrupt,
+@@ -1888,7 +1878,6 @@ static int rtl8169_open(struct net_devic
+ 		goto err_release_ring_2;
+ 
+ 	rtl_hw_start(dev);
+->>>>>>> /drivers/net/r8169.c
+ 
+ 	rtl8169_request_timer(dev);
+ 
 _
 
-Patches currently in -mm which might be from zach@vmware.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fix-buslogic-to-stop-using-check_region.patch
+drivers-macintosh-smuc-fix-locking-snafu.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+ieee1394-remove-use-of-subsys-rwsem.patch
+ieee1394-remove-use-of-subsys-rwsem-2.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
 revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-i386-sysenter-arch-pages-fix.patch
-i386-acpi-remove-earlyquirk-warning.patch
-i386-mcheck-p4-grotesque-and-needless-warning-fix.patch
-i386-pgd-clone-under-lock-fix.patch
-vmi-supports-compat-vdso.patch
-resurrect-the-vmi-lazy-mode-fixes.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
 resurrect-the-vmi-lazy-mode-fixes-fix.patch
-vmi-kmap_atomic_pte-fix.patch
-vmi-timer-update.patch
-i386-pte-drop-ptep_get_and_clear-paravirt-op.patch
-i386-pte-clear-optimization.patch
-i386-pte-xchg-optimization.patch
-i386-pte-simplify-ops.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-mm-only-i386-for-debugging-make-the-initial-page-table-setup-less-forgiving.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+xfs-clean-up-shrinker-games.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
 i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
