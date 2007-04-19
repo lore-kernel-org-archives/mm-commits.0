@@ -1,99 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - ieee1394-remove-use-of-subsys-rwsem.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 11:39:16 -0700
-Message-ID: <200704191839.l3JIdI8w027597@shell0.pdx.osdl.net>
+Subject: - ieee1394-remove-use-of-subsys-rwsem-2.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 11:39:38 -0700
+Message-ID: <200704191839.l3JIdcY1027604@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41869 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753656AbXDSSjc (ORCPT
+	by vger.kernel.org with ESMTP id S1754143AbXDSSju (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 14:39:32 -0400
+	Thu, 19 Apr 2007 14:39:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ieee1394: remove use of subsys rwsem
+     ieee1394-remove-use-of-subsys-rwsem-2
 has been removed from the -mm tree.  Its filename was
-     ieee1394-remove-use-of-subsys-rwsem.patch
+     ieee1394-remove-use-of-subsys-rwsem-2.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: ieee1394: remove use of subsys rwsem
+Subject: ieee1394-remove-use-of-subsys-rwsem-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-See http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-01-driver/devices_subsys-rwsem-removal.patch
-
-and http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-01-driver/ieee1394-rwsem-removal.patch
+Probably adds lots of races, but at least it compiles
 
 Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/fw-card.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ drivers/firewire/fw-device.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/firewire/fw-card.c~ieee1394-remove-use-of-subsys-rwsem drivers/firewire/fw-card.c
---- a/drivers/firewire/fw-card.c~ieee1394-remove-use-of-subsys-rwsem
-+++ a/drivers/firewire/fw-card.c
-@@ -162,16 +162,12 @@ fw_core_add_descriptor (struct fw_descri
- 	if (i != desc->length)
- 		return -EINVAL;
+diff -puN drivers/firewire/fw-device.c~ieee1394-remove-use-of-subsys-rwsem-2 drivers/firewire/fw-device.c
+--- a/drivers/firewire/fw-device.c~ieee1394-remove-use-of-subsys-rwsem-2
++++ a/drivers/firewire/fw-device.c
+@@ -555,13 +555,7 @@ int fw_cdev_major;
  
--	down_write(&fw_bus_type.subsys.rwsem);
--
- 	list_add_tail (&desc->link, &descriptor_list);
- 	descriptor_count++;
- 	if (desc->immediate > 0)
- 		descriptor_count++;
- 	update_config_roms();
- 
--	up_write(&fw_bus_type.subsys.rwsem);
--
- 	return 0;
- }
- EXPORT_SYMBOL(fw_core_add_descriptor);
-@@ -179,15 +175,11 @@ EXPORT_SYMBOL(fw_core_add_descriptor);
- void
- fw_core_remove_descriptor (struct fw_descriptor *desc)
+ struct fw_device *fw_device_from_devt(dev_t devt)
  {
--	down_write(&fw_bus_type.subsys.rwsem);
+-	struct fw_device *device;
 -
- 	list_del(&desc->link);
- 	descriptor_count--;
- 	if (desc->immediate > 0)
- 		descriptor_count--;
- 	update_config_roms();
+-	down_read(&fw_bus_type.subsys.rwsem);
+-	device = idr_find(&fw_device_idr, MINOR(devt));
+-	up_read(&fw_bus_type.subsys.rwsem);
 -
--	up_write(&fw_bus_type.subsys.rwsem);
+-	return device;
++	return idr_find(&fw_device_idr, MINOR(devt));
  }
- EXPORT_SYMBOL(fw_core_remove_descriptor);
  
-@@ -404,10 +396,8 @@ fw_card_add(struct fw_card *card,
- 	 * drops it when the driver calls fw_core_remove_card. */
- 	fw_card_get(card);
+ static void fw_device_shutdown(struct work_struct *work)
+@@ -570,9 +564,7 @@ static void fw_device_shutdown(struct wo
+ 		container_of(work, struct fw_device, work.work);
+ 	int minor = MINOR(device->device.devt);
  
 -	down_write(&fw_bus_type.subsys.rwsem);
- 	config_rom = generate_config_rom (card, &length);
- 	list_add_tail(&card->link, &card_list);
+ 	idr_remove(&fw_device_idr, minor);
 -	up_write(&fw_bus_type.subsys.rwsem);
  
- 	return card->driver->enable(card, config_rom, length);
- }
-@@ -487,9 +477,7 @@ fw_core_remove_card(struct fw_card *card
- 				     PHY_LINK_ACTIVE | PHY_CONTENDER, 0);
- 	fw_core_initiate_bus_reset(card, 1);
+ 	fw_device_cdev_remove(device);
+ 	device_for_each_child(&device->device, NULL, shutdown_unit);
+@@ -621,10 +613,8 @@ static void fw_device_init(struct work_s
+ 	}
  
+ 	err = -ENOMEM;
 -	down_write(&fw_bus_type.subsys.rwsem);
- 	list_del(&card->link);
+ 	if (idr_pre_get(&fw_device_idr, GFP_KERNEL))
+ 		err = idr_get_new(&fw_device_idr, device, &minor);
 -	up_write(&fw_bus_type.subsys.rwsem);
+ 	if (err < 0)
+ 		goto error;
  
- 	/* Set up the dummy driver. */
- 	card->driver = &dummy_driver;
+@@ -670,9 +660,7 @@ static void fw_device_init(struct work_s
+ 	return;
+ 
+  error_with_cdev:
+-	down_write(&fw_bus_type.subsys.rwsem);
+ 	idr_remove(&fw_device_idr, minor);
+-	up_write(&fw_bus_type.subsys.rwsem);
+  error:
+ 	put_device(&device->device);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +101,6 @@ git-drm.patch
 git-dvb.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
-ieee1394-remove-use-of-subsys-rwsem.patch
 ieee1394-remove-use-of-subsys-rwsem-2.patch
 git-input.patch
 git-input-fixup.patch
