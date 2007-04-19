@@ -1,99 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-use-null-for-pointers.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 13:02:36 -0700
-Message-ID: <200704192002.l3JK2ahi029400@shell0.pdx.osdl.net>
+Subject: - ahcic-remove-non-existing-sb600-raid-id.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 13:02:32 -0700
+Message-ID: <200704192002.l3JK2Wn2029394@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51124 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767002AbXDSUCw (ORCPT
+	by vger.kernel.org with ESMTP id S1766997AbXDSUCn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 16:02:52 -0400
+	Thu, 19 Apr 2007 16:02:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: conke.hu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: use NULL for pointers
+     ahci.c: remove non-existing SB600 raid id
 has been removed from the -mm tree.  Its filename was
-     ext4-use-null-for-pointers.patch
+     ahcic-remove-non-existing-sb600-raid-id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4: use NULL for pointers
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ahci.c: remove non-existing SB600 raid id
+From: "Conke Hu" <conke.hu@gmail.com>
 
-Use NULL instead of 0 for pointers:
-fs/ext4/writeback.c:874:24: warning: Using plain integer as NULL pointer
-fs/ext4/writeback.c:1105:23: warning: Using plain integer as NULL pointer
+SB600 RAID and SB600 SATA is the same controller and share the same PCI ID
+0x4380.  There is no such PCI ID 0x4381.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Conke Hu <conke.hu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/writeback.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/ata/ahci.c      |    3 +--
+ include/linux/pci_ids.h |    1 -
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/ext4/writeback.c~ext4-use-null-for-pointers fs/ext4/writeback.c
---- a/fs/ext4/writeback.c~ext4-use-null-for-pointers
-+++ a/fs/ext4/writeback.c
-@@ -41,6 +41,7 @@
- #include <linux/jbd.h>
- #include <linux/ext4_fs_extents.h>
- #include <linux/smp_lock.h>
-+#include <linux/stddef.h>
- #include <linux/highuid.h>
- #include <linux/pagemap.h>
- #include <linux/quotaops.h>
-@@ -871,7 +872,7 @@ int ext4_wb_prepare_write(struct file *f
- 				wb_debug("read block %u\n",
- 						(unsigned) bhw->b_blocknr);
- 				set_bh_page(bhw, page, 0);
--				bhw->b_this_page = 0;
-+				bhw->b_this_page = NULL;
- 				bhw->b_size = 1 << inode->i_blkbits;
- 				atomic_set(&bhw->b_count, 1);
- 				ll_rw_block(READ, 1, &bhw);
-@@ -1102,7 +1103,7 @@ int ext4_wb_block_truncate_page(handle_t
- 			wb_debug("read block %u for part.trunc on %lu\n",
- 					(unsigned) bhw->b_blocknr, page->index);
- 			set_bh_page(bhw, page, 0);
--			bhw->b_this_page = 0;
-+			bhw->b_this_page = NULL;
- 			bhw->b_size = 1 << inode->i_blkbits;
- 			atomic_set(&bhw->b_count, 1);
- 			ll_rw_block(READ, 1, &bhw);
+diff -puN drivers/ata/ahci.c~ahcic-remove-non-existing-sb600-raid-id drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~ahcic-remove-non-existing-sb600-raid-id
++++ a/drivers/ata/ahci.c
+@@ -413,8 +413,7 @@ static const struct pci_device_id ahci_p
+ 	  PCI_CLASS_STORAGE_SATA_AHCI, 0xffffff, board_ahci_ign_iferr },
+ 
+ 	/* ATI */
+-	{ PCI_VDEVICE(ATI, 0x4380), board_ahci_sb600 }, /* ATI SB600 non-raid */
+-	{ PCI_VDEVICE(ATI, 0x4381), board_ahci }, /* ATI SB600 raid */
++	{ PCI_VDEVICE(ATI, 0x4380), board_ahci_sb600 }, /* ATI SB600 */
+ 
+ 	/* VIA */
+ 	{ PCI_VDEVICE(VIA, 0x3349), board_ahci_vt8251 }, /* VIA VT8251 */
+diff -puN include/linux/pci_ids.h~ahcic-remove-non-existing-sb600-raid-id include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~ahcic-remove-non-existing-sb600-raid-id
++++ a/include/linux/pci_ids.h
+@@ -368,7 +368,6 @@
+ #define PCI_DEVICE_ID_ATI_IXP400_SATA   0x4379
+ #define PCI_DEVICE_ID_ATI_IXP400_SATA2	0x437a
+ #define PCI_DEVICE_ID_ATI_IXP600_SATA	0x4380
+-#define PCI_DEVICE_ID_ATI_IXP600_SRAID	0x4381
+ #define PCI_DEVICE_ID_ATI_IXP600_SMBUS	0x4385
+ #define PCI_DEVICE_ID_ATI_IXP600_IDE	0x438c
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from conke.hu@gmail.com are
 
-origin.patch
-git-acpi.patch
-git-drm.patch
-git-ieee1394.patch
-git-kbuild.patch
-romfs-printk-format-warnings.patch
-git-netdev-all.patch
-8250_pci-fix-pci-must_checks.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-fix-mtrr-sections.patch
-scripts-kernel-doc-whitespace-cleanup.patch
-reiserfs-proc-support-requires-proc_fs.patch
-kprobes-fix-sparse-null-warning.patch
-header-cleaning-dont-include-smp_lockh-when-not-used.patch
-expose-range-checking-functions-from-arch-specific.patch
-expose-range-checking-functions-from-arch-specific-update.patch
-parport_serial-fix-pci-must_checks.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
-generate-main-index-page-when-building-htmldocs.patch
-alphabetically-sorted-entries-in.patch
-kernel-doc-html-mode-struct-highlights.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-s3fb-fix-pci-must_checks.patch
-profile-likely-unlikely-macros.patch
+git-libata-all.patch
