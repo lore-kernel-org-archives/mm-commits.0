@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_sis-fix-oops-on-boot.patch added to -mm tree
-Date: Thu, 19 Apr 2007 14:57:54 -0700
-Message-ID: <200704192157.l3JLvsI9032094@shell0.pdx.osdl.net>
+Subject: + spin_lock_unlocked-cleanup-in-arch-mips.patch added to -mm tree
+Date: Thu, 19 Apr 2007 14:58:25 -0700
+Message-ID: <200704192158.l3JLwPJj032103@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46833 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750881AbXDSV6N (ORCPT
+	by vger.kernel.org with ESMTP id S1750844AbXDSV6d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 17:58:13 -0400
+	Thu, 19 Apr 2007 17:58:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: milindchoudhary@gmail.com
 
 
 The patch titled
-     pata_sis: Fix oops on boot
+     SPIN_LOCK_UNLOCKED cleanup in arch/mips
 has been added to the -mm tree.  Its filename is
-     pata_sis-fix-oops-on-boot.patch
+     spin_lock_unlocked-cleanup-in-arch-mips.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_sis: Fix oops on boot
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: SPIN_LOCK_UNLOCKED cleanup in arch/mips
+From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-A small number of SiS setups require special handling (not many judging by
-how long this dumb bug survived).  A couple of Fedora 7 devel testers hit
-an Oops on pata_sis loading which is caused by terminal confusion between
-chipset as 'the chipset we have found' and chipset as 'array iterator'
+SPIN_LOCK_UNLOCKED cleanup,use DEFINE_SPINLOCK instead
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sis.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ arch/mips/basler/excite/excite_setup.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_sis.c~pata_sis-fix-oops-on-boot drivers/ata/pata_sis.c
---- a/drivers/ata/pata_sis.c~pata_sis-fix-oops-on-boot
-+++ a/drivers/ata/pata_sis.c
-@@ -831,6 +831,7 @@ static int sis_init_one (struct pci_dev 
- 	struct ata_port_info *port;
- 	struct pci_dev *host = NULL;
- 	struct sis_chipset *chipset = NULL;
-+	struct sis_chipset *sets;
+diff -puN arch/mips/basler/excite/excite_setup.c~spin_lock_unlocked-cleanup-in-arch-mips arch/mips/basler/excite/excite_setup.c
+--- a/arch/mips/basler/excite/excite_setup.c~spin_lock_unlocked-cleanup-in-arch-mips
++++ a/arch/mips/basler/excite/excite_setup.c
+@@ -63,7 +63,7 @@ volatile void __iomem * const ocd_base =
+ volatile void __iomem * const titan_base = (void *) (EXCITE_ADDR_TITAN);
  
- 	static struct sis_chipset sis_chipsets[] = {
+ /* Protect access to shared GPI registers */
+-spinlock_t titan_lock = SPIN_LOCK_UNLOCKED;
++DEFINE_SPINLOCK(titan_lock);
+ int titan_irqflags;
  
-@@ -885,10 +886,11 @@ static int sis_init_one (struct pci_dev 
  
- 	/* We have to find the bridge first */
- 
--	for (chipset = &sis_chipsets[0]; chipset->device; chipset++) {
--		host = pci_get_device(PCI_VENDOR_ID_SI, chipset->device, NULL);
-+	for (sets = &sis_chipsets[0]; sets->device; sets++) {
-+		host = pci_get_device(PCI_VENDOR_ID_SI, sets->device, NULL);
- 		if (host != NULL) {
--			if (chipset->device == 0x630) {	/* SIS630 */
-+			chipset = sets;			/* Match found */
-+			if (sets->device == 0x630) {	/* SIS630 */
- 				u8 host_rev;
- 				pci_read_config_byte(host, PCI_REVISION_ID, &host_rev);
- 				if (host_rev >= 0x30)	/* 630 ET */
-@@ -899,7 +901,7 @@ static int sis_init_one (struct pci_dev 
- 	}
- 
- 	/* Look for concealed bridges */
--	if (host == NULL) {
-+	if (chipset == NULL) {
- 		/* Second check */
- 		u32 idemisc;
- 		u16 trueid;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from milindchoudhary@gmail.com are
 
-origin.patch
-git-libata-all.patch
-pata_hpt37x-further-small-fixes.patch
-pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
-git-netdev-all.patch
-pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-pata_sis-fix-oops-on-boot.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-protect-tty-drivers-list-with-tty_mutex.patch
-fix-82875-pci-setup.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-remove-redundant-check-from-proc_sys_setattr.patch
-apm-fix-incorrect-comment.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
+git-alsa.patch
+git-powerpc.patch
+spin_lock_unlocked-cleanup-in-arch-powerpc.patch
+git-ieee1394.patch
+spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
+spin_lock_unlocked-cleanup-in-arch-mips.patch
+round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
+spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+round_up-macro-cleanup-in-drivers-pci.patch
+pcie-remove-spin_lock_unlocked.patch
+round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
+round_up-macro-cleanup-in-drivers-char-lpc.patch
+round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
+round_up-macro-cleanup-in-fs-smbfs-requestc.patch
+spin_lock_unlocked-cleanup-in-init_taskh.patch
+spin_lock_unlocked-cleanup-in-drivers-char-keyboard.patch
+spin_lock_unlocked-cleanup-in-drivers-serial.patch
