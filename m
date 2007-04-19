@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-lookup_chain_cache-comment-errata.patch added to -mm tree
-Date: Thu, 19 Apr 2007 14:59:37 -0700
-Message-ID: <200704192159.l3JLxbIb032124@shell0.pdx.osdl.net>
+Subject: + sysfs-group-removal-avoid-bypass-permission-checks.patch added to -mm tree
+Date: Thu, 19 Apr 2007 15:07:23 -0700
+Message-ID: <200704192207.l3JM7NHF032279@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54251 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33992 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754198AbXDSWAH (ORCPT
+	by vger.kernel.org with ESMTP id S1754219AbXDSWHv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 18:00:07 -0400
+	Thu, 19 Apr 2007 18:07:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jarkao2@o2.pl, mingo@elte.hu
+Cc: jmorris@namei.org, eparis@redhat.com, htejun@gmail.com, nagendra_tomar@adaptec.com, sds@tycho.nsa.gov
 
 
 The patch titled
-     lockdep: lookup_chain_cache comment errata
+     sysfs group: bypass permission checks
 has been added to the -mm tree.  Its filename is
-     lockdep-lookup_chain_cache-comment-errata.patch
+     sysfs-group-removal-avoid-bypass-permission-checks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,143 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockdep: lookup_chain_cache comment errata
-From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: sysfs group: bypass permission checks
+From: James Morris <jmorris@namei.org>
 
-Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Prevent permission checking from being peformed when the kernel wants to
+unconditionally remove a sysfs group, by introducing an kernel-only variant
+of lookup_one_len(), lookup_one_len_kern().
+
+Additionally, as sysfs_remove_group() does not check the return value of
+the lookup before using it, a BUG_ON has been added to pinpoint the cause
+of any problems potentially caused by this (and as a form of annotation).
+
+Signed-off-by: James Morris <jmorris@namei.org>
+Cc: Nagendra Singh Tomar <nagendra_tomar@adaptec.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ fs/namei.c            |   29 +++++++++++++++++++++--------
+ fs/sysfs/group.c      |    6 ++++--
+ include/linux/namei.h |    1 +
+ 3 files changed, 26 insertions(+), 10 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-lookup_chain_cache-comment-errata kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-lookup_chain_cache-comment-errata
-+++ a/kernel/lockdep.c
-@@ -1309,8 +1309,9 @@ out_unlock_set:
- 
- /*
-  * Look up a dependency chain. If the key is not present yet then
-- * add it and return 0 - in this case the new dependency chain is
-- * validated. If the key is already hashed, return 1.
-+ * add it and return 1 - in this case the new dependency chain is
-+ * validated. If the key is already hashed, return 0.
-+ * (On return with 1 graph_lock is held.)
+diff -puN fs/namei.c~sysfs-group-removal-avoid-bypass-permission-checks fs/namei.c
+--- a/fs/namei.c~sysfs-group-removal-avoid-bypass-permission-checks
++++ a/fs/namei.c
+@@ -1248,17 +1248,20 @@ int __user_path_lookup_open(const char _
+  * needs parent already locked. Doesn't follow mounts.
+  * SMP-safe.
   */
- static inline int lookup_chain_cache(u64 chain_key, struct lock_class *class)
+-static struct dentry * __lookup_hash(struct qstr *name, struct dentry * base, struct nameidata *nd)
++static struct dentry * __lookup_hash(struct qstr *name, struct dentry * base, struct nameidata *nd, int kern)
  {
+ 	struct dentry * dentry;
+ 	struct inode *inode;
+ 	int err;
+ 
+ 	inode = base->d_inode;
+-	err = permission(inode, MAY_EXEC, nd);
+-	dentry = ERR_PTR(err);
+-	if (err)
+-		goto out;
++
++	if (likely(!kern)) {
++		err = permission(inode, MAY_EXEC, nd);
++		dentry = ERR_PTR(err);
++		if (err)
++			goto out;
++	}
+ 
+ 	/*
+ 	 * See if the low-level filesystem might want
+@@ -1289,11 +1292,11 @@ out:
+ 
+ static struct dentry *lookup_hash(struct nameidata *nd)
+ {
+-	return __lookup_hash(&nd->last, nd->dentry, nd);
++	return __lookup_hash(&nd->last, nd->dentry, nd, 0);
+ }
+ 
+ /* SMP-safe */
+-struct dentry * lookup_one_len(const char * name, struct dentry * base, int len)
++static inline struct dentry * __lookup_one_len(const char * name, struct dentry * base, int len, int kern)
+ {
+ 	unsigned long hash;
+ 	struct qstr this;
+@@ -1313,11 +1316,21 @@ struct dentry * lookup_one_len(const cha
+ 	}
+ 	this.hash = end_name_hash(hash);
+ 
+-	return __lookup_hash(&this, base, NULL);
++	return __lookup_hash(&this, base, NULL, kern);
+ access:
+ 	return ERR_PTR(-EACCES);
+ }
+ 
++struct dentry * lookup_one_len(const char * name, struct dentry * base, int len)
++{
++	return __lookup_one_len(name, base, len, 0);
++}
++
++struct dentry * lookup_one_len_kern(const char * name, struct dentry * base, int len)
++{
++	return __lookup_one_len(name, base, len, 1);
++}
++
+ /*
+  *	namei()
+  *
+diff -puN fs/sysfs/group.c~sysfs-group-removal-avoid-bypass-permission-checks fs/sysfs/group.c
+--- a/fs/sysfs/group.c~sysfs-group-removal-avoid-bypass-permission-checks
++++ a/fs/sysfs/group.c
+@@ -70,9 +70,11 @@ void sysfs_remove_group(struct kobject *
+ {
+ 	struct dentry * dir;
+ 
+-	if (grp->name)
+-		dir = lookup_one_len(grp->name, kobj->dentry,
++	if (grp->name) {
++		dir = lookup_one_len_kern(grp->name, kobj->dentry,
+ 				strlen(grp->name));
++		BUG_ON(IS_ERR(dir));
++	}
+ 	else
+ 		dir = dget(kobj->dentry);
+ 
+diff -puN include/linux/namei.h~sysfs-group-removal-avoid-bypass-permission-checks include/linux/namei.h
+--- a/include/linux/namei.h~sysfs-group-removal-avoid-bypass-permission-checks
++++ a/include/linux/namei.h
+@@ -82,6 +82,7 @@ extern struct file *nameidata_to_filp(st
+ extern void release_open_intent(struct nameidata *);
+ 
+ extern struct dentry * lookup_one_len(const char *, struct dentry *, int);
++extern struct dentry * lookup_one_len_kern(const char *, struct dentry *, int);
+ 
+ extern int follow_down(struct vfsmount **, struct dentry **);
+ extern int follow_up(struct vfsmount **, struct dentry **);
 _
 
-Patches currently in -mm which might be from jarkao2@o2.pl are
+Patches currently in -mm which might be from jmorris@namei.org are
 
-ppp_generic-fix-lockdep-warning.patch
-lockdep-lookup_chain_cache-comment-errata.patch
+return-eperm-not-echild-on-security_task_wait-failure.patch
+sysfs-group-removal-avoid-bypass-permission-checks.patch
+git-net.patch
+git-selinux.patch
+implement-file-posix-capabilities.patch
+file-capabilities-accomodate-future-64-bit-caps.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+remove-redundant-check-from-proc_setattr.patch
+remove-redundant-check-from-proc_sys_setattr.patch
+mprotect-patch-for-use-by-slim.patch
+integrity-service-api-and-dummy-provider.patch
+slim-main-patch.patch
+slim-secfs-patch.patch
+slim-make-and-config-stuff.patch
+slim-debug-output.patch
+slim-documentation.patch
