@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + spin_lock_unlocked-cleanup-in-init_taskh.patch added to -mm tree
-Date: Thu, 19 Apr 2007 14:08:02 -0700
-Message-ID: <200704192108.l3JL82BN030703@shell0.pdx.osdl.net>
+Subject: + spin_lock_unlocked-cleanup-in-drivers-atm-net.patch added to -mm tree
+Date: Thu, 19 Apr 2007 14:08:51 -0700
+Message-ID: <200704192108.l3JL8pMO030715@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42056 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766995AbXDSVIG (ORCPT
+	by vger.kernel.org with ESMTP id S1766986AbXDSVIy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 17:08:06 -0400
+	Thu, 19 Apr 2007 17:08:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: milindchoudhary@gmail.com
 
 
 The patch titled
-     SPIN_LOCK_UNLOCKED cleanup in init_task.h
+     SPIN_LOCK_UNLOCKED cleanup in drivers/atm, net
 has been added to the -mm tree.  Its filename is
-     spin_lock_unlocked-cleanup-in-init_taskh.patch
+     spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SPIN_LOCK_UNLOCKED cleanup in init_task.h
+Subject: SPIN_LOCK_UNLOCKED cleanup in drivers/atm, net
 From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
 SPIN_LOCK_UNLOCKED cleanup,use __SPIN_LOCK_UNLOCKED instead
@@ -35,21 +35,99 @@ Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/atm/atmtcp.c |    2 +-
+ net/atm/clip.c       |    2 +-
+ net/atm/lec.c        |    2 +-
+ net/atm/mpc.c        |    2 +-
+ net/atm/signaling.c  |    2 +-
+ net/dccp/minisocks.c |    2 +-
+ net/ipv6/mip6.c      |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/init_task.h~spin_lock_unlocked-cleanup-in-init_taskh include/linux/init_task.h
---- a/include/linux/init_task.h~spin_lock_unlocked-cleanup-in-init_taskh
-+++ a/include/linux/init_task.h
-@@ -138,7 +138,7 @@ extern struct group_info init_groups;
- 	.journal_info	= NULL,						\
- 	.cpu_timers	= INIT_CPU_TIMERS(tsk.cpu_timers),		\
- 	.fs_excl	= ATOMIC_INIT(0),				\
--	.pi_lock	= SPIN_LOCK_UNLOCKED,				\
-+	.pi_lock	= __SPIN_LOCK_UNLOCKED(tsk.pi_lock),		\
- 	INIT_TRACE_IRQFLAGS						\
- 	INIT_LOCKDEP							\
- }
+diff -puN drivers/atm/atmtcp.c~spin_lock_unlocked-cleanup-in-drivers-atm-net drivers/atm/atmtcp.c
+--- a/drivers/atm/atmtcp.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
++++ a/drivers/atm/atmtcp.c
+@@ -352,7 +352,7 @@ static struct atm_dev atmtcp_control_dev
+ 	.ops		= &atmtcp_c_dev_ops,
+ 	.type		= "atmtcp",
+ 	.number		= 999,
+-	.lock		= SPIN_LOCK_UNLOCKED
++	.lock		= __SPIN_LOCK_UNLOCKED(atmtcp_control_dev.lock)
+ };
+ 
+ 
+diff -puN net/atm/clip.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/atm/clip.c
+--- a/net/atm/clip.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
++++ a/net/atm/clip.c
+@@ -702,7 +702,7 @@ static struct atm_dev atmarpd_dev = {
+ 	.ops =			&atmarpd_dev_ops,
+ 	.type =			"arpd",
+ 	.number = 		999,
+-	.lock =			SPIN_LOCK_UNLOCKED
++	.lock =			__SPIN_LOCK_UNLOCKED(atmarpd_dev.lock)
+ };
+ 
+ 
+diff -puN net/atm/lec.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/atm/lec.c
+--- a/net/atm/lec.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
++++ a/net/atm/lec.c
+@@ -630,7 +630,7 @@ static struct atm_dev lecatm_dev = {
+ 	.ops = &lecdev_ops,
+ 	.type = "lec",
+ 	.number = 999,		/* dummy device number */
+-	.lock = SPIN_LOCK_UNLOCKED
++	.lock = __SPIN_LOCK_UNLOCKED(lecatm_dev.lock)
+ };
+ 
+ /*
+diff -puN net/atm/mpc.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/atm/mpc.c
+--- a/net/atm/mpc.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
++++ a/net/atm/mpc.c
+@@ -737,7 +737,7 @@ static struct atm_dev mpc_dev = {
+ 	.ops	= &mpc_ops,
+ 	.type	= "mpc",
+ 	.number	= 42,
+-	.lock	= SPIN_LOCK_UNLOCKED
++	.lock	= __SPIN_LOCK_UNLOCKED(mpc_dev.lock)
+ 	/* members not explicitly initialised will be 0 */
+ };
+ 
+diff -puN net/atm/signaling.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/atm/signaling.c
+--- a/net/atm/signaling.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
++++ a/net/atm/signaling.c
+@@ -256,7 +256,7 @@ static struct atm_dev sigd_dev = {
+ 	.ops =		&sigd_dev_ops,
+ 	.type =		"sig",
+ 	.number =	999,
+-	.lock =		SPIN_LOCK_UNLOCKED
++	.lock =		__SPIN_LOCK_UNLOCKED(sigd_dev.lock)
+ };
+ 
+ 
+diff -puN net/dccp/minisocks.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/dccp/minisocks.c
+--- a/net/dccp/minisocks.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
++++ a/net/dccp/minisocks.c
+@@ -27,7 +27,7 @@
+ struct inet_timewait_death_row dccp_death_row = {
+ 	.sysctl_max_tw_buckets = NR_FILE * 2,
+ 	.period		= DCCP_TIMEWAIT_LEN / INET_TWDR_TWKILL_SLOTS,
+-	.death_lock	= SPIN_LOCK_UNLOCKED,
++	.death_lock	= __SPIN_LOCK_UNLOCKED(dccp_death_row.death_lock),
+ 	.hashinfo	= &dccp_hashinfo,
+ 	.tw_timer	= TIMER_INITIALIZER(inet_twdr_hangman, 0,
+ 					    (unsigned long)&dccp_death_row),
+diff -puN net/ipv6/mip6.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/ipv6/mip6.c
+--- a/net/ipv6/mip6.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
++++ a/net/ipv6/mip6.c
+@@ -125,7 +125,7 @@ struct mip6_report_rate_limiter {
+ };
+ 
+ static struct mip6_report_rate_limiter mip6_report_rl = {
+-	.lock = SPIN_LOCK_UNLOCKED
++	.lock = __SPIN_LOCK_UNLOCKED(mip6_report_rl.lock)
+ };
+ 
+ static int mip6_destopt_input(struct xfrm_state *x, struct sk_buff *skb)
 _
 
 Patches currently in -mm which might be from milindchoudhary@gmail.com are
@@ -60,6 +138,7 @@ spin_lock_unlocked-cleanup-in-arch-powerpc.patch
 git-ieee1394.patch
 spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
 round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
+spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
 round_up-macro-cleanup-in-drivers-parisc.patch
 round_up-macro-cleanup-in-drivers-pci.patch
 pcie-remove-spin_lock_unlocked.patch
