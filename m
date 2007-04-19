@@ -1,157 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - ufs-proper-handling-of-zero-link-case.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 13:01:59 -0700
-Message-ID: <200704192001.l3JK1xp0029336@shell0.pdx.osdl.net>
+Subject: - hwmon-w83627ehf-fix-fan5-div-selection.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 13:02:10 -0700
+Message-ID: <200704192002.l3JK2A1N029360@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57818 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46352 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766985AbXDSUCS (ORCPT
+	by vger.kernel.org with ESMTP id S1766986AbXDSUC2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 16:02:18 -0400
+	Thu, 19 Apr 2007 16:02:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dushistov@mail.ru, jim@jtan.com, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs proper handling of zero link case
+     hwmon/w83627ehf: Fix the fan5 clock divider write
 has been removed from the -mm tree.  Its filename was
-     ufs-proper-handling-of-zero-link-case.patch
+     hwmon-w83627ehf-fix-fan5-div-selection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ufs proper handling of zero link case
-From: Evgeniy Dushistov <dushistov@mail.ru>
+Subject: hwmon/w83627ehf: Fix the fan5 clock divider write
+From: Jean Delvare <khali@linux-fr.org>
 
-This patch should fix or partly fix this bug:
-http://bugzilla.kernel.org/show_bug.cgi?id=8276
+Users have been complaining about the w83627ehf driver flooding their logs
+with debug messages like:
 
-The problem is:
+w83627ehf 9191-0a10: Increasing fan 4 clock divider from 64 to 128
 
-- if we see "zero link case" during reading inode operation, we call
-  ufs_error(which remount fs readonly), but not "mark" inode as bad (1)
+or:
 
-- in readonly case we do not fill some data structures, which are used in
-  read and write case (2)
+w83627ehf 9191-0290: Increasing fan 4 clock divider from 4 to 8
 
-- VFS call ufs_delete_inode if link count is zero (3)
+The reason is that we failed to actually write the LSB of the encoded clock
+divider value for that fan, causing the next read to report the same old value
+again and again.
 
-so (1)->(3)->(2) cause oops, this patch should fix such scenario
+Additionally, the fan number was improperly reported, making the bug harder to
+find.
 
-Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Jim Paris <jim@jtan.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/inode.c |   29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+ drivers/hwmon/w83627ehf.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ufs/inode.c~ufs-proper-handling-of-zero-link-case fs/ufs/inode.c
---- a/fs/ufs/inode.c~ufs-proper-handling-of-zero-link-case
-+++ a/fs/ufs/inode.c
-@@ -601,7 +601,7 @@ static void ufs_set_inode_ops(struct ino
- 				   ufs_get_inode_dev(inode->i_sb, UFS_I(inode)));
- }
- 
--static void ufs1_read_inode(struct inode *inode, struct ufs_inode *ufs_inode)
-+static int ufs1_read_inode(struct inode *inode, struct ufs_inode *ufs_inode)
- {
- 	struct ufs_inode_info *ufsi = UFS_I(inode);
- 	struct super_block *sb = inode->i_sb;
-@@ -613,8 +613,10 @@ static void ufs1_read_inode(struct inode
- 	 */
- 	inode->i_mode = mode = fs16_to_cpu(sb, ufs_inode->ui_mode);
- 	inode->i_nlink = fs16_to_cpu(sb, ufs_inode->ui_nlink);
--	if (inode->i_nlink == 0)
-+	if (inode->i_nlink == 0) {
- 		ufs_error (sb, "ufs_read_inode", "inode %lu has zero nlink\n", inode->i_ino);
-+		return -1;
-+	}
- 	
- 	/*
- 	 * Linux now has 32-bit uid and gid, so we can support EFT.
-@@ -643,9 +645,10 @@ static void ufs1_read_inode(struct inode
- 		for (i = 0; i < (UFS_NDADDR + UFS_NINDIR) * 4; i++)
- 			ufsi->i_u1.i_symlink[i] = ufs_inode->ui_u2.ui_symlink[i];
- 	}
-+	return 0;
- }
- 
--static void ufs2_read_inode(struct inode *inode, struct ufs2_inode *ufs2_inode)
-+static int ufs2_read_inode(struct inode *inode, struct ufs2_inode *ufs2_inode)
- {
- 	struct ufs_inode_info *ufsi = UFS_I(inode);
- 	struct super_block *sb = inode->i_sb;
-@@ -658,8 +661,10 @@ static void ufs2_read_inode(struct inode
- 	 */
- 	inode->i_mode = mode = fs16_to_cpu(sb, ufs2_inode->ui_mode);
- 	inode->i_nlink = fs16_to_cpu(sb, ufs2_inode->ui_nlink);
--	if (inode->i_nlink == 0)
-+	if (inode->i_nlink == 0) {
- 		ufs_error (sb, "ufs_read_inode", "inode %lu has zero nlink\n", inode->i_ino);
-+		return -1;
-+	}
- 
-         /*
-          * Linux now has 32-bit uid and gid, so we can support EFT.
-@@ -690,6 +695,7 @@ static void ufs2_read_inode(struct inode
- 		for (i = 0; i < (UFS_NDADDR + UFS_NINDIR) * 4; i++)
- 			ufsi->i_u1.i_symlink[i] = ufs2_inode->ui_u2.ui_symlink[i];
- 	}
-+	return 0;
- }
- 
- void ufs_read_inode(struct inode * inode)
-@@ -698,6 +704,7 @@ void ufs_read_inode(struct inode * inode
- 	struct super_block * sb;
- 	struct ufs_sb_private_info * uspi;
- 	struct buffer_head * bh;
-+	int err;
- 
- 	UFSD("ENTER, ino %lu\n", inode->i_ino);
- 
-@@ -720,14 +727,17 @@ void ufs_read_inode(struct inode * inode
- 	if ((UFS_SB(sb)->s_flags & UFS_TYPE_MASK) == UFS_TYPE_UFS2) {
- 		struct ufs2_inode *ufs2_inode = (struct ufs2_inode *)bh->b_data;
- 
--		ufs2_read_inode(inode,
--				ufs2_inode + ufs_inotofsbo(inode->i_ino));
-+		err = ufs2_read_inode(inode,
-+				      ufs2_inode + ufs_inotofsbo(inode->i_ino));
- 	} else {
- 		struct ufs_inode *ufs_inode = (struct ufs_inode *)bh->b_data;
- 
--		ufs1_read_inode(inode, ufs_inode + ufs_inotofsbo(inode->i_ino));
-+		err = ufs1_read_inode(inode,
-+				      ufs_inode + ufs_inotofsbo(inode->i_ino));
- 	}
- 
-+	if (err)
-+		goto bad_inode;
- 	inode->i_version++;
- 	ufsi->i_lastfrag =
- 		(inode->i_size + uspi->s_fsize - 1) >> uspi->s_fshift;
-@@ -888,6 +898,8 @@ void ufs_delete_inode (struct inode * in
- 	loff_t old_i_size;
- 
- 	truncate_inode_pages(&inode->i_data, 0);
-+	if (is_bad_inode(inode))
-+		goto no_delete;
- 	/*UFS_I(inode)->i_dtime = CURRENT_TIME;*/
- 	lock_kernel();
- 	mark_inode_dirty(inode);
-@@ -898,4 +910,7 @@ void ufs_delete_inode (struct inode * in
- 		ufs_warning(inode->i_sb, __FUNCTION__, "ufs_truncate failed\n");
- 	ufs_free_inode (inode);
- 	unlock_kernel();
-+	return;
-+no_delete:
-+	clear_inode(inode);	/* We must guarantee clearing of inode... */
- }
+diff -puN drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-fix-fan5-div-selection drivers/hwmon/w83627ehf.c
+--- a/drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-fix-fan5-div-selection
++++ a/drivers/hwmon/w83627ehf.c
+@@ -407,7 +407,7 @@ static void w83627ehf_write_fan_div(stru
+ 		break;
+ 	case 4:
+ 		reg = (w83627ehf_read_value(client, W83627EHF_REG_DIODE) & 0x73)
+-		    | ((data->fan_div[4] & 0x03) << 3)
++		    | ((data->fan_div[4] & 0x03) << 2)
+ 		    | ((data->fan_div[4] & 0x04) << 5);
+ 		w83627ehf_write_value(client, W83627EHF_REG_DIODE, reg);
+ 		break;
+@@ -471,9 +471,9 @@ static struct w83627ehf_data *w83627ehf_
+ 			   time */
+ 			if (data->fan[i] == 0xff
+ 			 && data->fan_div[i] < 0x07) {
+-			 	dev_dbg(&client->dev, "Increasing fan %d "
++			 	dev_dbg(&client->dev, "Increasing fan%d "
+ 					"clock divider from %u to %u\n",
+-					i, div_from_reg(data->fan_div[i]),
++					i + 1, div_from_reg(data->fan_div[i]),
+ 					div_from_reg(data->fan_div[i] + 1));
+ 				data->fan_div[i]++;
+ 				w83627ehf_write_fan_div(client, i);
 _
 
-Patches currently in -mm which might be from dushistov@mail.ru are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
+x86-msr-add-support-for-safe-variants.patch
+git-alsa.patch
+git-dvb.patch
+apple-smc-driver-hardware-monitoring-and-control.patch
+apple-smc-driver-hardware-monitoring-and-control-fix.patch
+apple-smc-driver-standardize-and-sanitize-sysfs-tree.patch
+apple-smc-driver-implement-key-enumeration.patch
+git-ieee1394.patch
+git-netdev-all.patch
+git-net.patch
+xtensa-strlcpy-is-smart-enough.patch
+oss-strlcpy-is-smart-enough.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+legacy-pc-parports-support-parport-dev.patch
+layered-parport-code-uses-parport-dev.patch
+fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
+rivafb-handle-i2c-bus-creation-failure.patch
+rivafb-nvidiafb-various-cleanups.patch
+rivafb-fixed-reversed-ddc-ports.patch
