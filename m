@@ -1,180 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - use-menuconfig-objects-pcihotplug.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 13:02:40 -0700
-Message-ID: <200704192002.l3JK2eKl029409@shell0.pdx.osdl.net>
+Subject: - fix-bogon-in-dev-mem-mmaping-on-nommu.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 13:01:45 -0700
+Message-ID: <200704192001.l3JK1j6M029315@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60913 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767008AbXDSUC4 (ORCPT
+	by vger.kernel.org with ESMTP id S1766993AbXDSUDI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 16:02:56 -0400
+	Thu, 19 Apr 2007 16:03:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@linux01.gwdg.de, jengelh@gmx.de, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, dhowells@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use menuconfig objects: pcihotplug
+     fix bogon in /dev/mem mmap'ing on nommu
 has been removed from the -mm tree.  Its filename was
-     use-menuconfig-objects-pcihotplug.patch
+     fix-bogon-in-dev-mem-mmaping-on-nommu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use menuconfig objects: pcihotplug
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: fix bogon in /dev/mem mmap'ing on nommu
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Use menuconfigs instead of menus, so the whole menu can be disabled at once
-instead of going through all options.
+While digging through my MAP_FIXED changes, I found that rather obvious
+bug in /dev/mem mmap implementation for nommu archs. get_unmapped_area()
+is expected to return an address, not a pfn.
 
-Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-By: David Howells <dhowells@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/Kconfig |   25 ++++++++++---------------
- 1 files changed, 10 insertions(+), 15 deletions(-)
+ drivers/char/mem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/hotplug/Kconfig~use-menuconfig-objects-pcihotplug drivers/pci/hotplug/Kconfig
---- a/drivers/pci/hotplug/Kconfig~use-menuconfig-objects-pcihotplug
-+++ a/drivers/pci/hotplug/Kconfig
-@@ -2,9 +2,7 @@
- # PCI Hotplug support
- #
+diff -puN drivers/char/mem.c~fix-bogon-in-dev-mem-mmaping-on-nommu drivers/char/mem.c
+--- a/drivers/char/mem.c~fix-bogon-in-dev-mem-mmaping-on-nommu
++++ a/drivers/char/mem.c
+@@ -248,7 +248,7 @@ static unsigned long get_unmapped_area_m
+ {
+ 	if (!valid_mmap_phys_addr_range(pgoff, len))
+ 		return (unsigned long) -EINVAL;
+-	return pgoff;
++	return pgoff << PAGE_SHIFT;
+ }
  
--menu "PCI Hotplug Support"
--
--config HOTPLUG_PCI
-+menuconfig HOTPLUG_PCI
- 	tristate "Support for PCI Hotplug (EXPERIMENTAL)"
- 	depends on PCI && EXPERIMENTAL && HOTPLUG
- 	---help---
-@@ -17,9 +15,10 @@ config HOTPLUG_PCI
- 
- 	  When in doubt, say N.
- 
-+if HOTPLUG_PCI
-+
- config HOTPLUG_PCI_FAKE
- 	tristate "Fake PCI Hotplug driver"
--	depends on HOTPLUG_PCI
- 	help
- 	  Say Y here if you want to use the fake PCI hotplug driver. It can
- 	  be used to simulate PCI hotplug events if even if your system is
-@@ -42,7 +41,7 @@ config HOTPLUG_PCI_FAKE
- 
- config HOTPLUG_PCI_COMPAQ
- 	tristate "Compaq PCI Hotplug driver"
--	depends on HOTPLUG_PCI && X86 && PCI_BIOS
-+	depends on X86 && PCI_BIOS
- 	help
- 	  Say Y here if you have a motherboard with a Compaq PCI Hotplug
- 	  controller.
-@@ -64,7 +63,7 @@ config HOTPLUG_PCI_COMPAQ_NVRAM
- 
- config HOTPLUG_PCI_IBM
- 	tristate "IBM PCI Hotplug driver"
--	depends on HOTPLUG_PCI && X86_IO_APIC && X86 && PCI_BIOS
-+	depends on X86_IO_APIC && X86 && PCI_BIOS
- 	help
- 	  Say Y here if you have a motherboard with a IBM PCI Hotplug
- 	  controller.
-@@ -76,7 +75,6 @@ config HOTPLUG_PCI_IBM
- 
- config HOTPLUG_PCI_ACPI
- 	tristate "ACPI PCI Hotplug driver"
--	depends on HOTPLUG_PCI
- 	depends on (!ACPI_DOCK && ACPI) || (ACPI_DOCK)
- 	help
- 	  Say Y here if you have a system that supports PCI Hotplug using
-@@ -101,7 +99,6 @@ config HOTPLUG_PCI_ACPI_IBM
- 
- config HOTPLUG_PCI_CPCI
- 	bool "CompactPCI Hotplug driver"
--	depends on HOTPLUG_PCI
- 	help
- 	  Say Y here if you have a CompactPCI system card with CompactPCI
- 	  hotswap support per the PICMG 2.1 specification.
-@@ -110,7 +107,7 @@ config HOTPLUG_PCI_CPCI
- 
- config HOTPLUG_PCI_CPCI_ZT5550
- 	tristate "Ziatech ZT5550 CompactPCI Hotplug driver"
--	depends on HOTPLUG_PCI && HOTPLUG_PCI_CPCI && X86
-+	depends on HOTPLUG_PCI_CPCI && X86
- 	help
- 	  Say Y here if you have an Performance Technologies (formerly Intel,
-           formerly just Ziatech) Ziatech ZT5550 CompactPCI system card.
-@@ -122,7 +119,7 @@ config HOTPLUG_PCI_CPCI_ZT5550
- 
- config HOTPLUG_PCI_CPCI_GENERIC
- 	tristate "Generic port I/O CompactPCI Hotplug driver"
--	depends on HOTPLUG_PCI && HOTPLUG_PCI_CPCI && X86
-+	depends on HOTPLUG_PCI_CPCI && X86
- 	help
- 	  Say Y here if you have a CompactPCI system card that exposes the #ENUM
- 	  hotswap signal as a bit in a system register that can be read through
-@@ -135,7 +132,6 @@ config HOTPLUG_PCI_CPCI_GENERIC
- 
- config HOTPLUG_PCI_SHPC
- 	tristate "SHPC PCI Hotplug driver"
--	depends on HOTPLUG_PCI
- 	help
- 	  Say Y here if you have a motherboard with a SHPC PCI Hotplug
- 	  controller.
-@@ -147,7 +143,7 @@ config HOTPLUG_PCI_SHPC
- 
- config HOTPLUG_PCI_RPA
- 	tristate "RPA PCI Hotplug driver"
--	depends on HOTPLUG_PCI && PPC_PSERIES && PPC64 && !HOTPLUG_PCI_FAKE
-+	depends on PPC_PSERIES && PPC64 && !HOTPLUG_PCI_FAKE
- 	help
- 	  Say Y here if you have a RPA system that supports PCI Hotplug.
- 
-@@ -170,12 +166,11 @@ config HOTPLUG_PCI_RPA_DLPAR
- 
- config HOTPLUG_PCI_SGI
- 	tristate "SGI PCI Hotplug Support"
--	depends on HOTPLUG_PCI && (IA64_SGI_SN2 || IA64_GENERIC)
-+	depends on IA64_SGI_SN2 || IA64_GENERIC
- 	help
- 	  Say Y here if you want to use the SGI Altix Hotplug
- 	  Driver for PCI devices.
- 
- 	  When in doubt, say N.
- 
--endmenu
--
-+endif # HOTPLUG_PCI
+ /* can't do an in-place private mapping if there's no MMU */
 _
 
-Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-git-kbuild.patch
-remove-artificial-software-max_loop-limit.patch
-fix-kevents-childs-priority-greediness.patch
-vt-allow-for-the-palette-to-be-exposed-and-changed-via-sysfs.patch
-vt-add-color-support-to-the-underline-and-italic-attributes.patch
-vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
-use-menuconfig-objects-acpi.patch
-use-menuconfig-objects-libata.patch
-use-menuconfig-objects-block-layer.patch
-use-menuconfig-objects-connector.patch
-use-menuconfig-objects-crypto.patch
-use-menuconfig-objects-crypto-hw.patch
-use-menuconfig-objects-dccp.patch
-use-menuconfig-objects-i2o.patch
-use-menuconfig-objects-ide.patch
-use-menuconfig-objects-mtd.patch
-use-menuconfig-objects-ipvs.patch
-use-menuconfig-objects-sctp.patch
-use-menuconfig-objects-tipc.patch
-use-menuconfig-objects-arcnet.patch
-use-menuconfig-objects-phy.patch
-use-menuconfig-objects-toeknring.patch
-use-menuconfig-objects-netdev.patch
-use-menuconfig-objects-oldcd.patch
-use-menuconfig-objects-parport.patch
-use-menuconfig-objects-pcmcia.patch
-use-menuconfig-objects-pnp.patch
-use-menuconfig-objects-w1.patch
+origin.patch
+git-powerpc.patch
+git-powerpc-arch-powerpc-sysdev-timerc-build-fix.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+powerpc-rtas-msi-support.patch
+spin_lock_unlocked-cleanup-in-arch-powerpc.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+use-slab_panic-flag-cleanup.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-powerpc-optimization.patch
+ps3fb-thread-updates.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3av-misc-updates.patch
+aty128fb-fix-blanking.patch
+radeonfb-add-support-for-radeon-xpress-200m.patch
