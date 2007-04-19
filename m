@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-pseries-rtasd-convert-to-kthread-api.patch added to -mm tree
-Date: Thu, 19 Apr 2007 16:42:31 -0700
-Message-ID: <200704192342.l3JNgVkj002087@shell0.pdx.osdl.net>
+Subject: + powerpc-pseries-eeh-convert-to-kthread-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 16:47:29 -0700
+Message-ID: <200704192347.l3JNlTrG002262@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51599 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754326AbXDSXme (ORCPT
+	by vger.kernel.org with ESMTP id S1754315AbXDSXrd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 19:42:34 -0400
+	Thu, 19 Apr 2007 19:47:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ebiederm@xmission.com, paulus@samba.org
 
 
 The patch titled
-     powerpc pseries rtasd: convert to kthread API
+     powerpc pseries eeh: convert to kthread API
 has been added to the -mm tree.  Its filename is
-     powerpc-pseries-rtasd-convert-to-kthread-api.patch
+     powerpc-pseries-eeh-convert-to-kthread-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc pseries rtasd: convert to kthread API
+Subject: powerpc pseries eeh: convert to kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patch modifies the startup of rtasd to use kthread_run instaed of a
-combination of kernel_thread and daemonize.  Making the code a little
-simpler and more maintainble.
+This patch modifies the startup of eehd to use kthread_run not a
+combination of kernel_thread and daemonize.  Making the code slightly
+simpler and more maintainable.
 
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/rtasd.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ arch/powerpc/platforms/pseries/eeh_event.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/rtasd.c~powerpc-pseries-rtasd-convert-to-kthread-api arch/powerpc/platforms/pseries/rtasd.c
---- a/arch/powerpc/platforms/pseries/rtasd.c~powerpc-pseries-rtasd-convert-to-kthread-api
-+++ a/arch/powerpc/platforms/pseries/rtasd.c
-@@ -20,6 +20,7 @@
- #include <linux/spinlock.h>
- #include <linux/cpu.h>
- #include <linux/delay.h>
+diff -puN arch/powerpc/platforms/pseries/eeh_event.c~powerpc-pseries-eeh-convert-to-kthread-api arch/powerpc/platforms/pseries/eeh_event.c
+--- a/arch/powerpc/platforms/pseries/eeh_event.c~powerpc-pseries-eeh-convert-to-kthread-api
++++ a/arch/powerpc/platforms/pseries/eeh_event.c
+@@ -23,6 +23,7 @@
+ #include <linux/mutex.h>
+ #include <linux/pci.h>
+ #include <linux/workqueue.h>
 +#include <linux/kthread.h>
+ #include <asm/eeh_event.h>
+ #include <asm/ppc-pci.h>
  
- #include <asm/uaccess.h>
- #include <asm/io.h>
-@@ -429,8 +430,6 @@ static int rtasd(void *unused)
- 	int event_scan = rtas_token("event-scan");
- 	int rc;
+@@ -59,7 +60,6 @@ static int eeh_event_handler(void * dumm
+ 	struct eeh_event	*event;
+ 	struct pci_dn *pdn;
  
--	daemonize("rtasd");
--
- 	if (event_scan == RTAS_UNKNOWN_SERVICE || get_eventscan_parms() == -1)
- 		goto error;
+-	daemonize ("eehd");
+ 	set_current_state(TASK_INTERRUPTIBLE);
  
-@@ -497,7 +496,7 @@ static int __init rtas_init(void)
- 	else
- 		printk(KERN_ERR "Failed to create error_log proc entry\n");
+ 	spin_lock_irqsave(&eeh_eventlist_lock, flags);
+@@ -105,7 +105,7 @@ static int eeh_event_handler(void * dumm
+  */
+ static void eeh_thread_launcher(struct work_struct *dummy)
+ {
+-	if (kernel_thread(eeh_event_handler, NULL, CLONE_KERNEL) < 0)
++	if (IS_ERR(kthread_run(eeh_event_handler, NULL, "eehd")))
+ 		printk(KERN_ERR "Failed to start EEH daemon\n");
+ }
  
--	if (kernel_thread(rtasd, NULL, CLONE_FS) < 0)
-+	if (IS_ERR(kthread_run(rtasd, NULL, "rtasd")))
- 		printk(KERN_ERR "Failed to start RTAS daemon\n");
- 
- 	return 0;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -80,6 +79,7 @@ macintosh-adb-convert-to-the-kthread-api.patch
 macintosh-therm_windtunnelc-convert-to-kthread-api.patch
 macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
 powerpc-pseries-rtasd-convert-to-kthread-api.patch
+powerpc-pseries-eeh-convert-to-kthread-api.patch
 mm-only-dvb_en_50221-convert-to-kthread-api.patch
 mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
 fix-i-oat-for-kexec.patch
