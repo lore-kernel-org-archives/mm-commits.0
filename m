@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch added to -mm tree
-Date: Thu, 19 Apr 2007 15:29:37 -0700
-Message-ID: <200704192229.l3JMTb96032619@shell0.pdx.osdl.net>
+Subject: + md-remove-broken-sigkill-support.patch added to -mm tree
+Date: Thu, 19 Apr 2007 15:30:19 -0700
+Message-ID: <200704192230.l3JMUJVw032666@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42223 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753896AbXDSWaY (ORCPT
+	by vger.kernel.org with ESMTP id S1754172AbXDSWa4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 18:30:24 -0400
+	Thu, 19 Apr 2007 18:30:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, dhowells@redhat.com, mingo@elte.hu
+Cc: ebiederm@xmission.com, neilb@suse.de
 
 
 The patch titled
-     synchro_test: convert to the kthread API
+     md: remove broken SIGKILL support
 has been added to the -mm tree.  Its filename is
-     mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
+     md-remove-broken-sigkill-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,102 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: synchro_test: convert to the kthread API
+Subject: md: remove broken SIGKILL support
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Cc: David Howells <dhowells@redhat.com>
+Currently md_thread calls allow_signal so it can receive a SIGKILL but then
+does nothing with it except flush the sigkill so that it not can use an
+interruptible sleep.
+
+This whole dance is silly so remove the unnecessary and broken signal
+handling logic.
+
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/synchro-test.c |   16 ++++++----------
- 1 files changed, 6 insertions(+), 10 deletions(-)
+ drivers/md/md.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN kernel/synchro-test.c~mutex-subsystem-synchro-test-module-convert-to-the-kthread-api kernel/synchro-test.c
---- a/kernel/synchro-test.c~mutex-subsystem-synchro-test-module-convert-to-the-kthread-api
-+++ a/kernel/synchro-test.c
-@@ -30,6 +30,7 @@
- #include <linux/timer.h>
- #include <linux/completion.h>
- #include <linux/mutex.h>
-+#include <linux/kthread.h>
+diff -puN drivers/md/md.c~md-remove-broken-sigkill-support drivers/md/md.c
+--- a/drivers/md/md.c~md-remove-broken-sigkill-support
++++ a/drivers/md/md.c
+@@ -4542,17 +4542,11 @@ static int md_thread(void * arg)
+ 	 */
  
- #define MAX_THREADS 64
+ 	current->flags |= PF_NOFREEZE;
+-	allow_signal(SIGKILL);
+ 	while (!kthread_should_stop()) {
  
-@@ -224,7 +225,6 @@ static int mutexer(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
- 
--	daemonize("Mutex%u", N);
- 	set_user_nice(current, 19);
- 
- 	while (atomic_read(&do_stuff)) {
-@@ -246,7 +246,6 @@ static int semaphorer(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
- 
--	daemonize("Sem%u", N);
- 	set_user_nice(current, 19);
- 
- 	while (atomic_read(&do_stuff)) {
-@@ -268,7 +267,6 @@ static int reader(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
- 
--	daemonize("Read%u", N);
- 	set_user_nice(current, 19);
- 
- 	while (atomic_read(&do_stuff)) {
-@@ -292,7 +290,6 @@ static int writer(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
- 
--	daemonize("Write%u", N);
- 	set_user_nice(current, 19);
- 
- 	while (atomic_read(&do_stuff)) {
-@@ -316,7 +313,6 @@ static int downgrader(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
- 
--	daemonize("Down%u", N);
- 	set_user_nice(current, 19);
- 
- 	while (atomic_read(&do_stuff)) {
-@@ -433,27 +429,27 @@ static int __init do_tests(void)
- 	for (loop = 0; loop < MAX_THREADS; loop++) {
- 		if (loop < nummx) {
- 			init_completion(&mx_comp[loop]);
--			kernel_thread(mutexer, (void *) loop, 0);
-+			kthread_run(mutexer, (void *) loop, "Mutex%u", loop);
- 		}
- 
- 		if (loop < numsm) {
- 			init_completion(&sm_comp[loop]);
--			kernel_thread(semaphorer, (void *) loop, 0);
-+			kthread_run(semaphorer, (void *) loop, "Sem%u", loop);
- 		}
- 
- 		if (loop < numrd) {
- 			init_completion(&rd_comp[loop]);
--			kernel_thread(reader, (void *) loop, 0);
-+			kthread_run(reader, (void *) loop, "Read%u", loop);
- 		}
- 
- 		if (loop < numwr) {
- 			init_completion(&wr_comp[loop]);
--			kernel_thread(writer, (void *) loop, 0);
-+			kthread_run(writer, (void *) loop, "Write%u", loop);
- 		}
- 
- 		if (loop < numdg) {
- 			init_completion(&dg_comp[loop]);
--			kernel_thread(downgrader, (void *) loop, 0);
-+			kthread_run(downgrader, (void *) loop, "Down%u", loop);
- 		}
- 	}
- 
+ 		/* We need to wait INTERRUPTIBLE so that
+ 		 * we don't add to the load-average.
+-		 * That means we need to be sure no signals are
+-		 * pending
+ 		 */
+-		if (signal_pending(current))
+-			flush_signals(current);
+-
+ 		wait_event_interruptible_timeout
+ 			(thread->wqueue,
+ 			 test_bit(THREAD_WAKEUP, &thread->flags)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -164,5 +107,6 @@ kill-unused-sesssion-and-group-values-in-rocket-driver.patch
 fix-some-coding-style-errors-in-autofs.patch
 replace-pid_t-in-autofs-with-struct-pid-reference.patch
 dont-init-pgrp-and-__session-in-init_signals.patch
+md-remove-broken-sigkill-support.patch
 mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
 vdso-print-fatal-signals-use-ctl_unnumbered.patch
