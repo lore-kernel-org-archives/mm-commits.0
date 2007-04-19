@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rfcomm_worker-fix-wakeup-race.patch added to -mm tree
-Date: Thu, 19 Apr 2007 16:14:18 -0700
-Message-ID: <200704192314.l3JNEIWE001310@shell0.pdx.osdl.net>
+Subject: + macintosh-mediabay-convert-to-kthread-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 16:30:10 -0700
+Message-ID: <200704192330.l3JNUAMH001799@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36153 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55418 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753931AbXDSXOY (ORCPT
+	by vger.kernel.org with ESMTP id S1754293AbXDSXaQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 19:14:24 -0400
+	Thu, 19 Apr 2007 19:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, marcel@holtmann.org
+Cc: ebiederm@xmission.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     rfcomm_worker(): fix wakeup race
+     macintosh/mediabay: convert to kthread API
 has been added to the -mm tree.  Its filename is
-     rfcomm_worker-fix-wakeup-race.patch
+     macintosh-mediabay-convert-to-kthread-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,204 +26,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rfcomm_worker(): fix wakeup race
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: macintosh/mediabay: convert to kthread API
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Set TASK_INTERRUPTIBLE prior to testing the flag to avoid missed wakeups.
+This patch modifies the startup of the media_bay_task to use kthread_run
+and not a combination of kernel_thread, deamonize and sigfillset.
 
-Cc: Marcel Holtmann <marcel@holtmann.org>
+In addition since we now always want to ignore signals the
+MB_IGNORE_SIGNALS define is removed along with the test for signal_pending.
+
+The result is slightly simpler code that is more
+maintainable.
+
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/rfcomm/core.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/macintosh/mediabay.c |   11 ++---------
+ 1 files changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN net/bluetooth/rfcomm/core.c~rfcomm_worker-fix-wakeup-race net/bluetooth/rfcomm/core.c
---- a/net/bluetooth/rfcomm/core.c~rfcomm_worker-fix-wakeup-race
-+++ a/net/bluetooth/rfcomm/core.c
-@@ -1854,18 +1854,18 @@ static void rfcomm_worker(void)
- 	while (!atomic_read(&terminate)) {
- 		try_to_freeze();
+diff -puN drivers/macintosh/mediabay.c~macintosh-mediabay-convert-to-kthread-api drivers/macintosh/mediabay.c
+--- a/drivers/macintosh/mediabay.c~macintosh-mediabay-convert-to-kthread-api
++++ a/drivers/macintosh/mediabay.c
+@@ -20,6 +20,7 @@
+ #include <linux/stddef.h>
+ #include <linux/init.h>
+ #include <linux/ide.h>
++#include <linux/kthread.h>
+ #include <asm/prom.h>
+ #include <asm/pgtable.h>
+ #include <asm/io.h>
+@@ -35,7 +36,6 @@
  
-+		set_current_state(TASK_INTERRUPTIBLE);
- 		if (!test_bit(RFCOMM_SCHED_WAKEUP, &rfcomm_event)) {
- 			/* No pending events. Let's sleep.
- 			 * Incoming connections and data will wake us up. */
--			set_current_state(TASK_INTERRUPTIBLE);
- 			schedule();
+ 
+ #define MB_DEBUG
+-#define MB_IGNORE_SIGNALS
+ 
+ #ifdef MB_DEBUG
+ #define MBDBG(fmt, arg...)	printk(KERN_INFO fmt , ## arg)
+@@ -622,11 +622,6 @@ static int media_bay_task(void *x)
+ {
+ 	int	i;
+ 
+-	strcpy(current->comm, "media-bay");
+-#ifdef MB_IGNORE_SIGNALS
+-	sigfillset(&current->blocked);
+-#endif
+-
+ 	for (;;) {
+ 		for (i = 0; i < media_bay_count; ++i) {
+ 			down(&media_bays[i].lock);
+@@ -636,8 +631,6 @@ static int media_bay_task(void *x)
  		}
-+		set_current_state(TASK_RUNNING);
  
- 		/* Process stuff */
- 		clear_bit(RFCOMM_SCHED_WAKEUP, &rfcomm_event);
- 		rfcomm_process_sessions();
+ 		msleep_interruptible(MB_POLL_DELAY);
+-		if (signal_pending(current))
+-			return 0;
  	}
--	set_current_state(TASK_RUNNING);
- 	return;
  }
+ 
+@@ -699,7 +692,7 @@ static int __devinit media_bay_attach(st
+ 
+ 	/* Startup kernel thread */
+ 	if (i == 0)
+-		kernel_thread(media_bay_task, NULL, CLONE_KERNEL);
++		kthread_run(media_bay_task, NULL, "media-bay");
+ 
+ 	return 0;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-sysfs-group-removal-avoid-bypass-permission-checks-tidy.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-rfcomm_worker-fix-wakeup-race.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-git-wireless-vs-git-net-3.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
+powerpc-rtas-msi-support.patch
+macintosh-mediabay-convert-to-kthread-api.patch
+mm-only-dvb_en_50221-convert-to-kthread-api.patch
+mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
+fix-i-oat-for-kexec.patch
+i386-irq-kill-irq-compression.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+clean-up-elf-note-generation.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
+proc-cleanup-use-seq_release_private-where-appropriate.patch
+smbfs-remove-unnecessary-allow_signal.patch
+kthread-dont-depend-on-work-queues-take-2.patch
 kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+change-reparent_to_init-to-reparent_to_kthreadd.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+worker_thread-dont-play-with-sigchld-and-numa-policy.patch
+change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+edac-k8-driver-coding-tidy.patch
+nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+md-remove-broken-sigkill-support.patch
+mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
