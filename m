@@ -1,90 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-more-fixes-for-specific-machine-types.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 13:01:52 -0700
-Message-ID: <200704192001.l3JK1qnU029321@shell0.pdx.osdl.net>
+Subject: - pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 13:02:26 -0700
+Message-ID: <200704192002.l3JK2QTe029385@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58821 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766991AbXDSUCd (ORCPT
+	by vger.kernel.org with ESMTP id S1766992AbXDSUCl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 16:02:33 -0400
+	Thu, 19 Apr 2007 16:02:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ALPHA: more fixes for specific machine types
+     pata_cypress: re-remove all the crap and switch back to cable method
 has been removed from the -mm tree.  Its filename was
-     alpha-more-fixes-for-specific-machine-types.patch
+     pata_cypress-re-remove-all-the-crap-and-switch-back-to.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ALPHA: more fixes for specific machine types
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: pata_cypress: re-remove all the crap and switch back to cable method
+From: Alan Cox <alan@redhat.com>
 
-arch/alpha/kernel/sys_sx164.c
-
-	Earlier firmware revisions need MVI fix as well.
-
-arch/alpha/kernel/sys_nautilus.c
-
-	On UP1500 firmware reports wrong AGP IRQ (10 instead of 5).
-	This causes interrupt storm if there is a PCI device that
-	uses IRQ 5.
-
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/sys_nautilus.c |    6 ++++++
- arch/alpha/kernel/sys_sx164.c    |    2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/ata/pata_cypress.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff -puN arch/alpha/kernel/sys_nautilus.c~alpha-more-fixes-for-specific-machine-types arch/alpha/kernel/sys_nautilus.c
---- a/arch/alpha/kernel/sys_nautilus.c~alpha-more-fixes-for-specific-machine-types
-+++ a/arch/alpha/kernel/sys_nautilus.c
-@@ -70,6 +70,12 @@ nautilus_map_irq(struct pci_dev *dev, u8
- 	/* Preserve the IRQ set up by the console.  */
+diff -puN drivers/ata/pata_cypress.c~pata_cypress-re-remove-all-the-crap-and-switch-back-to drivers/ata/pata_cypress.c
+--- a/drivers/ata/pata_cypress.c~pata_cypress-re-remove-all-the-crap-and-switch-back-to
++++ a/drivers/ata/pata_cypress.c
+@@ -41,17 +41,6 @@ enum {
+ 	CY82_INDEX_TIMEOUT	= 0x32
+ };
  
- 	u8 irq;
-+	/* UP1500: AGP INTA is actually routed to IRQ 5, not IRQ 10 as
-+	   console reports. Check the device id of AGP bridge to distinguish
-+	   UP1500 from UP1000/1100. Note: 'pin' is 2 due to bridge swizzle. */
-+	if (slot == 1 && pin == 2 &&
-+	    dev->bus->self && dev->bus->self->device == 0x700f)
-+		return 5;
- 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
- 	return irq;
- }
-diff -puN arch/alpha/kernel/sys_sx164.c~alpha-more-fixes-for-specific-machine-types arch/alpha/kernel/sys_sx164.c
---- a/arch/alpha/kernel/sys_sx164.c~alpha-more-fixes-for-specific-machine-types
-+++ a/arch/alpha/kernel/sys_sx164.c
-@@ -132,7 +132,7 @@ sx164_init_arch(void)
+-static int cy82c693_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
+-	ap->cbl = ATA_CBL_PATA40;
+-	return ata_std_prereset(ap, deadline);
+-}
+-
+-static void cy82c693_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, cy82c693_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+ /**
+  *	cy82c693_set_piomode	-	set initial PIO mode data
+  *	@ap: ATA interface
+@@ -156,8 +145,9 @@ static struct ata_port_operations cy82c6
  
- 	if (amask(AMASK_MAX) != 0
- 	    && alpha_using_srm
--	    && (cpu->pal_revision & 0xffff) == 0x117) {
-+	    && (cpu->pal_revision & 0xffff) <= 0x117) {
- 		__asm__ __volatile__(
- 		"lda	$16,8($31)\n"
- 		"call_pal 9\n"		/* Allow PALRES insns in kernel mode */
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= cy82c693_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_40wire,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
-round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
-alpha-fix-bootp-image-creation.patch
-alpha-prctl-macros.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-deflate-stack-usage-in-lib-inflatec.patch
-lutimesat-extend-do_utimes-with-flags.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
-local_t-alpha-extension.patch
-markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
-make-sure-nobodys-leaking-resources.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+pata_hpt37x-further-small-fixes.patch
+pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
+spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
+pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
+pci_module_init-convertion-in-tmscsimc.patch
+tty-clarify-documentation-of-write.patch
+tty-i386-x86_64-arbitary-speed-support.patch
+apm-fix-incorrect-comment.patch
+revoke-special-mmap-handling.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
