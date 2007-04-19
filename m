@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spin_lock_unlocked-cleanup-in-drivers-atm-net.patch added to -mm tree
-Date: Thu, 19 Apr 2007 14:08:51 -0700
-Message-ID: <200704192108.l3JL8pMO030715@shell0.pdx.osdl.net>
+Subject: + fix-pf_nofreeze-and-freezeable-race.patch added to -mm tree
+Date: Thu, 19 Apr 2007 14:10:20 -0700
+Message-ID: <200704192110.l3JLALIp030762@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38448 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766986AbXDSVIy (ORCPT
+	by vger.kernel.org with ESMTP id S1766991AbXDSVLK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 17:08:54 -0400
+	Thu, 19 Apr 2007 17:11:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: milindchoudhary@gmail.com
+Cc: ego@in.ibm.com, oleg@tv-sign.ru, rjw@sisk.pl
 
 
 The patch titled
-     SPIN_LOCK_UNLOCKED cleanup in drivers/atm, net
+     Fix PF_NOFREEZE and freezeable race
 has been added to the -mm tree.  Its filename is
-     spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
+     fix-pf_nofreeze-and-freezeable-race.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,125 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SPIN_LOCK_UNLOCKED cleanup in drivers/atm, net
-From: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Subject: Fix PF_NOFREEZE and freezeable race
+From: Gautham R Shenoy <ego@in.ibm.com>
 
-SPIN_LOCK_UNLOCKED cleanup,use __SPIN_LOCK_UNLOCKED instead
+This patch fixes the race pointed out by Oleg Nesterov.
 
-Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
+* Freezer marks a thread as freezeable.
+* The thread now marks itself PF_NOFREEZE causing it to
+  freeze on calling try_to_freeze(). Thus the task is frozen, even though
+  it doesn't want to.
+* Subsequent thaw_processes() will also fail to thaw the task since it is
+  marked PF_NOFREEZE.
+
+Avoid this problem by checking the current task's PF_NOFREEZE status in the
+refrigerator before marking current as frozen.
+
+Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/atmtcp.c |    2 +-
- net/atm/clip.c       |    2 +-
- net/atm/lec.c        |    2 +-
- net/atm/mpc.c        |    2 +-
- net/atm/signaling.c  |    2 +-
- net/dccp/minisocks.c |    2 +-
- net/ipv6/mip6.c      |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ kernel/power/process.c |    9 +++++++++
+ 1 files changed, 9 insertions(+)
 
-diff -puN drivers/atm/atmtcp.c~spin_lock_unlocked-cleanup-in-drivers-atm-net drivers/atm/atmtcp.c
---- a/drivers/atm/atmtcp.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
-+++ a/drivers/atm/atmtcp.c
-@@ -352,7 +352,7 @@ static struct atm_dev atmtcp_control_dev
- 	.ops		= &atmtcp_c_dev_ops,
- 	.type		= "atmtcp",
- 	.number		= 999,
--	.lock		= SPIN_LOCK_UNLOCKED
-+	.lock		= __SPIN_LOCK_UNLOCKED(atmtcp_control_dev.lock)
- };
+diff -puN kernel/power/process.c~fix-pf_nofreeze-and-freezeable-race kernel/power/process.c
+--- a/kernel/power/process.c~fix-pf_nofreeze-and-freezeable-race
++++ a/kernel/power/process.c
+@@ -41,6 +41,15 @@ void refrigerator(void)
  
- 
-diff -puN net/atm/clip.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/atm/clip.c
---- a/net/atm/clip.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
-+++ a/net/atm/clip.c
-@@ -702,7 +702,7 @@ static struct atm_dev atmarpd_dev = {
- 	.ops =			&atmarpd_dev_ops,
- 	.type =			"arpd",
- 	.number = 		999,
--	.lock =			SPIN_LOCK_UNLOCKED
-+	.lock =			__SPIN_LOCK_UNLOCKED(atmarpd_dev.lock)
- };
- 
- 
-diff -puN net/atm/lec.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/atm/lec.c
---- a/net/atm/lec.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
-+++ a/net/atm/lec.c
-@@ -630,7 +630,7 @@ static struct atm_dev lecatm_dev = {
- 	.ops = &lecdev_ops,
- 	.type = "lec",
- 	.number = 999,		/* dummy device number */
--	.lock = SPIN_LOCK_UNLOCKED
-+	.lock = __SPIN_LOCK_UNLOCKED(lecatm_dev.lock)
- };
- 
- /*
-diff -puN net/atm/mpc.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/atm/mpc.c
---- a/net/atm/mpc.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
-+++ a/net/atm/mpc.c
-@@ -737,7 +737,7 @@ static struct atm_dev mpc_dev = {
- 	.ops	= &mpc_ops,
- 	.type	= "mpc",
- 	.number	= 42,
--	.lock	= SPIN_LOCK_UNLOCKED
-+	.lock	= __SPIN_LOCK_UNLOCKED(mpc_dev.lock)
- 	/* members not explicitly initialised will be 0 */
- };
- 
-diff -puN net/atm/signaling.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/atm/signaling.c
---- a/net/atm/signaling.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
-+++ a/net/atm/signaling.c
-@@ -256,7 +256,7 @@ static struct atm_dev sigd_dev = {
- 	.ops =		&sigd_dev_ops,
- 	.type =		"sig",
- 	.number =	999,
--	.lock =		SPIN_LOCK_UNLOCKED
-+	.lock =		__SPIN_LOCK_UNLOCKED(sigd_dev.lock)
- };
- 
- 
-diff -puN net/dccp/minisocks.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/dccp/minisocks.c
---- a/net/dccp/minisocks.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
-+++ a/net/dccp/minisocks.c
-@@ -27,7 +27,7 @@
- struct inet_timewait_death_row dccp_death_row = {
- 	.sysctl_max_tw_buckets = NR_FILE * 2,
- 	.period		= DCCP_TIMEWAIT_LEN / INET_TWDR_TWKILL_SLOTS,
--	.death_lock	= SPIN_LOCK_UNLOCKED,
-+	.death_lock	= __SPIN_LOCK_UNLOCKED(dccp_death_row.death_lock),
- 	.hashinfo	= &dccp_hashinfo,
- 	.tw_timer	= TIMER_INITIALIZER(inet_twdr_hangman, 0,
- 					    (unsigned long)&dccp_death_row),
-diff -puN net/ipv6/mip6.c~spin_lock_unlocked-cleanup-in-drivers-atm-net net/ipv6/mip6.c
---- a/net/ipv6/mip6.c~spin_lock_unlocked-cleanup-in-drivers-atm-net
-+++ a/net/ipv6/mip6.c
-@@ -125,7 +125,7 @@ struct mip6_report_rate_limiter {
- };
- 
- static struct mip6_report_rate_limiter mip6_report_rl = {
--	.lock = SPIN_LOCK_UNLOCKED
-+	.lock = __SPIN_LOCK_UNLOCKED(mip6_report_rl.lock)
- };
- 
- static int mip6_destopt_input(struct xfrm_state *x, struct sk_buff *skb)
+ 	task_lock(current);
+ 	if (freezing(current)) {
++		/* check if we had marked ourself PF_NOFREEZE
++		 * *after* the freezer did the freezeable() check
++		 * on us.
++		 */
++		if (current->flags & PF_NOFREEZE) {
++			clear_tsk_thread_flag(current, TIF_FREEZE);
++			task_unlock(current);
++			return;
++		}
+ 		frozen_process(current);
+ 		task_unlock(current);
+ 	} else {
 _
 
-Patches currently in -mm which might be from milindchoudhary@gmail.com are
+Patches currently in -mm which might be from ego@in.ibm.com are
 
-git-alsa.patch
-git-powerpc.patch
-spin_lock_unlocked-cleanup-in-arch-powerpc.patch
-git-ieee1394.patch
-spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
-round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
-spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
-round_up-macro-cleanup-in-drivers-parisc.patch
-round_up-macro-cleanup-in-drivers-pci.patch
-pcie-remove-spin_lock_unlocked.patch
-round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
-round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
-round_up-macro-cleanup-in-drivers-char-lpc.patch
-round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
-round_up-macro-cleanup-in-fs-smbfs-requestc.patch
-spin_lock_unlocked-cleanup-in-init_taskh.patch
+i386-avoid-checking-for-cpu-gone-when-config_hotplug_cpu-not-defined.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+fix-pf_nofreeze-and-freezeable-race.patch
