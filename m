@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-implement-staircase-deadline-scheduler-docupdate.patch added to -mm tree
-Date: Thu, 19 Apr 2007 14:03:46 -0700
-Message-ID: <200704192103.l3JL3kIn030568@shell0.pdx.osdl.net>
+Subject: + revoke-core-code-mapping-revocation.patch added to -mm tree
+Date: Thu, 19 Apr 2007 14:05:58 -0700
+Message-ID: <200704192105.l3JL5wpq030620@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37153 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766985AbXDSVEU (ORCPT
+	by vger.kernel.org with ESMTP id S1766989AbXDSVGL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 17:04:20 -0400
+	Thu, 19 Apr 2007 17:06:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kernel@kolivas.org
+Cc: penberg@cs.helsinki.fi
 
 
 The patch titled
-     sched: implement staircase deadline scheduler docupdate
+     revoke: mapping revocation
 has been added to the -mm tree.  Its filename is
-     sched-implement-staircase-deadline-scheduler-docupdate.patch
+     revoke-core-code-mapping-revocation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,251 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sched: implement staircase deadline scheduler docupdate
-From: Con Kolivas <kernel@kolivas.org>
+Subject: revoke: mapping revocation
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-Update documentation to reflect higher maximum rr_interval.
+As pointed out by Andrew Morton, if some process is partway through a big
+page_cache_readahead() operation, a concurrent invalidate_inode_pages2() is
+not enough to revoke inode pages.  This patch changes the revoke code to
+modify ->f_mapping to point to a revoked mapping that will cause any future
+operations on the mapping to fail with EIO.
 
-Signed-off-by: Con Kolivas <kernel@kolivas.org>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/revoke.c        |   29 ++++++++++++++++++++---------
+ fs/revoked_inode.c |   39 +++++++++++++++++++++++++++++++++++++++
+ include/linux/fs.h |    4 ++--
+ include/linux/mm.h |    1 +
+ mm/mmap.c          |   11 +++++++++++
+ 5 files changed, 73 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~sched-implement-staircase-deadline-scheduler-docupdate Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~sched-implement-staircase-deadline-scheduler-docupdate
-+++ a/Documentation/sysctl/kernel.txt
-@@ -298,7 +298,7 @@ overall. This value is in milliseconds a
- depends on the number of cpus available at scheduler initialisation
- with a minimum of 8.
+diff -puN fs/revoke.c~revoke-core-code-mapping-revocation fs/revoke.c
+--- a/fs/revoke.c~revoke-core-code-mapping-revocation
++++ a/fs/revoke.c
+@@ -201,6 +201,10 @@ static int __revoke_break_cow(struct tas
+ 			err = ret;
+ 			break;
+ 		}
++
++		unlink_file_vma(vma);
++		fput(vma->vm_file);
++		vma->vm_file = NULL;
+ 	}
+ 	up_read(&mm->mmap_sem);
+ 	return err;
+@@ -290,6 +294,10 @@ static int revoke_mm(struct mm_struct *m
+ 		err = revoke_vma(vma, &details);
+ 		if (err)
+ 			break;
++
++		__unlink_file_vma(vma);
++		fput(vma->vm_file);
++		vma->vm_file = NULL;
+ 	}
+ 	up_write(&mm->mmap_sem);
+   out:
+@@ -317,12 +325,10 @@ static void revoke_mapping_tree(struct a
+ 			continue;
  
--Valid values are from 1-100.
-+Valid values are from 1-5000.
+ 		err = revoke_mm(vma->vm_mm, mapping, to_exclude);
+-		if (err == -EAGAIN) {
++		if (err == -EAGAIN)
+ 			try_again = 1;
+-			continue;
+-		}
+-		if (err == -EINTR)
+-			goto restart;
++
++		goto restart;
+ 	}
+ 	if (try_again) {
+ 		cond_resched();
+@@ -418,9 +424,11 @@ static int revoke_files(struct revoke_ta
+ 	for (i = 0; i < table->end; i++) {
+ 		struct revokefs_inode_info *info;
+ 		struct file *this, *filp;
++		struct inode *inode;
  
- ==============================================================
+ 		this = table->files[i];
+-		info = revokefs_i(this->f_dentry->d_inode);
++		inode = this->f_dentry->d_inode;
++		info = revokefs_i(inode);
  
+ 		/*
+ 		 * Increase count before attempting to close file as
+@@ -428,7 +436,7 @@ static int revoke_files(struct revoke_ta
+ 		 */
+ 		table->restore_start++;
+ 		filp = info->file;
+-		err = filp->f_op->revoke(filp);
++		err = filp->f_op->revoke(filp, inode->i_mapping);
+ 		put_task_struct(info->owner);
+ 		info->owner = NULL;	/* To avoid restoring closed file. */
+ 		if (err)
+@@ -633,8 +641,9 @@ asmlinkage long sys_frevoke(unsigned int
+ 	return err;
+ }
+ 
+-int generic_file_revoke(struct file *file)
++int generic_file_revoke(struct file *file, struct address_space *new_mapping)
+ {
++	struct address_space *mapping = file->f_mapping;
+ 	int err;
+ 
+ 	/*
+@@ -644,10 +653,12 @@ int generic_file_revoke(struct file *fil
+ 	if (err)
+ 		goto out;
+ 
++	file->f_mapping = new_mapping;
++
+ 	/*
+ 	 * Make pending reads fail.
+ 	 */
+-	err = invalidate_inode_pages2(file->f_mapping);
++	err = invalidate_inode_pages2(mapping);
+ 
+   out:
+ 	return err;
+diff -puN fs/revoked_inode.c~revoke-core-code-mapping-revocation fs/revoked_inode.c
+--- a/fs/revoked_inode.c~revoke-core-code-mapping-revocation
++++ a/fs/revoked_inode.c
+@@ -362,6 +362,43 @@ static struct inode_operations revoked_i
+ 	/* truncate_range returns void */
+ };
+ 
++static int revoked_readpage(struct file *file, struct page *page)
++{
++	return -EIO;
++}
++
++static int revoked_writepage(struct page *page, struct writeback_control *wbc)
++{
++	return -EIO;
++}
++
++static int revoked_prepare_write(struct file *file, struct page *page,
++				 unsigned from, unsigned to)
++{
++	return -EIO;
++}
++
++static int revoked_commit_write(struct file *file, struct page *page,
++				unsigned from, unsigned to)
++{
++	return -EIO;
++}
++
++static ssize_t revoked_direct_IO(int rw, struct kiocb *iocb,
++				 const struct iovec *iov, loff_t offset,
++				 unsigned long nr_segs)
++{
++	return -EIO;
++}
++
++static const struct address_space_operations revoked_aops = {
++        .readpage       = revoked_readpage,
++        .writepage      = revoked_writepage,
++        .prepare_write  = revoked_prepare_write,
++        .commit_write   = revoked_commit_write,
++        .direct_IO      = revoked_direct_IO,
++};
++
+ void make_revoked_inode(struct inode *inode, int mode)
+ {
+ 	remove_inode_hash(inode);
+@@ -375,4 +412,6 @@ void make_revoked_inode(struct inode *in
+ 		inode->i_fop = &revoked_special_file_ops;
+ 	else
+ 		inode->i_fop = &revoked_file_ops;
++
++	inode->i_mapping->a_ops = &revoked_aops;
+ }
+diff -puN include/linux/fs.h~revoke-core-code-mapping-revocation include/linux/fs.h
+--- a/include/linux/fs.h~revoke-core-code-mapping-revocation
++++ a/include/linux/fs.h
+@@ -1110,7 +1110,7 @@ struct file_operations {
+ 	int (*flock) (struct file *, int, struct file_lock *);
+ 	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, loff_t *, size_t, unsigned int);
+ 	ssize_t (*splice_read)(struct file *, loff_t *, struct pipe_inode_info *, size_t, unsigned int);
+-	int (*revoke)(struct file *);
++	int (*revoke)(struct file *, struct address_space *);
+ };
+ 
+ struct inode_operations {
+@@ -1754,7 +1754,7 @@ extern long do_splice_direct(struct file
+ 
+ /* fs/revoke.c */
+ #ifdef CONFIG_MMU
+-extern int generic_file_revoke(struct file *);
++extern int generic_file_revoke(struct file *, struct address_space *);
+ #else
+ #define generic_file_revoke NULL
+ #endif
+diff -puN include/linux/mm.h~revoke-core-code-mapping-revocation include/linux/mm.h
+--- a/include/linux/mm.h~revoke-core-code-mapping-revocation
++++ a/include/linux/mm.h
+@@ -1094,6 +1094,7 @@ extern int split_vma(struct mm_struct *,
+ extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
+ extern void __vma_link_rb(struct mm_struct *, struct vm_area_struct *,
+ 	struct rb_node **, struct rb_node *);
++extern void __unlink_file_vma(struct vm_area_struct *);
+ extern void unlink_file_vma(struct vm_area_struct *);
+ extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
+ 	unsigned long addr, unsigned long len, pgoff_t pgoff);
+diff -puN mm/mmap.c~revoke-core-code-mapping-revocation mm/mmap.c
+--- a/mm/mmap.c~revoke-core-code-mapping-revocation
++++ a/mm/mmap.c
+@@ -202,6 +202,17 @@ static void __remove_shared_vm_struct(st
+ }
+ 
+ /*
++ * Requires inode->i_mapping->i_mmap_lock
++ */
++void __unlink_file_vma(struct vm_area_struct *vma)
++{
++	struct file *file = vma->vm_file;
++	struct address_space *mapping = file->f_mapping;
++
++	__remove_shared_vm_struct(vma, file, mapping);
++}
++
++/*
+  * Unlink a file-based vm structure from its prio_tree, to hide
+  * vma from rmap and vmtruncate before freeing its page tables.
+  */
 _
 
-Patches currently in -mm which might be from kernel@kolivas.org are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
-sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-sched-dont-renice-kernel-threads.patch
-sched-remove-sleepavg-from-proc.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-implement-staircase-deadline-cpu-scheduler.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
-sched-implement-staircase-deadline-cpu-scheduler-staircase-improvements.patch
-sched-implement-staircase-deadline-cpu-scheduler-improvements-fix.patch
-sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
-sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
-sched-implement-staircase-deadline-scheduler-rework-priomatrix.patch
-sched-implement-staircase-deadline-scheduler-further-improvements-1.patch
-sched-implement-staircase-deadline-scheduler-timeslice-fixes.patch
-sched-increase-ksoftirqd-priority.patch
-sched-remove-noninteractive-flag.patch
-sched-document-sd-cpu-scheduler.patch
-sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc.patch
-sched-consolidate-sched_clock-drift-adjustments.patch
-sched-implement-staircase-deadline-scheduler-docupdate.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-swap-prefetch-avoid-repeating-entry.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+unionfs-fix-slab-abuses-with-krealloc.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+slab-dont-allocate-empty-shared-caches.patch
+slab-numa-kmem_cache-diet.patch
+slab-mark-set_up_list3s-__init.patch
+module-use-krealloc.patch
+slab-use-cpu_lock_.patch
+revoke-special-mmap-handling.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+revoke-core-code.patch
+revoke-core-code-misc-fixes.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-core-code-move-magic.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
+revoke-core-code-break-cow-for-private-mappings.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+revoke-core-code-break-cow-fixes.patch
+revoke-core-code-mapping-revocation.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+revoke-only-fput-unused-files.patch
+slab-leaks3-default-y.patch
