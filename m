@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + define-platform-wakeup-hook-use-in-pci_enable_wake.patch added to -mm tree
-Date: Thu, 19 Apr 2007 13:50:13 -0700
-Message-ID: <200704192050.l3JKoEFo030274@shell0.pdx.osdl.net>
+Subject: + sched-implement-staircase-deadline-scheduler-timeslice-fixes.patch added to -mm tree
+Date: Thu, 19 Apr 2007 14:02:00 -0700
+Message-ID: <200704192102.l3JL20vJ030530@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42343 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965271AbXDSUvy (ORCPT
+	by vger.kernel.org with ESMTP id S965301AbXDSVCm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 16:51:54 -0400
+	Thu, 19 Apr 2007 17:02:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, lenb@kernel.org, rui.zhang@intel.com
+Cc: kernel@kolivas.org
 
 
 The patch titled
-     define platform wakeup hook, use in pci_enable_wake()
+     sched: implement staircase deadline scheduler timeslice fixes
 has been added to the -mm tree.  Its filename is
-     define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+     sched-implement-staircase-deadline-scheduler-timeslice-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,192 +26,224 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: define platform wakeup hook, use in pci_enable_wake()
-From: David Brownell <david-b@pacbell.net>
+Subject: sched: implement staircase deadline scheduler timeslice fixes
+From: Con Kolivas <kernel@kolivas.org>
 
-This defines a platform hook to enable/disable a device as a wakeup event
-source.  It's initially for use with ACPI, but more generally it could be used
-whenever enable_irq_wake()/disable_irq_wake() don't suffice.
+There is no need for time_slice and quota to be stored in nanoseconds and can
+overflow on 32bit when rr_intervals are large.  Convert them to microseconds.
 
-The hook is called -- if available -- inside pci_enable_wake(); and the
-semantics of that call are enhanced so that support for PCI PME# is no longer
-needed.  It can now work for devices with "legacy PCI PM", when platform
-support allows it.  (That support would use some board-specific signal for for
-the same purpose as PME#.)
+This then allows the maximum rr_interval to be as large as 5000 milliseconds.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Len Brown <lenb@kernel.org>
+Alter the choice of initial rr_interval to scale more with cpus in an
+understandable fashion along with explanation.
+
+Don't check that rr_interval is at least one tick every time rr_quota is
+called.  Simply allow it to be less if the user desires and allow aliasing to
+keep accounting sane overall.
+
+Thanks to Nick Piggin for suggesting larger timeslices.
+Thanks to Peter Zijlstra for help.
+
+Signed-off-by: Con Kolivas <kernel@kolivas.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/main.c |    3 +
- drivers/pci/pci.c         |   61 +++++++++++++++++++++++++-----------
- include/linux/pm.h        |    5 ++
- 3 files changed, 51 insertions(+), 18 deletions(-)
+ kernel/sched.c  |   44 +++++++++++++++++++++++---------------------
+ kernel/sysctl.c |   11 ++++++-----
+ 2 files changed, 29 insertions(+), 26 deletions(-)
 
-diff -puN drivers/base/power/main.c~define-platform-wakeup-hook-use-in-pci_enable_wake drivers/base/power/main.c
---- a/drivers/base/power/main.c~define-platform-wakeup-hook-use-in-pci_enable_wake
-+++ a/drivers/base/power/main.c
-@@ -29,6 +29,9 @@ LIST_HEAD(dpm_off_irq);
- DECLARE_MUTEX(dpm_sem);
- DECLARE_MUTEX(dpm_list_sem);
- 
-+int (*platform_enable_wakeup)(struct device *dev, int is_on) = NULL;
-+
-+
- /**
-  *	device_pm_set_parent - Specify power dependency.
-  *	@dev:		Device who needs power.
-diff -puN drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake drivers/pci/pci.c
---- a/drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake
-+++ a/drivers/pci/pci.c
-@@ -891,31 +891,53 @@ pci_disable_device(struct pci_dev *dev)
- }
- 
- /**
-- * pci_enable_wake - enable device to generate PME# when suspended
-- * @dev: - PCI device to operate on
-- * @state: - Current state of device.
-- * @enable: - Flag to enable or disable generation
-- * 
-- * Set the bits in the device's PM Capabilities to generate PME# when
-- * the system is suspended. 
-- *
-- * -EIO is returned if device doesn't have PM Capabilities. 
-- * -EINVAL is returned if device supports it, but can't generate wake events.
-- * 0 if operation is successful.
-- * 
-+ * pci_enable_wake - enable PCI device as wakeup event source
-+ * @dev: PCI device affected
-+ * @state: PCI state from which device will issue wakeup events
-+ * @enable: True to enable event generation; false to disable
-+ *
-+ * This enables the device as a wakeup event source, or disables it.
-+ * When such events involves platform-specific hooks, those hooks are
-+ * called automatically by this routine.
-+ *
-+ * Devices with legacy power management (no standard PCI PM capabilities)
-+ * always require such platform hooks.  Depending on the platform, devices
-+ * supporting the standard PCI PME# signal may require such platform hooks;
-+ * they always update bits in config space to allow PME# generation.
-+ *
-+ * -EIO is returned if the device can't ever be a wakeup event source.
-+ * -EINVAL is returned if the device can't generate wakeup events from
-+ * the specified PCI state.  Returns zero if the operation is successful.
+diff -puN kernel/sched.c~sched-implement-staircase-deadline-scheduler-timeslice-fixes kernel/sched.c
+--- a/kernel/sched.c~sched-implement-staircase-deadline-scheduler-timeslice-fixes
++++ a/kernel/sched.c
+@@ -42,6 +42,7 @@
+ #include <linux/smp.h>
+ #include <linux/threads.h>
+ #include <linux/timer.h>
++#include <linux/log2.h>
+ #include <linux/rcupdate.h>
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
+@@ -90,7 +91,7 @@ unsigned long long __attribute__((weak))
+ /* Some helpers for converting to/from various scales.*/
+ #define NS_TO_JIFFIES(TIME)	((TIME) / (1000000000 / HZ))
+ #define JIFFIES_TO_NS(TIME)	((TIME) * (1000000000 / HZ))
+-#define MS_TO_NS(TIME)		((TIME) * 1000000)
++#define MS_TO_US(TIME)		((TIME) * 1000)
+ /* Can return 0 */
+ #define MS_TO_JIFFIES(TIME)	((TIME) * HZ / 1000)
+ #define JIFFIES_TO_MS(TIME)	((TIME) * 1000 / HZ)
+@@ -102,9 +103,8 @@ unsigned long long __attribute__((weak))
+  * Value is in ms and set to a minimum of 8ms. Scales with number of cpus.
+  * Tunable via /proc interface.
   */
- int pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable)
+-int rr_interval __read_mostly;
++int rr_interval __read_mostly = 8;
+ 
+-#define RR_INTERVAL		8
+ #define DEF_TIMESLICE		(rr_interval * 20)
+ 
+ /*
+@@ -1014,23 +1014,20 @@ static int effective_prio(struct task_st
+  * tick still. Below nice 0 they get progressively larger.
+  * ie nice -6..0 = rr_interval. nice -10 = 2.5 * rr_interval
+  * nice -20 = 10 * rr_interval. nice 1-19 = rr_interval / 2.
+- * Value returned is in nanoseconds.
++ * Value returned is in microseconds.
+  */
+ static unsigned int rr_quota(struct task_struct *p)
  {
- 	int pm;
-+	int status;
- 	u16 value;
+ 	int nice = TASK_NICE(p), rr = rr_interval;
  
-+	/* Note that drivers should verify device_may_wakeup(&dev->dev)
-+	 * before calling this function.  Platform code should report
-+	 * errors when drivers try to enable wakeup on devices that
-+	 * can't issue wakeups, or on which wakeups were disabled by
-+	 * userspace updating the /sys/devices.../power/wakeup file.
-+	 */
-+
-+	if (platform_enable_wakeup) {
-+		status = platform_enable_wakeup(&dev->dev, enable);
-+		if (status)
-+			return status;
-+	} else
-+		status = -EIO;
-+
- 	/* find PCI PM capability in list */
- 	pm = pci_find_capability(dev, PCI_CAP_ID_PM);
- 
--	/* If device doesn't support PM Capabilities, but request is to disable
--	 * wake events, it's a nop; otherwise fail */
--	if (!pm) 
--		return enable ? -EIO : 0; 
-+	/* If device doesn't support PM Capabilities, but caller wants to
-+	 * disable wake events, it's a NOP.  Otherwise fail unless the
-+	 * platform hooks handled this legacy device already.
-+	 */
-+	if (!pm)
-+		return enable ? status : 0;
- 
- 	/* Check device's ability to generate PME# */
- 	pci_read_config_word(dev,pm+PCI_PM_PMC,&value);
-@@ -924,8 +946,11 @@ int pci_enable_wake(struct pci_dev *dev,
- 	value >>= ffs(PCI_PM_CAP_PME_MASK) - 1;   /* First bit of mask */
- 
- 	/* Check if it can generate PME# from requested state. */
--	if (!value || !(value & (1 << state))) 
-+	if (!value || !(value & (1 << state))) {
-+		if (enable && platform_enable_wakeup)
-+			(void) platform_enable_wakeup(&dev->dev, 0);
- 		return enable ? -EINVAL : 0;
-+	}
- 
- 	pci_read_config_word(dev, pm + PCI_PM_CTRL, &value);
- 
-@@ -936,7 +961,7 @@ int pci_enable_wake(struct pci_dev *dev,
- 		value &= ~PCI_PM_CTRL_PME_ENABLE;
- 
- 	pci_write_config_word(dev, pm + PCI_PM_CTRL, value);
--	
-+
- 	return 0;
+-	/* Ensure that rr_interval is at least 1 tick */
+-	if (unlikely(!MS_TO_JIFFIES(rr)))
+-		rr = rr_interval = JIFFIES_TO_MS(1) ? : 1;
+ 	if (!rt_task(p)) {
+ 		if (nice < -6) {
+ 			rr *= nice * nice;
+ 			rr /= 40;
+-		} else if (nice > 0 && (rr * HZ / 1000 / 2) > 0)
+-			rr /= 2;
++		} else if (nice > 0)
++			rr = rr / 2 ? : 1;
+ 	}
+-	return MS_TO_NS(rr);
++	return MS_TO_US(rr);
  }
  
-diff -puN include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake include/linux/pm.h
---- a/include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake
-+++ a/include/linux/pm.h
-@@ -273,6 +273,11 @@ extern void __suspend_report_result(cons
- 		__suspend_report_result(__FUNCTION__, fn, ret);		\
- 	} while (0)
+ /*
+@@ -3243,16 +3240,17 @@ EXPORT_PER_CPU_SYMBOL(kstat);
+ /*
+  * This is called on clock ticks and on context switches.
+  * Bank in p->sched_time the ns elapsed since the last tick or switch.
+- * CPU scheduler quota accounting is also performed here.
++ * CPU scheduler quota accounting is also performed here in microseconds.
+  * The value returned from sched_clock() occasionally gives bogus values so
+  * some sanity checking is required.
+  */
+-static inline void
++static void
+ update_cpu_clock(struct task_struct *p, struct rq *rq, unsigned long long now,
+ 		 int tick)
+ {
+ 	cputime64_t time_diff = now - p->last_ran;
+-	unsigned int min_diff = 1000;
++	const unsigned int min_diff = 1000;
++	int us_time_diff;
  
-+/* platform hook to activate device wakeup capability, if
-+ * that's not already handled by enable_irq_wake() etc
-+ */
-+extern int (*platform_enable_wakeup)(struct device *dev, int is_on);
+ 	if (tick) {
+ 		/*
+@@ -3271,8 +3269,11 @@ update_cpu_clock(struct task_struct *p, 
+ 		if (time_diff > JIFFIES_TO_NS(1) || time_diff < min_diff)
+ 			time_diff = min_diff;
+ 	}
++	/* time_slice accounting is done in usecs to avoid overflow on 32bit */
++	us_time_diff = time_diff;
++	us_time_diff /= 1000;
+ 	if (p != rq->idle && p->policy != SCHED_FIFO)
+-		p->time_slice -= time_diff;
++		p->time_slice -= us_time_diff;
+ 	p->sched_time += time_diff;
+ 	p->last_ran = rq->most_recent_timestamp = now;
+ }
+@@ -3373,8 +3374,7 @@ void account_steal_time(struct task_stru
+ static void task_expired_entitlement(struct rq *rq, struct task_struct *p)
+ {
+ 	struct prio_array *old_array;
+-	int overrun;
+-	int old_prio;
++	int overrun, old_prio;
+ 
+ 	if (unlikely(p->first_time_slice))
+ 		p->first_time_slice = 0;
+@@ -6872,6 +6872,13 @@ void __init sched_init_smp(void)
+ 	/* Move init over to a non-isolated CPU */
+ 	if (set_cpus_allowed(current, non_isolated_cpus) < 0)
+ 		BUG();
 +
- #else /* !CONFIG_PM */
++	/*
++	 * Assume that every added cpu gives us slightly less overall latency
++	 * allowing us to increase the base rr_interval, but in a non linear
++	 * fashion.
++	 */
++	rr_interval *= 1 + ilog2(num_online_cpus());
+ }
+ #else
+ void __init sched_init_smp(void)
+@@ -6893,7 +6900,6 @@ void __init sched_init(void)
+ {
+ 	int i, j, k;
+ 	int highest_cpu = 0;
+-	unsigned int rr_us = 0, rr_inc = RR_INTERVAL * 1000;
  
- static inline int device_suspend(pm_message_t state)
+ 	/* Generate the priority matrix */
+ 	for (i = 0; i < PRIO_RANGE; i++) {
+@@ -6942,12 +6948,8 @@ void __init sched_init(void)
+ 			/* delimiter for bitsearch */
+ 			__set_bit(MAX_PRIO, array->prio_bitmap);
+ 		}
+-		/* Every added cpu increases the rr_interval */
+-		rr_us += rr_inc;
+-		rr_inc /= 2;
+ 		highest_cpu = i;
+ 	}
+-	rr_interval = rr_us / 1000;
+ 	set_load_weight(&init_task);
+ 
+ #ifdef CONFIG_SMP
+diff -puN kernel/sysctl.c~sched-implement-staircase-deadline-scheduler-timeslice-fixes kernel/sysctl.c
+--- a/kernel/sysctl.c~sched-implement-staircase-deadline-scheduler-timeslice-fixes
++++ a/kernel/sysctl.c
+@@ -161,11 +161,12 @@ int sysctl_legacy_va_layout;
+ #endif
+ 
+ 
+-/* Constants for minimum and maximum testing in vm_table.
++/* Constants for minimum and maximum testing.
+    We use these as one-element integer vectors. */
+-static int  __read_mostly zero;
+-static int  __read_mostly one = 1;
+-static int  __read_mostly one_hundred = 100;
++static int __read_mostly zero;
++static int __read_mostly one = 1;
++static int __read_mostly one_hundred = 100;
++static int __read_mostly five_thousand = 5000;
+ 
+ 
+ /* The default sysctl tables: */
+@@ -517,7 +518,7 @@ static ctl_table kern_table[] = {
+ 		.proc_handler	= &proc_dointvec_minmax,
+ 		.strategy	= &sysctl_intvec,
+ 		.extra1		= &one,
+-		.extra2		= &one_hundred,
++		.extra2		= &five_thousand,
+ 	},
+ #if defined(CONFIG_X86_LOCAL_APIC) && defined(CONFIG_X86)
+ 	{
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from kernel@kolivas.org are
 
-make-proc-acpi-wakeup-more-useful.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-at91_cf-minor-fix.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnpacpi-sets-pnpdev-devarchdata-fix.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-update-to-class-device-removal-patches.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
-workaround-rtc-related-acpi-table-bugs.patch
-revert-rtc-add-rtc_merge_alarm.patch
-remove-rtc_alm_set-mode-bugs.patch
+sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+sched-dont-renice-kernel-threads.patch
+sched-remove-sleepavg-from-proc.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-implement-staircase-deadline-cpu-scheduler.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+sched-implement-staircase-deadline-cpu-scheduler-staircase-improvements.patch
+sched-implement-staircase-deadline-cpu-scheduler-improvements-fix.patch
+sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
+sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
+sched-implement-staircase-deadline-scheduler-rework-priomatrix.patch
+sched-implement-staircase-deadline-scheduler-further-improvements-1.patch
+sched-implement-staircase-deadline-scheduler-timeslice-fixes.patch
+sched-increase-ksoftirqd-priority.patch
+sched-remove-noninteractive-flag.patch
+sched-document-sd-cpu-scheduler.patch
+sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc.patch
+sched-consolidate-sched_clock-drift-adjustments.patch
+sched-implement-staircase-deadline-scheduler-docupdate.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+swap-prefetch-avoid-repeating-entry.patch
