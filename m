@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-ecard-convert-to-use-the-kthread-api.patch added to -mm tree
-Date: Thu, 19 Apr 2007 16:56:29 -0700
-Message-ID: <200704192356.l3JNuTBT002493@shell0.pdx.osdl.net>
+Subject: + s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 16:58:23 -0700
+Message-ID: <200704192358.l3JNwNxk002532@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58022 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423014AbXDSX5P (ORCPT
+	by vger.kernel.org with ESMTP id S1422992AbXDSX7J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 19:57:15 -0400
+	Thu, 19 Apr 2007 19:59:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, rmk@arm.linux.org.uk
+Cc: ebiederm@xmission.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, swen@vnet.ibm.com
 
 
 The patch titled
-     arm ecard: convert to use the kthread API
+     s390/scsi/zfcp_erp: partially convert to use the kthread API
 has been added to the -mm tree.  Its filename is
-     arm-ecard-convert-to-use-the-kthread-api.patch
+     s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arm ecard: convert to use the kthread API
+Subject: s390/scsi/zfcp_erp: partially convert to use the kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patch modifies the startup of kecardd to use kthread_run not a
-kernel_thread combination of kernel_thread and daemonize.  Making the code
-slightly simpler and more maintainable.
+Modify zfcperp%s to be started with kthread_run not a combination of
+kernel_thread, daemonize and siginitsetinv making the code slightly simpler
+and more maintainable.
 
-Cc: Russell King <rmk@arm.linux.org.uk>
+akpm: this driver needs to be taught about kthread_stop() and
+kthread_should_stop(), too.
+
+Cc: Swen Schillig <swen@vnet.ibm.com>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/ecard.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/s390/scsi/zfcp_erp.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN arch/arm/kernel/ecard.c~arm-ecard-convert-to-use-the-kthread-api arch/arm/kernel/ecard.c
---- a/arch/arm/kernel/ecard.c~arm-ecard-convert-to-use-the-kthread-api
-+++ a/arch/arm/kernel/ecard.c
-@@ -40,6 +40,7 @@
- #include <linux/device.h>
- #include <linux/init.h>
- #include <linux/mutex.h>
+diff -puN drivers/s390/scsi/zfcp_erp.c~s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api drivers/s390/scsi/zfcp_erp.c
+--- a/drivers/s390/scsi/zfcp_erp.c~s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api
++++ a/drivers/s390/scsi/zfcp_erp.c
+@@ -21,6 +21,7 @@
+ 
+ #define ZFCP_LOG_AREA			ZFCP_LOG_AREA_ERP
+ 
 +#include <linux/kthread.h>
+ #include "zfcp_ext.h"
  
- #include <asm/dma.h>
- #include <asm/ecard.h>
-@@ -263,8 +264,6 @@ static int ecard_init_mm(void)
- static int
- ecard_task(void * unused)
+ static int zfcp_erp_adisc(struct zfcp_port *);
+@@ -985,12 +986,13 @@ static void zfcp_erp_action_dismiss(stru
+ int
+ zfcp_erp_thread_setup(struct zfcp_adapter *adapter)
  {
--	daemonize("kecardd");
--
- 	/*
- 	 * Allocate a mm.  We're not a lazy-TLB kernel task since we need
- 	 * to set page table entries where the user space would be.  Note
-@@ -1059,13 +1058,14 @@ ecard_probe(int slot, card_type_t type)
-  */
- static int __init ecard_init(void)
- {
--	int slot, irqhw, ret;
+-	int retval = 0;
 +	struct task_struct *task;
-+	int slot, irqhw;
  
--	ret = kernel_thread(ecard_task, NULL, CLONE_KERNEL);
--	if (ret < 0) {
-+	task = kthread_run(ecard_task, NULL, "kecardd");
+ 	atomic_clear_mask(ZFCP_STATUS_ADAPTER_ERP_THREAD_UP, &adapter->status);
+ 
+-	retval = kernel_thread(zfcp_erp_thread, adapter, SIGCHLD);
+-	if (retval < 0) {
++	task = kthread_run(zfcp_erp_thread, adapter,
++			   "zfcperp%s", zfcp_get_busid_by_adapter(adapter));
 +	if (IS_ERR(task)) {
- 		printk(KERN_ERR "Ecard: unable to create kernel thread: %d\n",
--		       ret);
--		return ret;
-+		       PTR_ERR(task));
-+		return PTR_ERR(task);
+ 		ZFCP_LOG_NORMAL("error: creation of erp thread failed for "
+ 				"adapter %s\n",
+ 				zfcp_get_busid_by_adapter(adapter));
+@@ -1002,7 +1004,7 @@ zfcp_erp_thread_setup(struct zfcp_adapte
+ 		debug_text_event(adapter->erp_dbf, 5, "a_thset_ok");
  	}
  
- 	printk("Probing expansion cards\n");
+-	return (retval < 0);
++	return IS_ERR(task);
+ }
+ 
+ /*
+@@ -1054,9 +1056,6 @@ zfcp_erp_thread(void *data)
+ 	struct zfcp_erp_action *erp_action;
+ 	unsigned long flags;
+ 
+-	daemonize("zfcperp%s", zfcp_get_busid_by_adapter(adapter));
+-	/* Block all signals */
+-	siginitsetinv(&current->blocked, 0);
+ 	atomic_set_mask(ZFCP_STATUS_ADAPTER_ERP_THREAD_UP, &adapter->status);
+ 	debug_text_event(adapter->erp_dbf, 5, "a_th_run");
+ 	wake_up(&adapter->erp_thread_wqh);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -97,6 +109,7 @@ mm-only-dvb_en_50221-convert-to-kthread-api.patch
 mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
 ia64-sn-xpc-convert-to-use-kthread-api.patch
 fix-i-oat-for-kexec.patch
+s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
 i386-irq-kill-irq-compression.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
