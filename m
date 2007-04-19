@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + macintosh-therm_pm72c-partially-convert-to-kthread-api.patch added to -mm tree
-Date: Thu, 19 Apr 2007 16:40:53 -0700
-Message-ID: <200704192340.l3JNer0c002050@shell0.pdx.osdl.net>
+Subject: + powerpc-pseries-rtasd-convert-to-kthread-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 16:42:31 -0700
+Message-ID: <200704192342.l3JNgVkj002087@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38995 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754293AbXDSXk4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754326AbXDSXme (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 19:40:56 -0400
+	Thu, 19 Apr 2007 19:42:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, benh@kernel.crashing.org
+Cc: ebiederm@xmission.com, paulus@samba.org
 
 
 The patch titled
-     macintosh/therm_pm72.c: partially convert to kthread API
+     powerpc pseries rtasd: convert to kthread API
 has been added to the -mm tree.  Its filename is
-     macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
+     powerpc-pseries-rtasd-convert-to-kthread-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: macintosh/therm_pm72.c: partially convert to kthread API
+Subject: powerpc pseries rtasd: convert to kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patch modifies startup of the kfand to use kthread_run not a
-combination of kernel_thread and daemonize, making the code a little
-simpler and more maintaintable.
+This patch modifies the startup of rtasd to use kthread_run instaed of a
+combination of kernel_thread and daemonize.  Making the code a little
+simpler and more maintainble.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/therm_pm72.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+ arch/powerpc/platforms/pseries/rtasd.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/macintosh/therm_pm72.c~macintosh-therm_pm72c-partially-convert-to-kthread-api drivers/macintosh/therm_pm72.c
---- a/drivers/macintosh/therm_pm72.c~macintosh-therm_pm72c-partially-convert-to-kthread-api
-+++ a/drivers/macintosh/therm_pm72.c
-@@ -121,6 +121,7 @@
- #include <linux/reboot.h>
- #include <linux/kmod.h>
- #include <linux/i2c.h>
+diff -puN arch/powerpc/platforms/pseries/rtasd.c~powerpc-pseries-rtasd-convert-to-kthread-api arch/powerpc/platforms/pseries/rtasd.c
+--- a/arch/powerpc/platforms/pseries/rtasd.c~powerpc-pseries-rtasd-convert-to-kthread-api
++++ a/arch/powerpc/platforms/pseries/rtasd.c
+@@ -20,6 +20,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
 +#include <linux/kthread.h>
- #include <asm/prom.h>
- #include <asm/machdep.h>
+ 
+ #include <asm/uaccess.h>
  #include <asm/io.h>
-@@ -161,7 +162,7 @@ static struct slots_pid_state		slots_sta
- static int				state;
- static int				cpu_count;
- static int				cpu_pid_type;
--static pid_t				ctrl_task;
-+static int				ctrl_task;
- static struct completion		ctrl_complete;
- static int				critical_state;
- static int				rackmac;
-@@ -1779,8 +1780,6 @@ static int call_critical_overtemp(void)
-  */
- static int main_control_loop(void *x)
- {
--	daemonize("kfand");
+@@ -429,8 +430,6 @@ static int rtasd(void *unused)
+ 	int event_scan = rtas_token("event-scan");
+ 	int rc;
+ 
+-	daemonize("rtasd");
 -
- 	DBG("main_control_loop started\n");
+ 	if (event_scan == RTAS_UNKNOWN_SERVICE || get_eventscan_parms() == -1)
+ 		goto error;
  
- 	down(&driver_lock);
-@@ -1859,7 +1858,6 @@ static int main_control_loop(void *x)
- 			machine_power_off();
- 		}
+@@ -497,7 +496,7 @@ static int __init rtas_init(void)
+ 	else
+ 		printk(KERN_ERR "Failed to create error_log proc entry\n");
  
--		// FIXME: Deal with signals
- 		elapsed = jiffies - start;
- 		if (elapsed < HZ)
- 			schedule_timeout_interruptible(HZ - elapsed);
-@@ -1954,9 +1952,12 @@ static int create_control_loops(void)
-  */
- static void start_control_loops(void)
- {
-+	struct task_struct *task;
- 	init_completion(&ctrl_complete);
+-	if (kernel_thread(rtasd, NULL, CLONE_FS) < 0)
++	if (IS_ERR(kthread_run(rtasd, NULL, "rtasd")))
+ 		printk(KERN_ERR "Failed to start RTAS daemon\n");
  
--	ctrl_task = kernel_thread(main_control_loop, NULL, SIGCHLD | CLONE_KERNEL);
-+	task = kthread_run(main_control_loop, NULL, "kfand");
-+	if (!IS_ERR(task))
-+		ctrl_task = 1;
- }
- 
- /*
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -101,6 +79,7 @@ macintosh-mediabay-convert-to-kthread-api.patch
 macintosh-adb-convert-to-the-kthread-api.patch
 macintosh-therm_windtunnelc-convert-to-kthread-api.patch
 macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
+powerpc-pseries-rtasd-convert-to-kthread-api.patch
 mm-only-dvb_en_50221-convert-to-kthread-api.patch
 mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
 fix-i-oat-for-kexec.patch
