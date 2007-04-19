@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smbfs-remove-unnecessary-allow_signal.patch added to -mm tree
-Date: Thu, 19 Apr 2007 15:43:24 -0700
-Message-ID: <200704192243.l3JMhO8b000409@shell0.pdx.osdl.net>
+Subject: + nfsd-nfs4state-remove-unnecessary-daemonize-call.patch added to -mm tree
+Date: Thu, 19 Apr 2007 15:48:46 -0700
+Message-ID: <200704192248.l3JMmkmY000543@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43945 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33859 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754261AbXDSWn0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754276AbXDSWtE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 18:43:26 -0400
+	Thu, 19 Apr 2007 18:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com
+Cc: ebiederm@xmission.com, neilb@suse.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     smbfs: remove unnecessary allow_signal
+     nfsd/nfs4state: remove unnecessary daemonize call
 has been added to the -mm tree.  Its filename is
-     smbfs-remove-unnecessary-allow_signal.patch
+     nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: smbfs: remove unnecessary allow_signal
+Subject: nfsd/nfs4state: remove unnecessary daemonize call
 From: Eric W. Biederman <ebiederm@xmission.com>
 
+Cc: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/smbfs/smbiod.c |    2 --
+ fs/nfsd/nfs4state.c |    2 --
  1 files changed, 2 deletions(-)
 
-diff -puN fs/smbfs/smbiod.c~smbfs-remove-unnecessary-allow_signal fs/smbfs/smbiod.c
---- a/fs/smbfs/smbiod.c~smbfs-remove-unnecessary-allow_signal
-+++ a/fs/smbfs/smbiod.c
-@@ -298,8 +298,6 @@ out:
-  */
- static int smbiod(void *unused)
+diff -puN fs/nfsd/nfs4state.c~nfsd-nfs4state-remove-unnecessary-daemonize-call fs/nfsd/nfs4state.c
+--- a/fs/nfsd/nfs4state.c~nfsd-nfs4state-remove-unnecessary-daemonize-call
++++ a/fs/nfsd/nfs4state.c
+@@ -1326,8 +1326,6 @@ do_recall(void *__dp)
  {
--	allow_signal(SIGKILL);
--
- 	VERBOSE("SMB Kernel thread starting (%d) ...\n", current->pid);
+ 	struct nfs4_delegation *dp = __dp;
  
- 	for (;;) {
+-	daemonize("nfsv4-recall");
+-
+ 	nfsd4_cb_recall(dp);
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -84,6 +86,7 @@ worker_thread-dont-play-with-sigchld-and-numa-policy.patch
 change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
 fix-kthread_create-vs-freezer-theoretical-race.patch
 edac-k8-driver-coding-tidy.patch
+nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
 statically-initialize-struct-pid-for-swapper.patch
 explicitly-set-pgid-and-sid-of-init-process.patch
 use-struct-pid-parameter-in-copy_process.patch
