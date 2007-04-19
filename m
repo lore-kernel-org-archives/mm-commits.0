@@ -1,113 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-use-a-spinlock-to-protect-sk_info_authunix.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 13:02:04 -0700
-Message-ID: <200704192002.l3JK24TW029342@shell0.pdx.osdl.net>
+Subject: - ata_generic-remove-all-the-crud-again-and-use-cable.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 13:02:24 -0700
+Message-ID: <200704192002.l3JK2Odk029382@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53060 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767010AbXDSUDe (ORCPT
+	by vger.kernel.org with ESMTP id S1767012AbXDSUGN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 16:03:34 -0400
+	Thu, 19 Apr 2007 16:06:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, gabriel@oxeva.fr, gnb@melbourne.sgi.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: use a spinlock to protect sk_info_authunix
+     ata_generic: remove all the crud again and use cable methods
 has been removed from the -mm tree.  Its filename was
-     knfsd-use-a-spinlock-to-protect-sk_info_authunix.patch
+     ata_generic-remove-all-the-crud-again-and-use-cable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: use a spinlock to protect sk_info_authunix
-From: NeilBrown <neilb@suse.de>
+Subject: ata_generic: remove all the crud again and use cable methods
+From: Alan Cox <alan@redhat.com>
 
-sk_info_authunix is not being protected properly so the object that it
-points to can be cache_put twice, leading to corruption.
-
-We borrow svsk->sk_defer_lock to provide the protection.  We should
-probably rename that lock to have a more generic name - later.
-
-Thanks to Gabriel for reporting this.
-
-Cc: Greg Banks <gnb@melbourne.sgi.com>
-Cc: Gabriel Barazer <gabriel@oxeva.fr>
-Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcauth_unix.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ drivers/ata/ata_generic.c |   33 ++-------------------------------
+ 1 file changed, 2 insertions(+), 31 deletions(-)
 
-diff -puN net/sunrpc/svcauth_unix.c~knfsd-use-a-spinlock-to-protect-sk_info_authunix net/sunrpc/svcauth_unix.c
---- a/net/sunrpc/svcauth_unix.c~knfsd-use-a-spinlock-to-protect-sk_info_authunix
-+++ a/net/sunrpc/svcauth_unix.c
-@@ -383,7 +383,10 @@ void svcauth_unix_purge(void)
- static inline struct ip_map *
- ip_map_cached_get(struct svc_rqst *rqstp)
- {
--	struct ip_map *ipm = rqstp->rq_sock->sk_info_authunix;
-+	struct ip_map *ipm;
-+	struct svc_sock *svsk = rqstp->rq_sock;
-+	spin_lock_bh(&svsk->sk_defer_lock);
-+	ipm = svsk->sk_info_authunix;
- 	if (ipm != NULL) {
- 		if (!cache_valid(&ipm->h)) {
- 			/*
-@@ -391,12 +394,14 @@ ip_map_cached_get(struct svc_rqst *rqstp
- 			 * remembered, e.g. by a second mount from the
- 			 * same IP address.
- 			 */
--			rqstp->rq_sock->sk_info_authunix = NULL;
-+			svsk->sk_info_authunix = NULL;
-+			spin_unlock_bh(&svsk->sk_defer_lock);
- 			cache_put(&ipm->h, &ip_map_cache);
- 			return NULL;
- 		}
- 		cache_get(&ipm->h);
- 	}
-+	spin_unlock_bh(&svsk->sk_defer_lock);
- 	return ipm;
- }
+diff -puN drivers/ata/ata_generic.c~ata_generic-remove-all-the-crud-again-and-use-cable drivers/ata/ata_generic.c
+--- a/drivers/ata/ata_generic.c~ata_generic-remove-all-the-crud-again-and-use-cable
++++ a/drivers/ata/ata_generic.c
+@@ -33,36 +33,6 @@
+  */
  
-@@ -405,9 +410,15 @@ ip_map_cached_put(struct svc_rqst *rqstp
- {
- 	struct svc_sock *svsk = rqstp->rq_sock;
+ /**
+- *	generic_pre_reset		-	probe begin
+- *	@ap: ATA port
+- *	@deadline: deadline jiffies for the operation
+- *
+- *	Set up cable type and use generic probe init
+- */
+-
+-static int generic_pre_reset(struct ata_port *ap, unsigned long deadline)
+-{
+-	ap->cbl = ATA_CBL_PATA80;
+-	return ata_std_prereset(ap, deadline);
+-}
+-
+-
+-/**
+- *	generic_error_handler - Probe specified port on PATA host controller
+- *	@ap: Port to probe
+- *	@classes:
+- *
+- *	LOCKING:
+- *	None (inherited from caller).
+- */
+-
+-
+-static void generic_error_handler(struct ata_port *ap)
+-{
+-	ata_bmdma_drive_eh(ap, generic_pre_reset, ata_std_softreset, NULL, ata_std_postreset);
+-}
+-
+-/**
+  *	generic_set_mode	-	mode setting
+  *	@ap: interface to set up
+  *	@unused: returned device on error
+@@ -145,8 +115,9 @@ static struct ata_port_operations generi
  
--	if (svsk->sk_sock->type == SOCK_STREAM && svsk->sk_info_authunix == NULL)
--		svsk->sk_info_authunix = ipm;	/* newly cached, keep the reference */
--	else
-+	spin_lock_bh(&svsk->sk_defer_lock);
-+	if (svsk->sk_sock->type == SOCK_STREAM &&
-+	    svsk->sk_info_authunix == NULL) {
-+		/* newly cached, keep the reference */
-+		svsk->sk_info_authunix = ipm;
-+		ipm = NULL;
-+	}
-+	spin_unlock_bh(&svsk->sk_defer_lock);
-+	if (ipm)
- 		cache_put(&ipm->h, &ip_map_cache);
- }
+ 	.freeze		= ata_bmdma_freeze,
+ 	.thaw		= ata_bmdma_thaw,
+-	.error_handler	= generic_error_handler,
++	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
++	.cable_detect	= ata_cable_unknown,
  
+ 	.qc_prep 	= ata_qc_prep,
+ 	.qc_issue	= ata_qc_issue_prot,
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
-device_schedule_callback-needs-a-module-reference.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-sunrpc-cleanup-use-seq_release_private-where-appropriate.patch
-slub-core-fix-kmem_cache_destroy.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
-knfsd-rename-sk_defer_lock-to-sk_lock.patch
-readahead-nfsd-case.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-cleanup-use-seq_release_private-where-appropriate.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+pata_hpt37x-further-small-fixes.patch
+pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
+spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
+pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
+pci_module_init-convertion-in-tmscsimc.patch
+tty-clarify-documentation-of-write.patch
+tty-i386-x86_64-arbitary-speed-support.patch
+apm-fix-incorrect-comment.patch
+revoke-special-mmap-handling.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
