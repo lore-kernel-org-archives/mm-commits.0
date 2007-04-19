@@ -1,55 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - pci-add-debug-information-to-resource-collision-message.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 13:02:34 -0700
-Message-ID: <200704192002.l3JK2YFU029397@shell0.pdx.osdl.net>
+Subject: - mark-pci_module_init-deprecated.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 13:02:38 -0700
+Message-ID: <200704192002.l3JK2csk029403@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44798 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767000AbXDSUCs (ORCPT
+	by vger.kernel.org with ESMTP id S1767000AbXDSUCq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 16:02:48 -0400
+	Thu, 19 Apr 2007 16:02:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cebbert@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: henne@nachtwindheim.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCI: add debug information to resource collision message
+     mark pci_module_init() deprecated
 has been removed from the -mm tree.  Its filename was
-     pci-add-debug-information-to-resource-collision-message.patch
+     mark-pci_module_init-deprecated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PCI: add debug information to resource collision message
-From: Chuck Ebbert <cebbert@redhat.com>
+Subject: mark pci_module_init() deprecated
+From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-Add more information to PCI resource collision message to help with
-debugging.
+This changes the pci_module_init macro into a static inline function,
+which is marked as deprecated.
 
-Signed-off-by: Chuck Ebbert <cebbert@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+This should help developers of new drivers to use pci_register_driver().
+
+Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/i386.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/pci.h |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN arch/i386/pci/i386.c~pci-add-debug-information-to-resource-collision-message arch/i386/pci/i386.c
---- a/arch/i386/pci/i386.c~pci-add-debug-information-to-resource-collision-message
-+++ a/arch/i386/pci/i386.c
-@@ -246,8 +246,8 @@ int pcibios_enable_resources(struct pci_
- 			continue;
- 		if (!r->start && r->end) {
- 			printk(KERN_ERR "PCI: Device %s not available "
--				"because of resource collisions\n",
--				pci_name(dev));
-+				"because of resource %d collisions\n",
-+				pci_name(dev), idx);
- 			return -EINVAL;
- 		}
- 		if (r->flags & IORESOURCE_IO)
+diff -puN include/linux/pci.h~mark-pci_module_init-deprecated include/linux/pci.h
+--- a/include/linux/pci.h~mark-pci_module_init-deprecated
++++ a/include/linux/pci.h
+@@ -410,12 +410,6 @@ struct pci_driver {
+ 	.vendor = PCI_ANY_ID, .device = PCI_ANY_ID, \
+ 	.subvendor = PCI_ANY_ID, .subdevice = PCI_ANY_ID
+ 
+-/*
+- * pci_module_init is obsolete, this stays here till we fix up all usages of it
+- * in the tree.
+- */
+-#define pci_module_init	pci_register_driver
+-
+ /**
+  * PCI_VDEVICE - macro used to describe a specific pci device in short form
+  * @vend: the vendor name
+@@ -611,6 +605,16 @@ static inline int __must_check pci_regis
+ 	return __pci_register_driver(driver, THIS_MODULE, KBUILD_MODNAME);
+ }
+ 
++/*
++ * pci_module_init is obsolete, this stays here till we fix up all usages of it
++ * in the tree.
++ */
++
++static inline int __deprecated pci_module_init(struct pci_driver* drv)
++{
++	return pci_register_driver(drv);
++}
++
+ void pci_unregister_driver(struct pci_driver *);
+ void pci_remove_behind_bridge(struct pci_dev *);
+ struct pci_driver *pci_dev_driver(const struct pci_dev *);
 _
 
-Patches currently in -mm which might be from cebbert@redhat.com are
+Patches currently in -mm which might be from henne@nachtwindheim.de are
+
+git-scsi-misc.patch
+pci_module_init-convertion-in-tmscsimc.patch
+pci_module_init-convertion-for-k8_edacc.patch
