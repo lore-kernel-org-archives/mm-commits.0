@@ -1,148 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - execc-fix-coredump-to-pipe-problem-and-obscure-security.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 13:01:38 -0700
-Message-ID: <200704192001.l3JK1c9q029309@shell0.pdx.osdl.net>
+Subject: - knfsd-use-a-spinlock-to-protect-sk_info_authunix.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 13:02:04 -0700
+Message-ID: <200704192002.l3JK24TW029342@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57091 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53060 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767008AbXDSUDN (ORCPT
+	by vger.kernel.org with ESMTP id S1767010AbXDSUDe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 16:03:13 -0400
+	Thu, 19 Apr 2007 16:03:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, caker@theshore.net, stable@kernel.org, mm-commits@vger.kernel.org
+To: neilb@suse.de, gabriel@oxeva.fr, gnb@melbourne.sgi.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec.c: fix coredump to pipe problem and obscure "security hole"
+     knfsd: use a spinlock to protect sk_info_authunix
 has been removed from the -mm tree.  Its filename was
-     execc-fix-coredump-to-pipe-problem-and-obscure-security.patch
+     knfsd-use-a-spinlock-to-protect-sk_info_authunix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: exec.c: fix coredump to pipe problem and obscure "security hole"
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: knfsd: use a spinlock to protect sk_info_authunix
+From: NeilBrown <neilb@suse.de>
 
-The patch checks for "|" in the pattern not the output and doesn't nail a
-pid on to a piped name (as it is a program name not a file)
+sk_info_authunix is not being protected properly so the object that it
+points to can be cache_put twice, leading to corruption.
 
-Also fixes a very very obscure security corner case.  If you happen to have
-decided on a core pattern that starts with the program name then the user
-can run a program called "|myevilhack" as it stands.  I doubt anyone does
-this.
+We borrow svsk->sk_defer_lock to provide the protection.  We should
+probably rename that lock to have a more generic name - later.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Confirmed-by: Christopher S. Aker <caker@theshore.net>
+Thanks to Gabriel for reporting this.
+
+Cc: Greg Banks <gnb@melbourne.sgi.com>
+Cc: Gabriel Barazer <gabriel@oxeva.fr>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ net/sunrpc/svcauth_unix.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN fs/exec.c~execc-fix-coredump-to-pipe-problem-and-obscure-security fs/exec.c
---- a/fs/exec.c~execc-fix-coredump-to-pipe-problem-and-obscure-security
-+++ a/fs/exec.c
-@@ -1244,13 +1244,17 @@ EXPORT_SYMBOL(set_binfmt);
-  * name into corename, which must have space for at least
-  * CORENAME_MAX_SIZE bytes plus one byte for the zero terminator.
-  */
--static void format_corename(char *corename, const char *pattern, long signr)
-+static int format_corename(char *corename, const char *pattern, long signr)
+diff -puN net/sunrpc/svcauth_unix.c~knfsd-use-a-spinlock-to-protect-sk_info_authunix net/sunrpc/svcauth_unix.c
+--- a/net/sunrpc/svcauth_unix.c~knfsd-use-a-spinlock-to-protect-sk_info_authunix
++++ a/net/sunrpc/svcauth_unix.c
+@@ -383,7 +383,10 @@ void svcauth_unix_purge(void)
+ static inline struct ip_map *
+ ip_map_cached_get(struct svc_rqst *rqstp)
  {
- 	const char *pat_ptr = pattern;
- 	char *out_ptr = corename;
- 	char *const out_end = corename + CORENAME_MAX_SIZE;
- 	int rc;
- 	int pid_in_pattern = 0;
-+	int ispipe = 0;
-+
-+	if (*pattern == '|')
-+		ispipe = 1;
- 
- 	/* Repeat as long as we have more pattern to process and more output
- 	   space */
-@@ -1341,8 +1345,8 @@ static void format_corename(char *corena
- 	 *
- 	 * If core_pattern does not include a %p (as is the default)
- 	 * and core_uses_pid is set, then .%pid will be appended to
--	 * the filename */
--	if (!pid_in_pattern
-+	 * the filename. Do not do this for piped commands. */
-+	if (!ispipe && !pid_in_pattern
-             && (core_uses_pid || atomic_read(&current->mm->mm_users) != 1)) {
- 		rc = snprintf(out_ptr, out_end - out_ptr,
- 			      ".%d", current->tgid);
-@@ -1350,8 +1354,9 @@ static void format_corename(char *corena
- 			goto out;
- 		out_ptr += rc;
+-	struct ip_map *ipm = rqstp->rq_sock->sk_info_authunix;
++	struct ip_map *ipm;
++	struct svc_sock *svsk = rqstp->rq_sock;
++	spin_lock_bh(&svsk->sk_defer_lock);
++	ipm = svsk->sk_info_authunix;
+ 	if (ipm != NULL) {
+ 		if (!cache_valid(&ipm->h)) {
+ 			/*
+@@ -391,12 +394,14 @@ ip_map_cached_get(struct svc_rqst *rqstp
+ 			 * remembered, e.g. by a second mount from the
+ 			 * same IP address.
+ 			 */
+-			rqstp->rq_sock->sk_info_authunix = NULL;
++			svsk->sk_info_authunix = NULL;
++			spin_unlock_bh(&svsk->sk_defer_lock);
+ 			cache_put(&ipm->h, &ip_map_cache);
+ 			return NULL;
+ 		}
+ 		cache_get(&ipm->h);
  	}
--      out:
-+out:
- 	*out_ptr = 0;
-+	return ispipe;
++	spin_unlock_bh(&svsk->sk_defer_lock);
+ 	return ipm;
  }
  
- static void zap_process(struct task_struct *start)
-@@ -1502,16 +1507,15 @@ int do_coredump(long signr, int exit_cod
- 	 * uses lock_kernel()
- 	 */
-  	lock_kernel();
--	format_corename(corename, core_pattern, signr);
-+	ispipe = format_corename(corename, core_pattern, signr);
- 	unlock_kernel();
-- 	if (corename[0] == '|') {
-+ 	if (ispipe) {
- 		/* SIGPIPE can happen, but it's just never processed */
-  		if(call_usermodehelper_pipe(corename+1, NULL, NULL, &file)) {
-  			printk(KERN_INFO "Core dump to %s pipe failed\n",
- 			       corename);
-  			goto fail_unlock;
-  		}
--		ispipe = 1;
-  	} else
-  		file = filp_open(corename,
- 				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
+@@ -405,9 +410,15 @@ ip_map_cached_put(struct svc_rqst *rqstp
+ {
+ 	struct svc_sock *svsk = rqstp->rq_sock;
+ 
+-	if (svsk->sk_sock->type == SOCK_STREAM && svsk->sk_info_authunix == NULL)
+-		svsk->sk_info_authunix = ipm;	/* newly cached, keep the reference */
+-	else
++	spin_lock_bh(&svsk->sk_defer_lock);
++	if (svsk->sk_sock->type == SOCK_STREAM &&
++	    svsk->sk_info_authunix == NULL) {
++		/* newly cached, keep the reference */
++		svsk->sk_info_authunix = ipm;
++		ipm = NULL;
++	}
++	spin_unlock_bh(&svsk->sk_defer_lock);
++	if (ipm)
+ 		cache_put(&ipm->h, &ip_map_cache);
+ }
+ 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-git-libata-all.patch
-pata_hpt37x-further-small-fixes.patch
-pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
-git-netdev-all.patch
-pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-driver_bfin_serial_core.patch
-driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-protect-tty-drivers-list-with-tty_mutex.patch
-fix-82875-pci-setup.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-remove-redundant-check-from-proc_sys_setattr.patch
-apm-fix-incorrect-comment.patch
-edac-new-opteron-athlon64-memory-controller-driver.patch
-edac-k8-driver-coding-tidy.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
+device_schedule_callback-needs-a-module-reference.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+sunrpc-cleanup-use-seq_release_private-where-appropriate.patch
+slub-core-fix-kmem_cache_destroy.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
+knfsd-rename-sk_defer_lock-to-sk_lock.patch
+readahead-nfsd-case.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
+md-cleanup-use-seq_release_private-where-appropriate.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
