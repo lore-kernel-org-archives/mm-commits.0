@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lazy-freeing-of-memory-through-madv_free-fix.patch added to -mm tree
-Date: Fri, 20 Apr 2007 13:59:01 -0700
-Message-ID: <200704202059.l3KKx2gB023708@shell0.pdx.osdl.net>
+Subject: + lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch added to -mm tree
+Date: Fri, 20 Apr 2007 13:59:09 -0700
+Message-ID: <200704202059.l3KKxAuu023713@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36376 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52173 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767266AbXDTU7x (ORCPT
+	by vger.kernel.org with ESMTP id S1767272AbXDTVAP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 16:59:53 -0400
+	Fri, 20 Apr 2007 17:00:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, drepper@redhat.com, hugh@
 
 
 The patch titled
-     lazy-freeing-of-memory-through-madv_free-fix
+     lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
 has been added to the -mm tree.  Its filename is
-     lazy-freeing-of-memory-through-madv_free-fix.patch
+     lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lazy-freeing-of-memory-through-madv_free-fix
+Subject: lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Hugh Dickins <hugh@veritas.com>
@@ -38,35 +38,20 @@ Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c   |    2 +-
- mm/vmscan.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/madvise.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN mm/rmap.c~lazy-freeing-of-memory-through-madv_free-fix mm/rmap.c
---- a/mm/rmap.c~lazy-freeing-of-memory-through-madv_free-fix
-+++ a/mm/rmap.c
-@@ -712,8 +712,8 @@ static int try_to_unmap_one(struct page 
- 
- 	/* MADV_FREE is used to lazily free memory from userspace. */
- 	if (PageLazyFree(page) && !migration) {
--		/* There is new data in the page.  Reinstate it. */
- 		if (unlikely(pte_dirty(pteval))) {
-+			/* There is new data in the page.  Reinstate it. */
- 			set_pte_at(mm, address, pte, pteval);
- 			ret = SWAP_FAIL;
- 			goto out_unmap;
-diff -puN mm/vmscan.c~lazy-freeing-of-memory-through-madv_free-fix mm/vmscan.c
---- a/mm/vmscan.c~lazy-freeing-of-memory-through-madv_free-fix
-+++ a/mm/vmscan.c
-@@ -457,7 +457,7 @@ static unsigned long shrink_page_list(st
- 
- 		/*
- 		 * MADV_DONTNEED pages get reclaimed lazily, unless the
--		 * process reuses it before we get to it.
-+		 * process reuses them before we get to them.
- 		 */
- 		if (PageLazyFree(page)) {
- 			switch (try_to_unmap(page, 0)) {
+diff -puN mm/madvise.c~lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem mm/madvise.c
+--- a/mm/madvise.c~lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
++++ a/mm/madvise.c
+@@ -22,6 +22,7 @@ static int madvise_need_mmap_write(int b
+ 	case MADV_REMOVE:
+ 	case MADV_WILLNEED:
+ 	case MADV_DONTNEED:
++	case MADV_FREE:
+ 		return 0;
+ 	default:
+ 		/* be safe, default to 1. list exceptions explicitly */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
