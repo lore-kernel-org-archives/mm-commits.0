@@ -1,58 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - mm-only-dvb_en_50221-convert-to-kthread-api.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 23:48:19 -0700
-Message-ID: <200704200648.l3K6mJJE008944@shell0.pdx.osdl.net>
+Subject: + dvb_en_50221-convert-to-kthread-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 23:48:14 -0700
+Message-ID: <200704200648.l3K6mElF008941@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45415 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753925AbXDTGs1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753247AbXDTGsW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 02:48:27 -0400
+	Fri, 20 Apr 2007 02:48:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, adq_dvb@lidskialf.net, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hch@infradead.org, adq_dvb@lidskialf.net, ebiederm@xmission.com, mchehab@infradead.org
 
 
 The patch titled
-     dvb_en_50221: Convert to kthread API
-has been removed from the -mm tree.  Its filename was
-     mm-only-dvb_en_50221-convert-to-kthread-api.patch
+     dvb_en_50221: convert to kthread API
+has been added to the -mm tree.  Its filename is
+     dvb_en_50221-convert-to-kthread-api.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: dvb_en_50221: Convert to kthread API
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: dvb_en_50221: convert to kthread API
+From: Christoph Hellwig <hch@infradead.org>
 
-This patch is a minimal transformation to use the kthread API doing it's
-best to preserve the existing logic.
-
-Instead of starting kdvb-ca by calling kernel_thread, daemonize and
-sigfillset we kthread_run is used.
-
-Instead of tracking the pid of the running thread we instead simply keep a
-flag to indicate that the current thread is running, as that is all the pid
-is really used for.
-
-And finally the kill_proc sending signal 0 to the kernel thread to ensure
-it is alive before we wait for it to shutdown is removed.  The kthread API
-does not provide the pid so we don't have that information readily
-available and the test is just silly.  If there is no shutdown race the
-test is a useless confirmation of that the thread is running.  If there is
-a race the test doesn't fix it and we should fix the race properly.
+Here's an attempted update to the full kthread API + wake_up_process:
 
 Cc: Andrew de Quincey <adq_dvb@lidskialf.net>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-core/dvb_ca_en50221.c |   46 +++++++-----------
- 1 files changed, 18 insertions(+), 28 deletions(-)
+ drivers/media/dvb/dvb-core/dvb_ca_en50221.c |   84 +++---------------
+ 1 file changed, 16 insertions(+), 68 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-core/dvb_ca_en50221.c~mm-only-dvb_en_50221-convert-to-kthread-api drivers/media/dvb/dvb-core/dvb_ca_en50221.c
---- a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c~mm-only-dvb_en_50221-convert-to-kthread-api
+diff -puN drivers/media/dvb/dvb-core/dvb_ca_en50221.c~dvb_en_50221-convert-to-kthread-api drivers/media/dvb/dvb-core/dvb_ca_en50221.c
+--- a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c~dvb_en_50221-convert-to-kthread-api
 +++ a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
 @@ -37,6 +37,7 @@
  #include <linux/delay.h>
@@ -62,18 +51,52 @@ diff -puN drivers/media/dvb/dvb-core/dvb_ca_en50221.c~mm-only-dvb_en_50221-conve
  
  #include "dvb_ca_en50221.h"
  #include "dvb_ringbuffer.h"
-@@ -139,8 +140,8 @@ struct dvb_ca_private {
- 	/* wait queues for read() and write() operations */
+@@ -140,13 +141,7 @@ struct dvb_ca_private {
  	wait_queue_head_t wait_queue;
  
--	/* PID of the monitoring thread */
+ 	/* PID of the monitoring thread */
 -	pid_t thread_pid;
-+	/* Flag indicating the monitoring thread is running */
-+	int thread_running;
+-
+-	/* Wait queue used when shutting thread down */
+-	wait_queue_head_t thread_queue;
+-
+-	/* Flag indicating when thread should exit */
+-	unsigned int exit:1;
++	struct task_struct *thread;
  
- 	/* Wait queue used when shutting thread down */
- 	wait_queue_head_t thread_queue;
-@@ -982,7 +983,6 @@ static void dvb_ca_en50221_thread_update
+ 	/* Flag indicating if the CA device is open */
+ 	unsigned int open:1;
+@@ -902,28 +897,10 @@ static void dvb_ca_en50221_thread_wakeup
+ 
+ 	ca->wakeup = 1;
+ 	mb();
+-	wake_up_interruptible(&ca->thread_queue);
++	wake_up_process(ca->thread);
+ }
+ 
+ /**
+- * Used by the CA thread to determine if an early wakeup is necessary
+- *
+- * @param ca CA instance.
+- */
+-static int dvb_ca_en50221_thread_should_wakeup(struct dvb_ca_private *ca)
+-{
+-	if (ca->wakeup) {
+-		ca->wakeup = 0;
+-		return 1;
+-	}
+-	if (ca->exit)
+-		return 1;
+-
+-	return 0;
+-}
+-
+-
+-/**
+  * Update the delay used by the thread.
+  *
+  * @param ca CA instance.
+@@ -982,7 +959,6 @@ static void dvb_ca_en50221_thread_update
  static int dvb_ca_en50221_thread(void *data)
  {
  	struct dvb_ca_private *ca = data;
@@ -81,7 +104,7 @@ diff -puN drivers/media/dvb/dvb-core/dvb_ca_en50221.c~mm-only-dvb_en_50221-conve
  	int slot;
  	int flags;
  	int status;
-@@ -991,14 +991,6 @@ static int dvb_ca_en50221_thread(void *d
+@@ -991,28 +967,17 @@ static int dvb_ca_en50221_thread(void *d
  
  	dprintk("%s\n", __FUNCTION__);
  
@@ -96,54 +119,69 @@ diff -puN drivers/media/dvb/dvb-core/dvb_ca_en50221.c~mm-only-dvb_en_50221-conve
  	/* choose the correct initial delay */
  	dvb_ca_en50221_thread_update_delay(ca);
  
-@@ -1182,7 +1174,7 @@ static int dvb_ca_en50221_thread(void *d
+ 	/* main loop */
+-	while (!ca->exit) {
++	while (!kthread_should_stop()) {
+ 		/* sleep for a bit */
+-		if (!ca->wakeup) {
+-			flags = wait_event_interruptible_timeout(ca->thread_queue,
+-								 dvb_ca_en50221_thread_should_wakeup(ca),
+-								 ca->delay);
+-			if ((flags == -ERESTARTSYS) || ca->exit) {
+-				/* got signal or quitting */
+-				break;
+-			}
++		while (!ca->wakeup) {
++			set_current_state(TASK_INTERRUPTIBLE);
++			schedule_timeout(ca->delay);
++			if (kthread_should_stop())
++				return 0;
+ 		}
+ 		ca->wakeup = 0;
+ 
+@@ -1181,10 +1146,6 @@ static int dvb_ca_en50221_thread(void *d
+ 		}
  	}
  
- 	/* completed */
+-	/* completed */
 -	ca->thread_pid = 0;
-+	ca->thread_running = 0;
- 	mb();
- 	wake_up_interruptible(&ca->thread_queue);
+-	mb();
+-	wake_up_interruptible(&ca->thread_queue);
  	return 0;
-@@ -1660,6 +1652,7 @@ static struct dvb_device dvbdev_ca = {
- int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
- 			struct dvb_ca_en50221 *pubca, int flags, int slot_count)
- {
-+	struct task_struct *task;
- 	int ret;
- 	struct dvb_ca_private *ca = NULL;
- 	int i;
-@@ -1682,7 +1675,7 @@ int dvb_ca_en50221_init(struct dvb_adapt
+ }
+ 
+@@ -1682,9 +1643,6 @@ int dvb_ca_en50221_init(struct dvb_adapt
  		goto error;
  	}
  	init_waitqueue_head(&ca->wait_queue);
 -	ca->thread_pid = 0;
-+	ca->thread_running = 0;
- 	init_waitqueue_head(&ca->thread_queue);
- 	ca->exit = 0;
+-	init_waitqueue_head(&ca->thread_queue);
+-	ca->exit = 0;
  	ca->open = 0;
-@@ -1711,13 +1704,15 @@ int dvb_ca_en50221_init(struct dvb_adapt
+ 	ca->wakeup = 0;
+ 	ca->next_read_slot = 0;
+@@ -1710,14 +1668,14 @@ int dvb_ca_en50221_init(struct dvb_adapt
+ 	mb();
  
  	/* create a kthread for monitoring this CA device */
- 
+-
 -	ret = kernel_thread(dvb_ca_en50221_thread, ca, 0);
 -
 -	if (ret < 0) {
 -		printk("dvb_ca_init: failed to start kernel_thread (%d)\n", ret);
-+	task = kthread_run(dvb_ca_en50221_thread, ca,
-+			   "kdvb-ca-%i:%i",
-+			   ca->dvbdev->adapter->num, ca->dvbdev->id);
-+	if (IS_ERR(task)) {
-+		ret = PTR_ERR(task);
-+		printk("dvb_ca_init: failed to start kthread (%d)\n", ret);
++	ca->thread = kthread_run(dvb_ca_en50221_thread, ca, "kdvb-ca-%i:%i",
++				 ca->dvbdev->adapter->num, ca->dvbdev->id);
++	if (IS_ERR(ca->thread)) {
++		ret = PTR_ERR(ca->thread);
++		printk("dvb_ca_init: failed to start kernel_thread (%d)\n",
++			ret);
  		goto error;
  	}
 -	ca->thread_pid = ret;
-+	ca->thread_running = 1;
  	return 0;
  
  error:
-@@ -1748,16 +1743,11 @@ void dvb_ca_en50221_release(struct dvb_c
+@@ -1748,17 +1706,7 @@ void dvb_ca_en50221_release(struct dvb_c
  	dprintk("%s\n", __FUNCTION__);
  
  	/* shutdown the thread if there was one */
@@ -157,80 +195,22 @@ diff -puN drivers/media/dvb/dvb-core/dvb_ca_en50221.c~mm-only-dvb_en_50221-conve
 -			dvb_ca_en50221_thread_wakeup(ca);
 -			wait_event_interruptible(ca->thread_queue, ca->thread_pid == 0);
 -		}
-+	if (ca->thread_running) {
-+		ca->exit = 1;
-+		mb();
-+		dvb_ca_en50221_thread_wakeup(ca);
-+		wait_event_interruptible(ca->thread_queue, ca->thread_running == 0);
- 	}
+-	}
++	kthread_stop(ca->thread);
  
  	for (i = 0; i < ca->slot_count; i++) {
+ 		dvb_ca_en50221_slot_shutdown(ca, i);
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from hch@infradead.org are
 
-arm-ecard-convert-to-use-the-kthread-api.patch
-powerpc-rtas-msi-support.patch
-macintosh-mediabay-convert-to-kthread-api.patch
-macintosh-adb-convert-to-the-kthread-api.patch
-macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
-powerpc-pseries-rtasd-convert-to-kthread-api.patch
-powerpc-pseries-eeh-convert-to-kthread-api.patch
 dvb_en_50221-convert-to-kthread-api.patch
-mm-only-dvb_en_50221-convert-to-kthread-api.patch
-mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
-ia64-sn-xpc-convert-to-use-kthread-api.patch
-mtd_blkdevs-convert-to-use-the-kthread-api.patch
-fix-i-oat-for-kexec.patch
-cpqphp-partially-convert-to-use-the-kthread-api.patch
-ibmphp-partially-convert-to-use-the-kthreads-api.patch
-cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
-s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
-s390-qeth-convert-to-use-the-kthread-api.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
-sparc64-powerc-convert-to-use-the-kthread-api.patch
-i386-irq-kill-irq-compression.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api.patch
-i386-balance_irq-convert-to-the-kthread-api.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-clean-up-elf-note-generation.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
-proc-cleanup-use-seq_release_private-where-appropriate.patch
-smbfs-remove-unnecessary-allow_signal.patch
-pnpbios-conert-to-use-the-kthread-api.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-worker_thread-dont-play-with-sigchld-and-numa-policy.patch
-change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-edac-k8-driver-coding-tidy.patch
-nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-md-remove-broken-sigkill-support.patch
-mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+git-nfs-server-cluster-locking-api.patch
+remove-pci_dac_dma_-apis.patch
+vfs-delay-the-dentry-name-generation-on-sockets-and.patch
+udf-use-sector_t-and-loff_t-for-file-offsets.patch
+udf-introduce-struct-extent_position.patch
+udf-use-get_bh.patch
+udf-add-assertions.patch
+udf-support-files-larger-than-1g.patch
+udf-fix-link-counts.patch
