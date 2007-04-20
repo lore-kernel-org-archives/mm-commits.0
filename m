@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-mxser_new-fix-recursive-locking.patch added to -mm tree
-Date: Fri, 20 Apr 2007 11:21:09 -0700
-Message-ID: <200704201821.l3KIL9w5020925@shell0.pdx.osdl.net>
+Subject: + char-mxser_new-fix-tiocmiwait.patch added to -mm tree
+Date: Fri, 20 Apr 2007 11:22:43 -0700
+Message-ID: <200704201822.l3KIMhYa020960@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52756 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993315AbXDTSVW (ORCPT
+	by vger.kernel.org with ESMTP id S2993110AbXDTSWz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 14:21:22 -0400
+	Fri, 20 Apr 2007 14:22:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kas@fi.muni.cz, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, kas@fi.muni.cz
 
 
 The patch titled
-     Char: mxser_new, fix recursive locking
+     Char: mxser_new, fix TIOCMIWAIT
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-fix-recursive-locking.patch
+     char-mxser_new-fix-tiocmiwait.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, fix recursive locking
-From: Jan Yenya Kasprzak <kas@fi.muni.cz>
+Subject: Char: mxser_new, fix TIOCMIWAIT
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Signed-off-by: Jan "Yenya" Kasprzak <kas@fi.muni.cz>
-Acked-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+There was schedule() missing in the TIOCMIWAIT ioctl.  Solve it by moving
+the code to the wait_event_interruptible.
+
+Cc: Jan "Yenya" Kasprzak <kas@fi.muni.cz>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |    7 +++++++
- 1 files changed, 7 insertions(+)
+ drivers/char/mxser_new.c |   38 ++++++++-----------------------------
+ 1 files changed, 9 insertions(+), 29 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-fix-recursive-locking drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-fix-recursive-locking
+diff -puN drivers/char/mxser_new.c~char-mxser_new-fix-tiocmiwait drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-fix-tiocmiwait
 +++ a/drivers/char/mxser_new.c
-@@ -2230,7 +2230,14 @@ end_intr:
- 	port->mon_data.rxcnt += cnt;
- 	port->mon_data.up_rxcnt += cnt;
+@@ -1758,43 +1758,23 @@ static int mxser_ioctl(struct tty_struct
+ 		 *   (use |'ed TIOCM_RNG/DSR/CD/CTS for masking)
+ 		 * Caller should use TIOCGICOUNT to see which one it was
+ 		 */
+-	case TIOCMIWAIT: {
+-		DECLARE_WAITQUEUE(wait, current);
+-		int ret;
++	case TIOCMIWAIT:
+ 		spin_lock_irqsave(&info->slock, flags);
+-		cprev = info->icount;	/* note the counters on entry */
++		cnow = info->icount;	/* note the counters on entry */
+ 		spin_unlock_irqrestore(&info->slock, flags);
  
-+	/*
-+	 * We are called from an interrupt context with &port->slock
-+	 * being held. Drop it temporarily in order to prevent
-+	 * recursive locking.
-+	 */
-+	spin_unlock(&port->slock);
- 	tty_flip_buffer_push(tty);
-+	spin_lock(&port->slock);
- }
+-		add_wait_queue(&info->delta_msr_wait, &wait);
+-		while (1) {
++		wait_event_interruptible(info->delta_msr_wait, ({
++			cprev = cnow;
+ 			spin_lock_irqsave(&info->slock, flags);
+ 			cnow = info->icount;	/* atomic copy */
+ 			spin_unlock_irqrestore(&info->slock, flags);
  
- static void mxser_transmit_chars(struct mxser_port *port)
+-			set_current_state(TASK_INTERRUPTIBLE);
+-			if (((arg & TIOCM_RNG) &&
+-					(cnow.rng != cprev.rng)) ||
+-					((arg & TIOCM_DSR) &&
+-					(cnow.dsr != cprev.dsr)) ||
+-					((arg & TIOCM_CD) &&
+-					(cnow.dcd != cprev.dcd)) ||
+-					((arg & TIOCM_CTS) &&
+-					(cnow.cts != cprev.cts))) {
+-				ret = 0;
+-				break;
+-			}
+-			/* see if a signal did it */
+-			if (signal_pending(current)) {
+-				ret = -ERESTARTSYS;
+-				break;
+-			}
+-			cprev = cnow;
+-		}
+-		current->state = TASK_RUNNING;
+-		remove_wait_queue(&info->delta_msr_wait, &wait);
++			((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
++			((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
++			((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
++			((arg & TIOCM_CTS) && (cnow.cts != cprev.cts));
++		}));
+ 		break;
+-	}
+-	/* NOTREACHED */
+ 	/*
+ 	 * Get counter of input serial line interrupts (DCD,RI,DSR,CTS)
+ 	 * Return: write counters to the user passed counter struct
 _
 
-Patches currently in -mm which might be from kas@fi.muni.cz are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 char-mxser_new-fix-recursive-locking.patch
+char-mxser_new-fix-tiocmiwait.patch
+acpi-asus_acpi-support-f2je-model.patch
+input-ff-add-ff_raw-effect.patch
+input-phantom-add-a-new-driver.patch
+char-rocket-add-module_device_table.patch
+char-cs5535_gpio-add-module_device_table.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+char-cyclades-remove-pause.patch
+char-cyclades-cy_readx-writex-cleanup.patch
+char-cyclades-timer-cleanup.patch
+char-cyclades-remove-volatiles.patch
+char-cyclades-remove-useless-casts.patch
+char-cyclades-create-cy_init_ze.patch
+char-cyclades-use-pci_iomap-unmap.patch
+char-cyclades-init-ze-immediately.patch
+char-cyclades-create-cy_pci_probe.patch
+char-cyclades-move-card-entries-init-into-function.patch
+char-cyclades-init-card-struct-immediately.patch
+char-cyclades-remove-some-global-vars.patch
+char-cyclades-cy_init-error-handling.patch
+char-cyclades-tty_register_device-separately-for-each-device.patch
+char-cyclades-clear-interrupts-before-releasing.patch
+char-cyclades-allow-debug_shirq.patch
+shrink_slab-handle-bad-shrinkers.patch
