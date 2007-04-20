@@ -1,39 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - nfsd4-convert-nfsv4-to-new-lock-interface.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 23:38:33 -0700
-Message-ID: <200704200638.l3K6cXD5008767@shell0.pdx.osdl.net>
+Subject: - lockd-save-lock-state-on-deferral.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 23:38:35 -0700
+Message-ID: <200704200638.l3K6cZ29008770@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41683 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423027AbXDTGiu (ORCPT
+	by vger.kernel.org with ESMTP id S1423030AbXDTGiw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 02:38:50 -0400
+	Fri, 20 Apr 2007 02:38:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd4: Convert NFSv4 to new lock interface
+     lockd: save lock state on deferral
 has been removed from the -mm tree.  Its filename was
-     nfsd4-convert-nfsv4-to-new-lock-interface.patch
+     lockd-save-lock-state-on-deferral.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nfsd4: Convert NFSv4 to new lock interface
+Subject: lockd: save lock state on deferral
 From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
 
-Convert NFSv4 to the new lock interface.  We don't define any callback for
-now, so we're not taking advantage of the asynchronous feature--that's less
-critical for the multi-threaded nfsd then it is for the single-threaded lockd.
- But this does allow a cluster filesystems to export cluster-coherent locking
-to NFS.
+We need to keep some state for a pending asynchronous lock request, so this
+patch adds that state to struct nlm_block.
 
-Note that it's cluster filesystems that are the issue--of the filesystems that
-define lock methods (nfs, cifs, etc.), most are not exportable by nfsd.
+This also adds a function which defers the request, by calling
+rqstp->rq_chandle.defer and storing the resulting deferred request in a
+nlm_block structure which we insert into lockd's global block list.  That new
+function isn't called yet, so it's dead code until a later patch.
 
+Signed-off-by: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Jan Kara <jack@ucw.cz>
@@ -41,82 +41,72 @@ Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4state.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ fs/lockd/svclock.c          |   25 +++++++++++++++++++++++++
+ include/linux/lockd/lockd.h |   10 ++++++++++
+ 2 files changed, 35 insertions(+)
 
-diff -puN fs/nfsd/nfs4state.c~nfsd4-convert-nfsv4-to-new-lock-interface fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~nfsd4-convert-nfsv4-to-new-lock-interface
-+++ a/fs/nfsd/nfs4state.c
-@@ -50,6 +50,7 @@
- #include <linux/nfsd/xdr4.h>
- #include <linux/namei.h>
- #include <linux/mutex.h>
-+#include <linux/lockd/bind.h>
+diff -puN fs/lockd/svclock.c~lockd-save-lock-state-on-deferral fs/lockd/svclock.c
+--- a/fs/lockd/svclock.c~lockd-save-lock-state-on-deferral
++++ a/fs/lockd/svclock.c
+@@ -331,6 +331,31 @@ static void nlmsvc_freegrantargs(struct 
+ }
  
- #define NFSDDBG_FACILITY                NFSDDBG_PROC
- 
-@@ -2773,7 +2774,7 @@ nfsd4_lock(struct svc_rqst *rqstp, struc
- 	/* XXX?: Just to divert the locks_release_private at the start of
- 	 * locks_copy_lock: */
- 	locks_init_lock(&conflock);
--	err = posix_lock_file(filp, &file_lock, &conflock);
-+	err = vfs_lock_file(filp, cmd, &file_lock, &conflock);
- 	switch (-err) {
- 	case 0: /* success! */
- 		update_stateid(&lock_stp->st_stateid);
-@@ -2790,7 +2791,7 @@ nfsd4_lock(struct svc_rqst *rqstp, struc
- 		status = nfserr_deadlock;
- 		break;
- 	default:        
--		dprintk("NFSD: nfsd4_lock: posix_lock_file_conf() failed! status %d\n",err);
-+		dprintk("NFSD: nfsd4_lock: vfs_lock_file() failed! status %d\n",err);
- 		status = nfserr_resource;
- 		break;
- 	}
-@@ -2815,6 +2816,7 @@ nfsd4_lockt(struct svc_rqst *rqstp, stru
- 	struct inode *inode;
- 	struct file file;
- 	struct file_lock file_lock;
-+	int error;
- 	__be32 status;
- 
- 	if (nfs4_in_grace())
-@@ -2870,16 +2872,20 @@ nfsd4_lockt(struct svc_rqst *rqstp, stru
- 
- 	nfs4_transform_lock_offset(&file_lock);
- 
--	/* posix_test_lock uses the struct file _only_ to resolve the inode.
-+	/* vfs_test_lock uses the struct file _only_ to resolve the inode.
- 	 * since LOCKT doesn't require an OPEN, and therefore a struct
--	 * file may not exist, pass posix_test_lock a struct file with
-+	 * file may not exist, pass vfs_test_lock a struct file with
- 	 * only the dentry:inode set.
- 	 */
- 	memset(&file, 0, sizeof (struct file));
- 	file.f_path.dentry = cstate->current_fh.fh_dentry;
- 
- 	status = nfs_ok;
--	posix_test_lock(&file, &file_lock);
-+	error = vfs_test_lock(&file, &file_lock);
-+	if (error) {
-+		status = nfserrno(error);
-+		goto out;
+ /*
++ * Deferred lock request handling for non-blocking lock
++ */
++static u32
++nlmsvc_defer_lock_rqst(struct svc_rqst *rqstp, struct nlm_block *block)
++{
++	u32 status = nlm_lck_denied_nolocks;
++
++	block->b_flags |= B_QUEUED;
++
++	nlmsvc_insert_block(block, NLM_TIMEOUT);
++
++	block->b_cache_req = &rqstp->rq_chandle;
++	if (rqstp->rq_chandle.defer) {
++		block->b_deferred_req =
++			rqstp->rq_chandle.defer(block->b_cache_req);
++		if (block->b_deferred_req != NULL)
++			status = nlm_drop_reply;
 +	}
- 	if (file_lock.fl_type != F_UNLCK) {
- 		status = nfserr_denied;
- 		nfs4_set_lock_denied(&file_lock, &lockt->lt_denied);
-@@ -2935,9 +2941,9 @@ nfsd4_locku(struct svc_rqst *rqstp, stru
- 	/*
- 	*  Try to unlock the file in the VFS.
- 	*/
--	err = posix_lock_file(filp, &file_lock, NULL);
-+	err = vfs_lock_file(filp, F_SETLK, &file_lock, NULL);
- 	if (err) {
--		dprintk("NFSD: nfs4_locku: posix_lock_file failed!\n");
-+		dprintk("NFSD: nfs4_locku: vfs_lock_file failed!\n");
- 		goto out_nfserr;
- 	}
- 	/*
++	dprintk("lockd: nlmsvc_defer_lock_rqst block %p flags %d status %d\n",
++		block, block->b_flags, status);
++
++	return status;
++}
++
++/*
+  * Attempt to establish a lock, and if it can't be granted, block it
+  * if required.
+  */
+diff -puN include/linux/lockd/lockd.h~lockd-save-lock-state-on-deferral include/linux/lockd/lockd.h
+--- a/include/linux/lockd/lockd.h~lockd-save-lock-state-on-deferral
++++ a/include/linux/lockd/lockd.h
+@@ -119,6 +119,9 @@ struct nlm_file {
+  * couldn't be granted because of a conflicting lock).
+  */
+ #define NLM_NEVER		(~(unsigned long) 0)
++/* timeout on non-blocking call: */
++#define NLM_TIMEOUT		(7 * HZ)
++
+ struct nlm_block {
+ 	struct kref		b_count;	/* Reference count */
+ 	struct list_head	b_list;		/* linked list of all blocks */
+@@ -130,6 +133,13 @@ struct nlm_block {
+ 	unsigned int		b_id;		/* block id */
+ 	unsigned char		b_granted;	/* VFS granted lock */
+ 	struct nlm_file *	b_file;		/* file in question */
++	struct cache_req *	b_cache_req;	/* deferred request handling */
++	struct file_lock *	b_fl;		/* set for GETLK */
++	struct cache_deferred_req * b_deferred_req;
++	unsigned int		b_flags;	/* block flags */
++#define B_QUEUED		1	/* lock queued */
++#define B_GOT_CALLBACK		2	/* got lock or conflicting lock */
++#define B_TOO_LATE		4	/* too late for non-blocking lock */
+ };
+ 
+ /*
 _
 
 Patches currently in -mm which might be from eshel@almaden.ibm.com are
