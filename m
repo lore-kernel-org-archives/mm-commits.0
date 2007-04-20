@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-powerc-convert-to-use-the-kthread-api.patch added to -mm tree
-Date: Thu, 19 Apr 2007 17:30:31 -0700
-Message-ID: <200704200030.l3K0UVAr003172@shell0.pdx.osdl.net>
+Subject: + sas_scsi_host-partially-convert-to-use-the-kthread-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 17:38:35 -0700
+Message-ID: <200704200038.l3K0cZfe003298@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52474 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751555AbXDTAbE (ORCPT
+	by vger.kernel.org with ESMTP id S1753000AbXDTAij (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 20:31:04 -0400
+	Thu, 19 Apr 2007 20:38:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, davem@davemloft.net
+Cc: ebiederm@xmission.com, James.Bottomley@SteelEye.com, djwong@us.ibm.com
 
 
 The patch titled
-     sparc64/power.c: convert to use the kthread API
+     sas_scsi_host: partially convert to use the kthread API
 has been added to the -mm tree.  Its filename is
-     sparc64-powerc-convert-to-use-the-kthread-api.patch
+     sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sparc64/power.c: convert to use the kthread API
+Subject: sas_scsi_host: partially convert to use the kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This starts the sparc64 powerd using kthread_run instead of kernel_thread
-and daemonize.  Making the code slightly simpler and more maintainable.
+This patch modifies the sas scsi host thread startup to use kthread_run not
+kernel_thread and deamonize.  kthread_run is slightly simpler and more
+maintainable.
 
-In addition the unnecessary flush_signals is removed.
+akpm: the driver should also be converted to use kthread_should_stop() and
+kthread_stop().
 
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/power.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/libsas/sas_scsi_host.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN arch/sparc64/kernel/power.c~sparc64-powerc-convert-to-use-the-kthread-api arch/sparc64/kernel/power.c
---- a/arch/sparc64/kernel/power.c~sparc64-powerc-convert-to-use-the-kthread-api
-+++ a/arch/sparc64/kernel/power.c
-@@ -13,6 +13,7 @@
- #include <linux/interrupt.h>
- #include <linux/pm.h>
- #include <linux/syscalls.h>
+diff -puN drivers/scsi/libsas/sas_scsi_host.c~sas_scsi_host-partially-convert-to-use-the-kthread-api drivers/scsi/libsas/sas_scsi_host.c
+--- a/drivers/scsi/libsas/sas_scsi_host.c~sas_scsi_host-partially-convert-to-use-the-kthread-api
++++ a/drivers/scsi/libsas/sas_scsi_host.c
+@@ -40,6 +40,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/scatterlist.h>
+ #include <linux/freezer.h>
 +#include <linux/kthread.h>
  
- #include <asm/system.h>
- #include <asm/auxio.h>
-@@ -81,15 +82,12 @@ static int powerd(void *__unused)
- 	char *argv[] = { "/sbin/shutdown", "-h", "now", NULL };
- 	DECLARE_WAITQUEUE(wait, current);
+ /* ---------- SCSI Host glue ---------- */
  
--	daemonize("powerd");
--
- 	add_wait_queue(&powerd_wait, &wait);
- again:
- 	for (;;) {
- 		set_task_state(current, TASK_INTERRUPTIBLE);
- 		if (button_pressed)
- 			break;
--		flush_signals(current);
- 		schedule();
- 	}
- 	__set_current_state(TASK_RUNNING);
-@@ -128,7 +126,9 @@ static int __devinit power_probe(struct 
- 	poweroff_method = machine_halt;  /* able to use the standard halt */
+@@ -870,7 +871,6 @@ static int sas_queue_thread(void *_sas_h
+ 	struct sas_ha_struct *sas_ha = _sas_ha;
+ 	struct scsi_core *core = &sas_ha->core;
  
- 	if (has_button_interrupt(irq, op->node)) {
--		if (kernel_thread(powerd, NULL, CLONE_FS) < 0) {
-+		struct task_struct *task;
-+		task = kthread_run(powerd, NULL, "powerd");
-+		if (IS_ERR(task)) {
- 			printk("Failed to start power daemon.\n");
- 			return 0;
- 		}
+-	daemonize("sas_queue_%d", core->shost->host_no);
+ 	current->flags |= PF_NOFREEZE;
+ 
+ 	complete(&queue_th_comp);
+@@ -891,19 +891,20 @@ static int sas_queue_thread(void *_sas_h
+ 
+ int sas_init_queue(struct sas_ha_struct *sas_ha)
+ {
+-	int res;
+ 	struct scsi_core *core = &sas_ha->core;
++	struct task_struct *task;
+ 
+ 	spin_lock_init(&core->task_queue_lock);
+ 	core->task_queue_size = 0;
+ 	INIT_LIST_HEAD(&core->task_queue);
+ 	init_MUTEX_LOCKED(&core->queue_thread_sema);
+ 
+-	res = kernel_thread(sas_queue_thread, sas_ha, 0);
+-	if (res >= 0)
++	task = kthread_run(sas_queue_thread, sas_ha,
++			   "sas_queue_%d", core->shost->host_no);
++	if (!IS_ERR(task))
+ 		wait_for_completion(&queue_th_comp);
+ 
+-	return res < 0 ? res : 0;
++	return IS_ERR(task) ? PTR_ERR(task) : 0;
+ }
+ 
+ void sas_shutdown_queue(struct sas_ha_struct *sas_ha)
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -99,6 +108,7 @@ fix-i-oat-for-kexec.patch
 s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
 s390-qeth-convert-to-use-the-kthread-api.patch
 s390-net-lcs-convert-to-the-kthread-api.patch
+sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
 sparc64-powerc-convert-to-use-the-kthread-api.patch
 i386-irq-kill-irq-compression.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
