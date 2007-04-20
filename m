@@ -1,134 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: + char-mxser-fix-tiocmiwait.patch added to -mm tree
-Date: Fri, 20 Apr 2007 11:27:13 -0700
-Message-ID: <200704201827.l3KIRDpN021025@shell0.pdx.osdl.net>
+Subject: - forcedeth-work-around-null-skb-dereference-crash.patch removed from -mm tree
+Date: Fri, 20 Apr 2007 11:45:09 -0700
+Message-ID: <200704201845.l3KIjA2O021415@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45743 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48142 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767171AbXDTS1Z (ORCPT
+	by vger.kernel.org with ESMTP id S1161228AbXDTSpX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 14:27:25 -0400
+	Fri, 20 Apr 2007 14:45:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, kas@fi.muni.cz
+To: mingo@elte.hu, aabdulla@nvidia.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser, fix TIOCMIWAIT
-has been added to the -mm tree.  Its filename is
-     char-mxser-fix-tiocmiwait.patch
+     forcedeth: work around NULL skb dereference crash
+has been removed from the -mm tree.  Its filename was
+     forcedeth-work-around-null-skb-dereference-crash.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Char: mxser, fix TIOCMIWAIT
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: forcedeth: work around NULL skb dereference crash
+From: Ingo Molnar <mingo@elte.hu>
 
-There was schedule() missing in the TIOCMIWAIT ioctl. Solve it by moving
-the code to the wait_event_interruptible.
+work around a NULL skb dereference crash that occurs during high load.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jan Yenya Kasprzak <kas@fi.muni.cz>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |   48 +++++++++++------------------------------
- 1 files changed, 14 insertions(+), 34 deletions(-)
+ drivers/net/forcedeth.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN drivers/char/mxser.c~char-mxser-fix-tiocmiwait drivers/char/mxser.c
---- a/drivers/char/mxser.c~char-mxser-fix-tiocmiwait
-+++ a/drivers/char/mxser.c
-@@ -1338,43 +1338,23 @@ static int mxser_ioctl(struct tty_struct
- 		 *   (use |'ed TIOCM_RNG/DSR/CD/CTS for masking)
- 		 * Caller should use TIOCGICOUNT to see which one it was
- 		 */
--	case TIOCMIWAIT: {
--			DECLARE_WAITQUEUE(wait, current);
--			int ret;
-+	case TIOCMIWAIT:
-+		spin_lock_irqsave(&info->slock, flags);
-+		cnow = info->icount;	/* note the counters on entry */
-+		spin_unlock_irqrestore(&info->slock, flags);
-+
-+		wait_event_interruptible(info->delta_msr_wait, ({
-+			cprev = cnow;
- 			spin_lock_irqsave(&info->slock, flags);
--			cprev = info->icount;	/* note the counters on entry */
-+			cnow = info->icount;	/* atomic copy */
- 			spin_unlock_irqrestore(&info->slock, flags);
- 
--			add_wait_queue(&info->delta_msr_wait, &wait);
--			while (1) {
--				spin_lock_irqsave(&info->slock, flags);
--				cnow = info->icount;	/* atomic copy */
--				spin_unlock_irqrestore(&info->slock, flags);
--
--				set_current_state(TASK_INTERRUPTIBLE);
--				if (((arg & TIOCM_RNG) &&
--						(cnow.rng != cprev.rng)) ||
--						((arg & TIOCM_DSR) &&
--						(cnow.dsr != cprev.dsr)) ||
--						((arg & TIOCM_CD) &&
--						(cnow.dcd != cprev.dcd)) ||
--						((arg & TIOCM_CTS) &&
--						(cnow.cts != cprev.cts))) {
--					ret = 0;
--					break;
--				}
--				/* see if a signal did it */
--				if (signal_pending(current)) {
--					ret = -ERESTARTSYS;
--					break;
--				}
--				cprev = cnow;
--			}
--			current->state = TASK_RUNNING;
--			remove_wait_queue(&info->delta_msr_wait, &wait);
--			break;
--		}
--		/* NOTREACHED */
-+			((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
-+			((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
-+			((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
-+			((arg & TIOCM_CTS) && (cnow.cts != cprev.cts));
-+		}));
-+		break;
- 		/*
- 		 * Get counter of input serial line interrupts (DCD,RI,DSR,CTS)
- 		 * Return: write counters to the user passed counter struct
+diff -puN drivers/net/forcedeth.c~forcedeth-work-around-null-skb-dereference-crash drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-work-around-null-skb-dereference-crash
++++ a/drivers/net/forcedeth.c
+@@ -1905,6 +1905,16 @@ static void nv_tx_done(struct net_device
+ 						np->stats.tx_carrier_errors++;
+ 					np->stats.tx_errors++;
+ 				} else {
++					if (!np->get_tx_ctx->skb) {
++						printk("get_tx: %td, put_tx: "
++							"%td\n",
++							np->get_tx_ctx -
++							    np->first_tx_ctx,
++							np->put_tx_ctx -
++							    np->first_tx_ctx);
++						WARN_ON(1);
++						break;
++					}
+ 					np->stats.tx_packets++;
+ 					np->stats.tx_bytes += np->get_tx_ctx->skb->len;
+ 				}
+@@ -1920,6 +1930,16 @@ static void nv_tx_done(struct net_device
+ 						np->stats.tx_carrier_errors++;
+ 					np->stats.tx_errors++;
+ 				} else {
++					if (!np->get_tx_ctx->skb) {
++						printk("get_tx: %td, put_tx: "
++							"%td\n",
++							np->get_tx_ctx -
++							    np->first_tx_ctx,
++							np->put_tx_ctx -
++							    np->first_tx_ctx);
++						WARN_ON(1);
++						break;
++					}
+ 					np->stats.tx_packets++;
+ 					np->stats.tx_bytes += np->get_tx_ctx->skb->len;
+ 				}
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-char-mxser_new-fix-recursive-locking.patch
-char-mxser_new-fix-tiocmiwait.patch
-char-mxser-fix-tiocmiwait.patch
-acpi-asus_acpi-support-f2je-model.patch
-input-ff-add-ff_raw-effect.patch
-input-phantom-add-a-new-driver.patch
-char-rocket-add-module_device_table.patch
-char-cs5535_gpio-add-module_device_table.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-char-cyclades-remove-pause.patch
-char-cyclades-cy_readx-writex-cleanup.patch
-char-cyclades-timer-cleanup.patch
-char-cyclades-remove-volatiles.patch
-char-cyclades-remove-useless-casts.patch
-char-cyclades-create-cy_init_ze.patch
-char-cyclades-use-pci_iomap-unmap.patch
-char-cyclades-init-ze-immediately.patch
-char-cyclades-create-cy_pci_probe.patch
-char-cyclades-move-card-entries-init-into-function.patch
-char-cyclades-init-card-struct-immediately.patch
-char-cyclades-remove-some-global-vars.patch
-char-cyclades-cy_init-error-handling.patch
-char-cyclades-tty_register_device-separately-for-each-device.patch
-char-cyclades-clear-interrupts-before-releasing.patch
-char-cyclades-allow-debug_shirq.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-ieee1394.patch
+git-kvm.patch
+forcedeth-improve-napi-logic.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+i386-tsc-remove-xtime_locking-around-cpufreq-notifier.patch
+forcedeth-work-around-null-skb-dereference-crash.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+optimize-timespec_trunc.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
+move-timekeeping-code-to-timekeepingc.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+add-touch_all_softlockup_watchdogs.patch
+enhance-initcall_debug-measure-latency.patch
+simplify-kallsyms_lookup.patch
+deprecate-sa_xxx-interrupt-flags-v2.patch
+lockdep-treats-down_write_trylock-like-regular-down_write.patch
+pad-irq_desc-to-internode-cacheline-size.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+highres-dyntick-prevent-xtime-lock-contention.patch
+lockdep-lookup_chain_cache-comment-errata.patch
+introduce-a-handy-list_first_entry-macro-v2.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+sched-align-rq-to-cacheline-boundary.patch
+sched-dont-renice-kernel-threads.patch
+sched-remove-sleepavg-from-proc.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-implement-staircase-deadline-cpu-scheduler.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
+sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
+sched-remove-noninteractive-flag.patch
+sched-document-sd-cpu-scheduler.patch
+sched-consolidate-sched_clock-drift-adjustments.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+declare-struct-ktime.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
+futex_requeue_pi-optimization.patch
+sys_futex64-allows-64bit-futexes.patch
+sys_futex64-allows-64bit-futexes-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+futex-new-private-futexes.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
