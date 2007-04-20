@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + networking-fix-sending-netlink-message-when-replace-route.patch added to -mm tree
-Date: Fri, 20 Apr 2007 11:59:29 -0700
-Message-ID: <200704201859.l3KIxT6T021603@shell0.pdx.osdl.net>
+Subject: + taskstats-fix-the-structure-members-alignment-issue.patch added to -mm tree
+Date: Fri, 20 Apr 2007 12:16:37 -0700
+Message-ID: <200704201916.l3KJGcjP022008@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34401 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753289AbXDTS7p (ORCPT
+	by vger.kernel.org with ESMTP id S1754492AbXDTTSE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 14:59:45 -0400
+	Fri, 20 Apr 2007 15:18:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: milon@wq.cz, davem@davemloft.net, kaber@trash.net
+Cc: balbir@in.ibm.com, balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, nagar@watson.ibm.com, stable@kernel.org
 
 
 The patch titled
-     networking: fix sending netlink message when replace route
+     Taskstats fix the structure members alignment issue
 has been added to the -mm tree.  Its filename is
-     networking-fix-sending-netlink-message-when-replace-route.patch
+     taskstats-fix-the-structure-members-alignment-issue.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,122 +26,235 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: networking: fix sending netlink message when replace route
-From: Milan Kocian <milon@wq.cz>
+Subject: Taskstats fix the structure members alignment issue
+From: Balbir Singh <balbir@in.ibm.com>
 
-When you replace route via ip r r command the netlink multicast message is
-not send.  This patch corrects it.  NL message is sent with NLM_F_REPLACE
-flag.  Addresses http://bugzilla.kernel.org/show_bug.cgi?id=8320
+We broke the the alignment of members of taskstats to the 8 byte boundary
+with the CSA patches.  In the current kernel, the taskstats structure is
+not suitable for use by 32 bit applications in a 64 bit kernel.
 
-Signed-off-by: Milan Kocian <milon@wq.cz>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: David Miller <davem@davemloft.net>
+On x86_64
+
+Offsets of taskstats' members (64 bit kernel, 64 bit application)
+
+@taskstats'offsetof[@taskstats'indices] = (
+        0,      # version
+        4,      # ac_exitcode
+        8,      # ac_flag
+        9,      # ac_nice
+        16,     # cpu_count
+        24,     # cpu_delay_total
+        32,     # blkio_count
+        40,     # blkio_delay_total
+        48,     # swapin_count
+        56,     # swapin_delay_total
+        64,     # cpu_run_real_total
+        72,     # cpu_run_virtual_total
+        80,     # ac_comm
+        112,    # ac_sched
+        113,    # ac_pad
+        116,    # ac_uid
+        120,    # ac_gid
+        124,    # ac_pid
+        128,    # ac_ppid
+        132,    # ac_btime
+        136,    # ac_etime
+        144,    # ac_utime
+        152,    # ac_stime
+        160,    # ac_minflt
+        168,    # ac_majflt
+        176,    # coremem
+        184,    # virtmem
+        192,    # hiwater_rss
+        200,    # hiwater_vm
+        208,    # read_char
+        216,    # write_char
+        224,    # read_syscalls
+        232,    # write_syscalls
+        240,    # read_bytes
+        248,    # write_bytes
+        256,    # cancelled_write_bytes
+    );
+
+Offsets of taskstats' members (64 bit kernel, 32 bit application)
+
+@taskstats'offsetof[@taskstats'indices] = (
+        0,      # version
+        4,      # ac_exitcode
+        8,      # ac_flag
+        9,      # ac_nice
+        12,     # cpu_count
+        20,     # cpu_delay_total
+        28,     # blkio_count
+        36,     # blkio_delay_total
+        44,     # swapin_count
+        52,     # swapin_delay_total
+        60,     # cpu_run_real_total
+        68,     # cpu_run_virtual_total
+        76,     # ac_comm
+        108,    # ac_sched
+        109,    # ac_pad
+        112,    # ac_uid
+        116,    # ac_gid
+        120,    # ac_pid
+        124,    # ac_ppid
+        128,    # ac_btime
+        132,    # ac_etime
+        140,    # ac_utime
+        148,    # ac_stime
+        156,    # ac_minflt
+        164,    # ac_majflt
+        172,    # coremem
+        180,    # virtmem
+        188,    # hiwater_rss
+        196,    # hiwater_vm
+        204,    # read_char
+        212,    # write_char
+        220,    # read_syscalls
+        228,    # write_syscalls
+        236,    # read_bytes
+        244,    # write_bytes
+        252,    # cancelled_write_bytes
+    );
+
+This is one way to solve the problem without re-arranging structure members
+is to pack the structure.  The patch adds an __attribute__((aligned(8))) to
+the taskstats structure members so that 32 bit applications using taskstats
+can work with a 64 bit kernel.
+
+Using __attribute__((packed)) would break the 64 bit alignment of members.
+
+The fix was tested on x86_64. After the fix, we got
+
+Offsets of taskstats' members (64 bit kernel, 64 bit application)
+
+@taskstats'offsetof[@taskstats'indices] = (
+        0,      # version
+        4,      # ac_exitcode
+        8,      # ac_flag
+        9,      # ac_nice
+        16,     # cpu_count
+        24,     # cpu_delay_total
+        32,     # blkio_count
+        40,     # blkio_delay_total
+        48,     # swapin_count
+        56,     # swapin_delay_total
+        64,     # cpu_run_real_total
+        72,     # cpu_run_virtual_total
+        80,     # ac_comm
+        112,    # ac_sched
+        113,    # ac_pad
+        120,    # ac_uid
+        124,    # ac_gid
+        128,    # ac_pid
+        132,    # ac_ppid
+        136,    # ac_btime
+        144,    # ac_etime
+        152,    # ac_utime
+        160,    # ac_stime
+        168,    # ac_minflt
+        176,    # ac_majflt
+        184,    # coremem
+        192,    # virtmem
+        200,    # hiwater_rss
+        208,    # hiwater_vm
+        216,    # read_char
+        224,    # write_char
+        232,    # read_syscalls
+        240,    # write_syscalls
+        248,    # read_bytes
+        256,    # write_bytes
+        264,    # cancelled_write_bytes
+    );
+
+Offsets of taskstats' members (64 bit kernel, 32 bit application)
+
+@taskstats'offsetof[@taskstats'indices] = (
+        0,      # version
+        4,      # ac_exitcode
+        8,      # ac_flag
+        9,      # ac_nice
+        16,     # cpu_count
+        24,     # cpu_delay_total
+        32,     # blkio_count
+        40,     # blkio_delay_total
+        48,     # swapin_count
+        56,     # swapin_delay_total
+        64,     # cpu_run_real_total
+        72,     # cpu_run_virtual_total
+        80,     # ac_comm
+        112,    # ac_sched
+        113,    # ac_pad
+        120,    # ac_uid
+        124,    # ac_gid
+        128,    # ac_pid
+        132,    # ac_ppid
+        136,    # ac_btime
+        144,    # ac_etime
+        152,    # ac_utime
+        160,    # ac_stime
+        168,    # ac_minflt
+        176,    # ac_majflt
+        184,    # coremem
+        192,    # virtmem
+        200,    # hiwater_rss
+        208,    # hiwater_vm
+        216,    # read_char
+        224,    # write_char
+        232,    # read_syscalls
+        240,    # write_syscalls
+        248,    # read_bytes
+        256,    # write_bytes
+        264,    # cancelled_write_bytes
+    );
+
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: Shailabh Nagar <nagar@watson.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/fib_hash.c      |    6 ++++--
- net/ipv4/fib_lookup.h    |    3 ++-
- net/ipv4/fib_semantics.c |    5 +++--
- net/ipv4/fib_trie.c      |    6 ++++--
- 4 files changed, 13 insertions(+), 7 deletions(-)
+ include/linux/taskstats.h |   11 +++++++----
+ 1 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN net/ipv4/fib_hash.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_hash.c
---- a/net/ipv4/fib_hash.c~networking-fix-sending-netlink-message-when-replace-route
-+++ a/net/ipv4/fib_hash.c
-@@ -456,6 +456,8 @@ static int fn_hash_insert(struct fib_tab
- 			fib_release_info(fi_drop);
- 			if (state & FA_S_ACCESSED)
- 				rt_cache_flush(-1);
-+			rtmsg_fib(RTM_NEWROUTE, key, fa, cfg->fc_dst_len, tb->tb_id,
-+				  &cfg->fc_nlinfo, NLM_F_REPLACE);
- 			return 0;
- 		}
+diff -puN include/linux/taskstats.h~taskstats-fix-the-structure-members-alignment-issue include/linux/taskstats.h
+--- a/include/linux/taskstats.h~taskstats-fix-the-structure-members-alignment-issue
++++ a/include/linux/taskstats.h
+@@ -66,7 +66,7 @@ struct taskstats {
+ 	/* Delay waiting for cpu, while runnable
+ 	 * count, delay_total NOT updated atomically
+ 	 */
+-	__u64	cpu_count;
++	__u64	cpu_count __attribute__((aligned(8)));
+ 	__u64	cpu_delay_total;
  
-@@ -523,7 +525,7 @@ static int fn_hash_insert(struct fib_tab
- 	rt_cache_flush(-1);
+ 	/* Following four fields atomically updated using task->delays->lock */
+@@ -101,14 +101,17 @@ struct taskstats {
  
- 	rtmsg_fib(RTM_NEWROUTE, key, new_fa, cfg->fc_dst_len, tb->tb_id,
--		  &cfg->fc_nlinfo);
-+		  &cfg->fc_nlinfo, 0);
- 	return 0;
- 
- out_free_new_fa:
-@@ -589,7 +591,7 @@ static int fn_hash_delete(struct fib_tab
- 
- 		fa = fa_to_delete;
- 		rtmsg_fib(RTM_DELROUTE, key, fa, cfg->fc_dst_len,
--			  tb->tb_id, &cfg->fc_nlinfo);
-+			  tb->tb_id, &cfg->fc_nlinfo, 0);
- 
- 		kill_fn = 0;
- 		write_lock_bh(&fib_hash_lock);
-diff -puN net/ipv4/fib_lookup.h~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_lookup.h
---- a/net/ipv4/fib_lookup.h~networking-fix-sending-netlink-message-when-replace-route
-+++ a/net/ipv4/fib_lookup.h
-@@ -30,7 +30,8 @@ extern int fib_dump_info(struct sk_buff 
- 			 int dst_len, u8 tos, struct fib_info *fi,
- 			 unsigned int);
- extern void rtmsg_fib(int event, __be32 key, struct fib_alias *fa,
--		      int dst_len, u32 tb_id, struct nl_info *info);
-+		      int dst_len, u32 tb_id, struct nl_info *info,
-+		      unsigned int nlm_flags);
- extern struct fib_alias *fib_find_alias(struct list_head *fah,
- 					u8 tos, u32 prio);
- extern int fib_detect_death(struct fib_info *fi, int order,
-diff -puN net/ipv4/fib_semantics.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_semantics.c
---- a/net/ipv4/fib_semantics.c~networking-fix-sending-netlink-message-when-replace-route
-+++ a/net/ipv4/fib_semantics.c
-@@ -301,7 +301,8 @@ static inline size_t fib_nlmsg_size(stru
- }
- 
- void rtmsg_fib(int event, __be32 key, struct fib_alias *fa,
--	       int dst_len, u32 tb_id, struct nl_info *info)
-+	       int dst_len, u32 tb_id, struct nl_info *info,
-+	       unsigned int nlm_flags)
- {
- 	struct sk_buff *skb;
- 	u32 seq = info->nlh ? info->nlh->nlmsg_seq : 0;
-@@ -313,7 +314,7 @@ void rtmsg_fib(int event, __be32 key, st
- 
- 	err = fib_dump_info(skb, info->pid, seq, event, tb_id,
- 			    fa->fa_type, fa->fa_scope, key, dst_len,
--			    fa->fa_tos, fa->fa_info, 0);
-+			    fa->fa_tos, fa->fa_info, nlm_flags);
- 	if (err < 0) {
- 		/* -EMSGSIZE implies BUG in fib_nlmsg_size() */
- 		WARN_ON(err == -EMSGSIZE);
-diff -puN net/ipv4/fib_trie.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_trie.c
---- a/net/ipv4/fib_trie.c~networking-fix-sending-netlink-message-when-replace-route
-+++ a/net/ipv4/fib_trie.c
-@@ -1207,6 +1207,8 @@ static int fn_trie_insert(struct fib_tab
- 			fib_release_info(fi_drop);
- 			if (state & FA_S_ACCESSED)
- 				rt_cache_flush(-1);
-+			rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen,
-+				tb->tb_id, &cfg->fc_nlinfo, NLM_F_REPLACE);
- 
- 			goto succeeded;
- 		}
-@@ -1259,7 +1261,7 @@ static int fn_trie_insert(struct fib_tab
- 
- 	rt_cache_flush(-1);
- 	rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen, tb->tb_id,
--		  &cfg->fc_nlinfo);
-+		  &cfg->fc_nlinfo, 0);
- succeeded:
- 	return 0;
- 
-@@ -1605,7 +1607,7 @@ static int fn_trie_delete(struct fib_tab
- 
- 	fa = fa_to_delete;
- 	rtmsg_fib(RTM_DELROUTE, htonl(key), fa, plen, tb->tb_id,
--		  &cfg->fc_nlinfo);
-+		  &cfg->fc_nlinfo, 0);
- 
- 	l = fib_find_node(t, key);
- 	li = find_leaf_info(l, plen);
+ 	/* Basic Accounting Fields start */
+ 	char	ac_comm[TS_COMM_LEN];	/* Command name */
+-	__u8	ac_sched;		/* Scheduling discipline */
++	__u8	ac_sched __attribute__((aligned(8)));
++					/* Scheduling discipline */
+ 	__u8	ac_pad[3];
+-	__u32	ac_uid;			/* User ID */
++	__u32	ac_uid __attribute__((aligned(8)));
++					/* User ID */
+ 	__u32	ac_gid;			/* Group ID */
+ 	__u32	ac_pid;			/* Process ID */
+ 	__u32	ac_ppid;		/* Parent process ID */
+ 	__u32	ac_btime;		/* Begin time [sec since 1970] */
+-	__u64	ac_etime;		/* Elapsed time [usec] */
++	__u64	ac_etime __attribute__((aligned(8)));
++					/* Elapsed time [usec] */
+ 	__u64	ac_utime;		/* User CPU time [usec] */
+ 	__u64	ac_stime;		/* SYstem CPU time [usec] */
+ 	__u64	ac_minflt;		/* Minor Page Fault Count */
 _
 
-Patches currently in -mm which might be from milon@wq.cz are
+Patches currently in -mm which might be from balbir@in.ibm.com are
 
-networking-fix-sending-netlink-message-when-replace-route.patch
+taskstats-fix-the-structure-members-alignment-issue.patch
+fix-race-between-attach_task-and-cpuset_exit.patch
+taskstats-fix-getdelays-usage-information.patch
