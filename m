@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spin_lock_unlocked-cleanup-in-arch-m68k.patch added to -mm tree
-Date: Thu, 19 Apr 2007 20:24:41 -0700
-Message-ID: <200704200324.l3K3OftW005948@shell0.pdx.osdl.net>
+Subject: + extend-print_symbol-capability-fix-fix.patch added to -mm tree
+Date: Thu, 19 Apr 2007 20:27:35 -0700
+Message-ID: <200704200327.l3K3RZhK005983@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48561 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752694AbXDTDYz (ORCPT
+	by vger.kernel.org with ESMTP id S1753868AbXDTD2O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 23:24:55 -0400
+	Thu, 19 Apr 2007 23:28:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: milindchoudhary@gmail.com, geert@linux-m68k.org, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, pmarques@grupopie.com, rdunlap@xenotime.net, rpeterso@redhat.com, rusty@rustcorp.com.au, sam@ravnborg.org, zippel@linux-m68k.org
 
 
 The patch titled
-     SPIN_LOCK_UNLOCKED cleanup in arch/m68k
+     extend-print_symbol-capability-fix-fix
 has been added to the -mm tree.  Its filename is
-     spin_lock_unlocked-cleanup-in-arch-m68k.patch
+     extend-print_symbol-capability-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,162 +26,201 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SPIN_LOCK_UNLOCKED cleanup in arch/m68k
-From: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Subject: extend-print_symbol-capability-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-SPIN_LOCK_UNLOCKED cleanup,use __SPIN_LOCK_UNLOCKED instead
-
-Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Paulo Marques <pmarques@grupopie.com>
+Cc: Robert Peterson <rpeterso@redhat.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/amiga/amiints.c  |    2 +-
- arch/m68k/amiga/cia.c      |    4 ++--
- arch/m68k/apollo/dn_ints.c |    2 +-
- arch/m68k/atari/ataints.c  |    2 +-
- arch/m68k/kernel/ints.c    |    4 ++--
- arch/m68k/mac/macints.c    |    2 +-
- arch/m68k/q40/q40ints.c    |    2 +-
- arch/m68k/sun3/sun3ints.c  |    2 +-
- 8 files changed, 10 insertions(+), 10 deletions(-)
+ include/linux/kallsyms.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/m68k/amiga/amiints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/amiga/amiints.c
---- a/arch/m68k/amiga/amiints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/amiga/amiints.c
-@@ -54,7 +54,7 @@ static irqreturn_t ami_int5(int irq, voi
+diff -puN include/linux/kallsyms.h~extend-print_symbol-capability-fix-fix include/linux/kallsyms.h
+--- a/include/linux/kallsyms.h~extend-print_symbol-capability-fix-fix
++++ a/include/linux/kallsyms.h
+@@ -52,10 +52,10 @@ static inline const char *kallsyms_looku
+ 	return NULL;
+ }
  
- static struct irq_controller amiga_irq_controller = {
- 	.name		= "amiga",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(amiga_irq_controller.lock),
- 	.enable		= amiga_enable_irq,
- 	.disable	= amiga_disable_irq,
- };
-diff -puN arch/m68k/amiga/cia.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/amiga/cia.c
---- a/arch/m68k/amiga/cia.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/amiga/cia.c
-@@ -123,7 +123,7 @@ static void cia_disable_irq(unsigned int
+-static inline void sprint_symbol(char *buffer, unsigned long addr)
++static inline int sprint_symbol(char *buffer, unsigned long addr)
+ {
+ 	*buffer = '\0';
+-	return;
++	return 0;
+ }
  
- static struct irq_controller cia_irq_controller = {
- 	.name		= "cia",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(cia_irq_controller.lock),
- 	.enable		= cia_enable_irq,
- 	.disable	= cia_disable_irq,
- };
-@@ -160,7 +160,7 @@ static void auto_disable_irq(unsigned in
- 
- static struct irq_controller auto_irq_controller = {
- 	.name		= "auto",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(auto_irq_controller.lock),
- 	.enable		= auto_enable_irq,
- 	.disable	= auto_disable_irq,
- };
-diff -puN arch/m68k/apollo/dn_ints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/apollo/dn_ints.c
---- a/arch/m68k/apollo/dn_ints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/apollo/dn_ints.c
-@@ -31,7 +31,7 @@ void apollo_irq_shutdown(unsigned int ir
- 
- static struct irq_controller apollo_irq_controller = {
- 	.name           = "apollo",
--	.lock           = SPIN_LOCK_UNLOCKED,
-+	.lock           = __SPIN_LOCK_UNLOCKED(apollo_irq_controller.lock),
- 	.startup        = apollo_irq_startup,
- 	.shutdown       = apollo_irq_shutdown,
- };
-diff -puN arch/m68k/atari/ataints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/atari/ataints.c
---- a/arch/m68k/atari/ataints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/atari/ataints.c
-@@ -339,7 +339,7 @@ static void atari_shutdown_irq(unsigned 
- 
- static struct irq_controller atari_irq_controller = {
- 	.name		= "atari",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(atari_irq_controller.lock),
- 	.startup	= atari_startup_irq,
- 	.shutdown	= atari_shutdown_irq,
- 	.enable		= atari_enable_irq,
-diff -puN arch/m68k/kernel/ints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/kernel/ints.c
---- a/arch/m68k/kernel/ints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/kernel/ints.c
-@@ -59,14 +59,14 @@ static int m68k_first_user_vec;
- 
- static struct irq_controller auto_irq_controller = {
- 	.name		= "auto",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(auto_irq_controller.lock),
- 	.startup	= m68k_irq_startup,
- 	.shutdown	= m68k_irq_shutdown,
- };
- 
- static struct irq_controller user_irq_controller = {
- 	.name		= "user",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(user_irq_controller.lock),
- 	.startup	= m68k_irq_startup,
- 	.shutdown	= m68k_irq_shutdown,
- };
-diff -puN arch/m68k/mac/macints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/mac/macints.c
---- a/arch/m68k/mac/macints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/mac/macints.c
-@@ -219,7 +219,7 @@ static void mac_disable_irq(unsigned int
- 
- static struct irq_controller mac_irq_controller = {
- 	.name		= "mac",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(mac_irq_controller.lock),
- 	.enable		= mac_enable_irq,
- 	.disable	= mac_disable_irq,
- };
-diff -puN arch/m68k/q40/q40ints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/q40/q40ints.c
---- a/arch/m68k/q40/q40ints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/q40/q40ints.c
-@@ -59,7 +59,7 @@ static void q40_irq_shutdown(unsigned in
- 
- static struct irq_controller q40_irq_controller = {
- 	.name		= "q40",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(q40_irq_controller.lock),
- 	.startup	= q40_irq_startup,
- 	.shutdown	= q40_irq_shutdown,
- 	.enable		= q40_enable_irq,
-diff -puN arch/m68k/sun3/sun3ints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/sun3/sun3ints.c
---- a/arch/m68k/sun3/sun3ints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/sun3/sun3ints.c
-@@ -90,7 +90,7 @@ static void sun3_inthandle(unsigned int 
- 
- static struct irq_controller sun3_irq_controller = {
- 	.name		= "sun3",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(sun3_irq_controller.lock),
- 	.startup	= m68k_irq_startup,
- 	.shutdown	= m68k_irq_shutdown,
- 	.enable		= sun3_enable_irq,
+ /* Stupid that this does nothing, but I didn't create this mess. */
 _
 
-Patches currently in -mm which might be from milindchoudhary@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
 git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
 git-powerpc.patch
-spin_lock_unlocked-cleanup-in-arch-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+sysfs-group-removal-avoid-bypass-permission-checks-tidy.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
 git-ieee1394.patch
-spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
-spin_lock_unlocked-cleanup-in-arch-mips.patch
-round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
-spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
-round_up-macro-cleanup-in-drivers-parisc.patch
-round_up-macro-cleanup-in-drivers-pci.patch
-pcie-remove-spin_lock_unlocked.patch
-spin_lock_unlocked-cleanup-in-drivers-s390.patch
-round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
-round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
-spin_lock_unlocked-cleanup-in-arch-m68k.patch
-round_up-macro-cleanup-in-drivers-char-lpc.patch
-round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
-round_up-macro-cleanup-in-fs-smbfs-requestc.patch
-spin_lock_unlocked-cleanup-in-init_taskh.patch
-spin_lock_unlocked-cleanup-in-drivers-char-keyboard.patch
-spin_lock_unlocked-cleanup-in-drivers-serial.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
