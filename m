@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-spelling-in-drivers-video-kconfig.patch added to -mm tree
-Date: Fri, 20 Apr 2007 16:05:35 -0700
-Message-ID: <200704202305.l3KN5k55025973@shell0.pdx.osdl.net>
+Subject: + usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs.patch added to -mm tree
+Date: Fri, 20 Apr 2007 16:09:55 -0700
+Message-ID: <200704202309.l3KN9t9a026028@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59766 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767320AbXDTXFt (ORCPT
+	by vger.kernel.org with ESMTP id S1750712AbXDTXKU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 19:05:49 -0400
+	Fri, 20 Apr 2007 19:10:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: maxextreme@gmail.com, adaplas@gmail.com
+Cc: simon@fire.lp0.eu, duncan.sands@math.u-psud.fr, greg@kroah.com
 
 
 The patch titled
-     Fix spelling in drivers/video/Kconfig
+     usbatm: Detect usb device shutdown and ignore failed urbs
 has been added to the -mm tree.  Its filename is
-     fix-spelling-in-drivers-video-kconfig.patch
+     usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix spelling in drivers/video/Kconfig
-From: "Miguel Ojeda" <maxextreme@gmail.com>
+Subject: usbatm: Detect usb device shutdown and ignore failed urbs
+From: Simon Arlott <simon@fire.lp0.eu>
 
-Signed-off-by: Miguel Ojeda Sandonis <maxextreme@gmail.com>
-Cc: "Antonino A. Daplas" <adaplas@gmail.com>
+Detect usb device shutdown and ignore failed urbs.  This happens when the
+driver is unloaded or the device is unplugged.
+
+I'm not sure what other urb statuses should be ignored, and the warning
+message doesn't need to be shown when the module is unloaded or the device
+is removed.
+
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/atm/usbatm.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/video/Kconfig~fix-spelling-in-drivers-video-kconfig drivers/video/Kconfig
---- a/drivers/video/Kconfig~fix-spelling-in-drivers-video-kconfig
-+++ a/drivers/video/Kconfig
-@@ -139,7 +139,7 @@ config FB_TILEBLITTING
- 	 This is particularly important to one driver, matroxfb.  If
- 	 unsure, say N.
- 
--comment "Frambuffer hardware drivers"
-+comment "Frame buffer hardware drivers"
- 	depends on FB
- 
- config FB_CIRRUS
+diff -puN drivers/usb/atm/usbatm.c~usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs drivers/usb/atm/usbatm.c
+--- a/drivers/usb/atm/usbatm.c~usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs
++++ a/drivers/usb/atm/usbatm.c
+@@ -274,6 +274,9 @@ static void usbatm_complete(struct urb *
+ 			(!(channel->usbatm->flags & UDSL_IGNORE_EILSEQ) ||
+ 			 urb->status != -EILSEQ ))
+ 	{
++		if (urb->status == -ESHUTDOWN)
++			return;
++
+ 		if (printk_ratelimit())
+ 			atm_warn(channel->usbatm, "%s: urb 0x%p failed (%d)!\n",
+ 				__func__, urb, urb->status);
 _
 
-Patches currently in -mm which might be from maxextreme@gmail.com are
+Patches currently in -mm which might be from simon@fire.lp0.eu are
 
-fix-spelling-in-drivers-video-kconfig.patch
-add-webpages-url-and-summarize-3-lines.patch
+usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs.patch
+usb-cxacru-adsl-state-management.patch
