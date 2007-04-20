@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + extend-print_symbol-capability-fix-fix.patch added to -mm tree
-Date: Thu, 19 Apr 2007 20:27:35 -0700
-Message-ID: <200704200327.l3K3RZhK005983@shell0.pdx.osdl.net>
+Subject: + remove-page_group_by_mobility.patch added to -mm tree
+Date: Thu, 19 Apr 2007 20:32:01 -0700
+Message-ID: <200704200332.l3K3W1sO006039@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48454 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753868AbXDTD2O (ORCPT
+	by vger.kernel.org with ESMTP id S1752361AbXDTDcm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 23:28:14 -0400
+	Thu, 19 Apr 2007 23:32:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, pmarques@grupopie.com, rdunlap@xenotime.net, rpeterso@redhat.com, rusty@rustcorp.com.au, sam@ravnborg.org, zippel@linux-m68k.org
+Cc: mel@csn.ul.ie, apw@shadowen.org
 
 
 The patch titled
-     extend-print_symbol-capability-fix-fix
+     remove PAGE_GROUP_BY_MOBILITY
 has been added to the -mm tree.  Its filename is
-     extend-print_symbol-capability-fix-fix.patch
+     remove-page_group_by_mobility.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,201 +26,238 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: extend-print_symbol-capability-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove PAGE_GROUP_BY_MOBILITY
+From: Mel Gorman <mel@csn.ul.ie>
 
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Paulo Marques <pmarques@grupopie.com>
-Cc: Robert Peterson <rpeterso@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Grouping pages by mobility can be disabled at compile-time. This was
+considered undesirable by a number of people. However, in the current stack of
+patches, it is not a simple case of just dropping the configurable patch as it
+would cause merge conflicts.  This patch backs out the configuration option.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kallsyms.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    9 --------
+ init/Kconfig           |   13 ------------
+ mm/page_alloc.c        |   42 +--------------------------------------
+ 3 files changed, 2 insertions(+), 62 deletions(-)
 
-diff -puN include/linux/kallsyms.h~extend-print_symbol-capability-fix-fix include/linux/kallsyms.h
---- a/include/linux/kallsyms.h~extend-print_symbol-capability-fix-fix
-+++ a/include/linux/kallsyms.h
-@@ -52,10 +52,10 @@ static inline const char *kallsyms_looku
- 	return NULL;
+diff -puN include/linux/mmzone.h~remove-page_group_by_mobility include/linux/mmzone.h
+--- a/include/linux/mmzone.h~remove-page_group_by_mobility
++++ a/include/linux/mmzone.h
+@@ -25,21 +25,12 @@
+ #endif
+ #define MAX_ORDER_NR_PAGES (1 << (MAX_ORDER - 1))
+ 
+-#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ #define MIGRATE_UNMOVABLE     0
+ #define MIGRATE_RECLAIMABLE   1
+ #define MIGRATE_MOVABLE       2
+ #define MIGRATE_HIGHATOMIC    3
+ #define MIGRATE_RESERVE       4
+ #define MIGRATE_TYPES         5
+-#else
+-#define MIGRATE_UNMOVABLE     0
+-#define MIGRATE_UNRECLAIMABLE 0
+-#define MIGRATE_MOVABLE       0
+-#define MIGRATE_HIGHATOMIC    0
+-#define MIGRATE_RESERVE       0
+-#define MIGRATE_TYPES         1
+-#endif
+ 
+ #define for_each_migratetype_order(order, type) \
+ 	for (order = 0; order < MAX_ORDER; order++) \
+diff -puN init/Kconfig~remove-page_group_by_mobility init/Kconfig
+--- a/init/Kconfig~remove-page_group_by_mobility
++++ a/init/Kconfig
+@@ -547,19 +547,6 @@ config SLOB
+ 	default !SLAB
+ 	bool
+ 
+-config PAGE_GROUP_BY_MOBILITY
+-	bool "Group pages based on their mobility in the page allocator"
+-	def_bool y
+-	help
+-	  The standard allocator will fragment memory over time which means
+-	  that high order allocations will fail even if kswapd is running. If
+-	  this option is set, the allocator will try and group page types
+-	  based on their ability to migrate or reclaim. This is a best effort
+-	  attempt at lowering fragmentation which a few workloads care about.
+-	  The loss is a more complex allocator that may perform slower. If
+-	  you are interested in working with large pages, say Y and set
+-	  /proc/sys/vm/min_free_bytes to 16374. Otherwise say N
+-
+ menu "Loadable module support"
+ 
+ config MODULES
+diff -puN mm/page_alloc.c~remove-page_group_by_mobility mm/page_alloc.c
+--- a/mm/page_alloc.c~remove-page_group_by_mobility
++++ a/mm/page_alloc.c
+@@ -144,7 +144,6 @@ static unsigned long __initdata dma_rese
+   EXPORT_SYMBOL(movable_zone);
+ #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+ 
+-#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ int page_group_by_mobility_disabled __read_mostly;
+ 
+ static inline int get_pageblock_migratetype(struct page *page)
+@@ -178,22 +177,6 @@ static inline int allocflags_to_migratet
+ 		((gfp_flags & __GFP_RECLAIMABLE) != 0);
  }
  
--static inline void sprint_symbol(char *buffer, unsigned long addr)
-+static inline int sprint_symbol(char *buffer, unsigned long addr)
+-#else
+-static inline int get_pageblock_migratetype(struct page *page)
+-{
+-	return MIGRATE_UNMOVABLE;
+-}
+-
+-static void set_pageblock_migratetype(struct page *page, int migratetype)
+-{
+-}
+-
+-static inline int allocflags_to_migratetype(gfp_t gfp_flags, int order)
+-{
+-	return MIGRATE_UNMOVABLE;
+-}
+-#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
+-
+ #ifdef CONFIG_DEBUG_VM
+ static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
  {
- 	*buffer = '\0';
--	return;
-+	return 0;
+@@ -702,7 +685,6 @@ static struct page *__rmqueue_smallest(s
  }
  
- /* Stupid that this does nothing, but I didn't create this mess. */
+ 
+-#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ /*
+  * This array describes the order lists are fallen back to when
+  * the free lists for the desirable migrate type are depleted
+@@ -734,7 +716,7 @@ int move_freepages(struct zone *zone,
+ 	 * CONFIG_HOLES_IN_ZONE is set. This bug check is probably redundant
+ 	 * anyway as we check zone boundaries in move_freepages_block().
+ 	 * Remove at a later date when no bug reports exist related to
+-	 * CONFIG_PAGE_GROUP_BY_MOBILITY
++	 * grouping pages by mobility
+ 	 */
+ 	BUG_ON(page_zone(start_page) != page_zone(end_page));
+ #endif
+@@ -883,13 +865,6 @@ retry:
+ 	/* Use MIGRATE_RESERVE rather than fail an allocation */
+ 	return __rmqueue_smallest(zone, order, MIGRATE_RESERVE);
+ }
+-#else
+-static struct page *__rmqueue_fallback(struct zone *zone, int order,
+-						int start_migratetype)
+-{
+-	return NULL;
+-}
+-#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
+ 
+ /*
+  * Do the hard work of removing an element from the buddy allocator.
+@@ -1055,7 +1030,6 @@ void mark_free_pages(struct zone *zone)
+ }
+ #endif /* CONFIG_PM */
+ 
+-#if defined(CONFIG_PM) || defined(CONFIG_PAGE_GROUP_BY_MOBILITY)
+ /*
+  * Spill all of this CPU's per-cpu pages back into the buddy allocator.
+  */
+@@ -1086,9 +1060,6 @@ void drain_all_local_pages(void)
+ 
+ 	smp_call_function(smp_drain_local_pages, NULL, 0, 1);
+ }
+-#else
+-void drain_all_local_pages(void) {}
+-#endif /* CONFIG_PM || CONFIG_PAGE_GROUP_BY_MOBILITY */
+ 
+ /*
+  * Free a 0-order page
+@@ -1179,7 +1150,6 @@ again:
+ 				goto failed;
+ 		}
+ 
+-#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ 		/* Find a page of the appropriate migrate type */
+ 		list_for_each_entry(page, &pcp->list, lru)
+ 			if (page_private(page) == migratetype)
+@@ -1191,9 +1161,6 @@ again:
+ 					pcp->batch, &pcp->list, migratetype);
+ 			page = list_entry(pcp->list.next, struct page, lru);
+ 		}
+-#else
+-		page = list_entry(pcp->list.next, struct page, lru);
+-#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
+ 
+ 		list_del(&page->lru);
+ 		pcp->count--;
+@@ -2269,7 +2236,6 @@ static inline unsigned long wait_table_b
+ 
+ #define LONG_ALIGN(x) (((x)+(sizeof(long))-1)&~((sizeof(long))-1))
+ 
+-#ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ /*
+  * Mark a number of MAX_ORDER_NR_PAGES blocks as MIGRATE_RESERVE. The number
+  * of blocks reserved is based on zone->pages_min. The memory within the
+@@ -2323,11 +2289,7 @@ static void setup_zone_migrate_reserve(s
+ 		}
+ 	}
+ }
+-#else
+-static inline void setup_zone_migrate_reserve(struct zone *zone)
+-{
+-}
+-#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
++
+ /*
+  * Initially all pages are reserved - free ones are freed
+  * up by free_all_bootmem() once the early boot process is
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-sysfs-group-removal-avoid-bypass-permission-checks-tidy.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-rfcomm_worker-fix-wakeup-race.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-git-wireless-vs-git-net-3.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-acpi-thermal-fix-mod_timer-interval.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+add-a-configure-option-to-group-pages-by-mobility-speedup.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+move-free-pages-between-lists-on-steal-fix.patch
+move-free-pages-between-lists-on-steal-fix-2.patch
+move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
+move-free-pages-between-lists-on-steal-do-not-cross-section-boundary-when-moving-pages-between-mobility-lists.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+create-the-zone_movable-zone.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+x86-specify-amount-of-kernel-memory-at-boot-time.patch
+ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
+x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
+ia64-specify-amount-of-kernel-memory-at-boot-time.patch
+ia64-specify-amount-of-kernel-memory-at-boot-time-fix.patch
+add-documentation-for-additional-boot-parameter-and-sysctl.patch
+lumpy-reclaim-v4.patch
+lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
+lumpy-only-count-taken-pages-as-scanned.patch
+add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
+anti-fragmentation-switch-over-to-pfn_valid_within.patch
+lumpy-move-to-using-pfn_valid_within.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-extend-print_symbol-capability-fix-fix.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
+remove-page_group_by_mobility.patch
+do-not-disable-interrupts-when-reading-min_free_kbytes.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
