@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial_txx9-zap-changelog-from-source-code.patch added to -mm tree
-Date: Fri, 20 Apr 2007 00:23:37 -0700
-Message-ID: <200704200723.l3K7NbVT009415@shell0.pdx.osdl.net>
+Subject: + cpu-time-limit-patch--setrlimitrlimit_cpu-0-cheat-fix.patch added to -mm tree
+Date: Fri, 20 Apr 2007 00:45:59 -0700
+Message-ID: <200704200745.l3K7jxIH009732@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57722 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753247AbXDTHYX (ORCPT
+	by vger.kernel.org with ESMTP id S1754076AbXDTHqJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 03:24:23 -0400
+	Fri, 20 Apr 2007 03:46:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, ralf@linux-mips.org
+Cc: alsbergt@cs.huji.ac.il
 
 
 The patch titled
-     serial_txx9: zap changelog from source code
+     CPU time limit patch / setrlimit(RLIMIT_CPU, 0) cheat fix
 has been added to the -mm tree.  Its filename is
-     serial_txx9-zap-changelog-from-source-code.patch
+     cpu-time-limit-patch--setrlimitrlimit_cpu-0-cheat-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial_txx9: zap changelog from source code
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: CPU time limit patch / setrlimit(RLIMIT_CPU, 0) cheat fix
+From: Tom Alsberg <alsbergt@cs.huji.ac.il>
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+As discovered here today, the change in Kernel 2.6.17 intended to inhibit
+users from setting RLIMIT_CPU to 0 (as that is equivalent to unlimited) by
+"cheating" and setting it to 1 in such a case, does not make a difference,
+as the check is done in the wrong place (too late), and only applies to the
+profiling code.
+
+On all systems I checked running kernels above 2.6.17, no matter what the
+hard and soft CPU time limits were before, a user could escape them by
+issuing in the shell (sh/bash/zsh) "ulimit -t 0", and then the user's
+process was not ever killed.
+
+Attached is a trivial patch to fix that.  Simply moving the check to a
+slightly earlier location (specifically, before the line that actually
+assigns the limit - *old_rlim = new_rlim), does the trick.
+
+Do note that at least the zsh (but not ash, dash, or bash) shell has the
+problem of "caching" the limits set by the ulimit command, so when running
+zsh the fix will not immediately be evident - after entering "ulimit -t 0",
+"ulimit -a" will show "-t: cpu time (seconds) 0", even though the actual
+limit as returned by getrlimit(...) will be 1.  It can be verified by
+opening a subshell (which will not have the values of the parent shell in
+cache) and checking in it, or just by running a CPU intensive command like
+"echo '65536^1048576' | bc" and verifying that it dumps core after one
+second.
+
+Regardless of whether that is a misfeature in the shell, perhaps it would
+be better to return -EINVAL from setrlimit in such a case instead of
+cheating and setting to 1, as that does not really reflect the actual state
+of the process anymore.  I do not however know what the ground for that
+decision was in the original 2.6.17 change, and whether there would be any
+"backward" compatibility issues, so I preferred not to touch that right
+now.
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_txx9.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ kernel/sys.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/serial/serial_txx9.c~serial_txx9-zap-changelog-from-source-code drivers/serial/serial_txx9.c
---- a/drivers/serial/serial_txx9.c~serial_txx9-zap-changelog-from-source-code
-+++ a/drivers/serial/serial_txx9.c
-@@ -15,31 +15,6 @@
-  * published by the Free Software Foundation.
-  *
-  *  Serial driver for TX3927/TX4927/TX4925/TX4938 internal SIO controller
-- *
-- *  Revision History:
-- *	0.30	Initial revision. (Renamed from serial_txx927.c)
-- *	0.31	Use save_flags instead of local_irq_save.
-- *	0.32	Support SCLK.
-- *	0.33	Switch TXX9_TTY_NAME by CONFIG_SERIAL_TXX9_STDSERIAL.
-- *		Support TIOCSERGETLSR.
-- *	0.34	Support slow baudrate.
-- *	0.40	Merge codes from mainstream kernel (2.4.22).
-- *	0.41	Fix console checking in rs_shutdown_port().
-- *		Disable flow-control in serial_console_write().
-- *	0.42	Fix minor compiler warning.
-- *	1.00	Kernel 2.6.  Converted to new serial core (based on 8250.c).
-- *	1.01	Set fifosize to make tx_empry called properly.
-- *		Use standard uart_get_divisor.
-- *	1.02	Cleanup. (import 8250.c changes)
-- *	1.03	Fix low-latency mode. (import 8250.c changes)
-- *	1.04	Remove usage of deprecated functions, cleanup.
-- *	1.05	More strict check in verify_port.  Cleanup.
-- *	1.06	Do not insert a char caused previous overrun.
-- *		Fix some spin_locks.
-- *		Do not call uart_add_one_port for absent ports.
-- *	1.07	Use CONFIG_SERIAL_TXX9_NR_UARTS.  Cleanup.
-- *	1.08	Use platform_device.
-- *		Fix and cleanup suspend/resume/initialization codes.
-  */
+diff -puN kernel/sys.c~cpu-time-limit-patch--setrlimitrlimit_cpu-0-cheat-fix kernel/sys.c
+--- a/kernel/sys.c~cpu-time-limit-patch--setrlimitrlimit_cpu-0-cheat-fix
++++ a/kernel/sys.c
+@@ -1924,6 +1924,16 @@ asmlinkage long sys_setrlimit(unsigned i
+ 	if (retval)
+ 		return retval;
  
- #if defined(CONFIG_SERIAL_TXX9_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
++	if (resource == RLIMIT_CPU && new_rlim.rlim_cur == 0) {
++		/*
++		 * The caller is asking for an immediate RLIMIT_CPU
++		 * expiry.  But we use the zero value to mean "it was
++		 * never set".  So let's cheat and make it one second
++		 * instead
++		 */
++		new_rlim.rlim_cur = 1;
++	}
++
+ 	task_lock(current->group_leader);
+ 	*old_rlim = new_rlim;
+ 	task_unlock(current->group_leader);
+@@ -1945,15 +1955,6 @@ asmlinkage long sys_setrlimit(unsigned i
+ 		unsigned long rlim_cur = new_rlim.rlim_cur;
+ 		cputime_t cputime;
+ 
+-		if (rlim_cur == 0) {
+-			/*
+-			 * The caller is asking for an immediate RLIMIT_CPU
+-			 * expiry.  But we use the zero value to mean "it was
+-			 * never set".  So let's cheat and make it one second
+-			 * instead
+-			 */
+-			rlim_cur = 1;
+-		}
+ 		cputime = secs_to_cputime(rlim_cur);
+ 		read_lock(&tasklist_lock);
+ 		spin_lock_irq(&current->sighand->siglock);
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from alsbergt@cs.huji.ac.il are
 
-git-kbuild.patch
-git-mips.patch
-git-netdev-all.patch
-serial_txx9-use-assigned-device-numbers.patch
-serial_txx9-zap-changelog-from-source-code.patch
+cpu-time-limit-patch--setrlimitrlimit_cpu-0-cheat-fix.patch
