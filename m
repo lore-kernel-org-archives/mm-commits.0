@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnpbios-conert-to-use-the-kthread-api.patch added to -mm tree
-Date: Thu, 19 Apr 2007 17:54:06 -0700
-Message-ID: <200704200054.l3K0s6Tk003548@shell0.pdx.osdl.net>
+Subject: + cpqphp-partially-convert-to-use-the-kthread-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 18:55:15 -0700
+Message-ID: <200704200155.l3K1tFQT004593@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48221 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752228AbXDTAy6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753012AbXDTBzY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 20:54:58 -0400
+	Thu, 19 Apr 2007 21:55:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, ambx1@neo.rr.com, bjorn.helgaas@hp.com
+Cc: ebiederm@xmission.com, gregkh@suse.de, kristen.c.accardi@intel.com
 
 
 The patch titled
-     pnpbios: convert to use the kthread API
+     cpqphp: partially convert to use the kthread API
 has been added to the -mm tree.  Its filename is
-     pnpbios-conert-to-use-the-kthread-api.patch
+     cpqphp-partially-convert-to-use-the-kthread-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,76 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pnpbios: convert to use the kthread API
+Subject: cpqphp: partially convert to use the kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patches modifies the pnpbios kernel thread to start with ktrhead_run
-not kernel_thread and deamonize.  Doing this makes the code a little
-simpler and easier to maintain.
+This patch changes cpqphp to use kthread_run and not kernel_thread and
+daemonize to startup and setup the cpqphp thread.
 
+akpm: needs to be converted to use kthread_should_stop() and kthread_stop()
+too.
+
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpbios/core.c |   16 +++++++---------
- 1 files changed, 7 insertions(+), 9 deletions(-)
+ drivers/pci/hotplug/cpqphp_ctrl.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/pnp/pnpbios/core.c~pnpbios-conert-to-use-the-kthread-api drivers/pnp/pnpbios/core.c
---- a/drivers/pnp/pnpbios/core.c~pnpbios-conert-to-use-the-kthread-api
-+++ a/drivers/pnp/pnpbios/core.c
-@@ -62,6 +62,7 @@
- #include <linux/delay.h>
- #include <linux/acpi.h>
- #include <linux/freezer.h>
+diff -puN drivers/pci/hotplug/cpqphp_ctrl.c~cpqphp-partially-convert-to-use-the-kthread-api drivers/pci/hotplug/cpqphp_ctrl.c
+--- a/drivers/pci/hotplug/cpqphp_ctrl.c~cpqphp-partially-convert-to-use-the-kthread-api
++++ a/drivers/pci/hotplug/cpqphp_ctrl.c
+@@ -37,6 +37,7 @@
+ #include <linux/smp_lock.h>
+ #include <linux/pci.h>
+ #include <linux/pci_hotplug.h>
 +#include <linux/kthread.h>
+ #include "cpqphp.h"
  
- #include <asm/page.h>
- #include <asm/desc.h>
-@@ -159,9 +160,7 @@ static int pnp_dock_thread(void * unused
+ static u32 configure_new_device(struct controller* ctrl, struct pci_func *func,
+@@ -1746,10 +1747,6 @@ static void pushbutton_helper_thread(uns
+ static int event_thread(void* data)
  {
- 	static struct pnp_docking_station_info now;
- 	int docked = -1, d = 0;
--	daemonize("kpnpbiosd");
--	allow_signal(SIGKILL);
--	while(!unloading && !signal_pending(current))
-+	while (!unloading)
- 	{
- 		int status;
- 		
-@@ -170,11 +169,8 @@ static int pnp_dock_thread(void * unused
- 		 */
- 		msleep_interruptible(2000);
+ 	struct controller *ctrl;
+-	lock_kernel();
+-	daemonize("phpd_event");
+-	
+-	unlock_kernel();
  
--		if(signal_pending(current)) {
--			if (try_to_freeze())
--				continue;
--			break;
--		}
-+		if (try_to_freeze())
-+			continue;
+ 	while (1) {
+ 		dbg("!!!!event_thread sleeping\n");
+@@ -1771,7 +1768,7 @@ static int event_thread(void* data)
  
- 		status = pnp_bios_dock_station_info(&now);
- 
-@@ -581,6 +577,7 @@ subsys_initcall(pnpbios_init);
- 
- static int __init pnpbios_thread_init(void)
+ int cpqhp_event_start_thread(void)
  {
+-	int pid;
 +	struct task_struct *task;
- #if defined(CONFIG_PPC_MERGE)
- 	if (check_legacy_ioport(PNPBIOS_BASE))
- 		return 0;
-@@ -589,7 +586,8 @@ static int __init pnpbios_thread_init(vo
- 		return 0;
- #ifdef CONFIG_HOTPLUG
- 	init_completion(&unload_sem);
--	if (kernel_thread(pnp_dock_thread, NULL, CLONE_KERNEL) > 0)
-+	task = kthread_run(pnp_dock_thread, NULL, "kpnpbiosd");
-+	if (!IS_ERR(task))
- 		unloading = 0;
- #endif
+ 
+ 	/* initialize our semaphores */
+ 	init_MUTEX(&delay_sem);
+@@ -1779,12 +1776,11 @@ int cpqhp_event_start_thread(void)
+ 	init_MUTEX_LOCKED(&event_exit);
+ 	event_finished=0;
+ 
+-	pid = kernel_thread(event_thread, NULL, 0);
+-	if (pid < 0) {
++	task = kthread_run(event_thread, NULL, "phpd_event");
++	if (IS_ERR(task)) {
+ 		err ("Can't start up our event thread\n");
+ 		return -1;
+ 	}
+-	dbg("Our event thread pid = %d\n", pid);
  	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -111,6 +105,7 @@ mm-only-dvb_en_50221-convert-to-kthread-api.patch
 mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
 ia64-sn-xpc-convert-to-use-kthread-api.patch
 fix-i-oat-for-kexec.patch
+cpqphp-partially-convert-to-use-the-kthread-api.patch
 s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
 s390-qeth-convert-to-use-the-kthread-api.patch
 s390-net-lcs-convert-to-the-kthread-api.patch
