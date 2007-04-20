@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpqphp-partially-convert-to-use-the-kthread-api.patch added to -mm tree
-Date: Thu, 19 Apr 2007 18:55:15 -0700
-Message-ID: <200704200155.l3K1tFQT004593@shell0.pdx.osdl.net>
+Subject: + ibmphp-partially-convert-to-use-the-kthreads-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 18:57:58 -0700
+Message-ID: <200704200157.l3K1vw0g004634@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37184 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753012AbXDTBzY (ORCPT
+	by vger.kernel.org with ESMTP id S1754315AbXDTB6F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 21:55:24 -0400
+	Thu, 19 Apr 2007 21:58:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, gregkh@suse.de, kristen.c.accardi@intel.com
+Cc: ebiederm@xmission.com, gregkh@suse.de, jshah@us.ibm.com, kristen.c.accardi@intel.com
 
 
 The patch titled
-     cpqphp: partially convert to use the kthread API
+     ibmphp: partially convert to use the kthreads API
 has been added to the -mm tree.  Its filename is
-     cpqphp-partially-convert-to-use-the-kthread-api.patch
+     ibmphp-partially-convert-to-use-the-kthreads-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpqphp: partially convert to use the kthread API
+Subject: ibmphp: partially convert to use the kthreads API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patch changes cpqphp to use kthread_run and not kernel_thread and
-daemonize to startup and setup the cpqphp thread.
+kthread_run replaces kernel_thread and dameonize.
 
-akpm: needs to be converted to use kthread_should_stop() and kthread_stop()
-too.
+allow_signal is unnecessary and has been removed.  tid_poll was unused and
+has been removed.
 
+akpm: needs to be converted to use kthread_should_stop() and kthread_stop().
+
+akpm: and mutexes!
+
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Jyoti Shah <jshah@us.ibm.com>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/cpqphp_ctrl.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/pci/hotplug/ibmphp_hpc.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN drivers/pci/hotplug/cpqphp_ctrl.c~cpqphp-partially-convert-to-use-the-kthread-api drivers/pci/hotplug/cpqphp_ctrl.c
---- a/drivers/pci/hotplug/cpqphp_ctrl.c~cpqphp-partially-convert-to-use-the-kthread-api
-+++ a/drivers/pci/hotplug/cpqphp_ctrl.c
-@@ -37,6 +37,7 @@
+diff -puN drivers/pci/hotplug/ibmphp_hpc.c~ibmphp-partially-convert-to-use-the-kthreads-api drivers/pci/hotplug/ibmphp_hpc.c
+--- a/drivers/pci/hotplug/ibmphp_hpc.c~ibmphp-partially-convert-to-use-the-kthreads-api
++++ a/drivers/pci/hotplug/ibmphp_hpc.c
+@@ -35,6 +35,7 @@
  #include <linux/smp_lock.h>
- #include <linux/pci.h>
- #include <linux/pci_hotplug.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
 +#include <linux/kthread.h>
- #include "cpqphp.h"
  
- static u32 configure_new_device(struct controller* ctrl, struct pci_func *func,
-@@ -1746,10 +1747,6 @@ static void pushbutton_helper_thread(uns
- static int event_thread(void* data)
+ #include "ibmphp.h"
+ 
+@@ -102,7 +103,6 @@ static int to_debug = 0;
+ // global variables
+ //----------------------------------------------------------------------------
+ static int ibmphp_shutdown;
+-static int tid_poll;
+ static struct mutex sem_hpcaccess;	// lock access to HPC
+ static struct semaphore semOperations;	// lock all operations and
+ 					// access to data structures
+@@ -138,7 +138,6 @@ void __init ibmphp_hpc_initvars (void)
+ 	init_MUTEX_LOCKED (&sem_exit);
+ 	to_debug = 0;
+ 	ibmphp_shutdown = 0;
+-	tid_poll = 0;
+ 
+ 	debug ("%s - Exit\n", __FUNCTION__);
+ }
+@@ -1061,12 +1060,8 @@ static int hpc_poll_thread (void *data)
  {
- 	struct controller *ctrl;
--	lock_kernel();
--	daemonize("phpd_event");
--	
--	unlock_kernel();
+ 	debug ("%s - Entry\n", __FUNCTION__);
  
- 	while (1) {
- 		dbg("!!!!event_thread sleeping\n");
-@@ -1771,7 +1768,7 @@ static int event_thread(void* data)
+-	daemonize("hpc_poll");
+-	allow_signal(SIGKILL);
+-
+ 	poll_hpc ();
  
- int cpqhp_event_start_thread(void)
- {
--	int pid;
-+	struct task_struct *task;
- 
- 	/* initialize our semaphores */
- 	init_MUTEX(&delay_sem);
-@@ -1779,12 +1776,11 @@ int cpqhp_event_start_thread(void)
- 	init_MUTEX_LOCKED(&event_exit);
- 	event_finished=0;
- 
--	pid = kernel_thread(event_thread, NULL, 0);
--	if (pid < 0) {
-+	task = kthread_run(event_thread, NULL, "phpd_event");
-+	if (IS_ERR(task)) {
- 		err ("Can't start up our event thread\n");
- 		return -1;
- 	}
--	dbg("Our event thread pid = %d\n", pid);
+-	tid_poll = 0;
+ 	debug ("%s - Exit\n", __FUNCTION__);
  	return 0;
+ }
+@@ -1079,17 +1074,18 @@ static int hpc_poll_thread (void *data)
+ *---------------------------------------------------------------------*/
+ int __init ibmphp_hpc_start_poll_thread (void)
+ {
++	struct task_struct *task;
+ 	int rc = 0;
+ 
+ 	debug ("%s - Entry\n", __FUNCTION__);
+ 
+-	tid_poll = kernel_thread (hpc_poll_thread, NULL, 0);
+-	if (tid_poll < 0) {
++	task = kthread_run(hpc_poll_thread, NULL, "hpc_poll");
++	if (IS_ERR(task)) {
+ 		err ("%s - Error, thread not started\n", __FUNCTION__);
+ 		rc = -1;
+ 	}
+ 
+-	debug ("%s - Exit tid_poll[%d] rc[%d]\n", __FUNCTION__, tid_poll, rc);
++	debug ("%s - Exit rc[%d]\n", __FUNCTION__, rc);
+ 	return rc;
  }
  
 _
@@ -106,6 +126,7 @@ mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
 ia64-sn-xpc-convert-to-use-kthread-api.patch
 fix-i-oat-for-kexec.patch
 cpqphp-partially-convert-to-use-the-kthread-api.patch
+ibmphp-partially-convert-to-use-the-kthreads-api.patch
 s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
 s390-qeth-convert-to-use-the-kthread-api.patch
 s390-net-lcs-convert-to-the-kthread-api.patch
