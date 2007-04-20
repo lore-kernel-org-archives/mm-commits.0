@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + freezer-document-task_lock-in-thaw_process.patch added to -mm tree
-Date: Fri, 20 Apr 2007 15:24:05 -0700
-Message-ID: <200704202224.l3KMO5EX025254@shell0.pdx.osdl.net>
+Subject: + kbuild-handle-compressed-cpio-initramfs-es.patch added to -mm tree
+Date: Fri, 20 Apr 2007 15:30:37 -0700
+Message-ID: <200704202230.l3KMUkI3025360@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54545 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751615AbXDTWYf (ORCPT
+	by vger.kernel.org with ESMTP id S1751615AbXDTWav (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 18:24:35 -0400
+	Fri, 20 Apr 2007 18:30:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, ego@in.ibm.com, oleg@tv-sign.ru
+Cc: landau.alex@gmail.com, sam@ravnborg.org
 
 
 The patch titled
-     freezer: document task_lock in thaw_process
+     kbuild: handle compressed cpio initramfs-es
 has been added to the -mm tree.  Its filename is
-     freezer-document-task_lock-in-thaw_process.patch
+     kbuild-handle-compressed-cpio-initramfs-es.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: freezer: document task_lock in thaw_process
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: kbuild: handle compressed cpio initramfs-es
+From: "Alex Landau" <landau.alex@gmail.com>
 
-The task_lock() in include/linux/freezer.h:thaw_process() looks as though
-it were protecting p->flags, which is not the case.  Add a comment that
-explains why it's there.
+Make kbuild handle compressed cpio initramfs-es.  An already compressed
+cpio is copied directly to usr/, while a non-compressed cpio is filtered
+through gzip (no changes here) on its way to usr/.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+If the user has created a compressed cpio by other means, this saves him
+from uncompressing it, just to be compressed again by kbuild.
+
+Signed-off-by: Alex Landau <landau.alex@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |    6 ++++++
- 1 files changed, 6 insertions(+)
+ scripts/gen_initramfs_list.sh |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/freezer.h~freezer-document-task_lock-in-thaw_process include/linux/freezer.h
---- a/include/linux/freezer.h~freezer-document-task_lock-in-thaw_process
-+++ a/include/linux/freezer.h
-@@ -37,6 +37,12 @@ static inline void do_not_freeze(struct 
+diff -puN scripts/gen_initramfs_list.sh~kbuild-handle-compressed-cpio-initramfs-es scripts/gen_initramfs_list.sh
+--- a/scripts/gen_initramfs_list.sh~kbuild-handle-compressed-cpio-initramfs-es
++++ a/scripts/gen_initramfs_list.sh
+@@ -191,9 +191,10 @@ input_file() {
+ 	source="$1"
+ 	if [ -f "$1" ]; then
+ 		${dep_list}header "$1"
+-		is_cpio="$(echo "$1" | sed 's/^.*\.cpio/cpio/')"
++		is_cpio="$(echo "$1" | sed 's/^.*\.cpio\(\..*\)\?/cpio/')"
+ 		if [ $2 -eq 0 -a ${is_cpio} == "cpio" ]; then
+ 			cpio_file=$1
++			echo "$1" | grep -q '^.*\.cpio\..*' && is_cpio_compressed="compressed"
+ 			[ ! -z ${dep_list} ] && echo "$1"
+ 			return 0
+ 		fi
+@@ -223,6 +224,7 @@ cpio_file=
+ cpio_list=
+ output="/dev/stdout"
+ output_file=""
++is_cpio_compressed=
  
- /*
-  * Wake up a frozen process
-+ *
-+ * task_lock() is taken to prevent the race with refrigerator() which may
-+ * occur if the freezing of tasks fails.  Namely, without the lock, if the
-+ * freezing of tasks failed, thaw_tasks() might have run before a task in
-+ * refrigerator() could call frozen_process(), in which case the task would be
-+ * frozen and no one would thaw it.
-  */
- static inline int thaw_process(struct task_struct *p)
- {
+ arg="$1"
+ case "$arg" in
+@@ -282,7 +284,11 @@ if [ ! -z ${output_file} ]; then
+ 		cpio_tfile=${cpio_file}
+ 	fi
+ 	rm ${cpio_list}
+-	cat ${cpio_tfile} | gzip -f -9 - > ${output_file}
++	if [ "${is_cpio_compressed}" = "compressed" ]; then
++		cat ${cpio_tfile} > ${output_file}
++	else
++		cat ${cpio_tfile} | gzip -f -9 - > ${output_file}
++	fi
+ 	[ -z ${cpio_file} ] && rm ${cpio_tfile}
+ fi
+ exit 0
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from landau.alex@gmail.com are
 
-fix-refrigerator-vs-thaw_process-race.patch
-swsusp-use-inline-functions-for-changing-page-flags.patch
-swsusp-do-not-use-page-flags.patch
-mm-remove-unused-page-flags.patch
-swsusp-fix-error-paths-in-snapshot_open.patch
-swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-force-pm_opsvalid-callback-to-be.patch
-freezer-remove-pf_nofreeze-from-handle_initrd.patch
-swsusp-use-rbtree-for-tracking-allocated-swap.patch
-freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch
-remove-software_suspend.patch
-power-management-change-sys-power-disk-display.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-fix-pf_nofreeze-and-freezeable-race.patch
-freezer-document-task_lock-in-thaw_process.patch
-shrink_slab-handle-bad-shrinkers.patch
+kbuild-handle-compressed-cpio-initramfs-es.patch
