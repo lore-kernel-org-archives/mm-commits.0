@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + upper-32-bits.patch added to -mm tree
-Date: Fri, 20 Apr 2007 12:33:46 -0700
-Message-ID: <200704201933.l3KJXkPw022308@shell0.pdx.osdl.net>
+Subject: + expose-range-checking-functions-from-arch-specific-update-fix.patch added to -mm tree
+Date: Fri, 20 Apr 2007 13:21:05 -0700
+Message-ID: <200704202021.l3KKL5vZ023023@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52059 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767224AbXDTTeM (ORCPT
+	by vger.kernel.org with ESMTP id S2993326AbXDTUVX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 15:34:12 -0400
+	Fri, 20 Apr 2007 16:21:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, Mike.Miller@hp.com, Steve.Cameron@hp.com, alan@lxorguk.ukuu.org.uk, hifumi.hisashi@oss.ntt.co.jp
+Cc: akpm@linux-foundation.org, linux-arch@vger.kernel.org, randy.dunlap@oracle.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     add upper-32-bits macro
+     expose-range-checking-functions-from-arch-specific-update-fix
 has been added to the -mm tree.  Its filename is
-     upper-32-bits.patch
+     expose-range-checking-functions-from-arch-specific-update-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add upper-32-bits macro
+Subject: expose-range-checking-functions-from-arch-specific-update-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-We keep on getting "right shift count >= width of type" warnings when doing
-things like
+drivers/char/consolemap.c:264: warning: implicit declaration of function 'range_over_limit'
 
-	sector_t s;
+access_ok() needs range_over_limit().
 
-	x = s >> 56;
+ug.
 
-because with CONFIG_LBD=n, s is only 32-bit.  Similar problems can occur with
-dma_addr_t's.
+Put the include back into kernel.h.  Also create linux/range.h so we can put
+arch-independent stuff in there.
 
-So add a simple wrapper function which code can use to avoid this warning. 
-The above example would become
+This is all too much fuss and I'm inclined to drop the whole thing.
 
-	x = upper_32_bits(s) >> 24;
-
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: "Cameron, Steve" <Steve.Cameron@hp.com>
-Cc: "Miller, Mike (OS Dev)" <Mike.Miller@hp.com>
-Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   10 ++++++++++
- 1 files changed, 10 insertions(+)
+ include/linux/kernel.h |    2 ++
+ include/linux/range.h  |    6 ++++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN include/linux/kernel.h~upper-32-bits include/linux/kernel.h
---- a/include/linux/kernel.h~upper-32-bits
+diff -puN include/linux/kernel.h~expose-range-checking-functions-from-arch-specific-update-fix include/linux/kernel.h
+--- a/include/linux/kernel.h~expose-range-checking-functions-from-arch-specific-update-fix
 +++ a/include/linux/kernel.h
-@@ -40,6 +40,16 @@ extern const char linux_proc_banner[];
- #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
- #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
- 
-+/**
-+ * upper_32_bits - return bits 32-63 of a number
-+ * @n: the number we're accessing
-+ *
-+ * A basic shift-right of a 64- or 32-bit quantity.  Use this to suppress
-+ * the "right shift count >= width of type" warning when that quantity is
-+ * 32-bits.
-+ */
-+#define upper_32_bits(n) (((u64)(n)) >> 32)
+@@ -14,6 +14,8 @@
+ #include <linux/compiler.h>
+ #include <linux/bitops.h>
+ #include <linux/log2.h>
++#include <linux/range.h>
 +
- #define	KERN_EMERG	"<0>"	/* system is unusable			*/
- #define	KERN_ALERT	"<1>"	/* action must be taken immediately	*/
- #define	KERN_CRIT	"<2>"	/* critical conditions			*/
+ #include <asm/byteorder.h>
+ #include <asm/bug.h>
+ 
+diff -puN /dev/null include/linux/range.h
+--- /dev/null
++++ a/include/linux/range.h
+@@ -0,0 +1,6 @@
++#ifndef RANGE_H_INCLUDED
++#define RANGE_H_INCLUDED
++
++#include <asm/range.h>
++
++#endif		/* RANGE_H_INCLUDED */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -195,9 +192,11 @@ time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc-fix.patch
 fix-kevents-childs-priority-greediness-fix.patch
 display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
 pad-irq_desc-to-internode-cacheline-size-fix.patch
 dtlk-fix-error-checks-in-module_init-fix.patch
 document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 kthread-dont-depend-on-work-queues-take-2-fix.patch
@@ -242,4 +241,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-upper-32-bits.patch
