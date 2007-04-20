@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + paride-drivers-initialize-spinlocks.patch added to -mm tree
-Date: Fri, 20 Apr 2007 15:31:46 -0700
-Message-ID: <200704202231.l3KMVuMP025372@shell0.pdx.osdl.net>
+Subject: + jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread.patch added to -mm tree
+Date: Fri, 20 Apr 2007 15:38:17 -0700
+Message-ID: <200704202238.l3KMcHML025474__18674.7513981119$1177108723$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37250 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751615AbXDTWcG (ORCPT
+	by vger.kernel.org with ESMTP id S1754514AbXDTWic (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 18:32:06 -0400
+	Fri, 20 Apr 2007 18:38:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, jens.axboe@oracle.com
+Cc: xemul@sw.ru, hch@lst.de, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     paride drivers: initialize spinlocks
+     jbd: check for error returned by kthread_create on creating journal thread
 has been added to the -mm tree.  Its filename is
-     paride-drivers-initialize-spinlocks.patch
+     jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: paride drivers: initialize spinlocks
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: jbd: check for error returned by kthread_create on creating journal thread
+From: Pavel Emelianov <xemul@sw.ru>
 
-pcd_lock and pf_spin_lock are passed to blk_init_queue() which, seeing them
-as valid lock pointer, sets it as ->queue_lock.
+If the thread failed to create the subsequent wait_event will hang forever.
 
-The problem is that pcd_lock and pf_spin_lock aren't initialized anywhere.
+This is likely to happen if kernel hits max_threads limit.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Will be critical for virtualization systems that limit the number of tasks
+and kernel memory usage within the container.
+
+(akpm: JBD should be converted fully to the kthread API: kthread_should_stop()
+and kthread_stop()).
+
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/paride/pcd.c |    2 +-
- drivers/block/paride/pf.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/jbd/journal.c  |   13 +++++++++----
+ fs/jbd2/journal.c |   13 +++++++++----
+ 2 files changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/paride/pcd.c~paride-drivers-initialize-spinlocks drivers/block/paride/pcd.c
---- a/drivers/block/paride/pcd.c~paride-drivers-initialize-spinlocks
-+++ a/drivers/block/paride/pcd.c
-@@ -140,7 +140,7 @@ enum {D_PRT, D_PRO, D_UNI, D_MOD, D_SLV,
- #include <linux/blkdev.h>
- #include <asm/uaccess.h>
+diff -puN fs/jbd/journal.c~jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread
++++ a/fs/jbd/journal.c
+@@ -210,10 +210,16 @@ end_loop:
+ 	return 0;
+ }
  
--static spinlock_t pcd_lock;
-+static DEFINE_SPINLOCK(pcd_lock);
+-static void journal_start_thread(journal_t *journal)
++static int journal_start_thread(journal_t *journal)
+ {
+-	kthread_run(kjournald, journal, "kjournald");
++	struct task_struct *t;
++
++	t = kthread_run(kjournald, journal, "kjournald");
++	if (IS_ERR(t))
++		return PTR_ERR(t);
++
+ 	wait_event(journal->j_wait_done_commit, journal->j_task != 0);
++	return 0;
+ }
  
- module_param(verbose, bool, 0644);
- module_param(major, int, 0);
-diff -puN drivers/block/paride/pf.c~paride-drivers-initialize-spinlocks drivers/block/paride/pf.c
---- a/drivers/block/paride/pf.c~paride-drivers-initialize-spinlocks
-+++ a/drivers/block/paride/pf.c
-@@ -154,7 +154,7 @@ enum {D_PRT, D_PRO, D_UNI, D_MOD, D_SLV,
- #include <linux/blkpg.h>
- #include <asm/uaccess.h>
+ static void journal_kill_thread(journal_t *journal)
+@@ -839,8 +845,7 @@ static int journal_reset(journal_t *jour
  
--static spinlock_t pf_spin_lock;
-+static DEFINE_SPINLOCK(pf_spin_lock);
+ 	/* Add the dynamic fields and write it to disk. */
+ 	journal_update_superblock(journal, 1);
+-	journal_start_thread(journal);
+-	return 0;
++	return journal_start_thread(journal);
+ }
  
- module_param(verbose, bool, 0644);
- module_param(major, int, 0);
+ /**
+diff -puN fs/jbd2/journal.c~jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread
++++ a/fs/jbd2/journal.c
+@@ -210,10 +210,16 @@ end_loop:
+ 	return 0;
+ }
+ 
+-static void jbd2_journal_start_thread(journal_t *journal)
++static int jbd2_journal_start_thread(journal_t *journal)
+ {
+-	kthread_run(kjournald2, journal, "kjournald2");
++	struct task_struct *t;
++
++	t = kthread_run(kjournald2, journal, "kjournald2");
++	if (IS_ERR(t))
++		return PTR_ERR(t);
++
+ 	wait_event(journal->j_wait_done_commit, journal->j_task != 0);
++	return 0;
+ }
+ 
+ static void journal_kill_thread(journal_t *journal)
+@@ -839,8 +845,7 @@ static int journal_reset(journal_t *jour
+ 
+ 	/* Add the dynamic fields and write it to disk. */
+ 	jbd2_journal_update_superblock(journal, 1);
+-	jbd2_journal_start_thread(journal);
+-	return 0;
++	return jbd2_journal_start_thread(journal);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from xemul@sw.ru are
 
-paride-drivers-initialize-spinlocks.patch
-git-cpufreq.patch
-2621-rc5-mm3-fix-e1000-compilation.patch
-maps2-add-proc-pid-pagemap-interface-fix.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-proc-remove-pathetic-deleted-warn_on.patch
-add-file-position-info-to-proc.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
-fix-rmmod-read-write-races-in-proc-entries-fix.patch
-proc-oom_score-oops-re-badness.patch
-protect-tty-drivers-list-with-tty_mutex.patch
-simplify-module_get_kallsym-by-dropping-length-arg.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
-simplify-kallsyms_lookup.patch
-fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
-fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
+origin.patch
+lockdep-treats-down_write_trylock-like-regular-down_write.patch
+introduce-a-handy-list_first_entry-macro-v2.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread.patch
