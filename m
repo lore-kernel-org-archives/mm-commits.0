@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + taskstats-fix-the-structure-members-alignment-issue.patch added to -mm tree
-Date: Fri, 20 Apr 2007 12:16:37 -0700
-Message-ID: <200704201916.l3KJGcjP022008@shell0.pdx.osdl.net>
+Subject: + upper-32-bits.patch added to -mm tree
+Date: Fri, 20 Apr 2007 12:33:46 -0700
+Message-ID: <200704201933.l3KJXkPw022308@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57192 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754492AbXDTTSE (ORCPT
+	by vger.kernel.org with ESMTP id S1767224AbXDTTeM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 15:18:04 -0400
+	Fri, 20 Apr 2007 15:34:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@in.ibm.com, balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, nagar@watson.ibm.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, Mike.Miller@hp.com, Steve.Cameron@hp.com, alan@lxorguk.ukuu.org.uk, hifumi.hisashi@oss.ntt.co.jp
 
 
 The patch titled
-     Taskstats fix the structure members alignment issue
+     add upper-32-bits macro
 has been added to the -mm tree.  Its filename is
-     taskstats-fix-the-structure-members-alignment-issue.patch
+     upper-32-bits.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,235 +26,220 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Taskstats fix the structure members alignment issue
-From: Balbir Singh <balbir@in.ibm.com>
+Subject: add upper-32-bits macro
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We broke the the alignment of members of taskstats to the 8 byte boundary
-with the CSA patches.  In the current kernel, the taskstats structure is
-not suitable for use by 32 bit applications in a 64 bit kernel.
+We keep on getting "right shift count >= width of type" warnings when doing
+things like
 
-On x86_64
+	sector_t s;
 
-Offsets of taskstats' members (64 bit kernel, 64 bit application)
+	x = s >> 56;
 
-@taskstats'offsetof[@taskstats'indices] = (
-        0,      # version
-        4,      # ac_exitcode
-        8,      # ac_flag
-        9,      # ac_nice
-        16,     # cpu_count
-        24,     # cpu_delay_total
-        32,     # blkio_count
-        40,     # blkio_delay_total
-        48,     # swapin_count
-        56,     # swapin_delay_total
-        64,     # cpu_run_real_total
-        72,     # cpu_run_virtual_total
-        80,     # ac_comm
-        112,    # ac_sched
-        113,    # ac_pad
-        116,    # ac_uid
-        120,    # ac_gid
-        124,    # ac_pid
-        128,    # ac_ppid
-        132,    # ac_btime
-        136,    # ac_etime
-        144,    # ac_utime
-        152,    # ac_stime
-        160,    # ac_minflt
-        168,    # ac_majflt
-        176,    # coremem
-        184,    # virtmem
-        192,    # hiwater_rss
-        200,    # hiwater_vm
-        208,    # read_char
-        216,    # write_char
-        224,    # read_syscalls
-        232,    # write_syscalls
-        240,    # read_bytes
-        248,    # write_bytes
-        256,    # cancelled_write_bytes
-    );
+because with CONFIG_LBD=n, s is only 32-bit.  Similar problems can occur with
+dma_addr_t's.
 
-Offsets of taskstats' members (64 bit kernel, 32 bit application)
+So add a simple wrapper function which code can use to avoid this warning. 
+The above example would become
 
-@taskstats'offsetof[@taskstats'indices] = (
-        0,      # version
-        4,      # ac_exitcode
-        8,      # ac_flag
-        9,      # ac_nice
-        12,     # cpu_count
-        20,     # cpu_delay_total
-        28,     # blkio_count
-        36,     # blkio_delay_total
-        44,     # swapin_count
-        52,     # swapin_delay_total
-        60,     # cpu_run_real_total
-        68,     # cpu_run_virtual_total
-        76,     # ac_comm
-        108,    # ac_sched
-        109,    # ac_pad
-        112,    # ac_uid
-        116,    # ac_gid
-        120,    # ac_pid
-        124,    # ac_ppid
-        128,    # ac_btime
-        132,    # ac_etime
-        140,    # ac_utime
-        148,    # ac_stime
-        156,    # ac_minflt
-        164,    # ac_majflt
-        172,    # coremem
-        180,    # virtmem
-        188,    # hiwater_rss
-        196,    # hiwater_vm
-        204,    # read_char
-        212,    # write_char
-        220,    # read_syscalls
-        228,    # write_syscalls
-        236,    # read_bytes
-        244,    # write_bytes
-        252,    # cancelled_write_bytes
-    );
+	x = upper_32_bits(s) >> 24;
 
-This is one way to solve the problem without re-arranging structure members
-is to pack the structure.  The patch adds an __attribute__((aligned(8))) to
-the taskstats structure members so that 32 bit applications using taskstats
-can work with a 64 bit kernel.
-
-Using __attribute__((packed)) would break the 64 bit alignment of members.
-
-The fix was tested on x86_64. After the fix, we got
-
-Offsets of taskstats' members (64 bit kernel, 64 bit application)
-
-@taskstats'offsetof[@taskstats'indices] = (
-        0,      # version
-        4,      # ac_exitcode
-        8,      # ac_flag
-        9,      # ac_nice
-        16,     # cpu_count
-        24,     # cpu_delay_total
-        32,     # blkio_count
-        40,     # blkio_delay_total
-        48,     # swapin_count
-        56,     # swapin_delay_total
-        64,     # cpu_run_real_total
-        72,     # cpu_run_virtual_total
-        80,     # ac_comm
-        112,    # ac_sched
-        113,    # ac_pad
-        120,    # ac_uid
-        124,    # ac_gid
-        128,    # ac_pid
-        132,    # ac_ppid
-        136,    # ac_btime
-        144,    # ac_etime
-        152,    # ac_utime
-        160,    # ac_stime
-        168,    # ac_minflt
-        176,    # ac_majflt
-        184,    # coremem
-        192,    # virtmem
-        200,    # hiwater_rss
-        208,    # hiwater_vm
-        216,    # read_char
-        224,    # write_char
-        232,    # read_syscalls
-        240,    # write_syscalls
-        248,    # read_bytes
-        256,    # write_bytes
-        264,    # cancelled_write_bytes
-    );
-
-Offsets of taskstats' members (64 bit kernel, 32 bit application)
-
-@taskstats'offsetof[@taskstats'indices] = (
-        0,      # version
-        4,      # ac_exitcode
-        8,      # ac_flag
-        9,      # ac_nice
-        16,     # cpu_count
-        24,     # cpu_delay_total
-        32,     # blkio_count
-        40,     # blkio_delay_total
-        48,     # swapin_count
-        56,     # swapin_delay_total
-        64,     # cpu_run_real_total
-        72,     # cpu_run_virtual_total
-        80,     # ac_comm
-        112,    # ac_sched
-        113,    # ac_pad
-        120,    # ac_uid
-        124,    # ac_gid
-        128,    # ac_pid
-        132,    # ac_ppid
-        136,    # ac_btime
-        144,    # ac_etime
-        152,    # ac_utime
-        160,    # ac_stime
-        168,    # ac_minflt
-        176,    # ac_majflt
-        184,    # coremem
-        192,    # virtmem
-        200,    # hiwater_rss
-        208,    # hiwater_vm
-        216,    # read_char
-        224,    # write_char
-        232,    # read_syscalls
-        240,    # write_syscalls
-        248,    # read_bytes
-        256,    # write_bytes
-        264,    # cancelled_write_bytes
-    );
-
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
-Cc: <stable@kernel.org>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: "Cameron, Steve" <Steve.Cameron@hp.com>
+Cc: "Miller, Mike (OS Dev)" <Mike.Miller@hp.com>
+Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/taskstats.h |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ include/linux/kernel.h |   10 ++++++++++
+ 1 files changed, 10 insertions(+)
 
-diff -puN include/linux/taskstats.h~taskstats-fix-the-structure-members-alignment-issue include/linux/taskstats.h
---- a/include/linux/taskstats.h~taskstats-fix-the-structure-members-alignment-issue
-+++ a/include/linux/taskstats.h
-@@ -66,7 +66,7 @@ struct taskstats {
- 	/* Delay waiting for cpu, while runnable
- 	 * count, delay_total NOT updated atomically
- 	 */
--	__u64	cpu_count;
-+	__u64	cpu_count __attribute__((aligned(8)));
- 	__u64	cpu_delay_total;
+diff -puN include/linux/kernel.h~upper-32-bits include/linux/kernel.h
+--- a/include/linux/kernel.h~upper-32-bits
++++ a/include/linux/kernel.h
+@@ -40,6 +40,16 @@ extern const char linux_proc_banner[];
+ #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+ #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
  
- 	/* Following four fields atomically updated using task->delays->lock */
-@@ -101,14 +101,17 @@ struct taskstats {
- 
- 	/* Basic Accounting Fields start */
- 	char	ac_comm[TS_COMM_LEN];	/* Command name */
--	__u8	ac_sched;		/* Scheduling discipline */
-+	__u8	ac_sched __attribute__((aligned(8)));
-+					/* Scheduling discipline */
- 	__u8	ac_pad[3];
--	__u32	ac_uid;			/* User ID */
-+	__u32	ac_uid __attribute__((aligned(8)));
-+					/* User ID */
- 	__u32	ac_gid;			/* Group ID */
- 	__u32	ac_pid;			/* Process ID */
- 	__u32	ac_ppid;		/* Parent process ID */
- 	__u32	ac_btime;		/* Begin time [sec since 1970] */
--	__u64	ac_etime;		/* Elapsed time [usec] */
-+	__u64	ac_etime __attribute__((aligned(8)));
-+					/* Elapsed time [usec] */
- 	__u64	ac_utime;		/* User CPU time [usec] */
- 	__u64	ac_stime;		/* SYstem CPU time [usec] */
- 	__u64	ac_minflt;		/* Minor Page Fault Count */
++/**
++ * upper_32_bits - return bits 32-63 of a number
++ * @n: the number we're accessing
++ *
++ * A basic shift-right of a 64- or 32-bit quantity.  Use this to suppress
++ * the "right shift count >= width of type" warning when that quantity is
++ * 32-bits.
++ */
++#define upper_32_bits(n) (((u64)(n)) >> 32)
++
+ #define	KERN_EMERG	"<0>"	/* system is unusable			*/
+ #define	KERN_ALERT	"<1>"	/* action must be taken immediately	*/
+ #define	KERN_CRIT	"<2>"	/* critical conditions			*/
 _
 
-Patches currently in -mm which might be from balbir@in.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-taskstats-fix-the-structure-members-alignment-issue.patch
-fix-race-between-attach_task-and-cpuset_exit.patch
-taskstats-fix-getdelays-usage-information.patch
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+sysfs-group-removal-avoid-bypass-permission-checks-tidy.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+driver_bfin_serial_core-update.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+upper-32-bits.patch
