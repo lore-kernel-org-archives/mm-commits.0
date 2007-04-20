@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpci_hotplug-partially-convert-to-use-the-kthread-api.patch added to -mm tree
-Date: Thu, 19 Apr 2007 19:02:12 -0700
-Message-ID: <200704200202.l3K22Chv004727@shell0.pdx.osdl.net>
+Subject: + mtd_blkdevs-convert-to-use-the-kthread-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 19:07:35 -0700
+Message-ID: <200704200207.l3K27ZIm004811@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38410 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751564AbXDTCC0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751564AbXDTCIa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 22:02:26 -0400
+	Thu, 19 Apr 2007 22:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, greg@kroah.com, kristen.c.accardi@intel.com, scottm@somanetworks.com
+Cc: ebiederm@xmission.com, dwmw2@infradead.org
 
 
 The patch titled
-     cpci_hotplug: partially convert to use the kthread API
+     mtd_blkdevs: convert to use the kthread API
 has been added to the -mm tree.  Its filename is
-     cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
+     mtd_blkdevs-convert-to-use-the-kthread-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpci_hotplug: partially convert to use the kthread API
+Subject: mtd_blkdevs: convert to use the kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-kthread_run replaces the kernel_thread and daemonize calls during thread
-startup.
+kthread_run is used intead of kernel_thread, daemonize, and mucking around
+blocking signals directly.
 
-Calls to signal_pending were also removed as it is currently impossible for
-the cpci_hotplug thread to receive signals.
-
-akpm: needs to be converted to kthread_should_stop() and kthread_stop().
+akpm: needs to be converted to kthread_should_stop() and kthread_stop(), too.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Scott Murray <scottm@somanetworks.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/cpci_hotplug_core.c |   22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+ drivers/mtd/mtd_blkdevs.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN drivers/pci/hotplug/cpci_hotplug_core.c~cpci_hotplug-partially-convert-to-use-the-kthread-api drivers/pci/hotplug/cpci_hotplug_core.c
---- a/drivers/pci/hotplug/cpci_hotplug_core.c~cpci_hotplug-partially-convert-to-use-the-kthread-api
-+++ a/drivers/pci/hotplug/cpci_hotplug_core.c
-@@ -33,6 +33,7 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/smp_lock.h>
+diff -puN drivers/mtd/mtd_blkdevs.c~mtd_blkdevs-convert-to-use-the-kthread-api drivers/mtd/mtd_blkdevs.c
+--- a/drivers/mtd/mtd_blkdevs.c~mtd_blkdevs-convert-to-use-the-kthread-api
++++ a/drivers/mtd/mtd_blkdevs.c
+@@ -12,6 +12,7 @@
+ #include <linux/module.h>
+ #include <linux/list.h>
+ #include <linux/fs.h>
 +#include <linux/kthread.h>
- #include <asm/atomic.h>
- #include <linux/delay.h>
- #include "cpci_hotplug.h"
-@@ -521,17 +522,13 @@ event_thread(void *data)
- {
- 	int rc;
+ #include <linux/mtd/blktrans.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/blkdev.h>
+@@ -83,17 +84,6 @@ static int mtd_blktrans_thread(void *arg
+ 	/* we might get involved when memory gets low, so use PF_MEMALLOC */
+ 	current->flags |= PF_MEMALLOC | PF_NOFREEZE;
  
--	lock_kernel();
--	daemonize("cpci_hp_eventd");
--	unlock_kernel();
+-	daemonize("%sd", tr->name);
 -
- 	dbg("%s - event thread started", __FUNCTION__);
- 	while (1) {
- 		dbg("event thread sleeping");
- 		down_interruptible(&event_semaphore);
- 		dbg("event thread woken, thread_finished = %d",
- 		    thread_finished);
--		if (thread_finished || signal_pending(current))
-+		if (thread_finished)
- 			break;
- 		do {
- 			rc = check_slots();
-@@ -562,12 +559,8 @@ poll_thread(void *data)
- {
- 	int rc;
+-	/* daemonize() doesn't do this for us since some kernel threads
+-	   actually want to deal with signals. We can't just call
+-	   exit_sighand() since that'll cause an oops when we finally
+-	   do exit. */
+-	spin_lock_irq(&current->sighand->siglock);
+-	sigfillset(&current->blocked);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
+-
+ 	spin_lock_irq(rq->queue_lock);
  
--	lock_kernel();
--	daemonize("cpci_hp_polld");
--	unlock_kernel();
--
- 	while (1) {
--		if (thread_finished || signal_pending(current))
-+		if (thread_finished)
- 			break;
- 		if (controller->ops->query_enum()) {
- 			do {
-@@ -592,7 +585,7 @@ poll_thread(void *data)
- static int
- cpci_start_thread(void)
+ 	while (!tr->blkcore_priv->exiting) {
+@@ -365,6 +355,7 @@ static struct mtd_notifier blktrans_noti
+ 
+ int register_mtd_blktrans(struct mtd_blktrans_ops *tr)
  {
--	int pid;
 +	struct task_struct *task;
+ 	int ret, i;
  
- 	/* initialize our semaphores */
- 	init_MUTEX_LOCKED(&event_semaphore);
-@@ -600,14 +593,13 @@ cpci_start_thread(void)
- 	thread_finished = 0;
+ 	/* Register the notifier if/when the first device type is
+@@ -403,13 +394,13 @@ int register_mtd_blktrans(struct mtd_blk
+ 	blk_queue_hardsect_size(tr->blkcore_priv->rq, tr->blksize);
+ 	tr->blkshift = ffs(tr->blksize) - 1;
  
- 	if (controller->irq)
--		pid = kernel_thread(event_thread, NULL, 0);
-+		task = kthread_run(event_thread, NULL, "cpci_hp_eventd");
- 	else
--		pid = kernel_thread(poll_thread, NULL, 0);
--	if (pid < 0) {
-+		task = kthread_run(poll_thread, NULL, "cpci_hp_polld");
+-	ret = kernel_thread(mtd_blktrans_thread, tr, CLONE_KERNEL);
+-	if (ret < 0) {
++	task = kthread_run(mtd_blktrans_thread, tr, "%sd", tr->name);
 +	if (IS_ERR(task)) {
- 		err("Can't start up our thread");
- 		return -1;
+ 		blk_cleanup_queue(tr->blkcore_priv->rq);
+ 		unregister_blkdev(tr->major, tr->name);
+ 		kfree(tr->blkcore_priv);
+ 		mutex_unlock(&mtd_table_mutex);
+-		return ret;
++		return PTR_ERR(task);
  	}
--	dbg("Our thread pid = %d", pid);
- 	return 0;
- }
  
+ 	INIT_LIST_HEAD(&tr->devs);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -132,6 +111,7 @@ powerpc-pseries-eeh-convert-to-kthread-api.patch
 mm-only-dvb_en_50221-convert-to-kthread-api.patch
 mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
 ia64-sn-xpc-convert-to-use-kthread-api.patch
+mtd_blkdevs-convert-to-use-the-kthread-api.patch
 fix-i-oat-for-kexec.patch
 cpqphp-partially-convert-to-use-the-kthread-api.patch
 ibmphp-partially-convert-to-use-the-kthreads-api.patch
