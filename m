@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-phantom-add-a-new-driver.patch added to -mm tree
-Date: Thu, 19 Apr 2007 23:07:33 -0700
-Message-ID: <200704200607.l3K67XfX008288@shell0.pdx.osdl.net>
+Subject: + slab-allocators-remove-obsolete-slab_must_hwcache_align.patch added to -mm tree
+Date: Thu, 19 Apr 2007 23:09:44 -0700
+Message-ID: <200704200609.l3K69ido008328@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37104 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35003 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422916AbXDTGHj (ORCPT
+	by vger.kernel.org with ESMTP id S1422996AbXDTGJw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 02:07:39 -0400
+	Fri, 20 Apr 2007 02:09:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, dtor@mail.ru, johann.deneux@gmail.com, stenyak@gmail.com
+Cc: clameter@sgi.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     Input: phantom, add a new driver
+     slab allocators: Remove obsolete SLAB_MUST_HWCACHE_ALIGN
 has been added to the -mm tree.  Its filename is
-     input-phantom-add-a-new-driver.patch
+     slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,480 +26,234 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Input: phantom, add a new driver
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: slab allocators: Remove obsolete SLAB_MUST_HWCACHE_ALIGN
+From: Christoph Lameter <clameter@sgi.com>
 
-Sensable Phantom is a up to 7DOF force feedback (up to 6DOF FF) device. 
-It's atypical, so it's based on the newly added FF_RAW effect.
+This patch was recently posted to lkml and acked by Pekka.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: johann deneux <johann.deneux@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: <stenyak@gmail.com>
+The flag SLAB_MUST_HWCACHE_ALIGN is
+
+1. Never checked by SLAB at all.
+
+2. A duplicate of SLAB_HWCACHE_ALIGN for SLUB
+
+3. Fulfills the role of SLAB_HWCACHE_ALIGN for SLOB.
+
+The only remaining use is in sparc64 and ppc64 and their use there
+reflects some earlier role that the slab flag once may have had. If
+its specified then SLAB_HWCACHE_ALIGN is also specified.
+
+The flag is confusing, inconsistent and has no purpose.
+
+Remove it.
+
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                  |    5 
- drivers/input/misc/Kconfig   |    9 
- drivers/input/misc/Makefile  |    1 
- drivers/input/misc/phantom.c |  387 +++++++++++++++++++++++++++++++++
- 4 files changed, 402 insertions(+)
+ arch/powerpc/mm/hugetlbpage.c |    3 +--
+ arch/powerpc/mm/init_64.c     |    3 +--
+ arch/sparc64/mm/tsb.c         |    3 +--
+ include/linux/slab.h          |    1 -
+ mm/slab.c                     |    4 ++--
+ mm/slob.c                     |    4 ++--
+ mm/slub.c                     |    5 ++---
+ 7 files changed, 9 insertions(+), 14 deletions(-)
 
-diff -puN MAINTAINERS~input-phantom-add-a-new-driver MAINTAINERS
---- a/MAINTAINERS~input-phantom-add-a-new-driver
-+++ a/MAINTAINERS
-@@ -3008,6 +3008,11 @@ L: 	selinux@tycho.nsa.gov (general discu
- W:	http://www.nsa.gov/selinux
- S:	Supported
+diff -puN arch/powerpc/mm/hugetlbpage.c~slab-allocators-remove-obsolete-slab_must_hwcache_align arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~slab-allocators-remove-obsolete-slab_must_hwcache_align
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -1057,8 +1057,7 @@ static int __init hugetlbpage_init(void)
+ 	huge_pgtable_cache = kmem_cache_create("hugepte_cache",
+ 					       HUGEPTE_TABLE_SIZE,
+ 					       HUGEPTE_TABLE_SIZE,
+-					       SLAB_HWCACHE_ALIGN |
+-					       SLAB_MUST_HWCACHE_ALIGN,
++					       SLAB_HWCACHE_ALIGN,
+ 					       zero_ctor, NULL);
+ 	if (! huge_pgtable_cache)
+ 		panic("hugetlbpage_init(): could not create hugepte cache\n");
+diff -puN arch/powerpc/mm/init_64.c~slab-allocators-remove-obsolete-slab_must_hwcache_align arch/powerpc/mm/init_64.c
+--- a/arch/powerpc/mm/init_64.c~slab-allocators-remove-obsolete-slab_must_hwcache_align
++++ a/arch/powerpc/mm/init_64.c
+@@ -183,8 +183,7 @@ void pgtable_cache_init(void)
+ 		    "for size: %08x...\n", name, i, size);
+ 		pgtable_cache[i] = kmem_cache_create(name,
+ 						     size, size,
+-						     SLAB_HWCACHE_ALIGN |
+-						     SLAB_MUST_HWCACHE_ALIGN,
++						     SLAB_HWCACHE_ALIGN,
+ 						     zero_ctor,
+ 						     NULL);
+ 		if (! pgtable_cache[i])
+diff -puN arch/sparc64/mm/tsb.c~slab-allocators-remove-obsolete-slab_must_hwcache_align arch/sparc64/mm/tsb.c
+--- a/arch/sparc64/mm/tsb.c~slab-allocators-remove-obsolete-slab_must_hwcache_align
++++ a/arch/sparc64/mm/tsb.c
+@@ -262,8 +262,7 @@ void __init pgtable_cache_init(void)
  
-+SENSABLE PHANTOM
-+P:	Jiri Slaby
-+M:	jirislaby@gmail.com
-+S:	Maintained
-+
- SERIAL ATA (SATA) SUBSYSTEM:
- P:	Jeff Garzik
- M:	jgarzik@pobox.com
-diff -puN drivers/input/misc/Kconfig~input-phantom-add-a-new-driver drivers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~input-phantom-add-a-new-driver
-+++ a/drivers/input/misc/Kconfig
-@@ -101,4 +101,13 @@ config HP_SDC_RTC
- 	  Say Y here if you want to support the built-in real time clock
- 	  of the HP SDC controller.
+ 		tsb_caches[i] = kmem_cache_create(name,
+ 						  size, size,
+-						  SLAB_HWCACHE_ALIGN |
+-						  SLAB_MUST_HWCACHE_ALIGN,
++						  SLAB_HWCACHE_ALIGN,
+ 						  NULL, NULL);
+ 		if (!tsb_caches[i]) {
+ 			prom_printf("Could not create %s cache\n", name);
+diff -puN include/linux/slab.h~slab-allocators-remove-obsolete-slab_must_hwcache_align include/linux/slab.h
+--- a/include/linux/slab.h~slab-allocators-remove-obsolete-slab_must_hwcache_align
++++ a/include/linux/slab.h
+@@ -26,7 +26,6 @@ typedef struct kmem_cache kmem_cache_t _
+ #define SLAB_POISON		0x00000800UL	/* DEBUG: Poison objects */
+ #define SLAB_HWCACHE_ALIGN	0x00002000UL	/* Align objs on cache lines */
+ #define SLAB_CACHE_DMA		0x00004000UL	/* Use GFP_DMA memory */
+-#define SLAB_MUST_HWCACHE_ALIGN	0x00008000UL	/* Force alignment even if debuggin is active */
+ #define SLAB_STORE_USER		0x00010000UL	/* DEBUG: Store the last owner for bug hunting */
+ #define SLAB_RECLAIM_ACCOUNT	0x00020000UL	/* Objects are reclaimable */
+ #define SLAB_PANIC		0x00040000UL	/* Panic if kmem_cache_create() fails */
+diff -puN mm/slab.c~slab-allocators-remove-obsolete-slab_must_hwcache_align mm/slab.c
+--- a/mm/slab.c~slab-allocators-remove-obsolete-slab_must_hwcache_align
++++ a/mm/slab.c
+@@ -175,12 +175,12 @@
+ # define CREATE_MASK	(SLAB_DEBUG_INITIAL | SLAB_RED_ZONE | \
+ 			 SLAB_POISON | SLAB_HWCACHE_ALIGN | \
+ 			 SLAB_CACHE_DMA | \
+-			 SLAB_MUST_HWCACHE_ALIGN | SLAB_STORE_USER | \
++			 SLAB_STORE_USER | \
+ 			 SLAB_RECLAIM_ACCOUNT | SLAB_PANIC | \
+ 			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD)
+ #else
+ # define CREATE_MASK	(SLAB_HWCACHE_ALIGN | \
+-			 SLAB_CACHE_DMA | SLAB_MUST_HWCACHE_ALIGN | \
++			 SLAB_CACHE_DMA | \
+ 			 SLAB_RECLAIM_ACCOUNT | SLAB_PANIC | \
+ 			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD)
+ #endif
+diff -puN mm/slob.c~slab-allocators-remove-obsolete-slab_must_hwcache_align mm/slob.c
+--- a/mm/slob.c~slab-allocators-remove-obsolete-slab_must_hwcache_align
++++ a/mm/slob.c
+@@ -21,7 +21,7 @@
+  *
+  * SLAB is emulated on top of SLOB by simply calling constructors and
+  * destructors for every SLAB allocation. Objects are returned with
+- * the 8-byte alignment unless the SLAB_MUST_HWCACHE_ALIGN flag is
++ * the 8-byte alignment unless the SLAB_HWCACHE_ALIGN flag is
+  * set, in which case the low-level allocator will fragment blocks to
+  * create the proper alignment. Again, objects of page-size or greater
+  * are allocated by calling __get_free_pages. As SLAB objects know
+@@ -295,7 +295,7 @@ struct kmem_cache *kmem_cache_create(con
+ 		c->ctor = ctor;
+ 		c->dtor = dtor;
+ 		/* ignore alignment unless it's forced */
+-		c->align = (flags & SLAB_MUST_HWCACHE_ALIGN) ? SLOB_ALIGN : 0;
++		c->align = (flags & SLAB_HWCACHE_ALIGN) ? SLOB_ALIGN : 0;
+ 		if (c->align < align)
+ 			c->align = align;
+ 	} else if (flags & SLAB_PANIC)
+diff -puN mm/slub.c~slab-allocators-remove-obsolete-slab_must_hwcache_align mm/slub.c
+--- a/mm/slub.c~slab-allocators-remove-obsolete-slab_must_hwcache_align
++++ a/mm/slub.c
+@@ -1500,7 +1500,7 @@ static int calculate_order(int size)
+ static unsigned long calculate_alignment(unsigned long flags,
+ 		unsigned long align)
+ {
+-	if (flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN))
++	if (flags & SLAB_HWCACHE_ALIGN)
+ 		return max_t(unsigned long, align, L1_CACHE_BYTES);
  
-+config PHANTOM
-+	tristate "Sensable PHANToM"
-+	depends on PCI && INPUT_FF_MEMLESS
-+	help
-+	  Say Y here if you want to build a driver for Sensable PHANToM device.
-+
-+	  If you choose to build module, its name will be phantom. If unsure,
-+	  say N here.
-+
- endif
-diff -puN drivers/input/misc/Makefile~input-phantom-add-a-new-driver drivers/input/misc/Makefile
---- a/drivers/input/misc/Makefile~input-phantom-add-a-new-driver
-+++ a/drivers/input/misc/Makefile
-@@ -13,3 +13,4 @@ obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wist
- obj-$(CONFIG_INPUT_ATLAS_BTNS)		+= atlas_btns.o
- obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
- obj-$(CONFIG_INPUT_IXP4XX_BEEPER)	+= ixp4xx-beeper.o
-+obj-$(CONFIG_PHANTOM)			+= phantom.o
-diff -puN /dev/null drivers/input/misc/phantom.c
---- /dev/null
-+++ a/drivers/input/misc/phantom.c
-@@ -0,0 +1,387 @@
-+/*
-+ *  Copyright (C) 2005-2007 Jiri Slaby <jirislaby@gmail.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  You need an userspace library to cooperate with this driver. It (and other
-+ *  info) may be obtained here:
-+ *  http://www.fi.muni.cz/~xslaby/phantom.html
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/pci.h>
-+#include <linux/fs.h>
-+#include <linux/poll.h>
-+#include <linux/interrupt.h>
-+#include <linux/input.h>
-+
-+#include <asm/io.h>
-+
-+#define PHANTOM_VERSION		"n0.9.4"
-+
-+#define PHM_MAX_TORQUES		3
-+
-+#define PHN_CONTROL		0x6
-+#define PHN_CTL_AMP		0x1
-+#define PHN_CTL_BUT		0x2
-+#define PHN_CTL_IRQ		0x10
-+
-+#define PHN_IRQCTL		0x4c
-+
-+#define PHN_ZERO_FORCE		2048
-+
-+#define PCI_ENCODER(dev, axis) ((0 - (int)ioread32((dev)->iaddr + (axis))) & \
-+									0xffff)
-+
-+#define PHB_RUNNING		1
-+#define PHB_RESET		2
-+
-+static struct class *phantom_class;
-+
-+struct phantom_device {
-+	void __iomem *caddr;
-+	u32 __iomem *iaddr;
-+	u32 __iomem *oaddr;
-+	u32 amp_bit;
-+	s16 torques[PHM_MAX_TORQUES];
-+	unsigned long status;
-+
-+	struct input_dev *idev;
-+};
-+
-+static int phantom_status(struct phantom_device *dev, unsigned long newstat)
-+{
-+	pr_debug("phantom_status %lx %lx\n", dev->status, newstat);
-+
-+	if (!(dev->status & PHB_RUNNING) && (newstat & PHB_RUNNING)) {
-+		iowrite32(PHN_CTL_IRQ | PHN_CTL_AMP, dev->iaddr + PHN_CONTROL);
-+		dev->amp_bit = PHN_CTL_IRQ;
-+		iowrite32(0x43, dev->caddr + PHN_IRQCTL);
-+	} else if ((dev->status & PHB_RUNNING) && !(newstat & PHB_RUNNING))
-+		iowrite32(0, dev->caddr + PHN_IRQCTL);
-+
-+	dev->status = newstat;
-+
-+	return 0;
-+}
-+
-+static void phantom_close(struct input_dev *idev)
-+{
-+	struct phantom_device *dev = idev->private;
-+
-+	phantom_status(dev, dev->status & ~PHB_RUNNING);
-+}
-+
-+static void phantom_reset(struct phantom_device *dev)
-+{
-+	pr_debug("resetting\n");
-+
-+	iowrite32(~0x1f, dev->iaddr);
-+	wmb();
-+	iowrite32(0x1f, dev->iaddr);
-+	dev->status |= PHB_RESET;
-+}
-+
-+static void phantom_autocenter(struct input_dev *idev, u16 magnitude)
-+{
-+	struct phantom_device *dev = idev->private;
-+
-+	phantom_reset(dev);
-+}
-+
-+static int phantom_play(struct input_dev *idev, void *data,
-+		struct ff_effect *eff)
-+{
-+	struct phantom_device *dev = idev->private;
-+	unsigned int a;
-+	int retval;
-+
-+	pr_debug("playing\n");
-+
-+	if (unlikely(!(dev->status & PHB_RUNNING))) {
-+		retval = phantom_status(dev, dev->status | PHB_RUNNING);
-+		if (retval)
-+			return retval;
-+	}
-+
-+	if (unlikely(!(dev->status & PHB_RESET)))
-+		printk(KERN_INFO "phantom: phantom is used, but the device was"
-+				"not reset since last module load\n");
-+
-+	for (a = 0; a < PHM_MAX_TORQUES; a++)
-+		dev->torques[a] = eff->u.ff_raw[a];
-+
-+	return 0;
-+}
-+
-+static irqreturn_t phantom_isr(int irq, void *data)
-+{
-+	struct phantom_device *dev = data;
-+	struct input_dev *idev = dev->idev;
-+	unsigned int a, hw_status;
-+
-+	hw_status = ioread32(dev->iaddr + PHN_CONTROL);
-+	if (!(hw_status & PHN_CTL_IRQ))
-+		return IRQ_NONE;
-+
-+	iowrite32(0, dev->iaddr);
-+	wmb();
-+	iowrite32(0xc0, dev->iaddr);
-+
-+	if (unlikely(idev == NULL))
-+		return IRQ_HANDLED;
-+
-+	input_report_abs(idev, ABS_X, PCI_ENCODER(dev, 0));
-+	input_report_abs(idev, ABS_Y, PCI_ENCODER(dev, 1));
-+	input_report_abs(idev, ABS_Z, PCI_ENCODER(dev, 2));
-+	input_report_abs(idev, ABS_RX, PCI_ENCODER(dev, 3));
-+	input_report_abs(idev, ABS_RY, PCI_ENCODER(dev, 4));
-+	input_report_abs(idev, ABS_RZ, PCI_ENCODER(dev, 5));
-+	input_report_key(idev, BTN_0, !!(hw_status & PHN_CTL_BUT));
-+	input_sync(idev);
-+	input_event(idev, EV_SYN, SYN_CONFIG, 0);
-+
-+	for (a = 0; a < PHM_MAX_TORQUES; a++)
-+		iowrite32(dev->torques[a] + PHN_ZERO_FORCE, dev->oaddr + a);
-+	iowrite32(dev->amp_bit, dev->iaddr + PHN_CONTROL);
-+	dev->amp_bit ^= PHN_CTL_AMP;
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/******************************************************************************
-+ * Init and deinit driver
-+ */
-+static void __devinit phantom_init_idev(const struct pci_dev *pdev,
-+		struct phantom_device *dev)
-+{
-+	struct input_dev *idev = dev->idev;
-+
-+	idev->private = dev;
-+	idev->name = "Sensable Phantom";
-+	idev->id.bustype = BUS_PCI;
-+	idev->id.vendor = pdev->vendor;
-+	idev->id.product = pdev->device;
-+	idev->id.version = 1;
-+	idev->close = phantom_close;
-+
-+	set_bit(BTN_0, idev->keybit);
-+	input_set_abs_params(idev, ABS_X, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_Y, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_Z, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_RX, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_RY, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_RZ, -0x8000, 0x7fff, 4, 0);
-+	set_bit(FF_RAW, idev->ffbit);
-+
-+	set_bit(EV_KEY, idev->evbit);
-+	set_bit(EV_ABS, idev->evbit);
-+	set_bit(EV_FF, idev->evbit);
-+	set_bit(FF_AUTOCENTER, idev->ffbit); /* reset phantom */
-+}
-+
-+static int __devinit phantom_probe(struct pci_dev *pdev,
-+	const struct pci_device_id *pci_id)
-+{
-+	struct phantom_device *pht;
-+	int retval;
-+
-+	retval = pci_enable_device(pdev);
-+	if (retval)
-+		goto err;
-+
-+	retval = pci_request_regions(pdev, "phantom");
-+	if (retval)
-+		goto err;
-+
-+	retval = -ENOMEM;
-+	pht = kzalloc(sizeof(*pht), GFP_KERNEL);
-+	if (pht == NULL) {
-+		dev_err(&pdev->dev, "unable to allocate device\n");
-+		goto err_reg;
-+	}
-+
-+	pht->caddr = pci_iomap(pdev, 0, 0);
-+	if (pht->caddr == NULL) {
-+		dev_err(&pdev->dev, "can't remap conf space\n");
-+		goto err_fr;
-+	}
-+	pht->iaddr = pci_iomap(pdev, 2, 0);
-+	if (pht->iaddr == NULL) {
-+		dev_err(&pdev->dev, "can't remap input space\n");
-+		goto err_unmc;
-+	}
-+	pht->oaddr = pci_iomap(pdev, 3, 0);
-+	if (pht->oaddr == NULL) {
-+		dev_err(&pdev->dev, "can't remap output space\n");
-+		goto err_unmi;
-+	}
-+
-+	iowrite32(0, pht->caddr + PHN_IRQCTL);
-+	retval = request_irq(pdev->irq, phantom_isr,
-+			IRQF_SHARED | IRQF_DISABLED, "phantom", pht);
-+	if (retval) {
-+		dev_err(&pdev->dev, "can't establish ISR\n");
-+		goto err_unmo;
-+	}
-+
-+	pht->idev = input_allocate_device();
-+	if (pht->idev == NULL) {
-+		dev_err(&pdev->dev, "can't create input device\n");
-+		retval = -ENOMEM;
-+		goto err_irq;
-+	}
-+
-+	phantom_init_idev(pdev, pht);
-+
-+	retval = input_ff_create_memless(pht->idev, NULL, phantom_play);
-+	if (retval) {
-+		dev_err(&pdev->dev, "can't create FF device\n");
-+		goto err_idev;
-+	}
-+
-+	pht->idev->ff->set_autocenter = phantom_autocenter;
-+
-+	retval = input_register_device(pht->idev);
-+	if (retval) {
-+		dev_err(&pdev->dev, "can't register input device\n");
-+		goto err_idev;
-+	}
-+
-+	pci_set_drvdata(pdev, pht);
-+
-+	return 0;
-+err_idev:
-+	input_free_device(pht->idev);
-+err_irq:
-+	free_irq(pdev->irq, pht);
-+err_unmo:
-+	pci_iounmap(pdev, pht->oaddr);
-+err_unmi:
-+	pci_iounmap(pdev, pht->iaddr);
-+err_unmc:
-+	pci_iounmap(pdev, pht->caddr);
-+err_fr:
-+	kfree(pht);
-+err_reg:
-+	pci_release_regions(pdev);
-+err:
-+	return retval;
-+}
-+
-+static void __devexit phantom_remove(struct pci_dev *pdev)
-+{
-+	struct phantom_device *pht = pci_get_drvdata(pdev);
-+
-+	iowrite32(0, pht->caddr + PHN_IRQCTL);
-+
-+	input_unregister_device(pht->idev);
-+
-+	free_irq(pdev->irq, pht);
-+
-+	pci_iounmap(pdev, pht->oaddr);
-+	pci_iounmap(pdev, pht->iaddr);
-+	pci_iounmap(pdev, pht->caddr);
-+
-+	kfree(pht);
-+
-+	pci_release_regions(pdev);
-+}
-+
-+static int phantom_suspend(struct pci_dev *pdev, pm_message_t state)
-+{
-+	struct phantom_device *dev = pci_get_drvdata(pdev);
-+
-+	iowrite32(0, dev->caddr + PHN_IRQCTL);
-+
-+	return 0;
-+}
-+
-+static int phantom_resume(struct pci_dev *pdev)
-+{
-+	struct phantom_device *dev = pci_get_drvdata(pdev);
-+
-+	iowrite32(0, dev->caddr + PHN_IRQCTL);
-+
-+	return 0;
-+}
-+
-+static struct pci_device_id phantom_pci_tbl[] __devinitdata = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050),
-+		.class = PCI_CLASS_BRIDGE_OTHER << 8, .class_mask = 0xffff00 },
-+	{ 0, }
-+};
-+MODULE_DEVICE_TABLE(pci, phantom_pci_tbl);
-+
-+static struct pci_driver phantom_pci_driver = {
-+	.name = "phantom",
-+	.id_table = phantom_pci_tbl,
-+	.probe = phantom_probe,
-+	.remove = __devexit_p(phantom_remove),
-+	.suspend = phantom_suspend,
-+	.resume = phantom_resume
-+};
-+
-+static ssize_t phantom_show_version(struct class *cls, char *buf)
-+{
-+	return sprintf(buf, PHANTOM_VERSION "\n");
-+}
-+
-+static CLASS_ATTR(version, 0444, phantom_show_version, NULL);
-+
-+static int __init phantom_init(void)
-+{
-+	int retval;
-+
-+	phantom_class = class_create(THIS_MODULE, "phantom");
-+	if (IS_ERR(phantom_class)) {
-+		retval = PTR_ERR(phantom_class);
-+		printk(KERN_ERR "phantom: can't register phantom class\n");
-+		goto err;
-+	}
-+	retval = class_create_file(phantom_class, &class_attr_version);
-+	if (retval) {
-+		printk(KERN_ERR "phantom: can't create sysfs version file\n");
-+		goto err_class;
-+	}
-+
-+	retval = pci_register_driver(&phantom_pci_driver);
-+	if (retval) {
-+		printk(KERN_ERR "phantom: can't register pci driver\n");
-+		goto err_attr;
-+	}
-+
-+	printk(KERN_INFO "Phantom Linux Driver, version " PHANTOM_VERSION ", "
-+			"init OK\n");
-+
-+	return 0;
-+err_attr:
-+	class_remove_file(phantom_class, &class_attr_version);
-+err_class:
-+	class_destroy(phantom_class);
-+err:
-+	return retval;
-+}
-+
-+static void __exit phantom_exit(void)
-+{
-+	pci_unregister_driver(&phantom_pci_driver);
-+
-+	class_remove_file(phantom_class, &class_attr_version);
-+	class_destroy(phantom_class);
-+
-+	pr_debug("phantom: module successfully removed\n");
-+}
-+
-+module_init(phantom_init);
-+module_exit(phantom_exit);
-+
-+MODULE_AUTHOR("Jiri Slaby <jirislaby@gmail.com>");
-+MODULE_DESCRIPTION("Sensable Phantom driver");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(PHANTOM_VERSION);
+ 	if (align < ARCH_SLAB_MINALIGN)
+@@ -3089,8 +3089,7 @@ SLAB_ATTR(reclaim_account);
+ 
+ static ssize_t hwcache_align_show(struct kmem_cache *s, char *buf)
+ {
+-	return sprintf(buf, "%d\n", !!(s->flags &
+-		(SLAB_HWCACHE_ALIGN|SLAB_MUST_HWCACHE_ALIGN)));
++	return sprintf(buf, "%d\n", !!(s->flags & SLAB_HWCACHE_ALIGN));
+ }
+ SLAB_ATTR_RO(hwcache_align);
+ 
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-acpi-asus_acpi-support-f2je-model.patch
-input-ff-add-ff_raw-effect.patch
-input-phantom-add-a-new-driver.patch
-char-rocket-add-module_device_table.patch
-char-cs5535_gpio-add-module_device_table.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-char-cyclades-remove-pause.patch
-char-cyclades-cy_readx-writex-cleanup.patch
-char-cyclades-timer-cleanup.patch
-char-cyclades-remove-volatiles.patch
-char-cyclades-remove-useless-casts.patch
-char-cyclades-create-cy_init_ze.patch
-char-cyclades-use-pci_iomap-unmap.patch
-char-cyclades-init-ze-immediately.patch
-char-cyclades-create-cy_pci_probe.patch
-char-cyclades-move-card-entries-init-into-function.patch
-char-cyclades-init-card-struct-immediately.patch
-char-cyclades-remove-some-global-vars.patch
-char-cyclades-cy_init-error-handling.patch
-char-cyclades-tty_register_device-separately-for-each-device.patch
-char-cyclades-clear-interrupts-before-releasing.patch
-char-cyclades-allow-debug_shirq.patch
-shrink_slab-handle-bad-shrinkers.patch
+fix-oom-killing-processes-wrongly-thought-mpol_bind.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+extend-print_symbol-capability-fix.patch
+extend-print_symbol-capability-fix-fix.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-core-minor-fixes.patch
+slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+slub-core-fix-another-numa-bootstrap-issue.patch
+slub-core-fix-object-counting.patch
+slub-core-drop-version-number.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
+slub-core-printk-facility-level-cleanup.patch
+slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
+slub-core-add-explanation-for-defrag_ratio-=-100.patch
+slub-core-add-explanation-for-locking.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-the-64k-limits.patch
+slub-core-explain-sizing-of-slabs-in-detail.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-add-checks-for-interrupts-disabled.patch
+slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
+slub-core-missing-inlines-and-statics.patch
+slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
+slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
+slub-core-fix-kmem_cache_destroy.patch
+slub-core-fix-validation.patch
+slub-core-add-after-object-padding.patch
+slub-core-resiliency-fixups.patch
+slub-core-resiliency-fixups-fix.patch
+slub-core-resiliency-test.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-remove-object-activities-out-of-checking-functions.patch
+slub-user-documentation.patch
+slub-user-documentation-fix.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+readahead-state-based-method-aging-accounting.patch
