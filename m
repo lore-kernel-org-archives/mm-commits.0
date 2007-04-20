@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpt366-fix-kernel-oops-with-hpt302n.patch added to -mm tree
-Date: Thu, 19 Apr 2007 20:14:08 -0700
-Message-ID: <200704200314.l3K3E8LO005746@shell0.pdx.osdl.net>
+Subject: + fix-oom-killing-processes-wrongly-thought-mpol_bind.patch added to -mm tree
+Date: Thu, 19 Apr 2007 20:15:55 -0700
+Message-ID: <200704200315.l3K3FtJJ005776@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44963 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36013 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754409AbXDTDOW (ORCPT
+	by vger.kernel.org with ESMTP id S1752661AbXDTDR1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 23:14:22 -0400
+	Thu, 19 Apr 2007 23:17:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sshtylyov@ru.mvista.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, codermattie@gmail.com
+Cc: hugh@veritas.com, bill.irwin@oracle.com, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org
 
 
 The patch titled
-     hpt366: fix kernel oops with HPT302N
+     fix OOM killing processes wrongly thought MPOL_BIND
 has been added to the -mm tree.  Its filename is
-     hpt366-fix-kernel-oops-with-hpt302n.patch
+     fix-oom-killing-processes-wrongly-thought-mpol_bind.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hpt366: fix kernel oops with HPT302N
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: fix OOM killing processes wrongly thought MPOL_BIND
+From: Hugh Dickins <hugh@veritas.com>
 
-The driver crashes the kernel on HPT302N chips due to the missing
-initializer for 'hpt302n.settings' having been unfortunately overlooked so
-far.  :-<
+I only have CONFIG_NUMA=y for build testing: surprised when trying a memhog
+to see lots of other processes killed with "No available memory
+(MPOL_BIND)".  memhog is killed correctly once we initialize nodemask in
+constrained_alloc().
 
-Much thanks to Mike Mattie for pin-pointing the reason of crash.
-
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Mike Mattie <codermattie@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: William Irwin <bill.irwin@oracle.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/pci/hpt366.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/ide/pci/hpt366.c~hpt366-fix-kernel-oops-with-hpt302n drivers/ide/pci/hpt366.c
---- a/drivers/ide/pci/hpt366.c~hpt366-fix-kernel-oops-with-hpt302n
-+++ a/drivers/ide/pci/hpt366.c
-@@ -1,10 +1,10 @@
- /*
-- * linux/drivers/ide/pci/hpt366.c		Version 1.01	Dec 23, 2006
-+ * linux/drivers/ide/pci/hpt366.c		Version 1.02	Apr 18, 2007
-  *
-  * Copyright (C) 1999-2003		Andre Hedrick <andre@linux-ide.org>
-  * Portions Copyright (C) 2001	        Sun Microsystems, Inc.
-  * Portions Copyright (C) 2003		Red Hat Inc
-- * Portions Copyright (C) 2005-2006	MontaVista Software, Inc.
-+ * Portions Copyright (C) 2005-2007	MontaVista Software, Inc.
-  *
-  * Thanks to HighPoint Technologies for their assistance, and hardware.
-  * Special Thanks to Jon Burchmore in SanDiego for the deep pockets, his
-@@ -494,6 +494,7 @@ static struct hpt_info hpt302n __devinit
- 	.chip_type	= HPT302N,
- 	.max_mode	= HPT302_ALLOW_ATA133_6 ? 4 : 3,
- 	.dpll_clk	= 77,
-+	.settings	= hpt37x_settings
- };
- 
- static struct hpt_info hpt371n __devinitdata = {
+diff -puN mm/oom_kill.c~fix-oom-killing-processes-wrongly-thought-mpol_bind mm/oom_kill.c
+--- a/mm/oom_kill.c~fix-oom-killing-processes-wrongly-thought-mpol_bind
++++ a/mm/oom_kill.c
+@@ -176,6 +176,8 @@ static inline int constrained_alloc(stru
+ 	struct zone **z;
+ 	nodemask_t nodes;
+ 	int node;
++
++	nodes_clear(nodes);
+ 	/* node has memory ? */
+ 	for_each_online_node(node)
+ 		if (NODE_DATA(node)->node_present_pages)
 _
 
-Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-3x59x-fix-pci-resource-management.patch
-pci-define-pci_request-release_regions-for-config_pci=n.patch
-hpt366-fix-kernel-oops-with-hpt302n.patch
+fix-oom-killing-processes-wrongly-thought-mpol_bind.patch
+git-drm.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+i386-make-compat_vdso-runtime-selectable-fix.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+smaps-use-ptep_test_and_clear_young.patch
+mm-madvise-avoid-exclusive-mmap_sem.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
