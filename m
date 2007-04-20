@@ -1,94 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + sas_scsi_host-partially-convert-to-use-the-kthread-api.patch added to -mm tree
-Date: Thu, 19 Apr 2007 17:38:35 -0700
-Message-ID: <200704200038.l3K0cZfe003298@shell0.pdx.osdl.net>
+Subject: - macintosh-therm_windtunnelc-convert-to-kthread-api.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 17:45:23 -0700
+Message-ID: <200704200045.l3K0jOQw003423@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50151 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753000AbXDTAij (ORCPT
+	by vger.kernel.org with ESMTP id S1752228AbXDTAp2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 20:38:39 -0400
+	Thu, 19 Apr 2007 20:45:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, James.Bottomley@SteelEye.com, djwong@us.ibm.com
+To: ebiederm@xmission.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sas_scsi_host: partially convert to use the kthread API
-has been added to the -mm tree.  Its filename is
-     sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
+     macintosh/therm_windtunnel.c: convert to kthread API
+has been removed from the -mm tree.  Its filename was
+     macintosh-therm_windtunnelc-convert-to-kthread-api.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sas_scsi_host: partially convert to use the kthread API
+Subject: macintosh/therm_windtunnel.c: convert to kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patch modifies the sas scsi host thread startup to use kthread_run not
-kernel_thread and deamonize.  kthread_run is slightly simpler and more
-maintainable.
+Start the g4fand using kthread_run not a combination of kernel_thread and
+deamonize.  This makes the code a little simpler and more maintainable.
 
-akpm: the driver should also be converted to use kthread_should_stop() and
-kthread_stop().
-
-Cc: Darrick J. Wong <djwong@us.ibm.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/libsas/sas_scsi_host.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/macintosh/therm_windtunnel.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/libsas/sas_scsi_host.c~sas_scsi_host-partially-convert-to-use-the-kthread-api drivers/scsi/libsas/sas_scsi_host.c
---- a/drivers/scsi/libsas/sas_scsi_host.c~sas_scsi_host-partially-convert-to-use-the-kthread-api
-+++ a/drivers/scsi/libsas/sas_scsi_host.c
-@@ -40,6 +40,7 @@
- #include <linux/blkdev.h>
- #include <linux/scatterlist.h>
- #include <linux/freezer.h>
+diff -puN drivers/macintosh/therm_windtunnel.c~macintosh-therm_windtunnelc-convert-to-kthread-api drivers/macintosh/therm_windtunnel.c
+--- a/drivers/macintosh/therm_windtunnel.c~macintosh-therm_windtunnelc-convert-to-kthread-api
++++ a/drivers/macintosh/therm_windtunnel.c
+@@ -36,6 +36,7 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
 +#include <linux/kthread.h>
  
- /* ---------- SCSI Host glue ---------- */
- 
-@@ -870,7 +871,6 @@ static int sas_queue_thread(void *_sas_h
- 	struct sas_ha_struct *sas_ha = _sas_ha;
- 	struct scsi_core *core = &sas_ha->core;
- 
--	daemonize("sas_queue_%d", core->shost->host_no);
- 	current->flags |= PF_NOFREEZE;
- 
- 	complete(&queue_th_comp);
-@@ -891,19 +891,20 @@ static int sas_queue_thread(void *_sas_h
- 
- int sas_init_queue(struct sas_ha_struct *sas_ha)
+ #include <asm/prom.h>
+ #include <asm/machdep.h>
+@@ -62,7 +63,6 @@ I2C_CLIENT_INSMOD;
+ static struct {
+ 	volatile int		running;
+ 	struct completion	completion;
+-	pid_t			poll_task;
+ 	
+ 	struct semaphore 	lock;
+ 	struct of_device	*of_dev;
+@@ -285,7 +285,6 @@ restore_regs( void )
+ static int
+ control_loop( void *dummy )
  {
--	int res;
- 	struct scsi_core *core = &sas_ha->core;
-+	struct task_struct *task;
+-	daemonize("g4fand");
  
- 	spin_lock_init(&core->task_queue_lock);
- 	core->task_queue_size = 0;
- 	INIT_LIST_HEAD(&core->task_queue);
- 	init_MUTEX_LOCKED(&core->queue_thread_sema);
- 
--	res = kernel_thread(sas_queue_thread, sas_ha, 0);
--	if (res >= 0)
-+	task = kthread_run(sas_queue_thread, sas_ha,
-+			   "sas_queue_%d", core->shost->host_no);
-+	if (!IS_ERR(task))
- 		wait_for_completion(&queue_th_comp);
- 
--	return res < 0 ? res : 0;
-+	return IS_ERR(task) ? PTR_ERR(task) : 0;
- }
- 
- void sas_shutdown_queue(struct sas_ha_struct *sas_ha)
+ 	down( &x.lock );
+ 	setup_hardware();
+@@ -323,7 +322,7 @@ do_attach( struct i2c_adapter *adapter )
+ 		if( x.thermostat && x.fan ) {
+ 			x.running = 1;
+ 			init_completion( &x.completion );
+-			x.poll_task = kernel_thread( control_loop, NULL, SIGCHLD | CLONE_KERNEL );
++			kthread_run( control_loop, NULL, "g4fand");
+ 		}
+ 	}
+ 	return ret;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -131,6 +114,7 @@ use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
 always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
 proc-cleanup-use-seq_release_private-where-appropriate.patch
 smbfs-remove-unnecessary-allow_signal.patch
+pnpbios-conert-to-use-the-kthread-api.patch
 kthread-dont-depend-on-work-queues-take-2.patch
 kthread-dont-depend-on-work-queues-take-2-fix.patch
 change-reparent_to_init-to-reparent_to_kthreadd.patch
