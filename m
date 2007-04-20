@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + qla1280-use-dma_64bit_mask-instead-of-0ull.patch added to -mm tree
-Date: Fri, 20 Apr 2007 13:35:22 -0700
-Message-ID: <200704202035.l3KKZMTp023288@shell0.pdx.osdl.net>
+Subject: + networking-bonding-documentation-fix-for-multiple-bonding-interfaces.patch added to -mm tree
+Date: Fri, 20 Apr 2007 13:36:30 -0700
+Message-ID: <200704202036.l3KKaUJN023316@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49763 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37200 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767249AbXDTUfd (ORCPT
+	by vger.kernel.org with ESMTP id S1767246AbXDTUgv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 16:35:33 -0400
+	Fri, 20 Apr 2007 16:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com
+Cc: Alexandra.Kossovsky@oktetlabs.ru, fubar@us.ibm.com, shemminger@linux-foundation.org
 
 
 The patch titled
-     qla1280: use DMA_64BIT_MASK instead of ~0ULL
+     networking: bonding documentation fix for multiple bonding interfaces
 has been added to the -mm tree.  Its filename is
-     qla1280-use-dma_64bit_mask-instead-of-0ull.patch
+     networking-bonding-documentation-fix-for-multiple-bonding-interfaces.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: qla1280: use DMA_64BIT_MASK instead of ~0ULL
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: networking: bonding documentation fix for multiple bonding interfaces
+From: "Alexandra N. Kossovsky" <Alexandra.Kossovsky@oktetlabs.ru>
 
-QLA1280: call pci_set_dma_mask with DMA_64BIT_MASK instead of  ~0ULL
+Fix bonding driver documentation for the case of multiple bonding interfaces.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Signed-off-by: "Alexandra N. Kossovsky" <Alexandra.Kossovsky@oktetlabs.ru>
+Acked-by: Jay Vosburgh <fubar@us.ibm.com>
+Cc: Stephen Hemminger <shemminger@osdl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla1280.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ Documentation/networking/bonding.txt |   35 +------------------------
+ 1 files changed, 2 insertions(+), 33 deletions(-)
 
-diff -puN drivers/scsi/qla1280.c~qla1280-use-dma_64bit_mask-instead-of-0ull drivers/scsi/qla1280.c
---- a/drivers/scsi/qla1280.c~qla1280-use-dma_64bit_mask-instead-of-0ull
-+++ a/drivers/scsi/qla1280.c
-@@ -4293,7 +4293,7 @@ qla1280_probe_one(struct pci_dev *pdev, 
- 	ha->devnum = devnum;	/* specifies microcode load address */
+diff -puN Documentation/networking/bonding.txt~networking-bonding-documentation-fix-for-multiple-bonding-interfaces Documentation/networking/bonding.txt
+--- a/Documentation/networking/bonding.txt~networking-bonding-documentation-fix-for-multiple-bonding-interfaces
++++ a/Documentation/networking/bonding.txt
+@@ -920,40 +920,9 @@ options, you may wish to use the "max_bo
+ documented above.
  
- #ifdef QLA_64BIT_PTR
--	if (pci_set_dma_mask(ha->pdev, (dma_addr_t) ~ 0ULL)) {
-+	if (pci_set_dma_mask(ha->pdev, DMA_64BIT_MASK)) {
- 		if (pci_set_dma_mask(ha->pdev, DMA_32BIT_MASK)) {
- 			printk(KERN_WARNING "scsi(%li): Unable to set a "
- 			       "suitable DMA mask - aborting\n", ha->host_no);
+ 	To create multiple bonding devices with differing options, it
+-is necessary to load the bonding driver multiple times.  Note that
+-current versions of the sysconfig network initialization scripts
+-handle this automatically; if your distro uses these scripts, no
+-special action is needed.  See the section Configuring Bonding
+-Devices, above, if you're not sure about your network initialization
+-scripts.
+-
+-	To load multiple instances of the module, it is necessary to
+-specify a different name for each instance (the module loading system
+-requires that every loaded module, even multiple instances of the same
+-module, have a unique name).  This is accomplished by supplying
+-multiple sets of bonding options in /etc/modprobe.conf, for example:
+-	
+-alias bond0 bonding
+-options bond0 -o bond0 mode=balance-rr miimon=100
+-
+-alias bond1 bonding
+-options bond1 -o bond1 mode=balance-alb miimon=50
+-
+-	will load the bonding module two times.  The first instance is
+-named "bond0" and creates the bond0 device in balance-rr mode with an
+-miimon of 100.  The second instance is named "bond1" and creates the
+-bond1 device in balance-alb mode with an miimon of 50.
+-
+-	In some circumstances (typically with older distributions),
+-the above does not work, and the second bonding instance never sees
+-its options.  In that case, the second options line can be substituted
+-as follows:
+-
+-install bond1 /sbin/modprobe --ignore-install bonding -o bond1 \
+-	mode=balance-alb miimon=50
++is necessary to use bonding parameters exported by sysfs, documented
++in the section below.
+ 
+-	This may be repeated any number of times, specifying a new and
+-unique name in place of bond1 for each subsequent instance.
+ 
+ 3.4 Configuring Bonding Manually via Sysfs
+ ------------------------------------------
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from Alexandra.Kossovsky@oktetlabs.ru are
 
-origin.patch
-qla1280-use-dma_64bit_mask-instead-of-0ull.patch
-include-kern_-constant-in-printk-calls-in-mm-slabc.patch
+networking-bonding-documentation-fix-for-multiple-bonding-interfaces.patch
