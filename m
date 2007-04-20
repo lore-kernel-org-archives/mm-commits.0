@@ -1,230 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: - gfs2-nfs-lock-support-for-gfs2.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 23:38:48 -0700
-Message-ID: <200704200638.l3K6cmMs008788@shell0.pdx.osdl.net>
+Subject: - mm-only-dvb_en_50221-convert-to-kthread-api.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 23:48:19 -0700
+Message-ID: <200704200648.l3K6mJJE008944@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59845 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423038AbXDTGjN (ORCPT
+	by vger.kernel.org with ESMTP id S1753925AbXDTGs1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 02:39:13 -0400
+	Fri, 20 Apr 2007 02:48:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, swhiteho@redhat.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, adq_dvb@lidskialf.net, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gfs2: nfs lock support for gfs2
+     dvb_en_50221: Convert to kthread API
 has been removed from the -mm tree.  Its filename was
-     gfs2-nfs-lock-support-for-gfs2.patch
+     mm-only-dvb_en_50221-convert-to-kthread-api.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: gfs2: nfs lock support for gfs2
-From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
+Subject: dvb_en_50221: Convert to kthread API
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Add NFS lock support to GFS2.
+This patch is a minimal transformation to use the kthread API doing it's
+best to preserve the existing logic.
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Marc Eshel <eshel@almaden.ibm.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Instead of starting kdvb-ca by calling kernel_thread, daemonize and
+sigfillset we kthread_run is used.
+
+Instead of tracking the pid of the running thread we instead simply keep a
+flag to indicate that the current thread is running, as that is all the pid
+is really used for.
+
+And finally the kill_proc sending signal 0 to the kernel thread to ensure
+it is alive before we wait for it to shutdown is removed.  The kthread API
+does not provide the pid so we don't have that information readily
+available and the test is just silly.  If there is no shutdown race the
+test is a useless confirmation of that the thread is running.  If there is
+a race the test doesn't fix it and we should fix the race properly.
+
+Cc: Andrew de Quincey <adq_dvb@lidskialf.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/locking/dlm/plock.c |  104 ++++++++++++++++++++++++++++++----
- fs/gfs2/ops_file.c          |    5 +
- 2 files changed, 99 insertions(+), 10 deletions(-)
+ drivers/media/dvb/dvb-core/dvb_ca_en50221.c |   46 +++++++-----------
+ 1 files changed, 18 insertions(+), 28 deletions(-)
 
-diff -puN fs/gfs2/locking/dlm/plock.c~gfs2-nfs-lock-support-for-gfs2 fs/gfs2/locking/dlm/plock.c
---- a/fs/gfs2/locking/dlm/plock.c~gfs2-nfs-lock-support-for-gfs2
-+++ a/fs/gfs2/locking/dlm/plock.c
-@@ -25,6 +25,14 @@ struct plock_op {
- 	struct gdlm_plock_info info;
- };
+diff -puN drivers/media/dvb/dvb-core/dvb_ca_en50221.c~mm-only-dvb_en_50221-convert-to-kthread-api drivers/media/dvb/dvb-core/dvb_ca_en50221.c
+--- a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c~mm-only-dvb_en_50221-convert-to-kthread-api
++++ a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
+@@ -37,6 +37,7 @@
+ #include <linux/delay.h>
+ #include <linux/spinlock.h>
+ #include <linux/sched.h>
++#include <linux/kthread.h>
  
-+struct plock_xop {
-+	struct plock_op xop;
-+	void *callback;
-+	void *fl;
-+	void *file;
-+};
-+
-+
- static inline void set_version(struct gdlm_plock_info *info)
+ #include "dvb_ca_en50221.h"
+ #include "dvb_ringbuffer.h"
+@@ -139,8 +140,8 @@ struct dvb_ca_private {
+ 	/* wait queues for read() and write() operations */
+ 	wait_queue_head_t wait_queue;
+ 
+-	/* PID of the monitoring thread */
+-	pid_t thread_pid;
++	/* Flag indicating the monitoring thread is running */
++	int thread_running;
+ 
+ 	/* Wait queue used when shutting thread down */
+ 	wait_queue_head_t thread_queue;
+@@ -982,7 +983,6 @@ static void dvb_ca_en50221_thread_update
+ static int dvb_ca_en50221_thread(void *data)
  {
- 	info->version[0] = GDLM_PLOCK_VERSION_MAJOR;
-@@ -64,12 +72,14 @@ int gdlm_plock(void *lockspace, struct l
+ 	struct dvb_ca_private *ca = data;
+-	char name[15];
+ 	int slot;
+ 	int flags;
+ 	int status;
+@@ -991,14 +991,6 @@ static int dvb_ca_en50221_thread(void *d
+ 
+ 	dprintk("%s\n", __FUNCTION__);
+ 
+-	/* setup kernel thread */
+-	snprintf(name, sizeof(name), "kdvb-ca-%i:%i", ca->dvbdev->adapter->num, ca->dvbdev->id);
+-
+-	lock_kernel();
+-	daemonize(name);
+-	sigfillset(&current->blocked);
+-	unlock_kernel();
+-
+ 	/* choose the correct initial delay */
+ 	dvb_ca_en50221_thread_update_delay(ca);
+ 
+@@ -1182,7 +1174,7 @@ static int dvb_ca_en50221_thread(void *d
+ 	}
+ 
+ 	/* completed */
+-	ca->thread_pid = 0;
++	ca->thread_running = 0;
+ 	mb();
+ 	wake_up_interruptible(&ca->thread_queue);
+ 	return 0;
+@@ -1660,6 +1652,7 @@ static struct dvb_device dvbdev_ca = {
+ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
+ 			struct dvb_ca_en50221 *pubca, int flags, int slot_count)
  {
- 	struct gdlm_ls *ls = lockspace;
- 	struct plock_op *op;
-+	struct plock_xop *xop;
- 	int rv;
++	struct task_struct *task;
+ 	int ret;
+ 	struct dvb_ca_private *ca = NULL;
+ 	int i;
+@@ -1682,7 +1675,7 @@ int dvb_ca_en50221_init(struct dvb_adapt
+ 		goto error;
+ 	}
+ 	init_waitqueue_head(&ca->wait_queue);
+-	ca->thread_pid = 0;
++	ca->thread_running = 0;
+ 	init_waitqueue_head(&ca->thread_queue);
+ 	ca->exit = 0;
+ 	ca->open = 0;
+@@ -1711,13 +1704,15 @@ int dvb_ca_en50221_init(struct dvb_adapt
  
--	op = kzalloc(sizeof(*op), GFP_KERNEL);
--	if (!op)
-+	xop = kzalloc(sizeof(*xop), GFP_KERNEL);
-+	if (!xop)
- 		return -ENOMEM;
+ 	/* create a kthread for monitoring this CA device */
  
-+	op = &xop->xop;
- 	op->info.optype		= GDLM_PLOCK_OP_LOCK;
- 	op->info.pid		= fl->fl_pid;
- 	op->info.ex		= (fl->fl_type == F_WRLCK);
-@@ -79,9 +89,20 @@ int gdlm_plock(void *lockspace, struct l
- 	op->info.start		= fl->fl_start;
- 	op->info.end		= fl->fl_end;
- 	op->info.owner		= (__u64)(long) fl->fl_owner;
-+	if (fl->fl_lmops && fl->fl_lmops->fl_notify) {
-+		xop->callback	= fl->fl_lmops->fl_notify;
-+		/* might need to make a copy */
-+		xop->fl		= fl;
-+		xop->file	= file;
-+	} else
-+		xop->callback	= NULL;
+-	ret = kernel_thread(dvb_ca_en50221_thread, ca, 0);
+-
+-	if (ret < 0) {
+-		printk("dvb_ca_init: failed to start kernel_thread (%d)\n", ret);
++	task = kthread_run(dvb_ca_en50221_thread, ca,
++			   "kdvb-ca-%i:%i",
++			   ca->dvbdev->adapter->num, ca->dvbdev->id);
++	if (IS_ERR(task)) {
++		ret = PTR_ERR(task);
++		printk("dvb_ca_init: failed to start kthread (%d)\n", ret);
+ 		goto error;
+ 	}
+-	ca->thread_pid = ret;
++	ca->thread_running = 1;
+ 	return 0;
  
- 	send_op(op);
--	wait_event(recv_wq, (op->done != 0));
-+
-+	if (xop->callback == NULL)
-+		wait_event(recv_wq, (op->done != 0));
-+	else
-+		return -EINPROGRESS;
+ error:
+@@ -1748,16 +1743,11 @@ void dvb_ca_en50221_release(struct dvb_c
+ 	dprintk("%s\n", __FUNCTION__);
  
- 	spin_lock(&ops_lock);
- 	if (!list_empty(&op->list)) {
-@@ -99,7 +120,60 @@ int gdlm_plock(void *lockspace, struct l
- 				  (unsigned long long)name->ln_number);
+ 	/* shutdown the thread if there was one */
+-	if (ca->thread_pid) {
+-		if (kill_proc(ca->thread_pid, 0, 1) == -ESRCH) {
+-			printk("dvb_ca_release adapter %d: thread PID %d already died\n",
+-			       ca->dvbdev->adapter->num, ca->thread_pid);
+-		} else {
+-			ca->exit = 1;
+-			mb();
+-			dvb_ca_en50221_thread_wakeup(ca);
+-			wait_event_interruptible(ca->thread_queue, ca->thread_pid == 0);
+-		}
++	if (ca->thread_running) {
++		ca->exit = 1;
++		mb();
++		dvb_ca_en50221_thread_wakeup(ca);
++		wait_event_interruptible(ca->thread_queue, ca->thread_running == 0);
  	}
  
--	kfree(op);
-+	kfree(xop);
-+	return rv;
-+}
-+
-+/* Returns failure iff a succesful lock operation should be canceled */
-+static int gdlm_plock_callback(struct plock_op *op)
-+{
-+	struct file *file;
-+	struct file_lock *fl;
-+	int (*notify)(void *, void *, int) = NULL;
-+	struct plock_xop *xop = (struct plock_xop *)op;
-+	int rv = 0;
-+
-+	spin_lock(&ops_lock);
-+	if (!list_empty(&op->list)) {
-+		printk(KERN_INFO "plock op on list\n");
-+		list_del(&op->list);
-+	}
-+	spin_unlock(&ops_lock);
-+
-+	/* check if the following 2 are still valid or make a copy */
-+	file = xop->file;
-+	fl = xop->fl;
-+	notify = xop->callback;
-+
-+	if (op->info.rv) {
-+		notify(fl, NULL, op->info.rv);
-+		goto out;
-+	}
-+
-+	/* got fs lock; bookkeep locally as well: */
-+	if (posix_lock_file(file, fl, NULL)) {
-+		/*
-+		 * This can only happen in the case of kmalloc() failure.
-+		 * The filesystem's own lock is the authoritative lock,
-+		 * so a failure to get the lock locally is not a disaster.
-+		 * As long as GFS cannot reliably cancel locks (especially
-+		 * in a low-memory situation), we're better off ignoring
-+		 * this failure than trying to recover.
-+		 */
-+		log_error("gdlm_plock: vfs lock error file %p fl %p",
-+				file, fl);
-+	}
-+
-+	rv = notify(fl, NULL, 0);
-+	if (rv) {
-+		/* XXX: We need to cancel the fs lock here: */
-+		printk("gfs2 lock granted after lock request failed;"
-+						" dangling lock!\n");
-+		goto out;
-+	}
-+
-+out:
-+	kfree(xop);
- 	return rv;
- }
- 
-@@ -138,6 +212,9 @@ int gdlm_punlock(void *lockspace, struct
- 
- 	rv = op->info.rv;
- 
-+	if (rv == -ENOENT)
-+		rv = 0;
-+
- 	kfree(op);
- 	return rv;
- }
-@@ -161,6 +238,7 @@ int gdlm_plock_get(void *lockspace, stru
- 	op->info.start		= fl->fl_start;
- 	op->info.end		= fl->fl_end;
- 
-+
- 	send_op(op);
- 	wait_event(recv_wq, (op->done != 0));
- 
-@@ -173,9 +251,10 @@ int gdlm_plock_get(void *lockspace, stru
- 
- 	rv = op->info.rv;
- 
--	if (rv == 0)
--		fl->fl_type = F_UNLCK;
--	else if (rv > 0) {
-+	fl->fl_type = F_UNLCK;
-+	if (rv == -ENOENT)
-+		rv = 0;
-+	else if (rv == 0 && op->info.pid != fl->fl_pid) {
- 		fl->fl_type = (op->info.ex) ? F_WRLCK : F_RDLCK;
- 		fl->fl_pid = op->info.pid;
- 		fl->fl_start = op->info.start;
-@@ -243,9 +322,14 @@ static ssize_t dev_write(struct file *fi
- 	}
- 	spin_unlock(&ops_lock);
- 
--	if (found)
--		wake_up(&recv_wq);
--	else
-+	if (found) {
-+		struct plock_xop *xop;
-+		xop = (struct plock_xop *)op;
-+		if (xop->callback)
-+			count = gdlm_plock_callback(op);
-+		else
-+			wake_up(&recv_wq);
-+	} else
- 		printk(KERN_INFO "gdlm dev_write no op %x %llx\n", info.fsid,
- 			(unsigned long long)info.number);
- 	return count;
-diff -puN fs/gfs2/ops_file.c~gfs2-nfs-lock-support-for-gfs2 fs/gfs2/ops_file.c
---- a/fs/gfs2/ops_file.c~gfs2-nfs-lock-support-for-gfs2
-+++ a/fs/gfs2/ops_file.c
-@@ -521,6 +521,11 @@ static int gfs2_lock(struct file *file, 
- 		}
- 	}
- 
-+	if (cmd == F_CANCELLK) {
-+		/* Hack: */
-+		cmd = F_SETLK;
-+		fl->fl_type = F_UNLCK;
-+	}
- 	if (IS_GETLK(cmd))
- 		return gfs2_lm_plock_get(sdp, &name, file, fl);
- 	else if (fl->fl_type == F_UNLCK)
+ 	for (i = 0; i < ca->slot_count; i++) {
 _
 
-Patches currently in -mm which might be from eshel@almaden.ibm.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-git-nfs-server-cluster-locking-api.patch
+arm-ecard-convert-to-use-the-kthread-api.patch
+powerpc-rtas-msi-support.patch
+macintosh-mediabay-convert-to-kthread-api.patch
+macintosh-adb-convert-to-the-kthread-api.patch
+macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
+powerpc-pseries-rtasd-convert-to-kthread-api.patch
+powerpc-pseries-eeh-convert-to-kthread-api.patch
+dvb_en_50221-convert-to-kthread-api.patch
+mm-only-dvb_en_50221-convert-to-kthread-api.patch
+mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
+ia64-sn-xpc-convert-to-use-kthread-api.patch
+mtd_blkdevs-convert-to-use-the-kthread-api.patch
+fix-i-oat-for-kexec.patch
+cpqphp-partially-convert-to-use-the-kthread-api.patch
+ibmphp-partially-convert-to-use-the-kthreads-api.patch
+cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
+s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
+s390-qeth-convert-to-use-the-kthread-api.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
+sparc64-powerc-convert-to-use-the-kthread-api.patch
+i386-irq-kill-irq-compression.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api.patch
+i386-balance_irq-convert-to-the-kthread-api.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+clean-up-elf-note-generation.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
+proc-cleanup-use-seq_release_private-where-appropriate.patch
+smbfs-remove-unnecessary-allow_signal.patch
+pnpbios-conert-to-use-the-kthread-api.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+change-reparent_to_init-to-reparent_to_kthreadd.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+worker_thread-dont-play-with-sigchld-and-numa-policy.patch
+change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+edac-k8-driver-coding-tidy.patch
+nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+md-remove-broken-sigkill-support.patch
+mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
