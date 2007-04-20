@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + define-platform-wakeup-hook-use-in-pci_enable_wake-update.patch added to -mm tree
-Date: Thu, 19 Apr 2007 20:11:45 -0700
-Message-ID: <200704200311.l3K3BjB3005698@shell0.pdx.osdl.net>
+Subject: + cleanup-cpufreq-kconfig-options.patch added to -mm tree
+Date: Thu, 19 Apr 2007 20:12:48 -0700
+Message-ID: <200704200312.l3K3CmfX005727@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51758 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54959 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754384AbXDTDL4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754393AbXDTDNS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 23:11:56 -0400
+	Thu, 19 Apr 2007 23:13:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: vapier@gentoo.org, davej@codemonkey.org.uk
 
 
 The patch titled
-     define platform wakeup hook, use in pci_enable_wake() (update)
+     clean up cpufreq kconfig options
 has been added to the -mm tree.  Its filename is
-     define-platform-wakeup-hook-use-in-pci_enable_wake-update.patch
+     cleanup-cpufreq-kconfig-options.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,213 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: define platform wakeup hook, use in pci_enable_wake() (update)
-From: David Brownell <david-b@pacbell.net>
+Subject: clean up cpufreq kconfig options
+From: Mike Frysinger <vapier@gentoo.org>
 
-Minor cleanups as suggested by Andrew.
+Adds proper lines to help output of kconfig so people can find the module
+names.  Also fixed some broken leading spaces versus tabs.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/main.c |    2 +-
- drivers/pci/pci.c         |    5 ++++-
- include/linux/pm.h        |    1 +
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/cpufreq/Kconfig |   19 ++++++--
+ drivers/cpufreq/Kconfig            |   61 +++++++++++++++++++--------
+ 2 files changed, 58 insertions(+), 22 deletions(-)
 
-diff -puN drivers/base/power/main.c~define-platform-wakeup-hook-use-in-pci_enable_wake-update drivers/base/power/main.c
---- a/drivers/base/power/main.c~define-platform-wakeup-hook-use-in-pci_enable_wake-update
-+++ a/drivers/base/power/main.c
-@@ -29,7 +29,7 @@ LIST_HEAD(dpm_off_irq);
- DECLARE_MUTEX(dpm_sem);
- DECLARE_MUTEX(dpm_list_sem);
+diff -puN arch/x86_64/kernel/cpufreq/Kconfig~cleanup-cpufreq-kconfig-options arch/x86_64/kernel/cpufreq/Kconfig
+--- a/arch/x86_64/kernel/cpufreq/Kconfig~cleanup-cpufreq-kconfig-options
++++ a/arch/x86_64/kernel/cpufreq/Kconfig
+@@ -16,6 +16,9 @@ config X86_POWERNOW_K8
+ 	help
+ 	  This adds the CPUFreq driver for mobile AMD Opteron/Athlon64 processors.
  
--int (*platform_enable_wakeup)(struct device *dev, int is_on) = NULL;
-+int (*platform_enable_wakeup)(struct device *dev, int is_on);
++	  To compile this driver as a module, choose M here: the
++	  module will be called powernow-k8.
++
+ 	  For details, take a look at <file:Documentation/cpu-freq/>. 
+ 
+ 	  If in doubt, say N.
+@@ -38,6 +41,9 @@ config X86_SPEEDSTEP_CENTRINO
+ 	  mobile CPUs.  This means Intel Pentium M (Centrino) CPUs
+ 	  or 64bit enabled Intel Xeons.
+ 
++	  To compile this driver as a module, choose M here: the
++	  module will be called speedstep-centrino.
++
+ 	  For details, take a look at <file:Documentation/cpu-freq/>.
+ 
+ 	  If in doubt, say N.
+@@ -55,6 +61,9 @@ config X86_ACPI_CPUFREQ
+ 	  Processor Performance States.
+ 	  This driver also supports Intel Enhanced Speedstep.
+ 
++	  To compile this driver as a module, choose M here: the
++	  module will be called acpi-cpufreq.
++
+ 	  For details, take a look at <file:Documentation/cpu-freq/>.
+ 
+ 	  If in doubt, say N.
+@@ -62,7 +71,7 @@ config X86_ACPI_CPUFREQ
+ comment "shared options"
+ 
+ config X86_ACPI_CPUFREQ_PROC_INTF
+-        bool "/proc/acpi/processor/../performance interface (deprecated)"
++	bool "/proc/acpi/processor/../performance interface (deprecated)"
+ 	depends on PROC_FS
+ 	depends on X86_ACPI_CPUFREQ || X86_SPEEDSTEP_CENTRINO_ACPI || X86_POWERNOW_K8_ACPI
+ 	help
+@@ -86,16 +95,18 @@ config X86_P4_CLOCKMOD
+ 	  slowdowns and noticeable latencies.  Normally Speedstep should be used
+ 	  instead.
+ 
++	  To compile this driver as a module, choose M here: the
++	  module will be called p4-clockmod.
++
+ 	  For details, take a look at <file:Documentation/cpu-freq/>.
+ 
+ 	  Unless you are absolutely sure say N.
  
  
- /**
-diff -puN drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake-update drivers/pci/pci.c
---- a/drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake-update
-+++ a/drivers/pci/pci.c
-@@ -947,8 +947,11 @@ int pci_enable_wake(struct pci_dev *dev,
+ config X86_SPEEDSTEP_LIB
+-        tristate
+-        default X86_P4_CLOCKMOD
++	tristate
++	default X86_P4_CLOCKMOD
  
- 	/* Check if it can generate PME# from requested state. */
- 	if (!value || !(value & (1 << state))) {
-+		/* if it can't, revert what the platform hook changed,
-+		 * always reporting the base "EINVAL, can't PME#" error
-+		 */
- 		if (enable && platform_enable_wakeup)
--			(void) platform_enable_wakeup(&dev->dev, 0);
-+			platform_enable_wakeup(&dev->dev, 0);
- 		return enable ? -EINVAL : 0;
- 	}
+ endif
  
-diff -puN include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake-update include/linux/pm.h
---- a/include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake-update
-+++ a/include/linux/pm.h
-@@ -275,6 +275,7 @@ extern void __suspend_report_result(cons
+ endmenu
+-
+diff -puN drivers/cpufreq/Kconfig~cleanup-cpufreq-kconfig-options drivers/cpufreq/Kconfig
+--- a/drivers/cpufreq/Kconfig~cleanup-cpufreq-kconfig-options
++++ a/drivers/cpufreq/Kconfig
+@@ -9,6 +9,9 @@ config CPU_FREQ
+ 	  clock speed, you need to either enable a dynamic cpufreq governor
+ 	  (see below) after boot, or use a userspace tool.
  
- /* platform hook to activate device wakeup capability, if
-  * that's not already handled by enable_irq_wake() etc
-+ * returns zero on success, else negative errno
-  */
- extern int (*platform_enable_wakeup)(struct device *dev, int is_on);
++	  To compile this driver as a module, choose M here: the
++	  module will be called cpufreq.
++
+ 	  For details, take a look at <file:Documentation/cpu-freq>.
  
+ 	  If in doubt, say N.
+@@ -16,7 +19,7 @@ config CPU_FREQ
+ if CPU_FREQ
+ 
+ config CPU_FREQ_TABLE
+-       tristate
++	tristate
+ 
+ config CPU_FREQ_DEBUG
+ 	bool "Enable CPUfreq debugging"
+@@ -32,19 +35,26 @@ config CPU_FREQ_DEBUG
+ 	       4 to activate CPUfreq governor debugging
+ 
+ config CPU_FREQ_STAT
+-       tristate "CPU frequency translation statistics"
+-       select CPU_FREQ_TABLE
+-       default y
+-       help
+-         This driver exports CPU frequency statistics information through sysfs
+-         file system
++	tristate "CPU frequency translation statistics"
++	select CPU_FREQ_TABLE
++	default y
++	help
++	  This driver exports CPU frequency statistics information through sysfs
++	  file system.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called cpufreq_stats.
++
++	  If in doubt, say N.
+ 
+ config CPU_FREQ_STAT_DETAILS
+-       bool "CPU frequency translation statistics details"
+-       depends on CPU_FREQ_STAT
+-       help
+-         This will show detail CPU frequency translation table in sysfs file
+-         system
++	bool "CPU frequency translation statistics details"
++	depends on CPU_FREQ_STAT
++	help
++	  This will show detail CPU frequency translation table in sysfs file
++	  system.
++
++	  If in doubt, say N.
+ 
+ # Note that it is not currently possible to set the other governors (such as ondemand)
+ # as the default, since if they fail to initialise, cpufreq will be
+@@ -78,29 +88,38 @@ config CPU_FREQ_DEFAULT_GOV_USERSPACE
+ endchoice
+ 
+ config CPU_FREQ_GOV_PERFORMANCE
+-       tristate "'performance' governor"
+-       help
++	tristate "'performance' governor"
++	help
+ 	  This cpufreq governor sets the frequency statically to the
+ 	  highest available CPU frequency.
+ 
++	  To compile this driver as a module, choose M here: the
++	  module will be called cpufreq_performance.
++
+ 	  If in doubt, say Y.
+ 
+ config CPU_FREQ_GOV_POWERSAVE
+-       tristate "'powersave' governor"
+-       help
++	tristate "'powersave' governor"
++	help
+ 	  This cpufreq governor sets the frequency statically to the
+ 	  lowest available CPU frequency.
+ 
++	  To compile this driver as a module, choose M here: the
++	  module will be called cpufreq_powersave.
++
+ 	  If in doubt, say Y.
+ 
+ config CPU_FREQ_GOV_USERSPACE
+-       tristate "'userspace' governor for userspace frequency scaling"
+-       help
++	tristate "'userspace' governor for userspace frequency scaling"
++	help
+ 	  Enable this cpufreq governor when you either want to set the
+ 	  CPU frequency manually or when an userspace program shall
+ 	  be able to set the CPU dynamically, like on LART 
+ 	  <http://www.lartmaker.nl/>.
+ 
++	  To compile this driver as a module, choose M here: the
++	  module will be called cpufreq_userspace.
++
+ 	  For details, take a look at <file:Documentation/cpu-freq/>.
+ 
+ 	  If in doubt, say Y.
+@@ -116,6 +135,9 @@ config CPU_FREQ_GOV_ONDEMAND
+ 	  do fast frequency switching (i.e, very low latency frequency
+ 	  transitions). 
+ 
++	  To compile this driver as a module, choose M here: the
++	  module will be called cpufreq_ondemand.
++
+ 	  For details, take a look at linux/Documentation/cpu-freq.
+ 
+ 	  If in doubt, say N.
+@@ -136,6 +158,9 @@ config CPU_FREQ_GOV_CONSERVATIVE
+ 	  step-by-step latency issues between the minimum and maximum frequency
+ 	  transitions in the CPU) you will probably want to use this governor.
+ 
++	  To compile this driver as a module, choose M here: the
++	  module will be called cpufreq_conservative.
++
+ 	  For details, take a look at linux/Documentation/cpu-freq.
+ 
+ 	  If in doubt, say N.
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-make-proc-acpi-wakeup-more-useful.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake-update.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-at91_cf-minor-fix.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnpacpi-sets-pnpdev-devarchdata-fix.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-update-to-class-device-removal-patches.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
-workaround-rtc-related-acpi-table-bugs.patch
-revert-rtc-add-rtc_merge_alarm.patch
-remove-rtc_alm_set-mode-bugs.patch
+cleanup-cpufreq-kconfig-options.patch
+git-kbuild.patch
