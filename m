@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + a.patch added to -mm tree
-Date: Fri, 20 Apr 2007 14:32:25 -0700
-Message-ID: <200704202132.l3KLWPrn024321@shell0.pdx.osdl.net>
+Subject: + irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch added to -mm tree
+Date: Fri, 20 Apr 2007 14:33:04 -0700
+Message-ID: <200704202133.l3KLX4dh024329@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49821 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754509AbXDTVdC (ORCPT
+	by vger.kernel.org with ESMTP id S1767262AbXDTVdk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 17:33:02 -0400
+	Fri, 20 Apr 2007 17:33:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: akpm@linux-foundation.org, matthias.kaehlcke@gmail.com, samuel@sortiz.org
 The patch titled
      irda_device_dongle_init: fix kzalloc(GFP_KERNEL) in spinlock
 has been added to the -mm tree.  Its filename is
-     a.patch
+     irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -39,8 +39,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  net/irda/irda_device.c |   21 ++++++++-------------
  1 files changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN net/irda/irda_device.c~a net/irda/irda_device.c
---- a/net/irda/irda_device.c~a
+diff -puN net/irda/irda_device.c~irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock net/irda/irda_device.c
+--- a/net/irda/irda_device.c~irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock
 +++ a/net/irda/irda_device.c
 @@ -375,7 +375,7 @@ EXPORT_SYMBOL(alloc_irdadev);
  dongle_t *irda_device_dongle_init(struct net_device *dev, int type)
@@ -249,4 +249,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-a.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
