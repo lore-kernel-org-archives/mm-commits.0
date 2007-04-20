@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rpc-fix-the-tcp-resend-semantics-for-nfsv4.patch added to -mm tree
-Date: Thu, 19 Apr 2007 19:27:00 -0700
-Message-ID: <200704200227.l3K2R0gX005090@shell0.pdx.osdl.net>
+Subject: + wistron_btns-fix-a-typo-on-the-tm610-definition.patch added to -mm tree
+Date: Thu, 19 Apr 2007 19:43:22 -0700
+Message-ID: <200704200243.l3K2hMkK005326@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44617 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754315AbXDTC1G (ORCPT
+	by vger.kernel.org with ESMTP id S1754248AbXDTCny (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 22:27:06 -0400
+	Thu, 19 Apr 2007 22:43:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Trond.Myklebust@netapp.com, chuck.lever@oracle.com
+Cc: eric.piel@tremplin-utc.net, dtor@mail.ru, mitr@volny.cz
 
 
 The patch titled
-     RPC: Fix the TCP resend semantics for NFSv4
+     wistron_btns: fix a typo on the TM610 definition
 has been added to the -mm tree.  Its filename is
-     rpc-fix-the-tcp-resend-semantics-for-nfsv4.patch
+     wistron_btns-fix-a-typo-on-the-tm610-definition.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RPC: Fix the TCP resend semantics for NFSv4
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Subject: wistron_btns: fix a typo on the TM610 definition
+From: Eric Piel <eric.piel@tremplin-utc.net>
 
-Fix a regression due to the patch "NFS: disconnect before retrying NFSv4
-requests over TCP"
+I did a typo in a previous patch for wistron_btns "add acerhk database". 
+This patch fixes this typo that prevented PROG2 key to work.
 
-The assumption made in xprt_transmit() that the condition
-
-	"req->rq_bytes_sent == 0 and request is on the receive list"
-
-should imply that we're dealing with a retransmission is false.  Firstly,
-it may simply happen that the socket send queue was full at the time the
-request was initially sent through xprt_transmit().  Secondly, doing this
-for each request that was retransmitted implies that we disconnect and
-reconnect for _every_ request that happened to be retransmitted
-irrespective of whether or not a disconnection has already occurred.
-
-Fix is to move this logic into the call_status request timeout handler.
-
-Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: Chuck Lever <chuck.lever@oracle.com>
+Signed-off-by: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Miloslav Trmac <mitr@volny.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/clnt.c |    4 ++++
- net/sunrpc/xprt.c |   10 ----------
- 2 files changed, 4 insertions(+), 10 deletions(-)
+ drivers/input/misc/wistron_btns.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sunrpc/clnt.c~rpc-fix-the-tcp-resend-semantics-for-nfsv4 net/sunrpc/clnt.c
---- a/net/sunrpc/clnt.c~rpc-fix-the-tcp-resend-semantics-for-nfsv4
-+++ a/net/sunrpc/clnt.c
-@@ -1046,6 +1046,8 @@ call_status(struct rpc_task *task)
- 		rpc_delay(task, 3*HZ);
- 	case -ETIMEDOUT:
- 		task->tk_action = call_timeout;
-+		if (task->tk_client->cl_discrtry)
-+			xprt_disconnect(task->tk_xprt);
- 		break;
- 	case -ECONNREFUSED:
- 	case -ENOTCONN:
-@@ -1169,6 +1171,8 @@ call_decode(struct rpc_task *task)
- out_retry:
- 	req->rq_received = req->rq_private_buf.len = 0;
- 	task->tk_status = 0;
-+	if (task->tk_client->cl_discrtry)
-+		xprt_disconnect(task->tk_xprt);
- }
- 
- /*
-diff -puN net/sunrpc/xprt.c~rpc-fix-the-tcp-resend-semantics-for-nfsv4 net/sunrpc/xprt.c
---- a/net/sunrpc/xprt.c~rpc-fix-the-tcp-resend-semantics-for-nfsv4
-+++ a/net/sunrpc/xprt.c
-@@ -735,16 +735,6 @@ void xprt_transmit(struct rpc_task *task
- 			xprt_reset_majortimeo(req);
- 			/* Turn off autodisconnect */
- 			del_singleshot_timer_sync(&xprt->timer);
--		} else {
--			/* If all request bytes have been sent,
--			 * then we must be retransmitting this one */
--			if (!req->rq_bytes_sent) {
--				if (task->tk_client->cl_discrtry) {
--					xprt_disconnect(xprt);
--					task->tk_status = -ENOTCONN;
--					return;
--				}
--			}
- 		}
- 	} else if (!req->rq_bytes_sent)
- 		return;
+diff -puN drivers/input/misc/wistron_btns.c~wistron_btns-fix-a-typo-on-the-tm610-definition drivers/input/misc/wistron_btns.c
+--- a/drivers/input/misc/wistron_btns.c~wistron_btns-fix-a-typo-on-the-tm610-definition
++++ a/drivers/input/misc/wistron_btns.c
+@@ -490,7 +490,7 @@ static struct key_entry keymap_acer_trav
+ 	{ KE_KEY, 0x01, {KEY_HELP} },
+ 	{ KE_KEY, 0x02, {KEY_CONFIG} },
+ 	{ KE_KEY, 0x11, {KEY_PROG1} },
+-	{ KE_KEY, 0x12, {KEY_PROG3} },
++	{ KE_KEY, 0x12, {KEY_PROG2} },
+ 	{ KE_KEY, 0x13, {KEY_PROG3} },
+ 	{ KE_KEY, 0x14, {KEY_MAIL} },
+ 	{ KE_KEY, 0x15, {KEY_WWW} },
 _
 
-Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
+Patches currently in -mm which might be from eric.piel@tremplin-utc.net are
 
-nfs-clean-up-the-unstable-write-code.patch
-nfs-fix-race-in-nfs_set_page_dirty.patch
-nfs-fix-the-desynchronized-value-of-nfs_incommit-error.patch
-nfs-dont-clear-pg_writeback-until-after-weve-processed-unstable-writes.patch
-rpc-fix-the-tcp-resend-semantics-for-nfsv4.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-nfs-kill-the-obsolete-nfs_paranoia.patch
+git-input.patch
+wistron_btns-fix-a-typo-on-the-tm610-definition.patch
+wistron_btns-add-led-support.patch
