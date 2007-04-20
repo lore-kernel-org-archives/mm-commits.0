@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch added to -mm tree
-Date: Fri, 20 Apr 2007 14:33:04 -0700
-Message-ID: <200704202133.l3KLX4dh024329@shell0.pdx.osdl.net>
+Subject: + srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch added to -mm tree
+Date: Fri, 20 Apr 2007 14:37:39 -0700
+Message-ID: <200704202137.l3KLbds0024424@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39024 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767262AbXDTVdk (ORCPT
+	by vger.kernel.org with ESMTP id S1767274AbXDTViY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 17:33:40 -0400
+	Fri, 20 Apr 2007 17:38:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, matthias.kaehlcke@gmail.com, samuel@sortiz.org
+Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, matthias.kaehlcke@gmail.com, rth@twiddle.net
 
 
 The patch titled
-     irda_device_dongle_init: fix kzalloc(GFP_KERNEL) in spinlock
+     srmcons: fix kmalloc(GFP_KERNEL) inside spinlock
 has been added to the -mm tree.  Its filename is
-     irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+     srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: irda_device_dongle_init: fix kzalloc(GFP_KERNEL) in spinlock
+Subject: srmcons: fix kmalloc(GFP_KERNEL) inside spinlock
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=8343
+Fixes http://bugzilla.kernel.org/show_bug.cgi?id=8341
 
-Cc: Samuel Ortiz <samuel@sortiz.org>
 Cc: <matthias.kaehlcke@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/irda/irda_device.c |   21 ++++++++-------------
- 1 files changed, 8 insertions(+), 13 deletions(-)
+ arch/alpha/kernel/srmcons.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/irda/irda_device.c~irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock net/irda/irda_device.c
---- a/net/irda/irda_device.c~irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock
-+++ a/net/irda/irda_device.c
-@@ -375,7 +375,7 @@ EXPORT_SYMBOL(alloc_irdadev);
- dongle_t *irda_device_dongle_init(struct net_device *dev, int type)
- {
- 	struct dongle_reg *reg;
--	dongle_t *dongle = NULL;
-+	dongle_t *dongle = kzalloc(sizeof(dongle_t), GFP_KERNEL);
+diff -puN arch/alpha/kernel/srmcons.c~srmcons-fix-kmallocgfp_kernel-inside-spinlock arch/alpha/kernel/srmcons.c
+--- a/arch/alpha/kernel/srmcons.c~srmcons-fix-kmallocgfp_kernel-inside-spinlock
++++ a/arch/alpha/kernel/srmcons.c
+@@ -164,9 +164,9 @@ srmcons_get_private_struct(struct srmcon
+ 	int retval = 0;
  
- 	might_sleep();
+ 	if (srmconsp == NULL) {
++		srmconsp = kmalloc(sizeof(*srmconsp), GFP_KERNEL);
+ 		spin_lock_irqsave(&srmconsp_lock, flags);
  
-@@ -397,19 +397,14 @@ dongle_t *irda_device_dongle_init(struct
- 	if (!reg || !try_module_get(reg->owner) ) {
- 		IRDA_ERROR("IrDA: Unable to find requested dongle type %x\n",
- 			   type);
--		goto out;
-+		kfree(dongle);
-+		dongle = NULL;
-+	}
-+	if (dongle) {
-+		/* Bind the registration info to this particular instance */
-+		dongle->issue = reg;
-+		dongle->dev = dev;
- 	}
--
--	/* Allocate dongle info for this instance */
--	dongle = kzalloc(sizeof(dongle_t), GFP_KERNEL);
--	if (!dongle)
--		goto out;
--
--	/* Bind the registration info to this particular instance */
--	dongle->issue = reg;
--	dongle->dev = dev;
--
-- out:
- 	spin_unlock(&dongles->hb_spinlock);
- 	return dongle;
- }
+-		srmconsp = kmalloc(sizeof(*srmconsp), GFP_KERNEL);
+ 		if (srmconsp == NULL)
+ 			retval = -ENOMEM;
+ 		else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +99,7 @@ git-net-vs-git-netdev-all.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
 rfcomm_worker-fix-wakeup-race.patch
 git-ocfs2.patch
 git-parisc.patch
@@ -249,4 +226,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
