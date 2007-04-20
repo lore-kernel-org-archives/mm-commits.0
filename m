@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - locks-trivial-removal-of-unnecessary-parentheses.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 23:38:13 -0700
-Message-ID: <200704200638.l3K6cDbJ008738@shell0.pdx.osdl.net>
+Subject: - locks-make-lock-release-private-data-before-returning-in-getlk-case.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 23:38:18 -0700
+Message-ID: <200704200638.l3K6cIvT008746@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42064 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422973AbXDTGif (ORCPT
+	by vger.kernel.org with ESMTP id S1422997AbXDTGif (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 20 Apr 2007 02:38:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,27 +15,22 @@ To: bfields@citi.umich.edu, eshel@almaden.ibm.com, jack@ucw.cz, trond.myklebust@
 
 
 The patch titled
-     locks: trivial removal of unnecessary parentheses
+     locks: make ->lock release private data before returning in GETLK case
 has been removed from the -mm tree.  Its filename was
-     locks-trivial-removal-of-unnecessary-parentheses.patch
+     locks-make-lock-release-private-data-before-returning-in-getlk-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: locks: trivial removal of unnecessary parentheses
+Subject: locks: make ->lock release private data before returning in GETLK case
 From: J. Bruce Fields <bfields@citi.umich.edu> - unquoted
 
-If a filesystem defines a ->lock() method, that method is called when an
-application uses fcntl(), but it isn't called from the code path used by the
-lock managers (lockd (for nfsv2/v3) and nfsd itself (for v4)).  The following
-patches remedy that.  (This hasn't been a problem until recently because the
-filesystems that define ->lock (nfs, cifs, etc.) aren't filesystems that nfsd
-exports.  The arrival of cluster filesystems changes that.)
+The file_lock argument to ->lock is used to return the conflicting lock when
+found.  There's no reason for the filesystem to return any private information
+with this conflicting lock, but nfsv4 is.
 
-
-This patch:
-
-Remove some unnecessary parentheses.
+Fix nfsv4 client, and modify locks.c to stop calling fl_release_private for it
+in this case.
 
 Signed-off-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
@@ -44,30 +39,43 @@ Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/locks.c        |    4 ----
+ fs/nfs/nfs4proc.c |    2 ++
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/locks.c~locks-trivial-removal-of-unnecessary-parentheses fs/locks.c
---- a/fs/locks.c~locks-trivial-removal-of-unnecessary-parentheses
+diff -puN fs/locks.c~locks-make-lock-release-private-data-before-returning-in-getlk-case fs/locks.c
+--- a/fs/locks.c~locks-make-lock-release-private-data-before-returning-in-getlk-case
 +++ a/fs/locks.c
-@@ -1738,7 +1738,7 @@ again:
- 	else {
- 		for (;;) {
- 			error = posix_lock_file(filp, file_lock);
--			if ((error != -EAGAIN) || (cmd == F_SETLK))
-+			if (error != -EAGAIN || cmd == F_SETLK)
- 				break;
- 			error = wait_event_interruptible(file_lock->fl_wait,
- 					!file_lock->fl_next);
-@@ -1881,7 +1881,7 @@ again:
- 	else {
- 		for (;;) {
- 			error = posix_lock_file(filp, file_lock);
--			if ((error != -EAGAIN) || (cmd == F_SETLK64))
-+			if (error != -EAGAIN || cmd == F_SETLK64)
- 				break;
- 			error = wait_event_interruptible(file_lock->fl_wait,
- 					!file_lock->fl_next);
+@@ -1665,8 +1665,6 @@ int fcntl_getlk(struct file *filp, struc
+ 
+ 	if (filp->f_op && filp->f_op->lock) {
+ 		error = filp->f_op->lock(filp, F_GETLK, &file_lock);
+-		if (file_lock.fl_ops && file_lock.fl_ops->fl_release_private)
+-			file_lock.fl_ops->fl_release_private(&file_lock);
+ 		if (error < 0)
+ 			goto out;
+ 		else
+@@ -1804,8 +1802,6 @@ int fcntl_getlk64(struct file *filp, str
+ 
+ 	if (filp->f_op && filp->f_op->lock) {
+ 		error = filp->f_op->lock(filp, F_GETLK, &file_lock);
+-		if (file_lock.fl_ops && file_lock.fl_ops->fl_release_private)
+-			file_lock.fl_ops->fl_release_private(&file_lock);
+ 		if (error < 0)
+ 			goto out;
+ 		else
+diff -puN fs/nfs/nfs4proc.c~locks-make-lock-release-private-data-before-returning-in-getlk-case fs/nfs/nfs4proc.c
+--- a/fs/nfs/nfs4proc.c~locks-make-lock-release-private-data-before-returning-in-getlk-case
++++ a/fs/nfs/nfs4proc.c
+@@ -3019,6 +3019,8 @@ static int _nfs4_proc_getlk(struct nfs4_
+ 			status = 0;
+ 	}
+ out:
++	if (request->fl_ops)
++		request->fl_ops->fl_release_private(request);
+ 	up_read(&clp->cl_sem);
+ 	return status;
+ }
 _
 
 Patches currently in -mm which might be from bfields@citi.umich.edu are
