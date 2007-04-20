@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch added to -mm tree
-Date: Fri, 20 Apr 2007 15:45:13 -0700
-Message-ID: <200704202245.l3KMjD7p025605@shell0.pdx.osdl.net>
+Subject: + lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch added to -mm tree
+Date: Fri, 20 Apr 2007 15:50:19 -0700
+Message-ID: <200704202250.l3KMoJBZ025685@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36395 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767298AbXDTWpw (ORCPT
+	by vger.kernel.org with ESMTP id S1767303AbXDTWu2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 18:45:52 -0400
+	Fri, 20 Apr 2007 18:50:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, ak@suse.de
+Cc: akpm@linux-foundation.org, ak@suse.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     Update lguest's patch code for new paravirt patch architecture
+     lguest-the-host-code vs x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.txt
 has been added to the -mm tree.  Its filename is
-     lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
+     lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,115 +26,226 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Update lguest's patch code for new paravirt patch architecture
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: lguest-the-host-code vs x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.txt
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The new patching code means that we don't actually have to do as much
-work in lguest's patcher.
+Looks like Andi did the deed.
 
-We use paravirt_patch_default() for cases we don't want to patch
-inline, which automatically handles the "patch iret to use a direct
-jump" case.
-
-There's no measurable effect on lguest's virtbench scores tho.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c     |   10 ++--------
- drivers/lguest/lguest_asm.S |    1 -
- 2 files changed, 2 insertions(+), 9 deletions(-)
+ drivers/lguest/lg.h |   27 ---------------------------
+ 1 files changed, 27 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch
-+++ a/drivers/lguest/lguest.c
-@@ -388,7 +388,6 @@ static const struct lguest_insns
- 	[PARAVIRT_PATCH(irq_enable)] = { lgstart_sti, lgend_sti },
- 	[PARAVIRT_PATCH(restore_fl)] = { lgstart_popf, lgend_popf },
- 	[PARAVIRT_PATCH(save_fl)] = { lgstart_pushf, lgend_pushf },
--	[PARAVIRT_PATCH(iret)] = { lgstart_iret, lgend_iret },
+diff -puN drivers/lguest/lg.h~lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions drivers/lguest/lg.h
+--- a/drivers/lguest/lg.h~lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions
++++ a/drivers/lguest/lg.h
+@@ -85,33 +85,6 @@ struct pgdir
+ 	spgd_t *pgdir;
  };
- static unsigned lguest_patch(u8 type, u16 clobber, void *insns, unsigned len)
+ 
+-/* FIXME: When this is defined in processor.h, delete this definition. */
+-struct i386_hw_tss {
+-	unsigned short	back_link,__blh;
+-	unsigned long	esp0;
+-	unsigned short	ss0,__ss0h;
+-	unsigned long	esp1;
+-	unsigned short	ss1,__ss1h;	/* ss1 is used to cache MSR_IA32_SYSENTER_CS */
+-	unsigned long	esp2;
+-	unsigned short	ss2,__ss2h;
+-	unsigned long	__cr3;
+-	unsigned long	eip;
+-	unsigned long	eflags;
+-	unsigned long	eax,ecx,edx,ebx;
+-	unsigned long	esp;
+-	unsigned long	ebp;
+-	unsigned long	esi;
+-	unsigned long	edi;
+-	unsigned short	es, __esh;
+-	unsigned short	cs, __csh;
+-	unsigned short	ss, __ssh;
+-	unsigned short	ds, __dsh;
+-	unsigned short	fs, __fsh;
+-	unsigned short	gs, __gsh;
+-	unsigned short	ldt, __ldth;
+-	unsigned short	trace, io_bitmap_base;
+-};
+-
+ /* This is a guest-specific page (mapped ro) into the guest. */
+ struct lguest_ro_state
  {
-@@ -396,20 +395,15 @@ static unsigned lguest_patch(u8 type, u1
- 
- 	/* Don't touch it if we don't have a replacement */
- 	if (type >= ARRAY_SIZE(lguest_insns) || !lguest_insns[type].start)
--		return len;
-+		return paravirt_patch_default(type, clobber, insns, len);
- 
- 	insn_len = lguest_insns[type].end - lguest_insns[type].start;
- 
- 	/* Similarly if we can't fit replacement. */
- 	if (len < insn_len)
--		return len;
-+		return paravirt_patch_default(type, clobber, insns, len);
- 
- 	memcpy(insns, lguest_insns[type].start, insn_len);
--	if (type == PARAVIRT_PATCH(iret)) {
--		/* Jumps are relative. */
--		u32 off = (u32)lguest_iret - ((u32)insns + insn_len);
--		memcpy(insns+1, &off, sizeof(off));
--	}
- 	return insn_len;
- }
- 
-diff -puN drivers/lguest/lguest_asm.S~lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch drivers/lguest/lguest_asm.S
---- a/drivers/lguest/lguest_asm.S~lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch
-+++ a/drivers/lguest/lguest_asm.S
-@@ -34,7 +34,6 @@ LGUEST_PATCH(cli, movl $0, lguest_data+L
- LGUEST_PATCH(sti, movl $X86_EFLAGS_IF, lguest_data+LGUEST_DATA_irq_enabled)
- LGUEST_PATCH(popf, movl %eax, lguest_data+LGUEST_DATA_irq_enabled)
- LGUEST_PATCH(pushf, movl lguest_data+LGUEST_DATA_irq_enabled, %eax)
--LGUEST_PATCH(iret, .byte 0xE9,0,0,0,0) /* jmp <to-be-patched> */
- 
- .text
- /* These demark the EIP range where host should never deliver interrupts. */
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-kbuild.patch
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
 git-net.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
 rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-allow-boot-time-disable-of-paravirt_ops-patching.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 xfs-clean-up-shrinker-games.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-extend-print_symbol-capability.patch
-extend-print_symbol-capability-fix.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
 extend-print_symbol-capability-fix-fix.patch
-array_size-check-for-type.patch
-array_size-check-for-type-uml-fix.patch
-module-use-krealloc.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-simplify-module_get_kallsym-by-dropping-length-arg.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-simplify-kallsyms_lookup.patch
-fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
-fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
-expose-range-checking-functions-from-arch-specific.patch
-expose-range-checking-functions-from-arch-specific-update.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
 expose-range-checking-functions-from-arch-specific-update-fix.patch
-____call_usermodehelper-dont-flush_signals.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-futex-new-private-futexes.patch
-lguest-the-guest-code.patch
-lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
-lguest-the-host-code.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
 lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
 lguest-the-host-code-vs-futex-new-private-futexes.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
