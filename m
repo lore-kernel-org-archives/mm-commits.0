@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-mxser_new-fix-tiocmiwait.patch added to -mm tree
-Date: Fri, 20 Apr 2007 11:22:43 -0700
-Message-ID: <200704201822.l3KIMhYa020960@shell0.pdx.osdl.net>
+Subject: + char-mxser-fix-tiocmiwait.patch added to -mm tree
+Date: Fri, 20 Apr 2007 11:27:13 -0700
+Message-ID: <200704201827.l3KIRDpN021025@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38409 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993110AbXDTSWz (ORCPT
+	by vger.kernel.org with ESMTP id S1767171AbXDTS1Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 14:22:55 -0400
+	Fri, 20 Apr 2007 14:27:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, kas@fi.muni.cz
 
 
 The patch titled
-     Char: mxser_new, fix TIOCMIWAIT
+     Char: mxser, fix TIOCMIWAIT
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-fix-tiocmiwait.patch
+     char-mxser-fix-tiocmiwait.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, fix TIOCMIWAIT
+Subject: Char: mxser, fix TIOCMIWAIT
 From: Jiri Slaby <jirislaby@gmail.com>
 
-There was schedule() missing in the TIOCMIWAIT ioctl.  Solve it by moving
+There was schedule() missing in the TIOCMIWAIT ioctl. Solve it by moving
 the code to the wait_event_interruptible.
 
-Cc: Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jan Yenya Kasprzak <kas@fi.muni.cz>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |   38 ++++++++-----------------------------
- 1 files changed, 9 insertions(+), 29 deletions(-)
+ drivers/char/mxser.c |   48 +++++++++++------------------------------
+ 1 files changed, 14 insertions(+), 34 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-fix-tiocmiwait drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-fix-tiocmiwait
-+++ a/drivers/char/mxser_new.c
-@@ -1758,43 +1758,23 @@ static int mxser_ioctl(struct tty_struct
+diff -puN drivers/char/mxser.c~char-mxser-fix-tiocmiwait drivers/char/mxser.c
+--- a/drivers/char/mxser.c~char-mxser-fix-tiocmiwait
++++ a/drivers/char/mxser.c
+@@ -1338,43 +1338,23 @@ static int mxser_ioctl(struct tty_struct
  		 *   (use |'ed TIOCM_RNG/DSR/CD/CTS for masking)
  		 * Caller should use TIOCGICOUNT to see which one it was
  		 */
 -	case TIOCMIWAIT: {
--		DECLARE_WAITQUEUE(wait, current);
--		int ret;
+-			DECLARE_WAITQUEUE(wait, current);
+-			int ret;
 +	case TIOCMIWAIT:
- 		spin_lock_irqsave(&info->slock, flags);
--		cprev = info->icount;	/* note the counters on entry */
++		spin_lock_irqsave(&info->slock, flags);
 +		cnow = info->icount;	/* note the counters on entry */
- 		spin_unlock_irqrestore(&info->slock, flags);
- 
--		add_wait_queue(&info->delta_msr_wait, &wait);
--		while (1) {
++		spin_unlock_irqrestore(&info->slock, flags);
++
 +		wait_event_interruptible(info->delta_msr_wait, ({
 +			cprev = cnow;
  			spin_lock_irqsave(&info->slock, flags);
- 			cnow = info->icount;	/* atomic copy */
+-			cprev = info->icount;	/* note the counters on entry */
++			cnow = info->icount;	/* atomic copy */
  			spin_unlock_irqrestore(&info->slock, flags);
  
--			set_current_state(TASK_INTERRUPTIBLE);
--			if (((arg & TIOCM_RNG) &&
--					(cnow.rng != cprev.rng)) ||
--					((arg & TIOCM_DSR) &&
--					(cnow.dsr != cprev.dsr)) ||
--					((arg & TIOCM_CD) &&
--					(cnow.dcd != cprev.dcd)) ||
--					((arg & TIOCM_CTS) &&
--					(cnow.cts != cprev.cts))) {
--				ret = 0;
--				break;
+-			add_wait_queue(&info->delta_msr_wait, &wait);
+-			while (1) {
+-				spin_lock_irqsave(&info->slock, flags);
+-				cnow = info->icount;	/* atomic copy */
+-				spin_unlock_irqrestore(&info->slock, flags);
+-
+-				set_current_state(TASK_INTERRUPTIBLE);
+-				if (((arg & TIOCM_RNG) &&
+-						(cnow.rng != cprev.rng)) ||
+-						((arg & TIOCM_DSR) &&
+-						(cnow.dsr != cprev.dsr)) ||
+-						((arg & TIOCM_CD) &&
+-						(cnow.dcd != cprev.dcd)) ||
+-						((arg & TIOCM_CTS) &&
+-						(cnow.cts != cprev.cts))) {
+-					ret = 0;
+-					break;
+-				}
+-				/* see if a signal did it */
+-				if (signal_pending(current)) {
+-					ret = -ERESTARTSYS;
+-					break;
+-				}
+-				cprev = cnow;
 -			}
--			/* see if a signal did it */
--			if (signal_pending(current)) {
--				ret = -ERESTARTSYS;
--				break;
--			}
--			cprev = cnow;
+-			current->state = TASK_RUNNING;
+-			remove_wait_queue(&info->delta_msr_wait, &wait);
+-			break;
 -		}
--		current->state = TASK_RUNNING;
--		remove_wait_queue(&info->delta_msr_wait, &wait);
+-		/* NOTREACHED */
 +			((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
 +			((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
 +			((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
 +			((arg & TIOCM_CTS) && (cnow.cts != cprev.cts));
 +		}));
- 		break;
--	}
--	/* NOTREACHED */
- 	/*
- 	 * Get counter of input serial line interrupts (DCD,RI,DSR,CTS)
- 	 * Return: write counters to the user passed counter struct
++		break;
+ 		/*
+ 		 * Get counter of input serial line interrupts (DCD,RI,DSR,CTS)
+ 		 * Return: write counters to the user passed counter struct
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
 char-mxser_new-fix-recursive-locking.patch
 char-mxser_new-fix-tiocmiwait.patch
+char-mxser-fix-tiocmiwait.patch
 acpi-asus_acpi-support-f2je-model.patch
 input-ff-add-ff_raw-effect.patch
 input-phantom-add-a-new-driver.patch
