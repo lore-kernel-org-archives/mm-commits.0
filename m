@@ -1,33 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: - lockd-pass-cookie-in-nlmsvc_testlock.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 23:38:39 -0700
-Message-ID: <200704200638.l3K6cdYV008776@shell0.pdx.osdl.net>
+Subject: - lockd-add-code-to-handle-deferred-lock-requests.patch removed from -mm tree
+Date: Thu, 19 Apr 2007 23:38:46 -0700
+Message-ID: <200704200638.l3K6ckml008785@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50249 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57751 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423034AbXDTGi4 (ORCPT
+	by vger.kernel.org with ESMTP id S1423039AbXDTGjD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 02:38:56 -0400
+	Fri, 20 Apr 2007 02:39:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: eshel@almaden.ibm.com, bfields@citi.umich.edu, jack@ucw.cz, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockd: pass cookie in nlmsvc_testlock
+     lockd: add code to handle deferred lock requests
 has been removed from the -mm tree.  Its filename was
-     lockd-pass-cookie-in-nlmsvc_testlock.patch
+     lockd-add-code-to-handle-deferred-lock-requests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockd: pass cookie in nlmsvc_testlock
+Subject: lockd: add code to handle deferred lock requests
 From: Marc Eshel <eshel@almaden.ibm.com> - unquoted
 
-Change NLM internal interface to pass more information for test lock; we need
-this to make sure the cookie information is pushed down to the place where we
-do request deferral, which is handled for testlock by the following patch.
+Rewrite nlmsvc_lock() to use the asynchronous interface.
+
+As with testlock, we answer nlm requests in nlmsvc_lock by first looking up
+the block and then using the results we find in the block if B_QUEUED is set,
+and calling vfs_lock_file() otherwise.
+
+If this a new lock request and we get -EINPROGRESS return on a non-blocking
+request then we defer the request.
+
+Also modify nlmsvc_unlock() to call the filesystem method if appropriate.
 
 Signed-off-by: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
@@ -37,65 +44,125 @@ Cc: Marc Eshel <eshel@almaden.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svc4proc.c         |    2 +-
- fs/lockd/svclock.c          |    5 +++--
- fs/lockd/svcproc.c          |    2 +-
- include/linux/lockd/lockd.h |    4 ++--
- 4 files changed, 7 insertions(+), 6 deletions(-)
+ fs/lockd/svc4proc.c |    2 ++
+ fs/lockd/svclock.c  |   39 +++++++++++++++++++++++++++++++++------
+ fs/lockd/svcproc.c  |    2 ++
+ fs/lockd/svcsubs.c  |    2 +-
+ 4 files changed, 38 insertions(+), 7 deletions(-)
 
-diff -puN fs/lockd/svc4proc.c~lockd-pass-cookie-in-nlmsvc_testlock fs/lockd/svc4proc.c
---- a/fs/lockd/svc4proc.c~lockd-pass-cookie-in-nlmsvc_testlock
+diff -puN fs/lockd/svc4proc.c~lockd-add-code-to-handle-deferred-lock-requests fs/lockd/svc4proc.c
+--- a/fs/lockd/svc4proc.c~lockd-add-code-to-handle-deferred-lock-requests
 +++ a/fs/lockd/svc4proc.c
-@@ -99,7 +99,7 @@ nlm4svc_proc_test(struct svc_rqst *rqstp
- 		return resp->status == nlm_drop_reply ? rpc_drop_reply :rpc_success;
+@@ -145,6 +145,8 @@ nlm4svc_proc_lock(struct svc_rqst *rqstp
+ 	/* Now try to lock the file */
+ 	resp->status = nlmsvc_lock(rqstp, file, &argp->lock,
+ 					argp->block, &argp->cookie);
++	if (resp->status == nlm_drop_reply)
++		return rpc_drop_reply;
  
- 	/* Now check for conflicting locks */
--	resp->status = nlmsvc_testlock(file, &argp->lock, &resp->lock);
-+	resp->status = nlmsvc_testlock(rqstp, file, &argp->lock, &resp->lock, &resp->cookie);
- 
- 	dprintk("lockd: TEST4          status %d\n", ntohl(resp->status));
+ 	dprintk("lockd: LOCK          status %d\n", ntohl(resp->status));
  	nlm_release_host(host);
-diff -puN fs/lockd/svclock.c~lockd-pass-cookie-in-nlmsvc_testlock fs/lockd/svclock.c
---- a/fs/lockd/svclock.c~lockd-pass-cookie-in-nlmsvc_testlock
+diff -puN fs/lockd/svclock.c~lockd-add-code-to-handle-deferred-lock-requests fs/lockd/svclock.c
+--- a/fs/lockd/svclock.c~lockd-add-code-to-handle-deferred-lock-requests
 +++ a/fs/lockd/svclock.c
-@@ -443,8 +443,9 @@ out:
-  * Test for presence of a conflicting lock.
-  */
- __be32
--nlmsvc_testlock(struct nlm_file *file, struct nlm_lock *lock,
--				       struct nlm_lock *conflock)
-+nlmsvc_testlock(struct svc_rqst *rqstp, struct nlm_file *file,
-+		struct nlm_lock *lock, struct nlm_lock *conflock,
-+		struct nlm_cookie *cookie)
- {
- 	dprintk("lockd: nlmsvc_testlock(%s/%ld, ty=%d, %Ld-%Ld)\n",
- 				file->f_file->f_path.dentry->d_inode->i_sb->s_id,
-diff -puN fs/lockd/svcproc.c~lockd-pass-cookie-in-nlmsvc_testlock fs/lockd/svcproc.c
---- a/fs/lockd/svcproc.c~lockd-pass-cookie-in-nlmsvc_testlock
+@@ -398,17 +398,43 @@ nlmsvc_lock(struct svc_rqst *rqstp, stru
+ 	} else
+ 		lock->fl.fl_flags &= ~FL_SLEEP;
+ 
+-	error = posix_lock_file(file->f_file, &lock->fl, NULL);
+-	lock->fl.fl_flags &= ~FL_SLEEP;
++	if (block->b_flags & B_QUEUED) {
++		dprintk("lockd: nlmsvc_lock deferred block %p flags %d\n",
++							block, block->b_flags);
++		if (block->b_granted) {
++			nlmsvc_unlink_block(block);
++			ret = nlm_granted;
++			goto out;
++		}
++		if (block->b_flags & B_TOO_LATE) {
++			nlmsvc_unlink_block(block);
++			ret = nlm_lck_denied;
++			goto out;
++		}
++		ret = nlm_drop_reply;
++		goto out;
++	}
+ 
+-	dprintk("lockd: posix_lock_file returned %d\n", error);
++	if (!wait)
++		lock->fl.fl_flags &= ~FL_SLEEP;
++	error = vfs_lock_file(file->f_file, F_SETLK, &lock->fl, NULL);
++	lock->fl.fl_flags &= ~FL_SLEEP;
+ 
++	dprintk("lockd: vfs_lock_file returned %d\n", error);
+ 	switch(error) {
+ 		case 0:
+ 			ret = nlm_granted;
+ 			goto out;
+ 		case -EAGAIN:
++			ret = nlm_lck_denied;
+ 			break;
++		case -EINPROGRESS:
++			if (wait)
++				break;
++			/* Filesystem lock operation is in progress
++			   Add it to the queue waiting for callback */
++			ret = nlmsvc_defer_lock_rqst(rqstp, block);
++			goto out;
+ 		case -EDEADLK:
+ 			ret = nlm_deadlock;
+ 			goto out;
+@@ -533,7 +559,7 @@ nlmsvc_unlock(struct nlm_file *file, str
+ 	nlmsvc_cancel_blocked(file, lock);
+ 
+ 	lock->fl.fl_type = F_UNLCK;
+-	error = posix_lock_file(file->f_file, &lock->fl, NULL);
++	error = vfs_lock_file(file->f_file, F_SETLK, &lock->fl, NULL);
+ 
+ 	return (error < 0)? nlm_lck_denied_nolocks : nlm_granted;
+ }
+@@ -680,14 +706,15 @@ nlmsvc_grant_blocked(struct nlm_block *b
+ 
+ 	/* Try the lock operation again */
+ 	lock->fl.fl_flags |= FL_SLEEP;
+-	error = posix_lock_file(file->f_file, &lock->fl, NULL);
++	error = vfs_lock_file(file->f_file, F_SETLK, &lock->fl, NULL);
+ 	lock->fl.fl_flags &= ~FL_SLEEP;
+ 
+ 	switch (error) {
+ 	case 0:
+ 		break;
+ 	case -EAGAIN:
+-		dprintk("lockd: lock still blocked\n");
++	case -EINPROGRESS:
++		dprintk("lockd: lock still blocked error %d\n", error);
+ 		nlmsvc_insert_block(block, NLM_NEVER);
+ 		nlmsvc_release_block(block);
+ 		return;
+diff -puN fs/lockd/svcproc.c~lockd-add-code-to-handle-deferred-lock-requests fs/lockd/svcproc.c
+--- a/fs/lockd/svcproc.c~lockd-add-code-to-handle-deferred-lock-requests
 +++ a/fs/lockd/svcproc.c
-@@ -127,7 +127,7 @@ nlmsvc_proc_test(struct svc_rqst *rqstp,
- 		return resp->status == nlm_drop_reply ? rpc_drop_reply :rpc_success;
+@@ -175,6 +175,8 @@ nlmsvc_proc_lock(struct svc_rqst *rqstp,
+ 	/* Now try to lock the file */
+ 	resp->status = cast_status(nlmsvc_lock(rqstp, file, &argp->lock,
+ 					       argp->block, &argp->cookie));
++	if (resp->status == nlm_drop_reply)
++		return rpc_drop_reply;
  
- 	/* Now check for conflicting locks */
--	resp->status = cast_status(nlmsvc_testlock(file, &argp->lock, &resp->lock));
-+	resp->status = cast_status(nlmsvc_testlock(rqstp, file, &argp->lock, &resp->lock, &resp->cookie));
- 
- 	dprintk("lockd: TEST          status %d vers %d\n",
- 		ntohl(resp->status), rqstp->rq_vers);
-diff -puN include/linux/lockd/lockd.h~lockd-pass-cookie-in-nlmsvc_testlock include/linux/lockd/lockd.h
---- a/include/linux/lockd/lockd.h~lockd-pass-cookie-in-nlmsvc_testlock
-+++ a/include/linux/lockd/lockd.h
-@@ -195,8 +195,8 @@ typedef int	  (*nlm_host_match_fn_t)(str
- __be32		  nlmsvc_lock(struct svc_rqst *, struct nlm_file *,
- 					struct nlm_lock *, int, struct nlm_cookie *);
- __be32		  nlmsvc_unlock(struct nlm_file *, struct nlm_lock *);
--__be32		  nlmsvc_testlock(struct nlm_file *, struct nlm_lock *,
--					struct nlm_lock *);
-+__be32		  nlmsvc_testlock(struct svc_rqst *, struct nlm_file *,
-+			struct nlm_lock *, struct nlm_lock *, struct nlm_cookie *);
- __be32		  nlmsvc_cancel_blocked(struct nlm_file *, struct nlm_lock *);
- unsigned long	  nlmsvc_retry_blocked(void);
- void		  nlmsvc_traverse_blocks(struct nlm_host *, struct nlm_file *,
+ 	dprintk("lockd: LOCK          status %d\n", ntohl(resp->status));
+ 	nlm_release_host(host);
+diff -puN fs/lockd/svcsubs.c~lockd-add-code-to-handle-deferred-lock-requests fs/lockd/svcsubs.c
+--- a/fs/lockd/svcsubs.c~lockd-add-code-to-handle-deferred-lock-requests
++++ a/fs/lockd/svcsubs.c
+@@ -182,7 +182,7 @@ again:
+ 			lock.fl_type  = F_UNLCK;
+ 			lock.fl_start = 0;
+ 			lock.fl_end   = OFFSET_MAX;
+-			if (posix_lock_file(file->f_file, &lock, NULL) < 0) {
++			if (vfs_lock_file(file->f_file, F_SETLK, &lock, NULL) < 0) {
+ 				printk("lockd: unlock failure in %s:%d\n",
+ 						__FILE__, __LINE__);
+ 				return 1;
 _
 
 Patches currently in -mm which might be from eshel@almaden.ibm.com are
