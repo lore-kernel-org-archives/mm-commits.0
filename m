@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + usb-cxacru-adsl-state-management-udpate.patch added to -mm tree
-Date: Fri, 20 Apr 2007 16:57:27 -0700
-Message-ID: <200704202357.l3KNvRbk026802@shell0.pdx.osdl.net>
+Subject: + cxacru-add-documentation-file.patch added to -mm tree
+Date: Fri, 20 Apr 2007 16:58:37 -0700
+Message-ID: <200704202358.l3KNwbf8026823@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47609 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752568AbXDTX5q (ORCPT
+	by vger.kernel.org with ESMTP id S1752051AbXDTX6z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 19:57:46 -0400
+	Fri, 20 Apr 2007 19:58:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: simon@fire.lp0.eu, duncan.sands@math.u-psud.fr, gregkh@suse.de
 
 
 The patch titled
-     usb-cxacru-adsl-state-management update
+     cxacru: add Documentation file
 has been added to the -mm tree.  Its filename is
-     usb-cxacru-adsl-state-management-udpate.patch
+     cxacru-add-documentation-file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,12 +26,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb-cxacru-adsl-state-management update
+Subject: cxacru: add Documentation file
 From: Simon Arlott <simon@fire.lp0.eu>
 
-Revision 2+3: Add adsl_state_serialize mutex and use it around ADSL start/stop
-commands followed by deciding on the poll state.  Fix mishandling of -EIO
-return value.  Allow newlines etc.  at the end of adsl_state commands.
+The sysfs attributes for exposing cxacru statistics/status information with
+possible values is now explained in Documentation/networking/cxacru.txt
+including information on the writable adsl_state attribute's commands and a
+sample of the kernel log format.
 
 Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
@@ -39,138 +40,110 @@ Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/cxacru.c |   41 +++++++++++++++++++++++++++----------
- 1 files changed, 31 insertions(+), 10 deletions(-)
+ Documentation/networking/00-INDEX   |    2 
+ Documentation/networking/cxacru.txt |   84 ++++++++++++++++++++++++++
+ 2 files changed, 86 insertions(+)
 
-diff -puN drivers/usb/atm/cxacru.c~usb-cxacru-adsl-state-management-udpate drivers/usb/atm/cxacru.c
---- a/drivers/usb/atm/cxacru.c~usb-cxacru-adsl-state-management-udpate
-+++ a/drivers/usb/atm/cxacru.c
-@@ -166,6 +166,7 @@ struct cxacru_data {
- 	const struct cxacru_modem_type *modem_type;
- 
- 	int line_status;
-+	struct mutex adsl_state_serialize;
- 	int adsl_status;
- 	struct delayed_work poll_work;
- 	u32 card_info[CXINF_MAX];
-@@ -320,13 +321,23 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 	struct usb_interface *intf = to_usb_interface(dev);
- 	struct usbatm_data *usbatm_instance = usb_get_intfdata(intf);
- 	struct cxacru_data *instance = usbatm_instance->driver_data;
--	int ret = 0;
-+	int ret;
- 	int poll = -1;
-+	char str_cmd[8];
-+	int len = strlen(buf);
- 
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EACCES;
- 
--	if (!strcmp(buf, "stop") || !strcmp(buf, "restart")) {
-+	ret = sscanf(buf, "%7s", str_cmd);
-+	if (ret != 1)
-+		return -EINVAL;
-+	ret = 0;
+diff -puN Documentation/networking/00-INDEX~cxacru-add-documentation-file Documentation/networking/00-INDEX
+--- a/Documentation/networking/00-INDEX~cxacru-add-documentation-file
++++ a/Documentation/networking/00-INDEX
+@@ -32,6 +32,8 @@ cops.txt
+ 	- info on the COPS LocalTalk Linux driver
+ cs89x0.txt
+ 	- the Crystal LAN (CS8900/20-based) Ethernet ISA adapter driver
++cxacru.txt
++	- Conexant AccessRunner USB ADSL Modem
+ de4x5.txt
+ 	- the Digital EtherWORKS DE4?? and DE5?? PCI Ethernet driver
+ decnet.txt
+diff -puN /dev/null Documentation/networking/cxacru.txt
+--- /dev/null
++++ a/Documentation/networking/cxacru.txt
+@@ -0,0 +1,84 @@
++Firmware is required for this device: http://accessrunner.sourceforge.net/
 +
-+	if (mutex_lock_interruptible(&instance->adsl_state_serialize))
-+		return -ERESTARTSYS;
++While it is capable of managing/maintaining the ADSL connection without the
++module loaded, the device will sometimes stop responding after unloading the
++driver and it is necessary to unplug/remove power to the device to fix this.
 +
-+	if (!strcmp(str_cmd, "stop") || !strcmp(str_cmd, "restart")) {
- 		ret = cxacru_cm(instance, CM_REQUEST_CHIP_ADSL_LINE_STOP, NULL, 0, NULL, 0);
- 		if (ret < 0) {
- 			atm_err(usbatm_instance, "change adsl state:"
-@@ -334,7 +345,7 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 
- 			ret = -EIO;
- 		} else {
--			ret = strlen(buf);
-+			ret = len;
- 			poll = CXPOLL_STOPPED;
- 		}
- 	}
-@@ -343,10 +354,10 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 	 * and the device appears to only react to
- 	 * START/STOP every second too. Wait 1.5s to
- 	 * be sure that restart will have an effect. */
--	if (!strcmp(buf, "restart"))
-+	if (!strcmp(str_cmd, "restart"))
- 		msleep(1500);
- 
--	if (!strcmp(buf, "start") || !strcmp(buf, "restart")) {
-+	if (!strcmp(str_cmd, "start") || !strcmp(str_cmd, "restart")) {
- 		ret = cxacru_cm(instance, CM_REQUEST_CHIP_ADSL_LINE_START, NULL, 0, NULL, 0);
- 		if (ret < 0) {
- 			atm_err(usbatm_instance, "change adsl state:"
-@@ -354,18 +365,20 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 
- 			ret = -EIO;
- 		} else {
--			ret = strlen(buf);
-+			ret = len;
- 			poll = CXPOLL_POLLING;
- 		}
- 	}
- 
--	if (!strcmp(buf, "poll")) {
--		ret = strlen(buf);
-+	if (!strcmp(str_cmd, "poll")) {
-+		ret = len;
- 		poll = CXPOLL_POLLING;
- 	}
- 
--	if (!ret)
--		return -EINVAL;
-+	if (ret == 0) {
-+		ret = -EINVAL;
-+		poll = -1;
-+	}
- 
- 	if (poll == CXPOLL_POLLING) {
- 		mutex_lock(&instance->poll_state_serialize);
-@@ -392,6 +405,8 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 		mutex_unlock(&instance->poll_state_serialize);
- 	}
- 
-+	mutex_unlock(&instance->adsl_state_serialize);
++Detected devices will appear as ATM devices named "cxacru". In /sys/class/atm/
++these are directories named cxacruN where N is the device number. A symlink
++named device points to the USB interface device's directory which contains
++several sysfs attribute files for retriving device statistics:
 +
- 	if (poll == CXPOLL_POLLING)
- 		cxacru_poll_status(&instance->poll_work.work);
- 
-@@ -635,9 +650,11 @@ static int cxacru_atm_start(struct usbat
- 	}
- 
- 	/* start ADSL */
-+	mutex_lock(&instance->adsl_state_serialize);
- 	ret = cxacru_cm(instance, CM_REQUEST_CHIP_ADSL_LINE_START, NULL, 0, NULL, 0);
- 	if (ret < 0) {
- 		atm_err(usbatm_instance, "cxacru_atm_start: CHIP_ADSL_LINE_START returned %d\n", ret);
-+		mutex_unlock(&instance->adsl_state_serialize);
- 		return ret;
- 	}
- 
-@@ -658,6 +675,7 @@ static int cxacru_atm_start(struct usbat
- 		start_polling = 0;
- 	}
- 	mutex_unlock(&instance->poll_state_serialize);
-+	mutex_unlock(&instance->adsl_state_serialize);
- 
- 	if (start_polling)
- 		cxacru_poll_status(&instance->poll_work.work);
-@@ -1014,11 +1032,14 @@ static int cxacru_bind(struct usbatm_dat
- 	instance->usbatm = usbatm_instance;
- 	instance->modem_type = (struct cxacru_modem_type *) id->driver_info;
- 	memset(instance->card_info, 0, sizeof(instance->card_info));
++* adsl_controller_version
 +
- 	mutex_init(&instance->poll_state_serialize);
- 	instance->poll_state = CXPOLL_STOPPED;
- 	instance->line_status = -1;
- 	instance->adsl_status = -1;
- 
-+	mutex_init(&instance->adsl_state_serialize);
++* adsl_headend
++* adsl_headend_environment
++	Information about the remote headend.
 +
- 	instance->rcv_buf = (u8 *) __get_free_page(GFP_KERNEL);
- 	if (!instance->rcv_buf) {
- 		dbg("cxacru_bind: no memory for rcv_buf");
++* downstream_attenuation (dB)
++* downstream_bits_per_frame
++* downstream_rate (kbps)
++* downstream_snr_margin (dB)
++	Downstream stats.
++
++* upstream_attenuation (dB)
++* upstream_bits_per_frame
++* upstream_rate (kbps)
++* upstream_snr_margin (dB)
++* transmitter_power (dBm/Hz)
++	Upstream stats.
++
++* downstream_crc_errors
++* downstream_fec_errors
++* downstream_hec_errors
++* upstream_crc_errors
++* upstream_fec_errors
++* upstream_hec_errors
++	Error counts.
++
++* line_startable
++	Indicates that ADSL support on the device
++	is/can be enabled, see adsl_start.
++
++* line_status
++	"initialising"
++	"down"
++	"attempting to activate"
++	"training"
++	"channel analysis"
++	"exchange"
++	"waiting"
++	"up"
++
++	Changes between "down" and "attempting to activate"
++	if there is no signal.
++
++* link_status
++	"not connected"
++	"connected"
++	"lost"
++
++* mac_address
++
++* modulation
++	"ANSI T1.413"
++	"ITU-T G.992.1 (G.DMT)"
++	"ITU-T G.992.2 (G.LITE)"
++
++* startup_attempts
++	Count of total attempts to initialise ADSL.
++
++To enable/disable ADSL, the following can be written to the adsl_state file:
++	"start"
++	"stop
++	"restart" (stops, waits 1.5s, then starts)
++	"poll" (used to resume status polling if it was disabled due to failure)
++
++Changes in adsl/line state are reported via kernel log messages:
++	[4942145.150704] ATM dev 0: ADSL state: running
++	[4942243.663766] ATM dev 0: ADSL line: down
++	[4942249.665075] ATM dev 0: ADSL line: attempting to activate
++	[4942253.654954] ATM dev 0: ADSL line: training
++	[4942255.666387] ATM dev 0: ADSL line: channel analysis
++	[4942259.656262] ATM dev 0: ADSL line: exchange
++	[2635357.696901] ATM dev 0: ADSL line: up (8128 kb/s down | 832 kb/s up)
 _
 
 Patches currently in -mm which might be from simon@fire.lp0.eu are
@@ -178,3 +151,4 @@ Patches currently in -mm which might be from simon@fire.lp0.eu are
 usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs.patch
 usb-cxacru-adsl-state-management.patch
 usb-cxacru-adsl-state-management-udpate.patch
+cxacru-add-documentation-file.patch
