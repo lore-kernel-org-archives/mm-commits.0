@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + upper-32-bits.patch added to -mm tree
-Date: Fri, 20 Apr 2007 14:13:42 -0700
-Message-ID: <200704202113.l3KLDgs2023968@shell0.pdx.osdl.net>
+Subject: + cpu_idle-prevents-resuming-from-str.patch added to -mm tree
+Date: Fri, 20 Apr 2007 14:23:06 -0700
+Message-ID: <200704202123.l3KLN6Z8024131@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41795 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48785 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754509AbXDTVNx (ORCPT
+	by vger.kernel.org with ESMTP id S1767224AbXDTVXK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 17:13:53 -0400
+	Fri, 20 Apr 2007 17:23:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, Mike.Miller@hp.com, Steve.Cameron@hp.com, alan@lxorguk.ukuu.org.uk, hifumi.hisashi@oss.ntt.co.jp
+Cc: shaohua.li@intel.com
 
 
 The patch titled
-     add upper-32-bits macro
+     CPU_IDLE prevents resuming from STR
 has been added to the -mm tree.  Its filename is
-     upper-32-bits.patch
+     cpu_idle-prevents-resuming-from-str.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,223 +26,311 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add upper-32-bits macro
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: CPU_IDLE prevents resuming from STR
+From: Shaohua Li <shaohua.li@intel.com>
 
-We keep on getting "right shift count >= width of type" warnings when doing
-things like
+On Mon, 2007-04-16 at 22:50 -0400, Joshua Wise wrote:
+> On Mon, 16 Apr 2007, Shaohua Li wrote:
+> > On Sat, 2007-04-14 at 01:45 +0200, Mattia Dongili wrote:
+> >> ...
+> > please check if the patch at
+> > http://marc.info/?l=linux-acpi&m=117523651630038&w=2 fixed the issue
+>
+> I have the same system as Mattia, and when I applied this patch and turned
+> CPU_IDLE back on, I got a panic on boot. Unfortunately, the EIP scrolled off
+> screen, so I can't get a line number.
+>
+> (I had the same STR breakage as him; STR did not work with CPU_IDLE turned
+> on, and it did work with CPU_IDLE turned off.)
+>
+> I'm running +rc6+mm(April 11) on a Sony VAIO SZ.
+Looks there is init order issue of sysfs files. The new refreshed patch
+should fix your bug.
 
-	sector_t s;
-
-	x = s >> 56;
-
-because with CONFIG_LBD=n, s is only 32-bit.  Similar problems can occur with
-dma_addr_t's.
-
-So add a simple wrapper function which code can use to avoid this warning. 
-The above example would become
-
-	x = upper_32_bits(s) >> 24;
-
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: "Cameron, Steve" <Steve.Cameron@hp.com>
-Cc: "Miller, Mike (OS Dev)" <Mike.Miller@hp.com>
-Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   10 ++++++++++
- 1 files changed, 10 insertions(+)
+ drivers/acpi/processor_idle.c |    2 -
+ drivers/cpuidle/cpuidle.c     |   29 ++++++++++++----
+ drivers/cpuidle/sysfs.c       |   57 +++++++++++++++++++++++++-------
+ include/linux/cpuidle.h       |   13 ++++---
+ 4 files changed, 76 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/kernel.h~upper-32-bits include/linux/kernel.h
---- a/include/linux/kernel.h~upper-32-bits
-+++ a/include/linux/kernel.h
-@@ -40,6 +40,16 @@ extern const char linux_proc_banner[];
- #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
- #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
+diff -puN drivers/acpi/processor_idle.c~cpu_idle-prevents-resuming-from-str drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~cpu_idle-prevents-resuming-from-str
++++ a/drivers/acpi/processor_idle.c
+@@ -616,7 +616,7 @@ int acpi_processor_cst_has_changed(struc
+ 		return -ENODEV;
  
-+/**
-+ * upper_32_bits - return bits 32-63 of a number
-+ * @n: the number we're accessing
-+ *
-+ * A basic shift-right of a 64- or 32-bit quantity.  Use this to suppress
-+ * the "right shift count >= width of type" warning when that quantity is
-+ * 32-bits.
-+ */
-+#define upper_32_bits(n) ((u32)(((n) >> 16) >> 16))
+ 	acpi_processor_get_power_info(pr);
+-	return cpuidle_force_redetect(&per_cpu(cpuidle_devices, pr->id));
++	return cpuidle_force_redetect(per_cpu(cpuidle_devices, pr->id));
+ }
+ 
+ /* proc interface */
+diff -puN drivers/cpuidle/cpuidle.c~cpu_idle-prevents-resuming-from-str drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~cpu_idle-prevents-resuming-from-str
++++ a/drivers/cpuidle/cpuidle.c
+@@ -18,7 +18,7 @@
+ 
+ #include "cpuidle.h"
+ 
+-DEFINE_PER_CPU(struct cpuidle_device, cpuidle_devices);
++DEFINE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
+ EXPORT_PER_CPU_SYMBOL_GPL(cpuidle_devices);
+ 
+ DEFINE_MUTEX(cpuidle_lock);
+@@ -34,13 +34,13 @@ static void (*pm_idle_old)(void);
+  */
+ static void cpuidle_idle_call(void)
+ {
+-	struct cpuidle_device *dev = &__get_cpu_var(cpuidle_devices);
++	struct cpuidle_device *dev = __get_cpu_var(cpuidle_devices);
+ 
+ 	struct cpuidle_state *target_state;
+ 	int next_state;
+ 
+ 	/* check if the device is ready */
+-	if (dev->status != CPUIDLE_STATUS_DOIDLE) {
++	if (!dev || dev->status != CPUIDLE_STATUS_DOIDLE) {
+ 		if (pm_idle_old)
+ 			pm_idle_old();
+ 		else
+@@ -119,19 +119,32 @@ static int cpuidle_add_device(struct sys
+ 	int cpu = sys_dev->id;
+ 	struct cpuidle_device *dev;
+ 
+-	dev = &per_cpu(cpuidle_devices, cpu);
++	dev = per_cpu(cpuidle_devices, cpu);
+ 
+-	dev->cpu = cpu;
+ 	mutex_lock(&cpuidle_lock);
+ 	if (cpu_is_offline(cpu)) {
+ 		mutex_unlock(&cpuidle_lock);
+ 		return 0;
+ 	}
+ 
++	if (!dev) {
++		dev = kzalloc(sizeof(struct cpuidle_device), GFP_KERNEL);
++		if (!dev) {
++			mutex_unlock(&cpuidle_lock);
++			return -ENOMEM;
++		}
++		init_completion(&dev->kobj_unregister);
++		per_cpu(cpuidle_devices, cpu) = dev;
++	}
++	dev->cpu = cpu;
 +
- #define	KERN_EMERG	"<0>"	/* system is unusable			*/
- #define	KERN_ALERT	"<1>"	/* action must be taken immediately	*/
- #define	KERN_CRIT	"<2>"	/* critical conditions			*/
+ 	if (dev->status & CPUIDLE_STATUS_DETECTED) {
+ 		mutex_unlock(&cpuidle_lock);
+ 		return 0;
+ 	}
++
++	cpuidle_add_sysfs(sys_dev);
++
+ 	if (cpuidle_curr_driver) {
+ 		if (cpuidle_attach_driver(dev))
+ 			goto err_ret;
+@@ -148,7 +161,6 @@ static int cpuidle_add_device(struct sys
+ 		cpuidle_install_idle_handler();
+ 
+ 	list_add(&dev->device_list, &cpuidle_detected_devices);
+-	cpuidle_add_sysfs(sys_dev);
+ 	dev->status |= CPUIDLE_STATUS_DETECTED;
+ 
+ err_ret:
+@@ -167,7 +179,7 @@ static int __cpuidle_remove_device(struc
+ {
+ 	struct cpuidle_device *dev;
+ 
+-	dev = &per_cpu(cpuidle_devices, sys_dev->id);
++	dev = per_cpu(cpuidle_devices, sys_dev->id);
+ 
+ 	if (!(dev->status & CPUIDLE_STATUS_DETECTED)) {
+ 		return 0;
+@@ -180,6 +192,9 @@ static int __cpuidle_remove_device(struc
+ 		cpuidle_detach_driver(dev);
+ 	cpuidle_remove_sysfs(sys_dev);
+ 	list_del(&dev->device_list);
++	wait_for_completion(&dev->kobj_unregister);
++	per_cpu(cpuidle_devices, sys_dev->id) = NULL;
++	kfree(dev);
+ 
+ 	return 0;
+ }
+diff -puN drivers/cpuidle/sysfs.c~cpu_idle-prevents-resuming-from-str drivers/cpuidle/sysfs.c
+--- a/drivers/cpuidle/sysfs.c~cpu_idle-prevents-resuming-from-str
++++ a/drivers/cpuidle/sysfs.c
+@@ -210,8 +210,16 @@ static struct sysfs_ops cpuidle_sysfs_op
+ 	.store = cpuidle_store,
+ };
+ 
++static void cpuidle_sysfs_release(struct kobject *kobj)
++{
++	struct cpuidle_device *dev = kobj_to_cpuidledev(kobj);
++
++	complete(&dev->kobj_unregister);
++}
++
+ static struct kobj_type ktype_cpuidle = {
+ 	.sysfs_ops = &cpuidle_sysfs_ops,
++	.release = cpuidle_sysfs_release,
+ };
+ 
+ struct cpuidle_state_attr {
+@@ -246,7 +254,8 @@ static struct attribute *cpuidle_state_d
+ 	NULL
+ };
+ 
+-#define kobj_to_state(k) container_of(k, struct cpuidle_state, kobj)
++#define kobj_to_state_obj(k) container_of(k, struct cpuidle_state_kobj, kobj)
++#define kobj_to_state(k) (kobj_to_state_obj(k)->state)
+ #define attr_to_stateattr(a) container_of(a, struct cpuidle_state_attr, attr)
+ static ssize_t cpuidle_state_show(struct kobject * kobj,
+ 	struct attribute * attr ,char * buf)
+@@ -265,11 +274,27 @@ static struct sysfs_ops cpuidle_state_sy
+ 	.show = cpuidle_state_show,
+ };
+ 
++static void cpuidle_state_sysfs_release(struct kobject *kobj)
++{
++	struct cpuidle_state_kobj *state_obj = kobj_to_state_obj(kobj);
++
++	complete(&state_obj->kobj_unregister);
++}
++
+ static struct kobj_type ktype_state_cpuidle = {
+ 	.sysfs_ops = &cpuidle_state_sysfs_ops,
+ 	.default_attrs = cpuidle_state_default_attrs,
++	.release = cpuidle_state_sysfs_release,
+ };
+ 
++static void inline cpuidle_free_state_kobj(struct cpuidle_device *device, int i)
++{
++	kobject_unregister(&device->kobjs[i]->kobj);
++	wait_for_completion(&device->kobjs[i]->kobj_unregister);
++	kfree(device->kobjs[i]);
++	device->kobjs[i] = NULL;
++}
++
+ /**
+  * cpuidle_add_driver_sysfs - adds driver-specific sysfs attributes
+  * @device: the target device
+@@ -277,24 +302,32 @@ static struct kobj_type ktype_state_cpui
+ int cpuidle_add_driver_sysfs(struct cpuidle_device *device)
+ {
+ 	int i, ret;
+-	struct cpuidle_state *state;
++	struct cpuidle_state_kobj *kobj;
+ 
+ 	/* state statistics */
+ 	for (i = 0; i < device->state_count; i++) {
+-		state = &device->states[i];
+-		state->kobj.parent = &device->kobj;
+-		state->kobj.ktype = &ktype_state_cpuidle;
+-		kobject_set_name(&state->kobj, "state%d", i);
+-		ret = kobject_register(&state->kobj);
+-		if (ret)
++		kobj = kzalloc(sizeof(struct cpuidle_state_kobj), GFP_KERNEL);
++		if (!kobj)
++			goto error_state;
++		kobj->state = &device->states[i];
++		init_completion(&kobj->kobj_unregister);
++
++		kobj->kobj.parent = &device->kobj;
++		kobj->kobj.ktype = &ktype_state_cpuidle;
++		kobject_set_name(&kobj->kobj, "state%d", i);
++		ret = kobject_register(&kobj->kobj);
++		if (ret) {
++			kfree(kobj);
+ 			goto error_state;
++		}
++		device->kobjs[i] = kobj;
+ 	}
+ 
+ 	return 0;
+ 
+ error_state:
+ 	for (i = i - 1; i >= 0; i--)
+-		kobject_unregister(&device->states[i].kobj);
++		cpuidle_free_state_kobj(device, i);
+ 	return ret;
+ }
+ 
+@@ -307,7 +340,7 @@ void cpuidle_remove_driver_sysfs(struct 
+ 	int i;
+ 
+ 	for (i = 0; i < device->state_count; i++)
+-		kobject_unregister(&device->states[i].kobj);
++		cpuidle_free_state_kobj(device, i);
+ }
+ 
+ /**
+@@ -319,7 +352,7 @@ int cpuidle_add_sysfs(struct sys_device 
+ 	int cpu = sysdev->id;
+ 	struct cpuidle_device *dev;
+ 
+-	dev = &per_cpu(cpuidle_devices, cpu);
++	dev = per_cpu(cpuidle_devices, cpu);
+ 	dev->kobj.parent = &sysdev->kobj;
+ 	dev->kobj.ktype = &ktype_cpuidle;
+ 	kobject_set_name(&dev->kobj, "%s", "cpuidle");
+@@ -335,6 +368,6 @@ void cpuidle_remove_sysfs(struct sys_dev
+ 	int cpu = sysdev->id;
+ 	struct cpuidle_device *dev;
+ 
+-	dev = &per_cpu(cpuidle_devices, cpu);
++	dev = per_cpu(cpuidle_devices, cpu);
+ 	kobject_unregister(&dev->kobj);
+ }
+diff -puN include/linux/cpuidle.h~cpu_idle-prevents-resuming-from-str include/linux/cpuidle.h
+--- a/include/linux/cpuidle.h~cpu_idle-prevents-resuming-from-str
++++ a/include/linux/cpuidle.h
+@@ -41,8 +41,6 @@ struct cpuidle_state {
+ 
+ 	int (*enter)	(struct cpuidle_device *dev,
+ 			 struct cpuidle_state *state);
+-
+-	struct kobject	kobj;
+ };
+ 
+ /* Idle State Flags */
+@@ -74,6 +72,12 @@ cpuidle_set_statedata(struct cpuidle_sta
+ 	state->driver_data = data;
+ }
+ 
++struct cpuidle_state_kobj {
++	struct cpuidle_state *state;
++	struct completion kobj_unregister;
++	struct kobject kobj;
++};
++
+ struct cpuidle_device {
+ 	unsigned int		status;
+ 	int			cpu;
+@@ -81,6 +85,7 @@ struct cpuidle_device {
+ 	int			last_residency;
+ 	int			state_count;
+ 	struct cpuidle_state	states[CPUIDLE_STATE_MAX];
++	struct cpuidle_state_kobj *kobjs[CPUIDLE_STATE_MAX];
+ 	struct cpuidle_state	*last_state;
+ 
+ 	struct list_head 	device_list;
+@@ -89,9 +94,7 @@ struct cpuidle_device {
+ 	void			*governor_data;
+ };
+ 
+-#define to_cpuidle_device(n) container_of(n, struct cpuidle_device, kobj);
+-
+-DECLARE_PER_CPU(struct cpuidle_device, cpuidle_devices);
++DECLARE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
+ 
+ /* Device Status Flags */
+ #define CPUIDLE_STATUS_DETECTED		 (0x1)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
 git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-sysfs-group-removal-avoid-bypass-permission-checks-tidy.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-rfcomm_worker-fix-wakeup-race.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-git-wireless-vs-git-net-3.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-extend-print_symbol-capability-fix-fix.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+cpu_idle-prevents-resuming-from-str.patch
