@@ -1,169 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - forcedeth-work-around-null-skb-dereference-crash.patch removed from -mm tree
-Date: Fri, 20 Apr 2007 11:45:09 -0700
-Message-ID: <200704201845.l3KIjA2O021415@shell0.pdx.osdl.net>
+Subject: + networking-fix-sending-netlink-message-when-replace-route.patch added to -mm tree
+Date: Fri, 20 Apr 2007 11:59:29 -0700
+Message-ID: <200704201859.l3KIxT6T021603@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48142 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161228AbXDTSpX (ORCPT
+	by vger.kernel.org with ESMTP id S1753289AbXDTS7p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 14:45:23 -0400
+	Fri, 20 Apr 2007 14:59:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, aabdulla@nvidia.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: milon@wq.cz, davem@davemloft.net, kaber@trash.net
 
 
 The patch titled
-     forcedeth: work around NULL skb dereference crash
-has been removed from the -mm tree.  Its filename was
-     forcedeth-work-around-null-skb-dereference-crash.patch
+     networking: fix sending netlink message when replace route
+has been added to the -mm tree.  Its filename is
+     networking-fix-sending-netlink-message-when-replace-route.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth: work around NULL skb dereference crash
-From: Ingo Molnar <mingo@elte.hu>
+Subject: networking: fix sending netlink message when replace route
+From: Milan Kocian <milon@wq.cz>
 
-work around a NULL skb dereference crash that occurs during high load.
+When you replace route via ip r r command the netlink multicast message is
+not send.  This patch corrects it.  NL message is sent with NLM_F_REPLACE
+flag.  Addresses http://bugzilla.kernel.org/show_bug.cgi?id=8320
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Milan Kocian <milon@wq.cz>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ net/ipv4/fib_hash.c      |    6 ++++--
+ net/ipv4/fib_lookup.h    |    3 ++-
+ net/ipv4/fib_semantics.c |    5 +++--
+ net/ipv4/fib_trie.c      |    6 ++++--
+ 4 files changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-work-around-null-skb-dereference-crash drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-work-around-null-skb-dereference-crash
-+++ a/drivers/net/forcedeth.c
-@@ -1905,6 +1905,16 @@ static void nv_tx_done(struct net_device
- 						np->stats.tx_carrier_errors++;
- 					np->stats.tx_errors++;
- 				} else {
-+					if (!np->get_tx_ctx->skb) {
-+						printk("get_tx: %td, put_tx: "
-+							"%td\n",
-+							np->get_tx_ctx -
-+							    np->first_tx_ctx,
-+							np->put_tx_ctx -
-+							    np->first_tx_ctx);
-+						WARN_ON(1);
-+						break;
-+					}
- 					np->stats.tx_packets++;
- 					np->stats.tx_bytes += np->get_tx_ctx->skb->len;
- 				}
-@@ -1920,6 +1930,16 @@ static void nv_tx_done(struct net_device
- 						np->stats.tx_carrier_errors++;
- 					np->stats.tx_errors++;
- 				} else {
-+					if (!np->get_tx_ctx->skb) {
-+						printk("get_tx: %td, put_tx: "
-+							"%td\n",
-+							np->get_tx_ctx -
-+							    np->first_tx_ctx,
-+							np->put_tx_ctx -
-+							    np->first_tx_ctx);
-+						WARN_ON(1);
-+						break;
-+					}
- 					np->stats.tx_packets++;
- 					np->stats.tx_bytes += np->get_tx_ctx->skb->len;
- 				}
+diff -puN net/ipv4/fib_hash.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_hash.c
+--- a/net/ipv4/fib_hash.c~networking-fix-sending-netlink-message-when-replace-route
++++ a/net/ipv4/fib_hash.c
+@@ -456,6 +456,8 @@ static int fn_hash_insert(struct fib_tab
+ 			fib_release_info(fi_drop);
+ 			if (state & FA_S_ACCESSED)
+ 				rt_cache_flush(-1);
++			rtmsg_fib(RTM_NEWROUTE, key, fa, cfg->fc_dst_len, tb->tb_id,
++				  &cfg->fc_nlinfo, NLM_F_REPLACE);
+ 			return 0;
+ 		}
+ 
+@@ -523,7 +525,7 @@ static int fn_hash_insert(struct fib_tab
+ 	rt_cache_flush(-1);
+ 
+ 	rtmsg_fib(RTM_NEWROUTE, key, new_fa, cfg->fc_dst_len, tb->tb_id,
+-		  &cfg->fc_nlinfo);
++		  &cfg->fc_nlinfo, 0);
+ 	return 0;
+ 
+ out_free_new_fa:
+@@ -589,7 +591,7 @@ static int fn_hash_delete(struct fib_tab
+ 
+ 		fa = fa_to_delete;
+ 		rtmsg_fib(RTM_DELROUTE, key, fa, cfg->fc_dst_len,
+-			  tb->tb_id, &cfg->fc_nlinfo);
++			  tb->tb_id, &cfg->fc_nlinfo, 0);
+ 
+ 		kill_fn = 0;
+ 		write_lock_bh(&fib_hash_lock);
+diff -puN net/ipv4/fib_lookup.h~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_lookup.h
+--- a/net/ipv4/fib_lookup.h~networking-fix-sending-netlink-message-when-replace-route
++++ a/net/ipv4/fib_lookup.h
+@@ -30,7 +30,8 @@ extern int fib_dump_info(struct sk_buff 
+ 			 int dst_len, u8 tos, struct fib_info *fi,
+ 			 unsigned int);
+ extern void rtmsg_fib(int event, __be32 key, struct fib_alias *fa,
+-		      int dst_len, u32 tb_id, struct nl_info *info);
++		      int dst_len, u32 tb_id, struct nl_info *info,
++		      unsigned int nlm_flags);
+ extern struct fib_alias *fib_find_alias(struct list_head *fah,
+ 					u8 tos, u32 prio);
+ extern int fib_detect_death(struct fib_info *fi, int order,
+diff -puN net/ipv4/fib_semantics.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_semantics.c
+--- a/net/ipv4/fib_semantics.c~networking-fix-sending-netlink-message-when-replace-route
++++ a/net/ipv4/fib_semantics.c
+@@ -301,7 +301,8 @@ static inline size_t fib_nlmsg_size(stru
+ }
+ 
+ void rtmsg_fib(int event, __be32 key, struct fib_alias *fa,
+-	       int dst_len, u32 tb_id, struct nl_info *info)
++	       int dst_len, u32 tb_id, struct nl_info *info,
++	       unsigned int nlm_flags)
+ {
+ 	struct sk_buff *skb;
+ 	u32 seq = info->nlh ? info->nlh->nlmsg_seq : 0;
+@@ -313,7 +314,7 @@ void rtmsg_fib(int event, __be32 key, st
+ 
+ 	err = fib_dump_info(skb, info->pid, seq, event, tb_id,
+ 			    fa->fa_type, fa->fa_scope, key, dst_len,
+-			    fa->fa_tos, fa->fa_info, 0);
++			    fa->fa_tos, fa->fa_info, nlm_flags);
+ 	if (err < 0) {
+ 		/* -EMSGSIZE implies BUG in fib_nlmsg_size() */
+ 		WARN_ON(err == -EMSGSIZE);
+diff -puN net/ipv4/fib_trie.c~networking-fix-sending-netlink-message-when-replace-route net/ipv4/fib_trie.c
+--- a/net/ipv4/fib_trie.c~networking-fix-sending-netlink-message-when-replace-route
++++ a/net/ipv4/fib_trie.c
+@@ -1207,6 +1207,8 @@ static int fn_trie_insert(struct fib_tab
+ 			fib_release_info(fi_drop);
+ 			if (state & FA_S_ACCESSED)
+ 				rt_cache_flush(-1);
++			rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen,
++				tb->tb_id, &cfg->fc_nlinfo, NLM_F_REPLACE);
+ 
+ 			goto succeeded;
+ 		}
+@@ -1259,7 +1261,7 @@ static int fn_trie_insert(struct fib_tab
+ 
+ 	rt_cache_flush(-1);
+ 	rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen, tb->tb_id,
+-		  &cfg->fc_nlinfo);
++		  &cfg->fc_nlinfo, 0);
+ succeeded:
+ 	return 0;
+ 
+@@ -1605,7 +1607,7 @@ static int fn_trie_delete(struct fib_tab
+ 
+ 	fa = fa_to_delete;
+ 	rtmsg_fib(RTM_DELROUTE, htonl(key), fa, plen, tb->tb_id,
+-		  &cfg->fc_nlinfo);
++		  &cfg->fc_nlinfo, 0);
+ 
+ 	l = fib_find_node(t, key);
+ 	li = find_leaf_info(l, plen);
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from milon@wq.cz are
 
-git-ieee1394.patch
-git-kvm.patch
-forcedeth-improve-napi-logic.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-i386-tsc-remove-xtime_locking-around-cpufreq-notifier.patch
-forcedeth-work-around-null-skb-dereference-crash.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-simplify-the-stacktrace-code.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-optimize-timespec_trunc.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
-add-support-for-deferrable-timers-respun.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-add-support-for-deferrable-timers-respun-fix.patch
-irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
-move-timekeeping-code-to-timekeepingc.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-add-touch_all_softlockup_watchdogs.patch
-enhance-initcall_debug-measure-latency.patch
-simplify-kallsyms_lookup.patch
-deprecate-sa_xxx-interrupt-flags-v2.patch
-lockdep-treats-down_write_trylock-like-regular-down_write.patch
-pad-irq_desc-to-internode-cacheline-size.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-highres-dyntick-prevent-xtime-lock-contention.patch
-lockdep-lookup_chain_cache-comment-errata.patch
-introduce-a-handy-list_first_entry-macro-v2.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-aio-is-unlikely.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-sched-optimize-siblings-status-check-logic-in-wake_idle.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-sched-align-rq-to-cacheline-boundary.patch
-sched-dont-renice-kernel-threads.patch
-sched-remove-sleepavg-from-proc.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-implement-staircase-deadline-cpu-scheduler.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
-sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
-sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
-sched-remove-noninteractive-flag.patch
-sched-document-sd-cpu-scheduler.patch
-sched-consolidate-sched_clock-drift-adjustments.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-declare-struct-ktime.patch
-futex-priority-based-wakeup.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
-futex_requeue_pi-optimization.patch
-sys_futex64-allows-64bit-futexes.patch
-sys_futex64-allows-64bit-futexes-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-futex-new-private-futexes.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
-random-warning-squishes.patch
+networking-fix-sending-netlink-message-when-replace-route.patch
