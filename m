@@ -1,77 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - macintosh-therm_windtunnelc-convert-to-kthread-api.patch removed from -mm tree
-Date: Thu, 19 Apr 2007 17:45:23 -0700
-Message-ID: <200704200045.l3K0jOQw003423@shell0.pdx.osdl.net>
+Subject: + pnpbios-conert-to-use-the-kthread-api.patch added to -mm tree
+Date: Thu, 19 Apr 2007 17:54:06 -0700
+Message-ID: <200704200054.l3K0s6Tk003548@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46862 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48221 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752228AbXDTAp2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752228AbXDTAy6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 19 Apr 2007 20:45:28 -0400
+	Thu, 19 Apr 2007 20:54:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ebiederm@xmission.com, ambx1@neo.rr.com, bjorn.helgaas@hp.com
 
 
 The patch titled
-     macintosh/therm_windtunnel.c: convert to kthread API
-has been removed from the -mm tree.  Its filename was
-     macintosh-therm_windtunnelc-convert-to-kthread-api.patch
+     pnpbios: convert to use the kthread API
+has been added to the -mm tree.  Its filename is
+     pnpbios-conert-to-use-the-kthread-api.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: macintosh/therm_windtunnel.c: convert to kthread API
+Subject: pnpbios: convert to use the kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Start the g4fand using kthread_run not a combination of kernel_thread and
-deamonize.  This makes the code a little simpler and more maintainable.
+This patches modifies the pnpbios kernel thread to start with ktrhead_run
+not kernel_thread and deamonize.  Doing this makes the code a little
+simpler and easier to maintain.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/therm_windtunnel.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/pnp/pnpbios/core.c |   16 +++++++---------
+ 1 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/macintosh/therm_windtunnel.c~macintosh-therm_windtunnelc-convert-to-kthread-api drivers/macintosh/therm_windtunnel.c
---- a/drivers/macintosh/therm_windtunnel.c~macintosh-therm_windtunnelc-convert-to-kthread-api
-+++ a/drivers/macintosh/therm_windtunnel.c
-@@ -36,6 +36,7 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/init.h>
+diff -puN drivers/pnp/pnpbios/core.c~pnpbios-conert-to-use-the-kthread-api drivers/pnp/pnpbios/core.c
+--- a/drivers/pnp/pnpbios/core.c~pnpbios-conert-to-use-the-kthread-api
++++ a/drivers/pnp/pnpbios/core.c
+@@ -62,6 +62,7 @@
+ #include <linux/delay.h>
+ #include <linux/acpi.h>
+ #include <linux/freezer.h>
 +#include <linux/kthread.h>
  
- #include <asm/prom.h>
- #include <asm/machdep.h>
-@@ -62,7 +63,6 @@ I2C_CLIENT_INSMOD;
- static struct {
- 	volatile int		running;
- 	struct completion	completion;
--	pid_t			poll_task;
- 	
- 	struct semaphore 	lock;
- 	struct of_device	*of_dev;
-@@ -285,7 +285,6 @@ restore_regs( void )
- static int
- control_loop( void *dummy )
+ #include <asm/page.h>
+ #include <asm/desc.h>
+@@ -159,9 +160,7 @@ static int pnp_dock_thread(void * unused
  {
--	daemonize("g4fand");
+ 	static struct pnp_docking_station_info now;
+ 	int docked = -1, d = 0;
+-	daemonize("kpnpbiosd");
+-	allow_signal(SIGKILL);
+-	while(!unloading && !signal_pending(current))
++	while (!unloading)
+ 	{
+ 		int status;
+ 		
+@@ -170,11 +169,8 @@ static int pnp_dock_thread(void * unused
+ 		 */
+ 		msleep_interruptible(2000);
  
- 	down( &x.lock );
- 	setup_hardware();
-@@ -323,7 +322,7 @@ do_attach( struct i2c_adapter *adapter )
- 		if( x.thermostat && x.fan ) {
- 			x.running = 1;
- 			init_completion( &x.completion );
--			x.poll_task = kernel_thread( control_loop, NULL, SIGCHLD | CLONE_KERNEL );
-+			kthread_run( control_loop, NULL, "g4fand");
- 		}
- 	}
- 	return ret;
+-		if(signal_pending(current)) {
+-			if (try_to_freeze())
+-				continue;
+-			break;
+-		}
++		if (try_to_freeze())
++			continue;
+ 
+ 		status = pnp_bios_dock_station_info(&now);
+ 
+@@ -581,6 +577,7 @@ subsys_initcall(pnpbios_init);
+ 
+ static int __init pnpbios_thread_init(void)
+ {
++	struct task_struct *task;
+ #if defined(CONFIG_PPC_MERGE)
+ 	if (check_legacy_ioport(PNPBIOS_BASE))
+ 		return 0;
+@@ -589,7 +586,8 @@ static int __init pnpbios_thread_init(vo
+ 		return 0;
+ #ifdef CONFIG_HOTPLUG
+ 	init_completion(&unload_sem);
+-	if (kernel_thread(pnp_dock_thread, NULL, CLONE_KERNEL) > 0)
++	task = kthread_run(pnp_dock_thread, NULL, "kpnpbiosd");
++	if (!IS_ERR(task))
+ 		unloading = 0;
+ #endif
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -80,7 +104,6 @@ arm-ecard-convert-to-use-the-kthread-api.patch
 powerpc-rtas-msi-support.patch
 macintosh-mediabay-convert-to-kthread-api.patch
 macintosh-adb-convert-to-the-kthread-api.patch
-macintosh-therm_windtunnelc-convert-to-kthread-api.patch
 macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
 powerpc-pseries-rtasd-convert-to-kthread-api.patch
 powerpc-pseries-eeh-convert-to-kthread-api.patch
