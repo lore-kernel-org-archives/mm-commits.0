@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch added to -mm tree
-Date: Fri, 20 Apr 2007 13:59:09 -0700
-Message-ID: <200704202059.l3KKxAuu023713@shell0.pdx.osdl.net>
+Subject: + lazy-freeing-of-memory-through-madv_free.patch added to -mm tree
+Date: Fri, 20 Apr 2007 13:58:51 -0700
+Message-ID: <200704202058.l3KKwqHY023704@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52173 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34795 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767272AbXDTVAP (ORCPT
+	by vger.kernel.org with ESMTP id S1767268AbXDTVAJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 17:00:15 -0400
+	Fri, 20 Apr 2007 17:00:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, drepper@redhat.com, hugh@veritas.com, mtk-manpages@gmx.net, nickpiggin@yahoo.com.au, riel@redhat.com
+Cc: riel@redhat.com, a.p.zijlstra@chello.nl, drepper@redhat.com, hugh@veritas.com, mtk-manpages@gmx.net, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
+     lazy freeing of memory through MADV_FREE
 has been added to the -mm tree.  Its filename is
-     lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+     lazy-freeing-of-memory-through-madv_free.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,200 +26,365 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lazy freeing of memory through MADV_FREE
+From: Rik van Riel <riel@redhat.com>
 
-Cc: Hugh Dickins <hugh@veritas.com>
+Make it possible for applications to have the kernel free memory lazily. 
+This reduces a repeated free/malloc cycle from freeing pages and allocating
+them, to just marking them freeable.  If the application wants to reuse
+them before the kernel needs the memory, not even a page fault will happen.
+
+This patch, together with Ulrich's glibc change, increases MySQL sysbench
+performance by a factor of 2 on my quad core test system.
+
+Ulrich Drepper has test glibc RPMS for this functionality at:
+
+     http://people.redhat.com/drepper/rpms
+
+Andrew, I have stress tested this patch for a few days now and
+have not been able to find any more bugs.  I believe it is ready
+to be merged in -mm, and upstream at the next merge window.
+
+When the patch goes upstream, I will submit a small follow-up
+patch to revert MADV_DONTNEED behaviour to what it did previously
+and have the new behaviour trigger only on MADV_FREE: at that
+point people will have to get new test RPMs of glibc.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    1 +
- 1 files changed, 1 insertion(+)
+ include/asm-alpha/mman.h   |    1 +
+ include/asm-generic/mman.h |    1 +
+ include/asm-mips/mman.h    |    1 +
+ include/asm-parisc/mman.h  |    1 +
+ include/asm-xtensa/mman.h  |    1 +
+ include/linux/mm.h         |    1 +
+ include/linux/page-flags.h |    7 +++++++
+ include/linux/swap.h       |    1 +
+ mm/madvise.c               |   10 ++++++++--
+ mm/memory.c                |   29 +++++++++++++++++++++++++++--
+ mm/page_alloc.c            |    4 ++++
+ mm/rmap.c                  |   12 +++++++++++-
+ mm/swap.c                  |   14 ++++++++++++++
+ mm/vmscan.c                |   18 ++++++++++++++++++
+ 14 files changed, 96 insertions(+), 5 deletions(-)
 
-diff -puN mm/madvise.c~lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem mm/madvise.c
---- a/mm/madvise.c~lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
+diff -puN include/asm-alpha/mman.h~lazy-freeing-of-memory-through-madv_free include/asm-alpha/mman.h
+--- a/include/asm-alpha/mman.h~lazy-freeing-of-memory-through-madv_free
++++ a/include/asm-alpha/mman.h
+@@ -42,6 +42,7 @@
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define	MADV_SPACEAVAIL	5		/* ensure resources are available */
+ #define MADV_DONTNEED	6		/* don't need these pages */
++#define MADV_FREE	7		/* don't need the pages or the data */
+ 
+ /* common/generic parameters */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+diff -puN include/asm-generic/mman.h~lazy-freeing-of-memory-through-madv_free include/asm-generic/mman.h
+--- a/include/asm-generic/mman.h~lazy-freeing-of-memory-through-madv_free
++++ a/include/asm-generic/mman.h
+@@ -29,6 +29,7 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
++#define MADV_FREE	5		/* don't need the pages or the data */
+ 
+ /* common parameters: try to keep these consistent across architectures */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+diff -puN include/asm-mips/mman.h~lazy-freeing-of-memory-through-madv_free include/asm-mips/mman.h
+--- a/include/asm-mips/mman.h~lazy-freeing-of-memory-through-madv_free
++++ a/include/asm-mips/mman.h
+@@ -65,6 +65,7 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
++#define MADV_FREE	5		/* don't need the pages or the data */
+ 
+ /* common parameters: try to keep these consistent across architectures */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+diff -puN include/asm-parisc/mman.h~lazy-freeing-of-memory-through-madv_free include/asm-parisc/mman.h
+--- a/include/asm-parisc/mman.h~lazy-freeing-of-memory-through-madv_free
++++ a/include/asm-parisc/mman.h
+@@ -38,6 +38,7 @@
+ #define MADV_SPACEAVAIL 5               /* insure that resources are reserved */
+ #define MADV_VPS_PURGE  6               /* Purge pages from VM page cache */
+ #define MADV_VPS_INHERIT 7              /* Inherit parents page size */
++#define MADV_FREE	8		/* don't need the pages or the data */
+ 
+ /* common/generic parameters */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+diff -puN include/asm-xtensa/mman.h~lazy-freeing-of-memory-through-madv_free include/asm-xtensa/mman.h
+--- a/include/asm-xtensa/mman.h~lazy-freeing-of-memory-through-madv_free
++++ a/include/asm-xtensa/mman.h
+@@ -72,6 +72,7 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
++#define MADV_FREE	5		/* don't need the pages or the data */
+ 
+ /* common parameters: try to keep these consistent across architectures */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+diff -puN include/linux/mm.h~lazy-freeing-of-memory-through-madv_free include/linux/mm.h
+--- a/include/linux/mm.h~lazy-freeing-of-memory-through-madv_free
++++ a/include/linux/mm.h
+@@ -757,6 +757,7 @@ struct zap_details {
+ 	pgoff_t last_index;			/* Highest page->index to unmap */
+ 	spinlock_t *i_mmap_lock;		/* For unmap_mapping_range: */
+ 	unsigned long truncate_count;		/* Compare vm_truncate_count */
++	short madv_free;			/* MADV_FREE anonymous memory */
+ };
+ 
+ struct page *vm_normal_page(struct vm_area_struct *, unsigned long, pte_t);
+diff -puN include/linux/page-flags.h~lazy-freeing-of-memory-through-madv_free include/linux/page-flags.h
+--- a/include/linux/page-flags.h~lazy-freeing-of-memory-through-madv_free
++++ a/include/linux/page-flags.h
+@@ -92,6 +92,8 @@
+ #define PG_nosave_free		18	/* Used for system suspend/resume */
+ #define PG_buddy		19	/* Page is free, on buddy lists */
+ 
++#define PG_lazyfree		20	/* MADV_FREE potential throwaway */
++
+ /* PG_owner_priv_1 users should have descriptive aliases */
+ #define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
+ 
+@@ -238,6 +240,11 @@ static inline void SetPageUptodate(struc
+ #define ClearPageReclaim(page)	clear_bit(PG_reclaim, &(page)->flags)
+ #define TestClearPageReclaim(page) test_and_clear_bit(PG_reclaim, &(page)->flags)
+ 
++#define PageLazyFree(page)	test_bit(PG_lazyfree, &(page)->flags)
++#define SetPageLazyFree(page)	set_bit(PG_lazyfree, &(page)->flags)
++#define ClearPageLazyFree(page)	clear_bit(PG_lazyfree, &(page)->flags)
++#define __ClearPageLazyFree(page) __clear_bit(PG_lazyfree, &(page)->flags)
++
+ #define PageCompound(page)	test_bit(PG_compound, &(page)->flags)
+ #define __SetPageCompound(page)	__set_bit(PG_compound, &(page)->flags)
+ #define __ClearPageCompound(page) __clear_bit(PG_compound, &(page)->flags)
+diff -puN include/linux/swap.h~lazy-freeing-of-memory-through-madv_free include/linux/swap.h
+--- a/include/linux/swap.h~lazy-freeing-of-memory-through-madv_free
++++ a/include/linux/swap.h
+@@ -181,6 +181,7 @@ extern unsigned int nr_free_pagecache_pa
+ extern void FASTCALL(lru_cache_add(struct page *));
+ extern void FASTCALL(lru_cache_add_active(struct page *));
+ extern void FASTCALL(activate_page(struct page *));
++extern void FASTCALL(deactivate_tail_page(struct page *));
+ extern void FASTCALL(mark_page_accessed(struct page *));
+ extern void lru_add_drain(void);
+ extern int lru_add_drain_all(void);
+diff -puN mm/madvise.c~lazy-freeing-of-memory-through-madv_free mm/madvise.c
+--- a/mm/madvise.c~lazy-freeing-of-memory-through-madv_free
 +++ a/mm/madvise.c
-@@ -22,6 +22,7 @@ static int madvise_need_mmap_write(int b
- 	case MADV_REMOVE:
- 	case MADV_WILLNEED:
+@@ -160,8 +160,12 @@ static long madvise_dontneed(struct vm_a
+ 			.last_index = ULONG_MAX,
+ 		};
+ 		zap_page_range(vma, start, end - start, &details);
+-	} else
+-		zap_page_range(vma, start, end - start, NULL);
++	} else {
++		struct zap_details details = {
++			.madv_free = 1,
++		};
++		zap_page_range(vma, start, end - start, &details);
++	}
+ 	return 0;
+ }
+ 
+@@ -233,7 +237,9 @@ madvise_vma(struct vm_area_struct *vma, 
+ 		error = madvise_willneed(vma, prev, start, end);
+ 		break;
+ 
++	/* FIXME: POSIX says that MADV_DONTNEED cannot throw away data. */
  	case MADV_DONTNEED:
 +	case MADV_FREE:
- 		return 0;
- 	default:
- 		/* be safe, default to 1. list exceptions explicitly */
+ 		error = madvise_dontneed(vma, prev, start, end);
+ 		break;
+ 
+diff -puN mm/memory.c~lazy-freeing-of-memory-through-madv_free mm/memory.c
+--- a/mm/memory.c~lazy-freeing-of-memory-through-madv_free
++++ a/mm/memory.c
+@@ -432,6 +432,7 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 	unsigned long vm_flags = vma->vm_flags;
+ 	pte_t pte = *src_pte;
+ 	struct page *page;
++	int dirty = 0;
+ 
+ 	/* pte contains position in swap or file, so copy. */
+ 	if (unlikely(!pte_present(pte))) {
+@@ -466,6 +467,7 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 	 * in the parent and the child
+ 	 */
+ 	if (is_cow_mapping(vm_flags)) {
++		dirty = pte_dirty(pte);
+ 		ptep_set_wrprotect(src_mm, addr, src_pte);
+ 		pte = pte_wrprotect(pte);
+ 	}
+@@ -483,6 +485,8 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 		get_page(page);
+ 		page_dup_rmap(page, vma, addr);
+ 		rss[!!PageAnon(page)]++;
++		if (dirty && PageLazyFree(page))
++			ClearPageLazyFree(page);
+ 	}
+ 
+ out_set_pte:
+@@ -661,6 +665,25 @@ static unsigned long zap_pte_range(struc
+ 				    (page->index < details->first_index ||
+ 				     page->index > details->last_index))
+ 					continue;
++
++				/*
++				 * MADV_FREE is used to lazily recycle
++				 * anon memory.  The process no longer
++				 * needs the data and wants to avoid IO.
++				 */
++				if (details->madv_free && PageAnon(page)) {
++					if (unlikely(PageSwapCache(page)) &&
++					    !TestSetPageLocked(page)) {
++						remove_exclusive_swap_page(page);
++						unlock_page(page);
++					}
++					ptep_clear_flush_dirty(vma, addr, pte);
++					ptep_clear_flush_young(vma, addr, pte);
++					SetPageLazyFree(page);
++					if (PageActive(page))
++						deactivate_tail_page(page);
++					continue;
++				}
+ 			}
+ 			ptent = ptep_get_and_clear_full(mm, addr, pte,
+ 							tlb->fullmm);
+@@ -689,7 +712,8 @@ static unsigned long zap_pte_range(struc
+ 		 * If details->check_mapping, we leave swap entries;
+ 		 * if details->nonlinear_vma, we leave file entries.
+ 		 */
+-		if (unlikely(details))
++		if (unlikely(details && (details->check_mapping ||
++				details->nonlinear_vma)))
+ 			continue;
+ 		if (!pte_file(ptent))
+ 			free_swap_and_cache(pte_to_swp_entry(ptent));
+@@ -755,7 +779,8 @@ static unsigned long unmap_page_range(st
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 
+-	if (details && !details->check_mapping && !details->nonlinear_vma)
++	if (details && !details->check_mapping && !details->nonlinear_vma
++			&& !details->madv_free)
+ 		details = NULL;
+ 
+ 	BUG_ON(addr >= end);
+diff -puN mm/page_alloc.c~lazy-freeing-of-memory-through-madv_free mm/page_alloc.c
+--- a/mm/page_alloc.c~lazy-freeing-of-memory-through-madv_free
++++ a/mm/page_alloc.c
+@@ -237,6 +237,7 @@ static void bad_page(struct page *page)
+ 			1 << PG_slab    |
+ 			1 << PG_swapcache |
+ 			1 << PG_writeback |
++			1 << PG_lazyfree |
+ 			1 << PG_buddy );
+ 	set_page_count(page, 0);
+ 	reset_page_mapcount(page);
+@@ -483,6 +484,8 @@ static inline int free_pages_check(struc
+ 		bad_page(page);
+ 	if (PageDirty(page))
+ 		__ClearPageDirty(page);
++	if (PageLazyFree(page))
++		__ClearPageLazyFree(page);
+ 	/*
+ 	 * For now, we report if PG_reserved was found set, but do not
+ 	 * clear it, and do not free the page.  But we shall soon need
+@@ -630,6 +633,7 @@ static int prep_new_page(struct page *pa
+ 			1 << PG_swapcache |
+ 			1 << PG_writeback |
+ 			1 << PG_reserved |
++			1 << PG_lazyfree |
+ 			1 << PG_buddy ))))
+ 		bad_page(page);
+ 
+diff -puN mm/rmap.c~lazy-freeing-of-memory-through-madv_free mm/rmap.c
+--- a/mm/rmap.c~lazy-freeing-of-memory-through-madv_free
++++ a/mm/rmap.c
+@@ -710,7 +710,17 @@ static int try_to_unmap_one(struct page 
+ 	/* Update high watermark before we lower rss */
+ 	update_hiwater_rss(mm);
+ 
+-	if (PageAnon(page)) {
++	/* MADV_FREE is used to lazily free memory from userspace. */
++	if (PageLazyFree(page) && !migration) {
++		/* There is new data in the page.  Reinstate it. */
++		if (unlikely(pte_dirty(pteval))) {
++			set_pte_at(mm, address, pte, pteval);
++			ret = SWAP_FAIL;
++			goto out_unmap;
++		}
++		/* Throw the page away. */
++		dec_mm_counter(mm, anon_rss);
++	} else if (PageAnon(page)) {
+ 		swp_entry_t entry = { .val = page_private(page) };
+ 
+ 		if (PageSwapCache(page)) {
+diff -puN mm/swap.c~lazy-freeing-of-memory-through-madv_free mm/swap.c
+--- a/mm/swap.c~lazy-freeing-of-memory-through-madv_free
++++ a/mm/swap.c
+@@ -151,6 +151,20 @@ void fastcall activate_page(struct page 
+ 	spin_unlock_irq(&zone->lru_lock);
+ }
+ 
++void fastcall deactivate_tail_page(struct page *page)
++{
++	struct zone *zone = page_zone(page);
++
++	spin_lock_irq(&zone->lru_lock);
++	if (PageLRU(page) && PageActive(page)) {
++		del_page_from_active_list(zone, page);
++		ClearPageActive(page);
++		add_page_to_inactive_list_tail(zone, page);
++		__count_vm_event(PGDEACTIVATE);
++	}
++	spin_unlock_irq(&zone->lru_lock);
++}
++
+ /*
+  * Mark a page as having seen activity.
+  *
+diff -puN mm/vmscan.c~lazy-freeing-of-memory-through-madv_free mm/vmscan.c
+--- a/mm/vmscan.c~lazy-freeing-of-memory-through-madv_free
++++ a/mm/vmscan.c
+@@ -455,6 +455,24 @@ static unsigned long shrink_page_list(st
+ 
+ 		sc->nr_scanned++;
+ 
++		/*
++		 * MADV_DONTNEED pages get reclaimed lazily, unless the
++		 * process reuses it before we get to it.
++		 */
++		if (PageLazyFree(page)) {
++			switch (try_to_unmap(page, 0)) {
++			case SWAP_FAIL:
++				ClearPageLazyFree(page);
++				goto activate_locked;
++			case SWAP_AGAIN:
++				ClearPageLazyFree(page);
++				goto keep_locked;
++			case SWAP_SUCCESS:
++				ClearPageLazyFree(page);
++				goto free_it;
++			}
++		}
++
+ 		if (!sc->may_swap && page_mapped(page))
+ 			goto keep_locked;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
-origin.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-sysfs-group-removal-avoid-bypass-permission-checks-tidy.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-rfcomm_worker-fix-wakeup-race.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-git-wireless-vs-git-net-3.patch
-revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-acpi-thermal-fix-mod_timer-interval.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-extend-print_symbol-capability-fix-fix.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
+mm-madvise-avoid-exclusive-mmap_sem.patch
+lazy-freeing-of-memory-through-madv_free.patch
 lazy-freeing-of-memory-through-madv_free-fix.patch
 lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
