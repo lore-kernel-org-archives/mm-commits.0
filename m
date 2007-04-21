@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-high_order-delineating-easily-reclaimable-orders.patch added to -mm tree
-Date: Sat, 21 Apr 2007 01:29:55 -0700
-Message-ID: <200704210829.l3L8TtuL002124@shell0.pdx.osdl.net>
+Subject: + lib-percpu_counter_mod64.patch added to -mm tree
+Date: Sat, 21 Apr 2007 02:55:04 -0700
+Message-ID: <200704210955.l3L9t4L9003682@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39365 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030456AbXDUIac (ORCPT
+	by vger.kernel.org with ESMTP id S932500AbXDUJzI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 04:30:32 -0400
+	Sat, 21 Apr 2007 05:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, mel@csn.ul.ie
+Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     introduce HIGH_ORDER delineating easily reclaimable orders
+     lib: percpu_counter_mod64
 has been added to the -mm tree.  Its filename is
-     introduce-high_order-delineating-easily-reclaimable-orders.patch
+     lib-percpu_counter_mod64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,116 +26,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: introduce HIGH_ORDER delineating easily reclaimable orders
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: lib: percpu_counter_mod64
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-The memory allocator treats lower order (order <= 3) and higher order
-(order >= 4) allocations in slightly different ways.  As lower orders are
-much more likely to be available and also more likely to be simply
-reclaimed it is deemed reasonable to wait longer for those.  Lumpy reclaim
-also changes behaviour at this same boundary, more agressivly targetting
-pages in reclaim at higher order.
+Add percpu_counter_mod64() to allow large modifications.
 
-This patch removes all these magical numbers and replaces with
-with a constant HIGH_ORDER.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    7 +++++++
- mm/page_alloc.c        |    2 +-
- mm/vmscan.c            |   11 ++++++-----
- 3 files changed, 14 insertions(+), 6 deletions(-)
+ include/linux/percpu_counter.h |    9 +++++++++
+ lib/percpu_counter.c           |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+)
 
-diff -puN include/linux/mmzone.h~introduce-high_order-delineating-easily-reclaimable-orders include/linux/mmzone.h
---- a/include/linux/mmzone.h~introduce-high_order-delineating-easily-reclaimable-orders
-+++ a/include/linux/mmzone.h
-@@ -25,6 +25,13 @@
- #endif
- #define MAX_ORDER_NR_PAGES (1 << (MAX_ORDER - 1))
+diff -puN include/linux/percpu_counter.h~lib-percpu_counter_mod64 include/linux/percpu_counter.h
+--- a/include/linux/percpu_counter.h~lib-percpu_counter_mod64
++++ a/include/linux/percpu_counter.h
+@@ -36,6 +36,7 @@ static inline void percpu_counter_destro
+ }
  
-+/*
-+ * The boundary between small and large allocations.  That is between
-+ * allocation orders which should colesce naturally under reasonable
-+ * reclaim pressure and those which will not.
-+ */
-+#define HIGH_ORDER 3
+ void percpu_counter_mod(struct percpu_counter *fbc, s32 amount);
++void percpu_counter_mod64(struct percpu_counter *fbc, s64 amount);
+ s64 percpu_counter_sum(struct percpu_counter *fbc);
+ 
+ static inline s64 percpu_counter_read(struct percpu_counter *fbc)
+@@ -81,6 +82,14 @@ percpu_counter_mod(struct percpu_counter
+ 	preempt_enable();
+ }
+ 
++static inline void
++percpu_counter_mod64(struct percpu_counter *fbc, s64 amount)
++{
++	preempt_disable();
++	fbc->count += amount;
++	preempt_enable();
++}
 +
- #ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
- #define MIGRATE_UNMOVABLE     0
- #define MIGRATE_RECLAIMABLE   1
-diff -puN mm/page_alloc.c~introduce-high_order-delineating-easily-reclaimable-orders mm/page_alloc.c
---- a/mm/page_alloc.c~introduce-high_order-delineating-easily-reclaimable-orders
-+++ a/mm/page_alloc.c
-@@ -1677,7 +1677,7 @@ nofail_alloc:
- 	 */
- 	do_retry = 0;
- 	if (!(gfp_mask & __GFP_NORETRY)) {
--		if ((order <= 3) || (gfp_mask & __GFP_REPEAT))
-+		if ((order <= HIGH_ORDER) || (gfp_mask & __GFP_REPEAT))
- 			do_retry = 1;
- 		if (gfp_mask & __GFP_NOFAIL)
- 			do_retry = 1;
-diff -puN mm/vmscan.c~introduce-high_order-delineating-easily-reclaimable-orders mm/vmscan.c
---- a/mm/vmscan.c~introduce-high_order-delineating-easily-reclaimable-orders
-+++ a/mm/vmscan.c
-@@ -487,7 +487,8 @@ static unsigned long shrink_page_list(st
+ static inline s64 percpu_counter_read(struct percpu_counter *fbc)
+ {
+ 	return fbc->count;
+diff -puN lib/percpu_counter.c~lib-percpu_counter_mod64 lib/percpu_counter.c
+--- a/lib/percpu_counter.c~lib-percpu_counter_mod64
++++ a/lib/percpu_counter.c
+@@ -25,6 +25,34 @@ void percpu_counter_mod(struct percpu_co
+ }
+ EXPORT_SYMBOL(percpu_counter_mod);
  
- 		referenced = page_referenced(page, 1);
- 		/* In active use or really unfreeable?  Activate it. */
--		if (sc->order <= 3 && referenced && page_mapping_inuse(page))
-+		if (sc->order <= HIGH_ORDER &&
-+					referenced && page_mapping_inuse(page))
- 			goto activate_locked;
- 
- #ifdef CONFIG_SWAP
-@@ -520,7 +521,7 @@ static unsigned long shrink_page_list(st
- 		}
- 
- 		if (PageDirty(page)) {
--			if (sc->order <= 3 && referenced)
-+			if (sc->order <= HIGH_ORDER && referenced)
- 				goto keep_locked;
- 			if (!may_enter_fs)
- 				goto keep_locked;
-@@ -790,9 +791,9 @@ static unsigned long shrink_inactive_lis
- 		unsigned long nr_active;
- 
- 		nr_taken = isolate_lru_pages(sc->swap_cluster_max,
--				     &zone->inactive_list,
--				     &page_list, &nr_scan, sc->order,
--				     (sc->order > 3)? ISOLATE_BOTH : 0);
-+			     &zone->inactive_list,
-+			     &page_list, &nr_scan, sc->order,
-+			     (sc->order > HIGH_ORDER)? ISOLATE_BOTH : 0);
- 		nr_active = deactivate_pages(&page_list);
- 
- 		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
++void percpu_counter_mod64(struct percpu_counter *fbc, s64 amount)
++{
++	long count;
++	s32 *pcount;
++	int cpu;
++
++	if (amount >= FBC_BATCH || amount <= -FBC_BATCH) {
++		spin_lock(&fbc->lock);
++		fbc->count += amount;
++		spin_unlock(&fbc->lock);
++		return;
++	}
++
++	cpu = get_cpu();
++	pcount = per_cpu_ptr(fbc->counters, cpu);
++	count = *pcount + amount;
++	if (count >= FBC_BATCH || count <= -FBC_BATCH) {
++		spin_lock(&fbc->lock);
++		fbc->count += count;
++		*pcount = 0;
++		spin_unlock(&fbc->lock);
++	} else {
++		*pcount = count;
++	}
++	put_cpu();
++}
++EXPORT_SYMBOL(percpu_counter_mod64);
++
+ /*
+  * Add up all the per-cpu counts, return the result.  This is a more accurate
+  * but much slower version of percpu_counter_read_positive()
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-pci-device-ensure-sysdata-initialised-v2.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
-add-a-configure-option-to-group-pages-by-mobility-speedup.patch
-move-free-pages-between-lists-on-steal-fix.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
 lumpy-reclaim-v4.patch
-lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
-lumpy-only-count-taken-pages-as-scanned.patch
-kswapd-use-reclaim-order-in-background-reclaim.patch
-lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
-introduce-high_order-delineating-easily-reclaimable-orders.patch
-add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
-anti-fragmentation-switch-over-to-pfn_valid_within.patch
-lumpy-move-to-using-pfn_valid_within.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-slab-numa-kmem_cache-diet.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+mm-remove-destroy_dirty_buffers-from-invalidate_bdev.patch
+mm-optimize-kill_bdev.patch
+mm-optimize-kill_bdev-fix.patch
+mm-optimize-acorn-partition-truncate.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+exec-fix-remove_arg_zero-add-comment.patch
+lockdep-treats-down_write_trylock-like-regular-down_write.patch
+nfs-fix-congestion-control-use-atomic_longs.patch
+nfs-remove-congestion_end.patch
+lib-dampen-the-percpu_counter-fbc_batch.patch
+lib-percpu_counter_mod64.patch
+mm-bdi-init-hooks.patch
+mm-scalable-bdi-statistics-counters.patch
+mm-count-reclaimable-pages-per-bdi.patch
+mm-count-writeback-pages-per-bdi.patch
+mm-expose-bdi-statistics-in-sysfs.patch
+mm-per-device-dirty-threshold.patch
