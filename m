@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slab-allocators-remove-slab_ctor_atomic.patch added to -mm tree
-Date: Fri, 20 Apr 2007 23:15:30 -0700
-Message-ID: <200704210615.l3L6FUoe032736@shell0.pdx.osdl.net>
+Subject: + revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch added to -mm tree
+Date: Fri, 20 Apr 2007 23:47:59 -0700
+Message-ID: <200704210648.l3L6lxQS000630@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34440 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60920 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754097AbXDUGPh (ORCPT
+	by vger.kernel.org with ESMTP id S933040AbXDUGsL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 02:15:37 -0400
+	Sat, 21 Apr 2007 02:48:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     slab allocators: Remove SLAB_CTOR_ATOMIC
+     slab allocators: Remove multiple alignment specifications (revoke)
 has been added to the -mm tree.  Its filename is
-     slab-allocators-remove-slab_ctor_atomic.patch
+     revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab allocators: Remove SLAB_CTOR_ATOMIC
+Subject: slab allocators: Remove multiple alignment specifications (revoke)
 From: Christoph Lameter <clameter@sgi.com>
 
-SLAB_CTOR atomic is never used which is no surprise since I cannot imagine
-that one would want to do something serious in a constructor or destructor.
- In particular given that the slab allocators run with interrupts disabled.
- Actions in constructors and destructors are by their nature very limited
-and usually do not go beyond initializing variables and list operations.
 
-(The i386 pgd ctor and dtors do take a spinlock in constructor and
-destructor.....  I think that is the furthest we go at this point.)
 
-There is no flag passed to the destructor so removing SLAB_CTOR_ATOMIC also
-establishes a certain symmetry.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    1 -
- mm/slab.c            |   17 ++---------------
- mm/slub.c            |   10 ++--------
- 3 files changed, 4 insertions(+), 24 deletions(-)
+ fs/revoke.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/slab.h~slab-allocators-remove-slab_ctor_atomic include/linux/slab.h
---- a/include/linux/slab.h~slab-allocators-remove-slab_ctor_atomic
-+++ a/include/linux/slab.h
-@@ -34,7 +34,6 @@ typedef struct kmem_cache kmem_cache_t _
+diff -puN fs/revoke.c~revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke fs/revoke.c
+--- a/fs/revoke.c~revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke
++++ a/fs/revoke.c
+@@ -709,8 +709,7 @@ static void revokefs_init_inode(void *ob
+ {
+ 	struct revokefs_inode_info *info = obj;
  
- /* Flags passed to a constructor functions */
- #define SLAB_CTOR_CONSTRUCTOR	0x001UL		/* If not set, then deconstructor */
--#define SLAB_CTOR_ATOMIC	0x002UL		/* Tell constructor it can't sleep */
- 
- /*
-  * struct kmem_cache related prototypes
-diff -puN mm/slab.c~slab-allocators-remove-slab_ctor_atomic mm/slab.c
---- a/mm/slab.c~slab-allocators-remove-slab_ctor_atomic
-+++ a/mm/slab.c
-@@ -2752,13 +2752,6 @@ static int cache_grow(struct kmem_cache 
- 
- 	ctor_flags = SLAB_CTOR_CONSTRUCTOR;
- 	local_flags = (flags & GFP_LEVEL_MASK);
--	if (!(local_flags & __GFP_WAIT))
--		/*
--		 * Not allowed to sleep.  Need to tell a constructor about
--		 * this - it might need to know...
--		 */
--		ctor_flags |= SLAB_CTOR_ATOMIC;
--
- 	/* Take the l3 list lock to change the colour_next on this node */
- 	check_irq_off();
- 	l3 = cachep->nodelists[nodeid];
-@@ -3092,14 +3085,8 @@ static void *cache_alloc_debugcheck_afte
+-	if ((flags & (SLAB_CTOR_VERIFY | SLAB_CTOR_CONSTRUCTOR)) ==
+-	    SLAB_CTOR_CONSTRUCTOR) {
++	if (flags & SLAB_CTOR_CONSTRUCTOR) {
+ 		info->owner = NULL;
+ 		inode_init_once(&info->vfs_inode);
  	}
- #endif
- 	objp += obj_offset(cachep);
--	if (cachep->ctor && cachep->flags & SLAB_POISON) {
--		unsigned long ctor_flags = SLAB_CTOR_CONSTRUCTOR;
--
--		if (!(flags & __GFP_WAIT))
--			ctor_flags |= SLAB_CTOR_ATOMIC;
--
--		cachep->ctor(objp, cachep, ctor_flags);
--	}
-+	if (cachep->ctor && cachep->flags & SLAB_POISON)
-+		cachep->ctor(objp, cachep, SLAB_CTOR_CONSTRUCTOR);
- #if ARCH_SLAB_MINALIGN
- 	if ((u32)objp & (ARCH_SLAB_MINALIGN-1)) {
- 		printk(KERN_ERR "0x%p: not aligned to ARCH_SLAB_MINALIGN=%d\n",
-diff -puN mm/slub.c~slab-allocators-remove-slab_ctor_atomic mm/slub.c
---- a/mm/slub.c~slab-allocators-remove-slab_ctor_atomic
-+++ a/mm/slub.c
-@@ -786,14 +786,8 @@ static void setup_object(struct kmem_cac
- 		init_tracking(s, object);
- 	}
- 
--	if (unlikely(s->ctor)) {
--		int mode = SLAB_CTOR_CONSTRUCTOR;
--
--		if (!(s->flags & __GFP_WAIT))
--			mode |= SLAB_CTOR_ATOMIC;
--
--		s->ctor(object, s, mode);
--	}
-+	if (unlikely(s->ctor))
-+		s->ctor(object, s, SLAB_CTOR_CONSTRUCTOR);
- }
- 
- static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -204,4 +139,5 @@ slab-allocators-remove-multiple-alignment-specifications.patch
 slab-allocators-remove-slab_ctor_atomic.patch
 slab-shutdown-cache_reaper-when-cpu-goes-down.patch
 mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
 readahead-state-based-method-aging-accounting.patch
