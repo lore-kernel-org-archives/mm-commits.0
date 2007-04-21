@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs.patch added to -mm tree
-Date: Fri, 20 Apr 2007 17:35:53 -0700
-Message-ID: <200704210035.l3L0ZrAN027481@shell0.pdx.osdl.net>
+Subject: + fix-spinlock-usage-in-hysdn_log_close.patch added to -mm tree
+Date: Fri, 20 Apr 2007 17:41:51 -0700
+Message-ID: <200704210041.l3L0fp2q027561@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38623 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39065 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753745AbXDUAf7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753926AbXDUAl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 20:35:59 -0400
+	Fri, 20 Apr 2007 20:41:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, greg@kroah.com
+Cc: matthias.kaehlcke@gmail.com, kkeil@suse.de
 
 
 The patch titled
-     mod_sysfs_setup() doesn't return errno when kobject_add_dir() failure occurs
+     fix spinlock usage in hysdn_log_close()
 has been added to the -mm tree.  Its filename is
-     mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs.patch
+     fix-spinlock-usage-in-hysdn_log_close.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mod_sysfs_setup() doesn't return errno when kobject_add_dir() failure occurs
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fix spinlock usage in hysdn_log_close()
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-mod_sysfs_setup() doesn't return an errno when kobject_add_dir() for module
-"holders" directory fails.  So caller of mod_sysfs_setup() will keep going
-and get oops.
+Fix incorrect spinlock use in hysdn_log_close().  The function declared a
+spinlock on the stack and used it to 'protect' a shared driver structure. 
+the patch removes the declaration of hysdn_lock and uses card->hysdn_lock
+instead.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/isdn/hysdn/hysdn_proclog.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/module.c~mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs kernel/module.c
---- a/kernel/module.c~mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs
-+++ a/kernel/module.c
-@@ -1222,8 +1222,10 @@ int mod_sysfs_setup(struct module *mod,
- 		goto out;
+diff -puN drivers/isdn/hysdn/hysdn_proclog.c~fix-spinlock-usage-in-hysdn_log_close drivers/isdn/hysdn/hysdn_proclog.c
+--- a/drivers/isdn/hysdn/hysdn_proclog.c~fix-spinlock-usage-in-hysdn_log_close
++++ a/drivers/isdn/hysdn/hysdn_proclog.c
+@@ -298,7 +298,6 @@ hysdn_log_close(struct inode *ino, struc
+ 	hysdn_card *card;
+ 	int retval = 0;
+ 	unsigned long flags;
+-	spinlock_t hysdn_lock = SPIN_LOCK_UNLOCKED;
  
- 	mod->holders_dir = kobject_add_dir(&mod->mkobj.kobj, "holders");
--	if (!mod->holders_dir)
-+	if (!mod->holders_dir) {
-+		err = -ENOMEM;
- 		goto out_unreg;
-+	}
+ 	lock_kernel();
+ 	if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE) {
+@@ -308,7 +307,7 @@ hysdn_log_close(struct inode *ino, struc
+ 		/* read access -> log/debug read, mark one further file as closed */
  
- 	err = module_param_sysfs_setup(mod, kparam, num_params);
- 	if (err)
+ 		pd = NULL;
+-		spin_lock_irqsave(&hysdn_lock, flags);
++		spin_lock_irqsave(&card->hysdn_lock, flags);
+ 		inf = *((struct log_data **) filep->private_data);	/* get first log entry */
+ 		if (inf)
+ 			pd = (struct procdata *) inf->proc_ctrl;	/* still entries there */
+@@ -331,7 +330,7 @@ hysdn_log_close(struct inode *ino, struc
+ 			inf->usage_cnt--;	/* decrement usage count for buffers */
+ 			inf = inf->next;
+ 		}
+-		spin_unlock_irqrestore(&hysdn_lock, flags);
++		spin_unlock_irqrestore(&card->hysdn_lock, flags);
+ 
+ 		if (pd)
+ 			if (pd->if_used <= 0)	/* delete buffers if last file closed */
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs.patch
-git-dvb.patch
-git-net.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-slob-handle-slab_panic-flag.patch
-simplify-the-stacktrace-code.patch
-dtlk-fix-error-checks-in-module_init.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-use-slab_panic-flag-cleanup.patch
+origin.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+qla1280-use-dma_64bit_mask-instead-of-0ull.patch
+include-kern_-constant-in-printk-calls-in-mm-slabc.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+fix-spinlock-usage-in-hysdn_log_close.patch
