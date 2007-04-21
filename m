@@ -1,148 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-remove-duplicate-definitions-for-_sta-bits.patch added to -mm tree
-Date: Sat, 21 Apr 2007 02:59:58 -0700
-Message-ID: <200704210959.l3L9xwAB003787@shell0.pdx.osdl.net>
+Subject: - sysfs-group-removal-avoid-bypass-permission-checks.patch removed from -mm tree
+Date: Sat, 21 Apr 2007 03:02:00 -0700
+Message-ID: <200704211002.l3LA20of003835@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59660 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933064AbXDUKBY (ORCPT
+	by vger.kernel.org with ESMTP id S933102AbXDUKCX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 06:01:24 -0400
+	Sat, 21 Apr 2007 06:02:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, lenb@kernel.org
+To: jmorris@namei.org, eparis@redhat.com, htejun@gmail.com, nagendra_tomar@adaptec.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: remove duplicate definitions for _STA bits
-has been added to the -mm tree.  Its filename is
-     acpi-remove-duplicate-definitions-for-_sta-bits.patch
+     sysfs group: bypass permission checks
+has been removed from the -mm tree.  Its filename was
+     sysfs-group-removal-avoid-bypass-permission-checks.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ACPI: remove duplicate definitions for _STA bits
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: sysfs group: bypass permission checks
+From: James Morris <jmorris@namei.org>
 
-No need to duplicate the existing definitions in include/acpi/actypes.h.
+Prevent permission checking from being peformed when the kernel wants to
+unconditionally remove a sysfs group, by introducing an kernel-only variant
+of lookup_one_len(), lookup_one_len_kern().
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>
+Additionally, as sysfs_remove_group() does not check the return value of
+the lookup before using it, a BUG_ON has been added to pinpoint the cause
+of any problems potentially caused by this (and as a form of annotation).
+
+Signed-off-by: James Morris <jmorris@namei.org>
+Cc: Nagendra Singh Tomar <nagendra_tomar@adaptec.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |   13 ++++---------
- drivers/acpi/container.c       |    6 ++----
- drivers/acpi/processor_core.c  |    4 +---
- 3 files changed, 7 insertions(+), 16 deletions(-)
+ fs/namei.c            |   30 ++++++++++++++++++++++--------
+ fs/sysfs/group.c      |    6 ++++--
+ include/linux/namei.h |    3 ++-
+ 3 files changed, 28 insertions(+), 11 deletions(-)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~acpi-remove-duplicate-definitions-for-_sta-bits drivers/acpi/acpi_memhotplug.c
---- a/drivers/acpi/acpi_memhotplug.c~acpi-remove-duplicate-definitions-for-_sta-bits
-+++ a/drivers/acpi/acpi_memhotplug.c
-@@ -44,11 +44,6 @@ MODULE_AUTHOR("Naveen B S <naveen.b.s@in
- MODULE_DESCRIPTION("Hotplug Mem Driver");
- MODULE_LICENSE("GPL");
+diff -puN fs/namei.c~sysfs-group-removal-avoid-bypass-permission-checks fs/namei.c
+--- a/fs/namei.c~sysfs-group-removal-avoid-bypass-permission-checks
++++ a/fs/namei.c
+@@ -1248,17 +1248,20 @@ int __user_path_lookup_open(const char _
+  * needs parent already locked. Doesn't follow mounts.
+  * SMP-safe.
+  */
+-static struct dentry * __lookup_hash(struct qstr *name, struct dentry * base, struct nameidata *nd)
++static struct dentry * __lookup_hash(struct qstr *name, struct dentry * base, struct nameidata *nd, int kern)
+ {
+ 	struct dentry * dentry;
+ 	struct inode *inode;
+ 	int err;
  
--/* ACPI _STA method values */
--#define ACPI_MEMORY_STA_PRESENT		(0x00000001UL)
--#define ACPI_MEMORY_STA_ENABLED		(0x00000002UL)
--#define ACPI_MEMORY_STA_FUNCTIONAL	(0x00000008UL)
--
- /* Memory Device States */
- #define MEMORY_INVALID_STATE	0
- #define MEMORY_POWER_ON_STATE	1
-@@ -204,9 +199,9 @@ static int acpi_memory_check_device(stru
- 	 * Check for device status. Device should be
- 	 * present/enabled/functioning.
- 	 */
--	if (!((current_status & ACPI_MEMORY_STA_PRESENT)
--	      && (current_status & ACPI_MEMORY_STA_ENABLED)
--	      && (current_status & ACPI_MEMORY_STA_FUNCTIONAL)))
-+	if (!((current_status & ACPI_STA_DEVICE_PRESENT)
-+	      && (current_status & ACPI_STA_DEVICE_ENABLED)
-+	      && (current_status & ACPI_STA_DEVICE_FUNCTIONING)))
- 		return -ENODEV;
+ 	inode = base->d_inode;
+-	err = permission(inode, MAY_EXEC, nd);
+-	dentry = ERR_PTR(err);
+-	if (err)
+-		goto out;
++
++	if (likely(!kern)) {
++		err = permission(inode, MAY_EXEC, nd);
++		dentry = ERR_PTR(err);
++		if (err)
++			goto out;
++	}
  
- 	return 0;
-@@ -286,7 +281,7 @@ static int acpi_memory_powerdown_device(
- 		return -ENODEV;
+ 	/*
+ 	 * See if the low-level filesystem might want
+@@ -1289,11 +1292,11 @@ out:
  
- 	/* Check for device status.  Device should be disabled */
--	if (current_status & ACPI_MEMORY_STA_ENABLED)
-+	if (current_status & ACPI_STA_DEVICE_ENABLED)
- 		return -EINVAL;
- 
- 	return 0;
-diff -puN drivers/acpi/container.c~acpi-remove-duplicate-definitions-for-_sta-bits drivers/acpi/container.c
---- a/drivers/acpi/container.c~acpi-remove-duplicate-definitions-for-_sta-bits
-+++ a/drivers/acpi/container.c
-@@ -49,8 +49,6 @@ MODULE_AUTHOR("Anil S Keshavamurthy");
- MODULE_DESCRIPTION("ACPI container driver");
- MODULE_LICENSE("GPL");
- 
--#define ACPI_STA_PRESENT		(0x00000001)
--
- static int acpi_container_add(struct acpi_device *device);
- static int acpi_container_remove(struct acpi_device *device, int type);
- 
-@@ -75,13 +73,13 @@ static int is_device_present(acpi_handle
- 
- 	status = acpi_get_handle(handle, "_STA", &temp);
- 	if (ACPI_FAILURE(status))
--		return 1;	/* _STA not found, assmue device present */
-+		return 1;	/* _STA not found, assume device present */
- 
- 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
- 	if (ACPI_FAILURE(status))
- 		return 0;	/* Firmware error */
- 
--	return ((sta & ACPI_STA_PRESENT) == ACPI_STA_PRESENT);
-+	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+ static struct dentry *lookup_hash(struct nameidata *nd)
+ {
+-	return __lookup_hash(&nd->last, nd->dentry, nd);
++	return __lookup_hash(&nd->last, nd->dentry, nd, 0);
  }
  
- /*******************************************************************/
-diff -puN drivers/acpi/processor_core.c~acpi-remove-duplicate-definitions-for-_sta-bits drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-remove-duplicate-definitions-for-_sta-bits
-+++ a/drivers/acpi/processor_core.c
-@@ -71,8 +71,6 @@
- #define ACPI_PROCESSOR_LIMIT_USER	0
- #define ACPI_PROCESSOR_LIMIT_THERMAL	1
- 
--#define ACPI_STA_PRESENT 0x00000001
--
- #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_core");
- 
-@@ -780,7 +778,7 @@ static int is_processor_present(acpi_han
- 
- 
- 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
--	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_PRESENT)) {
-+	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Processor Device is not present"));
- 		return 0;
+ /* SMP-safe */
+-struct dentry * lookup_one_len(const char * name, struct dentry * base, int len)
++static inline struct dentry * __lookup_one_len(const char * name, struct dentry * base, int len, int kern)
+ {
+ 	unsigned long hash;
+ 	struct qstr this;
+@@ -1313,11 +1316,22 @@ struct dentry * lookup_one_len(const cha
  	}
+ 	this.hash = end_name_hash(hash);
+ 
+-	return __lookup_hash(&this, base, NULL);
++	return __lookup_hash(&this, base, NULL, kern);
+ access:
+ 	return ERR_PTR(-EACCES);
+ }
+ 
++struct dentry *lookup_one_len(const char *name, struct dentry *base, int len)
++{
++	return __lookup_one_len(name, base, len, 0);
++}
++
++struct dentry *lookup_one_len_kern(const char *name, struct dentry *base,
++					int len)
++{
++	return __lookup_one_len(name, base, len, 1);
++}
++
+ /*
+  *	namei()
+  *
+diff -puN fs/sysfs/group.c~sysfs-group-removal-avoid-bypass-permission-checks fs/sysfs/group.c
+--- a/fs/sysfs/group.c~sysfs-group-removal-avoid-bypass-permission-checks
++++ a/fs/sysfs/group.c
+@@ -70,9 +70,11 @@ void sysfs_remove_group(struct kobject *
+ {
+ 	struct dentry * dir;
+ 
+-	if (grp->name)
+-		dir = lookup_one_len(grp->name, kobj->dentry,
++	if (grp->name) {
++		dir = lookup_one_len_kern(grp->name, kobj->dentry,
+ 				strlen(grp->name));
++		BUG_ON(IS_ERR(dir));
++	}
+ 	else
+ 		dir = dget(kobj->dentry);
+ 
+diff -puN include/linux/namei.h~sysfs-group-removal-avoid-bypass-permission-checks include/linux/namei.h
+--- a/include/linux/namei.h~sysfs-group-removal-avoid-bypass-permission-checks
++++ a/include/linux/namei.h
+@@ -81,7 +81,8 @@ extern struct file *lookup_instantiate_f
+ extern struct file *nameidata_to_filp(struct nameidata *nd, int flags);
+ extern void release_open_intent(struct nameidata *);
+ 
+-extern struct dentry * lookup_one_len(const char *, struct dentry *, int);
++extern struct dentry *lookup_one_len(const char *, struct dentry *, int);
++extern struct dentry *lookup_one_len_kern(const char *, struct dentry *, int);
+ 
+ extern int follow_down(struct vfsmount **, struct dentry **);
+ extern int follow_up(struct vfsmount **, struct dentry **);
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from jmorris@namei.org are
 
-acpi-remove-duplicate-definitions-for-_sta-bits.patch
-acpi-use-_sta-bit-names-rather-than-0x0f.patch
-git-ia64.patch
-move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnpacpi-sets-pnpdev-devarchdata-fix.patch
-efi-warn-only-for-pre-100-system-tables.patch
-pnpbios-conert-to-use-the-kthread-api.patch
-pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
-pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled.patch
-smsc-ircc2-tidy-up-module-parameter-checking.patch
-smsc-ircc2-add-pnp-support.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-use-menuconfig-objects-pnp.patch
+return-eperm-not-echild-on-security_task_wait-failure.patch
+sysfs-group-removal-avoid-bypass-permission-checks.patch
+git-net.patch
+git-selinux.patch
+implement-file-posix-capabilities.patch
+file-capabilities-accomodate-future-64-bit-caps.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+remove-redundant-check-from-proc_setattr.patch
+remove-redundant-check-from-proc_sys_setattr.patch
+mprotect-patch-for-use-by-slim.patch
+integrity-service-api-and-dummy-provider.patch
+slim-main-patch.patch
+slim-secfs-patch.patch
+slim-make-and-config-stuff.patch
+slim-debug-output.patch
+slim-documentation.patch
