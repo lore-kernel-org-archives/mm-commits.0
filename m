@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-use-__set_current_state.patch added to -mm tree
-Date: Fri, 20 Apr 2007 17:25:04 -0700
-Message-ID: <200704210025.l3L0P4wc027308@shell0.pdx.osdl.net>
+Subject: + reiserfs-use-__set_current_state.patch added to -mm tree
+Date: Fri, 20 Apr 2007 17:26:05 -0700
+Message-ID: <200704210026.l3L0Q9gh027321@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38378 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38556 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753926AbXDUAZx (ORCPT
+	by vger.kernel.org with ESMTP id S1753917AbXDUA0t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 20:25:53 -0400
+	Fri, 20 Apr 2007 20:26:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: milindchoudhary@gmail.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: milindchoudhary@gmail.com, reiserfs-dev@namesys.com
 
 
 The patch titled
-     nfs: use __set_current_state()
+     reiserfs: use __set_current_state()
 has been added to the -mm tree.  Its filename is
-     nfs-use-__set_current_state.patch
+     reiserfs-use-__set_current_state.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nfs: use __set_current_state()
+Subject: reiserfs: use __set_current_state()
 From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-use __set_current_state(TASK_*) instead of current->state = TASK_*, in fs/nfs
+use __set_current_state(TASK_*) instead of current->state = TASK_*, in
+fs/reiserfs
 
 Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <reiserfs-dev@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/idmap.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/reiserfs/journal.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nfs/idmap.c~nfs-use-__set_current_state fs/nfs/idmap.c
---- a/fs/nfs/idmap.c~nfs-use-__set_current_state
-+++ a/fs/nfs/idmap.c
-@@ -272,7 +272,7 @@ nfs_idmap_id(struct idmap *idmap, struct
+diff -puN fs/reiserfs/journal.c~reiserfs-use-__set_current_state fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-use-__set_current_state
++++ a/fs/reiserfs/journal.c
+@@ -2918,7 +2918,7 @@ static void queue_log_writer(struct supe
  	set_current_state(TASK_UNINTERRUPTIBLE);
- 	mutex_unlock(&idmap->idmap_im_lock);
- 	schedule();
+ 	if (test_bit(J_WRITERS_QUEUED, &journal->j_state))
+ 		schedule();
 -	current->state = TASK_RUNNING;
 +	__set_current_state(TASK_RUNNING);
- 	remove_wait_queue(&idmap->idmap_wq, &wq);
- 	mutex_lock(&idmap->idmap_im_lock);
- 
-@@ -333,7 +333,7 @@ nfs_idmap_name(struct idmap *idmap, stru
- 	set_current_state(TASK_UNINTERRUPTIBLE);
- 	mutex_unlock(&idmap->idmap_im_lock);
- 	schedule();
--	current->state = TASK_RUNNING;
-+	__set_current_state(TASK_RUNNING);
- 	remove_wait_queue(&idmap->idmap_wq, &wq);
- 	mutex_lock(&idmap->idmap_im_lock);
+ 	remove_wait_queue(&journal->j_join_wait, &wait);
+ }
  
 _
 
@@ -90,3 +81,4 @@ round_up-macro-cleanup-in-fs-smbfs-requestc.patch
 spin_lock_unlocked-cleanup-in-init_taskh.patch
 spin_lock_unlocked-cleanup-in-drivers-char-keyboard.patch
 spin_lock_unlocked-cleanup-in-drivers-serial.patch
+reiserfs-use-__set_current_state.patch
