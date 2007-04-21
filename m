@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + ocfs2-use-__set_current_state.patch added to -mm tree
-Date: Fri, 20 Apr 2007 17:23:12 -0700
-Message-ID: <200704210023.l3L0NCwh027273@shell0.pdx.osdl.net>
+Date: Fri, 20 Apr 2007 17:24:03 -0700
+Message-ID: <200704210024.l3L0O4Zk027293@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50991 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753916AbXDUAYF (ORCPT
+	by vger.kernel.org with ESMTP id S1753532AbXDUAZH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 20:24:05 -0400
+	Fri, 20 Apr 2007 20:25:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -48,7 +48,7 @@ diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-use-__set_current_state fs/ocfs2/dlm/dl
  	}
  	remove_wait_queue(&res->wq, &wait);
 -	current->state = TASK_RUNNING;
-+	set_current_state(TASK_RUNNING);
++	__set_current_state(TASK_RUNNING);
  }
  
  int __dlm_lockres_has_locks(struct dlm_lock_resource *res)
@@ -66,6 +66,7 @@ spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
 spin_lock_unlocked-cleanup-in-arch-mips.patch
 round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
 spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
+use-set_current_state-in-fs.patch
 ocfs2-use-__set_current_state.patch
 round_up-macro-cleanup-in-drivers-parisc.patch
 round_up-macro-cleanup-in-drivers-pci.patch
