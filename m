@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-mostly-unused-iospace-macros.patch added to -mm tree
-Date: Sat, 21 Apr 2007 00:24:55 -0700
-Message-ID: <200704210724.l3L7OtNf001121@shell0.pdx.osdl.net>
+Subject: + unprivileged-mounts-account-user-mounts-fix.patch added to -mm tree
+Date: Sat, 21 Apr 2007 00:55:34 -0700
+Message-ID: <200704210755.l3L7tY7P001547@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35118 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964865AbXDUHZF (ORCPT
+	by vger.kernel.org with ESMTP id S1030192AbXDUH4R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 03:25:05 -0400
+	Sat, 21 Apr 2007 03:56:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david@gibson.dropbear.id.au, linux-arch@vger.kernel.org
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, hch@lst.de, linuxram@us.ibm.com, mszeredi@suse.cz, serue@us.ibm.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Clean up mostly unused IOSPACE macros
+     unprivileged-mounts-account-user-mounts-fix
 has been added to the -mm tree.  Its filename is
-     cleanup-mostly-unused-iospace-macros.patch
+     unprivileged-mounts-account-user-mounts-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,299 +26,229 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Clean up mostly unused IOSPACE macros
-From: David Gibson <david@gibson.dropbear.id.au>
+Subject: unprivileged-mounts-account-user-mounts-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Most architectures defined three macros, MK_IOSPACE_PFN(), GET_IOSPACE()
-and GET_PFN() in pgtable.h.  However, the only callers of any of these
-macros are in Sparc specific code, either in arch/sparc, arch/sparc64 or
-drivers/sbus.
-
-This patch removes the redundant macros from all architectures except
-sparc and sparc64.
-
-Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
-Cc: <linux-arch@vger.kernel.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/pgtable.h     |    4 ----
- include/asm-arm/pgtable-nommu.h |    4 ----
- include/asm-arm/pgtable.h       |    4 ----
- include/asm-arm26/pgtable.h     |    4 ----
- include/asm-avr32/pgtable.h     |    4 ----
- include/asm-frv/pgtable.h       |    4 ----
- include/asm-h8300/pgtable.h     |    4 ----
- include/asm-i386/pgtable.h      |    4 ----
- include/asm-ia64/pgtable.h      |    4 ----
- include/asm-m32r/pgtable.h      |    4 ----
- include/asm-m68k/pgtable.h      |    4 ----
- include/asm-m68knommu/pgtable.h |    4 ----
- include/asm-mips/pgtable.h      |    4 ----
- include/asm-parisc/pgtable.h    |    4 ----
- include/asm-ppc/pgtable.h       |    4 ----
- include/asm-sh/pgtable.h        |    4 ----
- include/asm-sh64/pgtable.h      |    4 ----
- include/asm-x86_64/pgtable.h    |    4 ----
- 18 files changed, 72 deletions(-)
+ include/linux/sysctl.h |    2 --
+ kernel/sysctl.c        |    4 ++--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-alpha/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-alpha/pgtable.h
---- a/include/asm-alpha/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-alpha/pgtable.h
-@@ -345,10 +345,6 @@ extern inline pte_t mk_swap_pte(unsigned
- #define io_remap_pfn_range(vma, start, pfn, size, prot)	\
- 		remap_pfn_range(vma, start, pfn, size, prot)
+diff -puN include/linux/sysctl.h~unprivileged-mounts-account-user-mounts-fix include/linux/sysctl.h
+--- a/include/linux/sysctl.h~unprivileged-mounts-account-user-mounts-fix
++++ a/include/linux/sysctl.h
+@@ -819,8 +819,6 @@ enum
+ 	FS_AIO_NR=18,	/* current system-wide number of aio requests */
+ 	FS_AIO_MAX_NR=19,	/* system-wide maximum number of aio requests */
+ 	FS_INOTIFY=20,	/* inotify submenu */
+-	FS_NR_USER_MOUNTS=21,	/* int:current number of user mounts */
+-	FS_MAX_USER_MOUNTS=22,	/* int:maximum number of user mounts */
+ 	FS_OCFS2=988,	/* ocfs2 */
+ };
  
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- #define pte_ERROR(e) \
- 	printk("%s:%d: bad pte %016lx.\n", __FILE__, __LINE__, pte_val(e))
- #define pmd_ERROR(e) \
-diff -puN include/asm-arm26/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-arm26/pgtable.h
---- a/include/asm-arm26/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-arm26/pgtable.h
-@@ -297,10 +297,6 @@ static inline pte_t mk_pte_phys(unsigned
- #define io_remap_pfn_range(vma,from,pfn,size,prot) \
- 		remap_pfn_range(vma, from, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* _ASMARM_PGTABLE_H */
-diff -puN include/asm-arm/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-arm/pgtable.h
---- a/include/asm-arm/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-arm/pgtable.h
-@@ -395,10 +395,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD
- #define io_remap_pfn_range(vma,from,pfn,size,prot) \
- 		remap_pfn_range(vma, from, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- #define pgtable_cache_init() do { } while (0)
- 
- #endif /* !__ASSEMBLY__ */
-diff -puN include/asm-arm/pgtable-nommu.h~cleanup-mostly-unused-iospace-macros include/asm-arm/pgtable-nommu.h
---- a/include/asm-arm/pgtable-nommu.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-arm/pgtable-nommu.h
-@@ -83,10 +83,6 @@ extern int is_in_rom(unsigned long);
- #define io_remap_page_range	remap_page_range
- #define io_remap_pfn_range	remap_pfn_range
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- 
- /*
-  * All 32bit addresses are effectively valid for vmalloc...
-diff -puN include/asm-avr32/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-avr32/pgtable.h
---- a/include/asm-avr32/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-avr32/pgtable.h
-@@ -394,10 +394,6 @@ typedef pte_t *pte_addr_t;
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)	\
- 	remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- /* No page table caches to initialize (?) */
- #define pgtable_cache_init()	do { } while(0)
- 
-diff -puN include/asm-frv/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-frv/pgtable.h
---- a/include/asm-frv/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-frv/pgtable.h
-@@ -509,10 +509,6 @@ static inline int pte_file(pte_t pte)
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
-diff -puN include/asm-h8300/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-h8300/pgtable.h
---- a/include/asm-h8300/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-h8300/pgtable.h
-@@ -55,10 +55,6 @@ extern int is_in_rom(unsigned long);
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- /*
-  * All 32bit addresses are effectively valid for vmalloc...
-  * Sort of meaningless for non-VM targets.
-diff -puN include/asm-i386/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-i386/pgtable.h
-@@ -542,10 +542,6 @@ static inline void paravirt_pagetable_se
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- #include <asm-generic/pgtable.h>
- 
- #endif /* _I386_PGTABLE_H */
-diff -puN include/asm-ia64/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-ia64/pgtable.h
-@@ -485,10 +485,6 @@ extern void paging_init (void);
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- /*
-  * ZERO_PAGE is a global shared page that is always zero: used
-  * for zero-mapped memory areas etc..
-diff -puN include/asm-m32r/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-m32r/pgtable.h
---- a/include/asm-m32r/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-m32r/pgtable.h
-@@ -381,10 +381,6 @@ static inline void pmd_set(pmd_t * pmdp,
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)	\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
-diff -puN include/asm-m68knommu/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-m68knommu/pgtable.h
---- a/include/asm-m68knommu/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-m68knommu/pgtable.h
-@@ -59,10 +59,6 @@ extern int is_in_rom(unsigned long);
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- /*
-  * All 32bit addresses are effectively valid for vmalloc...
-  * Sort of meaningless for non-VM targets.
-diff -puN include/asm-m68k/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-m68k/pgtable.h
---- a/include/asm-m68k/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-m68k/pgtable.h
-@@ -143,10 +143,6 @@ static inline void update_mmu_cache(stru
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- /* MMU-specific headers */
- 
- #ifdef CONFIG_SUN3
-diff -puN include/asm-mips/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-mips/pgtable.h
---- a/include/asm-mips/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-mips/pgtable.h
-@@ -387,10 +387,6 @@ static inline int io_remap_pfn_range(str
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+diff -puN kernel/sysctl.c~unprivileged-mounts-account-user-mounts-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~unprivileged-mounts-account-user-mounts-fix
++++ a/kernel/sysctl.c
+@@ -1028,7 +1028,7 @@ static ctl_table fs_table[] = {
+ #endif	
  #endif
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- #include <asm-generic/pgtable.h>
- 
- /*
-diff -puN include/asm-parisc/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-parisc/pgtable.h
---- a/include/asm-parisc/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-parisc/pgtable.h
-@@ -528,10 +528,6 @@ static inline void ptep_set_wrprotect(st
- 
- #define pgprot_noncached(prot) __pgprot(pgprot_val(prot) | _PAGE_NO_CACHE)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- /* We provide our own get_unmapped_area to provide cache coherency */
- 
- #define HAVE_ARCH_UNMAPPED_AREA
-diff -puN include/asm-ppc/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-ppc/pgtable.h
---- a/include/asm-ppc/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-ppc/pgtable.h
-@@ -827,10 +827,6 @@ static inline int io_remap_pfn_range(str
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- #endif
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- /*
-  * No page table caches to initialise
-  */
-diff -puN include/asm-sh64/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-sh64/pgtable.h
---- a/include/asm-sh64/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-sh64/pgtable.h
-@@ -485,10 +485,6 @@ extern void update_mmu_cache(struct vm_a
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- #endif /* !__ASSEMBLY__ */
- 
- /*
-diff -puN include/asm-sh/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-sh/pgtable.h
---- a/include/asm-sh/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-sh/pgtable.h
-@@ -568,10 +568,6 @@ typedef pte_t *pte_addr_t;
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- struct mm_struct;
- 
- /*
-diff -puN include/asm-x86_64/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-x86_64/pgtable.h
---- a/include/asm-x86_64/pgtable.h~cleanup-mostly-unused-iospace-macros
-+++ a/include/asm-x86_64/pgtable.h
-@@ -417,10 +417,6 @@ extern int kern_addr_valid(unsigned long
- #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
- 		remap_pfn_range(vma, vaddr, pfn, size, prot)
- 
--#define MK_IOSPACE_PFN(space, pfn)	(pfn)
--#define GET_IOSPACE(pfn)		0
--#define GET_PFN(pfn)			(pfn)
--
- #define HAVE_ARCH_UNMAPPED_AREA
- 
- #define pgtable_cache_init()   do { } while (0)
+ 	{
+-		.ctl_name	= FS_NR_USER_MOUNTS,
++		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "nr_user_mounts",
+ 		.data		= &nr_user_mounts,
+ 		.maxlen		= sizeof(int),
+@@ -1036,7 +1036,7 @@ static ctl_table fs_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
+-		.ctl_name	= FS_MAX_USER_MOUNTS,
++		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "max_user_mounts",
+ 		.data		= &max_user_mounts,
+ 		.maxlen		= sizeof(int),
 _
 
-Patches currently in -mm which might be from david@gibson.dropbear.id.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
 git-powerpc.patch
-serial-define-fixed_port-flag-for-serial_core.patch
-serial-use-resource_size_t-for-serial-port-io-addresses.patch
-cleanup-mostly-unused-iospace-macros.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+git-drm.patch
+git-dvb.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+unprivileged-mounts-account-user-mounts-fix.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
