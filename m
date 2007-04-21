@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch added to -mm tree
-Date: Fri, 20 Apr 2007 23:47:59 -0700
-Message-ID: <200704210648.l3L6lxQS000630@shell0.pdx.osdl.net>
+Subject: + slab-allocators-remove-slab_debug_initial-flag-proc.patch added to -mm tree
+Date: Fri, 20 Apr 2007 23:49:45 -0700
+Message-ID: <200704210649.l3L6nja5000652@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60920 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933040AbXDUGsL (ORCPT
+	by vger.kernel.org with ESMTP id S932997AbXDUGtw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 02:48:11 -0400
+	Sat, 21 Apr 2007 02:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     slab allocators: Remove multiple alignment specifications (revoke)
+     slab-allocators-remove-slab_debug_initial-flag: proc
 has been added to the -mm tree.  Its filename is
-     revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+     slab-allocators-remove-slab_debug_initial-flag-proc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab allocators: Remove multiple alignment specifications (revoke)
+Subject: slab-allocators-remove-slab_debug_initial-flag: proc
 From: Christoph Lameter <clameter@sgi.com>
 
 
@@ -34,22 +34,22 @@ From: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/revoke.c |    3 +--
+ fs/proc/inode.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/revoke.c~revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke fs/revoke.c
---- a/fs/revoke.c~revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke
-+++ a/fs/revoke.c
-@@ -709,8 +709,7 @@ static void revokefs_init_inode(void *ob
+diff -puN fs/proc/inode.c~slab-allocators-remove-slab_debug_initial-flag-proc fs/proc/inode.c
+--- a/fs/proc/inode.c~slab-allocators-remove-slab_debug_initial-flag-proc
++++ a/fs/proc/inode.c
+@@ -109,8 +109,7 @@ static void init_once(void * foo, struct
  {
- 	struct revokefs_inode_info *info = obj;
+ 	struct proc_inode *ei = (struct proc_inode *) foo;
  
--	if ((flags & (SLAB_CTOR_VERIFY | SLAB_CTOR_CONSTRUCTOR)) ==
--	    SLAB_CTOR_CONSTRUCTOR) {
-+	if (flags & SLAB_CTOR_CONSTRUCTOR) {
- 		info->owner = NULL;
- 		inode_init_once(&info->vfs_inode);
- 	}
+-	if ((flags & (SLAB_CTOR_VERIFY|SLAB_CTOR_CONSTRUCTOR)) ==
+-	    SLAB_CTOR_CONSTRUCTOR)
++	if (flags & SLAB_CTOR_CONSTRUCTOR)
+ 		inode_init_once(&ei->vfs_inode);
+ }
+  
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -135,6 +135,7 @@ quicklist-support-for-sparc64.patch
 slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
 kmem_cache-simplify-slab-cache-creation.patch
 slab-allocators-remove-slab_debug_initial-flag.patch
+slab-allocators-remove-slab_debug_initial-flag-proc.patch
 slab-allocators-remove-multiple-alignment-specifications.patch
 slab-allocators-remove-slab_ctor_atomic.patch
 slab-shutdown-cache_reaper-when-cpu-goes-down.patch
