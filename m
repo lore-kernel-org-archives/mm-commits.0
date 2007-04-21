@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + unprivileged-mounts-account-user-mounts.patch added to -mm tree
-Date: Sat, 21 Apr 2007 00:55:32 -0700
-Message-ID: <200704210755.l3L7tWaH001542@shell0.pdx.osdl.net>
+Subject: + sched-implement-staircase-scheduler-yaf-fix.patch added to -mm tree
+Date: Sat, 21 Apr 2007 00:57:35 -0700
+Message-ID: <200704210757.l3L7vZdT001618@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60448 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030258AbXDUH4T (ORCPT
+	by vger.kernel.org with ESMTP id S1030468AbXDUH6F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 03:56:19 -0400
+	Sat, 21 Apr 2007 03:58:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, ebiederm@xmission.com, hch@lst.de, linuxram@us.ibm.com, serue@us.ibm.com, viro@zeniv.linux.org.uk
+Cc: kernel@kolivas.org, a1426z@gawab.com
 
 
 The patch titled
-     unprivileged mounts: account user mounts
+     sched: implement staircase scheduler yaf fix
 has been added to the -mm tree.  Its filename is
-     unprivileged-mounts-account-user-mounts.patch
+     sched-implement-staircase-scheduler-yaf-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,183 +26,163 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unprivileged mounts: account user mounts
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: sched: implement staircase scheduler yaf fix
+From: Con Kolivas <kernel@kolivas.org>
 
-Add sysctl variables for accounting and limiting the number of user
-mounts.
+Management of time_slice sharing across fork was broken by changing
+time_slice to a signed int.
 
-The maximum number of user mounts is set to 1024 by default.  This
-won't in itself enable user mounts, setting a mount to be owned by a
-user is first needed
+first_time_slice was not being cleared anywhere near often enough.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ram Pai <linuxram@us.ibm.com>
+SCHED_BATCH tasks in the current implementation should advance prio_level
+and best_static_prio.
+
+Thanks Al Boldi <a1426z@gawab.com> for making me check the fork code.
+
+Signed-off-by: Con Kolivas <kernel@kolivas.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    9 +++++++++
- fs/namespace.c                     |   24 ++++++++++++++++++++++++
- include/linux/fs.h                 |    3 +++
- include/linux/sysctl.h             |    2 ++
- kernel/sysctl.c                    |   16 ++++++++++++++++
- 5 files changed, 54 insertions(+)
+ kernel/sched.c |   50 +++++++++++++++++++++++++++++------------------
+ 1 file changed, 31 insertions(+), 19 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts
-+++ a/Documentation/filesystems/proc.txt
-@@ -923,6 +923,15 @@ reaches aio-max-nr then io_setup will fa
- raising aio-max-nr does not result in the pre-allocation or re-sizing
- of any kernel data structures.
- 
-+nr_user_mounts and max_user_mounts
-+----------------------------------
-+
-+These represent the number of "user" mounts and the maximum number of
-+"user" mounts respectively.  User mounts may be created by
-+unprivileged users.  User mounts may also be created with sysadmin
-+privileges on behalf of a user, in which case nr_user_mounts may
-+exceed max_user_mounts.
-+
- 2.2 /proc/sys/fs/binfmt_misc - Miscellaneous binary formats
- -----------------------------------------------------------
- 
-diff -puN fs/namespace.c~unprivileged-mounts-account-user-mounts fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-account-user-mounts
-+++ a/fs/namespace.c
-@@ -39,6 +39,9 @@ static int hash_mask __read_mostly, hash
- static struct kmem_cache *mnt_cache __read_mostly;
- static struct rw_semaphore namespace_sem;
- 
-+int nr_user_mounts;
-+int max_user_mounts = 1024;
-+
- /* /sys/fs */
- decl_subsys(fs, NULL, NULL);
- EXPORT_SYMBOL_GPL(fs_subsys);
-@@ -227,11 +230,30 @@ static struct vfsmount *skip_mnt_tree(st
- 	return p;
+diff -puN kernel/sched.c~sched-implement-staircase-scheduler-yaf-fix kernel/sched.c
+--- a/kernel/sched.c~sched-implement-staircase-scheduler-yaf-fix
++++ a/kernel/sched.c
+@@ -688,6 +688,12 @@ static void dequeue_task(struct task_str
+ 		__clear_bit(p->prio, p->array->prio_bitmap);
  }
  
-+static void dec_nr_user_mounts(void)
++static void reset_first_time_slice(struct task_struct *p)
 +{
-+	spin_lock(&vfsmount_lock);
-+	nr_user_mounts--;
-+	spin_unlock(&vfsmount_lock);
++	if (unlikely(p->first_time_slice))
++		p->first_time_slice = 0;
 +}
 +
- static void set_mnt_user(struct vfsmount *mnt)
- {
- 	BUG_ON(mnt->mnt_flags & MNT_USER);
- 	mnt->mnt_uid = current->uid;
- 	mnt->mnt_flags |= MNT_USER;
-+	spin_lock(&vfsmount_lock);
-+	nr_user_mounts++;
-+	spin_unlock(&vfsmount_lock);
-+}
-+
-+static void clear_mnt_user(struct vfsmount *mnt)
-+{
-+	if (mnt->mnt_flags & MNT_USER) {
-+		mnt->mnt_uid = 0;
-+		mnt->mnt_flags &= ~MNT_USER;
-+		dec_nr_user_mounts();
-+	}
+ /*
+  * The task is being queued on a fresh array so it has its entitlement
+  * bitmap cleared.
+@@ -699,6 +705,7 @@ static void task_new_array(struct task_s
+ 	p->rotation = rq->prio_rotation;
+ 	p->time_slice = p->quota;
+ 	p->array = array;
++	reset_first_time_slice(p);
  }
  
- static struct vfsmount *clone_mnt(struct vfsmount *old, struct dentry *root,
-@@ -283,6 +305,7 @@ static inline void __mntput(struct vfsmo
- {
- 	struct super_block *sb = mnt->mnt_sb;
- 	dput(mnt->mnt_root);
-+	clear_mnt_user(mnt);
- 	free_vfsmnt(mnt);
- 	deactivate_super(sb);
+ /* Find the first slot from the relevant prio_matrix entry */
+@@ -767,6 +774,7 @@ static void queue_expired(struct task_st
+ 	p->prio = p->normal_prio = first_prio_slot(p);
+ 	if (p->static_prio < rq->expired->best_static_prio)
+ 		rq->expired->best_static_prio = p->static_prio;
++	reset_first_time_slice(p);
  }
-@@ -1026,6 +1049,7 @@ static int do_remount(struct nameidata *
- 	down_write(&sb->s_umount);
- 	err = do_remount_sb(sb, flags, data, 0);
- 	if (!err) {
-+		clear_mnt_user(nd->mnt);
- 		nd->mnt->mnt_flags = mnt_flags;
- 		if (flags & MS_SETUSER)
- 			set_mnt_user(nd->mnt);
-diff -puN include/linux/fs.h~unprivileged-mounts-account-user-mounts include/linux/fs.h
---- a/include/linux/fs.h~unprivileged-mounts-account-user-mounts
-+++ a/include/linux/fs.h
-@@ -50,6 +50,9 @@ extern struct inodes_stat_t inodes_stat;
  
- extern int leases_enable, lease_break_time;
- 
-+extern int nr_user_mounts;
-+extern int max_user_mounts;
+ #ifdef CONFIG_SMP
+@@ -1708,13 +1716,20 @@ void fastcall sched_fork(struct task_str
+ 	 * resulting in more scheduling fairness.
+ 	 */
+ 	local_irq_disable();
+-	current->time_slice >>= 1;
+-	p->time_slice = current->time_slice;
+-	/*
+-	 * The remainder of the first timeslice might be recovered by
+-	 * the parent if the child exits early enough.
+-	 */
+-	p->first_time_slice = 1;
++	if (current->time_slice > 0) {
++		current->time_slice /= 2;
++		if (current->time_slice)
++			p->time_slice = current->time_slice;
++		else
++			p->time_slice = 1;
++		/*
++		 * The remainder of the first timeslice might be recovered by
++		 * the parent if the child exits early enough.
++		 */
++		p->first_time_slice = 1;
++	} else
++		p->time_slice = 0;
 +
- #ifdef CONFIG_DNOTIFY
- extern int dir_notify_enable;
- #endif
-diff -puN include/linux/sysctl.h~unprivileged-mounts-account-user-mounts include/linux/sysctl.h
---- a/include/linux/sysctl.h~unprivileged-mounts-account-user-mounts
-+++ a/include/linux/sysctl.h
-@@ -819,6 +819,8 @@ enum
- 	FS_AIO_NR=18,	/* current system-wide number of aio requests */
- 	FS_AIO_MAX_NR=19,	/* system-wide maximum number of aio requests */
- 	FS_INOTIFY=20,	/* inotify submenu */
-+	FS_NR_USER_MOUNTS=21,	/* int:current number of user mounts */
-+	FS_MAX_USER_MOUNTS=22,	/* int:maximum number of user mounts */
- 	FS_OCFS2=988,	/* ocfs2 */
- };
+ 	p->timestamp = sched_clock();
+ 	local_irq_enable();
+ out:
+@@ -1795,7 +1810,7 @@ void fastcall sched_exit(struct task_str
  
-diff -puN kernel/sysctl.c~unprivileged-mounts-account-user-mounts kernel/sysctl.c
---- a/kernel/sysctl.c~unprivileged-mounts-account-user-mounts
-+++ a/kernel/sysctl.c
-@@ -1028,6 +1028,22 @@ static ctl_table fs_table[] = {
- #endif	
- #endif
- 	{
-+		.ctl_name	= FS_NR_USER_MOUNTS,
-+		.procname	= "nr_user_mounts",
-+		.data		= &nr_user_mounts,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0444,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
-+		.ctl_name	= FS_MAX_USER_MOUNTS,
-+		.procname	= "max_user_mounts",
-+		.data		= &max_user_mounts,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= KERN_SETUID_DUMPABLE,
- 		.procname	= "suid_dumpable",
- 		.data		= &suid_dumpable,
+ 	parent = p->parent;
+ 	rq = task_rq_lock(parent, &flags);
+-	if (p->first_time_slice && task_cpu(p) == task_cpu(parent)) {
++	if (p->first_time_slice > 0 && task_cpu(p) == task_cpu(parent)) {
+ 		parent->time_slice += p->time_slice;
+ 		if (unlikely(parent->time_slice > parent->quota))
+ 			parent->time_slice = parent->quota;
+@@ -3376,8 +3391,7 @@ static void task_expired_entitlement(str
+ 	struct prio_array *old_array;
+ 	int overrun, old_prio;
+ 
+-	if (unlikely(p->first_time_slice))
+-		p->first_time_slice = 0;
++	reset_first_time_slice(p);
+ 	if (rt_task(p)) {
+ 		p->time_slice = p->quota;
+ 		list_move_tail(&p->run_list, p->array->queue + p->prio);
+@@ -3480,9 +3494,10 @@ static void reset_prio_levels(struct rq 
+  */
+ static inline struct task_struct *next_dynamic_task(struct rq *rq, int idx)
+ {
++	struct prio_array *array = rq->active;
+ 	struct task_struct *next;
+ 	struct list_head *queue;
+-	struct prio_array *array = rq->active;
++	int nstatic;
+ 
+ retry:
+ 	if (idx >= MAX_PRIO) {
+@@ -3510,14 +3525,11 @@ retry:
+ 		goto retry;
+ 	}
+ 	next->rotation = rq->prio_rotation;
+-	if (likely(next->policy != SCHED_BATCH)) {
+-		int nstatic = next->static_prio;
+-
+-		if (nstatic < array->best_static_prio)
+-			array->best_static_prio = nstatic;
+-		if (idx > rq->prio_level[USER_PRIO(nstatic)])
+-			rq->prio_level[USER_PRIO(nstatic)] = idx;
+-	}
++	nstatic = next->static_prio;
++	if (nstatic < array->best_static_prio)
++		array->best_static_prio = nstatic;
++	if (idx > rq->prio_level[USER_PRIO(nstatic)])
++		rq->prio_level[USER_PRIO(nstatic)] = idx;
+ 	return next;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from kernel@kolivas.org are
 
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-filesystem-subtype-support.patch
-add-file-position-info-to-proc.patch
-add-file-position-info-to-proc-fix.patch
-check-privileges-before-setting-mount-propagation.patch
-consolidate-generic_writepages-and-mpage_writepages.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-account-user-mounts-fix.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+sched-dont-renice-kernel-threads.patch
+sched-remove-sleepavg-from-proc.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-implement-staircase-deadline-cpu-scheduler.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+sched-implement-staircase-deadline-cpu-scheduler-staircase-improvements.patch
+sched-implement-staircase-deadline-cpu-scheduler-improvements-fix.patch
+sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
+sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
+sched-implement-staircase-deadline-scheduler-rework-priomatrix.patch
+sched-implement-staircase-deadline-scheduler-further-improvements-1.patch
+sched-implement-staircase-deadline-scheduler-timeslice-fixes.patch
+sched-implement-staircase-scheduler-yaf-fix.patch
+sched-increase-ksoftirqd-priority.patch
+sched-remove-noninteractive-flag.patch
+sched-document-sd-cpu-scheduler.patch
+sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc.patch
+sched-consolidate-sched_clock-drift-adjustments.patch
+sched-implement-staircase-deadline-scheduler-docupdate.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+swap-prefetch-avoid-repeating-entry.patch
