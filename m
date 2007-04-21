@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kswapd-use-reclaim-order-in-background-reclaim.patch added to -mm tree
-Date: Sat, 21 Apr 2007 00:59:46 -0700
-Message-ID: <200704210759.l3L7xkx2001653@shell0.pdx.osdl.net>
+Subject: + lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch added to -mm tree
+Date: Sat, 21 Apr 2007 01:29:37 -0700
+Message-ID: <200704210829.l3L8TbU5002118@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51900 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030190AbXDUIAr (ORCPT
+	by vger.kernel.org with ESMTP id S1030404AbXDUIaO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 04:00:47 -0400
+	Sat, 21 Apr 2007 04:30:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org, mel@csn.ul.ie
 
 
 The patch titled
-     kswapd: use reclaim order in background reclaim
+     lumpy: increase pressure at the end of the inactive list
 has been added to the -mm tree.  Its filename is
-     kswapd-use-reclaim-order-in-background-reclaim.patch
+     lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,117 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kswapd: use reclaim order in background reclaim
+Subject: lumpy: increase pressure at the end of the inactive list
 From: Andy Whitcroft <apw@shadowen.org>
 
-When an allocator has to dip below the low water mark for a zone, kswapd is
-awoken to start background reclaim.  The highest order of these dipping
-allocations are accumulated on the zone.  With this patch kswapd uses this
-hint to force reclaim at that order via balance_pgdat().
+Having selected an area at the end of the inactive list, reclaim is
+attempted for all LRU pages within that contiguous area.  Currently, any
+pages in this area found to still be active or referenced are rotated back
+to the active list as normal and the rest reclaimed.  At low orders there
+is a reasonable likelyhood of finding contigious inactive areas for
+reclaim.  However when reclaiming at higher order there is a very low
+chance all pages in the area being inactive, unreferenced and therefore
+reclaimable.
 
+This patch modifies behaviour when reclaiming at higher order (order >= 4).
+ All LRU pages within the target area are reclaimed, including both active
+and recently referenced pages.
+
+[mel@csn.ul.ie: additionally apply pressure to referenced paged]
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |   38 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 33 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~kswapd-use-reclaim-order-in-background-reclaim mm/vmscan.c
---- a/mm/vmscan.c~kswapd-use-reclaim-order-in-background-reclaim
+diff -puN mm/vmscan.c~lumpy-increase-pressure-at-the-end-of-the-inactive-list mm/vmscan.c
+--- a/mm/vmscan.c~lumpy-increase-pressure-at-the-end-of-the-inactive-list
 +++ a/mm/vmscan.c
-@@ -1226,6 +1226,7 @@ static unsigned long balance_pgdat(pg_da
- 		.may_swap = 1,
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
- 		.swappiness = vm_swappiness,
-+		.order = order,
- 	};
- 	/*
- 	 * temp_priority is used to remember the scanning priority at which
+@@ -487,7 +487,7 @@ static unsigned long shrink_page_list(st
+ 
+ 		referenced = page_referenced(page, 1);
+ 		/* In active use or really unfreeable?  Activate it. */
+-		if (referenced && page_mapping_inuse(page))
++		if (sc->order <= 3 && referenced && page_mapping_inuse(page))
+ 			goto activate_locked;
+ 
+ #ifdef CONFIG_SWAP
+@@ -520,7 +520,7 @@ static unsigned long shrink_page_list(st
+ 		}
+ 
+ 		if (PageDirty(page)) {
+-			if (referenced)
++			if (sc->order <= 3 && referenced)
+ 				goto keep_locked;
+ 			if (!may_enter_fs)
+ 				goto keep_locked;
+@@ -614,6 +614,7 @@ keep:
+  *
+  * returns 0 on success, -ve errno on failure.
+  */
++#define ISOLATE_BOTH -1		/* Isolate both active and inactive pages. */
+ static int __isolate_lru_page(struct page *page, int active)
+ {
+ 	int ret = -EINVAL;
+@@ -623,7 +624,8 @@ static int __isolate_lru_page(struct pag
+ 	 * dealing with comparible boolean values.  Take the logical not
+ 	 * of each.
+ 	 */
+-	if (PageLRU(page) && (!PageActive(page) == !active)) {
++	if (PageLRU(page) && (active == ISOLATE_BOTH ||
++					(!PageActive(page) == !active))) {
+ 		ret = -EBUSY;
+ 		if (likely(get_page_unless_zero(page))) {
+ 			/*
+@@ -745,6 +747,26 @@ static unsigned long isolate_lru_pages(u
+ }
+ 
+ /*
++ * deactivate_pages() is a helper for shrink_active_list(), it deactivates
++ * all active pages on the passed list.
++ */
++static unsigned long deactivate_pages(struct list_head *page_list)
++{
++	int nr_active = 0;
++	struct list_head *entry;
++
++	list_for_each(entry, page_list) {
++		struct page *page = list_entry(entry, struct page, lru);
++		if (PageActive(page)) {
++			ClearPageActive(page);
++			nr_active++;
++		}
++	}
++
++	return nr_active;
++}
++
++/*
+  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
+  * of reclaimed pages
+  */
+@@ -765,11 +787,17 @@ static unsigned long shrink_inactive_lis
+ 		unsigned long nr_taken;
+ 		unsigned long nr_scan;
+ 		unsigned long nr_freed;
++		unsigned long nr_active;
+ 
+ 		nr_taken = isolate_lru_pages(sc->swap_cluster_max,
+ 				     &zone->inactive_list,
+-				     &page_list, &nr_scan, sc->order, 0);
+-		__mod_zone_page_state(zone, NR_INACTIVE, -nr_taken);
++				     &page_list, &nr_scan, sc->order,
++				     (sc->order > 3)? ISOLATE_BOTH : 0);
++		nr_active = deactivate_pages(&page_list);
++
++		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
++		__mod_zone_page_state(zone, NR_INACTIVE,
++						-(nr_taken - nr_active));
+ 		zone->pages_scanned += nr_scan;
+ 		spin_unlock_irq(&zone->lru_lock);
+ 
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
@@ -67,6 +151,8 @@ lumpy-reclaim-v4.patch
 lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
 lumpy-only-count-taken-pages-as-scanned.patch
 kswapd-use-reclaim-order-in-background-reclaim.patch
+lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
+introduce-high_order-delineating-easily-reclaimable-orders.patch
 add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
 anti-fragmentation-switch-over-to-pfn_valid_within.patch
 lumpy-move-to-using-pfn_valid_within.patch
