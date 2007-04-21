@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue.patch added to -mm tree
-Date: Fri, 20 Apr 2007 17:29:56 -0700
-Message-ID: <200704210029.l3L0TuYn027381@shell0.pdx.osdl.net>
+Subject: + applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch added to -mm tree
+Date: Fri, 20 Apr 2007 17:31:22 -0700
+Message-ID: <200704210031.l3L0VMB1027432@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33036 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752864AbXDUAaQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753916AbXDUAbi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 20:30:16 -0400
+	Fri, 20 Apr 2007 20:31:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nicolas@boichat.ch, khali@linux-fr.org
+Cc: akpm@linux-foundation.org, khali@linux-fr.org, nicolas@boichat.ch
 
 
 The patch titled
-     applesmc: fix crash when activating a led trigger on the  keyboard backlight - use a workqueue
+     applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix
 has been added to the -mm tree.  Its filename is
-     applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue.patch
+     applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,178 +26,211 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: applesmc: fix crash when activating a led trigger on the  keyboard backlight - use a workqueue
+Subject: applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-
-- Cannot sleep in led->brightness_set handler, as it might be called from
-  a softirq, so we use a workqueue to change the brightness (as recommended
-  by Richard Purdie)
-
-- Reduce wait_status timetout from 100ms to 2ms, as wait_status either
-  takes less than 1.5 ms, or fails.
-
-Signed-off-by: Nicolas Boichat <nicolas@boichat.ch>
 Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |   61 +++++++++++++++++++++++++++++--------
- 1 files changed, 49 insertions(+), 12 deletions(-)
+ drivers/hwmon/applesmc.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue
+diff -puN drivers/hwmon/applesmc.c~applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix
 +++ a/drivers/hwmon/applesmc.c
-@@ -38,6 +38,7 @@
- #include <asm/io.h>
- #include <linux/leds.h>
- #include <linux/hwmon.h>
-+#include <linux/workqueue.h>
- 
- /* data port used by Apple SMC */
- #define APPLESMC_DATA_PORT	0x300
-@@ -116,7 +117,7 @@ struct dmi_match_data {
+@@ -117,7 +117,7 @@ struct dmi_match_data {
  	int temperature_set;
  };
  
--static int debug = 0;
-+static const int debug = 0;
+-static const int debug = 0;
++static const int debug;
  static struct platform_device *pdev;
  static s16 rest_x;
  static s16 rest_y;
-@@ -141,8 +142,10 @@ static struct mutex applesmc_lock;
-  */
- static unsigned int key_at_index;
+@@ -752,9 +752,8 @@ static void applesmc_brightness_set(stru
+ 	backlight_value = value;
+ 	ret = queue_work(applesmc_led_wq, &backlight_work);
  
-+static struct workqueue_struct *applesmc_led_wq;
-+
- /*
-- * __wait_status - Wait up to 100ms for the status port to get a certain value
-+ * __wait_status - Wait up to 2ms for the status port to get a certain value
-  * (masked with 0x0f), returning zero if the value is obtained.  Callers must
-  * hold applesmc_lock.
-  */
-@@ -152,9 +155,14 @@ static int __wait_status(u8 val)
- 
- 	val = val & APPLESMC_STATUS_MASK;
- 
--	for (i = 0; i < 10000; i++) {
--		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) == val)
-+	for (i = 0; i < 200; i++) {
-+		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) == val) {
-+			if (debug)
-+				printk(KERN_DEBUG
-+						"Waited %d us for status %x\n",
-+						i*10, val);
- 			return 0;
-+		}
- 		udelay(10);
- 	}
- 
-@@ -721,17 +729,33 @@ static ssize_t applesmc_calibrate_store(
- 	return count;
+-	if (debug && (!ret)) {
++	if (debug && (!ret))
+ 		printk(KERN_DEBUG "applesmc: work was already on the queue.\n");
+-	}
  }
- 
--static void applesmc_backlight_set(struct led_classdev *led_cdev,
--						enum led_brightness value)
-+/* Store the next backlight value to be written by the work */
-+static unsigned int backlight_value;
-+
-+static void applesmc_backlight_set(struct work_struct *work)
- {
- 	u8 buffer[2];
- 
- 	mutex_lock(&applesmc_lock);
--	buffer[0] = value;
-+	buffer[0] = backlight_value;
- 	buffer[1] = 0x00;
- 	applesmc_write_key(BACKLIGHT_KEY, buffer, 2);
- 	mutex_unlock(&applesmc_lock);
- }
-+DECLARE_WORK(backlight_work, &applesmc_backlight_set);
-+
-+static void applesmc_brightness_set(struct led_classdev *led_cdev,
-+						enum led_brightness value)
-+{
-+	int ret;
-+
-+	backlight_value = value;
-+	ret = queue_work(applesmc_led_wq, &backlight_work);
-+
-+	if (debug && (!ret)) {
-+		printk(KERN_DEBUG "applesmc: work was already on the queue.\n");
-+	}
-+}
  
  static ssize_t applesmc_key_count_show(struct device *dev,
- 				struct device_attribute *attr, char *sysfsbuf)
-@@ -887,7 +911,7 @@ static ssize_t applesmc_key_at_index_sto
- static struct led_classdev applesmc_backlight = {
- 	.name			= "smc:kbd_backlight",
- 	.default_trigger	= "nand-disk",
--	.brightness_set		= applesmc_backlight_set,
-+	.brightness_set		= applesmc_brightness_set,
- };
- 
- static DEVICE_ATTR(position, 0444, applesmc_position_show, NULL);
-@@ -1234,25 +1258,35 @@ static int __init applesmc_init(void)
- 		if (ret)
- 			goto out_accelerometer;
- 
-+		/* Create the workqueue */
-+		applesmc_led_wq = create_singlethread_workqueue("applesmc-led");
-+		if (!applesmc_led_wq) {
-+			ret = -ENOMEM;
-+			goto out_light_sysfs;
-+		}
-+
- 		/* register as a led device */
- 		ret = led_classdev_register(&pdev->dev, &applesmc_backlight);
- 		if (ret < 0)
--			goto out_light_sysfs;
-+			goto out_light_wq;
- 	}
- 
- 	hwmon_class_dev = hwmon_device_register(&pdev->dev);
- 	if (IS_ERR(hwmon_class_dev)) {
- 		ret = PTR_ERR(hwmon_class_dev);
--		goto out_light;
-+		goto out_light_ledclass;
- 	}
- 
- 	printk(KERN_INFO "applesmc: driver successfully loaded.\n");
- 
- 	return 0;
- 
--out_light:
-+out_light_ledclass:
- 	if (applesmc_light)
- 		led_classdev_unregister(&applesmc_backlight);
-+out_light_wq:
-+	if (applesmc_light)
-+		destroy_workqueue(applesmc_led_wq);
- out_light_sysfs:
- 	if (applesmc_light)
- 		sysfs_remove_file(&pdev->dev.kobj, &dev_attr_light.attr);
-@@ -1280,8 +1314,11 @@ out:
- static void __exit applesmc_exit(void)
- {
- 	hwmon_device_unregister(hwmon_class_dev);
--	if (applesmc_light)
-+	if (applesmc_light) {
- 		led_classdev_unregister(&applesmc_backlight);
-+		destroy_workqueue(applesmc_led_wq);
-+		sysfs_remove_file(&pdev->dev.kobj, &dev_attr_light.attr);
-+	}
- 	if (applesmc_accelerometer)
- 		applesmc_release_accelerometer();
- 	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
 _
 
-Patches currently in -mm which might be from nicolas@boichat.ch are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
 git-alsa.patch
-apple-smc-driver-hardware-monitoring-and-control.patch
-apple-smc-driver-hardware-monitoring-and-control-fix.patch
-apple-smc-driver-standardize-and-sanitize-sysfs-tree.patch
-apple-smc-driver-implement-key-enumeration.patch
-applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+git-drm.patch
+git-dvb.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
