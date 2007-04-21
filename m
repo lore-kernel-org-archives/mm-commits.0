@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-count-writeback-pages-per-bdi.patch added to -mm tree
-Date: Sat, 21 Apr 2007 02:55:12 -0700
-Message-ID: <200704210955.l3L9tCH2003700@shell0.pdx.osdl.net>
+Subject: + acpi-use-_sta-bit-names-rather-than-0x0f.patch added to -mm tree
+Date: Sat, 21 Apr 2007 03:00:00 -0700
+Message-ID: <200704211000.l3LA00bV003790@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44486 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57732 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933089AbXDUJzQ (ORCPT
+	by vger.kernel.org with ESMTP id S933113AbXDUKBZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 05:55:16 -0400
+	Sat, 21 Apr 2007 06:01:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl
+Cc: bjorn.helgaas@hp.com, lenb@kernel.org
 
 
 The patch titled
-     mm: count writeback pages per BDI
+     ACPI: use _STA bit names rather than 0x0F
 has been added to the -mm tree.  Its filename is
-     mm-count-writeback-pages-per-bdi.patch
+     acpi-use-_sta-bit-names-rather-than-0x0f.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,97 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: count writeback pages per BDI
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: ACPI: use _STA bit names rather than 0x0F
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Count per BDI writeback pages.
+Be explicit about what "device->status = 0x0F" really means.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 +
- mm/page-writeback.c         |   12 ++++++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ drivers/acpi/bus.c  |    4 +++-
+ drivers/acpi/scan.c |    4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi
-+++ a/include/linux/backing-dev.h
-@@ -27,6 +27,7 @@ typedef int (congested_fn)(void *, int);
+diff -puN drivers/acpi/bus.c~acpi-use-_sta-bit-names-rather-than-0x0f drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~acpi-use-_sta-bit-names-rather-than-0x0f
++++ a/drivers/acpi/bus.c
+@@ -103,7 +103,9 @@ int acpi_bus_get_status(struct acpi_devi
+ 	else if (device->parent)
+ 		device->status = device->parent->status;
+ 	else
+-		STRUCT_TO_INT(device->status) = 0x0F;
++		STRUCT_TO_INT(device->status) =
++		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
++		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
  
- enum bdi_stat_item {
- 	BDI_RECLAIMABLE,
-+	BDI_WRITEBACK,
- 	NR_BDI_STAT_ITEMS
- };
+ 	if (device->status.functional && !device->status.present) {
+ 		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
+diff -puN drivers/acpi/scan.c~acpi-use-_sta-bit-names-rather-than-0x0f drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-use-_sta-bit-names-rather-than-0x0f
++++ a/drivers/acpi/scan.c
+@@ -1068,7 +1068,9 @@ acpi_add_single_object(struct acpi_devic
+ 		}
+ 		break;
+ 	default:
+-		STRUCT_TO_INT(device->status) = 0x0F;
++		STRUCT_TO_INT(device->status) =
++		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
++		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
+ 		break;
+ 	}
  
-diff -puN mm/page-writeback.c~mm-count-writeback-pages-per-bdi mm/page-writeback.c
---- a/mm/page-writeback.c~mm-count-writeback-pages-per-bdi
-+++ a/mm/page-writeback.c
-@@ -979,14 +979,18 @@ int test_clear_page_writeback(struct pag
- 	int ret;
- 
- 	if (mapping) {
-+		struct backing_dev_info *bdi = mapping->backing_dev_info;
- 		unsigned long flags;
- 
- 		write_lock_irqsave(&mapping->tree_lock, flags);
- 		ret = TestClearPageWriteback(page);
--		if (ret)
-+		if (ret) {
- 			radix_tree_tag_clear(&mapping->page_tree,
- 						page_index(page),
- 						PAGECACHE_TAG_WRITEBACK);
-+			if (bdi_cap_writeback_dirty(bdi))
-+				__dec_bdi_stat(bdi, BDI_WRITEBACK);
-+		}
- 		write_unlock_irqrestore(&mapping->tree_lock, flags);
- 	} else {
- 		ret = TestClearPageWriteback(page);
-@@ -1002,14 +1006,18 @@ int test_set_page_writeback(struct page 
- 	int ret;
- 
- 	if (mapping) {
-+		struct backing_dev_info *bdi = mapping->backing_dev_info;
- 		unsigned long flags;
- 
- 		write_lock_irqsave(&mapping->tree_lock, flags);
- 		ret = TestSetPageWriteback(page);
--		if (!ret)
-+		if (!ret) {
- 			radix_tree_tag_set(&mapping->page_tree,
- 						page_index(page),
- 						PAGECACHE_TAG_WRITEBACK);
-+			if (bdi_cap_writeback_dirty(bdi))
-+				__inc_bdi_stat(bdi, BDI_WRITEBACK);
-+		}
- 		if (!PageDirty(page))
- 			radix_tree_tag_clear(&mapping->page_tree,
- 						page_index(page),
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-lumpy-reclaim-v4.patch
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-mm-remove-destroy_dirty_buffers-from-invalidate_bdev.patch
-mm-optimize-kill_bdev.patch
-mm-optimize-kill_bdev-fix.patch
-mm-optimize-acorn-partition-truncate.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-exec-fix-remove_arg_zero-add-comment.patch
-lockdep-treats-down_write_trylock-like-regular-down_write.patch
-nfs-fix-congestion-control-use-atomic_longs.patch
-nfs-remove-congestion_end.patch
-lib-dampen-the-percpu_counter-fbc_batch.patch
-lib-percpu_counter_mod64.patch
-mm-bdi-init-hooks.patch
-mm-scalable-bdi-statistics-counters.patch
-mm-count-reclaimable-pages-per-bdi.patch
-mm-count-writeback-pages-per-bdi.patch
-mm-expose-bdi-statistics-in-sysfs.patch
-mm-per-device-dirty-threshold.patch
+acpi-remove-duplicate-definitions-for-_sta-bits.patch
+acpi-use-_sta-bit-names-rather-than-0x0f.patch
+git-ia64.patch
+move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
+pnpacpi-sets-pnpdev-devarchdata.patch
+pnpacpi-sets-pnpdev-devarchdata-fix.patch
+efi-warn-only-for-pre-100-system-tables.patch
+pnpbios-conert-to-use-the-kthread-api.patch
+pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
+pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled.patch
+smsc-ircc2-tidy-up-module-parameter-checking.patch
+smsc-ircc2-add-pnp-support.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+use-menuconfig-objects-pnp.patch
