@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-xattr-root-locking-refcount-bug.patch added to -mm tree
-Date: Sat, 21 Apr 2007 12:38:19 -0700
-Message-ID: <200704211938.l3LJcJ7S012486@shell0.pdx.osdl.net>
+Subject: + cxacru-add-documentation-file-fix.patch added to -mm tree
+Date: Sat, 21 Apr 2007 13:04:00 -0700
+Message-ID: <200704212004.l3LK40P1012906@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49244 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751975AbXDUTkA (ORCPT
+	by vger.kernel.org with ESMTP id S1752040AbXDUUEa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 15:40:00 -0400
+	Sat, 21 Apr 2007 16:04:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, a.righi@cineca.it, edward@namesys.com, stable@kernel.org, vs@namesys.com, zam@namesys.com
+Cc: akpm@linux-foundation.org, duncan.sands@math.u-psud.fr, gregkh@suse.de, simon@fire.lp0.eu
 
 
 The patch titled
-     reiserfs: fix xattr root locking/refcount bug
+     cxacru-add-documentation-file-fix
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-xattr-root-locking-refcount-bug.patch
+     cxacru-add-documentation-file-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,174 +26,206 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: fix xattr root locking/refcount bug
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: cxacru-add-documentation-file-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The listxattr() and getxattr() operations are only protected by a read
-lock.  As a result, if either of these operations run in parallel, a race
-condition exists where the xattr_root will end up being cached twice, which
-results in the leaking of a reference and a BUG() on umount.
-
-This patch refactors get_xa_root(), __get_xa_root(), and create_xa_root(),
-into one get_xa_root() function that takes the appropriate locking around
-the entire critical section.
-
-Reported, diagnosed and tested by Andrea Righi <a.righi@cineca.it>
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Cc: Andrea Righi <a.righi@cineca.it>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Edward Shishkin <edward@namesys.com>
-Cc: Alex Zarochentsev <zam@namesys.com>
-Cc: <stable@kernel.org>
+Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Simon Arlott <simon@fire.lp0.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/xattr.c |   92 ++++++++++--------------------------------
- 1 file changed, 24 insertions(+), 68 deletions(-)
+ Documentation/networking/cxacru.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/xattr.c~reiserfs-fix-xattr-root-locking-refcount-bug fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~reiserfs-fix-xattr-root-locking-refcount-bug
-+++ a/fs/reiserfs/xattr.c
-@@ -54,82 +54,48 @@
- static struct reiserfs_xattr_handler *find_xattr_handler_prefix(const char
- 								*prefix);
+diff -puN Documentation/networking/cxacru.txt~cxacru-add-documentation-file-fix Documentation/networking/cxacru.txt
+--- a/Documentation/networking/cxacru.txt~cxacru-add-documentation-file-fix
++++ a/Documentation/networking/cxacru.txt
+@@ -7,7 +7,7 @@ driver and it is necessary to unplug/rem
+ Detected devices will appear as ATM devices named "cxacru". In /sys/class/atm/
+ these are directories named cxacruN where N is the device number. A symlink
+ named device points to the USB interface device's directory which contains
+-several sysfs attribute files for retriving device statistics:
++several sysfs attribute files for retrieving device statistics:
  
--static struct dentry *create_xa_root(struct super_block *sb)
-+/* Returns the dentry referring to the root of the extended attribute
-+ * directory tree. If it has already been retrieved, it is used. If it
-+ * hasn't been created and the flags indicate creation is allowed, we
-+ * attempt to create it. On error, we return a pointer-encoded error.
-+ */
-+static struct dentry *get_xa_root(struct super_block *sb, int flags)
- {
- 	struct dentry *privroot = dget(REISERFS_SB(sb)->priv_root);
- 	struct dentry *xaroot;
+ * adsl_controller_version
  
- 	/* This needs to be created at mount-time */
- 	if (!privroot)
--		return ERR_PTR(-EOPNOTSUPP);
-+		return ERR_PTR(-ENODATA);
- 
--	xaroot = lookup_one_len(XAROOT_NAME, privroot, strlen(XAROOT_NAME));
--	if (IS_ERR(xaroot)) {
-+	mutex_lock(&privroot->d_inode->i_mutex);
-+	if (REISERFS_SB(sb)->xattr_root) {
-+		xaroot = dget(REISERFS_SB(sb)->xattr_root);
- 		goto out;
--	} else if (!xaroot->d_inode) {
--		int err;
--		mutex_lock(&privroot->d_inode->i_mutex);
--		err =
--		    privroot->d_inode->i_op->mkdir(privroot->d_inode, xaroot,
--						   0700);
--		mutex_unlock(&privroot->d_inode->i_mutex);
--
--		if (err) {
--			dput(xaroot);
--			dput(privroot);
--			return ERR_PTR(err);
--		}
--		REISERFS_SB(sb)->xattr_root = dget(xaroot);
- 	}
- 
--      out:
--	dput(privroot);
--	return xaroot;
--}
--
--/* This will return a dentry, or error, refering to the xa root directory.
-- * If the xa root doesn't exist yet, the dentry will be returned without
-- * an associated inode. This dentry can be used with ->mkdir to create
-- * the xa directory. */
--static struct dentry *__get_xa_root(struct super_block *s)
--{
--	struct dentry *privroot = dget(REISERFS_SB(s)->priv_root);
--	struct dentry *xaroot = NULL;
--
--	if (IS_ERR(privroot) || !privroot)
--		return privroot;
--
- 	xaroot = lookup_one_len(XAROOT_NAME, privroot, strlen(XAROOT_NAME));
- 	if (IS_ERR(xaroot)) {
- 		goto out;
- 	} else if (!xaroot->d_inode) {
--		dput(xaroot);
--		xaroot = NULL;
--		goto out;
-+		int err = -ENODATA;
-+		if (flags == 0 || flags & XATTR_CREATE)
-+			err = privroot->d_inode->i_op->mkdir(privroot->d_inode,
-+			                                     xaroot, 0700);
-+		if (err) {
-+			dput(xaroot);
-+			xaroot = ERR_PTR(err);
-+			goto out;
-+		}
- 	}
--
--	REISERFS_SB(s)->xattr_root = dget(xaroot);
-+	REISERFS_SB(sb)->xattr_root = dget(xaroot);
- 
-       out:
-+	mutex_unlock(&privroot->d_inode->i_mutex);
- 	dput(privroot);
- 	return xaroot;
- }
- 
--/* Returns the dentry (or NULL) referring to the root of the extended
-- * attribute directory tree. If it has already been retrieved, it is used.
-- * Otherwise, we attempt to retrieve it from disk. It may also return
-- * a pointer-encoded error.
-- */
--static inline struct dentry *get_xa_root(struct super_block *s)
--{
--	struct dentry *dentry = dget(REISERFS_SB(s)->xattr_root);
--
--	if (!dentry)
--		dentry = __get_xa_root(s);
--
--	return dentry;
--}
--
- /* Opens the directory corresponding to the inode's extended attribute store.
-  * If flags allow, the tree to the directory may be created. If creation is
-  * prohibited, -ENODATA is returned. */
-@@ -138,21 +104,11 @@ static struct dentry *open_xa_dir(const 
- 	struct dentry *xaroot, *xadir;
- 	char namebuf[17];
- 
--	xaroot = get_xa_root(inode->i_sb);
--	if (IS_ERR(xaroot)) {
-+	xaroot = get_xa_root(inode->i_sb, flags);
-+	if (IS_ERR(xaroot))
- 		return xaroot;
--	} else if (!xaroot) {
--		if (flags == 0 || flags & XATTR_CREATE) {
--			xaroot = create_xa_root(inode->i_sb);
--			if (IS_ERR(xaroot))
--				return xaroot;
--		}
--		if (!xaroot)
--			return ERR_PTR(-ENODATA);
--	}
- 
- 	/* ok, we have xaroot open */
--
- 	snprintf(namebuf, sizeof(namebuf), "%X.%X",
- 		 le32_to_cpu(INODE_PKEY(inode)->k_objectid),
- 		 inode->i_generation);
-@@ -821,7 +777,7 @@ int reiserfs_delete_xattrs(struct inode 
- 
- 	/* Leftovers besides . and .. -- that's not good. */
- 	if (dir->d_inode->i_nlink <= 2) {
--		root = get_xa_root(inode->i_sb);
-+		root = get_xa_root(inode->i_sb, XATTR_REPLACE);
- 		reiserfs_write_lock_xattrs(inode->i_sb);
- 		err = vfs_rmdir(root->d_inode, dir);
- 		reiserfs_write_unlock_xattrs(inode->i_sb);
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-reiserfs-fix-xattr-root-locking-refcount-bug.patch
+origin.patch
+taskstats-fix-the-structure-members-alignment-issue-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+git-drm.patch
+git-dvb.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+cxacru-add-documentation-file-fix.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
+revert-proper-fix-for-highmem-kmap_atomic-functions-for-vmi-for-2621.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+acpi-thermal-fix-mod_timer-interval.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection-fix.patch
+proc-maps-protection-tidy.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+unprivileged-mounts-account-user-mounts-fix.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
+proc-maps-protection-vs-utrace.patch
+utrace-prep-2.patch
+undo-utrace-prep-2.patch
+utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+utrace-printk-borkage.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
