@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma_declare_coherent_memory-wrong-allocation.patch added to -mm tree
-Date: Sat, 21 Apr 2007 00:08:31 -0700
-Message-ID: <200704210708.l3L78VOR000899@shell0.pdx.osdl.net>
+Subject: + dont-force-uclinux-mtd-map-to-be-root-dev.patch added to -mm tree
+Date: Sat, 21 Apr 2007 00:14:54 -0700
+Message-ID: <200704210714.l3L7Etvg000971@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59261 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51194 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933004AbXDUHIn (ORCPT
+	by vger.kernel.org with ESMTP id S933036AbXDUHPO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 03:08:43 -0400
+	Sat, 21 Apr 2007 03:15:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, James.Bottomley@steeleye.com, ak@suse.de, greg@kroah.com, htejun@gmail.com
+Cc: vapier@gentoo.org, dwmw2@infradead.org, hch@lst.de
 
 
 The patch titled
-     i386: dma_declare_coherent_memory(): wrong allocation
+     don't force uclinux mtd map to be root dev
 has been added to the -mm tree.  Its filename is
-     dma_declare_coherent_memory-wrong-allocation.patch
+     dont-force-uclinux-mtd-map-to-be-root-dev.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: dma_declare_coherent_memory(): wrong allocation
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: don't force uclinux mtd map to be root dev
+From: Mike Frysinger <vapier@gentoo.org>
 
-dma_declare_coherent_memory() allocates a bitmap 1 bit per page, it
-calculates the bitmap size based on size of long, but allocates bytes...
+The cheesy uclinux mtd maps can be used for more than just the root device, so
+I think we should drop the forcing.
 
-Signed-off-by: G. Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Tejun Heo <htejun@gmail.com>
+Also, I feel like this is a policy decision that shouldnt be in the kernel in
+the first place.  People who have been lazy and boot with uclinux mtd maps and
+dont put root= into their commandline can simply add the appropriate root=
+line either into their bootloader or into the compiled in bootargs.
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/pci-dma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/maps/uclinux.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/i386/kernel/pci-dma.c~dma_declare_coherent_memory-wrong-allocation arch/i386/kernel/pci-dma.c
---- a/arch/i386/kernel/pci-dma.c~dma_declare_coherent_memory-wrong-allocation
-+++ a/arch/i386/kernel/pci-dma.c
-@@ -77,7 +77,7 @@ int dma_declare_coherent_memory(struct d
- {
- 	void __iomem *mem_base = NULL;
- 	int pages = size >> PAGE_SHIFT;
--	int bitmap_size = (pages + 31)/32;
-+	int bitmap_size = DIV_ROUND_UP(pages, 8);
+diff -puN drivers/mtd/maps/uclinux.c~dont-force-uclinux-mtd-map-to-be-root-dev drivers/mtd/maps/uclinux.c
+--- a/drivers/mtd/maps/uclinux.c~dont-force-uclinux-mtd-map-to-be-root-dev
++++ a/drivers/mtd/maps/uclinux.c
+@@ -16,7 +16,6 @@
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
+ #include <linux/major.h>
+-#include <linux/root_dev.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/map.h>
+ #include <linux/mtd/partitions.h>
+@@ -89,10 +88,6 @@ int __init uclinux_mtd_init(void)
+ 	uclinux_ram_mtdinfo = mtd;
+ 	add_mtd_partitions(mtd, uclinux_romfs, NUM_PARTITIONS);
  
- 	if ((flags & (DMA_MEMORY_MAP | DMA_MEMORY_IO)) == 0)
- 		goto out;
+-	printk("uclinux[mtd]: set %s to be root filesystem\n",
+-	     	uclinux_romfs[0].name);
+-	ROOT_DEV = MKDEV(MTD_BLOCK_MAJOR, 0);
+-
+ 	return(0);
+ }
+ 
 _
 
-Patches currently in -mm which might be from g.liakhovetski@gmx.de are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-git-powerpc.patch
-dma_declare_coherent_memory-wrong-allocation.patch
+cleanup-cpufreq-kconfig-options.patch
+git-kbuild.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
