@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jfs-use-set_current_state.patch added to -mm tree
-Date: Fri, 20 Apr 2007 17:22:12 -0700
-Message-ID: <200704210022.l3L0MCfd027258@shell0.pdx.osdl.net>
+Subject: + ocfs2-use-__set_current_state.patch added to -mm tree
+Date: Fri, 20 Apr 2007 17:23:12 -0700
+Message-ID: <200704210023.l3L0NCwh027273@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34835 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753640AbXDUAXA (ORCPT
+	by vger.kernel.org with ESMTP id S1753916AbXDUAYF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 20 Apr 2007 20:23:00 -0400
+	Fri, 20 Apr 2007 20:24:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: milindchoudhary@gmail.com, shaggy@austin.ibm.com
+Cc: milindchoudhary@gmail.com, mark.fasheh@oracle.com
 
 
 The patch titled
-     jfs: use __set_current_state()
+     ocfs2: use __set_current_state()
 has been added to the -mm tree.  Its filename is
-     jfs-use-set_current_state.patch
+     ocfs2-use-__set_current_state.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: jfs: use __set_current_state()
+Subject: ocfs2: use __set_current_state()
 From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-use __set_current_state(TASK_*) instead of current->state = TASK_*, in fs/jfs
+use __set_current_state(TASK_*) instead of current->state = TASK_*, in
+fs/ocfs2
 
 Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_lock.h   |    2 +-
- fs/jfs/jfs_logmgr.c |    4 ++--
- fs/jfs/jfs_txnmgr.c |    6 +++---
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ fs/ocfs2/dlm/dlmthread.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jfs/jfs_lock.h~jfs-use-set_current_state fs/jfs/jfs_lock.h
---- a/fs/jfs/jfs_lock.h~jfs-use-set_current_state
-+++ a/fs/jfs/jfs_lock.h
-@@ -45,7 +45,7 @@ do {							\
- 		io_schedule();				\
- 		lock_cmd;				\
- 	}						\
--	current->state = TASK_RUNNING;			\
-+	__set_current_state(TASK_RUNNING);			\
- 	remove_wait_queue(&wq, &__wait);		\
- } while (0)
- 
-diff -puN fs/jfs/jfs_logmgr.c~jfs-use-set_current_state fs/jfs/jfs_logmgr.c
---- a/fs/jfs/jfs_logmgr.c~jfs-use-set_current_state
-+++ a/fs/jfs/jfs_logmgr.c
-@@ -1589,7 +1589,7 @@ void jfs_flush_journal(struct jfs_log *l
- 		set_current_state(TASK_UNINTERRUPTIBLE);
- 		LOGGC_UNLOCK(log);
- 		schedule();
--		current->state = TASK_RUNNING;
-+		__set_current_state(TASK_RUNNING);
- 		LOGGC_LOCK(log);
- 		remove_wait_queue(&target->gcwait, &__wait);
+diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-use-__set_current_state fs/ocfs2/dlm/dlmthread.c
+--- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-use-__set_current_state
++++ a/fs/ocfs2/dlm/dlmthread.c
+@@ -76,7 +76,7 @@ repeat:
+ 		goto repeat;
  	}
-@@ -2360,7 +2360,7 @@ int jfsIOWait(void *arg)
- 		} else {
- 			set_current_state(TASK_INTERRUPTIBLE);
- 			schedule();
--			current->state = TASK_RUNNING;
-+			__set_current_state(TASK_RUNNING);
- 		}
- 	} while (!kthread_should_stop());
- 
-diff -puN fs/jfs/jfs_txnmgr.c~jfs-use-set_current_state fs/jfs/jfs_txnmgr.c
---- a/fs/jfs/jfs_txnmgr.c~jfs-use-set_current_state
-+++ a/fs/jfs/jfs_txnmgr.c
-@@ -135,7 +135,7 @@ static inline void TXN_SLEEP_DROP_LOCK(w
- 	set_current_state(TASK_UNINTERRUPTIBLE);
- 	TXN_UNLOCK();
- 	io_schedule();
+ 	remove_wait_queue(&res->wq, &wait);
 -	current->state = TASK_RUNNING;
-+	__set_current_state(TASK_RUNNING);
- 	remove_wait_queue(event, &wait);
++	set_current_state(TASK_RUNNING);
  }
  
-@@ -2797,7 +2797,7 @@ int jfs_lazycommit(void *arg)
- 			set_current_state(TASK_INTERRUPTIBLE);
- 			LAZY_UNLOCK(flags);
- 			schedule();
--			current->state = TASK_RUNNING;
-+			__set_current_state(TASK_RUNNING);
- 			remove_wait_queue(&jfs_commit_thread_wait, &wq);
- 		}
- 	} while (!kthread_should_stop());
-@@ -2989,7 +2989,7 @@ int jfs_sync(void *arg)
- 			set_current_state(TASK_INTERRUPTIBLE);
- 			TXN_UNLOCK();
- 			schedule();
--			current->state = TASK_RUNNING;
-+			__set_current_state(TASK_RUNNING);
- 		}
- 	} while (!kthread_should_stop());
- 
+ int __dlm_lockres_has_locks(struct dlm_lock_resource *res)
 _
 
 Patches currently in -mm which might be from milindchoudhary@gmail.com are
@@ -118,6 +66,7 @@ spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
 spin_lock_unlocked-cleanup-in-arch-mips.patch
 round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
 spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
+ocfs2-use-__set_current_state.patch
 round_up-macro-cleanup-in-drivers-parisc.patch
 round_up-macro-cleanup-in-drivers-pci.patch
 pcie-remove-spin_lock_unlocked.patch
