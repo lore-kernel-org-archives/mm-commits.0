@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kill-warnings-when-building-mandocs.patch added to -mm tree
-Date: Sat, 21 Apr 2007 00:20:49 -0700
-Message-ID: <200704210720.l3L7Knl7001066@shell0.pdx.osdl.net>
+Subject: + cleanup-mostly-unused-iospace-macros.patch added to -mm tree
+Date: Sat, 21 Apr 2007 00:24:55 -0700
+Message-ID: <200704210724.l3L7OtNf001121@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44863 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933058AbXDUHUw (ORCPT
+	by vger.kernel.org with ESMTP id S964865AbXDUHZF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 03:20:52 -0400
+	Sat, 21 Apr 2007 03:25:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bbpetkov@yahoo.de, rdunlap@xenotime.net
+Cc: david@gibson.dropbear.id.au, linux-arch@vger.kernel.org
 
 
 The patch titled
-     kill warnings when building mandocs
+     Clean up mostly unused IOSPACE macros
 has been added to the -mm tree.  Its filename is
-     kill-warnings-when-building-mandocs.patch
+     cleanup-mostly-unused-iospace-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,299 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kill warnings when building mandocs
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: Clean up mostly unused IOSPACE macros
+From: David Gibson <david@gibson.dropbear.id.au>
 
-This patch shuts warnings of the sort:
+Most architectures defined three macros, MK_IOSPACE_PFN(), GET_IOSPACE()
+and GET_PFN() in pgtable.h.  However, the only callers of any of these
+macros are in Sparc specific code, either in arch/sparc, arch/sparc64 or
+drivers/sbus.
 
-make -C /mnt/samsung_200/sam/kernel/trees/21-rc6/build \
-	KBUILD_SRC=/mnt/samsung_200/sam/kernel/trees/21-rc6 \
-	KBUILD_EXTMOD="" -f /mnt/samsung_200/sam/kernel/trees/21-rc6/Makefile mandocs
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=scripts/basic
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=Documentation/DocBook mandocs
-  SRCTREE=/mnt/samsung_200/sam/kernel/trees/21-rc6/ /mnt/samsung_200/sam/kernel/trees/21-rc6/build/scripts/basic/docproc doc /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/wanbook.tmpl >Documentation/DocBook/wanbook.xml
-  if grep -q refentry Documentation/DocBook/wanbook.xml; then xmlto man -m /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/man Documentation/DocBook/wanbook.xml ; gzip -f Documentation/DocBook/man/*.9; fi
-Note: meta version: No productnumber or alternative     sppp_close
-Note: meta version: No refmiscinfo@class=version        sppp_close
-Note: Writing sppp_close.9
-Note: meta version: No productnumber or alternative     sppp_open
-Note: meta version: No refmiscinfo@class=version        sppp_open
+This patch removes the redundant macros from all architectures except
+sparc and sparc64.
 
-by adding a RefMiscInfo xml tag in the form of the current kernel version
-to the function, struct and enum definitions in files included by
-kernel-doc when building 'mandocs'.  However, the version string appears
-truncated on the manpage due to some constraints in the xml DTD for the man
-header, I believe, for the troff output is truncated too.
-
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ include/asm-alpha/pgtable.h     |    4 ----
+ include/asm-arm/pgtable-nommu.h |    4 ----
+ include/asm-arm/pgtable.h       |    4 ----
+ include/asm-arm26/pgtable.h     |    4 ----
+ include/asm-avr32/pgtable.h     |    4 ----
+ include/asm-frv/pgtable.h       |    4 ----
+ include/asm-h8300/pgtable.h     |    4 ----
+ include/asm-i386/pgtable.h      |    4 ----
+ include/asm-ia64/pgtable.h      |    4 ----
+ include/asm-m32r/pgtable.h      |    4 ----
+ include/asm-m68k/pgtable.h      |    4 ----
+ include/asm-m68knommu/pgtable.h |    4 ----
+ include/asm-mips/pgtable.h      |    4 ----
+ include/asm-parisc/pgtable.h    |    4 ----
+ include/asm-ppc/pgtable.h       |    4 ----
+ include/asm-sh/pgtable.h        |    4 ----
+ include/asm-sh64/pgtable.h      |    4 ----
+ include/asm-x86_64/pgtable.h    |    4 ----
+ 18 files changed, 72 deletions(-)
 
-diff -puN scripts/kernel-doc~kill-warnings-when-building-mandocs scripts/kernel-doc
---- a/scripts/kernel-doc~kill-warnings-when-building-mandocs
-+++ a/scripts/kernel-doc
-@@ -328,6 +328,32 @@ while ($ARGV[0] =~ m/^-(.*)/) {
-     }
- }
+diff -puN include/asm-alpha/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-alpha/pgtable.h
+--- a/include/asm-alpha/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-alpha/pgtable.h
+@@ -345,10 +345,6 @@ extern inline pte_t mk_swap_pte(unsigned
+ #define io_remap_pfn_range(vma, start, pfn, size, prot)	\
+ 		remap_pfn_range(vma, start, pfn, size, prot)
  
-+# get kernel version
-+sub get_kernel_version() {
-+    my $version;
-+    open (FILE, $ENV{"SRCTREE"}."Makefile") || die "Can't open main kernel Makefile: $!";
-+
-+    EOF: while (my $line = <FILE>)
-+    {
-+	if ($line =~ /VERSION\s+=\s+(\d+)/) {
-+	     $version .= $1;
-+	     next;
-+	}
-+	if ($line =~ /PATCHLEVEL\s+=\s+(\d+)/) {
-+	     $version .= ".$1";
-+	     next;
-+	}
-+	if ($line =~ /SUBLEVEL\s+=\s+(\d+)/) {
-+	     $version .= ".$1";
-+	     next;
-+	}
-+	if ($line =~ /EXTRAVERSION\s+=\s+(.*)$/) {
-+	     $version .= $1;
-+	     last EOF;
-+	}
-+    }
-+    return $version;
-+}
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ #define pte_ERROR(e) \
+ 	printk("%s:%d: bad pte %016lx.\n", __FILE__, __LINE__, pte_val(e))
+ #define pmd_ERROR(e) \
+diff -puN include/asm-arm26/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-arm26/pgtable.h
+--- a/include/asm-arm26/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-arm26/pgtable.h
+@@ -297,10 +297,6 @@ static inline pte_t mk_pte_phys(unsigned
+ #define io_remap_pfn_range(vma,from,pfn,size,prot) \
+ 		remap_pfn_range(vma, from, pfn, size, prot)
  
- # generate a sequence of code that will splice in highlighting information
- # using the s// operator.
-@@ -601,6 +627,7 @@ sub output_function_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'function'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'function'}."</refname>\n";
-@@ -677,6 +704,7 @@ sub output_struct_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'type'}." ".$args{'struct'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'type'}." ".$args{'struct'}."</refname>\n";
-@@ -761,6 +789,7 @@ sub output_enum_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>enum ".$args{'enum'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>enum ".$args{'enum'}."</refname>\n";
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif /* _ASMARM_PGTABLE_H */
+diff -puN include/asm-arm/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-arm/pgtable.h
+--- a/include/asm-arm/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-arm/pgtable.h
+@@ -395,10 +395,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD
+ #define io_remap_pfn_range(vma,from,pfn,size,prot) \
+ 		remap_pfn_range(vma, from, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ #define pgtable_cache_init() do { } while (0)
+ 
+ #endif /* !__ASSEMBLY__ */
+diff -puN include/asm-arm/pgtable-nommu.h~cleanup-mostly-unused-iospace-macros include/asm-arm/pgtable-nommu.h
+--- a/include/asm-arm/pgtable-nommu.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-arm/pgtable-nommu.h
+@@ -83,10 +83,6 @@ extern int is_in_rom(unsigned long);
+ #define io_remap_page_range	remap_page_range
+ #define io_remap_pfn_range	remap_pfn_range
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ 
+ /*
+  * All 32bit addresses are effectively valid for vmalloc...
+diff -puN include/asm-avr32/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-avr32/pgtable.h
+--- a/include/asm-avr32/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-avr32/pgtable.h
+@@ -394,10 +394,6 @@ typedef pte_t *pte_addr_t;
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)	\
+ 	remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ /* No page table caches to initialize (?) */
+ #define pgtable_cache_init()	do { } while(0)
+ 
+diff -puN include/asm-frv/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-frv/pgtable.h
+--- a/include/asm-frv/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-frv/pgtable.h
+@@ -509,10 +509,6 @@ static inline int pte_file(pte_t pte)
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+diff -puN include/asm-h8300/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-h8300/pgtable.h
+--- a/include/asm-h8300/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-h8300/pgtable.h
+@@ -55,10 +55,6 @@ extern int is_in_rom(unsigned long);
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ /*
+  * All 32bit addresses are effectively valid for vmalloc...
+  * Sort of meaningless for non-VM targets.
+diff -puN include/asm-i386/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-i386/pgtable.h
+@@ -542,10 +542,6 @@ static inline void paravirt_pagetable_se
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ #include <asm-generic/pgtable.h>
+ 
+ #endif /* _I386_PGTABLE_H */
+diff -puN include/asm-ia64/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-ia64/pgtable.h
+@@ -485,10 +485,6 @@ extern void paging_init (void);
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ /*
+  * ZERO_PAGE is a global shared page that is always zero: used
+  * for zero-mapped memory areas etc..
+diff -puN include/asm-m32r/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-m32r/pgtable.h
+--- a/include/asm-m32r/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-m32r/pgtable.h
+@@ -381,10 +381,6 @@ static inline void pmd_set(pmd_t * pmdp,
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)	\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+diff -puN include/asm-m68knommu/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-m68knommu/pgtable.h
+--- a/include/asm-m68knommu/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-m68knommu/pgtable.h
+@@ -59,10 +59,6 @@ extern int is_in_rom(unsigned long);
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ /*
+  * All 32bit addresses are effectively valid for vmalloc...
+  * Sort of meaningless for non-VM targets.
+diff -puN include/asm-m68k/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-m68k/pgtable.h
+--- a/include/asm-m68k/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-m68k/pgtable.h
+@@ -143,10 +143,6 @@ static inline void update_mmu_cache(stru
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ /* MMU-specific headers */
+ 
+ #ifdef CONFIG_SUN3
+diff -puN include/asm-mips/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-mips/pgtable.h
+--- a/include/asm-mips/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-mips/pgtable.h
+@@ -387,10 +387,6 @@ static inline int io_remap_pfn_range(str
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ #endif
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ #include <asm-generic/pgtable.h>
+ 
+ /*
+diff -puN include/asm-parisc/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-parisc/pgtable.h
+--- a/include/asm-parisc/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-parisc/pgtable.h
+@@ -528,10 +528,6 @@ static inline void ptep_set_wrprotect(st
+ 
+ #define pgprot_noncached(prot) __pgprot(pgprot_val(prot) | _PAGE_NO_CACHE)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ /* We provide our own get_unmapped_area to provide cache coherency */
+ 
+ #define HAVE_ARCH_UNMAPPED_AREA
+diff -puN include/asm-ppc/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-ppc/pgtable.h
+--- a/include/asm-ppc/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-ppc/pgtable.h
+@@ -827,10 +827,6 @@ static inline int io_remap_pfn_range(str
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ #endif
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ /*
+  * No page table caches to initialise
+  */
+diff -puN include/asm-sh64/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-sh64/pgtable.h
+--- a/include/asm-sh64/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-sh64/pgtable.h
+@@ -485,10 +485,6 @@ extern void update_mmu_cache(struct vm_a
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ #endif /* !__ASSEMBLY__ */
+ 
+ /*
+diff -puN include/asm-sh/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-sh/pgtable.h
+--- a/include/asm-sh/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-sh/pgtable.h
+@@ -568,10 +568,6 @@ typedef pte_t *pte_addr_t;
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ struct mm_struct;
+ 
+ /*
+diff -puN include/asm-x86_64/pgtable.h~cleanup-mostly-unused-iospace-macros include/asm-x86_64/pgtable.h
+--- a/include/asm-x86_64/pgtable.h~cleanup-mostly-unused-iospace-macros
++++ a/include/asm-x86_64/pgtable.h
+@@ -417,10 +417,6 @@ extern int kern_addr_valid(unsigned long
+ #define io_remap_pfn_range(vma, vaddr, pfn, size, prot)		\
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+-#define MK_IOSPACE_PFN(space, pfn)	(pfn)
+-#define GET_IOSPACE(pfn)		0
+-#define GET_PFN(pfn)			(pfn)
+-
+ #define HAVE_ARCH_UNMAPPED_AREA
+ 
+ #define pgtable_cache_init()   do { } while (0)
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from david@gibson.dropbear.id.au are
 
-drivers-acpi-kconfig-formulation-fixpatch.patch
-kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
-generate-main-index-page-when-building-htmldocs.patch
-alphabetically-sorted-entries-in.patch
-kill-warnings-when-building-mandocs.patch
+git-powerpc.patch
+serial-define-fixed_port-flag-for-serial_core.patch
+serial-use-resource_size_t-for-serial-port-io-addresses.patch
+cleanup-mostly-unused-iospace-macros.patch
