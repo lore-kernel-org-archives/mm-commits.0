@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + fix-x86_64-mm-sched-clock-share.patch added to -mm tree
-Date: Sat, 21 Apr 2007 23:58:07 -0700
-Message-ID: <200704220700.l3M70g5d021533@shell0.pdx.osdl.net>
+Date: Sun, 22 Apr 2007 00:10:53 -0700
+Message-ID: <200704220713.l3M7DTk4021739@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47632 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964974AbXDVHAt (ORCPT
+	by vger.kernel.org with ESMTP id S1754138AbXDVHNe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 03:00:49 -0400
+	Sun, 22 Apr 2007 03:13:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -61,7 +61,7 @@ diff -puN arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share arch/i3
  	call_r_s_f(&f);
  	put_cpu();
 -	register_cpu_notifier(&sc_cpu_notifier);
-+	hotcpu_notifier(&sc_cpu_event, 0);
++	hotcpu_notifier(sc_cpu_event, 0);
  	cpufreq_register_notifier(&sc_freq_notifier,
  				 CPUFREQ_TRANSITION_NOTIFIER);
  	return 0;
@@ -140,6 +140,7 @@ git-wireless-vs-git-net-2.patch
 git-wireless-vs-git-net-3.patch
 fix-x86_64-mm-fam10-mwait-idle.patch
 more-fix-x86_64-mm-fam10-mwait-idle.patch
+fix-x86_64-mm-sched-clock-share.patch
 revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
 rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
@@ -257,4 +258,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-fix-x86_64-mm-sched-clock-share.patch
