@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-sched-clock-share.patch added to -mm tree
-Date: Sun, 22 Apr 2007 00:10:53 -0700
-Message-ID: <200704220713.l3M7DTk4021739@shell0.pdx.osdl.net>
+Subject: + git-infiniband-make-it-build-hack.patch added to -mm tree
+Date: Sun, 22 Apr 2007 00:37:38 -0700
+Message-ID: <200704220740.l3M7eD3D022141@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55817 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754138AbXDVHNe (ORCPT
+	by vger.kernel.org with ESMTP id S965336AbXDVHkS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 03:13:34 -0400
+	Sun, 22 Apr 2007 03:40:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: akpm@linux-foundation.org, rolandd@cisco.com
 
 
 The patch titled
-     fix-x86_64-mm-sched-clock-share
+     git-infiniband-make-it-build-hack
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-sched-clock-share.patch
+     git-infiniband-make-it-build-hack.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-x86_64-mm-sched-clock-share
+Subject: git-infiniband-make-it-build-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:sc_cpu_event from .data between 'sc_cpu_notifier' (at offset 0x2110) and 'mcelog'
-
-Use hotcpu_notifier().  This takes care of making sure that the unused code
-disappears from vmlinux if !CONFIG_HOTPLUG_CPU, too.
-
-Please, test allnoconfig builds and watch for the warnings?
-
-Cc: Andi Kleen <ak@suse.de>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sched-clock.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_mr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share arch/i386/kernel/sched-clock.c
---- a/arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share
-+++ a/arch/i386/kernel/sched-clock.c
-@@ -169,20 +169,15 @@ sc_cpu_event(struct notifier_block *self
- 	return NOTIFY_DONE;
- }
- 
--static struct notifier_block sc_cpu_notifier = {
--	.notifier_call = sc_cpu_event
--};
--
- static __init int init_sched_clock(void)
- {
- 	struct cpufreq_freqs f = { .cpu = get_cpu(), .new = 0 };
- 	WARN_ON(num_online_cpus() > 1);
- 	call_r_s_f(&f);
- 	put_cpu();
--	register_cpu_notifier(&sc_cpu_notifier);
-+	hotcpu_notifier(sc_cpu_event, 0);
- 	cpufreq_register_notifier(&sc_freq_notifier,
- 				 CPUFREQ_TRANSITION_NOTIFIER);
- 	return 0;
- }
- core_initcall(init_sched_clock);
--
+diff -puN drivers/infiniband/hw/ipath/ipath_mr.c~git-infiniband-make-it-build-hack drivers/infiniband/hw/ipath/ipath_mr.c
+--- a/drivers/infiniband/hw/ipath/ipath_mr.c~git-infiniband-make-it-build-hack
++++ a/drivers/infiniband/hw/ipath/ipath_mr.c
+@@ -231,7 +231,7 @@ struct ib_mr *ipath_reg_user_mr(struct i
+ 				goto bail;
+ 			}
+ 			mr->mr.map[m]->segs[n].vaddr = vaddr;
+-			mr->mr.map[m]->segs[n].length = region->page_size;
++//			mr->mr.map[m]->segs[n].length = region->page_size;
+ 			n++;
+ 			if (n == IPATH_SEGSZ) {
+ 				m++;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -258,3 +238,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+git-infiniband-make-it-build-hack.patch
