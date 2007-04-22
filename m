@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-mmc-build-fix.patch added to -mm tree
-Date: Sun, 22 Apr 2007 01:23:46 -0700
-Message-ID: <200704220826.l3M8QL0s022855@shell0.pdx.osdl.net>
+Subject: + define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch added to -mm tree
+Date: Sun, 22 Apr 2007 01:33:11 -0700
+Message-ID: <200704220835.l3M8ZkuF022986@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43985 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42040 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965475AbXDVI1C (ORCPT
+	by vger.kernel.org with ESMTP id S932255AbXDVIfv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 04:27:02 -0400
+	Sun, 22 Apr 2007 04:35:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drzeus@drzeus.cx
+Cc: akpm@linux-foundation.org, david-b@pacbell.net
 
 
 The patch titled
-     git-mmc build fix
+     define-platform-wakeup-hook-use-in-pci_enable_wake-fix
 has been added to the -mm tree.  Its filename is
-     git-mmc-build-fix.patch
+     define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,94 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mmc build fix
+Subject: define-platform-wakeup-hook-use-in-pci_enable_wake-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc64:
+Make it compile with CONFIG_PM=n
 
-drivers/misc/tifm_7xx1.c: In function `tifm_7xx1_probe':                        drivers/misc/tifm_7xx1.c:294: error: `DMA_32BIT_MASK' undeclared (first use in this function)                                                                   
-
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/tifm_7xx1.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/pci.c  |   12 ++++--------
+ include/linux/pm.h |   19 ++++++++++++++++---
+ 2 files changed, 20 insertions(+), 11 deletions(-)
 
-diff -puN drivers/misc/tifm_7xx1.c~git-mmc-build-fix drivers/misc/tifm_7xx1.c
---- a/drivers/misc/tifm_7xx1.c~git-mmc-build-fix
-+++ a/drivers/misc/tifm_7xx1.c
-@@ -10,6 +10,7 @@
+diff -puN drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake-fix drivers/pci/pci.c
+--- a/drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake-fix
++++ a/drivers/pci/pci.c
+@@ -13,6 +13,7 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
++#include <linux/pm.h>
+ #include <linux/module.h>
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
+@@ -947,12 +948,7 @@ int pci_enable_wake(struct pci_dev *dev,
+ 	 * userspace updating the /sys/devices.../power/wakeup file.
+ 	 */
+ 
+-	if (platform_enable_wakeup) {
+-		status = platform_enable_wakeup(&dev->dev, enable);
+-		if (status)
+-			return status;
+-	} else
+-		status = -EIO;
++	status = call_platform_enable_wakeup(&dev->dev, enable);
+ 
+ 	/* find PCI PM capability in list */
+ 	pm = pci_find_capability(dev, PCI_CAP_ID_PM);
+@@ -975,8 +971,8 @@ int pci_enable_wake(struct pci_dev *dev,
+ 		/* if it can't, revert what the platform hook changed,
+ 		 * always reporting the base "EINVAL, can't PME#" error
+ 		 */
+-		if (enable && platform_enable_wakeup)
+-			platform_enable_wakeup(&dev->dev, 0);
++		if (enable)
++			call_platform_enable_wakeup(&dev->dev, 0);
+ 		return enable ? -EINVAL : 0;
+ 	}
+ 
+diff -puN include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake-fix include/linux/pm.h
+--- a/include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake-fix
++++ a/include/linux/pm.h
+@@ -277,12 +277,20 @@ extern void __suspend_report_result(cons
+ 		__suspend_report_result(__FUNCTION__, fn, ret);		\
+ 	} while (0)
+ 
+-/* platform hook to activate device wakeup capability, if
+- * that's not already handled by enable_irq_wake() etc
+- * returns zero on success, else negative errno
++/*
++ * Platform hook to activate device wakeup capability, if that's not already
++ * handled by enable_irq_wake() etc.
++ * Returns zero on success, else negative errno
   */
+ extern int (*platform_enable_wakeup)(struct device *dev, int is_on);
  
- #include <linux/tifm.h>
-+#include <linux/dma-mapping.h>
++static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
++{
++	if (platform_enable_wakeup)
++		return (*platform_enable_wakeup)(dev, is_on);
++	return 0;
++}
++
+ #else /* !CONFIG_PM */
  
- #define DRIVER_NAME "tifm_7xx1"
- #define DRIVER_VERSION "0.8"
+ static inline int device_suspend(pm_message_t state)
+@@ -304,6 +312,11 @@ static inline void dpm_runtime_resume(st
+ 
+ #define suspend_report_result(fn, ret) do { } while (0)
+ 
++static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
++{
++	return -EIO;
++}
++
+ #endif
+ 
+ /* changes to device_may_wakeup take effect on the next pm state change.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +150,7 @@ pata_acpi-restore-driver-fix-2.patch
 drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
 revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
+git-mmc-build-fix.patch
 git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 git-mtd.patch
 git-ubi.patch
@@ -247,4 +311,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-git-mmc-build-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
