@@ -1,112 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - resurrect-the-vmi-lazy-mode-fixes.patch removed from -mm tree
-Date: Sat, 21 Apr 2007 21:12:15 -0700
-Message-ID: <200704220412.l3M4CF8H019278@shell0.pdx.osdl.net>
+Subject: - spin_lock_unlocked-cleanup-in-drivers-s390.patch removed from -mm tree
+Date: Sat, 21 Apr 2007 21:12:12 -0700
+Message-ID: <200704220412.l3M4CC8I019275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46980 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932279AbXDVEMU (ORCPT
+	by vger.kernel.org with ESMTP id S932339AbXDVEMU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 22 Apr 2007 00:12:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zach@vmware.com, ak@suse.de, mm-commits@vger.kernel.org
+To: milindchoudhary@gmail.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Resurrect the VMI lazy mode fixes
+     SPIN_LOCK_UNLOCKED cleanup in drivers/s390
 has been removed from the -mm tree.  Its filename was
-     resurrect-the-vmi-lazy-mode-fixes.patch
+     spin_lock_unlocked-cleanup-in-drivers-s390.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Resurrect the VMI lazy mode fixes
-From: Zachary Amsden <zach@vmware.com>
+Subject: SPIN_LOCK_UNLOCKED cleanup in drivers/s390
+From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-Code changes and cleanup in the paravirt-ops queue caused the original fix for
-this in 2.6.21 to create conflicts.  The easiest thing to do was back it out
-before applying the queue.  In that case, this fix brings it back with the
-newly right properly tidied up paravirt-ops code.
+SPIN_LOCK_UNLOCKED cleanup,use __SPIN_LOCK_UNLOCKED instead.
 
-Wheee!
-
-Signed-off-by: Zachary Amsden <zach@vmware.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmi.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ drivers/s390/char/vmlogrdr.c |    6 +++---
+ drivers/s390/cio/cmf.c       |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/vmi.c~resurrect-the-vmi-lazy-mode-fixes arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~resurrect-the-vmi-lazy-mode-fixes
-+++ a/arch/i386/kernel/vmi.c
-@@ -69,6 +69,7 @@ static struct {
- 	void (*flush_tlb)(int);
- 	void (*set_initial_ap_state)(int, int);
- 	void (*halt)(void);
-+  	void (*set_lazy_mode)(int mode);
- } vmi_ops;
+diff -puN drivers/s390/char/vmlogrdr.c~spin_lock_unlocked-cleanup-in-drivers-s390 drivers/s390/char/vmlogrdr.c
+--- a/drivers/s390/char/vmlogrdr.c~spin_lock_unlocked-cleanup-in-drivers-s390
++++ a/drivers/s390/char/vmlogrdr.c
+@@ -125,7 +125,7 @@ static struct vmlogrdr_priv_t sys_ser[] 
+ 	  .recording_name = "EREP",
+ 	  .minor_num      = 0,
+ 	  .buffer_free    = 1,
+-	  .priv_lock      = SPIN_LOCK_UNLOCKED,
++	  .priv_lock      = __SPIN_LOCK_UNLOCKED(sys_ser[0].priv_lock),
+ 	  .autorecording  = 1,
+ 	  .autopurge      = 1,
+ 	},
+@@ -134,7 +134,7 @@ static struct vmlogrdr_priv_t sys_ser[] 
+ 	  .recording_name = "ACCOUNT",
+ 	  .minor_num      = 1,
+ 	  .buffer_free    = 1,
+-	  .priv_lock      = SPIN_LOCK_UNLOCKED,
++	  .priv_lock      = __SPIN_LOCK_UNLOCKED(sys_ser[1].priv_lock),
+ 	  .autorecording  = 1,
+ 	  .autopurge      = 1,
+ 	},
+@@ -143,7 +143,7 @@ static struct vmlogrdr_priv_t sys_ser[] 
+ 	  .recording_name = "SYMPTOM",
+ 	  .minor_num      = 2,
+ 	  .buffer_free    = 1,
+-	  .priv_lock      = SPIN_LOCK_UNLOCKED,
++	  .priv_lock      = __SPIN_LOCK_UNLOCKED(sys_ser[2].priv_lock),
+ 	  .autorecording  = 1,
+ 	  .autopurge      = 1,
+ 	}
+diff -puN drivers/s390/cio/cmf.c~spin_lock_unlocked-cleanup-in-drivers-s390 drivers/s390/cio/cmf.c
+--- a/drivers/s390/cio/cmf.c~spin_lock_unlocked-cleanup-in-drivers-s390
++++ a/drivers/s390/cio/cmf.c
+@@ -476,7 +476,7 @@ struct cmb_area {
+ };
  
- /* XXX move this to alternative.h */
-@@ -553,6 +554,26 @@ vmi_startup_ipi_hook(int phys_apicid, un
- }
- #endif
- 
-+static void vmi_set_lazy_mode(enum paravirt_lazy_mode mode)
-+{
-+	static DEFINE_PER_CPU(int, lazy_mode);
-+
-+	if (!vmi_ops.set_lazy_mode)
-+		return;
-+
-+	/* Modes should never nest or overlap */
-+	BUG_ON(__get_cpu_var(lazy_mode) && !(mode == PARAVIRT_LAZY_NONE ||
-+					     mode == PARAVIRT_LAZY_FLUSH));
-+
-+	if (mode == PARAVIRT_LAZY_FLUSH) {
-+		vmi_ops.set_lazy_mode(0);
-+		vmi_ops.set_lazy_mode(__get_cpu_var(lazy_mode));
-+	} else {
-+		vmi_ops.set_lazy_mode(mode);
-+		__get_cpu_var(lazy_mode) = mode;
-+	}
-+}
-+
- static inline int __init check_vmi_rom(struct vrom_header *rom)
- {
- 	struct pci_header *pci;
-@@ -777,7 +798,7 @@ static inline int __init activate_vmi(vo
- 	para_wrap(load_esp0, vmi_load_esp0, set_kernel_stack, UpdateKernelStack);
- 	para_fill(set_iopl_mask, SetIOPLMask);
- 	para_fill(io_delay, IODelay);
--	para_fill(set_lazy_mode, SetLazyMode);
-+	para_wrap(set_lazy_mode, vmi_set_lazy_mode, set_lazy_mode, SetLazyMode);
- 
- 	/* user and kernel flush are just handled with different flags to FlushTLB */
- 	para_wrap(flush_tlb_user, vmi_flush_tlb_user, flush_tlb, FlushTLB);
+ static struct cmb_area cmb_area = {
+-	.lock = SPIN_LOCK_UNLOCKED,
++	.lock = __SPIN_LOCK_UNLOCKED(cmb_area.lock),
+ 	.list = LIST_HEAD_INIT(cmb_area.list),
+ 	.num_channels  = 1024,
+ };
 _
 
-Patches currently in -mm which might be from zach@vmware.com are
+Patches currently in -mm which might be from milindchoudhary@gmail.com are
 
-fix-buslogic-to-stop-using-check_region.patch
-i386-sysenter-arch-pages-fix.patch
-i386-acpi-remove-earlyquirk-warning.patch
-i386-mcheck-p4-grotesque-and-needless-warning-fix.patch
-i386-pgd-clone-under-lock-fix.patch
-vmi-supports-compat-vdso.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-vmi-kmap_atomic_pte-fix.patch
-vmi-timer-update.patch
-i386-pte-drop-ptep_get_and_clear-paravirt-op.patch
-i386-pte-clear-optimization.patch
-i386-pte-xchg-optimization.patch
-i386-pte-simplify-ops.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-mm-only-i386-for-debugging-make-the-initial-page-table-setup-less-forgiving.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
+git-alsa.patch
+git-powerpc.patch
+spin_lock_unlocked-cleanup-in-arch-powerpc.patch
+spin_lock_unlocked-macro-cleanup-in-arch-ia64.patch
+git-ieee1394.patch
+jfs-use-set_current_state.patch
+spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
+spin_lock_unlocked-cleanup-in-arch-mips.patch
+round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
+spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
+nfs-use-__set_current_state.patch
+ocfs2-use-__set_current_state.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+round_up-macro-cleanup-in-drivers-pci.patch
+pcie-remove-spin_lock_unlocked.patch
+git-s390.patch
+round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
+spin_lock_unlocked-cleanup-in-arch-m68k.patch
+round_up-macro-cleanup-in-drivers-char-lpc.patch
+round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
+round_up-macro-cleanup-in-fs-smbfs-requestc.patch
+spin_lock_unlocked-cleanup-in-init_taskh.patch
+spin_lock_unlocked-cleanup-in-drivers-char-keyboard.patch
+spin_lock_unlocked-cleanup-in-drivers-serial.patch
+reiserfs-use-__set_current_state.patch
+drivers-char-use-__set_current_state.patch
