@@ -1,115 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: + add-suspend-related-notifications-for-cpu-hotplug-statistics.patch added to -mm tree
-Date: Sat, 21 Apr 2007 20:10:22 -0700
-Message-ID: <200704220310.l3M3AMh4018422@shell0.pdx.osdl.net>
+Subject: + cirrusfb-convert-to-generic-boolean.patch added to -mm tree
+Date: Sat, 21 Apr 2007 20:14:24 -0700
+Message-ID: <200704220314.l3M3EOJv018473@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42665 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932192AbXDVDK1 (ORCPT
+	by vger.kernel.org with ESMTP id S932212AbXDVDOk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 23:10:27 -0400
+	Sat, 21 Apr 2007 23:14:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl
+Cc: ricknu-0@student.ltu.se, adaplas@pol.net
 
 
 The patch titled
-     Add suspend-related notifications for CPU hotplug
+     cirrusfb: convert to generic boolean
 has been added to the -mm tree.  Its filename is
-     add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+     cirrusfb-convert-to-generic-boolean.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add suspend-related notifications for CPU hotplug
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: cirrusfb: convert to generic boolean
+From: Richard Knutsson <ricknu-0@student.ltu.se>
 
-Since nonboot CPUs are now disabled after tasks and devices have been
-frozen and the CPU hotplug infrastructure is used for this purpose, we =
-need
-special CPU hotplug notifications that will help the CPU-hotplug-aware
-subsystems distinguish normal CPU hotplug events=A0from CPU hotplug eve=
-nts
-related to a system-wide suspend or resume operation in progress.  This
-patch introduces such notifications and causes them to be used during
-suspend and resume transitions.  It also changes all of the
-CPU-hotplug-aware subsystems to take these notifications into considera=
-tion
-(for now they are handled in the same way as the corresponding "normal"
-ones).
+Convert to generic boolean.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/statistic.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/video/cirrusfb.c |   69 ++++++++++++++++---------------------
+ 1 file changed, 30 insertions(+), 39 deletions(-)
 
-diff -puN lib/statistic.c~add-suspend-related-notifications-for-cpu-hot=
-plug-statistics lib/statistic.c
---- a/lib/statistic.c~add-suspend-related-notifications-for-cpu-hotplug=
--statistics
-+++ a/lib/statistic.c
-@@ -296,6 +296,7 @@ static int _statistic_hotcpu(struct stat
- 		return NOTIFY_OK;
- 	switch (action) {
- 	case CPU_UP_PREPARE:
-+	case CPU_UP_PREPARE_FROZEN:
- 		size =3D disc->size(stat);
- 		dst =3D percpu_populate(stat->data, size, GFP_KERNEL, cpu);
- 		if (!dst)
-@@ -303,7 +304,9 @@ static int _statistic_hotcpu(struct stat
- 		disc->reset(stat, dst);
+diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-to-generic-boolean drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-convert-to-generic-boolean
++++ a/drivers/video/cirrusfb.c
+@@ -98,15 +98,6 @@
+ #define assert(expr)
+ #endif
+ 
+-#ifdef TRUE
+-#undef TRUE
+-#endif
+-#ifdef FALSE
+-#undef FALSE
+-#endif
+-#define TRUE  1
+-#define FALSE 0
+-
+ #define MB_ (1024*1024)
+ #define KB_ (1024)
+ 
+@@ -146,9 +137,9 @@ static const struct cirrusfb_board_info_
+ 	char *name;		/* ASCII name of chipset */
+ 	long maxclock[5];		/* maximum video clock */
+ 	/* for  1/4bpp, 8bpp 15/16bpp, 24bpp, 32bpp - numbers from xorg code */
+-	unsigned init_sr07 : 1;	/* init SR07 during init_vgachip() */
+-	unsigned init_sr1f : 1; /* write SR1F during init_vgachip() */
+-	unsigned scrn_start_bit19 : 1; /* construct bit 19 of screen start address */
++	bool init_sr07 : 1; /* init SR07 during init_vgachip() */
++	bool init_sr1f : 1; /* write SR1F during init_vgachip() */
++	bool scrn_start_bit19 : 1; /* construct bit 19 of screen start address */
+ 
+ 	/* initial SR07 value, then for each mode */
+ 	unsigned char sr07;
+@@ -166,9 +157,9 @@ static const struct cirrusfb_board_info_
+ 			/* the SD64/P4 have a higher max. videoclock */
+ 			140000, 140000, 140000, 140000, 140000,
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= true,
+ 		.sr07			= 0xF0,
+ 		.sr07_1bpp		= 0xF0,
+ 		.sr07_8bpp		= 0xF1,
+@@ -180,9 +171,9 @@ static const struct cirrusfb_board_info_
+ 			/* guess */
+ 			90000, 90000, 90000, 90000, 90000
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= FALSE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= false,
+ 		.sr07			= 0x80,
+ 		.sr07_1bpp		= 0x80,
+ 		.sr07_8bpp		= 0x81,
+@@ -194,9 +185,9 @@ static const struct cirrusfb_board_info_
+ 			/* guess */
+ 			90000, 90000, 90000, 90000, 90000
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= FALSE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= false,
+ 		.sr07			= 0x20,
+ 		.sr07_1bpp		= 0x20,
+ 		.sr07_8bpp		= 0x21,
+@@ -208,9 +199,9 @@ static const struct cirrusfb_board_info_
+ 			/* guess */
+ 			90000, 90000, 90000, 90000, 90000
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= FALSE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= false,
+ 		.sr07			= 0x80,
+ 		.sr07_1bpp		= 0x80,
+ 		.sr07_8bpp		= 0x81,
+@@ -221,9 +212,9 @@ static const struct cirrusfb_board_info_
+ 		.maxclock		= {
+ 			135100, 135100, 85500, 85500, 0
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= FALSE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= true,
++		.init_sr1f		= false,
++		.scrn_start_bit19	= true,
+ 		.sr07			= 0x20,
+ 		.sr07_1bpp		= 0x20,
+ 		.sr07_8bpp		= 0x21,
+@@ -235,9 +226,9 @@ static const struct cirrusfb_board_info_
+ 			/* for the GD5430.  GD5446 can do more... */
+ 			85500, 85500, 50000, 28500, 0
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= true,
+ 		.sr07			= 0xA0,
+ 		.sr07_1bpp		= 0xA1,
+ 		.sr07_1bpp_mux		= 0xA7,
+@@ -250,9 +241,9 @@ static const struct cirrusfb_board_info_
+ 		.maxclock		= {
+ 			135100, 200000, 200000, 135100, 135100
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= true,
+ 		.sr07			= 0x10,
+ 		.sr07_1bpp		= 0x11,
+ 		.sr07_8bpp		= 0x11,
+@@ -264,9 +255,9 @@ static const struct cirrusfb_board_info_
+ 			/* guess */
+ 			135100, 135100, 135100, 135100, 135100,
+ 		},
+-		.init_sr07		= FALSE,
+-		.init_sr1f		= FALSE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= false,
++		.init_sr1f		= false,
++		.scrn_start_bit19	= true,
+ 	}
+ };
+ 
+@@ -815,7 +806,7 @@ static int cirrusfb_check_var(struct fb_
+ 
+ 	default:
+ 		DPRINTK("Unsupported bpp size: %d\n", var->bits_per_pixel);
+-		assert (FALSE);
++		assert(false);
+ 		/* should never occur */
  		break;
- 	case CPU_UP_CANCELED:
-+	case CPU_UP_CANCELED_FROZEN:
- 	case CPU_DEAD:
-+	case CPU_DEAD_FROZEN:
- 		local_irq_save(flags);
- 		dst =3D percpu_ptr(stat->data, smp_processor_id());
- 		src =3D percpu_ptr(stat->data, cpu);
+ 	}
+@@ -886,7 +877,7 @@ static int cirrusfb_decode_var (const st
+ 
+ 	default:
+ 		DPRINTK("Unsupported bpp size: %d\n", var->bits_per_pixel);
+-		assert (FALSE);
++		assert(false);
+ 		/* should never occur */
+ 		break;
+ 	}
+@@ -3203,7 +3194,7 @@ void cirrusfb_dbg_print_regs (caddr_t re
+ 			break;
+ 		default:
+ 			/* should never occur */
+-			assert (FALSE);
++			assert(false);
+ 			break;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from ricknu-0@student.ltu.se are
 
-fix-refrigerator-vs-thaw_process-race.patch
-swsusp-use-inline-functions-for-changing-page-flags.patch
-swsusp-do-not-use-page-flags.patch
-mm-remove-unused-page-flags.patch
-swsusp-fix-error-paths-in-snapshot_open.patch
-swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-force-pm_opsvalid-callback-to-be.patch
-freezer-remove-pf_nofreeze-from-handle_initrd.patch
-swsusp-use-rbtree-for-tracking-allocated-swap.patch
-freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch
-remove-software_suspend.patch
-power-management-change-sys-power-disk-display.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patc=
-h
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-fix-pf_nofreeze-and-freezeable-race.patch
-freezer-document-task_lock-in-thaw_process.patch
-add-suspend-related-notifications-for-cpu-hotplug.patch
-microcode-use-suspend-related-cpu-hotplug-notifications.patch
-add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-agpgart.patch
+git-netdev-all.patch
+git-scsi-misc.patch
+drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
+i386-convert-to-generic-boolean.patch
+cirrusfb-convert-to-generic-boolean.patch
