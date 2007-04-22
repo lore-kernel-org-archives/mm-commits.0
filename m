@@ -1,84 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - mm-expose-bdi-statistics-in-sysfs.patch removed from -mm tree
-Date: Sun, 22 Apr 2007 12:02:19 -0700
-Message-ID: <200704221902.l3MJ2JkH032081@shell0.pdx.osdl.net>
+Subject: - mm-count-reclaimable-pages-per-bdi.patch removed from -mm tree
+Date: Sun, 22 Apr 2007 12:02:15 -0700
+Message-ID: <200704221902.l3MJ2F9V032075@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47868 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47064 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965679AbXDVTCX (ORCPT
+	by vger.kernel.org with ESMTP id S965663AbXDVTCT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 15:02:23 -0400
+	Sun, 22 Apr 2007 15:02:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: expose BDI statistics in sysfs.
+     mm: count reclaimable pages per BDI
 has been removed from the -mm tree.  Its filename was
-     mm-expose-bdi-statistics-in-sysfs.patch
+     mm-count-reclaimable-pages-per-bdi.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm: expose BDI statistics in sysfs.
+Subject: mm: count reclaimable pages per BDI
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Expose the per BDI stats in /sys/block/<dev>/queue/*
+Count per BDI reclaimable pages; nr_reclaimable = nr_dirty + nr_unstable.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ fs/buffer.c                 |    2 ++
+ fs/nfs/write.c              |    7 +++++++
+ include/linux/backing-dev.h |    1 +
+ mm/page-writeback.c         |    4 ++++
+ mm/truncate.c               |    2 ++
+ 5 files changed, 16 insertions(+)
 
-diff -puN block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs
-+++ a/block/ll_rw_blk.c
-@@ -3923,6 +3923,15 @@ static ssize_t queue_max_hw_sectors_show
- 	return queue_var_show(max_hw_sectors_kb, (page));
+diff -puN fs/buffer.c~mm-count-reclaimable-pages-per-bdi fs/buffer.c
+--- a/fs/buffer.c~mm-count-reclaimable-pages-per-bdi
++++ a/fs/buffer.c
+@@ -726,6 +726,8 @@ int __set_page_dirty_buffers(struct page
+ 	if (page->mapping) {	/* Race with truncate? */
+ 		if (mapping_cap_account_dirty(mapping)) {
+ 			__inc_zone_page_state(page, NR_FILE_DIRTY);
++			__inc_bdi_stat(mapping->backing_dev_info,
++					BDI_RECLAIMABLE);
+ 			task_io_account_write(PAGE_CACHE_SIZE);
+ 		}
+ 		radix_tree_tag_set(&mapping->page_tree,
+diff -puN fs/nfs/write.c~mm-count-reclaimable-pages-per-bdi fs/nfs/write.c
+--- a/fs/nfs/write.c~mm-count-reclaimable-pages-per-bdi
++++ a/fs/nfs/write.c
+@@ -454,6 +454,7 @@ nfs_mark_request_commit(struct nfs_page 
+ 	set_bit(PG_NEED_COMMIT, &(req)->wb_flags);
+ 	spin_unlock(&nfsi->req_lock);
+ 	inc_zone_page_state(req->wb_page, NR_UNSTABLE_NFS);
++	inc_bdi_stat(req->wb_page->mapping->backing_dev_info, BDI_RECLAIMABLE);
+ 	__mark_inode_dirty(inode, I_DIRTY_DATASYNC);
  }
  
-+static ssize_t queue_nr_reclaimable_show(struct request_queue *q, char *page)
-+{
-+	return sprintf(page, "%lld\n", bdi_stat(&q->backing_dev_info, BDI_RECLAIMABLE));
-+}
-+
-+static ssize_t queue_nr_writeback_show(struct request_queue *q, char *page)
-+{
-+	return sprintf(page, "%lld\n", bdi_stat(&q->backing_dev_info, BDI_WRITEBACK));
-+}
+@@ -552,6 +553,8 @@ static void nfs_cancel_commit_list(struc
+ 	while(!list_empty(head)) {
+ 		req = nfs_list_entry(head->next);
+ 		dec_zone_page_state(req->wb_page, NR_UNSTABLE_NFS);
++		dec_bdi_stat(req->wb_page->mapping->backing_dev_info,
++				BDI_RECLAIMABLE);
+ 		nfs_list_remove_request(req);
+ 		clear_bit(PG_NEED_COMMIT, &(req)->wb_flags);
+ 		nfs_inode_remove_request(req);
+@@ -1269,6 +1272,8 @@ nfs_commit_list(struct inode *inode, str
+ 		nfs_list_remove_request(req);
+ 		nfs_mark_request_commit(req);
+ 		dec_zone_page_state(req->wb_page, NR_UNSTABLE_NFS);
++		dec_bdi_stat(req->wb_page->mapping->backing_dev_info,
++				BDI_RECLAIMABLE);
+ 		nfs_clear_page_writeback(req);
+ 	}
+ 	return -ENOMEM;
+@@ -1294,6 +1299,8 @@ static void nfs_commit_done(struct rpc_t
+ 		nfs_list_remove_request(req);
+ 		clear_bit(PG_NEED_COMMIT, &(req)->wb_flags);
+ 		dec_zone_page_state(req->wb_page, NR_UNSTABLE_NFS);
++		dec_bdi_stat(req->wb_page->mapping->backing_dev_info,
++				BDI_RECLAIMABLE);
  
- static struct queue_sysfs_entry queue_requests_entry = {
- 	.attr = {.name = "nr_requests", .mode = S_IRUGO | S_IWUSR },
-@@ -3947,6 +3956,16 @@ static struct queue_sysfs_entry queue_ma
- 	.show = queue_max_hw_sectors_show,
+ 		dprintk("NFS: commit (%s/%Ld %d@%Ld)",
+ 			req->wb_context->dentry->d_inode->i_sb->s_id,
+diff -puN include/linux/backing-dev.h~mm-count-reclaimable-pages-per-bdi include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-count-reclaimable-pages-per-bdi
++++ a/include/linux/backing-dev.h
+@@ -26,6 +26,7 @@ enum bdi_state {
+ typedef int (congested_fn)(void *, int);
+ 
+ enum bdi_stat_item {
++	BDI_RECLAIMABLE,
+ 	NR_BDI_STAT_ITEMS
  };
  
-+static struct queue_sysfs_entry queue_reclaimable_entry = {
-+	.attr = {.name = "reclaimable_pages", .mode = S_IRUGO },
-+	.show = queue_nr_reclaimable_show,
-+};
-+
-+static struct queue_sysfs_entry queue_writeback_entry = {
-+	.attr = {.name = "writeback_pages", .mode = S_IRUGO },
-+	.show = queue_nr_writeback_show,
-+};
-+
- static struct queue_sysfs_entry queue_iosched_entry = {
- 	.attr = {.name = "scheduler", .mode = S_IRUGO | S_IWUSR },
- 	.show = elv_iosched_show,
-@@ -3958,6 +3977,8 @@ static struct attribute *default_attrs[]
- 	&queue_ra_entry.attr,
- 	&queue_max_hw_sectors_entry.attr,
- 	&queue_max_sectors_entry.attr,
-+	&queue_reclaimable_entry.attr,
-+	&queue_writeback_entry.attr,
- 	&queue_iosched_entry.attr,
- 	NULL,
- };
+diff -puN mm/page-writeback.c~mm-count-reclaimable-pages-per-bdi mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-count-reclaimable-pages-per-bdi
++++ a/mm/page-writeback.c
+@@ -828,6 +828,8 @@ int __set_page_dirty_nobuffers(struct pa
+ 			BUG_ON(mapping2 != mapping);
+ 			if (mapping_cap_account_dirty(mapping)) {
+ 				__inc_zone_page_state(page, NR_FILE_DIRTY);
++				__inc_bdi_stat(mapping->backing_dev_info,
++						BDI_RECLAIMABLE);
+ 				task_io_account_write(PAGE_CACHE_SIZE);
+ 			}
+ 			radix_tree_tag_set(&mapping->page_tree,
+@@ -961,6 +963,8 @@ int clear_page_dirty_for_io(struct page 
+ 		 */
+ 		if (TestClearPageDirty(page)) {
+ 			dec_zone_page_state(page, NR_FILE_DIRTY);
++			dec_bdi_stat(mapping->backing_dev_info,
++					BDI_RECLAIMABLE);
+ 			return 1;
+ 		}
+ 		return 0;
+diff -puN mm/truncate.c~mm-count-reclaimable-pages-per-bdi mm/truncate.c
+--- a/mm/truncate.c~mm-count-reclaimable-pages-per-bdi
++++ a/mm/truncate.c
+@@ -71,6 +71,8 @@ void cancel_dirty_page(struct page *page
+ 		struct address_space *mapping = page->mapping;
+ 		if (mapping && mapping_cap_account_dirty(mapping)) {
+ 			dec_zone_page_state(page, NR_FILE_DIRTY);
++			dec_bdi_stat(mapping->backing_dev_info,
++					BDI_RECLAIMABLE);
+ 			if (account_size)
+ 				task_io_account_cancelled_write(account_size);
+ 		}
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
@@ -97,6 +150,8 @@ restore-madv_dontneed-to-its-original-linux-behaviour.patch
 exec-fix-remove_arg_zero-add-comment.patch
 lockdep-treats-down_write_trylock-like-regular-down_write.patch
 nfs-fix-congestion-control-use-atomic_longs.patch
+mm-count-reclaimable-pages-per-bdi.patch
+mm-count-writeback-pages-per-bdi.patch
 mm-expose-bdi-statistics-in-sysfs.patch
 mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
 mm-per-device-dirty-threshold.patch
