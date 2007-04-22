@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-ubi-fixup.patch added to -mm tree
-Date: Sat, 21 Apr 2007 22:07:17 -0700
-Message-ID: <200704220509.l3M59qC0020017@shell0.pdx.osdl.net>
+Subject: + sm501fb-printk-warning-fixes.patch added to -mm tree
+Date: Sat, 21 Apr 2007 22:29:05 -0700
+Message-ID: <200704220531.l3M5VesG020335@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57527 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752808AbXDVFKD (ORCPT
+	by vger.kernel.org with ESMTP id S964778AbXDVFbq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 01:10:03 -0400
+	Sun, 22 Apr 2007 01:31:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com
+Cc: akpm@linux-foundation.org, adaplas@pol.net
 
 
 The patch titled
-     git-ubi-fixup
+     sm501fb-printk-warning-fixes
 has been added to the -mm tree.  Its filename is
-     git-ubi-fixup.patch
+     sm501fb-printk-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ubi-fixup
+Subject: sm501fb-printk-warning-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix conflicts between git-ubi and mainline
+drivers/video/sm501fb.c: In function 'sm501fb_cursor':
+drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
+drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
 
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/Kconfig |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/video/sm501fb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/Kconfig~git-ubi-fixup drivers/mtd/Kconfig
---- a/drivers/mtd/Kconfig~git-ubi-fixup
-+++ a/drivers/mtd/Kconfig
-@@ -287,11 +287,6 @@ source "drivers/mtd/nand/Kconfig"
+diff -puN drivers/video/sm501fb.c~sm501fb-printk-warning-fixes drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501fb-printk-warning-fixes
++++ a/drivers/video/sm501fb.c
+@@ -989,7 +989,7 @@ static int sm501fb_cursor(struct fb_info
+ 			((info->cmap.green[fg_col] & 0xFC) << 3) |
+ 			((info->cmap.blue[fg_col] & 0xF8) >> 3);
  
- source "drivers/mtd/onenand/Kconfig"
+-		dev_dbg(fbi->dev, "fgcol %08x, bgcol %08x\n", fg, bg);
++		dev_dbg(fbi->dev, "fgcol %08lx, bgcol %08lx\n", fg, bg);
  
--<<<<<<< HEAD/drivers/mtd/Kconfig
--endif # MTD
--=======
- source "drivers/mtd/ubi/Kconfig"
- 
--endmenu
--
-->>>>>>> /drivers/mtd/Kconfig
-+endif
+ 		writel(bg, base + SM501_OFF_HWC_COLOR_1_2);
+ 		writel(fg, base + SM501_OFF_HWC_COLOR_3);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -235,3 +233,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+sm501fb-printk-warning-fixes.patch
