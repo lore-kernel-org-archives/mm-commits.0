@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch added to -mm tree
-Date: Sat, 21 Apr 2007 20:00:18 -0700
-Message-ID: <200704220300.l3M30I57018316@shell0.pdx.osdl.net>
+Subject: + fix-spinlock-usage-in-hysdn_log_close.patch added to -mm tree
+Date: Sat, 21 Apr 2007 20:01:23 -0700
+Message-ID: <200704220301.l3M31NBZ018329@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54556 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754018AbXDVDAu (ORCPT
+	by vger.kernel.org with ESMTP id S1754018AbXDVDB3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 23:00:50 -0400
+	Sat, 21 Apr 2007 23:01:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com, neilb@suse.de, trond.myklebust@fys.uio.no
+Cc: matthias.kaehlcke@gmail.com, kkeil@suse.de
 
 
 The patch titled
-     RPC: add wrapper for svc_reserve to account for checksum
+     fix spinlock usage in hysdn_log_close()
 has been added to the -mm tree.  Its filename is
-     rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch
+     fix-spinlock-usage-in-hysdn_log_close.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RPC: add wrapper for svc_reserve to account for checksum
-From: Jeff Layton <jlayton@redhat.com>
+Subject: fix spinlock usage in hysdn_log_close()
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-When the kernel calls svc_reserve to downsize the expected size of an RPC
-reply, it fails to account for the possibility of a checksum at the end of
-the packet.  If a client mounts a NFSv2/3 with sec=krb5i/p, and does I/O
-then you'll generally see messages similar to this in the server's ring
-buffer:
+Fix incorrect spinlock use in hysdn_log_close().  The function declared a
+spinlock on the stack and used it to 'protect' a shared driver structure. 
 
-RPC request reserved 164 but used 208
+The patch simply removes the useless code.
 
-While I was never able to verify it, I suspect that this problem is also
-the root cause of some oopses I've seen under these conditions:
-
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=227726
-
-This is probably also a problem for other sec= types and for NFSv4.  The
-large reserved size for NFSv4 compound packets seems to generally paper
-over the problem, however.
-
-This patch adds a wrapper for svc_reserve that accounts for the possibility
-of a checksum.  It also fixes up the appropriate callers of svc_reserve to
-call the wrapper.  For now, it just uses a hardcoded value that I
-determined via testing.  That value may need to be revised upward as things
-change, or we may want to eventually add a new auth_op that attempts to
-calculate this somehow.
-
-Unfortunately, there doesn't seem to be a good way to reliably determine
-the expected checksum length prior to actually calculating it, particularly
-with schemes like spkm3.
-
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs3proc.c         |    2 +-
- fs/nfsd/nfsproc.c          |    2 +-
- include/linux/sunrpc/svc.h |   20 ++++++++++++++++++++
- net/sunrpc/svc.c           |    2 +-
- 4 files changed, 23 insertions(+), 3 deletions(-)
+ drivers/isdn/hysdn/hysdn_proclog.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/nfsd/nfs3proc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum fs/nfsd/nfs3proc.c
---- a/fs/nfsd/nfs3proc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum
-+++ a/fs/nfsd/nfs3proc.c
-@@ -177,7 +177,7 @@ nfsd3_proc_read(struct svc_rqst *rqstp, 
- 	if (max_blocksize < resp->count)
- 		resp->count = max_blocksize;
+diff -puN drivers/isdn/hysdn/hysdn_proclog.c~fix-spinlock-usage-in-hysdn_log_close drivers/isdn/hysdn/hysdn_proclog.c
+--- a/drivers/isdn/hysdn/hysdn_proclog.c~fix-spinlock-usage-in-hysdn_log_close
++++ a/drivers/isdn/hysdn/hysdn_proclog.c
+@@ -297,8 +297,6 @@ hysdn_log_close(struct inode *ino, struc
+ 	struct procdata *pd;
+ 	hysdn_card *card;
+ 	int retval = 0;
+-	unsigned long flags;
+-	spinlock_t hysdn_lock = SPIN_LOCK_UNLOCKED;
  
--	svc_reserve(rqstp, ((1 + NFS3_POST_OP_ATTR_WORDS + 3)<<2) + resp->count +4);
-+	svc_reserve_auth(rqstp, ((1 + NFS3_POST_OP_ATTR_WORDS + 3)<<2) + resp->count +4);
+ 	lock_kernel();
+ 	if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE) {
+@@ -308,7 +306,6 @@ hysdn_log_close(struct inode *ino, struc
+ 		/* read access -> log/debug read, mark one further file as closed */
  
- 	fh_copy(&resp->fh, &argp->fh);
- 	nfserr = nfsd_read(rqstp, &resp->fh, NULL,
-diff -puN fs/nfsd/nfsproc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum fs/nfsd/nfsproc.c
---- a/fs/nfsd/nfsproc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum
-+++ a/fs/nfsd/nfsproc.c
-@@ -155,7 +155,7 @@ nfsd_proc_read(struct svc_rqst *rqstp, s
- 				argp->count);
- 		argp->count = NFSSVC_MAXBLKSIZE_V2;
- 	}
--	svc_reserve(rqstp, (19<<2) + argp->count + 4);
-+	svc_reserve_auth(rqstp, (19<<2) + argp->count + 4);
+ 		pd = NULL;
+-		spin_lock_irqsave(&hysdn_lock, flags);
+ 		inf = *((struct log_data **) filep->private_data);	/* get first log entry */
+ 		if (inf)
+ 			pd = (struct procdata *) inf->proc_ctrl;	/* still entries there */
+@@ -331,7 +328,6 @@ hysdn_log_close(struct inode *ino, struc
+ 			inf->usage_cnt--;	/* decrement usage count for buffers */
+ 			inf = inf->next;
+ 		}
+-		spin_unlock_irqrestore(&hysdn_lock, flags);
  
- 	resp->count = argp->count;
- 	nfserr = nfsd_read(rqstp, fh_copy(&resp->fh, &argp->fh), NULL,
-diff -puN include/linux/sunrpc/svc.h~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum include/linux/sunrpc/svc.h
---- a/include/linux/sunrpc/svc.h~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum
-+++ a/include/linux/sunrpc/svc.h
-@@ -396,4 +396,24 @@ char *		   svc_print_addr(struct svc_rqs
- 
- #define	RPC_MAX_ADDRBUFLEN	(63U)
- 
-+/*
-+ * When we want to reduce the size of the reserved space in the response
-+ * buffer, we need to take into account the size of any checksum data that
-+ * may be at the end of the packet. For now, just use a hardcoded value
-+ * for each possible authflavor. This will need to be updated when new
-+ * encryption types or algorithms are added, or we'll have to come up with
-+ * a way to reasonably calculate this on the fly (maybe via a new auth_op).
-+ */
-+static inline void
-+svc_reserve_auth(struct svc_rqst *rqstp, int space)
-+{
-+	int			added_space = 0;
-+
-+	switch(rqstp->rq_authop->flavour) {
-+		case RPC_AUTH_GSS:
-+			added_space = 56; /* determined empirically */
-+	}
-+	return svc_reserve(rqstp, space + added_space);
-+}
-+
- #endif /* SUNRPC_SVC_H */
-diff -puN net/sunrpc/svc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum
-+++ a/net/sunrpc/svc.c
-@@ -907,7 +907,7 @@ svc_process(struct svc_rqst *rqstp)
- 	 * better idea of reply size
- 	 */
- 	if (procp->pc_xdrressize)
--		svc_reserve(rqstp, procp->pc_xdrressize<<2);
-+		svc_reserve_auth(rqstp, procp->pc_xdrressize<<2);
- 
- 	/* Call the function that processes the request. */
- 	if (!versp->vs_dispatch) {
+ 		if (pd)
+ 			if (pd->if_used <= 0)	/* delete buffers if last file closed */
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-make-iunique-use-a-do-while-loop-rather-than-its-obscure-goto-loop.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits-comments.patch
-change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
-rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch
+origin.patch
+drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+use-mutex-instead-of-binary-semaphore-in-fore-systems-200e-series-driver-for-atm.patch
+qla1280-use-dma_64bit_mask-instead-of-0ull.patch
+include-kern_-constant-in-printk-calls-in-mm-slabc.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+fix-spinlock-usage-in-hysdn_log_close.patch
