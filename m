@@ -1,269 +1,469 @@
 From: akpm@linux-foundation.org
-Subject: - mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch removed from -mm tree
-Date: Sun, 22 Apr 2007 12:02:21 -0700
-Message-ID: <200704221902.l3MJ2L6T032084@shell0.pdx.osdl.net>
+Subject: - mm-per-device-dirty-threshold.patch removed from -mm tree
+Date: Sun, 22 Apr 2007 12:02:23 -0700
+Message-ID: <200704221902.l3MJ2Nxp032087@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52391 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965656AbXDVTCZ (ORCPT
+	by vger.kernel.org with ESMTP id S965672AbXDVTCg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 15:02:25 -0400
+	Sun, 22 Apr 2007 15:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-expose-bdi-statistics-in-sysfs-printk-fixes
+     mm: per device dirty threshold
 has been removed from the -mm tree.  Its filename was
-     mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
+     mm-per-device-dirty-threshold.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm-expose-bdi-statistics-in-sysfs-printk-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: per device dirty threshold
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-sparc64:
+Scale writeback cache per backing device, proportional to its writeout speed.
 
-block/ll_rw_blk.c: In function `queue_nr_reclaimable_show':                     block/ll_rw_blk.c:3986: warning: long long int format, s64 arg (arg 3)
-block/ll_rw_blk.c:3986: warning: long long int format, s64 arg (arg 3)
+By decoupling the BDI dirty thresholds a number of problems we currently have
+will go away, namely:
 
-We don't know what type the architecture uses to implement s64.
+ - mutual interference starvation (for any number of BDIs);
+ - deadlocks with stacked BDIs (loop, FUSE and local NFS mounts).
 
-Fix 80-col uglies while we're there, too.
+It might be that all dirty pages are for a single BDI while other BDIs are
+idling.  By giving each BDI a 'fair' share of the dirty limit, each one can
+have dirty pages outstanding and make progress.
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+A global threshold also creates a deadlock for stacked BDIs; when A writes to
+B, and A generates enough dirty pages to get throttled, B will never start
+writeback until the dirty pages go away.  Again, by giving each BDI its own
+'independent' dirty limit, this problem is avoided.
+
+So the problem is to determine how to distribute the total dirty limit across
+the BDIs fairly and efficiently.  A DBI that has a large dirty limit but does
+not have any dirty pages outstanding is a waste.
+
+What is done is to keep a floating proportion between the DBIs based on
+writeback completions.  This way faster/more active devices get a larger share
+than slower/idle devices.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/backing-dev.h |   51 +++++++++
+ mm/backing-dev.c            |    3 
+ mm/page-writeback.c         |  181 ++++++++++++++++++++++++++++------
+ 3 files changed, 206 insertions(+), 29 deletions(-)
 
-diff -puN block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs-printk-fixes block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs-printk-fixes
-+++ a/block/ll_rw_blk.c
-@@ -3983,12 +3983,16 @@ static ssize_t queue_max_hw_sectors_show
+diff -puN include/linux/backing-dev.h~mm-per-device-dirty-threshold include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-per-device-dirty-threshold
++++ a/include/linux/backing-dev.h
+@@ -28,6 +28,7 @@ typedef int (congested_fn)(void *, int);
+ enum bdi_stat_item {
+ 	BDI_RECLAIMABLE,
+ 	BDI_WRITEBACK,
++	BDI_WRITEOUT,
+ 	NR_BDI_STAT_ITEMS
+ };
  
- static ssize_t queue_nr_reclaimable_show(struct request_queue *q, char *page)
- {
--	return sprintf(page, "%lld\n", bdi_stat(&q->backing_dev_info, BDI_RECLAIMABLE));
-+	return sprintf(page, "%llu\n",
-+		(unsigned long long)bdi_stat(&q->backing_dev_info,
-+						BDI_RECLAIMABLE));
+@@ -41,6 +42,13 @@ struct backing_dev_info {
+ 	void *unplug_io_data;
+ 
+ 	struct percpu_counter bdi_stat[NR_BDI_STAT_ITEMS];
++
++	/*
++	 * data used for scaling the writeback cache
++	 */
++	spinlock_t lock;	/* protect the cycle count */
++	unsigned long cycles;	/* writeout cycles */
++	int dirty_exceeded;
+ };
+ 
+ void bdi_init(struct backing_dev_info *bdi);
+@@ -52,6 +60,12 @@ static inline void __mod_bdi_stat(struct
+ 	percpu_counter_mod(&bdi->bdi_stat[item], amount);
  }
  
- static ssize_t queue_nr_writeback_show(struct request_queue *q, char *page)
++static inline void __mod_bdi_stat64(struct backing_dev_info *bdi,
++		enum bdi_stat_item item, s64 amount)
++{
++	percpu_counter_mod64(&bdi->bdi_stat[item], amount);
++}
++
+ static inline void __inc_bdi_stat(struct backing_dev_info *bdi,
+ 		enum bdi_stat_item item)
  {
--	return sprintf(page, "%lld\n", bdi_stat(&q->backing_dev_info, BDI_WRITEBACK));
-+	return sprintf(page, "%llu\n",
-+		(unsigned long long)bdi_stat(&q->backing_dev_info,
-+						BDI_WRITEBACK));
+@@ -84,12 +98,49 @@ static inline void dec_bdi_stat(struct b
+ 	local_irq_restore(flags);
  }
  
- static struct queue_sysfs_entry queue_requests_entry = {
++static inline s64 __bdi_stat(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
++{
++	return percpu_counter_read(&bdi->bdi_stat[item]);
++}
++
+ static inline s64 bdi_stat(struct backing_dev_info *bdi,
+ 		enum bdi_stat_item item)
+ {
+ 	return percpu_counter_read_positive(&bdi->bdi_stat[item]);
+ }
+ 
++static inline s64 __bdi_stat_sum(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
++{
++	return percpu_counter_sum(&bdi->bdi_stat[item]);
++}
++
++static inline s64 bdi_stat_sum(struct backing_dev_info *bdi,
++		enum bdi_stat_item item)
++{
++	s64 sum;
++	unsigned long flags;
++
++	local_irq_save(flags);
++	sum = __bdi_stat_sum(bdi, item);
++	local_irq_restore(flags);
++
++	return sum;
++}
++
++/*
++ * maximal error of a stat counter.
++ */
++static inline unsigned long bdi_stat_delta(void)
++{
++#ifdef CONFIG_SMP
++	return NR_CPUS * FBC_BATCH;
++#else
++	return 1UL;
++#endif
++}
++
+ /*
+  * Flags in backing_dev_info::capability
+  * - The first two flags control whether dirty pages will contribute to the
+diff -puN mm/backing-dev.c~mm-per-device-dirty-threshold mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-per-device-dirty-threshold
++++ a/mm/backing-dev.c
+@@ -12,6 +12,9 @@ void bdi_init(struct backing_dev_info *b
+ 	if (!(bdi_cap_writeback_dirty(bdi) || bdi_cap_account_dirty(bdi)))
+ 		return;
+ 
++	spin_lock_init(&bdi->lock);
++	bdi->cycles = 0;
++	bdi->dirty_exceeded = 0;
+ 	for (i = 0; i < NR_BDI_STAT_ITEMS; i++)
+ 		percpu_counter_init(&bdi->bdi_stat[i], 0);
+ }
+diff -puN mm/page-writeback.c~mm-per-device-dirty-threshold mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-per-device-dirty-threshold
++++ a/mm/page-writeback.c
+@@ -49,8 +49,6 @@
+  */
+ static long ratelimit_pages = 32;
+ 
+-static int dirty_exceeded __cacheline_aligned_in_smp;	/* Dirty mem may be over limit */
+-
+ /*
+  * When balance_dirty_pages decides that the caller needs to perform some
+  * non-background writeback, this is how many pages it will attempt to write.
+@@ -103,6 +101,88 @@ EXPORT_SYMBOL(laptop_mode);
+ static void background_writeout(unsigned long _min_pages);
+ 
+ /*
++ * Scale the writeback cache size proportional to the relative writeout speeds.
++ *
++ * We do this by tracking a floating average per BDI and a global floating
++ * average. We optimize away the '/= 2' for the global average by noting that:
++ *
++ *  if (++i > thresh) i /= 2:
++ *
++ * Can be approximated by:
++ *
++ *   thresh/2 + (++i % thresh/2)
++ *
++ * Furthermore, when we choose thresh to be 2^n it can be written in terms of
++ * binary operations and wraparound artifacts disappear.
++ *
++ * Also note that this yields a natural counter of the elapsed periods:
++ *
++ *   i / thresh
++ *
++ * Its monotonous increasing property can be applied to mitigate the wrap-
++ * around issue.
++ */
++static int vm_cycle_shift __read_mostly;
++static struct percpu_counter vm_writeout_total;
++
++/*
++ * Sync up the per BDI average to the global cycle.
++ */
++static void bdi_writeout_norm(struct backing_dev_info *bdi)
++{
++	int bits = vm_cycle_shift;
++	unsigned long cycle = 1UL << bits;
++	unsigned long mask = ~(cycle - 1);
++	unsigned long global_cycle = percpu_counter_read(&vm_writeout_total);
++	unsigned long flags;
++
++	global_cycle <<= 1;
++	global_cycle &= mask;
++
++	if ((bdi->cycles & mask) == global_cycle)
++		return;
++
++	spin_lock_irqsave(&bdi->lock, flags);
++	bdi->cycles &= mask;
++	while (bdi->cycles != global_cycle) {
++		unsigned long val = __bdi_stat(bdi, BDI_WRITEOUT);
++		unsigned long half = (val + 1) >> 1;
++
++		if (!val)
++			break;
++
++		__mod_bdi_stat64(bdi, BDI_WRITEOUT, -half);
++		bdi->cycles += cycle;
++	}
++	bdi->cycles = global_cycle;
++	spin_unlock_irqrestore(&bdi->lock, flags);
++}
++
++static void __bdi_writeout_inc(struct backing_dev_info *bdi)
++{
++	bdi_writeout_norm(bdi);
++
++	__inc_bdi_stat(bdi, BDI_WRITEOUT);
++	percpu_counter_mod(&vm_writeout_total, 1);
++}
++
++void get_writeout_scale(struct backing_dev_info *bdi, long *scale, long *div)
++{
++	int bits = vm_cycle_shift - 1;
++	unsigned long cycle = 1UL << bits;
++	unsigned long mask = cycle - 1;
++	unsigned long total = percpu_counter_read(&vm_writeout_total);
++
++	if (bdi_cap_writeback_dirty(bdi)) {
++		bdi_writeout_norm(bdi);
++		*scale = bdi_stat(bdi, BDI_WRITEOUT);
++	} else
++		*scale = 0;
++
++	*div = cycle + (total & mask);
++}
++
++/*
+  * Work out the current dirty-memory clamping and background writeout
+  * thresholds.
+  *
+@@ -158,8 +238,8 @@ static unsigned long determine_dirtyable
+ }
+ 
+ static void
+-get_dirty_limits(long *pbackground, long *pdirty,
+-					struct address_space *mapping)
++get_dirty_limits(long *pbackground, long *pdirty, long *pbdi_dirty,
++		 struct backing_dev_info *bdi)
+ {
+ 	int background_ratio;		/* Percentages */
+ 	int dirty_ratio;
+@@ -193,6 +273,30 @@ get_dirty_limits(long *pbackground, long
+ 	}
+ 	*pbackground = background;
+ 	*pdirty = dirty;
++
++	if (bdi) {
++		long long tmp = dirty;
++		long reserve;
++		long scale, div;
++
++		get_writeout_scale(bdi, &scale, &div);
++
++		tmp *= scale;
++		do_div(tmp, div);
++
++		reserve = dirty -
++			(global_page_state(NR_FILE_DIRTY) +
++			 global_page_state(NR_WRITEBACK) +
++			 global_page_state(NR_UNSTABLE_NFS));
++
++		if (reserve < 0)
++			reserve = 0;
++
++		reserve += bdi_stat(bdi, BDI_RECLAIMABLE) +
++			bdi_stat(bdi, BDI_WRITEBACK);
++
++		*pbdi_dirty = min((long)tmp, reserve);
++	}
+ }
+ 
+ /*
+@@ -204,9 +308,11 @@ get_dirty_limits(long *pbackground, long
+  */
+ static void balance_dirty_pages(struct address_space *mapping)
+ {
+-	long nr_reclaimable;
++	long bdi_nr_reclaimable;
++	long bdi_nr_writeback;
+ 	long background_thresh;
+ 	long dirty_thresh;
++	long bdi_thresh;
+ 	unsigned long pages_written = 0;
+ 	unsigned long write_chunk = sync_writeback_pages();
+ 
+@@ -221,15 +327,15 @@ static void balance_dirty_pages(struct a
+ 			.range_cyclic	= 1,
+ 		};
+ 
+-		get_dirty_limits(&background_thresh, &dirty_thresh, mapping);
+-		nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
+-					global_page_state(NR_UNSTABLE_NFS);
+-		if (nr_reclaimable + global_page_state(NR_WRITEBACK) <=
+-			dirty_thresh)
++		get_dirty_limits(&background_thresh, &dirty_thresh,
++				&bdi_thresh, bdi);
++		bdi_nr_reclaimable = bdi_stat(bdi, BDI_RECLAIMABLE);
++		bdi_nr_writeback = bdi_stat(bdi, BDI_WRITEBACK);
++		if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
+ 				break;
+ 
+-		if (!dirty_exceeded)
+-			dirty_exceeded = 1;
++		if (!bdi->dirty_exceeded)
++			bdi->dirty_exceeded = 1;
+ 
+ 		/* Note: nr_reclaimable denotes nr_dirty + nr_unstable.
+ 		 * Unstable writes are a feature of certain networked
+@@ -237,16 +343,27 @@ static void balance_dirty_pages(struct a
+ 		 * written to the server's write cache, but has not yet
+ 		 * been flushed to permanent storage.
+ 		 */
+-		if (nr_reclaimable) {
++		if (bdi_nr_reclaimable) {
+ 			writeback_inodes(&wbc);
+-			get_dirty_limits(&background_thresh,
+-					 	&dirty_thresh, mapping);
+-			nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
+-					global_page_state(NR_UNSTABLE_NFS);
+-			if (nr_reclaimable +
+-				global_page_state(NR_WRITEBACK)
+-					<= dirty_thresh)
+-						break;
++
++			get_dirty_limits(&background_thresh, &dirty_thresh,
++				       &bdi_thresh, bdi);
++
++			if (bdi_thresh < 2*bdi_stat_delta()) {
++				bdi_nr_reclaimable =
++					bdi_stat_sum(bdi, BDI_RECLAIMABLE);
++				bdi_nr_writeback =
++					bdi_stat_sum(bdi, BDI_WRITEBACK);
++			} else {
++				bdi_nr_reclaimable =
++					bdi_stat(bdi, BDI_RECLAIMABLE);
++				bdi_nr_writeback =
++					bdi_stat(bdi, BDI_WRITEBACK);
++			}
++
++			if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
++				break;
++
+ 			pages_written += write_chunk - wbc.nr_to_write;
+ 			if (pages_written >= write_chunk)
+ 				break;		/* We've done our duty */
+@@ -254,9 +371,9 @@ static void balance_dirty_pages(struct a
+ 		congestion_wait(WRITE, HZ/10);
+ 	}
+ 
+-	if (nr_reclaimable + global_page_state(NR_WRITEBACK)
+-		<= dirty_thresh && dirty_exceeded)
+-			dirty_exceeded = 0;
++	if (bdi_nr_reclaimable + bdi_nr_writeback < bdi_thresh &&
++			bdi->dirty_exceeded)
++		bdi->dirty_exceeded = 0;
+ 
+ 	if (writeback_in_progress(bdi))
+ 		return;		/* pdflush is already working this queue */
+@@ -270,7 +387,9 @@ static void balance_dirty_pages(struct a
+ 	 * background_thresh, to keep the amount of dirty memory low.
+ 	 */
+ 	if ((laptop_mode && pages_written) ||
+-	     (!laptop_mode && (nr_reclaimable > background_thresh)))
++			(!laptop_mode && (global_page_state(NR_FILE_DIRTY)
++					  + global_page_state(NR_UNSTABLE_NFS)
++					  > background_thresh)))
+ 		pdflush_operation(background_writeout, 0);
+ }
+ 
+@@ -306,7 +425,7 @@ void balance_dirty_pages_ratelimited_nr(
+ 	unsigned long *p;
+ 
+ 	ratelimit = ratelimit_pages;
+-	if (dirty_exceeded)
++	if (mapping->backing_dev_info->dirty_exceeded)
+ 		ratelimit = 8;
+ 
+ 	/*
+@@ -342,7 +461,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
+ 	}
+ 
+         for ( ; ; ) {
+-		get_dirty_limits(&background_thresh, &dirty_thresh, NULL);
++		get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
+ 
+                 /*
+                  * Boost the allowable dirty threshold a bit for page
+@@ -377,7 +496,7 @@ static void background_writeout(unsigned
+ 		long background_thresh;
+ 		long dirty_thresh;
+ 
+-		get_dirty_limits(&background_thresh, &dirty_thresh, NULL);
++		get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
+ 		if (global_page_state(NR_FILE_DIRTY) +
+ 			global_page_state(NR_UNSTABLE_NFS) < background_thresh
+ 				&& min_pages <= 0)
+@@ -585,6 +704,8 @@ void __init page_writeback_init(void)
+ 	mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
+ 	writeback_set_ratelimit();
+ 	register_cpu_notifier(&ratelimit_nb);
++	vm_cycle_shift = 1 + ilog2(vm_total_pages);
++	percpu_counter_init(&vm_writeout_total, 0);
+ }
+ 
+ /**
+@@ -988,8 +1109,10 @@ int test_clear_page_writeback(struct pag
+ 			radix_tree_tag_clear(&mapping->page_tree,
+ 						page_index(page),
+ 						PAGECACHE_TAG_WRITEBACK);
+-			if (bdi_cap_writeback_dirty(bdi))
++			if (bdi_cap_writeback_dirty(bdi)) {
+ 				__dec_bdi_stat(bdi, BDI_WRITEBACK);
++				__bdi_writeout_inc(bdi);
++			}
+ 		}
+ 		write_unlock_irqrestore(&mapping->tree_lock, flags);
+ 	} else {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-origin.patch
-taskstats-fix-the-structure-members-alignment-issue-fix.patch
-acpi-thermal-fix-mod_timer-interval.patch
-fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix-2.patch
-sysfs-binc-printk-fix.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-infiniband-make-it-build-hack.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-ubi-fixup.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-git-netdev-all-baycom_ser_fdx-fix.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-yamc.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
-rfcomm_worker-fix-wakeup-race.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-pci-error-recovery-symbios-scsi-base-support-fixes.patch
-pci-error-recovery-symbios-scsi-first-failure-fix.patch
-cxacru-add-documentation-file-fix.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-git-net.patch
-git-wireless-vs-git-net-2.patch
-git-wireless-vs-git-net-3.patch
-fix-x86_64-mm-fam10-mwait-idle.patch
-more-fix-x86_64-mm-fam10-mwait-idle.patch
-fix-x86_64-mm-sched-clock-share.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-extend-print_symbol-capability-fix-fix.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
+lumpy-reclaim-v4.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+mm-remove-destroy_dirty_buffers-from-invalidate_bdev.patch
+mm-optimize-kill_bdev.patch
 mm-optimize-kill_bdev-fix.patch
+mm-optimize-acorn-partition-truncate.patch
+lazy-freeing-of-memory-through-madv_free.patch
 lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
 lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-unprivileged-mounts-account-user-mounts-fix.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
-proc-maps-protection-vs-utrace.patch
-utrace-prep-2.patch
-undo-utrace-prep-2.patch
-utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-utrace-printk-borkage.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+exec-fix-remove_arg_zero-add-comment.patch
+lockdep-treats-down_write_trylock-like-regular-down_write.patch
+nfs-fix-congestion-control-use-atomic_longs.patch
+mm-per-device-dirty-threshold.patch
