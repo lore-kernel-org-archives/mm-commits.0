@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch added to -mm tree
-Date: Sun, 22 Apr 2007 01:33:11 -0700
-Message-ID: <200704220835.l3M8ZkuF022986@shell0.pdx.osdl.net>
+Subject: + mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch added to -mm tree
+Date: Sun, 22 Apr 2007 01:40:18 -0700
+Message-ID: <200704220842.l3M8grav023069@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42040 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56391 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932255AbXDVIfv (ORCPT
+	by vger.kernel.org with ESMTP id S932255AbXDVInA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 04:35:51 -0400
+	Sun, 22 Apr 2007 04:43:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     define-platform-wakeup-hook-use-in-pci_enable_wake-fix
+     mm-expose-bdi-statistics-in-sysfs-printk-fixes
 has been added to the -mm tree.  Its filename is
-     define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+     mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,94 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: define-platform-wakeup-hook-use-in-pci_enable_wake-fix
+Subject: mm-expose-bdi-statistics-in-sysfs-printk-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make it compile with CONFIG_PM=n
+sparc64:
 
-Cc: David Brownell <david-b@pacbell.net>
+block/ll_rw_blk.c: In function `queue_nr_reclaimable_show':                     block/ll_rw_blk.c:3986: warning: long long int format, s64 arg (arg 3)
+block/ll_rw_blk.c:3986: warning: long long int format, s64 arg (arg 3)
+
+We don't know what type the architecture uses to implement s64.
+
+Fix 80-col uglies while we're there, too.
+
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c  |   12 ++++--------
- include/linux/pm.h |   19 ++++++++++++++++---
- 2 files changed, 20 insertions(+), 11 deletions(-)
+ block/ll_rw_blk.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake-fix drivers/pci/pci.c
---- a/drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake-fix
-+++ a/drivers/pci/pci.c
-@@ -13,6 +13,7 @@
- #include <linux/delay.h>
- #include <linux/init.h>
- #include <linux/pci.h>
-+#include <linux/pm.h>
- #include <linux/module.h>
- #include <linux/spinlock.h>
- #include <linux/string.h>
-@@ -947,12 +948,7 @@ int pci_enable_wake(struct pci_dev *dev,
- 	 * userspace updating the /sys/devices.../power/wakeup file.
- 	 */
+diff -puN block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs-printk-fixes block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs-printk-fixes
++++ a/block/ll_rw_blk.c
+@@ -3983,12 +3983,16 @@ static ssize_t queue_max_hw_sectors_show
  
--	if (platform_enable_wakeup) {
--		status = platform_enable_wakeup(&dev->dev, enable);
--		if (status)
--			return status;
--	} else
--		status = -EIO;
-+	status = call_platform_enable_wakeup(&dev->dev, enable);
+ static ssize_t queue_nr_reclaimable_show(struct request_queue *q, char *page)
+ {
+-	return sprintf(page, "%lld\n", bdi_stat(&q->backing_dev_info, BDI_RECLAIMABLE));
++	return sprintf(page, "%llu\n",
++		(unsigned long long)bdi_stat(&q->backing_dev_info,
++						BDI_RECLAIMABLE));
+ }
  
- 	/* find PCI PM capability in list */
- 	pm = pci_find_capability(dev, PCI_CAP_ID_PM);
-@@ -975,8 +971,8 @@ int pci_enable_wake(struct pci_dev *dev,
- 		/* if it can't, revert what the platform hook changed,
- 		 * always reporting the base "EINVAL, can't PME#" error
- 		 */
--		if (enable && platform_enable_wakeup)
--			platform_enable_wakeup(&dev->dev, 0);
-+		if (enable)
-+			call_platform_enable_wakeup(&dev->dev, 0);
- 		return enable ? -EINVAL : 0;
- 	}
+ static ssize_t queue_nr_writeback_show(struct request_queue *q, char *page)
+ {
+-	return sprintf(page, "%lld\n", bdi_stat(&q->backing_dev_info, BDI_WRITEBACK));
++	return sprintf(page, "%llu\n",
++		(unsigned long long)bdi_stat(&q->backing_dev_info,
++						BDI_WRITEBACK));
+ }
  
-diff -puN include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake-fix include/linux/pm.h
---- a/include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake-fix
-+++ a/include/linux/pm.h
-@@ -277,12 +277,20 @@ extern void __suspend_report_result(cons
- 		__suspend_report_result(__FUNCTION__, fn, ret);		\
- 	} while (0)
- 
--/* platform hook to activate device wakeup capability, if
-- * that's not already handled by enable_irq_wake() etc
-- * returns zero on success, else negative errno
-+/*
-+ * Platform hook to activate device wakeup capability, if that's not already
-+ * handled by enable_irq_wake() etc.
-+ * Returns zero on success, else negative errno
-  */
- extern int (*platform_enable_wakeup)(struct device *dev, int is_on);
- 
-+static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
-+{
-+	if (platform_enable_wakeup)
-+		return (*platform_enable_wakeup)(dev, is_on);
-+	return 0;
-+}
-+
- #else /* !CONFIG_PM */
- 
- static inline int device_suspend(pm_message_t state)
-@@ -304,6 +312,11 @@ static inline void dpm_runtime_resume(st
- 
- #define suspend_report_result(fn, ret) do { } while (0)
- 
-+static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
-+{
-+	return -EIO;
-+}
-+
- #endif
- 
- /* changes to device_may_wakeup take effect on the next pm state change.
+ static struct queue_sysfs_entry queue_requests_entry = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -312,3 +265,4 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
