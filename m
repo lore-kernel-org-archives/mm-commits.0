@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sm501fb-printk-warning-fixes.patch added to -mm tree
-Date: Sat, 21 Apr 2007 22:29:05 -0700
-Message-ID: <200704220531.l3M5VesG020335@shell0.pdx.osdl.net>
+Subject: + reiser4-slab-allocators-remove-slab_debug_initial-flag.patch added to -mm tree
+Date: Sat, 21 Apr 2007 22:31:12 -0700
+Message-ID: <200704220533.l3M5Xl1e020361@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45066 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964778AbXDVFbq (ORCPT
+	by vger.kernel.org with ESMTP id S964778AbXDVFdw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 01:31:46 -0400
+	Sun, 22 Apr 2007 01:33:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net
+Cc: akpm@linux-foundation.org, clameter@engr.sgi.com
 
 
 The patch titled
-     sm501fb-printk-warning-fixes
+     reiser4-slab-allocators-remove-slab_debug_initial-flag
 has been added to the -mm tree.  Its filename is
-     sm501fb-printk-warning-fixes.patch
+     reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sm501fb-printk-warning-fixes
+Subject: reiser4-slab-allocators-remove-slab_debug_initial-flag
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/sm501fb.c: In function 'sm501fb_cursor':
-drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
-drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
-
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sm501fb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiser4/super_ops.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/video/sm501fb.c~sm501fb-printk-warning-fixes drivers/video/sm501fb.c
---- a/drivers/video/sm501fb.c~sm501fb-printk-warning-fixes
-+++ a/drivers/video/sm501fb.c
-@@ -989,7 +989,7 @@ static int sm501fb_cursor(struct fb_info
- 			((info->cmap.green[fg_col] & 0xFC) << 3) |
- 			((info->cmap.blue[fg_col] & 0xF8) >> 3);
+diff -puN fs/reiser4/super_ops.c~reiser4-slab-allocators-remove-slab_debug_initial-flag fs/reiser4/super_ops.c
+--- a/fs/reiser4/super_ops.c~reiser4-slab-allocators-remove-slab_debug_initial-flag
++++ a/fs/reiser4/super_ops.c
+@@ -33,8 +33,7 @@ static void init_once(void *obj, struct 
  
--		dev_dbg(fbi->dev, "fgcol %08x, bgcol %08x\n", fg, bg);
-+		dev_dbg(fbi->dev, "fgcol %08lx, bgcol %08lx\n", fg, bg);
+ 	info = obj;
  
- 		writel(bg, base + SM501_OFF_HWC_COLOR_1_2);
- 		writel(fg, base + SM501_OFF_HWC_COLOR_3);
+-	if ((flags & (SLAB_CTOR_VERIFY | SLAB_CTOR_CONSTRUCTOR)) ==
+-	    SLAB_CTOR_CONSTRUCTOR) {
++	if ((flags & SLAB_CTOR_CONSTRUCTOR) == SLAB_CTOR_CONSTRUCTOR) {
+ 		/* initialize vfs inode */
+ 		inode_init_once(&info->vfs_inode);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -225,6 +222,7 @@ utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 utrace-printk-borkage.patch
 fbdev-hecuba-framebuffer-driver.patch
 vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
 integrity-new-hooks-fix.patch
 integrity-evm-as-an-integrity-service-provider-tidy.patch
 integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
@@ -233,4 +231,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-sm501fb-printk-warning-fixes.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
