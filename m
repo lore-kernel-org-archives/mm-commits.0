@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-infiniband-make-it-build-hack.patch added to -mm tree
-Date: Sun, 22 Apr 2007 00:37:38 -0700
-Message-ID: <200704220740.l3M7eD3D022141@shell0.pdx.osdl.net>
+Subject: + more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch added to -mm tree
+Date: Sun, 22 Apr 2007 00:45:18 -0700
+Message-ID: <200704220747.l3M7lrtR022261@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52778 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965336AbXDVHkS (ORCPT
+	by vger.kernel.org with ESMTP id S965345AbXDVHr5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 03:40:18 -0400
+	Sun, 22 Apr 2007 03:47:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     git-infiniband-make-it-build-hack
+     more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 has been added to the -mm tree.  Its filename is
-     git-infiniband-make-it-build-hack.patch
+     more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-infiniband-make-it-build-hack
+Subject: more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ipath/ipath_mr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/probe.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/infiniband/hw/ipath/ipath_mr.c~git-infiniband-make-it-build-hack drivers/infiniband/hw/ipath/ipath_mr.c
---- a/drivers/infiniband/hw/ipath/ipath_mr.c~git-infiniband-make-it-build-hack
-+++ a/drivers/infiniband/hw/ipath/ipath_mr.c
-@@ -231,7 +231,7 @@ struct ib_mr *ipath_reg_user_mr(struct i
- 				goto bail;
- 			}
- 			mr->mr.map[m]->segs[n].vaddr = vaddr;
--			mr->mr.map[m]->segs[n].length = region->page_size;
-+//			mr->mr.map[m]->segs[n].length = region->page_size;
- 			n++;
- 			if (n == IPATH_SEGSZ) {
- 				m++;
+diff -puN drivers/pci/probe.c~more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/pci/probe.c
+--- a/drivers/pci/probe.c~more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/pci/probe.c
+@@ -39,7 +39,6 @@ static void pci_create_legacy_files(stru
+ 		b->legacy_io->attr.name = "legacy_io";
+ 		b->legacy_io->size = 0xffff;
+ 		b->legacy_io->attr.mode = S_IRUSR | S_IWUSR;
+-		b->legacy_io->attr.owner = THIS_MODULE;
+ 		b->legacy_io->read = pci_read_legacy_io;
+ 		b->legacy_io->write = pci_write_legacy_io;
+ 		class_device_create_bin_file(&b->class_dev, b->legacy_io);
+@@ -49,7 +48,6 @@ static void pci_create_legacy_files(stru
+ 		b->legacy_mem->attr.name = "legacy_mem";
+ 		b->legacy_mem->size = 1024*1024;
+ 		b->legacy_mem->attr.mode = S_IRUSR | S_IWUSR;
+-		b->legacy_mem->attr.owner = THIS_MODULE;
+ 		b->legacy_mem->mmap = pci_mmap_legacy_mem;
+ 		class_device_create_bin_file(&b->class_dev, b->legacy_mem);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,6 +70,7 @@ git-agpgart.patch
 git-powerpc.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 device_schedule_callback-needs-a-module-reference-fix.patch
 sysfs-binc-printk-fix.patch
 git-drm.patch
@@ -71,6 +79,7 @@ git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
+git-infiniband-make-it-build-hack.patch
 git-input.patch
 git-input-fixup.patch
 git-kvm.patch
@@ -94,6 +103,7 @@ git-e1000.patch
 git-e1000-fixup-2.patch
 git-net.patch
 git-net-fixup.patch
+git-net-fix-yamc.patch
 git-net-vs-git-netdev-all.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
@@ -238,4 +248,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-git-infiniband-make-it-build-hack.patch
