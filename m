@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch added to -mm tree
-Date: Sat, 21 Apr 2007 22:33:23 -0700
-Message-ID: <200704220535.l3M5Zw4m020376@shell0.pdx.osdl.net>
+Subject: + fix-x86_64-mm-fam10-mwait-idle.patch added to -mm tree
+Date: Sat, 21 Apr 2007 22:47:29 -0700
+Message-ID: <200704220550.l3M5o4XX020602@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39851 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54553 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964778AbXDVFgI (ORCPT
+	by vger.kernel.org with ESMTP id S1753881AbXDVFuK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 01:36:08 -0400
+	Sun, 22 Apr 2007 01:50:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+     fix-x86_64-mm-fam10-mwait-idle
 has been added to the -mm tree.  Its filename is
-     git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+     fix-x86_64-mm-fam10-mwait-idle.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+Subject: fix-x86_64-mm-fam10-mwait-idle
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Fix section borkage in fam10-mwait-idle
+
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/i386/kernel/cpu/amd.c |    2 +-
+ arch/x86_64/kernel/setup.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/media/video/pvrusb2/pvrusb2-sysfs.c
---- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-+++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-@@ -839,7 +839,6 @@ static void class_dev_create(struct pvr2
- 		sfp->unit_number_created_ok = !0;
- 	}
+diff -puN arch/i386/kernel/cpu/amd.c~fix-x86_64-mm-fam10-mwait-idle arch/i386/kernel/cpu/amd.c
+--- a/arch/i386/kernel/cpu/amd.c~fix-x86_64-mm-fam10-mwait-idle
++++ a/arch/i386/kernel/cpu/amd.c
+@@ -53,7 +53,7 @@ static __cpuinit int amd_apic_timer_brok
+ 	return 0;
+ }
  
--	sfp->attr_bus_info.attr.owner = THIS_MODULE;
- 	sfp->attr_bus_info.attr.name = "bus_info_str";
- 	sfp->attr_bus_info.attr.mode = S_IRUGO;
- 	sfp->attr_bus_info.show = bus_info_show;
+-int force_mwait __initdata;
++int force_mwait __cpuinitdata;
+ 
+ static void __cpuinit init_amd(struct cpuinfo_x86 *c)
+ {
+diff -puN arch/x86_64/kernel/setup.c~fix-x86_64-mm-fam10-mwait-idle arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~fix-x86_64-mm-fam10-mwait-idle
++++ a/arch/x86_64/kernel/setup.c
+@@ -79,7 +79,7 @@ int bootloader_type;
+ 
+ unsigned long saved_video_mode;
+ 
+-int force_mwait __initdata;
++int force_mwait __cpuinitdata;
+ 
+ /* 
+  * Early DMI memory
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,6 +80,7 @@ revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
 device_schedule_callback-needs-a-module-reference-fix.patch
 git-drm.patch
 git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
@@ -115,6 +131,7 @@ git-wireless-fixup.patch
 git-wireless-vs-git-net.patch
 git-wireless-vs-git-net-2.patch
 git-wireless-vs-git-net-3.patch
+fix-x86_64-mm-fam10-mwait-idle.patch
 revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
 rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
@@ -231,4 +248,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
