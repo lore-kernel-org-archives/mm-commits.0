@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pci-error-recovery-symbios-scsi-first-failure-fix.patch added to -mm tree
-Date: Sat, 21 Apr 2007 19:26:59 -0700
-Message-ID: <200704220226.l3M2Qx6r017850@shell0.pdx.osdl.net>
+Subject: + pci-error-recovery-symbios-scsi-base-support-fixes.patch added to -mm tree
+Date: Sat, 21 Apr 2007 19:26:55 -0700
+Message-ID: <200704220226.l3M2QtNb017844@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51049 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753989AbXDVC2E (ORCPT
+	by vger.kernel.org with ESMTP id S1754011AbXDVC2V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 22:28:04 -0400
+	Sat, 21 Apr 2007 22:28:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, linas@austin.ibm.com, willy@debian.org
 
 
 The patch titled
-     pci-error-recovery-symbios-scsi-first-failure-fix
+     pci-error-recovery-symbios-scsi-base-support-fixes
 has been added to the -mm tree.  Its filename is
-     pci-error-recovery-symbios-scsi-first-failure-fix.patch
+     pci-error-recovery-symbios-scsi-base-support-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci-error-recovery-symbios-scsi-first-failure-fix
+Subject: pci-error-recovery-symbios-scsi-base-support-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Linas Vepstas <linas@austin.ibm.com>
@@ -34,40 +34,48 @@ Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sym53c8xx_2/sym_glue.c |    2 +-
- drivers/scsi/sym53c8xx_2/sym_hipd.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/scsi/sym53c8xx_2/sym_glue.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-first-failure-fix drivers/scsi/sym53c8xx_2/sym_glue.c
---- a/drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-first-failure-fix
+diff -puN drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-base-support-fixes drivers/scsi/sym53c8xx_2/sym_glue.c
+--- a/drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-base-support-fixes
 +++ a/drivers/scsi/sym53c8xx_2/sym_glue.c
-@@ -1995,7 +1995,7 @@ static pci_ers_result_t sym2_io_error_de
-  * sym2_io_slot_dump -- Enable MMIO and dump debug registers
+@@ -1972,7 +1972,7 @@ static void __devexit sym2_remove(struct
   * @pdev: pointer to PCI device
+  * @state: current state of the PCI slot
   */
--static pci_ers_result_t sym2_io_slot_dump (struct pci_dev *pdev)
-+static pci_ers_result_t sym2_io_slot_dump(struct pci_dev *pdev)
+-static pci_ers_result_t sym2_io_error_detected (struct pci_dev *pdev,
++static pci_ers_result_t sym2_io_error_detected(struct pci_dev *pdev,
+                                          enum pci_channel_state state)
+ {
+ 	struct sym_hcb *np = pci_get_drvdata(pdev);
+@@ -1999,7 +1999,7 @@ static pci_ers_result_t sym2_io_error_de
+  * succesfully intialized at least once before, and so most
+  * of the steps taken there are un-needed here.
+  */
+-static void sym2_reset_workarounds (struct pci_dev *pdev)
++static void sym2_reset_workarounds(struct pci_dev *pdev)
+ {
+ 	u_char revision;
+ 	u_short status_reg;
+@@ -2025,7 +2025,7 @@ static void sym2_reset_workarounds (stru
+  *
+  * Restart the card from scratch.
+  */
+-static pci_ers_result_t sym2_io_slot_reset (struct pci_dev *pdev)
++static pci_ers_result_t sym2_io_slot_reset(struct pci_dev *pdev)
  {
  	struct sym_hcb *np = pci_get_drvdata(pdev);
  
-diff -puN drivers/scsi/sym53c8xx_2/sym_hipd.c~pci-error-recovery-symbios-scsi-first-failure-fix drivers/scsi/sym53c8xx_2/sym_hipd.c
---- a/drivers/scsi/sym53c8xx_2/sym_hipd.c~pci-error-recovery-symbios-scsi-first-failure-fix
-+++ a/drivers/scsi/sym53c8xx_2/sym_hipd.c
-@@ -1180,10 +1180,10 @@ static void sym_log_hard_error(struct sy
- 			scr_to_cpu((int) *(u32 *)(script_base + script_ofs)));
- 	}
- 
--	printf ("%s: regdump:", sym_name(np));
--	for (i=0; i<24;i++)
--	    printf (" %02x", (unsigned)INB_OFF(np, i));
--	printf (".\n");
-+	printf("%s: regdump:", sym_name(np));
-+	for (i = 0; i < 24; i++)
-+		printf(" %02x", (unsigned)INB_OFF(np, i));
-+	printf(".\n");
- 
- 	/*
- 	 *  PCI BUS error.
+@@ -2071,7 +2071,7 @@ static pci_ers_result_t sym2_io_slot_res
+  * OK to resume normal operation. Use completion to allow
+  * halted scsi ops to resume.
+  */
+-static void sym2_io_resume (struct pci_dev *pdev)
++static void sym2_io_resume(struct pci_dev *pdev)
+ {
+ 	struct sym_hcb *np = pci_get_drvdata(pdev);
+ 	complete_all(&np->s.io_reset_wait);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
