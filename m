@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + v9fs-dont-use-primary-fid-when-removing-file.patch added to -mm tree
-Date: Sat, 21 Apr 2007 19:55:04 -0700
-Message-ID: <200704220255.l3M2t48B018236@shell0.pdx.osdl.net>
+Subject: + cris-arch-v32-fix-dma_declare_coherent_memory-wrong-allocation.patch added to -mm tree
+Date: Sat, 21 Apr 2007 19:57:16 -0700
+Message-ID: <200704220257.l3M2vGnj018248@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43160 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754018AbXDVC46 (ORCPT
+	by vger.kernel.org with ESMTP id S1754003AbXDVC5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 21 Apr 2007 22:56:58 -0400
+	Sat, 21 Apr 2007 22:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lucho@ionkov.net, ericvh@hera.kernel.org
+Cc: g.liakhovetski@gmx.de, starvik@axis.com
 
 
 The patch titled
-     v9fs: don't use primary fid when removing file
+     cris/arch-v32: fix dma_declare_coherent_memory wrong allocation
 has been added to the -mm tree.  Its filename is
-     v9fs-dont-use-primary-fid-when-removing-file.patch
+     cris-arch-v32-fix-dma_declare_coherent_memory-wrong-allocation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: v9fs: don't use primary fid when removing file
-From: "Latchesar Ionkov" <lucho@ionkov.net>
+Subject: cris/arch-v32: fix dma_declare_coherent_memory wrong allocation
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-v9fs_insert uses v9fs_fid_lookup (which also locks the fid) to get the
-primary fid associated with the dentry and destroys the v9fs_fid struct
-after removing the file.  If another process called v9fs_fid_lookup on the
-same dentry, it may wait undefinitely for the fid's lock (as the struct is
-freed).
+arch/cris/arch-v32 seems to have copy-pasted the bug from arch/i386 fixed
+with an earlier patch - allocate bitmap in bytes, not words.
 
-This patch changes v9fs_remove to use a cloned fid, so the primary fid is
-not locked and freed.
-
-Signed-off-by: Latchesar Ionkov <lucho@ionkov.net>
-Cc: Eric Van Hensbergen <ericvh@hera.kernel.org>
+Signed-off-by: G. Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/vfs_inode.c |    2 +-
+ arch/cris/arch-v32/drivers/pci/dma.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/9p/vfs_inode.c~v9fs-dont-use-primary-fid-when-removing-file fs/9p/vfs_inode.c
---- a/fs/9p/vfs_inode.c~v9fs-dont-use-primary-fid-when-removing-file
-+++ a/fs/9p/vfs_inode.c
-@@ -415,7 +415,7 @@ static int v9fs_remove(struct inode *dir
- 	file_inode = file->d_inode;
- 	sb = file_inode->i_sb;
- 	v9ses = v9fs_inode2v9ses(file_inode);
--	v9fid = v9fs_fid_lookup(file);
-+	v9fid = v9fs_fid_clone(file);
- 	if(IS_ERR(v9fid))
- 		return PTR_ERR(v9fid);
+diff -puN arch/cris/arch-v32/drivers/pci/dma.c~cris-arch-v32-fix-dma_declare_coherent_memory-wrong-allocation arch/cris/arch-v32/drivers/pci/dma.c
+--- a/arch/cris/arch-v32/drivers/pci/dma.c~cris-arch-v32-fix-dma_declare_coherent_memory-wrong-allocation
++++ a/arch/cris/arch-v32/drivers/pci/dma.c
+@@ -76,7 +76,7 @@ int dma_declare_coherent_memory(struct d
+ {
+ 	void __iomem *mem_base;
+ 	int pages = size >> PAGE_SHIFT;
+-	int bitmap_size = (pages + 31)/32;
++	int bitmap_size = DIV_ROUND_UP(pages, 8);
  
+ 	if ((flags & (DMA_MEMORY_MAP | DMA_MEMORY_IO)) == 0)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from lucho@ionkov.net are
+Patches currently in -mm which might be from g.liakhovetski@gmx.de are
 
-v9fs-dont-use-primary-fid-when-removing-file.patch
+git-powerpc.patch
+dma_declare_coherent_memory-wrong-allocation.patch
+cris-arch-v32-fix-dma_declare_coherent_memory-wrong-allocation.patch
