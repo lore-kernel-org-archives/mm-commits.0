@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-slab-allocators-remove-slab_debug_initial-flag.patch added to -mm tree
-Date: Sat, 21 Apr 2007 22:31:12 -0700
-Message-ID: <200704220533.l3M5Xl1e020361@shell0.pdx.osdl.net>
+Subject: + git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch added to -mm tree
+Date: Sat, 21 Apr 2007 22:33:23 -0700
+Message-ID: <200704220535.l3M5Zw4m020376@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60491 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39851 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964778AbXDVFdw (ORCPT
+	by vger.kernel.org with ESMTP id S964778AbXDVFgI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 01:33:52 -0400
+	Sun, 22 Apr 2007 01:36:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@engr.sgi.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, mchehab@infradead.org
 
 
 The patch titled
-     reiser4-slab-allocators-remove-slab_debug_initial-flag
+     git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 has been added to the -mm tree.  Its filename is
-     reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+     git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiser4-slab-allocators-remove-slab_debug_initial-flag
+Subject: git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/super_ops.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/reiser4/super_ops.c~reiser4-slab-allocators-remove-slab_debug_initial-flag fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~reiser4-slab-allocators-remove-slab_debug_initial-flag
-+++ a/fs/reiser4/super_ops.c
-@@ -33,8 +33,7 @@ static void init_once(void *obj, struct 
+diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+--- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+@@ -839,7 +839,6 @@ static void class_dev_create(struct pvr2
+ 		sfp->unit_number_created_ok = !0;
+ 	}
  
- 	info = obj;
- 
--	if ((flags & (SLAB_CTOR_VERIFY | SLAB_CTOR_CONSTRUCTOR)) ==
--	    SLAB_CTOR_CONSTRUCTOR) {
-+	if ((flags & SLAB_CTOR_CONSTRUCTOR) == SLAB_CTOR_CONSTRUCTOR) {
- 		/* initialize vfs inode */
- 		inode_init_once(&info->vfs_inode);
- 
+-	sfp->attr_bus_info.attr.owner = THIS_MODULE;
+ 	sfp->attr_bus_info.attr.name = "bus_info_str";
+ 	sfp->attr_bus_info.attr.mode = S_IRUGO;
+ 	sfp->attr_bus_info.show = bus_info_show;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -220,6 +219,7 @@ utrace-prep-2.patch
 undo-utrace-prep-2.patch
 utrace-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 utrace-printk-borkage.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 fbdev-hecuba-framebuffer-driver.patch
 vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
 sm501fb-printk-warning-fixes.patch
@@ -231,4 +231,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
