@@ -1,92 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-specify-amount-of-kernel-memory-at-boot-time-fix.patch removed from -mm tree
-Date: Sat, 21 Apr 2007 23:20:24 -0700
-Message-ID: <200704220623.l3M6N079021028@shell0.pdx.osdl.net>
+Subject: - pci-define-pci_request-release_regions-for-config_pci=n.patch removed from -mm tree
+Date: Sat, 21 Apr 2007 23:23:47 -0700
+Message-ID: <200704220626.l3M6QNgM021064@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40973 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964792AbXDVGXH (ORCPT
+	by vger.kernel.org with ESMTP id S964934AbXDVG0d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 02:23:07 -0400
+	Sun, 22 Apr 2007 02:26:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: y-goto@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: sshtylyov@ru.mvista.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: fix parsing kernelcore boot option
+     PCI: define pci_request/release_regions() for CONFIG_PCI=n
 has been removed from the -mm tree.  Its filename was
-     ia64-specify-amount-of-kernel-memory-at-boot-time-fix.patch
+     pci-define-pci_request-release_regions-for-config_pci=n.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ia64: fix parsing kernelcore boot option
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: PCI: define pci_request/release_regions() for CONFIG_PCI=n
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-cmdline_parse_kernelcore() should return the next pointer of boot option
-like memparse() doing.  If not, it is cause of eternal loop on ia64 box. 
+Balance declarations of pci_request_regions() and pci_release_regions()
+with empty inline definitions for the CONFIG_PCI=n case -- otherwise my
+patch to drivers/net/3c59x.c in the -mm tree doesn't compile.  :-)
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+While at it, get rid of unused #define HAVE_PCI_REQ_REGIONS...
+
+Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/efi.c |    2 +-
- include/linux/mm.h     |    2 +-
- mm/page_alloc.c        |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/pci.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/efi.c~ia64-specify-amount-of-kernel-memory-at-boot-time-fix arch/ia64/kernel/efi.c
---- a/arch/ia64/kernel/efi.c~ia64-specify-amount-of-kernel-memory-at-boot-time-fix
-+++ a/arch/ia64/kernel/efi.c
-@@ -424,7 +424,7 @@ efi_init (void)
- 		} else if (memcmp(cp, "max_addr=", 9) == 0) {
- 			max_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
- 		} else if (memcmp(cp, "kernelcore=",11) == 0) {
--			cmdline_parse_kernelcore(cp+11);
-+			cmdline_parse_kernelcore(cp+11, &cp);
- 		} else if (memcmp(cp, "min_addr=", 9) == 0) {
- 			min_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
- 		} else {
-diff -puN include/linux/mm.h~ia64-specify-amount-of-kernel-memory-at-boot-time-fix include/linux/mm.h
---- a/include/linux/mm.h~ia64-specify-amount-of-kernel-memory-at-boot-time-fix
-+++ a/include/linux/mm.h
-@@ -988,7 +988,7 @@ extern unsigned long find_max_pfn_with_a
- extern void free_bootmem_with_active_regions(int nid,
- 						unsigned long max_low_pfn);
- extern void sparse_memory_present_with_active_regions(int nid);
--extern int cmdline_parse_kernelcore(char *p);
-+extern int cmdline_parse_kernelcore(char *p, char **retp);
- #ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
- extern int early_pfn_to_nid(unsigned long pfn);
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
-diff -puN mm/page_alloc.c~ia64-specify-amount-of-kernel-memory-at-boot-time-fix mm/page_alloc.c
---- a/mm/page_alloc.c~ia64-specify-amount-of-kernel-memory-at-boot-time-fix
-+++ a/mm/page_alloc.c
-@@ -3528,13 +3528,13 @@ void __init free_area_init_nodes(unsigne
-  * kernelcore=size sets the amount of memory for use for allocations that
-  * cannot be reclaimed or migrated.
-  */
--int __init cmdline_parse_kernelcore(char *p)
-+int __init cmdline_parse_kernelcore(char *p, char **retp)
- {
- 	unsigned long long coremem;
- 	if (!p)
- 		return -EINVAL;
+diff -puN include/linux/pci.h~pci-define-pci_request-release_regions-for-config_pci=n include/linux/pci.h
+--- a/include/linux/pci.h~pci-define-pci_request-release_regions-for-config_pci=n
++++ a/include/linux/pci.h
+@@ -582,7 +582,6 @@ void pdev_enable_device(struct pci_dev *
+ void pdev_sort_resources(struct pci_dev *, struct resource_list *);
+ void pci_fixup_irqs(u8 (*)(struct pci_dev *, u8 *),
+ 		    int (*)(struct pci_dev *, u8, u8));
+-#define HAVE_PCI_REQ_REGIONS	2
+ int __must_check pci_request_regions(struct pci_dev *, const char *);
+ void pci_release_regions(struct pci_dev *);
+ int __must_check pci_request_region(struct pci_dev *, int, const char *);
+@@ -748,6 +747,9 @@ static inline int pci_enable_wake(struct
+ static inline int pci_request_regions(struct pci_dev *dev, const char *res_name) { return -EIO; }
+ static inline void pci_release_regions(struct pci_dev *dev) { }
  
--	coremem = memparse(p, &p);
-+	coremem = memparse(p, retp);
- 	required_kernelcore = coremem >> PAGE_SHIFT;
++static inline int pci_request_regions(struct pci_dev *dev, const char *res_name) { return -EIO; }
++static inline void pci_release_regions(struct pci_dev *dev) { }
++
+ #define pci_dma_burst_advice(pdev, strat, strategy_parameter) do { } while (0)
  
- 	/* Paranoid check that UL is enough for required_kernelcore */
+ static inline void pci_block_user_cfg_access(struct pci_dev *dev) { }
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
 
-move-free-pages-between-lists-on-steal-fix-2.patch
-move-free-pages-between-lists-on-steal-do-not-cross-section-boundary-when-moving-pages-between-mobility-lists.patch
-ia64-specify-amount-of-kernel-memory-at-boot-time-fix.patch
-fix-section-mismatch-of-memory-hotplug-related-code.patch
-add-white-list-into-modpostc-for-memory-hotplug-code-and-ia64s-machvec-section.patch
+origin.patch
+3x59x-fix-pci-resource-management.patch
+pci-define-pci_request-release_regions-for-config_pci=n.patch
