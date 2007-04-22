@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86-fix-potential-overflow-in-perfctr-reservation.patch added to -mm tree
-Date: Sun, 22 Apr 2007 01:09:39 -0700
-Message-ID: <200704220809.l3M89d2g022596@shell0.pdx.osdl.net>
+Subject: + lazy-freeing-of-memory-through-madv_free-sparc-fix.patch added to -mm tree
+Date: Sun, 22 Apr 2007 01:15:43 -0700
+Message-ID: <200704220818.l3M8IIHu022747@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52396 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965533AbXDVIJo (ORCPT
+	by vger.kernel.org with ESMTP id S932255AbXDVIS3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 04:09:44 -0400
+	Sun, 22 Apr 2007 04:18:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: akpm@linux-foundation.org, riel@redhat.com
 
 
 The patch titled
-     fix "x86: Fix potential overflow in perfctr reservation"
+     lazy-freeing-of-memory-through-madv_free-sparc-fix
 has been added to the -mm tree.  Its filename is
-     fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
+     lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix "x86: Fix potential overflow in perfctr reservation"
+Subject: lazy-freeing-of-memory-through-madv_free-sparc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/nmi.c: In function 'avail_to_resrv_perfctr_nmi_bit':
-arch/i386/kernel/nmi.c:129: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
-arch/i386/kernel/nmi.c:129: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
-arch/i386/kernel/nmi.c: In function 'avail_to_resrv_perfctr_nmi':
-arch/i386/kernel/nmi.c:145: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
-arch/i386/kernel/nmi.c:145: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
-arch/i386/kernel/nmi.c: In function '__reserve_perfctr_nmi':
-arch/i386/kernel/nmi.c:160: warning: passing argument 2 of 'test_and_set_bit' from incompatible pointer type
-arch/i386/kernel/nmi.c: In function '__release_perfctr_nmi':
-arch/i386/kernel/nmi.c:174: warning: passing argument 2 of 'clear_bit' from incompatible pointer type
-
-I worry about how well tested that very late change was.
-
-Cc: Andi Kleen <ak@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/nmi.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/asm-sparc/mman.h   |    2 --
+ include/asm-sparc64/mman.h |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN arch/i386/kernel/nmi.c~fix-x86-fix-potential-overflow-in-perfctr-reservation arch/i386/kernel/nmi.c
---- a/arch/i386/kernel/nmi.c~fix-x86-fix-potential-overflow-in-perfctr-reservation
-+++ a/arch/i386/kernel/nmi.c
-@@ -126,7 +126,7 @@ int avail_to_resrv_perfctr_nmi_bit(unsig
- 	int cpu;
- 	BUG_ON(counter > NMI_MAX_COUNTER_BITS);
- 	for_each_possible_cpu (cpu) {
--		if (test_bit(counter, &per_cpu(perfctr_nmi_owner, cpu)))
-+		if (test_bit(counter, per_cpu(perfctr_nmi_owner, cpu)))
- 			return 0;
- 	}
- 	return 1;
-@@ -142,7 +142,7 @@ int avail_to_resrv_perfctr_nmi(unsigned 
- 	BUG_ON(counter > NMI_MAX_COUNTER_BITS);
+diff -puN include/asm-sparc/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix include/asm-sparc/mman.h
+--- a/include/asm-sparc/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix
++++ a/include/asm-sparc/mman.h
+@@ -33,8 +33,6 @@
+ #define MC_LOCKAS       5  /* Lock an entire address space of the calling process */
+ #define MC_UNLOCKAS     6  /* Unlock entire address space of calling process */
  
- 	for_each_possible_cpu (cpu) {
--		if (test_bit(counter, &per_cpu(perfctr_nmi_owner, cpu)))
-+		if (test_bit(counter, per_cpu(perfctr_nmi_owner, cpu)))
- 			return 0;
- 	}
- 	return 1;
-@@ -157,7 +157,7 @@ static int __reserve_perfctr_nmi(int cpu
- 	counter = nmi_perfctr_msr_to_bit(msr);
- 	BUG_ON(counter > NMI_MAX_COUNTER_BITS);
+-#define MADV_FREE	0x5		/* (Solaris) contents can be freed */
+-
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ #define arch_mmap_check	sparc_mmap_check
+diff -puN include/asm-sparc64/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix include/asm-sparc64/mman.h
+--- a/include/asm-sparc64/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix
++++ a/include/asm-sparc64/mman.h
+@@ -33,8 +33,6 @@
+ #define MC_LOCKAS       5  /* Lock an entire address space of the calling process */
+ #define MC_UNLOCKAS     6  /* Unlock entire address space of calling process */
  
--	if (!test_and_set_bit(counter, &per_cpu(perfctr_nmi_owner, cpu)))
-+	if (!test_and_set_bit(counter, per_cpu(perfctr_nmi_owner, cpu)))
- 		return 1;
- 	return 0;
- }
-@@ -171,7 +171,7 @@ static void __release_perfctr_nmi(int cp
- 	counter = nmi_perfctr_msr_to_bit(msr);
- 	BUG_ON(counter > NMI_MAX_COUNTER_BITS);
- 
--	clear_bit(counter, &per_cpu(perfctr_nmi_owner, cpu));
-+	clear_bit(counter, per_cpu(perfctr_nmi_owner, cpu));
- }
- 
- int reserve_perfctr_nmi(unsigned int msr)
+-#define MADV_FREE	0x5		/* (Solaris) contents can be freed */
+-
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ #define arch_mmap_check	sparc64_mmap_check
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,7 +68,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 taskstats-fix-the-structure-members-alignment-issue-fix.patch
 acpi-thermal-fix-mod_timer-interval.patch
-fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
 slab-introduce-krealloc-fix.patch
 git-acpi.patch
 git-alsa.patch
@@ -282,3 +254,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
