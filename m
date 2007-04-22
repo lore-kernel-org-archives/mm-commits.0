@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lazy-freeing-of-memory-through-madv_free-sparc-fix.patch added to -mm tree
-Date: Sun, 22 Apr 2007 01:15:43 -0700
-Message-ID: <200704220818.l3M8IIHu022747@shell0.pdx.osdl.net>
+Subject: + enhance-initcall_debug-measure-latency-fix.patch added to -mm tree
+Date: Sun, 22 Apr 2007 01:17:37 -0700
+Message-ID: <200704220820.l3M8KC30022775@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47156 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57476 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932255AbXDVIS3 (ORCPT
+	by vger.kernel.org with ESMTP id S932279AbXDVIU2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 04:18:29 -0400
+	Sun, 22 Apr 2007 04:20:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, riel@redhat.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     lazy-freeing-of-memory-through-madv_free-sparc-fix
+     enhance-initcall_debug-measure-latency-fix
 has been added to the -mm tree.  Its filename is
-     lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+     enhance-initcall_debug-measure-latency-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lazy-freeing-of-memory-through-madv_free-sparc-fix
+Subject: enhance-initcall_debug-measure-latency-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Rik van Riel <riel@redhat.com>
+Not all architectures use long long for s64.
+
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/mman.h   |    2 --
- include/asm-sparc64/mman.h |    2 --
- 2 files changed, 4 deletions(-)
+ init/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-sparc/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix include/asm-sparc/mman.h
---- a/include/asm-sparc/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix
-+++ a/include/asm-sparc/mman.h
-@@ -33,8 +33,6 @@
- #define MC_LOCKAS       5  /* Lock an entire address space of the calling process */
- #define MC_UNLOCKAS     6  /* Unlock entire address space of calling process */
+diff -puN init/main.c~enhance-initcall_debug-measure-latency-fix init/main.c
+--- a/init/main.c~enhance-initcall_debug-measure-latency-fix
++++ a/init/main.c
+@@ -678,7 +678,7 @@ static void __init do_initcalls(void)
+ 			printk(" returned %d.\n", result);
  
--#define MADV_FREE	0x5		/* (Solaris) contents can be freed */
--
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
- #define arch_mmap_check	sparc_mmap_check
-diff -puN include/asm-sparc64/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix include/asm-sparc64/mman.h
---- a/include/asm-sparc64/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix
-+++ a/include/asm-sparc64/mman.h
-@@ -33,8 +33,6 @@
- #define MC_LOCKAS       5  /* Lock an entire address space of the calling process */
- #define MC_UNLOCKAS     6  /* Unlock entire address space of calling process */
- 
--#define MADV_FREE	0x5		/* (Solaris) contents can be freed */
--
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
- #define arch_mmap_check	sparc64_mmap_check
+ 			printk("initcall 0x%p ran for %Ld msecs: ",
+-				*call, delta.tv64 >> 20);
++				*call, (unsigned long long)delta.tv64 >> 20);
+ 			print_fn_descriptor_symbol("%s()\n",
+ 				(unsigned long) *call);
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -171,6 +160,7 @@ slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
 slub-user-documentation-fix.patch
 mm-optimize-kill_bdev-fix.patch
 lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
 lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
 driver_bfin_serial_core-update.patch
 srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
@@ -254,4 +244,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
