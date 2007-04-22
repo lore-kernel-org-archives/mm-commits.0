@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch added to -mm tree
-Date: Sun, 22 Apr 2007 00:45:18 -0700
-Message-ID: <200704220747.l3M7lrtR022261@shell0.pdx.osdl.net>
+Subject: + git-net-fix-yamc.patch added to -mm tree
+Date: Sun, 22 Apr 2007 00:46:49 -0700
+Message-ID: <200704220749.l3M7nOA3022279@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54290 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965345AbXDVHr5 (ORCPT
+	by vger.kernel.org with ESMTP id S965397AbXDVHth (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 03:47:57 -0400
+	Sun, 22 Apr 2007 03:49:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+     git-net: fix yam.c
 has been added to the -mm tree.  Its filename is
-     more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+     git-net-fix-yamc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+Subject: git-net: fix yam.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
+drivers/net/hamradio/yam.c: In function `yam_tx_byte':
+drivers/net/hamradio/yam.c:643: warning: passing arg 1 of `skb_copy_from_linear_data_offset' from incompatible pointer type
+
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/hamradio/yam.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/probe.c~more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/pci/probe.c
---- a/drivers/pci/probe.c~more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-+++ a/drivers/pci/probe.c
-@@ -39,7 +39,6 @@ static void pci_create_legacy_files(stru
- 		b->legacy_io->attr.name = "legacy_io";
- 		b->legacy_io->size = 0xffff;
- 		b->legacy_io->attr.mode = S_IRUSR | S_IWUSR;
--		b->legacy_io->attr.owner = THIS_MODULE;
- 		b->legacy_io->read = pci_read_legacy_io;
- 		b->legacy_io->write = pci_write_legacy_io;
- 		class_device_create_bin_file(&b->class_dev, b->legacy_io);
-@@ -49,7 +48,6 @@ static void pci_create_legacy_files(stru
- 		b->legacy_mem->attr.name = "legacy_mem";
- 		b->legacy_mem->size = 1024*1024;
- 		b->legacy_mem->attr.mode = S_IRUSR | S_IWUSR;
--		b->legacy_mem->attr.owner = THIS_MODULE;
- 		b->legacy_mem->mmap = pci_mmap_legacy_mem;
- 		class_device_create_bin_file(&b->class_dev, b->legacy_mem);
- 	}
+diff -puN drivers/net/hamradio/yam.c~git-net-fix-yamc drivers/net/hamradio/yam.c
+--- a/drivers/net/hamradio/yam.c~git-net-fix-yamc
++++ a/drivers/net/hamradio/yam.c
+@@ -638,7 +638,7 @@ static void yam_tx_byte(struct net_devic
+         			dev_kfree_skb_any(skb);
+ 				break;
+ 			}
+-			skb_copy_from_linear_data_offset(skb->data, 1,
++			skb_copy_from_linear_data_offset(skb, 1,
+ 							 yp->tx_buf,
+ 							 yp->tx_len);
+ 			dev_kfree_skb_any(skb);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
