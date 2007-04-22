@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-yamc.patch added to -mm tree
-Date: Sun, 22 Apr 2007 00:46:49 -0700
-Message-ID: <200704220749.l3M7nOA3022279@shell0.pdx.osdl.net>
+Subject: + fix-x86-fix-potential-overflow-in-perfctr-reservation.patch added to -mm tree
+Date: Sun, 22 Apr 2007 01:09:39 -0700
+Message-ID: <200704220809.l3M89d2g022596@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36414 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965397AbXDVHth (ORCPT
+	by vger.kernel.org with ESMTP id S965533AbXDVIJo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 03:49:37 -0400
+	Sun, 22 Apr 2007 04:09:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net
+Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     git-net: fix yam.c
+     fix "x86: Fix potential overflow in perfctr reservation"
 has been added to the -mm tree.  Its filename is
-     git-net-fix-yamc.patch
+     fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: fix yam.c
+Subject: fix "x86: Fix potential overflow in perfctr reservation"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/hamradio/yam.c: In function `yam_tx_byte':
-drivers/net/hamradio/yam.c:643: warning: passing arg 1 of `skb_copy_from_linear_data_offset' from incompatible pointer type
+arch/i386/kernel/nmi.c: In function 'avail_to_resrv_perfctr_nmi_bit':
+arch/i386/kernel/nmi.c:129: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
+arch/i386/kernel/nmi.c:129: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
+arch/i386/kernel/nmi.c: In function 'avail_to_resrv_perfctr_nmi':
+arch/i386/kernel/nmi.c:145: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
+arch/i386/kernel/nmi.c:145: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
+arch/i386/kernel/nmi.c: In function '__reserve_perfctr_nmi':
+arch/i386/kernel/nmi.c:160: warning: passing argument 2 of 'test_and_set_bit' from incompatible pointer type
+arch/i386/kernel/nmi.c: In function '__release_perfctr_nmi':
+arch/i386/kernel/nmi.c:174: warning: passing argument 2 of 'clear_bit' from incompatible pointer type
 
-Cc: "David S. Miller" <davem@davemloft.net>
+I worry about how well tested that very late change was.
+
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/hamradio/yam.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/nmi.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/hamradio/yam.c~git-net-fix-yamc drivers/net/hamradio/yam.c
---- a/drivers/net/hamradio/yam.c~git-net-fix-yamc
-+++ a/drivers/net/hamradio/yam.c
-@@ -638,7 +638,7 @@ static void yam_tx_byte(struct net_devic
-         			dev_kfree_skb_any(skb);
- 				break;
- 			}
--			skb_copy_from_linear_data_offset(skb->data, 1,
-+			skb_copy_from_linear_data_offset(skb, 1,
- 							 yp->tx_buf,
- 							 yp->tx_len);
- 			dev_kfree_skb_any(skb);
+diff -puN arch/i386/kernel/nmi.c~fix-x86-fix-potential-overflow-in-perfctr-reservation arch/i386/kernel/nmi.c
+--- a/arch/i386/kernel/nmi.c~fix-x86-fix-potential-overflow-in-perfctr-reservation
++++ a/arch/i386/kernel/nmi.c
+@@ -126,7 +126,7 @@ int avail_to_resrv_perfctr_nmi_bit(unsig
+ 	int cpu;
+ 	BUG_ON(counter > NMI_MAX_COUNTER_BITS);
+ 	for_each_possible_cpu (cpu) {
+-		if (test_bit(counter, &per_cpu(perfctr_nmi_owner, cpu)))
++		if (test_bit(counter, per_cpu(perfctr_nmi_owner, cpu)))
+ 			return 0;
+ 	}
+ 	return 1;
+@@ -142,7 +142,7 @@ int avail_to_resrv_perfctr_nmi(unsigned 
+ 	BUG_ON(counter > NMI_MAX_COUNTER_BITS);
+ 
+ 	for_each_possible_cpu (cpu) {
+-		if (test_bit(counter, &per_cpu(perfctr_nmi_owner, cpu)))
++		if (test_bit(counter, per_cpu(perfctr_nmi_owner, cpu)))
+ 			return 0;
+ 	}
+ 	return 1;
+@@ -157,7 +157,7 @@ static int __reserve_perfctr_nmi(int cpu
+ 	counter = nmi_perfctr_msr_to_bit(msr);
+ 	BUG_ON(counter > NMI_MAX_COUNTER_BITS);
+ 
+-	if (!test_and_set_bit(counter, &per_cpu(perfctr_nmi_owner, cpu)))
++	if (!test_and_set_bit(counter, per_cpu(perfctr_nmi_owner, cpu)))
+ 		return 1;
+ 	return 0;
+ }
+@@ -171,7 +171,7 @@ static void __release_perfctr_nmi(int cp
+ 	counter = nmi_perfctr_msr_to_bit(msr);
+ 	BUG_ON(counter > NMI_MAX_COUNTER_BITS);
+ 
+-	clear_bit(counter, &per_cpu(perfctr_nmi_owner, cpu));
++	clear_bit(counter, per_cpu(perfctr_nmi_owner, cpu));
+ }
+ 
+ int reserve_perfctr_nmi(unsigned int msr)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,6 +95,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 taskstats-fix-the-structure-members-alignment-issue-fix.patch
 acpi-thermal-fix-mod_timer-interval.patch
+fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
 slab-introduce-krealloc-fix.patch
 git-acpi.patch
 git-alsa.patch
