@@ -1,394 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - andi-hack-debug.patch removed from -mm tree
-Date: Sat, 21 Apr 2007 23:53:35 -0700
-Message-ID: <200704220656.l3M6uBdp021459@shell0.pdx.osdl.net>
+Subject: + fix-x86_64-mm-sched-clock-share.patch added to -mm tree
+Date: Sat, 21 Apr 2007 23:58:07 -0700
+Message-ID: <200704220700.l3M70g5d021533@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47472 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964974AbXDVG4O (ORCPT
+	by vger.kernel.org with ESMTP id S964974AbXDVHAt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 02:56:14 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3M6uBpg022677
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 21 Apr 2007 23:56:12 -0700
+	Sun, 22 Apr 2007 03:00:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     a
-has been removed from the -mm tree.  Its filename was
-     andi-hack-debug.patch
+     fix-x86_64-mm-sched-clock-share
+has been added to the -mm tree.  Its filename is
+     fix-x86_64-mm-sched-clock-share.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: a
+Subject: fix-x86_64-mm-sched-clock-share
 From: Andrew Morton <akpm@linux-foundation.org>
 
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:sc_cpu_event from .data between 'sc_cpu_notifier' (at offset 0x2110) and 'mcelog'
+
+Use hotcpu_notifier().  This takes care of making sure that the unused code
+disappears from vmlinux if !CONFIG_HOTPLUG_CPU, too.
+
+Please, test allnoconfig builds and watch for the warnings?
+
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |    9 ++
- arch/i386/kernel/sched-clock.c                    |   39 +++++++++++-
- arch/i386/kernel/tsc.c                            |   23 +++++--
- drivers/cpufreq/cpufreq.c                         |   17 +++++
- kernel/sys.c                                      |    9 ++
- 5 files changed, 90 insertions(+), 7 deletions(-)
+ arch/i386/kernel/sched-clock.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN arch/i386/kernel/sched-clock.c~a arch/i386/kernel/sched-clock.c
---- a/arch/i386/kernel/sched-clock.c~a
+diff -puN arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share arch/i386/kernel/sched-clock.c
+--- a/arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share
 +++ a/arch/i386/kernel/sched-clock.c
-@@ -13,6 +13,8 @@
- #include <asm/cpufeature.h>
- #include <asm/timer.h>
- 
-+#define D() printk("%s:%d\n", __FILE__, __LINE__)
-+
- /*
-  * convert from cycles(64bits) => nanoseconds (64bits)
-  *  basic equation:
-@@ -80,16 +82,22 @@ unsigned long long sched_clock(void)
- /* Resync with new CPU frequency */
- static void resync_sc_freq(struct sc_data *sc, unsigned int newfreq)
- {
-+	D();
- 	if (!cpu_has_tsc) {
-+		D();
- 		sc->instable = 1;
- 		return;
- 	}
-+	D();
- 	/* RED-PEN protect with seqlock? I hope that's not needed
- 	   because sched_clock callers should be able to tolerate small
- 	   errors. */
- 	sc->ns_base = ktime_to_ns(ktime_get());
-+	D();
- 	get_scheduled_cycles(sc->last_tsc);
-+	D();
- 	sc->cyc2ns_scale = (1000000 << CYC2NS_SCALE_FACTOR) / newfreq;
-+	D();
- 	sc->instable = 0;
- }
- 
-@@ -97,10 +105,16 @@ static void call_r_s_f(void *arg)
- {
- 	struct cpufreq_freqs *freq = arg;
- 	unsigned f = freq->new;
--	if (!f)
-+	D();
-+	if (!f) {
-+		D();
- 		f = cpufreq_get(freq->cpu);
--	if (!f)
-+	}
-+	if (!f) {
-+		D();
- 		f = tsc_khz;
-+	}
-+	D();
- 	resync_sc_freq(&per_cpu(sc_data, freq->cpu), f);
- }
- 
-@@ -111,20 +125,27 @@ static int sc_freq_event(struct notifier
- 	int cpu = get_cpu();
- 	struct sc_data *sc = &per_cpu(sc_data, cpu);
- 
-+	D();
- 	if (cpu_has(&cpu_data[cpu], X86_FEATURE_CONSTANT_TSC))
- 		return NOTIFY_DONE;
-+	D();
- 	if (freq->old == freq->new)
- 		return NOTIFY_DONE;
- 
-+	D();
- 	switch (event) {
- 	case CPUFREQ_RESUMECHANGE:  /* needed? */
-+	D();
- 	case CPUFREQ_PRECHANGE:
-+	D();
- 		/* Mark TSC as instable until cpu frequency change is done
- 		   because we don't know when exactly it will change */
- 		sc->instable = 1;
- 		break;
- 	case CPUFREQ_SUSPENDCHANGE:
-+	D();
- 	case CPUFREQ_POSTCHANGE:
-+	D();
- 		/* Frequency change is done -- update everything and
- 		   mark TSC as stable again. */
- 		if (cpu == freq->cpu)
-@@ -135,7 +156,10 @@ static int sc_freq_event(struct notifier
- 		break;
- 	/* resume/suspend ?? */
- 	}
-+	D();
- 	put_cpu();
-+	D();
-+	dump_stack();
+@@ -169,20 +169,15 @@ sc_cpu_event(struct notifier_block *self
  	return NOTIFY_DONE;
  }
  
-@@ -147,10 +171,14 @@ static int __cpuinit
- sc_cpu_event(struct notifier_block *self, unsigned long event, void *hcpu)
+-static struct notifier_block sc_cpu_notifier = {
+-	.notifier_call = sc_cpu_event
+-};
+-
+ static __init int init_sched_clock(void)
  {
- 	long cpu = (long)hcpu;
-+	D();
- 	if (event == CPU_ONLINE) {
- 		struct cpufreq_freqs f = { .cpu = cpu, .new = 0 };
-+	D();
- 		smp_call_function_single(cpu, call_r_s_f, &f, 0, 1);
-+	D();
- 	}
-+	D();
- 	return NOTIFY_DONE;
- }
- 
-@@ -162,14 +190,21 @@ static __init int init_sched_clock(void)
- {
- 	int i;
  	struct cpufreq_freqs f = { .cpu = get_cpu(), .new = 0 };
-+	D();
- 	for_each_possible_cpu (i)
- 		per_cpu(sc_data, i).instable = 1;
-+	D();
  	WARN_ON(num_online_cpus() > 1);
-+	D();
  	call_r_s_f(&f);
-+	D();
  	put_cpu();
-+	D();
- 	register_cpu_notifier(&sc_cpu_notifier);
-+	D();
+-	register_cpu_notifier(&sc_cpu_notifier);
++	hotcpu_notifier(&sc_cpu_event, 0);
  	cpufreq_register_notifier(&sc_freq_notifier,
  				 CPUFREQ_TRANSITION_NOTIFIER);
-+	D();
  	return 0;
  }
  core_initcall(init_sched_clock);
-diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~a arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
---- a/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~a
-+++ a/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
-@@ -34,6 +34,8 @@
- #define PFX		"speedstep-centrino: "
- #define MAINTAINER	"cpufreq@lists.linux.org.uk"
- 
-+#define D() printk("%s:%d\n", __FILE__, __LINE__)
-+
- #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_DRIVER, "speedstep-centrino", msg)
- 
- #define INTEL_MSR_RANGE	(0xffff)
-@@ -749,8 +751,10 @@ static int centrino_target (struct cpufr
- 
- 			for_each_cpu_mask(k, online_policy_cpus) {
- 				freqs.cpu = k;
-+				D();
- 				cpufreq_notify_transition(&freqs,
- 					CPUFREQ_PRECHANGE);
-+				D();
- 			}
- 
- 			first_cpu = 0;
-@@ -769,7 +773,9 @@ static int centrino_target (struct cpufr
- 
- 	for_each_cpu_mask(k, online_policy_cpus) {
- 		freqs.cpu = k;
-+		D();
- 		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
-+		D();
- 	}
- 
- 	if (unlikely(retval)) {
-@@ -792,8 +798,11 @@ static int centrino_target (struct cpufr
- 		freqs.old = tmp;
- 		for_each_cpu_mask(j, online_policy_cpus) {
- 			freqs.cpu = j;
-+			D();
- 			cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
-+			D();
- 			cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
-+			D();
- 		}
- 	}
- 
-diff -puN drivers/cpufreq/cpufreq.c~a drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~a
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -32,6 +32,8 @@
- #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_CORE, \
- 						"cpufreq-core", msg)
- 
-+#define D() printk("%s:%d\n", __FILE__, __LINE__)
-+
- /**
-  * The "cpufreq driver" - the arch- or hardware-dependent low
-  * level driver of CPUFreq support, and its spinlock. This lock
-@@ -302,6 +304,7 @@ static inline void adjust_jiffies(unsign
- }
- #endif
- 
-+extern int akpm;
- 
- /**
-  * cpufreq_notify_transition - call notifier chain and adjust_jiffies
-@@ -317,11 +320,14 @@ void cpufreq_notify_transition(struct cp
- 
- 	BUG_ON(irqs_disabled());
- 
-+	D();
-+
- 	freqs->flags = cpufreq_driver->flags;
- 	dprintk("notification %u of frequency transition to %u kHz\n",
- 		state, freqs->new);
- 
- 	policy = cpufreq_cpu_data[freqs->cpu];
-+	D();
- 	switch (state) {
- 
- 	case CPUFREQ_PRECHANGE:
-@@ -329,6 +335,7 @@ void cpufreq_notify_transition(struct cp
- 		 * which is not equal to what the cpufreq core thinks is
- 		 * "old frequency".
- 		 */
-+		D();
- 		if (!(cpufreq_driver->flags & CPUFREQ_CONST_LOOPS)) {
- 			if ((policy) && (policy->cpu == freqs->cpu) &&
- 			    (policy->cur) && (policy->cur != freqs->old)) {
-@@ -338,19 +345,29 @@ void cpufreq_notify_transition(struct cp
- 				freqs->old = policy->cur;
- 			}
- 		}
-+		D();
- 		srcu_notifier_call_chain(&cpufreq_transition_notifier_list,
- 				CPUFREQ_PRECHANGE, freqs);
-+		D();
- 		adjust_jiffies(CPUFREQ_PRECHANGE, freqs);
-+		D();
- 		break;
- 
- 	case CPUFREQ_POSTCHANGE:
-+		D();
- 		adjust_jiffies(CPUFREQ_POSTCHANGE, freqs);
-+		D();
-+		akpm = 1;
- 		srcu_notifier_call_chain(&cpufreq_transition_notifier_list,
- 				CPUFREQ_POSTCHANGE, freqs);
-+		akpm = 0;
-+		D();
- 		if (likely(policy) && likely(policy->cpu == freqs->cpu))
- 			policy->cur = freqs->new;
-+		D();
- 		break;
- 	}
-+	D();
- }
- EXPORT_SYMBOL_GPL(cpufreq_notify_transition);
- 
-diff -puN kernel/sys.c~a kernel/sys.c
---- a/kernel/sys.c~a
-+++ a/kernel/sys.c
-@@ -20,6 +20,7 @@
- #include <linux/capability.h>
- #include <linux/device.h>
- #include <linux/key.h>
-+#include <linux/kallsyms.h>
- #include <linux/times.h>
- #include <linux/posix-timers.h>
- #include <linux/security.h>
-@@ -134,6 +135,9 @@ static int notifier_chain_unregister(str
- 	return -ENOENT;
- }
- 
-+int akpm;
-+EXPORT_SYMBOL(akpm);
-+
- static int __kprobes notifier_call_chain(struct notifier_block **nl,
- 		unsigned long val, void *v)
- {
-@@ -143,6 +147,11 @@ static int __kprobes notifier_call_chain
- 	nb = rcu_dereference(*nl);
- 	while (nb) {
- 		next_nb = rcu_dereference(nb->next);
-+		if (akpm) {
-+			printk("%s: call ", __FUNCTION__);
-+			print_symbol("%s\n", (unsigned long)
-+				nb->notifier_call);
-+		}
- 		ret = nb->notifier_call(nb, val, v);
- 		if ((ret & NOTIFY_STOP_MASK) == NOTIFY_STOP_MASK)
- 			break;
-diff -puN arch/i386/kernel/tsc.c~a arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~a
-+++ a/arch/i386/kernel/tsc.c
-@@ -139,47 +139,60 @@ static unsigned int ref_freq = 0;
- static unsigned long loops_per_jiffy_ref = 0;
- static unsigned long cpu_khz_ref = 0;
- 
-+#define D() printk("%s:%d\n", __FILE__, __LINE__)
-+
- static int
- time_cpufreq_notifier(struct notifier_block *nb, unsigned long val, void *data)
- {
- 	struct cpufreq_freqs *freq = data;
- 
-+	D();
- 	if (val != CPUFREQ_RESUMECHANGE && val != CPUFREQ_SUSPENDCHANGE)
- 		write_seqlock_irq(&xtime_lock);
-+	D();
- 
- 	if (!ref_freq) {
- 		if (!freq->old){
- 			ref_freq = freq->new;
-+			D();
- 			goto end;
- 		}
- 		ref_freq = freq->old;
- 		loops_per_jiffy_ref = cpu_data[freq->cpu].loops_per_jiffy;
- 		cpu_khz_ref = cpu_khz;
-+		D();
- 	}
 -
-+	D();
- 	if ((val == CPUFREQ_PRECHANGE  && freq->old < freq->new) ||
- 	    (val == CPUFREQ_POSTCHANGE && freq->old > freq->new) ||
- 	    (val == CPUFREQ_RESUMECHANGE)) {
- 		if (!(freq->flags & CPUFREQ_CONST_LOOPS))
-+			D();
- 			cpu_data[freq->cpu].loops_per_jiffy =
- 				cpufreq_scale(loops_per_jiffy_ref,
- 						ref_freq, freq->new);
--
-+		D();
- 		if (cpu_khz) {
--
--			if (num_online_cpus() == 1)
-+			D();
-+			if (num_online_cpus() == 1) {
-+				D();
- 				cpu_khz = cpufreq_scale(cpu_khz_ref,
- 						ref_freq, freq->new);
-+				D();
-+			}
- 			if (!(freq->flags & CPUFREQ_CONST_LOOPS)) {
-+				D();
- 				tsc_khz = cpu_khz;
- 				mark_tsc_unstable("cpufreq changes");
-+				D();
- 			}
- 		}
- 	}
-+	D();
- end:
- 	if (val != CPUFREQ_RESUMECHANGE && val != CPUFREQ_SUSPENDCHANGE)
- 		write_sequnlock_irq(&xtime_lock);
--
-+	D();
- 	return 0;
- }
- 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -578,3 +257,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+fix-x86_64-mm-sched-clock-share.patch
