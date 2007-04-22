@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch added to -mm tree
-Date: Sun, 22 Apr 2007 01:52:37 -0700
-Message-ID: <200704220855.l3M8tCrn023216@shell0.pdx.osdl.net>
+Subject: + even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch added to -mm tree
+Date: Sun, 22 Apr 2007 03:02:21 -0600
+Message-ID: <200704220902.l3M92MV1023320@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48872 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932409AbXDVIzW (ORCPT
+	by vger.kernel.org with ESMTP id S965550AbXDVJCb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 04:55:22 -0400
+	Sun, 22 Apr 2007 05:02:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com
 
 
 The patch titled
-     git-s390 vs gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+     even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 has been added to the -mm tree.  Its filename is
-     git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+     even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-s390 vs gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+Subject: even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Sigh.
+grep?
 
 Cc: Greg KH <greg@kroah.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/chp.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/macintosh/windfarm_core.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/s390/cio/chp.c~git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/s390/cio/chp.c
---- a/drivers/s390/cio/chp.c~git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-+++ a/drivers/s390/cio/chp.c
-@@ -165,7 +165,6 @@ static struct bin_attribute chp_measurem
- 	.attr = {
- 		.name = "measurement_chars",
- 		.mode = S_IRUSR,
--		.owner = THIS_MODULE,
- 	},
- 	.size = sizeof(struct cmg_chars),
- 	.read = chp_measurement_chars_read,
-@@ -217,7 +216,6 @@ static struct bin_attribute chp_measurem
- 	.attr = {
- 		.name = "measurement",
- 		.mode = S_IRUSR,
--		.owner = THIS_MODULE,
- 	},
- 	.size = sizeof(struct cmg_entry),
- 	.read = chp_measurement_read,
+diff -puN drivers/macintosh/windfarm_core.c~even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/macintosh/windfarm_core.c
+--- a/drivers/macintosh/windfarm_core.c~even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/macintosh/windfarm_core.c
+@@ -213,7 +213,6 @@ int wf_register_control(struct wf_contro
+ 	list_add(&new_ct->link, &wf_controls);
+ 
+ 	new_ct->attr.attr.name = new_ct->name;
+-	new_ct->attr.attr.owner = THIS_MODULE;
+ 	new_ct->attr.attr.mode = 0644;
+ 	new_ct->attr.show = wf_show_control;
+ 	new_ct->attr.store = wf_store_control;
+@@ -323,7 +322,6 @@ int wf_register_sensor(struct wf_sensor 
+ 	list_add(&new_sr->link, &wf_sensors);
+ 
+ 	new_sr->attr.attr.name = new_sr->name;
+-	new_sr->attr.attr.owner = THIS_MODULE;
+ 	new_sr->attr.attr.mode = 0444;
+ 	new_sr->attr.show = wf_show_sensor;
+ 	new_sr->attr.store = NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +75,7 @@ git-powerpc.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
 more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 device_schedule_callback-needs-a-module-reference-fix.patch
 define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
 sysfs-binc-printk-fix.patch
