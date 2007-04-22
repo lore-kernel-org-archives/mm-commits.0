@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - mm-count-writeback-pages-per-bdi.patch removed from -mm tree
-Date: Sun, 22 Apr 2007 12:02:17 -0700
-Message-ID: <200704221902.l3MJ2HjX032078@shell0.pdx.osdl.net>
+Subject: - lib-dampen-the-percpu_counter-fbc_batch.patch removed from -mm tree
+Date: Sun, 22 Apr 2007 12:02:05 -0700
+Message-ID: <200704221902.l3MJ258Q032060@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43330 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60681 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965668AbXDVTCT (ORCPT
+	by vger.kernel.org with ESMTP id S965655AbXDVTCT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 22 Apr 2007 15:02:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,80 +15,50 @@ To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: count writeback pages per BDI
+     lib: dampen the percpu_counter FBC_BATCH
 has been removed from the -mm tree.  Its filename was
-     mm-count-writeback-pages-per-bdi.patch
+     lib-dampen-the-percpu_counter-fbc_batch.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm: count writeback pages per BDI
+Subject: lib: dampen the percpu_counter FBC_BATCH
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Count per BDI writeback pages.
+With the current logic the percpu_counter's accuracy delta is quadric wrt the
+number of cpus in the system, reduce this to O(n ln n).
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 +
- mm/page-writeback.c         |   12 ++++++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ include/linux/percpu_counter.h |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi
-+++ a/include/linux/backing-dev.h
-@@ -27,6 +27,7 @@ typedef int (congested_fn)(void *, int);
+diff -puN include/linux/percpu_counter.h~lib-dampen-the-percpu_counter-fbc_batch include/linux/percpu_counter.h
+--- a/include/linux/percpu_counter.h~lib-dampen-the-percpu_counter-fbc_batch
++++ a/include/linux/percpu_counter.h
+@@ -11,6 +11,7 @@
+ #include <linux/threads.h>
+ #include <linux/percpu.h>
+ #include <linux/types.h>
++#include <linux/log2.h>
  
- enum bdi_stat_item {
- 	BDI_RECLAIMABLE,
-+	BDI_WRITEBACK,
- 	NR_BDI_STAT_ITEMS
+ #ifdef CONFIG_SMP
+ 
+@@ -20,11 +21,7 @@ struct percpu_counter {
+ 	s32 *counters;
  };
  
-diff -puN mm/page-writeback.c~mm-count-writeback-pages-per-bdi mm/page-writeback.c
---- a/mm/page-writeback.c~mm-count-writeback-pages-per-bdi
-+++ a/mm/page-writeback.c
-@@ -979,14 +979,18 @@ int test_clear_page_writeback(struct pag
- 	int ret;
+-#if NR_CPUS >= 16
+-#define FBC_BATCH	(NR_CPUS*2)
+-#else
+-#define FBC_BATCH	(NR_CPUS*4)
+-#endif
++#define FBC_BATCH	(8*ilog2(NR_CPUS))
  
- 	if (mapping) {
-+		struct backing_dev_info *bdi = mapping->backing_dev_info;
- 		unsigned long flags;
- 
- 		write_lock_irqsave(&mapping->tree_lock, flags);
- 		ret = TestClearPageWriteback(page);
--		if (ret)
-+		if (ret) {
- 			radix_tree_tag_clear(&mapping->page_tree,
- 						page_index(page),
- 						PAGECACHE_TAG_WRITEBACK);
-+			if (bdi_cap_writeback_dirty(bdi))
-+				__dec_bdi_stat(bdi, BDI_WRITEBACK);
-+		}
- 		write_unlock_irqrestore(&mapping->tree_lock, flags);
- 	} else {
- 		ret = TestClearPageWriteback(page);
-@@ -1002,14 +1006,18 @@ int test_set_page_writeback(struct page 
- 	int ret;
- 
- 	if (mapping) {
-+		struct backing_dev_info *bdi = mapping->backing_dev_info;
- 		unsigned long flags;
- 
- 		write_lock_irqsave(&mapping->tree_lock, flags);
- 		ret = TestSetPageWriteback(page);
--		if (!ret)
-+		if (!ret) {
- 			radix_tree_tag_set(&mapping->page_tree,
- 						page_index(page),
- 						PAGECACHE_TAG_WRITEBACK);
-+			if (bdi_cap_writeback_dirty(bdi))
-+				__inc_bdi_stat(bdi, BDI_WRITEBACK);
-+		}
- 		if (!PageDirty(page))
- 			radix_tree_tag_clear(&mapping->page_tree,
- 						page_index(page),
+ static inline void percpu_counter_init(struct percpu_counter *fbc, s64 amount)
+ {
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
@@ -107,6 +77,12 @@ restore-madv_dontneed-to-its-original-linux-behaviour.patch
 exec-fix-remove_arg_zero-add-comment.patch
 lockdep-treats-down_write_trylock-like-regular-down_write.patch
 nfs-fix-congestion-control-use-atomic_longs.patch
+lib-dampen-the-percpu_counter-fbc_batch.patch
+lib-percpu_counter_mod64.patch
+mm-bdi-init-hooks.patch
+mm-bdi-init-hooks-fix.patch
+mm-scalable-bdi-statistics-counters.patch
+mm-count-reclaimable-pages-per-bdi.patch
 mm-count-writeback-pages-per-bdi.patch
 mm-expose-bdi-statistics-in-sysfs.patch
 mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
