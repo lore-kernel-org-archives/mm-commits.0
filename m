@@ -1,102 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-fixup.patch removed from -mm tree
-Date: Sat, 21 Apr 2007 21:59:22 -0700
-Message-ID: <200704220501.l3M51xcD019925@shell0.pdx.osdl.net>
+Subject: - git-block-another-md-fix.patch removed from -mm tree
+Date: Sat, 21 Apr 2007 21:59:38 -0700
+Message-ID: <200704220502.l3M52DKI019937@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43790 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60457 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754082AbXDVFCc (ORCPT
+	by vger.kernel.org with ESMTP id S1754084AbXDVFCp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 01:02:32 -0400
+	Sun, 22 Apr 2007 01:02:45 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3M522U0019247
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3M52EHf019262
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 21 Apr 2007 22:02:04 -0700
+	for <mm-commits@vger.kernel.org>; Sat, 21 Apr 2007 22:02:15 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-fixup
+     git-block-another-md-fix
 has been removed from the -mm tree.  Its filename was
-     git-block-fixup.patch
+     git-block-another-md-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-block-fixup
+Subject: git-block-another-md-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cfq-iosched.c |   26 --------------------------
- 1 file changed, 26 deletions(-)
+ drivers/md/md.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN block/cfq-iosched.c~git-block-fixup block/cfq-iosched.c
---- a/block/cfq-iosched.c~git-block-fixup
-+++ a/block/cfq-iosched.c
-@@ -1038,19 +1038,11 @@ __cfq_dispatch_requests(struct cfq_data 
- 	 * expire an async queue immediately if it has used up its slice. idle
- 	 * queue always expire after 1 dispatch round.
- 	 */
--<<<<<<< HEAD/block/cfq-iosched.c
- 	if (cfqd->busy_queues > 1 && ((!cfq_cfqq_sync(cfqq) &&
- 	    cfqd->dispatch_slice >= cfq_prio_to_maxrq(cfqd, cfqq)) ||
- 	    cfq_class_idle(cfqq))) {
- 		cfqq->slice_end = jiffies + 1;
- 		cfq_slice_expired(cfqd, 0, 0);
--=======
--	if ((!cfq_cfqq_sync(cfqq) &&
--	    dispatched >= cfq_prio_to_maxrq(cfqd, cfqq)) ||
--	    cfq_class_idle(cfqq)) {
--		cfqq->slice_end = jiffies;
--		cfq_slice_expired(cfqd, 0);
-->>>>>>> /block/cfq-iosched.c
- 	}
- 
- 	return dispatched;
-@@ -1107,27 +1099,13 @@ static int cfq_dispatch_requests(request
- 	while ((cfqq = cfq_select_queue(cfqd)) != NULL) {
- 		int max_dispatch;
- 
--<<<<<<< HEAD/block/cfq-iosched.c
- 		if (cfqd->busy_queues > 1) {
- 			/*
- 			 * Don't repeat dispatch from the previous queue.
- 			 */
- 			if (prev_cfqq == cfqq)
- 				break;
--=======
--		max_dispatch = cfqd->cfq_quantum;
--		if (cfq_class_idle(cfqq))
--			max_dispatch = 1;
--
--		if (cfqq->dispatched >= max_dispatch) {
--			if (cfqd->busy_queues > 1)
--				break;
--			if (cfqq->dispatched >= 4 * max_dispatch)
--				break;
--		}
-->>>>>>> /block/cfq-iosched.c
- 
--<<<<<<< HEAD/block/cfq-iosched.c
- 			/*
- 			 * So we have dispatched before in this round, if the
- 			 * next queue has idling enabled (must be sync), don't
-@@ -1136,10 +1114,6 @@ static int cfq_dispatch_requests(request
- 			if (cfqd->rq_in_driver && cfq_cfqq_idle_window(cfqq))
- 				break;
- 		}
--=======
--		if (cfqd->sync_flight && !cfq_cfqq_sync(cfqq))
--			break;
-->>>>>>> /block/cfq-iosched.c
- 
- 		cfq_clear_cfqq_must_dispatch(cfqq);
- 		cfq_clear_cfqq_wait_request(cfqq);
+diff -puN drivers/md/md.c~git-block-another-md-fix drivers/md/md.c
+--- a/drivers/md/md.c~git-block-another-md-fix
++++ a/drivers/md/md.c
+@@ -3323,7 +3323,6 @@ static int do_md_stop(mddev_t * mddev, i
+ 			blk_queue_make_request(mddev->queue, md_fail_request);
+ 			mddev->pers->stop(mddev);
+ 			mddev->queue->merge_bvec_fn = NULL;
+-			mddev->queue->unplug_fn = NULL;
+ 			mddev->queue->issue_flush_fn = NULL;
+ 			if (mddev->pers->sync_request)
+ 				sysfs_remove_group(&mddev->kobj, &md_redundancy_group);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,7 +106,6 @@ scsi-fix-config_scsi_wait_scan=m-fix.patch
 scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
 pci-error-recovery-symbios-scsi-base-support-fixes.patch
 pci-error-recovery-symbios-scsi-first-failure-fix.patch
-git-block-fixup.patch
 cxacru-add-documentation-file-fix.patch
 git-wireless.patch
 git-wireless-fixup.patch
