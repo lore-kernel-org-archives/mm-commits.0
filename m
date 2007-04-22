@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-fam10-mwait-idle.patch added to -mm tree
-Date: Sat, 21 Apr 2007 22:47:29 -0700
-Message-ID: <200704220550.l3M5o4XX020602@shell0.pdx.osdl.net>
+Subject: + sched-consolidate-sched_clock-drift-adjustments-fix.patch added to -mm tree
+Date: Sat, 21 Apr 2007 23:03:32 -0700
+Message-ID: <200704220606.l3M667Ei020806@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54553 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753881AbXDVFuK (ORCPT
+	by vger.kernel.org with ESMTP id S1750954AbXDVGGj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 01:50:10 -0400
+	Sun, 22 Apr 2007 02:06:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: akpm@linux-foundation.org, dwalker@mvista.com, kernel@kolivas.org, mingo@elte.hu, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     fix-x86_64-mm-fam10-mwait-idle
+     sched-consolidate-sched_clock-drift-adjustments-fix
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-fam10-mwait-idle.patch
+     sched-consolidate-sched_clock-drift-adjustments-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-x86_64-mm-fam10-mwait-idle
+Subject: sched-consolidate-sched_clock-drift-adjustments-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix section borkage in fam10-mwait-idle
-
-Cc: Andi Kleen <ak@suse.de>
+Cc: Con Kolivas <kernel@kolivas.org>
+Cc: Daniel Walker <dwalker@mvista.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/amd.c |    2 +-
- arch/x86_64/kernel/setup.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/amd.c~fix-x86_64-mm-fam10-mwait-idle arch/i386/kernel/cpu/amd.c
---- a/arch/i386/kernel/cpu/amd.c~fix-x86_64-mm-fam10-mwait-idle
-+++ a/arch/i386/kernel/cpu/amd.c
-@@ -53,7 +53,7 @@ static __cpuinit int amd_apic_timer_brok
- 	return 0;
- }
- 
--int force_mwait __initdata;
-+int force_mwait __cpuinitdata;
- 
- static void __cpuinit init_amd(struct cpuinfo_x86 *c)
+diff -puN kernel/sched.c~sched-consolidate-sched_clock-drift-adjustments-fix kernel/sched.c
+--- a/kernel/sched.c~sched-consolidate-sched_clock-drift-adjustments-fix
++++ a/kernel/sched.c
+@@ -679,7 +679,7 @@ static inline unsigned long long
+ sched_clock_drift_adjust(unsigned long long timestamp, struct rq *from,
+ 			 struct rq *to)
  {
-diff -puN arch/x86_64/kernel/setup.c~fix-x86_64-mm-fam10-mwait-idle arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~fix-x86_64-mm-fam10-mwait-idle
-+++ a/arch/x86_64/kernel/setup.c
-@@ -79,7 +79,7 @@ int bootloader_type;
+-	return timestamp
++	return timestamp;
+ }
+ #endif
  
- unsigned long saved_video_mode;
- 
--int force_mwait __initdata;
-+int force_mwait __cpuinitdata;
- 
- /* 
-  * Early DMI memory
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -204,6 +192,7 @@ kthread-dont-depend-on-work-queues-take-2-fix.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
 revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
 revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
 lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
 revert-rtc-add-rtc_merge_alarm.patch
 declare-struct-ktime.patch
