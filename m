@@ -1,86 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-fix-race-in-nfs_set_page_dirty.patch removed from -mm tree
-Date: Sat, 21 Apr 2007 21:11:48 -0700
-Message-ID: <200704220411.l3M4Bmjp019248@shell0.pdx.osdl.net>
+Subject: - nfs-dont-clear-pg_writeback-until-after-weve-processed-unstable-writes.patch removed from -mm tree
+Date: Sat, 21 Apr 2007 21:11:52 -0700
+Message-ID: <200704220411.l3M4BqQ2019254@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47391 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753786AbXDVELu (ORCPT
+	by vger.kernel.org with ESMTP id S1754063AbXDVELy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 00:11:50 -0400
+	Sun, 22 Apr 2007 00:11:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Trond.Myklebust@netapp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFS: Fix race in nfs_set_page_dirty
+     NFS: Don't clear PG_writeback until after we've processed unstable writes
 has been removed from the -mm tree.  Its filename was
-     nfs-fix-race-in-nfs_set_page_dirty.patch
+     nfs-dont-clear-pg_writeback-until-after-weve-processed-unstable-writes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NFS: Fix race in nfs_set_page_dirty
+Subject: NFS: Don't clear PG_writeback until after we've processed unstable writes
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-Protect nfs_set_page_dirty() against races with nfs_inode_add_request.
+Ensure that we don't release the PG_writeback lock until after the page has
+either been redirtied, or queued on the nfs_inode 'commit' list.
 
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ fs/nfs/write.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/nfs/write.c~nfs-fix-race-in-nfs_set_page_dirty fs/nfs/write.c
---- a/fs/nfs/write.c~nfs-fix-race-in-nfs_set_page_dirty
+diff -puN fs/nfs/write.c~nfs-dont-clear-pg_writeback-until-after-weve-processed-unstable-writes fs/nfs/write.c
+--- a/fs/nfs/write.c~nfs-dont-clear-pg_writeback-until-after-weve-processed-unstable-writes
 +++ a/fs/nfs/write.c
-@@ -376,6 +376,8 @@ static int nfs_inode_add_request(struct 
+@@ -920,8 +920,8 @@ out_bad:
+ 		list_del(&data->pages);
+ 		nfs_writedata_release(data);
  	}
- 	SetPagePrivate(req->wb_page);
- 	set_page_private(req->wb_page, (unsigned long)req);
-+	if (PageDirty(req->wb_page))
-+		set_bit(PG_NEED_FLUSH, &req->wb_flags);
- 	nfsi->npages++;
- 	atomic_inc(&req->wb_count);
- 	return 0;
-@@ -395,6 +397,8 @@ static void nfs_inode_remove_request(str
- 	set_page_private(req->wb_page, 0);
- 	ClearPagePrivate(req->wb_page);
- 	radix_tree_delete(&nfsi->nfs_page_tree, req->wb_index);
-+	if (test_and_clear_bit(PG_NEED_FLUSH, &req->wb_flags))
-+		__set_page_dirty_nobuffers(req->wb_page);
- 	nfsi->npages--;
- 	if (!nfsi->npages) {
- 		spin_unlock(&nfsi->req_lock);
-@@ -1530,15 +1534,22 @@ int nfs_wb_page(struct inode *inode, str
- 
- int nfs_set_page_dirty(struct page *page)
- {
-+	spinlock_t *req_lock = &NFS_I(page->mapping->host)->req_lock;
- 	struct nfs_page *req;
-+	int ret;
- 
--	req = nfs_page_find_request(page);
-+	spin_lock(req_lock);
-+	req = nfs_page_find_request_locked(page);
- 	if (req != NULL) {
- 		/* Mark any existing write requests for flushing */
--		set_bit(PG_NEED_FLUSH, &req->wb_flags);
-+		ret = !test_and_set_bit(PG_NEED_FLUSH, &req->wb_flags);
-+		spin_unlock(req_lock);
- 		nfs_release_request(req);
-+		return ret;
- 	}
--	return __set_page_dirty_nobuffers(page);
-+	ret = __set_page_dirty_nobuffers(page);
-+	spin_unlock(req_lock);
-+	return ret;
+-	nfs_end_page_writeback(req->wb_page);
+ 	nfs_redirty_request(req);
++	nfs_end_page_writeback(req->wb_page);
+ 	nfs_clear_page_writeback(req);
+ 	return -ENOMEM;
  }
- 
- 
+@@ -966,8 +966,8 @@ static int nfs_flush_one(struct inode *i
+ 	while (!list_empty(head)) {
+ 		struct nfs_page *req = nfs_list_entry(head->next);
+ 		nfs_list_remove_request(req);
+-		nfs_end_page_writeback(req->wb_page);
+ 		nfs_redirty_request(req);
++		nfs_end_page_writeback(req->wb_page);
+ 		nfs_clear_page_writeback(req);
+ 	}
+ 	return -ENOMEM;
+@@ -1002,8 +1002,8 @@ out_err:
+ 	while (!list_empty(head)) {
+ 		req = nfs_list_entry(head->next);
+ 		nfs_list_remove_request(req);
+-		nfs_end_page_writeback(req->wb_page);
+ 		nfs_redirty_request(req);
++		nfs_end_page_writeback(req->wb_page);
+ 		nfs_clear_page_writeback(req);
+ 	}
+ 	return error;
 _
 
 Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
