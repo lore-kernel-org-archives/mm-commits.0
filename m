@@ -1,105 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch removed from -mm tree
-Date: Sat, 21 Apr 2007 22:00:04 -0700
-Message-ID: <200704220502.l3M52eZt019957@shell0.pdx.osdl.net>
+Subject: + git-ubi-fixup.patch added to -mm tree
+Date: Sat, 21 Apr 2007 22:07:17 -0700
+Message-ID: <200704220509.l3M59qC0020017@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57362 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754102AbXDVFDS (ORCPT
+	by vger.kernel.org with ESMTP id S1752808AbXDVFKD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 01:03:18 -0400
+	Sun, 22 Apr 2007 01:10:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com
 
 
 The patch titled
-     revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block
-has been removed from the -mm tree.  Its filename was
-     revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block.patch
+     git-ubi-fixup
+has been added to the -mm tree.  Its filename is
+     git-ubi-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block
+Subject: git-ubi-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-my life sucks.
+Fix conflicts between git-ubi and mainline
 
-Cc: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c         |   22 +---------------------
- include/linux/raid/bitmap.h |    1 -
- 2 files changed, 1 insertion(+), 22 deletions(-)
+ drivers/mtd/Kconfig |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/md/bitmap.c~revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block
-+++ a/drivers/md/bitmap.c
-@@ -1160,22 +1160,6 @@ int bitmap_startwrite(struct bitmap *bit
- 			return 0;
- 		}
+diff -puN drivers/mtd/Kconfig~git-ubi-fixup drivers/mtd/Kconfig
+--- a/drivers/mtd/Kconfig~git-ubi-fixup
++++ a/drivers/mtd/Kconfig
+@@ -287,11 +287,6 @@ source "drivers/mtd/nand/Kconfig"
  
--		if (unlikely((*bmc & COUNTER_MAX) == COUNTER_MAX)) {
--			DEFINE_WAIT(__wait);
--			/* note that it is safe to do the prepare_to_wait
--			 * after the test as long as we do it before dropping
--			 * the spinlock.
--			 */
--			prepare_to_wait(&bitmap->overflow_wait, &__wait,
--					TASK_UNINTERRUPTIBLE);
--			spin_unlock_irq(&bitmap->lock);
--			bitmap->mddev->queue
--				->unplug_fn(bitmap->mddev->queue);
--			schedule();
--			finish_wait(&bitmap->overflow_wait, &__wait);
--			continue;
--		}
+ source "drivers/mtd/onenand/Kconfig"
+ 
+-<<<<<<< HEAD/drivers/mtd/Kconfig
+-endif # MTD
+-=======
+ source "drivers/mtd/ubi/Kconfig"
+ 
+-endmenu
 -
- 		switch(*bmc) {
- 		case 0:
- 			bitmap_file_set_bit(bitmap, offset);
-@@ -1185,7 +1169,7 @@ int bitmap_startwrite(struct bitmap *bit
- 		case 1:
- 			*bmc = 2;
- 		}
--
-+		BUG_ON((*bmc & COUNTER_MAX) == COUNTER_MAX);
- 		(*bmc)++;
- 
- 		spin_unlock_irq(&bitmap->lock);
-@@ -1223,9 +1207,6 @@ void bitmap_endwrite(struct bitmap *bitm
- 		if (!success && ! (*bmc & NEEDED_MASK))
- 			*bmc |= NEEDED_MASK;
- 
--		if ((*bmc & COUNTER_MAX) == COUNTER_MAX)
--			wake_up(&bitmap->overflow_wait);
--
- 		(*bmc)--;
- 		if (*bmc <= 2) {
- 			set_page_attr(bitmap,
-@@ -1450,7 +1431,6 @@ int bitmap_create(mddev_t *mddev)
- 	spin_lock_init(&bitmap->lock);
- 	atomic_set(&bitmap->pending_writes, 0);
- 	init_waitqueue_head(&bitmap->write_wait);
--	init_waitqueue_head(&bitmap->overflow_wait);
- 
- 	bitmap->mddev = mddev;
- 
-diff -puN include/linux/raid/bitmap.h~revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block include/linux/raid/bitmap.h
---- a/include/linux/raid/bitmap.h~revert-md-avoid-possible-bug_on-in-md-bitmap-handling-for-git-block
-+++ a/include/linux/raid/bitmap.h
-@@ -247,7 +247,6 @@ struct bitmap {
- 
- 	atomic_t pending_writes; /* pending writes to the bitmap file */
- 	wait_queue_head_t write_wait;
--	wait_queue_head_t overflow_wait;
- 
- };
- 
+->>>>>>> /drivers/mtd/Kconfig
++endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,6 +87,7 @@ git-md-accel-fix.patch
 git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 git-mtd.patch
 git-ubi.patch
+git-ubi-fixup.patch
 revert-gitpowerpc-ehea-changes.patch
 git-netdev-all.patch
 reapply-gitpowerpc-ehea-changes.patch
