@@ -1,244 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-clean-up-the-unstable-write-code.patch removed from -mm tree
-Date: Sat, 21 Apr 2007 21:11:44 -0700
-Message-ID: <200704220411.l3M4BiCw019245@shell0.pdx.osdl.net>
+Subject: - rpc-fix-the-tcp-resend-semantics-for-nfsv4.patch removed from -mm tree
+Date: Sat, 21 Apr 2007 21:11:54 -0700
+Message-ID: <200704220411.l3M4BsjX019257@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39823 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59609 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754056AbXDVELy (ORCPT
+	by vger.kernel.org with ESMTP id S1754078AbXDVEMA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 00:11:54 -0400
+	Sun, 22 Apr 2007 00:12:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Trond.Myklebust@netapp.com, mm-commits@vger.kernel.org
+To: Trond.Myklebust@netapp.com, chuck.lever@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFS: clean up the unstable write code
+     RPC: Fix the TCP resend semantics for NFSv4
 has been removed from the -mm tree.  Its filename was
-     nfs-clean-up-the-unstable-write-code.patch
+     rpc-fix-the-tcp-resend-semantics-for-nfsv4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NFS: clean up the unstable write code
+Subject: RPC: Fix the TCP resend semantics for NFSv4
 From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-Get rid of the inlined #ifdefs.
+Fix a regression due to the patch "NFS: disconnect before retrying NFSv4
+requests over TCP"
+
+The assumption made in xprt_transmit() that the condition
+
+	"req->rq_bytes_sent == 0 and request is on the receive list"
+
+should imply that we're dealing with a retransmission is false.  Firstly,
+it may simply happen that the socket send queue was full at the time the
+request was initially sent through xprt_transmit().  Secondly, doing this
+for each request that was retransmitted implies that we disconnect and
+reconnect for _every_ request that happened to be retransmitted
+irrespective of whether or not a disconnection has already occurred.
+
+Fix is to move this logic into the call_status request timeout handler.
 
 Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Chuck Lever <chuck.lever@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c           |  117 ++++++++++++++++++++++---------------
- include/linux/nfs_page.h |   30 ---------
- 2 files changed, 71 insertions(+), 76 deletions(-)
+ net/sunrpc/clnt.c |    4 ++++
+ net/sunrpc/xprt.c |   10 ----------
+ 2 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN fs/nfs/write.c~nfs-clean-up-the-unstable-write-code fs/nfs/write.c
---- a/fs/nfs/write.c~nfs-clean-up-the-unstable-write-code
-+++ a/fs/nfs/write.c
-@@ -460,6 +460,43 @@ nfs_mark_request_commit(struct nfs_page 
- 	inc_zone_page_state(req->wb_page, NR_UNSTABLE_NFS);
- 	__mark_inode_dirty(inode, I_DIRTY_DATASYNC);
+diff -puN net/sunrpc/clnt.c~rpc-fix-the-tcp-resend-semantics-for-nfsv4 net/sunrpc/clnt.c
+--- a/net/sunrpc/clnt.c~rpc-fix-the-tcp-resend-semantics-for-nfsv4
++++ a/net/sunrpc/clnt.c
+@@ -1046,6 +1046,8 @@ call_status(struct rpc_task *task)
+ 		rpc_delay(task, 3*HZ);
+ 	case -ETIMEDOUT:
+ 		task->tk_action = call_timeout;
++		if (task->tk_client->cl_discrtry)
++			xprt_disconnect(task->tk_xprt);
+ 		break;
+ 	case -ECONNREFUSED:
+ 	case -ENOTCONN:
+@@ -1169,6 +1171,8 @@ call_decode(struct rpc_task *task)
+ out_retry:
+ 	req->rq_received = req->rq_private_buf.len = 0;
+ 	task->tk_status = 0;
++	if (task->tk_client->cl_discrtry)
++		xprt_disconnect(task->tk_xprt);
  }
-+
-+static inline
-+int nfs_write_need_commit(struct nfs_write_data *data)
-+{
-+	return data->verf.committed != NFS_FILE_SYNC;
-+}
-+
-+static inline
-+int nfs_reschedule_unstable_write(struct nfs_page *req)
-+{
-+	if (test_and_clear_bit(PG_NEED_COMMIT, &req->wb_flags)) {
-+		nfs_mark_request_commit(req);
-+		return 1;
-+	}
-+	if (test_and_clear_bit(PG_NEED_RESCHED, &req->wb_flags)) {
-+		nfs_redirty_request(req);
-+		return 1;
-+	}
-+	return 0;
-+}
-+#else
-+static inline void
-+nfs_mark_request_commit(struct nfs_page *req)
-+{
-+}
-+
-+static inline
-+int nfs_write_need_commit(struct nfs_write_data *data)
-+{
-+	return 0;
-+}
-+
-+static inline
-+int nfs_reschedule_unstable_write(struct nfs_page *req)
-+{
-+	return 0;
-+}
- #endif
  
  /*
-@@ -746,26 +783,12 @@ int nfs_updatepage(struct file *file, st
- 
- static void nfs_writepage_release(struct nfs_page *req)
- {
--	nfs_end_page_writeback(req->wb_page);
--
--#if defined(CONFIG_NFS_V3) || defined(CONFIG_NFS_V4)
--	if (!PageError(req->wb_page)) {
--		if (NFS_NEED_RESCHED(req)) {
--			nfs_redirty_request(req);
--			goto out;
--		} else if (NFS_NEED_COMMIT(req)) {
--			nfs_mark_request_commit(req);
--			goto out;
--		}
--	}
--	nfs_inode_remove_request(req);
- 
--out:
--	nfs_clear_commit(req);
--	nfs_clear_reschedule(req);
--#else
--	nfs_inode_remove_request(req);
--#endif
-+	if (PageError(req->wb_page) || !nfs_reschedule_unstable_write(req)) {
-+		nfs_end_page_writeback(req->wb_page);
-+		nfs_inode_remove_request(req);
-+	} else
-+		nfs_end_page_writeback(req->wb_page);
- 	nfs_clear_page_writeback(req);
- }
- 
-@@ -1008,22 +1031,28 @@ static void nfs_writeback_done_partial(s
- 		nfs_set_pageerror(page);
- 		req->wb_context->error = task->tk_status;
- 		dprintk(", error = %d\n", task->tk_status);
--	} else {
--#if defined(CONFIG_NFS_V3) || defined(CONFIG_NFS_V4)
--		if (data->verf.committed < NFS_FILE_SYNC) {
--			if (!NFS_NEED_COMMIT(req)) {
--				nfs_defer_commit(req);
--				memcpy(&req->wb_verf, &data->verf, sizeof(req->wb_verf));
--				dprintk(" defer commit\n");
--			} else if (memcmp(&req->wb_verf, &data->verf, sizeof(req->wb_verf))) {
--				nfs_defer_reschedule(req);
--				dprintk(" server reboot detected\n");
+diff -puN net/sunrpc/xprt.c~rpc-fix-the-tcp-resend-semantics-for-nfsv4 net/sunrpc/xprt.c
+--- a/net/sunrpc/xprt.c~rpc-fix-the-tcp-resend-semantics-for-nfsv4
++++ a/net/sunrpc/xprt.c
+@@ -735,16 +735,6 @@ void xprt_transmit(struct rpc_task *task
+ 			xprt_reset_majortimeo(req);
+ 			/* Turn off autodisconnect */
+ 			del_singleshot_timer_sync(&xprt->timer);
+-		} else {
+-			/* If all request bytes have been sent,
+-			 * then we must be retransmitting this one */
+-			if (!req->rq_bytes_sent) {
+-				if (task->tk_client->cl_discrtry) {
+-					xprt_disconnect(xprt);
+-					task->tk_status = -ENOTCONN;
+-					return;
+-				}
 -			}
--		} else
--#endif
--			dprintk(" OK\n");
-+		goto out;
- 	}
- 
-+	if (nfs_write_need_commit(data)) {
-+		spinlock_t *req_lock = &NFS_I(page->mapping->host)->req_lock;
-+
-+		spin_lock(req_lock);
-+		if (test_bit(PG_NEED_RESCHED, &req->wb_flags)) {
-+			/* Do nothing we need to resend the writes */
-+		} else if (!test_and_set_bit(PG_NEED_COMMIT, &req->wb_flags)) {
-+			memcpy(&req->wb_verf, &data->verf, sizeof(req->wb_verf));
-+			dprintk(" defer commit\n");
-+		} else if (memcmp(&req->wb_verf, &data->verf, sizeof(req->wb_verf))) {
-+			set_bit(PG_NEED_RESCHED, &req->wb_flags);
-+			clear_bit(PG_NEED_COMMIT, &req->wb_flags);
-+			dprintk(" server reboot detected\n");
-+		}
-+		spin_unlock(req_lock);
-+	} else
-+		dprintk(" OK\n");
-+
-+out:
- 	if (atomic_dec_and_test(&req->wb_complete))
- 		nfs_writepage_release(req);
- }
-@@ -1064,25 +1093,21 @@ static void nfs_writeback_done_full(stru
- 		if (task->tk_status < 0) {
- 			nfs_set_pageerror(page);
- 			req->wb_context->error = task->tk_status;
--			nfs_end_page_writeback(page);
--			nfs_inode_remove_request(req);
- 			dprintk(", error = %d\n", task->tk_status);
--			goto next;
-+			goto remove_request;
  		}
--		nfs_end_page_writeback(page);
- 
--#if defined(CONFIG_NFS_V3) || defined(CONFIG_NFS_V4)
--		if (data->args.stable != NFS_UNSTABLE || data->verf.committed == NFS_FILE_SYNC) {
--			nfs_inode_remove_request(req);
--			dprintk(" OK\n");
-+		if (nfs_write_need_commit(data)) {
-+			memcpy(&req->wb_verf, &data->verf, sizeof(req->wb_verf));
-+			nfs_mark_request_commit(req);
-+			nfs_end_page_writeback(page);
-+			dprintk(" marked for commit\n");
- 			goto next;
- 		}
--		memcpy(&req->wb_verf, &data->verf, sizeof(req->wb_verf));
--		nfs_mark_request_commit(req);
--		dprintk(" marked for commit\n");
--#else
-+		dprintk(" OK\n");
-+remove_request:
-+		nfs_end_page_writeback(page);
- 		nfs_inode_remove_request(req);
--#endif
- 	next:
- 		nfs_clear_page_writeback(req);
- 	}
-diff -puN include/linux/nfs_page.h~nfs-clean-up-the-unstable-write-code include/linux/nfs_page.h
---- a/include/linux/nfs_page.h~nfs-clean-up-the-unstable-write-code
-+++ a/include/linux/nfs_page.h
-@@ -49,8 +49,6 @@ struct nfs_page {
- };
- 
- #define NFS_WBACK_BUSY(req)	(test_bit(PG_BUSY,&(req)->wb_flags))
--#define NFS_NEED_COMMIT(req)	(test_bit(PG_NEED_COMMIT,&(req)->wb_flags))
--#define NFS_NEED_RESCHED(req)	(test_bit(PG_NEED_RESCHED,&(req)->wb_flags))
- 
- extern	struct nfs_page *nfs_create_request(struct nfs_open_context *ctx,
- 					    struct inode *inode,
-@@ -121,34 +119,6 @@ nfs_list_remove_request(struct nfs_page 
- 	req->wb_list_head = NULL;
- }
- 
--static inline int
--nfs_defer_commit(struct nfs_page *req)
--{
--	return !test_and_set_bit(PG_NEED_COMMIT, &req->wb_flags);
--}
--
--static inline void
--nfs_clear_commit(struct nfs_page *req)
--{
--	smp_mb__before_clear_bit();
--	clear_bit(PG_NEED_COMMIT, &req->wb_flags);
--	smp_mb__after_clear_bit();
--}
--
--static inline int
--nfs_defer_reschedule(struct nfs_page *req)
--{
--	return !test_and_set_bit(PG_NEED_RESCHED, &req->wb_flags);
--}
--
--static inline void
--nfs_clear_reschedule(struct nfs_page *req)
--{
--	smp_mb__before_clear_bit();
--	clear_bit(PG_NEED_RESCHED, &req->wb_flags);
--	smp_mb__after_clear_bit();
--}
--
- static inline struct nfs_page *
- nfs_list_entry(struct list_head *head)
- {
+ 	} else if (!req->rq_bytes_sent)
+ 		return;
 _
 
 Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
