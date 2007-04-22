@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + enhance-initcall_debug-measure-latency-fix.patch added to -mm tree
-Date: Sun, 22 Apr 2007 01:17:37 -0700
-Message-ID: <200704220820.l3M8KC30022775@shell0.pdx.osdl.net>
+Subject: + git-mmc-build-fix.patch added to -mm tree
+Date: Sun, 22 Apr 2007 01:23:46 -0700
+Message-ID: <200704220826.l3M8QL0s022855@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57476 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932279AbXDVIU2 (ORCPT
+	by vger.kernel.org with ESMTP id S965475AbXDVI1C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 04:20:28 -0400
+	Sun, 22 Apr 2007 04:27:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, drzeus@drzeus.cx
 
 
 The patch titled
-     enhance-initcall_debug-measure-latency-fix
+     git-mmc build fix
 has been added to the -mm tree.  Its filename is
-     enhance-initcall_debug-measure-latency-fix.patch
+     git-mmc-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: enhance-initcall_debug-measure-latency-fix
+Subject: git-mmc build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Not all architectures use long long for s64.
+sparc64:
 
-Cc: Ingo Molnar <mingo@elte.hu>
+drivers/misc/tifm_7xx1.c: In function `tifm_7xx1_probe':                        drivers/misc/tifm_7xx1.c:294: error: `DMA_32BIT_MASK' undeclared (first use in this function)                                                                   
+
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/tifm_7xx1.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN init/main.c~enhance-initcall_debug-measure-latency-fix init/main.c
---- a/init/main.c~enhance-initcall_debug-measure-latency-fix
-+++ a/init/main.c
-@@ -678,7 +678,7 @@ static void __init do_initcalls(void)
- 			printk(" returned %d.\n", result);
+diff -puN drivers/misc/tifm_7xx1.c~git-mmc-build-fix drivers/misc/tifm_7xx1.c
+--- a/drivers/misc/tifm_7xx1.c~git-mmc-build-fix
++++ a/drivers/misc/tifm_7xx1.c
+@@ -10,6 +10,7 @@
+  */
  
- 			printk("initcall 0x%p ran for %Ld msecs: ",
--				*call, delta.tv64 >> 20);
-+				*call, (unsigned long long)delta.tv64 >> 20);
- 			print_fn_descriptor_symbol("%s()\n",
- 				(unsigned long) *call);
- 		}
+ #include <linux/tifm.h>
++#include <linux/dma-mapping.h>
+ 
+ #define DRIVER_NAME "tifm_7xx1"
+ #define DRIVER_VERSION "0.8"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -57,6 +58,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 taskstats-fix-the-structure-members-alignment-issue-fix.patch
 acpi-thermal-fix-mod_timer-interval.patch
+fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
 slab-introduce-krealloc-fix.patch
 git-acpi.patch
 git-alsa.patch
@@ -187,6 +189,7 @@ time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc-fix.patch
 fix-kevents-childs-priority-greediness-fix.patch
 display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
 expose-range-checking-functions-from-arch-specific-update-fix.patch
 pad-irq_desc-to-internode-cacheline-size-fix.patch
 dtlk-fix-error-checks-in-module_init-fix.patch
@@ -244,4 +247,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-enhance-initcall_debug-measure-latency-fix.patch
+git-mmc-build-fix.patch
