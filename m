@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + do-not-truncate-irq-number-for-icom-adapter.patch added to -mm tree
-Date: Sun, 22 Apr 2007 11:39:12 -0700
-Message-ID: <200704221839.l3MIdChs031669@shell0.pdx.osdl.net>
+Subject: + hwmon-w83627ehf-dont-redefine-region_offset.patch added to -mm tree
+Date: Sun, 22 Apr 2007 11:43:55 -0700
+Message-ID: <200704221843.l3MIhtZV031724@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53751 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754248AbXDVSjR (ORCPT
+	by vger.kernel.org with ESMTP id S1754248AbXDVSoM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 14:39:17 -0400
+	Sun, 22 Apr 2007 14:44:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olaf@aepfle.de
+Cc: khali@linux-fr.org, david.c.hubbard@gmail.com
 
 
 The patch titled
-     do not truncate irq number for icom adapter
+     hwmon/w83627ehf: Don't redefine REGION_OFFSET
 has been added to the -mm tree.  Its filename is
-     do-not-truncate-irq-number-for-icom-adapter.patch
+     hwmon-w83627ehf-dont-redefine-region_offset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: do not truncate irq number for icom adapter
-From: Olaf Hering <olaf@aepfle.de>
+Subject: hwmon/w83627ehf: Don't redefine REGION_OFFSET
+From: Jean Delvare <khali@linux-fr.org>
 
-irq values are u32, not u8. Large irq numbers will be truncated,
-free_irq may free a different irq.
+On ia64, kernel headers define REGION_OFFSET so we can't use that.
+Reported by Andrew Morton.
 
-Remove incorrectly sized struct member and use the one from pci_dev.
-
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: David Hubbard <david.c.hubbard@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/icom.c |    5 ++---
- drivers/serial/icom.h |    1 -
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/hwmon/w83627ehf.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/serial/icom.c~do-not-truncate-irq-number-for-icom-adapter drivers/serial/icom.c
---- a/drivers/serial/icom.c~do-not-truncate-irq-number-for-icom-adapter
-+++ a/drivers/serial/icom.c
-@@ -1473,7 +1473,7 @@ static void icom_remove_adapter(struct i
- 		}
- 	}
+diff -puN drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-dont-redefine-region_offset drivers/hwmon/w83627ehf.c
+--- a/drivers/hwmon/w83627ehf.c~hwmon-w83627ehf-dont-redefine-region_offset
++++ a/drivers/hwmon/w83627ehf.c
+@@ -121,9 +121,9 @@ superio_exit(void)
+  * ISA constants
+  */
  
--	free_irq(icom_adapter->irq_number, (void *) icom_adapter);
-+	free_irq(icom_adapter->pci_dev->irq, (void *) icom_adapter);
- 	iounmap(icom_adapter->base_addr);
- 	icom_free_adapter(icom_adapter);
- 	pci_release_regions(icom_adapter->pci_dev);
-@@ -1539,7 +1539,6 @@ static int __devinit icom_probe(struct p
- 	}
+-#define REGION_ALIGNMENT	~7
+-#define REGION_OFFSET		5
+-#define REGION_LENGTH		2
++#define IOREGION_ALIGNMENT	~7
++#define IOREGION_OFFSET		5
++#define IOREGION_LENGTH		2
+ #define ADDR_REG_OFFSET		5
+ #define DATA_REG_OFFSET		6
  
- 	 icom_adapter->base_addr_pci = pci_resource_start(dev, 0);
--	 icom_adapter->irq_number = dev->irq;
- 	 icom_adapter->pci_dev = dev;
- 	 icom_adapter->version = ent->driver_data;
- 	 icom_adapter->subsystem_id = ent->subdevice;
-@@ -1570,7 +1569,7 @@ static int __devinit icom_probe(struct p
- 		icom_port = &icom_adapter->port_info[index];
+@@ -1194,7 +1194,7 @@ static int w83627ehf_detect(struct i2c_a
+ 	u8 fan4pin, fan5pin;
+ 	int i, err = 0;
  
- 		if (icom_port->status == ICOM_PORT_ACTIVE) {
--			icom_port->uart_port.irq = icom_port->adapter->irq_number;
-+			icom_port->uart_port.irq = icom_port->adapter->pci_dev->irq;
- 			icom_port->uart_port.type = PORT_ICOM;
- 			icom_port->uart_port.iotype = UPIO_MEM;
- 			icom_port->uart_port.membase =
-diff -puN drivers/serial/icom.h~do-not-truncate-irq-number-for-icom-adapter drivers/serial/icom.h
---- a/drivers/serial/icom.h~do-not-truncate-irq-number-for-icom-adapter
-+++ a/drivers/serial/icom.h
-@@ -258,7 +258,6 @@ struct icom_port {
- struct icom_adapter {
- 	void __iomem * base_addr;
- 	unsigned long base_addr_pci;
--	unsigned char irq_number;
- 	struct pci_dev *pci_dev;
- 	struct icom_port port_info[4];
- 	int index;
+-	if (!request_region(address + REGION_OFFSET, REGION_LENGTH,
++	if (!request_region(address + IOREGION_OFFSET, IOREGION_LENGTH,
+ 	                    w83627ehf_driver.driver.name)) {
+ 		err = -EBUSY;
+ 		goto exit;
+@@ -1322,7 +1322,7 @@ exit_remove:
+ exit_free:
+ 	kfree(data);
+ exit_release:
+-	release_region(address + REGION_OFFSET, REGION_LENGTH);
++	release_region(address + IOREGION_OFFSET, IOREGION_LENGTH);
+ exit:
+ 	return err;
+ }
+@@ -1337,7 +1337,7 @@ static int w83627ehf_detach_client(struc
+ 
+ 	if ((err = i2c_detach_client(client)))
+ 		return err;
+-	release_region(client->addr + REGION_OFFSET, REGION_LENGTH);
++	release_region(client->addr + IOREGION_OFFSET, IOREGION_LENGTH);
+ 	kfree(data);
+ 
+ 	return 0;
+@@ -1380,7 +1380,7 @@ static int __init w83627ehf_find(int sio
+ 	superio_select(W83627EHF_LD_HWM);
+ 	val = (superio_inb(SIO_REG_ADDR) << 8)
+ 	    | superio_inb(SIO_REG_ADDR + 1);
+-	*addr = val & REGION_ALIGNMENT;
++	*addr = val & IOREGION_ALIGNMENT;
+ 	if (*addr == 0) {
+ 		superio_exit();
+ 		return -ENODEV;
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-do-not-truncate-irq-number-for-icom-adapter.patch
-git-powerpc.patch
-git-kbuild.patch
-cleanup-variable-usage-in-mesh-interrupt-handler.patch
-keep-track-of-network-interface-renaming.patch
+origin.patch
+hwmon-w83627ehf-dont-redefine-region_offset.patch
+x86-msr-add-support-for-safe-variants.patch
+git-alsa.patch
+git-dvb.patch
+apple-smc-driver-hardware-monitoring-and-control.patch
+apple-smc-driver-hardware-monitoring-and-control-fix.patch
+apple-smc-driver-standardize-and-sanitize-sysfs-tree.patch
+apple-smc-driver-implement-key-enumeration.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-ieee1394.patch
+git-netdev-all.patch
+git-net.patch
+xtensa-strlcpy-is-smart-enough.patch
+oss-strlcpy-is-smart-enough.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+legacy-pc-parports-support-parport-dev.patch
+layered-parport-code-uses-parport-dev.patch
+clean-up-mutex_trylock-noise.patch
+fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
+rivafb-handle-i2c-bus-creation-failure.patch
+rivafb-nvidiafb-various-cleanups.patch
+rivafb-fixed-reversed-ddc-ports.patch
