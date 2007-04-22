@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch added to -mm tree
-Date: Sun, 22 Apr 2007 03:15:25 -0600
-Message-ID: <200704220915.l3M9FPfK023504@shell0.pdx.osdl.net>
+Subject: + dev_dbg-check-dev_dbg-arguments-fix.patch added to -mm tree
+Date: Sun, 22 Apr 2007 03:22:09 -0600
+Message-ID: <200704220922.l3M9M93w023633@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44795 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965570AbXDVJPb (ORCPT
+	by vger.kernel.org with ESMTP id S965606AbXDVJWO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 05:15:31 -0400
+	Sun, 22 Apr 2007 05:22:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com
 
 
 The patch titled
-     even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+     dev_dbg-check-dev_dbg-arguments-fix
 has been added to the -mm tree.  Its filename is
-     even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+     dev_dbg-check-dev_dbg-arguments-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+Subject: dev_dbg-check-dev_dbg-arguments-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/usb/core/hub.c: In function `hub_port_connect_change':
+drivers/usb/core/hub.c:2409: warning: implicit declaration of function `portspeed'
+
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ibmveth.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/core/hub.c |    4 +---
+ linux/device.h         |    0 
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/net/ibmveth.c~even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/net/ibmveth.c
---- a/drivers/net/ibmveth.c~even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-+++ a/drivers/net/ibmveth.c
-@@ -1308,7 +1308,7 @@ const char * buf, size_t count)
+diff -puN include/linux/device.h~dev_dbg-check-dev_dbg-arguments-fix include/linux/device.h
+diff -puN drivers/usb/core/hub.c~dev_dbg-check-dev_dbg-arguments-fix drivers/usb/core/hub.c
+--- a/drivers/usb/core/hub.c~dev_dbg-check-dev_dbg-arguments-fix
++++ a/drivers/usb/core/hub.c
+@@ -119,8 +119,7 @@ MODULE_PARM_DESC(use_both_schemes,
+ 		"first one fails");
  
- #define ATTR(_name, _mode)      \
-         struct attribute veth_##_name##_attr = {               \
--        .name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE \
-+        .name = __stringify(_name), .mode = _mode, \
-         };
  
- static ATTR(active, 0644);
+-#ifdef	DEBUG
+-static inline char *portspeed (int portstatus)
++static inline char *portspeed(int portstatus)
+ {
+ 	if (portstatus & (1 << USB_PORT_FEAT_HIGHSPEED))
+     		return "480 Mb/s";
+@@ -129,7 +128,6 @@ static inline char *portspeed (int ports
+ 	else
+ 		return "12 Mb/s";
+ }
+-#endif
+ 
+ /* Note that hdev or one of its children must be locked! */
+ static inline struct usb_hub *hdev_to_hub(struct usb_device *hdev)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -252,3 +266,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+dev_dbg-check-dev_dbg-arguments-fix.patch
