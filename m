@@ -1,32 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-netdev-all-baycom_ser_fdx-fix.patch added to -mm tree
-Date: Sun, 22 Apr 2007 11:50:02 -0700
-Message-ID: <200704221850.l3MIo2Pk031860@shell0.pdx.osdl.net>
+Subject: - git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch removed from -mm tree
+Date: Sun, 22 Apr 2007 11:50:27 -0700
+Message-ID: <200704221850.l3MIoR6F031872@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53468 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53466 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754386AbXDVSuR (ORCPT
+	by vger.kernel.org with ESMTP id S932140AbXDVSuj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 14:50:17 -0400
+	Sun, 22 Apr 2007 14:50:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, folkert@vanheusden.com, jeff@garzik.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, folkert@vanheusden.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-netdev-all-baycom_ser_fdx-fix
-has been added to the -mm tree.  Its filename is
-     git-netdev-all-baycom_ser_fdx-fix.patch
+     git-netdev-all: revert broken baycom_ser_fdx changes
+has been removed from the -mm tree.  Its filename was
+     git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-netdev-all-baycom_ser_fdx-fix
+Subject: git-netdev-all: revert broken baycom_ser_fdx changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 sparc64:
@@ -36,35 +32,42 @@ drivers/net/hamradio/baycom_ser_fdx.c:417: error: `NR_IRQS' undeclared (first us
 drivers/net/hamradio/baycom_ser_fdx.c:417: error: (Each undeclared identifier is reported only once
 drivers/net/hamradio/baycom_ser_fdx.c:417: error: for each function it appears in.)
 
+I reported this over a week ago?
+
 Cc: Folkert van Heusden <folkert@vanheusden.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/hamradio/baycom_ser_fdx.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/hamradio/baycom_ser_fdx.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/net/hamradio/baycom_ser_fdx.c~git-netdev-all-baycom_ser_fdx-fix drivers/net/hamradio/baycom_ser_fdx.c
---- a/drivers/net/hamradio/baycom_ser_fdx.c~git-netdev-all-baycom_ser_fdx-fix
+diff -puN drivers/net/hamradio/baycom_ser_fdx.c~git-netdev-all-revert-broken-baycom_ser_fdx-changes drivers/net/hamradio/baycom_ser_fdx.c
+--- a/drivers/net/hamradio/baycom_ser_fdx.c~git-netdev-all-revert-broken-baycom_ser_fdx-changes
 +++ a/drivers/net/hamradio/baycom_ser_fdx.c
-@@ -75,12 +75,14 @@
- #include <linux/ioport.h>
- #include <linux/string.h>
- #include <linux/init.h>
--#include <asm/uaccess.h>
--#include <asm/io.h>
- #include <linux/hdlcdrv.h>
- #include <linux/baycom.h>
- #include <linux/jiffies.h>
+@@ -413,18 +413,11 @@ static int ser12_open(struct net_device 
  
-+#include <asm/uaccess.h>
-+#include <asm/io.h>
-+#include <asm/irq.h>
-+
- /* --------------------------------------------------------------------- */
- 
- #define BAYCOM_DEBUG
+ 	if (!dev || !bc)
+ 		return -ENXIO;
+-	if (!dev->base_addr || dev->base_addr > 0xffff-SER12_EXTENT ||
+-	    dev->irq < 2 || dev->irq > NR_IRQS) {
+-		printk(KERN_INFO "baycom_ser_fdx: invalid portnumber (max %u) "
+-				"or irq (2 <= irq <= %d)\n",
+-				0xffff-SER12_EXTENT, NR_IRQS);
++	if (!dev->base_addr || dev->base_addr > 0x1000-SER12_EXTENT ||
++	    dev->irq < 2 || dev->irq > 15)
+ 		return -ENXIO;
+-	}
+-	if (bc->baud < 300 || bc->baud > 4800) {
+-		printk(KERN_INFO "baycom_ser_fdx: invalid baudrate "
+-				"(300...4800)\n");
++	if (bc->baud < 300 || bc->baud > 4800)
+ 		return -EINVAL;
+-	}
+ 	if (!request_region(dev->base_addr, SER12_EXTENT, "baycom_ser_fdx")) {
+ 		printk(KERN_WARNING "BAYCOM_SER_FSX: I/O port 0x%04lx busy \n", 
+ 		       dev->base_addr);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,6 +117,7 @@ git-ubi-fixup.patch
 revert-gitpowerpc-ehea-changes.patch
 git-netdev-all.patch
 reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-baycom_ser_fdx-fix.patch
 git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch
 vioc-warning-fix.patch
 vioc-cast-warning-fix.patch
@@ -270,4 +274,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-git-netdev-all-baycom_ser_fdx-fix.patch
