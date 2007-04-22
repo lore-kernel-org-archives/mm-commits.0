@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + more-fix-x86_64-mm-fam10-mwait-idle.patch added to -mm tree
-Date: Sat, 21 Apr 2007 23:31:47 -0700
-Message-ID: <200704220634.l3M6YMdt021181@shell0.pdx.osdl.net>
+Subject: + mm-bdi-init-hooks-fix.patch added to -mm tree
+Date: Sat, 21 Apr 2007 23:34:28 -0700
+Message-ID: <200704220637.l3M6b3QU021203@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45651 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964974AbXDVGe2 (ORCPT
+	by vger.kernel.org with ESMTP id S964988AbXDVGhJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 02:34:28 -0400
+	Sun, 22 Apr 2007 02:37:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     more-fix-x86_64-mm-fam10-mwait-idle
+     mm-bdi-init-hooks-fix
 has been added to the -mm tree.  Its filename is
-     more-fix-x86_64-mm-fam10-mwait-idle.patch
+     mm-bdi-init-hooks-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: more-fix-x86_64-mm-fam10-mwait-idle
+Subject: mm-bdi-init-hooks-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/cpu/amd.c:282: warning: passing argument 2 of 'clear_bit' from incompatible pointer type
+cp Documentation/SubmitChecklist /etc/motd
 
-Cc: Andi Kleen <ak@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/amd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/i386/kernel/cpu/amd.c~more-fix-x86_64-mm-fam10-mwait-idle arch/i386/kernel/cpu/amd.c
---- a/arch/i386/kernel/cpu/amd.c~more-fix-x86_64-mm-fam10-mwait-idle
-+++ a/arch/i386/kernel/cpu/amd.c
-@@ -279,7 +279,7 @@ static void __cpuinit init_amd(struct cp
- 		set_bit(X86_FEATURE_LAPIC_TIMER_BROKEN, c->x86_capability);
+diff -puN mm/swap.c~mm-bdi-init-hooks-fix mm/swap.c
+--- a/mm/swap.c~mm-bdi-init-hooks-fix
++++ a/mm/swap.c
+@@ -564,7 +564,9 @@ void __init swap_setup(void)
+ {
+ 	unsigned long megs = num_physpages >> (20 - PAGE_SHIFT);
  
- 	if (c->x86 == 0x10 && !force_mwait)
--		clear_bit(X86_FEATURE_MWAIT, &c->x86_capability);
-+		clear_bit(X86_FEATURE_MWAIT, c->x86_capability);
- }
++#ifdef CONFIG_SWAP
+ 	bdi_init(swapper_space.backing_dev_info);
++#endif
  
- static unsigned int __cpuinit amd_size_cache(struct cpuinfo_x86 * c, unsigned int size)
+ 	/* Use a smaller cluster for small-memory machines */
+ 	if (megs < 16)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +120,7 @@ git-wireless-vs-git-net.patch
 git-wireless-vs-git-net-2.patch
 git-wireless-vs-git-net-3.patch
 fix-x86_64-mm-fam10-mwait-idle.patch
+more-fix-x86_64-mm-fam10-mwait-idle.patch
 revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
 rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
@@ -207,6 +209,7 @@ signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
 signal-timer-event-fds-v9-timerfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+mm-bdi-init-hooks-fix.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 revoke-wire-up-i386-system-calls-x86_64-fix.patch
 x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
@@ -236,4 +239,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-more-fix-x86_64-mm-fam10-mwait-idle.patch
