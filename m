@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch added to -mm tree
-Date: Sun, 22 Apr 2007 01:40:18 -0700
-Message-ID: <200704220842.l3M8grav023069@shell0.pdx.osdl.net>
+Subject: + git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch added to -mm tree
+Date: Sun, 22 Apr 2007 01:43:13 -0700
+Message-ID: <200704220845.l3M8jm3d023108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56391 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932255AbXDVInA (ORCPT
+	by vger.kernel.org with ESMTP id S932255AbXDVIqF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 04:43:00 -0400
+	Sun, 22 Apr 2007 04:46:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, folkert@vanheusden.com, jeff@garzik.org
 
 
 The patch titled
-     mm-expose-bdi-statistics-in-sysfs-printk-fixes
+     git-netdev-all: revert broken baycom_ser_fdx changes
 has been added to the -mm tree.  Its filename is
-     mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
+     git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm-expose-bdi-statistics-in-sysfs-printk-fixes
+Subject: git-netdev-all: revert broken baycom_ser_fdx changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 sparc64:
 
-block/ll_rw_blk.c: In function `queue_nr_reclaimable_show':                     block/ll_rw_blk.c:3986: warning: long long int format, s64 arg (arg 3)
-block/ll_rw_blk.c:3986: warning: long long int format, s64 arg (arg 3)
+drivers/net/hamradio/baycom_ser_fdx.c: In function `ser12_open':
+drivers/net/hamradio/baycom_ser_fdx.c:417: error: `NR_IRQS' undeclared (first use in this function)
+drivers/net/hamradio/baycom_ser_fdx.c:417: error: (Each undeclared identifier is reported only once
+drivers/net/hamradio/baycom_ser_fdx.c:417: error: for each function it appears in.)
 
-We don't know what type the architecture uses to implement s64.
+I reported this over a week ago?
 
-Fix 80-col uglies while we're there, too.
-
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Folkert van Heusden <folkert@vanheusden.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/net/hamradio/baycom_ser_fdx.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs-printk-fixes block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs-printk-fixes
-+++ a/block/ll_rw_blk.c
-@@ -3983,12 +3983,16 @@ static ssize_t queue_max_hw_sectors_show
+diff -puN drivers/net/hamradio/baycom_ser_fdx.c~git-netdev-all-revert-broken-baycom_ser_fdx-changes drivers/net/hamradio/baycom_ser_fdx.c
+--- a/drivers/net/hamradio/baycom_ser_fdx.c~git-netdev-all-revert-broken-baycom_ser_fdx-changes
++++ a/drivers/net/hamradio/baycom_ser_fdx.c
+@@ -413,18 +413,11 @@ static int ser12_open(struct net_device 
  
- static ssize_t queue_nr_reclaimable_show(struct request_queue *q, char *page)
- {
--	return sprintf(page, "%lld\n", bdi_stat(&q->backing_dev_info, BDI_RECLAIMABLE));
-+	return sprintf(page, "%llu\n",
-+		(unsigned long long)bdi_stat(&q->backing_dev_info,
-+						BDI_RECLAIMABLE));
- }
- 
- static ssize_t queue_nr_writeback_show(struct request_queue *q, char *page)
- {
--	return sprintf(page, "%lld\n", bdi_stat(&q->backing_dev_info, BDI_WRITEBACK));
-+	return sprintf(page, "%llu\n",
-+		(unsigned long long)bdi_stat(&q->backing_dev_info,
-+						BDI_WRITEBACK));
- }
- 
- static struct queue_sysfs_entry queue_requests_entry = {
+ 	if (!dev || !bc)
+ 		return -ENXIO;
+-	if (!dev->base_addr || dev->base_addr > 0xffff-SER12_EXTENT ||
+-	    dev->irq < 2 || dev->irq > NR_IRQS) {
+-		printk(KERN_INFO "baycom_ser_fdx: invalid portnumber (max %u) "
+-				"or irq (2 <= irq <= %d)\n",
+-				0xffff-SER12_EXTENT, NR_IRQS);
++	if (!dev->base_addr || dev->base_addr > 0x1000-SER12_EXTENT ||
++	    dev->irq < 2 || dev->irq > 15)
+ 		return -ENXIO;
+-	}
+-	if (bc->baud < 300 || bc->baud > 4800) {
+-		printk(KERN_INFO "baycom_ser_fdx: invalid baudrate "
+-				"(300...4800)\n");
++	if (bc->baud < 300 || bc->baud > 4800)
+ 		return -EINVAL;
+-	}
+ 	if (!request_region(dev->base_addr, SER12_EXTENT, "baycom_ser_fdx")) {
+ 		printk(KERN_WARNING "BAYCOM_SER_FSX: I/O port 0x%04lx busy \n", 
+ 		       dev->base_addr);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +90,7 @@ ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
 more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 device_schedule_callback-needs-a-module-reference-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
 sysfs-binc-printk-fix.patch
 git-drm.patch
 git-dvb.patch
@@ -235,6 +241,7 @@ signal-timer-event-fds-v9-timerfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
 mm-bdi-init-hooks-fix.patch
+mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 revoke-wire-up-i386-system-calls-x86_64-fix.patch
 x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
@@ -264,5 +271,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
-mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
+git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch
