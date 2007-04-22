@@ -1,160 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - mm-scalable-bdi-statistics-counters.patch removed from -mm tree
-Date: Sun, 22 Apr 2007 12:02:13 -0700
-Message-ID: <200704221902.l3MJ2DsA032072@shell0.pdx.osdl.net>
+Subject: - mm-count-writeback-pages-per-bdi.patch removed from -mm tree
+Date: Sun, 22 Apr 2007 12:02:17 -0700
+Message-ID: <200704221902.l3MJ2HjX032078@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41010 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965654AbXDVTCZ (ORCPT
+	by vger.kernel.org with ESMTP id S965668AbXDVTCT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 15:02:25 -0400
+	Sun, 22 Apr 2007 15:02:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: scalable bdi statistics counters.
+     mm: count writeback pages per BDI
 has been removed from the -mm tree.  Its filename was
-     mm-scalable-bdi-statistics-counters.patch
+     mm-count-writeback-pages-per-bdi.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm: scalable bdi statistics counters.
+Subject: mm: count writeback pages per BDI
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Provide scalable per backing_dev_info statistics counters.
+Count per BDI writeback pages.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |   50 ++++++++++++++++++++++++++++++++--
- mm/backing-dev.c            |   26 +++++++++++++++++
- 2 files changed, 74 insertions(+), 2 deletions(-)
+ include/linux/backing-dev.h |    1 +
+ mm/page-writeback.c         |   12 ++++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/backing-dev.h~mm-scalable-bdi-statistics-counters include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-scalable-bdi-statistics-counters
+diff -puN include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-count-writeback-pages-per-bdi
 +++ a/include/linux/backing-dev.h
-@@ -8,6 +8,7 @@
- #ifndef _LINUX_BACKING_DEV_H
- #define _LINUX_BACKING_DEV_H
+@@ -27,6 +27,7 @@ typedef int (congested_fn)(void *, int);
  
-+#include <linux/percpu_counter.h>
- #include <asm/atomic.h>
- 
- struct page;
-@@ -24,6 +25,10 @@ enum bdi_state {
- 
- typedef int (congested_fn)(void *, int);
- 
-+enum bdi_stat_item {
-+	NR_BDI_STAT_ITEMS
-+};
-+
- struct backing_dev_info {
- 	unsigned long ra_pages;	/* max readahead in PAGE_CACHE_SIZE units */
- 	unsigned long state;	/* Always use atomic bitops on this */
-@@ -32,14 +37,55 @@ struct backing_dev_info {
- 	void *congested_data;	/* Pointer to aux data for congested func */
- 	void (*unplug_io_fn)(struct backing_dev_info *, struct page *);
- 	void *unplug_io_data;
-+
-+	struct percpu_counter bdi_stat[NR_BDI_STAT_ITEMS];
+ enum bdi_stat_item {
+ 	BDI_RECLAIMABLE,
++	BDI_WRITEBACK,
+ 	NR_BDI_STAT_ITEMS
  };
  
--static inline void bdi_init(struct backing_dev_info *bdi)
-+void bdi_init(struct backing_dev_info *bdi);
-+void bdi_destroy(struct backing_dev_info *bdi);
-+
-+static inline void __mod_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item, s32 amount)
-+{
-+	percpu_counter_mod(&bdi->bdi_stat[item], amount);
-+}
-+
-+static inline void __inc_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
-+{
-+	__mod_bdi_stat(bdi, item, 1);
-+}
-+
-+static inline void inc_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__inc_bdi_stat(bdi, item);
-+	local_irq_restore(flags);
-+}
-+
-+static inline void __dec_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
- {
-+	__mod_bdi_stat(bdi, item, -1);
-+}
-+
-+static inline void dec_bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__dec_bdi_stat(bdi, item);
-+	local_irq_restore(flags);
- }
+diff -puN mm/page-writeback.c~mm-count-writeback-pages-per-bdi mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-count-writeback-pages-per-bdi
++++ a/mm/page-writeback.c
+@@ -979,14 +979,18 @@ int test_clear_page_writeback(struct pag
+ 	int ret;
  
--static inline void bdi_destroy(struct backing_dev_info *bdi)
-+static inline s64 bdi_stat(struct backing_dev_info *bdi,
-+		enum bdi_stat_item item)
- {
-+	return percpu_counter_read_positive(&bdi->bdi_stat[item]);
- }
+ 	if (mapping) {
++		struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 		unsigned long flags;
  
- /*
-diff -puN mm/backing-dev.c~mm-scalable-bdi-statistics-counters mm/backing-dev.c
---- a/mm/backing-dev.c~mm-scalable-bdi-statistics-counters
-+++ a/mm/backing-dev.c
-@@ -5,6 +5,30 @@
- #include <linux/sched.h>
- #include <linux/module.h>
+ 		write_lock_irqsave(&mapping->tree_lock, flags);
+ 		ret = TestClearPageWriteback(page);
+-		if (ret)
++		if (ret) {
+ 			radix_tree_tag_clear(&mapping->page_tree,
+ 						page_index(page),
+ 						PAGECACHE_TAG_WRITEBACK);
++			if (bdi_cap_writeback_dirty(bdi))
++				__dec_bdi_stat(bdi, BDI_WRITEBACK);
++		}
+ 		write_unlock_irqrestore(&mapping->tree_lock, flags);
+ 	} else {
+ 		ret = TestClearPageWriteback(page);
+@@ -1002,14 +1006,18 @@ int test_set_page_writeback(struct page 
+ 	int ret;
  
-+void bdi_init(struct backing_dev_info *bdi)
-+{
-+	int i;
-+
-+	if (!(bdi_cap_writeback_dirty(bdi) || bdi_cap_account_dirty(bdi)))
-+		return;
-+
-+	for (i = 0; i < NR_BDI_STAT_ITEMS; i++)
-+		percpu_counter_init(&bdi->bdi_stat[i], 0);
-+}
-+EXPORT_SYMBOL(bdi_init);
-+
-+void bdi_destroy(struct backing_dev_info *bdi)
-+{
-+	int i;
-+
-+	if (!(bdi_cap_writeback_dirty(bdi) || bdi_cap_account_dirty(bdi)))
-+		return;
-+
-+	for (i = 0; i < NR_BDI_STAT_ITEMS; i++)
-+		percpu_counter_destroy(&bdi->bdi_stat[i]);
-+}
-+EXPORT_SYMBOL(bdi_destroy);
-+
- static wait_queue_head_t congestion_wqh[2] = {
- 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[0]),
- 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[1])
-@@ -70,3 +94,5 @@ long congestion_wait_interruptible(int r
- 	return ret;
- }
- EXPORT_SYMBOL(congestion_wait_interruptible);
-+
-+
+ 	if (mapping) {
++		struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 		unsigned long flags;
+ 
+ 		write_lock_irqsave(&mapping->tree_lock, flags);
+ 		ret = TestSetPageWriteback(page);
+-		if (!ret)
++		if (!ret) {
+ 			radix_tree_tag_set(&mapping->page_tree,
+ 						page_index(page),
+ 						PAGECACHE_TAG_WRITEBACK);
++			if (bdi_cap_writeback_dirty(bdi))
++				__inc_bdi_stat(bdi, BDI_WRITEBACK);
++		}
+ 		if (!PageDirty(page))
+ 			radix_tree_tag_clear(&mapping->page_tree,
+ 						page_index(page),
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
@@ -173,8 +107,6 @@ restore-madv_dontneed-to-its-original-linux-behaviour.patch
 exec-fix-remove_arg_zero-add-comment.patch
 lockdep-treats-down_write_trylock-like-regular-down_write.patch
 nfs-fix-congestion-control-use-atomic_longs.patch
-mm-scalable-bdi-statistics-counters.patch
-mm-count-reclaimable-pages-per-bdi.patch
 mm-count-writeback-pages-per-bdi.patch
 mm-expose-bdi-statistics-in-sysfs.patch
 mm-expose-bdi-statistics-in-sysfs-printk-fixes.patch
