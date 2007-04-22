@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-implement-staircase-deadline-scheduler-load-weight-fix.patch added to -mm tree
-Date: Sun, 22 Apr 2007 12:03:30 -0700
-Message-ID: <200704221903.l3MJ3Uu2032097@shell0.pdx.osdl.net>
+Subject: + fat_dont-use_free_clusters-for-fat32.patch added to -mm tree
+Date: Sun, 22 Apr 2007 12:04:39 -0700
+Message-ID: <200704221904.l3MJ4dLr032117@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60704 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965685AbXDVTET (ORCPT
+	by vger.kernel.org with ESMTP id S965379AbXDVTFN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 15:04:19 -0400
+	Sun, 22 Apr 2007 15:05:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kernel@kolivas.org, w@1wt.eu
+Cc: hirofumi@mail.parknet.co.jp, juergen127@kreuzholzen.de, schwab@suse.de
 
 
 The patch titled
-     sched: implement staircase deadline scheduler load weight fix
+     fat: don't use free_clusters for fat32
 has been added to the -mm tree.  Its filename is
-     sched-implement-staircase-deadline-scheduler-load-weight-fix.patch
+     fat_dont-use_free_clusters-for-fat32.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,154 +26,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sched: implement staircase deadline scheduler load weight fix
-From: Con Kolivas <kernel@kolivas.org>
+Subject: fat: don't use free_clusters for fat32
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-The task load_weight needs to be set every time the quota is set and wasn't
-being set in activate_task which assumed it would not have changed.  Due to
-changes in where the default rr_interval is set on SMP this assumption
-failed.  Also if one were to change rr_interval on the fly it would break
-again.
+It seems that the recent Windows changed specification, and it's
+undocumented.  Windows doesn't update ->free_clusters correctly.
 
-set_load_weight was unnecessarily complex in the relationship as it could
-be simply set to the task_timeslice in milliseconds.  It also would not
-scale enough to pick up nice 19 tasks and could give them 0 weight with a
-small enough rr_interval.
+This patch doesn't use ->free_clusters by default.  (instead, add "usefree"
+for forcing to use it)
 
-Thanks to Willy Tarreau <w@1wt.eu> for spotting more smp balancing problems.
-
-Signed-off-by: Con Kolivas <kernel@kolivas.org>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Juergen Beisert <juergen127@kreuzholzen.de>
+Cc: Andreas Schwab <schwab@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ Documentation/filesystems/vfat.txt |    7 +++++++
+ fs/fat/inode.c                     |   14 +++++++++++---
+ include/linux/msdos_fs.h           |    3 ++-
+ 3 files changed, 20 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sched.c~sched-implement-staircase-deadline-scheduler-load-weight-fix kernel/sched.c
---- a/kernel/sched.c~sched-implement-staircase-deadline-scheduler-load-weight-fix
-+++ a/kernel/sched.c
-@@ -103,8 +103,6 @@ unsigned long long __attribute__((weak))
-  */
- int rr_interval __read_mostly = 8;
- 
--#define DEF_TIMESLICE		(rr_interval * 20)
--
- /*
-  * This contains a bitmap for each dynamic priority level with empty slots
-  * for the valid priorities each different nice level can have. It allows
-@@ -912,16 +910,11 @@ static int task_timeslice(struct task_st
- }
- 
- /*
-- * Assume: static_prio_timeslice(NICE_TO_PRIO(0)) == DEF_TIMESLICE
-- * If static_prio_timeslice() is ever changed to break this assumption then
-- * this code will need modification. Scaled as multiples of milliseconds.
-- */
--#define TIME_SLICE_NICE_ZERO DEF_TIMESLICE
--#define LOAD_WEIGHT(lp) \
--	(((lp) * SCHED_LOAD_SCALE) / TIME_SLICE_NICE_ZERO)
--#define TASK_LOAD_WEIGHT(p)	LOAD_WEIGHT(task_timeslice(p))
--#define RTPRIO_TO_LOAD_WEIGHT(rp)	\
--	(LOAD_WEIGHT((rr_interval + 20 + (rp))))
-+ * The load weight is basically the task_timeslice in ms. Realtime tasks are
-+ * special cased to be proportionately larger than nice -20 by their
-+ * rt_priority. The weight for rt tasks can only be arbitrary at best.
-+ */
-+#define RTPRIO_TO_LOAD_WEIGHT(rp)	(rr_interval * 20 * (40 + rp))
- 
- static void set_load_weight(struct task_struct *p)
- {
-@@ -938,7 +931,7 @@ static void set_load_weight(struct task_
- #endif
- 			p->load_weight = RTPRIO_TO_LOAD_WEIGHT(p->rt_priority);
- 	} else
--		p->load_weight = TASK_LOAD_WEIGHT(p);
-+		p->load_weight = task_timeslice(p);
- }
- 
- static inline void
-@@ -1021,7 +1014,7 @@ static int effective_prio(struct task_st
-  * nice -20 = 10 * rr_interval. nice 1-19 = rr_interval / 2.
-  * Value returned is in microseconds.
-  */
--static unsigned int rr_quota(struct task_struct *p)
-+static inline unsigned int rr_quota(struct task_struct *p)
- {
- 	int nice = TASK_NICE(p), rr = rr_interval;
- 
-@@ -1035,6 +1028,13 @@ static unsigned int rr_quota(struct task
- 	return MS_TO_US(rr);
- }
- 
-+/* Every time we set the quota we need to set the load weight */
-+static void set_quota(struct task_struct *p)
-+{
-+	p->quota = rr_quota(p);
-+	set_load_weight(p);
-+}
+diff -puN Documentation/filesystems/vfat.txt~fat_dont-use_free_clusters-for-fat32 Documentation/filesystems/vfat.txt
+--- a/Documentation/filesystems/vfat.txt~fat_dont-use_free_clusters-for-fat32
++++ a/Documentation/filesystems/vfat.txt
+@@ -57,6 +57,13 @@ nonumtail=<bool> -- When creating 8.3 al
+                  currently exist in the directory, 'longfile.txt' will
+                  be the short alias instead of 'longfi~1.txt'. 
+                   
++usefree       -- Use the "free clusters" value stored on FSINFO. It'll
++                 be used to determine number of free clusters without
++                 scanning disk. But it's not used by default, because
++                 recent Windows don't update it correctly in some
++                 case. If you are sure the "free clusters" on FSINFO is
++                 correct, by this option you can avoid scanning disk.
 +
- /*
-  * activate_task - move a task to the runqueue and do priority recalculation
-  */
-@@ -1062,7 +1062,7 @@ static void activate_task(struct task_st
- 				     (now - p->timestamp) >> 20);
+ quiet         -- Stops printing certain warning messages.
+ 
+ check=s|r|n   -- Case sensitivity checking setting.
+diff -puN fs/fat/inode.c~fat_dont-use_free_clusters-for-fat32 fs/fat/inode.c
+--- a/fs/fat/inode.c~fat_dont-use_free_clusters-for-fat32
++++ a/fs/fat/inode.c
+@@ -825,6 +825,8 @@ static int fat_show_options(struct seq_f
  	}
+ 	if (opts->name_check != 'n')
+ 		seq_printf(m, ",check=%c", opts->name_check);
++	if (opts->usefree)
++		seq_puts(m, ",usefree");
+ 	if (opts->quiet)
+ 		seq_puts(m, ",quiet");
+ 	if (opts->showexec)
+@@ -850,7 +852,7 @@ static int fat_show_options(struct seq_f
  
--	p->quota = rr_quota(p);
-+	set_quota(p);
- 	p->prio = effective_prio(p);
- 	p->timestamp = now;
- 	__activate_task(p, rq);
-@@ -4114,8 +4114,7 @@ void set_user_nice(struct task_struct *p
- 	p->static_prio = NICE_TO_PRIO(nice);
- 	old_prio = p->prio;
- 	p->prio = effective_prio(p);
--	p->quota = rr_quota(p);
--	set_load_weight(p);
-+	set_quota(p);
- 	delta = p->prio - old_prio;
+ enum {
+ 	Opt_check_n, Opt_check_r, Opt_check_s, Opt_uid, Opt_gid,
+-	Opt_umask, Opt_dmask, Opt_fmask, Opt_codepage, Opt_nocase,
++	Opt_umask, Opt_dmask, Opt_fmask, Opt_codepage, Opt_usefree, Opt_nocase,
+ 	Opt_quiet, Opt_showexec, Opt_debug, Opt_immutable,
+ 	Opt_dots, Opt_nodots,
+ 	Opt_charset, Opt_shortname_lower, Opt_shortname_win95,
+@@ -872,6 +874,7 @@ static match_table_t fat_tokens = {
+ 	{Opt_dmask, "dmask=%o"},
+ 	{Opt_fmask, "fmask=%o"},
+ 	{Opt_codepage, "codepage=%u"},
++	{Opt_usefree, "usefree"},
+ 	{Opt_nocase, "nocase"},
+ 	{Opt_quiet, "quiet"},
+ 	{Opt_showexec, "showexec"},
+@@ -951,7 +954,7 @@ static int parse_options(char *options, 
+ 	opts->quiet = opts->showexec = opts->sys_immutable = opts->dotsOK =  0;
+ 	opts->utf8 = opts->unicode_xlate = 0;
+ 	opts->numtail = 1;
+-	opts->nocase = 0;
++	opts->usefree = opts->nocase = 0;
+ 	*debug = 0;
  
- 	if (queued) {
-@@ -4252,8 +4251,7 @@ static void __setscheduler(struct task_s
- 	p->normal_prio = normal_prio(p);
- 	/* we are holding p->pi_lock already */
- 	p->prio = rt_mutex_getprio(p);
--	p->quota = rr_quota(p);
--	set_load_weight(p);
-+	set_quota(p);
- }
+ 	if (!options)
+@@ -979,6 +982,9 @@ static int parse_options(char *options, 
+ 		case Opt_check_n:
+ 			opts->name_check = 'n';
+ 			break;
++		case Opt_usefree:
++			opts->usefree = 1;
++			break;
+ 		case Opt_nocase:
+ 			if (!is_vfat)
+ 				opts->nocase = 1;
+@@ -1304,7 +1310,9 @@ int fat_fill_super(struct super_block *s
+ 			       le32_to_cpu(fsinfo->signature2),
+ 			       sbi->fsinfo_sector);
+ 		} else {
+-			sbi->free_clusters = le32_to_cpu(fsinfo->free_clusters);
++			if (sbi->options.usefree)
++				sbi->free_clusters =
++					le32_to_cpu(fsinfo->free_clusters);
+ 			sbi->prev_free = le32_to_cpu(fsinfo->next_cluster);
+ 		}
  
- /**
+diff -puN include/linux/msdos_fs.h~fat_dont-use_free_clusters-for-fat32 include/linux/msdos_fs.h
+--- a/include/linux/msdos_fs.h~fat_dont-use_free_clusters-for-fat32
++++ a/include/linux/msdos_fs.h
+@@ -205,7 +205,8 @@ struct fat_mount_options {
+ 		 numtail:1,       /* Does first alias have a numeric '~1' type tail? */
+ 		 atari:1,         /* Use Atari GEMDOS variation of MS-DOS fs */
+ 		 flush:1,	  /* write things quickly */
+-		 nocase:1;	  /* Does this need case conversion? 0=need case conversion*/
++		 nocase:1,	  /* Does this need case conversion? 0=need case conversion*/
++		 usefree:1;	  /* Use free_clusters for FAT32 */
+ };
+ 
+ #define FAT_HASH_BITS	8
 _
 
-Patches currently in -mm which might be from kernel@kolivas.org are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-sched-dont-renice-kernel-threads.patch
-sched-remove-sleepavg-from-proc.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-implement-staircase-deadline-cpu-scheduler.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
-sched-implement-staircase-deadline-cpu-scheduler-staircase-improvements.patch
-sched-implement-staircase-deadline-cpu-scheduler-improvements-fix.patch
-sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
-sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
-sched-implement-staircase-deadline-scheduler-rework-priomatrix.patch
-sched-implement-staircase-deadline-scheduler-further-improvements-1.patch
-sched-implement-staircase-deadline-scheduler-timeslice-fixes.patch
-sched-implement-staircase-scheduler-yaf-fix.patch
-sched-implement-staircase-deadline-scheduler-ymf-accounting-fixes.patch
-sched-ymf-typo.patch
-sched-implement-staircase-deadline-scheduler-load-weight-fix.patch
-sched-increase-ksoftirqd-priority.patch
-sched-remove-noninteractive-flag.patch
-sched-document-sd-cpu-scheduler.patch
-sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc.patch
-sched-consolidate-sched_clock-drift-adjustments.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-sched-implement-staircase-deadline-scheduler-docupdate.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-swap-prefetch-avoid-repeating-entry.patch
+is_power_of_2-in-fat.patch
+fat_dont-use_free_clusters-for-fat32.patch
