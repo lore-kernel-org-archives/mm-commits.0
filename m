@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch added to -mm tree
-Date: Sun, 22 Apr 2007 01:43:13 -0700
-Message-ID: <200704220845.l3M8jm3d023108@shell0.pdx.osdl.net>
+Subject: + git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch added to -mm tree
+Date: Sun, 22 Apr 2007 01:52:37 -0700
+Message-ID: <200704220855.l3M8tCrn023216@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56085 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932255AbXDVIqF (ORCPT
+	by vger.kernel.org with ESMTP id S932409AbXDVIzW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 04:46:05 -0400
+	Sun, 22 Apr 2007 04:55:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, folkert@vanheusden.com, jeff@garzik.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     git-netdev-all: revert broken baycom_ser_fdx changes
+     git-s390 vs gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 has been added to the -mm tree.  Its filename is
-     git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch
+     git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-netdev-all: revert broken baycom_ser_fdx changes
+Subject: git-s390 vs gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc64:
+Sigh.
 
-drivers/net/hamradio/baycom_ser_fdx.c: In function `ser12_open':
-drivers/net/hamradio/baycom_ser_fdx.c:417: error: `NR_IRQS' undeclared (first use in this function)
-drivers/net/hamradio/baycom_ser_fdx.c:417: error: (Each undeclared identifier is reported only once
-drivers/net/hamradio/baycom_ser_fdx.c:417: error: for each function it appears in.)
-
-I reported this over a week ago?
-
-Cc: Folkert van Heusden <folkert@vanheusden.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/hamradio/baycom_ser_fdx.c |   13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ drivers/s390/cio/chp.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/net/hamradio/baycom_ser_fdx.c~git-netdev-all-revert-broken-baycom_ser_fdx-changes drivers/net/hamradio/baycom_ser_fdx.c
---- a/drivers/net/hamradio/baycom_ser_fdx.c~git-netdev-all-revert-broken-baycom_ser_fdx-changes
-+++ a/drivers/net/hamradio/baycom_ser_fdx.c
-@@ -413,18 +413,11 @@ static int ser12_open(struct net_device 
- 
- 	if (!dev || !bc)
- 		return -ENXIO;
--	if (!dev->base_addr || dev->base_addr > 0xffff-SER12_EXTENT ||
--	    dev->irq < 2 || dev->irq > NR_IRQS) {
--		printk(KERN_INFO "baycom_ser_fdx: invalid portnumber (max %u) "
--				"or irq (2 <= irq <= %d)\n",
--				0xffff-SER12_EXTENT, NR_IRQS);
-+	if (!dev->base_addr || dev->base_addr > 0x1000-SER12_EXTENT ||
-+	    dev->irq < 2 || dev->irq > 15)
- 		return -ENXIO;
--	}
--	if (bc->baud < 300 || bc->baud > 4800) {
--		printk(KERN_INFO "baycom_ser_fdx: invalid baudrate "
--				"(300...4800)\n");
-+	if (bc->baud < 300 || bc->baud > 4800)
- 		return -EINVAL;
--	}
- 	if (!request_region(dev->base_addr, SER12_EXTENT, "baycom_ser_fdx")) {
- 		printk(KERN_WARNING "BAYCOM_SER_FSX: I/O port 0x%04lx busy \n", 
- 		       dev->base_addr);
+diff -puN drivers/s390/cio/chp.c~git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/s390/cio/chp.c
+--- a/drivers/s390/cio/chp.c~git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/s390/cio/chp.c
+@@ -165,7 +165,6 @@ static struct bin_attribute chp_measurem
+ 	.attr = {
+ 		.name = "measurement_chars",
+ 		.mode = S_IRUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = sizeof(struct cmg_chars),
+ 	.read = chp_measurement_chars_read,
+@@ -217,7 +216,6 @@ static struct bin_attribute chp_measurem
+ 	.attr = {
+ 		.name = "measurement",
+ 		.mode = S_IRUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = sizeof(struct cmg_entry),
+ 	.read = chp_measurement_read,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +104,7 @@ git-ubi-fixup.patch
 revert-gitpowerpc-ehea-changes.patch
 git-netdev-all.patch
 reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch
 vioc-warning-fix.patch
 vioc-cast-warning-fix.patch
 git-e1000.patch
@@ -137,6 +125,7 @@ fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
 git-pciseg.patch
 git-s390.patch
 git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-scsi-misc.patch
 scsi-fix-config_scsi_wait_scan=m-fix.patch
 scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
@@ -271,4 +260,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-git-netdev-all-revert-broken-baycom_ser_fdx-changes.patch
