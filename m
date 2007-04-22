@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fat_dont-use_free_clusters-for-fat32.patch added to -mm tree
-Date: Sun, 22 Apr 2007 12:04:39 -0700
-Message-ID: <200704221904.l3MJ4dLr032117@shell0.pdx.osdl.net>
+Subject: + kill-warnings-when-building-mandocs.patch added to -mm tree
+Date: Sun, 22 Apr 2007 12:07:51 -0700
+Message-ID: <200704221907.l3MJ7pT8032176@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56319 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965379AbXDVTFN (ORCPT
+	by vger.kernel.org with ESMTP id S1030241AbXDVTHx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 15:05:13 -0400
+	Sun, 22 Apr 2007 15:07:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hirofumi@mail.parknet.co.jp, juergen127@kreuzholzen.de, schwab@suse.de
+Cc: bbpetkov@yahoo.de, rdunlap@xenotime.net
 
 
 The patch titled
-     fat: don't use free_clusters for fat32
+     kill warnings when building mandocs
 has been added to the -mm tree.  Its filename is
-     fat_dont-use_free_clusters-for-fat32.patch
+     kill-warnings-when-building-mandocs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,118 +26,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fat: don't use free_clusters for fat32
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: kill warnings when building mandocs
+From: Borislav Petkov <bbpetkov@yahoo.de>
 
-It seems that the recent Windows changed specification, and it's
-undocumented.  Windows doesn't update ->free_clusters correctly.
+This patch shuts warnings of the sort:
 
-This patch doesn't use ->free_clusters by default.  (instead, add "usefree"
-for forcing to use it)
+make -C /mnt/samsung_200/sam/kernel/trees/21-rc6/build \
+	KBUILD_SRC=/mnt/samsung_200/sam/kernel/trees/21-rc6 \
+	KBUILD_EXTMOD="" -f /mnt/samsung_200/sam/kernel/trees/21-rc6/Makefile mandocs
+make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=scripts/basic
+make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=Documentation/DocBook mandocs
+  SRCTREE=/mnt/samsung_200/sam/kernel/trees/21-rc6/ /mnt/samsung_200/sam/kernel/trees/21-rc6/build/scripts/basic/docproc doc /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/wanbook.tmpl >Documentation/DocBook/wanbook.xml
+  if grep -q refentry Documentation/DocBook/wanbook.xml; then xmlto man -m /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/man Documentation/DocBook/wanbook.xml ; gzip -f Documentation/DocBook/man/*.9; fi
+Note: meta version: No productnumber or alternative     sppp_close
+Note: meta version: No refmiscinfo@class=version        sppp_close
+Note: Writing sppp_close.9
+Note: meta version: No productnumber or alternative     sppp_open
+Note: meta version: No refmiscinfo@class=version        sppp_open
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Juergen Beisert <juergen127@kreuzholzen.de>
-Cc: Andreas Schwab <schwab@suse.de>
+by adding a RefMiscInfo xml tag in the form of the current kernel version
+to the function, struct and enum definitions in files included by
+kernel-doc when building 'mandocs'.  However, the version string appears
+truncated on the manpage due to some constraints in the xml DTD for the man
+header, I believe, for the troff output is truncated too.
+
+Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |    7 +++++++
- fs/fat/inode.c                     |   14 +++++++++++---
- include/linux/msdos_fs.h           |    3 ++-
- 3 files changed, 20 insertions(+), 4 deletions(-)
+ scripts/kernel-doc |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN Documentation/filesystems/vfat.txt~fat_dont-use_free_clusters-for-fat32 Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~fat_dont-use_free_clusters-for-fat32
-+++ a/Documentation/filesystems/vfat.txt
-@@ -57,6 +57,13 @@ nonumtail=<bool> -- When creating 8.3 al
-                  currently exist in the directory, 'longfile.txt' will
-                  be the short alias instead of 'longfi~1.txt'. 
-                   
-+usefree       -- Use the "free clusters" value stored on FSINFO. It'll
-+                 be used to determine number of free clusters without
-+                 scanning disk. But it's not used by default, because
-+                 recent Windows don't update it correctly in some
-+                 case. If you are sure the "free clusters" on FSINFO is
-+                 correct, by this option you can avoid scanning disk.
+diff -puN scripts/kernel-doc~kill-warnings-when-building-mandocs scripts/kernel-doc
+--- a/scripts/kernel-doc~kill-warnings-when-building-mandocs
++++ a/scripts/kernel-doc
+@@ -328,6 +328,15 @@ while ($ARGV[0] =~ m/^-(.*)/) {
+     }
+ }
+ 
++# get kernel version from env
++sub get_kernel_version() {
++    my $version;
 +
- quiet         -- Stops printing certain warning messages.
++    if (defined($ENV{'KERNELVERSION'})) {
++	$version = $ENV{'KERNELVERSION'};
++    }
++    return $version;
++}
  
- check=s|r|n   -- Case sensitivity checking setting.
-diff -puN fs/fat/inode.c~fat_dont-use_free_clusters-for-fat32 fs/fat/inode.c
---- a/fs/fat/inode.c~fat_dont-use_free_clusters-for-fat32
-+++ a/fs/fat/inode.c
-@@ -825,6 +825,8 @@ static int fat_show_options(struct seq_f
- 	}
- 	if (opts->name_check != 'n')
- 		seq_printf(m, ",check=%c", opts->name_check);
-+	if (opts->usefree)
-+		seq_puts(m, ",usefree");
- 	if (opts->quiet)
- 		seq_puts(m, ",quiet");
- 	if (opts->showexec)
-@@ -850,7 +852,7 @@ static int fat_show_options(struct seq_f
- 
- enum {
- 	Opt_check_n, Opt_check_r, Opt_check_s, Opt_uid, Opt_gid,
--	Opt_umask, Opt_dmask, Opt_fmask, Opt_codepage, Opt_nocase,
-+	Opt_umask, Opt_dmask, Opt_fmask, Opt_codepage, Opt_usefree, Opt_nocase,
- 	Opt_quiet, Opt_showexec, Opt_debug, Opt_immutable,
- 	Opt_dots, Opt_nodots,
- 	Opt_charset, Opt_shortname_lower, Opt_shortname_win95,
-@@ -872,6 +874,7 @@ static match_table_t fat_tokens = {
- 	{Opt_dmask, "dmask=%o"},
- 	{Opt_fmask, "fmask=%o"},
- 	{Opt_codepage, "codepage=%u"},
-+	{Opt_usefree, "usefree"},
- 	{Opt_nocase, "nocase"},
- 	{Opt_quiet, "quiet"},
- 	{Opt_showexec, "showexec"},
-@@ -951,7 +954,7 @@ static int parse_options(char *options, 
- 	opts->quiet = opts->showexec = opts->sys_immutable = opts->dotsOK =  0;
- 	opts->utf8 = opts->unicode_xlate = 0;
- 	opts->numtail = 1;
--	opts->nocase = 0;
-+	opts->usefree = opts->nocase = 0;
- 	*debug = 0;
- 
- 	if (!options)
-@@ -979,6 +982,9 @@ static int parse_options(char *options, 
- 		case Opt_check_n:
- 			opts->name_check = 'n';
- 			break;
-+		case Opt_usefree:
-+			opts->usefree = 1;
-+			break;
- 		case Opt_nocase:
- 			if (!is_vfat)
- 				opts->nocase = 1;
-@@ -1304,7 +1310,9 @@ int fat_fill_super(struct super_block *s
- 			       le32_to_cpu(fsinfo->signature2),
- 			       sbi->fsinfo_sector);
- 		} else {
--			sbi->free_clusters = le32_to_cpu(fsinfo->free_clusters);
-+			if (sbi->options.usefree)
-+				sbi->free_clusters =
-+					le32_to_cpu(fsinfo->free_clusters);
- 			sbi->prev_free = le32_to_cpu(fsinfo->next_cluster);
- 		}
- 
-diff -puN include/linux/msdos_fs.h~fat_dont-use_free_clusters-for-fat32 include/linux/msdos_fs.h
---- a/include/linux/msdos_fs.h~fat_dont-use_free_clusters-for-fat32
-+++ a/include/linux/msdos_fs.h
-@@ -205,7 +205,8 @@ struct fat_mount_options {
- 		 numtail:1,       /* Does first alias have a numeric '~1' type tail? */
- 		 atari:1,         /* Use Atari GEMDOS variation of MS-DOS fs */
- 		 flush:1,	  /* write things quickly */
--		 nocase:1;	  /* Does this need case conversion? 0=need case conversion*/
-+		 nocase:1,	  /* Does this need case conversion? 0=need case conversion*/
-+		 usefree:1;	  /* Use free_clusters for FAT32 */
- };
- 
- #define FAT_HASH_BITS	8
+ # generate a sequence of code that will splice in highlighting information
+ # using the s// operator.
+@@ -601,6 +610,7 @@ sub output_function_xml(%) {
+     print "<refmeta>\n";
+     print " <refentrytitle><phrase>".$args{'function'}."</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
++    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+     print " <refname>".$args{'function'}."</refname>\n";
+@@ -677,6 +687,7 @@ sub output_struct_xml(%) {
+     print "<refmeta>\n";
+     print " <refentrytitle><phrase>".$args{'type'}." ".$args{'struct'}."</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
++    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+     print " <refname>".$args{'type'}." ".$args{'struct'}."</refname>\n";
+@@ -761,6 +772,7 @@ sub output_enum_xml(%) {
+     print "<refmeta>\n";
+     print " <refentrytitle><phrase>enum ".$args{'enum'}."</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
++    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+     print " <refname>enum ".$args{'enum'}."</refname>\n";
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from bbpetkov@yahoo.de are
 
-is_power_of_2-in-fat.patch
-fat_dont-use_free_clusters-for-fat32.patch
+drivers-acpi-kconfig-formulation-fixpatch.patch
+git-net.patch
+kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
+generate-main-index-page-when-building-htmldocs.patch
+alphabetically-sorted-entries-in.patch
+kill-warnings-when-building-mandocs.patch
