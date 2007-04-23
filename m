@@ -1,60 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: - taskstats-fix-the-structure-members-alignment-issue-fix.patch removed from -mm tree
-Date: Mon, 23 Apr 2007 14:14:13 -0700
-Message-ID: <200704232116.l3NLGrXh025145@shell0.pdx.osdl.net>
+Subject: + revert-7f8be19f5a5737ce6ad670756183235c71b560bb.patch added to -mm tree
+Date: Mon, 23 Apr 2007 16:33:30 -0700
+Message-ID: <200704232336.l3NNa99J028030@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46776 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50719 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754240AbXDWVSv (ORCPT
+	by vger.kernel.org with ESMTP id S932231AbXDWXgv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Apr 2007 17:18:51 -0400
+	Mon, 23 Apr 2007 19:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, nagar@watson.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net, herbert@gondor.apana.org.au
 
 
 The patch titled
-     taskstats-fix-the-structure-members-alignment-issue-fix
-has been removed from the -mm tree.  Its filename was
-     taskstats-fix-the-structure-members-alignment-issue-fix.patch
+     revert 7f8be19f5a5737ce6ad670756183235c71b560bb
+has been added to the -mm tree.  Its filename is
+     revert-7f8be19f5a5737ce6ad670756183235c71b560bb.patch
 
-This patch was dropped because it was folded into taskstats-fix-the-structure-members-alignment-issue.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: taskstats-fix-the-structure-members-alignment-issue-fix
+Subject: revert 7f8be19f5a5737ce6ad670756183235c71b560bb
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <stable@kernel.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
+make udp work again.
+
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/taskstats.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/skbuff.h |    9 ++-------
+ net/core/dev.c         |   25 ++++++++++---------------
+ net/core/skbuff.c      |    2 +-
+ net/ipv4/tcp_ipv4.c    |    2 --
+ net/ipv4/udp.c         |    1 -
+ net/ipv6/tcp_ipv6.c    |    2 --
+ 6 files changed, 13 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/taskstats.h~taskstats-fix-the-structure-members-alignment-issue-fix include/linux/taskstats.h
---- a/include/linux/taskstats.h~taskstats-fix-the-structure-members-alignment-issue-fix
-+++ a/include/linux/taskstats.h
-@@ -31,7 +31,7 @@
-  */
+diff -puN include/linux/skbuff.h~revert-7f8be19f5a5737ce6ad670756183235c71b560bb include/linux/skbuff.h
+--- a/include/linux/skbuff.h~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/include/linux/skbuff.h
+@@ -206,9 +206,7 @@ typedef unsigned char *sk_buff_data_t;
+  *	@len: Length of actual data
+  *	@data_len: Data length
+  *	@mac_len: Length of link layer header
+- *	@csum: Checksum (must include start/offset pair)
+- *	@csum_start: Offset from skb->head where checksumming should start
+- *	@csum_offset: Offset from csum_start where checksum should be stored
++ *	@csum: Checksum
+  *	@local_df: allow local fragmentation
+  *	@cloned: Head may be cloned (check refcnt to be sure)
+  *	@nohdr: Payload reference only, must not modify header
+@@ -264,10 +262,7 @@ struct sk_buff {
+ 				mac_len;
+ 	union {
+ 		__wsum		csum;
+-		struct {
+-			__u16	csum_start;
+-			__u16	csum_offset;
+-		};
++		__u32		csum_offset;
+ 	};
+ 	__u32			priority;
+ 	__u8			local_df:1,
+diff -puN net/core/dev.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/core/dev.c
+--- a/net/core/dev.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/core/dev.c
+@@ -1147,7 +1147,7 @@ EXPORT_SYMBOL(netif_device_attach);
+ int skb_checksum_help(struct sk_buff *skb)
+ {
+ 	__wsum csum;
+-	int ret = 0, offset;
++	int ret = 0, offset = skb_transport_offset(skb);
  
+ 	if (skb->ip_summed == CHECKSUM_COMPLETE)
+ 		goto out_set_summed;
+@@ -1163,16 +1163,15 @@ int skb_checksum_help(struct sk_buff *sk
+ 			goto out;
+ 	}
  
--#define TASKSTATS_VERSION	3
-+#define TASKSTATS_VERSION	4
- #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
- 					 * in linux/sched.h */
+-	offset = skb->csum_start - skb_headroom(skb);
+ 	BUG_ON(offset > (int)skb->len);
+ 	csum = skb_checksum(skb, offset, skb->len-offset, 0);
  
+-	offset = skb_headlen(skb) - offset;
++	offset = skb->tail - skb->transport_header;
+ 	BUG_ON(offset <= 0);
+ 	BUG_ON(skb->csum_offset + 2 > offset);
+ 
+-	*(__sum16 *)(skb->head + skb->csum_start + skb->csum_offset) =
+-		csum_fold(csum);
++	*(__sum16 *)(skb_transport_header(skb) +
++		     skb->csum_offset) = csum_fold(csum);
+ out_set_summed:
+ 	skb->ip_summed = CHECKSUM_NONE;
+ out:
+@@ -1424,16 +1423,12 @@ int dev_queue_xmit(struct sk_buff *skb)
+ 	/* If packet is not checksummed and device does not support
+ 	 * checksumming for this protocol, complete checksumming here.
+ 	 */
+-	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+-		skb_set_transport_header(skb, skb->csum_start -
+-					      skb_headroom(skb));
+-
+-		if (!(dev->features & NETIF_F_GEN_CSUM) &&
+-		    (!(dev->features & NETIF_F_IP_CSUM) ||
+-		     skb->protocol != htons(ETH_P_IP)))
+-			if (skb_checksum_help(skb))
+-				goto out_kfree_skb;
+-	}
++	if (skb->ip_summed == CHECKSUM_PARTIAL &&
++	    (!(dev->features & NETIF_F_GEN_CSUM) &&
++	     (!(dev->features & NETIF_F_IP_CSUM) ||
++	      skb->protocol != htons(ETH_P_IP))))
++		if (skb_checksum_help(skb))
++			goto out_kfree_skb;
+ 
+ gso:
+ 	spin_lock_prefetch(&dev->queue_lock);
+diff -puN net/core/skbuff.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/core/skbuff.c
+--- a/net/core/skbuff.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/core/skbuff.c
+@@ -1367,7 +1367,7 @@ void skb_copy_and_csum_dev(const struct 
+ 	long csstart;
+ 
+ 	if (skb->ip_summed == CHECKSUM_PARTIAL)
+-		csstart = skb->csum_start - skb_headroom(skb);
++		csstart = skb_transport_offset(skb);
+ 	else
+ 		csstart = skb_headlen(skb);
+ 
+diff -puN net/ipv4/tcp_ipv4.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/ipv4/tcp_ipv4.c
+@@ -504,7 +504,6 @@ void tcp_v4_send_check(struct sock *sk, 
+ 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+ 		th->check = ~tcp_v4_check(len, inet->saddr,
+ 					  inet->daddr, 0);
+-		skb->csum_start = skb_transport_header(skb) - skb->head;
+ 		skb->csum_offset = offsetof(struct tcphdr, check);
+ 	} else {
+ 		th->check = tcp_v4_check(len, inet->saddr, inet->daddr,
+@@ -527,7 +526,6 @@ int tcp_v4_gso_send_check(struct sk_buff
+ 
+ 	th->check = 0;
+ 	th->check = ~tcp_v4_check(skb->len, iph->saddr, iph->daddr, 0);
+-	skb->csum_start = skb_transport_header(skb) - skb->head;
+ 	skb->csum_offset = offsetof(struct tcphdr, check);
+ 	skb->ip_summed = CHECKSUM_PARTIAL;
+ 	return 0;
+diff -puN net/ipv4/udp.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/ipv4/udp.c
+--- a/net/ipv4/udp.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/ipv4/udp.c
+@@ -427,7 +427,6 @@ static void udp4_hwcsum_outgoing(struct 
+ 		/*
+ 		 * Only one fragment on the socket.
+ 		 */
+-		skb->csum_start = skb_transport_header(skb) - skb->head;
+ 		skb->csum_offset = offsetof(struct udphdr, check);
+ 		uh->check = ~csum_tcpudp_magic(src, dst, len, IPPROTO_UDP, 0);
+ 	} else {
+diff -puN net/ipv6/tcp_ipv6.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/ipv6/tcp_ipv6.c
+--- a/net/ipv6/tcp_ipv6.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/ipv6/tcp_ipv6.c
+@@ -950,7 +950,6 @@ static void tcp_v6_send_check(struct soc
+ 
+ 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+ 		th->check = ~csum_ipv6_magic(&np->saddr, &np->daddr, len, IPPROTO_TCP,  0);
+-		skb->csum_start = skb_transport_header(skb) - skb->head;
+ 		skb->csum_offset = offsetof(struct tcphdr, check);
+ 	} else {
+ 		th->check = csum_ipv6_magic(&np->saddr, &np->daddr, len, IPPROTO_TCP,
+@@ -973,7 +972,6 @@ static int tcp_v6_gso_send_check(struct 
+ 	th->check = 0;
+ 	th->check = ~csum_ipv6_magic(&ipv6h->saddr, &ipv6h->daddr, skb->len,
+ 				     IPPROTO_TCP, 0);
+-	skb->csum_start = skb_transport_header(skb) - skb->head;
+ 	skb->csum_offset = offsetof(struct tcphdr, check);
+ 	skb->ip_summed = CHECKSUM_PARTIAL;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-taskstats-fix-the-structure-members-alignment-issue.patch
-taskstats-fix-the-structure-members-alignment-issue-fix.patch
 acpi-thermal-fix-mod_timer-interval.patch
 fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
 sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
@@ -109,6 +245,8 @@ git-e1000-fixup-2.patch
 git-net.patch
 git-net-fixup.patch
 git-net-fix-yamc.patch
+revert-8952d6c988ec31070732117f353666a4b9a09fea.patch
+revert-7f8be19f5a5737ce6ad670756183235c71b560bb.patch
 git-net-vs-git-netdev-all.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
