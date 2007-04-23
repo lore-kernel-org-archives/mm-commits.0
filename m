@@ -1,94 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + char-icom-mark-__init-as-__devinit.patch added to -mm tree
-Date: Sun, 22 Apr 2007 17:05:25 -0700
-Message-ID: <200704230005.l3N05PKd003812@shell0.pdx.osdl.net>
+Subject: - dma_declare_coherent_memory-wrong-allocation.patch removed from -mm tree
+Date: Sun, 22 Apr 2007 17:07:01 -0700
+Message-ID: <200704230007.l3N072oj003831@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49858 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964976AbXDWAF2 (ORCPT
+	by vger.kernel.org with ESMTP id S965287AbXDWAHM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 20:05:28 -0400
+	Sun, 22 Apr 2007 20:07:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+To: g.liakhovetski@gmx.de, James.Bottomley@steeleye.com, ak@suse.de, greg@kroah.com, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: icom, mark __init as __devinit
-has been added to the -mm tree.  Its filename is
-     char-icom-mark-__init-as-__devinit.patch
+     i386: dma_declare_coherent_memory(): wrong allocation
+has been removed from the -mm tree.  Its filename was
+     dma_declare_coherent_memory-wrong-allocation.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Char: icom, mark __init as __devinit
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: i386: dma_declare_coherent_memory(): wrong allocation
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-Two functions are called from __devinit context, but they are marked as
-__init. Fix this.
+dma_declare_coherent_memory() allocates a bitmap 1 bit per page, it
+calculates the bitmap size based on size of long, but allocates bytes...
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: G. Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/icom.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/pci-dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/icom.c~char-icom-mark-__init-as-__devinit drivers/serial/icom.c
---- a/drivers/serial/icom.c~char-icom-mark-__init-as-__devinit
-+++ a/drivers/serial/icom.c
-@@ -164,7 +164,7 @@ static void free_port_memory(struct icom
- 	}
- }
+diff -puN arch/i386/kernel/pci-dma.c~dma_declare_coherent_memory-wrong-allocation arch/i386/kernel/pci-dma.c
+--- a/arch/i386/kernel/pci-dma.c~dma_declare_coherent_memory-wrong-allocation
++++ a/arch/i386/kernel/pci-dma.c
+@@ -77,7 +77,7 @@ int dma_declare_coherent_memory(struct d
+ {
+ 	void __iomem *mem_base = NULL;
+ 	int pages = size >> PAGE_SHIFT;
+-	int bitmap_size = (pages + 31)/32;
++	int bitmap_size = DIV_ROUND_UP(pages, 8);
  
--static int __init get_port_memory(struct icom_port *icom_port)
-+static int __devinit get_port_memory(struct icom_port *icom_port)
- {
- 	int index;
- 	unsigned long stgAddr;
-@@ -1380,7 +1380,7 @@ static void icom_port_active(struct icom
- 			    0x8024 + 2 - 2 * (icom_port->port - 2);
- 	}
- }
--static int __init icom_load_ports(struct icom_adapter *icom_adapter)
-+static int __devinit icom_load_ports(struct icom_adapter *icom_adapter)
- {
- 	struct icom_port *icom_port;
- 	int port_num;
+ 	if ((flags & (DMA_MEMORY_MAP | DMA_MEMORY_IO)) == 0)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from g.liakhovetski@gmx.de are
 
-char-mxser_new-fix-recursive-locking.patch
-char-mxser_new-fix-tiocmiwait.patch
-char-mxser-fix-tiocmiwait.patch
-char-icom-mark-__init-as-__devinit.patch
-acpi-asus_acpi-support-f2je-model.patch
-input-ff-add-ff_raw-effect.patch
-input-phantom-add-a-new-driver.patch
-char-rocket-add-module_device_table.patch
-char-cs5535_gpio-add-module_device_table.patch
-drivers-char-use-__set_current_state.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-char-cyclades-remove-pause.patch
-char-cyclades-cy_readx-writex-cleanup.patch
-char-cyclades-timer-cleanup.patch
-char-cyclades-remove-volatiles.patch
-char-cyclades-remove-useless-casts.patch
-char-cyclades-create-cy_init_ze.patch
-char-cyclades-use-pci_iomap-unmap.patch
-char-cyclades-init-ze-immediately.patch
-char-cyclades-create-cy_pci_probe.patch
-char-cyclades-move-card-entries-init-into-function.patch
-char-cyclades-init-card-struct-immediately.patch
-char-cyclades-remove-some-global-vars.patch
-char-cyclades-cy_init-error-handling.patch
-char-cyclades-tty_register_device-separately-for-each-device.patch
-char-cyclades-clear-interrupts-before-releasing.patch
-char-cyclades-allow-debug_shirq.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-powerpc.patch
+dma_declare_coherent_memory-wrong-allocation.patch
+cris-arch-v32-fix-dma_declare_coherent_memory-wrong-allocation.patch
