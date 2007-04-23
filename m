@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kill-warnings-when-building-mandocs.patch added to -mm tree
-Date: Sun, 22 Apr 2007 12:07:51 -0700
-Message-ID: <200704221907.l3MJ7pT8032176@shell0.pdx.osdl.net>
+Subject: + char-icom-mark-__init-as-__devinit.patch added to -mm tree
+Date: Sun, 22 Apr 2007 17:05:25 -0700
+Message-ID: <200704230005.l3N05PKd003812@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34651 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030241AbXDVTHx (ORCPT
+	by vger.kernel.org with ESMTP id S964976AbXDWAF2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 15:07:53 -0400
+	Sun, 22 Apr 2007 20:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bbpetkov@yahoo.de, rdunlap@xenotime.net
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     kill warnings when building mandocs
+     Char: icom, mark __init as __devinit
 has been added to the -mm tree.  Its filename is
-     kill-warnings-when-building-mandocs.patch
+     char-icom-mark-__init-as-__devinit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,88 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kill warnings when building mandocs
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: Char: icom, mark __init as __devinit
+From: Jiri Slaby <jirislaby@gmail.com>
 
-This patch shuts warnings of the sort:
+Two functions are called from __devinit context, but they are marked as
+__init. Fix this.
 
-make -C /mnt/samsung_200/sam/kernel/trees/21-rc6/build \
-	KBUILD_SRC=/mnt/samsung_200/sam/kernel/trees/21-rc6 \
-	KBUILD_EXTMOD="" -f /mnt/samsung_200/sam/kernel/trees/21-rc6/Makefile mandocs
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=scripts/basic
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=Documentation/DocBook mandocs
-  SRCTREE=/mnt/samsung_200/sam/kernel/trees/21-rc6/ /mnt/samsung_200/sam/kernel/trees/21-rc6/build/scripts/basic/docproc doc /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/wanbook.tmpl >Documentation/DocBook/wanbook.xml
-  if grep -q refentry Documentation/DocBook/wanbook.xml; then xmlto man -m /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/man Documentation/DocBook/wanbook.xml ; gzip -f Documentation/DocBook/man/*.9; fi
-Note: meta version: No productnumber or alternative     sppp_close
-Note: meta version: No refmiscinfo@class=version        sppp_close
-Note: Writing sppp_close.9
-Note: meta version: No productnumber or alternative     sppp_open
-Note: meta version: No refmiscinfo@class=version        sppp_open
-
-by adding a RefMiscInfo xml tag in the form of the current kernel version
-to the function, struct and enum definitions in files included by
-kernel-doc when building 'mandocs'.  However, the version string appears
-truncated on the manpage due to some constraints in the xml DTD for the man
-header, I believe, for the troff output is truncated too.
-
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/serial/icom.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/kernel-doc~kill-warnings-when-building-mandocs scripts/kernel-doc
---- a/scripts/kernel-doc~kill-warnings-when-building-mandocs
-+++ a/scripts/kernel-doc
-@@ -328,6 +328,15 @@ while ($ARGV[0] =~ m/^-(.*)/) {
-     }
+diff -puN drivers/serial/icom.c~char-icom-mark-__init-as-__devinit drivers/serial/icom.c
+--- a/drivers/serial/icom.c~char-icom-mark-__init-as-__devinit
++++ a/drivers/serial/icom.c
+@@ -164,7 +164,7 @@ static void free_port_memory(struct icom
+ 	}
  }
  
-+# get kernel version from env
-+sub get_kernel_version() {
-+    my $version;
-+
-+    if (defined($ENV{'KERNELVERSION'})) {
-+	$version = $ENV{'KERNELVERSION'};
-+    }
-+    return $version;
-+}
- 
- # generate a sequence of code that will splice in highlighting information
- # using the s// operator.
-@@ -601,6 +610,7 @@ sub output_function_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'function'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'function'}."</refname>\n";
-@@ -677,6 +687,7 @@ sub output_struct_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'type'}." ".$args{'struct'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'type'}." ".$args{'struct'}."</refname>\n";
-@@ -761,6 +772,7 @@ sub output_enum_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>enum ".$args{'enum'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>enum ".$args{'enum'}."</refname>\n";
+-static int __init get_port_memory(struct icom_port *icom_port)
++static int __devinit get_port_memory(struct icom_port *icom_port)
+ {
+ 	int index;
+ 	unsigned long stgAddr;
+@@ -1380,7 +1380,7 @@ static void icom_port_active(struct icom
+ 			    0x8024 + 2 - 2 * (icom_port->port - 2);
+ 	}
+ }
+-static int __init icom_load_ports(struct icom_adapter *icom_adapter)
++static int __devinit icom_load_ports(struct icom_adapter *icom_adapter)
+ {
+ 	struct icom_port *icom_port;
+ 	int port_num;
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-drivers-acpi-kconfig-formulation-fixpatch.patch
-git-net.patch
-kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
-generate-main-index-page-when-building-htmldocs.patch
-alphabetically-sorted-entries-in.patch
-kill-warnings-when-building-mandocs.patch
+char-mxser_new-fix-recursive-locking.patch
+char-mxser_new-fix-tiocmiwait.patch
+char-mxser-fix-tiocmiwait.patch
+char-icom-mark-__init-as-__devinit.patch
+acpi-asus_acpi-support-f2je-model.patch
+input-ff-add-ff_raw-effect.patch
+input-phantom-add-a-new-driver.patch
+char-rocket-add-module_device_table.patch
+char-cs5535_gpio-add-module_device_table.patch
+drivers-char-use-__set_current_state.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+char-cyclades-remove-pause.patch
+char-cyclades-cy_readx-writex-cleanup.patch
+char-cyclades-timer-cleanup.patch
+char-cyclades-remove-volatiles.patch
+char-cyclades-remove-useless-casts.patch
+char-cyclades-create-cy_init_ze.patch
+char-cyclades-use-pci_iomap-unmap.patch
+char-cyclades-init-ze-immediately.patch
+char-cyclades-create-cy_pci_probe.patch
+char-cyclades-move-card-entries-init-into-function.patch
+char-cyclades-init-card-struct-immediately.patch
+char-cyclades-remove-some-global-vars.patch
+char-cyclades-cy_init-error-handling.patch
+char-cyclades-tty_register_device-separately-for-each-device.patch
+char-cyclades-clear-interrupts-before-releasing.patch
+char-cyclades-allow-debug_shirq.patch
+shrink_slab-handle-bad-shrinkers.patch
