@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fault-injection-fix-failslab-with-config_numa.patch added to -mm tree
-Date: Sun, 22 Apr 2007 17:34:49 -0700
-Message-ID: <200704230034.l3N0YnCg004186@shell0.pdx.osdl.net>
+Subject: + swsusp-free-more-memory.patch added to -mm tree
+Date: Sun, 22 Apr 2007 17:37:58 -0700
+Message-ID: <200704230037.l3N0bwsA004228@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45250 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030351AbXDWAe6 (ORCPT
+	by vger.kernel.org with ESMTP id S1030307AbXDWAi2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 22 Apr 2007 20:34:58 -0400
+	Sun, 22 Apr 2007 20:38:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz
 
 
 The patch titled
-     fault injection: fix failslab with CONFIG_NUMA
+     swsusp: free more memory
 has been added to the -mm tree.  Its filename is
-     fault-injection-fix-failslab-with-config_numa.patch
+     swsusp-free-more-memory.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,82 +26,110 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fault injection: fix failslab with CONFIG_NUMA
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: swsusp: free more memory
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Currently failslab injects failures into ____cache_alloc().  But with enabling
-CONFIG_NUMA it's not enough to let actual slab allocator functions (kmalloc,
-kmem_cache_alloc, ...) return NULL.
+Move the definition of PAGES_FOR_IO to kernel/power/power.h and introduce
+SPARE_PAGES representing the number of pages that should be freed by the
+swsusp's memory shrinker in addition to PAGES_FOR_IO so that device drivers
+can allocate some memory (up to 1 MB total) in their .suspend() routines
+without causing the suspend to fail.
 
-This patch moves fault injection hook inside of __cache_alloc() and
-__cache_alloc_node().  These are lower call path than ____cache_alloc() and
-enable to inject faulures to slab allocators with CONFIG_NUMA.
-
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ include/linux/suspend.h |    6 ------
+ kernel/power/power.h    |   12 +++++++++++-
+ kernel/power/swsusp.c   |    2 +-
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN mm/slab.c~fault-injection-fix-failslab-with-config_numa mm/slab.c
---- a/mm/slab.c~fault-injection-fix-failslab-with-config_numa
-+++ a/mm/slab.c
-@@ -3141,7 +3141,7 @@ static int __init failslab_debugfs(void)
- 	struct dentry *dir;
- 	int err;
+diff -puN include/linux/suspend.h~swsusp-free-more-memory include/linux/suspend.h
+--- a/include/linux/suspend.h~swsusp-free-more-memory
++++ a/include/linux/suspend.h
+@@ -52,10 +52,4 @@ struct saved_context;
+ void __save_processor_state(struct saved_context *ctxt);
+ void __restore_processor_state(struct saved_context *ctxt);
  
--       	err = init_fault_attr_dentries(&failslab.attr, "failslab");
-+	err = init_fault_attr_dentries(&failslab.attr, "failslab");
- 	if (err)
- 		return err;
- 	dir = failslab.attr.dentries.dir;
-@@ -3179,9 +3179,6 @@ static inline void *____cache_alloc(stru
- 
- 	check_irq_off();
- 
--	if (should_failslab(cachep, flags))
--		return NULL;
+-/*
+- * XXX: We try to keep some more pages free so that I/O operations succeed
+- * without paging. Might this be more?
+- */
+-#define PAGES_FOR_IO	1024
 -
- 	ac = cpu_cache_get(cachep);
- 	if (likely(ac->avail)) {
- 		STATS_INC_ALLOCHIT(cachep);
-@@ -3373,6 +3370,9 @@ __cache_alloc_node(struct kmem_cache *ca
- 	unsigned long save_flags;
- 	void *ptr;
+ #endif /* _LINUX_SWSUSP_H */
+diff -puN kernel/power/power.h~swsusp-free-more-memory kernel/power/power.h
+--- a/kernel/power/power.h~swsusp-free-more-memory
++++ a/kernel/power/power.h
+@@ -14,8 +14,18 @@ struct swsusp_info {
  
-+	if (should_failslab(cachep, flags))
-+		return NULL;
-+
- 	cache_alloc_debugcheck_before(cachep, flags);
- 	local_irq_save(save_flags);
  
-@@ -3443,6 +3443,9 @@ __cache_alloc(struct kmem_cache *cachep,
- 	unsigned long save_flags;
- 	void *objp;
+ #ifdef CONFIG_SOFTWARE_SUSPEND
+-extern int pm_suspend_disk(void);
++/*
++ * Keep some memory free so that I/O operations can succeed without paging
++ * [Might this be more than 4 MB?]
++ */
++#define PAGES_FOR_IO	((4096 * 1024) >> PAGE_SHIFT)
++/*
++ * Keep 1 MB of memory free so that device drivers can allocate some pages in
++ * their .suspend() routines without breaking the suspend to disk.
++ */
++#define SPARE_PAGES	((1024 * 1024) >> PAGE_SHIFT)
  
-+	if (should_failslab(cachep, flags))
-+		return NULL;
-+
- 	cache_alloc_debugcheck_before(cachep, flags);
- 	local_irq_save(save_flags);
- 	objp = __do_cache_alloc(cachep, flags);
++extern int pm_suspend_disk(void);
+ #else
+ static inline int pm_suspend_disk(void)
+ {
+diff -puN kernel/power/swsusp.c~swsusp-free-more-memory kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~swsusp-free-more-memory
++++ a/kernel/power/swsusp.c
+@@ -233,7 +233,7 @@ int swsusp_shrink_memory(void)
+ 		long size, highmem_size;
+ 
+ 		highmem_size = count_highmem_pages();
+-		size = count_data_pages() + PAGES_FOR_IO;
++		size = count_data_pages() + PAGES_FOR_IO + SPARE_PAGES;
+ 		tmp = size;
+ 		size += highmem_size;
+ 		for_each_zone (zone)
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-fault-injection-add-entry-to-maintainers.patch
-mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs.patch
-git-dvb.patch
-git-ieee1394.patch
-git-net.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-disable-stacktrace-filter-for-x86-64.patch
-slob-handle-slab_panic-flag.patch
-use-slab_panic-flag-cleanup.patch
-fault-injection-fix-failslab-with-config_numa.patch
-simplify-the-stacktrace-code.patch
-dtlk-fix-error-checks-in-module_init.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
+swsusp-use-inline-functions-for-changing-page-flags.patch
+swsusp-do-not-use-page-flags.patch
+mm-remove-unused-page-flags.patch
+swsusp-fix-error-paths-in-snapshot_open.patch
+swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-force-pm_opsvalid-callback-to-be.patch
+freezer-remove-pf_nofreeze-from-handle_initrd.patch
+swsusp-use-rbtree-for-tracking-allocated-swap.patch
+freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch
+remove-software_suspend.patch
+power-management-change-sys-power-disk-display.patch
+kconfig-mentioneds-hibernation-not-just-swsusp.patch
+swsusp-fix-snapshot_release.patch
+swsusp-free-more-memory.patch
+pm-introduce-suspend-notifiers-rev-2.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+fix-pf_nofreeze-and-freezeable-race.patch
+freezer-document-task_lock-in-thaw_process.patch
+add-suspend-related-notifications-for-cpu-hotplug.patch
+microcode-use-suspend-related-cpu-hotplug-notifications.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+shrink_slab-handle-bad-shrinkers.patch
