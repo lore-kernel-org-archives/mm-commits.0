@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch added to -mm tree
-Date: Mon, 23 Apr 2007 11:11:07 -0700
-Message-ID: <200704231811.l3NIB7ni021420@shell0.pdx.osdl.net>
+Subject: + sbp2-include-fixes.patch added to -mm tree
+Date: Mon, 23 Apr 2007 11:50:56 -0700
+Message-ID: <200704231853.l3NIrZpQ022339@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46865 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161255AbXDWSLM (ORCPT
+	by vger.kernel.org with ESMTP id S1161486AbXDWSyY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Apr 2007 14:11:12 -0400
+	Mon, 23 Apr 2007 14:54:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, vladislav.yasevich@hp.com
+Cc: akpm@linux-foundation.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix
+     sbp2: include fixes
 has been added to the -mm tree.  Its filename is
-     sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+     sbp2-include-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix
+Subject: sbp2: include fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+drivers/ieee1394/sbp2.c: In function 'sbp2util_access_timeout':
+drivers/ieee1394/sbp2.c:399: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
+drivers/ieee1394/sbp2.c:399: error: (Each undeclared identifier is reported only once
+drivers/ieee1394/sbp2.c:399: error: for each function it appears in.)
+drivers/ieee1394/sbp2.c:399: warning: implicit declaration of function 'signal_pending'
+drivers/ieee1394/sbp2.c:399: warning: implicit declaration of function 'schedule_timeout'
+drivers/ieee1394/sbp2.c: In function 'sbp2_prep_command_orb_sg':
+drivers/ieee1394/sbp2.c:1438: warning: implicit declaration of function 'page_address'
+drivers/ieee1394/sbp2.c:1438: warning: passing argument 2 of 'dma_map_single' makes pointer from integer without a cast
+drivers/ieee1394/sbp2.c: In function 'sbp2_handle_status_write':
+drivers/ieee1394/sbp2.c:1842: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
+
+Possibly due to changes in -mm, but this file should explicitly include the
+headers for the stuff it uses.
+
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/socket.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ieee1394/sbp2.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN net/sctp/socket.c~sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix net/sctp/socket.c
---- a/net/sctp/socket.c~sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix
-+++ a/net/sctp/socket.c
-@@ -4045,7 +4045,7 @@ static int sctp_getsockopt_local_addrs_o
- 	to = getaddrs.addrs;
- 
- 	/* Allocate space for a local instance of packed array to hold all
--	 * the data.  We store addresses here first and then put write them
-+	 * the data.  We store addresses here first and then copy them
- 	 * to the user in one shot.
- 	 */
- 	addrs = kmalloc(sizeof(union sctp_addr) * getaddrs.addr_num,
+diff -puN drivers/ieee1394/sbp2.c~sbp2-include-fixes drivers/ieee1394/sbp2.c
+--- a/drivers/ieee1394/sbp2.c~sbp2-include-fixes
++++ a/drivers/ieee1394/sbp2.c
+@@ -56,6 +56,8 @@
+ #include <linux/device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/gfp.h>
++#include <linux/sched.h>
++#include <linux/mm.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -57,7 +71,6 @@ origin.patch
 taskstats-fix-the-structure-members-alignment-issue-fix.patch
 acpi-thermal-fix-mod_timer-interval.patch
 fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
 slab-introduce-krealloc-fix.patch
 git-acpi.patch
 git-alsa.patch
@@ -80,6 +93,7 @@ git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
+sbp2-include-fixes.patch
 git-infiniband-make-it-build-hack.patch
 git-input.patch
 git-input-fixup.patch
