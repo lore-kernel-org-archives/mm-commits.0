@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-sn-xpc-convert-to-use-kthread-api-fix.patch added to -mm tree
-Date: Mon, 23 Apr 2007 10:56:35 -0700
-Message-ID: <200704231756.l3NHuZcC021120@shell0.pdx.osdl.net>
+Subject: + sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch added to -mm tree
+Date: Mon, 23 Apr 2007 11:11:03 -0700
+Message-ID: <200704231811.l3NIB3bB021417@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59984 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54416 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161196AbXDWR4m (ORCPT
+	by vger.kernel.org with ESMTP id S1161218AbXDWSLK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 23 Apr 2007 13:56:42 -0400
+	Mon, 23 Apr 2007 14:11:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ebiederm@xmission.com, holt@sgi.com, jes@sgi.com, rja@sgi.com, tony.luck@intel.com
+Cc: vladislav.yasevich@hp.com, davem@davemloft.net
 
 
 The patch titled
-     ia64-sn-xpc-convert-to-use-kthread-api fix
+     SCTP: fix sctp_getsockopt_local_addrs_old() to use local storage
 has been added to the -mm tree.  Its filename is
-     ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
+     sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,146 +26,248 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64-sn-xpc-convert-to-use-kthread-api fix
-From: Christoph Lameter <clameter@sgi.com>
+Subject: SCTP: fix sctp_getsockopt_local_addrs_old() to use local storage
+From: Vlad Yasevich <vladislav.yasevich@hp.com>
 
-On Mon, 23 Apr 2007, Robin Holt wrote:
+sctp_getsockopt_local_addrs_old() in net/sctp/socket.c calls copy_to_user()
+while the spinlock addr_lock is held.  This should not be done as
+copy_to_user() might sleep.  The call to sctp_copy_laddrs_to_user() while
+holding the lock is also problematic as it calls copy_to_user()
 
-> On Fri, Apr 20, 2007 at 11:32:48PM -0700, Christoph Lameter wrote:
-> > Well xpmem is broke and readahead is failing all over the place. Some
-> > patches missing?
->
-> Which xpmem are you compiling?  Did you let Dean Nelson know about this?
-> Has anything been submitted to the community yet?
-
-I think this was just a an artifact of an inconsistent ia64 mix of
-patches in a temporary tree by Andrew.
-
-Here is the hack that I used to compile more of the temp tree.
-
-Cc: Jes Sorensen <jes@sgi.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: <rja@sgi.com>
-Cc: <holt@sgi.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/kernel/xpc_main.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ net/sctp/socket.c |   96 +++++++++++++++++++++++++++-----------------
+ 1 files changed, 60 insertions(+), 36 deletions(-)
 
-diff -puN arch/ia64/sn/kernel/xpc_main.c~ia64-sn-xpc-convert-to-use-kthread-api-fix arch/ia64/sn/kernel/xpc_main.c
---- a/arch/ia64/sn/kernel/xpc_main.c~ia64-sn-xpc-convert-to-use-kthread-api-fix
-+++ a/arch/ia64/sn/kernel/xpc_main.c
-@@ -811,6 +811,8 @@ xpc_create_kthreads(struct xpc_channel *
- 	pid_t pid;
- 	u64 args = XPC_PACK_ARGS(ch->partid, ch->number);
- 	struct xpc_partition *part = &xpc_partitions[ch->partid];
-+	struct task_struct *task;
+diff -puN net/sctp/socket.c~sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage net/sctp/socket.c
+--- a/net/sctp/socket.c~sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage
++++ a/net/sctp/socket.c
+@@ -3847,7 +3847,7 @@ static int sctp_getsockopt_peer_addrs(st
+ 		memcpy(&temp, &from->ipaddr, sizeof(temp));
+ 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sp, &temp);
+ 		addrlen = sctp_get_af_specific(sk->sk_family)->sockaddr_len;
+-		if(space_left < addrlen)
++		if (space_left < addrlen)
+ 			return -ENOMEM;
+ 		if (copy_to_user(to, &temp, addrlen))
+ 			return -EFAULT;
+@@ -3936,8 +3936,9 @@ done:
+ /* Helper function that copies local addresses to user and returns the number
+  * of addresses copied.
+  */
+-static int sctp_copy_laddrs_to_user_old(struct sock *sk, __u16 port, int max_addrs,
+-					void __user *to)
++static int sctp_copy_laddrs_old(struct sock *sk, __u16 port,
++					int max_addrs, void *to,
++					size_t *bytes_copied)
+ {
+ 	struct list_head *pos, *next;
+ 	struct sctp_sockaddr_entry *addr;
+@@ -3954,10 +3955,10 @@ static int sctp_copy_laddrs_to_user_old(
+ 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sctp_sk(sk),
+ 								&temp);
+ 		addrlen = sctp_get_af_specific(temp.sa.sa_family)->sockaddr_len;
+-		if (copy_to_user(to, &temp, addrlen))
+-			return -EFAULT;
++		memcpy(to, &temp, addrlen);
+ 
+ 		to += addrlen;
++		*bytes_copied += addrlen;
+ 		cnt ++;
+ 		if (cnt >= max_addrs) break;
+ 	}
+@@ -3965,8 +3966,8 @@ static int sctp_copy_laddrs_to_user_old(
+ 	return cnt;
+ }
+ 
+-static int sctp_copy_laddrs_to_user(struct sock *sk, __u16 port,
+-				    void __user **to, size_t space_left)
++static int sctp_copy_laddrs(struct sock *sk, __u16 port, void *to,
++			    size_t space_left, size_t *bytes_copied)
+ {
+ 	struct list_head *pos, *next;
+ 	struct sctp_sockaddr_entry *addr;
+@@ -3983,14 +3984,14 @@ static int sctp_copy_laddrs_to_user(stru
+ 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sctp_sk(sk),
+ 								&temp);
+ 		addrlen = sctp_get_af_specific(temp.sa.sa_family)->sockaddr_len;
+-		if(space_left<addrlen)
++		if (space_left < addrlen)
+ 			return -ENOMEM;
+-		if (copy_to_user(*to, &temp, addrlen))
+-			return -EFAULT;
++		memcpy(to, &temp, addrlen);
+ 
+-		*to += addrlen;
++		to += addrlen;
+ 		cnt ++;
+ 		space_left -= addrlen;
++		bytes_copied += addrlen;
+ 	}
+ 
+ 	return cnt;
+@@ -4014,6 +4015,8 @@ static int sctp_getsockopt_local_addrs_o
+ 	int addrlen;
+ 	rwlock_t *addr_lock;
+ 	int err = 0;
++	void *addrs;
++	size_t bytes_copied = 0;
+ 
+ 	if (len != sizeof(struct sctp_getaddrs_old))
+ 		return -EINVAL;
+@@ -4041,6 +4044,15 @@ static int sctp_getsockopt_local_addrs_o
+ 
+ 	to = getaddrs.addrs;
+ 
++	/* Allocate space for a local instance of packed array to hold all
++	 * the data.  We store addresses here first and then put write them
++	 * to the user in one shot.
++	 */
++	addrs = kmalloc(sizeof(union sctp_addr) * getaddrs.addr_num,
++			GFP_KERNEL);
++	if (!addrs)
++		return -ENOMEM;
 +
+ 	sctp_read_lock(addr_lock);
  
+ 	/* If the endpoint is bound to 0.0.0.0 or ::0, get the valid
+@@ -4050,13 +4062,9 @@ static int sctp_getsockopt_local_addrs_o
+ 		addr = list_entry(bp->address_list.next,
+ 				  struct sctp_sockaddr_entry, list);
+ 		if (sctp_is_any(&addr->a)) {
+-			cnt = sctp_copy_laddrs_to_user_old(sk, bp->port,
+-							   getaddrs.addr_num,
+-							   to);
+-			if (cnt < 0) {
+-				err = cnt;
+-				goto unlock;
+-			}
++			cnt = sctp_copy_laddrs_old(sk, bp->port,
++						   getaddrs.addr_num,
++						   addrs, &bytes_copied);
+ 			goto copy_getaddrs;
+ 		}
+ 	}
+@@ -4066,22 +4074,29 @@ static int sctp_getsockopt_local_addrs_o
+ 		memcpy(&temp, &addr->a, sizeof(temp));
+ 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sp, &temp);
+ 		addrlen = sctp_get_af_specific(temp.sa.sa_family)->sockaddr_len;
+-		if (copy_to_user(to, &temp, addrlen)) {
+-			err = -EFAULT;
+-			goto unlock;
+-		}
++		memcpy(addrs, &temp, addrlen);
+ 		to += addrlen;
++		bytes_copied += addrlen;
+ 		cnt ++;
+ 		if (cnt >= getaddrs.addr_num) break;
+ 	}
  
- 	while (needed-- > 0) {
-@@ -839,7 +841,7 @@ xpc_create_kthreads(struct xpc_channel *
- 		xpc_msgqueue_ref(ch);
+ copy_getaddrs:
++	sctp_read_unlock(addr_lock);
++
++	/* copy the entire address list into the user provided space */
++	if (copy_to_user(to, addrs, bytes_copied)) {
++		err = -EFAULT;
++		goto error;
++	}
++
++	/* copy the leading structure back to user */
+ 	getaddrs.addr_num = cnt;
+ 	if (copy_to_user(optval, &getaddrs, sizeof(struct sctp_getaddrs_old)))
+ 		err = -EFAULT;
  
- 		task = kthread_run(xpc_daemonize_kthread, args,
--				   "xpc%02dc%d", partid, ch_number);
-+				   "xpc%02dc%d", ch->partid, ch->number);
- 		if (IS_ERR(task)) {
- 			/* the fork failed */
+-unlock:
+-	sctp_read_unlock(addr_lock);
++error:
++	kfree(addrs);
+ 	return err;
+ }
+ 
+@@ -4101,7 +4116,8 @@ static int sctp_getsockopt_local_addrs(s
+ 	rwlock_t *addr_lock;
+ 	int err = 0;
+ 	size_t space_left;
+-	int bytes_copied;
++	int bytes_copied = 0;
++	void *addrs;
+ 
+ 	if (len <= sizeof(struct sctp_getaddrs))
+ 		return -EINVAL;
+@@ -4129,6 +4145,9 @@ static int sctp_getsockopt_local_addrs(s
+ 	to = optval + offsetof(struct sctp_getaddrs,addrs);
+ 	space_left = len - sizeof(struct sctp_getaddrs) -
+ 			 offsetof(struct sctp_getaddrs,addrs);
++	addrs = kmalloc(space_left, GFP_KERNEL);
++	if (!addrs)
++		return -ENOMEM;
+ 
+ 	sctp_read_lock(addr_lock);
+ 
+@@ -4139,11 +4158,11 @@ static int sctp_getsockopt_local_addrs(s
+ 		addr = list_entry(bp->address_list.next,
+ 				  struct sctp_sockaddr_entry, list);
+ 		if (sctp_is_any(&addr->a)) {
+-			cnt = sctp_copy_laddrs_to_user(sk, bp->port,
+-						       &to, space_left);
++			cnt = sctp_copy_laddrs(sk, bp->port, addrs,
++						space_left, &bytes_copied);
+ 			if (cnt < 0) {
+ 				err = cnt;
+-				goto unlock;
++				goto error;
+ 			}
+ 			goto copy_getaddrs;
+ 		}
+@@ -4154,26 +4173,31 @@ static int sctp_getsockopt_local_addrs(s
+ 		memcpy(&temp, &addr->a, sizeof(temp));
+ 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sp, &temp);
+ 		addrlen = sctp_get_af_specific(temp.sa.sa_family)->sockaddr_len;
+-		if(space_left < addrlen)
+-			return -ENOMEM; /*fixme: right error?*/
+-		if (copy_to_user(to, &temp, addrlen)) {
+-			err = -EFAULT;
+-			goto unlock;
++		if (space_left < addrlen) {
++			err =  -ENOMEM; /*fixme: right error?*/
++			goto error;
+ 		}
++		memcpy(addrs, &temp, addrlen);
+ 		to += addrlen;
++		bytes_copied += addrlen;
+ 		cnt ++;
+ 		space_left -= addrlen;
+ 	}
+ 
+ copy_getaddrs:
++	sctp_read_unlock(addr_lock);
++
++	if (copy_to_user(to, addrs, bytes_copied)) {
++		err = -EFAULT;
++		goto error;
++	}
+ 	if (put_user(cnt, &((struct sctp_getaddrs __user *)optval)->addr_num))
+ 		return -EFAULT;
+-	bytes_copied = ((char __user *)to) - optval;
+ 	if (put_user(bytes_copied, optlen))
+ 		return -EFAULT;
+ 
+-unlock:
+-	sctp_read_unlock(addr_lock);
++error:
++	kfree(addrs);
+ 	return err;
+ }
  
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from vladislav.yasevich@hp.com are
 
-fix-oom-killing-processes-wrongly-thought-mpol_bind.patch
-page-migration-fix-nr_file_pages-accounting.patch
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-extend-print_symbol-capability-fix.patch
-extend-print_symbol-capability-fix-fix.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
-slub-core-minor-fixes.patch
-slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
-slub-core-fix-another-numa-bootstrap-issue.patch
-slub-core-fix-object-counting.patch
-slub-core-drop-version-number.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
-slub-core-printk-facility-level-cleanup.patch
-slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
-slub-core-add-explanation-for-defrag_ratio-=-100.patch
-slub-core-add-explanation-for-locking.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-the-64k-limits.patch
-slub-core-explain-sizing-of-slabs-in-detail.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-add-checks-for-interrupts-disabled.patch
-slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
-slub-core-missing-inlines-and-statics.patch
-slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
-slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
-slub-core-fix-kmem_cache_destroy.patch
-slub-core-fix-validation.patch
-slub-core-add-after-object-padding.patch
-slub-core-resiliency-fixups.patch
-slub-core-resiliency-fixups-fix.patch
-slub-core-resiliency-test.patch
-make-page-private-usable-in-compound-pages-v1.patch
-make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-remove-object-activities-out-of-checking-functions.patch
-slub-user-documentation.patch
-slub-user-documentation-fix.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-add-slabinfo-tool.patch
-slub-add-slabinfo-tool-update-slabinfoc.patch
-quicklists-for-page-table-pages.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-kmem_cache-simplify-slab-cache-creation.patch
-slab-allocators-remove-slab_debug_initial-flag.patch
-slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
-slab-allocators-remove-multiple-alignment-specifications.patch
-slab-allocators-remove-slab_ctor_atomic.patch
-fault-injection-fix-failslab-with-config_numa.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-readahead-state-based-method-aging-accounting.patch
+origin.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+git-net.patch
+use-menuconfig-objects-sctp.patch
