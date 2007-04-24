@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ignore-stolen-time-in-the-softlockup-watchdog-fix.patch added to -mm tree
-Date: Tue, 24 Apr 2007 13:45:13 -0700
-Message-ID: <200704242045.l3OKjD9N018856@shell0.pdx.osdl.net>
+Subject: + handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch added to -mm tree
+Date: Tue, 24 Apr 2007 14:04:28 -0700
+Message-ID: <200704242104.l3OL4SV3019236@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40800 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57338 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754631AbXDXUqg (ORCPT
+	by vger.kernel.org with ESMTP id S1423123AbXDXVFJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Apr 2007 16:46:36 -0400
+	Tue, 24 Apr 2007 17:05:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clalance@redhat.com, dada1@cosmosbay.com, dhecht@vmware.com, jeremy@goop.org, jmorris@namei.org, johnstul@us.ibm.com, mingo@elte.hu, paulus@samba.org, prarit@redhat.com, ricklind@us.ibm.com, schwidefsky@de.ibm.com, tglx@linutronix.de, zach@vmware.com
+Cc: y-goto@jp.fujitsu.com, apw@shadowen.org, mel@csn.ul.ie
 
 
 The patch titled
-     ignore-stolen-time-in-the-softlockup-watchdog-fix
+     Handle kernelcore= boot parameter in common code to avoid boot problem on IA64
 has been added to the -mm tree.  Its filename is
-     ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+     handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,246 +26,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ignore-stolen-time-in-the-softlockup-watchdog-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Handle kernelcore= boot parameter in common code to avoid boot problem on IA64
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Avoid reevaluating smp_processor_id()
+When "kernelcore" boot option is specified, kernel can't boot up on ia64
+because of an infinite loop.  In addition, the parsing code can be handled
+in an architecture-independent manner.
 
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Dan Hecht <dhecht@vmware.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Chris Lalancette <clalance@redhat.com>
-Cc: Rick Lindsley <ricklind@us.ibm.com>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
+This patch patches uses common code to handle the kernelcore= parameter. 
+It is only available to architectures that support arch-independent
+zone-sizing (i.e.  define CONFIG_ARCH_POPULATES_NODE_MAP).  Other
+architectures will ignore the boot parameter.
+
+This effectively removes the following arch-specific patches;
+
+ia64-specify-amount-of-kernel-memory-at-boot-time.patch
+ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
+x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
+x86-specify-amount-of-kernel-memory-at-boot-time.patch
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/setup.c   |    1 -
+ arch/ia64/kernel/efi.c     |    2 --
+ arch/powerpc/kernel/prom.c |    1 -
+ arch/ppc/mm/init.c         |    2 --
+ arch/x86_64/kernel/e820.c  |    1 -
+ include/linux/mm.h         |    1 -
+ mm/page_alloc.c            |    3 +++
+ 7 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog-fix kernel/softlockup.c
---- a/kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog-fix
-+++ a/kernel/softlockup.c
-@@ -57,7 +57,7 @@ EXPORT_SYMBOL(touch_softlockup_watchdog)
- void softlockup_tick(void)
- {
- 	int this_cpu = smp_processor_id();
--	unsigned long touch_timestamp = __get_cpu_var(touch_timestamp);
-+	unsigned long touch_timestamp = per_cpu(touch_timestamp, this_cpu);
- 	unsigned long print_timestamp;
- 	unsigned long now;
+diff -puN arch/i386/kernel/setup.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/i386/kernel/setup.c
+--- a/arch/i386/kernel/setup.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
++++ a/arch/i386/kernel/setup.c
+@@ -195,7 +195,6 @@ static int __init parse_mem(char *arg)
+ 	return 0;
+ }
+ early_param("mem", parse_mem);
+-early_param("kernelcore", cmdline_parse_kernelcore);
  
-@@ -65,7 +65,7 @@ void softlockup_tick(void)
- 	if (touch_timestamp == 0)
- 		return;
+ #ifdef CONFIG_PROC_VMCORE
+ /* elfcorehdr= specifies the location of elf core header
+diff -puN arch/ia64/kernel/efi.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
++++ a/arch/ia64/kernel/efi.c
+@@ -423,8 +423,6 @@ efi_init (void)
+ 			mem_limit = memparse(cp + 4, &cp);
+ 		} else if (memcmp(cp, "max_addr=", 9) == 0) {
+ 			max_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
+-		} else if (memcmp(cp, "kernelcore=",11) == 0) {
+-			cmdline_parse_kernelcore(cp+11);
+ 		} else if (memcmp(cp, "min_addr=", 9) == 0) {
+ 			min_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
+ 		} else {
+diff -puN arch/powerpc/kernel/prom.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/powerpc/kernel/prom.c
+--- a/arch/powerpc/kernel/prom.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
++++ a/arch/powerpc/kernel/prom.c
+@@ -432,7 +432,6 @@ static int __init early_parse_mem(char *
+ 	return 0;
+ }
+ early_param("mem", early_parse_mem);
+-early_param("kernelcore", cmdline_parse_kernelcore);
  
--	print_timestamp = __get_cpu_var(print_timestamp);
-+	print_timestamp = per_cpu(print_timestamp, this_cpu);
+ /*
+  * The device tree may be allocated below our memory limit, or inside the
+diff -puN arch/ppc/mm/init.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/ppc/mm/init.c
+--- a/arch/ppc/mm/init.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
++++ a/arch/ppc/mm/init.c
+@@ -214,8 +214,6 @@ void MMU_setup(void)
+ 	}
+ }
  
- 	/* report at most once a second */
- 	if (print_timestamp < (touch_timestamp + 1) ||
+-early_param("kernelcore", cmdline_parse_kernelcore);
+-
+ /*
+  * MMU_init sets up the basic memory mappings for the kernel,
+  * including both RAM and possibly some I/O regions,
+diff -puN arch/x86_64/kernel/e820.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
++++ a/arch/x86_64/kernel/e820.c
+@@ -618,7 +618,6 @@ static int __init parse_memopt(char *p)
+ 	return 0;
+ } 
+ early_param("mem", parse_memopt);
+-early_param("kernelcore", cmdline_parse_kernelcore);
+ 
+ static int userdef __initdata;
+ 
+diff -puN include/linux/mm.h~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 include/linux/mm.h
+--- a/include/linux/mm.h~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
++++ a/include/linux/mm.h
+@@ -988,7 +988,6 @@ extern unsigned long find_max_pfn_with_a
+ extern void free_bootmem_with_active_regions(int nid,
+ 						unsigned long max_low_pfn);
+ extern void sparse_memory_present_with_active_regions(int nid);
+-extern int cmdline_parse_kernelcore(char *p);
+ #ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
+ extern int early_pfn_to_nid(unsigned long pfn);
+ #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+diff -puN mm/page_alloc.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 mm/page_alloc.c
+--- a/mm/page_alloc.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
++++ a/mm/page_alloc.c
+@@ -3542,6 +3542,9 @@ int __init cmdline_parse_kernelcore(char
+ 
+ 	return 0;
+ }
++
++early_param("kernelcore", cmdline_parse_kernelcore);
++
+ #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
+ 
+ /**
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-origin.patch
-acpi-thermal-fix-mod_timer-interval.patch
-packet-fix-error-handling.patch
-fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix-2.patch
-sysfs-binc-printk-fix.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-git-infiniband-make-it-build-hack.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-ubi-fixup.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-git-netdev-all-fixup.patch
-reapply-gitpowerpc-ehea-changes.patch
-git-netdev-all-baycom_ser_fdx-fix.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-yamc.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
-rfcomm_worker-fix-wakeup-race.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-pci-error-recovery-symbios-scsi-base-support-fixes.patch
-pci-error-recovery-symbios-scsi-first-failure-fix.patch
-cxacru-add-documentation-file-fix.patch
-fix-x86_64-mm-fam10-mwait-idle.patch
-more-fix-x86_64-mm-fam10-mwait-idle.patch
-fix-x86_64-mm-sched-clock-share.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-x86_64-unexport-cpu_llc_id.patch
-xfs-clean-up-shrinker-games.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface-fix-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-extend-print_symbol-capability-fix-fix.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-unprivileged-mounts-account-user-mounts-fix.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+move-free-pages-between-lists-on-steal-fix-2.patch
+move-free-pages-between-lists-on-steal-do-not-cross-section-boundary-when-moving-pages-between-mobility-lists.patch
+handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
+fix-section-mismatch-of-memory-hotplug-related-code.patch
+add-white-list-into-modpostc-for-memory-hotplug-code-and-ia64s-machvec-section.patch
