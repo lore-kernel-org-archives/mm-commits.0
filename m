@@ -1,255 +1,525 @@
 From: akpm@linux-foundation.org
-Subject: + proc-maps-protection-include-fix.patch added to -mm tree
-Date: Tue, 24 Apr 2007 03:18:52 -0700
-Message-ID: <200704241021.l3OALWs4006205@shell0.pdx.osdl.net>
+Subject: - pm-introduce-suspend-notifiers-rev-2.patch removed from -mm tree
+Date: Tue, 24 Apr 2007 03:26:07 -0700
+Message-ID: <200704241028.l3OASk0p006297@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42418 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60437 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754610AbXDXKVx (ORCPT
+	by vger.kernel.org with ESMTP id S1753984AbXDXK3G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Apr 2007 06:21:53 -0400
+	Tue, 24 Apr 2007 06:29:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net
+To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc-maps-protection-include-fix
-has been added to the -mm tree.  Its filename is
-     proc-maps-protection-include-fix.patch
+     PM: introduce suspend notifiers
+has been removed from the -mm tree.  Its filename was
+     pm-introduce-suspend-notifiers-rev-2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: proc-maps-protection-include-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: PM: introduce suspend notifiers
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-fs/proc/task_mmu.c:244: warning: implicit declaration of function 'ptrace_may_attach'
+Make it possible to register suspend notifiers so that subsystems can perform
+suspend-related operations that should not be carried out by device drivers'
+.suspend() and .resume() routines.
 
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Kees Cook <kees@outflux.net>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    1 +
- sysctl.c           |    0 
- 2 files changed, 1 insertion(+)
+ Documentation/power/suspend-notifiers.txt |   48 ++++++++++++++++++
+ include/linux/notifier.h                  |    6 ++
+ include/linux/suspend.h                   |   27 +++++++++-
+ kernel/power/Makefile                     |    2 
+ kernel/power/disk.c                       |   23 ++++++++-
+ kernel/power/main.c                       |   16 +++++-
+ kernel/power/notify.c                     |   51 ++++++++++++++++++++
+ kernel/power/power.h                      |    3 +
+ kernel/power/user.c                       |   45 +++++++++++++----
+ 9 files changed, 203 insertions(+), 18 deletions(-)
 
-diff -puN CREDITS~proc-maps-protection-include-fix CREDITS
-diff -puN Documentation/filesystems/proc.txt~proc-maps-protection-include-fix Documentation/filesystems/proc.txt
-diff -puN fs/proc/base.c~proc-maps-protection-include-fix fs/proc/base.c
-diff -puN fs/proc/internal.h~proc-maps-protection-include-fix fs/proc/internal.h
-diff -puN fs/proc/task_mmu.c~proc-maps-protection-include-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-maps-protection-include-fix
-+++ a/fs/proc/task_mmu.c
-@@ -3,6 +3,7 @@
- #include <linux/mount.h>
- #include <linux/seq_file.h>
- #include <linux/highmem.h>
-+#include <linux/ptrace.h>
- #include <linux/pagemap.h>
- #include <linux/mempolicy.h>
+diff -puN /dev/null Documentation/power/suspend-notifiers.txt
+--- /dev/null
++++ a/Documentation/power/suspend-notifiers.txt
+@@ -0,0 +1,48 @@
++Suspend notifiers
++	(C) 2007 Rafael J. Wysocki <rjw@sisk.pl>, GPL
++
++There are some operations that device drivers may want to carry out in their
++.suspend() routines, but shouldn't, because they can cause a suspend to fail.
++For example, a driver may want to allocate a substantial amount of memory
++(like 50 MB) in .suspend(), but that shouldn't be done after the swsusp's memory
++shrinker has run.  Also, there may be some operations, that subsystems may want
++to carry out before a suspend or after a resume, requiring the system to be
++fully functional, so the drivers' .suspend() and .resume() routines are not
++suitable for this purpose.
++
++The subsystems that have such needs can register suspend notifiers that will be
++notified of the following events by the suspend core:
++
++SUSPEND_PREPARE		the system is going to suspend, tasks will be frozen
++			immediately
++
++SUSPEND_ENTER_PREPARE	tasks have been frozen, memory is going to be freed
++			and devices are going to be suspended
++
++SUSPEND_THAW_PREPARE	devices have been resumed, tasks will be thawed
++			immediately
++
++SUSPEND_FINISHED	the resume is complete, the system is fully functional
++
++SUSPEND_RESTORE_PREPARE	the system is preparing to restore the swsusp's suspend
++			image, tasks have been frozen and devices are going to
++			be suspended
++
++It is generally assumed that whatever the notifiers do for SUSPEND_PREPARE,
++should be undone for SUSPEND_FINISHED, and what is done for
++SUSPEND_ENTER_PREPARE, should be undone for SUSPEND_FINISHED (eg. if memory is
++allocated for SUSPEND_ENTER_PREPARE, it should be freed for SUSPEND_FINISHED).
++Moreover, if the SUSPEND_PREPARE hooks are called, SUSPEND_FINISHED will be
++called too and if SUSPEND_ENTER_PREPARE are called, SUSPEND_THAW_PREPARE will be
++called either, even if the suspend fails.  This way, for example, the memory
++allocated with SUSPEND_ENTER_PREPARE can always be freed with
++SUSPEND_THAW_PREPARE and need not be leaked in case the suspend fails.
++
++The suspend notifiers are called with pm_mutex held.
++
++The suspend notifiers are defined in the usual way, but their last argument is
++meaningless (it is always NULL).  To register and/or unregister a suspend
++notifier use the functions register_suspend_notifier() and
++unregister_suspend_notifier(), respectively, defined in kernel/power/notify.c .
++If you don't need to unregister the notifier, you can also use the
++suspend_notifier() macro defined in include/linux/suspend.h .
+diff -puN include/linux/notifier.h~pm-introduce-suspend-notifiers-rev-2 include/linux/notifier.h
+--- a/include/linux/notifier.h~pm-introduce-suspend-notifiers-rev-2
++++ a/include/linux/notifier.h
+@@ -187,5 +187,11 @@ extern int srcu_notifier_call_chain(stru
+ #define CPU_DOWN_FAILED		0x0006 /* CPU (unsigned)v NOT going down */
+ #define CPU_DEAD		0x0007 /* CPU (unsigned)v dead */
  
-diff -puN fs/proc/task_nommu.c~proc-maps-protection-include-fix fs/proc/task_nommu.c
-diff -puN include/linux/sysctl.h~proc-maps-protection-include-fix include/linux/sysctl.h
-diff -puN kernel/sysctl.c~proc-maps-protection-include-fix kernel/sysctl.c
++#define SUSPEND_PREPARE		0x0002 /* Going to freeze tasks */
++#define SUSPEND_ENTER_PREPARE	0x0003 /* Tasks are frozen, we are suspending */
++#define SUSPEND_THAW_PREPARE	0x0004 /* Going to thaw frozen tasks */
++#define SUSPEND_FINISHED	0x0005 /* Tasks have been thawed */
++#define SUSPEND_RESTORE_PREPARE	0x0006 /* STD restore is going to happen */
++
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_NOTIFIER_H */
+diff -puN include/linux/suspend.h~pm-introduce-suspend-notifiers-rev-2 include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-introduce-suspend-notifiers-rev-2
++++ a/include/linux/suspend.h
+@@ -24,15 +24,16 @@ struct pbe {
+ extern void drain_local_pages(void);
+ extern void mark_free_pages(struct zone *zone);
+ 
+-#if defined(CONFIG_PM) && defined(CONFIG_VT) && defined(CONFIG_VT_CONSOLE)
++#ifdef CONFIG_PM
++#if defined(CONFIG_VT) && defined(CONFIG_VT_CONSOLE)
+ extern int pm_prepare_console(void);
+ extern void pm_restore_console(void);
+ #else
+ static inline int pm_prepare_console(void) { return 0; }
+ static inline void pm_restore_console(void) {}
+-#endif
++#endif /* defined(CONFIG_VT) && defined(CONFIG_VT_CONSOLE) */
+ 
+-#if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
++#ifdef CONFIG_SOFTWARE_SUSPEND
+ /* kernel/power/snapshot.c */
+ extern void __init register_nosave_region(unsigned long, unsigned long);
+ extern int swsusp_page_is_forbidden(struct page *);
+@@ -44,7 +45,7 @@ static inline void register_nosave_regio
+ static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
+ static inline void swsusp_set_page_free(struct page *p) {}
+ static inline void swsusp_unset_page_free(struct page *p) {}
+-#endif /* defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND) */
++#endif /* CONFIG_SOFTWARE_SUSPEND */
+ 
+ void save_processor_state(void);
+ void restore_processor_state(void);
+@@ -52,4 +53,22 @@ struct saved_context;
+ void __save_processor_state(struct saved_context *ctxt);
+ void __restore_processor_state(struct saved_context *ctxt);
+ 
++int register_suspend_notifier(struct notifier_block *nb);
++void unregister_suspend_notifier(struct notifier_block *nb);
++
++#define suspend_notifier(fn, pri) {				\
++	static struct notifier_block fn##_nb =			\
++		{ .notifier_call = fn, .priority = pri };	\
++	register_suspend_notifier(&fn##_nb);			\
++}
++#else /* CONFIG_PM */
++static inline int register_suspend_notifier(struct notifier_block *nb) {
++	return 0;
++}
++static inline void unregister_suspend_notifier(struct notifier_block *nb) {
++}
++
++#define suspend_notifier(fn, pri)	do { (void)(fn); } while (0)
++#endif
++
+ #endif /* _LINUX_SWSUSP_H */
+diff -puN kernel/power/Makefile~pm-introduce-suspend-notifiers-rev-2 kernel/power/Makefile
+--- a/kernel/power/Makefile~pm-introduce-suspend-notifiers-rev-2
++++ a/kernel/power/Makefile
+@@ -3,7 +3,7 @@ ifeq ($(CONFIG_PM_DEBUG),y)
+ EXTRA_CFLAGS	+=	-DDEBUG
+ endif
+ 
+-obj-y				:= main.o process.o console.o
++obj-y				:= main.o process.o console.o notify.o
+ obj-$(CONFIG_PM_LEGACY)		+= pm.o
+ obj-$(CONFIG_SOFTWARE_SUSPEND)	+= swsusp.o disk.o snapshot.o swap.o user.o
+ 
+diff -puN kernel/power/disk.c~pm-introduce-suspend-notifiers-rev-2 kernel/power/disk.c
+--- a/kernel/power/disk.c~pm-introduce-suspend-notifiers-rev-2
++++ a/kernel/power/disk.c
+@@ -139,10 +139,18 @@ int pm_suspend_disk(void)
+ 	if (error)
+ 		goto Exit;
+ 
++	error = suspend_notifier_call_chain(SUSPEND_PREPARE);
++	if (error)
++		goto Finish;
++
+ 	error = prepare_processes();
+ 	if (error)
+ 		goto Finish;
+ 
++	error = suspend_notifier_call_chain(SUSPEND_ENTER_PREPARE);
++	if (error)
++		goto Thaw;
++
+ 	if (pm_disk_mode == PM_DISK_TESTPROC) {
+ 		printk("swsusp debug: Waiting for 5 seconds.\n");
+ 		mdelay(5000);
+@@ -205,8 +213,10 @@ int pm_suspend_disk(void)
+ 	device_resume();
+ 	resume_console();
+  Thaw:
++	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
+ 	unprepare_processes();
+  Finish:
++	suspend_notifier_call_chain(SUSPEND_FINISHED);
+ 	free_basic_memory_bitmaps();
+  Exit:
+ 	atomic_inc(&snapshot_device_available);
+@@ -267,6 +277,10 @@ static int software_resume(void)
+ 	if (error)
+ 		goto Finish;
+ 
++	error = suspend_notifier_call_chain(SUSPEND_PREPARE);
++	if (error)
++		goto Done;
++
+ 	pr_debug("PM: Preparing processes for restore.\n");
+ 	error = prepare_processes();
+ 	if (error) {
+@@ -279,9 +293,13 @@ static int software_resume(void)
+ 	error = swsusp_read();
+ 	if (error) {
+ 		swsusp_free();
+-		goto Thaw;
++		goto Unprepare;
+ 	}
+ 
++	error = suspend_notifier_call_chain(SUSPEND_RESTORE_PREPARE);
++	if (error)
++		goto Thaw;
++
+ 	pr_debug("PM: Preparing devices for restore.\n");
+ 
+ 	suspend_console();
+@@ -299,9 +317,12 @@ static int software_resume(void)
+ 	device_resume();
+ 	resume_console();
+  Thaw:
++	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
++ Unprepare:
+ 	printk(KERN_ERR "PM: Restore failed, recovering.\n");
+ 	unprepare_processes();
+  Done:
++	suspend_notifier_call_chain(SUSPEND_FINISHED);
+ 	free_basic_memory_bitmaps();
+  Finish:
+ 	atomic_inc(&snapshot_device_available);
+diff -puN kernel/power/main.c~pm-introduce-suspend-notifiers-rev-2 kernel/power/main.c
+--- a/kernel/power/main.c~pm-introduce-suspend-notifiers-rev-2
++++ a/kernel/power/main.c
+@@ -86,11 +86,20 @@ static int suspend_prepare(suspend_state
+ 
+ 	pm_prepare_console();
+ 
++	error = suspend_notifier_call_chain(SUSPEND_PREPARE);
++	if (error)
++		goto Finish;
++
+ 	if (freeze_processes()) {
+ 		error = -EAGAIN;
+-		goto Thaw;
++		thaw_processes();
++		goto Finish;
+ 	}
+ 
++	error = suspend_notifier_call_chain(SUSPEND_ENTER_PREPARE);
++	if (error)
++		goto Thaw;
++
+ 	if ((free_pages = global_page_state(NR_FREE_PAGES))
+ 			< FREE_PAGE_NUMBER) {
+ 		pr_debug("PM: free some memory\n");
+@@ -123,8 +132,11 @@ static int suspend_prepare(suspend_state
+ 	device_resume();
+ 	resume_console();
+  Thaw:
++	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
+ 	thaw_processes();
++ Finish:
+ 	pm_restore_console();
++	suspend_notifier_call_chain(SUSPEND_FINISHED);
+ 	return error;
+ }
+ 
+@@ -172,8 +184,10 @@ static void suspend_finish(suspend_state
+ 	pm_finish(state);
+ 	device_resume();
+ 	resume_console();
++	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
+ 	thaw_processes();
+ 	pm_restore_console();
++	suspend_notifier_call_chain(SUSPEND_FINISHED);
+ }
+ 
+ 
+diff -puN /dev/null kernel/power/notify.c
+--- /dev/null
++++ a/kernel/power/notify.c
+@@ -0,0 +1,51 @@
++/*
++ * linux/kernel/power/notify.c
++ *
++ * This file contains functions used for registering and calling suspend
++ * notifiers that can be used by subsystems for carrying out some special
++ * suspend-related operations.
++ *
++ * Copyright (C) 2007 Rafael J. Wysocki <rjw@sisk.pl>
++ *
++ * This file is released under the GPLv2.
++ *
++ */
++
++#include <linux/smp.h>
++#include <linux/notifier.h>
++#include <linux/module.h>
++#include <linux/suspend.h>
++
++static DEFINE_MUTEX(suspend_notifier_lock);
++
++static RAW_NOTIFIER_HEAD(suspend_chain);
++
++int register_suspend_notifier(struct notifier_block *nb)
++{
++	int ret;
++	mutex_lock(&suspend_notifier_lock);
++	ret = raw_notifier_chain_register(&suspend_chain, nb);
++	mutex_unlock(&suspend_notifier_lock);
++	return ret;
++}
++EXPORT_SYMBOL(register_suspend_notifier);
++
++void unregister_suspend_notifier(struct notifier_block *nb)
++{
++	mutex_lock(&suspend_notifier_lock);
++	raw_notifier_chain_unregister(&suspend_chain, nb);
++	mutex_unlock(&suspend_notifier_lock);
++}
++EXPORT_SYMBOL(unregister_suspend_notifier);
++
++int suspend_notifier_call_chain(unsigned long val)
++{
++	int error = 0;
++
++	mutex_lock(&suspend_notifier_lock);
++	if (raw_notifier_call_chain(&suspend_chain, val, NULL) == NOTIFY_BAD)
++		error = -EINVAL;
++
++	mutex_unlock(&suspend_notifier_lock);
++	return error;
++}
+diff -puN kernel/power/power.h~pm-introduce-suspend-notifiers-rev-2 kernel/power/power.h
+--- a/kernel/power/power.h~pm-introduce-suspend-notifiers-rev-2
++++ a/kernel/power/power.h
+@@ -170,3 +170,6 @@ extern int suspend_enter(suspend_state_t
+ struct timeval;
+ extern void swsusp_show_speed(struct timeval *, struct timeval *,
+ 				unsigned int, char *);
++
++/* kernel/power/notify.c */
++extern int suspend_notifier_call_chain(unsigned long val);
+diff -puN kernel/power/user.c~pm-introduce-suspend-notifiers-rev-2 kernel/power/user.c
+--- a/kernel/power/user.c~pm-introduce-suspend-notifiers-rev-2
++++ a/kernel/power/user.c
+@@ -75,6 +75,18 @@ static int snapshot_open(struct inode *i
+ 	return 0;
+ }
+ 
++static void snapshot_unfreeze(struct snapshot_data *data)
++{
++	if (!data->frozen)
++		return;
++
++	mutex_lock(&pm_mutex);
++	thaw_processes();
++	suspend_notifier_call_chain(SUSPEND_FINISHED);
++	mutex_unlock(&pm_mutex);
++	data->frozen = 0;
++}
++
+ static int snapshot_release(struct inode *inode, struct file *filp)
+ {
+ 	struct snapshot_data *data;
+@@ -83,11 +95,7 @@ static int snapshot_release(struct inode
+ 	free_basic_memory_bitmaps();
+ 	data = filp->private_data;
+ 	free_all_swap_pages(data->swap);
+-	if (data->frozen) {
+-		mutex_lock(&pm_mutex);
+-		thaw_processes();
+-		mutex_unlock(&pm_mutex);
+-	}
++	snapshot_unfreeze(data);
+ 	atomic_inc(&snapshot_device_available);
+ 	return 0;
+ }
+@@ -147,6 +155,10 @@ static inline int snapshot_suspend(int p
+ 	int error;
+ 
+ 	mutex_lock(&pm_mutex);
++	error = suspend_notifier_call_chain(SUSPEND_ENTER_PREPARE);
++	if (error)
++		goto Finish;
++
+ 	/* Free memory before shutting down devices. */
+ 	error = swsusp_shrink_memory();
+ 	if (error)
+@@ -175,6 +187,7 @@ static inline int snapshot_suspend(int p
+ 	device_resume();
+ 	resume_console();
+  Finish:
++	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
+ 	mutex_unlock(&pm_mutex);
+ 	return error;
+ }
+@@ -185,6 +198,10 @@ static inline int snapshot_restore(int p
+ 
+ 	mutex_lock(&pm_mutex);
+ 	pm_prepare_console();
++	error = suspend_notifier_call_chain(SUSPEND_RESTORE_PREPARE);
++	if (error)
++		goto Finish;
++
+ 	if (platform_suspend) {
+ 		error = platform_prepare();
+ 		if (error)
+@@ -207,6 +224,7 @@ static inline int snapshot_restore(int p
+ 	device_resume();
+ 	resume_console();
+  Finish:
++	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
+ 	pm_restore_console();
+ 	mutex_unlock(&pm_mutex);
+ 	return error;
+@@ -235,8 +253,13 @@ static int snapshot_ioctl(struct inode *
+ 		if (data->frozen)
+ 			break;
+ 		mutex_lock(&pm_mutex);
++		error = suspend_notifier_call_chain(SUSPEND_PREPARE);
++		if (error)
++			break;
++
+ 		if (freeze_processes()) {
+ 			thaw_processes();
++			suspend_notifier_call_chain(SUSPEND_FINISHED);
+ 			error = -EBUSY;
+ 		}
+ 		mutex_unlock(&pm_mutex);
+@@ -245,12 +268,7 @@ static int snapshot_ioctl(struct inode *
+ 		break;
+ 
+ 	case SNAPSHOT_UNFREEZE:
+-		if (!data->frozen)
+-			break;
+-		mutex_lock(&pm_mutex);
+-		thaw_processes();
+-		mutex_unlock(&pm_mutex);
+-		data->frozen = 0;
++		snapshot_unfreeze(data);
+ 		break;
+ 
+ 	case SNAPSHOT_ATOMIC_SNAPSHOT:
+@@ -349,6 +367,10 @@ static int snapshot_ioctl(struct inode *
+ 			break;
+ 		}
+ 
++		error = suspend_notifier_call_chain(SUSPEND_ENTER_PREPARE);
++		if (error)
++			goto OutS3;
++
+ 		if (pm_ops->prepare) {
+ 			error = pm_ops->prepare(PM_SUSPEND_MEM);
+ 			if (error)
+@@ -375,6 +397,7 @@ static int snapshot_ioctl(struct inode *
+ 			pm_ops->finish(PM_SUSPEND_MEM);
+ 
+  OutS3:
++		suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
+ 		mutex_unlock(&pm_mutex);
+ 		break;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-origin.patch
-acpi-thermal-fix-mod_timer-interval.patch
-packet-fix-error-handling.patch
-fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix-2.patch
-sysfs-binc-printk-fix.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-git-infiniband-make-it-build-hack.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-ubi-fixup.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-git-netdev-all-fixup.patch
-reapply-gitpowerpc-ehea-changes.patch
-git-netdev-all-baycom_ser_fdx-fix.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-yamc.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
-rfcomm_worker-fix-wakeup-race.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-pci-error-recovery-symbios-scsi-base-support-fixes.patch
-pci-error-recovery-symbios-scsi-first-failure-fix.patch
-cxacru-add-documentation-file-fix.patch
-fix-x86_64-mm-fam10-mwait-idle.patch
-more-fix-x86_64-mm-fam10-mwait-idle.patch
-fix-x86_64-mm-sched-clock-share.patch
-revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
-rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-resurrect-the-vmi-lazy-mode-fixes-fix.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-extend-print_symbol-capability-fix-fix.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-proc-maps-protection-include-fix.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-sys_futex64-allows-64bit-futexes-workaround.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-unprivileged-mounts-account-user-mounts-fix.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+fix-refrigerator-vs-thaw_process-race.patch
+swsusp-use-inline-functions-for-changing-page-flags.patch
+swsusp-do-not-use-page-flags.patch
+mm-remove-unused-page-flags.patch
+swsusp-fix-error-paths-in-snapshot_open.patch
+swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-force-pm_opsvalid-callback-to-be.patch
+freezer-remove-pf_nofreeze-from-handle_initrd.patch
+swsusp-use-rbtree-for-tracking-allocated-swap.patch
+freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch
+remove-software_suspend.patch
+power-management-change-sys-power-disk-display.patch
+kconfig-mentioneds-hibernation-not-just-swsusp.patch
+swsusp-fix-snapshot_release.patch
+swsusp-free-more-memory.patch
+pm-introduce-suspend-notifiers-rev-2.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+fix-pf_nofreeze-and-freezeable-race.patch
+freezer-document-task_lock-in-thaw_process.patch
+add-suspend-related-notifications-for-cpu-hotplug.patch
+microcode-use-suspend-related-cpu-hotplug-notifications.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+shrink_slab-handle-bad-shrinkers.patch
