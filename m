@@ -1,182 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - kthread-simplify-kthread_create.patch removed from -mm tree
-Date: Tue, 24 Apr 2007 03:10:23 -0700
-Message-ID: <200704241010.l3OAANoX006025@shell0.pdx.osdl.net>
+Subject: - proc-maps-protection-fix-2.patch removed from -mm tree
+Date: Tue, 24 Apr 2007 03:14:55 -0700
+Message-ID: <200704241014.l3OAEt2N006077@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47777 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53901 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161707AbXDXKK4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752906AbXDXKPE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Apr 2007 06:10:56 -0400
+	Tue, 24 Apr 2007 06:15:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, hch@lst.de, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kthread: simplify kthread_create
+     proc-maps-protection-fix-2
 has been removed from the -mm tree.  Its filename was
-     kthread-simplify-kthread_create.patch
+     proc-maps-protection-fix-2.patch
 
-This patch was dropped because it edpended upon kthread-enhance-kthread_stop-to-abort-interruptible-sleeps.patch
+This patch was dropped because it was folded into proc-maps-protection.patch
 
 ------------------------------------------------------
-Subject: kthread: simplify kthread_create
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: proc-maps-protection-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This removes an unneeded completion from kthread_create and moves
-wake_up_process out of the kthread_create_lock making it clear that
-wake_up_process doesn't need the protection of the kthread_create_lock.
+fs/proc/base.c:127: warning: data definition has no type or storage class
+fs/proc/base.c:127: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL'
+fs/proc/base.c:127: warning: parameter names (without types) in function declaration
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Kees Cook <kees@outflux.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ fs/proc/base.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/kthread.c~kthread-simplify-kthread_create kernel/kthread.c
---- a/kernel/kthread.c~kthread-simplify-kthread_create
-+++ a/kernel/kthread.c
-@@ -24,7 +24,6 @@ struct kthread_create_info
- 	/* Information passed to kthread() from kthreadd. */
- 	int (*threadfn)(void *data);
- 	void *data;
--	struct completion started;
- 
- 	/* Result passed back to kthread_create() from kthreadd. */
- 	struct task_struct *result;
-@@ -41,6 +40,9 @@ static int kthread(void *_create)
- 	void *data;
- 	int ret = -EINTR;
- 
-+	/* Report which task_struct I am */
-+	create->result = current;
-+
- 	/* Setup a completion on this thread's stack */
- 	init_completion(&done);
- 	current->vfork_done = &done;
-@@ -51,7 +53,7 @@ static int kthread(void *_create)
- 
- 	/* OK, tell user we're spawned, wait for stop or wakeup */
- 	__set_current_state(TASK_INTERRUPTIBLE);
--	complete(&create->started);
-+	complete(&create->done);
- 	schedule();
- 
- 	if (!kthread_should_stop())
-@@ -68,13 +70,8 @@ static void create_kthread(struct kthrea
- 	pid = kernel_thread(kthread, create, CLONE_FS | CLONE_FILES | SIGCHLD);
- 	if (pid < 0) {
- 		create->result = ERR_PTR(pid);
--	} else {
--		wait_for_completion(&create->started);
--		read_lock(&tasklist_lock);
--		create->result = find_task_by_pid(pid);
--		read_unlock(&tasklist_lock);
-+		complete(&create->done);
- 	}
--	complete(&create->done);
- }
- 
- /**
-@@ -105,14 +102,13 @@ struct task_struct *kthread_create(int (
- 
- 	create.threadfn = threadfn;
- 	create.data = data;
--	init_completion(&create.started);
- 	init_completion(&create.done);
- 
- 	spin_lock(&kthread_create_lock);
- 	list_add_tail(&create.list, &kthread_create_list);
--	wake_up_process(kthreadd_task);
- 	spin_unlock(&kthread_create_lock);
- 
-+	wake_up_process(kthreadd_task);
- 	wait_for_completion(&create.done);
- 
- 	if (!IS_ERR(create.result)) {
+diff -puN fs/proc/base.c~proc-maps-protection-fix-2 fs/proc/base.c
+--- a/fs/proc/base.c~proc-maps-protection-fix-2
++++ a/fs/proc/base.c
+@@ -64,6 +64,7 @@
+ #include <linux/smp_lock.h>
+ #include <linux/rcupdate.h>
+ #include <linux/kallsyms.h>
++#include <linux/module.h>
+ #include <linux/mount.h>
+ #include <linux/security.h>
+ #include <linux/ptrace.h>
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arm-ecard-convert-to-use-the-kthread-api.patch
-powerpc-rtas-msi-support.patch
-macintosh-mediabay-convert-to-kthread-api.patch
-macintosh-adb-convert-to-the-kthread-api.patch
-macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
-powerpc-pseries-rtasd-convert-to-kthread-api.patch
-powerpc-pseries-eeh-convert-to-kthread-api.patch
-dvb_en_50221-convert-to-kthread-api.patch
-mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
-ia64-sn-xpc-convert-to-use-kthread-api.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
+origin.patch
+acpi-thermal-fix-mod_timer-interval.patch
+packet-fix-error-handling.patch
+fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix-2.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+git-infiniband-make-it-build-hack.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 git-mtd.patch
-fix-i-oat-for-kexec.patch
-cpqphp-partially-convert-to-use-the-kthread-api.patch
-ibmphp-partially-convert-to-use-the-kthreads-api.patch
-cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
-s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
-s390-qeth-convert-to-use-the-kthread-api.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
-sparc64-powerc-convert-to-use-the-kthread-api.patch
-i386-irq-kill-irq-compression.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+git-netdev-all-fixup.patch
+reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-baycom_ser_fdx-fix.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-fix-yamc.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+pci-error-recovery-symbios-scsi-base-support-fixes.patch
+pci-error-recovery-symbios-scsi-first-failure-fix.patch
+cxacru-add-documentation-file-fix.patch
+fix-x86_64-mm-fam10-mwait-idle.patch
+more-fix-x86_64-mm-fam10-mwait-idle.patch
+fix-x86_64-mm-sched-clock-share.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api.patch
-i386-balance_irq-convert-to-the-kthread-api.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-clean-up-elf-note-generation.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
-proc-cleanup-use-seq_release_private-where-appropriate.patch
-smbfs-remove-unnecessary-allow_signal.patch
-pnpbios-conert-to-use-the-kthread-api.patch
-kthread-dont-depend-on-work-queues-take-2.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+proc-maps-protection-fix-2.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 kthread-dont-depend-on-work-queues-take-2-fix.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-kthread-simplify-kthread_create.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-worker_thread-dont-play-with-sigchld-and-numa-policy.patch
-change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-edac-k8-driver-coding-tidy.patch
-nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+sys_futex64-allows-64bit-futexes-workaround.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
 unprivileged-mounts-account-user-mounts-fix.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
 unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
 unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-md-remove-broken-sigkill-support.patch
-mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
