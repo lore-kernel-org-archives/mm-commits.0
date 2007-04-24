@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch added to -mm tree
-Date: Tue, 24 Apr 2007 14:04:28 -0700
-Message-ID: <200704242104.l3OL4SV3019236@shell0.pdx.osdl.net>
+Subject: + create-the-zone_movable-zone-align-zone_movable-to-a-max_order_nr_pages-boundary.patch added to -mm tree
+Date: Tue, 24 Apr 2007 14:05:56 -0700
+Message-ID: <200704242105.l3OL5ujG019275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57338 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423123AbXDXVFJ (ORCPT
+	by vger.kernel.org with ESMTP id S1423118AbXDXVGd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Apr 2007 17:05:09 -0400
+	Tue, 24 Apr 2007 17:06:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com, apw@shadowen.org, mel@csn.ul.ie
+Cc: mel@csn.ul.ie, apw@shadowen.org
 
 
 The patch titled
-     Handle kernelcore= boot parameter in common code to avoid boot problem on IA64
+     Align ZONE_MOVABLE to a MAX_ORDER_NR_PAGES boundary
 has been added to the -mm tree.  Its filename is
-     handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
+     create-the-zone_movable-zone-align-zone_movable-to-a-max_order_nr_pages-boundary.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,127 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Handle kernelcore= boot parameter in common code to avoid boot problem on IA64
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Align ZONE_MOVABLE to a MAX_ORDER_NR_PAGES boundary
+From: Mel Gorman <mel@csn.ul.ie>
 
-When "kernelcore" boot option is specified, kernel can't boot up on ia64
-because of an infinite loop.  In addition, the parsing code can be handled
-in an architecture-independent manner.
+The boot memory allocator makes assumptions on the alignment of zone
+boundaries even though the buddy allocator has no requirements on the
+alignment of zones.  This may cause boot problems in situations where
+ZONE_MOVABLE is populated because the bootmem allocator assumes zones are
+at least order-log2(BITS_PER_LONG) aligned.  As the two potential users
+(huge pages and memory hot-remove) of ZONE_MOVABLE would prefer a higher
+alignment, this patch aligns the start of the zone instead of fixing the
 
-This patch patches uses common code to handle the kernelcore= parameter. 
-It is only available to architectures that support arch-independent
-zone-sizing (i.e.  define CONFIG_ARCH_POPULATES_NODE_MAP).  Other
-architectures will ignore the boot parameter.
+This patch rounds the start of ZONE_MOVABLE in each node to a
+MAX_ORDER_NR_PAGES boundary.  If the rounding pushes the start of
+ZONE_MOVABLE above the end of the node then the zone will contain no memory
+and will not be used at runtime.  The value is rounded up instead of down
+as it is better to have the kernel-portion of memory larger than requested
+instead of smaller.  The impact is that the kernel-usable portion of memory
+because a minimum guarantee instead of the exact size requested by the
+user.
 
-This effectively removes the following arch-specific patches;
-
-ia64-specify-amount-of-kernel-memory-at-boot-time.patch
-ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
-x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
-x86-specify-amount-of-kernel-memory-at-boot-time.patch
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/setup.c   |    1 -
- arch/ia64/kernel/efi.c     |    2 --
- arch/powerpc/kernel/prom.c |    1 -
- arch/ppc/mm/init.c         |    2 --
- arch/x86_64/kernel/e820.c  |    1 -
- include/linux/mm.h         |    1 -
- mm/page_alloc.c            |    3 +++
- 7 files changed, 3 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN arch/i386/kernel/setup.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
-+++ a/arch/i386/kernel/setup.c
-@@ -195,7 +195,6 @@ static int __init parse_mem(char *arg)
- 	return 0;
- }
- early_param("mem", parse_mem);
--early_param("kernelcore", cmdline_parse_kernelcore);
- 
- #ifdef CONFIG_PROC_VMCORE
- /* elfcorehdr= specifies the location of elf core header
-diff -puN arch/ia64/kernel/efi.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/ia64/kernel/efi.c
---- a/arch/ia64/kernel/efi.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
-+++ a/arch/ia64/kernel/efi.c
-@@ -423,8 +423,6 @@ efi_init (void)
- 			mem_limit = memparse(cp + 4, &cp);
- 		} else if (memcmp(cp, "max_addr=", 9) == 0) {
- 			max_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
--		} else if (memcmp(cp, "kernelcore=",11) == 0) {
--			cmdline_parse_kernelcore(cp+11);
- 		} else if (memcmp(cp, "min_addr=", 9) == 0) {
- 			min_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
- 		} else {
-diff -puN arch/powerpc/kernel/prom.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/powerpc/kernel/prom.c
---- a/arch/powerpc/kernel/prom.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
-+++ a/arch/powerpc/kernel/prom.c
-@@ -432,7 +432,6 @@ static int __init early_parse_mem(char *
- 	return 0;
- }
- early_param("mem", early_parse_mem);
--early_param("kernelcore", cmdline_parse_kernelcore);
- 
- /*
-  * The device tree may be allocated below our memory limit, or inside the
-diff -puN arch/ppc/mm/init.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/ppc/mm/init.c
---- a/arch/ppc/mm/init.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
-+++ a/arch/ppc/mm/init.c
-@@ -214,8 +214,6 @@ void MMU_setup(void)
- 	}
- }
- 
--early_param("kernelcore", cmdline_parse_kernelcore);
--
- /*
-  * MMU_init sets up the basic memory mappings for the kernel,
-  * including both RAM and possibly some I/O regions,
-diff -puN arch/x86_64/kernel/e820.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 arch/x86_64/kernel/e820.c
---- a/arch/x86_64/kernel/e820.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
-+++ a/arch/x86_64/kernel/e820.c
-@@ -618,7 +618,6 @@ static int __init parse_memopt(char *p)
- 	return 0;
- } 
- early_param("mem", parse_memopt);
--early_param("kernelcore", cmdline_parse_kernelcore);
- 
- static int userdef __initdata;
- 
-diff -puN include/linux/mm.h~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 include/linux/mm.h
---- a/include/linux/mm.h~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
-+++ a/include/linux/mm.h
-@@ -988,7 +988,6 @@ extern unsigned long find_max_pfn_with_a
- extern void free_bootmem_with_active_regions(int nid,
- 						unsigned long max_low_pfn);
- extern void sparse_memory_present_with_active_regions(int nid);
--extern int cmdline_parse_kernelcore(char *p);
- #ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
- extern int early_pfn_to_nid(unsigned long pfn);
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
-diff -puN mm/page_alloc.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64 mm/page_alloc.c
---- a/mm/page_alloc.c~handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64
+diff -puN mm/page_alloc.c~create-the-zone_movable-zone-align-zone_movable-to-a-max_order_nr_pages-boundary mm/page_alloc.c
+--- a/mm/page_alloc.c~create-the-zone_movable-zone-align-zone_movable-to-a-max_order_nr_pages-boundary
 +++ a/mm/page_alloc.c
-@@ -3542,6 +3542,9 @@ int __init cmdline_parse_kernelcore(char
- 
- 	return 0;
+@@ -3445,6 +3445,11 @@ restart:
+ 	usable_nodes--;
+ 	if (usable_nodes && required_kernelcore > usable_nodes)
+ 		goto restart;
++
++	/* Align start of ZONE_MOVABLE on all nids to MAX_ORDER_NR_PAGES */
++	for (nid = 0; nid < MAX_NUMNODES; nid++)
++		zone_movable_pfn[nid] =
++			roundup(zone_movable_pfn[nid], MAX_ORDER_NR_PAGES);
  }
-+
-+early_param("kernelcore", cmdline_parse_kernelcore);
-+
- #endif /* CONFIG_ARCH_POPULATES_NODE_MAP */
  
  /**
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+add-a-configure-option-to-group-pages-by-mobility-speedup.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+move-free-pages-between-lists-on-steal-fix.patch
 move-free-pages-between-lists-on-steal-fix-2.patch
+move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
 move-free-pages-between-lists-on-steal-do-not-cross-section-boundary-when-moving-pages-between-mobility-lists.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+create-the-zone_movable-zone.patch
+create-the-zone_movable-zone-align-zone_movable-to-a-max_order_nr_pages-boundary.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+x86-specify-amount-of-kernel-memory-at-boot-time.patch
+ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
+x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
+ia64-specify-amount-of-kernel-memory-at-boot-time.patch
+add-documentation-for-additional-boot-parameter-and-sysctl.patch
 handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
-fix-section-mismatch-of-memory-hotplug-related-code.patch
-add-white-list-into-modpostc-for-memory-hotplug-code-and-ia64s-machvec-section.patch
+lumpy-reclaim-v4.patch
+lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
+lumpy-only-count-taken-pages-as-scanned.patch
+kswapd-use-reclaim-order-in-background-reclaim.patch
+lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
+introduce-high_order-delineating-easily-reclaimable-orders.patch
+add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
+anti-fragmentation-switch-over-to-pfn_valid_within.patch
+lumpy-move-to-using-pfn_valid_within.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+do-not-disable-interrupts-when-reading-min_free_kbytes.patch
+ext2-reservations.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
