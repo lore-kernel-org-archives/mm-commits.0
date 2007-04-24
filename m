@@ -1,59 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - proc-maps-protection-include-fix.patch removed from -mm tree
-Date: Tue, 24 Apr 2007 03:30:51 -0700
-Message-ID: <200704241033.l3OAXUI7006415@shell0.pdx.osdl.net>
+Subject: + enlarge-console-name.patch added to -mm tree
+Date: Tue, 24 Apr 2007 10:29:45 -0700
+Message-ID: <200704241729.l3OHTjkZ014586@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49981 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48495 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754623AbXDXKdp (ORCPT
+	by vger.kernel.org with ESMTP id S1422808AbXDXR36 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Apr 2007 06:33:45 -0400
+	Tue, 24 Apr 2007 13:29:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, kraxel@redhat.com
 
 
 The patch titled
-     proc-maps-protection-include-fix
-has been removed from the -mm tree.  Its filename was
-     proc-maps-protection-include-fix.patch
+     enlarge console.name
+has been added to the -mm tree.  Its filename is
+     enlarge-console-name.patch
 
-This patch was dropped because it was against the wrong patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: proc-maps-protection-include-fix
+Subject: enlarge console.name
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/task_mmu.c:244: warning: implicit declaration of function 'ptrace_may_attach'
+console.name[] is eight chars, but so is "earlyvga".  So when we try to print
+console->name when using earlyvga it runs off the end of the string.
 
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Kees Cook <kees@outflux.net>
+Make it bigger.
+
+Diagnosed-by: Gerd Hoffmann <kraxel@redhat.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    1 +
- sysctl.c           |    0 
- 2 files changed, 1 insertion(+)
+ include/linux/console.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN CREDITS~proc-maps-protection-include-fix CREDITS
-diff -puN Documentation/filesystems/proc.txt~proc-maps-protection-include-fix Documentation/filesystems/proc.txt
-diff -puN fs/proc/base.c~proc-maps-protection-include-fix fs/proc/base.c
-diff -puN fs/proc/internal.h~proc-maps-protection-include-fix fs/proc/internal.h
-diff -puN fs/proc/task_mmu.c~proc-maps-protection-include-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-maps-protection-include-fix
-+++ a/fs/proc/task_mmu.c
-@@ -3,6 +3,7 @@
- #include <linux/mount.h>
- #include <linux/seq_file.h>
- #include <linux/highmem.h>
-+#include <linux/ptrace.h>
- #include <linux/pagemap.h>
- #include <linux/mempolicy.h>
+diff -puN include/linux/console.h~enlarge-console-name include/linux/console.h
+--- a/include/linux/console.h~enlarge-console-name
++++ a/include/linux/console.h
+@@ -92,9 +92,8 @@ void give_up_console(const struct consw 
+ #define CON_BOOT	(8)
+ #define CON_ANYTIME	(16) /* Safe to call when cpu is offline */
  
-diff -puN fs/proc/task_nommu.c~proc-maps-protection-include-fix fs/proc/task_nommu.c
-diff -puN include/linux/sysctl.h~proc-maps-protection-include-fix include/linux/sysctl.h
-diff -puN kernel/sysctl.c~proc-maps-protection-include-fix kernel/sysctl.c
+-struct console
+-{
+-	char	name[8];
++struct console {
++	char	name[16];
+ 	void	(*write)(struct console *, const char *, unsigned);
+ 	int	(*read)(struct console *, char *, unsigned);
+ 	struct tty_driver *(*device)(struct console *, int *);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -182,7 +185,6 @@ mm-shrink-parent-dentries-when-shrinking-slab.patch
 merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
 virtual_eisa_root_init-should-be-__init.patch
 proc-maps-protection.patch
-proc-maps-protection-include-fix.patch
 fix-cycladesh-for-x86_64-and-probably-others-fix.patch
 rtc-add-rtc-rs5c313-driver-tidy.patch
 rtc-add-rtc-rs5c313-driver-is-busted.patch
@@ -250,3 +252,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+enlarge-console-name.patch
