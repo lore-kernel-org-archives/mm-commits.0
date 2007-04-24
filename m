@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + enlarge-console-name.patch added to -mm tree
-Date: Tue, 24 Apr 2007 10:29:45 -0700
-Message-ID: <200704241729.l3OHTjkZ014586@shell0.pdx.osdl.net>
+Subject: + x86_64-unexport-cpu_llc_id.patch added to -mm tree
+Date: Tue, 24 Apr 2007 12:29:37 -0700
+Message-ID: <200704241929.l3OJTbOR017167@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48495 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422808AbXDXR36 (ORCPT
+	by vger.kernel.org with ESMTP id S1423063AbXDXT3n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Apr 2007 13:29:58 -0400
+	Tue, 24 Apr 2007 15:29:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kraxel@redhat.com
+Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     enlarge console.name
+     x86_64: unexport cpu_llc_id
 has been added to the -mm tree.  Its filename is
-     enlarge-console-name.patch
+     x86_64-unexport-cpu_llc_id.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: enlarge console.name
+Subject: x86_64: unexport cpu_llc_id
 From: Andrew Morton <akpm@linux-foundation.org>
 
-console.name[] is eight chars, but so is "earlyvga".  So when we try to print
-console->name when using earlyvga it runs off the end of the string.
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.data:cpu_llc_id from __ksymtab between '__ksymtab_cpu_llc_id' (at offset 0x4a0) and '__ksymtab_smp_num_siblings'
 
-Make it bigger.
+It is strange to export a __cpuinitdata symbols to modules, and no module
+appears to use it anyway.
 
-Diagnosed-by: Gerd Hoffmann <kraxel@redhat.com>
-
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/console.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/x86_64/kernel/smpboot.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/console.h~enlarge-console-name include/linux/console.h
---- a/include/linux/console.h~enlarge-console-name
-+++ a/include/linux/console.h
-@@ -92,9 +92,8 @@ void give_up_console(const struct consw 
- #define CON_BOOT	(8)
- #define CON_ANYTIME	(16) /* Safe to call when cpu is offline */
+diff -puN arch/x86_64/kernel/smpboot.c~x86_64-unexport-cpu_llc_id arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~x86_64-unexport-cpu_llc_id
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -66,7 +66,6 @@ EXPORT_SYMBOL(smp_num_siblings);
  
--struct console
--{
--	char	name[8];
-+struct console {
-+	char	name[16];
- 	void	(*write)(struct console *, const char *, unsigned);
- 	int	(*read)(struct console *, char *, unsigned);
- 	struct tty_driver *(*device)(struct console *, int *);
+ /* Last level cache ID of each logical CPU */
+ u8 cpu_llc_id[NR_CPUS] __cpuinitdata  = {[0 ... NR_CPUS-1] = BAD_APICID};
+-EXPORT_SYMBOL(cpu_llc_id);
+ 
+ /* Bitmask of currently online CPUs */
+ cpumask_t cpu_online_map __read_mostly;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,6 +183,7 @@ proc-maps-protection.patch
 fix-cycladesh-for-x86_64-and-probably-others-fix.patch
 rtc-add-rtc-rs5c313-driver-tidy.patch
 rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
 move-die-notifier-handling-to-common-code-fixes-2.patch
 move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
 fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
@@ -252,4 +248,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-enlarge-console-name.patch
+x86_64-unexport-cpu_llc_id.patch
