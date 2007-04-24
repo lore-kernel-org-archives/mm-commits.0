@@ -1,53 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - proc-maps-protection-fix-2.patch removed from -mm tree
-Date: Tue, 24 Apr 2007 03:14:55 -0700
-Message-ID: <200704241014.l3OAEt2N006077@shell0.pdx.osdl.net>
+Subject: - proc-maps-protection-tidy.patch removed from -mm tree
+Date: Tue, 24 Apr 2007 03:14:52 -0700
+Message-ID: <200704241014.l3OAEq98006074@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53901 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752906AbXDXKPE (ORCPT
+	by vger.kernel.org with ESMTP id S1751479AbXDXKPC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Apr 2007 06:15:04 -0400
+	Tue, 24 Apr 2007 06:15:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc-maps-protection-fix-2
+     proc-maps-protection-tidy
 has been removed from the -mm tree.  Its filename was
-     proc-maps-protection-fix-2.patch
+     proc-maps-protection-tidy.patch
 
 This patch was dropped because it was folded into proc-maps-protection.patch
 
 ------------------------------------------------------
-Subject: proc-maps-protection-fix-2
+Subject: proc-maps-protection-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/base.c:127: warning: data definition has no type or storage class
-fs/proc/base.c:127: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL'
-fs/proc/base.c:127: warning: parameter names (without types) in function declaration
+New sysctl numbers are old hat.
 
 Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Kees Cook <kees@outflux.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/base.c         |    2 +-
+ include/linux/sysctl.h |    1 -
+ kernel/sysctl.c        |    2 +-
+ 3 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/base.c~proc-maps-protection-fix-2 fs/proc/base.c
---- a/fs/proc/base.c~proc-maps-protection-fix-2
+diff -puN fs/proc/base.c~proc-maps-protection-tidy fs/proc/base.c
+--- a/fs/proc/base.c~proc-maps-protection-tidy
 +++ a/fs/proc/base.c
-@@ -64,6 +64,7 @@
- #include <linux/smp_lock.h>
- #include <linux/rcupdate.h>
- #include <linux/kallsyms.h>
-+#include <linux/module.h>
- #include <linux/mount.h>
- #include <linux/security.h>
- #include <linux/ptrace.h>
+@@ -123,7 +123,7 @@ struct pid_entry {
+ 		NULL, &proc_info_file_operations,	\
+ 		{ .proc_read = &proc_##OTYPE } )
+ 
+-int maps_protect = 0;
++int maps_protect;
+ EXPORT_SYMBOL(maps_protect);
+ 
+ static struct fs_struct *get_fs_struct(struct task_struct *task)
+diff -puN include/linux/sysctl.h~proc-maps-protection-tidy include/linux/sysctl.h
+--- a/include/linux/sysctl.h~proc-maps-protection-tidy
++++ a/include/linux/sysctl.h
+@@ -165,7 +165,6 @@ enum
+ 	KERN_MAX_LOCK_DEPTH=74,
+ 	KERN_NMI_WATCHDOG=75, /* int: enable/disable nmi watchdog */
+ 	KERN_PANIC_ON_NMI=76, /* int: whether we will panic on an unrecovered */
+-	KERN_MAPS_PROTECT=77, /* int: whether we protect maps from public visibility */
+ };
+ 
+ 
+diff -puN kernel/sysctl.c~proc-maps-protection-tidy kernel/sysctl.c
+--- a/kernel/sysctl.c~proc-maps-protection-tidy
++++ a/kernel/sysctl.c
+@@ -605,7 +605,7 @@ static ctl_table kern_table[] = {
+ 	},
+ #endif
+ 	{
+-		.ctl_name       = KERN_MAPS_PROTECT,
++		.ctl_name       = CTL_UNNUMBERED,
+ 		.procname       = "maps_protect",
+ 		.data           = &maps_protect,
+ 		.maxlen         = sizeof(int),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,6 +199,7 @@ mm-shrink-parent-dentries-when-shrinking-slab.patch
 merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
 virtual_eisa_root_init-should-be-__init.patch
 proc-maps-protection.patch
+proc-maps-protection-tidy.patch
 proc-maps-protection-fix-2.patch
 fix-cycladesh-for-x86_64-and-probably-others-fix.patch
 rtc-add-rtc-rs5c313-driver-tidy.patch
