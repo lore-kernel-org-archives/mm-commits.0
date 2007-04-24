@@ -1,56 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-add-proc-pid-pagemap-interface-fix-fix.patch added to -mm tree
-Date: Tue, 24 Apr 2007 03:28:41 -0700
-Message-ID: <200704241031.l3OAVKA4006360@shell0.pdx.osdl.net>
+Subject: - proc-maps-protection-include-fix.patch removed from -mm tree
+Date: Tue, 24 Apr 2007 03:30:51 -0700
+Message-ID: <200704241033.l3OAXUI7006415@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47309 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753971AbXDXKcT (ORCPT
+	by vger.kernel.org with ESMTP id S1754623AbXDXKdp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Apr 2007 06:32:19 -0400
+	Tue, 24 Apr 2007 06:33:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@sw.ru, mpm@selenic.com
+To: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps2-add-proc-pid-pagemap-interface-fix-fix
-has been added to the -mm tree.  Its filename is
-     maps2-add-proc-pid-pagemap-interface-fix-fix.patch
+     proc-maps-protection-include-fix
+has been removed from the -mm tree.  Its filename was
+     proc-maps-protection-include-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was against the wrong patch
 
 ------------------------------------------------------
-Subject: maps2-add-proc-pid-pagemap-interface-fix-fix
+Subject: proc-maps-protection-include-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/task_mmu.c: In function 'pagemap_read':
-fs/proc/task_mmu.c:638: warning: implicit declaration of function 'ptrace_may_attach'
+fs/proc/task_mmu.c:244: warning: implicit declaration of function 'ptrace_may_attach'
 
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Matt Mackall <mpm@selenic.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Kees Cook <kees@outflux.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/proc/task_mmu.c |    1 +
- 1 file changed, 1 insertion(+)
+ sysctl.c           |    0 
+ 2 files changed, 1 insertion(+)
 
-diff -puN fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix-fix
+diff -puN CREDITS~proc-maps-protection-include-fix CREDITS
+diff -puN Documentation/filesystems/proc.txt~proc-maps-protection-include-fix Documentation/filesystems/proc.txt
+diff -puN fs/proc/base.c~proc-maps-protection-include-fix fs/proc/base.c
+diff -puN fs/proc/internal.h~proc-maps-protection-include-fix fs/proc/internal.h
+diff -puN fs/proc/task_mmu.c~proc-maps-protection-include-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-maps-protection-include-fix
 +++ a/fs/proc/task_mmu.c
-@@ -4,6 +4,7 @@
+@@ -3,6 +3,7 @@
+ #include <linux/mount.h>
  #include <linux/seq_file.h>
  #include <linux/highmem.h>
- #include <linux/pagemap.h>
 +#include <linux/ptrace.h>
+ #include <linux/pagemap.h>
  #include <linux/mempolicy.h>
  
- #include <asm/elf.h>
+diff -puN fs/proc/task_nommu.c~proc-maps-protection-include-fix fs/proc/task_nommu.c
+diff -puN include/linux/sysctl.h~proc-maps-protection-include-fix include/linux/sysctl.h
+diff -puN kernel/sysctl.c~proc-maps-protection-include-fix kernel/sysctl.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
