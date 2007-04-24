@@ -1,56 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - proc-maps-protection-fix.patch removed from -mm tree
-Date: Tue, 24 Apr 2007 03:14:48 -0700
-Message-ID: <200704241014.l3OAEmqv006071@shell0.pdx.osdl.net>
+Subject: + proc-maps-protection-include-fix.patch added to -mm tree
+Date: Tue, 24 Apr 2007 03:18:52 -0700
+Message-ID: <200704241021.l3OALWs4006205@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43971 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42418 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754603AbXDXKPI (ORCPT
+	by vger.kernel.org with ESMTP id S1754610AbXDXKVx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 24 Apr 2007 06:15:08 -0400
+	Tue, 24 Apr 2007 06:21:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, arjan@infradead.org, kees@outflux.net
 
 
 The patch titled
-     proc-maps-protection-fix
-has been removed from the -mm tree.  Its filename was
-     proc-maps-protection-fix.patch
+     proc-maps-protection-include-fix
+has been added to the -mm tree.  Its filename is
+     proc-maps-protection-include-fix.patch
 
-This patch was dropped because it was folded into proc-maps-protection.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: proc-maps-protection-fix
+Subject: proc-maps-protection-include-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/sysctl.c:607: error: expected expression before ',' token
-kernel/sysctl.c:616: warning: braces around scalar initializer
-kernel/sysctl.c:616: warning: (near initialization for 'kern_table[31].data')
-kernel/sysctl.c:616: error: field name not in record or union initializer
-kernel/sysctl.c:616: error: (near initialization for 'kern_table[31].data')
+fs/proc/task_mmu.c:244: warning: implicit declaration of function 'ptrace_may_attach'
 
 Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Kees Cook <kees@outflux.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    1 +
+ sysctl.c           |    0 
+ 2 files changed, 1 insertion(+)
 
-diff -puN kernel/sysctl.c~proc-maps-protection-fix kernel/sysctl.c
---- a/kernel/sysctl.c~proc-maps-protection-fix
-+++ a/kernel/sysctl.c
-@@ -604,7 +604,7 @@ static ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- #endif
--	{,
-+	{
- 		.ctl_name       = KERN_MAPS_PROTECT,
- 		.procname       = "maps_protect",
- 		.data           = &maps_protect,
+diff -puN CREDITS~proc-maps-protection-include-fix CREDITS
+diff -puN Documentation/filesystems/proc.txt~proc-maps-protection-include-fix Documentation/filesystems/proc.txt
+diff -puN fs/proc/base.c~proc-maps-protection-include-fix fs/proc/base.c
+diff -puN fs/proc/internal.h~proc-maps-protection-include-fix fs/proc/internal.h
+diff -puN fs/proc/task_mmu.c~proc-maps-protection-include-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-maps-protection-include-fix
++++ a/fs/proc/task_mmu.c
+@@ -3,6 +3,7 @@
+ #include <linux/mount.h>
+ #include <linux/seq_file.h>
+ #include <linux/highmem.h>
++#include <linux/ptrace.h>
+ #include <linux/pagemap.h>
+ #include <linux/mempolicy.h>
+ 
+diff -puN fs/proc/task_nommu.c~proc-maps-protection-include-fix fs/proc/task_nommu.c
+diff -puN include/linux/sysctl.h~proc-maps-protection-include-fix include/linux/sysctl.h
+diff -puN kernel/sysctl.c~proc-maps-protection-include-fix kernel/sysctl.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,9 +185,7 @@ mm-shrink-parent-dentries-when-shrinking-slab.patch
 merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
 virtual_eisa_root_init-should-be-__init.patch
 proc-maps-protection.patch
-proc-maps-protection-fix.patch
-proc-maps-protection-tidy.patch
-proc-maps-protection-fix-2.patch
+proc-maps-protection-include-fix.patch
 fix-cycladesh-for-x86_64-and-probably-others-fix.patch
 rtc-add-rtc-rs5c313-driver-tidy.patch
 rtc-add-rtc-rs5c313-driver-is-busted.patch
