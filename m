@@ -1,78 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - oom-kill-all-threads-that-share-mm-with-killed-task.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:39:17 -0700
-Message-ID: <200704252039.l3PKdH5D012294@shell0.pdx.osdl.net>
+Subject: - i386-map-enough-initial-memory-to-create-lowmem-mappings.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:40:16 -0700
+Message-ID: <200704252040.l3PKeGXH012400@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46687 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993175AbXDYUlJ (ORCPT
+	by vger.kernel.org with ESMTP id S2993153AbXDYUlf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:41:09 -0400
+	Wed, 25 Apr 2007 16:41:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, ak@suse.de, bill.irwin@oracle.com, clameter@engr.sgi.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, ebiederm@xmission.com, hpa@zytor.com, jeremy@xensource.com, torvalds@linux-foundation.org, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: kill all threads that share mm with killed task
+     i386: map enough initial memory to create lowmem mappings
 has been removed from the -mm tree.  Its filename was
-     oom-kill-all-threads-that-share-mm-with-killed-task.patch
+     i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: oom: kill all threads that share mm with killed task
-From: David Rientjes <rientjes@google.com>
+Subject: i386: map enough initial memory to create lowmem mappings
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-oom_kill_task() calls __oom_kill_task() to OOM kill a selected task.  When
-finding other threads that share an mm with that task, we need to kill
-those individual threads and not the same one.
+head.S creates the very initial pagetable for the kernel.  This just maps
+enough space for the kernel itself, and an allocation bitmap.  The amount
+of mapped memory is rounded up to 4Mbytes, and so this typically ends up
+mapping 8Mbytes of memory.
 
+When booting, pagetable_init() needs to create mappings for all lowmem, and
+the pagetables for these mappings are allocated from the free pages around
+the kernel in low memory.  If the number of pagetable pages + kernel size
+exceeds head.S's initial mapping, it will end up faulting on an unmapped
+page.  This will only happen with specific combinations of kernel size and
+memory size.
+
+This patch makes sure that head.S also maps enough space to fit the kernel
+pagetables as well as the kernel itself.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Acked-by: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: <stable@kernel.org>
-Acked-by: William Irwin <bill.irwin@oracle.com>
+Cc: Zachary Amsden <zach@vmware.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Linus Torvalds <torvalds@osdl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/asm-offsets.c |    5 +++++
+ arch/i386/kernel/head.S        |   23 +++++++++++++++++++----
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-kill-all-threads-that-share-mm-with-killed-task mm/oom_kill.c
---- a/mm/oom_kill.c~oom-kill-all-threads-that-share-mm-with-killed-task
-+++ a/mm/oom_kill.c
-@@ -333,7 +333,7 @@ static int oom_kill_task(struct task_str
- 	 */
- 	do_each_thread(g, q) {
- 		if (q->mm == mm && q->tgid != p->tgid)
--			force_sig(SIGKILL, p);
-+			force_sig(SIGKILL, q);
- 	} while_each_thread(g, q);
+diff -puN arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings arch/i386/kernel/asm-offsets.c
+--- a/arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings
++++ a/arch/i386/kernel/asm-offsets.c
+@@ -97,6 +97,11 @@ void foo(void)
+ 		 sizeof(struct tss_struct));
  
- 	return 0;
+ 	DEFINE(PAGE_SIZE_asm, PAGE_SIZE);
++	DEFINE(PAGE_SHIFT_asm, PAGE_SHIFT);
++	DEFINE(PTRS_PER_PTE, PTRS_PER_PTE);
++	DEFINE(PTRS_PER_PMD, PTRS_PER_PMD);
++	DEFINE(PTRS_PER_PGD, PTRS_PER_PGD);
++
+ 	DEFINE(VDSO_PRELINK_asm, VDSO_PRELINK);
+ 
+ 	OFFSET(crypto_tfm_ctx_offset, crypto_tfm, __crt_ctx);
+diff -puN arch/i386/kernel/head.S~i386-map-enough-initial-memory-to-create-lowmem-mappings arch/i386/kernel/head.S
+--- a/arch/i386/kernel/head.S~i386-map-enough-initial-memory-to-create-lowmem-mappings
++++ a/arch/i386/kernel/head.S
+@@ -34,17 +34,32 @@
+ 
+ /*
+  * This is how much memory *in addition to the memory covered up to
+- * and including _end* we need mapped initially.  We need one bit for
+- * each possible page, but only in low memory, which means
+- * 2^32/4096/8 = 128K worst case (4G/4G split.)
++ * and including _end* we need mapped initially.
++ * We need:
++ *  - one bit for each possible page, but only in low memory, which means
++ *     2^32/4096/8 = 128K worst case (4G/4G split.)
++ *  - enough space to map all low memory, which means
++ *     (2^32/4096) / 1024 pages (worst case, non PAE)
++ *     (2^32/4096) / 512 + 4 pages (worst case for PAE)
++ *  - a few pages for allocator use before the kernel pagetable has
++ *     been set up
+  *
+  * Modulo rounding, each megabyte assigned here requires a kilobyte of
+  * memory, which is currently unreclaimed.
+  *
+  * This should be a multiple of a page.
+  */
+-#define INIT_MAP_BEYOND_END	(128*1024)
++LOW_PAGES = 1<<(32-PAGE_SHIFT_asm)
+ 
++#if PTRS_PER_PMD > 1
++PAGE_TABLE_SIZE = (LOW_PAGES / PTRS_PER_PMD) + PTRS_PER_PGD
++#else
++PAGE_TABLE_SIZE = (LOW_PAGES / PTRS_PER_PGD)
++#endif
++BOOTBITMAP_SIZE = LOW_PAGES / 8
++ALLOCATOR_SLOP = 4
++
++INIT_MAP_BEYOND_END = BOOTBITMAP_SIZE + (PAGE_TABLE_SIZE + ALLOCATOR_SLOP)*PAGE_SIZE_asm
+ 
+ /*
+  * 32-bit kernel entrypoint; only used by the boot CPU.  On entry,
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-origin.patch
-x86_64-set-node_possible_map-at-runtime.patch
-x86_64-set-node_possible_map-at-runtime-fix.patch
-x86_64-set-node_possible_map-at-runtime-fix-2.patch
-slab-x86_64-skip-cache_free_alien-on-non-numa.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
-smaps-use-ptep_test_and_clear_young.patch
-smaps-add-clear_refs-file-to-clear-reference-docs.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+allow-boot-time-disable-of-paravirt_ops-patching.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 maps2-uninline-some-functions-in-the-page-walker.patch
 maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
 maps2-remove-vma-from-args-in-the-page-walker.patch
@@ -87,4 +130,7 @@ maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
 maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
 maps2-add-proc-kpagemap-interface.patch
-cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+add-touch_all_softlockup_watchdogs.patch
