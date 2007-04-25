@@ -1,317 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: - deflate-stack-usage-in-lib-inflatec.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:40:23 -0700
-Message-ID: <200704252040.l3PKeN21012409@shell0.pdx.osdl.net>
+Subject: - resurrect-the-vmi-lazy-mode-fixes-fix.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:39:56 -0700
+Message-ID: <200704252039.l3PKduok012358@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35570 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48458 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993165AbXDYUlu (ORCPT
+	by vger.kernel.org with ESMTP id S2993176AbXDYU5r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:41:50 -0400
+	Wed, 25 Apr 2007 16:57:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, ink@jurassic.park.msu.ru, jeremy@xensource.com, mpm@selenic.com, plasmaroo@gentoo.org, rmk@arm.linux.org.uk, rth@twiddle.net, spyro@f2s.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     deflate stack usage in lib/inflate.c
+     resurrect-the-vmi-lazy-mode-fixes-fix
 has been removed from the -mm tree.  Its filename was
-     deflate-stack-usage-in-lib-inflatec.patch
+     resurrect-the-vmi-lazy-mode-fixes-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: deflate stack usage in lib/inflate.c
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: resurrect-the-vmi-lazy-mode-fixes-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-inflate_fixed and huft_build together use around 2.7k of stack.  When using
-4k stacks, I saw stack overflows from interrupts arriving while unpacking
-the root initrd:
-
-do_IRQ: stack overflow: 384
- [<c0106b64>] show_trace_log_lvl+0x1a/0x30
- [<c01075e6>] show_trace+0x12/0x14
- [<c010763f>] dump_stack+0x16/0x18
- [<c0107ca4>] do_IRQ+0x6d/0xd9
- [<c010202b>] xen_evtchn_do_upcall+0x6e/0xa2
- [<c0106781>] xen_hypervisor_callback+0x25/0x2c
- [<c010116c>] xen_restore_fl+0x27/0x29
- [<c0330f63>] _spin_unlock_irqrestore+0x4a/0x50
- [<c0117aab>] change_page_attr+0x577/0x584
- [<c0117b45>] kernel_map_pages+0x8d/0xb4
- [<c016a314>] cache_alloc_refill+0x53f/0x632
- [<c016a6c2>] __kmalloc+0xc1/0x10d
- [<c0463d34>] malloc+0x10/0x12
- [<c04641c1>] huft_build+0x2a7/0x5fa
- [<c04645a5>] inflate_fixed+0x91/0x136
- [<c04657e2>] unpack_to_rootfs+0x5f2/0x8c1
- [<c0465acf>] populate_rootfs+0x1e/0xe4
-
-(This was under Xen, but there's no reason it couldn't happen on bare
-  hardware.)
-
-This patch mallocs the local variables, thereby reducing the stack
-usage to sane levels.
-
-Also, up the heap size for the kernel decompressor to deal with the
-extra allocation.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Tim Yamin <plasmaroo@gentoo.org>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ian Molton <spyro@f2s.com>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/boot/misc.c             |    2 
- arch/arm/boot/compressed/misc.c    |    2 
- arch/arm26/boot/compressed/misc.c  |    2 
- arch/i386/boot/compressed/misc.c   |    2 
- arch/x86_64/boot/compressed/misc.c |    2 
- lib/inflate.c                      |   66 ++++++++++++++++++++-------
- 6 files changed, 54 insertions(+), 22 deletions(-)
+ include/asm-i386/paravirt.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/boot/compressed/misc.c~deflate-stack-usage-in-lib-inflatec arch/i386/boot/compressed/misc.c
---- a/arch/i386/boot/compressed/misc.c~deflate-stack-usage-in-lib-inflatec
-+++ a/arch/i386/boot/compressed/misc.c
-@@ -189,7 +189,7 @@ static void putstr(const char *);
- static unsigned long free_mem_ptr;
- static unsigned long free_mem_end_ptr;
+diff -puN include/asm-i386/paravirt.h~resurrect-the-vmi-lazy-mode-fixes-fix include/asm-i386/paravirt.h
+--- a/include/asm-i386/paravirt.h~resurrect-the-vmi-lazy-mode-fixes-fix
++++ a/include/asm-i386/paravirt.h
+@@ -30,6 +30,7 @@ enum paravirt_lazy_mode {
+ 	PARAVIRT_LAZY_NONE = 0,
+ 	PARAVIRT_LAZY_MMU = 1,
+ 	PARAVIRT_LAZY_CPU = 2,
++	PARAVIRT_LAZY_FLUSH = 3,
+ };
  
--#define HEAP_SIZE             0x3000
-+#define HEAP_SIZE             0x4000
- 
- static char *vidmem = (char *)0xb8000;
- static int vidport;
-diff -puN lib/inflate.c~deflate-stack-usage-in-lib-inflatec lib/inflate.c
---- a/lib/inflate.c~deflate-stack-usage-in-lib-inflatec
-+++ a/lib/inflate.c
-@@ -292,7 +292,6 @@ STATIC int INIT huft_build(
-    oversubscribed set of lengths), and three if not enough memory. */
- {
-   unsigned a;                   /* counter for codes of length k */
--  unsigned c[BMAX+1];           /* bit length count table */
-   unsigned f;                   /* i repeats in table every f entries */
-   int g;                        /* maximum code length */
-   int h;                        /* table level */
-@@ -303,18 +302,33 @@ STATIC int INIT huft_build(
-   register unsigned *p;         /* pointer into c[], b[], or v[] */
-   register struct huft *q;      /* points to current table */
-   struct huft r;                /* table entry for structure assignment */
--  struct huft *u[BMAX];         /* table stack */
--  unsigned v[N_MAX];            /* values in order of bit length */
-   register int w;               /* bits before this table == (l * h) */
--  unsigned x[BMAX+1];           /* bit offsets, then code stack */
-   unsigned *xp;                 /* pointer into x */
-   int y;                        /* number of dummy codes added */
-   unsigned z;                   /* number of entries in current table */
-+  struct {
-+    unsigned c[BMAX+1];           /* bit length count table */
-+    struct huft *u[BMAX];         /* table stack */
-+    unsigned v[N_MAX];            /* values in order of bit length */
-+    unsigned x[BMAX+1];           /* bit offsets, then code stack */
-+  } *stk;
-+  unsigned *c, *v, *x;
-+  struct huft **u;
-+  int ret;
- 
- DEBG("huft1 ");
- 
-+  stk = malloc(sizeof(*stk));
-+  if (stk == NULL)
-+    return 3;			/* out of memory */
-+
-+  c = stk->c;
-+  v = stk->v;
-+  x = stk->x;
-+  u = stk->u;
-+
-   /* Generate counts for each bit length */
--  memzero(c, sizeof(c));
-+  memzero(stk->c, sizeof(stk->c));
-   p = b;  i = n;
-   do {
-     Tracecv(*p, (stderr, (n-i >= ' ' && n-i <= '~' ? "%c %d\n" : "0x%x %d\n"), 
-@@ -326,7 +340,8 @@ DEBG("huft1 ");
-   {
-     *t = (struct huft *)NULL;
-     *m = 0;
--    return 2;
-+    ret = 2;
-+    goto out;
-   }
- 
- DEBG("huft2 ");
-@@ -351,10 +366,14 @@ DEBG("huft3 ");
- 
-   /* Adjust last length count to fill out codes, if needed */
-   for (y = 1 << j; j < i; j++, y <<= 1)
--    if ((y -= c[j]) < 0)
--      return 2;                 /* bad input: more codes than bits */
--  if ((y -= c[i]) < 0)
--    return 2;
-+    if ((y -= c[j]) < 0) {
-+      ret = 2;                 /* bad input: more codes than bits */
-+      goto out;
-+    }
-+  if ((y -= c[i]) < 0) {
-+    ret = 2;
-+    goto out;
-+  }
-   c[i] += y;
- 
- DEBG("huft4 ");
-@@ -428,7 +447,8 @@ DEBG1("3 ");
-         {
-           if (h)
-             huft_free(u[0]);
--          return 3;             /* not enough memory */
-+          ret = 3;             /* not enough memory */
-+	  goto out;
-         }
- DEBG1("4 ");
-         hufts += z + 1;         /* track memory usage */
-@@ -492,7 +512,11 @@ DEBG("h6f ");
- DEBG("huft7 ");
- 
-   /* Return true (1) if we were given an incomplete table */
--  return y != 0 && g != 1;
-+  ret = y != 0 && g != 1;
-+
-+  out:
-+  free(stk);
-+  return ret;
- }
- 
- 
-@@ -705,10 +729,14 @@ STATIC int noinline INIT inflate_fixed(v
-   struct huft *td;      /* distance code table */
-   int bl;               /* lookup bits for tl */
-   int bd;               /* lookup bits for td */
--  unsigned l[288];      /* length list for huft_build */
-+  unsigned *l;          /* length list for huft_build */
- 
- DEBG("<fix");
- 
-+  l = malloc(sizeof(*l) * 288);
-+  if (l == NULL)
-+    return 3;			/* out of memory */
-+
-   /* set up literal table */
-   for (i = 0; i < 144; i++)
-     l[i] = 8;
-@@ -719,9 +747,10 @@ DEBG("<fix");
-   for (; i < 288; i++)          /* make a complete, but wrong code set */
-     l[i] = 8;
-   bl = 7;
--  if ((i = huft_build(l, 288, 257, cplens, cplext, &tl, &bl)) != 0)
-+  if ((i = huft_build(l, 288, 257, cplens, cplext, &tl, &bl)) != 0) {
-+    free(l);
-     return i;
--
-+  }
- 
-   /* set up distance table */
-   for (i = 0; i < 30; i++)      /* make an incomplete code set */
-@@ -730,6 +759,7 @@ DEBG("<fix");
-   if ((i = huft_build(l, 30, 0, cpdist, cpdext, &td, &bd)) > 1)
-   {
-     huft_free(tl);
-+    free(l);
- 
-     DEBG(">");
-     return i;
-@@ -737,11 +767,13 @@ DEBG("<fix");
- 
- 
-   /* decompress until an end-of-block code */
--  if (inflate_codes(tl, td, bl, bd))
-+  if (inflate_codes(tl, td, bl, bd)) {
-+    free(l);
-     return 1;
--
-+  }
- 
-   /* free the decoding tables, return */
-+  free(l);
-   huft_free(tl);
-   huft_free(td);
-   return 0;
-diff -puN arch/alpha/boot/misc.c~deflate-stack-usage-in-lib-inflatec arch/alpha/boot/misc.c
---- a/arch/alpha/boot/misc.c~deflate-stack-usage-in-lib-inflatec
-+++ a/arch/alpha/boot/misc.c
-@@ -98,7 +98,7 @@ extern int end;
- static ulg free_mem_ptr;
- static ulg free_mem_ptr_end;
- 
--#define HEAP_SIZE 0x2000
-+#define HEAP_SIZE 0x3000
- 
- #include "../../../lib/inflate.c"
- 
-diff -puN arch/arm/boot/compressed/misc.c~deflate-stack-usage-in-lib-inflatec arch/arm/boot/compressed/misc.c
---- a/arch/arm/boot/compressed/misc.c~deflate-stack-usage-in-lib-inflatec
-+++ a/arch/arm/boot/compressed/misc.c
-@@ -239,7 +239,7 @@ extern int end;
- static ulg free_mem_ptr;
- static ulg free_mem_ptr_end;
- 
--#define HEAP_SIZE 0x2000
-+#define HEAP_SIZE 0x3000
- 
- #include "../../../../lib/inflate.c"
- 
-diff -puN arch/arm26/boot/compressed/misc.c~deflate-stack-usage-in-lib-inflatec arch/arm26/boot/compressed/misc.c
---- a/arch/arm26/boot/compressed/misc.c~deflate-stack-usage-in-lib-inflatec
-+++ a/arch/arm26/boot/compressed/misc.c
-@@ -182,7 +182,7 @@ extern int end;
- static ulg free_mem_ptr;
- static ulg free_mem_ptr_end;
- 
--#define HEAP_SIZE 0x2000
-+#define HEAP_SIZE 0x3000
- 
- #include "../../../../lib/inflate.c"
- 
-diff -puN arch/x86_64/boot/compressed/misc.c~deflate-stack-usage-in-lib-inflatec arch/x86_64/boot/compressed/misc.c
---- a/arch/x86_64/boot/compressed/misc.c~deflate-stack-usage-in-lib-inflatec
-+++ a/arch/x86_64/boot/compressed/misc.c
-@@ -189,7 +189,7 @@ static void putstr(const char *);
- static long free_mem_ptr;
- static long free_mem_end_ptr;
- 
--#define HEAP_SIZE             0x6000
-+#define HEAP_SIZE             0x7000
- 
- static char *vidmem = (char *)0xb8000;
- static int vidport;
+ struct paravirt_ops
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-allow-boot-time-disable-of-paravirt_ops-patching.patch
+origin.patch
+packet-fix-error-handling.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix-2.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-irq-registration-fix.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-fix-yamc.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+pci-error-recovery-symbios-scsi-base-support-fixes.patch
+pci-error-recovery-symbios-scsi-first-failure-fix.patch
+cxacru-add-documentation-file-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
 maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
+maps2-add-proc-pid-pagemap-interface-fix-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
 ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-add-touch_all_softlockup_watchdogs.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+unprivileged-mounts-account-user-mounts-fix.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
