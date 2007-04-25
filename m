@@ -1,115 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-elf-note-generation.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:40:21 -0700
-Message-ID: <200704252040.l3PKeLFq012406@shell0.pdx.osdl.net>
+Subject: - i386-mcheck-p4-grotesque-and-needless-warning-fix.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:39:50 -0700
+Message-ID: <200704252039.l3PKdokJ012345@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55791 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55242 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993177AbXDYU5u (ORCPT
+	by vger.kernel.org with ESMTP id S2993178AbXDYU5u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 25 Apr 2007 16:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ebiederm@xmission.com, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: zach@vmware.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up ELF note generation
+     i386 mcheck p4 grotesque and needless warning fix
 has been removed from the -mm tree.  Its filename was
-     clean-up-elf-note-generation.patch
+     i386-mcheck-p4-grotesque-and-needless-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up ELF note generation
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: i386 mcheck p4 grotesque and needless warning fix
+From: Zachary Amsden <zach@vmware.com>
 
-Three cleanups:
+No, just no.  You do not use goto to skip a code block.  You do not return an
+obvious variable from a singly-inlined function and give the function a return
+value.  You don't put unexplained comments about kmalloc in code which doesn't
+do dynamic allocation.  And you don't leave stray warnings around for no good
+reason.
 
-1: ELF notes are never mapped, so there's no need to have any access
-   flags in their phdr.
+Also, when possible, it is better to use block scoped variables because gcc
+can sometime generate better code.
 
-2: When generating them from asm, tell the assembler to use a SHT_NOTE
-   section type.  There doesn't seem to be a way to do this from C.
-
-3: Use ANSI rather than traditional cpp behaviour to stringify the
-   macro argument.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Zachary Amsden <zach@vmware.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmlinux.lds.S    |    2 +-
- include/asm-generic/vmlinux.lds.h |    2 +-
- include/linux/elfnote.h           |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ arch/i386/kernel/cpu/mcheck/p4.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN arch/i386/kernel/vmlinux.lds.S~clean-up-elf-note-generation arch/i386/kernel/vmlinux.lds.S
---- a/arch/i386/kernel/vmlinux.lds.S~clean-up-elf-note-generation
-+++ a/arch/i386/kernel/vmlinux.lds.S
-@@ -31,7 +31,7 @@ _proxy_pda = 1;
- PHDRS {
- 	text PT_LOAD FLAGS(5);	/* R_E */
- 	data PT_LOAD FLAGS(7);	/* RWE */
--	note PT_NOTE FLAGS(4);	/* R__ */
-+	note PT_NOTE FLAGS(0);	/* ___ */
- }
- SECTIONS
+diff -puN arch/i386/kernel/cpu/mcheck/p4.c~i386-mcheck-p4-grotesque-and-needless-warning-fix arch/i386/kernel/cpu/mcheck/p4.c
+--- a/arch/i386/kernel/cpu/mcheck/p4.c~i386-mcheck-p4-grotesque-and-needless-warning-fix
++++ a/arch/i386/kernel/cpu/mcheck/p4.c
+@@ -124,13 +124,10 @@ static void intel_init_thermal(struct cp
+ 
+ 
+ /* P4/Xeon Extended MCE MSR retrieval, return 0 if unsupported */
+-static inline int intel_get_extended_msrs(struct intel_mce_extended_msrs *r)
++static inline void intel_get_extended_msrs(struct intel_mce_extended_msrs *r)
  {
-diff -puN include/asm-generic/vmlinux.lds.h~clean-up-elf-note-generation include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~clean-up-elf-note-generation
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -230,7 +230,7 @@
- 	}
+ 	u32 h;
  
- #define NOTES								\
--		.notes : { *(.note.*) } :note
-+	.notes : { *(.note.*) } :note
+-	if (mce_num_extended_msrs == 0)
+-		goto done;
+-
+ 	rdmsr (MSR_IA32_MCG_EAX, r->eax, h);
+ 	rdmsr (MSR_IA32_MCG_EBX, r->ebx, h);
+ 	rdmsr (MSR_IA32_MCG_ECX, r->ecx, h);
+@@ -141,12 +138,6 @@ static inline int intel_get_extended_msr
+ 	rdmsr (MSR_IA32_MCG_ESP, r->esp, h);
+ 	rdmsr (MSR_IA32_MCG_EFLAGS, r->eflags, h);
+ 	rdmsr (MSR_IA32_MCG_EIP, r->eip, h);
+-
+-	/* can we rely on kmalloc to do a dynamic
+-	 * allocation for the reserved registers?
+-	 */
+-done:
+-	return mce_num_extended_msrs;
+ }
  
- #define INITCALLS							\
-   	*(.initcall0.init)						\
-diff -puN include/linux/elfnote.h~clean-up-elf-note-generation include/linux/elfnote.h
---- a/include/linux/elfnote.h~clean-up-elf-note-generation
-+++ a/include/linux/elfnote.h
-@@ -39,12 +39,12 @@
-  *      ELFNOTE(XYZCo, 12, .long, 0xdeadbeef)
-  */
- #define ELFNOTE(name, type, desctype, descdata)	\
--.pushsection .note.name			;	\
-+.pushsection .note.name, "",@note	;	\
-   .align 4				;	\
-   .long 2f - 1f		/* namesz */	;	\
-   .long 4f - 3f		/* descsz */	;	\
-   .long type				;	\
--1:.asciz "name"				;	\
-+1:.asciz #name				;	\
- 2:.align 4				;	\
- 3:desctype descdata			;	\
- 4:.align 4				;	\
+ static fastcall void intel_machine_check(struct pt_regs * regs, long error_code)
+@@ -155,7 +146,6 @@ static fastcall void intel_machine_check
+ 	u32 alow, ahigh, high, low;
+ 	u32 mcgstl, mcgsth;
+ 	int i;
+-	struct intel_mce_extended_msrs dbg;
+ 
+ 	rdmsr (MSR_IA32_MCG_STATUS, mcgstl, mcgsth);
+ 	if (mcgstl & (1<<0))	/* Recoverable ? */
+@@ -164,7 +154,9 @@ static fastcall void intel_machine_check
+ 	printk (KERN_EMERG "CPU %d: Machine Check Exception: %08x%08x\n",
+ 		smp_processor_id(), mcgsth, mcgstl);
+ 
+-	if (intel_get_extended_msrs(&dbg)) {
++	if (mce_num_extended_msrs > 0) {
++		struct intel_mce_extended_msrs dbg;
++		intel_get_extended_msrs(&dbg);
+ 		printk (KERN_DEBUG "CPU %d: EIP: %08x EFLAGS: %08x\n",
+ 			smp_processor_id(), dbg.eip, dbg.eflags);
+ 		printk (KERN_DEBUG "\teax: %08x ebx: %08x ecx: %08x edx: %08x\n",
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from zach@vmware.com are
 
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-allow-boot-time-disable-of-paravirt_ops-patching.patch
+fix-buslogic-to-stop-using-check_region.patch
+i386-pte-clear-optimization.patch
+i386-pte-xchg-optimization.patch
+i386-pte-simplify-ops.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
 ignore-stolen-time-in-the-softlockup-watchdog.patch
 ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-add-touch_all_softlockup_watchdogs.patch
