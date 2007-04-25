@@ -1,130 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:39:42 -0700
-Message-ID: <200704252039.l3PKdg3j012333@shell0.pdx.osdl.net>
+Subject: - netdrv-perform-missing-csum_offset-conversions.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:39:33 -0700
+Message-ID: <200704252039.l3PKdX1j012315@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51600 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46394 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993144AbXDYUkK (ORCPT
+	by vger.kernel.org with ESMTP id S2993148AbXDYUkY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:40:10 -0400
+	Wed, 25 Apr 2007 16:40:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, jeremy@xensource.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Rename the parainstructions symbols to be consistent with the others
+     NETDRV: perform missing csum_offset conversions
 has been removed from the -mm tree.  Its filename was
-     rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
+     netdrv-perform-missing-csum_offset-conversions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Rename the parainstructions symbols to be consistent with the others
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: NETDRV: perform missing csum_offset conversions
+From: Herbert Xu <herbert@gondor.apana.org.au>
 
-The other symbols used to delineate the alt-instructions sections have the
-form __foo/__foo_end.  Rename parainstructions to match.
+When csum_offset was introduced we did a conversion from csum to
+csum_offset where applicable.  A couple of drivers were missed in this
+process.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+It was harmless to begin with since the two fields coincided.  Now that
+we've made them different with the addition of csum_start, the missed
+drivers must be converted or they can't send packets out at all that
+require checksum offload.
+
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |    2 +-
- arch/i386/kernel/vmi.c         |    6 +++---
- arch/i386/kernel/vmlinux.lds.S |    4 ++--
- include/asm-i386/alternative.h |    4 ++--
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/net/atl1/atl1_main.c   |    2 +-
+ drivers/net/e1000/e1000_main.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/alternative.c~rename-the-parainstructions-symbols-to-be-consistent-with-the-others arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~rename-the-parainstructions-symbols-to-be-consistent-with-the-others
-+++ a/arch/i386/kernel/alternative.c
-@@ -386,6 +386,6 @@ void __init alternative_instructions(voi
- 		alternatives_smp_switch(0);
- 	}
- #endif
-- 	apply_paravirt(__start_parainstructions, __stop_parainstructions);
-+ 	apply_paravirt(__parainstructions, __parainstructions_end);
- 	local_irq_restore(flags);
- }
-diff -puN arch/i386/kernel/vmi.c~rename-the-parainstructions-symbols-to-be-consistent-with-the-others arch/i386/kernel/vmi.c
---- a/arch/i386/kernel/vmi.c~rename-the-parainstructions-symbols-to-be-consistent-with-the-others
-+++ a/arch/i386/kernel/vmi.c
-@@ -73,8 +73,8 @@ static struct {
- } vmi_ops;
+diff -puN drivers/net/atl1/atl1_main.c~netdrv-perform-missing-csum_offset-conversions drivers/net/atl1/atl1_main.c
+--- a/drivers/net/atl1/atl1_main.c~netdrv-perform-missing-csum_offset-conversions
++++ a/drivers/net/atl1/atl1_main.c
+@@ -1328,7 +1328,7 @@ static int atl1_tx_csum(struct atl1_adap
  
- /* XXX move this to alternative.h */
--extern struct paravirt_patch __start_parainstructions[],
--	__stop_parainstructions[];
-+extern struct paravirt_patch_site __parainstructions[],
-+	__parainstructions_end[];
+ 	if (likely(skb->ip_summed == CHECKSUM_PARTIAL)) {
+ 		cso = skb_transport_offset(skb);
+-		css = cso + skb->csum;
++		css = cso + skb->csum_offset;
+ 		if (unlikely(cso & 0x1)) {
+ 			printk(KERN_DEBUG "%s: payload offset != even number\n",
+ 				atl1_driver_name);
+diff -puN drivers/net/e1000/e1000_main.c~netdrv-perform-missing-csum_offset-conversions drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~netdrv-perform-missing-csum_offset-conversions
++++ a/drivers/net/e1000/e1000_main.c
+@@ -3040,7 +3040,8 @@ e1000_tx_csum(struct e1000_adapter *adap
  
- /*
-  * VMI patching routines.
-@@ -920,7 +920,7 @@ static inline int __init activate_vmi(vo
- 	 * to do this before IRQs get reenabled.  Fortunately, it is
- 	 * idempotent.
- 	 */
--	apply_paravirt(__start_parainstructions, __stop_parainstructions);
-+	apply_paravirt(__parainstructions, __parainstructions_end);
- 
- 	vmi_bringup();
- 
-diff -puN arch/i386/kernel/vmlinux.lds.S~rename-the-parainstructions-symbols-to-be-consistent-with-the-others arch/i386/kernel/vmlinux.lds.S
---- a/arch/i386/kernel/vmlinux.lds.S~rename-the-parainstructions-symbols-to-be-consistent-with-the-others
-+++ a/arch/i386/kernel/vmlinux.lds.S
-@@ -169,9 +169,9 @@ SECTIONS
-   }
-   . = ALIGN(4);
-   .parainstructions : AT(ADDR(.parainstructions) - LOAD_OFFSET) {
--  	__start_parainstructions = .;
-+  	__parainstructions = .;
- 	*(.parainstructions)
--  	__stop_parainstructions = .;
-+  	__parainstructions_end = .;
-   }
-   /* .exit.text is discard at runtime, not link time, to deal with references
-      from .altinstructions and .eh_frame */
-diff -puN include/asm-i386/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others include/asm-i386/alternative.h
---- a/include/asm-i386/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others
-+++ a/include/asm-i386/alternative.h
-@@ -124,8 +124,8 @@ static inline void
- apply_paravirt(struct paravirt_patch_site *start,
- 	       struct paravirt_patch_site *end)
- {}
--#define __start_parainstructions NULL
--#define __stop_parainstructions NULL
-+#define __parainstructions	NULL
-+#define __parainstructions_end	NULL
- #endif
- 
- #endif /* _I386_ALTERNATIVE_H */
+ 		context_desc->lower_setup.ip_config = 0;
+ 		context_desc->upper_setup.tcp_fields.tucss = css;
+-		context_desc->upper_setup.tcp_fields.tucso = css + skb->csum;
++		context_desc->upper_setup.tcp_fields.tucso =
++			css + skb->csum_offset;
+ 		context_desc->upper_setup.tcp_fields.tucse = 0;
+ 		context_desc->tcp_seg_setup.data = 0;
+ 		context_desc->cmd_and_length = cpu_to_le32(E1000_TXD_CMD_DEXT);
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from herbert@gondor.apana.org.au are
 
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-allow-boot-time-disable-of-paravirt_ops-patching.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-add-touch_all_softlockup_watchdogs.patch
+origin.patch
+git-net.patch
+git-cryptodev.patch
+fix-slab-corruption-running-ip6sic.patch
+use-menuconfig-objects-crypto.patch
