@@ -1,1120 +1,1976 @@
 From: akpm@linux-foundation.org
-Subject: - futex-new-private-futexes.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 02:23:56 -0700
-Message-ID: <200704250923.l3P9Nup9031731@shell0.pdx.osdl.net>
+Subject: mm snapshot broken-out-2007-04-25-02-49.tar.gz uploaded
+Date: Wed, 25 Apr 2007 02:52:18 -0700
+Message-ID: <200704250952.l3P9qIHh032233@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49014 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2992466AbXDYJZR (ORCPT
+	by vger.kernel.org with ESMTP id S2992530AbXDYJwY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 05:25:17 -0400
+	Wed, 25 Apr 2007 05:52:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, drepper@gmail.com, mingo@elte.hu, nickpiggin@yahoo.com.au, pierre.peiffer@bull.net, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm snapshot broken-out-2007-04-25-02-49.tar.gz has been uploaded to
 
-The patch titled
-     FUTEX: new PRIVATE futexes
-has been removed from the -mm tree.  Its filename was
-     futex-new-private-futexes.patch
+   ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/mm/broken-out-2007-04-25-02-49.tar.gz
 
-This patch was dropped because an updated version will be merged
+It contains the following patches against 2.6.21-rc7:
 
-------------------------------------------------------
-Subject: FUTEX: new PRIVATE futexes
-=46rom: Eric Dumazet <dada1@cosmosbay.com>
-
-Analysis of current linux futex code :
---------------------------------------
-
-A central hash table futex_queues[] holds all contexts (futex_q) of wai=
-ting
-threads.
-
-Each futex_wait()/futex_wait() has to obtain a spinlock on a hash slot =
-to
-perform lookups or insert/deletion of a futex_q.
-
-When a futex_wait() is done, calling thread has to :
-
-
-1) - Obtain a read lock on mmap_sem to be able to validate the user poi=
-nter
-=A0 =A0 =A0(calling find_vma()). This validation tells us if the futex =
-uses
-=A0 =A0 =A0an inode based store (mapped file), or mm based store (anony=
-mous mem)
-
-2) - compute a hash key
-
-3) - Atomic increment of reference counter on an inode or a mm_struct
-
-4) - lock part of futex_queues[] hash table
-
-5) - perform the test on value of futex.
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (rollback is value !=3D expected_value,=
- returns EWOULDBLOCK)
-=A0 =A0 =A0 =A0 (various loops if test triggers mm faults)
-
-6) queue the context into hash table, release the lock got in 4)
-
-7) - release the read_lock on mmap_sem
-
-=A0 =A0<block>
-
-8) Eventually unqueue the context (but rarely, as this part
-=A0may be done by the futex_wake())
-
-=46utexes were designed to improve scalability but current implementati=
-on has
-various problems :
-
-- Central hashtable :
-=A0This means scalability problems if many processes/threads want to us=
-e
-=A0futexes at the same time.
-=A0This means NUMA unbalance because this hashtable is located on one n=
-ode.
-
-- Using mmap_sem on every futex() syscall :
-
-=A0Even if mmap_sem is a rw_semaphore, up_read()/down_read() are doing =
-atomic
-=A0ops on mmap_sem, dirtying cache line :
-=A0 =A0 =A0 =A0 - lot of cache line ping pongs on SMP configurations.
-
-=A0mmap_sem is also extensively used by mm code (page faults, mmap()/mu=
-nmap())
-=A0Highly threaded processes might suffer from mmap_sem contention.
-
-=A0mmap_sem is also used by oprofile code.  Enabling oprofile hurts thr=
-eaded
- programs because of contention on the mmap_sem cache line.
-
-- Using an atomic_inc()/atomic_dec() on inode ref counter or mm ref cou=
-nter:
- =A0It's also a cache line ping pong on SMP.  It also increases mmap_se=
-m hold
- time =A0because of cache misses.
-
-Most of these scalability problems come from the fact that futexes are =
-in one
-global namespace.  As we use a central hash table, we must make sure th=
-ey are
-all using the same reference (given by the mm subsystem).  We chose to =
-force
-all futexes be 'shared'.  This has a cost.
-
-But fact is POSIX defined PRIVATE and SHARED, allowing clear separation=
-, and
-optimal performance if carefuly implemented.  Time has come for linux t=
-o have
-better threading performance.
-
-The goal is to permit new futex commands to avoid :
-=A0- Taking the mmap_sem semaphore, conflicting with other subsystems.
-=A0- Modifying a ref_count on mm or an inode, still conflicting with mm=
- or fs.
-
-This is possible because, for one process using PTHREAD_PROCESS_PRIVATE
-futexes, we only need to distinguish futexes by their virtual address, =
-no
-matter the underlying mm storage is.
-
-
-
-If glibc wants to exploit this new infrastructure, it should use new _P=
-RIVATE
-futex subcommands for PTHREAD_PROCESS_PRIVATE futexes.  And be prepared=
- to
-fallback on old subcommands for old kernels.  Using one global variable=
- with
-the FUTEX_PRIVATE_FLAG or 0 value should be OK.
-
-PTHREAD_PROCESS_SHARED futexes should still use the old subcommands.
-
-Compatibility with old applications is preserved, they still hit the
-scalability problems, but new applications can fly :)
-
-Note : the same SHARED futex (mapped on a file) can be used by old bina=
-ries=20
-*and* new binaries, because both binaries will use the old subcommands.
-
-Note : Vast majority of futexes should be using PROCESS_PRIVATE semanti=
-c,
-as this is the default semantic. Almost all applications should benefit
-of this changes (new kernel and updated libc)
-
-Some bench results on a Pentium M 1.6 GHz (SMP kernel on a UP machine)
-
-/* calling futex_wait(addr, value) with value !=3D *addr */
-434 cycles per futex(FUTEX_WAIT) call (mixing 2 futexes)
-427 cycles per futex(FUTEX_WAIT) call (using one futex)
-345 cycles per futex(FUTEX_WAIT_PRIVATE) call (mixing 2 futexes)
-345 cycles per futex(FUTEX_WAIT_PRIVATE) call (using one futex)
-=46or reference :
-187 cycles per getppid() call
-188 cycles per umask() call
-183 cycles per ni_syscall() call
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Ulrich Drepper <drepper@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Pierre Peiffer <pierre.peiffer@bull.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/futex.h |   29 +++
- kernel/futex.c        |  339 +++++++++++++++++++++++++---------------
- 2 files changed, 245 insertions(+), 123 deletions(-)
-
-diff -puN include/linux/futex.h~futex-new-private-futexes include/linux=
-/futex.h
---- a/include/linux/futex.h~futex-new-private-futexes
-+++ a/include/linux/futex.h
-@@ -19,6 +19,18 @@ union ktime;
- #define FUTEX_TRYLOCK_PI	8
- #define FUTEX_CMP_REQUEUE_PI	9
-=20
-+#define FUTEX_PRIVATE_FLAG	128
-+#define FUTEX_CMD_MASK		~FUTEX_PRIVATE_FLAG
-+
-+#define FUTEX_WAIT_PRIVATE	(FUTEX_WAIT | FUTEX_PRIVATE_FLAG)
-+#define FUTEX_WAKE_PRIVATE	(FUTEX_WAKE | FUTEX_PRIVATE_FLAG)
-+#define FUTEX_REQUEUE_PRIVATE	(FUTEX_REQUEUE | FUTEX_PRIVATE_FLAG)
-+#define FUTEX_CMP_REQUEUE_PRIVATE (FUTEX_CMP_REQUEUE | FUTEX_PRIVATE_F=
-LAG)
-+#define FUTEX_WAKE_OP_PRIVATE	(FUTEX_WAKE_OP | FUTEX_PRIVATE_FLAG)
-+#define FUTEX_LOCK_PI_PRIVATE	(FUTEX_LOCK_PI | FUTEX_PRIVATE_FLAG)
-+#define FUTEX_UNLOCK_PI_PRIVATE	(FUTEX_UNLOCK_PI | FUTEX_PRIVATE_FLAG)
-+#define FUTEX_TRYLOCK_PI_PRIVATE (FUTEX_TRYLOCK_PI | FUTEX_PRIVATE_FLA=
-G)
-+
- /*
-  * Support for robust futexes: the kernel cleans up held futexes at
-  * thread exit time.
-@@ -115,8 +127,18 @@ handle_futex_death(u32 __user *uaddr, st
-  * Don't rearrange members without looking at hash_futex().
-  *
-  * offset is aligned to a multiple of sizeof(u32) (=3D=3D 4) by defini=
-tion.
-- * We set bit 0 to indicate if it's an inode-based key.
-- */
-+ * We use the two low order bits of offset to tell what is the kind of=
- key :
-+ *  00 : Private process futex (PTHREAD_PROCESS_PRIVATE)
-+ *       (no reference on an inode or mm)
-+ *  01 : Shared futex (PTHREAD_PROCESS_SHARED)
-+ *	mapped on a file (reference on the underlying inode)
-+ *  10 : Shared futex (PTHREAD_PROCESS_SHARED)
-+ *       (but private mapping on an mm, and reference taken on it)
-+*/
-+
-+#define FUT_OFF_INODE    1 /* We set bit 0 if key has a reference on i=
-node */
-+#define FUT_OFF_MMSHARED 2 /* We set bit 1 if key has a reference on m=
-m */
-+
- union futex_key {
- 	unsigned long __user *uaddr;
- 	struct {
-@@ -135,7 +157,8 @@ union futex_key {
- 		int offset;
- 	} both;
- };
--int get_futex_key(void __user *uaddr, int size, union futex_key *key);
-+int get_futex_key(void __user *uaddr, int size, struct rw_semaphore *s=
-hared,
-+		  union futex_key *key);
- void get_futex_key_refs(union futex_key *key);
- void drop_futex_key_refs(union futex_key *key);
-=20
-diff -puN kernel/futex.c~futex-new-private-futexes kernel/futex.c
---- a/kernel/futex.c~futex-new-private-futexes
-+++ a/kernel/futex.c
-@@ -16,6 +16,9 @@
-  *  Copyright (C) 2006 Red Hat, Inc., Ingo Molnar <mingo@redhat.com>
-  *  Copyright (C) 2006 Timesys Corp., Thomas Gleixner <tglx@timesys.co=
-m>
-  *
-+ *  PRIVATE futexes by Eric Dumazet
-+ *  Copyright (C) 2007 Eric Dumazet <dada1@cosmosbay.com>
-+ *
-  *  Thanks to Ben LaHaise for yelling "hashed waitqueues" loudly
-  *  enough at me, Linus for the original (flawed) idea, Matthew
-  *  Kirkwood for proof-of-concept implementation.
-@@ -193,6 +196,8 @@ static inline int match_futex(union fute
-  * get_futex_key - Get parameters which are the keys for a futex.
-  * @uaddr: virtual address of the futex
-  * @size: size of futex (4 or 8)
-+ * @shared: NULL for a PROCESS_PRIVATE futex,
-+ *	&current->mm->mmap_sem for a PROCESS_SHARED futex
-  * @key: address where result is stored.
-  *
-  * Returns a negative error code or 0
-@@ -202,9 +207,12 @@ static inline int match_futex(union fute
-  * offset_within_page).  For private mappings, it's (uaddr, current->m=
-m).
-  * We can usually work out the index without swapping in the page.
-  *
-- * Should be called with &current->mm->mmap_sem but NOT any spinlocks.
-+ * fshared is NULL for PROCESS_PRIVATE futexes
-+ * For other futexes, it points to &current->mm->mmap_sem and
-+ * caller must have taken the reader lock. but NOT any spinlocks.
-  */
--int get_futex_key(void __user *uaddr, int size, union futex_key *key)
-+int get_futex_key(void __user *uaddr, int size, struct rw_semaphore *f=
-shared,
-+		  union futex_key *key)
- {
- 	unsigned long address =3D (unsigned long)uaddr;
- 	struct mm_struct *mm =3D current->mm;
-@@ -221,6 +229,20 @@ int get_futex_key(void __user *uaddr, in
- 	address -=3D key->both.offset;
-=20
- 	/*
-+	 * PROCESS_PRIVATE futexes are fast.
-+	 * As the mm cannot disappear under us and the 'key' only needs
-+	 * virtual address, we dont even have to find the underlying vma.
-+	 * Note : We do have to check 'uaddr' is a valid user address,
-+	 *        but access_ok() should be faster than find_vma()
-+	 */
-+	if (!fshared) {
-+		if (!access_ok(VERIFY_WRITE, uaddr, size))
-+			return -EFAULT;
-+		key->private.mm =3D mm;
-+		key->private.address =3D address;
-+		return 0;
-+	}
-+	/*
- 	 * The futex is hashed differently depending on whether
- 	 * it's in a shared or private mapping.  So check vma first.
- 	 */
-@@ -247,6 +269,7 @@ int get_futex_key(void __user *uaddr, in
- 	 * mappings of _writable_ handles.
- 	 */
- 	if (likely(!(vma->vm_flags & VM_MAYSHARE))) {
-+		key->both.offset |=3D FUT_OFF_MMSHARED; /* reference taken on mm */
- 		key->private.mm =3D mm;
- 		key->private.address =3D address;
- 		return 0;
-@@ -256,7 +279,7 @@ int get_futex_key(void __user *uaddr, in
- 	 * Linear file mappings are also simple.
- 	 */
- 	key->shared.inode =3D vma->vm_file->f_path.dentry->d_inode;
--	key->both.offset++; /* Bit 0 of offset indicates inode-based key. */
-+	key->both.offset |=3D FUT_OFF_INODE; /* inode-based key. */
- 	if (likely(!(vma->vm_flags & VM_NONLINEAR))) {
- 		key->shared.pgoff =3D (((address - vma->vm_start) >> PAGE_SHIFT)
- 				     + vma->vm_pgoff);
-@@ -284,16 +307,18 @@ EXPORT_SYMBOL_GPL(get_futex_key);
-  * Take a reference to the resource addressed by a key.
-  * Can be called while holding spinlocks.
-  *
-- * NOTE: mmap_sem MUST be held between get_futex_key() and calling thi=
-s
-- * function, if it is called at all.  mmap_sem keeps key->shared.inode=
- valid.
-  */
- inline void get_futex_key_refs(union futex_key *key)
- {
--	if (key->both.ptr !=3D 0) {
--		if (key->both.offset & 1)
-+	if (key->both.ptr =3D=3D 0)
-+		return;
-+	switch (key->both.offset & (FUT_OFF_INODE|FUT_OFF_MMSHARED)) {
-+		case FUT_OFF_INODE:
- 			atomic_inc(&key->shared.inode->i_count);
--		else
-+			break;
-+		case FUT_OFF_MMSHARED:
- 			atomic_inc(&key->private.mm->mm_count);
-+			break;
- 	}
- }
- EXPORT_SYMBOL_GPL(get_futex_key_refs);
-@@ -304,11 +329,15 @@ EXPORT_SYMBOL_GPL(get_futex_key_refs);
-  */
- void drop_futex_key_refs(union futex_key *key)
- {
--	if (key->both.ptr !=3D 0) {
--		if (key->both.offset & 1)
-+	if (key->both.ptr =3D=3D 0)
-+		return;
-+	switch (key->both.offset & (FUT_OFF_INODE|FUT_OFF_MMSHARED)) {
-+		case FUT_OFF_INODE:
- 			iput(key->shared.inode);
--		else
-+			break;
-+		case FUT_OFF_MMSHARED:
- 			mmdrop(key->private.mm);
-+			break;
- 	}
- }
- EXPORT_SYMBOL_GPL(drop_futex_key_refs);
-@@ -342,28 +371,39 @@ get_futex_value_locked(unsigned long *de
- }
-=20
- /*
-- * Fault handling. Called with current->mm->mmap_sem held.
-+ * Fault handling.
-+ * if fshared is non NULL, current->mm->mmap_sem is already held
-  */
--static int futex_handle_fault(unsigned long address, int attempt)
-+static int futex_handle_fault(unsigned long address,
-+			      struct rw_semaphore *fshared, int attempt)
- {
- 	struct vm_area_struct * vma;
- 	struct mm_struct *mm =3D current->mm;
-+	int ret =3D -EFAULT;
-=20
--	if (attempt > 2 || !(vma =3D find_vma(mm, address)) ||
--	    vma->vm_start > address || !(vma->vm_flags & VM_WRITE))
--		return -EFAULT;
-+	if (attempt > 2)
-+		return ret;
-=20
--	switch (handle_mm_fault(mm, vma, address, 1)) {
--	case VM_FAULT_MINOR:
--		current->min_flt++;
--		break;
--	case VM_FAULT_MAJOR:
--		current->maj_flt++;
--		break;
--	default:
--		return -EFAULT;
-+	if (!fshared)
-+		down_read(&mm->mmap_sem);
-+	vma =3D find_vma(mm, address);
-+	if (vma &&
-+	    address >=3D vma->vm_start &&
-+	    (vma->vm_flags & VM_WRITE)) {
-+		switch (handle_mm_fault(mm, vma, address, 1)) {
-+		case VM_FAULT_MINOR:
-+			ret =3D 0;
-+			current->min_flt++;
-+			break;
-+		case VM_FAULT_MAJOR:
-+			ret =3D 0;
-+			current->maj_flt++;
-+			break;
-+		}
- 	}
--	return 0;
-+	if (!fshared)
-+		up_read(&mm->mmap_sem);
-+	return ret;
- }
-=20
- /*
-@@ -705,10 +745,10 @@ double_lock_hb(struct futex_hash_bucket=20
- }
-=20
- /*
-- * Wake up all waiters hashed on the physical page that is mapped
-- * to this virtual address:
-+ * Wake up all waiters on a futex (fuaddr, futex64, fshared)
-  */
--static int futex_wake(unsigned long __user *uaddr, int futex64, int nr=
-_wake)
-+static int futex_wake(unsigned long __user *uaddr, int futex64,
-+		      struct rw_semaphore *fshared, int nr_wake)
- {
- 	struct futex_hash_bucket *hb;
- 	struct futex_q *this, *next;
-@@ -717,9 +757,10 @@ static int futex_wake(unsigned long __us
- 	int ret;
- 	int fsize =3D futex64 ? sizeof(u64) : sizeof(u32);
-=20
--	down_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		down_read(fshared);
-=20
--	ret =3D get_futex_key(uaddr, fsize, &key);
-+	ret =3D get_futex_key(uaddr, fsize, fshared, &key);
- 	if (unlikely(ret !=3D 0))
- 		goto out;
-=20
-@@ -741,7 +782,8 @@ static int futex_wake(unsigned long __us
-=20
- 	spin_unlock(&hb->lock);
- out:
--	up_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
- 	return ret;
- }
-=20
-@@ -810,8 +852,10 @@ retry:
-  * one physical page to another physical page (PI-futex uaddr2)
-  */
- static int
--futex_requeue_pi(unsigned long __user *uaddr1, unsigned long __user *u=
-addr2,
--		 int nr_wake, int nr_requeue, unsigned long *cmpval, int futex64)
-+futex_requeue_pi(unsigned long __user *uaddr1,
-+		 int futex64, struct rw_semaphore *fshared,
-+		 unsigned long __user *uaddr2,
-+		 int nr_wake, int nr_requeue, unsigned long *cmpval)
- {
- 	union futex_key key1, key2;
- 	struct futex_hash_bucket *hb1, *hb2;
-@@ -830,12 +874,13 @@ retry:
- 	/*
- 	 * First take all the futex related locks:
- 	 */
--	down_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		down_read(fshared);
-=20
--	ret =3D get_futex_key(uaddr1, fsize, &key1);
-+	ret =3D get_futex_key(uaddr1, fsize, fshared, &key1);
- 	if (unlikely(ret !=3D 0))
- 		goto out;
--	ret =3D get_futex_key(uaddr2, fsize, &key2);
-+	ret =3D get_futex_key(uaddr2, fsize, fshared, &key2);
- 	if (unlikely(ret !=3D 0))
- 		goto out;
-=20
-@@ -858,7 +903,8 @@ retry:
- 			 * If we would have faulted, release mmap_sem, fault
- 			 * it in and start all over again.
- 			 */
--			up_read(&current->mm->mmap_sem);
-+			if (fshared)
-+				up_read(fshared);
-=20
- 			ret =3D futex_get_user(&curval, uaddr1, futex64);
-=20
-@@ -993,7 +1039,8 @@ out_unlock:
- 		drop_futex_key_refs(&key1);
-=20
- out:
--	up_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
- 	return ret;
- }
-=20
-@@ -1002,8 +1049,10 @@ out:
-  * to this virtual address:
-  */
- static int
--futex_wake_op(unsigned long __user *uaddr1, unsigned long __user *uadd=
-r2,
--	      int nr_wake, int nr_wake2, int op, int futex64)
-+futex_wake_op(unsigned long __user *uaddr1,
-+	      int futex64, struct rw_semaphore *fshared,
-+	      unsigned long __user *uaddr2,
-+	      int nr_wake, int nr_wake2, int op)
- {
- 	union futex_key key1, key2;
- 	struct futex_hash_bucket *hb1, *hb2;
-@@ -1013,12 +1062,13 @@ futex_wake_op(unsigned long __user *uadd
- 	int fsize =3D futex64 ? sizeof(u64) : sizeof(u32);
-=20
- retryfull:
--	down_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		down_read(fshared);
-=20
--	ret =3D get_futex_key(uaddr1, fsize, &key1);
-+	ret =3D get_futex_key(uaddr1, fsize, fshared, &key1);
- 	if (unlikely(ret !=3D 0))
- 		goto out;
--	ret =3D get_futex_key(uaddr2, fsize, &key2);
-+	ret =3D get_futex_key(uaddr2, fsize, fshared, &key2);
- 	if (unlikely(ret !=3D 0))
- 		goto out;
-=20
-@@ -1065,11 +1115,10 @@ retry:
- 		 * still holding the mmap_sem.
- 		 */
- 		if (attempt++) {
--			if (futex_handle_fault((unsigned long)uaddr2,
--						attempt)) {
--				ret =3D -EFAULT;
-+			ret =3D futex_handle_fault((unsigned long)uaddr2,
-+						fshared, attempt);
-+			if (ret)
- 				goto out;
--			}
- 			goto retry;
- 		}
-=20
-@@ -1077,7 +1126,8 @@ retry:
- 		 * If we would have faulted, release mmap_sem,
- 		 * fault it in and start all over again.
- 		 */
--		up_read(&current->mm->mmap_sem);
-+		if (fshared)
-+			up_read(fshared);
-=20
- 		ret =3D futex_get_user(&dummy, uaddr2, futex64);
- 		if (ret)
-@@ -1114,7 +1164,8 @@ retry:
- 	if (hb1 !=3D hb2)
- 		spin_unlock(&hb2->lock);
- out:
--	up_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
- 	return ret;
- }
-=20
-@@ -1123,8 +1174,10 @@ out:
-  * physical page.
-  */
- static int
--futex_requeue(unsigned long __user *uaddr1, unsigned long __user *uadd=
-r2,
--	      int nr_wake, int nr_requeue, unsigned long *cmpval, int futex64=
-)
-+futex_requeue(unsigned long __user *uaddr1,
-+	      int futex64, struct rw_semaphore *fshared,
-+	      unsigned long __user *uaddr2,
-+	      int nr_wake, int nr_requeue, unsigned long *cmpval)
- {
- 	union futex_key key1, key2;
- 	struct futex_hash_bucket *hb1, *hb2;
-@@ -1134,12 +1187,13 @@ futex_requeue(unsigned long __user *uadd
- 	int fsize =3D futex64 ? sizeof(u64) : sizeof(u32);
-=20
-  retry:
--	down_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		down_read(fshared);
-=20
--	ret =3D get_futex_key(uaddr1, fsize, &key1);
-+	ret =3D get_futex_key(uaddr1, fsize, fshared, &key1);
- 	if (unlikely(ret !=3D 0))
- 		goto out;
--	ret =3D get_futex_key(uaddr2, fsize, &key2);
-+	ret =3D get_futex_key(uaddr2, fsize, fshared, &key2);
- 	if (unlikely(ret !=3D 0))
- 		goto out;
-=20
-@@ -1162,7 +1216,8 @@ futex_requeue(unsigned long __user *uadd
- 			 * If we would have faulted, release mmap_sem, fault
- 			 * it in and start all over again.
- 			 */
--			up_read(&current->mm->mmap_sem);
-+			if (fshared)
-+				up_read(fshared);
-=20
- 			ret =3D futex_get_user(&curval, uaddr1, futex64);
-=20
-@@ -1215,7 +1270,8 @@ out_unlock:
- 		drop_futex_key_refs(&key1);
-=20
- out:
--	up_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
- 	return ret;
- }
-=20
-@@ -1346,12 +1402,14 @@ static void unqueue_me_pi(struct futex_q
- /*
-  * Fixup the pi_state owner with current.
-  *
-- * The cur->mm semaphore must be  held, it is released at return of th=
-is
-- * function.
-+ * for PROCESS_SHARED futexes, cur->mm semaphore must be  held, it is
-+ * released at return of this function.
-  */
--static int fixup_pi_state_owner(unsigned long  __user *uaddr, struct f=
-utex_q *q,
-+static int fixup_pi_state_owner(unsigned long  __user *uaddr, int fute=
-x64,
-+				struct rw_semaphore *fshared,
-+				struct futex_q *q,
- 				struct futex_hash_bucket *hb,
--				struct task_struct *curr, int futex64)
-+				struct task_struct *curr)
- {
- 	unsigned long newtid =3D curr->pid | FUTEX_WAITERS;
- 	struct futex_pi_state *pi_state =3D q->pi_state;
-@@ -1376,7 +1434,8 @@ static int fixup_pi_state_owner(unsigned
-=20
- 	/* Unqueue and drop the lock */
- 	unqueue_me_pi(q);
--	up_read(&curr->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
- 	/*
- 	 * We own it, so we have to replace the pending owner
- 	 * TID. This must be atomic as we have preserve the
-@@ -1399,12 +1458,14 @@ static int fixup_pi_state_owner(unsigned
-=20
- /*
-  * In case we must use restart_block to restart a futex_wait,
-- * we encode in the 'arg3' futex64 capability
-+ * we encode in the 'arg3' both futex64 and shared capabilities
-  */
- #define ARG3_FUTEX64 1
-+#define ARG3_SHARED  2
-=20
- static long futex_wait_restart(struct restart_block *restart);
- static int futex_wait(unsigned long __user *uaddr, int futex64,
-+		      struct rw_semaphore *fshared,
- 		      unsigned long val, ktime_t *abs_time)
- {
- 	struct task_struct *curr =3D current;
-@@ -1419,9 +1480,10 @@ static int futex_wait(unsigned long __us
-=20
- 	q.pi_state =3D NULL;
-  retry:
--	down_read(&curr->mm->mmap_sem);
-+	if (fshared)
-+		down_read(fshared);
-=20
--	ret =3D get_futex_key(uaddr, fsize, &q.key);
-+	ret =3D get_futex_key(uaddr, fsize, fshared, &q.key);
- 	if (unlikely(ret !=3D 0))
- 		goto out_release_sem;
-=20
-@@ -1444,8 +1506,8 @@ static int futex_wait(unsigned long __us
- 	 * a wakeup when *uaddr !=3D val on entry to the syscall.  This is
- 	 * rare, but normal.
- 	 *
--	 * We hold the mmap semaphore, so the mapping cannot have changed
--	 * since we looked it up in get_futex_key.
-+	 * for shared futexes, we hold the mmap semaphore, so the mapping
-+	 * cannot have changed since we looked it up in get_futex_key.
- 	 */
- 	ret =3D get_futex_value_locked(&uval, uaddr, futex64);
-=20
-@@ -1456,7 +1518,8 @@ static int futex_wait(unsigned long __us
- 		 * If we would have faulted, release mmap_sem, fault it in and
- 		 * start all over again.
- 		 */
--		up_read(&curr->mm->mmap_sem);
-+		if (fshared)
-+			up_read(fshared);
- 		ret =3D futex_get_user(&uval, uaddr, futex64);
-=20
- 		if (!ret)
-@@ -1482,7 +1545,8 @@ static int futex_wait(unsigned long __us
- 	 * Now the futex is queued and we have checked the data, we
- 	 * don't want to hold mmap_sem while we sleep.
- 	 */
--	up_read(&curr->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
-=20
- 	/*
- 	 * There might have been scheduling since the queue_me(), as we
-@@ -1552,7 +1616,8 @@ static int futex_wait(unsigned long __us
- 		else
- 			ret =3D rt_mutex_timed_lock(lock, to, 1);
-=20
--		down_read(&curr->mm->mmap_sem);
-+		if (fshared)
-+			down_read(fshared);
- 		spin_lock(q.lock_ptr);
-=20
- 		/*
-@@ -1569,7 +1634,8 @@ static int futex_wait(unsigned long __us
-=20
- 			/* mmap_sem and hash_bucket lock are unlocked at
- 			   return of this function */
--			ret =3D fixup_pi_state_owner(uaddr, &q, hb, curr, futex64);
-+			ret =3D fixup_pi_state_owner(uaddr, futex64, fshared,
-+						   &q, hb, curr);
- 		} else {
- 			/*
- 			 * Catch the rare case, where the lock was released
-@@ -1582,7 +1648,8 @@ static int futex_wait(unsigned long __us
- 			}
- 			/* Unqueue and drop the lock */
- 			unqueue_me_pi(&q);
--			up_read(&curr->mm->mmap_sem);
-+			if (fshared)
-+				up_read(fshared);
- 		}
-=20
- 		debug_rt_mutex_free_waiter(&q.waiter);
-@@ -1616,6 +1683,8 @@ static int futex_wait(unsigned long __us
- 		if (futex64)
- 			restart->arg3 |=3D ARG3_FUTEX64;
- #endif
-+		if (fshared)
-+			restart->arg3 |=3D ARG3_SHARED;
- 		return -ERESTART_RESTARTBLOCK;
- 	}
-=20
-@@ -1623,7 +1692,8 @@ static int futex_wait(unsigned long __us
- 	queue_unlock(&q, hb);
-=20
-  out_release_sem:
--	up_read(&curr->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
- 	return ret;
- }
-=20
-@@ -1634,13 +1704,16 @@ static long futex_wait_restart(struct re
- 	unsigned long val =3D restart->arg1;
- 	ktime_t *abs_time =3D (ktime_t *)restart->arg2;
- 	int futex64 =3D 0;
-+	struct rw_semaphore *fshared =3D NULL;
-=20
- #ifdef CONFIG_64BIT
- 	if (restart->arg3 & ARG3_FUTEX64)
- 		futex64 =3D 1;
- #endif
-+	if (restart->arg3 & ARG3_SHARED)
-+		fshared =3D &current->mm->mmap_sem;
- 	restart->fn =3D do_no_restart_syscall;
--	return (long)futex_wait(uaddr, futex64, val, abs_time);
-+	return (long)futex_wait(uaddr, futex64, fshared, val, abs_time);
- }
-=20
-=20
-@@ -1695,8 +1768,9 @@ static void set_pi_futex_owner(struct fu
-  * if there are waiters then it will block, it does PI, etc. (Due to
-  * races the kernel might see a 0 value of the futex too.)
-  */
--static int futex_lock_pi(unsigned long __user *uaddr, int detect, ktim=
-e_t *time,
--			 int trylock, int futex64)
-+static int futex_lock_pi(unsigned long __user *uaddr,
-+			 int futex64, struct rw_semaphore *fshared,
-+			 int detect, ktime_t *time, int trylock)
- {
- 	struct hrtimer_sleeper timeout, *to =3D NULL;
- 	struct task_struct *curr =3D current;
-@@ -1718,9 +1792,10 @@ static int futex_lock_pi(unsigned long _
-=20
- 	q.pi_state =3D NULL;
-  retry:
--	down_read(&curr->mm->mmap_sem);
-+	if (fshared)
-+		down_read(fshared);
-=20
--	ret =3D get_futex_key(uaddr, fsize, &q.key);
-+	ret =3D get_futex_key(uaddr, fsize, fshared, &q.key);
- 	if (unlikely(ret !=3D 0))
- 		goto out_release_sem;
-=20
-@@ -1841,7 +1916,8 @@ static int futex_lock_pi(unsigned long _
- 	 * Now the futex is queued and we have checked the data, we
- 	 * don't want to hold mmap_sem while we sleep.
- 	 */
--	up_read(&curr->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
-=20
- 	WARN_ON(!q.pi_state);
- 	/*
-@@ -1855,7 +1931,8 @@ static int futex_lock_pi(unsigned long _
- 		ret =3D ret ? 0 : -EWOULDBLOCK;
- 	}
-=20
--	down_read(&curr->mm->mmap_sem);
-+	if (fshared)
-+		down_read(fshared);
- 	spin_lock(q.lock_ptr);
-=20
- 	/*
-@@ -1864,7 +1941,8 @@ static int futex_lock_pi(unsigned long _
- 	 */
- 	if (!ret && q.pi_state->owner !=3D curr)
- 		/* mmap_sem is unlocked at return of this function */
--		ret =3D fixup_pi_state_owner(uaddr, &q, hb, curr, futex64);
-+		ret =3D fixup_pi_state_owner(uaddr, futex64, fshared,
-+					   &q, hb, curr);
- 	else {
- 		/*
- 		 * Catch the rare case, where the lock was released
-@@ -1877,7 +1955,8 @@ static int futex_lock_pi(unsigned long _
- 		}
- 		/* Unqueue and drop the lock */
- 		unqueue_me_pi(&q);
--		up_read(&curr->mm->mmap_sem);
-+		if (fshared)
-+			up_read(fshared);
- 	}
-=20
- 	if (!detect && ret =3D=3D -EDEADLK && 0)
-@@ -1889,7 +1968,8 @@ static int futex_lock_pi(unsigned long _
- 	queue_unlock(&q, hb);
-=20
-  out_release_sem:
--	up_read(&curr->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
- 	return ret;
-=20
-  uaddr_faulted:
-@@ -1900,15 +1980,16 @@ static int futex_lock_pi(unsigned long _
- 	 * still holding the mmap_sem.
- 	 */
- 	if (attempt++) {
--		if (futex_handle_fault((unsigned long)uaddr, attempt)) {
--			ret =3D -EFAULT;
-+		ret =3D futex_handle_fault((unsigned long)uaddr, fshared,
-+					 attempt);
-+		if (ret)
- 			goto out_unlock_release_sem;
--		}
- 		goto retry_locked;
- 	}
-=20
- 	queue_unlock(&q, hb);
--	up_read(&curr->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
-=20
- 	ret =3D futex_get_user(&uval, uaddr, futex64);
- 	if (!ret && (uval !=3D -EFAULT))
-@@ -1922,7 +2003,8 @@ static int futex_lock_pi(unsigned long _
-  * This is the in-kernel slowpath: we look up the PI state (if any),
-  * and do the rt-mutex unlock.
-  */
--static int futex_unlock_pi(unsigned long __user *uaddr, int futex64)
-+static int futex_unlock_pi(unsigned long __user *uaddr, int futex64,
-+			   struct rw_semaphore *fshared)
- {
- 	struct futex_hash_bucket *hb;
- 	struct futex_q *this, *next;
-@@ -1943,9 +2025,10 @@ retry:
- 	/*
- 	 * First take all the futex related locks:
- 	 */
--	down_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		down_read(fshared);
-=20
--	ret =3D get_futex_key(uaddr, fsize, &key);
-+	ret =3D get_futex_key(uaddr, fsize, fshared, &key);
- 	if (unlikely(ret !=3D 0))
- 		goto out;
-=20
-@@ -2004,7 +2087,8 @@ retry_locked:
- out_unlock:
- 	spin_unlock(&hb->lock);
- out:
--	up_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
-=20
- 	return ret;
-=20
-@@ -2016,15 +2100,16 @@ pi_faulted:
- 	 * still holding the mmap_sem.
- 	 */
- 	if (attempt++) {
--		if (futex_handle_fault((unsigned long)uaddr, attempt)) {
--			ret =3D -EFAULT;
-+		ret =3D futex_handle_fault((unsigned long)uaddr, fshared,
-+					 attempt);
-+		if (ret)
- 			goto out_unlock;
--		}
- 		goto retry_locked;
- 	}
-=20
- 	spin_unlock(&hb->lock);
--	up_read(&current->mm->mmap_sem);
-+	if (fshared)
-+		up_read(fshared);
-=20
- 	ret =3D futex_get_user(&uval, uaddr, futex64);
- 	if (!ret && (uval !=3D -EFAULT))
-@@ -2076,6 +2161,7 @@ static int futex_fd(u32 __user *uaddr, i
- 	struct futex_q *q;
- 	struct file *filp;
- 	int ret, err;
-+	struct rw_semaphore *fshared;
- 	static unsigned long printk_interval;
-=20
- 	if (printk_timed_ratelimit(&printk_interval, 60 * 60 * 1000)) {
-@@ -2117,11 +2203,12 @@ static int futex_fd(u32 __user *uaddr, i
- 	}
- 	q->pi_state =3D NULL;
-=20
--	down_read(&current->mm->mmap_sem);
--	err =3D get_futex_key(uaddr, sizeof(u32), &q->key);
-+	fshared =3D &current->mm->mmap_sem;
-+	down_read(fshared);
-+	err =3D get_futex_key(uaddr, sizeof(u32), fshared, &q->key);
-=20
- 	if (unlikely(err !=3D 0)) {
--		up_read(&current->mm->mmap_sem);
-+		up_read(fshared);
- 		kfree(q);
- 		goto error;
- 	}
-@@ -2133,7 +2220,7 @@ static int futex_fd(u32 __user *uaddr, i
- 	filp->private_data =3D q;
-=20
- 	queue_me(q, ret, filp);
--	up_read(&current->mm->mmap_sem);
-+	up_read(fshared);
-=20
- 	/* Now we map fd to filp, so userspace can access it */
- 	fd_install(ret, filp);
-@@ -2262,7 +2349,8 @@ retry:
- 		 */
- 		if (!pi) {
- 			if (uval & FUTEX_WAITERS)
--				futex_wake((unsigned long __user *)uaddr, 0, 1);
-+				futex_wake((unsigned long __user *)uaddr, 0,
-+					   &curr->mm->mmap_sem, 1);
- 		}
- 	}
- 	return 0;
-@@ -2350,13 +2438,18 @@ long do_futex(unsigned long __user *uadd
- 	      unsigned long val2, unsigned long val3, int fut64)
- {
- 	int ret;
-+	int cmd =3D op & FUTEX_CMD_MASK;
-+	struct rw_semaphore *fshared =3D NULL;
-+
-+	if (!(op & FUTEX_PRIVATE_FLAG))
-+		fshared =3D &current->mm->mmap_sem;
-=20
--	switch (op) {
-+	switch (cmd) {
- 	case FUTEX_WAIT:
--		ret =3D futex_wait(uaddr, fut64, val, timeout);
-+		ret =3D futex_wait(uaddr, fut64, fshared, val, timeout);
- 		break;
- 	case FUTEX_WAKE:
--		ret =3D futex_wake(uaddr, fut64, val);
-+		ret =3D futex_wake(uaddr, fut64, fshared, val);
- 		break;
- 	case FUTEX_FD:
- 		if (fut64)
-@@ -2366,25 +2459,29 @@ long do_futex(unsigned long __user *uadd
- 			ret =3D futex_fd((u32 __user *)uaddr, val);
- 		break;
- 	case FUTEX_REQUEUE:
--		ret =3D futex_requeue(uaddr, uaddr2, val, val2, NULL, fut64);
-+		ret =3D futex_requeue(uaddr, fut64, fshared,
-+				    uaddr2, val, val2, NULL);
- 		break;
- 	case FUTEX_CMP_REQUEUE:
--		ret =3D futex_requeue(uaddr, uaddr2, val, val2, &val3, fut64);
-+		ret =3D futex_requeue(uaddr, fut64, fshared,
-+				    uaddr2, val, val2, &val3);
- 		break;
- 	case FUTEX_WAKE_OP:
--		ret =3D futex_wake_op(uaddr, uaddr2, val, val2, val3, fut64);
-+		ret =3D futex_wake_op(uaddr, fut64, fshared,
-+				    uaddr2, val, val2, val3);
- 		break;
- 	case FUTEX_LOCK_PI:
--		ret =3D futex_lock_pi(uaddr, val, timeout, 0, fut64);
-+		ret =3D futex_lock_pi(uaddr, fut64, fshared, val, timeout, 0);
- 		break;
- 	case FUTEX_UNLOCK_PI:
--		ret =3D futex_unlock_pi(uaddr, fut64);
-+		ret =3D futex_unlock_pi(uaddr, fut64, fshared);
- 		break;
- 	case FUTEX_TRYLOCK_PI:
--		ret =3D futex_lock_pi(uaddr, 0, timeout, 1, fut64);
-+		ret =3D futex_lock_pi(uaddr, fut64, fshared, 0, timeout, 1);
- 		break;
- 	case FUTEX_CMP_REQUEUE_PI:
--		ret =3D futex_requeue_pi(uaddr, uaddr2, val, val2, &val3, fut64);
-+		ret =3D futex_requeue_pi(uaddr, fut64, fshared,
-+				       uaddr2, val, val2, &val3);
- 		break;
- 	default:
- 		ret =3D -ENOSYS;
-@@ -2401,23 +2498,24 @@ sys_futex64(u64 __user *uaddr, int op, u
- 	struct timespec ts;
- 	ktime_t t, *tp =3D NULL;
- 	u64 val2 =3D 0;
-+	int cmd =3D op & FUTEX_CMD_MASK;
-=20
--	if (utime && (op =3D=3D FUTEX_WAIT || op =3D=3D FUTEX_LOCK_PI)) {
-+	if (utime && (cmd =3D=3D FUTEX_WAIT || cmd =3D=3D FUTEX_LOCK_PI)) {
- 		if (copy_from_user(&ts, utime, sizeof(ts)) !=3D 0)
- 			return -EFAULT;
- 		if (!timespec_valid(&ts))
- 			return -EINVAL;
-=20
- 		t =3D timespec_to_ktime(ts);
--		if (op =3D=3D FUTEX_WAIT)
-+		if (cmd =3D=3D FUTEX_WAIT)
- 			t =3D ktime_add(ktime_get(), t);
- 		tp =3D &t;
- 	}
- 	/*
--	 * requeue parameter in 'utime' if op =3D=3D FUTEX_REQUEUE.
-+	 * requeue parameter in 'utime' if cmd =3D=3D FUTEX_REQUEUE.
- 	 */
--	if (op =3D=3D FUTEX_REQUEUE || op =3D=3D FUTEX_CMP_REQUEUE
--	    || op =3D=3D FUTEX_CMP_REQUEUE_PI)
-+	if (cmd =3D=3D FUTEX_REQUEUE || cmd =3D=3D FUTEX_CMP_REQUEUE
-+	    || cmd =3D=3D FUTEX_CMP_REQUEUE_PI)
- 		val2 =3D (unsigned long) utime;
-=20
- 	return do_futex((unsigned long __user*)uaddr, op, val, tp,
-@@ -2433,23 +2531,24 @@ asmlinkage long sys_futex(u32 __user *ua
- 	struct timespec ts;
- 	ktime_t t, *tp =3D NULL;
- 	u32 val2 =3D 0;
-+	int cmd =3D op & FUTEX_CMD_MASK;
-=20
--	if (utime && (op =3D=3D FUTEX_WAIT || op =3D=3D FUTEX_LOCK_PI)) {
-+	if (utime && (cmd =3D=3D FUTEX_WAIT || cmd =3D=3D FUTEX_LOCK_PI)) {
- 		if (copy_from_user(&ts, utime, sizeof(ts)) !=3D 0)
- 			return -EFAULT;
- 		if (!timespec_valid(&ts))
- 			return -EINVAL;
-=20
- 		t =3D timespec_to_ktime(ts);
--		if (op =3D=3D FUTEX_WAIT)
-+		if (cmd =3D=3D FUTEX_WAIT)
- 			t =3D ktime_add(ktime_get(), t);
- 		tp =3D &t;
- 	}
- 	/*
--	 * requeue parameter in 'utime' if op =3D=3D FUTEX_REQUEUE.
-+	 * requeue parameter in 'utime' if cmd =3D=3D FUTEX_REQUEUE.
- 	 */
--	if (op =3D=3D FUTEX_REQUEUE || op =3D=3D FUTEX_CMP_REQUEUE
--	    || op =3D=3D FUTEX_CMP_REQUEUE_PI)
-+	if (cmd =3D=3D FUTEX_REQUEUE || cmd =3D=3D FUTEX_CMP_REQUEUE
-+	    || cmd =3D=3D FUTEX_CMP_REQUEUE_PI)
- 		val2 =3D (u32) (unsigned long) utime;
-=20
- 	return do_futex((unsigned long __user*)uaddr, op, val, tp,
-_
-
-Patches currently in -mm which might be from dada1@cosmosbay.com are
-
+origin.patch
+fix-possible-null-pointer-access-in-8250-serial-driver.patch
+fix-oom-killing-processes-wrongly-thought-mpol_bind.patch
+char-mxser_new-fix-recursive-locking.patch
+char-mxser_new-fix-tiocmiwait.patch
+char-mxser-fix-tiocmiwait.patch
+taskstats-fix-the-structure-members-alignment-issue.patch
+maintainers-use-listslinux-foundationorg.patch
+paride-drivers-initialize-spinlocks.patch
+add-mbuesch-to-mailmap.patch
+fix-spelling-in-drivers-video-kconfig.patch
+page-migration-fix-nr_file_pages-accounting.patch
+ieee1394-update-maintainers-database.patch
+v9fs-dont-use-primary-fid-when-removing-file.patch
+acpi-thermal-fix-mod_timer-interval.patch
+allow-reading-tainted-flag-as-user.patch
+do-not-truncate-irq-number-for-icom-adapter.patch
+hwmon-w83627ehf-dont-redefine-region_offset.patch
+reiserfs-fix-xattr-root-locking-refcount-bug.patch
+char-icom-mark-__init-as-__devinit.patch
+fault-injection-add-entry-to-maintainers.patch
+8250-fix-possible-deadlock-between-serial8250_handle_port-and-serial8250_interrupt.patch
+packet-fix-error-handling.patch
+oom-kill-all-threads-that-share-mm-with-killed-task.patch
+fix-x86-fix-potential-overflow-in-perfctr-reservation.patch
+return-eperm-not-echild-on-security_task_wait-failure.patch
+networking-fix-sending-netlink-message-when-replace-route.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+x86-msr-add-support-for-safe-variants.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
+drivers-acpi-kconfig-formulation-fixpatch.patch
+make-proc-acpi-wakeup-more-useful.patch
+cpuidle-hang-fix.patch
+acpi-processor_idlec-remove-duplicate-include.patch
+acpi-asus_acpi-support-f2je-model.patch
+acpi-remove-duplicate-definitions-for-_sta-bits.patch
+acpi-use-_sta-bit-names-rather-than-0x0f.patch
+cpu_idle-prevents-resuming-from-str.patch
+asus_acpi-invert-read-of-wled-proc-file-to-show-correct.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-arm.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+pata_platform-for-arm-riscpc.patch
+arm-fix-section-mismatch-warning-in-board-sam9260.patch
+arm-ecard-convert-to-use-the-kthread-api.patch
+git-avr32.patch
+avr32-remove-unneeded-cast-in-atomich.patch
+git-cifs.patch
+cifs-use-mutexdiff.patch
+cifs-use-simple_prepare_write-to-zero-page-data.patch
+git-cpufreq.patch
+cleanup-cpufreq-kconfig-options.patch
+agk-dm-dm-merge-max_hw_sector.patch
+agk-dm-dm-raid1-one-kmirrord-per-mirror.patch
+agk-dm-dm-crypt-disable-barriers.patch
+agk-dm-dm-crypt-fix-call-to-clone_init.patch
+agk-dm-dm-crypt-fix-avoid-cloned-bio-ref-after-free.patch
+agk-dm-dm-crypt-fix-remove-first_clone.patch
+agk-dm-dm-crypt-use-smaller-bvecs-in-clones.patch
+agk-dm-dm-crypt-add-null-iv.patch
+agk-dm-dm-mpath-log-device-name.patch
+agk-dm-dm-allow-offline-devices.patch
+agk-dm-dm-log-fault-detection.patch
+agk-dm-dm-log-report-fault-status.patch
+agk-dm-dm-raid1-add-handle_errors-feature-flag.patch
+agk-dm-dm-io-delay-dec_count.patch
+agk-dm-dm-io-prepare-for-new-interface.patch
+agk-dm-dm-io-new-interface.patch
+agk-dm-dm-kcopyd-update-dm-io-interface.patch
+agk-dm-dm-exception-store-update-dm-io-interface.patch
+agk-dm-dm-log-update-dm-io-interface.patch
+agk-dm-dm-raid1-update-dm-io-interface.patch
+agk-dm-dm-io-remove-old-interface.patch
+agk-dm-dm-bio-list-helpers.patch
+agk-dm-dm-delay.patch
+git-powerpc.patch
+git-powerpc-arch-powerpc-sysdev-timerc-build-fix.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+powerpc-rtas-msi-support.patch
+spin_lock_unlocked-cleanup-in-arch-powerpc.patch
+macintosh-mediabay-convert-to-kthread-api.patch
+macintosh-adb-convert-to-the-kthread-api.patch
+macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
+powerpc-pseries-rtasd-convert-to-kthread-api.patch
+powerpc-pseries-eeh-convert-to-kthread-api.patch
+ppc-pci_32-stop-using-old-hotplug-unsafe-apis.patch
+gregkh-driver-driver-core-fix-device_add-error-path.patch
+gregkh-driver-driver-core-fix-namespace-issue-with-devices-assigned-to-classes.patch
+gregkh-driver-dev_printk-and-new-style-class-devices.patch
+gregkh-driver-driver-core-udev-triggered-device-driver-binding.patch
+gregkh-driver-driver-core-use-attribute-groups-in-struct-device_type.patch
+gregkh-driver-named-device_type.patch
+gregkh-driver-kobject-kobject_shadow_add-cleanup.patch
+gregkh-driver-driver-core-per-subsystem-multithreaded-probing.patch
+gregkh-driver-powerpc-make-it-compile-for-multithread-change.patch
+gregkh-driver-driver-core-don-t-fail-attaching-the-device-if-it-cannot-be-bound.patch
+gregkh-driver-driver-no-more-wait.patch
+gregkh-driver-kref-fix-cpu-ordering-with-respect-to-krefs.patch
+gregkh-driver-driver-core-notify-userspace-of-network-device-renames.patch
+gregkh-driver-driver-core-suppress-uevents-via-filter.patch
+gregkh-driver-driver-core-switch-firmware_class-to-uevent_suppress.patch
+gregkh-driver-driver-core-add-suspend-and-resume-to-struct-device_type.patch
+gregkh-driver-kobject-kobject_ueventc-collapse-unnecessary-loop-nesting.patch
+gregkh-driver-kobject-kobject_add-reference-leak.patch
+gregkh-driver-devices_subsys-rwsem-removal.patch
+gregkh-driver-scsi-hosts-rwsem-removal.patch
+gregkh-driver-usb-bus-mutex.patch
+gregkh-driver-pnp-remove-rwsem-usage.patch
+gregkh-driver-input-serio-do-not-touch-bus-s-rwsem.patch
+gregkh-driver-input-gameport-do-not-touch-bus-s-rwsem.patch
+gregkh-driver-ide-proc-remove-rwsem.patch
+gregkh-driver-ieee1394-rwsem-removal.patch
+gregkh-driver-phy-rwsem-removal.patch
+gregkh-driver-qeth-remove-usage-of-subsys_rwsem.patch
+gregkh-driver-subsys-rwsem-removal.patch
+gregkh-driver-sysfs-fix-i_ino-handling-in-sysfs.patch
+gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-sysfs-move-release_sysfs_dirent-to-dirc.patch
+gregkh-driver-sysfs-flatten-cleanup-paths-in-sysfs_add_link-and-create_dir.patch
+gregkh-driver-sysfs-consolidate-sysfs_dirent-creation-functions.patch
+gregkh-driver-sysfs-add-sysfs_dirent-s_parent.patch
+gregkh-driver-sysfs-add-sysfs_dirent-s_name.patch
+gregkh-driver-sysfs-make-sysfs_dirent-s_element-a-union.patch
+gregkh-driver-sysfs-implement-kobj_sysfs_assoc_lock.patch
+gregkh-driver-sysfs-reimplement-symlink-using-sysfs_dirent-tree.patch
+gregkh-driver-sysfs-implement-bin_buffer.patch
+gregkh-driver-sysfs-implement-sysfs_dirent-active-reference-and-immediate-disconnect.patch
+gregkh-driver-sysfs-kill-attribute-file-orphaning.patch
+gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+gregkh-driver-sysfs-make-lockdep-ignore-s_active.patch
+gregkh-driver-sysfs-make-sysfs_put-ignore-null-sd.patch
+gregkh-driver-sysfs-rename-object_depth-to-sysfs_path_depth-and-make-it-global.patch
+gregkh-driver-sysfs-reimplement-sysfs_drop_dentry.patch
+gregkh-driver-sysfs-kill-sysfs_dirent-s_dentry.patch
+gregkh-driver-driver-core-make-uevent-environment-available-in-uevent-file.patch
+gregkh-driver-driver-core-warn-for-odd-store-uevent-usage.patch
+gregkh-driver-kobject-comment-and-warning-fixes-to-kobjectc.patch
+gregkh-driver-the-overdue-removal-of-the-mount-umount-uevents.patch
+gregkh-driver-debugfs-add-debugfs_create_u64.patch
+gregkh-driver-bus_add_driver-return-error-for-no-bus.patch
+gregkh-driver-uio.patch
+gregkh-driver-uio-documentation.patch
+gregkh-driver-uio-dummy.patch
+gregkh-driver-uio-hilscher-cif-card-driver.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+gregkh-driver-put_device-might_sleep.patch
+gregkh-driver-kobject-warn.patch
+gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+gregkh-driver-nozomi.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+sysfs-oops-workaround.patch
+fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-cio-delay-uevents-for-subchannels.patch
+device_schedule_callback-needs-a-module-reference.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+security-prevent-permission-checking-of-file-removal-via-sysfs_remove_group.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-update.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+s2ram-add-arch-irq-disable-enable-hooks.patch
+mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs.patch
+drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore.patch
+dev_dbg-check-dev_dbg-arguments.patch
+dev_dbg-check-dev_dbg-arguments-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix-2.patch
+sysfs-binc-printk-fix.patch
+update-documentation-driver-model-platformtxt.patch
+git-drm.patch
+git-dvb.patch
+dvb_en_50221-convert-to-kthread-api.patch
+video4linux-fix-audio-input-for-avertv-go-007.patch
+mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+jdelvare-i2c-i2c-02-revert-core-warning-removal.patch
+jdelvare-i2c-i2c-04-kill-i2c_adapterclass_dev.patch
+jdelvare-i2c-i2c-05-i2c_adapter-devices-have-no-driver.patch
+jdelvare-i2c-i2c-07-i2c_register_driver-cleanup.patch
+jdelvare-i2c-i2c-08-shrink-i2c_client.patch
+jdelvare-i2c-i2c-09-i2c-class-attribute-cleanup.patch
+jdelvare-i2c-i2c-10-rename-dev_to_i2c_adapter.patch
+jdelvare-i2c-i2c-algo-bit-always-send-stop-before-leaving.patch
+jdelvare-i2c-i2c-add-smbus-block-read-emulation.patch
+jdelvare-i2c-i2c-algo-bit-emulate-smbus-block-read.patch
+jdelvare-i2c-i2c-parport-optimize-size.patch
+jdelvare-i2c-i2c-nforce2-add-mcp61-mcp65-support.patch
+jdelvare-i2c-clean-up-i2c-header-includes.patch
+jdelvare-i2c-scx200_acb-fix-pci-device-reference-count.patch
+jdelvare-i2c-i2c-parport-fix-race-on-unload.patch
+jdelvare-i2c-i2c-parport-light-to-platform-driver.patch
+jdelvare-i2c-i2c-elektor-to-isa-driver.patch
+jdelvare-i2c-i2c-pca-isa-to-isa-driver.patch
+jdelvare-i2c-i2c-01-i2c-stack-can-probe.patch
+jdelvare-i2c-i2c-02-i2c-stack-can-remove.patch
+jdelvare-i2c-i2c-03-i2c-document-probe-and-remove.patch
+jdelvare-i2c-i2c-04-i2c_board_info-and-i2c_new_device.patch
+jdelvare-i2c-i2c-05-i2c_add_numbered_adapter.patch
+jdelvare-i2c-i2c-06-export_symbol-cleanup.patch
+jdelvare-i2c-i2c-07-i2c_bit_add_numbered_bus.patch
+jdelvare-i2c-i2c-08-i2c_new_probed_device.patch
+jdelvare-i2c-i2c-09-document-i2c_new_device.patch
+jdelvare-i2c-i2c-isa-exports-only-to-i2c-isa.patch
+jdelvare-i2c-i2c-del-driver-returns-void.patch
+jdelvare-i2c-i2c-rpx-will-be-removed.patch
+jdelvare-i2c-i2c-algo-sgi-cleanup.patch
+jdelvare-i2c-i2c-blackfin-new-bus-driver.patch
+jdelvare-i2c-i2c-omap-adapter-numbering.patch
+jdelvare-i2c-i2c-algo-bit-50-50-duty-cycle-4.patch
+jdelvare-i2c-i2c-algo-bit-improve-debug-4.patch
+jdelvare-i2c-i2c-pxa-clean-stop.patch
+jdelvare-i2c-i2c-add-smbus-block-read.patch
+jdelvare-i2c-i2c-use-menuconfig-objects.patch
+jdelvare-i2c-i2c-gpio-new-bus-driver.patch
+jdelvare-i2c-i2c-simtec-new-bus-driver.patch
+jdelvare-i2c-i2c-delete-scx200_i2c.patch
+jdelvare-i2c-i2c-obsolete-ixp2000-and-ixp4xx.patch
+jdelvare-i2c-i2c-spin_lock_unlocked-cleanup.patch
+jdelvare-i2c-i2c-writing-clients-drop-isa-references.patch
+i2c-tsl2550-support.patch
+jdelvare-hwmon-hwmon-smsc47m192-document-lpc47m292-support.patch
+jdelvare-hwmon-hwmon-request-regions.patch
+jdelvare-hwmon-hwmon-smsc47m1-add-lpc47m292-support.patch
+jdelvare-hwmon-hwmon-smsc47m1-drop-useless-lock.patch
+jdelvare-hwmon-hwmon-only-call-vid_which_vrm-when-needed.patch
+jdelvare-hwmon-hwmon-fix-vid-table.patch
+jdelvare-hwmon-hwmon-w83627hf-cleanups.patch
+jdelvare-hwmon-hwmon-w83627hf-to-platform-driver.patch
+jdelvare-hwmon-hwmon-sysfs-interface-add-fan-target.patch
+jdelvare-hwmon-hwmon-smsc47m1-to-platform-driver.patch
+jdelvare-hwmon-hwmon-smsc47m1-use-drvname-consistently.patch
+jdelvare-hwmon-hwmon-max6650-new-driver.patch
+jdelvare-hwmon-hwmon-lm78-to-platform-driver.patch
+jdelvare-hwmon-hwmon-lm78-less-client-centric.patch
+jdelvare-hwmon-hwmon-lm78-use-dynamic-attributes.patch
+jdelvare-hwmon-hwmon-lm75-use-dynamic-attributes.patch
+jdelvare-hwmon-hwmon-coretemp-new-driver.patch
+jdelvare-hwmon-hwmon-coretemp-documentation.patch
+jdelvare-hwmon-hwmon-ad7418-new-driver.patch
+jdelvare-hwmon-hwmon-ams-i2c-fix-read-retry-logic.patch
+jdelvare-hwmon-hwmon-ams-do-not-print-error-on-systems-without-apple-motion-sensor.patch
+jdelvare-hwmon-hwmon-w83781d-to-platform-driver.patch
+jdelvare-hwmon-hwmon-w83781d-conversions-cleanup.patch
+jdelvare-hwmon-hwmon-w83781d-less-client-centric.patch
+jdelvare-hwmon-hwmon-w83781d-use-dynamic-attributes.patch
+jdelvare-hwmon-hwmon-w83781d-deprecate-w83627hf.patch
+jdelvare-hwmon-hwmon-smsc47b397-to-platform-driver.patch
+jdelvare-hwmon-hwmon-smsc47b397-use-dynamic-attributes.patch
+jdelvare-hwmon-hwmon-smsc47m1-use-dynamic-attributes.patch
+apple-smc-driver-hardware-monitoring-and-control.patch
+apple-smc-driver-hardware-monitoring-and-control-fix.patch
+apple-smc-driver-standardize-and-sanitize-sysfs-tree.patch
+apple-smc-driver-implement-key-enumeration.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+git-hid.patch
+hid-add-two-led-codes-to-hid-input-mapping.patch
+git-ia64.patch
+ia64-sn-xpc-convert-to-use-kthread-api.patch
+ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
+spin_lock_unlocked-macro-cleanup-in-arch-ia64.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+git-infiniband.patch
+git-infiniband-make-it-build-hack.patch
+git-input.patch
+git-input-fixup.patch
+input-convert-from-class-devices-to-standard-devices.patch
+input-evdev-implement-proper-locking.patch
+mousedev-fix.patch
+mousedev-fix-2.patch
+setstream-param-for-psmouse.patch
+wistron_btns-fix-a-typo-on-the-tm610-definition.patch
+wistron_btns-add-led-support.patch
+input-ff-add-ff_raw-effect.patch
+input-phantom-add-a-new-driver.patch
+git-jfs.patch
+jfs-use-set_current_state.patch
+git-kbuild.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+kbuild-handle-compressed-cpio-initramfs-es.patch
+git-kvm.patch
+git-leds.patch
+git-libata-all.patch
+ata-irq-registration-fix.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+libata-acpi-add-infrastructure-for-drivers-to-use.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+optional-led-trigger-for-libata.patch
+pata_hpt37x-further-small-fixes.patch
+pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma-fix.patch
+ide-sl82c105-rework-pio-support-take2.patch
+ide-sl82c105-dma-support-code-cleanup-take4.patch
+ide-cmd64x-remove-broken-sw-mw-dma-support.patch
+ide-cmd64x-interrupt-status-fixes-resend.patch
+ide-cmd64x-add-fix-enablebits.patch
+ide-cmd64x-procfs-code-fixes-cleanups.patch
+ide-cmd64x-use-interrupt-status-from-mrdmode-register.patch
+ide-cmd64x-add-back-mwdma-support.patch
+ide-ide-fix-dma-masks-v3.patch
+ide-ide-max-dma-mode-v3.patch
+ide-ide-tune-dma-helper.patch
+ide-ide-proc-fs.patch
+ide-ide-split-off-ioctls-from-settings-v2.patch
+ide-ide-move-settings-to-ide-proc.patch
+ide-ide-fix-cable-checks-take2.patch
+ide-alim15x3-pio-fallback-fix.patch
+ide-alim15x3-use-ide-tune-dma.patch
+ide-pdc202xx_new-enable-dma-for-all-atapi-devices.patch
+ide-pdc202xx_new-use-ide-tune-dma.patch
+ide-ide-register-hw-initializing-arg.patch
+ide-ide-proc-register-port.patch
+ide-ide-pci-pcibus-order.patch
+ide-pdc202xx_old-rewrite-mode-programming-v2.patch
+ide-serverworks-pio-mode-setup-fixes.patch
+ide-sis5513-pio-mode-setup-fixes.patch
+ide-ide-fix-pio-setup-on-resume-for-atapi.patch
+ide-it821x-pio-mode-setup-fixes.patch
+ide-siimage-swdma-mask-fix.patch
+ide-ide-cris-fix-speedproc-and-swdma-mask.patch
+ide-ide-dma-off-quietly-fix.patch
+ide-ide-no-mdma-udma-sharing-filter.patch
+ide-ide-tune-dma-2.patch
+ide-cs5530-sc1200-dma-cleanup.patch
+ide-cs5530-sc1200-add-speedproc.patch
+ide-sl82c105-add-speedproc-method-and-mwdma01-support.patch
+ide-ide-dma-enable.patch
+ide-ide-check-dma-words-validity.patch
+ide-ide-remove-ide-use-dma.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel.patch
+git-md-accel-fix.patch
+git-mips.patch
+spin_lock_unlocked-cleanup-in-arch-mips.patch
+dont-force-frame-pointers-for-lockdep-on-mips.patch
+git-mmc.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+romfs-printk-format-warnings.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+git-netdev-all-fixup.patch
+reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-baycom_ser_fdx-fix.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+drivers-net-vioc-possible-cleanups.patch
+vioc-replace-more-deprecated-sa_xxx-interrupt-flags.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+2621-rc5-mm3-fix-e1000-compilation.patch
+8139too-force-media-setting-fix.patch
+sundance-change-phy-address-search-from-phy=1-to-phy=0.patch
+add-napi-support-to-sb1250-macc-take-2.patch
+forcedeth-improve-napi-logic.patch
+ehea-fix-for-dlpar-and-sysfs-entries.patch
+3c509-remove-unnecessary-include-of-linux-pm_legacyh.patch
+fix-sparse-errors-in-drivers-net-ibmvethc.patch
+3x59x-fix-pci-resource-management.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
 git-net.patch
+git-net-fixup.patch
+git-net-fix-yamc.patch
+netdrv-perform-missing-csum_offset-conversions.patch
+net-possible-cleanups.patch
+git-net-vs-git-netdev-all.patch
+delete-unused-header-file-linux-sdla_frh.patch
+delete-unused-header-file-linux-if_wanpipe_commonh.patch
+net-tun-tap-fixed-hw-address-handling.patch
+round_up-macro-cleanup-in-drivers-net-ppp_genericc.patch
+iucv-fix-compilation-on-s390-up.patch
+sunrpc-cleanup-use-seq_release_private-where-appropriate.patch
+spin_lock_unlocked-cleanup-in-drivers-atm-net.patch
+ppp_generic-fix-lockdep-warning.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+networking-bonding-documentation-fix-for-multiple-bonding-interfaces.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+use-mutex-instead-of-binary-semaphore-in-fore-systems-200e-series-driver-for-atm.patch
+bluetooth-add-sco-work-around-for-the-broadcom.patch
+git-ioat.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+fix-i-oat-for-kexec.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+nfs-kill-the-obsolete-nfs_paranoia.patch
+nfs-statfs-error-handling-fix.patch
+nfs-use-__set_current_state.patch
+git-nfs-server-cluster-locking-api.patch
+git-ocfs2.patch
+fs-ocfs2-make-3-functions-static.patch
+ocfs2-use-__set_current_state.patch
+git-parisc.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+pcmcia-pccard-deadlock-fix.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
+at91_cf-minor-fix.patch
+add-new_id-to-pcmcia-drivers.patch
+git-r8169.patch
+git-selinux.patch
+serial-driver-pmc-msp71xx.patch
+rm9000-serial-driver.patch
+serial-define-fixed_port-flag-for-serial_core.patch
+serial-use-resource_size_t-for-serial-port-io-addresses.patch
+mpsc-serial-driver-tx-locking.patch
+serial-suppress-rts-assertion-with-disabled-crtscts.patch
+8250_pci-fix-pci-must_checks.patch
+gregkh-pci-pci-flush-msi-x-table-writes.patch
+gregkh-pci-pci-new-pci-e-reset-api.patch
+gregkh-pci-pciehp-event-handling-rework.patch
+gregkh-pci-pciehp-adapt-to-device-driver-model.patch
+gregkh-pci-pci-fix-multiple-definition-of-queue_pushbutton_work.patch
+gregkh-pci-pci-scatterlisth-needs-typesh.patch
+gregkh-pci-pci-cleanup-the-includes-of-linux-pcih.patch
+gregkh-pci-pci-kernel-doc-fix.patch
+gregkh-pci-pci-require-vendor-and-device-for-new_id.patch
+gregkh-pci-pci-do-not-mark-exported-functions-as-__devinit.patch
+gregkh-pci-pci-define-pci_request-release_regions-for-config_pci-n.patch
+gregkh-pci-pci-documentation-power-pcitxt-fix-copy-paste-error.patch
+gregkh-pci-msi-simplify-bug-handling-in-pci_disable_msi.patch
+gregkh-pci-msi-simplify-bug-handling-in-pci_disable_msix.patch
+gregkh-pci-msi-simplify-bug-handling-in-msi_remove_pci_irq_vectors-part-1.patch
+gregkh-pci-msi-simplify-bug-handling-in-msi_remove_pci_irq_vectors-part-2.patch
+gregkh-pci-msi-consolidate-msi-x-irq-freeing-code.patch
+gregkh-pci-msi-consolidate-bug_ons.patch
+gregkh-pci-msi-move-export_symbols-near-their-definition.patch
+gregkh-pci-msi-remove-msi_cache.patch
+gregkh-pci-msi-expand-pci_msi_supported.patch
+gregkh-pci-msi-consolidate-precondition-checks.patch
+gregkh-pci-msi-rename-pci_msi_supported-to-pci_msi_check_device.patch
+gregkh-pci-msi-add-an-arch_msi_check_device.patch
+gregkh-pci-pci-create-alloc_pci_dev-the-one-true-way-to-create-a-struct-pci_dev.patch
+gregkh-pci-pci-convert-to-alloc_pci_dev.patch
+gregkh-pci-msi-use-a-list-instead-of-the-custom-link-structure.patch
+gregkh-pci-msi-remove-dev-first_msi_irq.patch
+gregkh-pci-msi-introduce-arch_supports_msi-kconfig-option.patch
+gregkh-pci-msi-arch-must-connect-the-irq-and-the-msi_desc.patch
+gregkh-pci-msi-give-archs-the-option-to-allocate-all-msi-xs-at-once.patch
+gregkh-pci-msi-give-archs-the-option-to-free-all-msi-xs-at-once.patch
+gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+gregkh-pci-pci-the-overdue-removal-of-pci_module_init.patch
+gregkh-pci-pci-add-debug-information-to-resource-collision-message.patch
+gregkh-pci-pci-rpaphp-cleanup-flow-of-control-for-rpaphp_add_slot.patch
+gregkh-pci-pci-rpaphp-remove-global-num_slots-variable.patch
+gregkh-pci-pci-rpaphp-match-up-alloc-and-free-in-same-routine.patch
+gregkh-pci-pci-rpaphp-fix-a-memleak-slot-location-string-was-never-freed.patch
+gregkh-pci-pci-rpaphp-remove-un-needed-goto.patch
+gregkh-pci-pci-rpaphp-remove-a-function-that-does-nothing-but-wrap-debug-printk-s.patch
+gregkh-pci-pci-rpaphp-remve-another-call-that-is-a-wrapper.patch
+gregkh-pci-pci-rpaphp-remove-another-wrappered-function.patch
+gregkh-pci-pci-rpaphp-remove-a-call-that-does-nothing-but-a-pointer-lookup.patch
+gregkh-pci-pci-rpaphp-remove-setup_pci_slot.patch
+gregkh-pci-pci-rpaphp-remove-print_slot_pci_funcs.patch
+gregkh-pci-pci-rpaphp-remove-rpaphp_set_attention_status.patch
+gregkh-pci-pci-rpaphp-refactor-tail-call-to-rpaphp_register_slot.patch
+gregkh-pci-pci-rpaphp-rename-rpaphp_register_pci_slot-to-rpaphp_enable_slot.patch
+gregkh-pci-pci-rpaphp-document-find_php_slot.patch
+gregkh-pci-pci-rpaphp-document-is_php_dn.patch
+gregkh-pci-pci-rpaphp-use-pcibios_remove_pci_devices-symmetrically.patch
+gregkh-pci-pci-rpaphp-ensure-more-pcibios_add-pcibios_remove-symmetry.patch
+gregkh-pci-pci-rpaphp-remove-semaphores.patch
+gregkh-pci-zt5550-cpci-hotplug-driver-fix.patch
+gregkh-pci-use-menuconfig-objects-pcihotplug.patch
+gregkh-pci-pci-quirks-disable-msi-on-rs400-200-and-rs480.patch
+gregkh-pci-pci-free-resource-files-in-error-path-of-pci_create_sysfs_dev_files.patch
+gregkh-pci-pci-piggy-bus.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+remove-pci_dac_dma_-apis.patch
+round_up-macro-cleanup-in-drivers-pci.patch
+pcie-remove-spin_lock_unlocked.patch
+cpqphp-partially-convert-to-use-the-kthread-api.patch
+ibmphp-partially-convert-to-use-the-kthreads-api.patch
+cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
+git-pciseg.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
+s390-qeth-convert-to-use-the-kthread-api.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+git-scsi-misc.patch
+aacraid-2621-rc6-mm1-aacraid-not-finding-device.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+remove-unnecessary-check-in-drivers-scsi-sgc.patch
+pci_module_init-convertion-in-tmscsimc.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-megaraidc-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+sym53c8xx_2-claims-cpqarray-device.patch
+drivers-scsi-wd33c93c-cleanups.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+drivers-scsi-aic7xxx_old-convert-to-generic-boolean-values.patch
+cleanup-variable-usage-in-mesh-interrupt-handler.patch
+fix--confusion-in-fusion-driver.patch
+scsi-spi-transport-scsi-domain-validation-after-reset.patch
+scsi-newstyle-hotplug-coldplug-support.patch
+use-unchecked_isa_dma-in-sd_revalidate_disk.patch
+fdomainc-get-rid-of-unused-stuff.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+fix-buslogic-to-stop-using-check_region.patch
+sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
+qla1280-use-dma_64bit_mask-instead-of-0ull.patch
+pci-error-recovery-symbios-scsi-base-support.patch
+pci-error-recovery-symbios-scsi-base-support-fixes.patch
+pci-error-recovery-symbios-scsi-first-failure.patch
+pci-error-recovery-symbios-scsi-first-failure-fix.patch
+git-block.patch
+sparc64-powerc-convert-to-use-the-kthread-api.patch
+gregkh-usb-adding-pid-of-sharp-s01sh-for-ipaqc.patch
+gregkh-usb-pxa2xx_udc-cleanups-use-platform_get_irq.patch
+gregkh-usb-usb-pxa2xx_udc-fix-hardcoded-irq-number.patch
+gregkh-usb-usb-fix-skeleton-driver.patch
+gregkh-usb-usb-kill-bkl-in-skeleton-driver.patch
+gregkh-usb-usb-kill-bkl-in-usblcd.patch
+gregkh-usb-usbmon-extended-text-api.patch
+gregkh-usb-usb-additional-structure-from-cdc-spec.patch
+gregkh-usb-usb-cdc-acm-export-parsed-capabilities-through-sysfs.patch
+gregkh-usb-ub-bind-to-first-endpoint-not-to-last.patch
+gregkh-usb-libusual-change-block-scope-variable-to-function-scope.patch
+gregkh-usb-usbcore-move-usb_autosuspend_work.patch
+gregkh-usb-usb-unnecessary-gfp_atomic-in-mos7720-driver.patch
+gregkh-usb-usbatm-create-sysfs-link-device-from-atm-class-device-to-usb-interface.patch
+gregkh-usb-usb-cxacru-export-detailed-device-info-through-sysfs.patch
+gregkh-usb-usb-maintainers-cxacru.patch
+gregkh-usb-usb-fix-race-in-hcd-removal.patch
+gregkh-usb-ehci-fsl-change-si_ctrl-pri_ctrl-register-offsets-according-to-errata.patch
+gregkh-usb-mos7720-update.patch
+gregkh-usb-usb-help-text-for-mos-7720-driver.patch
+gregkh-usb-usb-separate-autosuspend-from-external-suspend.patch
+gregkh-usb-usb-allow-autosuspend-delay-to-equal-0.patch
+gregkh-usb-ehci-add-delay-to-bus_resume-before-accessing-ports.patch
+gregkh-usb-usb-io_edgeport-race-condition-in-counters.patch
+gregkh-usb-usb-overhaul-of-mos7840-driver.patch
+gregkh-usb-usb-io_edgeport-convert-to-generic-boolean.patch
+gregkh-usb-usb-dm9601-fix-sparse-null-warnings.patch
+gregkh-usb-usb-iowarriorc-fix-null-dereference.patch
+gregkh-usb-usb-fix-endianness-in-mos7720.patch
+gregkh-usb-uhci-add-some-warn_ons.patch
+gregkh-usb-usb-omninet-memory-leak-in-error-case.patch
+gregkh-usb-option-close-race.patch
+gregkh-usb-usb-sierra-close-race.patch
+gregkh-usb-usb-add-power-level-sysfs-attribute.patch
+gregkh-usb-usb-gadget-storage-needs-block.patch
+gregkh-usb-usb-make-usbdevices-export-their-device-nodes-instead-of-using-a-separate-class.patch
+gregkh-usb-usb-aircable-cleanup.patch
+gregkh-usb-usb-fix-race-in-visor_write.patch
+gregkh-usb-usb-fix-race-in-ftdio_write.patch
+gregkh-usb-usb-ftdi_sio-add-usb-id-of-adstech-usbx-707.patch
+gregkh-usb-usb-fix-ark3116-memory-leak.patch
+gregkh-usb-usb-cypress_cy7c63-race-disconnect-sysfs-read-write-leading-to-following-null-pointer.patch
+gregkh-usb-usb-fix-catc-error-handling.patch
+gregkh-usb-usb-fix-error-handling-in-kl5kusb.patch
+gregkh-usb-usb-fix-error-handling-for-mct_u232.patch
+gregkh-usb-usb-fix-omninet-write-vs-close-race.patch
+gregkh-usb-usb-whiteheat-convert-to-generic-boolean.patch
+gregkh-usb-usb-add-last_busy-field-for-use-in-autosuspend.patch
+gregkh-usb-usb-cleanup-ofd-adutux.patch
+gregkh-usb-usb-allow-transfer_buffer-with-transfer_dma.patch
+gregkh-usb-usbmon-bus-zero.patch
+gregkh-usb-usb-fix-signed-jiffies-issue-in-autosuspend-logic.patch
+gregkh-usb-usb-linux-usb-ch9h-minor-doc-update.patch
+gregkh-usb-usb-rndis_host-various-cleanups.patch
+gregkh-usb-usb-usbnet-reports-minidriver-name-through-ethtool.patch
+gregkh-usb-usb-add-an-ohci-board-specific-quirk.patch
+gregkh-usb-usb-gotemp.patch
+gregkh-usb-always-announce-new-usb-devices.patch
+gregkh-usb-usb-stimulus.patch
+usb-elan-ftdi-check-for-driver-registration-status-v2.patch
+usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
+usb-bandrich-bandluxe-hsdpa-data-card-driver.patch
+remove-duplicate-define-of-ohci_quirk_zfmicro.patch
+usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs.patch
+usb-cxacru-adsl-state-management.patch
+usb-cxacru-adsl-state-management-udpate.patch
+cxacru-add-documentation-file.patch
+cxacru-add-documentation-file-fix.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+x86_64-mm-defconfig-update.patch
+x86_64-mm-i386-defconfig-update.patch
+x86_64-mm-revert-i386-fix-the-verify_quirk_intel_irqbalance.patch
+x86_64-mm-revert-x86_64-mm-add-genapic_force.patch
+x86_64-mm-revert-x86_64-mm-fix-the-irqbalance-quirk-for-e7320-e7520-e7525.patch
+x86_64-mm-optimize-fix-apic-mode-setup.patch
+x86_64-mm-always-use-physical-delivery-mode-on-8-cpus.patch
+x86_64-mm-remove-clustered-apic-mode.patch
+x86_64-mm-default-to-physical-mode-on-hotplug-cpu-kernels.patch
+x86_64-mm-a-memcpy-that-tries-to-reduce-cache-pressure.patch
+x86_64-mm-fam10-l3cache.patch
+x86_64-mm-adjustments-to-page-table-dump-during-oops-v4.patch
+x86_64-mm-adjust-inclusion-of-asm-fixmap_h.patch
+x86_64-mm-adjust-inclusion-of-asm-vsyscall32_h.patch
+x86_64-mm-consolidate-smp_send_stop.patch
+x86_64-mm-no-need-to-use-traditional-for-processing-asm-in-i386-kernel.patch
+x86_64-mm-mtrr-range-check-correction.patch
+x86_64-mm-pit_latch_buggy-has-no-effect.patch
+x86_64-mm-add-an-option-for-the-via-c7-which-sets-appropriate-l1-cache.patch
+x86_64-mm-probe_roms-cleanup.patch
+x86_64-mm-a-few-missing-entry_s-annotations.patch
+x86_64-mm-get-user-annotations.patch
+x86_64-mm-unwinder.patch
+x86_64-mm-fix-i386-and-x86_64-fault-information-pollution.patch
+x86_64-mm-timer-prototype-cleanup.patch
+x86_64-mm-i386-make-nmi-use-perfctr1-for-architectural-perfmon-take-2.patch
+x86_64-mm-x86_64-make-nmi-use-perfctr1-for-architectural-perfmon-take-2.patch
+x86_64-mm-add-__init-to-probe_bigsmp.patch
+x86_64-mm-change-sysenter_setup-to-__cpuinit-improve-__init-__initdata.patch
+x86_64-mm-number-of-cpus.patch
+x86_64-mm-fam10-oprofile.patch
+x86_64-mm-gcc3-options.patch
+x86_64-mm-update-__copy_to_user_inatomic.patch
+x86_64-mm-clean-up-mach_reboot_fixups.patch
+x86_64-mm-fix-usage-of-mtune-when-x86_generic=y-or-config_mcore2=y.patch
+x86_64-mm-remove-unused-set_seg_base.patch
+x86_64-mm-remove-duplicated-code-for-reading-control-registers.patch
+x86_64-mm-fix-cpu-mhz-reporting-on-constant_tsc-cpus.patch
+x86_64-mm-simplify-smp_call_function-by-using-common-implementation.patch
+x86_64-mm-dma_ops-as-const.patch
+x86_64-mm-assembly-safe-page_h-and-pgtable_h.patch
+x86_64-mm-kill-temp-boot-pmds.patch
+x86_64-mm-clean-up-the-early-boot-page-table.patch
+x86_64-mm-fix-early-printk-to-use-standard-isa-mapping.patch
+x86_64-mm-modify-copy_bootdata-to-use-virtual-addresses.patch
+x86_64-mm-cleanup-segments.patch
+x86_64-mm-add-efer-to-the-register-set-saved-by-save_processor_state.patch
+x86_64-mm-64bit-pic-smp-trampoline.patch
+x86_64-mm-get-rid-of-dead-code-in-suspend-resume.patch
+x86_64-mm-wakeup_s-rename-registers-to-reflect-right-names.patch
+x86_64-mm-wakeup_s-misc-cleanups.patch
+x86_64-mm-64bit-acpi-wakeup-trampoline.patch
+x86_64-mm-modify-discover_ebda-to-use-virtual-addresses.patch
+x86_64-mm-remove-the-identity-mapping-as-early-as-possible.patch
+x86_64-mm-move-swsusp-__pa-dependent-code-to-arch-portion.patch
+x86_64-mm-do-not-use-virt_to_page-on-kernel-data-address.patch
+x86_64-mm-__pa-and-__pa_symbol-address-space-separation.patch
+x86_64-mm-relocatable-kernel-support.patch
+x86_64-mm-build-time-checking.patch
+x86_64-mm-extend-bzimage-protocol-for-relocatable-bzimage.patch
+x86_64-mm-move-cpu-verification-code-to-common-file.patch
+x86_64-mm-cpufreq-not-configured.patch
+x86_64-mm-sched-clock-share.patch
+x86_64-mm-sched-clock64.patch
+x86_64-mm-block-reordering.patch
+x86_64-mm-uselib-aout.patch
+x86_64-mm-traps-style.patch
+x86_64-mm-set-hashdist_default-to-1-for-x86_64-numa.patch
+x86_64-mm-modpost-apic-related-warning-fixes.patch
+x86_64-mm-make-struct-vmi_ops-static.patch
+x86_64-mm-type-cast-clean-up-for-find_next_zero_bit.patch
+x86_64-mm-workaround-for-a-wmissing-prototypes-warning.patch
+x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
+x86_64-mm-fix-ia32_binfmt_c-build-error.patch
+x86_64-mm-remove-extra-smp_processor_id-calling.patch
+x86_64-mm-make-simnow_init-static.patch
+x86_64-mm-vmi_pmd_clear-static.patch
+x86_64-mm-fix-gdts-number-of-quadwords-in-comment.patch
+x86_64-mm-configurable-fake-numa-node-sizes.patch
+x86_64-mm-split-remaining-fake-nodes-equally.patch
+x86_64-mm-fixed-size-remaining-fake-nodes.patch
+x86_64-mm-remove-constant_tsc-reporting-from-proc-cpuinfo-power-flags.patch
+x86_64-mm-fake-numa-for-cpusets-document.patch
+x86_64-mm-vdso_prelink-warning-fix.patch
+x86_64-mm-initialize-esp0-properly-all-the-time.patch
+x86_64-mm-export_symbol_gpl-5-functions.patch
+x86_64-mm-get_futex_key-get_key_refs-and-drop_key_refs.patch
+x86_64-mm-introduce-load_tls-to-the-for-loop_.patch
+x86_64-mm-clarify-config_reorder-explanation.patch
+x86_64-mm-allow-i386-crash-kernels-to-handle-x86_64-dumps.patch
+x86_64-mm-prevent-acpi-quirk-warning-mass-spamming-in-logs.patch
+x86_64-mm-add-command-line-length-to-boot-protocol.patch
+x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+x86_64-mm-use-per-cpu-gdt-immediately-upon-boot.patch
+x86_64-mm-clean-up-cpu_init.patch
+x86_64-mm-rename-boot_gdt_table-to-boot_gdt.patch
+x86_64-mm-rationalize-paravirt-wrappers.patch
+x86_64-mm-tighten-kernel-image-page-access-rights.patch
+x86_64-mm-get-rid-of-unused-variables.patch
+x86_64-mm-i386-eflags-header.patch
+x86_64-mm-remove-stext.patch
+x86_64-mm-remove-the-apm_rtc_is_gmt-config-option_.patch
+x86_64-mm-use-lru-instead-of-page-index-and-page-private-for-pgd-lists-management_.patch
+x86_64-mm-sys_ioperm-prototype-cleanup.patch
+x86_64-mm-remove-unexpected_io_apic.patch
+x86_64-mm-fix-vtime-vsyscall.patch
+x86_64-mm-vsyscall_gtod_data-diet-and-vgettimeofday-fix.patch
+x86_64-mm-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation_.patch
+x86_64-mm-adjust-edid-retrieval.patch
+x86_64-mm-fix-section-mismatch-compile-warning.patch
+x86_64-mm-cleanup-gdt-access.patch
+x86_64-mm-add-smp_ops-interface.patch
+x86_64-mm-add-machine_ops-interface-to-abstract-halting-and-rebooting.patch
+x86_64-mm-change-email-address.patch
+x86_64-mm-i386-nmi-extern.patch
+x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+x86_64-mm-fix-amd64-agp-aperture-validation.patch
+x86_64-mm-ignore-vgacon-if-hardware-not-present.patch
+x86_64-mm-x86-64-eflags-header.patch
+x86_64-mm-fix-arithmetic-in-comment.patch
+x86_64-mm-vmalloc-32.patch
+x86_64-mm-clean-up-asm-i386-bugs_h.patch
+x86_64-mm-clean-up-identify_cpu.patch
+x86_64-mm-relocate-vdso-elf-headers-to-match-mapped-location-with-compat_vdso.patch
+x86_64-mm-make-compat_vdso-runtime-selectable_.patch
+x86_64-mm-clean-up-asm-x86_64-bugs_h.patch
+x86_64-mm-fam10-mwait-idle.patch
+x86_64-mm-fam10-i386-mce.patch
+x86_64-mm-use-menuconfig-objects-apm.patch
+x86_64-mm-update-smp_call_function-comments.patch
+x86_64-mm-mce-banks.patch
+x86_64-mm-allow-percpu-variables-to-be-page-aligned.patch
+x86_64-mm-msr-index.patch
+x86_64-mm-remove-smp_alt_instructions.patch
+x86_64-mm-remove-noreplacement.patch
+x86_64-mm-allow-boot-time-disable-of-smp-altinstructions.patch
+x86_64-mm-fix-x86_64-compilation-with-debug_sig-on.patch
+x86_64-mm-x86-64-system-crashes-when-no-memory-populating-node-0.patch
+x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+x86_64-mm-paravirt-update-maintainers.patch
+x86_64-mm-paravirt-remove-config_debug_paravirt.patch
+x86_64-mm-paravirt-use-paravirt_nop-to-consistently-mark-no-op-operations.patch
+x86_64-mm-paravirt-pagetable-accessors.patch
+x86_64-mm-paravirt-initial-pagetable.patch
+x86_64-mm-paravirt-fixmap.patch
+x86_64-mm-paravirt-allow-paravirt-backend-to-choose-kernel-pmd-sharing.patch
+x86_64-mm-paravirt-even-more-mm-hooks.patch
+x86_64-mm-paravirt-patch-site-rename.patch
+x86_64-mm-paravirt-pvops-offsets.patch
+x86_64-mm-paravirt-clobbers.patch
+x86_64-mm-paravirt-pvops-call.patch
+x86_64-mm-paravirt-documentation.patch
+x86_64-mm-paravirt-patch.patch
+x86_64-mm-paravirt-flush-others.patch
+x86_64-mm-paravirt-revert-map_pt_hook.patch
+x86_64-mm-paravirt-highmem.patch
+x86_64-mm-paravirt-wrapper-cleanup.patch
+fix-x86_64-mm-fam10-mwait-idle.patch
+more-fix-x86_64-mm-fam10-mwait-idle.patch
+fix-x86_64-mm-sched-clock-share.patch
+revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+i386-irq-kill-irq-compression.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others.patch
+rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+allow-boot-time-disable-of-paravirt_ops-patching.patch
+fix-mtrr-sections.patch
+i386-extend-alternative-instructions-framework.patch
+x86_64-changes-to-x86_64-architecture-for.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
 x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone.patch
+i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch
+i386-avoid-checking-for-cpu-gone-when-config_hotplug_cpu-not-defined.patch
+i386-make-compat_vdso-runtime-selectable-fix.patch
+i386-cleanup-flush_tlb_others-fn.patch
+i386-mce-check-capability.patch
 x86_64-set-node_possible_map-at-runtime.patch
 x86_64-set-node_possible_map-at-runtime-fix.patch
+x86_64-set-node_possible_map-at-runtime-fix-2.patch
 slab-x86_64-skip-cache_free_alien-on-non-numa.patch
+i386-sysenter-arch-pages-fix.patch
+i386-acpi-remove-earlyquirk-warning.patch
+i386-mcheck-p4-grotesque-and-needless-warning-fix.patch
+i386-pgd-clone-under-lock-fix.patch
+vmi-supports-compat-vdso.patch
+resurrect-the-vmi-lazy-mode-fixes-fix.patch
+vmi-kmap_atomic_pte-fix.patch
+vmi-timer-update.patch
+i386-tsc-remove-xtime_locking-around-cpufreq-notifier.patch
+i386-pte-drop-ptep_get_and_clear-paravirt-op.patch
+i386-pte-clear-optimization.patch
+i386-pte-xchg-optimization.patch
+i386-pte-simplify-ops.patch
+mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches.patch
+mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
+mtrr-save-and-restore-the-fixed-range-mtrrs-of-the-bsp-when-suspending.patch
+mtrr-enable-support-for-fixed-range-iorrs-to-keep-rdmem-wrmem-in-sync.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+mm-only-i386-for-debugging-make-the-initial-page-table-setup-less-forgiving.patch
+i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api.patch
+i386-balance_irq-convert-to-the-kthread-api.patch
+fault-injection-disable-stacktrace-filter-for-x86-64.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+xfs-fix-unmount-race.patch
+git-cryptodev.patch
+mm.patch
+depcac-fix-handling-of-platorm_device_add-failure.patch
+fix-slab-corruption-running-ip6sic.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-remove-gcc-workaround.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+allow-oom_adj-of-saintly-processes.patch
+introduce-config_has_dma.patch
+mm-slabc-proper-prototypes.patch
+mm-detach_vmas_to_be_unmapped-fix.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+add-a-configure-option-to-group-pages-by-mobility-speedup.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+move-free-pages-between-lists-on-steal-fix.patch
+move-free-pages-between-lists-on-steal-fix-2.patch
+move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
+move-free-pages-between-lists-on-steal-do-not-cross-section-boundary-when-moving-pages-between-mobility-lists.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+create-the-zone_movable-zone.patch
+create-the-zone_movable-zone-align-zone_movable-to-a-max_order_nr_pages-boundary.patch
+allow-huge-page-allocations-to-use-gfp_high_movable.patch
+x86-specify-amount-of-kernel-memory-at-boot-time.patch
+ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
+x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
+ia64-specify-amount-of-kernel-memory-at-boot-time.patch
+add-documentation-for-additional-boot-parameter-and-sysctl.patch
+handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
+mm-simplify-filemap_nopage.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix.patch
+mm-fix-fault-vs-invalidate-race-for-linear-mappings-fix-2.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault.patch
+mm-merge-nopfn-into-fault-fix.patch
+convert-hugetlbfs-to-use-vm_ops-fault.patch
+mm-remove-legacy-cruft.patch
+mm-debug-check-for-the-fault-vs-invalidate-race.patch
+mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
+smaps-use-ptep_test_and_clear_young.patch
+smaps-add-clear_refs-file-to-clear-reference-docs.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-pid-pagemap-interface-fix.patch
+maps2-add-proc-pid-pagemap-interface-fix-fix.patch
+maps2-add-proc-kpagemap-interface.patch
+maps2-add-proc-kpagemap-interface-fix.patch
+lumpy-reclaim-v4.patch
+lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
+lumpy-only-count-taken-pages-as-scanned.patch
+kswapd-use-reclaim-order-in-background-reclaim.patch
+lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
+introduce-high_order-delineating-easily-reclaimable-orders.patch
+add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
+anti-fragmentation-switch-over-to-pfn_valid_within.patch
+lumpy-move-to-using-pfn_valid_within.patch
+readahead-improve-heuristic-detecting-sequential-reads.patch
+readahead-code-cleanup.patch
+readahead-code-cleanup-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
 slab-use-num_possible_cpus-in-enable_cpucache.patch
 slab-dont-allocate-empty-shared-caches.patch
 slab-numa-kmem_cache-diet.patch
+do-not-disable-interrupts-when-reading-min_free_kbytes.patch
+slab-mark-set_up_list3s-__init.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+fix-section-mismatch-of-memory-hotplug-related-code.patch
+add-white-list-into-modpostc-for-memory-hotplug-code-and-ia64s-machvec-section.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
+extend-print_symbol-capability.patch
+extend-print_symbol-capability-fix.patch
+extend-print_symbol-capability-fix-fix.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-core-minor-fixes.patch
+slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+slub-core-fix-another-numa-bootstrap-issue.patch
+slub-core-fix-object-counting.patch
+slub-core-drop-version-number.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
+slub-core-printk-facility-level-cleanup.patch
+slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
+slub-core-add-explanation-for-defrag_ratio-=-100.patch
+slub-core-add-explanation-for-locking.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-the-64k-limits.patch
+slub-core-explain-sizing-of-slabs-in-detail.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-add-checks-for-interrupts-disabled.patch
+slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
+slub-core-missing-inlines-and-statics.patch
+slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
+slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
+slub-core-more-statics.patch
+slub-core-fix-kmem_cache_destroy.patch
+slub-core-fix-validation.patch
+slub-core-add-after-object-padding.patch
+slub-core-resiliency-fixups.patch
+slub-core-resiliency-fixups-fix.patch
+slub-core-resiliency-test.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-remove-object-activities-out-of-checking-functions.patch
+slub-user-documentation.patch
+slub-user-documentation-fix.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+slob-handle-slab_panic-flag.patch
+include-kern_-constant-in-printk-calls-in-mm-slabc.patch
+mm-madvise-avoid-exclusive-mmap_sem.patch
+mm-remove-destroy_dirty_buffers-from-invalidate_bdev.patch
+mm-optimize-kill_bdev.patch
+mm-optimize-kill_bdev-fix.patch
+mm-optimize-acorn-partition-truncate.patch
+slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+kmem_cache-simplify-slab-cache-creation.patch
+slab-allocators-remove-slab_debug_initial-flag.patch
+slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
+slab-allocators-remove-multiple-alignment-specifications.patch
+use-slab_panic-flag-cleanup.patch
+slab-allocators-remove-slab_ctor_atomic.patch
+fault-injection-fix-failslab-with-config_numa.patch
+implement-file-posix-capabilities.patch
+file-capabilities-accomodate-future-64-bit-caps.patch
+blackfin-Documentation.patch
+blackfin-arch.patch
+blackfin-arch-balance-parenthesis-in-macros.patch
+blackfin-arch-2.6.21-rc4-mm1-update.patch
+blackfin-arch-fix-struct-dmasg-packing-bug.patch
+blackfin-arch-cleanup-cache-header-file.patch
+blackfin-arch-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+blackfin-arch-fix-compiling-error-in-flat-c-file.patch
+blackfin-arch-power-management-replace-firmware-disk-mode.patch
+blackfin-arch-add-kdebug-header-file.patch
+blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
+blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
+blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
+blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
+blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
+blackfin-arch-always-include-linux-kallsysms-header-file.patch
+blackfin-arch-sync-with-uclibc-no-functional-changes.patch
+blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
+blackfin-arch-add-missing-__clear_user-function-to.patch
+blackfin-arch-use-boot_command_line-instead-of.patch
+blackfin-arch-fix-some-coding-style-in-include.patch
+blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
+blackfin-arch-add-missing-blackfin-support-in-lib.patch
+blackfin-arch-fix-bug-data-cannot-be-put-into-l1-data.patch
+blackfin-arch-source-kernel-preemption-option.patch
+blackfin-arch-workaround-bf561-anomaly-05000266.patch
+blackfin-arch-define-a-new-cacheline_aligned-attribute-to-put-it-in-l1-data-memory-with-linkscript-update.patch
+blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch
+blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+blackfin-on-chip-ethernet-mac-controller-driver.patch
+blackfin-on-chip-ethernet-mac-controller-driver-update.patch
+blackfin-patch-add-blackfin-support-in-smc91x.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
+blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+convert-h8-300-to-generic-timekeeping.patch
+round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
+alpha-fix-bootp-image-creation.patch
+alpha-prctl-macros.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+fix-refrigerator-vs-thaw_process-race.patch
+swsusp-use-inline-functions-for-changing-page-flags.patch
+swsusp-do-not-use-page-flags.patch
+mm-remove-unused-page-flags.patch
+swsusp-fix-error-paths-in-snapshot_open.patch
+swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-force-pm_opsvalid-callback-to-be.patch
+freezer-remove-pf_nofreeze-from-handle_initrd.patch
+swsusp-use-rbtree-for-tracking-allocated-swap.patch
+freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch
+remove-software_suspend.patch
+power-management-change-sys-power-disk-display.patch
+kconfig-mentioneds-hibernation-not-just-swsusp.patch
+swsusp-fix-snapshot_release.patch
+swsusp-free-more-memory.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+spin_lock_unlocked-cleanup-in-arch-m68k.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+cris-check-for-memory-allocation.patch
+cris-remove-code-related-to-pre-22-kernel.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+array_size-check-for-type.patch
+array_size-check-for-type-uml-fix.patch
+uml-fix-prototypes.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+uml-improve-checking-and-diagnostics-of-ethernet-macs.patch
+uml-eliminate-temporary-buffer-in-eth_configure.patch
+uml-replace-one-element-array-with-zero-element-array.patch
+uml-fix-umid-in-xterm-titles.patch
+uml-speed-up-exec.patch
+uml-no-locking-needed-in-tlsc.patch
+uml-tidy-processc.patch
+uml-tidy-processc-fix.patch
+uml-remove-page_size.patch
+uml-kernel_thread-shouldnt-panic.patch
+uml-tidy-fault-code.patch
+uml-kernel-segfaults-should-dump-proper-registers.patch
+uml-comment-early-boot-locking.patch
+uml-irq-locking-commentary.patch
+uml-delete-host_frame_size.patch
+uml-drivers-get-release-methods.patch
+uml-dump-registers-on-ptrace-or-wait-failure.patch
+uml-speed-up-page-table-walking.patch
+uml-remove-unused-x86_64-code.patch
+uml-start-fixing-os_read_file-and-os_write_file.patch
+uml-tidy-libc-code.patch
+uml-convert-libc-layer-to-call-read-and-write.patch
+uml-batch-i-o-requests.patch
+uml-send-pointers-instead-of-structures-to-i-o-thread.patch
+uml-dump-core-on-panic.patch
+uml-dont-try-to-handle-signals-on-initial-process-stack.patch
+uml-change-remaining-callers-of-os_read_write_file.patch
+uml-formatting-fixes-around-os_read_write_file-callers.patch
+uml-remove-debugging-remnants.patch
+uml-rename-os_read_write_file_k-back-to-os_read_write_file.patch
+uml-aio-deadlock-avoidance.patch
+uml-speed-page-fault-path.patch
+v850-generic-timekeeping-conversion.patch
+xtensa-strlcpy-is-smart-enough.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+deprecate-smbfs-in-favour-of-cifs-docs.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+factor-outstanding-i-o-error-handling.patch
+block_write_full_page-handle-enospc.patch
+simplify-the-stacktrace-code.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+ext2-3-4-fix-file-date-underflow-on-ext2-3-filesystems-on-64-bit-systems.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+ipmi-add-powerpc-openfirmware-sensing.patch
+ipmi-allow-shared-interrupts.patch
+ipmi-add-new-ipmi-nmi-watchdog-handling.patch
+ipmi-add-pci-remove-handling.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+fix-constant-folding-and-poor-optimization-in-byte-swapping.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+kill-net-rxrpc-rxrpc_symsc.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+use-symbolic-constants-in-generic-lseek-code.patch
+use-use-seek_max-to-validate-user-lseek-arguments.patch
+devpts-add-fsnotify-create-event.patch
+tty-clarify-documentation-of-write.patch
+drivers-char-hvc_consolec-cleanups.patch
+is_power_of_2-in-fat.patch
+is_power_of_2-in-fs-hfs.patch
+is_power_of_2-in-fs-block_devc.patch
+freevxfs-possible-null-pointer-dereference-fix.patch
+reiserfs-possible-null-pointer-dereference-during-resize.patch
+scripts-kernel-doc-whitespace-cleanup.patch
+fix-section-mismatch-warning-in-lib-swiotlbc.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+fix-compilation-of-drivers-with-o0.patch
+reiserfs-shrink-superblock-if-no-xattrs.patch
+module-use-krealloc.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+irq-add-__must_check-to-request_irq.patch
+use-stop_machine_run-in-the-intel-rng-driver.patch
+cap-shmmax-at-int_max-in-compat-shminfo.patch
+exec-fix-remove_arg_zero.patch
+exec-fix-remove_arg_zero-add-comment.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+rcutorture-mark-rcu_torture_init-as-__init.patch
+init-dma-masks-in-pnp_dev.patch
 optimize-timespec_trunc.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-const=
-ify-them.patch
+ext3-dirindex-error-pointer-issues.patch
+ext3-dirindex-error-pointer-issues-fix.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+epoll-optimizations-and-cleanups.patch
+epoll-optimizations-and-cleanups-tidy.patch
+oss-strlcpy-is-smart-enough.patch
+add-filesystem-subtype-support.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+proc-remove-pathetic-deleted-warn_on.patch
+vfs-remove-superflous-sb-==-null-checks.patch
+nameic-remove-utterly-outdated-comment.patch
+tpm_infineon-add-support-for-devices-in-mmio-space.patch
+replace-pci_find_device-in-drivers-telephony-ixjc.patch
+floppy-handle-device_create_file-failure-while-init.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+rocket-remove-modversions-include.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+drivers-char-synclinkc-check-kmalloc-return-value.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+add-file-position-info-to-proc.patch
+add-file-position-info-to-proc-fix.patch
 vfs-delay-the-dentry-name-generation-on-sockets-and.patch
+tty-i386-x86_64-arbitary-speed-support.patch
+kprobes-make-kprobesymbol_name-const.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+cyclades-remove-custom-types.patch
+small-fixes-for-jsm-driver.patch
+jsm-driver-fix-for-linuxpps-support.patch
+as-fix-antic_expire-check.patch
+rtc-add-rtc-rs5c313-driver.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
+fix-rmmod-read-write-races-in-proc-entries-fix.patch
 getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+proc-oom_score-oops-re-badness.patch
+enlarge-console-name.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+reiserfs-proc-support-requires-proc_fs.patch
+kprobes-fix-sparse-null-warning.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+move-die-notifier-handling-to-common-code.patch
+move-die-notifier-handling-to-common-code-fixes.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+move-die-notifier-handling-to-common-code-fix.patch
+char-rocket-add-module_device_table.patch
+char-cs5535_gpio-add-module_device_table.patch
+remove-do_sync_file_range.patch
+protect-tty-drivers-list-with-tty_mutex.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+delete-unused-header-file-math-emu-extendedh.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+make-remove_inode_dquot_ref-static.patch
+fix-race-between-attach_task-and-cpuset_exit.patch
+delete-unused-header-file-linux-awe_voiceh.patch
+kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+parport-dev-driver-model-support.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+legacy-pc-parports-support-parport-dev.patch
+layered-parport-code-uses-parport-dev.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+add-support-for-deferrable-timers-respun-fix-2.patch
+add-a-new-deferrable-delayed-work-init.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
 time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
 ignore-stolen-time-in-the-softlockup-watchdog.patch
 ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+add-touch_all_softlockup_watchdogs.patch
+header-cleaning-dont-include-smp_lockh-when-not-used.patch
+fix-82875-pci-setup.patch
+unexport-pci_proc_attach_device.patch
+make-dev-port-conditional-on-config-symbol.patch
+clean-up-elf-note-generation.patch
+remove-artificial-software-max_loop-limit.patch
+kdump-kexec-calculate-note-size-at-compile-time.patch
+kdump-kexec-calculate-note-size-at-compile-time-update.patch
+kdump-kexec-calculate-note-size-at-compile-time-update-2.patch
+fix-kevents-childs-priority-greediness.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency.patch
+enhance-initcall_debug-measure-latency-fix.patch
+kprobes-print-details-of-kretprobe-on-assertion-failure.patch
+reregister_binfmt-returns-with-ebusy.patch
+pnpacpi-sets-pnpdev-devarchdata.patch
+pnpacpi-sets-pnpdev-devarchdata-fix.patch
+simplify-module_get_kallsym-by-dropping-length-arg.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
+simplify-kallsyms_lookup.patch
+fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
+fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
+kernel-paramsc-fix-lying-comment-for-param_array.patch
+replace-deprecated-sa_xxx-interrupt-flags.patch
+deprecate-sa_xxx-interrupt-flags-v2.patch
+expose-range-checking-functions-from-arch-specific.patch
+expose-range-checking-functions-from-arch-specific-update.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up-systems-sparc64-fix.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
+round_up-macro-cleanup-in-drivers-char-lpc.patch
+i386-schedh-inclusion-from-moduleh-is-baack.patch
+parport_serial-fix-pci-must_checks.patch
+round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
+round_up-macro-cleanup-in-fs-smbfs-requestc.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
+merge-compat_ioctlh-into-compat_ioctlc.patch
+lockdep-treats-down_write_trylock-like-regular-down_write.patch
+pad-irq_desc-to-internode-cacheline-size.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+partition-add-support-for-sysv68-partitions.patch
+dtlk-fix-error-checks-in-module_init.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+add-spaces-on-either-side-of-case-operator.patch
+cleanup-compat-ioctl-handling.patch
+partitions-check-the-return-value-of-kobject_add-etc.patch
+kallsyms-cleanup-use-seq_release_private-where-appropriate.patch
+proc-cleanup-use-seq_release_private-where-appropriate.patch
+clocksource-acpi_pm-trivial-comment-update.patch
+cciss-reformat-error-handling.patch
+cciss-add-sg_io-ioctl-to-cciss.patch
+cciss-set-rq-errors-more-correctly-in-driver.patch
+generate-main-index-page-when-building-htmldocs.patch
+alphabetically-sorted-entries-in.patch
+fix-hotplug-for-legacy-platform-drivers.patch
+remove-redundant-check-from-proc_setattr.patch
+remove-redundant-check-from-proc_sys_setattr.patch
+make-iunique-use-a-do-while-loop-rather-than-its-obscure-goto-loop.patch
+kernel-doc-html-mode-struct-highlights.patch
+add-webpages-url-and-summarize-3-lines.patch
+deflate-stack-usage-in-lib-inflatec.patch
+add-keyboard-blink-driver.patch
+efi-warn-only-for-pre-100-system-tables.patch
+apm-fix-incorrect-comment.patch
+cciss-include-scsi-scsih-unconditionally.patch
+highres-dyntick-prevent-xtime-lock-contention.patch
+documentation-cciss-detecting-failed-drives.patch
+spin_lock_unlocked-cleanup-in-init_taskh.patch
+spin_lock_unlocked-cleanup-in-drivers-char-keyboard.patch
+spin_lock_unlocked-cleanup-in-drivers-serial.patch
+lockdep-lookup_chain_cache-comment-errata.patch
+taskstats-fix-getdelays-usage-information.patch
+smbfs-remove-unnecessary-allow_signal.patch
+pnpbios-conert-to-use-the-kthread-api.patch
+introduce-a-handy-list_first_entry-macro-v2.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+getdelaysc-fix-overrun.patch
+serial_txx9-use-assigned-device-numbers.patch
+serial_txx9-zap-changelog-from-source-code.patch
+cpu-time-limit-patch--setrlimitrlimit_cpu-0-cheat-fix.patch
+ext3-copy-i_flags-to-inode-flags-on-write.patch
+codingstyle-start-flamewar-about-use-of-braces.patch
+upper-32-bits.patch
+console-utf-8-fixes.patch
+report-that-kernel-is-tainted-if-there-were-an-oops-before.patch
+clarify-the-creation-of-the-localversion_auto-string.patch
+add-pci_try_set_mwi.patch
+check-privileges-before-setting-mount-propagation.patch
+jbd-check-for-error-returned-by-kthread_create-on-creating-journal-thread.patch
+clean-up-mutex_trylock-noise.patch
+the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
+reiserfs-use-__set_current_state.patch
+drivers-char-use-__set_current_state.patch
+kill-warnings-when-building-mandocs.patch
+cleanup-mostly-unused-iospace-macros.patch
+lockdep-removed-unused-ip-argument-in-mark_lock-mark_held_locks.patch
+fat_dont-use_free_clusters-for-fat32.patch
+ext4-whitespace.patch
+ext4-extent-overlap-bugfix.patch
+ext4-persistent_allocation_1_ioctl_and_unitialized_extents.patch
+ext4-persistent_allocation_2_support_for_writing_to_unitialized_extent.patch
+ext4-ext4-nanosecond-patch.patch
+ext4-i_version_hi.patch
+ext4-ext4_noextent_mount_opt.patch
+ext4-booked-page-flag.patch
+ext4-ext4-block-reservation.patch
+ext4-ext4-delayed-allocation.patch
+ext4-ext4-delalloc-extents-48bit.patch
+ext4-ext4_nodelalloc_mount_opt.patch
+ext4-use-simple_prepare_write-to-zero-page-data.patch
+ext4-copy-i_flags-to-inode-flags-on-write.patch
+consolidate-generic_writepages-and-mpage_writepages.patch
+sync_sb_inodes-propagate-errors.patch
+minor-spi_butterfly-cleanup.patch
+dev-spidevbc-interface.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
 make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits-comments.patch
+change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+worker_thread-dont-play-with-signals.patch
+worker_thread-fix-racy-try_to_freeze-usage.patch
+zap_other_threads-remove-unneeded-exit_signal-change.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+change-reparent_to_init-to-reparent_to_kthreadd.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+usbatm_heavy_init-dont-use-clone_sighand.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+worker_thread-dont-play-with-sigchld-and-numa-policy.patch
+change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+fix-pf_nofreeze-and-freezeable-race.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-page-writeback-acounting-out-of-macros.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+edac-new-opteron-athlon64-memory-controller-driver.patch
+drivers-edac-make-code-static.patch
+pci_module_init-convertion-for-k8_edacc.patch
+edac-k8-driver-coding-tidy.patch
+edac-k8-memory-scrubbing-patch.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+drivers-isdn-hardware-eicon-remove-unused-header-files.patch
+fix-spinlock-usage-in-hysdn_log_close.patch
+remove-obsolete-label-from-isdn4linux-v3.patch
+remove-nfs4_acl_add_ace.patch
+the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
+knfsd-rename-sk_defer_lock-to-sk_lock.patch
+nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
+rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
+sched-dynticks-idle-load-balancing-v3.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
-futex-new-private-futexes.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-=
-must-check-proper-alignement-for-64bit-futexes.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+sched-align-rq-to-cacheline-boundary.patch
+sched-dont-renice-kernel-threads.patch
+sched-remove-sleepavg-from-proc.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-implement-staircase-deadline-cpu-scheduler.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+sched-implement-staircase-deadline-cpu-scheduler-staircase-improvements.patch
+sched-implement-staircase-deadline-cpu-scheduler-improvements-fix.patch
+sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
+sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
+sched-implement-staircase-deadline-scheduler-rework-priomatrix.patch
+sched-implement-staircase-deadline-scheduler-further-improvements-1.patch
+sched-implement-staircase-deadline-scheduler-timeslice-fixes.patch
+sched-implement-staircase-scheduler-yaf-fix.patch
+sched-implement-staircase-deadline-scheduler-ymf-accounting-fixes.patch
+sched-ymf-typo.patch
+sched-implement-staircase-deadline-scheduler-load-weight-fix.patch
+sched-increase-ksoftirqd-priority.patch
+sched-remove-noninteractive-flag.patch
+sched-document-sd-cpu-scheduler.patch
+sched-implement-staircase-deadline-scheduler-rework-priomatrix-doc.patch
+sched-consolidate-sched_clock-drift-adjustments.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+sched-implement-staircase-deadline-scheduler-docupdate.patch
+sched2-sched-domain-sysctl.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+swap-prefetch-avoid-repeating-entry.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+rcutorture-use-array_size-macro-when-appropriate.patch
+rcutorture-style-cleanup-avoid-=-null-in-boolean-tests.patch
+rcutorture-remove-redundant-assignment-to-cur_ops-in.patch
+lutimesat-simplify-utime2.patch
+lutimesat-extend-do_utimes-with-flags.patch
+lutimesat-actual-syscall-and-wire-up-on-i386.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+rtc-update-to-class-device-removal-patches.patch
+rtc-kconfig-cleanup.patch
+rtc-cmos-wakeup-interface.patch
+acpi-wakeup-hooks-for-rtc-cmos.patch
+workaround-rtc-related-acpi-table-bugs.patch
+revert-rtc-add-rtc_merge_alarm.patch
+remove-rtc_alm_set-mode-bugs.patch
+declare-struct-ktime.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
+futex_requeue_pi-optimization.patch
+kprobes-use-hlist_for_each_entry.patch
+kprobes-codingstyle-cleanups.patch
+kprobes-kretprobes-simplifcations.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-s390-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-parisc-cleanup.patch
+local_t-powerpc-extension.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-architecture-independant-code-markers-document-the-linux-markerh-header.patch
+linux-kernel-markers-architecture-independant-code-markers-add-documentation-to-the-modulec-marker-functions.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-powerpc-optimization-markers-changes-to-the-powerpc-marker-header.patch
+linux-kernel-markers-i386-optimization.patch
+linux-kernel-markers-i386-optimization-fix.patch
+linux-kernel-markers-i386-optimization-markers-document-the-i386-marker-header.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
+linux-kernel-markers-non-optimized-architectures.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-markers-update-documentation.patch
+linux-kernel-markers-documentation-fix-typo-and-use-array_size.patch
+markers-define-the-linker-macro-extra_rwdata.patch
+markers-use-extra_rwdata-in-architectures.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+no-longer-include-asm-kdebugh.patch
+nfs-fix-congestion-control-use-atomic_longs.patch
+udf-use-sector_t-and-loff_t-for-file-offsets.patch
+udf-introduce-struct-extent_position.patch
+udf-use-get_bh.patch
+udf-add-assertions.patch
+udf-support-files-larger-than-1g.patch
+udf-fix-link-counts.patch
+udf-possible-null-pointer-dereference-while-load_partition.patch
+attach_pid-with-struct-pid-parameter.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+signal-timer-event-fds-v9-anonymous-inode-source.patch
+signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix-fix.patch
+signal-timer-event-fds-v9-signalfd-wire-up-i386-arch.patch
+signal-timer-event-fds-v9-signalfd-wire-up-x86_64-arch.patch
+signal-timer-event-fds-v9-signalfd-compat-code.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-wire-up-i386-arch.patch
+signal-timer-event-fds-v9-timerfd-wire-up-x86_64-arch.patch
+signal-timer-event-fds-v9-timerfd-compat-code.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix-fix.patch
+signal-timer-event-fds-v9-eventfd-wire-up-i386-arch.patch
+signal-timer-event-fds-v9-eventfd-wire-up-x86_64-arch.patch
+signal-timer-event-fds-v9-kaio-eventfd-support-example.patch
+epoll-use-anonymous-inodes.patch
+epoll-cleanups-epoll-no-module.patch
+epoll-cleanups-epoll-remove-static-pre-declarations-and-akpm-ize-the-code.patch
+revoke-special-mmap-handling.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+revoke-core-code.patch
+revoke-core-code-misc-fixes.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-core-code-move-magic.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
+revoke-core-code-break-cow-for-private-mappings.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+revoke-core-code-break-cow-fixes.patch
+revoke-core-code-mapping-revocation.patch
+revoke-core-code-only-fput-unused-files.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-parisc.patch
+add-irqf_irqpoll-flag-on-arm.patch
+char-cyclades-remove-pause.patch
+char-cyclades-cy_readx-writex-cleanup.patch
+char-cyclades-timer-cleanup.patch
+char-cyclades-remove-volatiles.patch
+char-cyclades-remove-useless-casts.patch
+pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
+pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled.patch
+smsc-ircc2-tidy-up-module-parameter-checking.patch
+smsc-ircc2-add-pnp-support.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-guest-code.patch
+lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
+lguest-the-host-code.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
 lguest-the-host-code-vs-futex-new-private-futexes.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
+lguest-the-net-driver.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+fs-convert-core-functions-to-zero_user_page.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+affs-use-zero_user_page.patch
+ecryptfs-use-zero_user_page.patch
+ext3-use-zero_user_page.patch
+ext4-use-zero_user_page.patch
+gfs2-use-zero_user_page.patch
+nfs-use-zero_user_page.patch
+ntfs-use-zero_user_page.patch
+ntfs-use-zero_user_page-fix.patch
+ocfs2-use-zero_user_page.patch
+reiserfs-use-zero_user_page.patch
+xfs-use-zero_user_page.patch
+fs-deprecate-memclear_highpage_flush.patch
+char-cyclades-create-cy_init_ze.patch
+char-cyclades-use-pci_iomap-unmap.patch
+char-cyclades-init-ze-immediately.patch
+char-cyclades-create-cy_pci_probe.patch
+char-cyclades-move-card-entries-init-into-function.patch
+char-cyclades-init-card-struct-immediately.patch
+char-cyclades-remove-some-global-vars.patch
+char-cyclades-cy_init-error-handling.patch
+char-cyclades-tty_register_device-separately-for-each-device.patch
+char-cyclades-clear-interrupts-before-releasing.patch
+char-cyclades-allow-debug_shirq.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-account-user-mounts-fix.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+add-suspend-related-notifications-for-cpu-hotplug.patch
+microcode-use-suspend-related-cpu-hotplug-notifications.patch
+readahead-kconfig-options.patch
+radixtree-introduce-scan-hole-data-functions.patch
+mm-introduce-probe_page.patch
+mm-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-insert-cond_resched-calls.patch
+readahead-minmax_ra_pages.patch
+readahead-events-accounting.patch
+readahead-rescue_pages.patch
+readahead-sysctl-parameters.patch
+readahead-min-max-sizes.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-routines.patch
+readahead-state-based-method.patch
+readahead-state-based-method-check-node-id.patch
+readahead-state-based-method-decouple-readahead_ratio-from-growth_limit.patch
+readahead-state-based-method-cancel-lookahead-gracefully.patch
+readahead-context-based-method.patch
+readahead-initial-method-guiding-sizes.patch
+readahead-initial-method-thrashing-guard-size.patch
+readahead-initial-method-user-recommended-size.patch
+readahead-initial-method.patch
+readahead-backward-prefetching-method.patch
+readahead-thrashing-recovery-method.patch
+readahead-thrashing-recovery-method-check-unbalanced-aging.patch
+readahead-thrashing-recovery-method-refill-holes.patch
+readahead-call-scheme.patch
+readahead-call-scheme-cleanup.patch
+readahead-call-scheme-catch-thrashing-on-lookahead-time.patch
+readahead-laptop-mode.patch
+readahead-loop-case.patch
+readahead-nfsd-case.patch
+readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead.patch
+readahead-remove-parameter-ra_max-from-adjust_rala.patch
+readahead-state-based-method-protect-against-tiny-size.patch
+readahead-rename-state_based_readahead-to-clock_based_readahead.patch
+readahead-account-i-o-block-times-for-stock-readahead.patch
+readahead-rescue_pages-updates.patch
+readahead-remove-noaction-shrink-events.patch
+readahead-remove-size-limit-on-read_ahead_kb.patch
+readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
+readahead-partial-sendfile-fix.patch
+readahead-turn-on-by-default.patch
+reiser4-sb_sync_inodes.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-radix_tree_preload.patch
+reiser4-export-find_get_pages.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+reiser4-fix-for-drop-unused-semaphorespatch.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+reiser4-use-simple_prepare_write-to-zero-page-data.patch
+reiser4-use-zero_user_page.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+ps3fb-thread-updates.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3fb-atomic-fixes.patch
+ps3av-misc-updates.patch
+aty128fb-fix-blanking.patch
+change-rivafb_remove-to-__devexit.patch
+fbdev-display-class.patch
+fbdev-display-class-fix.patch
+fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
+intelfb-fix-ring-space-calculation.patch
+nvidiafb-bring-back-generic-ddc-reading.patch
+fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
+fbdev-fix-obvious-bug-in-show_pan.patch
+neofb-fill-transp-msb_right-with-the-correct.patch
+atyfb-kill-dead-code.patch
+fbdev-mm-deferred-io-support.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-mm-deferred-io-support-fix-2.patch
+fbdev-hecuba-framebuffer-driver.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+tgafb-turbochannel-support.patch
+tgafb-accelerated-code.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
+fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
+fbdev-fb_do_show_logo-updates.patch
+fbdev-correct-image-offsets-when-rotating-logo.patch
+radeonfb-add-support-for-radeon-xpress-200m.patch
+nvidiafb-fix-reversed-ddc-port.patch
+vt-allow-for-the-palette-to-be-exposed-and-changed-via-sysfs.patch
+vt-add-color-support-to-the-underline-and-italic-attributes.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+fbcon-dont-draw-cursor-when-its-disabled.patch
+vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
+s3fb-fix-pci-must_checks.patch
+fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
+rivafb-nvidiafb-enable-hardware-monitoring.patch
+rivafb-handle-i2c-bus-creation-failure.patch
+rivafb-nvidiafb-various-cleanups.patch
+rivafb-fixed-reversed-ddc-ports.patch
+nvidiafb-ensure-that-crtc-registers-are-accessible.patch
+nvidiafb-access-crt-registers-safely.patch
+skeletonfb-various-corrections.patch
+video-add-spaces-on-either-side-of-the-case-operator.patch
+cirrusfb-convert-to-generic-boolean.patch
+sm501fb-printk-warning-fixes.patch
+drivers-mdc-use-array_size-macro-when-appropriate.patch
+md-cleanup-use-seq_release_private-where-appropriate.patch
+md-remove-broken-sigkill-support.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+statistics-infrastructure-prerequisite-list.patch
+statistics-infrastructure-prerequisite-parser.patch
+statistics-infrastructure-prerequisite-parser-fix.patch
+add-for_each_substring-and-match_substring.patch
+statistics-infrastructure-prerequisite-timestamp.patch
+statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution.patch
+statistics-infrastructure-documentation.patch
+statistics-infrastructure.patch
+statistics-infrastructure-add-for_each_substring-and-match_substring-exploitation.patch
+statistics-infrastructure-fix-parsing-of-statistics-type-attribute.patch
+statistics-infrastructure-simplify-statistics-debugfs-write-function.patch
+statistics-infrastructure-simplify-statistics-debugfs-read-functions.patch
+statistics-infrastructure-fix-string-termination.patch
+statistics-infrastructure-small-cleanup-in-debugfs-write-function.patch
+statistics-infrastructure-fix-cpu-hot-unplug-related-memory-leak.patch
+statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-cleanup.patch
+statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-labels.patch
+statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-keys.patch
+statistics-infrastructure-statistics-fix-sorted-list.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+statistics-infrastructure-exploitation-zfcp.patch
+timer_stats-slimmed-down-using-statistics-infrastucture.patch
+mprotect-patch-for-use-by-slim.patch
+integrity-service-api-and-dummy-provider.patch
+integrity-service-api-and-dummy-provider-integrity_dummy_verify_metadata.patch
+slim-main-patch.patch
+slim-main-lsm-getprocattr-hook-api-change.patch
+slim-secfs-patch.patch
+slim-make-and-config-stuff.patch
+slim-debug-output.patch
+slim-integrity-patch.patch
+slim-documentation.patch
+integrity-new-hooks.patch
+integrity-new-hooks-fix.patch
+integrity-fs-hook-placement.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-ima-integrity_measure-support-ima-exit.patch
+integrity-ima-integrity_measure-support-remove-spinlock.patch
+integrity-ima-identifiers.patch
+integrity-ima-cleanup.patch
+integrity-tpm-internal-kernel-interface.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+ibac-patch.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+page-owner-tracking-leak-detector.patch
+firestream-warnings.patch
+releasing-resources-with-children.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+detect-atomic-counter-underflows.patch
+device-suspend-debug.patch
+mm-debug-dump-pageframes-on-bad_page.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+vdso-print-fatal-signals-fix-compiling-error-bug-in.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+acpi_format_exception-debug.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+cfq-debugging-stuff.patch
+git-gccbug.patch
+squash-ipc-warnings.patch
+random-warning-squishes.patch
+use-menuconfig-objects-acpi.patch
+use-menuconfig-objects-libata.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-dccp.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-ide.patch
+use-menuconfig-objects-ipvs.patch
+use-menuconfig-objects-sctp.patch
+use-menuconfig-objects-tipc.patch
+use-menuconfig-objects-arcnet.patch
+use-menuconfig-objects-phy.patch
+use-menuconfig-objects-toeknring.patch
+use-menuconfig-objects-netdev.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
