@@ -1,172 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-asus_acpi-support-f2je-model.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 16:57:44 -0700
-Message-ID: <200704252357.l3PNviiP016289@shell0.pdx.osdl.net>
+Subject: + make-sysrq-t-show-all-tasks-again.patch added to -mm tree
+Date: Wed, 25 Apr 2007 16:59:39 -0700
+Message-ID: <200704252359.l3PNxdxW016312@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35097 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41163 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750979AbXDYX7C (ORCPT
+	by vger.kernel.org with ESMTP id S1751934AbXDYX7v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 19:59:02 -0400
+	Wed, 25 Apr 2007 19:59:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mingo@elte.hu
 
 
 The patch titled
-     ACPI: asus_acpi, support F2JE model
-has been removed from the -mm tree.  Its filename was
-     acpi-asus_acpi-support-f2je-model.patch
+     make SysRq-T show all tasks again
+has been added to the -mm tree.  Its filename is
+     make-sysrq-t-show-all-tasks-again.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: asus_acpi, support F2JE model
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: make SysRq-T show all tasks again
+From: Ingo Molnar <mingo@elte.hu>
 
-Also augment the driver to support switching LCD status even if no function
-for getting lcd status exists in DSDT.
+show_state() (SysRq-T) developed the buggy habbit of not showing
+TASK_RUNNING tasks.  This was due to the mistaken belief that state_filter
+== -1 would be a pass-through filter - while in reality it did not let
+TASK_RUNNING == 0 p->state values through.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
+Fix this by restoring the original '!state_filter means all tasks'
+special-case i had in the original version.  Test-built and test-booted on
+i686, SysRq-T now works as intended.
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/asus_acpi.c |   37 +++++++++++++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 6 deletions(-)
+ include/linux/sched.h |    4 ++--
+ kernel/sched.c        |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/asus_acpi.c~acpi-asus_acpi-support-f2je-model drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~acpi-asus_acpi-support-f2je-model
-+++ a/drivers/acpi/asus_acpi.c
-@@ -123,6 +123,7 @@ struct asus_hotk {
- 		A2x,		//A2500H
- 		A4G,		//A4700G
- 		D1x,		//D1
-+		F2x,		//F2JE
- 		L2D,		//L2000D
- 		L3C,		//L3800C
- 		L3D,		//L3400D
-@@ -150,6 +151,7 @@ struct asus_hotk {
+diff -puN include/linux/sched.h~make-sysrq-t-show-all-tasks-again include/linux/sched.h
+--- a/include/linux/sched.h~make-sysrq-t-show-all-tasks-again
++++ a/include/linux/sched.h
+@@ -196,13 +196,13 @@ extern void init_idle(struct task_struct
+ extern cpumask_t nohz_cpu_mask;
  
- /* Here we go */
- #define A1x_PREFIX "\\_SB.PCI0.ISA.EC0."
-+#define F2x_PREFIX "\\_SB.PCI0.SBRG.EC0."
- #define L3C_PREFIX "\\_SB.PCI0.PX40.ECD0."
- #define M1A_PREFIX "\\_SB.PCI0.PX40.EC0."
- #define P30_PREFIX "\\_SB.PCI0.LPCB.EC0."
-@@ -206,6 +208,16 @@ static struct model_data model_conf[END_
- 	 .display_get = "\\INFB"},
+ /*
+- * Only dump TASK_* tasks. (-1 for all tasks)
++ * Only dump TASK_* tasks. (0 for all tasks)
+  */
+ extern void show_state_filter(unsigned long state_filter);
  
- 	{
-+	 .name = "F2x",
-+	 .mt_wled = "WLED",
-+	 .mt_bt_switch = "BLED",
-+	 .mt_lcd_switch = F2x_PREFIX "_Q10",
-+	 .brightness_set = "SPLV",
-+	 .brightness_get = "GPLV",
-+	 .display_set = "SDSP",
-+	 .display_get = "\\ADVG"},
-+
-+	{
- 	 .name = "L2D",
- 	 .mt_mled = "MLED",
- 	 .mled_status = "\\SGP6",
-@@ -705,6 +717,8 @@ static int get_lcd_state(void)
+ static inline void show_state(void)
  {
- 	int lcd = 0;
- 
-+	BUG_ON(!hotk->methods->lcd_status);
-+
- 	if (hotk->model != L3H) {
- 		/* We don't have to check anything if we are here */
- 		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
-@@ -747,11 +761,17 @@ static int get_lcd_state(void)
- 
- static int set_lcd_state(int value)
- {
--	int lcd = 0;
- 	acpi_status status = 0;
- 
--	lcd = value ? 1 : 0;
--	if (lcd != get_lcd_state()) {
-+	if (!value && !hotk->methods->lcd_status) {
-+		printk(KERN_ERR "Asus ACPI: You must pass nonzero value to "
-+				"switch LCD status for this model\n");
-+		return -EINVAL;
-+	}
-+
-+	/* pay attention to lazy evaluation, we don't want to reach
-+	   get_lcd_state if lcd_status is empty string */
-+	if (!hotk->methods->lcd_status || !!value != get_lcd_state()) {
- 		/* switch */
- 		if (hotk->model != L3H) {
- 			status =
-@@ -777,7 +797,10 @@ static int
- proc_read_lcd(char *page, char **start, off_t off, int count, int *eof,
- 	      void *data)
- {
--	return sprintf(page, "%d\n", get_lcd_state());
-+	return hotk->methods->lcd_status ?
-+		sprintf(page, "%d\n", get_lcd_state()) :
-+		sprintf(page, "n/a (but 1 may be written to switch LCD "
-+				"state)\n");
+-	show_state_filter(-1);
++	show_state_filter(0);
  }
  
- static int
-@@ -1006,7 +1029,7 @@ static int asus_hotk_add_fs(struct acpi_
- 	 * We need both read node and write method as LCD switch is also accessible
- 	 * from keyboard 
- 	 */
--	if (hotk->methods->mt_lcd_switch && hotk->methods->lcd_status) {
-+	if (hotk->methods->mt_lcd_switch) {
- 		asus_proc_add(PROC_LCD, &proc_write_lcd, &proc_read_lcd, mode,
- 			      device);
- 	}
-@@ -1039,7 +1062,7 @@ static int asus_hotk_remove_fs(struct ac
- 			remove_proc_entry(PROC_LEDD, acpi_device_dir(device));
- 		if (hotk->methods->mt_bt_switch)
- 			remove_proc_entry(PROC_BT, acpi_device_dir(device));
--		if (hotk->methods->mt_lcd_switch && hotk->methods->lcd_status)
-+		if (hotk->methods->mt_lcd_switch)
- 			remove_proc_entry(PROC_LCD, acpi_device_dir(device));
- 		if ((hotk->methods->brightness_up
- 		     && hotk->methods->brightness_down)
-@@ -1090,6 +1113,8 @@ static int asus_model_match(char *model)
- 		return L8L;
- 	else if (strncmp(model, "L4R", 3) == 0)
- 		return L4R;
-+	else if (strncmp(model, "F2JE", 4) == 0)
-+		return F2x;
- 	else if (strncmp(model, "M6N", 3) == 0 || strncmp(model, "W3N", 3) == 0)
- 		return M6N;
- 	else if (strncmp(model, "M6R", 3) == 0 || strncmp(model, "A3G", 3) == 0)
+ extern void show_regs(struct pt_regs *);
+diff -puN kernel/sched.c~make-sysrq-t-show-all-tasks-again kernel/sched.c
+--- a/kernel/sched.c~make-sysrq-t-show-all-tasks-again
++++ a/kernel/sched.c
+@@ -4746,7 +4746,7 @@ void show_state_filter(unsigned long sta
+ 		 * console might take alot of time:
+ 		 */
+ 		touch_nmi_watchdog();
+-		if (p->state & state_filter)
++		if (!state_filter || (p->state & state_filter))
+ 			show_task(p);
+ 	} while_each_thread(g, p);
+ 
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-origin.patch
-acpi-asus_acpi-support-f2je-model.patch
-input-ff-add-ff_raw-effect.patch
-input-phantom-add-a-new-driver.patch
-char-rocket-add-module_device_table.patch
-char-cs5535_gpio-add-module_device_table.patch
-drivers-char-use-__set_current_state.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-char-cyclades-remove-pause.patch
-char-cyclades-cy_readx-writex-cleanup.patch
-char-cyclades-timer-cleanup.patch
-char-cyclades-remove-volatiles.patch
-char-cyclades-remove-useless-casts.patch
-char-cyclades-create-cy_init_ze.patch
-char-cyclades-use-pci_iomap-unmap.patch
-char-cyclades-init-ze-immediately.patch
-char-cyclades-create-cy_pci_probe.patch
-char-cyclades-move-card-entries-init-into-function.patch
-char-cyclades-init-card-struct-immediately.patch
-char-cyclades-remove-some-global-vars.patch
-char-cyclades-cy_init-error-handling.patch
-char-cyclades-tty_register_device-separately-for-each-device.patch
-char-cyclades-clear-interrupts-before-releasing.patch
-char-cyclades-allow-debug_shirq.patch
-shrink_slab-handle-bad-shrinkers.patch
+make-sysrq-t-show-all-tasks-again.patch
+git-ieee1394.patch
+git-kvm.patch
+forcedeth-improve-napi-logic.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
+spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
+spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
+i386-tsc-remove-xtime_locking-around-cpufreq-notifier.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+simplify-the-stacktrace-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+optimize-timespec_trunc.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
+move-timekeeping-code-to-timekeepingc.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+add-touch_all_softlockup_watchdogs.patch
+enhance-initcall_debug-measure-latency.patch
+enhance-initcall_debug-measure-latency-fix.patch
+simplify-kallsyms_lookup.patch
+deprecate-sa_xxx-interrupt-flags-v2.patch
+lockdep-treats-down_write_trylock-like-regular-down_write.patch
+pad-irq_desc-to-internode-cacheline-size.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+highres-dyntick-prevent-xtime-lock-contention.patch
+lockdep-lookup_chain_cache-comment-errata.patch
+introduce-a-handy-list_first_entry-macro-v2.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+clean-up-mutex_trylock-noise.patch
+the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
+lockdep-removed-unused-ip-argument-in-mark_lock-mark_held_locks.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+aio-is-unlikely.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+sched-align-rq-to-cacheline-boundary.patch
+sched-dont-renice-kernel-threads.patch
+sched-remove-sleepavg-from-proc.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-implement-staircase-deadline-cpu-scheduler.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
+sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
+sched-remove-noninteractive-flag.patch
+sched-document-sd-cpu-scheduler.patch
+sched-consolidate-sched_clock-drift-adjustments.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+sched-add-above-background-load-function.patch
+mm-implement-swap-prefetching.patch
+declare-struct-ktime.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
+futex_requeue_pi-optimization.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
+timer_stats-slimmed-down-using-statistics-infrastucture.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
+vdso-print-fatal-signals.patch
+vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
+random-warning-squishes.patch
