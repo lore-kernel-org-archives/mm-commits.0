@@ -1,73 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + fix-slab-corruption-running-ip6sic.patch added to -mm tree
-Date: Wed, 25 Apr 2007 01:42:53 -0700
-Message-ID: <200704250842.l3P8grLb030958@shell0.pdx.osdl.net>
+Subject: - sys_futex64-allows-64bit-futexes-fix.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 02:23:02 -0700
+Message-ID: <200704250923.l3P9N2Po031703@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42429 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423304AbXDYInB (ORCPT
+	by vger.kernel.org with ESMTP id S2992438AbXDYJXZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 04:43:01 -0400
+	Wed, 25 Apr 2007 05:23:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jarkao2@o2.pl, snakebyte@gmx.de
+To: Pierre.Peiffer@bull.net, drepper@redhat.com, mingo@elte.hu, pierre.peiffer@bull.net, sebastien.dugue@bull.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix slab corruption running ip6sic
-has been added to the -mm tree.  Its filename is
-     fix-slab-corruption-running-ip6sic.patch
+     Fix: timeout not passed anymore to futex_lock_pi
+has been removed from the -mm tree.  Its filename was
+     sys_futex64-allows-64bit-futexes-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into sys_futex64-allows-64bit-futexes.patch
 
 ------------------------------------------------------
-Subject: fix slab corruption running ip6sic
-From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: Fix: timeout not passed anymore to futex_lock_pi
+From: Pierre Peiffer <Pierre.Peiffer@bull.net>
 
-* Herbert Xu (herbert@gondor.apana.org.au) wrote:
-> Jarek Poplawski <jarkao2@o2.pl> wrote:
-> >
-> > My proposal is: maybe Eric could change this in
-> > xfrm6_tunnel_rcv() from xfrm6_tunnel.c e.g. like this:
-> >
-> > return xfrm6_rcv_spi(skb, spi) > 0 ? : 0;
-> >
-> > and, if no errors in testing, he could resubmit this patch?
->
-> I agree, this is the right fix.
+This is a fix for a bug introduced by the patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch : the timeout value
+is not passed anymore to futex_lock_pi.
 
-The fix proposed by Jarek indeed fixes the problem, tested on two boxes,
-with an -rc5 kernel and a yesterdays git
-
-Acked-by: Eric Sesterhenn <snakebyte@gmx.de>
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Cc: Sebastien Dugue <sebastien.dugue@bull.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv6/xfrm6_tunnel.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/futex.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN net/ipv6/xfrm6_tunnel.c~fix-slab-corruption-running-ip6sic net/ipv6/xfrm6_tunnel.c
---- a/net/ipv6/xfrm6_tunnel.c~fix-slab-corruption-running-ip6sic
-+++ a/net/ipv6/xfrm6_tunnel.c
-@@ -261,7 +261,7 @@ static int xfrm6_tunnel_rcv(struct sk_bu
- 	__be32 spi;
- 
- 	spi = xfrm6_tunnel_spi_lookup((xfrm_address_t *)&iph->saddr);
--	return xfrm6_rcv_spi(skb, spi);
-+	return xfrm6_rcv_spi(skb, spi) > 0 ? : 0;
- }
- 
- static int xfrm6_tunnel_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
+diff -puN kernel/futex.c~sys_futex64-allows-64bit-futexes-fix kernel/futex.c
+--- a/kernel/futex.c~sys_futex64-allows-64bit-futexes-fix
++++ a/kernel/futex.c
+@@ -2383,8 +2383,10 @@ sys_futex64(u64 __user *uaddr, int op, u
+ 			return -EFAULT;
+ 		if (!timespec_valid(&ts))
+ 			return -EINVAL;
++
++		t = timespec_to_ktime(ts);
+ 		if (op == FUTEX_WAIT)
+-			t = ktime_add(ktime_get(), timespec_to_ktime(ts));
++			t = ktime_add(ktime_get(), t);
+ 		tp = &t;
+ 	}
+ 	/*
 _
 
-Patches currently in -mm which might be from jarkao2@o2.pl are
+Patches currently in -mm which might be from Pierre.Peiffer@bull.net are
 
-ppp_generic-fix-lockdep-warning.patch
-fix-slab-corruption-running-ip6sic.patch
-lockdep-lookup_chain_cache-comment-errata.patch
-lockdep-removed-unused-ip-argument-in-mark_lock-mark_held_locks.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
+sys_futex64-allows-64bit-futexes.patch
+sys_futex64-allows-64bit-futexes-fix.patch
