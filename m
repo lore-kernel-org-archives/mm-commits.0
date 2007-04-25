@@ -1,78 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - netdrv-perform-missing-csum_offset-conversions.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:39:33 -0700
-Message-ID: <200704252039.l3PKdX1j012315@shell0.pdx.osdl.net>
+Subject: - i386-pgd-clone-under-lock-fix.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:39:52 -0700
+Message-ID: <200704252039.l3PKdqsJ012348@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46394 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46037 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993148AbXDYUkY (ORCPT
+	by vger.kernel.org with ESMTP id S2993143AbXDYUkQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:40:24 -0400
+	Wed, 25 Apr 2007 16:40:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
+To: zach@vmware.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NETDRV: perform missing csum_offset conversions
+     i386 pgd clone under lock fix
 has been removed from the -mm tree.  Its filename was
-     netdrv-perform-missing-csum_offset-conversions.patch
+     i386-pgd-clone-under-lock-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NETDRV: perform missing csum_offset conversions
-From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: i386 pgd clone under lock fix
+From: Zachary Amsden <zach@vmware.com>
 
-When csum_offset was introduced we did a conversion from csum to
-csum_offset where applicable.  A couple of drivers were missed in this
-process.
+Copying of the pgd range must happen under the pgd_lock.  This got broken by
+the paravirt changes in the -mm tree.  Badness can result if you copy the pgd
+before being added to the list when splitting or rejoining large pages.
 
-It was harmless to begin with since the two fields coincided.  Now that
-we've made them different with the addition of csum_start, the missed
-drivers must be converted or they can't send packets out at all that
-require checksum offload.
-
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Zachary Amsden <zach@vmware.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1/atl1_main.c   |    2 +-
- drivers/net/e1000/e1000_main.c |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ arch/i386/mm/pgtable.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/atl1/atl1_main.c~netdrv-perform-missing-csum_offset-conversions drivers/net/atl1/atl1_main.c
---- a/drivers/net/atl1/atl1_main.c~netdrv-perform-missing-csum_offset-conversions
-+++ a/drivers/net/atl1/atl1_main.c
-@@ -1328,7 +1328,7 @@ static int atl1_tx_csum(struct atl1_adap
+diff -puN arch/i386/mm/pgtable.c~i386-pgd-clone-under-lock-fix arch/i386/mm/pgtable.c
+--- a/arch/i386/mm/pgtable.c~i386-pgd-clone-under-lock-fix
++++ a/arch/i386/mm/pgtable.c
+@@ -241,18 +241,16 @@ void pgd_ctor(void *pgd, struct kmem_cac
+ 	/* !PAE, no pagetable sharing */
+ 	memset(pgd, 0, USER_PTRS_PER_PGD*sizeof(pgd_t));
  
- 	if (likely(skb->ip_summed == CHECKSUM_PARTIAL)) {
- 		cso = skb_transport_offset(skb);
--		css = cso + skb->csum;
-+		css = cso + skb->csum_offset;
- 		if (unlikely(cso & 0x1)) {
- 			printk(KERN_DEBUG "%s: payload offset != even number\n",
- 				atl1_driver_name);
-diff -puN drivers/net/e1000/e1000_main.c~netdrv-perform-missing-csum_offset-conversions drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~netdrv-perform-missing-csum_offset-conversions
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -3040,7 +3040,8 @@ e1000_tx_csum(struct e1000_adapter *adap
+-	clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
+-			swapper_pg_dir + USER_PTRS_PER_PGD,
+-			KERNEL_PGD_PTRS);
+-
+ 	spin_lock_irqsave(&pgd_lock, flags);
  
- 		context_desc->lower_setup.ip_config = 0;
- 		context_desc->upper_setup.tcp_fields.tucss = css;
--		context_desc->upper_setup.tcp_fields.tucso = css + skb->csum;
-+		context_desc->upper_setup.tcp_fields.tucso =
-+			css + skb->csum_offset;
- 		context_desc->upper_setup.tcp_fields.tucse = 0;
- 		context_desc->tcp_seg_setup.data = 0;
- 		context_desc->cmd_and_length = cpu_to_le32(E1000_TXD_CMD_DEXT);
+ 	/* must happen under lock */
++	clone_pgd_range((pgd_t *)pgd + USER_PTRS_PER_PGD,
++			swapper_pg_dir + USER_PTRS_PER_PGD,
++			KERNEL_PGD_PTRS);
+ 	paravirt_alloc_pd_clone(__pa(pgd) >> PAGE_SHIFT,
+ 				__pa(swapper_pg_dir) >> PAGE_SHIFT,
+ 				USER_PTRS_PER_PGD,
+ 				KERNEL_PGD_PTRS);
+-
+ 	pgd_list_add(pgd);
+ 	spin_unlock_irqrestore(&pgd_lock, flags);
+ }
 _
 
-Patches currently in -mm which might be from herbert@gondor.apana.org.au are
+Patches currently in -mm which might be from zach@vmware.com are
 
-origin.patch
-git-net.patch
-git-cryptodev.patch
-fix-slab-corruption-running-ip6sic.patch
-use-menuconfig-objects-crypto.patch
+fix-buslogic-to-stop-using-check_region.patch
+i386-pte-clear-optimization.patch
+i386-pte-xchg-optimization.patch
+i386-pte-simplify-ops.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
