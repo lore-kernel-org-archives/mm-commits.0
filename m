@@ -1,136 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: - i386-map-enough-initial-memory-to-create-lowmem-mappings.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:40:16 -0700
-Message-ID: <200704252040.l3PKeGXH012400@shell0.pdx.osdl.net>
+Subject: - reiserfs-fix-xattr-root-locking-refcount-bug.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:39:07 -0700
+Message-ID: <200704252039.l3PKd7Vx012277@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56175 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993153AbXDYUlf (ORCPT
+	by vger.kernel.org with ESMTP id S2993163AbXDYUlJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:41:35 -0400
+	Wed, 25 Apr 2007 16:41:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, chrisw@sous-sol.org, ebiederm@xmission.com, hpa@zytor.com, jeremy@xensource.com, torvalds@linux-foundation.org, zach@vmware.com, mm-commits@vger.kernel.org
+To: jeffm@suse.com, a.righi@cineca.it, edward@namesys.com, stable@kernel.org, vs@namesys.com, zam@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: map enough initial memory to create lowmem mappings
+     reiserfs: fix xattr root locking/refcount bug
 has been removed from the -mm tree.  Its filename was
-     i386-map-enough-initial-memory-to-create-lowmem-mappings.patch
+     reiserfs-fix-xattr-root-locking-refcount-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: map enough initial memory to create lowmem mappings
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: reiserfs: fix xattr root locking/refcount bug
+From: Jeff Mahoney <jeffm@suse.com>
 
-head.S creates the very initial pagetable for the kernel.  This just maps
-enough space for the kernel itself, and an allocation bitmap.  The amount
-of mapped memory is rounded up to 4Mbytes, and so this typically ends up
-mapping 8Mbytes of memory.
+The listxattr() and getxattr() operations are only protected by a read
+lock.  As a result, if either of these operations run in parallel, a race
+condition exists where the xattr_root will end up being cached twice, which
+results in the leaking of a reference and a BUG() on umount.
 
-When booting, pagetable_init() needs to create mappings for all lowmem, and
-the pagetables for these mappings are allocated from the free pages around
-the kernel in low memory.  If the number of pagetable pages + kernel size
-exceeds head.S's initial mapping, it will end up faulting on an unmapped
-page.  This will only happen with specific combinations of kernel size and
-memory size.
+This patch refactors get_xa_root(), __get_xa_root(), and create_xa_root(),
+into one get_xa_root() function that takes the appropriate locking around
+the entire critical section.
 
-This patch makes sure that head.S also maps enough space to fit the kernel
-pagetables as well as the kernel itself.
+Reported, diagnosed and tested by Andrea Righi <a.righi@cineca.it>
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Acked-by: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Linus Torvalds <torvalds@osdl.org>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Andrea Righi <a.righi@cineca.it>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Edward Shishkin <edward@namesys.com>
+Cc: Alex Zarochentsev <zam@namesys.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/asm-offsets.c |    5 +++++
- arch/i386/kernel/head.S        |   23 +++++++++++++++++++----
- 2 files changed, 24 insertions(+), 4 deletions(-)
+ fs/reiserfs/xattr.c |   92 ++++++++++--------------------------------
+ 1 file changed, 24 insertions(+), 68 deletions(-)
 
-diff -puN arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings arch/i386/kernel/asm-offsets.c
---- a/arch/i386/kernel/asm-offsets.c~i386-map-enough-initial-memory-to-create-lowmem-mappings
-+++ a/arch/i386/kernel/asm-offsets.c
-@@ -97,6 +97,11 @@ void foo(void)
- 		 sizeof(struct tss_struct));
+diff -puN fs/reiserfs/xattr.c~reiserfs-fix-xattr-root-locking-refcount-bug fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-fix-xattr-root-locking-refcount-bug
++++ a/fs/reiserfs/xattr.c
+@@ -54,82 +54,48 @@
+ static struct reiserfs_xattr_handler *find_xattr_handler_prefix(const char
+ 								*prefix);
  
- 	DEFINE(PAGE_SIZE_asm, PAGE_SIZE);
-+	DEFINE(PAGE_SHIFT_asm, PAGE_SHIFT);
-+	DEFINE(PTRS_PER_PTE, PTRS_PER_PTE);
-+	DEFINE(PTRS_PER_PMD, PTRS_PER_PMD);
-+	DEFINE(PTRS_PER_PGD, PTRS_PER_PGD);
-+
- 	DEFINE(VDSO_PRELINK_asm, VDSO_PRELINK);
+-static struct dentry *create_xa_root(struct super_block *sb)
++/* Returns the dentry referring to the root of the extended attribute
++ * directory tree. If it has already been retrieved, it is used. If it
++ * hasn't been created and the flags indicate creation is allowed, we
++ * attempt to create it. On error, we return a pointer-encoded error.
++ */
++static struct dentry *get_xa_root(struct super_block *sb, int flags)
+ {
+ 	struct dentry *privroot = dget(REISERFS_SB(sb)->priv_root);
+ 	struct dentry *xaroot;
  
- 	OFFSET(crypto_tfm_ctx_offset, crypto_tfm, __crt_ctx);
-diff -puN arch/i386/kernel/head.S~i386-map-enough-initial-memory-to-create-lowmem-mappings arch/i386/kernel/head.S
---- a/arch/i386/kernel/head.S~i386-map-enough-initial-memory-to-create-lowmem-mappings
-+++ a/arch/i386/kernel/head.S
-@@ -34,17 +34,32 @@
+ 	/* This needs to be created at mount-time */
+ 	if (!privroot)
+-		return ERR_PTR(-EOPNOTSUPP);
++		return ERR_PTR(-ENODATA);
  
- /*
-  * This is how much memory *in addition to the memory covered up to
-- * and including _end* we need mapped initially.  We need one bit for
-- * each possible page, but only in low memory, which means
-- * 2^32/4096/8 = 128K worst case (4G/4G split.)
-+ * and including _end* we need mapped initially.
-+ * We need:
-+ *  - one bit for each possible page, but only in low memory, which means
-+ *     2^32/4096/8 = 128K worst case (4G/4G split.)
-+ *  - enough space to map all low memory, which means
-+ *     (2^32/4096) / 1024 pages (worst case, non PAE)
-+ *     (2^32/4096) / 512 + 4 pages (worst case for PAE)
-+ *  - a few pages for allocator use before the kernel pagetable has
-+ *     been set up
-  *
-  * Modulo rounding, each megabyte assigned here requires a kilobyte of
-  * memory, which is currently unreclaimed.
-  *
-  * This should be a multiple of a page.
-  */
--#define INIT_MAP_BEYOND_END	(128*1024)
-+LOW_PAGES = 1<<(32-PAGE_SHIFT_asm)
+-	xaroot = lookup_one_len(XAROOT_NAME, privroot, strlen(XAROOT_NAME));
+-	if (IS_ERR(xaroot)) {
++	mutex_lock(&privroot->d_inode->i_mutex);
++	if (REISERFS_SB(sb)->xattr_root) {
++		xaroot = dget(REISERFS_SB(sb)->xattr_root);
+ 		goto out;
+-	} else if (!xaroot->d_inode) {
+-		int err;
+-		mutex_lock(&privroot->d_inode->i_mutex);
+-		err =
+-		    privroot->d_inode->i_op->mkdir(privroot->d_inode, xaroot,
+-						   0700);
+-		mutex_unlock(&privroot->d_inode->i_mutex);
+-
+-		if (err) {
+-			dput(xaroot);
+-			dput(privroot);
+-			return ERR_PTR(err);
+-		}
+-		REISERFS_SB(sb)->xattr_root = dget(xaroot);
+ 	}
  
-+#if PTRS_PER_PMD > 1
-+PAGE_TABLE_SIZE = (LOW_PAGES / PTRS_PER_PMD) + PTRS_PER_PGD
-+#else
-+PAGE_TABLE_SIZE = (LOW_PAGES / PTRS_PER_PGD)
-+#endif
-+BOOTBITMAP_SIZE = LOW_PAGES / 8
-+ALLOCATOR_SLOP = 4
-+
-+INIT_MAP_BEYOND_END = BOOTBITMAP_SIZE + (PAGE_TABLE_SIZE + ALLOCATOR_SLOP)*PAGE_SIZE_asm
+-      out:
+-	dput(privroot);
+-	return xaroot;
+-}
+-
+-/* This will return a dentry, or error, refering to the xa root directory.
+- * If the xa root doesn't exist yet, the dentry will be returned without
+- * an associated inode. This dentry can be used with ->mkdir to create
+- * the xa directory. */
+-static struct dentry *__get_xa_root(struct super_block *s)
+-{
+-	struct dentry *privroot = dget(REISERFS_SB(s)->priv_root);
+-	struct dentry *xaroot = NULL;
+-
+-	if (IS_ERR(privroot) || !privroot)
+-		return privroot;
+-
+ 	xaroot = lookup_one_len(XAROOT_NAME, privroot, strlen(XAROOT_NAME));
+ 	if (IS_ERR(xaroot)) {
+ 		goto out;
+ 	} else if (!xaroot->d_inode) {
+-		dput(xaroot);
+-		xaroot = NULL;
+-		goto out;
++		int err = -ENODATA;
++		if (flags == 0 || flags & XATTR_CREATE)
++			err = privroot->d_inode->i_op->mkdir(privroot->d_inode,
++			                                     xaroot, 0700);
++		if (err) {
++			dput(xaroot);
++			xaroot = ERR_PTR(err);
++			goto out;
++		}
+ 	}
+-
+-	REISERFS_SB(s)->xattr_root = dget(xaroot);
++	REISERFS_SB(sb)->xattr_root = dget(xaroot);
  
- /*
-  * 32-bit kernel entrypoint; only used by the boot CPU.  On entry,
+       out:
++	mutex_unlock(&privroot->d_inode->i_mutex);
+ 	dput(privroot);
+ 	return xaroot;
+ }
+ 
+-/* Returns the dentry (or NULL) referring to the root of the extended
+- * attribute directory tree. If it has already been retrieved, it is used.
+- * Otherwise, we attempt to retrieve it from disk. It may also return
+- * a pointer-encoded error.
+- */
+-static inline struct dentry *get_xa_root(struct super_block *s)
+-{
+-	struct dentry *dentry = dget(REISERFS_SB(s)->xattr_root);
+-
+-	if (!dentry)
+-		dentry = __get_xa_root(s);
+-
+-	return dentry;
+-}
+-
+ /* Opens the directory corresponding to the inode's extended attribute store.
+  * If flags allow, the tree to the directory may be created. If creation is
+  * prohibited, -ENODATA is returned. */
+@@ -138,21 +104,11 @@ static struct dentry *open_xa_dir(const 
+ 	struct dentry *xaroot, *xadir;
+ 	char namebuf[17];
+ 
+-	xaroot = get_xa_root(inode->i_sb);
+-	if (IS_ERR(xaroot)) {
++	xaroot = get_xa_root(inode->i_sb, flags);
++	if (IS_ERR(xaroot))
+ 		return xaroot;
+-	} else if (!xaroot) {
+-		if (flags == 0 || flags & XATTR_CREATE) {
+-			xaroot = create_xa_root(inode->i_sb);
+-			if (IS_ERR(xaroot))
+-				return xaroot;
+-		}
+-		if (!xaroot)
+-			return ERR_PTR(-ENODATA);
+-	}
+ 
+ 	/* ok, we have xaroot open */
+-
+ 	snprintf(namebuf, sizeof(namebuf), "%X.%X",
+ 		 le32_to_cpu(INODE_PKEY(inode)->k_objectid),
+ 		 inode->i_generation);
+@@ -821,7 +777,7 @@ int reiserfs_delete_xattrs(struct inode 
+ 
+ 	/* Leftovers besides . and .. -- that's not good. */
+ 	if (dir->d_inode->i_nlink <= 2) {
+-		root = get_xa_root(inode->i_sb);
++		root = get_xa_root(inode->i_sb, XATTR_REPLACE);
+ 		reiserfs_write_lock_xattrs(inode->i_sb);
+ 		err = vfs_rmdir(root->d_inode, dir);
+ 		reiserfs_write_unlock_xattrs(inode->i_sb);
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-allow-boot-time-disable-of-paravirt_ops-patching.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-add-touch_all_softlockup_watchdogs.patch
+origin.patch
