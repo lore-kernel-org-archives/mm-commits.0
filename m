@@ -1,61 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:39:44 -0700
-Message-ID: <200704252039.l3PKdicX012336@shell0.pdx.osdl.net>
+Subject: - revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:39:40 -0700
+Message-ID: <200704252039.l3PKde1P012328@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45156 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993152AbXDYUkN (ORCPT
+	by vger.kernel.org with ESMTP id S2993143AbXDYUkM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:40:13 -0400
+	Wed, 25 Apr 2007 16:40:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, jeremy@goop.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, jeremy@goop.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rename-the-parainstructions-symbols-to-be-consistent-with-the-others fix
+     revert x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu
 has been removed from the -mm tree.  Its filename was
-     rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix.patch
+     revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rename-the-parainstructions-symbols-to-be-consistent-with-the-others fix
+Subject: revert x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64:
+knock old patch out of Andi's tree.
 
-arch/x86_64/kernel/../../i386/kernel/alternative.c: In function 'alternative_instructions':
-arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: '__parainstructions' undeclared (first use in this function)
-arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: (Each undeclared identifier is reported only once
-arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: for each function it appears in.)
-arch/x86_64/kernel/../../i386/kernel/alternative.c:374: error: '__parainstructions_end' undeclared (first use in this function)
-
-Cc: Andi Kleen <ak@suse.de>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/alternative.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-i386/percpu.h |   10 ----------
+ 1 files changed, 10 deletions(-)
 
-diff -puN include/asm-x86_64/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix include/asm-x86_64/alternative.h
---- a/include/asm-x86_64/alternative.h~rename-the-parainstructions-symbols-to-be-consistent-with-the-others-fix
-+++ a/include/asm-x86_64/alternative.h
-@@ -142,8 +142,8 @@ void apply_paravirt(struct paravirt_patc
- static inline void
- apply_paravirt(struct paravirt_patch *start, struct paravirt_patch *end)
- {}
--#define __start_parainstructions NULL
--#define __stop_parainstructions NULL
-+#define __parainstructions NULL
-+#define __parainstructions_end NULL
- #endif
+diff -puN include/asm-i386/percpu.h~revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu include/asm-i386/percpu.h
+--- a/include/asm-i386/percpu.h~revert-x86_64-mm-account-for-module-percpu-space-separately-from-kernel-percpu
++++ a/include/asm-i386/percpu.h
+@@ -5,16 +5,6 @@
+ #include <asm-generic/percpu.h>
+ #else
  
- #endif /* _X86_64_ALTERNATIVE_H */
+-#ifdef CONFIG_MODULES
+-# define PERCPU_MODULE_RESERVE 8192
+-#else
+-# define PERCPU_MODULE_RESERVE 0
+-#endif
+-
+-#define PERCPU_ENOUGH_ROOM \
+-	(ALIGN(__per_cpu_end - __per_cpu_start, SMP_CACHE_BYTES) + \
+-	 PERCPU_MODULE_RESERVE)
+-
+ /*
+  * PER_CPU finds an address of a per-cpu variable.
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
