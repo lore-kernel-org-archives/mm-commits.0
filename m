@@ -1,69 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86_64-mm-sched-clock-share.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:39:39 -0700
-Message-ID: <200704252039.l3PKddJU012325@shell0.pdx.osdl.net>
+Subject: - more-fix-x86_64-mm-fam10-mwait-idle.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:39:37 -0700
+Message-ID: <200704252039.l3PKdbiD012322@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34967 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993138AbXDYUkA (ORCPT
+	by vger.kernel.org with ESMTP id S2993140AbXDYUkB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:40:00 -0400
+	Wed, 25 Apr 2007 16:40:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-x86_64-mm-sched-clock-share
+     more-fix-x86_64-mm-fam10-mwait-idle
 has been removed from the -mm tree.  Its filename was
-     fix-x86_64-mm-sched-clock-share.patch
+     more-fix-x86_64-mm-fam10-mwait-idle.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix-x86_64-mm-sched-clock-share
+Subject: more-fix-x86_64-mm-fam10-mwait-idle
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:sc_cpu_event from .data between 'sc_cpu_notifier' (at offset 0x2110) and 'mcelog'
-
-Use hotcpu_notifier().  This takes care of making sure that the unused code
-disappears from vmlinux if !CONFIG_HOTPLUG_CPU, too.
-
-Please, test allnoconfig builds and watch for the warnings?
+arch/i386/kernel/cpu/amd.c:282: warning: passing argument 2 of 'clear_bit' from incompatible pointer type
 
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sched-clock.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ arch/i386/kernel/cpu/amd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share arch/i386/kernel/sched-clock.c
---- a/arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share
-+++ a/arch/i386/kernel/sched-clock.c
-@@ -169,20 +169,15 @@ sc_cpu_event(struct notifier_block *self
- 	return NOTIFY_DONE;
+diff -puN arch/i386/kernel/cpu/amd.c~more-fix-x86_64-mm-fam10-mwait-idle arch/i386/kernel/cpu/amd.c
+--- a/arch/i386/kernel/cpu/amd.c~more-fix-x86_64-mm-fam10-mwait-idle
++++ a/arch/i386/kernel/cpu/amd.c
+@@ -279,7 +279,7 @@ static void __cpuinit init_amd(struct cp
+ 		set_bit(X86_FEATURE_LAPIC_TIMER_BROKEN, c->x86_capability);
+ 
+ 	if (c->x86 == 0x10 && !force_mwait)
+-		clear_bit(X86_FEATURE_MWAIT, &c->x86_capability);
++		clear_bit(X86_FEATURE_MWAIT, c->x86_capability);
  }
  
--static struct notifier_block sc_cpu_notifier = {
--	.notifier_call = sc_cpu_event
--};
--
- static __init int init_sched_clock(void)
- {
- 	struct cpufreq_freqs f = { .cpu = get_cpu(), .new = 0 };
- 	WARN_ON(num_online_cpus() > 1);
- 	call_r_s_f(&f);
- 	put_cpu();
--	register_cpu_notifier(&sc_cpu_notifier);
-+	hotcpu_notifier(sc_cpu_event, 0);
- 	cpufreq_register_notifier(&sc_freq_notifier,
- 				 CPUFREQ_TRANSITION_NOTIFIER);
- 	return 0;
- }
- core_initcall(init_sched_clock);
--
+ static unsigned int __cpuinit amd_size_cache(struct cpuinfo_x86 * c, unsigned int size)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
