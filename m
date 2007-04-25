@@ -1,89 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - do-not-truncate-irq-number-for-icom-adapter.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:39:01 -0700
-Message-ID: <200704252039.l3PKd13J012270@shell0.pdx.osdl.net>
+Subject: - maintainers-use-listslinux-foundationorg.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:38:39 -0700
+Message-ID: <200704252038.l3PKcd2H012240@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34784 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993122AbXDYUj0 (ORCPT
+	by vger.kernel.org with ESMTP id S2993120AbXDYUjZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:39:26 -0400
+	Wed, 25 Apr 2007 16:39:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do not truncate irq number for icom adapter
+     MAINTAINERS: use lists.linux-foundation.org
 has been removed from the -mm tree.  Its filename was
-     do-not-truncate-irq-number-for-icom-adapter.patch
+     maintainers-use-listslinux-foundationorg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: do not truncate irq number for icom adapter
-From: Olaf Hering <olaf@aepfle.de>
+Subject: MAINTAINERS: use lists.linux-foundation.org
+From: David Brownell <david-b@pacbell.net>
 
-irq values are u32, not u8. Large irq numbers will be truncated,
-free_irq may free a different irq.
+Update various mailing list addresses to use "lists.linux-foundation.org"
+instead of "lists.osdl.org", to help phase out the old addresses.
 
-Remove incorrectly sized struct member and use the one from pci_dev.
-
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/icom.c |    5 ++---
- drivers/serial/icom.h |    1 -
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ MAINTAINERS |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/serial/icom.c~do-not-truncate-irq-number-for-icom-adapter drivers/serial/icom.c
---- a/drivers/serial/icom.c~do-not-truncate-irq-number-for-icom-adapter
-+++ a/drivers/serial/icom.c
-@@ -1473,7 +1473,7 @@ static void icom_remove_adapter(struct i
- 		}
- 	}
+diff -puN MAINTAINERS~maintainers-use-listslinux-foundationorg MAINTAINERS
+--- a/MAINTAINERS~maintainers-use-listslinux-foundationorg
++++ a/MAINTAINERS
+@@ -1318,7 +1318,7 @@ S:	Maintained
+ ETHERNET BRIDGE
+ P:	Stephen Hemminger
+ M:	shemminger@linux-foundation.org
+-L:	bridge@lists.osdl.org
++L:	bridge@lists.linux-foundation.org
+ W:	http://bridge.sourceforge.net/
+ S:	Maintained
  
--	free_irq(icom_adapter->irq_number, (void *) icom_adapter);
-+	free_irq(icom_adapter->pci_dev->irq, (void *) icom_adapter);
- 	iounmap(icom_adapter->base_addr);
- 	icom_free_adapter(icom_adapter);
- 	pci_release_regions(icom_adapter->pci_dev);
-@@ -1539,7 +1539,6 @@ static int __devinit icom_probe(struct p
- 	}
+@@ -1951,7 +1951,7 @@ P:	Vivek Goyal
+ M:	vgoyal@in.ibm.com
+ P:	Haren Myneni
+ M:	hbabu@us.ibm.com
+-L:	fastboot@lists.osdl.org
++L:	fastboot@lists.linux-foundation.org
+ L:	linux-kernel@vger.kernel.org
+ W:	http://lse.sourceforge.net/kdump/
+ S:	Maintained
+@@ -1978,7 +1978,7 @@ S:	Maintained 
  
- 	 icom_adapter->base_addr_pci = pci_resource_start(dev, 0);
--	 icom_adapter->irq_number = dev->irq;
- 	 icom_adapter->pci_dev = dev;
- 	 icom_adapter->version = ent->driver_data;
- 	 icom_adapter->subsystem_id = ent->subdevice;
-@@ -1570,7 +1569,7 @@ static int __devinit icom_probe(struct p
- 		icom_port = &icom_adapter->port_info[index];
+ KERNEL JANITORS
+ P:	Several
+-L:	kernel-janitors@lists.osdl.org
++L:	kernel-janitors@lists.linux-foundation.org
+ W:	http://www.kerneljanitors.org/
+ S:	Maintained
  
- 		if (icom_port->status == ICOM_PORT_ACTIVE) {
--			icom_port->uart_port.irq = icom_port->adapter->irq_number;
-+			icom_port->uart_port.irq = icom_port->adapter->pci_dev->irq;
- 			icom_port->uart_port.type = PORT_ICOM;
- 			icom_port->uart_port.iotype = UPIO_MEM;
- 			icom_port->uart_port.membase =
-diff -puN drivers/serial/icom.h~do-not-truncate-irq-number-for-icom-adapter drivers/serial/icom.h
---- a/drivers/serial/icom.h~do-not-truncate-irq-number-for-icom-adapter
-+++ a/drivers/serial/icom.h
-@@ -258,7 +258,6 @@ struct icom_port {
- struct icom_adapter {
- 	void __iomem * base_addr;
- 	unsigned long base_addr_pci;
--	unsigned char irq_number;
- 	struct pci_dev *pci_dev;
- 	struct icom_port port_info[4];
- 	int index;
+@@ -2001,7 +2001,7 @@ P:	Eric Biederman
+ M:	ebiederm@xmission.com
+ W:	http://www.xmission.com/~ebiederm/files/kexec/
+ L:	linux-kernel@vger.kernel.org
+-L:	fastboot@lists.osdl.org
++L:	fastboot@lists.linux-foundation.org
+ S:	Maintained
+ 
+ KPROBES
+@@ -2339,7 +2339,7 @@ S:	Maintained
+ NETEM NETWORK EMULATOR
+ P:	Stephen Hemminger
+ M:	shemminger@linux-foundation.org
+-L:	netem@lists.osdl.org
++L:	netem@lists.linux-foundation.org
+ S:	Maintained
+ 
+ NETFILTER/IPTABLES/IPCHAINS
+@@ -3068,7 +3068,7 @@ S:	Supported
+ SOFTWARE SUSPEND:
+ P:	Pavel Machek
+ M:	pavel@suse.cz
+-L:	linux-pm@lists.osdl.org
++L:	linux-pm@lists.linux-foundation.org
+ S:	Maintained
+ 
+ SONIC NETWORK DRIVER
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-git-powerpc.patch
-git-kbuild.patch
-cleanup-variable-usage-in-mesh-interrupt-handler.patch
-keep-track-of-network-interface-renaming.patch
+make-proc-acpi-wakeup-more-useful.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-update.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+at91_cf-minor-fix.patch
+scsi-newstyle-hotplug-coldplug-support.patch
+usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+kconfig-mentioneds-hibernation-not-just-swsusp.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+init-dma-masks-in-pnp_dev.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+char-cs5535_gpio-add-module_device_table.patch
+parport-dev-driver-model-support.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+layered-parport-code-uses-parport-dev.patch
+pnpacpi-sets-pnpdev-devarchdata.patch
+pnpacpi-sets-pnpdev-devarchdata-fix.patch
+fix-hotplug-for-legacy-platform-drivers.patch
+minor-spi_butterfly-cleanup.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+rtc-update-to-class-device-removal-patches.patch
+rtc-kconfig-cleanup.patch
+rtc-cmos-wakeup-interface.patch
+acpi-wakeup-hooks-for-rtc-cmos.patch
+workaround-rtc-related-acpi-table-bugs.patch
+revert-rtc-add-rtc_merge_alarm.patch
+remove-rtc_alm_set-mode-bugs.patch
