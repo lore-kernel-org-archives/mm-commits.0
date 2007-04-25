@@ -1,202 +1,265 @@
 From: akpm@linux-foundation.org
-Subject: - mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:40:08 -0700
-Message-ID: <200704252040.l3PKe8i5012391@shell0.pdx.osdl.net>
+Subject: - taskstats-fix-the-structure-members-alignment-issue.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:38:35 -0700
+Message-ID: <200704252038.l3PKcZiM012232@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51314 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59810 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993167AbXDYUku (ORCPT
+	by vger.kernel.org with ESMTP id S2993171AbXDYUk4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:40:50 -0400
+	Wed, 25 Apr 2007 16:40:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bk@suse.de, ak@suse.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: balbir@in.ibm.com, balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, nagar@watson.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtrr: save the MTRRs of the BSP before booting an AP
+     Taskstats fix the structure members alignment issue
 has been removed from the -mm tree.  Its filename was
-     mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
+     taskstats-fix-the-structure-members-alignment-issue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mtrr: save the MTRRs of the BSP before booting an AP
-From: Bernhard Kaindl <bk@suse.de>
+Subject: Taskstats fix the structure members alignment issue
+From: Balbir Singh <balbir@in.ibm.com>
 
-AMD and Intel x86 CPU manuals state that it is the responsibility of system
-software to initialize and maintain MTRR consistency across all processors in
-Multi-Processing Environments.
+We broke the the alignment of members of taskstats to the 8 byte boundary
+with the CSA patches.  In the current kernel, the taskstats structure is
+not suitable for use by 32 bit applications in a 64 bit kernel.
 
-Quote from page 188 of the AMD64 System Programming manual (Volume 2):
+On x86_64
 
-7.6.5 MTRRs in Multi-Processing Environments
+Offsets of taskstats' members (64 bit kernel, 64 bit application)
 
-"In multi-processing environments, the MTRRs located in all processors must
-characterize memory in the same way.  Generally, this means that identical
-values are written to the MTRRs used by the processors." (short omission here)
-"Failure to do so may result in coherency violations or loss of atomicity. 
-Processor implementations do not check the MTRR settings in other processors
-to ensure consistency.  It is the responsibility of system software to
-initialize and maintain MTRR consistency across all processors."
+@taskstats'offsetof[@taskstats'indices] = (
+        0,      # version
+        4,      # ac_exitcode
+        8,      # ac_flag
+        9,      # ac_nice
+        16,     # cpu_count
+        24,     # cpu_delay_total
+        32,     # blkio_count
+        40,     # blkio_delay_total
+        48,     # swapin_count
+        56,     # swapin_delay_total
+        64,     # cpu_run_real_total
+        72,     # cpu_run_virtual_total
+        80,     # ac_comm
+        112,    # ac_sched
+        113,    # ac_pad
+        116,    # ac_uid
+        120,    # ac_gid
+        124,    # ac_pid
+        128,    # ac_ppid
+        132,    # ac_btime
+        136,    # ac_etime
+        144,    # ac_utime
+        152,    # ac_stime
+        160,    # ac_minflt
+        168,    # ac_majflt
+        176,    # coremem
+        184,    # virtmem
+        192,    # hiwater_rss
+        200,    # hiwater_vm
+        208,    # read_char
+        216,    # write_char
+        224,    # read_syscalls
+        232,    # write_syscalls
+        240,    # read_bytes
+        248,    # write_bytes
+        256,    # cancelled_write_bytes
+    );
 
-Current Linux MTRR code already implements the above in the case that the BIOS
-does not properly initialize MTRRs on the secondary processors, but the case
-where the fixed-range MTRRs of the boot processor are changed after Linux
-started to boot, before the initialsation of a secondary processor, is not
-handled yet.
+Offsets of taskstats' members (64 bit kernel, 32 bit application)
 
-In this case, secondary processors are currently initialized by Linux with
-MTRRs which the boot processor had very early, when mtrr_bp_init() did run,
-but not with the MTRRs which the boot processor uses at the time when that
-secondary processors is actually booted, causing differing MTRR contents on
-the secondary processors.
+@taskstats'offsetof[@taskstats'indices] = (
+        0,      # version
+        4,      # ac_exitcode
+        8,      # ac_flag
+        9,      # ac_nice
+        12,     # cpu_count
+        20,     # cpu_delay_total
+        28,     # blkio_count
+        36,     # blkio_delay_total
+        44,     # swapin_count
+        52,     # swapin_delay_total
+        60,     # cpu_run_real_total
+        68,     # cpu_run_virtual_total
+        76,     # ac_comm
+        108,    # ac_sched
+        109,    # ac_pad
+        112,    # ac_uid
+        116,    # ac_gid
+        120,    # ac_pid
+        124,    # ac_ppid
+        128,    # ac_btime
+        132,    # ac_etime
+        140,    # ac_utime
+        148,    # ac_stime
+        156,    # ac_minflt
+        164,    # ac_majflt
+        172,    # coremem
+        180,    # virtmem
+        188,    # hiwater_rss
+        196,    # hiwater_vm
+        204,    # read_char
+        212,    # write_char
+        220,    # read_syscalls
+        228,    # write_syscalls
+        236,    # read_bytes
+        244,    # write_bytes
+        252,    # cancelled_write_bytes
+    );
 
-Such situation happens on Acer Ferrari 1000 and 5000 notebooks where the BIOS
-enables and sets AMD-specific IORR bits in the fixed-range MTRRs of the boot
-processor when it transitions the system into ACPI mode.  The SMI handler of
-the BIOS does this in SMM, entered while Linux ACPI code runs acpi_enable().
+This is one way to solve the problem without re-arranging structure members
+is to pack the structure.  The patch adds an __attribute__((aligned(8))) to
+the taskstats structure members so that 32 bit applications using taskstats
+can work with a 64 bit kernel.
 
-Other occasions where the SMI handler of the BIOS may change bits in the MTRRs
-could occur as well.  To initialize newly booted secodary processors with the
-fixed-range MTRRs which the boot processor uses at that time, this patch saves
-the fixed-range MTRRs of the boot processor before new secondary processors
-are started.  When the secondary processors run their Linux initialisation
-code, their fixed-range MTRRs will be updated with the saved fixed-range
-MTRRs.
+Using __attribute__((packed)) would break the 64 bit alignment of members.
 
-If CONFIG_MTRR is not set, we define mtrr_save_state
-as an empty statement because there is nothing to do.
+The fix was tested on x86_64. After the fix, we got
 
-Possible TODOs:
+Offsets of taskstats' members (64 bit kernel, 64 bit application)
 
-*) CPU-hotplugging outside of SMP suspend/resume is not yet tested
-   with this patch.
+@taskstats'offsetof[@taskstats'indices] = (
+        0,      # version
+        4,      # ac_exitcode
+        8,      # ac_flag
+        9,      # ac_nice
+        16,     # cpu_count
+        24,     # cpu_delay_total
+        32,     # blkio_count
+        40,     # blkio_delay_total
+        48,     # swapin_count
+        56,     # swapin_delay_total
+        64,     # cpu_run_real_total
+        72,     # cpu_run_virtual_total
+        80,     # ac_comm
+        112,    # ac_sched
+        113,    # ac_pad
+        120,    # ac_uid
+        124,    # ac_gid
+        128,    # ac_pid
+        132,    # ac_ppid
+        136,    # ac_btime
+        144,    # ac_etime
+        152,    # ac_utime
+        160,    # ac_stime
+        168,    # ac_minflt
+        176,    # ac_majflt
+        184,    # coremem
+        192,    # virtmem
+        200,    # hiwater_rss
+        208,    # hiwater_vm
+        216,    # read_char
+        224,    # write_char
+        232,    # read_syscalls
+        240,    # write_syscalls
+        248,    # read_bytes
+        256,    # write_bytes
+        264,    # cancelled_write_bytes
+    );
 
-*) If, even in this case, an AP never runs i386/do_boot_cpu or x86_64/cpu_up,
-   then the calls to mtrr_save_state() could be replaced by calls to
-   mtrr_save_fixed_ranges(NULL) and  mtrr_save_state() would not be
-   needed.
+Offsets of taskstats' members (64 bit kernel, 32 bit application)
 
-   That would need either verification of the CPU-hotplug code or
-   at least a test on a >2 CPU machine.
+@taskstats'offsetof[@taskstats'indices] = (
+        0,      # version
+        4,      # ac_exitcode
+        8,      # ac_flag
+        9,      # ac_nice
+        16,     # cpu_count
+        24,     # cpu_delay_total
+        32,     # blkio_count
+        40,     # blkio_delay_total
+        48,     # swapin_count
+        56,     # swapin_delay_total
+        64,     # cpu_run_real_total
+        72,     # cpu_run_virtual_total
+        80,     # ac_comm
+        112,    # ac_sched
+        113,    # ac_pad
+        120,    # ac_uid
+        124,    # ac_gid
+        128,    # ac_pid
+        132,    # ac_ppid
+        136,    # ac_btime
+        144,    # ac_etime
+        152,    # ac_utime
+        160,    # ac_stime
+        168,    # ac_minflt
+        176,    # ac_majflt
+        184,    # coremem
+        192,    # virtmem
+        200,    # hiwater_rss
+        208,    # hiwater_vm
+        216,    # read_char
+        224,    # write_char
+        232,    # read_syscalls
+        240,    # write_syscalls
+        248,    # read_bytes
+        256,    # write_bytes
+        264,    # cancelled_write_bytes
+    );
 
-*) The MTRRs of other running processors are not yet checked at this
-   time but it might be interesting to syncronize the MTTRs of all
-   processors before booting. That would be an incremental patch,
-   but of rather low priority since there is no machine known so
-   far which would require this.
-
-Signed-off-by: Bernhard Kaindl <bk@suse.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: Shailabh Nagar <nagar@watson.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/main.c |   11 +++++++++++
- arch/i386/kernel/smpboot.c       |    7 +++++++
- arch/x86_64/kernel/smpboot.c     |    6 ++++++
- include/asm-i386/mtrr.h          |    2 ++
- include/asm-x86_64/proto.h       |    2 ++
- 5 files changed, 28 insertions(+)
+ include/linux/taskstats.h |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -729,6 +729,17 @@ void mtrr_ap_init(void)
- 	local_irq_restore(flags);
- }
+diff -puN include/linux/taskstats.h~taskstats-fix-the-structure-members-alignment-issue include/linux/taskstats.h
+--- a/include/linux/taskstats.h~taskstats-fix-the-structure-members-alignment-issue
++++ a/include/linux/taskstats.h
+@@ -31,7 +31,7 @@
+  */
  
-+/**
-+ * Save current fixed-range MTRR state of the BSP
-+ */
-+void mtrr_save_state(void)
-+{
-+	if (smp_processor_id() == 0)
-+		mtrr_save_fixed_ranges(NULL);
-+	else
-+		smp_call_function_single(0, mtrr_save_fixed_ranges, NULL, 1, 1);
-+}
-+
- static int __init mtrr_init_finialize(void)
- {
- 	if (!mtrr_if)
-diff -puN arch/i386/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/arch/i386/kernel/smpboot.c
-@@ -59,6 +59,7 @@
- #include <mach_wakecpu.h>
- #include <smpboot_hooks.h>
- #include <asm/vmi.h>
-+#include <asm/mtrr.h>
  
- /* Set if we find a B stepping CPU */
- static int __devinitdata smp_b_stepping;
-@@ -817,6 +818,12 @@ static int __cpuinit do_boot_cpu(int api
- 	unsigned short nmi_high = 0, nmi_low = 0;
+-#define TASKSTATS_VERSION	3
++#define TASKSTATS_VERSION	4
+ #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
+ 					 * in linux/sched.h */
  
- 	/*
-+	 * Save current MTRR state in case it was changed since early boot
-+	 * (e.g. by the ACPI SMI) to initialize new CPUs with MTRRs in sync:
-+	 */
-+	mtrr_save_state();
-+
-+	/*
- 	 * We can't use kernel_thread since we must avoid to
- 	 * reschedule the child.
+@@ -66,7 +66,7 @@ struct taskstats {
+ 	/* Delay waiting for cpu, while runnable
+ 	 * count, delay_total NOT updated atomically
  	 */
-diff -puN arch/x86_64/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap arch/x86_64/kernel/smpboot.c
---- a/arch/x86_64/kernel/smpboot.c~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/arch/x86_64/kernel/smpboot.c
-@@ -944,6 +944,12 @@ int __cpuinit __cpu_up(unsigned int cpu)
-  		return -ENOSYS;
- 	}
+-	__u64	cpu_count;
++	__u64	cpu_count __attribute__((aligned(8)));
+ 	__u64	cpu_delay_total;
  
-+	/*
-+	 * Save current MTRR state in case it was changed since early boot
-+	 * (e.g. by the ACPI SMI) to initialize new CPUs with MTRRs in sync:
-+	 */
-+	mtrr_save_state();
-+
- 	per_cpu(cpu_state, cpu) = CPU_UP_PREPARE;
- 	/* Boot it! */
- 	err = do_boot_cpu(cpu, apicid);
-diff -puN include/asm-i386/mtrr.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap include/asm-i386/mtrr.h
---- a/include/asm-i386/mtrr.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/include/asm-i386/mtrr.h
-@@ -70,6 +70,7 @@ struct mtrr_gentry
- /*  The following functions are for use by other drivers  */
- # ifdef CONFIG_MTRR
- extern void mtrr_save_fixed_ranges(void *);
-+extern void mtrr_save_state(void);
- extern int mtrr_add (unsigned long base, unsigned long size,
- 		     unsigned int type, char increment);
- extern int mtrr_add_page (unsigned long base, unsigned long size,
-@@ -81,6 +82,7 @@ extern void mtrr_ap_init(void);
- extern void mtrr_bp_init(void);
- #  else
- #define mtrr_save_fixed_ranges(arg) do {} while (0)
-+#define mtrr_save_state() do {} while (0)
- static __inline__ int mtrr_add (unsigned long base, unsigned long size,
- 				unsigned int type, char increment)
- {
-diff -puN include/asm-x86_64/proto.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap include/asm-x86_64/proto.h
---- a/include/asm-x86_64/proto.h~mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/include/asm-x86_64/proto.h
-@@ -18,10 +18,12 @@ extern void mcheck_init(struct cpuinfo_x
- extern void mtrr_ap_init(void);
- extern void mtrr_bp_init(void);
- extern void mtrr_save_fixed_ranges(void *);
-+extern void mtrr_save_state(void);
- #else
- #define mtrr_ap_init() do {} while (0)
- #define mtrr_bp_init() do {} while (0)
- #define mtrr_save_fixed_ranges(arg) do {} while (0)
-+#define mtrr_save_state() do {} while (0)
- #endif
- extern void init_memory_mapping(unsigned long start, unsigned long end);
+ 	/* Following four fields atomically updated using task->delays->lock */
+@@ -101,14 +101,17 @@ struct taskstats {
  
+ 	/* Basic Accounting Fields start */
+ 	char	ac_comm[TS_COMM_LEN];	/* Command name */
+-	__u8	ac_sched;		/* Scheduling discipline */
++	__u8	ac_sched __attribute__((aligned(8)));
++					/* Scheduling discipline */
+ 	__u8	ac_pad[3];
+-	__u32	ac_uid;			/* User ID */
++	__u32	ac_uid __attribute__((aligned(8)));
++					/* User ID */
+ 	__u32	ac_gid;			/* Group ID */
+ 	__u32	ac_pid;			/* Process ID */
+ 	__u32	ac_ppid;		/* Parent process ID */
+ 	__u32	ac_btime;		/* Begin time [sec since 1970] */
+-	__u64	ac_etime;		/* Elapsed time [usec] */
++	__u64	ac_etime __attribute__((aligned(8)));
++					/* Elapsed time [usec] */
+ 	__u64	ac_utime;		/* User CPU time [usec] */
+ 	__u64	ac_stime;		/* SYstem CPU time [usec] */
+ 	__u64	ac_minflt;		/* Minor Page Fault Count */
 _
 
-Patches currently in -mm which might be from bk@suse.de are
+Patches currently in -mm which might be from balbir@in.ibm.com are
+
+origin.patch
+fix-race-between-attach_task-and-cpuset_exit.patch
+taskstats-fix-getdelays-usage-information.patch
