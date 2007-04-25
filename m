@@ -1,54 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-thermal-fix-mod_timer-interval.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:38:55 -0700
-Message-ID: <200704252038.l3PKctj0012263@shell0.pdx.osdl.net>
+Subject: - ide-ide-fix-pmac-breakage-fix.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 14:31:11 -0700
+Message-ID: <200704252131.l3PLVBK3013480@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47421 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031139AbXDYU7D (ORCPT
+	by vger.kernel.org with ESMTP id S1754261AbXDYVbe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:59:03 -0400
+	Wed, 25 Apr 2007 17:31:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jilee@google.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-thermal: fix mod_timer() interval
+     ide-ide-fix-pmac-breakage-fix
 has been removed from the -mm tree.  Its filename was
-     acpi-thermal-fix-mod_timer-interval.patch
+     ide-ide-fix-pmac-breakage-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: acpi-thermal: fix mod_timer() interval
+Subject: ide-ide-fix-pmac-breakage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Use relative time, not absolute.  Discovered by Jung-Ik (John) Lee
-<jilee@google.com>.
-
-Cc: Jung-Ik (John) Lee <jilee@google.com>
-Acked-by: Len Brown <lenb@kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/thermal.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ide/ppc/pmac.c |    2 ++
+ ide/ide.c              |    0 
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/acpi/thermal.c~acpi-thermal-fix-mod_timer-interval drivers/acpi/thermal.c
---- a/drivers/acpi/thermal.c~acpi-thermal-fix-mod_timer-interval
-+++ a/drivers/acpi/thermal.c
-@@ -758,7 +758,8 @@ static void acpi_thermal_check(void *dat
- 			del_timer(&(tz->timer));
- 	} else {
- 		if (timer_pending(&(tz->timer)))
--			mod_timer(&(tz->timer), (HZ * sleep_time) / 1000);
-+			mod_timer(&(tz->timer),
-+					jiffies + (HZ * sleep_time) / 1000);
- 		else {
- 			tz->timer.data = (unsigned long)tz;
- 			tz->timer.function = acpi_thermal_run;
+diff -puN drivers/ide/ide.c~ide-ide-fix-pmac-breakage-fix drivers/ide/ide.c
+diff -puN drivers/ide/ppc/pmac.c~ide-ide-fix-pmac-breakage-fix drivers/ide/ppc/pmac.c
+--- a/drivers/ide/ppc/pmac.c~ide-ide-fix-pmac-breakage-fix
++++ a/drivers/ide/ppc/pmac.c
+@@ -1555,6 +1555,8 @@ MODULE_DEVICE_TABLE(pci, pmac_ide_pci_ma
+ 
+ int __init pmac_ide_probe(void)
+ {
++	int error;
++
+ 	if (!machine_is(powermac))
+ 		return -ENODEV;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
