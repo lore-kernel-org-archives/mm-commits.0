@@ -1,53 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - utrace-prep-2.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 14:32:43 -0700
-Message-ID: <200704252132.l3PLWhvq013507@shell0.pdx.osdl.net>
+Subject: - utrace-printk-borkage.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 14:32:45 -0700
+Message-ID: <200704252132.l3PLWj1R013510@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50951 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993112AbXDYVdF (ORCPT
+	by vger.kernel.org with ESMTP id S2993117AbXDYVdY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 17:33:05 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3PLWhVe014468
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 25 Apr 2007 14:32:44 -0700
+	Wed, 25 Apr 2007 17:33:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     utrace-prep-2
+     utrace-printk-borkage
 has been removed from the -mm tree.  Its filename was
-     utrace-prep-2.patch
+     utrace-printk-borkage.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: utrace-prep-2
+Subject: utrace-printk-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
+kernel/ptrace.c: In function 'ptrace_do_wait':
+kernel/ptrace.c:1134: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
+kernel/ptrace.c:1134: warning: too few arguments for format
+kernel/ptrace.c:1148: warning: format '%lu' expects type 'long unsigned int', but argument 6 has type 'int'
+
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/ptrace.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/fork.c~utrace-prep-2 kernel/fork.c
---- a/kernel/fork.c~utrace-prep-2
-+++ a/kernel/fork.c
-@@ -1410,9 +1410,7 @@ long do_fork(unsigned long clone_flags,
- 		}
+diff -puN kernel/ptrace.c~utrace-printk-borkage kernel/ptrace.c
+--- a/kernel/ptrace.c~utrace-printk-borkage
++++ a/kernel/ptrace.c
+@@ -1298,7 +1298,7 @@ ptrace_do_wait(struct task_struct *tsk,
  
- 		if (clone_flags & CLONE_VFORK) {
--			freezer_do_not_count();
- 			wait_for_completion(&vfork);
--			freezer_count();
- 			if (unlikely (current->ptrace & PT_TRACE_VFORK_DONE)) {
- 				current->ptrace_message = nr;
- 				ptrace_notify ((PTRACE_EVENT_VFORK_DONE << 8) | SIGTRAP);
+ 		// XXX should handle WCONTINUED
+ 
+-		pr_debug("%d ptrace_do_wait (%d) found %d code %x (%u)\n",
++		pr_debug("%d ptrace_do_wait (%d) found %ld code %x\n",
+ 			 current->pid, p->pid, p->state, p->exit_code);
+ 	}
+ 	rcu_read_unlock();
+@@ -1311,7 +1311,7 @@ found:
+ 	BUG_ON(state->parent != tsk);
+ 	rcu_read_unlock();
+ 
+-	pr_debug("%d ptrace_do_wait (%d) found %d code %x (%lu/%d)\n",
++	pr_debug("%d ptrace_do_wait (%d) found %d code %x (%u/%d)\n",
+ 		 current->pid, tsk->pid, p->pid, exit_code,
+ 		 p->exit_state, p->exit_signal);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
