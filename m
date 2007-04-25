@@ -1,233 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - resurrect-the-vmi-lazy-mode-fixes-fix.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:39:56 -0700
-Message-ID: <200704252039.l3PKduok012358@shell0.pdx.osdl.net>
+Subject: - clean-up-elf-note-generation.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:40:21 -0700
+Message-ID: <200704252040.l3PKeLFq012406@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48458 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55791 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993176AbXDYU5r (ORCPT
+	by vger.kernel.org with ESMTP id S2993177AbXDYU5u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:57:47 -0400
+	Wed, 25 Apr 2007 16:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, zach@vmware.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ebiederm@xmission.com, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     resurrect-the-vmi-lazy-mode-fixes-fix
+     Clean up ELF note generation
 has been removed from the -mm tree.  Its filename was
-     resurrect-the-vmi-lazy-mode-fixes-fix.patch
+     clean-up-elf-note-generation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: resurrect-the-vmi-lazy-mode-fixes-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Clean up ELF note generation
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Zachary Amsden <zach@vmware.com>
+Three cleanups:
+
+1: ELF notes are never mapped, so there's no need to have any access
+   flags in their phdr.
+
+2: When generating them from asm, tell the assembler to use a SHT_NOTE
+   section type.  There doesn't seem to be a way to do this from C.
+
+3: Use ANSI rather than traditional cpp behaviour to stringify the
+   macro argument.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/paravirt.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/i386/kernel/vmlinux.lds.S    |    2 +-
+ include/asm-generic/vmlinux.lds.h |    2 +-
+ include/linux/elfnote.h           |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-i386/paravirt.h~resurrect-the-vmi-lazy-mode-fixes-fix include/asm-i386/paravirt.h
---- a/include/asm-i386/paravirt.h~resurrect-the-vmi-lazy-mode-fixes-fix
-+++ a/include/asm-i386/paravirt.h
-@@ -30,6 +30,7 @@ enum paravirt_lazy_mode {
- 	PARAVIRT_LAZY_NONE = 0,
- 	PARAVIRT_LAZY_MMU = 1,
- 	PARAVIRT_LAZY_CPU = 2,
-+	PARAVIRT_LAZY_FLUSH = 3,
- };
+diff -puN arch/i386/kernel/vmlinux.lds.S~clean-up-elf-note-generation arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~clean-up-elf-note-generation
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -31,7 +31,7 @@ _proxy_pda = 1;
+ PHDRS {
+ 	text PT_LOAD FLAGS(5);	/* R_E */
+ 	data PT_LOAD FLAGS(7);	/* RWE */
+-	note PT_NOTE FLAGS(4);	/* R__ */
++	note PT_NOTE FLAGS(0);	/* ___ */
+ }
+ SECTIONS
+ {
+diff -puN include/asm-generic/vmlinux.lds.h~clean-up-elf-note-generation include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~clean-up-elf-note-generation
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -230,7 +230,7 @@
+ 	}
  
- struct paravirt_ops
+ #define NOTES								\
+-		.notes : { *(.note.*) } :note
++	.notes : { *(.note.*) } :note
+ 
+ #define INITCALLS							\
+   	*(.initcall0.init)						\
+diff -puN include/linux/elfnote.h~clean-up-elf-note-generation include/linux/elfnote.h
+--- a/include/linux/elfnote.h~clean-up-elf-note-generation
++++ a/include/linux/elfnote.h
+@@ -39,12 +39,12 @@
+  *      ELFNOTE(XYZCo, 12, .long, 0xdeadbeef)
+  */
+ #define ELFNOTE(name, type, desctype, descdata)	\
+-.pushsection .note.name			;	\
++.pushsection .note.name, "",@note	;	\
+   .align 4				;	\
+   .long 2f - 1f		/* namesz */	;	\
+   .long 4f - 3f		/* descsz */	;	\
+   .long type				;	\
+-1:.asciz "name"				;	\
++1:.asciz #name				;	\
+ 2:.align 4				;	\
+ 3:desctype descdata			;	\
+ 4:.align 4				;	\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-origin.patch
-packet-fix-error-handling.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix-2.patch
-sysfs-binc-printk-fix.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ata-irq-registration-fix.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-ubi-fixup.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-yamc.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
-rfcomm_worker-fix-wakeup-race.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-pci-error-recovery-symbios-scsi-base-support-fixes.patch
-pci-error-recovery-symbios-scsi-first-failure-fix.patch
-cxacru-add-documentation-file-fix.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+allow-boot-time-disable-of-paravirt_ops-patching.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-x86_64-unexport-cpu_llc_id.patch
-xfs-clean-up-shrinker-games.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
 maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface-fix-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-extend-print_symbol-capability-fix-fix.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
 ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-unprivileged-mounts-account-user-mounts-fix.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+add-touch_all_softlockup_watchdogs.patch
