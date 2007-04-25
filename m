@@ -1,74 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - 8250-fix-possible-deadlock-between-serial8250_handle_port-and-serial8250_interrupt.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:39:15 -0700
-Message-ID: <200704252039.l3PKdFSi012289@shell0.pdx.osdl.net>
+Subject: - fix-oom-killing-processes-wrongly-thought-mpol_bind.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:38:25 -0700
+Message-ID: <200704252038.l3PKcPHj012220@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50673 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993136AbXDYUj4 (ORCPT
+	by vger.kernel.org with ESMTP id S2993137AbXDYUj7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:39:56 -0400
+	Wed, 25 Apr 2007 16:39:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, alex.williamson@hp.com, davej@codemonkey.org.uk, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: hugh@veritas.com, bill.irwin@oracle.com, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250: fix possible deadlock between serial8250_handle_port() and serial8250_interrupt()
+     fix OOM killing processes wrongly thought MPOL_BIND
 has been removed from the -mm tree.  Its filename was
-     8250-fix-possible-deadlock-between-serial8250_handle_port-and-serial8250_interrupt.patch
+     fix-oom-killing-processes-wrongly-thought-mpol_bind.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: 8250: fix possible deadlock between serial8250_handle_port() and serial8250_interrupt()
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: fix OOM killing processes wrongly thought MPOL_BIND
+From: Hugh Dickins <hugh@veritas.com>
 
-Commit 40b36daa introduced possibility that serial8250_backup_timeout() ->
-serial8250_handle_port() locks port.lock without disabling irqs, thus
-allowing deadlock against interrupt handler (port.lock is acquired in
-serial8250_interrupt()).
+I only have CONFIG_NUMA=y for build testing: surprised when trying a memhog
+to see lots of other processes killed with "No available memory
+(MPOL_BIND)".  memhog is killed correctly once we initialize nodemask in
+constrained_alloc().
 
-Spotted by lockdep.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alex Williamson <alex.williamson@hp.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: William Irwin <bill.irwin@oracle.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/serial/8250.c~8250-fix-possible-deadlock-between-serial8250_handle_port-and-serial8250_interrupt drivers/serial/8250.c
---- a/drivers/serial/8250.c~8250-fix-possible-deadlock-between-serial8250_handle_port-and-serial8250_interrupt
-+++ a/drivers/serial/8250.c
-@@ -1334,8 +1334,9 @@ static inline void
- serial8250_handle_port(struct uart_8250_port *up)
- {
- 	unsigned int status;
-+	unsigned long flags;
- 
--	spin_lock(&up->port.lock);
-+	spin_lock_irqsave(&up->port.lock, flags);
- 
- 	status = serial_inp(up, UART_LSR);
- 
-@@ -1347,7 +1348,7 @@ serial8250_handle_port(struct uart_8250_
- 	if (status & UART_LSR_THRE)
- 		transmit_chars(up);
- 
--	spin_unlock(&up->port.lock);
-+	spin_unlock_irqrestore(&up->port.lock, flags);
- }
- 
- /*
+diff -puN mm/oom_kill.c~fix-oom-killing-processes-wrongly-thought-mpol_bind mm/oom_kill.c
+--- a/mm/oom_kill.c~fix-oom-killing-processes-wrongly-thought-mpol_bind
++++ a/mm/oom_kill.c
+@@ -176,6 +176,8 @@ static inline int constrained_alloc(stru
+ 	struct zone **z;
+ 	nodemask_t nodes;
+ 	int node;
++
++	nodes_clear(nodes);
+ 	/* node has memory ? */
+ 	for_each_online_node(node)
+ 		if (NODE_DATA(node)->node_present_pages)
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-git-hid.patch
-git-ipwireless_cs.patch
+git-drm.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+i386-make-compat_vdso-runtime-selectable-fix.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+smaps-use-ptep_test_and_clear_young.patch
+mm-madvise-avoid-exclusive-mmap_sem.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
