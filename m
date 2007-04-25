@@ -1,168 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - page-migration-fix-nr_file_pages-accounting.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:38:47 -0700
-Message-ID: <200704252038.l3PKclIY012252@shell0.pdx.osdl.net>
+Subject: - mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:40:05 -0700
+Message-ID: <200704252040.l3PKe5Ih012384@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36117 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993156AbXDYUkn (ORCPT
+	by vger.kernel.org with ESMTP id S2993153AbXDYUkg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:40:43 -0400
+	Wed, 25 Apr 2007 16:40:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mbligh@mbligh.org, solo@google.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: bk@suse.de, ak@suse.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page migration: fix NR_FILE_PAGES accounting
+     mtrr: adds mtrr_save_fixed_ranges() for use in two later  patches
 has been removed from the -mm tree.  Its filename was
-     page-migration-fix-nr_file_pages-accounting.patch
+     mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: page migration: fix NR_FILE_PAGES accounting
-From: Christoph Lameter <clameter@sgi.com>
+Subject: mtrr: adds mtrr_save_fixed_ranges() for use in two later  patches
+From: Bernhard Kaindl <bk@suse.de>
 
-NR_FILE_PAGES must be accounted for depending on the zone that the page
-belongs to.  If we replace the page in the radix tree then we may have to
-shift the count to another zone.
+In this current implementation which is used in other patches,
+mtrr_save_fixed_ranges() accepts a dummy void pointer because in the current
+implementation of one of these patches, this function may be called from
+smp_call_function_single() which requires that this function takes a void
+pointer argument.
 
-Suggested-by: Ethan Solomita <solo@google.com>
-Eventually-typed-in-by: Christoph Lameter <clameter@sgi.com>
-Cc: Martin Bligh <mbligh@mbligh.org>
-Cc: <stable@kernel.org>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+This function calls get_fixed_ranges(), passing mtrr_state.fixed_ranges which
+is the element of the static struct which stores our current backup of the
+fixed-range MTRR values which all CPUs shall be using.
+
+Because mtrr_save_fixed_ranges calls get_fixed_ranges after kernel
+initialisation time, __init needs to be removed from the declaration of
+get_fixed_ranges().
+
+If CONFIG_MTRR is not set, we define mtrr_save_fixed_ranges as an empty
+statement because there is nothing to do.
+
+Signed-off-by: Bernhard Kaindl <bk@suse.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ arch/i386/kernel/cpu/mtrr/generic.c |   17 +++++++++++++++--
+ include/asm-i386/mtrr.h             |    2 ++
+ include/asm-x86_64/proto.h          |    2 ++
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~page-migration-fix-nr_file_pages-accounting mm/migrate.c
---- a/mm/migrate.c~page-migration-fix-nr_file_pages-accounting
-+++ a/mm/migrate.c
-@@ -297,7 +297,7 @@ static int migrate_page_move_mapping(str
- 	void **pslot;
+diff -puN arch/i386/kernel/cpu/mtrr/generic.c~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches arch/i386/kernel/cpu/mtrr/generic.c
+--- a/arch/i386/kernel/cpu/mtrr/generic.c~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches
++++ a/arch/i386/kernel/cpu/mtrr/generic.c
+@@ -37,8 +37,11 @@ get_mtrr_var_range(unsigned int index, s
+ 	rdmsr(MTRRphysMask_MSR(index), vr->mask_lo, vr->mask_hi);
+ }
  
- 	if (!mapping) {
--		/* Anonymous page */
-+		/* Anonymous page without mapping */
- 		if (page_count(page) != 1)
- 			return -EAGAIN;
- 		return 0;
-@@ -333,6 +333,19 @@ static int migrate_page_move_mapping(str
- 	 */
- 	__put_page(page);
+-static void __init
+-get_fixed_ranges(mtrr_type * frs)
++/**
++ * Retrieves the current fixed-range MTRRs from the current CPU
++ * \param frs address where to write the current MTRR contents
++ */
++static void get_fixed_ranges(mtrr_type * frs)
+ {
+ 	unsigned int *p = (unsigned int *) frs;
+ 	int i;
+@@ -51,6 +54,16 @@ get_fixed_ranges(mtrr_type * frs)
+ 		rdmsr(MTRRfix4K_C0000_MSR + i, p[6 + i * 2], p[7 + i * 2]);
+ }
  
-+	/*
-+	 * If moved to a different zone then also account
-+	 * the page for that zone. Other VM counters will be
-+	 * taken care of when we establish references to the
-+	 * new page and drop references to the old page.
-+	 *
-+	 * Note that anonymous pages are accounted for
-+	 * via NR_FILE_PAGES and NR_ANON_PAGES if they
-+	 * are mapped to swap space.
-+	 */
-+	__dec_zone_page_state(page, NR_FILE_PAGES);
-+	__inc_zone_page_state(newpage, NR_FILE_PAGES);
++/**
++ * Updates our copy of the state of the fixed-range MTRR values
++ * with the current fixed-range MTRR contents from the current CPU
++ * \param info dummy needed for use by smp_call_function_single()
++ */
++void mtrr_save_fixed_ranges(void *info)
++{
++	get_fixed_ranges(mtrr_state.fixed_ranges);
++}
 +
- 	write_unlock_irq(&mapping->tree_lock);
+ static void __cpuinit print_fixed(unsigned base, unsigned step, const mtrr_type*types)
+ {
+ 	unsigned i;
+diff -puN include/asm-i386/mtrr.h~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches include/asm-i386/mtrr.h
+--- a/include/asm-i386/mtrr.h~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches
++++ a/include/asm-i386/mtrr.h
+@@ -69,6 +69,7 @@ struct mtrr_gentry
  
- 	return 0;
+ /*  The following functions are for use by other drivers  */
+ # ifdef CONFIG_MTRR
++extern void mtrr_save_fixed_ranges(void *);
+ extern int mtrr_add (unsigned long base, unsigned long size,
+ 		     unsigned int type, char increment);
+ extern int mtrr_add_page (unsigned long base, unsigned long size,
+@@ -79,6 +80,7 @@ extern void mtrr_centaur_report_mcr(int 
+ extern void mtrr_ap_init(void);
+ extern void mtrr_bp_init(void);
+ #  else
++#define mtrr_save_fixed_ranges(arg) do {} while (0)
+ static __inline__ int mtrr_add (unsigned long base, unsigned long size,
+ 				unsigned int type, char increment)
+ {
+diff -puN include/asm-x86_64/proto.h~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches include/asm-x86_64/proto.h
+--- a/include/asm-x86_64/proto.h~mtrr-adds-mtrr_save_fixed_ranges-for-use-in-two-later-patches
++++ a/include/asm-x86_64/proto.h
+@@ -17,9 +17,11 @@ extern void mcheck_init(struct cpuinfo_x
+ #ifdef CONFIG_MTRR
+ extern void mtrr_ap_init(void);
+ extern void mtrr_bp_init(void);
++extern void mtrr_save_fixed_ranges(void *);
+ #else
+ #define mtrr_ap_init() do {} while (0)
+ #define mtrr_bp_init() do {} while (0)
++#define mtrr_save_fixed_ranges(arg) do {} while (0)
+ #endif
+ extern void init_memory_mapping(unsigned long start, unsigned long end);
+ 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
-
-origin.patch
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-extend-print_symbol-capability-fix.patch
-extend-print_symbol-capability-fix-fix.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
-slub-core-minor-fixes.patch
-slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
-slub-core-fix-another-numa-bootstrap-issue.patch
-slub-core-fix-object-counting.patch
-slub-core-drop-version-number.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
-slub-core-printk-facility-level-cleanup.patch
-slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
-slub-core-add-explanation-for-defrag_ratio-=-100.patch
-slub-core-add-explanation-for-locking.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-the-64k-limits.patch
-slub-core-explain-sizing-of-slabs-in-detail.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-add-checks-for-interrupts-disabled.patch
-slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
-slub-core-missing-inlines-and-statics.patch
-slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
-slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
-slub-core-fix-kmem_cache_destroy.patch
-slub-core-fix-validation.patch
-slub-core-add-after-object-padding.patch
-slub-core-resiliency-fixups.patch
-slub-core-resiliency-fixups-fix.patch
-slub-core-resiliency-test.patch
-make-page-private-usable-in-compound-pages-v1.patch
-make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-remove-object-activities-out-of-checking-functions.patch
-slub-user-documentation.patch
-slub-user-documentation-fix.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-add-slabinfo-tool.patch
-slub-add-slabinfo-tool-update-slabinfoc.patch
-quicklists-for-page-table-pages.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-kmem_cache-simplify-slab-cache-creation.patch
-slab-allocators-remove-slab_debug_initial-flag.patch
-slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
-slab-allocators-remove-multiple-alignment-specifications.patch
-slab-allocators-remove-slab_ctor_atomic.patch
-fault-injection-fix-failslab-with-config_numa.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-readahead-state-based-method-aging-accounting.patch
+Patches currently in -mm which might be from bk@suse.de are
