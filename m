@@ -1,235 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: - cleanup-cpufreq-kconfig-options.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:39:21 -0700
-Message-ID: <200704252039.l3PKdLCv012300@shell0.pdx.osdl.net>
+Subject: - fix-x86_64-mm-sched-clock-share.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:39:39 -0700
+Message-ID: <200704252039.l3PKddJU012325@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56425 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34967 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993133AbXDYUjz (ORCPT
+	by vger.kernel.org with ESMTP id S2993138AbXDYUkA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:39:55 -0400
+	Wed, 25 Apr 2007 16:40:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clean up cpufreq kconfig options
+     fix-x86_64-mm-sched-clock-share
 has been removed from the -mm tree.  Its filename was
-     cleanup-cpufreq-kconfig-options.patch
+     fix-x86_64-mm-sched-clock-share.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clean up cpufreq kconfig options
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: fix-x86_64-mm-sched-clock-share
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Adds proper lines to help output of kconfig so people can find the module
-names.  Also fixed some broken leading spaces versus tabs.
+WARNING: arch/x86_64/kernel/built-in.o - Section mismatch: reference to .init.text:sc_cpu_event from .data between 'sc_cpu_notifier' (at offset 0x2110) and 'mcelog'
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Use hotcpu_notifier().  This takes care of making sure that the unused code
+disappears from vmlinux if !CONFIG_HOTPLUG_CPU, too.
+
+Please, test allnoconfig builds and watch for the warnings?
+
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/cpufreq/Kconfig |   19 ++++++--
- drivers/cpufreq/Kconfig            |   61 +++++++++++++++++++--------
- 2 files changed, 58 insertions(+), 22 deletions(-)
+ arch/i386/kernel/sched-clock.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/cpufreq/Kconfig~cleanup-cpufreq-kconfig-options arch/x86_64/kernel/cpufreq/Kconfig
---- a/arch/x86_64/kernel/cpufreq/Kconfig~cleanup-cpufreq-kconfig-options
-+++ a/arch/x86_64/kernel/cpufreq/Kconfig
-@@ -16,6 +16,9 @@ config X86_POWERNOW_K8
- 	help
- 	  This adds the CPUFreq driver for mobile AMD Opteron/Athlon64 processors.
+diff -puN arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share arch/i386/kernel/sched-clock.c
+--- a/arch/i386/kernel/sched-clock.c~fix-x86_64-mm-sched-clock-share
++++ a/arch/i386/kernel/sched-clock.c
+@@ -169,20 +169,15 @@ sc_cpu_event(struct notifier_block *self
+ 	return NOTIFY_DONE;
+ }
  
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called powernow-k8.
-+
- 	  For details, take a look at <file:Documentation/cpu-freq/>. 
- 
- 	  If in doubt, say N.
-@@ -38,6 +41,9 @@ config X86_SPEEDSTEP_CENTRINO
- 	  mobile CPUs.  This means Intel Pentium M (Centrino) CPUs
- 	  or 64bit enabled Intel Xeons.
- 
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called speedstep-centrino.
-+
- 	  For details, take a look at <file:Documentation/cpu-freq/>.
- 
- 	  If in doubt, say N.
-@@ -55,6 +61,9 @@ config X86_ACPI_CPUFREQ
- 	  Processor Performance States.
- 	  This driver also supports Intel Enhanced Speedstep.
- 
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called acpi-cpufreq.
-+
- 	  For details, take a look at <file:Documentation/cpu-freq/>.
- 
- 	  If in doubt, say N.
-@@ -62,7 +71,7 @@ config X86_ACPI_CPUFREQ
- comment "shared options"
- 
- config X86_ACPI_CPUFREQ_PROC_INTF
--        bool "/proc/acpi/processor/../performance interface (deprecated)"
-+	bool "/proc/acpi/processor/../performance interface (deprecated)"
- 	depends on PROC_FS
- 	depends on X86_ACPI_CPUFREQ || X86_SPEEDSTEP_CENTRINO_ACPI || X86_POWERNOW_K8_ACPI
- 	help
-@@ -86,16 +95,18 @@ config X86_P4_CLOCKMOD
- 	  slowdowns and noticeable latencies.  Normally Speedstep should be used
- 	  instead.
- 
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called p4-clockmod.
-+
- 	  For details, take a look at <file:Documentation/cpu-freq/>.
- 
- 	  Unless you are absolutely sure say N.
- 
- 
- config X86_SPEEDSTEP_LIB
--        tristate
--        default X86_P4_CLOCKMOD
-+	tristate
-+	default X86_P4_CLOCKMOD
- 
- endif
- 
- endmenu
+-static struct notifier_block sc_cpu_notifier = {
+-	.notifier_call = sc_cpu_event
+-};
 -
-diff -puN drivers/cpufreq/Kconfig~cleanup-cpufreq-kconfig-options drivers/cpufreq/Kconfig
---- a/drivers/cpufreq/Kconfig~cleanup-cpufreq-kconfig-options
-+++ a/drivers/cpufreq/Kconfig
-@@ -9,6 +9,9 @@ config CPU_FREQ
- 	  clock speed, you need to either enable a dynamic cpufreq governor
- 	  (see below) after boot, or use a userspace tool.
- 
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called cpufreq.
-+
- 	  For details, take a look at <file:Documentation/cpu-freq>.
- 
- 	  If in doubt, say N.
-@@ -16,7 +19,7 @@ config CPU_FREQ
- if CPU_FREQ
- 
- config CPU_FREQ_TABLE
--       tristate
-+	tristate
- 
- config CPU_FREQ_DEBUG
- 	bool "Enable CPUfreq debugging"
-@@ -32,19 +35,26 @@ config CPU_FREQ_DEBUG
- 	       4 to activate CPUfreq governor debugging
- 
- config CPU_FREQ_STAT
--       tristate "CPU frequency translation statistics"
--       select CPU_FREQ_TABLE
--       default y
--       help
--         This driver exports CPU frequency statistics information through sysfs
--         file system
-+	tristate "CPU frequency translation statistics"
-+	select CPU_FREQ_TABLE
-+	default y
-+	help
-+	  This driver exports CPU frequency statistics information through sysfs
-+	  file system.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called cpufreq_stats.
-+
-+	  If in doubt, say N.
- 
- config CPU_FREQ_STAT_DETAILS
--       bool "CPU frequency translation statistics details"
--       depends on CPU_FREQ_STAT
--       help
--         This will show detail CPU frequency translation table in sysfs file
--         system
-+	bool "CPU frequency translation statistics details"
-+	depends on CPU_FREQ_STAT
-+	help
-+	  This will show detail CPU frequency translation table in sysfs file
-+	  system.
-+
-+	  If in doubt, say N.
- 
- # Note that it is not currently possible to set the other governors (such as ondemand)
- # as the default, since if they fail to initialise, cpufreq will be
-@@ -78,29 +88,38 @@ config CPU_FREQ_DEFAULT_GOV_USERSPACE
- endchoice
- 
- config CPU_FREQ_GOV_PERFORMANCE
--       tristate "'performance' governor"
--       help
-+	tristate "'performance' governor"
-+	help
- 	  This cpufreq governor sets the frequency statically to the
- 	  highest available CPU frequency.
- 
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called cpufreq_performance.
-+
- 	  If in doubt, say Y.
- 
- config CPU_FREQ_GOV_POWERSAVE
--       tristate "'powersave' governor"
--       help
-+	tristate "'powersave' governor"
-+	help
- 	  This cpufreq governor sets the frequency statically to the
- 	  lowest available CPU frequency.
- 
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called cpufreq_powersave.
-+
- 	  If in doubt, say Y.
- 
- config CPU_FREQ_GOV_USERSPACE
--       tristate "'userspace' governor for userspace frequency scaling"
--       help
-+	tristate "'userspace' governor for userspace frequency scaling"
-+	help
- 	  Enable this cpufreq governor when you either want to set the
- 	  CPU frequency manually or when an userspace program shall
- 	  be able to set the CPU dynamically, like on LART 
- 	  <http://www.lartmaker.nl/>.
- 
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called cpufreq_userspace.
-+
- 	  For details, take a look at <file:Documentation/cpu-freq/>.
- 
- 	  If in doubt, say Y.
-@@ -116,6 +135,9 @@ config CPU_FREQ_GOV_ONDEMAND
- 	  do fast frequency switching (i.e, very low latency frequency
- 	  transitions). 
- 
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called cpufreq_ondemand.
-+
- 	  For details, take a look at linux/Documentation/cpu-freq.
- 
- 	  If in doubt, say N.
-@@ -136,6 +158,9 @@ config CPU_FREQ_GOV_CONSERVATIVE
- 	  step-by-step latency issues between the minimum and maximum frequency
- 	  transitions in the CPU) you will probably want to use this governor.
- 
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called cpufreq_conservative.
-+
- 	  For details, take a look at linux/Documentation/cpu-freq.
- 
- 	  If in doubt, say N.
+ static __init int init_sched_clock(void)
+ {
+ 	struct cpufreq_freqs f = { .cpu = get_cpu(), .new = 0 };
+ 	WARN_ON(num_online_cpus() > 1);
+ 	call_r_s_f(&f);
+ 	put_cpu();
+-	register_cpu_notifier(&sc_cpu_notifier);
++	hotcpu_notifier(sc_cpu_event, 0);
+ 	cpufreq_register_notifier(&sc_freq_notifier,
+ 				 CPUFREQ_TRANSITION_NOTIFIER);
+ 	return 0;
+ }
+ core_initcall(init_sched_clock);
+-
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-cpufreq.patch
-git-kbuild.patch
-dont-force-uclinux-mtd-map-to-be-root-dev.patch
+origin.patch
+packet-fix-error-handling.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix-2.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-irq-registration-fix.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-fix-yamc.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+pci-error-recovery-symbios-scsi-base-support-fixes.patch
+pci-error-recovery-symbios-scsi-first-failure-fix.patch
+cxacru-add-documentation-file-fix.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface-fix-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+unprivileged-mounts-account-user-mounts-fix.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
