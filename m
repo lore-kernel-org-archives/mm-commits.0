@@ -1,129 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - char-mxser-fix-tiocmiwait.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 13:38:33 -0700
-Message-ID: <200704252038.l3PKcXJ3012229@shell0.pdx.osdl.net>
+Subject: - do-not-truncate-irq-number-for-icom-adapter.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 13:39:01 -0700
+Message-ID: <200704252039.l3PKd13J012270@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40187 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34784 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993119AbXDYUjO (ORCPT
+	by vger.kernel.org with ESMTP id S2993122AbXDYUj0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 16:39:14 -0400
+	Wed, 25 Apr 2007 16:39:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, kas@fi.muni.cz, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser, fix TIOCMIWAIT
+     do not truncate irq number for icom adapter
 has been removed from the -mm tree.  Its filename was
-     char-mxser-fix-tiocmiwait.patch
+     do-not-truncate-irq-number-for-icom-adapter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: mxser, fix TIOCMIWAIT
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: do not truncate irq number for icom adapter
+From: Olaf Hering <olaf@aepfle.de>
 
-There was schedule() missing in the TIOCMIWAIT ioctl. Solve it by moving
-the code to the wait_event_interruptible.
+irq values are u32, not u8. Large irq numbers will be truncated,
+free_irq may free a different irq.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jan Yenya Kasprzak <kas@fi.muni.cz>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Remove incorrectly sized struct member and use the one from pci_dev.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |   48 +++++++++++------------------------------
- 1 file changed, 14 insertions(+), 34 deletions(-)
+ drivers/serial/icom.c |    5 ++---
+ drivers/serial/icom.h |    1 -
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/mxser.c~char-mxser-fix-tiocmiwait drivers/char/mxser.c
---- a/drivers/char/mxser.c~char-mxser-fix-tiocmiwait
-+++ a/drivers/char/mxser.c
-@@ -1338,43 +1338,23 @@ static int mxser_ioctl(struct tty_struct
- 		 *   (use |'ed TIOCM_RNG/DSR/CD/CTS for masking)
- 		 * Caller should use TIOCGICOUNT to see which one it was
- 		 */
--	case TIOCMIWAIT: {
--			DECLARE_WAITQUEUE(wait, current);
--			int ret;
-+	case TIOCMIWAIT:
-+		spin_lock_irqsave(&info->slock, flags);
-+		cnow = info->icount;	/* note the counters on entry */
-+		spin_unlock_irqrestore(&info->slock, flags);
-+
-+		wait_event_interruptible(info->delta_msr_wait, ({
-+			cprev = cnow;
- 			spin_lock_irqsave(&info->slock, flags);
--			cprev = info->icount;	/* note the counters on entry */
-+			cnow = info->icount;	/* atomic copy */
- 			spin_unlock_irqrestore(&info->slock, flags);
+diff -puN drivers/serial/icom.c~do-not-truncate-irq-number-for-icom-adapter drivers/serial/icom.c
+--- a/drivers/serial/icom.c~do-not-truncate-irq-number-for-icom-adapter
++++ a/drivers/serial/icom.c
+@@ -1473,7 +1473,7 @@ static void icom_remove_adapter(struct i
+ 		}
+ 	}
  
--			add_wait_queue(&info->delta_msr_wait, &wait);
--			while (1) {
--				spin_lock_irqsave(&info->slock, flags);
--				cnow = info->icount;	/* atomic copy */
--				spin_unlock_irqrestore(&info->slock, flags);
--
--				set_current_state(TASK_INTERRUPTIBLE);
--				if (((arg & TIOCM_RNG) &&
--						(cnow.rng != cprev.rng)) ||
--						((arg & TIOCM_DSR) &&
--						(cnow.dsr != cprev.dsr)) ||
--						((arg & TIOCM_CD) &&
--						(cnow.dcd != cprev.dcd)) ||
--						((arg & TIOCM_CTS) &&
--						(cnow.cts != cprev.cts))) {
--					ret = 0;
--					break;
--				}
--				/* see if a signal did it */
--				if (signal_pending(current)) {
--					ret = -ERESTARTSYS;
--					break;
--				}
--				cprev = cnow;
--			}
--			current->state = TASK_RUNNING;
--			remove_wait_queue(&info->delta_msr_wait, &wait);
--			break;
--		}
--		/* NOTREACHED */
-+			((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
-+			((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
-+			((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
-+			((arg & TIOCM_CTS) && (cnow.cts != cprev.cts));
-+		}));
-+		break;
- 		/*
- 		 * Get counter of input serial line interrupts (DCD,RI,DSR,CTS)
- 		 * Return: write counters to the user passed counter struct
+-	free_irq(icom_adapter->irq_number, (void *) icom_adapter);
++	free_irq(icom_adapter->pci_dev->irq, (void *) icom_adapter);
+ 	iounmap(icom_adapter->base_addr);
+ 	icom_free_adapter(icom_adapter);
+ 	pci_release_regions(icom_adapter->pci_dev);
+@@ -1539,7 +1539,6 @@ static int __devinit icom_probe(struct p
+ 	}
+ 
+ 	 icom_adapter->base_addr_pci = pci_resource_start(dev, 0);
+-	 icom_adapter->irq_number = dev->irq;
+ 	 icom_adapter->pci_dev = dev;
+ 	 icom_adapter->version = ent->driver_data;
+ 	 icom_adapter->subsystem_id = ent->subdevice;
+@@ -1570,7 +1569,7 @@ static int __devinit icom_probe(struct p
+ 		icom_port = &icom_adapter->port_info[index];
+ 
+ 		if (icom_port->status == ICOM_PORT_ACTIVE) {
+-			icom_port->uart_port.irq = icom_port->adapter->irq_number;
++			icom_port->uart_port.irq = icom_port->adapter->pci_dev->irq;
+ 			icom_port->uart_port.type = PORT_ICOM;
+ 			icom_port->uart_port.iotype = UPIO_MEM;
+ 			icom_port->uart_port.membase =
+diff -puN drivers/serial/icom.h~do-not-truncate-irq-number-for-icom-adapter drivers/serial/icom.h
+--- a/drivers/serial/icom.h~do-not-truncate-irq-number-for-icom-adapter
++++ a/drivers/serial/icom.h
+@@ -258,7 +258,6 @@ struct icom_port {
+ struct icom_adapter {
+ 	void __iomem * base_addr;
+ 	unsigned long base_addr_pci;
+-	unsigned char irq_number;
+ 	struct pci_dev *pci_dev;
+ 	struct icom_port port_info[4];
+ 	int index;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 origin.patch
-acpi-asus_acpi-support-f2je-model.patch
-input-ff-add-ff_raw-effect.patch
-input-phantom-add-a-new-driver.patch
-char-rocket-add-module_device_table.patch
-char-cs5535_gpio-add-module_device_table.patch
-drivers-char-use-__set_current_state.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-char-cyclades-remove-pause.patch
-char-cyclades-cy_readx-writex-cleanup.patch
-char-cyclades-timer-cleanup.patch
-char-cyclades-remove-volatiles.patch
-char-cyclades-remove-useless-casts.patch
-char-cyclades-create-cy_init_ze.patch
-char-cyclades-use-pci_iomap-unmap.patch
-char-cyclades-init-ze-immediately.patch
-char-cyclades-create-cy_pci_probe.patch
-char-cyclades-move-card-entries-init-into-function.patch
-char-cyclades-init-card-struct-immediately.patch
-char-cyclades-remove-some-global-vars.patch
-char-cyclades-cy_init-error-handling.patch
-char-cyclades-tty_register_device-separately-for-each-device.patch
-char-cyclades-clear-interrupts-before-releasing.patch
-char-cyclades-allow-debug_shirq.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-powerpc.patch
+git-kbuild.patch
+cleanup-variable-usage-in-mesh-interrupt-handler.patch
+keep-track-of-network-interface-renaming.patch
