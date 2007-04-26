@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nvidiafb-rivafb-switch-to-pci_get-refcounting.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:23 -0700
-Message-ID: <200704260033.l3Q0XN8c017015@shell0.pdx.osdl.net>
+Subject: + s3fb-driver-fixes.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:20 -0700
+Message-ID: <200704260033.l3Q0XKdW017008@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33891 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423459AbXDZAde (ORCPT
+	by vger.kernel.org with ESMTP id S1423449AbXDZAd3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:33:34 -0400
+	Wed, 25 Apr 2007 20:33:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@redhat.com, adaplas@gmail.com
+Cc: santiago@crfreenet.org, adaplas@gmail.com
 
 
 The patch titled
-     nvidiafb/rivafb: switch to pci_get refcounting
+     s3fb: driver fixes
 has been added to the -mm tree.  Its filename is
-     nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
+     s3fb-driver-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,189 +26,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nvidiafb/rivafb: switch to pci_get refcounting
-From: Alan Cox <alan@redhat.com>
+Subject: s3fb: driver fixes
+From: Ondrej Zajicek <santiago@crfreenet.org>
 
-Switch to pci_get refcounting APIs
+This fixes broken fbcon on Virge VX in 24 bpp mode, and contains several
+other small updates.
 
-[adaplas]
-Fix a long-standing bug where the return value of
-pci_find_slot()/pci_get_bus_and_slot() is ignored.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nv_hw.c    |   15 +++++++++------
- drivers/video/nvidia/nv_setup.c |    3 ++-
- drivers/video/riva/nv_driver.c  |    6 ++++--
- drivers/video/riva/riva_hw.c    |   12 ++++++++----
- 4 files changed, 23 insertions(+), 13 deletions(-)
+ Documentation/fb/s3fb.txt |   12 ++++++++----
+ drivers/video/s3fb.c      |   21 ++++++++++-----------
+ 2 files changed, 18 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/nvidia/nv_hw.c~nvidiafb-rivafb-switch-to-pci_get-refcounting drivers/video/nvidia/nv_hw.c
---- a/drivers/video/nvidia/nv_hw.c~nvidiafb-rivafb-switch-to-pci_get-refcounting
-+++ a/drivers/video/nvidia/nv_hw.c
-@@ -686,7 +686,7 @@ static void nForceUpdateArbitrationSetti
+diff -puN Documentation/fb/s3fb.txt~s3fb-driver-fixes Documentation/fb/s3fb.txt
+--- a/Documentation/fb/s3fb.txt~s3fb-driver-fixes
++++ a/Documentation/fb/s3fb.txt
+@@ -35,10 +35,12 @@ Supported Features
+ 	* suspend/resume support
+ 	* DPMS support
  
- 	if ((par->Chipset & 0x0FF0) == 0x01A0) {
- 		unsigned int uMClkPostDiv;
--		dev = pci_find_slot(0, 3);
-+		dev = pci_get_bus_and_slot(0, 3);
- 		pci_read_config_dword(dev, 0x6C, &uMClkPostDiv);
- 		uMClkPostDiv = (uMClkPostDiv >> 8) & 0xf;
+-Text mode is supported even in higher resolutions, but there is limitation
+-to lower pixclocks (maximum between 50-60 MHz, depending on specific hardware).
+-This limitation is not enforced by driver. Text mode supports 8bit wide fonts
+-only (hardware limitation) and 16bit tall fonts (driver limitation).
++Text mode is supported even in higher resolutions, but there is limitation to
++lower pixclocks (maximum usually between 50-60 MHz, depending on specific
++hardware, i get best results from plain S3 Trio32 card - about 75 MHz). This
++limitation is not enforced by driver. Text mode supports 8bit wide fonts only
++(hardware limitation) and 16bit tall fonts (driver limitation). Text mode
++support is broken on S3 Trio64 V2/DX.
  
-@@ -694,11 +694,11 @@ static void nForceUpdateArbitrationSetti
- 			uMClkPostDiv = 4;
- 		MClk = 400000 / uMClkPostDiv;
- 	} else {
--		dev = pci_find_slot(0, 5);
-+		dev = pci_get_bus_and_slot(0, 5);
- 		pci_read_config_dword(dev, 0x4c, &MClk);
- 		MClk /= 1000;
- 	}
+ There are two 4 bpp modes. First mode (selected if nonstd == 0) is mode with
+ packed pixels, high nibble first. Second mode (selected if nonstd == 1) is mode
+@@ -73,6 +75,8 @@ Known bugs
+ ==========
+ 
+ 	* cursor disable in text mode doesn't work
++	* text mode broken on S3 Trio64 V2/DX
++
+ 
+ --
+ Ondrej Zajicek <santiago@crfreenet.org>
+diff -puN drivers/video/s3fb.c~s3fb-driver-fixes drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~s3fb-driver-fixes
++++ a/drivers/video/s3fb.c
+@@ -65,7 +65,7 @@ static const struct svga_fb_format s3fb_
+ 
+ 
+ static const struct svga_pll s3_pll = {3, 129, 3, 33, 0, 3,
+-	60000, 240000, 14318};
++	35000, 240000, 14318};
+ 
+ static const int s3_memsizes[] = {4096, 0, 3072, 8192, 2048, 6144, 1024, 512};
+ 
+@@ -331,8 +331,13 @@ static void s3_set_pixclock(struct fb_in
+ {
+ 	u16 m, n, r;
+ 	u8 regval;
++	int rv;
+ 
+-	svga_compute_pll(&s3_pll, 1000000000 / pixclock, &m, &n, &r, info->node);
++	rv = svga_compute_pll(&s3_pll, 1000000000 / pixclock, &m, &n, &r, info->node);
++	if (rv < 0) {
++		printk(KERN_ERR "fb%d: cannot set requested pixclock, keeping old value\n", info->node);
++		return;
++	}
+ 
+ 	/* Set VGA misc register  */
+ 	regval = vga_r(NULL, VGA_MIS_R);
+@@ -710,7 +715,7 @@ static int s3fb_setcolreg(u_int regno, u
+ 		break;
+ 	case 16:
+ 		if (regno >= 16)
+-			return -EINVAL;
++			return 0;
+ 
+ 		if (fb->var.green.length == 5)
+ 			((u32*)fb->pseudo_palette)[regno] = ((red & 0xF800) >> 1) |
+@@ -723,9 +728,9 @@ static int s3fb_setcolreg(u_int regno, u
+ 	case 24:
+ 	case 32:
+ 		if (regno >= 16)
+-			return -EINVAL;
++			return 0;
+ 
+-		((u32*)fb->pseudo_palette)[regno] = ((transp & 0xFF00) << 16) | ((red & 0xFF00) << 8) |
++		((u32*)fb->pseudo_palette)[regno] = ((red & 0xFF00) << 8) |
+ 			(green & 0xFF00) | ((blue & 0xFF00) >> 8);
+ 		break;
+ 	default:
+@@ -778,12 +783,6 @@ static int s3fb_pan_display(struct fb_va
+ 
+ 	unsigned int offset;
+ 
+-	/* Validate the offsets */
+-	if ((var->xoffset + var->xres) > var->xres_virtual)
+-		return -EINVAL;
+-	if ((var->yoffset + var->yres) > var->yres_virtual)
+-		return -EINVAL;
 -
-+	pci_dev_put(dev);
- 	pll = NV_RD32(par->PRAMDAC0, 0x0500);
- 	M = (pll >> 0) & 0xFF;
- 	N = (pll >> 8) & 0xFF;
-@@ -707,19 +707,21 @@ static void nForceUpdateArbitrationSetti
- 	sim_data.pix_bpp = (char)pixelDepth;
- 	sim_data.enable_video = 0;
- 	sim_data.enable_mp = 0;
--	pci_find_slot(0, 1);
-+	dev = pci_get_bus_and_slot(0, 1);
- 	pci_read_config_dword(dev, 0x7C, &sim_data.memory_type);
-+	pci_dev_put(dev);
- 	sim_data.memory_type = (sim_data.memory_type >> 12) & 1;
- 	sim_data.memory_width = 64;
- 
--	dev = pci_find_slot(0, 3);
-+	dev = pci_get_bus_and_slot(0, 3);
- 	pci_read_config_dword(dev, 0, &memctrl);
-+	pci_dev_put(dev);
- 	memctrl >>= 16;
- 
- 	if ((memctrl == 0x1A9) || (memctrl == 0x1AB) || (memctrl == 0x1ED)) {
- 		int dimm[3];
- 
--		pci_find_slot(0, 2);
-+		dev = pci_get_bus_and_slot(0, 2);
- 		pci_read_config_dword(dev, 0x40, &dimm[0]);
- 		dimm[0] = (dimm[0] >> 8) & 0x4f;
- 		pci_read_config_dword(dev, 0x44, &dimm[1]);
-@@ -731,6 +733,7 @@ static void nForceUpdateArbitrationSetti
- 			printk("nvidiafb: your nForce DIMMs are not arranged "
- 			       "in optimal banks!\n");
- 		}
-+		pci_dev_put(dev);
- 	}
- 
- 	sim_data.mem_latency = 3;
-diff -puN drivers/video/nvidia/nv_setup.c~nvidiafb-rivafb-switch-to-pci_get-refcounting drivers/video/nvidia/nv_setup.c
---- a/drivers/video/nvidia/nv_setup.c~nvidiafb-rivafb-switch-to-pci_get-refcounting
-+++ a/drivers/video/nvidia/nv_setup.c
-@@ -261,7 +261,7 @@ static void nv10GetConfig(struct nvidia_
- 	}
- #endif
- 
--	dev = pci_find_slot(0, 1);
-+	dev = pci_get_bus_and_slot(0, 1);
- 	if ((par->Chipset & 0xffff) == 0x01a0) {
- 		int amt = 0;
- 
-@@ -276,6 +276,7 @@ static void nv10GetConfig(struct nvidia_
- 		par->RamAmountKBytes =
- 		    (NV_RD32(par->PFB, 0x020C) & 0xFFF00000) >> 10;
- 	}
-+	pci_dev_put(dev);
- 
- 	par->CrystalFreqKHz = (NV_RD32(par->PEXTDEV, 0x0000) & (1 << 6)) ?
- 	    14318 : 13500;
-diff -puN drivers/video/riva/nv_driver.c~nvidiafb-rivafb-switch-to-pci_get-refcounting drivers/video/riva/nv_driver.c
---- a/drivers/video/riva/nv_driver.c~nvidiafb-rivafb-switch-to-pci_get-refcounting
-+++ a/drivers/video/riva/nv_driver.c
-@@ -231,12 +231,14 @@ unsigned long riva_get_memlen(struct riv
- 	case NV_ARCH_30:
- 		if(chipset == NV_CHIP_IGEFORCE2) {
- 
--			dev = pci_find_slot(0, 1);
-+			dev = pci_get_bus_and_slot(0, 1);
- 			pci_read_config_dword(dev, 0x7C, &amt);
-+			pci_dev_put(dev);
- 			memlen = (((amt >> 6) & 31) + 1) * 1024;
- 		} else if (chipset == NV_CHIP_0x01F0) {
--			dev = pci_find_slot(0, 1);
-+			dev = pci_get_bus_and_slot(0, 1);
- 			pci_read_config_dword(dev, 0x84, &amt);
-+			pci_dev_put(dev);
- 			memlen = (((amt >> 4) & 127) + 1) * 1024;
- 		} else {
- 			switch ((NV_RD32(chip->PFB, 0x0000020C) >> 20) &
-diff -puN drivers/video/riva/riva_hw.c~nvidiafb-rivafb-switch-to-pci_get-refcounting drivers/video/riva/riva_hw.c
---- a/drivers/video/riva/riva_hw.c~nvidiafb-rivafb-switch-to-pci_get-refcounting
-+++ a/drivers/video/riva/riva_hw.c
-@@ -1118,8 +1118,9 @@ static void nForceUpdateArbitrationSetti
-     unsigned int uMClkPostDiv;
-     struct pci_dev *dev;
- 
--    dev = pci_find_slot(0, 3);
-+    dev = pci_get_bus_and_slot(0, 3);
-     pci_read_config_dword(dev, 0x6C, &uMClkPostDiv);
-+    pci_dev_put(dev);
-     uMClkPostDiv = (uMClkPostDiv >> 8) & 0xf;
- 
-     if(!uMClkPostDiv) uMClkPostDiv = 4;
-@@ -1132,8 +1133,9 @@ static void nForceUpdateArbitrationSetti
-     sim_data.enable_video   = 0;
-     sim_data.enable_mp      = 0;
- 
--    dev = pci_find_slot(0, 1);
-+    dev = pci_get_bus_and_slot(0, 1);
-     pci_read_config_dword(dev, 0x7C, &sim_data.memory_type);
-+    pci_dev_put(dev);
-     sim_data.memory_type    = (sim_data.memory_type >> 12) & 1;
- 
-     sim_data.memory_width   = 64;
-@@ -2112,12 +2114,14 @@ static void nv10GetConfig
-      * Fill in chip configuration.
-      */
-     if(chipset == NV_CHIP_IGEFORCE2) {
--        dev = pci_find_slot(0, 1);
-+        dev = pci_get_bus_and_slot(0, 1);
-         pci_read_config_dword(dev, 0x7C, &amt);
-+        pci_dev_put(dev);
-         chip->RamAmountKBytes = (((amt >> 6) & 31) + 1) * 1024;
-     } else if(chipset == NV_CHIP_0x01F0) {
--        dev = pci_find_slot(0, 1);
-+        dev = pci_get_bus_and_slot(0, 1);
-         pci_read_config_dword(dev, 0x84, &amt);
-+        pci_dev_put(dev);
-         chip->RamAmountKBytes = (((amt >> 4) & 127) + 1) * 1024;
-     } else {
-         switch ((NV_RD32(chip->PFB, 0x0000020C) >> 20) & 0x000000FF)
+ 	/* Calculate the offset */
+ 	if (var->bits_per_pixel == 0) {
+ 		offset = (var->yoffset / 16) * (var->xres_virtual / 2) + (var->xoffset / 2);
 _
 
-Patches currently in -mm which might be from alan@redhat.com are
+Patches currently in -mm which might be from santiago@crfreenet.org are
 
-origin.patch
-git-agpgart.patch
-git-powerpc.patch
-git-libata-all.patch
-libata-acpi-add-infrastructure-for-drivers-to-use.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-pata_hpt37x-further-small-fixes.patch
-pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
-spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
-pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
-pci_module_init-convertion-in-tmscsimc.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-apm-fix-incorrect-comment.patch
-revoke-special-mmap-handling.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
+s3fb-driver-fixes.patch
