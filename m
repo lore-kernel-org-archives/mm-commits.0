@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:04:43 -0700
-Message-ID: <200704260004.l3Q04hRG016411@shell0.pdx.osdl.net>
+Subject: + slub-core-update-cpu-after-new_slab.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:05:58 -0700
+Message-ID: <200704260005.l3Q05wIR016439@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37543 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58837 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750940AbXDZAGK (ORCPT
+	by vger.kernel.org with ESMTP id S1754512AbXDZAGe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:06:10 -0400
+	Wed, 25 Apr 2007 20:06:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, mel@csn.ul.ie
+Cc: hugh@veritas.com, clameter@sgi.com
 
 
 The patch titled
-     lumpy: increase pressure at the end of the inactive list cleanups
+     slub: update cpu after new_slab()
 has been added to the -mm tree.  Its filename is
-     lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups.patch
+     slub-core-update-cpu-after-new_slab.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,184 +26,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lumpy: increase pressure at the end of the inactive list cleanups
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: slub: update cpu after new_slab()
+From: Hugh Dickins <hugh@veritas.com>
 
-1) introduces ISOLATE_[ACTIVE,INACTIVE],
-2) changes the name of the deactivate_pages() helper to clear_active_flags(),
-3) cleans up and simplifies the checks in __isolate_lru_pages(), and
-4) changes the parameter active to mode throughout.
+SLUB gave me a NULL pointer dereference in slab_alloc(), in the
+slab_lock(page) of its "Current cpuslab is acceptable" block: cpu 1 had
+been looking at cpu_slab[2], which then went NULL beneath it.  Since
+new_slab() may reenable interrupts and sleep (when __GFP_WAIT), we may get
+rescheduled on a different cpu: so need to reevaluate it.
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   60 +++++++++++++++++++++++++++-----------------------
- 1 file changed, 33 insertions(+), 27 deletions(-)
+ mm/slub.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups mm/vmscan.c
---- a/mm/vmscan.c~lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups
-+++ a/mm/vmscan.c
-@@ -605,38 +605,46 @@ keep:
- 	return nr_reclaimed;
- }
+diff -puN mm/slub.c~slub-core-update-cpu-after-new_slab mm/slub.c
+--- a/mm/slub.c~slub-core-update-cpu-after-new_slab
++++ a/mm/slub.c
+@@ -1234,11 +1234,12 @@ have_slab:
  
-+/* LRU Isolation modes. */
-+#define ISOLATE_INACTIVE 0	/* Isolate inactive pages. */
-+#define ISOLATE_ACTIVE 1	/* Isolate active pages. */
-+#define ISOLATE_BOTH 2		/* Isolate both active and inactive pages. */
-+
- /*
-  * Attempt to remove the specified page from its LRU.  Only take this page
-  * if it is of the appropriate PageActive status.  Pages which are being
-  * freed elsewhere are also ignored.
-  *
-  * page:	page to consider
-- * active:	active/inactive flag only take pages of this type
-+ * mode:	one of the LRU isolation modes defined above
-  *
-  * returns 0 on success, -ve errno on failure.
-  */
--#define ISOLATE_BOTH -1		/* Isolate both active and inactive pages. */
--static int __isolate_lru_page(struct page *page, int active)
-+static int __isolate_lru_page(struct page *page, int mode)
- {
- 	int ret = -EINVAL;
- 
-+	/* Only take pages on the LRU. */
-+	if (!PageLRU(page))
-+		return ret;
-+
- 	/*
- 	 * When checking the active state, we need to be sure we are
- 	 * dealing with comparible boolean values.  Take the logical not
- 	 * of each.
- 	 */
--	if (PageLRU(page) && (active == ISOLATE_BOTH ||
--					(!PageActive(page) == !active))) {
--		ret = -EBUSY;
--		if (likely(get_page_unless_zero(page))) {
--			/*
--			 * Be careful not to clear PageLRU until after we're
--			 * sure the page is not being freed elsewhere -- the
--			 * page release code relies on it.
--			 */
--			ClearPageLRU(page);
--			ret = 0;
--		}
-+	if (mode != ISOLATE_BOTH && (!PageActive(page) != !mode))
-+		return ret;
-+
-+	ret = -EBUSY;
-+	if (likely(get_page_unless_zero(page))) {
-+		/*
-+		 * Be careful not to clear PageLRU until after we're
-+		 * sure the page is not being freed elsewhere -- the
-+		 * page release code relies on it.
-+		 */
-+		ClearPageLRU(page);
-+		ret = 0;
- 	}
- 
- 	return ret;
-@@ -657,13 +665,13 @@ static int __isolate_lru_page(struct pag
-  * @dst:	The temp list to put pages on to.
-  * @scanned:	The number of pages that were scanned.
-  * @order:	The caller's attempted allocation order
-- * @active:	The caller's trying to obtain active or inactive pages
-+ * @mode:	One of the LRU isolation modes
-  *
-  * returns how many pages were moved onto *@dst.
-  */
- static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
- 		struct list_head *src, struct list_head *dst,
--		unsigned long *scanned, int order, int active)
-+		unsigned long *scanned, int order, int mode)
- {
- 	unsigned long nr_taken = 0;
- 	unsigned long scan;
-@@ -680,7 +688,7 @@ static unsigned long isolate_lru_pages(u
- 
- 		VM_BUG_ON(!PageLRU(page));
- 
--		switch (__isolate_lru_page(page, active)) {
-+		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
- 			list_move(&page->lru, dst);
- 			nr_taken++;
-@@ -727,7 +735,7 @@ static unsigned long isolate_lru_pages(u
- 			/* Check that we have not crossed a zone boundary. */
- 			if (unlikely(page_zone_id(cursor_page) != zone_id))
- 				continue;
--			switch (__isolate_lru_page(cursor_page, active)) {
-+			switch (__isolate_lru_page(cursor_page, mode)) {
- 			case 0:
- 				list_move(&cursor_page->lru, dst);
- 				nr_taken++;
-@@ -748,21 +756,19 @@ static unsigned long isolate_lru_pages(u
- }
- 
- /*
-- * deactivate_pages() is a helper for shrink_active_list(), it deactivates
-- * all active pages on the passed list.
-+ * clear_active_flags() is a helper for shrink_active_list(), clearing
-+ * any active bits from the pages in the list.
-  */
--static unsigned long deactivate_pages(struct list_head *page_list)
-+static unsigned long clear_active_flags(struct list_head *page_list)
- {
- 	int nr_active = 0;
--	struct list_head *entry;
-+	struct page *page;
- 
--	list_for_each(entry, page_list) {
--		struct page *page = list_entry(entry, struct page, lru);
-+	list_for_each_entry(page, page_list, lru)
- 		if (PageActive(page)) {
- 			ClearPageActive(page);
- 			nr_active++;
- 		}
--	}
- 
- 	return nr_active;
- }
-@@ -944,7 +950,7 @@ force_reclaim_mapped:
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
- 	pgmoved = isolate_lru_pages(nr_pages, &zone->active_list,
--				    &l_hold, &pgscanned, sc->order, 1);
-+			    &l_hold, &pgscanned, sc->order, ISOLATE_ACTIVE);
- 	zone->pages_scanned += pgscanned;
- 	__mod_zone_page_state(zone, NR_ACTIVE, -pgmoved);
- 	spin_unlock_irq(&zone->lru_lock);
+ 	page = new_slab(s, gfpflags, node);
+ 	if (page) {
++		cpu = smp_processor_id();
+ 		if (s->cpu_slab[cpu]) {
+ 			/*
+-			 * Someone else populated the cpu_slab while
+-			 * we enabled interrupts. The page may not
+-			 * be on the requested node.
++			 * Someone else populated the cpu_slab while we enabled
++			 * interrupts, or we have got scheduled on another cpu.
++			 * The page may not be on the requested node.
+ 			 */
+ 			if (node == -1 ||
+ 				page_to_nid(s->cpu_slab[cpu]) == node) {
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-pci-device-ensure-sysdata-initialised-v2.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
-add-a-configure-option-to-group-pages-by-mobility-speedup.patch
-move-free-pages-between-lists-on-steal-fix.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-create-the-zone_movable-zone-align-zone_movable-to-a-max_order_nr_pages-boundary.patch
-handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
-lumpy-reclaim-v4.patch
-lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
-lumpy-only-count-taken-pages-as-scanned.patch
-kswapd-use-reclaim-order-in-background-reclaim.patch
-lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
-introduce-high_order-delineating-easily-reclaimable-orders.patch
-introduce-high_order-delineating-easily-reclaimable-orders-cleanups.patch
-lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups.patch
-add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
-anti-fragmentation-switch-over-to-pfn_valid_within.patch
-lumpy-move-to-using-pfn_valid_within.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-slab-numa-kmem_cache-diet.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+origin.patch
+git-drm.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+i386-make-compat_vdso-runtime-selectable-fix.patch
+mm-more-rmap-checking.patch
+mm-make-read_cache_page-synchronous.patch
+fs-buffer-dont-pageuptodate-without-page-locked.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+smaps-use-ptep_test_and_clear_young.patch
+slub-core-update-cpu-after-new_slab.patch
+mm-madvise-avoid-exclusive-mmap_sem.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+ext2-reservations.patch
+ext2-balloc-use-io_error-label.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
