@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-add-tile-operation-to-get-the-maximum-length.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:15 -0700
-Message-ID: <200704260033.l3Q0XFP7016996@shell0.pdx.osdl.net>
+Subject: + fbcon-check-if-the-character-count-can-be-handled.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:17 -0700
+Message-ID: <200704260033.l3Q0XHco017002@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56685 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423447AbXDZAdT (ORCPT
+	by vger.kernel.org with ESMTP id S1423448AbXDZAdT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 25 Apr 2007 20:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbdev: add tile operation to get the maximum length of the map
+     fbcon: check if the character count can be handled
 has been added to the -mm tree.  Its filename is
-     fbdev-add-tile-operation-to-get-the-maximum-length.patch
+     fbcon-check-if-the-character-count-can-be-handled.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: add tile operation to get the maximum length of the map
+Subject: fbcon: check if the character count can be handled
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Add a tile method, fb_get_tilemax(), that returns the maximum length of
-the tile map (or font map).  This is needed by s3fb which can only handle
-256 characters.
+Fontmaps can be 256 or 512 in length. The only driver that can do tileblitting
+can only handle 256 characters.  Check for this when setting the font.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fb.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/video/console/fbcon.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN include/linux/fb.h~fbdev-add-tile-operation-to-get-the-maximum-length include/linux/fb.h
---- a/include/linux/fb.h~fbdev-add-tile-operation-to-get-the-maximum-length
-+++ a/include/linux/fb.h
-@@ -655,7 +655,6 @@ struct fb_ops {
- };
+diff -puN drivers/video/console/fbcon.c~fbcon-check-if-the-character-count-can-be-handled drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-check-if-the-character-count-can-be-handled
++++ a/drivers/video/console/fbcon.c
+@@ -685,6 +685,17 @@ static void set_blitting_type(struct vc_
+ 		fbcon_set_bitops(ops);
+ 	}
+ }
++
++static int fbcon_invalid_charcount(struct fb_info *info, unsigned charcount)
++{
++	int err = 0;
++
++	if (info->flags & FBINFO_MISC_TILEBLITTING &&
++	    info->tileops->fb_get_tilemax(info) < charcount)
++		err = 1;
++
++	return err;
++}
+ #else
+ static void set_blitting_type(struct vc_data *vc, struct fb_info *info)
+ {
+@@ -695,6 +706,12 @@ static void set_blitting_type(struct vc_
+ 	fbcon_set_rotation(info);
+ 	fbcon_set_bitops(ops);
+ }
++
++static int fbcon_invalid_charcount(struct fb_info *info, unsigned charcount)
++{
++	return 0;
++}
++
+ #endif /* CONFIG_MISC_TILEBLITTING */
  
- #ifdef CONFIG_FB_TILEBLITTING
--
- #define FB_TILE_CURSOR_NONE        0
- #define FB_TILE_CURSOR_UNDERLINE   1
- #define FB_TILE_CURSOR_LOWER_THIRD 2
-@@ -727,6 +726,8 @@ struct fb_tile_ops {
- 	/* cursor */
- 	void (*fb_tilecursor)(struct fb_info *info,
- 			      struct fb_tilecursor *cursor);
-+	/* get maximum length of the tile map */
-+	int (*fb_get_tilemax)(struct fb_info *info);
- };
- #endif /* CONFIG_FB_TILEBLITTING */
  
+@@ -2518,6 +2535,10 @@ static int fbcon_set_font(struct vc_data
+ 	    !(info->pixmap.blit_y & (1 << (font->height - 1))))
+ 		return -EINVAL;
+ 
++	/* Make sure driver can handle the font length */
++	if (fbcon_invalid_charcount(info, charcount))
++		return -EINVAL;
++
+ 	size = h * pitch * charcount;
+ 
+ 	new_data = kmalloc(FONT_EXTRA_WORDS * sizeof(int) + size, GFP_USER);
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
