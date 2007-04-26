@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:14 -0700
-Message-ID: <200704260033.l3Q0XEYR016993@shell0.pdx.osdl.net>
+Subject: + fbdev-add-tile-operation-to-get-the-maximum-length.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:15 -0700
+Message-ID: <200704260033.l3Q0XFP7016996@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45552 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423438AbXDZAdR (ORCPT
+	by vger.kernel.org with ESMTP id S1423447AbXDZAdT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:33:17 -0400
+	Wed, 25 Apr 2007 20:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     s3fb: limit 8x16 rectangles when tileblitting is enabled
+     fbdev: add tile operation to get the maximum length of the map
 has been added to the -mm tree.  Its filename is
-     s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch
+     fbdev-add-tile-operation-to-get-the-maximum-length.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s3fb: limit 8x16 rectangles when tileblitting is enabled
+Subject: fbdev: add tile operation to get the maximum length of the map
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-If tileblitting is enabled (text mode), the hardware can only accept 8x16
-bitmaps. Advertise this to the upper layer. And to ensure that an appropriate
-font is always available, select an 8x16 font in Kconfig.
+Add a tile method, fb_get_tilemax(), that returns the maximum length of
+the tile map (or font map).  This is needed by s3fb which can only handle
+256 characters.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    1 +
- drivers/video/s3fb.c  |    6 ++++++
- 2 files changed, 7 insertions(+)
+ include/linux/fb.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/Kconfig~s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled drivers/video/Kconfig
---- a/drivers/video/Kconfig~s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled
-+++ a/drivers/video/Kconfig
-@@ -1191,6 +1191,7 @@ config FB_S3
- 	select FB_TILEBLITTING
- 	select FB_SVGALIB
- 	select VGASTATE
-+	select FONT_8x16 if FRAMEBUFFER_CONSOLE
- 	---help---
- 	  Driver for graphics boards with S3 Trio / S3 Virge chip.
+diff -puN include/linux/fb.h~fbdev-add-tile-operation-to-get-the-maximum-length include/linux/fb.h
+--- a/include/linux/fb.h~fbdev-add-tile-operation-to-get-the-maximum-length
++++ a/include/linux/fb.h
+@@ -655,7 +655,6 @@ struct fb_ops {
+ };
  
-diff -puN drivers/video/s3fb.c~s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled drivers/video/s3fb.c
---- a/drivers/video/s3fb.c~s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled
-+++ a/drivers/video/s3fb.c
-@@ -449,6 +449,9 @@ static int s3fb_set_par(struct fb_info *
- 		info->flags &= ~FBINFO_MISC_TILEBLITTING;
- 		info->tileops = NULL;
+ #ifdef CONFIG_FB_TILEBLITTING
+-
+ #define FB_TILE_CURSOR_NONE        0
+ #define FB_TILE_CURSOR_UNDERLINE   1
+ #define FB_TILE_CURSOR_LOWER_THIRD 2
+@@ -727,6 +726,8 @@ struct fb_tile_ops {
+ 	/* cursor */
+ 	void (*fb_tilecursor)(struct fb_info *info,
+ 			      struct fb_tilecursor *cursor);
++	/* get maximum length of the tile map */
++	int (*fb_get_tilemax)(struct fb_info *info);
+ };
+ #endif /* CONFIG_FB_TILEBLITTING */
  
-+		/* supports blit rectangles of any dimension */
-+		info->pixmap.blit_x = ~(u32)0;
-+		info->pixmap.blit_y = ~(u32)0;
- 		offset_value = (info->var.xres_virtual * bpp) / 64;
- 		screen_size = info->var.yres_virtual * info->fix.line_length;
- 	} else {
-@@ -457,6 +460,9 @@ static int s3fb_set_par(struct fb_info *
- 
- 		info->flags |= FBINFO_MISC_TILEBLITTING;
- 		info->tileops = fasttext ? &s3fb_fast_tile_ops : &s3fb_tile_ops;
-+		/* supports 8x16 tiles only */
-+		info->pixmap.blit_x = 1 << (8 - 1);
-+		info->pixmap.blit_y = 1 << (16 - 1);
- 
- 		offset_value = info->var.xres_virtual / 16;
- 		screen_size = (info->var.xres_virtual * info->var.yres_virtual) / 64;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
