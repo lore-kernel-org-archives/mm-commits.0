@@ -1,179 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: - usb-cxacru-adsl-state-management-udpate.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 00:36:49 -0700
-Message-ID: <200704260736.l3Q7ankS024342@shell0.pdx.osdl.net>
+Subject: - cxacru-add-documentation-file-fix.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:37:01 -0700
+Message-ID: <200704260737.l3Q7b2Z7024348@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47202 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933174AbXDZHhl (ORCPT
+	by vger.kernel.org with ESMTP id S933208AbXDZHhv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:37:41 -0400
+	Thu, 26 Apr 2007 03:37:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: simon@fire.lp0.eu, duncan.sands@math.u-psud.fr, gregkh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, duncan.sands@math.u-psud.fr, gregkh@suse.de, simon@fire.lp0.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-cxacru-adsl-state-management update
+     cxacru-add-documentation-file-fix
 has been removed from the -mm tree.  Its filename was
-     usb-cxacru-adsl-state-management-udpate.patch
+     cxacru-add-documentation-file-fix.patch
 
-This patch was dropped because it was folded into usb-cxacru-adsl-state-management.patch
+This patch was dropped because it was folded into cxacru-add-documentation-file.patch
 
 ------------------------------------------------------
-Subject: usb-cxacru-adsl-state-management update
-From: Simon Arlott <simon@fire.lp0.eu>
+Subject: cxacru-add-documentation-file-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Revision 2+3: Add adsl_state_serialize mutex and use it around ADSL start/stop
-commands followed by deciding on the poll state.  Fix mishandling of -EIO
-return value.  Allow newlines etc.  at the end of adsl_state commands.
-
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Simon Arlott <simon@fire.lp0.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/cxacru.c |   41 +++++++++++++++++++++++++++----------
- 1 files changed, 31 insertions(+), 10 deletions(-)
+ Documentation/networking/cxacru.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/atm/cxacru.c~usb-cxacru-adsl-state-management-udpate drivers/usb/atm/cxacru.c
---- a/drivers/usb/atm/cxacru.c~usb-cxacru-adsl-state-management-udpate
-+++ a/drivers/usb/atm/cxacru.c
-@@ -166,6 +166,7 @@ struct cxacru_data {
- 	const struct cxacru_modem_type *modem_type;
+diff -puN Documentation/networking/cxacru.txt~cxacru-add-documentation-file-fix Documentation/networking/cxacru.txt
+--- a/Documentation/networking/cxacru.txt~cxacru-add-documentation-file-fix
++++ a/Documentation/networking/cxacru.txt
+@@ -7,7 +7,7 @@ driver and it is necessary to unplug/rem
+ Detected devices will appear as ATM devices named "cxacru". In /sys/class/atm/
+ these are directories named cxacruN where N is the device number. A symlink
+ named device points to the USB interface device's directory which contains
+-several sysfs attribute files for retriving device statistics:
++several sysfs attribute files for retrieving device statistics:
  
- 	int line_status;
-+	struct mutex adsl_state_serialize;
- 	int adsl_status;
- 	struct delayed_work poll_work;
- 	u32 card_info[CXINF_MAX];
-@@ -320,13 +321,23 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 	struct usb_interface *intf = to_usb_interface(dev);
- 	struct usbatm_data *usbatm_instance = usb_get_intfdata(intf);
- 	struct cxacru_data *instance = usbatm_instance->driver_data;
--	int ret = 0;
-+	int ret;
- 	int poll = -1;
-+	char str_cmd[8];
-+	int len = strlen(buf);
+ * adsl_controller_version
  
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EACCES;
- 
--	if (!strcmp(buf, "stop") || !strcmp(buf, "restart")) {
-+	ret = sscanf(buf, "%7s", str_cmd);
-+	if (ret != 1)
-+		return -EINVAL;
-+	ret = 0;
-+
-+	if (mutex_lock_interruptible(&instance->adsl_state_serialize))
-+		return -ERESTARTSYS;
-+
-+	if (!strcmp(str_cmd, "stop") || !strcmp(str_cmd, "restart")) {
- 		ret = cxacru_cm(instance, CM_REQUEST_CHIP_ADSL_LINE_STOP, NULL, 0, NULL, 0);
- 		if (ret < 0) {
- 			atm_err(usbatm_instance, "change adsl state:"
-@@ -334,7 +345,7 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 
- 			ret = -EIO;
- 		} else {
--			ret = strlen(buf);
-+			ret = len;
- 			poll = CXPOLL_STOPPED;
- 		}
- 	}
-@@ -343,10 +354,10 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 	 * and the device appears to only react to
- 	 * START/STOP every second too. Wait 1.5s to
- 	 * be sure that restart will have an effect. */
--	if (!strcmp(buf, "restart"))
-+	if (!strcmp(str_cmd, "restart"))
- 		msleep(1500);
- 
--	if (!strcmp(buf, "start") || !strcmp(buf, "restart")) {
-+	if (!strcmp(str_cmd, "start") || !strcmp(str_cmd, "restart")) {
- 		ret = cxacru_cm(instance, CM_REQUEST_CHIP_ADSL_LINE_START, NULL, 0, NULL, 0);
- 		if (ret < 0) {
- 			atm_err(usbatm_instance, "change adsl state:"
-@@ -354,18 +365,20 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 
- 			ret = -EIO;
- 		} else {
--			ret = strlen(buf);
-+			ret = len;
- 			poll = CXPOLL_POLLING;
- 		}
- 	}
- 
--	if (!strcmp(buf, "poll")) {
--		ret = strlen(buf);
-+	if (!strcmp(str_cmd, "poll")) {
-+		ret = len;
- 		poll = CXPOLL_POLLING;
- 	}
- 
--	if (!ret)
--		return -EINVAL;
-+	if (ret == 0) {
-+		ret = -EINVAL;
-+		poll = -1;
-+	}
- 
- 	if (poll == CXPOLL_POLLING) {
- 		mutex_lock(&instance->poll_state_serialize);
-@@ -392,6 +405,8 @@ static ssize_t cxacru_sysfs_store_adsl_s
- 		mutex_unlock(&instance->poll_state_serialize);
- 	}
- 
-+	mutex_unlock(&instance->adsl_state_serialize);
-+
- 	if (poll == CXPOLL_POLLING)
- 		cxacru_poll_status(&instance->poll_work.work);
- 
-@@ -635,9 +650,11 @@ static int cxacru_atm_start(struct usbat
- 	}
- 
- 	/* start ADSL */
-+	mutex_lock(&instance->adsl_state_serialize);
- 	ret = cxacru_cm(instance, CM_REQUEST_CHIP_ADSL_LINE_START, NULL, 0, NULL, 0);
- 	if (ret < 0) {
- 		atm_err(usbatm_instance, "cxacru_atm_start: CHIP_ADSL_LINE_START returned %d\n", ret);
-+		mutex_unlock(&instance->adsl_state_serialize);
- 		return ret;
- 	}
- 
-@@ -658,6 +675,7 @@ static int cxacru_atm_start(struct usbat
- 		start_polling = 0;
- 	}
- 	mutex_unlock(&instance->poll_state_serialize);
-+	mutex_unlock(&instance->adsl_state_serialize);
- 
- 	if (start_polling)
- 		cxacru_poll_status(&instance->poll_work.work);
-@@ -1014,11 +1032,14 @@ static int cxacru_bind(struct usbatm_dat
- 	instance->usbatm = usbatm_instance;
- 	instance->modem_type = (struct cxacru_modem_type *) id->driver_info;
- 	memset(instance->card_info, 0, sizeof(instance->card_info));
-+
- 	mutex_init(&instance->poll_state_serialize);
- 	instance->poll_state = CXPOLL_STOPPED;
- 	instance->line_status = -1;
- 	instance->adsl_status = -1;
- 
-+	mutex_init(&instance->adsl_state_serialize);
-+
- 	instance->rcv_buf = (u8 *) __get_free_page(GFP_KERNEL);
- 	if (!instance->rcv_buf) {
- 		dbg("cxacru_bind: no memory for rcv_buf");
 _
 
-Patches currently in -mm which might be from simon@fire.lp0.eu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ohci1394-fix-mistake-in-printk-message.patch
-usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs.patch
-usb-cxacru-adsl-state-management.patch
-usb-cxacru-adsl-state-management-udpate.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agp-build-fix.patch
+git-cpufreq-borkage-fix.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+dev_dbg-check-dev_dbg-arguments.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
+gfs2-printk-warning-fixes.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+fw-device-printk-fix.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-mtd-build-fix.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-export-ieee80211_debug_level.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+sctp_getsockopt_local_addrs-type-fix.patch
+git-net-fix-yamc.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api-fix.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
 cxacru-add-documentation-file.patch
 cxacru-add-documentation-file-fix.patch
+fix-x86_64-mm-nmi-watchdog-ops.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface-fix-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-build-hack.patch
+lguest-build-hack-2.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
