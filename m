@@ -1,220 +1,272 @@
 From: akpm@linux-foundation.org
-Subject: + lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups.patch added to -mm tree
-Date: Wed, 25 Apr 2007 18:49:18 -0700
-Message-ID: <200704260149.l3Q1nIAR018285@shell0.pdx.osdl.net>
+Subject: - unprivileged-mounts-add-user-mounts-to-the-kernel.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 18:56:55 -0700
+Message-ID: <200704260156.l3Q1ut7j018381@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55755 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46130 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754041AbXDZBuB (ORCPT
+	by vger.kernel.org with ESMTP id S1754041AbXDZB5O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 21:50:01 -0400
+	Wed, 25 Apr 2007 21:57:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, mel@csn.ul.ie
+To: mszeredi@suse.cz, ebiederm@xmission.com, hch@lst.de, linuxram@us.ibm.com, serue@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lumpy: increase pressure at the end of the inactive list cleanups
-has been added to the -mm tree.  Its filename is
-     lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups.patch
+     unprivileged mounts: add user mounts to the kernel
+has been removed from the -mm tree.  Its filename was
+     unprivileged-mounts-add-user-mounts-to-the-kernel.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: lumpy: increase pressure at the end of the inactive list cleanups
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: unprivileged mounts: add user mounts to the kernel
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-1) introduces ISOLATE_[ACTIVE,INACTIVE],
-2) changes the name of the deactivate_pages() helper to clear_active_flags(),
-3) cleans up and simplifies the checks in __isolate_lru_pages(), and
-4) changes the parameter active to mode throughout.
+This patchset adds support for keeping mount ownership information in the
+kernel, and allow unprivileged mount(2) and umount(2) in certain cases.
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+The mount owner has the following privileges:
+
+  - unmount the owned mount
+  - create a submount under the owned mount
+
+The sysadmin can set the owner explicitly on mount and remount.  When an
+unprivileged user creates a mount, then the owner is automatically set to the
+user.
+
+The following use cases are envisioned:
+
+1) Private namespace, with selected mounts owned by user.  E.g. 
+   /home/$USER is a good candidate for allowing unpriv mounts and unmounts
+   within.
+
+2) Private namespace, with all mounts owned by user and having the "nosuid"
+   flag.  User can mount and umount anywhere within the namespace, but suid
+   programs will not work.
+
+3) Global namespace, with a designated directory, which is a mount owned by
+   the user.  E.g.  /mnt/users/$USER is set up so that it is bind mounted onto
+   itself, and set to be owned by $USER.  The user can add/remove mounts only
+   under this directory.
+
+The following extra security measures are taken for unprivileged mounts:
+
+ - usermounts are limited by a sysctl tunable
+ - force "nosuid,nodev" mount options on the created mount
+
+
+
+
+This patch:
+
+
+A new mount flag, MS_SETUSER is used to make a mount owned by a user.  If this
+flag is specified, then the owner will be set to the current real user id and
+the mount will be marked with the MNT_USER flag.  On remount don't preserve
+previous owner, and treat MS_SETUSER as for a new mount.  The MS_SETUSER flag
+is ignored on mount move.
+
+The MNT_USER flag is not copied on any kind of mount cloning: namespace
+creation, binding or propagation.  For bind mounts the cloned mount(s) are set
+to MNT_USER depending on the MS_SETUSER mount flag.  In all the other cases
+MNT_USER is always cleared.
+
+For MNT_USER mounts a "user=UID" option is added to /proc/PID/mounts.  This is
+compatible with how mount ownership is stored in /etc/mtab.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   64 +++++++++++++++++++++++++++-----------------------
- 1 file changed, 35 insertions(+), 29 deletions(-)
+ fs/namespace.c        |   39 +++++++++++++++++++++++++++++++--------
+ fs/pnode.h            |    1 +
+ include/linux/fs.h    |    1 +
+ include/linux/mount.h |    3 +++
+ 4 files changed, 36 insertions(+), 8 deletions(-)
 
-diff -puN mm/vmscan.c~lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups mm/vmscan.c
---- a/mm/vmscan.c~lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups
-+++ a/mm/vmscan.c
-@@ -605,38 +605,46 @@ keep:
- 	return nr_reclaimed;
+diff -puN fs/namespace.c~unprivileged-mounts-add-user-mounts-to-the-kernel fs/namespace.c
+--- a/fs/namespace.c~unprivileged-mounts-add-user-mounts-to-the-kernel
++++ a/fs/namespace.c
+@@ -227,6 +227,13 @@ static struct vfsmount *skip_mnt_tree(st
+ 	return p;
  }
  
-+/* LRU Isolation modes. */
-+#define ISOLATE_INACTIVE 0	/* Isolate inactive pages. */
-+#define ISOLATE_ACTIVE 1	/* Isolate active pages. */
-+#define ISOLATE_BOTH 2		/* Isolate both active and inactive pages. */
++static void set_mnt_user(struct vfsmount *mnt)
++{
++	BUG_ON(mnt->mnt_flags & MNT_USER);
++	mnt->mnt_uid = current->uid;
++	mnt->mnt_flags |= MNT_USER;
++}
 +
- /*
-  * Attempt to remove the specified page from its LRU.  Only take this page
-  * if it is of the appropriate PageActive status.  Pages which are being
-  * freed elsewhere are also ignored.
-  *
-  * page:	page to consider
-- * active:	active/inactive flag only take pages of this type
-+ * mode:	one of the LRU isolation modes defined above
-  *
-  * returns 0 on success, -ve errno on failure.
-  */
--#define ISOLATE_BOTH -1		/* Isolate both active and inactive pages. */
--static int __isolate_lru_page(struct page *page, int active)
-+static int __isolate_lru_page(struct page *page, int mode)
+ static struct vfsmount *clone_mnt(struct vfsmount *old, struct dentry *root,
+ 					int flag)
  {
- 	int ret = -EINVAL;
+@@ -241,6 +248,11 @@ static struct vfsmount *clone_mnt(struct
+ 		mnt->mnt_mountpoint = mnt->mnt_root;
+ 		mnt->mnt_parent = mnt;
  
-+	/* Only take pages on the LRU. */
-+	if (!PageLRU(page))
-+		return ret;
++		/* don't copy the MNT_USER flag */
++		mnt->mnt_flags &= ~MNT_USER;
++		if (flag & CL_SETUSER)
++			set_mnt_user(mnt);
 +
- 	/*
- 	 * When checking the active state, we need to be sure we are
- 	 * dealing with comparible boolean values.  Take the logical not
- 	 * of each.
- 	 */
--	if (PageLRU(page) && (active == ISOLATE_BOTH ||
--					(!PageActive(page) == !active))) {
--		ret = -EBUSY;
--		if (likely(get_page_unless_zero(page))) {
--			/*
--			 * Be careful not to clear PageLRU until after we're
--			 * sure the page is not being freed elsewhere -- the
--			 * page release code relies on it.
--			 */
--			ClearPageLRU(page);
--			ret = 0;
--		}
-+	if (mode != ISOLATE_BOTH && (!PageActive(page) != !mode))
-+		return ret;
-+
-+	ret = -EBUSY;
-+	if (likely(get_page_unless_zero(page))) {
-+		/*
-+		 * Be careful not to clear PageLRU until after we're
-+		 * sure the page is not being freed elsewhere -- the
-+		 * page release code relies on it.
-+		 */
-+		ClearPageLRU(page);
-+		ret = 0;
+ 		if (flag & CL_SLAVE) {
+ 			list_add(&mnt->mnt_slave, &old->mnt_slave_list);
+ 			mnt->mnt_master = old;
+@@ -403,6 +415,8 @@ static int show_vfsmnt(struct seq_file *
+ 		if (mnt->mnt_flags & fs_infop->flag)
+ 			seq_puts(m, fs_infop->str);
  	}
- 
- 	return ret;
-@@ -657,13 +665,13 @@ static int __isolate_lru_page(struct pag
-  * @dst:	The temp list to put pages on to.
-  * @scanned:	The number of pages that were scanned.
-  * @order:	The caller's attempted allocation order
-- * @active:	The caller's trying to obtain active or inactive pages
-+ * @mode:	One of the LRU isolation modes
-  *
-  * returns how many pages were moved onto *@dst.
-  */
- static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
- 		struct list_head *src, struct list_head *dst,
--		unsigned long *scanned, int order, int active)
-+		unsigned long *scanned, int order, int mode)
- {
- 	unsigned long nr_taken = 0;
- 	unsigned long scan;
-@@ -680,7 +688,7 @@ static unsigned long isolate_lru_pages(u
- 
- 		VM_BUG_ON(!PageLRU(page));
- 
--		switch (__isolate_lru_page(page, active)) {
-+		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
- 			list_move(&page->lru, dst);
- 			nr_taken++;
-@@ -727,7 +735,7 @@ static unsigned long isolate_lru_pages(u
- 			/* Check that we have not crossed a zone boundary. */
- 			if (unlikely(page_zone_id(cursor_page) != zone_id))
- 				continue;
--			switch (__isolate_lru_page(cursor_page, active)) {
-+			switch (__isolate_lru_page(cursor_page, mode)) {
- 			case 0:
- 				list_move(&cursor_page->lru, dst);
- 				nr_taken++;
-@@ -748,21 +756,19 @@ static unsigned long isolate_lru_pages(u
- }
- 
++	if (mnt->mnt_flags & MNT_USER)
++		seq_printf(m, ",user=%i", mnt->mnt_uid);
+ 	if (mnt->mnt_sb->s_op->show_options)
+ 		err = mnt->mnt_sb->s_op->show_options(m, mnt);
+ 	seq_puts(m, " 0 0\n");
+@@ -923,8 +937,9 @@ static int do_change_type(struct nameida
  /*
-- * deactivate_pages() is a helper for shrink_active_list(), it deactivates
-- * all active pages on the passed list.
-+ * clear_active_flags() is a helper for shrink_active_list(), clearing
-+ * any active bits from the pages in the list.
+  * do loopback mount.
   */
--static unsigned long deactivate_pages(struct list_head *page_list)
-+static unsigned long clear_active_flags(struct list_head *page_list)
+-static int do_loopback(struct nameidata *nd, char *old_name, int recurse)
++static int do_loopback(struct nameidata *nd, char *old_name, int flags)
  {
- 	int nr_active = 0;
--	struct list_head *entry;
-+	struct page *page;
++	int clone_flags;
+ 	struct nameidata old_nd;
+ 	struct vfsmount *mnt = NULL;
+ 	int err = mount_is_safe(nd);
+@@ -944,11 +959,12 @@ static int do_loopback(struct nameidata 
+ 	if (!check_mnt(nd->mnt) || !check_mnt(old_nd.mnt))
+ 		goto out;
  
--	list_for_each(entry, page_list) {
--		struct page *page = list_entry(entry, struct page, lru);
-+	list_for_each_entry(page, page_list, lru)
- 		if (PageActive(page)) {
- 			ClearPageActive(page);
- 			nr_active++;
- 		}
--	}
++	clone_flags = (flags & MS_SETUSER) ? CL_SETUSER : 0;
+ 	err = -ENOMEM;
+-	if (recurse)
+-		mnt = copy_tree(old_nd.mnt, old_nd.dentry, 0);
++	if (flags & MS_REC)
++		mnt = copy_tree(old_nd.mnt, old_nd.dentry, clone_flags);
+ 	else
+-		mnt = clone_mnt(old_nd.mnt, old_nd.dentry, 0);
++		mnt = clone_mnt(old_nd.mnt, old_nd.dentry, clone_flags);
  
- 	return nr_active;
+ 	if (!mnt)
+ 		goto out;
+@@ -990,8 +1006,11 @@ static int do_remount(struct nameidata *
+ 
+ 	down_write(&sb->s_umount);
+ 	err = do_remount_sb(sb, flags, data, 0);
+-	if (!err)
++	if (!err) {
+ 		nd->mnt->mnt_flags = mnt_flags;
++		if (flags & MS_SETUSER)
++			set_mnt_user(nd->mnt);
++	}
+ 	up_write(&sb->s_umount);
+ 	if (!err)
+ 		security_sb_post_remount(nd->mnt, flags, data);
+@@ -1096,10 +1115,13 @@ static int do_new_mount(struct nameidata
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	mnt = do_kern_mount(type, flags, name, data);
++	mnt = do_kern_mount(type, flags & ~MS_SETUSER, name, data);
+ 	if (IS_ERR(mnt))
+ 		return PTR_ERR(mnt);
+ 
++	if (flags & MS_SETUSER)
++		set_mnt_user(mnt);
++
+ 	return do_add_mount(mnt, nd, mnt_flags, NULL);
  }
-@@ -794,8 +800,8 @@ static unsigned long shrink_inactive_lis
- 			     &zone->inactive_list,
- 			     &page_list, &nr_scan, sc->order,
- 			     (sc->order > PAGE_ALLOC_COSTLY_ORDER)?
--							ISOLATE_BOTH : 0);
--		nr_active = deactivate_pages(&page_list);
-+					     ISOLATE_BOTH : ISOLATE_INACTIVE);
-+		nr_active = clear_active_flags(&page_list);
  
- 		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
- 		__mod_zone_page_state(zone, NR_INACTIVE,
-@@ -944,7 +950,7 @@ force_reclaim_mapped:
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
- 	pgmoved = isolate_lru_pages(nr_pages, &zone->active_list,
--				    &l_hold, &pgscanned, sc->order, 1);
-+			    &l_hold, &pgscanned, sc->order, ISOLATE_ACTIVE);
- 	zone->pages_scanned += pgscanned;
- 	__mod_zone_page_state(zone, NR_ACTIVE, -pgmoved);
- 	spin_unlock_irq(&zone->lru_lock);
+@@ -1130,7 +1152,8 @@ int do_add_mount(struct vfsmount *newmnt
+ 	if (S_ISLNK(newmnt->mnt_root->d_inode->i_mode))
+ 		goto unlock;
+ 
+-	newmnt->mnt_flags = mnt_flags;
++	/* MNT_USER was set earlier */
++	newmnt->mnt_flags |= mnt_flags;
+ 	if ((err = graft_tree(newmnt, nd)))
+ 		goto unlock;
+ 
+@@ -1450,7 +1473,7 @@ long do_mount(char *dev_name, char *dir_
+ 		retval = do_remount(&nd, flags & ~MS_REMOUNT, mnt_flags,
+ 				    data_page);
+ 	else if (flags & MS_BIND)
+-		retval = do_loopback(&nd, dev_name, flags & MS_REC);
++		retval = do_loopback(&nd, dev_name, flags);
+ 	else if (flags & (MS_SHARED | MS_PRIVATE | MS_SLAVE | MS_UNBINDABLE))
+ 		retval = do_change_type(&nd, flags);
+ 	else if (flags & MS_MOVE)
+diff -puN fs/pnode.h~unprivileged-mounts-add-user-mounts-to-the-kernel fs/pnode.h
+--- a/fs/pnode.h~unprivileged-mounts-add-user-mounts-to-the-kernel
++++ a/fs/pnode.h
+@@ -22,6 +22,7 @@
+ #define CL_COPY_ALL 		0x04
+ #define CL_MAKE_SHARED 		0x08
+ #define CL_PROPAGATION 		0x10
++#define CL_SETUSER		0x20
+ 
+ static inline void set_mnt_shared(struct vfsmount *mnt)
+ {
+diff -puN include/linux/fs.h~unprivileged-mounts-add-user-mounts-to-the-kernel include/linux/fs.h
+--- a/include/linux/fs.h~unprivileged-mounts-add-user-mounts-to-the-kernel
++++ a/include/linux/fs.h
+@@ -123,6 +123,7 @@ extern int dir_notify_enable;
+ #define MS_SLAVE	(1<<19)	/* change to slave */
+ #define MS_SHARED	(1<<20)	/* change to shared */
+ #define MS_RELATIME	(1<<21)	/* Update atime relative to mtime/ctime. */
++#define MS_SETUSER	(1<<22) /* set mnt_uid to current user */
+ #define MS_ACTIVE	(1<<30)
+ #define MS_NOUSER	(1<<31)
+ 
+diff -puN include/linux/mount.h~unprivileged-mounts-add-user-mounts-to-the-kernel include/linux/mount.h
+--- a/include/linux/mount.h~unprivileged-mounts-add-user-mounts-to-the-kernel
++++ a/include/linux/mount.h
+@@ -30,6 +30,7 @@ struct mnt_namespace;
+ #define MNT_RELATIME	0x20
+ 
+ #define MNT_SHRINKABLE	0x100
++#define MNT_USER	0x200
+ 
+ #define MNT_SHARED	0x1000	/* if the vfsmount is a shared mount */
+ #define MNT_UNBINDABLE	0x2000	/* if the vfsmount is a unbindable mount */
+@@ -61,6 +62,8 @@ struct vfsmount {
+ 	atomic_t mnt_count;
+ 	int mnt_expiry_mark;		/* true if marked for expiry */
+ 	int mnt_pinned;
++
++	uid_t mnt_uid;			/* owner of the mount */
+ };
+ 
+ static inline struct vfsmount *mntget(struct vfsmount *mnt)
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-pci-device-ensure-sysdata-initialised-v2.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
-add-a-configure-option-to-group-pages-by-mobility-speedup.patch
-move-free-pages-between-lists-on-steal-fix.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-create-the-zone_movable-zone-align-zone_movable-to-a-max_order_nr_pages-boundary.patch
-handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
-lumpy-reclaim-v4.patch
-lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
-lumpy-only-count-taken-pages-as-scanned.patch
-kswapd-use-reclaim-order-in-background-reclaim.patch
-lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
-introduce-high_order-delineating-easily-reclaimable-orders.patch
-introduce-high_order-delineating-easily-reclaimable-orders-cleanups.patch
-lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups.patch
-add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
-anti-fragmentation-switch-over-to-pfn_valid_within.patch
-lumpy-move-to-using-pfn_valid_within.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-slab-numa-kmem_cache-diet.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-filesystem-subtype-support.patch
+add-file-position-info-to-proc.patch
+add-file-position-info-to-proc-fix.patch
+check-privileges-before-setting-mount-propagation.patch
+consolidate-generic_writepages-and-mpage_writepages.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-account-user-mounts-fix.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
