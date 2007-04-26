@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + savagefb-rework-i2c-bit-access.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:32:35 -0700
-Message-ID: <200704260032.l3Q0WZ4N016904@shell0.pdx.osdl.net>
+Subject: + savagefb-vga-state-save-and-restore.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:32:36 -0700
+Message-ID: <200704260032.l3Q0WaHY016907@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38337 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423408AbXDZAci (ORCPT
+	by vger.kernel.org with ESMTP id S1423411AbXDZAcj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:32:38 -0400
+	Wed, 25 Apr 2007 20:32:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     savagefb: rework i2c bit access
+     savagefb: VGA state save and restore
 has been added to the -mm tree.  Its filename is
-     savagefb-rework-i2c-bit-access.patch
+     savagefb-vga-state-save-and-restore.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,88 +26,139 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: savagefb: rework i2c bit access
+Subject: savagefb: VGA state save and restore
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Use already defined VGAwCR/VGArCR functions to access the i2c bus.
+Allow the saving and restoration of VGA text mode.  The state is saved on the
+first open and restored on the last close. Because of the VGA registers are
+linearly mapped to the MMIO space, MMIO access is used which is not limited to
+X86 platforms nor to the primary display device.
+
+An echo 0 > /sys/class/vtconsole/vtcon1/bind will convert the display from
+graphics to text mode.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/savage/savagefb-i2c.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ drivers/video/Makefile                 |    2 -
+ drivers/video/savage/savagefb.h        |   10 ++++-
+ drivers/video/savage/savagefb_driver.c |   39 +++++++++++++++++++++++
+ 3 files changed, 48 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/savage/savagefb-i2c.c~savagefb-rework-i2c-bit-access drivers/video/savage/savagefb-i2c.c
---- a/drivers/video/savage/savagefb-i2c.c~savagefb-rework-i2c-bit-access
-+++ a/drivers/video/savage/savagefb-i2c.c
-@@ -41,10 +41,6 @@
- #define SAVAGE4_I2C_SCL_IN	0x00000008
- #define SAVAGE4_I2C_SDA_IN	0x00000010
+diff -puN drivers/video/Makefile~savagefb-vga-state-save-and-restore drivers/video/Makefile
+--- a/drivers/video/Makefile~savagefb-vga-state-save-and-restore
++++ a/drivers/video/Makefile
+@@ -38,7 +38,7 @@ obj-$(CONFIG_FB_ATY128)		  += aty/ macmo
+ obj-$(CONFIG_FB_RADEON)		  += aty/
+ obj-$(CONFIG_FB_SIS)		  += sis/
+ obj-$(CONFIG_FB_KYRO)             += kyro/
+-obj-$(CONFIG_FB_SAVAGE)		  += savage/
++obj-$(CONFIG_FB_SAVAGE)		  += savage/ vgastate.o
+ obj-$(CONFIG_FB_GEODE)		  += geode/
+ obj-$(CONFIG_FB_MBX)		  += mbx/
+ obj-$(CONFIG_FB_I810)             += vgastate.o
+diff -puN drivers/video/savage/savagefb.h~savagefb-vga-state-save-and-restore drivers/video/savage/savagefb.h
+--- a/drivers/video/savage/savagefb.h~savagefb-vga-state-save-and-restore
++++ a/drivers/video/savage/savagefb.h
+@@ -15,6 +15,8 @@
+ #include <linux/i2c.h>
+ #include <linux/i2c-id.h>
+ #include <linux/i2c-algo-bit.h>
++#include <linux/mutex.h>
++#include <video/vga.h>
+ #include "../edid.h"
  
--#define SET_CR_IX(base, val)	writeb((val), base + 0x8000 + VGA_CR_IX)
--#define SET_CR_DATA(base, val)	writeb((val), base + 0x8000 + VGA_CR_DATA)
--#define GET_CR_DATA(base)	readb(base + 0x8000 + VGA_CR_DATA)
--
- static void savage4_gpio_setscl(void *data, int val)
- {
- 	struct savagefb_i2c_chan *chan = data;
-@@ -92,15 +88,15 @@ static void prosavage_gpio_setscl(void* 
- 	struct savagefb_i2c_chan *chan = data;
- 	u32			  r;
+ #ifdef SAVAGEFB_DEBUG
+@@ -189,8 +191,12 @@ struct savagefb_par {
+ 	struct savagefb_i2c_chan chan;
+ 	struct savage_reg state;
+ 	struct savage_reg save;
++	struct savage_reg initial;
++	struct vgastate vgastate;
++	struct mutex open_lock;
+ 	unsigned char   *edid;
+ 	u32 pseudo_palette[16];
++	u32 open_count;
+ 	int paletteEnabled;
+ 	int pm_state;
+ 	int display_type;
+@@ -203,7 +209,7 @@ struct savagefb_par {
+ 	int clock[4];
+ 	int MCLK, REFCLK, LCDclk;
+ 	struct {
+-		u8   __iomem *vbase;
++		void   __iomem *vbase;
+ 		u32    pbase;
+ 		u32    len;
+ #ifdef CONFIG_MTRR
+@@ -212,7 +218,7 @@ struct savagefb_par {
+ 	} video;
  
--	SET_CR_IX(chan->ioaddr, chan->reg);
--	r = GET_CR_DATA(chan->ioaddr);
-+	r = VGArCR(chan->reg, chan->par);
- 	r |= PROSAVAGE_I2C_ENAB;
- 	if (val) {
- 		r |= PROSAVAGE_I2C_SCL_OUT;
- 	} else {
- 		r &= ~PROSAVAGE_I2C_SCL_OUT;
- 	}
--	SET_CR_DATA(chan->ioaddr, r);
+ 	struct {
+-		volatile u8  __iomem *vbase;
++		void  __iomem *vbase;
+ 		u32           pbase;
+ 		u32           len;
+ 	} mmio;
+diff -puN drivers/video/savage/savagefb_driver.c~savagefb-vga-state-save-and-restore drivers/video/savage/savagefb_driver.c
+--- a/drivers/video/savage/savagefb_driver.c~savagefb-vga-state-save-and-restore
++++ a/drivers/video/savage/savagefb_driver.c
+@@ -1623,8 +1623,46 @@ static void savagefb_restore_state(struc
+ 	savagefb_blank(FB_BLANK_UNBLANK, info);
+ }
+ 
++static int savagefb_open(struct fb_info *info, int user)
++{
++	struct savagefb_par *par = info->par;
 +
-+	VGAwCR(chan->reg, r, chan->par);
- }
- 
- static void prosavage_gpio_setsda(void* data, int val)
-@@ -108,31 +104,29 @@ static void prosavage_gpio_setsda(void* 
- 	struct savagefb_i2c_chan *chan = data;
- 	unsigned int r;
- 
--	SET_CR_IX(chan->ioaddr, chan->reg);
--	r = GET_CR_DATA(chan->ioaddr);
-+	r = VGArCR(chan->reg, chan->par);
- 	r |= PROSAVAGE_I2C_ENAB;
- 	if (val) {
- 		r |= PROSAVAGE_I2C_SDA_OUT;
- 	} else {
- 		r &= ~PROSAVAGE_I2C_SDA_OUT;
- 	}
--	SET_CR_DATA(chan->ioaddr, r);
++	mutex_lock(&par->open_lock);
 +
-+	VGAwCR(chan->reg, r, chan->par);
- }
- 
- static int prosavage_gpio_getscl(void* data)
- {
- 	struct savagefb_i2c_chan *chan = data;
- 
--	SET_CR_IX(chan->ioaddr, chan->reg);
--	return (0 != (GET_CR_DATA(chan->ioaddr) & PROSAVAGE_I2C_SCL_IN));
-+	return (VGArCR(chan->reg, chan->par) & PROSAVAGE_I2C_SCL_IN) ? 1 : 0;
- }
- 
- static int prosavage_gpio_getsda(void* data)
- {
- 	struct savagefb_i2c_chan *chan = data;
- 
--	SET_CR_IX(chan->ioaddr, chan->reg);
--	return (0 != (GET_CR_DATA(chan->ioaddr) & PROSAVAGE_I2C_SDA_IN));
-+	return (VGArCR(chan->reg, chan->par) & PROSAVAGE_I2C_SDA_IN) ? 1 : 0;
- }
- 
- static int savage_setup_i2c_bus(struct savagefb_i2c_chan *chan,
++	if (!par->open_count) {
++		memset(&par->vgastate, 0, sizeof(par->vgastate));
++		par->vgastate.flags = VGA_SAVE_CMAP | VGA_SAVE_FONTS |
++			VGA_SAVE_MODE;
++		par->vgastate.vgabase = par->mmio.vbase + 0x8000;
++		save_vga(&par->vgastate);
++		savage_get_default_par(par, &par->initial);
++	}
++
++	par->open_count++;
++	mutex_unlock(&par->open_lock);
++	return 0;
++}
++
++static int savagefb_release(struct fb_info *info, int user)
++{
++	struct savagefb_par *par = info->par;
++
++	mutex_lock(&par->open_lock);
++
++	if (par->open_count == 1) {
++		savage_set_default_par(par, &par->initial);
++		restore_vga(&par->vgastate);
++	}
++
++	par->open_count--;
++	mutex_unlock(&par->open_lock);
++	return 0;
++}
++
+ static struct fb_ops savagefb_ops = {
+ 	.owner          = THIS_MODULE,
++	.fb_open        = savagefb_open,
++	.fb_release     = savagefb_release,
+ 	.fb_check_var   = savagefb_check_var,
+ 	.fb_set_par     = savagefb_set_par,
+ 	.fb_setcolreg   = savagefb_setcolreg,
+@@ -2173,6 +2211,7 @@ static int __devinit savagefb_probe(stru
+ 	if (!info)
+ 		return -ENOMEM;
+ 	par = info->par;
++	mutex_init(&par->open_lock);
+ 	err = pci_enable_device(dev);
+ 	if (err)
+ 		goto failed_enable;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
