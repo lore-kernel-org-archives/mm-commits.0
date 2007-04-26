@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-mtd-build-fix.patch added to -mm tree
-Date: Wed, 25 Apr 2007 19:29:02 -0700
-Message-ID: <200704260231.l3Q2Vh21019007@shell0.pdx.osdl.net>
+Subject: + lguest-build-hack.patch added to -mm tree
+Date: Wed, 25 Apr 2007 19:33:33 -0700
+Message-ID: <200704260236.l3Q2aEEP019078@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58641 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754685AbXDZCb5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754075AbXDZCga (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 22:31:57 -0400
+	Wed, 25 Apr 2007 22:36:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, jeremy@goop.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     git-mtd-build-fix
+     lguest-build-hack
 has been added to the -mm tree.  Its filename is
-     git-mtd-build-fix.patch
+     lguest-build-hack.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mtd-build-fix
+Subject: lguest-build-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It seems to be silly season lately.
+eep, Jeremy removed pda.h.
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+See ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt/patches/convert-pda-into-the-percpu-section
+
+help.
+
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/compr_rubin.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/lguest/lguest.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/jffs2/compr_rubin.c~git-mtd-build-fix fs/jffs2/compr_rubin.c
---- a/fs/jffs2/compr_rubin.c~git-mtd-build-fix
-+++ a/fs/jffs2/compr_rubin.c
-@@ -21,16 +21,6 @@
- #define LOWER_BITS_RUBIN   ((((long) 1)<<(RUBIN_REG_SIZE-1))-1)
+diff -puN drivers/lguest/lguest.c~lguest-build-hack drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-build-hack
++++ a/drivers/lguest/lguest.c
+@@ -34,7 +34,7 @@
+ #include <asm/desc.h>
+ #include <asm/setup.h>
+ #include <asm/e820.h>
+-#include <asm/pda.h>
++//#include <asm/pda.h>
+ #include <asm/mce.h>
  
+ /* Declarations for definitions in lguest_guest.S */
+@@ -469,7 +469,7 @@ __init void lguest_init(void)
+ 	/* set up PDA descriptor */
+ 	setup_pda();
+ 	load_gdt(&early_gdt_descr);
+-	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
++//	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
  
--struct rubin_state {
--	unsigned long p;
--	unsigned long q;
--	unsigned long rec_q;
--	long bit_number;
--	struct pushpull pp;
--	int bit_divider;
--	int bits[8];
--};
--
- #define BIT_DIVIDER_MIPS 1043
- static int bits_mips[8] = { 277,249,290,267,229,341,212,241}; /* mips32 */
+ 	reserve_top_address(lguest_data.reserve_mem);
  
-@@ -43,6 +33,15 @@ struct pushpull {
- 	unsigned int reserve;
- };
- 
-+struct rubin_state {
-+	unsigned long p;
-+	unsigned long q;
-+	unsigned long rec_q;
-+	long bit_number;
-+	struct pushpull pp;
-+	int bit_divider;
-+	int bits[8];
-+};
- 
- static inline void init_pushpull(struct pushpull *pp, char *buf, unsigned buflen, unsigned ofs, unsigned reserve)
- {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +109,7 @@ git-md-accel-fix.patch
 git-mmc-build-fix.patch
 git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 git-mtd.patch
+git-mtd-build-fix.patch
 git-ubi.patch
 git-ubi-fixup.patch
 revert-gitpowerpc-ehea-changes.patch
@@ -261,4 +252,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-git-mtd-build-fix.patch
+lguest-build-hack.patch
