@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch added to -mm tree
-Date: Wed, 25 Apr 2007 22:01:54 -0700
-Message-ID: <200704260504.l3Q54Yqw021319@shell0.pdx.osdl.net>
+Subject: + s390-net-lcs-convert-to-the-kthread-api-fix.patch added to -mm tree
+Date: Wed, 25 Apr 2007 22:22:54 -0700
+Message-ID: <200704260525.l3Q5PYhk021650@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48612 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38153 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754703AbXDZFEh (ORCPT
+	by vger.kernel.org with ESMTP id S1754714AbXDZFZn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 01:04:37 -0400
+	Thu, 26 Apr 2007 01:25:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, fpavlic@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it
+     s390-net-lcs-convert-to-the-kthread-api-fix
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+     s390-net-lcs-convert-to-the-kthread-api-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it
+Subject: s390-net-lcs-convert-to-the-kthread-api-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Frank Pavlic <fpavlic@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/amba/bus.c |    2 +-
+ drivers/s390/net/lcs.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/amba/bus.c~fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it drivers/amba/bus.c
---- a/drivers/amba/bus.c~fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it
-+++ a/drivers/amba/bus.c
-@@ -50,7 +50,7 @@ static int amba_uevent(struct device *de
- 	int retval = 0, i = 0, len = 0;
+diff -puN drivers/s390/net/lcs.c~s390-net-lcs-convert-to-the-kthread-api-fix drivers/s390/net/lcs.c
+--- a/drivers/s390/net/lcs.c~s390-net-lcs-convert-to-the-kthread-api-fix
++++ a/drivers/s390/net/lcs.c
+@@ -1731,7 +1731,7 @@ lcs_start_kernel_thread(struct work_stru
+ 		kthread_run(lcs_recovery, card, "lcs_recover");
+ #ifdef CONFIG_IP_MULTICAST
+ 	if (lcs_do_start_thread(card, LCS_SET_MC_THREAD))
+-		kernel_run(lcs_register_mc_addresses, card, "regipm");
++		kthread_run(lcs_register_mc_addresses, card, "regipm");
+ #endif
+ }
  
- 	retval = add_uevent_var(envp, nr_env, &i,
--				buf, bufsize, &len,
-+				buf, bufsz, &len,
- 				"AMBA_ID=%08x", pcdev->periphid);
- 	envp[i] = NULL;
- 	return retval;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,6 +68,7 @@ git-cpufreq-borkage-fix.patch
 git-powerpc.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
@@ -126,6 +130,7 @@ git-pciseg.patch
 git-s390.patch
 git-s390-fixup.patch
 git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api-fix.patch
 git-scsi-misc.patch
 scsi-fix-config_scsi_wait_scan=m-fix.patch
 scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
@@ -242,4 +247,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
