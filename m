@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-add-fb_read-fb_write-functions-for-framebuffers.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:01 -0700
-Message-ID: <200704260033.l3Q0X1Sq016966@shell0.pdx.osdl.net>
+Subject: + fbdev-advertise-limitation-of-drawing-engine.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:08 -0700
+Message-ID: <200704260033.l3Q0X8cq016982@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45455 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41092 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423426AbXDZAdF (ORCPT
+	by vger.kernel.org with ESMTP id S1423447AbXDZAdM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:33:05 -0400
+	Wed, 25 Apr 2007 20:33:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbdev: add fb_read/fb_write functions for framebuffers  in system RAM
+     fbdev: advertise limitation of drawing engine
 has been added to the -mm tree.  Its filename is
-     fbdev-add-fb_read-fb_write-functions-for-framebuffers.patch
+     fbdev-advertise-limitation-of-drawing-engine.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,176 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: add fb_read/fb_write functions for framebuffers  in system RAM
+Subject: fbdev: advertise limitation of drawing engine
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The functions fb_read() and fb_write in fbmem.c assume that the framebuffer
-is in IO memory.  However, we have 3 drivers (hecubafb, arcfb, and vfb)
-where the framebuffer is allocated from system RAM (via vmalloc). Using
-__raw_read/__raw_write (fb_readl/fb_writel) for these drivers is
-illegal, especially in other platforms.
+A few drivers are not capable of blitting rectangles of any dimension.
+vga16fb can only blit 8-pixel wide rectangles, while s3fb (in tileblitting
+mode) can only blit 8x16 rectangles.  For example, loading a 12x22 font in
+vga16fb will result in a corrupt display.
 
-Create file read and write methods for these types of drivers.  These are
-named fb_sys_read() and fb_sys_write().
+Advertise this limitation/capability in info->pixmap.blit_x and blit_y.  These
+fields are 32-bit arrays (font max is 32x32 only), ie, if bit 7 is set, then
+width/height of 7+1 is supported.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig       |    5 +
- drivers/video/Makefile      |    1 
- drivers/video/fb_sys_fops.c |  104 ++++++++++++++++++++++++++++++++++
- include/linux/fb.h          |    4 +
- 4 files changed, 114 insertions(+)
+ drivers/video/fbmem.c |    6 ++++++
+ include/linux/fb.h    |    4 ++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN drivers/video/Kconfig~fbdev-add-fb_read-fb_write-functions-for-framebuffers drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-add-fb_read-fb_write-functions-for-framebuffers
-+++ a/drivers/video/Kconfig
-@@ -122,6 +122,11 @@ config FB_SYS_IMAGEBLIT
- 	  blitting. This is used by drivers that don't provide their own
- 	  (accelerated) version and the framebuffer is in system RAM.
+diff -puN drivers/video/fbmem.c~fbdev-advertise-limitation-of-drawing-engine drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-advertise-limitation-of-drawing-engine
++++ a/drivers/video/fbmem.c
+@@ -1321,6 +1321,12 @@ register_framebuffer(struct fb_info *fb_
+ 	}	
+ 	fb_info->pixmap.offset = 0;
  
-+config FB_SYS_FOPS
-+       tristate
-+       depends on FB
-+       default n
++	if (!fb_info->pixmap.blit_x)
++		fb_info->pixmap.blit_x = ~(u32)0;
 +
- config FB_DEFERRED_IO
- 	bool
- 	depends on FB
-diff -puN drivers/video/Makefile~fbdev-add-fb_read-fb_write-functions-for-framebuffers drivers/video/Makefile
---- a/drivers/video/Makefile~fbdev-add-fb_read-fb_write-functions-for-framebuffers
-+++ a/drivers/video/Makefile
-@@ -21,6 +21,7 @@ obj-$(CONFIG_FB_CFB_IMAGEBLIT) += cfbimg
- obj-$(CONFIG_FB_SYS_FILLRECT)  += sysfillrect.o
- obj-$(CONFIG_FB_SYS_COPYAREA)  += syscopyarea.o
- obj-$(CONFIG_FB_SYS_IMAGEBLIT) += sysimgblt.o
-+obj-$(CONFIG_FB_SYS_FOPS)      += fb_sys_fops.o
- obj-$(CONFIG_FB_SVGALIB)       += svgalib.o
- obj-$(CONFIG_FB_MACMODES)      += macmodes.o
- obj-$(CONFIG_FB_DDC)           += fb_ddc.o
-diff -puN /dev/null drivers/video/fb_sys_fops.c
---- /dev/null
-+++ a/drivers/video/fb_sys_fops.c
-@@ -0,0 +1,104 @@
-+/*
-+ * linux/drivers/video/fb_sys_read.c - Generic file operations where
-+ * framebuffer is in system RAM
-+ *
-+ * Copyright (C) 2007 Antonino Daplas <adaplas@pol.net>
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file COPYING in the main directory of this archive
-+ * for more details.
-+ *
-+ */
-+#include <linux/fb.h>
-+#include <linux/module.h>
-+#include <asm/uaccess.h>
++	if (!fb_info->pixmap.blit_y)
++		fb_info->pixmap.blit_y = ~(u32)0;
 +
-+ssize_t fb_sys_read(struct fb_info *info, char __user *buf, size_t count,
-+		    loff_t *ppos)
-+{
-+	unsigned long p = *ppos;
-+	void *src;
-+	int err = 0;
-+	unsigned long total_size;
-+
-+	if (info->state != FBINFO_STATE_RUNNING)
-+		return -EPERM;
-+
-+	total_size = info->screen_size;
-+
-+	if (total_size == 0)
-+		total_size = info->fix.smem_len;
-+
-+	if (p >= total_size)
-+		return 0;
-+
-+	if (count >= total_size)
-+		count = total_size;
-+
-+	if (count + p > total_size)
-+		count = total_size - p;
-+
-+	src = (void __force *)(info->screen_base + p);
-+
-+	if (info->fbops->fb_sync)
-+		info->fbops->fb_sync(info);
-+
-+	if (copy_to_user(buf, src, count))
-+		err = -EFAULT;
-+
-+	if  (!err)
-+		*ppos += count;
-+
-+	return (err) ? err : count;
-+}
-+EXPORT_SYMBOL_GPL(fb_sys_read);
-+
-+ssize_t fb_sys_write(struct fb_info *info, const char __user *buf,
-+		     size_t count, loff_t *ppos)
-+{
-+	unsigned long p = *ppos;
-+	void *dst;
-+	int err = 0;
-+	unsigned long total_size;
-+
-+	if (info->state != FBINFO_STATE_RUNNING)
-+		return -EPERM;
-+
-+	total_size = info->screen_size;
-+
-+	if (total_size == 0)
-+		total_size = info->fix.smem_len;
-+
-+	if (p > total_size)
-+		return -EFBIG;
-+
-+	if (count > total_size) {
-+		err = -EFBIG;
-+		count = total_size;
-+	}
-+
-+	if (count + p > total_size) {
-+		if (!err)
-+			err = -ENOSPC;
-+
-+		count = total_size - p;
-+	}
-+
-+	dst = (void __force *) (info->screen_base + p);
-+
-+	if (info->fbops->fb_sync)
-+		info->fbops->fb_sync(info);
-+
-+	if (copy_from_user(dst, buf, count))
-+		err = -EFAULT;
-+
-+	if  (!err)
-+		*ppos += count;
-+
-+	return (err) ? err : count;
-+}
-+EXPORT_SYMBOL_GPL(fb_sys_write);
-+
-+MODULE_AUTHOR("Antonino Daplas <adaplas@pol.net>");
-+MODULE_DESCRIPTION("Generic file read (fb in system RAM)");
-+MODULE_LICENSE("GPL");
-diff -puN include/linux/fb.h~fbdev-add-fb_read-fb_write-functions-for-framebuffers include/linux/fb.h
---- a/include/linux/fb.h~fbdev-add-fb_read-fb_write-functions-for-framebuffers
+ 	if (!fb_info->modelist.prev || !fb_info->modelist.next)
+ 		INIT_LIST_HEAD(&fb_info->modelist);
+ 
+diff -puN include/linux/fb.h~fbdev-advertise-limitation-of-drawing-engine include/linux/fb.h
+--- a/include/linux/fb.h~fbdev-advertise-limitation-of-drawing-engine
 +++ a/include/linux/fb.h
-@@ -903,6 +903,10 @@ extern void cfb_imageblit(struct fb_info
- extern void sys_fillrect(struct fb_info *info, const struct fb_fillrect *rect);
- extern void sys_copyarea(struct fb_info *info, const struct fb_copyarea *area);
- extern void sys_imageblit(struct fb_info *info, const struct fb_image *image);
-+extern ssize_t fb_sys_read(struct fb_info *info, char __user *buf,
-+			   size_t count, loff_t *ppos);
-+extern ssize_t fb_sys_write(struct fb_info *info, const char __user *buf,
-+			    size_t count, loff_t *ppos);
- 
- /* drivers/video/fbmem.c */
- extern int register_framebuffer(struct fb_info *fb_info);
+@@ -558,6 +558,10 @@ struct fb_pixmap {
+ 	u32 scan_align;		/* alignment per scanline		*/
+ 	u32 access_align;	/* alignment per read/write (bits)	*/
+ 	u32 flags;		/* see FB_PIXMAP_*			*/
++	u32 blit_x;             /* supported bit block dimensions (1-32)*/
++	u32 blit_y;             /* Format: blit_x = 1 << (width - 1)    */
++	                        /*         blit_y = 1 << (height - 1)   */
++	                        /* if 0, will be set to 0xffffffff (all)*/
+ 	/* access methods */
+ 	void (*writeio)(struct fb_info *info, void __iomem *dst, void *src, unsigned int size);
+ 	void (*readio) (struct fb_info *info, void *dst, void __iomem *src, unsigned int size);
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
