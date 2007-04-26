@@ -1,64 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - dev_dbg-check-dev_dbg-arguments-fix.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 00:09:07 -0700
-Message-ID: <200704260709.l3Q797LX023377@shell0.pdx.osdl.net>
+Subject: - device_schedule_callback-needs-a-module-reference-fix.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:08:02 -0700
+Message-ID: <200704260708.l3Q782iN023351@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44042 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51850 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933317AbXDZHJk (ORCPT
+	by vger.kernel.org with ESMTP id S933297AbXDZHIq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:09:40 -0400
+	Thu, 26 Apr 2007 03:08:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cornelia.huck@de.ibm.com, greg@kroah.com, neilb@suse.de, satyam.sharma@gmail.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dev_dbg-check-dev_dbg-arguments-fix
+     device_schedule_callback-needs-a-module-reference-fix
 has been removed from the -mm tree.  Its filename was
-     dev_dbg-check-dev_dbg-arguments-fix.patch
+     device_schedule_callback-needs-a-module-reference-fix.patch
 
-This patch was dropped because it was folded into dev_dbg-check-dev_dbg-arguments.patch
+This patch was dropped because it was folded into device_schedule_callback-needs-a-module-reference.patch
 
 ------------------------------------------------------
-Subject: dev_dbg-check-dev_dbg-arguments-fix
+Subject: device_schedule_callback-needs-a-module-reference-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/core/hub.c: In function `hub_port_connect_change':
-drivers/usb/core/hub.c:2409: warning: implicit declaration of function `portspeed'
-
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Cc: Greg KH <greg@kroah.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Satyam Sharma <satyam.sharma@gmail.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hub.c |    4 +---
- linux/device.h         |    0 
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ include/linux/device.h |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/device.h~dev_dbg-check-dev_dbg-arguments-fix include/linux/device.h
-diff -puN drivers/usb/core/hub.c~dev_dbg-check-dev_dbg-arguments-fix drivers/usb/core/hub.c
---- a/drivers/usb/core/hub.c~dev_dbg-check-dev_dbg-arguments-fix
-+++ a/drivers/usb/core/hub.c
-@@ -119,8 +119,7 @@ MODULE_PARM_DESC(use_both_schemes,
- 		"first one fails");
+diff -puN include/linux/device.h~device_schedule_callback-needs-a-module-reference-fix include/linux/device.h
+--- a/include/linux/device.h~device_schedule_callback-needs-a-module-reference-fix
++++ a/include/linux/device.h
+@@ -370,11 +370,9 @@ extern void device_remove_bin_file(struc
+ extern int device_schedule_callback_owner(struct device *dev,
+ 		void (*func)(struct device *), struct module *owner);
  
+-static inline int device_schedule_callback(struct device *dev,
+-		void (*func)(struct device *))
+-{
+-	return device_schedule_callback_owner(dev, func, THIS_MODULE);
+-}
++/* This is a macro to avoid include problems with THIS_MODULE */
++#define device_schedule_callback(dev, func)			\
++	device_schedule_callback_owner(dev, func, THIS_MODULE)
  
--#ifdef	DEBUG
--static inline char *portspeed (int portstatus)
-+static inline char *portspeed(int portstatus)
- {
- 	if (portstatus & (1 << USB_PORT_FEAT_HIGHSPEED))
-     		return "480 Mb/s";
-@@ -129,7 +128,6 @@ static inline char *portspeed (int ports
- 	else
- 		return "12 Mb/s";
- }
--#endif
- 
- /* Note that hdev or one of its children must be locked! */
- static inline struct usb_hub *hdev_to_hub(struct usb_device *hdev)
+ /* device resource management */
+ typedef void (*dr_release_t)(struct device *dev, void *res);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,8 +72,9 @@ fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake.patch
-dev_dbg-check-dev_dbg-arguments.patch
+device_schedule_callback-needs-a-module-reference.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
 dev_dbg-check-dev_dbg-arguments-fix.patch
 dev_dbg-check-dev_dbg-arguments-fix-2.patch
 sysfs-binc-printk-fix.patch
