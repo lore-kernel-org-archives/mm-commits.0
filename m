@@ -1,248 +1,232 @@
 From: akpm@linux-foundation.org
-Subject: - ata-irq-registration-fix.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 17:16:28 -0700
-Message-ID: <200704260016.l3Q0GSFI016623@shell0.pdx.osdl.net>
+Subject: + fbdev-link-vgastateo-using-kconfig.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:32:38 -0700
+Message-ID: <200704260032.l3Q0Wc5q016910@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54942 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423408AbXDZAQa (ORCPT
+	by vger.kernel.org with ESMTP id S1423414AbXDZAcm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:16:30 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3Q0GS3l020830
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 25 Apr 2007 17:16:29 -0700
+	Wed, 25 Apr 2007 20:32:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     ata-irq-registration-fix
-has been removed from the -mm tree.  Its filename was
-     ata-irq-registration-fix.patch
+     fbdev: link vgastate.o using Kconfig
+has been added to the -mm tree.  Its filename is
+     fbdev-link-vgastateo-using-kconfig.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ata-irq-registration-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbdev: link vgastate.o using Kconfig
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
+Instead of directly linking vgastate.o by individual drivers, create a Kconfig
+option VGASTATE which can be 'SELECT'ed by individual drivers instead.
+
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/video/Kconfig  |   11 +++++++++++
+ drivers/video/Makefile |   14 +++++++-------
+ 2 files changed, 18 insertions(+), 7 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~ata-irq-registration-fix drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~ata-irq-registration-fix
-+++ a/drivers/ata/libata-core.c
-@@ -6378,15 +6378,12 @@ int ata_host_activate(struct ata_host *h
- 	if (rc)
- 		return rc;
+diff -puN drivers/video/Kconfig~fbdev-link-vgastateo-using-kconfig drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-link-vgastateo-using-kconfig
++++ a/drivers/video/Kconfig
+@@ -7,6 +7,10 @@ menu "Graphics support"
+ source "drivers/video/backlight/Kconfig"
+ source "drivers/video/display/Kconfig"
  
--	rc = devm_request_irq(host->dev, irq, irq_handler, irq_flags,
--			      dev_driver_string(host->dev), host);
-+	rc = ata_host_register(host, sht);
- 	if (rc)
- 		return rc;
++config VGASTATE
++       tristate
++       default n
++
+ config FB
+ 	tristate "Support for frame buffer devices"
+ 	---help---
+@@ -478,6 +482,7 @@ config FB_VGA16
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select VGASTATE
+ 	help
+ 	  This is the frame buffer device driver for VGA 16 color graphic
+ 	  cards. Say Y if you have such a card.
+@@ -713,6 +718,7 @@ config FB_NVIDIA
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	select BITREVERSE
++	select VGASTATE
+ 	help
+ 	  This driver supports graphics boards with the nVidia chips, TNT
+ 	  and newer. For very old chipsets, such as the RIVA128, then use
+@@ -751,6 +757,7 @@ config FB_RIVA
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	select BITREVERSE
++	select VGASTATE
+ 	help
+ 	  This driver supports graphics boards with the nVidia Riva/Geforce
+ 	  chips.
+@@ -797,6 +804,7 @@ config FB_I810
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select VGASTATE
+ 	help
+ 	  This driver supports the on-board graphics built in to the Intel 810 
+           and 815 chipsets.  Say Y if you have and plan to use such a board.
+@@ -1147,6 +1155,7 @@ config FB_S3
+ 	select FB_CFB_IMAGEBLIT
+ 	select FB_TILEBLITTING
+ 	select FB_SVGALIB
++	select VGASTATE
+ 	---help---
+ 	  Driver for graphics boards with S3 Trio / S3 Virge chip.
  
--	rc = ata_host_register(host, sht);
--	/* if failed, just free the IRQ and leave ports alone */
--	if (rc)
--		devm_free_irq(host->dev, irq, host);
-+	devm_request_irq(host->dev, irq, irq_handler, irq_flags,
-+			      dev_driver_string(host->dev), host);
+@@ -1157,6 +1166,7 @@ config FB_SAVAGE
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select VGASTATE
+ 	help
+ 	  This driver supports notebooks and computers with S3 Savage PCI/AGP
+ 	  chips.
+@@ -1223,6 +1233,7 @@ config FB_NEOMAGIC
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select VGASTATE
+ 	help
+ 	  This driver supports notebooks with NeoMagic PCI chips.
+ 	  Say Y if you have such a graphics card. 
+diff -puN drivers/video/Makefile~fbdev-link-vgastateo-using-kconfig drivers/video/Makefile
+--- a/drivers/video/Makefile~fbdev-link-vgastateo-using-kconfig
++++ a/drivers/video/Makefile
+@@ -4,6 +4,7 @@
  
- 	return rc;
- }
+ # Each configuration option enables a list of files.
+ 
++obj-$(CONFIG_VGASTATE)            += vgastate.o
+ obj-y                             += fb_notify.o
+ obj-$(CONFIG_FB)                  += fb.o
+ fb-y                              := fbmem.o fbmon.o fbcmap.o fbsysfs.o \
+@@ -31,18 +32,17 @@ obj-$(CONFIG_FB_PM2)              += pm2
+ obj-$(CONFIG_FB_PM3)		  += pm3fb.o
+ 
+ obj-$(CONFIG_FB_MATROX)		  += matrox/
+-obj-$(CONFIG_FB_RIVA)		  += riva/ vgastate.o
+-obj-$(CONFIG_FB_NVIDIA)		  += nvidia/ vgastate.o
++obj-$(CONFIG_FB_RIVA)		  += riva/
++obj-$(CONFIG_FB_NVIDIA)		  += nvidia/
+ obj-$(CONFIG_FB_ATY)		  += aty/ macmodes.o
+ obj-$(CONFIG_FB_ATY128)		  += aty/ macmodes.o
+ obj-$(CONFIG_FB_RADEON)		  += aty/
+ obj-$(CONFIG_FB_SIS)		  += sis/
+ obj-$(CONFIG_FB_KYRO)             += kyro/
+-obj-$(CONFIG_FB_SAVAGE)		  += savage/ vgastate.o
++obj-$(CONFIG_FB_SAVAGE)		  += savage/
+ obj-$(CONFIG_FB_GEODE)		  += geode/
+ obj-$(CONFIG_FB_MBX)		  += mbx/
+-obj-$(CONFIG_FB_I810)             += vgastate.o
+-obj-$(CONFIG_FB_NEOMAGIC)         += neofb.o vgastate.o
++obj-$(CONFIG_FB_NEOMAGIC)         += neofb.o
+ obj-$(CONFIG_FB_3DFX)             += tdfxfb.o
+ obj-$(CONFIG_FB_CONTROL)          += controlfb.o
+ obj-$(CONFIG_FB_PLATINUM)         += platinumfb.o
+@@ -52,7 +52,7 @@ obj-$(CONFIG_FB_IMSTT)            += ims
+ obj-$(CONFIG_FB_FM2)              += fm2fb.o
+ obj-$(CONFIG_FB_CYBLA)            += cyblafb.o
+ obj-$(CONFIG_FB_TRIDENT)          += tridentfb.o
+-obj-$(CONFIG_FB_S3)               += s3fb.o vgastate.o
++obj-$(CONFIG_FB_S3)               += s3fb.o
+ obj-$(CONFIG_FB_STI)              += stifb.o
+ obj-$(CONFIG_FB_FFB)              += ffb.o sbuslib.o
+ obj-$(CONFIG_FB_CG6)              += cg6.o sbuslib.o
+@@ -105,7 +105,7 @@ obj-$(CONFIG_FB_SM501)            += sm5
+ # Platform or fallback drivers go here
+ obj-$(CONFIG_FB_VESA)             += vesafb.o
+ obj-$(CONFIG_FB_IMAC)             += imacfb.o
+-obj-$(CONFIG_FB_VGA16)            += vga16fb.o vgastate.o
++obj-$(CONFIG_FB_VGA16)            += vga16fb.o
+ obj-$(CONFIG_FB_OF)               += offb.o
+ 
+ # the test framebuffer is last
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-packet-fix-error-handling.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
-slab-introduce-krealloc-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix-2.patch
-sysfs-binc-printk-fix.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ata-irq-registration-fix.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
-pata_acpi-restore-driver-fix.patch
-pata_acpi-restore-driver-fix-2.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-ubi.patch
-git-ubi-fixup.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-yamc.patch
-git-net-vs-git-netdev-all.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
-rfcomm_worker-fix-wakeup-race.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-pci-error-recovery-symbios-scsi-base-support-fixes.patch
-pci-error-recovery-symbios-scsi-first-failure-fix.patch
-cxacru-add-documentation-file-fix.patch
-fix-x86_64-mm-nmi-watchdog-ops.patch
-x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-x86_64-unexport-cpu_llc_id.patch
-xfs-clean-up-shrinker-games.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
-mm-merge-nopfn-into-fault-fix.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-add-proc-pid-pagemap-interface-fix-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
-slab-mark-set_up_list3s-__init.patch
-extend-print_symbol-capability-fix-fix.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-unprivileged-mounts-account-user-mounts-fix.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
+intelfb-fix-ring-space-calculation.patch
+nvidiafb-bring-back-generic-ddc-reading.patch
+fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
+fbdev-fix-obvious-bug-in-show_pan.patch
+neofb-fill-transp-msb_right-with-the-correct.patch
+atyfb-kill-dead-code.patch
+fbdev-mm-deferred-io-support.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-mm-deferred-io-support-fix-2.patch
 fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+nvidiafb-fix-reversed-ddc-port.patch
+vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
+fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
+rivafb-nvidiafb-enable-hardware-monitoring.patch
+rivafb-handle-i2c-bus-creation-failure.patch
+rivafb-nvidiafb-various-cleanups.patch
+rivafb-fixed-reversed-ddc-ports.patch
+nvidiafb-ensure-that-crtc-registers-are-accessible.patch
+nvidiafb-access-crt-registers-safely.patch
+skeletonfb-various-corrections.patch
+epson1355fbc-fix-error-handling-code.patch
+nvidiafb-vga-state-save-and-restore.patch
+savagefb-rework-i2c-bit-access.patch
+savagefb-vga-state-save-and-restore.patch
+fbdev-link-vgastateo-using-kconfig.patch
+fbcon-delay-screen-update-when-setting-the-mode-of.patch
+nvidiafb-fix-sparse-warning.patch
+rivafb-fix-io-access.patch
+fbdev-kill-sparse-warning-in-deferred-io.patch
+fbdev-add-sparse-annotations-in-svgalibc.patch
+arcfb-kill-sparse-warning.patch
+s3fb-add-sparse-annotations.patch
+hecubafb-kill-sparse-warnings.patch
+i810fb-fix-incorrect-frequency-mask.patch
+vt-add-documentation-for-new-boot-sysfs-options.patch
+skeletonfb-documentation-error-fixes.patch
+fbdev-add-drawing-functions-for-framebuffers-in-system.patch
+arcfb-use-sys-instead-of-cfb-drawing-functions.patch
+hecubafb-use-sys-instead-of-cfb-drawing-functions.patch
+vfb-use-sys-instead-of-cfb-drawing-functions.patch
+fbdev-pass-struct-fb_info-to-fb_read-and-fb_write.patch
+fbdev-add-fb_read-fb_write-functions-for-framebuffers.patch
+arcfb-us-fb_sys_read.patch
+hecubafb-us-fb_sys_read.patch
+vfb-us-fb_sys_read-and-fb_sys_write.patch
+fbdev-consolidate-common-drawing-functions-into-a.patch
+fbdev-advertise-limitation-of-drawing-engine.patch
+fbcon-font-setting-should-check-limitation-of-driver.patch
+vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
+s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch
+fbdev-add-tile-operation-to-get-the-maximum-length.patch
+s3fb-implement-fb_get_tilemax.patch
+fbcon-check-if-the-character-count-can-be-handled.patch
+fbdev-save-the-activate-field-before-calling-fb_check_var.patch
+s3fb-driver-fixes.patch
+vmlfb-framebuffer-driver-for-intel-vermilion-range.patch
+nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
+pm2fb-3dlabs-permedia-2v-reference-board-added.patch
+pm2fb-permedia-2v-memory-clock-setting.patch
+pm2fb-pixclock-setting-restriction.patch
+nvidiafb-prevent-triggering-of-softlockup.patch
