@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hecubafb-use-sys-instead-of-cfb-drawing-functions.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:32:55 -0700
-Message-ID: <200704260032.l3Q0Wt4I016957@shell0.pdx.osdl.net>
+Subject: + s3fb-add-sparse-annotations.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:32:46 -0700
+Message-ID: <200704260032.l3Q0WkCW016936@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37261 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423431AbXDZAc6 (ORCPT
+	by vger.kernel.org with ESMTP id S1423423AbXDZAct (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:32:58 -0400
+	Wed, 25 Apr 2007 20:32:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     hecubafb: use sys instead of cfb drawing functions
+     s3fb: add sparse annotations
 has been added to the -mm tree.  Its filename is
-     hecubafb-use-sys-instead-of-cfb-drawing-functions.patch
+     s3fb-add-sparse-annotations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hecubafb: use sys instead of cfb drawing functions
+Subject: s3fb: add sparse annotations
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Since hecubafb's framebuffer is vmalloc'ed, use the sys_* drawing functions
-instead of cfb_*.
+Add sparse annotations and use fb_read/fb_write and family to access the
+framebuffer.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig    |    6 +++---
- drivers/video/hecubafb.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/video/s3fb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/Kconfig~hecubafb-use-sys-instead-of-cfb-drawing-functions drivers/video/Kconfig
---- a/drivers/video/Kconfig~hecubafb-use-sys-instead-of-cfb-drawing-functions
-+++ a/drivers/video/Kconfig
-@@ -599,9 +599,9 @@ config FB_IMAC
- config FB_HECUBA
-        tristate "Hecuba board support"
-        depends on FB && X86 && MMU
--       select FB_CFB_FILLRECT
--       select FB_CFB_COPYAREA
--       select FB_CFB_IMAGEBLIT
-+       select FB_SYS_FILLRECT
-+       select FB_SYS_COPYAREA
-+       select FB_SYS_IMAGEBLIT
-        select FB_DEFERRED_IO
-        help
-          This enables support for the Hecuba board. This driver was tested
-diff -puN drivers/video/hecubafb.c~hecubafb-use-sys-instead-of-cfb-drawing-functions drivers/video/hecubafb.c
---- a/drivers/video/hecubafb.c~hecubafb-use-sys-instead-of-cfb-drawing-functions
-+++ a/drivers/video/hecubafb.c
-@@ -238,7 +238,7 @@ static void hecubafb_fillrect(struct fb_
+diff -puN drivers/video/s3fb.c~s3fb-add-sparse-annotations drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~s3fb-add-sparse-annotations
++++ a/drivers/video/s3fb.c
+@@ -164,7 +164,7 @@ MODULE_PARM_DESC(fasttext, "Enable S3 fa
+ static void s3fb_settile_fast(struct fb_info *info, struct fb_tilemap *map)
  {
- 	struct hecubafb_par *par = info->par;
+ 	const u8 *font = map->data;
+-	u8* fb = (u8 *) info->screen_base;
++	u8 __iomem *fb = (u8 __iomem *) info->screen_base;
+ 	int i, c;
  
--	cfb_fillrect(info, rect);
-+	sys_fillrect(info, rect);
+ 	if ((map->width != 8) || (map->height != 16) ||
+@@ -177,7 +177,7 @@ static void s3fb_settile_fast(struct fb_
+ 	fb += 2;
+ 	for (i = 0; i < map->height; i++) {
+ 		for (c = 0; c < map->length; c++) {
+-			fb[c * 4] = font[c * map->height + i];
++			fb_writeb(font[c * map->height + i], fb + c * 4);
+ 		}
+ 		fb += 1024;
+ 	}
+@@ -656,7 +656,7 @@ static int s3fb_set_par(struct fb_info *
+ 	value = ((value * hmul) / 8) - 5;
+ 	vga_wcrt(NULL, 0x3C, (value + 1) / 2);
  
- 	hecubafb_dpy_update(par);
- }
-@@ -248,7 +248,7 @@ static void hecubafb_copyarea(struct fb_
- {
- 	struct hecubafb_par *par = info->par;
- 
--	cfb_copyarea(info, area);
-+	sys_copyarea(info, area);
- 
- 	hecubafb_dpy_update(par);
- }
-@@ -258,7 +258,7 @@ static void hecubafb_imageblit(struct fb
- {
- 	struct hecubafb_par *par = info->par;
- 
--	cfb_imageblit(info, image);
-+	sys_imageblit(info, image);
- 
- 	hecubafb_dpy_update(par);
- }
+-	memset((u8*)info->screen_base, 0x00, screen_size);
++	memset_io(info->screen_base, 0x00, screen_size);
+ 	/* Device and screen back on */
+ 	svga_wcrt_mask(0x17, 0x80, 0x80);
+ 	svga_wseq_mask(0x01, 0x00, 0x20);
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
