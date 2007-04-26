@@ -1,69 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - dev_dbg-check-dev_dbg-arguments-fix-2.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 00:09:10 -0700
-Message-ID: <200704260709.l3Q79Ab3023380@shell0.pdx.osdl.net>
+Subject: - dev_dbg-check-dev_dbg-arguments-fix.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:09:07 -0700
+Message-ID: <200704260709.l3Q797LX023377@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44240 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933318AbXDZHJm (ORCPT
+	by vger.kernel.org with ESMTP id S933317AbXDZHJk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:09:42 -0400
+	Thu, 26 Apr 2007 03:09:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dev_dbg-check-dev_dbg-arguments-fix-2
+     dev_dbg-check-dev_dbg-arguments-fix
 has been removed from the -mm tree.  Its filename was
-     dev_dbg-check-dev_dbg-arguments-fix-2.patch
+     dev_dbg-check-dev_dbg-arguments-fix.patch
 
 This patch was dropped because it was folded into dev_dbg-check-dev_dbg-arguments.patch
 
 ------------------------------------------------------
-Subject: dev_dbg-check-dev_dbg-arguments-fix-2
+Subject: dev_dbg-check-dev_dbg-arguments-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-powerpc:
-
-drivers/built-in.o(.text+0x189df4): In function `.ohci_run':
-: undefined reference to `.hcfs2string'                                         drivers/built-in.o(.text+0x18b6f8): In function `.ohci_stop':
-: undefined reference to `.hcfs2string'                                         
-
-Can't be bothered thinking of a smart way of fixing this.
+drivers/usb/core/hub.c: In function `hub_port_connect_change':
+drivers/usb/core/hub.c:2409: warning: implicit declaration of function `portspeed'
 
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ohci-hcd.c |    6 ------
- 1 files changed, 6 deletions(-)
+ drivers/usb/core/hub.c |    4 +---
+ linux/device.h         |    0 
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/usb/host/ohci-hcd.c~dev_dbg-check-dev_dbg-arguments-fix-2 drivers/usb/host/ohci-hcd.c
---- a/drivers/usb/host/ohci-hcd.c~dev_dbg-check-dev_dbg-arguments-fix-2
-+++ a/drivers/usb/host/ohci-hcd.c
-@@ -485,9 +485,6 @@ static int ohci_run (struct ohci_hcd *oh
- 	 * or if bus glue did the same (e.g. for PCI add-in cards with
- 	 * PCI PM support).
- 	 */
--	ohci_dbg (ohci, "resetting from state '%s', control = 0x%x\n",
--			hcfs2string (ohci->hc_control & OHCI_CTRL_HCFS),
--			ohci_readl (ohci, &ohci->regs->control));
- 	if ((ohci->hc_control & OHCI_CTRL_RWC) != 0
- 			&& !device_may_wakeup(hcd->self.controller))
- 		device_init_wakeup(hcd->self.controller, 1);
-@@ -743,9 +740,6 @@ static void ohci_stop (struct usb_hcd *h
+diff -puN include/linux/device.h~dev_dbg-check-dev_dbg-arguments-fix include/linux/device.h
+diff -puN drivers/usb/core/hub.c~dev_dbg-check-dev_dbg-arguments-fix drivers/usb/core/hub.c
+--- a/drivers/usb/core/hub.c~dev_dbg-check-dev_dbg-arguments-fix
++++ a/drivers/usb/core/hub.c
+@@ -119,8 +119,7 @@ MODULE_PARM_DESC(use_both_schemes,
+ 		"first one fails");
+ 
+ 
+-#ifdef	DEBUG
+-static inline char *portspeed (int portstatus)
++static inline char *portspeed(int portstatus)
  {
- 	struct ohci_hcd		*ohci = hcd_to_ohci (hcd);
+ 	if (portstatus & (1 << USB_PORT_FEAT_HIGHSPEED))
+     		return "480 Mb/s";
+@@ -129,7 +128,6 @@ static inline char *portspeed (int ports
+ 	else
+ 		return "12 Mb/s";
+ }
+-#endif
  
--	ohci_dbg (ohci, "stop %s controller (state 0x%02x)\n",
--		hcfs2string (ohci->hc_control & OHCI_CTRL_HCFS),
--		hcd->state);
- 	ohci_dump (ohci, 1);
- 
- 	flush_scheduled_work();
+ /* Note that hdev or one of its children must be locked! */
+ static inline struct usb_hub *hdev_to_hub(struct usb_device *hdev)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +79,7 @@ even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 define-platform-wakeup-hook-use-in-pci_enable_wake.patch
 dev_dbg-check-dev_dbg-arguments.patch
+dev_dbg-check-dev_dbg-arguments-fix.patch
 dev_dbg-check-dev_dbg-arguments-fix-2.patch
 sysfs-binc-printk-fix.patch
 git-drm.patch
