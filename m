@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-build-hack.patch added to -mm tree
-Date: Wed, 25 Apr 2007 19:33:33 -0700
-Message-ID: <200704260236.l3Q2aEEP019078@shell0.pdx.osdl.net>
+Subject: + lguest-build-hack-2.patch added to -mm tree
+Date: Wed, 25 Apr 2007 20:08:12 -0700
+Message-ID: <200704260310.l3Q3AqUL019626@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41912 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754075AbXDZCga (ORCPT
+	by vger.kernel.org with ESMTP id S1754691AbXDZDLA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 22:36:30 -0400
+	Wed, 25 Apr 2007 23:11:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, jeremy@goop.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     lguest-build-hack
+     lguest-build-hack-2
 has been added to the -mm tree.  Its filename is
-     lguest-build-hack.patch
+     lguest-build-hack-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest-build-hack
+Subject: lguest-build-hack-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-eep, Jeremy removed pda.h.
-
-See ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt/patches/convert-pda-into-the-percpu-section
-
-help.
+Someone just got caught putting extern declarations in C files.
 
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
@@ -43,26 +39,26 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/lguest/lguest.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-build-hack drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-build-hack
+diff -puN drivers/lguest/lguest.c~lguest-build-hack-2 drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-build-hack-2
 +++ a/drivers/lguest/lguest.c
-@@ -34,7 +34,7 @@
- #include <asm/desc.h>
- #include <asm/setup.h>
- #include <asm/e820.h>
--#include <asm/pda.h>
-+//#include <asm/pda.h>
- #include <asm/mce.h>
+@@ -408,7 +408,7 @@ static unsigned lguest_patch(u8 type, u1
+ }
  
- /* Declarations for definitions in lguest_guest.S */
-@@ -469,7 +469,7 @@ __init void lguest_init(void)
+ /* From head.S */
+-extern void setup_pda(void);
++//extern void setup_pda(void);
+ extern struct Xgt_desc_struct early_gdt_descr;
+ 
+ __init void lguest_init(void)
+@@ -467,7 +467,7 @@ __init void lguest_init(void)
+ 	init_pg_tables_end = __pa(pg0);
+ 
  	/* set up PDA descriptor */
- 	setup_pda();
+-	setup_pda();
++//	setup_pda();
  	load_gdt(&early_gdt_descr);
--	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
-+//	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
- 
- 	reserve_top_address(lguest_data.reserve_mem);
+ //	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
  
 _
 
@@ -234,9 +230,8 @@ signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 revoke-wire-up-i386-system-calls-x86_64-fix.patch
 x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
 lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
+lguest-build-hack.patch
 fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
 fs-convert-core-functions-to-zero_user_page-fix-2.patch
 ntfs-use-zero_user_page-fix.patch
@@ -252,4 +247,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-lguest-build-hack.patch
+lguest-build-hack-2.patch
