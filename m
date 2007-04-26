@@ -1,64 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - pata_acpi-restore-driver-fix-2.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 00:18:05 -0700
-Message-ID: <200704260718.l3Q7I5Ea023660@shell0.pdx.osdl.net>
+Subject: - revert-7f8be19f5a5737ce6ad670756183235c71b560bb.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:23:56 -0700
+Message-ID: <200704260723.l3Q7Nun9023870@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53372 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36831 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933228AbXDZHSV (ORCPT
+	by vger.kernel.org with ESMTP id S933193AbXDZHZD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:18:21 -0400
+	Thu, 26 Apr 2007 03:25:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_acpi-restore-driver-fix-2
+     revert 7f8be19f5a5737ce6ad670756183235c71b560bb
 has been removed from the -mm tree.  Its filename was
-     pata_acpi-restore-driver-fix-2.patch
+     revert-7f8be19f5a5737ce6ad670756183235c71b560bb.patch
 
-This patch was dropped because it was folded into pata_acpi-restore-driver.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: pata_acpi-restore-driver-fix-2
+Subject: revert 7f8be19f5a5737ce6ad670756183235c71b560bb
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/pata_acpi.c: In function 'pacpi_pre_reset':
-drivers/ata/pata_acpi.c:55: error: too few arguments to function 'ata_std_prereset'
-drivers/ata/pata_acpi.c: In function 'pacpi_error_handler':
-drivers/ata/pata_acpi.c:86: warning: passing argument 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_acpi.c: In function 'pacpi_pre_reset':
-drivers/ata/pata_acpi.c:56: warning: control reaches end of non-void function
+make udp work again.
 
-Cc: Alan Cox <alan@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_acpi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/skbuff.h |    9 ++-------
+ net/core/dev.c         |   25 ++++++++++---------------
+ net/core/skbuff.c      |    2 +-
+ net/ipv4/tcp_ipv4.c    |    2 --
+ net/ipv4/udp.c         |    1 -
+ net/ipv6/tcp_ipv6.c    |    2 --
+ 6 files changed, 13 insertions(+), 28 deletions(-)
 
-diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix-2 drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix-2
-+++ a/drivers/ata/pata_acpi.c
-@@ -45,14 +45,14 @@ struct pata_acpi {
-  *	Perform the PATA port setup we need.
-  */
- 
--static int pacpi_pre_reset(struct ata_port *ap)
-+static int pacpi_pre_reset(struct ata_port *ap, unsigned long deadline)
+diff -puN include/linux/skbuff.h~revert-7f8be19f5a5737ce6ad670756183235c71b560bb include/linux/skbuff.h
+--- a/include/linux/skbuff.h~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/include/linux/skbuff.h
+@@ -206,9 +206,7 @@ typedef unsigned char *sk_buff_data_t;
+  *	@len: Length of actual data
+  *	@data_len: Data length
+  *	@mac_len: Length of link layer header
+- *	@csum: Checksum (must include start/offset pair)
+- *	@csum_start: Offset from skb->head where checksumming should start
+- *	@csum_offset: Offset from csum_start where checksum should be stored
++ *	@csum: Checksum
+  *	@local_df: allow local fragmentation
+  *	@cloned: Head may be cloned (check refcnt to be sure)
+  *	@nohdr: Payload reference only, must not modify header
+@@ -264,10 +262,7 @@ struct sk_buff {
+ 				mac_len;
+ 	union {
+ 		__wsum		csum;
+-		struct {
+-			__u16	csum_start;
+-			__u16	csum_offset;
+-		};
++		__u32		csum_offset;
+ 	};
+ 	__u32			priority;
+ 	__u8			local_df:1,
+diff -puN net/core/dev.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/core/dev.c
+--- a/net/core/dev.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/core/dev.c
+@@ -1147,7 +1147,7 @@ EXPORT_SYMBOL(netif_device_attach);
+ int skb_checksum_help(struct sk_buff *skb)
  {
- 	struct pata_acpi *acpi = ap->private_data;
+ 	__wsum csum;
+-	int ret = 0, offset;
++	int ret = 0, offset = skb_transport_offset(skb);
  
- 	if (acpi->handle == NULL || ata_acpi_gtm(ap, acpi->handle, &acpi->gtm) < 0)
- 		return -ENODEV;
+ 	if (skb->ip_summed == CHECKSUM_COMPLETE)
+ 		goto out_set_summed;
+@@ -1163,16 +1163,15 @@ int skb_checksum_help(struct sk_buff *sk
+ 			goto out;
+ 	}
  
--	return ata_std_prereset(ap);
-+	return ata_std_prereset(ap, deadline);
- }
+-	offset = skb->csum_start - skb_headroom(skb);
+ 	BUG_ON(offset > (int)skb->len);
+ 	csum = skb_checksum(skb, offset, skb->len-offset, 0);
  
- /**
+-	offset = skb_headlen(skb) - offset;
++	offset = skb->tail - skb->transport_header;
+ 	BUG_ON(offset <= 0);
+ 	BUG_ON(skb->csum_offset + 2 > offset);
+ 
+-	*(__sum16 *)(skb->head + skb->csum_start + skb->csum_offset) =
+-		csum_fold(csum);
++	*(__sum16 *)(skb_transport_header(skb) +
++		     skb->csum_offset) = csum_fold(csum);
+ out_set_summed:
+ 	skb->ip_summed = CHECKSUM_NONE;
+ out:
+@@ -1424,16 +1423,12 @@ int dev_queue_xmit(struct sk_buff *skb)
+ 	/* If packet is not checksummed and device does not support
+ 	 * checksumming for this protocol, complete checksumming here.
+ 	 */
+-	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+-		skb_set_transport_header(skb, skb->csum_start -
+-					      skb_headroom(skb));
+-
+-		if (!(dev->features & NETIF_F_GEN_CSUM) &&
+-		    (!(dev->features & NETIF_F_IP_CSUM) ||
+-		     skb->protocol != htons(ETH_P_IP)))
+-			if (skb_checksum_help(skb))
+-				goto out_kfree_skb;
+-	}
++	if (skb->ip_summed == CHECKSUM_PARTIAL &&
++	    (!(dev->features & NETIF_F_GEN_CSUM) &&
++	     (!(dev->features & NETIF_F_IP_CSUM) ||
++	      skb->protocol != htons(ETH_P_IP))))
++		if (skb_checksum_help(skb))
++			goto out_kfree_skb;
+ 
+ gso:
+ 	spin_lock_prefetch(&dev->queue_lock);
+diff -puN net/core/skbuff.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/core/skbuff.c
+--- a/net/core/skbuff.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/core/skbuff.c
+@@ -1367,7 +1367,7 @@ void skb_copy_and_csum_dev(const struct 
+ 	long csstart;
+ 
+ 	if (skb->ip_summed == CHECKSUM_PARTIAL)
+-		csstart = skb->csum_start - skb_headroom(skb);
++		csstart = skb_transport_offset(skb);
+ 	else
+ 		csstart = skb_headlen(skb);
+ 
+diff -puN net/ipv4/tcp_ipv4.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/ipv4/tcp_ipv4.c
+@@ -504,7 +504,6 @@ void tcp_v4_send_check(struct sock *sk, 
+ 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+ 		th->check = ~tcp_v4_check(len, inet->saddr,
+ 					  inet->daddr, 0);
+-		skb->csum_start = skb_transport_header(skb) - skb->head;
+ 		skb->csum_offset = offsetof(struct tcphdr, check);
+ 	} else {
+ 		th->check = tcp_v4_check(len, inet->saddr, inet->daddr,
+@@ -527,7 +526,6 @@ int tcp_v4_gso_send_check(struct sk_buff
+ 
+ 	th->check = 0;
+ 	th->check = ~tcp_v4_check(skb->len, iph->saddr, iph->daddr, 0);
+-	skb->csum_start = skb_transport_header(skb) - skb->head;
+ 	skb->csum_offset = offsetof(struct tcphdr, check);
+ 	skb->ip_summed = CHECKSUM_PARTIAL;
+ 	return 0;
+diff -puN net/ipv4/udp.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/ipv4/udp.c
+--- a/net/ipv4/udp.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/ipv4/udp.c
+@@ -427,7 +427,6 @@ static void udp4_hwcsum_outgoing(struct 
+ 		/*
+ 		 * Only one fragment on the socket.
+ 		 */
+-		skb->csum_start = skb_transport_header(skb) - skb->head;
+ 		skb->csum_offset = offsetof(struct udphdr, check);
+ 		uh->check = ~csum_tcpudp_magic(src, dst, len, IPPROTO_UDP, 0);
+ 	} else {
+diff -puN net/ipv6/tcp_ipv6.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb net/ipv6/tcp_ipv6.c
+--- a/net/ipv6/tcp_ipv6.c~revert-7f8be19f5a5737ce6ad670756183235c71b560bb
++++ a/net/ipv6/tcp_ipv6.c
+@@ -950,7 +950,6 @@ static void tcp_v6_send_check(struct soc
+ 
+ 	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+ 		th->check = ~csum_ipv6_magic(&np->saddr, &np->daddr, len, IPPROTO_TCP,  0);
+-		skb->csum_start = skb_transport_header(skb) - skb->head;
+ 		skb->csum_offset = offsetof(struct tcphdr, check);
+ 	} else {
+ 		th->check = csum_ipv6_magic(&np->saddr, &np->daddr, len, IPPROTO_TCP,
+@@ -973,7 +972,6 @@ static int tcp_v6_gso_send_check(struct 
+ 	th->check = 0;
+ 	th->check = ~csum_ipv6_magic(&ipv6h->saddr, &ipv6h->daddr, skb->len,
+ 				     IPPROTO_TCP, 0);
+-	skb->csum_start = skb_transport_header(skb) - skb->head;
+ 	skb->csum_offset = offsetof(struct tcphdr, check);
+ 	skb->ip_summed = CHECKSUM_PARTIAL;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,8 +217,6 @@ git-input-fixup.patch
 git-kvm.patch
 git-libata-all.patch
 ata-printk-warning-fixes.patch
-pata_acpi-restore-driver.patch
-pata_acpi-restore-driver-fix-2.patch
 drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
 revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
