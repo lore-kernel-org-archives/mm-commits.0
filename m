@@ -1,113 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: + kill-warnings-when-building-mandocs.patch added to -mm tree
-Date: Thu, 26 Apr 2007 00:01:53 -0700
-Message-ID: <200704260701.l3Q71sjd023201@shell0.pdx.osdl.net>
+Subject: - packet-fix-error-handling.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 23:59:08 -0700
+Message-ID: <200704260659.l3Q6x85Q023118@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60479 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35551 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933231AbXDZHB4 (ORCPT
+	by vger.kernel.org with ESMTP id S933222AbXDZHAo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:01:56 -0400
+	Thu, 26 Apr 2007 03:00:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bbpetkov@yahoo.de, rdunlap@xenotime.net
+To: akpm@linux-foundation.org, icxcnika@mar.tar.cc, jens.axboe@oracle.com, petero2@telia.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kill warnings when building mandocs
-has been added to the -mm tree.  Its filename is
-     kill-warnings-when-building-mandocs.patch
+     packet: fix error handling
+has been removed from the -mm tree.  Its filename was
+     packet-fix-error-handling.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kill warnings when building mandocs
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: packet: fix error handling
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch shuts warnings of the sort:
+The packet driver is assuming (reasonably) that the (undocumented)
+request.errors is an errno.  But it is in fact some mysterious bitfield.  When
+things go wrong we return weird positive numbers to the VFS as pointers and it
+goes oops.
 
-make -C /mnt/samsung_200/sam/kernel/trees/21-rc6/build \
-	KBUILD_SRC=/mnt/samsung_200/sam/kernel/trees/21-rc6 \
-	KBUILD_EXTMOD="" -f /mnt/samsung_200/sam/kernel/trees/21-rc6/Makefile mandocs
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=scripts/basic
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=Documentation/DocBook mandocs
-  SRCTREE=/mnt/samsung_200/sam/kernel/trees/21-rc6/ /mnt/samsung_200/sam/kernel/trees/21-rc6/build/scripts/basic/docproc doc /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/wanbook.tmpl >Documentation/DocBook/wanbook.xml
-  if grep -q refentry Documentation/DocBook/wanbook.xml; then xmlto man -m /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/man Documentation/DocBook/wanbook.xml ; gzip -f Documentation/DocBook/man/*.9; fi
-Note: meta version: No productnumber or alternative     sppp_close
-Note: meta version: No refmiscinfo@class=version        sppp_close
-Note: Writing sppp_close.9
-Note: meta version: No productnumber or alternative     sppp_open
-Note: meta version: No refmiscinfo@class=version        sppp_open
+Thanks to William Heimbigner for reporting and diagnosis.
 
-by adding a RefMiscInfo xml tag in the form of the current kernel version
-to the function, struct and enum definitions in files included by
-kernel-doc when building 'mandocs'.  However, the version string appears
-truncated on the manpage due to some constraints in the xml DTD for the man
-header, I believe, for the troff output is truncated too.
+(It doesn't oops, but this driver still doesn't work for William)
 
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: William Heimbigner <icxcnika@mar.tar.cc>
+Cc: Peter Osterlund <petero2@telia.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/block/pktcdvd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/kernel-doc~kill-warnings-when-building-mandocs scripts/kernel-doc
---- a/scripts/kernel-doc~kill-warnings-when-building-mandocs
-+++ a/scripts/kernel-doc
-@@ -328,6 +328,15 @@ while ($ARGV[0] =~ m/^-(.*)/) {
-     }
- }
+diff -puN drivers/block/pktcdvd.c~packet-fix-error-handling drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~packet-fix-error-handling
++++ a/drivers/block/pktcdvd.c
+@@ -777,7 +777,8 @@ static int pkt_generic_packet(struct pkt
+ 		rq->cmd_flags |= REQ_QUIET;
  
-+# get kernel version from env
-+sub get_kernel_version() {
-+    my $version;
-+
-+    if (defined($ENV{'KERNELVERSION'})) {
-+	$version = $ENV{'KERNELVERSION'};
-+    }
-+    return $version;
-+}
- 
- # generate a sequence of code that will splice in highlighting information
- # using the s// operator.
-@@ -601,6 +610,7 @@ sub output_function_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'function'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'function'}."</refname>\n";
-@@ -677,6 +687,7 @@ sub output_struct_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'type'}." ".$args{'struct'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'type'}." ".$args{'struct'}."</refname>\n";
-@@ -761,6 +772,7 @@ sub output_enum_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>enum ".$args{'enum'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>enum ".$args{'enum'}."</refname>\n";
+ 	blk_execute_rq(rq->q, pd->bdev->bd_disk, rq, 0);
+-	ret = rq->errors;
++	if (rq->errors)
++		ret = -EIO;
+ out:
+ 	blk_put_request(rq);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+slab-introduce-krealloc-fix.patch
 git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agp-build-fix.patch
+git-cpufreq-borkage-fix.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix-2.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+gfs2-printk-warning-fixes.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+fw-device-printk-fix.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-mtd-build-fix.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-export-ieee80211_debug_level.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
 git-net.patch
-kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
-generate-main-index-page-when-building-htmldocs.patch
-alphabetically-sorted-entries-in.patch
-kill-warnings-when-building-mandocs.patch
+git-net-fixup.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+sctp_getsockopt_local_addrs-type-fix.patch
+git-net-fix-yamc.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api-fix.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+pci-error-recovery-symbios-scsi-base-support-fixes.patch
+pci-error-recovery-symbios-scsi-first-failure-fix.patch
+git-block-fixup.patch
+cxacru-add-documentation-file-fix.patch
+fix-x86_64-mm-nmi-watchdog-ops.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface-fix-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-build-hack.patch
+lguest-build-hack-2.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
