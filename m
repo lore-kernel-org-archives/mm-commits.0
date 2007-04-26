@@ -1,202 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: - unprivileged-mounts-account-user-mounts.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 18:57:00 -0700
-Message-ID: <200704260157.l3Q1v0XP018387@shell0.pdx.osdl.net>
+Subject: - unprivileged-mounts-account-user-mounts-fix.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 18:57:03 -0700
+Message-ID: <200704260157.l3Q1v3i7018390@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40191 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754632AbXDZB5S (ORCPT
+	by vger.kernel.org with ESMTP id S1754349AbXDZB5S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 25 Apr 2007 21:57:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, ebiederm@xmission.com, hch@lst.de, linuxram@us.ibm.com, serue@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, hch@lst.de, linuxram@us.ibm.com, mszeredi@suse.cz, serue@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unprivileged mounts: account user mounts
+     unprivileged-mounts-account-user-mounts-fix
 has been removed from the -mm tree.  Its filename was
-     unprivileged-mounts-account-user-mounts.patch
+     unprivileged-mounts-account-user-mounts-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: unprivileged mounts: account user mounts
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: unprivileged-mounts-account-user-mounts-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add sysctl variables for accounting and limiting the number of user
-mounts.
-
-The maximum number of user mounts is set to 1024 by default.  This
-won't in itself enable user mounts, setting a mount to be owned by a
-user is first needed
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Serge Hallyn <serue@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    9 +++++++++
- fs/namespace.c                     |   24 ++++++++++++++++++++++++
- include/linux/fs.h                 |    3 +++
- include/linux/sysctl.h             |    2 ++
- kernel/sysctl.c                    |   16 ++++++++++++++++
- 5 files changed, 54 insertions(+)
+ include/linux/sysctl.h |    2 --
+ kernel/sysctl.c        |    4 ++--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts
-+++ a/Documentation/filesystems/proc.txt
-@@ -923,6 +923,15 @@ reaches aio-max-nr then io_setup will fa
- raising aio-max-nr does not result in the pre-allocation or re-sizing
- of any kernel data structures.
- 
-+nr_user_mounts and max_user_mounts
-+----------------------------------
-+
-+These represent the number of "user" mounts and the maximum number of
-+"user" mounts respectively.  User mounts may be created by
-+unprivileged users.  User mounts may also be created with sysadmin
-+privileges on behalf of a user, in which case nr_user_mounts may
-+exceed max_user_mounts.
-+
- 2.2 /proc/sys/fs/binfmt_misc - Miscellaneous binary formats
- -----------------------------------------------------------
- 
-diff -puN fs/namespace.c~unprivileged-mounts-account-user-mounts fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-account-user-mounts
-+++ a/fs/namespace.c
-@@ -39,6 +39,9 @@ static int hash_mask __read_mostly, hash
- static struct kmem_cache *mnt_cache __read_mostly;
- static struct rw_semaphore namespace_sem;
- 
-+int nr_user_mounts;
-+int max_user_mounts = 1024;
-+
- /* /sys/fs */
- decl_subsys(fs, NULL, NULL);
- EXPORT_SYMBOL_GPL(fs_subsys);
-@@ -227,11 +230,30 @@ static struct vfsmount *skip_mnt_tree(st
- 	return p;
- }
- 
-+static void dec_nr_user_mounts(void)
-+{
-+	spin_lock(&vfsmount_lock);
-+	nr_user_mounts--;
-+	spin_unlock(&vfsmount_lock);
-+}
-+
- static void set_mnt_user(struct vfsmount *mnt)
- {
- 	BUG_ON(mnt->mnt_flags & MNT_USER);
- 	mnt->mnt_uid = current->uid;
- 	mnt->mnt_flags |= MNT_USER;
-+	spin_lock(&vfsmount_lock);
-+	nr_user_mounts++;
-+	spin_unlock(&vfsmount_lock);
-+}
-+
-+static void clear_mnt_user(struct vfsmount *mnt)
-+{
-+	if (mnt->mnt_flags & MNT_USER) {
-+		mnt->mnt_uid = 0;
-+		mnt->mnt_flags &= ~MNT_USER;
-+		dec_nr_user_mounts();
-+	}
- }
- 
- static struct vfsmount *clone_mnt(struct vfsmount *old, struct dentry *root,
-@@ -283,6 +305,7 @@ static inline void __mntput(struct vfsmo
- {
- 	struct super_block *sb = mnt->mnt_sb;
- 	dput(mnt->mnt_root);
-+	clear_mnt_user(mnt);
- 	free_vfsmnt(mnt);
- 	deactivate_super(sb);
- }
-@@ -1026,6 +1049,7 @@ static int do_remount(struct nameidata *
- 	down_write(&sb->s_umount);
- 	err = do_remount_sb(sb, flags, data, 0);
- 	if (!err) {
-+		clear_mnt_user(nd->mnt);
- 		nd->mnt->mnt_flags = mnt_flags;
- 		if (flags & MS_SETUSER)
- 			set_mnt_user(nd->mnt);
-diff -puN include/linux/fs.h~unprivileged-mounts-account-user-mounts include/linux/fs.h
---- a/include/linux/fs.h~unprivileged-mounts-account-user-mounts
-+++ a/include/linux/fs.h
-@@ -50,6 +50,9 @@ extern struct inodes_stat_t inodes_stat;
- 
- extern int leases_enable, lease_break_time;
- 
-+extern int nr_user_mounts;
-+extern int max_user_mounts;
-+
- #ifdef CONFIG_DNOTIFY
- extern int dir_notify_enable;
- #endif
-diff -puN include/linux/sysctl.h~unprivileged-mounts-account-user-mounts include/linux/sysctl.h
---- a/include/linux/sysctl.h~unprivileged-mounts-account-user-mounts
+diff -puN include/linux/sysctl.h~unprivileged-mounts-account-user-mounts-fix include/linux/sysctl.h
+--- a/include/linux/sysctl.h~unprivileged-mounts-account-user-mounts-fix
 +++ a/include/linux/sysctl.h
-@@ -819,6 +819,8 @@ enum
+@@ -819,8 +819,6 @@ enum
  	FS_AIO_NR=18,	/* current system-wide number of aio requests */
  	FS_AIO_MAX_NR=19,	/* system-wide maximum number of aio requests */
  	FS_INOTIFY=20,	/* inotify submenu */
-+	FS_NR_USER_MOUNTS=21,	/* int:current number of user mounts */
-+	FS_MAX_USER_MOUNTS=22,	/* int:maximum number of user mounts */
+-	FS_NR_USER_MOUNTS=21,	/* int:current number of user mounts */
+-	FS_MAX_USER_MOUNTS=22,	/* int:maximum number of user mounts */
  	FS_OCFS2=988,	/* ocfs2 */
  };
  
-diff -puN kernel/sysctl.c~unprivileged-mounts-account-user-mounts kernel/sysctl.c
---- a/kernel/sysctl.c~unprivileged-mounts-account-user-mounts
+diff -puN kernel/sysctl.c~unprivileged-mounts-account-user-mounts-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~unprivileged-mounts-account-user-mounts-fix
 +++ a/kernel/sysctl.c
-@@ -1028,6 +1028,22 @@ static ctl_table fs_table[] = {
+@@ -1028,7 +1028,7 @@ static ctl_table fs_table[] = {
  #endif	
  #endif
  	{
-+		.ctl_name	= FS_NR_USER_MOUNTS,
-+		.procname	= "nr_user_mounts",
-+		.data		= &nr_user_mounts,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0444,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
-+		.ctl_name	= FS_MAX_USER_MOUNTS,
-+		.procname	= "max_user_mounts",
-+		.data		= &max_user_mounts,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= KERN_SETUID_DUMPABLE,
- 		.procname	= "suid_dumpable",
- 		.data		= &suid_dumpable,
+-		.ctl_name	= FS_NR_USER_MOUNTS,
++		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "nr_user_mounts",
+ 		.data		= &nr_user_mounts,
+ 		.maxlen		= sizeof(int),
+@@ -1036,7 +1036,7 @@ static ctl_table fs_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
+-		.ctl_name	= FS_MAX_USER_MOUNTS,
++		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "max_user_mounts",
+ 		.data		= &max_user_mounts,
+ 		.maxlen		= sizeof(int),
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
+origin.patch
+packet-fix-error-handling.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix-2.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-fix-yamc.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+pci-error-recovery-symbios-scsi-base-support-fixes.patch
+pci-error-recovery-symbios-scsi-first-failure-fix.patch
+cxacru-add-documentation-file-fix.patch
+fix-x86_64-mm-nmi-watchdog-ops.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface-fix-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
 mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-filesystem-subtype-support.patch
-add-file-position-info-to-proc.patch
-add-file-position-info-to-proc-fix.patch
-check-privileges-before-setting-mount-propagation.patch
-consolidate-generic_writepages-and-mpage_writepages.patch
-unprivileged-mounts-account-user-mounts.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
 unprivileged-mounts-account-user-mounts-fix.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
 unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
 unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
