@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-cpufreq-borkage-fix.patch added to -mm tree
-Date: Wed, 25 Apr 2007 19:22:40 -0700
-Message-ID: <200704260225.l3Q2PKeC018881@shell0.pdx.osdl.net>
+Subject: + git-mtd-build-fix.patch added to -mm tree
+Date: Wed, 25 Apr 2007 19:29:02 -0700
+Message-ID: <200704260231.l3Q2Vh21019007@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54498 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754682AbXDZCZe (ORCPT
+	by vger.kernel.org with ESMTP id S1754685AbXDZCb5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 22:25:34 -0400
+	Wed, 25 Apr 2007 22:31:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, trenn@suse.de
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     git-cpufreq-borkage-fix
+     git-mtd-build-fix
 has been added to the -mm tree.  Its filename is
-     git-cpufreq-borkage-fix.patch
+     git-mtd-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-cpufreq-borkage-fix
+Subject: git-mtd-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Dave Jones <davej@redhat.com>
+It seems to be silly season lately.
+
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_perflib.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/jffs2/compr_rubin.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN drivers/acpi/processor_perflib.c~git-cpufreq-borkage-fix drivers/acpi/processor_perflib.c
---- a/drivers/acpi/processor_perflib.c~git-cpufreq-borkage-fix
-+++ a/drivers/acpi/processor_perflib.c
-@@ -447,7 +447,6 @@ static void acpi_cpufreq_add_file(struct
- 				  S_IFREG | S_IRUGO,
- 				  acpi_device_dir(device));
- 	if (entry){
--		acpi_processor_perf_fops.write = acpi_processor_write_performance;
- 		entry->proc_fops = &acpi_processor_perf_fops;
- 		entry->data = acpi_driver_data(device);
- 		entry->owner = THIS_MODULE;
+diff -puN fs/jffs2/compr_rubin.c~git-mtd-build-fix fs/jffs2/compr_rubin.c
+--- a/fs/jffs2/compr_rubin.c~git-mtd-build-fix
++++ a/fs/jffs2/compr_rubin.c
+@@ -21,16 +21,6 @@
+ #define LOWER_BITS_RUBIN   ((((long) 1)<<(RUBIN_REG_SIZE-1))-1)
+ 
+ 
+-struct rubin_state {
+-	unsigned long p;
+-	unsigned long q;
+-	unsigned long rec_q;
+-	long bit_number;
+-	struct pushpull pp;
+-	int bit_divider;
+-	int bits[8];
+-};
+-
+ #define BIT_DIVIDER_MIPS 1043
+ static int bits_mips[8] = { 277,249,290,267,229,341,212,241}; /* mips32 */
+ 
+@@ -43,6 +33,15 @@ struct pushpull {
+ 	unsigned int reserve;
+ };
+ 
++struct rubin_state {
++	unsigned long p;
++	unsigned long q;
++	unsigned long rec_q;
++	long bit_number;
++	struct pushpull pp;
++	int bit_divider;
++	int bits[8];
++};
+ 
+ static inline void init_pushpull(struct pushpull *pp, char *buf, unsigned buflen, unsigned ofs, unsigned reserve)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -235,3 +261,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+git-mtd-build-fix.patch
