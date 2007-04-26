@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-agp-build-fix.patch added to -mm tree
-Date: Wed, 25 Apr 2007 19:19:55 -0700
-Message-ID: <200704260222.l3Q2MbfM018855@shell0.pdx.osdl.net>
+Subject: + git-cpufreq-borkage-fix.patch added to -mm tree
+Date: Wed, 25 Apr 2007 19:22:40 -0700
+Message-ID: <200704260225.l3Q2PKeC018881@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46094 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54498 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754638AbXDZCWx (ORCPT
+	by vger.kernel.org with ESMTP id S1754682AbXDZCZe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 22:22:53 -0400
+	Wed, 25 Apr 2007 22:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk
+Cc: akpm@linux-foundation.org, davej@redhat.com, trenn@suse.de
 
 
 The patch titled
-     git-agp-build-fix
+     git-cpufreq-borkage-fix
 has been added to the -mm tree.  Its filename is
-     git-agp-build-fix.patch
+     git-cpufreq-borkage-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-agp-build-fix
+Subject: git-cpufreq-borkage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/sworks-agp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_perflib.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/agp/sworks-agp.c~git-agp-build-fix drivers/char/agp/sworks-agp.c
---- a/drivers/char/agp/sworks-agp.c~git-agp-build-fix
-+++ a/drivers/char/agp/sworks-agp.c
-@@ -528,7 +528,7 @@ static void __devexit agp_serverworks_re
- 	pci_dev_put(bridge->dev);
- 	agp_remove_bridge(bridge);
- 	agp_put_bridge(bridge);
--	pci_dev_put(serverworks_private.svrwrks_dev)
-+	pci_dev_put(serverworks_private.svrwrks_dev);
- 	serverworks_private.svrwrks_dev = NULL;
- }
- 
+diff -puN drivers/acpi/processor_perflib.c~git-cpufreq-borkage-fix drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~git-cpufreq-borkage-fix
++++ a/drivers/acpi/processor_perflib.c
+@@ -447,7 +447,6 @@ static void acpi_cpufreq_add_file(struct
+ 				  S_IFREG | S_IRUGO,
+ 				  acpi_device_dir(device));
+ 	if (entry){
+-		acpi_processor_perf_fops.write = acpi_processor_write_performance;
+ 		entry->proc_fops = &acpi_processor_perf_fops;
+ 		entry->data = acpi_driver_data(device);
+ 		entry->owner = THIS_MODULE;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,6 +60,8 @@ git-acpi.patch
 git-alsa.patch
 git-alsa-fixup.patch
 git-agpgart.patch
+git-agp-build-fix.patch
+git-cpufreq-borkage-fix.patch
 git-powerpc.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
@@ -234,4 +235,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-git-agp-build-fix.patch
