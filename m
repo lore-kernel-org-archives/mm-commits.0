@@ -1,60 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-acpi-kconfig-formulation-fixpatch.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 23:59:11 -0700
-Message-ID: <200704260659.l3Q6xBKF023121@shell0.pdx.osdl.net>
+Subject: - acpi-processor_idlec-remove-duplicate-include.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 23:59:16 -0700
+Message-ID: <200704260659.l3Q6xGGx023127@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56408 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933174AbXDZG7N (ORCPT
+	by vger.kernel.org with ESMTP id S933223AbXDZHAn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 02:59:13 -0400
+	Thu, 26 Apr 2007 03:00:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bbpetkov@yahoo.de, mm-commits@vger.kernel.org
+To: ray-lk@madrabbit.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/acpi/Kconfig formulation fix
+     acpi/processor_idle.c: remove duplicate include
 has been removed from the -mm tree.  Its filename was
-     drivers-acpi-kconfig-formulation-fixpatch.patch
+     acpi-processor_idlec-remove-duplicate-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/acpi/Kconfig formulation fix
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: acpi/processor_idle.c: remove duplicate include
+From: Ray Lee <ray-lk@madrabbit.org>
 
-This one fixes an incorrect formulation in a Kconfig description.
+Thomas's patch for including <asm/apic.h> for x86 UP builds came into
+Linus's tree from two different directions, both of which were merged. 
+This reverts the latter, yanking out the duplicate #include and comment.
 
-Signed-off-by: <bbpetkov@yahoo.de>
+Signed-off-by: Ray Lee <ray-lk@madrabbit.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_idle.c |    8 --------
+ 1 files changed, 8 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~drivers-acpi-kconfig-formulation-fixpatch drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~drivers-acpi-kconfig-formulation-fixpatch
-+++ a/drivers/acpi/Kconfig
-@@ -85,8 +85,8 @@ config ACPI_PROCFS
- 	depends on ACPI
- 	default y
- 	---help---
--	  Procfs interface for ACPI is made optional for back-compatible.
--	  As the same functions are duplicated in sysfs interface
-+	  The Procfs interface for ACPI is made optional for backward compatibility.
-+	  As the same functions are duplicated in the sysfs interface
- 	  and this proc interface will be removed some time later,
- 	  it's marked as deprecated.
- 	  ( /proc/acpi/debug_layer && debug_level are deprecated by
+diff -puN drivers/acpi/processor_idle.c~acpi-processor_idlec-remove-duplicate-include drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-processor_idlec-remove-duplicate-include
++++ a/drivers/acpi/processor_idle.c
+@@ -52,14 +52,6 @@
+ #include <asm/apic.h>
+ #endif
+ 
+-/*
+- * Include the apic definitions for x86 to have the APIC timer related defines
+- * available also for UP (on SMP it gets magically included via linux/smp.h).
+- */
+-#ifdef CONFIG_X86
+-#include <asm/apic.h>
+-#endif
+-
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+ 
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from ray-lk@madrabbit.org are
 
 git-acpi.patch
-git-net.patch
-kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
-generate-main-index-page-when-building-htmldocs.patch
-alphabetically-sorted-entries-in.patch
-kill-warnings-when-building-mandocs.patch
