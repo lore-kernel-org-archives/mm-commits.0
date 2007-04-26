@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-build-hack-2.patch added to -mm tree
-Date: Wed, 25 Apr 2007 20:08:12 -0700
-Message-ID: <200704260310.l3Q3AqUL019626@shell0.pdx.osdl.net>
+Subject: + git-netdev-all-export-ieee80211_debug_level.patch added to -mm tree
+Date: Wed, 25 Apr 2007 20:27:47 -0700
+Message-ID: <200704260330.l3Q3US0a019893@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57981 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754691AbXDZDLA (ORCPT
+	by vger.kernel.org with ESMTP id S1754071AbXDZDcL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 23:11:00 -0400
+	Wed, 25 Apr 2007 23:32:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeremy@goop.org, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, dsd@gentoo.org, jeff@garzik.org, johannes@sipsolutions.net, josejx@gentoo.org
 
 
 The patch titled
-     lguest-build-hack-2
+     git-netdev-all: export ieee80211_debug_level
 has been added to the -mm tree.  Its filename is
-     lguest-build-hack-2.patch
+     git-netdev-all-export-ieee80211_debug_level.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest-build-hack-2
+Subject: git-netdev-all: export ieee80211_debug_level
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Someone just got caught putting extern declarations in C files.
+Someone has been forgetting their SubmitChecklist medicine.
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+ERROR: "ieee80211_debug_level" [net/ieee80211/ieee80211_crypt_ccmp.ko] undefined!
+
+Fix some unneeded space-wasting initialisations, too.  How often must this be
+said?
+
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Joe Jezak <josejx@gentoo.org>
+Cc: Daniel Drake <dsd@gentoo.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/ieee80211/ieee80211_module.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-build-hack-2 drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-build-hack-2
-+++ a/drivers/lguest/lguest.c
-@@ -408,7 +408,7 @@ static unsigned lguest_patch(u8 type, u1
- }
+diff -puN net/ieee80211/ieee80211_module.c~git-netdev-all-export-ieee80211_debug_level net/ieee80211/ieee80211_module.c
+--- a/net/ieee80211/ieee80211_module.c~git-netdev-all-export-ieee80211_debug_level
++++ a/net/ieee80211/ieee80211_module.c
+@@ -227,9 +227,11 @@ void free_ieee80211(struct net_device *d
  
- /* From head.S */
--extern void setup_pda(void);
-+//extern void setup_pda(void);
- extern struct Xgt_desc_struct early_gdt_descr;
+ #ifdef CONFIG_IEEE80211_DEBUG
  
- __init void lguest_init(void)
-@@ -467,7 +467,7 @@ __init void lguest_init(void)
- 	init_pg_tables_end = __pa(pg0);
+-static int debug = 0;
+-u32 ieee80211_debug_level = 0;
+-static struct proc_dir_entry *ieee80211_proc = NULL;
++static int debug;
++u32 ieee80211_debug_level;
++static struct proc_dir_entry *ieee80211_proc;
++
++EXPORT_SYMBOL(ieee80211_debug_level);
  
- 	/* set up PDA descriptor */
--	setup_pda();
-+//	setup_pda();
- 	load_gdt(&early_gdt_descr);
- //	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
- 
+ static int show_debug_level(char *page, char **start, off_t offset,
+ 			    int count, int *eof, void *data)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +115,7 @@ git-ubi-fixup.patch
 revert-gitpowerpc-ehea-changes.patch
 git-netdev-all.patch
 reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-export-ieee80211_debug_level.patch
 vioc-warning-fix.patch
 vioc-cast-warning-fix.patch
 git-e1000.patch
@@ -232,6 +237,7 @@ revoke-wire-up-i386-system-calls-x86_64-fix.patch
 x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
 lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
 lguest-build-hack.patch
+lguest-build-hack-2.patch
 fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
 fs-convert-core-functions-to-zero_user_page-fix-2.patch
 ntfs-use-zero_user_page-fix.patch
@@ -247,4 +253,3 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-lguest-build-hack-2.patch
