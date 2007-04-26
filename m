@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-printk-warning-fixes.patch added to -mm tree
-Date: Wed, 25 Apr 2007 20:43:08 -0700
-Message-ID: <200704260345.l3Q3jn3G020092@shell0.pdx.osdl.net>
+Subject: + sctp_getsockopt_local_addrs-type-fix.patch added to -mm tree
+Date: Wed, 25 Apr 2007 20:46:17 -0700
+Message-ID: <200704260348.l3Q3mv2T020140@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36433 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754176AbXDZDq1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754176AbXDZDtB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 23:46:27 -0400
+	Wed, 25 Apr 2007 23:49:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     ata: printk warning fixes
+     sctp_getsockopt_local_addrs type fix
 has been added to the -mm tree.  Its filename is
-     ata-printk-warning-fixes.patch
+     sctp_getsockopt_local_addrs-type-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata: printk warning fixes
+Subject: sctp_getsockopt_local_addrs type fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/libata-core.c: In function 'ata_hpa_resize':
-drivers/ata/libata-core.c:986: warning: format '%lld' expects type 'long long int', but argument 5 has type 'u64'
-drivers/ata/libata-core.c:986: warning: format '%lld' expects type 'long long int', but argument 6 has type 'u64'
-drivers/ata/libata-core.c:990: warning: format '%lld' expects type 'long long int', but argument 4 has type 'u64'
-drivers/ata/libata-core.c:990: warning: format '%lld' expects type 'long long int', but argument 5 has type 'u64'
-drivers/ata/libata-core.c:1003: warning: format '%lld' expects type 'long long int', but argument 4 has type 'u64'
+alpha:
 
-Also fix various 80-col bustage.
+net/sctp/socket.c: In function 'sctp_getsockopt_local_addrs':
+net/sctp/socket.c:4162: warning: passing argument 5 of 'sctp_copy_laddrs' from incompatible pointer type
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+This appears to be a pretty critical bug.
+
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ net/sctp/socket.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-core.c~ata-printk-warning-fixes drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~ata-printk-warning-fixes
-+++ a/drivers/ata/libata-core.c
-@@ -982,25 +982,28 @@ static u64 ata_hpa_resize(struct ata_dev
- 		hpa_sectors = ata_read_native_max_address(dev);
+diff -puN net/sctp/socket.c~sctp_getsockopt_local_addrs-type-fix net/sctp/socket.c
+--- a/net/sctp/socket.c~sctp_getsockopt_local_addrs-type-fix
++++ a/net/sctp/socket.c
+@@ -4256,7 +4256,7 @@ static int sctp_getsockopt_local_addrs(s
+ 	rwlock_t *addr_lock;
+ 	int err = 0;
+ 	size_t space_left;
+-	int bytes_copied = 0;
++	size_t bytes_copied = 0;
+ 	void *addrs;
  
- 	/* if no hpa, both should be equal */
--	ata_dev_printk(dev, KERN_INFO, "%s 1: sectors = %lld, hpa_sectors = %lld\n",
--		__FUNCTION__, sectors, hpa_sectors);
-+	ata_dev_printk(dev, KERN_INFO, "%s 1: sectors = %lld, "
-+				"hpa_sectors = %lld\n",
-+		__FUNCTION__, (long long)sectors, (long long)hpa_sectors);
- 
- 	if (hpa_sectors > sectors) {
- 		ata_dev_printk(dev, KERN_INFO,
- 			"Host Protected Area detected:\n"
- 			"\tcurrent size: %lld sectors\n"
- 			"\tnative size: %lld sectors\n",
--			sectors, hpa_sectors);
-+			(long long)sectors, (long long)hpa_sectors);
- 
- 		if (ata_ignore_hpa) {
- 			if (ata_id_has_lba48(dev->id))
- 				hpa_sectors = ata_set_native_max_address_ext(dev, hpa_sectors);
- 			else
--				hpa_sectors = ata_set_native_max_address(dev, hpa_sectors);
-+				hpa_sectors = ata_set_native_max_address(dev,
-+								hpa_sectors);
- 
- 			if (hpa_sectors) {
--				ata_dev_printk(dev, KERN_INFO,
--					"native size increased to %lld sectors\n", hpa_sectors);
-+				ata_dev_printk(dev, KERN_INFO, "native size "
-+					"increased to %lld sectors\n",
-+					(long long)hpa_sectors);
- 				return hpa_sectors;
- 			}
- 		}
+ 	if (len <= sizeof(struct sctp_getaddrs))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,6 +114,7 @@ git-e1000.patch
 git-e1000-fixup-2.patch
 git-net.patch
 git-net-fixup.patch
+sctp_getsockopt_local_addrs-type-fix.patch
 git-net-fix-yamc.patch
 git-net-vs-git-netdev-all.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
