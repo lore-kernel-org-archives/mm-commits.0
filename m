@@ -1,54 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-fix-config_scsi_wait_scan=m-fix.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 00:32:39 -0700
-Message-ID: <200704260732.l3Q7WdCK024166@shell0.pdx.osdl.net>
+Subject: - scsi-fix-config_scsi_wait_scan=m-fix-fix.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:32:42 -0700
+Message-ID: <200704260732.l3Q7WgM5024169@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54864 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933464AbXDZHdF (ORCPT
+	by vger.kernel.org with ESMTP id S933465AbXDZHdJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:33:05 -0400
+	Thu, 26 Apr 2007 03:33:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi-fix-config_scsi_wait_scan=m-fix
+     scsi-fix-config_scsi_wait_scan=m-fix-fix
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-config_scsi_wait_scan=m-fix.patch
+     scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
 
 This patch was dropped because it was folded into scsi-fix-config_scsi_wait_scan=m.patch
 
 ------------------------------------------------------
-Subject: scsi-fix-config_scsi_wait_scan=m-fix
+Subject: scsi-fix-config_scsi_wait_scan=m-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+drivers/scsi/scsi_scan.o: In function `scsi_complete_async_scans':
+scsi_scan.c:(.text+0x200): multiple definition of `init_module'
+drivers/scsi/scsi.o:scsi.c:(.init.text+0x0): first defined here
+
+erk.
 
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_scan.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ drivers/scsi/scsi_scan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix drivers/scsi/scsi_scan.c
---- a/drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix
+diff -puN drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix-fix drivers/scsi/scsi_scan.c
+--- a/drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix-fix
 +++ a/drivers/scsi/scsi_scan.c
-@@ -183,6 +183,12 @@ int scsi_complete_async_scans(void)
- 
+@@ -184,12 +184,14 @@ int scsi_complete_async_scans(void)
  /* Only exported for the benefit of scsi_wait_scan */
  EXPORT_SYMBOL_GPL(scsi_complete_async_scans);
-+
-+/*
-+ * For async scanning we need to wait for all the scans to complete before
-+ * trying to mount the root fs.  Otherwise non-modular drivers may not be ready
-+ * yet.
-+ */
+ 
++#ifndef MODULE
+ /*
+  * For async scanning we need to wait for all the scans to complete before
+  * trying to mount the root fs.  Otherwise non-modular drivers may not be ready
+  * yet.
+  */
  late_initcall(scsi_complete_async_scans);
++#endif
  
  /**
+  * scsi_unlock_floptical - unlock device via a special MODE SENSE command
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,7 +129,6 @@ git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 s390-net-lcs-convert-to-the-kthread-api-fix.patch
 git-scsi-misc.patch
 scsi-fix-config_scsi_wait_scan=m.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
 scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
 pci-error-recovery-symbios-scsi-base-support-fixes.patch
 pci-error-recovery-symbios-scsi-first-failure-fix.patch
