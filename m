@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-update-vr41xx-alarm-handling.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:10:42 -0700
-Message-ID: <200704260010.l3Q0Ag3r016494@shell0.pdx.osdl.net>
+Subject: + ide-cs-recognize-2gb-compactflash-from-transcend.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:14:13 -0700
+Message-ID: <200704260014.l3Q0EDVt016552@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44910 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45013 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751951AbXDZALh (ORCPT
+	by vger.kernel.org with ESMTP id S1750940AbXDZAOY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:11:37 -0400
+	Wed, 25 Apr 2007 20:14:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yoichi_yuasa@tripeaks.co.jp, a.zummo@towertech.it, dbrownell@users.sourceforge.net
+Cc: Fabrice.Aeschbacher@siemens.com, bzolnier@gmail.com, fabrice.aeschbacher@siemens.com, linux@dominikbrodowski.net
 
 
 The patch titled
-     rtc: update vr41xx alarm handling
+     ide-cs: recognize 2GB CompactFlash from Transcend
 has been added to the -mm tree.  Its filename is
-     rtc-update-vr41xx-alarm-handling.patch
+     ide-cs-recognize-2gb-compactflash-from-transcend.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,90 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: update vr41xx alarm handling
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: ide-cs: recognize 2GB CompactFlash from Transcend
+From: "Aeschbacher, Fabrice" <Fabrice.Aeschbacher@siemens.com>
 
-- vr41xx_rtc_read_alarm() reports alarm enabled.
-- vr41xx_rtc_set_alarm() sets alarm disable/enable by rtc_wkalrm.enabled.
+Without the following patch, the kernel does not automatically detect
+2GB CompactFlash cards from Transcend.
 
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+I'm not sure which correct values must be assigned to the 3th and 4th
+parameters (here: 0x709b1bf1, 0xf54a91c8). Anyway, the patch is working
+with these values. Tested on arch=mips.
+
+Signed-off-by: Fabrice Aeschbacher <fabrice.aeschbacher@siemens.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vr41xx.c |   28 ++++++++++++++++++++++++++--
- 1 file changed, 26 insertions(+), 2 deletions(-)
+ drivers/ide/legacy/ide-cs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-vr41xx.c~rtc-update-vr41xx-alarm-handling drivers/rtc/rtc-vr41xx.c
---- a/drivers/rtc/rtc-vr41xx.c~rtc-update-vr41xx-alarm-handling
-+++ a/drivers/rtc/rtc-vr41xx.c
-@@ -97,6 +97,7 @@ static DEFINE_SPINLOCK(rtc_lock);
- static char rtc_name[] = "RTC";
- static unsigned long periodic_frequency;
- static unsigned long periodic_count;
-+static unsigned int alarm_enabled;
- 
- struct resource rtc_resource[2] = {
- 	{	.name	= rtc_name,
-@@ -188,6 +189,7 @@ static int vr41xx_rtc_read_alarm(struct 
- 	low = rtc1_read(ECMPLREG);
- 	mid = rtc1_read(ECMPMREG);
- 	high = rtc1_read(ECMPHREG);
-+	wkalrm->enabled = alarm_enabled;
- 
- 	spin_unlock_irq(&rtc_lock);
- 
-@@ -206,10 +208,18 @@ static int vr41xx_rtc_set_alarm(struct d
- 
- 	spin_lock_irq(&rtc_lock);
- 
-+	if (alarm_enabled)
-+		disable_irq(ELAPSEDTIME_IRQ);
-+
- 	rtc1_write(ECMPLREG, (uint16_t)(alarm_sec << 15));
- 	rtc1_write(ECMPMREG, (uint16_t)(alarm_sec >> 1));
- 	rtc1_write(ECMPHREG, (uint16_t)(alarm_sec >> 17));
- 
-+	if (wkalrm->enabled)
-+		enable_irq(ELAPSEDTIME_IRQ);
-+
-+	alarm_enabled = wkalrm->enabled;
-+
- 	spin_unlock_irq(&rtc_lock);
- 
- 	return 0;
-@@ -221,10 +231,24 @@ static int vr41xx_rtc_ioctl(struct devic
- 
- 	switch (cmd) {
- 	case RTC_AIE_ON:
--		enable_irq(ELAPSEDTIME_IRQ);
-+		spin_lock_irq(&rtc_lock);
-+
-+		if (!alarm_enabled) {
-+			enable_irq(ELAPSEDTIME_IRQ);
-+			alarm_enabled = 1;
-+		}
-+
-+		spin_unlock_irq(&rtc_lock);
- 		break;
- 	case RTC_AIE_OFF:
--		disable_irq(ELAPSEDTIME_IRQ);
-+		spin_lock_irq(&rtc_lock);
-+
-+		if (alarm_enabled) {
-+			disable_irq(ELAPSEDTIME_IRQ);
-+			alarm_enabled = 0;
-+		}
-+
-+		spin_unlock_irq(&rtc_lock);
- 		break;
- 	case RTC_PIE_ON:
- 		enable_irq(RTCLONG1_IRQ);
+diff -puN drivers/ide/legacy/ide-cs.c~ide-cs-recognize-2gb-compactflash-from-transcend drivers/ide/legacy/ide-cs.c
+--- a/drivers/ide/legacy/ide-cs.c~ide-cs-recognize-2gb-compactflash-from-transcend
++++ a/drivers/ide/legacy/ide-cs.c
+@@ -401,6 +401,7 @@ static struct pcmcia_device_id ide_ids[]
+ 	PCMCIA_DEVICE_PROD_ID12("TOSHIBA", "MK2001MPL", 0xb4585a1a, 0x3489e003),
+ 	PCMCIA_DEVICE_PROD_ID1("TRANSCEND    512M   ", 0xd0909443),
+ 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS1GCF80", 0x709b1bf1, 0x2a54d4b1),
++	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS2GCF120", 0x709b1bf1, 0xf54a91c8),
+ 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS4GCF120", 0x709b1bf1, 0xf54a91c8),
+ 	PCMCIA_DEVICE_PROD_ID12("WIT", "IDE16", 0x244e5994, 0x3e232852),
+ 	PCMCIA_DEVICE_PROD_ID12("WEIDA", "TWTTI", 0xcc7cf69c, 0x212bb918),
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from Fabrice.Aeschbacher@siemens.com are
 
-git-input.patch
-git-mips.patch
-rtc-update-vr41xx-alarm-handling.patch
+ide-cs-recognize-2gb-compactflash-from-transcend.patch
