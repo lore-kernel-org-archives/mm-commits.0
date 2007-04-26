@@ -1,233 +1,239 @@
 From: akpm@linux-foundation.org
-Subject: - unprivileged-mounts-propagate-error-values-from-clone_mnt.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 18:57:05 -0700
-Message-ID: <200704260157.l3Q1v586018393@shell0.pdx.osdl.net>
+Subject: - unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch removed from -mm tree
+Date: Wed, 25 Apr 2007 18:57:08 -0700
+Message-ID: <200704260157.l3Q1v8eo018397@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45241 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423009AbXDZB5W (ORCPT
+	by vger.kernel.org with ESMTP id S1423026AbXDZB5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 21:57:22 -0400
+	Wed, 25 Apr 2007 21:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, ebiederm@xmission.com, hch@lst.de, linuxram@us.ibm.com, serue@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, hch@lst.de, linuxram@us.ibm.com, mszeredi@suse.cz, serue@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unprivileged mounts: propagate error values from clone_mnt
+     unprivileged-mounts-propagate-error-values-from-clone_mnt-fix
 has been removed from the -mm tree.  Its filename was
-     unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+     unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: unprivileged mounts: propagate error values from clone_mnt
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: unprivileged-mounts-propagate-error-values-from-clone_mnt-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Allow clone_mnt() to return errors other than ENOMEM.  This will be used for
-returning a different error value when the number of user mounts goes over the
-limit.
+pet peeve
 
-Fix copy_tree() to return EPERM for unbindable mounts.
-
-Don't propagate further from dup_mnt_ns() as that copy_tree() can only fail
-with -ENOMEM.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Serge Hallyn <serue@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |   88 +++++++++++++++++++++++------------------------
- fs/pnode.c     |    5 +-
- 2 files changed, 47 insertions(+), 46 deletions(-)
+ fs/namespace.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/namespace.c~unprivileged-mounts-propagate-error-values-from-clone_mnt fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-propagate-error-values-from-clone_mnt
+diff -puN fs/namespace.c~unprivileged-mounts-propagate-error-values-from-clone_mnt-fix fs/namespace.c
+--- a/fs/namespace.c~unprivileged-mounts-propagate-error-values-from-clone_mnt-fix
 +++ a/fs/namespace.c
-@@ -261,42 +261,42 @@ static struct vfsmount *clone_mnt(struct
+@@ -261,6 +261,7 @@ static struct vfsmount *clone_mnt(struct
  {
  	struct super_block *sb = old->mnt_sb;
  	struct vfsmount *mnt = alloc_vfsmnt(old->mnt_devname);
-+	if (!mnt)
-+		return ERR_PTR(-ENOMEM);
- 
--	if (mnt) {
--		mnt->mnt_flags = old->mnt_flags;
--		atomic_inc(&sb->s_active);
--		mnt->mnt_sb = sb;
--		mnt->mnt_root = dget(root);
--		mnt->mnt_mountpoint = mnt->mnt_root;
--		mnt->mnt_parent = mnt;
--
--		/* don't copy the MNT_USER flag */
--		mnt->mnt_flags &= ~MNT_USER;
--		if (flag & CL_SETUSER)
--			set_mnt_user(mnt);
--
--		if (flag & CL_SLAVE) {
--			list_add(&mnt->mnt_slave, &old->mnt_slave_list);
--			mnt->mnt_master = old;
--			CLEAR_MNT_SHARED(mnt);
--		} else {
--			if ((flag & CL_PROPAGATION) || IS_MNT_SHARED(old))
--				list_add(&mnt->mnt_share, &old->mnt_share);
--			if (IS_MNT_SLAVE(old))
--				list_add(&mnt->mnt_slave, &old->mnt_slave);
--			mnt->mnt_master = old->mnt_master;
--		}
--		if (flag & CL_MAKE_SHARED)
--			set_mnt_shared(mnt);
-+	mnt->mnt_flags = old->mnt_flags;
-+	atomic_inc(&sb->s_active);
-+	mnt->mnt_sb = sb;
-+	mnt->mnt_root = dget(root);
-+	mnt->mnt_mountpoint = mnt->mnt_root;
-+	mnt->mnt_parent = mnt;
 +
-+	/* don't copy the MNT_USER flag */
-+	mnt->mnt_flags &= ~MNT_USER;
-+	if (flag & CL_SETUSER)
-+		set_mnt_user(mnt);
+ 	if (!mnt)
+ 		return ERR_PTR(-ENOMEM);
  
--		/* stick the duplicate mount on the same expiry list
--		 * as the original if that was on one */
--		if (flag & CL_EXPIRE) {
--			spin_lock(&vfsmount_lock);
--			if (!list_empty(&old->mnt_expire))
--				list_add(&mnt->mnt_expire, &old->mnt_expire);
--			spin_unlock(&vfsmount_lock);
--		}
-+	if (flag & CL_SLAVE) {
-+		list_add(&mnt->mnt_slave, &old->mnt_slave_list);
-+		mnt->mnt_master = old;
-+		CLEAR_MNT_SHARED(mnt);
-+	} else {
-+		if ((flag & CL_PROPAGATION) || IS_MNT_SHARED(old))
-+			list_add(&mnt->mnt_share, &old->mnt_share);
-+		if (IS_MNT_SLAVE(old))
-+			list_add(&mnt->mnt_slave, &old->mnt_slave);
-+		mnt->mnt_master = old->mnt_master;
-+	}
-+	if (flag & CL_MAKE_SHARED)
-+		set_mnt_shared(mnt);
-+
-+	/* stick the duplicate mount on the same expiry list
-+	 * as the original if that was on one */
-+	if (flag & CL_EXPIRE) {
-+		spin_lock(&vfsmount_lock);
-+		if (!list_empty(&old->mnt_expire))
-+			list_add(&mnt->mnt_expire, &old->mnt_expire);
-+		spin_unlock(&vfsmount_lock);
- 	}
- 	return mnt;
- }
-@@ -781,11 +781,11 @@ struct vfsmount *copy_tree(struct vfsmou
- 	struct nameidata nd;
- 
- 	if (!(flag & CL_COPY_ALL) && IS_MNT_UNBINDABLE(mnt))
--		return NULL;
-+		return ERR_PTR(-EPERM);
- 
- 	res = q = clone_mnt(mnt, dentry, flag);
--	if (!q)
--		goto Enomem;
-+	if (IS_ERR(q))
-+		goto error;
- 	q->mnt_mountpoint = mnt->mnt_mountpoint;
- 
- 	p = mnt;
-@@ -806,8 +806,8 @@ struct vfsmount *copy_tree(struct vfsmou
- 			nd.mnt = q;
- 			nd.dentry = p->mnt_mountpoint;
- 			q = clone_mnt(p, p->mnt_root, flag);
--			if (!q)
--				goto Enomem;
-+			if (IS_ERR(q))
-+				goto error;
- 			spin_lock(&vfsmount_lock);
- 			list_add_tail(&q->mnt_list, &res->mnt_list);
- 			attach_mnt(q, &nd);
-@@ -815,7 +815,7 @@ struct vfsmount *copy_tree(struct vfsmou
- 		}
- 	}
- 	return res;
--Enomem:
-+ error:
- 	if (res) {
- 		LIST_HEAD(umount_list);
- 		spin_lock(&vfsmount_lock);
-@@ -823,7 +823,7 @@ Enomem:
- 		spin_unlock(&vfsmount_lock);
- 		release_mounts(&umount_list);
- 	}
--	return NULL;
-+	return q;
- }
- 
- /*
-@@ -1002,13 +1002,13 @@ static int do_loopback(struct nameidata 
- 		goto out;
- 
- 	clone_flags = (flags & MS_SETUSER) ? CL_SETUSER : 0;
--	err = -ENOMEM;
- 	if (flags & MS_REC)
- 		mnt = copy_tree(old_nd.mnt, old_nd.dentry, clone_flags);
- 	else
- 		mnt = clone_mnt(old_nd.mnt, old_nd.dentry, clone_flags);
- 
--	if (!mnt)
-+	err = PTR_ERR(mnt);
-+	if (IS_ERR(mnt))
- 		goto out;
- 
- 	err = graft_tree(mnt, nd);
-@@ -1553,7 +1553,7 @@ static struct mnt_namespace *dup_mnt_ns(
- 	/* First pass: copy the tree topology */
- 	new_ns->root = copy_tree(mnt_ns->root, mnt_ns->root->mnt_root,
- 					CL_COPY_ALL | CL_EXPIRE);
--	if (!new_ns->root) {
-+	if (IS_ERR(new_ns->root)) {
- 		up_write(&namespace_sem);
- 		kfree(new_ns);
- 		return NULL;
-diff -puN fs/pnode.c~unprivileged-mounts-propagate-error-values-from-clone_mnt fs/pnode.c
---- a/fs/pnode.c~unprivileged-mounts-propagate-error-values-from-clone_mnt
-+++ a/fs/pnode.c
-@@ -187,8 +187,9 @@ int propagate_mnt(struct vfsmount *dest_
- 
- 		source =  get_source(m, prev_dest_mnt, prev_src_mnt, &type);
- 
--		if (!(child = copy_tree(source, source->mnt_root, type))) {
--			ret = -ENOMEM;
-+		child = copy_tree(source, source->mnt_root, type);
-+		if (IS_ERR(child)) {
-+			ret = PTR_ERR(child);
- 			list_splice(tree_list, tmp_list.prev);
- 			goto out;
- 		}
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
+origin.patch
+packet-fix-error-handling.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+device_schedule_callback-needs-a-module-reference-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix.patch
+dev_dbg-check-dev_dbg-arguments-fix-2.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+applesmc-fix-crash-when-activating-a-led-trigger-on-the-keyboard-backlight-use-a-workqueue-fix.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-fix-yamc.patch
+git-net-vs-git-netdev-all.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m-fix.patch
+scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
+pci-error-recovery-symbios-scsi-base-support-fixes.patch
+pci-error-recovery-symbios-scsi-first-failure-fix.patch
+cxacru-add-documentation-file-fix.patch
+fix-x86_64-mm-nmi-watchdog-ops.patch
+x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface-fix-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
 mm-shrink-parent-dentries-when-shrinking-slab.patch
-add-filesystem-subtype-support.patch
-add-file-position-info-to-proc.patch
-add-file-position-info-to-proc-fix.patch
-check-privileges-before-setting-mount-propagation.patch
-consolidate-generic_writepages-and-mpage_writepages.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-sys_futex64-allows-64bit-futexes-get_futex_key-must-check-proper-alignement-for-64bit-futexes.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
 unprivileged-mounts-propagate-error-values-from-clone_mnt-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
 unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
