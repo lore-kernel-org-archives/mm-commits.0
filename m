@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-update-cpu-after-new_slab.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:05:58 -0700
-Message-ID: <200704260005.l3Q05wIR016439@shell0.pdx.osdl.net>
+Subject: + rtc-update-vr41xx-alarm-handling.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:10:42 -0700
+Message-ID: <200704260010.l3Q0Ag3r016494@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58837 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754512AbXDZAGe (ORCPT
+	by vger.kernel.org with ESMTP id S1751951AbXDZALh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:06:34 -0400
+	Wed, 25 Apr 2007 20:11:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, clameter@sgi.com
+Cc: yoichi_yuasa@tripeaks.co.jp, a.zummo@towertech.it, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     slub: update cpu after new_slab()
+     rtc: update vr41xx alarm handling
 has been added to the -mm tree.  Its filename is
-     slub-core-update-cpu-after-new_slab.patch
+     rtc-update-vr41xx-alarm-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: update cpu after new_slab()
-From: Hugh Dickins <hugh@veritas.com>
+Subject: rtc: update vr41xx alarm handling
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-SLUB gave me a NULL pointer dereference in slab_alloc(), in the
-slab_lock(page) of its "Current cpuslab is acceptable" block: cpu 1 had
-been looking at cpu_slab[2], which then went NULL beneath it.  Since
-new_slab() may reenable interrupts and sleep (when __GFP_WAIT), we may get
-rescheduled on a different cpu: so need to reevaluate it.
+- vr41xx_rtc_read_alarm() reports alarm enabled.
+- vr41xx_rtc_set_alarm() sets alarm disable/enable by rtc_wkalrm.enabled.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-vr41xx.c |   28 ++++++++++++++++++++++++++--
+ 1 file changed, 26 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-core-update-cpu-after-new_slab mm/slub.c
---- a/mm/slub.c~slub-core-update-cpu-after-new_slab
-+++ a/mm/slub.c
-@@ -1234,11 +1234,12 @@ have_slab:
+diff -puN drivers/rtc/rtc-vr41xx.c~rtc-update-vr41xx-alarm-handling drivers/rtc/rtc-vr41xx.c
+--- a/drivers/rtc/rtc-vr41xx.c~rtc-update-vr41xx-alarm-handling
++++ a/drivers/rtc/rtc-vr41xx.c
+@@ -97,6 +97,7 @@ static DEFINE_SPINLOCK(rtc_lock);
+ static char rtc_name[] = "RTC";
+ static unsigned long periodic_frequency;
+ static unsigned long periodic_count;
++static unsigned int alarm_enabled;
  
- 	page = new_slab(s, gfpflags, node);
- 	if (page) {
-+		cpu = smp_processor_id();
- 		if (s->cpu_slab[cpu]) {
- 			/*
--			 * Someone else populated the cpu_slab while
--			 * we enabled interrupts. The page may not
--			 * be on the requested node.
-+			 * Someone else populated the cpu_slab while we enabled
-+			 * interrupts, or we have got scheduled on another cpu.
-+			 * The page may not be on the requested node.
- 			 */
- 			if (node == -1 ||
- 				page_to_nid(s->cpu_slab[cpu]) == node) {
+ struct resource rtc_resource[2] = {
+ 	{	.name	= rtc_name,
+@@ -188,6 +189,7 @@ static int vr41xx_rtc_read_alarm(struct 
+ 	low = rtc1_read(ECMPLREG);
+ 	mid = rtc1_read(ECMPMREG);
+ 	high = rtc1_read(ECMPHREG);
++	wkalrm->enabled = alarm_enabled;
+ 
+ 	spin_unlock_irq(&rtc_lock);
+ 
+@@ -206,10 +208,18 @@ static int vr41xx_rtc_set_alarm(struct d
+ 
+ 	spin_lock_irq(&rtc_lock);
+ 
++	if (alarm_enabled)
++		disable_irq(ELAPSEDTIME_IRQ);
++
+ 	rtc1_write(ECMPLREG, (uint16_t)(alarm_sec << 15));
+ 	rtc1_write(ECMPMREG, (uint16_t)(alarm_sec >> 1));
+ 	rtc1_write(ECMPHREG, (uint16_t)(alarm_sec >> 17));
+ 
++	if (wkalrm->enabled)
++		enable_irq(ELAPSEDTIME_IRQ);
++
++	alarm_enabled = wkalrm->enabled;
++
+ 	spin_unlock_irq(&rtc_lock);
+ 
+ 	return 0;
+@@ -221,10 +231,24 @@ static int vr41xx_rtc_ioctl(struct devic
+ 
+ 	switch (cmd) {
+ 	case RTC_AIE_ON:
+-		enable_irq(ELAPSEDTIME_IRQ);
++		spin_lock_irq(&rtc_lock);
++
++		if (!alarm_enabled) {
++			enable_irq(ELAPSEDTIME_IRQ);
++			alarm_enabled = 1;
++		}
++
++		spin_unlock_irq(&rtc_lock);
+ 		break;
+ 	case RTC_AIE_OFF:
+-		disable_irq(ELAPSEDTIME_IRQ);
++		spin_lock_irq(&rtc_lock);
++
++		if (alarm_enabled) {
++			disable_irq(ELAPSEDTIME_IRQ);
++			alarm_enabled = 0;
++		}
++
++		spin_unlock_irq(&rtc_lock);
+ 		break;
+ 	case RTC_PIE_ON:
+ 		enable_irq(RTCLONG1_IRQ);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
-origin.patch
-git-drm.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-scsi-fix-config_scsi_wait_scan=m-fix.patch
-scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
-i386-make-compat_vdso-runtime-selectable-fix.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-smaps-use-ptep_test_and_clear_young.patch
-slub-core-update-cpu-after-new_slab.patch
-mm-madvise-avoid-exclusive-mmap_sem.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+git-input.patch
+git-mips.patch
+rtc-update-vr41xx-alarm-handling.patch
