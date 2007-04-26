@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-save-the-activate-field-before-calling-fb_check_var.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:19 -0700
-Message-ID: <200704260033.l3Q0XJgf017005@shell0.pdx.osdl.net>
+Subject: + nvidiafb-rivafb-switch-to-pci_get-refcounting.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:23 -0700
+Message-ID: <200704260033.l3Q0XN8c017015@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51967 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33891 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423449AbXDZAdW (ORCPT
+	by vger.kernel.org with ESMTP id S1423459AbXDZAde (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:33:22 -0400
+	Wed, 25 Apr 2007 20:33:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com
+Cc: alan@redhat.com, adaplas@gmail.com
 
 
 The patch titled
-     fbdev: save the activate field before calling fb_check_var()
+     nvidiafb/rivafb: switch to pci_get refcounting
 has been added to the -mm tree.  Its filename is
-     fbdev-save-the-activate-field-before-calling-fb_check_var.patch
+     nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,106 +26,189 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: save the activate field before calling fb_check_var()
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: nvidiafb/rivafb: switch to pci_get refcounting
+From: Alan Cox <alan@redhat.com>
 
-Some drivers may reset the var->activate field on fb_check_var(). This can
-lead to undefined behavior. For example, doing fbset -a <option> with vga16fb
-will only modify the active console instead of modifying all.
+Switch to pci_get refcounting APIs
 
+[adaplas]
+Fix a long-standing bug where the return value of
+pci_find_slot()/pci_get_bus_and_slot() is ignored.
+
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/video/nvidia/nv_hw.c    |   15 +++++++++------
+ drivers/video/nvidia/nv_setup.c |    3 ++-
+ drivers/video/riva/nv_driver.c  |    6 ++++--
+ drivers/video/riva/riva_hw.c    |   12 ++++++++----
+ 4 files changed, 23 insertions(+), 13 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fbdev-save-the-activate-field-before-calling-fb_check_var drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-save-the-activate-field-before-calling-fb_check_var
-+++ a/drivers/video/fbmem.c
-@@ -803,6 +803,8 @@ fb_set_var(struct fb_info *info, struct 
+diff -puN drivers/video/nvidia/nv_hw.c~nvidiafb-rivafb-switch-to-pci_get-refcounting drivers/video/nvidia/nv_hw.c
+--- a/drivers/video/nvidia/nv_hw.c~nvidiafb-rivafb-switch-to-pci_get-refcounting
++++ a/drivers/video/nvidia/nv_hw.c
+@@ -686,7 +686,7 @@ static void nForceUpdateArbitrationSetti
  
- 	if ((var->activate & FB_ACTIVATE_FORCE) ||
- 	    memcmp(&info->var, var, sizeof(struct fb_var_screeninfo))) {
-+		u32 activate = var->activate;
-+
- 		if (!info->fbops->fb_check_var) {
- 			*var = info->var;
- 			return 0;
-@@ -831,7 +833,7 @@ fb_set_var(struct fb_info *info, struct 
+ 	if ((par->Chipset & 0x0FF0) == 0x01A0) {
+ 		unsigned int uMClkPostDiv;
+-		dev = pci_find_slot(0, 3);
++		dev = pci_get_bus_and_slot(0, 3);
+ 		pci_read_config_dword(dev, 0x6C, &uMClkPostDiv);
+ 		uMClkPostDiv = (uMClkPostDiv >> 8) & 0xf;
  
- 			if (!err && (flags & FBINFO_MISC_USEREVENT)) {
- 				struct fb_event event;
--				int evnt = (var->activate & FB_ACTIVATE_ALL) ?
-+				int evnt = (activate & FB_ACTIVATE_ALL) ?
- 					FB_EVENT_MODE_CHANGE_ALL :
- 					FB_EVENT_MODE_CHANGE;
+@@ -694,11 +694,11 @@ static void nForceUpdateArbitrationSetti
+ 			uMClkPostDiv = 4;
+ 		MClk = 400000 / uMClkPostDiv;
+ 	} else {
+-		dev = pci_find_slot(0, 5);
++		dev = pci_get_bus_and_slot(0, 5);
+ 		pci_read_config_dword(dev, 0x4c, &MClk);
+ 		MClk /= 1000;
+ 	}
+-
++	pci_dev_put(dev);
+ 	pll = NV_RD32(par->PRAMDAC0, 0x0500);
+ 	M = (pll >> 0) & 0xFF;
+ 	N = (pll >> 8) & 0xFF;
+@@ -707,19 +707,21 @@ static void nForceUpdateArbitrationSetti
+ 	sim_data.pix_bpp = (char)pixelDepth;
+ 	sim_data.enable_video = 0;
+ 	sim_data.enable_mp = 0;
+-	pci_find_slot(0, 1);
++	dev = pci_get_bus_and_slot(0, 1);
+ 	pci_read_config_dword(dev, 0x7C, &sim_data.memory_type);
++	pci_dev_put(dev);
+ 	sim_data.memory_type = (sim_data.memory_type >> 12) & 1;
+ 	sim_data.memory_width = 64;
  
+-	dev = pci_find_slot(0, 3);
++	dev = pci_get_bus_and_slot(0, 3);
+ 	pci_read_config_dword(dev, 0, &memctrl);
++	pci_dev_put(dev);
+ 	memctrl >>= 16;
+ 
+ 	if ((memctrl == 0x1A9) || (memctrl == 0x1AB) || (memctrl == 0x1ED)) {
+ 		int dimm[3];
+ 
+-		pci_find_slot(0, 2);
++		dev = pci_get_bus_and_slot(0, 2);
+ 		pci_read_config_dword(dev, 0x40, &dimm[0]);
+ 		dimm[0] = (dimm[0] >> 8) & 0x4f;
+ 		pci_read_config_dword(dev, 0x44, &dimm[1]);
+@@ -731,6 +733,7 @@ static void nForceUpdateArbitrationSetti
+ 			printk("nvidiafb: your nForce DIMMs are not arranged "
+ 			       "in optimal banks!\n");
+ 		}
++		pci_dev_put(dev);
+ 	}
+ 
+ 	sim_data.mem_latency = 3;
+diff -puN drivers/video/nvidia/nv_setup.c~nvidiafb-rivafb-switch-to-pci_get-refcounting drivers/video/nvidia/nv_setup.c
+--- a/drivers/video/nvidia/nv_setup.c~nvidiafb-rivafb-switch-to-pci_get-refcounting
++++ a/drivers/video/nvidia/nv_setup.c
+@@ -261,7 +261,7 @@ static void nv10GetConfig(struct nvidia_
+ 	}
+ #endif
+ 
+-	dev = pci_find_slot(0, 1);
++	dev = pci_get_bus_and_slot(0, 1);
+ 	if ((par->Chipset & 0xffff) == 0x01a0) {
+ 		int amt = 0;
+ 
+@@ -276,6 +276,7 @@ static void nv10GetConfig(struct nvidia_
+ 		par->RamAmountKBytes =
+ 		    (NV_RD32(par->PFB, 0x020C) & 0xFFF00000) >> 10;
+ 	}
++	pci_dev_put(dev);
+ 
+ 	par->CrystalFreqKHz = (NV_RD32(par->PEXTDEV, 0x0000) & (1 << 6)) ?
+ 	    14318 : 13500;
+diff -puN drivers/video/riva/nv_driver.c~nvidiafb-rivafb-switch-to-pci_get-refcounting drivers/video/riva/nv_driver.c
+--- a/drivers/video/riva/nv_driver.c~nvidiafb-rivafb-switch-to-pci_get-refcounting
++++ a/drivers/video/riva/nv_driver.c
+@@ -231,12 +231,14 @@ unsigned long riva_get_memlen(struct riv
+ 	case NV_ARCH_30:
+ 		if(chipset == NV_CHIP_IGEFORCE2) {
+ 
+-			dev = pci_find_slot(0, 1);
++			dev = pci_get_bus_and_slot(0, 1);
+ 			pci_read_config_dword(dev, 0x7C, &amt);
++			pci_dev_put(dev);
+ 			memlen = (((amt >> 6) & 31) + 1) * 1024;
+ 		} else if (chipset == NV_CHIP_0x01F0) {
+-			dev = pci_find_slot(0, 1);
++			dev = pci_get_bus_and_slot(0, 1);
+ 			pci_read_config_dword(dev, 0x84, &amt);
++			pci_dev_put(dev);
+ 			memlen = (((amt >> 4) & 127) + 1) * 1024;
+ 		} else {
+ 			switch ((NV_RD32(chip->PFB, 0x0000020C) >> 20) &
+diff -puN drivers/video/riva/riva_hw.c~nvidiafb-rivafb-switch-to-pci_get-refcounting drivers/video/riva/riva_hw.c
+--- a/drivers/video/riva/riva_hw.c~nvidiafb-rivafb-switch-to-pci_get-refcounting
++++ a/drivers/video/riva/riva_hw.c
+@@ -1118,8 +1118,9 @@ static void nForceUpdateArbitrationSetti
+     unsigned int uMClkPostDiv;
+     struct pci_dev *dev;
+ 
+-    dev = pci_find_slot(0, 3);
++    dev = pci_get_bus_and_slot(0, 3);
+     pci_read_config_dword(dev, 0x6C, &uMClkPostDiv);
++    pci_dev_put(dev);
+     uMClkPostDiv = (uMClkPostDiv >> 8) & 0xf;
+ 
+     if(!uMClkPostDiv) uMClkPostDiv = 4;
+@@ -1132,8 +1133,9 @@ static void nForceUpdateArbitrationSetti
+     sim_data.enable_video   = 0;
+     sim_data.enable_mp      = 0;
+ 
+-    dev = pci_find_slot(0, 1);
++    dev = pci_get_bus_and_slot(0, 1);
+     pci_read_config_dword(dev, 0x7C, &sim_data.memory_type);
++    pci_dev_put(dev);
+     sim_data.memory_type    = (sim_data.memory_type >> 12) & 1;
+ 
+     sim_data.memory_width   = 64;
+@@ -2112,12 +2114,14 @@ static void nv10GetConfig
+      * Fill in chip configuration.
+      */
+     if(chipset == NV_CHIP_IGEFORCE2) {
+-        dev = pci_find_slot(0, 1);
++        dev = pci_get_bus_and_slot(0, 1);
+         pci_read_config_dword(dev, 0x7C, &amt);
++        pci_dev_put(dev);
+         chip->RamAmountKBytes = (((amt >> 6) & 31) + 1) * 1024;
+     } else if(chipset == NV_CHIP_0x01F0) {
+-        dev = pci_find_slot(0, 1);
++        dev = pci_get_bus_and_slot(0, 1);
+         pci_read_config_dword(dev, 0x84, &amt);
++        pci_dev_put(dev);
+         chip->RamAmountKBytes = (((amt >> 4) & 127) + 1) * 1024;
+     } else {
+         switch ((NV_RD32(chip->PFB, 0x0000020C) >> 20) & 0x000000FF)
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
-fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
-intelfb-fix-ring-space-calculation.patch
-nvidiafb-bring-back-generic-ddc-reading.patch
-fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
-fbdev-fix-obvious-bug-in-show_pan.patch
-neofb-fill-transp-msb_right-with-the-correct.patch
-atyfb-kill-dead-code.patch
-fbdev-mm-deferred-io-support.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-mm-deferred-io-support-fix-2.patch
-fbdev-hecuba-framebuffer-driver.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-nvidiafb-fix-reversed-ddc-port.patch
-vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
-fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
-rivafb-nvidiafb-enable-hardware-monitoring.patch
-rivafb-handle-i2c-bus-creation-failure.patch
-rivafb-nvidiafb-various-cleanups.patch
-rivafb-fixed-reversed-ddc-ports.patch
-nvidiafb-ensure-that-crtc-registers-are-accessible.patch
-nvidiafb-access-crt-registers-safely.patch
-skeletonfb-various-corrections.patch
-epson1355fbc-fix-error-handling-code.patch
-nvidiafb-vga-state-save-and-restore.patch
-savagefb-rework-i2c-bit-access.patch
-savagefb-vga-state-save-and-restore.patch
-fbdev-link-vgastateo-using-kconfig.patch
-fbcon-delay-screen-update-when-setting-the-mode-of.patch
-nvidiafb-fix-sparse-warning.patch
-rivafb-fix-io-access.patch
-fbdev-kill-sparse-warning-in-deferred-io.patch
-fbdev-add-sparse-annotations-in-svgalibc.patch
-arcfb-kill-sparse-warning.patch
-s3fb-add-sparse-annotations.patch
-hecubafb-kill-sparse-warnings.patch
-i810fb-fix-incorrect-frequency-mask.patch
-vt-add-documentation-for-new-boot-sysfs-options.patch
-skeletonfb-documentation-error-fixes.patch
-fbdev-add-drawing-functions-for-framebuffers-in-system.patch
-arcfb-use-sys-instead-of-cfb-drawing-functions.patch
-hecubafb-use-sys-instead-of-cfb-drawing-functions.patch
-vfb-use-sys-instead-of-cfb-drawing-functions.patch
-fbdev-pass-struct-fb_info-to-fb_read-and-fb_write.patch
-fbdev-add-fb_read-fb_write-functions-for-framebuffers.patch
-arcfb-us-fb_sys_read.patch
-hecubafb-us-fb_sys_read.patch
-vfb-us-fb_sys_read-and-fb_sys_write.patch
-fbdev-consolidate-common-drawing-functions-into-a.patch
-fbdev-advertise-limitation-of-drawing-engine.patch
-fbcon-font-setting-should-check-limitation-of-driver.patch
-vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
-s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch
-fbdev-add-tile-operation-to-get-the-maximum-length.patch
-s3fb-implement-fb_get_tilemax.patch
-fbcon-check-if-the-character-count-can-be-handled.patch
-fbdev-save-the-activate-field-before-calling-fb_check_var.patch
-s3fb-driver-fixes.patch
-vmlfb-framebuffer-driver-for-intel-vermilion-range.patch
+git-agpgart.patch
+git-powerpc.patch
+git-libata-all.patch
+libata-acpi-add-infrastructure-for-drivers-to-use.patch
+libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver.patch
+pata_acpi-restore-driver-fix.patch
+pata_acpi-restore-driver-fix-2.patch
+pata_hpt37x-further-small-fixes.patch
+pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
+spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
+pcmcia-irq-probe-can-be-done-without-risking-an-irq-storm.patch
+pci_module_init-convertion-in-tmscsimc.patch
+tty-clarify-documentation-of-write.patch
+tty-i386-x86_64-arbitary-speed-support.patch
+apm-fix-incorrect-comment.patch
+revoke-special-mmap-handling.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
 nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
-pm2fb-3dlabs-permedia-2v-reference-board-added.patch
-pm2fb-permedia-2v-memory-clock-setting.patch
-pm2fb-pixclock-setting-restriction.patch
-nvidiafb-prevent-triggering-of-softlockup.patch
