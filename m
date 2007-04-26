@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hecubafb-kill-sparse-warnings.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:32:47 -0700
-Message-ID: <200704260032.l3Q0WlJc016939@shell0.pdx.osdl.net>
+Subject: + arcfb-kill-sparse-warning.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:32:45 -0700
+Message-ID: <200704260032.l3Q0Wjvg016933@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58061 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423421AbXDZAcv (ORCPT
+	by vger.kernel.org with ESMTP id S1423422AbXDZAcs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:32:51 -0400
+	Wed, 25 Apr 2007 20:32:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     hecubafb: kill sparse warnings
+     arcfb: kill sparse warning
 has been added to the -mm tree.  Its filename is
-     hecubafb-kill-sparse-warnings.patch
+     arcfb-kill-sparse-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hecubafb: kill sparse warnings
+Subject: arcfb: kill sparse warning
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The framebuffer memory is allocated from system RAM (vmalloc'ed).  Add __force
+The framebuffer memory is allocated from system RAM (vmalloc'ed). Add __force
 annotations.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/hecubafb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/arcfb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/hecubafb.c~hecubafb-kill-sparse-warnings drivers/video/hecubafb.c
---- a/drivers/video/hecubafb.c~hecubafb-kill-sparse-warnings
-+++ a/drivers/video/hecubafb.c
-@@ -214,7 +214,7 @@ static void apollo_send_command(struct h
- static void hecubafb_dpy_update(struct hecubafb_par *par)
- {
- 	int i;
--	unsigned char *buf = par->info->screen_base;
-+	unsigned char *buf = (unsigned char __force *)par->info->screen_base;
+diff -puN drivers/video/arcfb.c~arcfb-kill-sparse-warning drivers/video/arcfb.c
+--- a/drivers/video/arcfb.c~arcfb-kill-sparse-warning
++++ a/drivers/video/arcfb.c
+@@ -262,7 +262,8 @@ static void arcfb_lcd_update_page(struct
+ 	ks108_set_yaddr(par, chipindex, upper/8);
  
- 	apollo_send_command(par, 0xA0);
+ 	linesize = par->info->var.xres/8;
+-	src = par->info->screen_base + (left/8) + (upper * linesize);
++	src = (unsigned char __force *) par->info->screen_base + (left/8) +
++		(upper * linesize);
+ 	ks108_set_xaddr(par, chipindex, left);
  
-@@ -303,7 +303,7 @@ static ssize_t hecubafb_write(struct fil
+ 	bitmask=1;
+@@ -477,7 +478,7 @@ static ssize_t arcfb_write(struct file *
  	if (count) {
  		char *base_addr;
  
@@ -60,9 +61,9 @@ diff -puN drivers/video/hecubafb.c~hecubafb-kill-sparse-warnings drivers/video/h
  		count -= copy_from_user(base_addr + p, buf, count);
  		*ppos += count;
  		err = -EFAULT;
-@@ -409,7 +409,7 @@ static int __devexit hecubafb_remove(str
+@@ -603,7 +604,7 @@ static int arcfb_remove(struct platform_
+ 
  	if (info) {
- 		fb_deferred_io_cleanup(info);
  		unregister_framebuffer(info);
 -		vfree(info->screen_base);
 +		vfree((void __force *)info->screen_base);
