@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-netdev-all-fixup.patch added to -mm tree
-Date: Wed, 25 Apr 2007 21:37:13 -0700
-Message-ID: <200704260437.l3Q4bDKG020891@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch added to -mm tree
+Date: Wed, 25 Apr 2007 22:01:54 -0700
+Message-ID: <200704260504.l3Q54Yqw021319@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53456 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754100AbXDZEhQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754703AbXDZFEh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 00:37:16 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3Q4bDj0030691
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 25 Apr 2007 21:37:14 -0700
+	Thu, 26 Apr 2007 01:04:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     git-netdev-all-fixup
+     fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it
 has been added to the -mm tree.  Its filename is
-     git-netdev-all-fixup.patch
+     fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,32 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-netdev-all-fixup
+Subject: fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/zd1211rw/zd_usb.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/amba/bus.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/zd1211rw/zd_usb.c~git-netdev-all-fixup drivers/net/wireless/zd1211rw/zd_usb.c
---- a/drivers/net/wireless/zd1211rw/zd_usb.c~git-netdev-all-fixup
-+++ a/drivers/net/wireless/zd1211rw/zd_usb.c
-@@ -63,6 +63,9 @@ static struct usb_device_id usb_ids[] = 
- 	{ USB_DEVICE(0x0471, 0x1236), .driver_info = DEVICE_ZD1211B },
- 	{ USB_DEVICE(0x13b1, 0x0024), .driver_info = DEVICE_ZD1211B },
- 	{ USB_DEVICE(0x0586, 0x340f), .driver_info = DEVICE_ZD1211B },
-+	{ USB_DEVICE(0x0b05, 0x171b), .driver_info = DEVICE_ZD1211B },
-+	{ USB_DEVICE(0x0586, 0x3410), .driver_info = DEVICE_ZD1211B },
-+	{ USB_DEVICE(0x0586, 0x3412), .driver_info = DEVICE_ZD1211B },
- 	/* "Driverless" devices that need ejecting */
- 	{ USB_DEVICE(0x0ace, 0x2011), .driver_info = DEVICE_INSTALLER },
- 	{}
+diff -puN drivers/amba/bus.c~fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it drivers/amba/bus.c
+--- a/drivers/amba/bus.c~fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it
++++ a/drivers/amba/bus.c
+@@ -50,7 +50,7 @@ static int amba_uevent(struct device *de
+ 	int retval = 0, i = 0, len = 0;
+ 
+ 	retval = add_uevent_var(envp, nr_env, &i,
+-				buf, bufsize, &len,
++				buf, bufsz, &len,
+ 				"AMBA_ID=%08x", pcdev->periphid);
+ 	envp[i] = NULL;
+ 	return retval;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 packet-fix-error-handling.patch
 sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
 slab-introduce-krealloc-fix.patch
@@ -106,7 +103,6 @@ git-ubi-fixup.patch
 revert-gitpowerpc-ehea-changes.patch
 git-netdev-all.patch
 reapply-gitpowerpc-ehea-changes.patch
-git-netdev-all-fixup.patch
 git-netdev-all-export-ieee80211_debug_level.patch
 vioc-warning-fix.patch
 vioc-cast-warning-fix.patch
@@ -135,9 +131,7 @@ scsi-fix-config_scsi_wait_scan=m-fix.patch
 scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
 pci-error-recovery-symbios-scsi-base-support-fixes.patch
 pci-error-recovery-symbios-scsi-first-failure-fix.patch
-git-unionfs.patch
 cxacru-add-documentation-file-fix.patch
-git-wireless.patch
 fix-x86_64-mm-nmi-watchdog-ops.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
@@ -248,3 +242,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
