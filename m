@@ -1,84 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-use-_sta-bit-names-rather-than-0x0f.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 23:59:20 -0700
-Message-ID: <200704260659.l3Q6xKqe023133@shell0.pdx.osdl.net>
+Subject: + kill-warnings-when-building-mandocs.patch added to -mm tree
+Date: Thu, 26 Apr 2007 00:01:53 -0700
+Message-ID: <200704260701.l3Q71sjd023201@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55565 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933219AbXDZHAm (ORCPT
+	by vger.kernel.org with ESMTP id S933231AbXDZHB4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:00:42 -0400
+	Thu, 26 Apr 2007 03:01:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bbpetkov@yahoo.de, rdunlap@xenotime.net
 
 
 The patch titled
-     ACPI: use _STA bit names rather than 0x0F
-has been removed from the -mm tree.  Its filename was
-     acpi-use-_sta-bit-names-rather-than-0x0f.patch
+     kill warnings when building mandocs
+has been added to the -mm tree.  Its filename is
+     kill-warnings-when-building-mandocs.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: use _STA bit names rather than 0x0F
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: kill warnings when building mandocs
+From: Borislav Petkov <bbpetkov@yahoo.de>
 
-Be explicit about what "device->status = 0x0F" really means.
+This patch shuts warnings of the sort:
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>
+make -C /mnt/samsung_200/sam/kernel/trees/21-rc6/build \
+	KBUILD_SRC=/mnt/samsung_200/sam/kernel/trees/21-rc6 \
+	KBUILD_EXTMOD="" -f /mnt/samsung_200/sam/kernel/trees/21-rc6/Makefile mandocs
+make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=scripts/basic
+make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=Documentation/DocBook mandocs
+  SRCTREE=/mnt/samsung_200/sam/kernel/trees/21-rc6/ /mnt/samsung_200/sam/kernel/trees/21-rc6/build/scripts/basic/docproc doc /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/wanbook.tmpl >Documentation/DocBook/wanbook.xml
+  if grep -q refentry Documentation/DocBook/wanbook.xml; then xmlto man -m /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/man Documentation/DocBook/wanbook.xml ; gzip -f Documentation/DocBook/man/*.9; fi
+Note: meta version: No productnumber or alternative     sppp_close
+Note: meta version: No refmiscinfo@class=version        sppp_close
+Note: Writing sppp_close.9
+Note: meta version: No productnumber or alternative     sppp_open
+Note: meta version: No refmiscinfo@class=version        sppp_open
+
+by adding a RefMiscInfo xml tag in the form of the current kernel version
+to the function, struct and enum definitions in files included by
+kernel-doc when building 'mandocs'.  However, the version string appears
+truncated on the manpage due to some constraints in the xml DTD for the man
+header, I believe, for the troff output is truncated too.
+
+Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/bus.c  |    4 +++-
- drivers/acpi/scan.c |    4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ scripts/kernel-doc |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN drivers/acpi/bus.c~acpi-use-_sta-bit-names-rather-than-0x0f drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~acpi-use-_sta-bit-names-rather-than-0x0f
-+++ a/drivers/acpi/bus.c
-@@ -103,7 +103,9 @@ int acpi_bus_get_status(struct acpi_devi
- 	else if (device->parent)
- 		device->status = device->parent->status;
- 	else
--		STRUCT_TO_INT(device->status) = 0x0F;
-+		STRUCT_TO_INT(device->status) =
-+		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
-+		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
+diff -puN scripts/kernel-doc~kill-warnings-when-building-mandocs scripts/kernel-doc
+--- a/scripts/kernel-doc~kill-warnings-when-building-mandocs
++++ a/scripts/kernel-doc
+@@ -328,6 +328,15 @@ while ($ARGV[0] =~ m/^-(.*)/) {
+     }
+ }
  
- 	if (device->status.functional && !device->status.present) {
- 		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
-diff -puN drivers/acpi/scan.c~acpi-use-_sta-bit-names-rather-than-0x0f drivers/acpi/scan.c
---- a/drivers/acpi/scan.c~acpi-use-_sta-bit-names-rather-than-0x0f
-+++ a/drivers/acpi/scan.c
-@@ -1068,7 +1068,9 @@ acpi_add_single_object(struct acpi_devic
- 		}
- 		break;
- 	default:
--		STRUCT_TO_INT(device->status) = 0x0F;
-+		STRUCT_TO_INT(device->status) =
-+		    ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
-+		    ACPI_STA_DEVICE_UI      | ACPI_STA_DEVICE_FUNCTIONING;
- 		break;
- 	}
++# get kernel version from env
++sub get_kernel_version() {
++    my $version;
++
++    if (defined($ENV{'KERNELVERSION'})) {
++	$version = $ENV{'KERNELVERSION'};
++    }
++    return $version;
++}
  
+ # generate a sequence of code that will splice in highlighting information
+ # using the s// operator.
+@@ -601,6 +610,7 @@ sub output_function_xml(%) {
+     print "<refmeta>\n";
+     print " <refentrytitle><phrase>".$args{'function'}."</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
++    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+     print " <refname>".$args{'function'}."</refname>\n";
+@@ -677,6 +687,7 @@ sub output_struct_xml(%) {
+     print "<refmeta>\n";
+     print " <refentrytitle><phrase>".$args{'type'}." ".$args{'struct'}."</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
++    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+     print " <refname>".$args{'type'}." ".$args{'struct'}."</refname>\n";
+@@ -761,6 +772,7 @@ sub output_enum_xml(%) {
+     print "<refmeta>\n";
+     print " <refentrytitle><phrase>enum ".$args{'enum'}."</phrase></refentrytitle>\n";
+     print " <manvolnum>9</manvolnum>\n";
++    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
+     print "</refmeta>\n";
+     print "<refnamediv>\n";
+     print " <refname>enum ".$args{'enum'}."</refname>\n";
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from bbpetkov@yahoo.de are
 
 git-acpi.patch
-git-ia64.patch
-move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnpacpi-sets-pnpdev-devarchdata-fix.patch
-efi-warn-only-for-pre-100-system-tables.patch
-pnpbios-conert-to-use-the-kthread-api.patch
-pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
-pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled.patch
-smsc-ircc2-tidy-up-module-parameter-checking.patch
-smsc-ircc2-add-pnp-support.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-use-menuconfig-objects-pnp.patch
+git-net.patch
+kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
+generate-main-index-page-when-building-htmldocs.patch
+alphabetically-sorted-entries-in.patch
+kill-warnings-when-building-mandocs.patch
