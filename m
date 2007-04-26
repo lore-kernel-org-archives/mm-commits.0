@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + i810fb-fix-incorrect-frequency-mask.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:32:48 -0700
-Message-ID: <200704260032.l3Q0Wmqn016942@shell0.pdx.osdl.net>
+Subject: + vfb-use-sys-instead-of-cfb-drawing-functions.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:32:57 -0700
+Message-ID: <200704260032.l3Q0Wv7V016960@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33631 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423427AbXDZAcv (ORCPT
+	by vger.kernel.org with ESMTP id S1423426AbXDZAc7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:32:51 -0400
+	Wed, 25 Apr 2007 20:32:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     i810fb: fix incorrect frequency mask
+     vfb: use sys instead of cfb drawing functions
 has been added to the -mm tree.  Its filename is
-     i810fb-fix-incorrect-frequency-mask.patch
+     vfb-use-sys-instead-of-cfb-drawing-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i810fb: fix incorrect frequency mask
+Subject: vfb: use sys instead of cfb drawing functions
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Fix a long-standing bug.  The mask used to detect a 100Mhz or 133Mhz chipset
-is incorrect. (The only side effect of this bug is that it will choose an
-incorrect watermark).
+Since vfb's framebuffer is vmalloc'ed, use the sys_* drawing functions
+instead of cfb_*.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/i810/i810.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/Kconfig |    6 +++---
+ drivers/video/vfb.c   |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/i810/i810.h~i810fb-fix-incorrect-frequency-mask drivers/video/i810/i810.h
---- a/drivers/video/i810/i810.h~i810fb-fix-incorrect-frequency-mask
-+++ a/drivers/video/i810/i810.h
-@@ -133,7 +133,7 @@
- /* Masks (AND ops) and OR's */
- #define FB_START_MASK               (0x3f << (32 - 6))
- #define MMIO_ADDR_MASK              (0x1FFF << (32 - 13))
--#define FREQ_MASK                   0x1EF
-+#define FREQ_MASK                   (1 << 4)
- #define SCR_OFF                     0x20
- #define DRAM_ON                     0x08            
- #define DRAM_OFF                    0xE7
+diff -puN drivers/video/Kconfig~vfb-use-sys-instead-of-cfb-drawing-functions drivers/video/Kconfig
+--- a/drivers/video/Kconfig~vfb-use-sys-instead-of-cfb-drawing-functions
++++ a/drivers/video/Kconfig
+@@ -1704,9 +1704,9 @@ config FB_PS3_DEFAULT_SIZE_M
+ config FB_VIRTUAL
+ 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
+ 	depends on FB
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
++	select FB_SYS_FILLRECT
++	select FB_SYS_COPYAREA
++	select FB_SYS_IMAGEBLIT
+ 	---help---
+ 	  This is a `virtual' frame buffer device. It operates on a chunk of
+ 	  unswappable kernel memory instead of on the memory of a graphics
+diff -puN drivers/video/vfb.c~vfb-use-sys-instead-of-cfb-drawing-functions drivers/video/vfb.c
+--- a/drivers/video/vfb.c~vfb-use-sys-instead-of-cfb-drawing-functions
++++ a/drivers/video/vfb.c
+@@ -88,9 +88,9 @@ static struct fb_ops vfb_ops = {
+ 	.fb_set_par	= vfb_set_par,
+ 	.fb_setcolreg	= vfb_setcolreg,
+ 	.fb_pan_display	= vfb_pan_display,
+-	.fb_fillrect	= cfb_fillrect,
+-	.fb_copyarea	= cfb_copyarea,
+-	.fb_imageblit	= cfb_imageblit,
++	.fb_fillrect	= sys_fillrect,
++	.fb_copyarea	= sys_copyarea,
++	.fb_imageblit	= sys_imageblit,
+ 	.fb_mmap	= vfb_mmap,
+ };
+ 
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
