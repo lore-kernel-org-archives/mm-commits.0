@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arcfb-kill-sparse-warning.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:32:45 -0700
-Message-ID: <200704260032.l3Q0Wjvg016933@shell0.pdx.osdl.net>
+Subject: + skeletonfb-documentation-error-fixes.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:32:50 -0700
+Message-ID: <200704260032.l3Q0Wop7016948@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55113 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55297 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423422AbXDZAcs (ORCPT
+	by vger.kernel.org with ESMTP id S1423430AbXDZAcx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:32:48 -0400
+	Wed, 25 Apr 2007 20:32:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     arcfb: kill sparse warning
+     skeletonfb: documentation error fixes
 has been added to the -mm tree.  Its filename is
-     arcfb-kill-sparse-warning.patch
+     skeletonfb-documentation-error-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arcfb: kill sparse warning
+Subject: skeletonfb: documentation error fixes
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The framebuffer memory is allocated from system RAM (vmalloc'ed). Add __force
-annotations.
+Documentation error fixes.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/arcfb.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/video/skeletonfb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/arcfb.c~arcfb-kill-sparse-warning drivers/video/arcfb.c
---- a/drivers/video/arcfb.c~arcfb-kill-sparse-warning
-+++ a/drivers/video/arcfb.c
-@@ -262,7 +262,8 @@ static void arcfb_lcd_update_page(struct
- 	ks108_set_yaddr(par, chipindex, upper/8);
+diff -puN drivers/video/skeletonfb.c~skeletonfb-documentation-error-fixes drivers/video/skeletonfb.c
+--- a/drivers/video/skeletonfb.c~skeletonfb-documentation-error-fixes
++++ a/drivers/video/skeletonfb.c
+@@ -959,11 +959,11 @@ static int xxxfb_suspend(struct platform
  
- 	linesize = par->info->var.xres/8;
--	src = par->info->screen_base + (left/8) + (upper * linesize);
-+	src = (unsigned char __force *) par->info->screen_base + (left/8) +
-+		(upper * linesize);
- 	ks108_set_xaddr(par, chipindex, left);
- 
- 	bitmask=1;
-@@ -477,7 +478,7 @@ static ssize_t arcfb_write(struct file *
- 	if (count) {
- 		char *base_addr;
- 
--		base_addr = info->screen_base;
-+		base_addr = (char __force *)info->screen_base;
- 		count -= copy_from_user(base_addr + p, buf, count);
- 		*ppos += count;
- 		err = -EFAULT;
-@@ -603,7 +604,7 @@ static int arcfb_remove(struct platform_
- 
- 	if (info) {
- 		unregister_framebuffer(info);
--		vfree(info->screen_base);
-+		vfree((void __force *)info->screen_base);
- 		framebuffer_release(info);
- 	}
- 	return 0;
+ /**
+  *	xxxfb_resume - Optional but recommended function. Resume the device.
+- *	@dev: PCI device
++ *	@dev: platform device
+  *
+  *      See Documentation/power/devices.txt for more information
+  */
+-static int xxxfb_suspend(struct platform_dev *dev)
++static int xxxfb_resume(struct platform_dev *dev)
+ {
+ 	struct fb_info *info = platform_get_drvdata(dev);
+ 	struct xxxfb_par *par = info->par;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
