@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 18:57:13 -0700
-Message-ID: <200704260157.l3Q1vDFx018406@shell0.pdx.osdl.net>
+Subject: + git-agp-build-fix.patch added to -mm tree
+Date: Wed, 25 Apr 2007 19:19:55 -0700
+Message-ID: <200704260222.l3Q2MbfM018855@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40843 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46094 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423042AbXDZB5b (ORCPT
+	by vger.kernel.org with ESMTP id S1754638AbXDZCWx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 21:57:31 -0400
+	Wed, 25 Apr 2007 22:22:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, hch@lst.de, linuxram@us.ibm.com, mszeredi@suse.cz, serue@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk
 
 
 The patch titled
-     unprivileged-mounts-allow-unprivileged-bind-mounts-fix
-has been removed from the -mm tree.  Its filename was
-     unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
+     git-agp-build-fix
+has been added to the -mm tree.  Its filename is
+     git-agp-build-fix.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: unprivileged-mounts-allow-unprivileged-bind-mounts-fix
+Subject: git-agp-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-still peevish
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/agp/sworks-agp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namespace.c~unprivileged-mounts-allow-unprivileged-bind-mounts-fix fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-allow-unprivileged-bind-mounts-fix
-+++ a/fs/namespace.c
-@@ -240,6 +240,7 @@ static void dec_nr_user_mounts(void)
- static int reserve_user_mount(void)
- {
- 	int err = 0;
-+
- 	spin_lock(&vfsmount_lock);
- 	if (nr_user_mounts >= max_user_mounts && !capable(CAP_SYS_ADMIN))
- 		err = -EPERM;
+diff -puN drivers/char/agp/sworks-agp.c~git-agp-build-fix drivers/char/agp/sworks-agp.c
+--- a/drivers/char/agp/sworks-agp.c~git-agp-build-fix
++++ a/drivers/char/agp/sworks-agp.c
+@@ -528,7 +528,7 @@ static void __devexit agp_serverworks_re
+ 	pci_dev_put(bridge->dev);
+ 	agp_remove_bridge(bridge);
+ 	agp_put_bridge(bridge);
+-	pci_dev_put(serverworks_private.svrwrks_dev)
++	pci_dev_put(serverworks_private.svrwrks_dev);
+ 	serverworks_private.svrwrks_dev = NULL;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -223,7 +222,6 @@ lguest-the-host-code-vs-futex-new-private-futexes.patch
 fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
 fs-convert-core-functions-to-zero_user_page-fix-2.patch
 ntfs-use-zero_user_page-fix.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts-fix.patch
 reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 fbdev-hecuba-framebuffer-driver.patch
 vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
@@ -236,3 +234,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+git-agp-build-fix.patch
