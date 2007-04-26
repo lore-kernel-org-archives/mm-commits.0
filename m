@@ -1,71 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 00:25:17 -0700
-Message-ID: <200704260725.l3Q7PHco023901@shell0.pdx.osdl.net>
+Subject: - scsi-fix-config_scsi_wait_scan=m-fix.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:32:39 -0700
+Message-ID: <200704260732.l3Q7WdCK024166@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59075 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933379AbXDZH1f (ORCPT
+	by vger.kernel.org with ESMTP id S933464AbXDZHdF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:27:35 -0400
+	Thu, 26 Apr 2007 03:33:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, IvDoorn@gmail.com, davem@davemloft.net, dtor@mail.ru, linville@tuxdriver.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3
+     scsi-fix-config_scsi_wait_scan=m-fix
 has been removed from the -mm tree.  Its filename was
-     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
+     scsi-fix-config_scsi_wait_scan=m-fix.patch
 
-This patch was dropped because it was folded into input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+This patch was dropped because it was folded into scsi-fix-config_scsi_wait_scan=m.patch
 
 ------------------------------------------------------
-Subject: input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3
+Subject: scsi-fix-config_scsi_wait_scan=m-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/rfkill/rfkill-input.c:24: error: field 'work' has incomplete type
-net/rfkill/rfkill-input.c: In function 'rfkill_task_handler':
-net/rfkill/rfkill-input.c:35: warning: type defaults to 'int' in declaration of '__mptr'
-net/rfkill/rfkill-input.c:35: warning: initialization from incompatible pointer type
-net/rfkill/rfkill-input.c: In function 'rfkill_schedule_toggle':
-net/rfkill/rfkill-input.c:61: warning: implicit declaration of function 'schedule_work'
-net/rfkill/rfkill-input.c: At top level:
-net/rfkill/rfkill-input.c:78: warning: implicit declaration of function '__WORK_INITIALIZER'
-net/rfkill/rfkill-input.c:78: error: initializer element is not constant
-net/rfkill/rfkill-input.c:78: error: (near initialization for 'rfkill_wlan.mutex.wait_lock')
-net/rfkill/rfkill-input.c:78: error: initializer element is not constant
-net/rfkill/rfkill-input.c:78: error: (near initialization for 'rfkill_wlan.lock')
-net/rfkill/rfkill-input.c:79: error: initializer element is not constant
-net/rfkill/rfkill-input.c:79: error: (near initialization for 'rfkill_bt.mutex.wait_lock')
-net/rfkill/rfkill-input.c:79: error: initializer element is not constant
-net/rfkill/rfkill-input.c:79: error: (near initialization for 'rfkill_bt.lock')
-net/rfkill/rfkill-input.c: In function 'rfkill_handler_exit':
-net/rfkill/rfkill-input.c:166: warning: implicit declaration of function 'flush_scheduled_work'
-
-Cc: Ivo van Doorn <IvDoorn@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/rfkill/rfkill-input.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/scsi_scan.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN net/rfkill/rfkill-input.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3 net/rfkill/rfkill-input.c
---- a/net/rfkill/rfkill-input.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3
-+++ a/net/rfkill/rfkill-input.c
-@@ -13,6 +13,7 @@
- #include <linux/module.h>
- #include <linux/input.h>
- #include <linux/slab.h>
-+#include <linux/workqueue.h>
- #include <linux/init.h>
- #include <linux/rfkill.h>
+diff -puN drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix drivers/scsi/scsi_scan.c
+--- a/drivers/scsi/scsi_scan.c~scsi-fix-config_scsi_wait_scan=m-fix
++++ a/drivers/scsi/scsi_scan.c
+@@ -183,6 +183,12 @@ int scsi_complete_async_scans(void)
  
+ /* Only exported for the benefit of scsi_wait_scan */
+ EXPORT_SYMBOL_GPL(scsi_complete_async_scans);
++
++/*
++ * For async scanning we need to wait for all the scans to complete before
++ * trying to mount the root fs.  Otherwise non-modular drivers may not be ready
++ * yet.
++ */
+ late_initcall(scsi_complete_async_scans);
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,12 +103,11 @@ git-e1000.patch
 git-e1000-fixup-2.patch
 git-net.patch
 git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
 sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
 sctp_getsockopt_local_addrs-type-fix.patch
 git-net-fix-yamc.patch
-git-net-vs-git-netdev-all.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
 irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
 rfcomm_worker-fix-wakeup-race.patch
 git-ocfs2.patch
@@ -138,6 +120,7 @@ git-s390-fixup.patch
 git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 s390-net-lcs-convert-to-the-kthread-api-fix.patch
 git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
 scsi-fix-config_scsi_wait_scan=m-fix.patch
 scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
 pci-error-recovery-symbios-scsi-base-support-fixes.patch
