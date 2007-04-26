@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + arcfb-us-fb_sys_read.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:03 -0700
-Message-ID: <200704260033.l3Q0X32w016969@shell0.pdx.osdl.net>
+Subject: + vga16fb-restrict-to-blit-rectangles-with-widths-of.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:12 -0700
+Message-ID: <200704260033.l3Q0XCF1016990@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41508 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423433AbXDZAdG (ORCPT
+	by vger.kernel.org with ESMTP id S1423435AbXDZAdO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:33:06 -0400
+	Wed, 25 Apr 2007 20:33:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     arcfb: use fb_sys_read()
+     vga16fb: restrict to blit rectangles with widths of multiples of 8 pixels
 has been added to the -mm tree.  Its filename is
-     arcfb-us-fb_sys_read.patch
+     vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arcfb: use fb_sys_read()
+Subject: vga16fb: restrict to blit rectangles with widths of multiples of 8 pixels
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Since arcfb's framebuffer is vmalloc'ed, use the fb_sys_read().
+Advertise that vga16fb can only handle widths that are 8-pixel-multiple only
+(software limitation). To ensure that a legal font is available, SELECT an
+8x16 font in Kconfig.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    1 +
- drivers/video/arcfb.c |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/video/Kconfig   |    1 +
+ drivers/video/vga16fb.c |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN drivers/video/Kconfig~arcfb-us-fb_sys_read drivers/video/Kconfig
---- a/drivers/video/Kconfig~arcfb-us-fb_sys_read
+diff -puN drivers/video/Kconfig~vga16fb-restrict-to-blit-rectangles-with-widths-of drivers/video/Kconfig
+--- a/drivers/video/Kconfig~vga16fb-restrict-to-blit-rectangles-with-widths-of
 +++ a/drivers/video/Kconfig
-@@ -420,6 +420,7 @@ config FB_ARC
- 	select FB_SYS_FILLRECT
- 	select FB_SYS_COPYAREA
- 	select FB_SYS_IMAGEBLIT
-+	select FB_SYS_FOPS
+@@ -516,6 +516,7 @@ config FB_VGA16
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	select VGASTATE
++	select FONT_8x16 if FRAMEBUFFER_CONSOLE
  	help
- 	  This enables support for the Arc Monochrome LCD board. The board
- 	  is based on the KS-108 lcd controller and is typically a matrix
-diff -puN drivers/video/arcfb.c~arcfb-us-fb_sys_read drivers/video/arcfb.c
---- a/drivers/video/arcfb.c~arcfb-us-fb_sys_read
-+++ a/drivers/video/arcfb.c
-@@ -494,6 +494,7 @@ static ssize_t arcfb_write(struct fb_inf
- static struct fb_ops arcfb_ops = {
- 	.owner		= THIS_MODULE,
- 	.fb_open	= arcfb_open,
-+	.fb_read        = fb_sys_read,
- 	.fb_write	= arcfb_write,
- 	.fb_release	= arcfb_release,
- 	.fb_pan_display	= arcfb_pan_display,
+ 	  This is the frame buffer device driver for VGA 16 color graphic
+ 	  cards. Say Y if you have such a card.
+diff -puN drivers/video/vga16fb.c~vga16fb-restrict-to-blit-rectangles-with-widths-of drivers/video/vga16fb.c
+--- a/drivers/video/vga16fb.c~vga16fb-restrict-to-blit-rectangles-with-widths-of
++++ a/drivers/video/vga16fb.c
+@@ -1378,6 +1378,8 @@ static int __init vga16fb_probe(struct p
+ 	info->fbops = &vga16fb_ops;
+ 	info->var = vga16fb_defined;
+ 	info->fix = vga16fb_fix;
++	/* supports 8-pixel wide blit rectangles only */
++	info->pixmap.blit_x = 1 << (8 - 1);
+ 	info->flags = FBINFO_FLAG_DEFAULT |
+ 		FBINFO_HWACCEL_YPAN;
+ 
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
