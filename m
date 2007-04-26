@@ -1,82 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 00:25:11 -0700
-Message-ID: <200704260725.l3Q7PBaa023892@shell0.pdx.osdl.net>
+Subject: - input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:25:17 -0700
+Message-ID: <200704260725.l3Q7PHco023901@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56627 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933351AbXDZH1d (ORCPT
+	by vger.kernel.org with ESMTP id S933379AbXDZH1f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:27:33 -0400
+	Thu, 26 Apr 2007 03:27:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, IvDoorn@gmail.com, davem@davemloft.net, dtor@insightbb.com, dtor@mail.ru, linville@tuxdriver.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, IvDoorn@gmail.com, davem@davemloft.net, dtor@mail.ru, linville@tuxdriver.com, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix
+     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3
 has been removed from the -mm tree.  Its filename was
-     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
+     input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
 
 This patch was dropped because it was folded into input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 
 ------------------------------------------------------
-Subject: input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix
+Subject: input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- More includes
+net/rfkill/rfkill-input.c:24: error: field 'work' has incomplete type
+net/rfkill/rfkill-input.c: In function 'rfkill_task_handler':
+net/rfkill/rfkill-input.c:35: warning: type defaults to 'int' in declaration of '__mptr'
+net/rfkill/rfkill-input.c:35: warning: initialization from incompatible pointer type
+net/rfkill/rfkill-input.c: In function 'rfkill_schedule_toggle':
+net/rfkill/rfkill-input.c:61: warning: implicit declaration of function 'schedule_work'
+net/rfkill/rfkill-input.c: At top level:
+net/rfkill/rfkill-input.c:78: warning: implicit declaration of function '__WORK_INITIALIZER'
+net/rfkill/rfkill-input.c:78: error: initializer element is not constant
+net/rfkill/rfkill-input.c:78: error: (near initialization for 'rfkill_wlan.mutex.wait_lock')
+net/rfkill/rfkill-input.c:78: error: initializer element is not constant
+net/rfkill/rfkill-input.c:78: error: (near initialization for 'rfkill_wlan.lock')
+net/rfkill/rfkill-input.c:79: error: initializer element is not constant
+net/rfkill/rfkill-input.c:79: error: (near initialization for 'rfkill_bt.mutex.wait_lock')
+net/rfkill/rfkill-input.c:79: error: initializer element is not constant
+net/rfkill/rfkill-input.c:79: error: (near initialization for 'rfkill_bt.lock')
+net/rfkill/rfkill-input.c: In function 'rfkill_handler_exit':
+net/rfkill/rfkill-input.c:166: warning: implicit declaration of function 'flush_scheduled_work'
 
-- Avoid half an ifdef
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Dmitry Torokhov <dtor@insightbb.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
 Cc: Ivo van Doorn <IvDoorn@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rfkill.h |    2 ++
- net/rfkill/rfkill.c    |    5 +++--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ net/rfkill/rfkill-input.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/rfkill.h~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix include/linux/rfkill.h
---- a/include/linux/rfkill.h~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix
-+++ a/include/linux/rfkill.h
-@@ -21,6 +21,8 @@
-  * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
+diff -puN net/rfkill/rfkill-input.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3 net/rfkill/rfkill-input.c
+--- a/net/rfkill/rfkill-input.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3
++++ a/net/rfkill/rfkill-input.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/input.h>
+ #include <linux/slab.h>
++#include <linux/workqueue.h>
+ #include <linux/init.h>
+ #include <linux/rfkill.h>
  
-+#include <linux/types.h>
-+#include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/device.h>
-diff -puN net/rfkill/rfkill.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix net/rfkill/rfkill.c
---- a/net/rfkill/rfkill.c~input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix
-+++ a/net/rfkill/rfkill.c
-@@ -237,16 +237,17 @@ static int rfkill_resume(struct device *
- 	dev->power.power_state = PMSG_ON;
- 	return 0;
- }
-+#else
-+#define rfkill_suspend NULL
-+#define rfkill_resume NULL
- #endif
- 
- static struct class rfkill_class = {
- 	.name		= "rfkill",
- 	.dev_release	= rfkill_release,
- 	.dev_attrs	= rfkill_dev_attrs,
--#ifdef CONFIG_PM
- 	.suspend	= rfkill_suspend,
- 	.resume		= rfkill_resume,
--#endif
- };
- 
- static int rfkill_add_switch(struct rfkill *rfkill)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,8 +125,6 @@ sctp_getsockopt_local_addrs-type-fix.patch
 git-net-fix-yamc.patch
 git-net-vs-git-netdev-all.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-fix.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-2.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio-fixes-3.patch
 irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
 rfcomm_worker-fix-wakeup-race.patch
