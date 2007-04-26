@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ieee1394-iso-needs-schedh.patch added to -mm tree
-Date: Wed, 25 Apr 2007 21:04:31 -0700
-Message-ID: <200704260407.l3Q47Cso020396@shell0.pdx.osdl.net>
+Subject: + gfs2-printk-warning-fixes.patch added to -mm tree
+Date: Wed, 25 Apr 2007 21:08:02 -0700
+Message-ID: <200704260410.l3Q4AgBP020438@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47298 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754698AbXDZEHY (ORCPT
+	by vger.kernel.org with ESMTP id S1754695AbXDZEKy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 00:07:24 -0400
+	Thu, 26 Apr 2007 00:10:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, stefanr@s5r6.in-berlin.de
+Cc: akpm@linux-foundation.org, swhiteho@redhat.com
 
 
 The patch titled
-     ieee1394/iso.c needs schedh
+     gfs2 printk warning fixes
 has been added to the -mm tree.  Its filename is
-     ieee1394-iso-needs-schedh.patch
+     gfs2-printk-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ieee1394/iso.c needs schedh
+Subject: gfs2 printk warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha:
 
-drivers/ieee1394/iso.c: In function 'hpsb_iso_xmit_sync':
-drivers/ieee1394/iso.c:440: error: invalid use of undefined type 'struct task_struct'
-drivers/ieee1394/iso.c:440: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
-drivers/ieee1394/iso.c:440: error: (Each undeclared identifier is reported only once
-drivers/ieee1394/iso.c:440: error: for each function it appears in.)
-drivers/ieee1394/iso.c:440: warning: implicit declaration of function 'signal_pending'
-drivers/ieee1394/iso.c:440: error: invalid use of undefined type 'struct task_struct'
-drivers/ieee1394/iso.c:440: warning: implicit declaration of function 'schedule'
-drivers/ieee1394/iso.c: In function 'hpsb_iso_wake':
-drivers/ieee1394/iso.c:562: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
+fs/gfs2/dir.c: In function 'gfs2_dir_read_leaf':
+fs/gfs2/dir.c:1322: warning: format '%llu' expects type 'long long unsigned int', but argument 3 has type 'sector_t'
+fs/gfs2/dir.c: In function 'gfs2_dir_read':
+fs/gfs2/dir.c:1455: warning: format '%llu' expects type 'long long unsigned int', but argument 3 has type '__u64'
 
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/iso.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/gfs2/dir.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ieee1394/iso.c~ieee1394-iso-needs-schedh drivers/ieee1394/iso.c
---- a/drivers/ieee1394/iso.c~ieee1394-iso-needs-schedh
-+++ a/drivers/ieee1394/iso.c
-@@ -9,6 +9,7 @@
-  * directory of the kernel sources for details.
-  */
- 
-+#include <linux/sched.h>
- #include <linux/pci.h>
- #include <linux/slab.h>
- 
+diff -puN fs/gfs2/dir.c~gfs2-printk-warning-fixes fs/gfs2/dir.c
+--- a/fs/gfs2/dir.c~gfs2-printk-warning-fixes
++++ a/fs/gfs2/dir.c
+@@ -1319,9 +1319,11 @@ static int gfs2_dir_read_leaf(struct ino
+ 			if (IS_ERR(dent))
+ 				goto out_kfree;
+ 			if (entries2 != g.offset) {
+-				fs_warn(sdp, "Number of entries corrupt in dir leaf %llu, "
+-				        "entries2 (%u) != g.offset (%u)\n",
+-					(u64)bh->b_blocknr, entries2, g.offset);
++				fs_warn(sdp, "Number of entries corrupt in dir "
++						"leaf %llu, entries2 (%u) != "
++						"g.offset (%u)\n",
++					(unsigned long long)bh->b_blocknr,
++					entries2, g.offset);
+ 					
+ 				error = -EIO;
+ 				goto out_kfree;
+@@ -1454,7 +1456,8 @@ int gfs2_dir_read(struct inode *inode, u
+ 		if (dip->i_di.di_entries != g.offset) {
+ 			fs_warn(sdp, "Number of entries corrupt in dir %llu, "
+ 				"ip->i_di.di_entries (%u) != g.offset (%u)\n",
+-				dip->i_num.no_addr, dip->i_di.di_entries,
++				(unsigned long long)dip->i_num.no_addr,
++				dip->i_di.di_entries,
+ 				g.offset);
+ 			error = -EIO;
+ 			goto out;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +104,7 @@ git-gfs2-nmw.patch
 git-ieee1394.patch
 sbp2-include-fixes.patch
 fw-device-printk-fix.patch
+ieee1394-iso-needs-schedh.patch
 git-input.patch
 git-input-fixup.patch
 git-kvm.patch
@@ -252,4 +264,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
-ieee1394-iso-needs-schedh.patch
+gfs2-printk-warning-fixes.patch
