@@ -1,49 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 00:17:39 -0700
-Message-ID: <200704260717.l3Q7HdPB023639@shell0.pdx.osdl.net>
+Subject: - pata_acpi-restore-driver-fix.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:18:02 -0700
+Message-ID: <200704260718.l3Q7I2dv023657@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54339 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933211AbXDZHSE (ORCPT
+	by vger.kernel.org with ESMTP id S933204AbXDZHSM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:18:04 -0400
+	Thu, 26 Apr 2007 03:18:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-acpi-add-infrastructure-for-drivers-to-use-fix
+     pata_acpi-restore-driver-fix
 has been removed from the -mm tree.  Its filename was
-     libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+     pata_acpi-restore-driver-fix.patch
 
-This patch was dropped because it was folded into libata-acpi-add-infrastructure-for-drivers-to-use.patch
+This patch was dropped because it was folded into pata_acpi-restore-driver.patch
 
 ------------------------------------------------------
-Subject: libata-acpi-add-infrastructure-for-drivers-to-use-fix
+Subject: pata_acpi-restore-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+drivers/ata/pata_acpi.c: In function 'pacpi_pre_reset':
+drivers/ata/pata_acpi.c:55: error: too many arguments to function 'ata_std_prereset'
+drivers/ata/pata_acpi.c: In function 'pacpi_error_handler':
+drivers/ata/pata_acpi.c:86: warning: passing argument 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
 
 Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/pata_acpi.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-acpi-add-infrastructure-for-drivers-to-use-fix drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-acpi-add-infrastructure-for-drivers-to-use-fix
-+++ a/drivers/ata/libata-acpi.c
-@@ -764,7 +764,7 @@ static void *ata_pata_find_handle(struct
- 	acpi_handle handle;
- 	acpi_integer devfn;
+diff -puN drivers/ata/Kconfig~pata_acpi-restore-driver-fix drivers/ata/Kconfig
+diff -puN drivers/ata/Makefile~pata_acpi-restore-driver-fix drivers/ata/Makefile
+diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix drivers/ata/pata_acpi.c
+--- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix
++++ a/drivers/ata/pata_acpi.c
+@@ -45,14 +45,14 @@ struct pata_acpi {
+  *	Perform the PATA port setup we need.
+  */
  
--	if (noacpi)
-+	if (libata_noacpi)
- 		return NULL;
- 	if (pata_get_dev_handle(dev, &handle, &devfn) < 0)
- 		return NULL;
+-static int pacpi_pre_reset(struct ata_port *ap, unsigned long deadline)
++static int pacpi_pre_reset(struct ata_port *ap)
+ {
+ 	struct pata_acpi *acpi = ap->private_data;
+ 
+ 	if (acpi->handle == NULL || ata_acpi_gtm(ap, acpi->handle, &acpi->gtm) < 0)
+ 		return -ENODEV;
+ 
+-	return ata_std_prereset(ap, deadline);
++	return ata_std_prereset(ap);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,8 +94,7 @@ git-input-fixup.patch
 git-kvm.patch
 git-libata-all.patch
 ata-printk-warning-fixes.patch
-libata-acpi-add-infrastructure-for-drivers-to-use.patch
-libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
+pata_acpi-restore-driver.patch
 pata_acpi-restore-driver-fix.patch
 pata_acpi-restore-driver-fix-2.patch
 drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
