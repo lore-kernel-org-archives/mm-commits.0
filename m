@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-advertise-limitation-of-drawing-engine.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:08 -0700
-Message-ID: <200704260033.l3Q0X8cq016982@shell0.pdx.osdl.net>
+Subject: + arcfb-us-fb_sys_read.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:03 -0700
+Message-ID: <200704260033.l3Q0X32w016969@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41092 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41508 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423447AbXDZAdM (ORCPT
+	by vger.kernel.org with ESMTP id S1423433AbXDZAdG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:33:12 -0400
+	Wed, 25 Apr 2007 20:33:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbdev: advertise limitation of drawing engine
+     arcfb: use fb_sys_read()
 has been added to the -mm tree.  Its filename is
-     fbdev-advertise-limitation-of-drawing-engine.patch
+     arcfb-us-fb_sys_read.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: advertise limitation of drawing engine
+Subject: arcfb: use fb_sys_read()
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-A few drivers are not capable of blitting rectangles of any dimension.
-vga16fb can only blit 8-pixel wide rectangles, while s3fb (in tileblitting
-mode) can only blit 8x16 rectangles.  For example, loading a 12x22 font in
-vga16fb will result in a corrupt display.
-
-Advertise this limitation/capability in info->pixmap.blit_x and blit_y.  These
-fields are 32-bit arrays (font max is 32x32 only), ie, if bit 7 is set, then
-width/height of 7+1 is supported.
+Since arcfb's framebuffer is vmalloc'ed, use the fb_sys_read().
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    6 ++++++
- include/linux/fb.h    |    4 ++++
- 2 files changed, 10 insertions(+)
+ drivers/video/Kconfig |    1 +
+ drivers/video/arcfb.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/video/fbmem.c~fbdev-advertise-limitation-of-drawing-engine drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-advertise-limitation-of-drawing-engine
-+++ a/drivers/video/fbmem.c
-@@ -1321,6 +1321,12 @@ register_framebuffer(struct fb_info *fb_
- 	}	
- 	fb_info->pixmap.offset = 0;
- 
-+	if (!fb_info->pixmap.blit_x)
-+		fb_info->pixmap.blit_x = ~(u32)0;
-+
-+	if (!fb_info->pixmap.blit_y)
-+		fb_info->pixmap.blit_y = ~(u32)0;
-+
- 	if (!fb_info->modelist.prev || !fb_info->modelist.next)
- 		INIT_LIST_HEAD(&fb_info->modelist);
- 
-diff -puN include/linux/fb.h~fbdev-advertise-limitation-of-drawing-engine include/linux/fb.h
---- a/include/linux/fb.h~fbdev-advertise-limitation-of-drawing-engine
-+++ a/include/linux/fb.h
-@@ -558,6 +558,10 @@ struct fb_pixmap {
- 	u32 scan_align;		/* alignment per scanline		*/
- 	u32 access_align;	/* alignment per read/write (bits)	*/
- 	u32 flags;		/* see FB_PIXMAP_*			*/
-+	u32 blit_x;             /* supported bit block dimensions (1-32)*/
-+	u32 blit_y;             /* Format: blit_x = 1 << (width - 1)    */
-+	                        /*         blit_y = 1 << (height - 1)   */
-+	                        /* if 0, will be set to 0xffffffff (all)*/
- 	/* access methods */
- 	void (*writeio)(struct fb_info *info, void __iomem *dst, void *src, unsigned int size);
- 	void (*readio) (struct fb_info *info, void *dst, void __iomem *src, unsigned int size);
+diff -puN drivers/video/Kconfig~arcfb-us-fb_sys_read drivers/video/Kconfig
+--- a/drivers/video/Kconfig~arcfb-us-fb_sys_read
++++ a/drivers/video/Kconfig
+@@ -420,6 +420,7 @@ config FB_ARC
+ 	select FB_SYS_FILLRECT
+ 	select FB_SYS_COPYAREA
+ 	select FB_SYS_IMAGEBLIT
++	select FB_SYS_FOPS
+ 	help
+ 	  This enables support for the Arc Monochrome LCD board. The board
+ 	  is based on the KS-108 lcd controller and is typically a matrix
+diff -puN drivers/video/arcfb.c~arcfb-us-fb_sys_read drivers/video/arcfb.c
+--- a/drivers/video/arcfb.c~arcfb-us-fb_sys_read
++++ a/drivers/video/arcfb.c
+@@ -494,6 +494,7 @@ static ssize_t arcfb_write(struct fb_inf
+ static struct fb_ops arcfb_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.fb_open	= arcfb_open,
++	.fb_read        = fb_sys_read,
+ 	.fb_write	= arcfb_write,
+ 	.fb_release	= arcfb_release,
+ 	.fb_pan_display	= arcfb_pan_display,
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
