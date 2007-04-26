@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-kill-sparse-warning-in-deferred-io.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:32:43 -0700
-Message-ID: <200704260032.l3Q0Whh3016927@shell0.pdx.osdl.net>
+Subject: + nvidiafb-fix-sparse-warning.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:32:41 -0700
+Message-ID: <200704260032.l3Q0Wfe4016920@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46728 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423415AbXDZAcq (ORCPT
+	by vger.kernel.org with ESMTP id S1423417AbXDZAco (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:32:46 -0400
+	Wed, 25 Apr 2007 20:32:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbdev: kill sparse warning in deferred IO
+     nvidiafb: fix sparse warning
 has been added to the -mm tree.  Its filename is
-     fbdev-kill-sparse-warning-in-deferred-io.patch
+     nvidiafb-fix-sparse-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: kill sparse warning in deferred IO
+Subject: nvidiafb: fix sparse warning
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Kill the following in fb_defio.c:
+Fix the following sparse warning:
 
-drivers/video/fb_defio.c:40:43: warning: incorrect type in argument 1 (different address spaces)
-drivers/video/fb_defio.c:40:43:    expected void *addr
-drivers/video/fb_defio.c:40:43:    got char [noderef] *screen_base<asn:2>
-
-The framebuffer memory of these types of devices are allocated from system
-RAM.
+drivers/video/nvidia/nv_setup.c:659:20: warning: dereference of noderef expression
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fb_defio.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/video/nvidia/nv_setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/fb_defio.c~fbdev-kill-sparse-warning-in-deferred-io drivers/video/fb_defio.c
---- a/drivers/video/fb_defio.c~fbdev-kill-sparse-warning-in-deferred-io
-+++ a/drivers/video/fb_defio.c
-@@ -32,12 +32,14 @@ static struct page* fb_deferred_io_nopag
- 	unsigned long offset;
- 	struct page *page;
- 	struct fb_info *info = vma->vm_private_data;
-+	/* info->screen_base is in System RAM */
-+	void *screen_base = (void __force *) info->screen_base;
- 
- 	offset = (vaddr - vma->vm_start) + (vma->vm_pgoff << PAGE_SHIFT);
- 	if (offset >= info->fix.smem_len)
- 		return NOPAGE_SIGBUS;
- 
--	page = vmalloc_to_page(info->screen_base + offset);
-+	page = vmalloc_to_page(screen_base + offset);
- 	if (!page)
- 		return NOPAGE_OOM;
- 
+diff -puN drivers/video/nvidia/nv_setup.c~nvidiafb-fix-sparse-warning drivers/video/nvidia/nv_setup.c
+--- a/drivers/video/nvidia/nv_setup.c~nvidiafb-fix-sparse-warning
++++ a/drivers/video/nvidia/nv_setup.c
+@@ -656,7 +656,7 @@ int NVCommonSetup(struct fb_info *info)
+ 	par->LVDS = 0;
+ 	if (par->FlatPanel && par->twoHeads) {
+ 		NV_WR32(par->PRAMDAC0, 0x08B0, 0x00010004);
+-		if (par->PRAMDAC0[0x08b4] & 1)
++		if (NV_RD32(par->PRAMDAC0, 0x08b4) & 1)
+ 			par->LVDS = 1;
+ 		printk("nvidiafb: Panel is %s\n", par->LVDS ? "LVDS" : "TMDS");
+ 	}
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
