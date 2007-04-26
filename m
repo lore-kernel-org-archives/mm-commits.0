@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-consolidate-common-drawing-functions-into-a.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:07 -0700
-Message-ID: <200704260033.l3Q0X7us016979@shell0.pdx.osdl.net>
+Subject: + vfb-us-fb_sys_read-and-fb_sys_write.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:05 -0700
+Message-ID: <200704260033.l3Q0X5m9016976@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48746 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36630 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423442AbXDZAdL (ORCPT
+	by vger.kernel.org with ESMTP id S1423433AbXDZAdJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:33:11 -0400
+	Wed, 25 Apr 2007 20:33:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbdev: consolidate common drawing functions into a header file
+     vfb: use fb_sys_read() and fb_sys_write()
 has been added to the -mm tree.  Its filename is
-     fbdev-consolidate-common-drawing-functions-into-a.patch
+     vfb-us-fb_sys_read-and-fb_sys_write.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,321 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: consolidate common drawing functions into a header file
+Subject: vfb: use fb_sys_read() and fb_sys_write()
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Consolidate common drawing functions into a single header file.
+Since vfb's framebuffer is vmalloc'ed, use the fb_sys_read() and
+fb_sys_write().
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cfbcopyarea.c |   14 ------
- drivers/video/cfbfillrect.c |   68 --------------------------------
- drivers/video/fb_draw.h     |   72 ++++++++++++++++++++++++++++++++++
- drivers/video/syscopyarea.c |   12 -----
- drivers/video/sysfillrect.c |   68 --------------------------------
- 5 files changed, 76 insertions(+), 158 deletions(-)
+ drivers/video/Kconfig |    1 +
+ drivers/video/vfb.c   |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN drivers/video/cfbcopyarea.c~fbdev-consolidate-common-drawing-functions-into-a drivers/video/cfbcopyarea.c
---- a/drivers/video/cfbcopyarea.c~fbdev-consolidate-common-drawing-functions-into-a
-+++ a/drivers/video/cfbcopyarea.c
-@@ -22,8 +22,6 @@
-  *  help moving some redundant computations and branches out of the loop, too.
-  */
+diff -puN drivers/video/Kconfig~vfb-us-fb_sys_read-and-fb_sys_write drivers/video/Kconfig
+--- a/drivers/video/Kconfig~vfb-us-fb_sys_read-and-fb_sys_write
++++ a/drivers/video/Kconfig
+@@ -1714,6 +1714,7 @@ config FB_VIRTUAL
+ 	select FB_SYS_FILLRECT
+ 	select FB_SYS_COPYAREA
+ 	select FB_SYS_IMAGEBLIT
++	select FB_SYS_FOPS
+ 	---help---
+ 	  This is a `virtual' frame buffer device. It operates on a chunk of
+ 	  unswappable kernel memory instead of on the memory of a graphics
+diff -puN drivers/video/vfb.c~vfb-us-fb_sys_read-and-fb_sys_write drivers/video/vfb.c
+--- a/drivers/video/vfb.c~vfb-us-fb_sys_read-and-fb_sys_write
++++ a/drivers/video/vfb.c
+@@ -84,6 +84,8 @@ static int vfb_mmap(struct fb_info *info
+ 		    struct vm_area_struct *vma);
  
--
--
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/string.h>
-@@ -31,6 +29,7 @@
- #include <linux/slab.h>
- #include <asm/types.h>
- #include <asm/io.h>
-+#include "fb_draw.h"
- 
- #if BITS_PER_LONG == 32
- #  define FB_WRITEL fb_writel
-@@ -41,17 +40,6 @@
- #endif
- 
-     /*
--     *  Compose two values, using a bitmask as decision value
--     *  This is equivalent to (a & mask) | (b & ~mask)
--     */
--
--static inline unsigned long
--comp(unsigned long a, unsigned long b, unsigned long mask)
--{
--    return ((a ^ b) & mask) ^ b;
--}
--
--    /*
-      *  Generic bitwise copy algorithm
-      */
- 
-diff -puN drivers/video/cfbfillrect.c~fbdev-consolidate-common-drawing-functions-into-a drivers/video/cfbfillrect.c
---- a/drivers/video/cfbfillrect.c~fbdev-consolidate-common-drawing-functions-into-a
-+++ a/drivers/video/cfbfillrect.c
-@@ -21,6 +21,7 @@
- #include <linux/string.h>
- #include <linux/fb.h>
- #include <asm/types.h>
-+#include "fb_draw.h"
- 
- #if BITS_PER_LONG == 32
- #  define FB_WRITEL fb_writel
-@@ -31,73 +32,6 @@
- #endif
- 
-     /*
--     *  Compose two values, using a bitmask as decision value
--     *  This is equivalent to (a & mask) | (b & ~mask)
--     */
--
--static inline unsigned long
--comp(unsigned long a, unsigned long b, unsigned long mask)
--{
--    return ((a ^ b) & mask) ^ b;
--}
--
--    /*
--     *  Create a pattern with the given pixel's color
--     */
--
--#if BITS_PER_LONG == 64
--static inline unsigned long
--pixel_to_pat( u32 bpp, u32 pixel)
--{
--	switch (bpp) {
--	case 1:
--		return 0xfffffffffffffffful*pixel;
--	case 2:
--		return 0x5555555555555555ul*pixel;
--	case 4:
--		return 0x1111111111111111ul*pixel;
--	case 8:
--		return 0x0101010101010101ul*pixel;
--	case 12:
--		return 0x0001001001001001ul*pixel;
--	case 16:
--		return 0x0001000100010001ul*pixel;
--	case 24:
--		return 0x0000000001000001ul*pixel;
--	case 32:
--		return 0x0000000100000001ul*pixel;
--	default:
--		panic("pixel_to_pat(): unsupported pixelformat\n");
--    }
--}
--#else
--static inline unsigned long
--pixel_to_pat( u32 bpp, u32 pixel)
--{
--	switch (bpp) {
--	case 1:
--		return 0xfffffffful*pixel;
--	case 2:
--		return 0x55555555ul*pixel;
--	case 4:
--		return 0x11111111ul*pixel;
--	case 8:
--		return 0x01010101ul*pixel;
--	case 12:
--		return 0x00001001ul*pixel;
--	case 16:
--		return 0x00010001ul*pixel;
--	case 24:
--		return 0x00000001ul*pixel;
--	case 32:
--		return 0x00000001ul*pixel;
--	default:
--		panic("pixel_to_pat(): unsupported pixelformat\n");
--    }
--}
--#endif
--
--    /*
-      *  Aligned pattern fill using 32/64-bit memory accesses
-      */
- 
-diff -puN /dev/null drivers/video/fb_draw.h
---- /dev/null
-+++ a/drivers/video/fb_draw.h
-@@ -0,0 +1,72 @@
-+#ifndef _FB_DRAW_H
-+#define _FB_DRAW_H
-+
-+#include <asm/types.h>
-+
-+    /*
-+     *  Compose two values, using a bitmask as decision value
-+     *  This is equivalent to (a & mask) | (b & ~mask)
-+     */
-+
-+static inline unsigned long
-+comp(unsigned long a, unsigned long b, unsigned long mask)
-+{
-+    return ((a ^ b) & mask) ^ b;
-+}
-+
-+    /*
-+     *  Create a pattern with the given pixel's color
-+     */
-+
-+#if BITS_PER_LONG == 64
-+static inline unsigned long
-+pixel_to_pat( u32 bpp, u32 pixel)
-+{
-+	switch (bpp) {
-+	case 1:
-+		return 0xfffffffffffffffful*pixel;
-+	case 2:
-+		return 0x5555555555555555ul*pixel;
-+	case 4:
-+		return 0x1111111111111111ul*pixel;
-+	case 8:
-+		return 0x0101010101010101ul*pixel;
-+	case 12:
-+		return 0x0001001001001001ul*pixel;
-+	case 16:
-+		return 0x0001000100010001ul*pixel;
-+	case 24:
-+		return 0x0000000001000001ul*pixel;
-+	case 32:
-+		return 0x0000000100000001ul*pixel;
-+	default:
-+		panic("pixel_to_pat(): unsupported pixelformat\n");
-+    }
-+}
-+#else
-+static inline unsigned long
-+pixel_to_pat( u32 bpp, u32 pixel)
-+{
-+	switch (bpp) {
-+	case 1:
-+		return 0xfffffffful*pixel;
-+	case 2:
-+		return 0x55555555ul*pixel;
-+	case 4:
-+		return 0x11111111ul*pixel;
-+	case 8:
-+		return 0x01010101ul*pixel;
-+	case 12:
-+		return 0x00001001ul*pixel;
-+	case 16:
-+		return 0x00010001ul*pixel;
-+	case 24:
-+		return 0x00000001ul*pixel;
-+	case 32:
-+		return 0x00000001ul*pixel;
-+	default:
-+		panic("pixel_to_pat(): unsupported pixelformat\n");
-+    }
-+}
-+#endif
-+#endif /* FB_DRAW_H */
-diff -puN drivers/video/syscopyarea.c~fbdev-consolidate-common-drawing-functions-into-a drivers/video/syscopyarea.c
---- a/drivers/video/syscopyarea.c~fbdev-consolidate-common-drawing-functions-into-a
-+++ a/drivers/video/syscopyarea.c
-@@ -19,17 +19,7 @@
- #include <linux/slab.h>
- #include <asm/types.h>
- #include <asm/io.h>
--
--    /*
--     *  Compose two values, using a bitmask as decision value
--     *  This is equivalent to (a & mask) | (b & ~mask)
--     */
--
--static inline unsigned long
--comp(unsigned long a, unsigned long b, unsigned long mask)
--{
--    return ((a ^ b) & mask) ^ b;
--}
-+#include "fb_draw.h"
- 
-     /*
-      *  Generic bitwise copy algorithm
-diff -puN drivers/video/sysfillrect.c~fbdev-consolidate-common-drawing-functions-into-a drivers/video/sysfillrect.c
---- a/drivers/video/sysfillrect.c~fbdev-consolidate-common-drawing-functions-into-a
-+++ a/drivers/video/sysfillrect.c
-@@ -15,73 +15,7 @@
- #include <linux/string.h>
- #include <linux/fb.h>
- #include <asm/types.h>
--
--    /*
--     *  Compose two values, using a bitmask as decision value
--     *  This is equivalent to (a & mask) | (b & ~mask)
--     */
--
--static inline unsigned long
--comp(unsigned long a, unsigned long b, unsigned long mask)
--{
--    return ((a ^ b) & mask) ^ b;
--}
--
--    /*
--     *  Create a pattern with the given pixel's color
--     */
--
--#if BITS_PER_LONG == 64
--static inline unsigned long
--pixel_to_pat( u32 bpp, u32 pixel)
--{
--	switch (bpp) {
--	case 1:
--		return 0xfffffffffffffffful*pixel;
--	case 2:
--		return 0x5555555555555555ul*pixel;
--	case 4:
--		return 0x1111111111111111ul*pixel;
--	case 8:
--		return 0x0101010101010101ul*pixel;
--	case 12:
--		return 0x0001001001001001ul*pixel;
--	case 16:
--		return 0x0001000100010001ul*pixel;
--	case 24:
--		return 0x0000000001000001ul*pixel;
--	case 32:
--		return 0x0000000100000001ul*pixel;
--	default:
--		panic("pixel_to_pat(): unsupported pixelformat\n");
--    }
--}
--#else
--static inline unsigned long
--pixel_to_pat( u32 bpp, u32 pixel)
--{
--	switch (bpp) {
--	case 1:
--		return 0xfffffffful*pixel;
--	case 2:
--		return 0x55555555ul*pixel;
--	case 4:
--		return 0x11111111ul*pixel;
--	case 8:
--		return 0x01010101ul*pixel;
--	case 12:
--		return 0x00001001ul*pixel;
--	case 16:
--		return 0x00010001ul*pixel;
--	case 24:
--		return 0x00000001ul*pixel;
--	case 32:
--		return 0x00000001ul*pixel;
--	default:
--		panic("pixel_to_pat(): unsupported pixelformat\n");
--    }
--}
--#endif
-+#include "fb_draw.h"
- 
-     /*
-      *  Aligned pattern fill using 32/64-bit memory accesses
+ static struct fb_ops vfb_ops = {
++	.fb_read        = fb_sys_read,
++	.fb_write       = fb_sys_write,
+ 	.fb_check_var	= vfb_check_var,
+ 	.fb_set_par	= vfb_set_par,
+ 	.fb_setcolreg	= vfb_setcolreg,
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
