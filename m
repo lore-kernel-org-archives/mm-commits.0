@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-font-setting-should-check-limitation-of-driver.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:10 -0700
-Message-ID: <200704260033.l3Q0XAYP016985@shell0.pdx.osdl.net>
+Subject: + s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:14 -0700
+Message-ID: <200704260033.l3Q0XEYR016993@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51667 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423440AbXDZAdN (ORCPT
+	by vger.kernel.org with ESMTP id S1423438AbXDZAdR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:33:13 -0400
+	Wed, 25 Apr 2007 20:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbcon: font setting should check limitation of driver
+     s3fb: limit 8x16 rectangles when tileblitting is enabled
 has been added to the -mm tree.  Its filename is
-     fbcon-font-setting-should-check-limitation-of-driver.patch
+     s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,138 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbcon: font setting should check limitation of driver
+Subject: s3fb: limit 8x16 rectangles when tileblitting is enabled
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-fbcon_set_font() will now check if the new font dimensions can be drawn by the
-driver (by checking pixmap.blit_x and blit_y).  Similarly, add 2 new
-parameters to get_default_font(), font_w and font_h, to further aid in the
-font selection process.
+If tileblitting is enabled (text mode), the hardware can only accept 8x16
+bitmaps. Advertise this to the upper layer. And to ensure that an appropriate
+font is always available, select an 8x16 font in Kconfig.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c   |   17 ++++++++++++++---
- drivers/video/console/fonts.c   |   10 +++++++++-
- drivers/video/console/sticore.c |    2 +-
- include/linux/font.h            |    3 ++-
- 4 files changed, 26 insertions(+), 6 deletions(-)
+ drivers/video/Kconfig |    1 +
+ drivers/video/s3fb.c  |    6 ++++++
+ 2 files changed, 7 insertions(+)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-font-setting-should-check-limitation-of-driver drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-font-setting-should-check-limitation-of-driver
-+++ a/drivers/video/console/fbcon.c
-@@ -988,7 +988,9 @@ static const char *fbcon_startup(void)
- 	if (!p->fontdata) {
- 		if (!fontname[0] || !(font = find_font(fontname)))
- 			font = get_default_font(info->var.xres,
--						info->var.yres);
-+						info->var.yres,
-+						info->pixmap.blit_x,
-+						info->pixmap.blit_y);
- 		vc->vc_font.width = font->width;
- 		vc->vc_font.height = font->height;
- 		vc->vc_font.data = (void *)(p->fontdata = font->data);
-@@ -1108,7 +1110,9 @@ static void fbcon_init(struct vc_data *v
+diff -puN drivers/video/Kconfig~s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled drivers/video/Kconfig
+--- a/drivers/video/Kconfig~s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled
++++ a/drivers/video/Kconfig
+@@ -1191,6 +1191,7 @@ config FB_S3
+ 	select FB_TILEBLITTING
+ 	select FB_SVGALIB
+ 	select VGASTATE
++	select FONT_8x16 if FRAMEBUFFER_CONSOLE
+ 	---help---
+ 	  Driver for graphics boards with S3 Trio / S3 Virge chip.
  
- 			if (!fontname[0] || !(font = find_font(fontname)))
- 				font = get_default_font(info->var.xres,
--							info->var.yres);
-+							info->var.yres,
-+							info->pixmap.blit_x,
-+							info->pixmap.blit_y);
- 			vc->vc_font.width = font->width;
- 			vc->vc_font.height = font->height;
- 			vc->vc_font.data = (void *)(p->fontdata = font->data);
-@@ -2495,6 +2499,7 @@ static int fbcon_copy_font(struct vc_dat
+diff -puN drivers/video/s3fb.c~s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled
++++ a/drivers/video/s3fb.c
+@@ -449,6 +449,9 @@ static int s3fb_set_par(struct fb_info *
+ 		info->flags &= ~FBINFO_MISC_TILEBLITTING;
+ 		info->tileops = NULL;
  
- static int fbcon_set_font(struct vc_data *vc, struct console_font *font, unsigned flags)
- {
-+	struct fb_info *info = registered_fb[con2fb_map[vc->vc_num]];
- 	unsigned charcount = font->charcount;
- 	int w = font->width;
- 	int h = font->height;
-@@ -2508,6 +2513,11 @@ static int fbcon_set_font(struct vc_data
- 	if (charcount != 256 && charcount != 512)
- 		return -EINVAL;
++		/* supports blit rectangles of any dimension */
++		info->pixmap.blit_x = ~(u32)0;
++		info->pixmap.blit_y = ~(u32)0;
+ 		offset_value = (info->var.xres_virtual * bpp) / 64;
+ 		screen_size = info->var.yres_virtual * info->fix.line_length;
+ 	} else {
+@@ -457,6 +460,9 @@ static int s3fb_set_par(struct fb_info *
  
-+	/* Make sure drawing engine can handle the font */
-+	if (!(info->pixmap.blit_x & (1 << (font->width - 1))) ||
-+	    !(info->pixmap.blit_y & (1 << (font->height - 1))))
-+		return -EINVAL;
-+
- 	size = h * pitch * charcount;
+ 		info->flags |= FBINFO_MISC_TILEBLITTING;
+ 		info->tileops = fasttext ? &s3fb_fast_tile_ops : &s3fb_tile_ops;
++		/* supports 8x16 tiles only */
++		info->pixmap.blit_x = 1 << (8 - 1);
++		info->pixmap.blit_y = 1 << (16 - 1);
  
- 	new_data = kmalloc(FONT_EXTRA_WORDS * sizeof(int) + size, GFP_USER);
-@@ -2552,7 +2562,8 @@ static int fbcon_set_def_font(struct vc_
- 	const struct font_desc *f;
- 
- 	if (!name)
--		f = get_default_font(info->var.xres, info->var.yres);
-+		f = get_default_font(info->var.xres, info->var.yres,
-+				     info->pixmap.blit_x, info->pixmap.blit_y);
- 	else if (!(f = find_font(name)))
- 		return -ENOENT;
- 
-diff -puN drivers/video/console/fonts.c~fbcon-font-setting-should-check-limitation-of-driver drivers/video/console/fonts.c
---- a/drivers/video/console/fonts.c~fbcon-font-setting-should-check-limitation-of-driver
-+++ a/drivers/video/console/fonts.c
-@@ -98,6 +98,8 @@ const struct font_desc *find_font(const 
-  *	get_default_font - get default font
-  *	@xres: screen size of X
-  *	@yres: screen size of Y
-+ *      @font_w: bit array of supported widths (1 - 32)
-+ *      @font_h: bit array of supported heights (1 - 32)
-  *
-  *	Get the default font for a specified screen size.
-  *	Dimensions are in pixels.
-@@ -107,7 +109,8 @@ const struct font_desc *find_font(const 
-  *
-  */
- 
--const struct font_desc *get_default_font(int xres, int yres)
-+const struct font_desc *get_default_font(int xres, int yres, u32 font_w,
-+					 u32 font_h)
- {
-     int i, c, cc;
-     const struct font_desc *f, *g;
-@@ -129,6 +132,11 @@ const struct font_desc *get_default_font
- #endif
- 	if ((yres < 400) == (f->height <= 8))
- 	    c += 1000;
-+
-+	if (!(font_w & (1 << (f->width - 1))) ||
-+	    !(font_w & (1 << (f->height - 1))))
-+	    c += 1000;
-+
- 	if (c > cc) {
- 	    cc = c;
- 	    g = f;
-diff -puN drivers/video/console/sticore.c~fbcon-font-setting-should-check-limitation-of-driver drivers/video/console/sticore.c
---- a/drivers/video/console/sticore.c~fbcon-font-setting-should-check-limitation-of-driver
-+++ a/drivers/video/console/sticore.c
-@@ -495,7 +495,7 @@ sti_select_fbfont(struct sti_cooked_rom 
- 		return NULL;
- 	fbfont = find_font(fbfont_name);
- 	if (!fbfont)
--		fbfont = get_default_font(1024,768);
-+		fbfont = get_default_font(1024,768, ~(u32)0, ~(u32)0);
- 	if (!fbfont)
- 		return NULL;
- 
-diff -puN include/linux/font.h~fbcon-font-setting-should-check-limitation-of-driver include/linux/font.h
---- a/include/linux/font.h~fbcon-font-setting-should-check-limitation-of-driver
-+++ a/include/linux/font.h
-@@ -49,7 +49,8 @@ extern const struct font_desc *find_font
- 
- /* Get the default font for a specific screen size */
- 
--extern const struct font_desc *get_default_font(int xres, int yres);
-+extern const struct font_desc *get_default_font(int xres, int yres,
-+						u32 font_w, u32 font_h);
- 
- /* Max. length for the name of a predefined font */
- #define MAX_FONT_NAME	32
+ 		offset_value = info->var.xres_virtual / 16;
+ 		screen_size = (info->var.xres_virtual * info->var.yres_virtual) / 64;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
