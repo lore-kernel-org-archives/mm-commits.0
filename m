@@ -1,34 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - pata_acpi-restore-driver-fix.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 00:18:02 -0700
-Message-ID: <200704260718.l3Q7I2dv023657@shell0.pdx.osdl.net>
+Subject: - pata_acpi-restore-driver-fix-2.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:18:05 -0700
+Message-ID: <200704260718.l3Q7I5Ea023660@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36677 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53372 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933204AbXDZHSM (ORCPT
+	by vger.kernel.org with ESMTP id S933228AbXDZHSV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:18:12 -0400
+	Thu, 26 Apr 2007 03:18:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_acpi-restore-driver-fix
+     pata_acpi-restore-driver-fix-2
 has been removed from the -mm tree.  Its filename was
-     pata_acpi-restore-driver-fix.patch
+     pata_acpi-restore-driver-fix-2.patch
 
 This patch was dropped because it was folded into pata_acpi-restore-driver.patch
 
 ------------------------------------------------------
-Subject: pata_acpi-restore-driver-fix
+Subject: pata_acpi-restore-driver-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
 drivers/ata/pata_acpi.c: In function 'pacpi_pre_reset':
-drivers/ata/pata_acpi.c:55: error: too many arguments to function 'ata_std_prereset'
+drivers/ata/pata_acpi.c:55: error: too few arguments to function 'ata_std_prereset'
 drivers/ata/pata_acpi.c: In function 'pacpi_error_handler':
 drivers/ata/pata_acpi.c:86: warning: passing argument 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
+drivers/ata/pata_acpi.c: In function 'pacpi_pre_reset':
+drivers/ata/pata_acpi.c:56: warning: control reaches end of non-void function
 
 Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -37,25 +39,23 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/ata/pata_acpi.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/Kconfig~pata_acpi-restore-driver-fix drivers/ata/Kconfig
-diff -puN drivers/ata/Makefile~pata_acpi-restore-driver-fix drivers/ata/Makefile
-diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix
+diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix-2 drivers/ata/pata_acpi.c
+--- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-fix-2
 +++ a/drivers/ata/pata_acpi.c
 @@ -45,14 +45,14 @@ struct pata_acpi {
   *	Perform the PATA port setup we need.
   */
  
--static int pacpi_pre_reset(struct ata_port *ap, unsigned long deadline)
-+static int pacpi_pre_reset(struct ata_port *ap)
+-static int pacpi_pre_reset(struct ata_port *ap)
++static int pacpi_pre_reset(struct ata_port *ap, unsigned long deadline)
  {
  	struct pata_acpi *acpi = ap->private_data;
  
  	if (acpi->handle == NULL || ata_acpi_gtm(ap, acpi->handle, &acpi->gtm) < 0)
  		return -ENODEV;
  
--	return ata_std_prereset(ap, deadline);
-+	return ata_std_prereset(ap);
+-	return ata_std_prereset(ap);
++	return ata_std_prereset(ap, deadline);
  }
  
  /**
@@ -95,7 +95,6 @@ git-kvm.patch
 git-libata-all.patch
 ata-printk-warning-fixes.patch
 pata_acpi-restore-driver.patch
-pata_acpi-restore-driver-fix.patch
 pata_acpi-restore-driver-fix-2.patch
 drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
 revert-rm-pointless-dmaengine-exports.patch
