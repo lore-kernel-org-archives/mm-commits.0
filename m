@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + s390-net-lcs-convert-to-the-kthread-api-fix.patch added to -mm tree
-Date: Wed, 25 Apr 2007 22:22:54 -0700
-Message-ID: <200704260525.l3Q5PYhk021650@shell0.pdx.osdl.net>
+Subject: + git-block-fixup.patch added to -mm tree
+Date: Wed, 25 Apr 2007 23:53:44 -0700
+Message-ID: <200704260653.l3Q6rinb023031@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38153 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754714AbXDZFZn (ORCPT
+	by vger.kernel.org with ESMTP id S933127AbXDZGxr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 01:25:43 -0400
+	Thu, 26 Apr 2007 02:53:47 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3Q6rjW3003650
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 25 Apr 2007 23:53:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, fpavlic@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     s390-net-lcs-convert-to-the-kthread-api-fix
+     git-block-fixup
 has been added to the -mm tree.  Its filename is
-     s390-net-lcs-convert-to-the-kthread-api-fix.patch
+     git-block-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +30,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s390-net-lcs-convert-to-the-kthread-api-fix
+Subject: git-block-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Frank Pavlic <fpavlic@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/lcs.c |    2 +-
+ drivers/md/dm-io.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/s390/net/lcs.c~s390-net-lcs-convert-to-the-kthread-api-fix drivers/s390/net/lcs.c
---- a/drivers/s390/net/lcs.c~s390-net-lcs-convert-to-the-kthread-api-fix
-+++ a/drivers/s390/net/lcs.c
-@@ -1731,7 +1731,7 @@ lcs_start_kernel_thread(struct work_stru
- 		kthread_run(lcs_recovery, card, "lcs_recover");
- #ifdef CONFIG_IP_MULTICAST
- 	if (lcs_do_start_thread(card, LCS_SET_MC_THREAD))
--		kernel_run(lcs_register_mc_addresses, card, "regipm");
-+		kthread_run(lcs_register_mc_addresses, card, "regipm");
- #endif
- }
+diff -puN drivers/md/dm-io.c~git-block-fixup drivers/md/dm-io.c
+--- a/drivers/md/dm-io.c~git-block-fixup
++++ a/drivers/md/dm-io.c
+@@ -55,7 +55,7 @@ struct dm_io_client *dm_io_client_create
+ 	if (!client->pool)
+ 		goto bad;
+ 
+-	client->bios = bioset_create(16, 16, 4);
++	client->bios = bioset_create(16, 16);
+ 	if (!client->bios)
+ 		goto bad;
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-packet-fix-error-handling.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
 slab-introduce-krealloc-fix.patch
 git-acpi.patch
 git-alsa.patch
@@ -114,6 +111,7 @@ git-e1000.patch
 git-e1000-fixup-2.patch
 git-net.patch
 git-net-fixup.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
 sctp_getsockopt_local_addrs-type-fix.patch
 git-net-fix-yamc.patch
 git-net-vs-git-netdev-all.patch
@@ -136,7 +134,10 @@ scsi-fix-config_scsi_wait_scan=m-fix.patch
 scsi-fix-config_scsi_wait_scan=m-fix-fix.patch
 pci-error-recovery-symbios-scsi-base-support-fixes.patch
 pci-error-recovery-symbios-scsi-first-failure-fix.patch
+git-block-fixup.patch
+git-unionfs.patch
 cxacru-add-documentation-file-fix.patch
+git-wireless.patch
 fix-x86_64-mm-nmi-watchdog-ops.patch
 x86_64-inhibit-machine-from-asserting-an-nmi-when-doing-alt-sysrq-m-operation-tidy.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
