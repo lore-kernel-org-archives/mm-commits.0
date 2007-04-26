@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-netdev-all-export-ieee80211_debug_level.patch added to -mm tree
-Date: Wed, 25 Apr 2007 20:27:47 -0700
-Message-ID: <200704260330.l3Q3US0a019893@shell0.pdx.osdl.net>
+Subject: + ata-printk-warning-fixes.patch added to -mm tree
+Date: Wed, 25 Apr 2007 20:43:08 -0700
+Message-ID: <200704260345.l3Q3jn3G020092@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54452 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754071AbXDZDcL (ORCPT
+	by vger.kernel.org with ESMTP id S1754176AbXDZDq1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 23:32:11 -0400
+	Wed, 25 Apr 2007 23:46:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dsd@gentoo.org, jeff@garzik.org, johannes@sipsolutions.net, josejx@gentoo.org
+Cc: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     git-netdev-all: export ieee80211_debug_level
+     ata: printk warning fixes
 has been added to the -mm tree.  Its filename is
-     git-netdev-all-export-ieee80211_debug_level.patch
+     ata-printk-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-netdev-all: export ieee80211_debug_level
+Subject: ata: printk warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Someone has been forgetting their SubmitChecklist medicine.
+drivers/ata/libata-core.c: In function 'ata_hpa_resize':
+drivers/ata/libata-core.c:986: warning: format '%lld' expects type 'long long int', but argument 5 has type 'u64'
+drivers/ata/libata-core.c:986: warning: format '%lld' expects type 'long long int', but argument 6 has type 'u64'
+drivers/ata/libata-core.c:990: warning: format '%lld' expects type 'long long int', but argument 4 has type 'u64'
+drivers/ata/libata-core.c:990: warning: format '%lld' expects type 'long long int', but argument 5 has type 'u64'
+drivers/ata/libata-core.c:1003: warning: format '%lld' expects type 'long long int', but argument 4 has type 'u64'
 
-ERROR: "ieee80211_debug_level" [net/ieee80211/ieee80211_crypt_ccmp.ko] undefined!
+Also fix various 80-col bustage.
 
-Fix some unneeded space-wasting initialisations, too.  How often must this be
-said?
-
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Joe Jezak <josejx@gentoo.org>
-Cc: Daniel Drake <dsd@gentoo.org>
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ieee80211/ieee80211_module.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/ata/libata-core.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN net/ieee80211/ieee80211_module.c~git-netdev-all-export-ieee80211_debug_level net/ieee80211/ieee80211_module.c
---- a/net/ieee80211/ieee80211_module.c~git-netdev-all-export-ieee80211_debug_level
-+++ a/net/ieee80211/ieee80211_module.c
-@@ -227,9 +227,11 @@ void free_ieee80211(struct net_device *d
+diff -puN drivers/ata/libata-core.c~ata-printk-warning-fixes drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~ata-printk-warning-fixes
++++ a/drivers/ata/libata-core.c
+@@ -982,25 +982,28 @@ static u64 ata_hpa_resize(struct ata_dev
+ 		hpa_sectors = ata_read_native_max_address(dev);
  
- #ifdef CONFIG_IEEE80211_DEBUG
+ 	/* if no hpa, both should be equal */
+-	ata_dev_printk(dev, KERN_INFO, "%s 1: sectors = %lld, hpa_sectors = %lld\n",
+-		__FUNCTION__, sectors, hpa_sectors);
++	ata_dev_printk(dev, KERN_INFO, "%s 1: sectors = %lld, "
++				"hpa_sectors = %lld\n",
++		__FUNCTION__, (long long)sectors, (long long)hpa_sectors);
  
--static int debug = 0;
--u32 ieee80211_debug_level = 0;
--static struct proc_dir_entry *ieee80211_proc = NULL;
-+static int debug;
-+u32 ieee80211_debug_level;
-+static struct proc_dir_entry *ieee80211_proc;
-+
-+EXPORT_SYMBOL(ieee80211_debug_level);
+ 	if (hpa_sectors > sectors) {
+ 		ata_dev_printk(dev, KERN_INFO,
+ 			"Host Protected Area detected:\n"
+ 			"\tcurrent size: %lld sectors\n"
+ 			"\tnative size: %lld sectors\n",
+-			sectors, hpa_sectors);
++			(long long)sectors, (long long)hpa_sectors);
  
- static int show_debug_level(char *page, char **start, off_t offset,
- 			    int count, int *eof, void *data)
+ 		if (ata_ignore_hpa) {
+ 			if (ata_id_has_lba48(dev->id))
+ 				hpa_sectors = ata_set_native_max_address_ext(dev, hpa_sectors);
+ 			else
+-				hpa_sectors = ata_set_native_max_address(dev, hpa_sectors);
++				hpa_sectors = ata_set_native_max_address(dev,
++								hpa_sectors);
+ 
+ 			if (hpa_sectors) {
+-				ata_dev_printk(dev, KERN_INFO,
+-					"native size increased to %lld sectors\n", hpa_sectors);
++				ata_dev_printk(dev, KERN_INFO, "native size "
++					"increased to %lld sectors\n",
++					(long long)hpa_sectors);
+ 				return hpa_sectors;
+ 			}
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +120,7 @@ git-input.patch
 git-input-fixup.patch
 git-kvm.patch
 git-libata-all.patch
+ata-printk-warning-fixes.patch
 libata-acpi-add-infrastructure-for-drivers-to-use-fix.patch
 pata_acpi-restore-driver-fix.patch
 pata_acpi-restore-driver-fix-2.patch
