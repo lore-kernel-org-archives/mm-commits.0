@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-3dlabs-permedia-2v-reference-board-added.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:33:25 -0700
-Message-ID: <200704260033.l3Q0XPd1017018@shell0.pdx.osdl.net>
+Subject: + pm2fb-permedia-2v-memory-clock-setting.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:33:27 -0700
+Message-ID: <200704260033.l3Q0XRx8017023@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52775 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423440AbXDZAd2 (ORCPT
+	by vger.kernel.org with ESMTP id S1423453AbXDZAda (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:33:28 -0400
+	Wed, 25 Apr 2007 20:33:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     pm2fb: 3dlabs Permedia 2V reference board added
+     pm2fb: Permedia 2V memory clock setting
 has been added to the -mm tree.  Its filename is
-     pm2fb-3dlabs-permedia-2v-reference-board-added.patch
+     pm2fb-permedia-2v-memory-clock-setting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm2fb: 3dlabs Permedia 2V reference board added
+Subject: pm2fb: Permedia 2V memory clock setting
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch adds support for 3dlabs Permedia reference board.
+Permedia 2V uses its own registers to set a memory clock. The
+patch adds these registers and uses them in the set_memclock()
+function.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |   33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+ drivers/video/pm2fb.c     |   52 +++++++++++++++++++++++++-----------
+ include/video/permedia2.h |    4 ++
+ 2 files changed, 41 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-3dlabs-permedia-2v-reference-board-added drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-3dlabs-permedia-2v-reference-board-added
+diff -puN drivers/video/pm2fb.c~pm2fb-permedia-2v-memory-clock-setting drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-permedia-2v-memory-clock-setting
 +++ a/drivers/video/pm2fb.c
-@@ -1117,20 +1117,31 @@ static int __devinit pm2fb_probe(struct 
- 		default_par->mem_control, default_par->boot_address,
- 		default_par->mem_config);
+@@ -462,21 +462,43 @@ static void set_memclock(struct pm2fb_pa
+ 	int i;
+ 	unsigned char m, n, p;
  
-+	default_par->memclock = CVPPC_MEMCLOCK;
- 	if(default_par->mem_control == 0 &&
- 		default_par->boot_address == 0x31 &&
--		default_par->mem_config == 0x259fffff &&
--		pdev->subsystem_vendor == 0x1048 &&
--		pdev->subsystem_device == 0x0a31) {
--		DPRINTK("subsystem_vendor: %04x, subsystem_device: %04x\n",
--			pdev->subsystem_vendor, pdev->subsystem_device);
--		DPRINTK("We have not been initialized by VGA BIOS "
--			"and are running on an Elsa Winner 2000 Office\n");
--		DPRINTK("Initializing card timings manually...\n");
-+		default_par->mem_config == 0x259fffff) {
- 		default_par->mem_control=0;
- 		default_par->boot_address=0x20;
- 		default_par->mem_config=0xe6002021;
--		default_par->memclock=100000;
-+		if (pdev->subsystem_vendor == 0x1048 &&
-+			pdev->subsystem_device == 0x0a31) {
-+			DPRINTK("subsystem_vendor: %04x, subsystem_device: %04x\n",
-+				pdev->subsystem_vendor, pdev->subsystem_device);
-+			DPRINTK("We have not been initialized by VGA BIOS "
-+				"and are running on an Elsa Winner 2000 Office\n");
-+			DPRINTK("Initializing card timings manually...\n");
-+			default_par->memclock=70000;
-+		}
-+		if (pdev->subsystem_vendor == 0x3d3d &&
-+			pdev->subsystem_device == 0x0100) {
-+			DPRINTK("subsystem_vendor: %04x, subsystem_device: %04x\n",
-+				pdev->subsystem_vendor, pdev->subsystem_device);
-+			DPRINTK("We have not been initialized by VGA BIOS "
-+				"and are running on an 3dlabs reference board\n");
-+			DPRINTK("Initializing card timings manually...\n");
-+			default_par->memclock=70000;
-+		}
- 	}
+-	pm2_mnp(clk, &m, &n, &p);
+-	WAIT_FIFO(par, 10);
+-	pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_3, 6);
+-	wmb();
+-	pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_1, m);
+-	pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_2, n);
+-	wmb();
+-	pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_3, 8|p);
+-	wmb();
+-	pm2_RDAC_RD(par, PM2I_RD_MEMORY_CLOCK_STATUS);
+-	rmb();
+-	for (i = 256;
+-	     i && !(pm2_RD(par, PM2R_RD_INDEXED_DATA) & PM2F_PLL_LOCKED);
+-	     i--)
+-		;
++	switch (par->type) {
++	case PM2_TYPE_PERMEDIA2V:
++		pm2v_mnp(clk/2, &m, &n, &p);
++		WAIT_FIFO(par, 8);
++		pm2_WR(par, PM2VR_RD_INDEX_HIGH, PM2VI_RD_MCLK_CONTROL >> 8);
++		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_CONTROL, 0);
++		wmb();
++		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_PRESCALE, m);
++		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_FEEDBACK, n);
++		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_POSTSCALE, p);
++		wmb();
++		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_CONTROL, 1);
++		rmb();
++		for (i = 256;
++		     i && !(pm2_RDAC_RD(par, PM2VI_RD_MCLK_CONTROL) & 2);
++		     i--)
++			;
++		pm2_WR(par, PM2VR_RD_INDEX_HIGH, 0);
++		break;
++	case PM2_TYPE_PERMEDIA2:
++		pm2_mnp(clk, &m, &n, &p);
++		WAIT_FIFO(par, 10);
++		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_3, 6);
++		wmb();
++		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_1, m);
++		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_2, n);
++		wmb();
++		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_3, 8|p);
++		wmb();
++		pm2_RDAC_RD(par, PM2I_RD_MEMORY_CLOCK_STATUS);
++		rmb();
++		for (i = 256;
++		     i && !(pm2_RD(par, PM2R_RD_INDEXED_DATA) & PM2F_PLL_LOCKED);
++		     i--)
++			;
++		break;
++	}
+ }
  
- 	/* Now work out how big lfb is going to be. */
-@@ -1148,7 +1159,6 @@ static int __devinit pm2fb_probe(struct 
- 		default_par->fb_size=0x800000;
- 		break;
- 	}
--	default_par->memclock = CVPPC_MEMCLOCK;
- 	pm2fb_fix.smem_start = pci_resource_start(pdev, 1);
- 	pm2fb_fix.smem_len = default_par->fb_size;
- 
-@@ -1242,6 +1252,9 @@ static struct pci_device_id pm2fb_id_tab
- 	{ PCI_VENDOR_ID_3DLABS, PCI_DEVICE_ID_3DLABS_PERMEDIA2V,
- 	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
- 	  0xff0000, 0 },
-+	{ PCI_VENDOR_ID_3DLABS, PCI_DEVICE_ID_3DLABS_PERMEDIA2V,
-+	  PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_NOT_DEFINED_VGA << 8,
-+	  0xff00, 0 },
- 	{ 0, }
- };
+ static void set_pixclock(struct pm2fb_par* par, u32 clk)
+diff -puN include/video/permedia2.h~pm2fb-permedia-2v-memory-clock-setting include/video/permedia2.h
+--- a/include/video/permedia2.h~pm2fb-permedia-2v-memory-clock-setting
++++ a/include/video/permedia2.h
+@@ -154,6 +154,10 @@
+ #define PM2VI_RD_CLK1_PRESCALE				0x204
+ #define PM2VI_RD_CLK1_FEEDBACK				0x205
+ #define PM2VI_RD_CLK1_POSTSCALE				0x206
++#define PM2VI_RD_MCLK_CONTROL				0x20D
++#define PM2VI_RD_MCLK_PRESCALE				0x20E
++#define PM2VI_RD_MCLK_FEEDBACK				0x20F
++#define PM2VI_RD_MCLK_POSTSCALE				0x210
+ #define PM2VI_RD_CURSOR_PALETTE				0x303
+ #define PM2VI_RD_CURSOR_PATTERN				0x400
  
 _
 
