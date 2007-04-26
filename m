@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-sysrq-t-show-all-tasks-again.patch added to -mm tree
-Date: Wed, 25 Apr 2007 16:59:39 -0700
-Message-ID: <200704252359.l3PNxdxW016312@shell0.pdx.osdl.net>
+Subject: + introduce-high_order-delineating-easily-reclaimable-orders-cleanups.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:02:30 -0700
+Message-ID: <200704260002.l3Q02UTu016389@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41163 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751934AbXDYX7v (ORCPT
+	by vger.kernel.org with ESMTP id S1752029AbXDZADt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 19:59:51 -0400
+	Wed, 25 Apr 2007 20:03:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu
+Cc: apw@shadowen.org, mel@csn.ul.ie
 
 
 The patch titled
-     make SysRq-T show all tasks again
+     lumpy: introduce HIGH_ORDER delineating easily reclaimable orders cleanups
 has been added to the -mm tree.  Its filename is
-     make-sysrq-t-show-all-tasks-again.patch
+     introduce-high_order-delineating-easily-reclaimable-orders-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,151 +26,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make SysRq-T show all tasks again
-From: Ingo Molnar <mingo@elte.hu>
+Subject: lumpy: introduce HIGH_ORDER delineating easily reclaimable orders cleanups
+From: Andy Whitcroft <apw@shadowen.org>
 
-show_state() (SysRq-T) developed the buggy habbit of not showing
-TASK_RUNNING tasks.  This was due to the mistaken belief that state_filter
-== -1 would be a pass-through filter - while in reality it did not let
-TASK_RUNNING == 0 p->state values through.
+Switch from HIGH_ORDER to the more logical and descriptive
+PAGE_ALLOC_COSTLY_ORDER indicating the boundary between orders easily
+reclaimed and allocated and those which are not.
 
-Fix this by restoring the original '!state_filter means all tasks'
-special-case i had in the original version.  Test-built and test-booted on
-i686, SysRq-T now works as intended.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    4 ++--
- kernel/sched.c        |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    9 +++++----
+ mm/page_alloc.c        |    3 ++-
+ mm/vmscan.c            |    7 ++++---
+ 3 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/sched.h~make-sysrq-t-show-all-tasks-again include/linux/sched.h
---- a/include/linux/sched.h~make-sysrq-t-show-all-tasks-again
-+++ a/include/linux/sched.h
-@@ -196,13 +196,13 @@ extern void init_idle(struct task_struct
- extern cpumask_t nohz_cpu_mask;
+diff -puN include/linux/mmzone.h~introduce-high_order-delineating-easily-reclaimable-orders-cleanups include/linux/mmzone.h
+--- a/include/linux/mmzone.h~introduce-high_order-delineating-easily-reclaimable-orders-cleanups
++++ a/include/linux/mmzone.h
+@@ -26,11 +26,12 @@
+ #define MAX_ORDER_NR_PAGES (1 << (MAX_ORDER - 1))
  
  /*
-- * Only dump TASK_* tasks. (-1 for all tasks)
-+ * Only dump TASK_* tasks. (0 for all tasks)
+- * The boundary between small and large allocations.  That is between
+- * allocation orders which should colesce naturally under reasonable
+- * reclaim pressure and those which will not.
++ * PAGE_ALLOC_COSTLY_ORDER is the order at which allocations are deemed
++ * costly to service.  That is between allocation orders which should
++ * coelesce naturally under reasonable reclaim pressure and those which
++ * will not.
   */
- extern void show_state_filter(unsigned long state_filter);
+-#define HIGH_ORDER 3
++#define PAGE_ALLOC_COSTLY_ORDER 3
  
- static inline void show_state(void)
- {
--	show_state_filter(-1);
-+	show_state_filter(0);
- }
+ #ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ #define MIGRATE_UNMOVABLE     0
+diff -puN mm/page_alloc.c~introduce-high_order-delineating-easily-reclaimable-orders-cleanups mm/page_alloc.c
+--- a/mm/page_alloc.c~introduce-high_order-delineating-easily-reclaimable-orders-cleanups
++++ a/mm/page_alloc.c
+@@ -1677,7 +1677,8 @@ nofail_alloc:
+ 	 */
+ 	do_retry = 0;
+ 	if (!(gfp_mask & __GFP_NORETRY)) {
+-		if ((order <= HIGH_ORDER) || (gfp_mask & __GFP_REPEAT))
++		if ((order <= PAGE_ALLOC_COSTLY_ORDER) ||
++						(gfp_mask & __GFP_REPEAT))
+ 			do_retry = 1;
+ 		if (gfp_mask & __GFP_NOFAIL)
+ 			do_retry = 1;
+diff -puN mm/vmscan.c~introduce-high_order-delineating-easily-reclaimable-orders-cleanups mm/vmscan.c
+--- a/mm/vmscan.c~introduce-high_order-delineating-easily-reclaimable-orders-cleanups
++++ a/mm/vmscan.c
+@@ -487,7 +487,7 @@ static unsigned long shrink_page_list(st
  
- extern void show_regs(struct pt_regs *);
-diff -puN kernel/sched.c~make-sysrq-t-show-all-tasks-again kernel/sched.c
---- a/kernel/sched.c~make-sysrq-t-show-all-tasks-again
-+++ a/kernel/sched.c
-@@ -4746,7 +4746,7 @@ void show_state_filter(unsigned long sta
- 		 * console might take alot of time:
- 		 */
- 		touch_nmi_watchdog();
--		if (p->state & state_filter)
-+		if (!state_filter || (p->state & state_filter))
- 			show_task(p);
- 	} while_each_thread(g, p);
+ 		referenced = page_referenced(page, 1);
+ 		/* In active use or really unfreeable?  Activate it. */
+-		if (sc->order <= HIGH_ORDER &&
++		if (sc->order <= PAGE_ALLOC_COSTLY_ORDER &&
+ 					referenced && page_mapping_inuse(page))
+ 			goto activate_locked;
  
+@@ -521,7 +521,7 @@ static unsigned long shrink_page_list(st
+ 		}
+ 
+ 		if (PageDirty(page)) {
+-			if (sc->order <= HIGH_ORDER && referenced)
++			if (sc->order <= PAGE_ALLOC_COSTLY_ORDER && referenced)
+ 				goto keep_locked;
+ 			if (!may_enter_fs)
+ 				goto keep_locked;
+@@ -793,7 +793,8 @@ static unsigned long shrink_inactive_lis
+ 		nr_taken = isolate_lru_pages(sc->swap_cluster_max,
+ 			     &zone->inactive_list,
+ 			     &page_list, &nr_scan, sc->order,
+-			     (sc->order > HIGH_ORDER)? ISOLATE_BOTH : 0);
++			     (sc->order > PAGE_ALLOC_COSTLY_ORDER)?
++							ISOLATE_BOTH : 0);
+ 		nr_active = deactivate_pages(&page_list);
+ 
+ 		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-make-sysrq-t-show-all-tasks-again.patch
-git-ieee1394.patch
-git-kvm.patch
-forcedeth-improve-napi-logic.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-spin_lock_irq-enable-interrupts-while-spinning-preparatory-patch.patch
-spin_lock_irq-enable-interrupts-while-spinning-x86_64-implementation.patch
-spin_lock_irq-enable-interrupts-while-spinning-i386-implementation.patch
-i386-tsc-remove-xtime_locking-around-cpufreq-notifier.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-simplify-the-stacktrace-code.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-optimize-timespec_trunc.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
-add-support-for-deferrable-timers-respun.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-add-support-for-deferrable-timers-respun-fix.patch
-irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
-move-timekeeping-code-to-timekeepingc.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-add-touch_all_softlockup_watchdogs.patch
-enhance-initcall_debug-measure-latency.patch
-enhance-initcall_debug-measure-latency-fix.patch
-simplify-kallsyms_lookup.patch
-deprecate-sa_xxx-interrupt-flags-v2.patch
-lockdep-treats-down_write_trylock-like-regular-down_write.patch
-pad-irq_desc-to-internode-cacheline-size.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-highres-dyntick-prevent-xtime-lock-contention.patch
-lockdep-lookup_chain_cache-comment-errata.patch
-introduce-a-handy-list_first_entry-macro-v2.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-clean-up-mutex_trylock-noise.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-lockdep-removed-unused-ip-argument-in-mark_lock-mark_held_locks.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-aio-is-unlikely.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-sched-optimize-siblings-status-check-logic-in-wake_idle.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-sched-align-rq-to-cacheline-boundary.patch
-sched-dont-renice-kernel-threads.patch
-sched-remove-sleepavg-from-proc.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-implement-staircase-deadline-cpu-scheduler.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
+add-a-configure-option-to-group-pages-by-mobility-speedup.patch
+move-free-pages-between-lists-on-steal-fix.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+create-the-zone_movable-zone-align-zone_movable-to-a-max_order_nr_pages-boundary.patch
+handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
+lumpy-reclaim-v4.patch
+lumpy-back-out-removal-of-active-check-in-isolate_lru_pages.patch
+lumpy-only-count-taken-pages-as-scanned.patch
+kswapd-use-reclaim-order-in-background-reclaim.patch
+lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
+introduce-high_order-delineating-easily-reclaimable-orders.patch
+introduce-high_order-delineating-easily-reclaimable-orders-cleanups.patch
+add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
+anti-fragmentation-switch-over-to-pfn_valid_within.patch
+lumpy-move-to-using-pfn_valid_within.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+slab-numa-kmem_cache-diet.patch
 sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
-sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
-sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
-sched-remove-noninteractive-flag.patch
-sched-document-sd-cpu-scheduler.patch
-sched-consolidate-sched_clock-drift-adjustments.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
-declare-struct-ktime.patch
-futex-priority-based-wakeup.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
-futex_requeue_pi-optimization.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
-timer_stats-slimmed-down-using-statistics-infrastucture.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
-random-warning-squishes.patch
