@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fw-device-printk-fix.patch added to -mm tree
-Date: Wed, 25 Apr 2007 21:03:06 -0700
-Message-ID: <200704260405.l3Q45kuU020372@shell0.pdx.osdl.net>
+Subject: + ieee1394-iso-needs-schedh.patch added to -mm tree
+Date: Wed, 25 Apr 2007 21:04:31 -0700
+Message-ID: <200704260407.l3Q47Cso020396@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34287 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754697AbXDZEGC (ORCPT
+	by vger.kernel.org with ESMTP id S1754698AbXDZEHY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 00:06:02 -0400
+	Thu, 26 Apr 2007 00:07:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     fw-device printk fix
+     ieee1394/iso.c needs schedh
 has been added to the -mm tree.  Its filename is
-     fw-device-printk-fix.patch
+     ieee1394-iso-needs-schedh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fw-device printk fix
+Subject: ieee1394/iso.c needs schedh
 From: Andrew Morton <akpm@linux-foundation.org>
 
-You don't know what type is used to implement u64.
+alpha:
+
+drivers/ieee1394/iso.c: In function 'hpsb_iso_xmit_sync':
+drivers/ieee1394/iso.c:440: error: invalid use of undefined type 'struct task_struct'
+drivers/ieee1394/iso.c:440: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
+drivers/ieee1394/iso.c:440: error: (Each undeclared identifier is reported only once
+drivers/ieee1394/iso.c:440: error: for each function it appears in.)
+drivers/ieee1394/iso.c:440: warning: implicit declaration of function 'signal_pending'
+drivers/ieee1394/iso.c:440: error: invalid use of undefined type 'struct task_struct'
+drivers/ieee1394/iso.c:440: warning: implicit declaration of function 'schedule'
+drivers/ieee1394/iso.c: In function 'hpsb_iso_wake':
+drivers/ieee1394/iso.c:562: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
 
 Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/fw-device.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ieee1394/iso.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/firewire/fw-device.c~fw-device-printk-fix drivers/firewire/fw-device.c
---- a/drivers/firewire/fw-device.c~fw-device-printk-fix
-+++ a/drivers/firewire/fw-device.c
-@@ -362,7 +362,8 @@ guid_show(struct device *dev, struct dev
+diff -puN drivers/ieee1394/iso.c~ieee1394-iso-needs-schedh drivers/ieee1394/iso.c
+--- a/drivers/ieee1394/iso.c~ieee1394-iso-needs-schedh
++++ a/drivers/ieee1394/iso.c
+@@ -9,6 +9,7 @@
+  * directory of the kernel sources for details.
+  */
  
- 	guid = ((u64)device->config_rom[3] << 32) | device->config_rom[4];
++#include <linux/sched.h>
+ #include <linux/pci.h>
+ #include <linux/slab.h>
  
--	return snprintf(buf, PAGE_SIZE, "0x%016llx\n", guid);
-+	return snprintf(buf, PAGE_SIZE, "0x%016llx\n",
-+			(unsigned long long)guid);
- }
- 
- static struct device_attribute fw_device_attributes[] = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -243,3 +252,4 @@ integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
+ieee1394-iso-needs-schedh.patch
