@@ -1,61 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - packet-fix-error-handling.patch removed from -mm tree
-Date: Wed, 25 Apr 2007 23:59:08 -0700
-Message-ID: <200704260659.l3Q6x85Q023118@shell0.pdx.osdl.net>
+Subject: - dev_dbg-check-dev_dbg-arguments-fix-2.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 00:09:10 -0700
+Message-ID: <200704260709.l3Q79Ab3023380@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35551 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933222AbXDZHAo (ORCPT
+	by vger.kernel.org with ESMTP id S933318AbXDZHJm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 03:00:44 -0400
+	Thu, 26 Apr 2007 03:09:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, icxcnika@mar.tar.cc, jens.axboe@oracle.com, petero2@telia.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     packet: fix error handling
+     dev_dbg-check-dev_dbg-arguments-fix-2
 has been removed from the -mm tree.  Its filename was
-     packet-fix-error-handling.patch
+     dev_dbg-check-dev_dbg-arguments-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into dev_dbg-check-dev_dbg-arguments.patch
 
 ------------------------------------------------------
-Subject: packet: fix error handling
+Subject: dev_dbg-check-dev_dbg-arguments-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-The packet driver is assuming (reasonably) that the (undocumented)
-request.errors is an errno.  But it is in fact some mysterious bitfield.  When
-things go wrong we return weird positive numbers to the VFS as pointers and it
-goes oops.
+powerpc:
 
-Thanks to William Heimbigner for reporting and diagnosis.
+drivers/built-in.o(.text+0x189df4): In function `.ohci_run':
+: undefined reference to `.hcfs2string'                                         drivers/built-in.o(.text+0x18b6f8): In function `.ohci_stop':
+: undefined reference to `.hcfs2string'                                         
 
-(It doesn't oops, but this driver still doesn't work for William)
+Can't be bothered thinking of a smart way of fixing this.
 
-Cc: William Heimbigner <icxcnika@mar.tar.cc>
-Cc: Peter Osterlund <petero2@telia.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/usb/host/ohci-hcd.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~packet-fix-error-handling drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~packet-fix-error-handling
-+++ a/drivers/block/pktcdvd.c
-@@ -777,7 +777,8 @@ static int pkt_generic_packet(struct pkt
- 		rq->cmd_flags |= REQ_QUIET;
+diff -puN drivers/usb/host/ohci-hcd.c~dev_dbg-check-dev_dbg-arguments-fix-2 drivers/usb/host/ohci-hcd.c
+--- a/drivers/usb/host/ohci-hcd.c~dev_dbg-check-dev_dbg-arguments-fix-2
++++ a/drivers/usb/host/ohci-hcd.c
+@@ -485,9 +485,6 @@ static int ohci_run (struct ohci_hcd *oh
+ 	 * or if bus glue did the same (e.g. for PCI add-in cards with
+ 	 * PCI PM support).
+ 	 */
+-	ohci_dbg (ohci, "resetting from state '%s', control = 0x%x\n",
+-			hcfs2string (ohci->hc_control & OHCI_CTRL_HCFS),
+-			ohci_readl (ohci, &ohci->regs->control));
+ 	if ((ohci->hc_control & OHCI_CTRL_RWC) != 0
+ 			&& !device_may_wakeup(hcd->self.controller))
+ 		device_init_wakeup(hcd->self.controller, 1);
+@@ -743,9 +740,6 @@ static void ohci_stop (struct usb_hcd *h
+ {
+ 	struct ohci_hcd		*ohci = hcd_to_ohci (hcd);
  
- 	blk_execute_rq(rq->q, pd->bdev->bd_disk, rq, 0);
--	ret = rq->errors;
-+	if (rq->errors)
-+		ret = -EIO;
- out:
- 	blk_put_request(rq);
- 	return ret;
+-	ohci_dbg (ohci, "stop %s controller (state 0x%02x)\n",
+-		hcfs2string (ohci->hc_control & OHCI_CTRL_HCFS),
+-		hcd->state);
+ 	ohci_dump (ohci, 1);
+ 
+ 	flush_scheduled_work();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,9 +82,8 @@ fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-device_schedule_callback-needs-a-module-reference-fix.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake-fix.patch
-dev_dbg-check-dev_dbg-arguments-fix.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+dev_dbg-check-dev_dbg-arguments.patch
 dev_dbg-check-dev_dbg-arguments-fix-2.patch
 sysfs-binc-printk-fix.patch
 git-drm.patch
