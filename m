@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-delay-screen-update-when-setting-the-mode-of.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:32:40 -0700
-Message-ID: <200704260032.l3Q0We5V016916@shell0.pdx.osdl.net>
+Subject: + savagefb-rework-i2c-bit-access.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:32:35 -0700
+Message-ID: <200704260032.l3Q0WZ4N016904@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55359 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38337 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423415AbXDZAcm (ORCPT
+	by vger.kernel.org with ESMTP id S1423408AbXDZAci (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:32:42 -0400
+	Wed, 25 Apr 2007 20:32:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbcon: delay screen update when setting the mode of all consoles
+     savagefb: rework i2c bit access
 has been added to the -mm tree.  Its filename is
-     fbcon-delay-screen-update-when-setting-the-mode-of.patch
+     savagefb-rework-i2c-bit-access.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,76 +26,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbcon: delay screen update when setting the mode of all consoles
+Subject: savagefb: rework i2c bit access
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-If the current framebuffer console is rotated (rotate != 0), doing an
-"fbset -a" will corrupt the current console.  Fix by updating the current
-console only after all non-visible consoles have been updated.
+Use already defined VGAwCR/VGArCR functions to access the i2c bus.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |   31 ++++++++++---------------------
- 1 file changed, 10 insertions(+), 21 deletions(-)
+ drivers/video/savage/savagefb-i2c.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-delay-screen-update-when-setting-the-mode-of drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-delay-screen-update-when-setting-the-mode-of
-+++ a/drivers/video/console/fbcon.c
-@@ -2849,7 +2849,7 @@ static void fbcon_set_all_vcs(struct fb_
- 	struct fbcon_ops *ops = info->fbcon_par;
- 	struct vc_data *vc;
- 	struct display *p;
--	int i, rows, cols;
-+	int i, rows, cols, fg = -1;
+diff -puN drivers/video/savage/savagefb-i2c.c~savagefb-rework-i2c-bit-access drivers/video/savage/savagefb-i2c.c
+--- a/drivers/video/savage/savagefb-i2c.c~savagefb-rework-i2c-bit-access
++++ a/drivers/video/savage/savagefb-i2c.c
+@@ -41,10 +41,6 @@
+ #define SAVAGE4_I2C_SCL_IN	0x00000008
+ #define SAVAGE4_I2C_SDA_IN	0x00000010
  
- 	if (!ops || ops->currcon < 0)
- 		return;
-@@ -2860,34 +2860,23 @@ static void fbcon_set_all_vcs(struct fb_
- 		    registered_fb[con2fb_map[i]] != info)
- 			continue;
+-#define SET_CR_IX(base, val)	writeb((val), base + 0x8000 + VGA_CR_IX)
+-#define SET_CR_DATA(base, val)	writeb((val), base + 0x8000 + VGA_CR_DATA)
+-#define GET_CR_DATA(base)	readb(base + 0x8000 + VGA_CR_DATA)
+-
+ static void savage4_gpio_setscl(void *data, int val)
+ {
+ 	struct savagefb_i2c_chan *chan = data;
+@@ -92,15 +88,15 @@ static void prosavage_gpio_setscl(void* 
+ 	struct savagefb_i2c_chan *chan = data;
+ 	u32			  r;
  
-+		if (CON_IS_VISIBLE(vc)) {
-+			fg = i;
-+			continue;
-+		}
-+
- 		p = &fb_display[vc->vc_num];
- 		set_blitting_type(vc, info);
- 		var_to_display(p, &info->var, info);
--		cols = FBCON_SWAP(ops->rotate, info->var.xres, info->var.yres);
--		rows = FBCON_SWAP(ops->rotate, info->var.yres, info->var.xres);
-+		cols = FBCON_SWAP(p->rotate, info->var.xres, info->var.yres);
-+		rows = FBCON_SWAP(p->rotate, info->var.yres, info->var.xres);
- 		cols /= vc->vc_font.width;
- 		rows /= vc->vc_font.height;
- 		vc_resize(vc, cols, rows);
--
--		if (CON_IS_VISIBLE(vc)) {
--			updatescrollmode(p, info, vc);
--			scrollback_max = 0;
--			scrollback_current = 0;
--
--			if (!fbcon_is_inactive(vc, info)) {
--			    ops->var.xoffset = ops->var.yoffset =
--				p->yscroll = 0;
--			    ops->update_start(info);
--			}
--
--			fbcon_set_palette(vc, color_table);
--			update_screen(vc);
--			if (softback_buf)
--				fbcon_update_softback(vc);
--		}
+-	SET_CR_IX(chan->ioaddr, chan->reg);
+-	r = GET_CR_DATA(chan->ioaddr);
++	r = VGArCR(chan->reg, chan->par);
+ 	r |= PROSAVAGE_I2C_ENAB;
+ 	if (val) {
+ 		r |= PROSAVAGE_I2C_SCL_OUT;
+ 	} else {
+ 		r &= ~PROSAVAGE_I2C_SCL_OUT;
  	}
- 
--	ops->p = &fb_display[ops->currcon];
-+	if (fg != -1)
-+		fbcon_modechanged(info);
+-	SET_CR_DATA(chan->ioaddr, r);
++
++	VGAwCR(chan->reg, r, chan->par);
  }
  
- static int fbcon_mode_deleted(struct fb_info *info,
+ static void prosavage_gpio_setsda(void* data, int val)
+@@ -108,31 +104,29 @@ static void prosavage_gpio_setsda(void* 
+ 	struct savagefb_i2c_chan *chan = data;
+ 	unsigned int r;
+ 
+-	SET_CR_IX(chan->ioaddr, chan->reg);
+-	r = GET_CR_DATA(chan->ioaddr);
++	r = VGArCR(chan->reg, chan->par);
+ 	r |= PROSAVAGE_I2C_ENAB;
+ 	if (val) {
+ 		r |= PROSAVAGE_I2C_SDA_OUT;
+ 	} else {
+ 		r &= ~PROSAVAGE_I2C_SDA_OUT;
+ 	}
+-	SET_CR_DATA(chan->ioaddr, r);
++
++	VGAwCR(chan->reg, r, chan->par);
+ }
+ 
+ static int prosavage_gpio_getscl(void* data)
+ {
+ 	struct savagefb_i2c_chan *chan = data;
+ 
+-	SET_CR_IX(chan->ioaddr, chan->reg);
+-	return (0 != (GET_CR_DATA(chan->ioaddr) & PROSAVAGE_I2C_SCL_IN));
++	return (VGArCR(chan->reg, chan->par) & PROSAVAGE_I2C_SCL_IN) ? 1 : 0;
+ }
+ 
+ static int prosavage_gpio_getsda(void* data)
+ {
+ 	struct savagefb_i2c_chan *chan = data;
+ 
+-	SET_CR_IX(chan->ioaddr, chan->reg);
+-	return (0 != (GET_CR_DATA(chan->ioaddr) & PROSAVAGE_I2C_SDA_IN));
++	return (VGArCR(chan->reg, chan->par) & PROSAVAGE_I2C_SDA_IN) ? 1 : 0;
+ }
+ 
+ static int savage_setup_i2c_bus(struct savagefb_i2c_chan *chan,
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
