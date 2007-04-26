@@ -1,185 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - i386-extend-alternative-instructions-framework.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 13:46:08 -0700
-Message-ID: <200704262046.l3QKk87M011102@shell0.pdx.osdl.net>
+Subject: - update-documentation-driver-model-platformtxt.patch removed from -mm tree
+Date: Thu, 26 Apr 2007 13:49:02 -0700
+Message-ID: <200704262049.l3QKn2Hm011159@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35798 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52402 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031502AbXDZUqS (ORCPT
+	by vger.kernel.org with ESMTP id S1755041AbXDZUtu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 16:46:18 -0400
+	Thu, 26 Apr 2007 16:49:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joerg.roedel@amd.com, ak@suse.de, avi@qumranet.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, dilinger@debian.org, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: extend alternative instructions framework
+     update Documentation/driver-model/platform.txt
 has been removed from the -mm tree.  Its filename was
-     i386-extend-alternative-instructions-framework.patch
+     update-documentation-driver-model-platformtxt.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: i386: extend alternative instructions framework
-From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: update Documentation/driver-model/platform.txt
+From: David Brownell <david-b@pacbell.net>
 
-This series of patches extend the alternative instructions framework on i386
-and x86_64 architectures to support two alternative instruction replacements. 
-This code is used together with the introduction of the X86_FEATURE_SYNC_RDTSC
-flag on i386 to simplify and optimize the get_cycles_sync() function.  The
-optimization changes this function to use RDTSCP instead of CPUID;RDTSC if
-this instruction is available.  Don't use CPUID there is really important if
-the kernel runs as a KVM guest, because this instruction is intercepted and
-causes an expensive VMEXIT.
+Make note of the legacy "probe-the-hardware" drivers, and some APIs that
+are mostly unused except by such drivers.  We probably can't escape having
+legacy drivers for a while (e.g.  old ISA drivers), but we can at least
+discourage this style code for new drivers, and unless it's unavoidable.
 
-
-This patch extends the alternative instructions framework to support 2
-alternative instructions.
-
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Andres Salomon <dilinger@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |   21 +++++++++++-----
- include/asm-i386/alternative.h |   40 +++++++++++++++++++++++++++++--
- 2 files changed, 53 insertions(+), 8 deletions(-)
+ Documentation/driver-model/platform.txt |   40 ++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff -puN arch/i386/kernel/alternative.c~i386-extend-alternative-instructions-framework arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~i386-extend-alternative-instructions-framework
-+++ a/arch/i386/kernel/alternative.c
-@@ -162,14 +162,23 @@ extern u8 *__smp_locks[], *__smp_locks_e
- void apply_alternatives(struct alt_instr *start, struct alt_instr *end)
- {
- 	struct alt_instr *a;
--	u8 *instr;
-+	u8 *instr, *replacement;
-+	u8 replacementlen;
- 	int diff;
+diff -puN Documentation/driver-model/platform.txt~update-documentation-driver-model-platformtxt Documentation/driver-model/platform.txt
+--- a/Documentation/driver-model/platform.txt~update-documentation-driver-model-platformtxt
++++ a/Documentation/driver-model/platform.txt
+@@ -96,6 +96,46 @@ System setup also associates those clock
+ calls to clk_get(&pdev->dev, clock_name) return them as needed.
  
- 	DPRINTK("%s: alt table %p -> %p\n", __FUNCTION__, start, end);
- 	for (a = start; a < end; a++) {
--		BUG_ON(a->replacementlen > a->instrlen);
--		if (!boot_cpu_has(a->cpuid))
-+		if (boot_cpu_has(a->cpuid)) {
-+			replacement = a->replacement;
-+			replacementlen = a->replacementlen;
-+		} else if ((a->replacementlen2 > 0) &&
-+			   (boot_cpu_has(a->cpuid2))) {
-+			replacement = a->replacement2;
-+			replacementlen = a->replacementlen2;
-+		} else
- 			continue;
+ 
++Legacy Drivers:  Device Probing
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Some drivers are not fully converted to the driver model, because they take
++on a non-driver role:  the driver registers its platform device, rather than
++leaving that for system infrastructure.  Such drivers can't be hotplugged
++or coldplugged, since those mechanisms require device creation to be in a
++different system component than the driver.
 +
-+		BUG_ON(replacementlen > a->instrlen);
- 		instr = a->instr;
- #ifdef CONFIG_X86_64
- 		/* vsyscall code is not mapped yet. resolve it manually. */
-@@ -179,9 +188,9 @@ void apply_alternatives(struct alt_instr
- 				__FUNCTION__, a->instr, instr);
- 		}
- #endif
--		memcpy(instr, a->replacement, a->replacementlen);
--		diff = a->instrlen - a->replacementlen;
--		nop_out(instr + a->replacementlen, diff);
-+		memcpy(instr, replacement, replacementlen);
-+		diff = a->instrlen - replacementlen;
-+		nop_out(instr + replacementlen, diff);
- 	}
- }
- 
-diff -puN include/asm-i386/alternative.h~i386-extend-alternative-instructions-framework include/asm-i386/alternative.h
---- a/include/asm-i386/alternative.h~i386-extend-alternative-instructions-framework
-+++ a/include/asm-i386/alternative.h
-@@ -8,11 +8,14 @@
- struct alt_instr {
- 	u8 *instr; 		/* original instruction */
- 	u8 *replacement;
-+	u8 *replacement2;
- 	u8  cpuid;		/* cpuid bit set for replacement */
-+	u8  cpuid2;		/* cpuid bit set for replacement2 */
- 	u8  instrlen;		/* length of original instruction */
- 	u8  replacementlen; 	/* length of new instruction, <= instrlen */
--	u8  pad;
--};
-+	u8  replacementlen2;
-+	u8  pad[3];
-+}  __attribute__ ((packed));
- 
- extern void alternative_instructions(void);
- extern void apply_alternatives(struct alt_instr *start, struct alt_instr *end);
-@@ -33,6 +36,12 @@ static inline void alternatives_smp_swit
- #endif	/* CONFIG_SMP */
- 
- /*
-+ * use this macro(s) if you need more than one output parameter
-+ * in alternative_io_*
-+ */
-+#define ASM_OUTPUT2(a, b) a, b
++The only "good" reason for this is to handle older system designs which, like
++original IBM PCs, rely on error-prone "probe-the-hardware" models for hardware
++configuration.  Newer systems have largely abandoned that model, in favor of
++bus-level support for dynamic configuration (PCI, USB), or device tables
++provided by the boot firmware (e.g. PNPACPI on x86).  There are too many
++conflicting options about what might be where, and even educated guesses by
++an operating system will be wrong often enough to make trouble.
 +
-+/*
-  * Alternative instructions for different CPU types or capabilities.
-  *
-  * This allows to use optimized instructions even on generic binary
-@@ -50,9 +59,12 @@ static inline void alternatives_smp_swit
- 		      "  .align 4\n"					\
- 		      "  .long 661b\n"            /* label */		\
- 		      "  .long 663f\n"		  /* new instruction */	\
-+		      "  .long 0x00\n"					\
- 		      "  .byte %c0\n"             /* feature bit */	\
-+		      "  .byte 0x00\n"					\
- 		      "  .byte 662b-661b\n"       /* sourcelen */	\
- 		      "  .byte 664f-663f\n"       /* replacementlen */	\
-+		      "  .byte 0x00\n"					\
- 		      ".previous\n"					\
- 		      ".section .altinstr_replacement,\"ax\"\n"		\
- 		      "663:\n\t" newinstr "\n664:\n"   /* replacement */\
-@@ -74,14 +86,38 @@ static inline void alternatives_smp_swit
- 		      "  .align 4\n"					\
- 		      "  .long 661b\n"            /* label */		\
- 		      "  .long 663f\n"		  /* new instruction */ \
-+		      "  .long 0x00\n"					\
- 		      "  .byte %c0\n"             /* feature bit */	\
-+		      "  .byte 0x00\n"					\
- 		      "  .byte 662b-661b\n"       /* sourcelen */	\
- 		      "  .byte 664f-663f\n"       /* replacementlen */ 	\
-+		      "  .byte 0x00\n"					\
- 		      ".previous\n"					\
- 		      ".section .altinstr_replacement,\"ax\"\n"		\
- 		      "663:\n\t" newinstr "\n664:\n"   /* replacement */\
- 		      ".previous" :: "i" (feature), ##input)
- 
-+/* Like alternative_io, but supports 2 possible alternatives */
-+#define alternative_io_two(oldinstr, newinstr, feat, newinstr2, feat2,\
-+		output, input...) \
-+	asm volatile ("661:\n\t" oldinstr "\n662:\n"                    \
-+		      ".section .altinstructions,\"a\"\n"               \
-+		      "  .align 4\n"                                    \
-+		      "  .long 661b\n"            /* label */           \
-+		      "  .long 663f\n"            /* new instruction */ \
-+		      "  .long 665f\n"            /* new instruction 2 */\
-+		      "  .byte %c[f]\n"        /* feature bit */        \
-+		      "  .byte %c[f2]\n"          /* feature bit 2*/    \
-+		      "  .byte 662b-661b\n"       /* sourcelen */       \
-+		      "  .byte 664f-663f\n"       /* replacementlen */  \
-+		      "  .byte 666f-665f\n"       /* replacementlen 2 */\
-+		      ".previous\n"                                     \
-+		      ".section .altinstr_replacement,\"ax\"\n"         \
-+		      "663:\n\t" newinstr "\n664:\n"  /* replacement */ \
-+		      "665:\n\t" newinstr2 "\n666:\n" /* replacement2 */ \
-+		      ".previous" : output : [f] "i" (feat), \
-+		      [f2] "i" (feat2),##input)
++This style of driver is discouraged.  If you're updating such a driver,
++please try to move the device enumeration to a more appropriate location,
++outside the driver.  This will usually be cleanup, since such drivers
++tend to already have "normal" modes, such as ones using device nodes that
++were created by PNP or by platform device setup.
 +
- /*
-  * Alternative inline assembly for SMP.
-  *
++None the less, there are some APIs to support such legacy drivers.  Avoid
++using these calls except with such hotplug-deficient drivers.
++
++	struct platform_device *platform_device_alloc(
++			char *name, unsigned id);
++
++You can use platform_device_alloc() to dynamically allocate a device, which
++you will then initialize with resources and platform_device_register().
++A better solution is usually:
++
++	struct platform_device *platform_device_register_simple(
++			char *name, unsigned id,
++			struct resource *res, unsigned nres);
++
++You can use platform_device_register_simple() as a one-step call to allocate
++and register a device.
++
++
+ Device Naming and Driver Binding
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ The platform_device.dev.bus_id is the canonical name for the devices.
 _
 
-Patches currently in -mm which might be from joerg.roedel@amd.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-git-kvm.patch
-i386-extend-alternative-instructions-framework.patch
-x86_64-changes-to-x86_64-architecture-for.patch
+git-acpi.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+at91_cf-minor-fix.patch
+scsi-newstyle-hotplug-coldplug-support.patch
+usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+kconfig-mentioneds-hibernation-not-just-swsusp.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+init-dma-masks-in-pnp_dev.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+char-cs5535_gpio-add-module_device_table.patch
+parport-dev-driver-model-support.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+layered-parport-code-uses-parport-dev.patch
+pnpacpi-sets-pnpdev-devarchdata.patch
+pnpacpi-sets-pnpdev-devarchdata-fix.patch
+fix-hotplug-for-legacy-platform-drivers.patch
+minor-spi_butterfly-cleanup.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+rtc-update-to-class-device-removal-patches.patch
+rtc-kconfig-cleanup.patch
+rtc-cmos-wakeup-interface.patch
+acpi-wakeup-hooks-for-rtc-cmos.patch
+workaround-rtc-related-acpi-table-bugs.patch
+revert-rtc-add-rtc_merge_alarm.patch
+remove-rtc_alm_set-mode-bugs.patch
