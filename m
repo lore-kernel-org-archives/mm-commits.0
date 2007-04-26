@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vfb-use-sys-instead-of-cfb-drawing-functions.patch added to -mm tree
-Date: Wed, 25 Apr 2007 17:32:57 -0700
-Message-ID: <200704260032.l3Q0Wv7V016960@shell0.pdx.osdl.net>
+Subject: + arcfb-use-sys-instead-of-cfb-drawing-functions.patch added to -mm tree
+Date: Wed, 25 Apr 2007 17:32:54 -0700
+Message-ID: <200704260032.l3Q0Ws6j016954@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43414 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423426AbXDZAc7 (ORCPT
+	by vger.kernel.org with ESMTP id S1423430AbXDZAc5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 20:32:59 -0400
+	Wed, 25 Apr 2007 20:32:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     vfb: use sys instead of cfb drawing functions
+     arcfb: use sys instead of cfb drawing functions
 has been added to the -mm tree.  Its filename is
-     vfb-use-sys-instead-of-cfb-drawing-functions.patch
+     arcfb-use-sys-instead-of-cfb-drawing-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vfb: use sys instead of cfb drawing functions
+Subject: arcfb: use sys instead of cfb drawing functions
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Since vfb's framebuffer is vmalloc'ed, use the sys_* drawing functions
+Since arcfb's framebuffer is vmalloc'ed, use the sys_* drawing functions
 instead of cfb_*.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
@@ -37,41 +37,55 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/video/Kconfig |    6 +++---
- drivers/video/vfb.c   |    6 +++---
+ drivers/video/arcfb.c |    6 +++---
  2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/Kconfig~vfb-use-sys-instead-of-cfb-drawing-functions drivers/video/Kconfig
---- a/drivers/video/Kconfig~vfb-use-sys-instead-of-cfb-drawing-functions
+diff -puN drivers/video/Kconfig~arcfb-use-sys-instead-of-cfb-drawing-functions drivers/video/Kconfig
+--- a/drivers/video/Kconfig~arcfb-use-sys-instead-of-cfb-drawing-functions
 +++ a/drivers/video/Kconfig
-@@ -1704,9 +1704,9 @@ config FB_PS3_DEFAULT_SIZE_M
- config FB_VIRTUAL
- 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
- 	depends on FB
+@@ -412,9 +412,9 @@ config FB_FM2
+ config FB_ARC
+ 	tristate "Arc Monochrome LCD board support"
+ 	depends on FB && X86
 -	select FB_CFB_FILLRECT
 -	select FB_CFB_COPYAREA
 -	select FB_CFB_IMAGEBLIT
 +	select FB_SYS_FILLRECT
 +	select FB_SYS_COPYAREA
 +	select FB_SYS_IMAGEBLIT
- 	---help---
- 	  This is a `virtual' frame buffer device. It operates on a chunk of
- 	  unswappable kernel memory instead of on the memory of a graphics
-diff -puN drivers/video/vfb.c~vfb-use-sys-instead-of-cfb-drawing-functions drivers/video/vfb.c
---- a/drivers/video/vfb.c~vfb-use-sys-instead-of-cfb-drawing-functions
-+++ a/drivers/video/vfb.c
-@@ -88,9 +88,9 @@ static struct fb_ops vfb_ops = {
- 	.fb_set_par	= vfb_set_par,
- 	.fb_setcolreg	= vfb_setcolreg,
- 	.fb_pan_display	= vfb_pan_display,
--	.fb_fillrect	= cfb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
--	.fb_imageblit	= cfb_imageblit,
-+	.fb_fillrect	= sys_fillrect,
-+	.fb_copyarea	= sys_copyarea,
-+	.fb_imageblit	= sys_imageblit,
- 	.fb_mmap	= vfb_mmap,
- };
+ 	help
+ 	  This enables support for the Arc Monochrome LCD board. The board
+ 	  is based on the KS-108 lcd controller and is typically a matrix
+diff -puN drivers/video/arcfb.c~arcfb-use-sys-instead-of-cfb-drawing-functions drivers/video/arcfb.c
+--- a/drivers/video/arcfb.c~arcfb-use-sys-instead-of-cfb-drawing-functions
++++ a/drivers/video/arcfb.c
+@@ -369,7 +369,7 @@ static void arcfb_fillrect(struct fb_inf
+ {
+ 	struct arcfb_par *par = info->par;
  
+-	cfb_fillrect(info, rect);
++	sys_fillrect(info, rect);
+ 
+ 	/* update the physical lcd */
+ 	arcfb_lcd_update(par, rect->dx, rect->dy, rect->width, rect->height);
+@@ -380,7 +380,7 @@ static void arcfb_copyarea(struct fb_inf
+ {
+ 	struct arcfb_par *par = info->par;
+ 
+-	cfb_copyarea(info, area);
++	sys_copyarea(info, area);
+ 
+ 	/* update the physical lcd */
+ 	arcfb_lcd_update(par, area->dx, area->dy, area->width, area->height);
+@@ -390,7 +390,7 @@ static void arcfb_imageblit(struct fb_in
+ {
+ 	struct arcfb_par *par = info->par;
+ 
+-	cfb_imageblit(info, image);
++	sys_imageblit(info, image);
+ 
+ 	/* update the physical lcd */
+ 	arcfb_lcd_update(par, image->dx, image->dy, image->width,
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
