@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kill-warnings-when-building-mandocs.patch added to -mm tree
-Date: Wed, 25 Apr 2007 18:41:12 -0700
-Message-ID: <200704260141.l3Q1fDnG018167@shell0.pdx.osdl.net>
+Subject: + copy-i_flags-to-ext2-inode-flags-on-write.patch added to -mm tree
+Date: Wed, 25 Apr 2007 18:48:26 -0700
+Message-ID: <200704260148.l3Q1mQbY018273@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38708 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932753AbXDZBlo (ORCPT
+	by vger.kernel.org with ESMTP id S1753745AbXDZBse (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Apr 2007 21:41:44 -0400
+	Wed, 25 Apr 2007 21:48:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bbpetkov@yahoo.de, rdunlap@xenotime.net
+Cc: jack@suse.cz
 
 
 The patch titled
-     kill warnings when building mandocs
+     ext3: copy i_flags to inode flags on write
 has been added to the -mm tree.  Its filename is
-     kill-warnings-when-building-mandocs.patch
+     copy-i_flags-to-ext2-inode-flags-on-write.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,101 +26,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kill warnings when building mandocs
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: ext3: copy i_flags to inode flags on write
+From: Jan Kara <jack@suse.cz>
 
-This patch shuts warnings of the sort:
+Propagate flags such as S_APPEND, S_IMMUTABLE, etc.  from i_flags into
+ext2-specific i_flags.  Hence, when someone sets these flags via a different
+interface than ioctl, they are stored correctly.
 
-make -C /mnt/samsung_200/sam/kernel/trees/21-rc6/build \
-	KBUILD_SRC=/mnt/samsung_200/sam/kernel/trees/21-rc6 \
-	KBUILD_EXTMOD="" -f /mnt/samsung_200/sam/kernel/trees/21-rc6/Makefile mandocs
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=scripts/basic
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=Documentation/DocBook mandocs
-  SRCTREE=/mnt/samsung_200/sam/kernel/trees/21-rc6/ /mnt/samsung_200/sam/kernel/trees/21-rc6/build/scripts/basic/docproc doc /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/wanbook.tmpl >Documentation/DocBook/wanbook.xml
-  if grep -q refentry Documentation/DocBook/wanbook.xml; then xmlto man -m /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/man Documentation/DocBook/wanbook.xml ; gzip -f Documentation/DocBook/man/*.9; fi
-Note: meta version: No productnumber or alternative     sppp_close
-Note: meta version: No refmiscinfo@class=version        sppp_close
-Note: Writing sppp_close.9
-Note: meta version: No productnumber or alternative     sppp_open
-Note: meta version: No refmiscinfo@class=version        sppp_open
-
-by adding a RefMiscInfo xml tag in the form of the current kernel version
-to the function, struct and enum definitions in files included by
-kernel-doc when building 'mandocs'.  However, the version string appears
-truncated on the manpage due to some constraints in the xml DTD for the man
-header, I believe, for the troff output is truncated too.
-
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/Makefile |    2 +-
- scripts/kernel-doc             |   12 ++++++++++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ fs/ext2/ext2.h  |    1 +
+ fs/ext2/inode.c |   20 ++++++++++++++++++++
+ fs/ext2/ioctl.c |    1 +
+ 3 files changed, 22 insertions(+)
 
-diff -puN Documentation/DocBook/Makefile~kill-warnings-when-building-mandocs Documentation/DocBook/Makefile
---- a/Documentation/DocBook/Makefile~kill-warnings-when-building-mandocs
-+++ a/Documentation/DocBook/Makefile
-@@ -155,7 +155,7 @@ quiet_cmd_db2html = HTML   $@
-             cp $(PNG-$(basename $(notdir $@))) $(patsubst %.html,%,$@); fi
+diff -puN fs/ext2/ext2.h~copy-i_flags-to-ext2-inode-flags-on-write fs/ext2/ext2.h
+--- a/fs/ext2/ext2.h~copy-i_flags-to-ext2-inode-flags-on-write
++++ a/fs/ext2/ext2.h
+@@ -133,6 +133,7 @@ extern int ext2_get_block(struct inode *
+ extern void ext2_truncate (struct inode *);
+ extern int ext2_setattr (struct dentry *, struct iattr *);
+ extern void ext2_set_inode_flags(struct inode *inode);
++extern void ext2_get_inode_flags(struct ext2_inode_info *);
  
- quiet_cmd_db2man = MAN     $@
--      cmd_db2man = if grep -q refentry $<; then xmlto man $(XMLTOFLAGS) -o $(obj)/man $< ; gzip -f $(obj)/man/*.9; fi
-+      cmd_db2man = if grep -q refentry $<; then KERNELVERSION=$(KERNELVERSION) xmlto man $(XMLTOFLAGS) -o $(obj)/man $< ; gzip -f $(obj)/man/*.9; fi
- %.9 : %.xml
- 	@(which xmlto > /dev/null 2>&1) || \
- 	 (echo "*** You need to install xmlto ***"; \
-diff -puN scripts/kernel-doc~kill-warnings-when-building-mandocs scripts/kernel-doc
---- a/scripts/kernel-doc~kill-warnings-when-building-mandocs
-+++ a/scripts/kernel-doc
-@@ -328,6 +328,15 @@ while ($ARGV[0] =~ m/^-(.*)/) {
-     }
+ /* ioctl.c */
+ extern int ext2_ioctl (struct inode *, struct file *, unsigned int,
+diff -puN fs/ext2/inode.c~copy-i_flags-to-ext2-inode-flags-on-write fs/ext2/inode.c
+--- a/fs/ext2/inode.c~copy-i_flags-to-ext2-inode-flags-on-write
++++ a/fs/ext2/inode.c
+@@ -1055,6 +1055,25 @@ void ext2_set_inode_flags(struct inode *
+ 		inode->i_flags |= S_DIRSYNC;
  }
  
-+# get kernel version from env
-+sub get_kernel_version() {
-+    my $version;
++/* Propagate flags from i_flags to EXT2_I(inode)->i_flags */
++void ext2_get_inode_flags(struct ext2_inode_info *ei)
++{
++	unsigned int flags = ei->vfs_inode.i_flags;
 +
-+    if (defined($ENV{'KERNELVERSION'})) {
-+	$version = $ENV{'KERNELVERSION'};
-+    }
-+    return $version;
++	ei->i_flags &= ~(EXT2_SYNC_FL|EXT2_APPEND_FL|
++			EXT2_IMMUTABLE_FL|EXT2_NOATIME_FL|EXT2_DIRSYNC_FL);
++	if (flags & S_SYNC)
++		ei->i_flags |= EXT2_SYNC_FL;
++	if (flags & S_APPEND)
++		ei->i_flags |= EXT2_APPEND_FL;
++	if (flags & S_IMMUTABLE)
++		ei->i_flags |= EXT2_IMMUTABLE_FL;
++	if (flags & S_NOATIME)
++		ei->i_flags |= EXT2_NOATIME_FL;
++	if (flags & S_DIRSYNC)
++		ei->i_flags |= EXT2_DIRSYNC_FL;
 +}
++
+ void ext2_read_inode (struct inode * inode)
+ {
+ 	struct ext2_inode_info *ei = EXT2_I(inode);
+@@ -1188,6 +1207,7 @@ static int ext2_update_inode(struct inod
+ 	if (ei->i_state & EXT2_STATE_NEW)
+ 		memset(raw_inode, 0, EXT2_SB(sb)->s_inode_size);
  
- # generate a sequence of code that will splice in highlighting information
- # using the s// operator.
-@@ -601,6 +610,7 @@ sub output_function_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'function'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'function'}."</refname>\n";
-@@ -677,6 +687,7 @@ sub output_struct_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'type'}." ".$args{'struct'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'type'}." ".$args{'struct'}."</refname>\n";
-@@ -761,6 +772,7 @@ sub output_enum_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>enum ".$args{'enum'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>enum ".$args{'enum'}."</refname>\n";
++	ext2_get_inode_flags(ei);
+ 	raw_inode->i_mode = cpu_to_le16(inode->i_mode);
+ 	if (!(test_opt(sb, NO_UID32))) {
+ 		raw_inode->i_uid_low = cpu_to_le16(low_16_bits(uid));
+diff -puN fs/ext2/ioctl.c~copy-i_flags-to-ext2-inode-flags-on-write fs/ext2/ioctl.c
+--- a/fs/ext2/ioctl.c~copy-i_flags-to-ext2-inode-flags-on-write
++++ a/fs/ext2/ioctl.c
+@@ -27,6 +27,7 @@ int ext2_ioctl (struct inode * inode, st
+ 
+ 	switch (cmd) {
+ 	case EXT2_IOC_GETFLAGS:
++		ext2_get_inode_flags(ei);
+ 		flags = ei->i_flags & EXT2_FL_USER_VISIBLE;
+ 		return put_user(flags, (int __user *) arg);
+ 	case EXT2_IOC_SETFLAGS: {
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from jack@suse.cz are
 
-drivers-acpi-kconfig-formulation-fixpatch.patch
-git-net.patch
-kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
-generate-main-index-page-when-building-htmldocs.patch
-alphabetically-sorted-entries-in.patch
-kill-warnings-when-building-mandocs.patch
+readahead-improve-heuristic-detecting-sequential-reads.patch
+readahead-code-cleanup.patch
+readahead-code-cleanup-fix.patch
+make-remove_inode_dquot_ref-static.patch
+ext3-copy-i_flags-to-inode-flags-on-write.patch
+copy-i_flags-to-ext2-inode-flags-on-write.patch
+ext4-copy-i_flags-to-inode-flags-on-write.patch
+udf-use-sector_t-and-loff_t-for-file-offsets.patch
+udf-introduce-struct-extent_position.patch
+udf-use-get_bh.patch
+udf-add-assertions.patch
+udf-support-files-larger-than-1g.patch
+udf-fix-link-counts.patch
