@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-fix-constraint-deadlock.patch added to -mm tree
-Date: Fri, 27 Apr 2007 00:21:03 -0700
-Message-ID: <200704270721.l3R7L3JX022077@shell0.pdx.osdl.net>
+Subject: + x86_64-kill-19000-sparse-warnings.patch added to -mm tree
+Date: Fri, 27 Apr 2007 00:31:36 -0700
+Message-ID: <200704270731.l3R7VaAp022275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39605 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55827 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754120AbXD0HYj (ORCPT
+	by vger.kernel.org with ESMTP id S1754153AbXD0HcM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 03:24:39 -0400
+	Fri, 27 Apr 2007 03:32:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, ak@suse.de, clameter@engr.sgi.com, mbligh@mbligh.org, npiggin@suse.de
+Cc: randy.dunlap@oracle.com, ak@suse.de
 
 
 The patch titled
-     oom: fix constraint deadlock
+     x86_64: kill 19000+ sparse warnings
 has been added to the -mm tree.  Its filename is
-     oom-fix-constraint-deadlock.patch
+     x86_64-kill-19000-sparse-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,99 +26,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: oom: fix constraint deadlock
-From: David Rientjes <rientjes@google.com>
+Subject: x86_64: kill 19000+ sparse warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fixes a deadlock in the OOM killer for allocations that are not
-__GFP_HARDWALL.
+Eliminate 19439 (!!) sparse warnings like:
+include/linux/mm.h:321:22: warning: constant 0xffff810000000000 is so big it is unsigned long
 
-Before the OOM killer checks for the allocation constraint, it takes
-callback_mutex.
+Eliminate 56 sparse warnings like:
+arch/x86_64/kernel/setup.c:248:16: warning: constant 0xffffffff80000000 is so big it is unsigned long
 
-constrained_alloc() iterates through each zone in the allocation zonelist
-and calls cpuset_zone_allowed_softwall() to determine whether an allocation
-for gfp_mask is possible.  If a zone's node is not in the OOM-triggering
-task's mems_allowed, it is not exiting, and we did not fail on a
-__GFP_HARDWALL allocation, cpuset_zone_allowed_softwall() attempts to take
-callback_mutex to check the nearest exclusive ancestor of current's cpuset.
- This results in deadlock.
+Eliminate 5 sparse warnings like:
+arch/x86_64/kernel/module.c:49:13: warning: constant 0xfffffffffff00000 is so big it is unsigned long
 
-We now take callback_mutex after iterating through the zonelist since we
-don't need it yet.
+Eliminate 23 sparse warnings like:
+arch/x86_64/mm/init.c:551:37: warning: constant 0xffffc20000000000 is so big it is unsigned long
 
+Eliminate 6 sparse warnings like:
+arch/x86_64/kernel/module.c:49:13: warning: constant 0xffffffff88000000 is so big it is unsigned long
+
+Eliminate 23 sparse warnings like:
+arch/x86_64/mm/init.c:552:6: warning: constant 0xffffe1ffffffffff is so big it is unsigned long
+
+Eliminate 3 sparse warnings like:
+arch/x86_64/kernel/e820.c:186:17: warning: constant 0x3fffffffffff is so big it is long
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Cc: Martin J. Bligh <mbligh@mbligh.org>
-Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/asm-x86_64/page.h    |   11 +++++++++++
+ include/asm-x86_64/pgtable.h |    9 +++++++++
+ 2 files changed, 20 insertions(+)
 
-diff -puN mm/oom_kill.c~oom-fix-constraint-deadlock mm/oom_kill.c
---- a/mm/oom_kill.c~oom-fix-constraint-deadlock
-+++ a/mm/oom_kill.c
-@@ -399,6 +399,7 @@ void out_of_memory(struct zonelist *zone
- 	struct task_struct *p;
- 	unsigned long points = 0;
- 	unsigned long freed = 0;
-+	int constraint;
+diff -puN include/asm-x86_64/page.h~x86_64-kill-19000-sparse-warnings include/asm-x86_64/page.h
+--- a/include/asm-x86_64/page.h~x86_64-kill-19000-sparse-warnings
++++ a/include/asm-x86_64/page.h
+@@ -79,9 +79,16 @@ extern unsigned long phys_base;
  
- 	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
- 	if (freed > 0)
-@@ -416,14 +417,15 @@ void out_of_memory(struct zonelist *zone
- 	if (sysctl_panic_on_oom == 2)
- 		panic("out of memory. Compulsory panic_on_oom is selected.\n");
- 
--	cpuset_lock();
--	read_lock(&tasklist_lock);
--
- 	/*
- 	 * Check if there were limitations on the allocation (only relevant for
- 	 * NUMA) that may require different handling.
- 	 */
--	switch (constrained_alloc(zonelist, gfp_mask)) {
-+	constraint = constrained_alloc(zonelist, gfp_mask);
-+	cpuset_lock();
-+	read_lock(&tasklist_lock);
+ #define __PHYSICAL_START	CONFIG_PHYSICAL_START
+ #define __KERNEL_ALIGN		0x200000
 +
-+	switch (constraint) {
- 	case CONSTRAINT_MEMORY_POLICY:
- 		oom_kill_process(current, points,
- 				"No available memory (MPOL_BIND)");
++#ifdef __ASSEMBLY__
+ #define __START_KERNEL		(__START_KERNEL_map + __PHYSICAL_START)
+ #define __START_KERNEL_map	0xffffffff80000000
+ #define __PAGE_OFFSET           0xffff810000000000
++#else
++#define __START_KERNEL		(__START_KERNEL_map + __PHYSICAL_START)
++#define __START_KERNEL_map	0xffffffff80000000UL
++#define __PAGE_OFFSET           0xffff810000000000UL
++#endif
+ 
+ /* to align the pointer to the (next) page boundary */
+ #define PAGE_ALIGN(addr)	(((addr)+PAGE_SIZE-1)&PAGE_MASK)
+@@ -93,7 +100,11 @@ extern unsigned long phys_base;
+ #define __VIRTUAL_MASK		((_AC(1,UL) << __VIRTUAL_MASK_SHIFT) - 1)
+ 
+ #define KERNEL_TEXT_SIZE  (40*1024*1024)
++#ifdef __ASSEMBLY__
+ #define KERNEL_TEXT_START 0xffffffff80000000
++#else
++#define KERNEL_TEXT_START 0xffffffff80000000UL
++#endif
+ 
+ #ifndef __ASSEMBLY__
+ 
+diff -puN include/asm-x86_64/pgtable.h~x86_64-kill-19000-sparse-warnings include/asm-x86_64/pgtable.h
+--- a/include/asm-x86_64/pgtable.h~x86_64-kill-19000-sparse-warnings
++++ a/include/asm-x86_64/pgtable.h
+@@ -134,12 +134,21 @@ static inline pte_t ptep_get_and_clear_f
+ #define USER_PTRS_PER_PGD	((TASK_SIZE-1)/PGDIR_SIZE+1)
+ #define FIRST_USER_ADDRESS	0
+ 
++#ifdef __ASSEMBLY__
+ #define MAXMEM		 0x3fffffffffff
+ #define VMALLOC_START    0xffffc20000000000
+ #define VMALLOC_END      0xffffe1ffffffffff
+ #define MODULES_VADDR    0xffffffff88000000
+ #define MODULES_END      0xfffffffffff00000
+ #define MODULES_LEN   (MODULES_END - MODULES_VADDR)
++#else
++#define MAXMEM		 0x3fffffffffffUL
++#define VMALLOC_START    0xffffc20000000000UL
++#define VMALLOC_END      0xffffe1ffffffffffUL
++#define MODULES_VADDR    0xffffffff88000000UL
++#define MODULES_END      0xfffffffffff00000UL
++#define MODULES_LEN   (MODULES_END - MODULES_VADDR)
++#endif
+ 
+ #define _PAGE_BIT_PRESENT	0
+ #define _PAGE_BIT_RW		1
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-slab-x86_64-skip-cache_free_alien-on-non-numa.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
-smaps-add-clear_refs-file-to-clear-reference-cleanup.patch
-smaps-use-ptep_test_and_clear_young.patch
-smaps-add-clear_refs-file-to-clear-reference-docs.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
-mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
-oom-fix-constraint-deadlock.patch
+git-acpi.patch
+git-drm.patch
+git-ieee1394.patch
+git-kbuild.patch
+romfs-printk-format-warnings.patch
+git-netdev-all.patch
+8250_pci-fix-pci-must_checks.patch
+git-scsi-misc.patch
+git-ipwireless_cs.patch
+fix-mtrr-sections.patch
+x86_64-kill-19000-sparse-warnings.patch
+scripts-kernel-doc-whitespace-cleanup.patch
+reiserfs-proc-support-requires-proc_fs.patch
+kprobes-fix-sparse-null-warning.patch
+header-cleaning-dont-include-smp_lockh-when-not-used.patch
+expose-range-checking-functions-from-arch-specific.patch
+expose-range-checking-functions-from-arch-specific-update.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+parport_serial-fix-pci-must_checks.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
+generate-main-index-page-when-building-htmldocs.patch
+alphabetically-sorted-entries-in.patch
+kernel-doc-html-mode-struct-highlights.patch
+taskstats-fix-getdelays-usage-information.patch
+introduce-a-handy-list_first_entry-macro-v2.patch
+add-pci_try_set_mwi.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+s3fb-fix-pci-must_checks.patch
+profile-likely-unlikely-macros.patch
