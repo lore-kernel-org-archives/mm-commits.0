@@ -1,50 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:12:42 -0700
-Message-ID: <200704270812.l3R8CgWo023006@shell0.pdx.osdl.net>
+Subject: - smaps-add-clear_refs-file-to-clear-reference-fix.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:12:37 -0700
+Message-ID: <200704270812.l3R8Cba3023000@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36344 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755496AbXD0IMv (ORCPT
+	by vger.kernel.org with ESMTP id S1755497AbXD0IM5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:12:51 -0400
+	Fri, 27 Apr 2007 04:12:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hugh@veritas.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, hugh@veritas.com, lethal@linux-sh.org, oleg@tv-sign.ru, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smaps-add-clear_refs-file-to-clear-reference-fix-fix-2
+     smaps-add-clear_refs-file-to-clear-reference-fix
 has been removed from the -mm tree.  Its filename was
-     smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+     smaps-add-clear_refs-file-to-clear-reference-fix.patch
 
 This patch was dropped because it was folded into smaps-add-clear_refs-file-to-clear-reference.patch
 
 ------------------------------------------------------
-Subject: smaps-add-clear_refs-file-to-clear-reference-fix-fix-2
+Subject: smaps-add-clear_refs-file-to-clear-reference-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Rientjes <rientjes@google.com>
 Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/base.c          |    7 ++++++-
+ fs/proc/task_mmu.c      |    8 ++++++--
+ include/linux/proc_fs.h |    2 +-
+ 3 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-fix-fix-2 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-fix-fix-2
+diff -puN fs/proc/base.c~smaps-add-clear_refs-file-to-clear-reference-fix fs/proc/base.c
+--- a/fs/proc/base.c~smaps-add-clear_refs-file-to-clear-reference-fix
++++ a/fs/proc/base.c
+@@ -720,6 +720,7 @@ static ssize_t clear_refs_write(struct f
+ {
+ 	struct task_struct *task;
+ 	char buffer[PROC_NUMBUF], *end;
++	struct mm_struct *mm;
+ 
+ 	memset(buffer, 0, sizeof(buffer));
+ 	if (count > sizeof(buffer) - 1)
+@@ -733,7 +734,11 @@ static ssize_t clear_refs_write(struct f
+ 	task = get_proc_task(file->f_path.dentry->d_inode);
+ 	if (!task)
+ 		return -ESRCH;
+-	clear_refs_smap(task->mm->mmap);
++	mm = get_task_mm(task);
++	if (mm) {
++		clear_refs_smap(mm);
++		mmput(mm);
++	}
+ 	put_task_struct(task);
+ 	if (end - buffer == 0)
+ 		return -EIO;
+diff -puN fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~smaps-add-clear_refs-file-to-clear-reference-fix
 +++ a/fs/proc/task_mmu.c
-@@ -195,7 +195,7 @@ static int show_map_internal(struct seq_
- 			   "Shared_Dirty:   %8lu kB\n"
- 			   "Private_Clean:  %8lu kB\n"
- 			   "Private_Dirty:  %8lu kB\n"
--			   "Pgs_Referenced: %8lu kB\n",
-+			   "Referenced:     %8lu kB\n",
- 			   (vma->vm_end - vma->vm_start) >> 10,
- 			   mss->resident >> 10,
- 			   mss->shared_clean  >> 10,
+@@ -350,11 +350,15 @@ static int show_smap(struct seq_file *m,
+ 	return show_map_internal(m, v, &mss);
+ }
+ 
+-void clear_refs_smap(struct vm_area_struct *vma)
++void clear_refs_smap(struct mm_struct *mm)
+ {
+-	for (; vma; vma = vma->vm_next)
++	struct vm_area_struct *vma;
++
++	down_read(&mm->mmap_sem);
++	for (vma = mm->mmap; vma; vma = vma->vm_next)
+ 		if (vma->vm_mm && !is_vm_hugetlb_page(vma))
+ 			for_each_pmd(vma, clear_refs_one_pmd, NULL);
++	up_read(&mm->mmap_sem);
+ }
+ 
+ static void *m_start(struct seq_file *m, loff_t *pos)
+diff -puN include/linux/proc_fs.h~smaps-add-clear_refs-file-to-clear-reference-fix include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~smaps-add-clear_refs-file-to-clear-reference-fix
++++ a/include/linux/proc_fs.h
+@@ -104,7 +104,7 @@ int proc_pid_readdir(struct file * filp,
+ unsigned long task_vsize(struct mm_struct *);
+ int task_statm(struct mm_struct *, int *, int *, int *, int *);
+ char *task_mem(struct mm_struct *, char *);
+-void clear_refs_smap(struct vm_area_struct *);
++void clear_refs_smap(struct mm_struct *mm);
+ 
+ extern struct proc_dir_entry *create_proc_entry(const char *name, mode_t mode,
+ 						struct proc_dir_entry *parent);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,6 +177,7 @@ add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-m
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-merge-nopfn-into-fault.patch
 smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
 maps2-move-the-page-walker-code-to-lib-fix.patch
 maps2-add-proc-pid-pagemap-interface-fix-fix.patch
