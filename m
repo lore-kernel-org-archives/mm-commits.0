@@ -1,122 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: + signal-timer-event-eventfd-wire-up-x86-arches.patch added to -mm tree
-Date: Fri, 27 Apr 2007 14:22:47 -0700
-Message-ID: <200704272122.l3RLMlMY008121@shell0.pdx.osdl.net>
+Subject: - revoke-wire-up-i386-system-calls-x86_64-fix.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 14:24:04 -0700
+Message-ID: <200704272124.l3RLO4sx008152@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42315 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43714 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757324AbXD0VWy (ORCPT
+	by vger.kernel.org with ESMTP id S1757329AbXD0VYL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 17:22:54 -0400
+	Fri, 27 Apr 2007 17:24:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, ak@suse.de, mtk-manpages@gmx.net
+To: akpm@linux-foundation.org, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal/timer/event: eventfd wire up x86 arches
-has been added to the -mm tree.  Its filename is
-     signal-timer-event-eventfd-wire-up-x86-arches.patch
+     revoke-wire-up-i386-system-calls-x86_64-fix
+has been removed from the -mm tree.  Its filename was
+     revoke-wire-up-i386-system-calls-x86_64-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into revoke-wire-up-i386-system-calls.patch
 
 ------------------------------------------------------
-Subject: signal/timer/event: eventfd wire up x86 arches
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: revoke-wire-up-i386-system-calls-x86_64-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch wires the eventfd system call to the x86 architectures.
+Fix 32-bit userspace
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/syscall_table.S |    1 +
- arch/x86_64/ia32/ia32entry.S     |    1 +
- include/asm-i386/unistd.h        |    3 ++-
- include/asm-x86_64/unistd.h      |    4 +++-
- 4 files changed, 7 insertions(+), 2 deletions(-)
+ arch/x86_64/ia32/ia32entry.S |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN arch/i386/kernel/syscall_table.S~signal-timer-event-eventfd-wire-up-x86-arches arch/i386/kernel/syscall_table.S
---- a/arch/i386/kernel/syscall_table.S~signal-timer-event-eventfd-wire-up-x86-arches
-+++ a/arch/i386/kernel/syscall_table.S
-@@ -322,3 +322,4 @@ ENTRY(sys_call_table)
- 	.long sys_utimensat		/* 320 */
- 	.long sys_signalfd
- 	.long sys_timerfd
-+	.long sys_eventfd
-diff -puN include/asm-i386/unistd.h~signal-timer-event-eventfd-wire-up-x86-arches include/asm-i386/unistd.h
---- a/include/asm-i386/unistd.h~signal-timer-event-eventfd-wire-up-x86-arches
-+++ a/include/asm-i386/unistd.h
-@@ -328,10 +328,11 @@
- #define __NR_utimensat		320
- #define __NR_signalfd		321
- #define __NR_timerfd		322
-+#define __NR_eventfd		323
- 
- #ifdef __KERNEL__
- 
--#define NR_syscalls 323
-+#define NR_syscalls 324
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- #define __ARCH_WANT_OLD_READDIR
-diff -puN arch/x86_64/ia32/ia32entry.S~signal-timer-event-eventfd-wire-up-x86-arches arch/x86_64/ia32/ia32entry.S
---- a/arch/x86_64/ia32/ia32entry.S~signal-timer-event-eventfd-wire-up-x86-arches
+diff -puN arch/x86_64/ia32/ia32entry.S~revoke-wire-up-i386-system-calls-x86_64-fix arch/x86_64/ia32/ia32entry.S
+--- a/arch/x86_64/ia32/ia32entry.S~revoke-wire-up-i386-system-calls-x86_64-fix
 +++ a/arch/x86_64/ia32/ia32entry.S
-@@ -718,4 +718,5 @@ ia32_sys_call_table:
- 	.quad compat_sys_utimensat	/* 320 */
+@@ -719,4 +719,6 @@ ia32_sys_call_table:
  	.quad sys_signalfd
  	.quad sys_timerfd
-+	.quad sys_eventfd
+ 	.quad sys_eventfd
++	.quad sys_revokeat
++	.quad sys_frevoke		/* 325 */
  ia32_syscall_end:		
-diff -puN include/asm-x86_64/unistd.h~signal-timer-event-eventfd-wire-up-x86-arches include/asm-x86_64/unistd.h
---- a/include/asm-x86_64/unistd.h~signal-timer-event-eventfd-wire-up-x86-arches
-+++ a/include/asm-x86_64/unistd.h
-@@ -625,8 +625,10 @@ __SYSCALL(__NR_utimensat, sys_utimensat)
- __SYSCALL(__NR_signalfd, sys_signalfd)
- #define __NR_timerfd		282
- __SYSCALL(__NR_timerfd, sys_timerfd)
-+#define __NR_eventfd		283
-+__SYSCALL(__NR_eventfd, sys_eventfd)
- 
--#define __NR_syscall_max __NR_timerfd
-+#define __NR_syscall_max __NR_eventfd
- 
- #ifndef __NO_STUBS
- #define __ARCH_WANT_OLD_READDIR
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-epoll-optimizations-and-cleanups.patch
-epoll-optimizations-and-cleanups-tidy.patch
-introduce-a-handy-list_first_entry-macro-v2.patch
-signal-timer-event-fds-v9-anonymous-inode-source.patch
-signal-timer-event-fds-v9-anonymous-inode-source-fix.patch
-signal-timer-event-fds-v9-signalfd-core.patch
+extend-print_symbol-capability.patch
+slab-introduce-krealloc.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agp-build-fix.patch
+git-cpufreq-borkage-fix.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+dev_dbg-check-dev_dbg-arguments.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch
+git-gfs2-nmw.patch
+gfs2-printk-warning-fixes.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+fw-device-printk-fix.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-mtd-build-fix.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-export-ieee80211_debug_level.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+sctp_getsockopt_local_addrs-type-fix.patch
+git-net-fix-yamc.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+fix-x86_64-mm-nmi-watchdog-ops.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+utimensat-implementation-fix.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
 signal-timer-event-fds-v9-signalfd-core-fix.patch
 signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix-fix.patch
-signal-timer-event-signalfd-wire-up-x86-arches.patch
-signal-timer-event-fds-v9-signalfd-compat-code.patch
-signal-timer-event-fds-v9-timerfd-core.patch
 signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix-fix.patch
-signal-timer-event-timerfd-wire-up-x86-arches.patch
-signal-timer-event-fds-v9-timerfd-compat-code.patch
-signal-timer-event-fds-v9-eventfd-core.patch
 signal-timer-event-fds-v9-eventfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix-fix.patch
-signal-timer-event-eventfd-wire-up-x86-arches.patch
-signal-timer-event-fds-v9-kaio-eventfd-support-example.patch
-epoll-use-anonymous-inodes.patch
-epoll-cleanups-epoll-no-module.patch
-epoll-cleanups-epoll-remove-static-pre-declarations-and-akpm-ize-the-code.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-build-hack.patch
+lguest-build-hack-2.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
+i386-uaccess-debugging.patch
