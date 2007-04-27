@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch added to -mm tree
-Date: Thu, 26 Apr 2007 23:14:58 -0700
-Message-ID: <200704270614.l3R6EwLa021055@shell0.pdx.osdl.net>
+Subject: + slub-core-fix-sysfs-directory-handling.patch added to -mm tree
+Date: Thu, 26 Apr 2007 23:31:28 -0700
+Message-ID: <200704270631.l3R6VSBR021299@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42478 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56480 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755367AbXD0GTx (ORCPT
+	by vger.kernel.org with ESMTP id S1755381AbXD0Gbd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 02:19:53 -0400
+	Fri, 27 Apr 2007 02:31:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: Remove duplicate VM_BUG_ON
+     SLUB: Fix sysfs directory handling
 has been added to the -mm tree.  Its filename is
-     slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch
+     slub-core-fix-sysfs-directory-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Remove duplicate VM_BUG_ON
+Subject: SLUB: Fix sysfs directory handling
 From: Christoph Lameter <clameter@sgi.com>
 
-Somehow this artifact got in during merge with mm.
+This fixes the problem that SLUB does not track the names of aliased
+slabs by changing the way that SLUB manages the files in /sys/slab.
+
+If the slab that is being operated on is not mergeable (usually the
+case if we are debugging) then do not create any aliases. If an alias
+exists that we conflict with then remove it before creating the
+directory for the unmergeable slab. If there is a true slab cache there
+and not an alias then we fail since there is a true duplication of
+slab cache names. So debugging allows the detection of slab name
+duplication as usual.
+
+If the slab is mergeable then we create a directory with a unique name
+created from the slab size, slab options and the pointer to the kmem_cache
+structure (disambiguation). All names referring to the slabs will
+then be created as symlinks to that unique name. These symlinks are
+not going to be removed on kmem_cache_destroy() since we only carry
+a counter for the number of aliases. If a new symlink is created
+then it may just replace an existing one. This means that one can create
+a gazillion slabs with the same name (if they all refer to mergeable
+caches). It will only increase the alias count. So we have the potential
+of not detecting duplicate slab names (there is actually no harm
+done by doing that....). We will detect the duplications as
+as soon as debugging is enabled because we will then no longer
+generate symlinks and special unique names.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/slub.c |   65 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 63 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on mm/slub.c
---- a/mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on
+diff -puN mm/slub.c~slub-core-fix-sysfs-directory-handling mm/slub.c
+--- a/mm/slub.c~slub-core-fix-sysfs-directory-handling
 +++ a/mm/slub.c
-@@ -644,8 +644,6 @@ static void add_full(struct kmem_cache *
+@@ -3021,16 +3021,68 @@ static struct kset_uevent_ops slab_ueven
  
- 	VM_BUG_ON(!irqs_disabled());
+ decl_subsys(slab, &slab_ktype, &slab_uevent_ops);
  
--	VM_BUG_ON(!irqs_disabled());
--
- 	if (!(s->flags & SLAB_STORE_USER))
- 		return;
++#define ID_STR_LENGTH 64
++
++/* Create a unique string id for a slab cache:
++ * format
++ * :[flags-]size:[memory address of kmemcache]
++ */
++static char *create_unique_id(struct kmem_cache *s)
++{
++	char *name = kmalloc(ID_STR_LENGTH, GFP_KERNEL);
++	char *p = name;
++
++	BUG_ON(!name);
++
++	*p++ = ':';
++	/*
++	 * First flags affecting slabcache operations */
++	if (s->flags & SLAB_CACHE_DMA)
++		*p++ = 'd';
++	if (s->flags & SLAB_RECLAIM_ACCOUNT)
++		*p++ = 'a';
++	if (s->flags & SLAB_DESTROY_BY_RCU)
++		*p++ = 'r';\
++	/* Debug flags */
++	if (s->flags & SLAB_RED_ZONE)
++		*p++ = 'Z';
++	if (s->flags & SLAB_POISON)
++		*p++ = 'P';
++	if (s->flags & SLAB_STORE_USER)
++		*p++ = 'U';
++	if (p != name + 1)
++		*p++ = '-';
++	p += sprintf(p,"%07d:0x%p" ,s->size, s);
++	BUG_ON(p > name + ID_STR_LENGTH - 1);
++	return name;
++}
++
+ static int sysfs_slab_add(struct kmem_cache *s)
+ {
+ 	int err;
++	const char *name;
  
+ 	if (slab_state < SYSFS)
+ 		/* Defer until later */
+ 		return 0;
+ 
++	if (s->flags & SLUB_NEVER_MERGE) {
++		/*
++		 * Slabcache can never be merged so we can use the name proper.
++		 * This is typically the case for debug situations. In that
++		 * case we can catch duplicate names easily.
++		 */
++		sysfs_remove_link(&slab_subsys.kset.kobj, s->name);
++		name = s->name;
++	} else
++		/*
++		 * Create a unique name for the slab as a target
++		 * for the symlinks.
++		 */
++		name = create_unique_id(s);
++
+ 	kobj_set_kset_s(s, slab_subsys);
+-	kobject_set_name(&s->kobj, s->name);
++	kobject_set_name(&s->kobj, name);
+ 	kobject_init(&s->kobj);
+ 	err = kobject_add(&s->kobj);
+ 	if (err)
+@@ -3040,6 +3092,10 @@ static int sysfs_slab_add(struct kmem_ca
+ 	if (err)
+ 		return err;
+ 	kobject_uevent(&s->kobj, KOBJ_ADD);
++	if (!(s->flags & SLUB_NEVER_MERGE)) {
++		sysfs_slab_alias(s, s->name);
++		kfree(name);
++	}
+ 	return 0;
+ }
+ 
+@@ -3065,9 +3121,14 @@ static int sysfs_slab_alias(struct kmem_
+ {
+ 	struct saved_alias *al;
+ 
+-	if (slab_state == SYSFS)
++	if (slab_state == SYSFS) {
++		/*
++		 * If we have a leftover link then remove it.
++		 */
++		sysfs_remove_link(&slab_subsys.kset.kobj, name);
+ 		return sysfs_create_link(&slab_subsys.kset.kobj,
+ 						&s->kobj, name);
++	}
+ 
+ 	al = kmalloc(sizeof(struct saved_alias), GFP_KERNEL);
+ 	if (!al)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -109,6 +220,9 @@ slub-core-resiliency-fixups.patch
 slub-core-resiliency-fixups-fix.patch
 slub-core-resiliency-test.patch
 slub-core-update-cpu-after-new_slab.patch
+slub-core-fix-sysfs-directory-handling.patch
+slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
+slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
 make-page-private-usable-in-compound-pages-v1.patch
 make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
 optimize-compound_head-by-avoiding-a-shared-page.patch
@@ -120,23 +234,19 @@ slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
 slub-validation-of-slabs-metadata-and-guard-zones.patch
 slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
 slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch
+slub-add-min_partial.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
 slub-remove-object-activities-out-of-checking-functions.patch
 slub-user-documentation.patch
 slub-user-documentation-fix.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
 slub-add-slabinfo-tool.patch
 slub-add-slabinfo-tool-update-slabinfoc.patch
-slub-fix-sysfs-directory-handling.patch
-slub-debug-printk-cleanup.patch
-slub-conform-more-to-slabs-slab_hwcache_align-behavior.patch
-slub-add-min_partial.patch
-slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
 slub-major-slabinfo-update.patch
-slub-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
 slub-exploit-page-mobility-to-increase-allocation-order.patch
 slub-i386-support.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
 quicklists-for-page-table-pages.patch
 quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
 quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
