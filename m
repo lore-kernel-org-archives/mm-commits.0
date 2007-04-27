@@ -1,53 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-add-explanation-for-defrag_ratio-=-100.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:57 -0700
-Message-ID: <200704270821.l3R8LvOs023278@shell0.pdx.osdl.net>
+Subject: - slub-core-missing-inlines-and-statics.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:22:13 -0700
+Message-ID: <200704270822.l3R8MDV1023306@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54316 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755539AbXD0IV7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755559AbXD0IWQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:59 -0400
+	Fri, 27 Apr 2007 04:22:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: add explanation for defrag_ratio = 100
+     SLUB: Missing inlines and statics
 has been removed from the -mm tree.  Its filename was
-     slub-core-add-explanation-for-defrag_ratio-=-100.patch
+     slub-core-missing-inlines-and-statics.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: add explanation for defrag_ratio = 100
+Subject: SLUB: Missing inlines and statics
 From: Christoph Lameter <clameter@sgi.com>
+
+Fix up a series of missing static and inline attributes.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ mm/slub.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-core-add-explanation-for-defrag_ratio-=-100 mm/slub.c
---- a/mm/slub.c~slub-core-add-explanation-for-defrag_ratio-=-100
+diff -puN mm/slub.c~slub-core-missing-inlines-and-statics mm/slub.c
+--- a/mm/slub.c~slub-core-missing-inlines-and-statics
 +++ a/mm/slub.c
-@@ -937,6 +937,12 @@ static struct page *get_any_partial(stru
- 	 *
- 	 * A higher ratio means slabs may be taken from other nodes
- 	 * thus reducing the number of partial slabs on those nodes.
-+	 *
-+	 * If /sys/slab/xx/defrag_ratio is set to 100 (which makes
-+	 * defrag_ratio = 1000) then every (well almost) allocation
-+	 * will first attempt to defrag slab caches on other nodes. This
-+	 * means scanning over all nodes to look for partial slabs which
-+	 * may be a bit expensive to do on every slab allocation.
- 	 */
- 	if (!s->defrag_ratio || get_cycles() % 1024 > s->defrag_ratio)
- 		return NULL;
+@@ -175,7 +175,7 @@ int slab_is_available(void)
+ 	return slab_state >= UP;
+ }
+ 
+-struct kmem_cache_node *get_node(struct kmem_cache *s, int node)
++static inline struct kmem_cache_node *get_node(struct kmem_cache *s, int node)
+ {
+ #ifdef CONFIG_NUMA
+ 	return s->node[node];
+@@ -250,7 +250,7 @@ struct track {
+ 
+ enum track_item { TRACK_ALLOC, TRACK_FREE };
+ 
+-struct track *get_track(struct kmem_cache *s, void *object,
++static struct track *get_track(struct kmem_cache *s, void *object,
+ 	enum track_item alloc)
+ {
+ 	struct track *p;
+@@ -1448,7 +1448,7 @@ static void init_kmem_cache_node(struct 
+  * Note that this function only works on the kmalloc_node_cache
+  * when allocating for the kmalloc_node_cache.
+  */
+-struct kmem_cache_node * __init early_kmem_cache_node_alloc(gfp_t gfpflags,
++static struct kmem_cache_node * __init early_kmem_cache_node_alloc(gfp_t gfpflags,
+ 								int node)
+ {
+ 	struct page *page;
+@@ -2907,7 +2907,7 @@ struct saved_alias {
+ 
+ struct saved_alias *alias_list;
+ 
+-int sysfs_slab_alias(struct kmem_cache *s, const char *name)
++static int sysfs_slab_alias(struct kmem_cache *s, const char *name)
+ {
+ 	struct saved_alias *al;
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -65,14 +90,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-core-add-explanation-for-defrag_ratio-=-100.patch
-slub-core-add-explanation-for-locking.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-the-64k-limits.patch
-slub-core-explain-sizing-of-slabs-in-detail.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-add-checks-for-interrupts-disabled.patch
-slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
 slub-core-missing-inlines-and-statics.patch
 slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
 slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
