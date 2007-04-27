@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch added to -mm tree
-Date: Thu, 26 Apr 2007 23:31:30 -0700
-Message-ID: <200704270631.l3R6VU3c021302@shell0.pdx.osdl.net>
+Subject: + slub-add-min_partial.patch added to -mm tree
+Date: Thu, 26 Apr 2007 23:31:36 -0700
+Message-ID: <200704270631.l3R6Va5v021308@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48004 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755386AbXD0Gbd (ORCPT
+	by vger.kernel.org with ESMTP id S1755392AbXD0Gbk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 02:31:33 -0400
+	Fri, 27 Apr 2007 02:31:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: Conform more to SLABs SLAB_HWCACHE_ALIGN behavior
+     SLUB: Add MIN_PARTIAL
 has been added to the -mm tree.  Its filename is
-     slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
+     slub-add-min_partial.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,144 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Conform more to SLABs SLAB_HWCACHE_ALIGN behavior
+Subject: SLUB: Add MIN_PARTIAL
 From: Christoph Lameter <clameter@sgi.com>
 
-Currently SLUB is using a strict L1_CACHE_BYTES alignment if
-SLAB_HWCACHE_ALIGN is specified. SLAB does not align to a cacheline if the
-object is smaller than half of a cacheline. Small objects are then aligned
-by SLAB to a fraction of a cacheline.
+We leave a mininum of partial slabs on nodes when we search for
+partial slabs on other node. Define a constant for that value.
 
-Make SLUB just forget about the alignment requirement if the object size
-is less than L1_CACHE_BYTES. It seems that fractional alignments are no
-good because they grow the object and reduce the object density in a cache
-line needlessly causing additional cache line fetches.
+Then modify slub to keep MIN_PARTIAL slabs around.
 
-If we are already throwing the user suggestion of a cache line alignment
-away then lets do the best we can. Maybe SLAB_HWCACHE_ALIGN also needs
-to be tossed given its wishy-washy handling but doing so would require
-an audit of all kmem_cache_allocs throughout the kernel source.
+This avoids bad situations where a function frees the last object
+in a slab (which results in the page being returned to the page
+allocator) only to then allocate one again (which requires getting
+a page back from the page allocator if the partial list was empty).
+Keeping a couple of slabs on the partial list reduces overhead.
 
-In any case one needs to explictly specify an alignment during
-kmem_cache_create to either slab allocator in order to ensure that the
-objects are cacheline aligned.
-
-[Patch has a nice memory compaction effect on 32 bit platforms]
+Empty slabs are added to the end of the partial list to insure that
+partially allocated slabs are consumed first (defragmentation).
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/slub.c |   55 ++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 36 insertions(+), 19 deletions(-)
 
-diff -puN mm/slub.c~slub-core-conform-more-to-slabs-slab_hwcache_align-behavior mm/slub.c
---- a/mm/slub.c~slub-core-conform-more-to-slabs-slab_hwcache_align-behavior
+diff -puN mm/slub.c~slub-add-min_partial mm/slub.c
+--- a/mm/slub.c~slub-add-min_partial
 +++ a/mm/slub.c
-@@ -1474,9 +1474,19 @@ static int calculate_order(int size)
-  * various ways of specifying it.
+@@ -139,6 +139,9 @@
   */
- static unsigned long calculate_alignment(unsigned long flags,
--		unsigned long align)
-+		unsigned long align, unsigned long size)
+ #define SLUB_UNIMPLEMENTED (SLAB_DEBUG_INITIAL)
+ 
++/* Mininum number of partial slabs */
++#define MIN_PARTIAL 2
++
+ #define DEBUG_DEFAULT_FLAGS (SLAB_DEBUG_FREE | SLAB_RED_ZONE | \
+ 				SLAB_POISON | SLAB_STORE_USER)
+ /*
+@@ -657,16 +660,8 @@ static int on_freelist(struct kmem_cache
+ /*
+  * Tracking of fully allocated slabs for debugging
+  */
+-static void add_full(struct kmem_cache *s, struct page *page)
++static void add_full(struct kmem_cache_node *n, struct page *page)
  {
--	if (flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN))
-+	/*
-+	 * If the user wants hardware cache aligned objects then
-+	 * follow that suggestion if the object is sufficiently
-+	 * large.
-+	 *
-+	 * The hardware cache alignment cannot override the
-+	 * specified alignment though. If that is greater
-+	 * then use it.
-+	 */
-+	if ((flags & (SLAB_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN)) &&
-+			size > L1_CACHE_BYTES / 2)
- 		return max_t(unsigned long, align, L1_CACHE_BYTES);
+-	struct kmem_cache_node *n;
+-
+-	VM_BUG_ON(!irqs_disabled());
+-
+-	if (!(s->flags & SLAB_STORE_USER))
+-		return;
+-
+-	n = get_node(s, page_to_nid(page));
+ 	spin_lock(&n->list_lock);
+ 	list_add(&page->lru, &n->full);
+ 	spin_unlock(&n->list_lock);
+@@ -975,10 +970,16 @@ static __always_inline int slab_trylock(
+ /*
+  * Management of partially allocated slabs
+  */
+-static void add_partial(struct kmem_cache *s, struct page *page)
++static void add_partial_tail(struct kmem_cache_node *n, struct page *page)
+ {
+-	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
++	spin_lock(&n->list_lock);
++	n->nr_partial++;
++	list_add_tail(&page->lru, &n->partial);
++	spin_unlock(&n->list_lock);
++}
  
- 	if (align < ARCH_SLAB_MINALIGN)
-@@ -1664,7 +1674,7 @@ static int calculate_sizes(struct kmem_c
- 	 * user specified (this is unecessarily complex due to the attempt
- 	 * to be compatible with SLAB. Should be cleaned up some day).
++static void add_partial(struct kmem_cache_node *n, struct page *page)
++{
+ 	spin_lock(&n->list_lock);
+ 	n->nr_partial++;
+ 	list_add(&page->lru, &n->partial);
+@@ -1078,7 +1079,7 @@ static struct page *get_any_partial(stru
+ 		n = get_node(s, zone_to_nid(*z));
+ 
+ 		if (n && cpuset_zone_allowed_hardwall(*z, flags) &&
+-				n->nr_partial > 2) {
++				n->nr_partial > MIN_PARTIAL) {
+ 			page = get_partial_node(n);
+ 			if (page)
+ 				return page;
+@@ -1112,15 +1113,31 @@ static struct page *get_partial(struct k
+  */
+ static void putback_slab(struct kmem_cache *s, struct page *page)
+ {
++	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
++
+ 	if (page->inuse) {
++
+ 		if (page->freelist)
+-			add_partial(s, page);
+-		else if (PageError(page))
+-			add_full(s, page);
++			add_partial(n, page);
++		else if (PageError(page) && (s->flags & SLAB_STORE_USER))
++			add_full(n, page);
+ 		slab_unlock(page);
++
+ 	} else {
+-		slab_unlock(page);
+-		discard_slab(s, page);
++		if (n->nr_partial < MIN_PARTIAL) {
++			/*
++			 * Adding an empty page to the partial slabs in order
++			 * to avoid page allocator overhead. This page needs to
++			 * come after all the others that are not fully empty
++			 * in order to make sure that we do maximum
++			 * defragmentation.
++			 */
++			add_partial_tail(n, page);
++			slab_unlock(page);
++		} else {
++			slab_unlock(page);
++			discard_slab(s, page);
++		}
+ 	}
+ }
+ 
+@@ -1371,7 +1388,7 @@ checks_ok:
+ 	 * then add it.
  	 */
--	align = calculate_alignment(flags, align);
-+	align = calculate_alignment(flags, align, s->objsize);
+ 	if (unlikely(!prior))
+-		add_partial(s, page);
++		add_partial(get_node(s, page_to_nid(page)), page);
  
- 	/*
- 	 * SLUB stores one object immediately after another beginning from
-@@ -2252,7 +2262,7 @@ static struct kmem_cache *find_mergeable
- 		return NULL;
+ out_unlock:
+ 	slab_unlock(page);
+@@ -1579,7 +1596,7 @@ static struct kmem_cache_node * __init e
+ 	kmalloc_caches->node[node] = n;
+ 	init_kmem_cache_node(n);
+ 	atomic_long_inc(&n->nr_slabs);
+-	add_partial(kmalloc_caches, page);
++	add_partial(n, page);
+ 	return n;
+ }
  
- 	size = ALIGN(size, sizeof(void *));
--	align = calculate_alignment(flags, align);
-+	align = calculate_alignment(flags, align, size);
- 	size = ALIGN(size, align);
- 
- 	list_for_each(h, &slab_caches) {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
