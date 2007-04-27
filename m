@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + move-log_buf_shift-to-a-more-sensible-place.patch added to -mm tree
-Date: Fri, 27 Apr 2007 16:24:29 -0700
-Message-ID: <200704272324.l3RNOTg2010522@shell0.pdx.osdl.net>
+Subject: + x86_64-set-node_possible_map-at-runtime-try-2.patch added to -mm tree
+Date: Fri, 27 Apr 2007 16:34:30 -0700
+Message-ID: <200704272334.l3RNYUSK010698@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42244 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757881AbXD0XYo (ORCPT
+	by vger.kernel.org with ESMTP id S1757903AbXD0XfU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 19:24:44 -0400
+	Fri, 27 Apr 2007 19:35:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: s0348365@sms.ed.ac.uk, randy.dunlap@oracle.com
+Cc: suresh.b.siddha@intel.com, andi@firstfloor.org, clameter@engr.sgi.com, dada1@cosmosbay.com, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     Move LOG_BUF_SHIFT to a more sensible place
+     x86_64: set node_possible_map at runtime
 has been added to the -mm tree.  Its filename is
-     move-log_buf_shift-to-a-more-sensible-place.patch
+     x86_64-set-node_possible_map-at-runtime-try-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,158 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Move LOG_BUF_SHIFT to a more sensible place
-From: Alistair John Strachan <s0348365@sms.ed.ac.uk>
+Subject: x86_64: set node_possible_map at runtime
+From: Suresh Siddha <suresh.b.siddha@intel.com>
 
-Several people have observed that perhaps LOG_BUF_SHIFT should be in a more
-obvious place than under DEBUG_KERNEL. Under some circumstances (such as the
-PARISC architecture), DEBUG_KERNEL can increase kernel size, which is an
-undesirable trade off for something as trivial as increasing the kernel log
-buffer size.
+Set the node_possible_map at runtime on x86_64.  On a non NUMA system,
+num_possible_nodes() will now say '1'.
 
-Instead, move LOG_BUF_SHIFT into "General Setup", so that people are more
-likely to be able to change it such a circumstance that the default buffer
-size is insufficient.
-
-Signed-off-by: Alistair John Strachan <s0348365@sms.ed.ac.uk>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig      |   17 +++++++++++++++++
- lib/Kconfig.debug |   17 -----------------
- 2 files changed, 17 insertions(+), 17 deletions(-)
+ arch/x86_64/mm/k8topology.c |    7 ++-----
+ arch/x86_64/mm/numa.c       |   10 ++++++++--
+ arch/x86_64/mm/srat.c       |    8 +++++---
+ 3 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN init/Kconfig~move-log_buf_shift-to-a-more-sensible-place init/Kconfig
---- a/init/Kconfig~move-log_buf_shift-to-a-more-sensible-place
-+++ a/init/Kconfig
-@@ -266,6 +266,23 @@ config IKCONFIG_PROC
- 	  This option enables access to the kernel configuration file
- 	  through /proc/config.gz.
+diff -puN arch/x86_64/mm/k8topology.c~x86_64-set-node_possible_map-at-runtime-try-2 arch/x86_64/mm/k8topology.c
+--- a/arch/x86_64/mm/k8topology.c~x86_64-set-node_possible_map-at-runtime-try-2
++++ a/arch/x86_64/mm/k8topology.c
+@@ -49,11 +49,8 @@ int __init k8_scan_nodes(unsigned long s
+ 	int found = 0;
+ 	u32 reg;
+ 	unsigned numnodes;
+-	nodemask_t nodes_parsed;
+ 	unsigned dualcore = 0;
  
-+config LOG_BUF_SHIFT
-+	int "Kernel log buffer size (16 => 64KB, 17 => 128KB)"
-+	range 12 21
-+	default 17 if S390 || LOCKDEP
-+	default 16 if X86_NUMAQ || IA64
-+	default 15 if SMP
-+	default 14
-+	help
-+	  Select kernel log buffer size as a power of 2.
-+	  Defaults and Examples:
-+	  	     17 => 128 KB for S/390
-+		     16 => 64 KB for x86 NUMAQ or IA-64
-+	             15 => 32 KB for SMP
-+	             14 => 16 KB for uniprocessor
-+		     13 =>  8 KB
-+		     12 =>  4 KB
-+
- config CPUSETS
- 	bool "Cpuset support"
- 	depends on SMP
-diff -puN lib/Kconfig.debug~move-log_buf_shift-to-a-more-sensible-place lib/Kconfig.debug
---- a/lib/Kconfig.debug~move-log_buf_shift-to-a-more-sensible-place
-+++ a/lib/Kconfig.debug
-@@ -86,23 +86,6 @@ config DEBUG_SHIRQ
- 	  Drivers ought to be able to handle interrupts coming in at those
- 	  points; some don't and need to be caught.
- 
--config LOG_BUF_SHIFT
--	int "Kernel log buffer size (16 => 64KB, 17 => 128KB)" if DEBUG_KERNEL
--	range 12 21
--	default 17 if S390 || LOCKDEP
--	default 16 if X86_NUMAQ || IA64
--	default 15 if SMP
--	default 14
--	help
--	  Select kernel log buffer size as a power of 2.
--	  Defaults and Examples:
--	  	     17 => 128 KB for S/390
--		     16 => 64 KB for x86 NUMAQ or IA-64
--	             15 => 32 KB for SMP
--	             14 => 16 KB for uniprocessor
--		     13 =>  8 KB
--		     12 =>  4 KB
+-	nodes_clear(nodes_parsed);
 -
- config DETECT_SOFTLOCKUP
- 	bool "Detect Soft Lockups"
- 	depends on DEBUG_KERNEL && !S390
+ 	if (!early_pci_allowed())
+ 		return -1;
+ 
+@@ -102,7 +99,7 @@ int __init k8_scan_nodes(unsigned long s
+ 			       nodeid, (base>>8)&3, (limit>>8) & 3); 
+ 			return -1; 
+ 		}	
+-		if (node_isset(nodeid, nodes_parsed)) { 
++		if (node_isset(nodeid, node_possible_map)) {
+ 			printk(KERN_INFO "Node %d already present. Skipping\n", 
+ 			       nodeid);
+ 			continue;
+@@ -155,7 +152,7 @@ int __init k8_scan_nodes(unsigned long s
+ 
+ 		prevbase = base;
+ 
+-		node_set(nodeid, nodes_parsed);
++		node_set(nodeid, node_possible_map);
+ 	} 
+ 
+ 	if (!found)
+diff -puN arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime-try-2 arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime-try-2
++++ a/arch/x86_64/mm/numa.c
+@@ -295,7 +295,7 @@ static int __init setup_node_range(int n
+ 		ret = -1;
+ 	}
+ 	nodes[nid].end = *addr;
+-	node_set_online(nid);
++	node_set(nid, node_possible_map);
+ 	printk(KERN_INFO "Faking node %d at %016Lx-%016Lx (%LuMB)\n", nid,
+ 	       nodes[nid].start, nodes[nid].end,
+ 	       (nodes[nid].end - nodes[nid].start) >> 20);
+@@ -479,7 +479,7 @@ out:
+ 	 * SRAT.
+ 	 */
+ 	remove_all_active_ranges();
+-	for_each_online_node(i) {
++	for_each_node_mask(i, node_possible_map) {
+ 		e820_register_active_regions(i, nodes[i].start >> PAGE_SHIFT,
+ 						nodes[i].end >> PAGE_SHIFT);
+  		setup_node_bootmem(i, nodes[i].start, nodes[i].end);
+@@ -494,20 +494,25 @@ void __init numa_initmem_init(unsigned l
+ { 
+ 	int i;
+ 
++	nodes_clear(node_possible_map);
++
+ #ifdef CONFIG_NUMA_EMU
+ 	if (cmdline && !numa_emulation(start_pfn, end_pfn))
+  		return;
++	nodes_clear(node_possible_map);
+ #endif
+ 
+ #ifdef CONFIG_ACPI_NUMA
+ 	if (!numa_off && !acpi_scan_nodes(start_pfn << PAGE_SHIFT,
+ 					  end_pfn << PAGE_SHIFT))
+  		return;
++	nodes_clear(node_possible_map);
+ #endif
+ 
+ #ifdef CONFIG_K8_NUMA
+ 	if (!numa_off && !k8_scan_nodes(start_pfn<<PAGE_SHIFT, end_pfn<<PAGE_SHIFT))
+ 		return;
++	nodes_clear(node_possible_map);
+ #endif
+ 	printk(KERN_INFO "%s\n",
+ 	       numa_off ? "NUMA turned off" : "No NUMA configuration found");
+@@ -521,6 +526,7 @@ void __init numa_initmem_init(unsigned l
+ 	memnodemap[0] = 0;
+ 	nodes_clear(node_online_map);
+ 	node_set_online(0);
++	node_set(0, node_possible_map);
+ 	for (i = 0; i < NR_CPUS; i++)
+ 		numa_set_node(i, 0);
+ 	node_to_cpumask[0] = cpumask_of_cpu(0);
+diff -puN arch/x86_64/mm/srat.c~x86_64-set-node_possible_map-at-runtime-try-2 arch/x86_64/mm/srat.c
+--- a/arch/x86_64/mm/srat.c~x86_64-set-node_possible_map-at-runtime-try-2
++++ a/arch/x86_64/mm/srat.c
+@@ -419,19 +419,21 @@ int __init acpi_scan_nodes(unsigned long
+ 		return -1;
+ 	}
+ 
++	node_possible_map = nodes_parsed;
++
+ 	/* Finally register nodes */
+-	for_each_node_mask(i, nodes_parsed)
++	for_each_node_mask(i, node_possible_map)
+ 		setup_node_bootmem(i, nodes[i].start, nodes[i].end);
+ 	/* Try again in case setup_node_bootmem missed one due
+ 	   to missing bootmem */
+-	for_each_node_mask(i, nodes_parsed)
++	for_each_node_mask(i, node_possible_map)
+ 		if (!node_online(i))
+ 			setup_node_bootmem(i, nodes[i].start, nodes[i].end);
+ 
+ 	for (i = 0; i < NR_CPUS; i++) {
+ 		if (cpu_to_node[i] == NUMA_NO_NODE)
+ 			continue;
+-		if (!node_isset(cpu_to_node[i], nodes_parsed))
++		if (!node_isset(cpu_to_node[i], node_possible_map))
+ 			numa_set_node(i, NUMA_NO_NODE);
+ 	}
+ 	numa_init_array();
 _
 
-Patches currently in -mm which might be from s0348365@sms.ed.ac.uk are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
-move-log_buf_shift-to-a-more-sensible-place.patch
+slab-x86_64-skip-cache_free_alien-on-non-numa.patch
+x86_64-set-node_possible_map-at-runtime-try-2.patch
+pad-irq_desc-to-internode-cacheline-size.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
+sched-dynticks-idle-load-balancing-v3.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-align-rq-to-cacheline-boundary.patch
+sched-dont-renice-kernel-threads.patch
+sched-remove-sleepavg-from-proc.patch
+sched-implement-staircase-deadline-cpu-scheduler.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
+sched-remove-noninteractive-flag.patch
+sched-document-sd-cpu-scheduler.patch
