@@ -1,64 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - lumpy-only-count-taken-pages-as-scanned.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:16:59 -0700
-Message-ID: <200704270816.l3R8Gx3t023124@shell0.pdx.osdl.net>
+Subject: - kswapd-use-reclaim-order-in-background-reclaim.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:17:01 -0700
+Message-ID: <200704270817.l3R8H1Ae023127@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39898 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754140AbXD0IRe (ORCPT
+	by vger.kernel.org with ESMTP id S1755502AbXD0IRh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:17:34 -0400
+	Fri, 27 Apr 2007 04:17:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: apw@shadowen.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lumpy: only count taken pages as scanned
+     kswapd: use reclaim order in background reclaim
 has been removed from the -mm tree.  Its filename was
-     lumpy-only-count-taken-pages-as-scanned.patch
+     kswapd-use-reclaim-order-in-background-reclaim.patch
 
 This patch was dropped because it was folded into lumpy-reclaim-v4.patch
 
 ------------------------------------------------------
-Subject: lumpy: only count taken pages as scanned
+Subject: kswapd: use reclaim order in background reclaim
 From: Andy Whitcroft <apw@shadowen.org>
 
-When scanning the order sized area around the tag page we pull all pages of
-the matching active state; the non-matching pages are not otherwise affected. 
-We currently count these as scanned increasing the apparent scan rates. 
-Previously we would only count a page scanned if it was actually removed from
-the LRU, either then being reclaimed or rotated back onto the head of the LRU.
-
-The effect of this is to cause reclaim to terminate artificially early when
-the scan count is reached, reducing effectivness.  Move to counting only those
-pages we actually remove from the LRU as scanned.
+When an allocator has to dip below the low water mark for a zone, kswapd is
+awoken to start background reclaim.  The highest order of these dipping
+allocations are accumulated on the zone.  With this patch kswapd uses this
+hint to force reclaim at that order via balance_pgdat().
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~lumpy-only-count-taken-pages-as-scanned mm/vmscan.c
---- a/mm/vmscan.c~lumpy-only-count-taken-pages-as-scanned
+diff -puN mm/vmscan.c~kswapd-use-reclaim-order-in-background-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~kswapd-use-reclaim-order-in-background-reclaim
 +++ a/mm/vmscan.c
-@@ -724,11 +724,11 @@ static unsigned long isolate_lru_pages(u
- 			/* Check that we have not crossed a zone boundary. */
- 			if (unlikely(page_zone_id(cursor_page) != zone_id))
- 				continue;
--			scan++;
- 			switch (__isolate_lru_page(cursor_page, active)) {
- 			case 0:
- 				list_move(&cursor_page->lru, dst);
- 				nr_taken++;
-+				scan++;
- 				break;
- 
- 			case -EBUSY:
+@@ -1226,6 +1226,7 @@ static unsigned long balance_pgdat(pg_da
+ 		.may_swap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+ 		.swappiness = vm_swappiness,
++		.order = order,
+ 	};
+ 	/*
+ 	 * temp_priority is used to remember the scanning priority at which
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
@@ -72,7 +62,6 @@ fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.
 create-the-zone_movable-zone.patch
 handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
 lumpy-reclaim-v4.patch
-lumpy-only-count-taken-pages-as-scanned.patch
 kswapd-use-reclaim-order-in-background-reclaim.patch
 lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
 introduce-high_order-delineating-easily-reclaimable-orders.patch
