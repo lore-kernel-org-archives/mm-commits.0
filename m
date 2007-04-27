@@ -1,65 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-tidy-6.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:43 -0700
-Message-ID: <200704270821.l3R8LhkL023257@shell0.pdx.osdl.net>
+Subject: - slub-core-tidy-5.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:41 -0700
+Message-ID: <200704270821.l3R8Lffq023254@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51098 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755532AbXD0IVq (ORCPT
+	by vger.kernel.org with ESMTP id S1755529AbXD0IVo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:46 -0400
+	Fri, 27 Apr 2007 04:21:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-core-tidy-6
+     slub-core-tidy-5
 has been removed from the -mm tree.  Its filename was
-     slub-core-tidy-6.patch
+     slub-core-tidy-5.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub-core-tidy-6
+Subject: slub-core-tidy-5
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ mm/slub.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-core-tidy-6 mm/slub.c
---- a/mm/slub.c~slub-core-tidy-6
+diff -puN mm/slub.c~slub-core-tidy-5 mm/slub.c
+--- a/mm/slub.c~slub-core-tidy-5
 +++ a/mm/slub.c
-@@ -1384,7 +1384,6 @@ static unsigned long calculate_alignment
- 	return ALIGN(align, sizeof(void *));
- }
- 
--
- static void init_kmem_cache_node(struct kmem_cache_node *n)
- {
- 	n->nr_partial = 0;
-@@ -1402,13 +1401,14 @@ static void init_kmem_cache_node(struct 
-  * Note that this function only works on the kmalloc_node_cache
-  * when allocating for the kmalloc_node_cache.
+@@ -1324,7 +1324,7 @@ static struct page *get_object_page(cons
+  * and increases the number of allocations possible without having to
+  * take the list_lock.
   */
--struct kmem_cache_node * __init early_kmem_cache_node_alloc(
--					gfp_t gfpflags, int node)
-+struct kmem_cache_node * __init early_kmem_cache_node_alloc(gfp_t gfpflags,
-+								int node)
- {
- 	struct page *page;
- 	struct kmem_cache_node *n;
+-static int slub_min_order = 0;
++static int slub_min_order;
+ static int slub_max_order = 4;
  
- 	BUG_ON(kmalloc_caches->size < sizeof(struct kmem_cache_node));
-+
- 	page = new_slab(kmalloc_caches, gfpflags | GFP_THISNODE, node);
- 	/* new_slab() disables interupts */
- 	local_irq_enable();
+ /*
+@@ -1336,14 +1336,14 @@ static int slub_min_objects = 8;
+ /*
+  * Merge control. If this is set then no merging of slab caches will occur.
+  */
+-static int slub_nomerge = 0;
++static int slub_nomerge;
+ 
+ /*
+  * Debug settings:
+  */
+-static int slub_debug = 0;
++static int slub_debug;
+ 
+-static char *slub_debug_slabs = NULL;
++static char *slub_debug_slabs;
+ 
+ static int calculate_order(int size)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +151,7 @@ mm-move-common-segment-checks-to-separate-helper-function-v7.patch
 slab-mark-set_up_list3s-__init.patch
 extend-print_symbol-capability.patch
 slub-core.patch
+slub-core-tidy-5.patch
 slub-core-tidy-6.patch
 slub-core-tidy-7.patch
 slub-core-tidy-8.patch
