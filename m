@@ -1,70 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - mm-merge-nopfn-into-fault-fix.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:11:33 -0700
-Message-ID: <200704270811.l3R8BXdi022967@shell0.pdx.osdl.net>
+Subject: - i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:12:15 -0700
+Message-ID: <200704270812.l3R8CGXY022991@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39744 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755495AbXD0ILf (ORCPT
+	by vger.kernel.org with ESMTP id S1755490AbXD0IM1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:11:35 -0400
+	Fri, 27 Apr 2007 04:12:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hugh@veritas.com, rientjes@google.com, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-merge-nopfn-into-fault-fix
+     i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix
 has been removed from the -mm tree.  Its filename was
-     mm-merge-nopfn-into-fault-fix.patch
+     i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
 
-This patch was dropped because it was folded into mm-merge-nopfn-into-fault.patch
+This patch was dropped because it was folded into i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
 
 ------------------------------------------------------
-Subject: mm-merge-nopfn-into-fault-fix
+Subject: i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/char/mspec.c: In function `mspec_fault':
-drivers/char/mspec.c:195: error: structure has no member named `vma'
-drivers/char/mspec.c:229: error: structure has no member named `vma'
-drivers/char/mspec.c: At top level:
-drivers/char/mspec.c:237: warning: initialization from incompatible pointer type
-
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mspec.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/asm-i386/pgtable.h |   36 +++++++++++++++--------------------
+ 1 file changed, 16 insertions(+), 20 deletions(-)
 
-diff -puN drivers/char/mspec.c~mm-merge-nopfn-into-fault-fix drivers/char/mspec.c
---- a/drivers/char/mspec.c~mm-merge-nopfn-into-fault-fix
-+++ a/drivers/char/mspec.c
-@@ -187,12 +187,12 @@ mspec_close(struct vm_area_struct *vma)
-  * Creates a mspec page and maps it to user space.
-  */
- static struct page *
--mspec_fault(struct fault_data *fdata)
-+mspec_fault(struct vm_area_struct *vma, struct fault_data *fdata)
- {
- 	unsigned long paddr, maddr;
- 	unsigned long pfn;
- 	int index = fdata->pgoff;
--	struct vma_data *vdata = fdata->vma->vm_private_data;
-+	struct vma_data *vdata = vma->vm_private_data;
+diff -puN include/asm-i386/pgtable.h~i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix
++++ a/include/asm-i386/pgtable.h
+@@ -297,28 +297,24 @@ do {									\
+ } while (0)
  
- 	maddr = (volatile unsigned long) vdata->maddr[index];
- 	if (maddr == 0) {
-@@ -226,7 +226,7 @@ mspec_fault(struct fault_data *fdata)
- 	 * be because another thread has installed the pte first, so it
- 	 * is no problem.
- 	 */
--	vm_insert_pfn(fdata->vma, fdata->address, pfn);
-+	vm_insert_pfn(vma, fdata->address, pfn);
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_DIRTY
+-static inline int ptep_test_and_clear_dirty(struct vm_area_struct *vma,
+-					    unsigned long addr, pte_t *ptep)
+-{
+-	int ret = 0;
+-	if (pte_dirty(*ptep))
+-		ret = test_and_clear_bit(_PAGE_BIT_DIRTY, &ptep->pte_low);
+-	if (ret)
+-		pte_update_defer(vma->vm_mm, addr, ptep);
+-	return ret;
+-}
++#define ptep_test_and_clear_dirty(vma, addr, ptep) ({			\
++	int ret = 0;							\
++	if (pte_dirty(*ptep))						\
++		ret = test_and_clear_bit(_PAGE_BIT_DIRTY, &ptep->pte_low); \
++	if (ret)							\
++		pte_update_defer(vma->vm_mm, addr, ptep);		\
++	ret;								\
++})
  
- 	return NULL;
- }
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+-static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
+-					    unsigned long addr, pte_t *ptep)
+-{
+-	int ret = 0;
+-	if (pte_young(*ptep))
+-		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED, &ptep->pte_low);
+-	if (ret)
+-		pte_update_defer(vma->vm_mm, addr, ptep);
+-	return ret;
+-}
++#define ptep_test_and_clear_young(vma, addr, ptep) ({			\
++	int ret = 0;							\
++	if (pte_young(*ptep))						\
++		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED, &ptep->pte_low); \
++	if (ret)							\
++		pte_update_defer(vma->vm_mm, addr, ptep);		\
++	ret;								\
++})
+ 
+ /*
+  * Rules for using ptep_establish: the pte MUST be a user pte, and
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -146,7 +163,7 @@ xfs-clean-up-shrinker-games.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-merge-nopfn-into-fault.patch
-mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
 i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
