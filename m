@@ -1,206 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch added to -mm tree
-Date: Thu, 26 Apr 2007 23:33:50 -0700
-Message-ID: <200704270633.l3R6Xptp021364@shell0.pdx.osdl.net>
+Subject: - congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 00:16:18 -0700
+Message-ID: <200704270716.l3R7GJFn021993@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38367 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755398AbXD0Gdy (ORCPT
+	by vger.kernel.org with ESMTP id S1755434AbXD0HQW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 02:33:54 -0400
+	Fri, 27 Apr 2007 03:16:22 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3R7GJCd012652
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2007 00:16:20 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Conform more to SLABs SLAB_HWCACHE_ALIGN behavior
-has been added to the -mm tree.  Its filename is
-     slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
+     congestion_wait(): don't wait when there are no pages under writeback
+has been removed from the -mm tree.  Its filename was
+     congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: SLUB: Conform more to SLABs SLAB_HWCACHE_ALIGN behavior
-From: Christoph Lameter <clameter@sgi.com>
+Subject: congestion_wait(): don't wait when there are no pages under writeback
+From: Andrew Morton <akpm@osdl.org>
 
-Currently SLUB is using a strict L1_CACHE_BYTES alignment if
-SLAB_HWCACHE_ALIGN is specified. SLAB does not align to a cacheline if the
-object is smaller than half of a cacheline. Small objects are then aligned
-by SLAB to a fraction of a cacheline.
-
-Make SLUB just forget about the alignment requirement if the object size
-is less than L1_CACHE_BYTES. It seems that fractional alignments are no
-good because they grow the object and reduce the object density in a cache
-line needlessly causing additional cache line fetches.
-
-If we are already throwing the user suggestion of a cache line alignment
-away then lets do the best we can. Maybe SLAB_HWCACHE_ALIGN also needs
-to be tossed given its wishy-washy handling but doing so would require
-an audit of all kmem_cache_allocs throughout the kernel source.
-
-In any case one needs to explictly specify an alignment during
-kmem_cache_create to either slab allocator in order to ensure that the
-objects are cacheline aligned.
-
-[Patch has a nice memory compaction effect on 32 bit platforms]
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/slub.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/backing-dev.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/slub.c~slub-core-conform-more-to-slabs-slab_hwcache_align-behavior mm/slub.c
---- a/mm/slub.c~slub-core-conform-more-to-slabs-slab_hwcache_align-behavior
-+++ a/mm/slub.c
-@@ -1474,9 +1474,19 @@ static int calculate_order(int size)
-  * various ways of specifying it.
-  */
- static unsigned long calculate_alignment(unsigned long flags,
--		unsigned long align)
-+		unsigned long align, unsigned long size)
- {
--	if (flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN))
-+	/*
-+	 * If the user wants hardware cache aligned objects then
-+	 * follow that suggestion if the object is sufficiently
-+	 * large.
-+	 *
-+	 * The hardware cache alignment cannot override the
-+	 * specified alignment though. If that is greater
-+	 * then use it.
-+	 */
-+	if ((flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN)) &&
-+			size > L1_CACHE_BYTES / 2)
- 		return max_t(unsigned long, align, L1_CACHE_BYTES);
+diff -puN mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback mm/backing-dev.c
+--- a/mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback
++++ a/mm/backing-dev.c
+@@ -1,9 +1,11 @@
  
- 	if (align < ARCH_SLAB_MINALIGN)
-@@ -1664,7 +1674,7 @@ static int calculate_sizes(struct kmem_c
- 	 * user specified (this is unecessarily complex due to the attempt
- 	 * to be compatible with SLAB. Should be cleaned up some day).
- 	 */
--	align = calculate_alignment(flags, align);
-+	align = calculate_alignment(flags, align, s->objsize);
++#include <linux/mm.h>
+ #include <linux/wait.h>
+ #include <linux/backing-dev.h>
+ #include <linux/fs.h>
+ #include <linux/sched.h>
+ #include <linux/module.h>
++#include <linux/vmstat.h>
  
- 	/*
- 	 * SLUB stores one object immediately after another beginning from
-@@ -2252,7 +2262,7 @@ static struct kmem_cache *find_mergeable
- 		return NULL;
+ static wait_queue_head_t congestion_wqh[2] = {
+ 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[0]),
+@@ -48,6 +50,8 @@ long congestion_wait(int rw, long timeou
+ 	DEFINE_WAIT(wait);
+ 	wait_queue_head_t *wqh = &congestion_wqh[rw];
  
- 	size = ALIGN(size, sizeof(void *));
--	align = calculate_alignment(flags, align);
-+	align = calculate_alignment(flags, align, size);
- 	size = ALIGN(size, align);
- 
- 	list_for_each(h, &slab_caches) {
++	if (rw == WRITE && global_page_state(NR_WRITEBACK) == 0)
++		return timeout;
+ 	prepare_to_wait(wqh, &wait, TASK_UNINTERRUPTIBLE);
+ 	ret = io_schedule_timeout(timeout);
+ 	finish_wait(wqh, &wait);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@osdl.org are
 
-slab-introduce-krealloc.patch
-slab-introduce-krealloc-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-smaps-add-clear_refs-file-to-clear-reference-fix.patch
-smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-extend-print_symbol-capability-fix.patch
-extend-print_symbol-capability-fix-fix.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-fix-numa-bootstrap.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
-slub-core-minor-fixes.patch
-slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
-slub-core-fix-another-numa-bootstrap-issue.patch
-slub-core-fix-object-counting.patch
-slub-core-drop-version-number.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
-slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
-slub-core-printk-facility-level-cleanup.patch
-slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
-slub-core-add-explanation-for-defrag_ratio-=-100.patch
-slub-core-add-explanation-for-locking.patch
-slub-core-add-explanation-for-locking-fix.patch
-slub-core-explain-the-64k-limits.patch
-slub-core-explain-sizing-of-slabs-in-detail.patch
-slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-add-checks-for-interrupts-disabled.patch
-slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
-slub-core-missing-inlines-and-statics.patch
-slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
-slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
-slub-core-fix-kmem_cache_destroy.patch
-slub-core-fix-validation.patch
-slub-core-add-after-object-padding.patch
-slub-core-resiliency-fixups.patch
-slub-core-resiliency-fixups-fix.patch
-slub-core-resiliency-test.patch
-slub-core-update-cpu-after-new_slab.patch
-slub-core-fix-sysfs-directory-handling.patch
-slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
-slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
-make-page-private-usable-in-compound-pages-v1.patch
-make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
-slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch
-slub-add-min_partial.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
-slub-remove-object-activities-out-of-checking-functions.patch
-slub-user-documentation.patch
-slub-user-documentation-fix.patch
-slub-add-slabinfo-tool.patch
-slub-add-slabinfo-tool-update-slabinfoc.patch
-slub-major-slabinfo-update.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-i386-support.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-quicklists-for-page-table-pages.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-kmem_cache-simplify-slab-cache-creation.patch
-slab-allocators-remove-slab_debug_initial-flag.patch
-slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
-slab-allocators-remove-multiple-alignment-specifications.patch
-slab-allocators-remove-slab_ctor_atomic.patch
-fault-injection-fix-failslab-with-config_numa.patch
-mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+git-powerpc.patch
+git-ia64.patch
+git-ieee1394.patch
+sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+git-ubi.patch
+git-netdev-all.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+lumpy-reclaim-v4.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+block_write_full_page-handle-enospc.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+epoll-optimizations-and-cleanups-tidy.patch
+sync_sb_inodes-propagate-errors.patch
+mips-convert-to-use-shared-apm-emulation-fix.patch
+schedule_on_each_cpu-use-preempt_disable.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+extend-notifier_call_chain-to-count-nr_calls-made.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+move-page-writeback-acounting-out-of-macros.patch
+ext2-reservations.patch
+aio-is-unlikely.patch
 mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-readahead-state-based-method-aging-accounting.patch
+readahead-kconfig-options.patch
+readahead-minmax_ra_pages.patch
+readahead-sysctl-parameters.patch
+readahead-context-based-method.patch
+readahead-call-scheme.patch
+readahead-nfsd-case.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+acpi_format_exception-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
