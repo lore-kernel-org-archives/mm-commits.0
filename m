@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-sysfs-support-fix-unique-id-generation.patch added to -mm tree
-Date: Fri, 27 Apr 2007 16:18:01 -0700
-Message-ID: <200704272318.l3RNI4eu010402@shell0.pdx.osdl.net>
+Subject: + slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink-fixes-to-kmem_cache_shrink.patch added to -mm tree
+Date: Fri, 27 Apr 2007 16:18:57 -0700
+Message-ID: <200704272318.l3RNIvEP010419@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56731 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757311AbXD0XSJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757880AbXD0XTB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 19:18:09 -0400
+	Fri, 27 Apr 2007 19:19:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB sysfs support: fix unique id generation
+     SLUB: Fixes to kmem_cache_shrink()
 has been added to the -mm tree.  Its filename is
-     slub-core-sysfs-support-fix-unique-id-generation.patch
+     slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink-fixes-to-kmem_cache_shrink.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,135 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB sysfs support: fix unique id generation
+Subject: SLUB: Fixes to kmem_cache_shrink()
 From: Christoph Lameter <clameter@sgi.com>
 
-Generate a unique id for mergeable slabs through combining the slab size with
-the flags that distinguish slabs of the same size.  That yields a unique id
-that is fairly short and descriptive.  It no longer includes the kmem_cache
-address.
+1. Reclaim all empty slabs even if we are below MIN_PARTIAL partial slabs.
+   The point here is to recover all possible memory.
 
-Extract slab_unmergable() from find_mergeable and use that in sysfs_add_slab
-to make handling more consistent.
+2. Fix race condition vs. slab_free. If we want to free a slab then
+   we need to acquire the slab lock since slab_free may have freed
+   an object and is waiting to acquire the lock to remove the slab.
+   We do a trylock. If its unsuccessful then we are racing with
+   slab_free. Simply keep the empty slab on the partial lists.
+   slab_free will remove the slab as soon as we drop the list_lock.
+
+3. #2 may have the result that we end up with empty slabs on the
+   slabs_by_inuse array. So make sure that we also splice in the
+   zeroeth element.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   48 +++++++++++++++++++++++++++++-------------------
- 1 files changed, 29 insertions(+), 19 deletions(-)
+ mm/slub.c |   19 +++++++++++++------
+ 1 files changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN mm/slub.c~slub-core-sysfs-support-fix-unique-id-generation mm/slub.c
---- a/mm/slub.c~slub-core-sysfs-support-fix-unique-id-generation
+diff -puN mm/slub.c~slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink-fixes-to-kmem_cache_shrink mm/slub.c
+--- a/mm/slub.c~slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink-fixes-to-kmem_cache_shrink
 +++ a/mm/slub.c
-@@ -2268,6 +2268,17 @@ void __init kmem_cache_init(void)
- /*
-  * Find a mergeable slab cache
-  */
-+static int slab_unmergeable(struct kmem_cache *s)
-+{
-+	if (slub_nomerge || (s->flags & SLUB_NEVER_MERGE))
-+		return 1;
-+
-+	if (s->ctor || s->dtor)
-+		return 1;
-+
-+	return 0;
-+}
-+
- static struct kmem_cache *find_mergeable(size_t size,
- 		size_t align, unsigned long flags,
- 		void (*ctor)(void *, struct kmem_cache *, unsigned long),
-@@ -2289,13 +2300,10 @@ static struct kmem_cache *find_mergeable
- 		struct kmem_cache *s =
- 			container_of(h, struct kmem_cache, list);
+@@ -2237,7 +2237,7 @@ int kmem_cache_shrink(struct kmem_cache 
+ 	for_each_online_node(node) {
+ 		n = get_node(s, node);
  
--		if (size > s->size)
--			continue;
--
--		if (s->flags & SLUB_NEVER_MERGE)
-+		if (slab_unmergeable(s))
+-		if (n->nr_partial <= MIN_PARTIAL)
++		if (!n->nr_partial)
  			continue;
  
--		if (s->dtor || s->ctor)
-+		if (size > s->size)
- 			continue;
- 
- 		if (((flags | slub_debug) & SLUB_MERGE_SAME) !=
-@@ -3066,23 +3074,21 @@ static char *create_unique_id(struct kme
- 
- 	*p++ = ':';
- 	/*
--	 * First flags affecting slabcache operations */
-+	 * First flags affecting slabcache operations. We will only
-+	 * get here for aliasable slabs so we do not need to support
-+	 * too many flags. The flags here must cover all flags that
-+	 * are matched during merging to guarantee that the id is
-+	 * unique.
-+	 */
- 	if (s->flags & SLAB_CACHE_DMA)
- 		*p++ = 'd';
- 	if (s->flags & SLAB_RECLAIM_ACCOUNT)
- 		*p++ = 'a';
--	if (s->flags & SLAB_DESTROY_BY_RCU)
--		*p++ = 'r';\
--	/* Debug flags */
--	if (s->flags & SLAB_RED_ZONE)
--		*p++ = 'Z';
--	if (s->flags & SLAB_POISON)
--		*p++ = 'P';
--	if (s->flags & SLAB_STORE_USER)
--		*p++ = 'U';
-+	if (s->flags & SLAB_DEBUG_FREE)
-+		*p++ = 'F';
- 	if (p != name + 1)
- 		*p++ = '-';
--	p += sprintf(p,"%07d:0x%p" ,s->size, s);
-+	p += sprintf(p, "%07d", s->size);
- 	BUG_ON(p > name + ID_STR_LENGTH - 1);
- 	return name;
- }
-@@ -3091,12 +3097,14 @@ static int sysfs_slab_add(struct kmem_ca
- {
- 	int err;
- 	const char *name;
-+	int unmergeable;
- 
- 	if (slab_state < SYSFS)
- 		/* Defer until later */
- 		return 0;
- 
--	if (s->flags & SLUB_NEVER_MERGE) {
-+	unmergeable = slab_unmergeable(s);
-+	if (unmergeable) {
- 		/*
- 		 * Slabcache can never be merged so we can use the name proper.
- 		 * This is typically the case for debug situations. In that
-@@ -3104,12 +3112,13 @@ static int sysfs_slab_add(struct kmem_ca
+ 		for (i = 0; i < s->objects; i++)
+@@ -2254,14 +2254,21 @@ int kmem_cache_shrink(struct kmem_cache 
+ 		 * the upper limit.
  		 */
- 		sysfs_remove_link(&slab_subsys.kset.kobj, s->name);
- 		name = s->name;
--	} else
-+	} else {
- 		/*
- 		 * Create a unique name for the slab as a target
- 		 * for the symlinks.
- 		 */
- 		name = create_unique_id(s);
-+	}
+ 		list_for_each_entry_safe(page, t, &n->partial, lru) {
+-			if (!page->inuse) {
++			if (!page->inuse && slab_trylock(page)) {
++				/*
++				 * Must hold slab lock here because slab_free
++				 * may have freed the last object and be
++				 * waiting to release the slab.
++				 */
+ 				list_del(&page->lru);
+ 				n->nr_partial--;
++				slab_unlock(page);
+ 				discard_slab(s, page);
+-			} else
+-			if (n->nr_partial > MAX_PARTIAL)
+-				list_move(&page->lru,
++			} else {
++				if (n->nr_partial > MAX_PARTIAL)
++					list_move(&page->lru,
+ 					slabs_by_inuse + page->inuse);
++			}
+ 		}
  
- 	kobj_set_kset_s(s, slab_subsys);
- 	kobject_set_name(&s->kobj, name);
-@@ -3122,7 +3131,8 @@ static int sysfs_slab_add(struct kmem_ca
- 	if (err)
- 		return err;
- 	kobject_uevent(&s->kobj, KOBJ_ADD);
--	if (!(s->flags & SLUB_NEVER_MERGE)) {
-+	if (!unmergeable) {
-+		/* Setup first alias */
- 		sysfs_slab_alias(s, s->name);
- 		kfree(name);
- 	}
+ 		if (n->nr_partial <= MAX_PARTIAL)
+@@ -2271,7 +2278,7 @@ int kmem_cache_shrink(struct kmem_cache 
+ 		 * Rebuild the partial list with the slabs filled up
+ 		 * most first and the least used slabs at the end.
+ 		 */
+-		for (i = s->objects - 1; i > 0; i--)
++		for (i = s->objects - 1; i >= 0; i--)
+ 			list_splice(slabs_by_inuse + i, n->partial.prev);
+ 
+ 	out:
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -190,13 +132,13 @@ slub-add-min_partial.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
 slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
+slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink-fixes-to-kmem_cache_shrink.patch
 slub-remove-object-activities-out-of-checking-functions.patch
 slub-user-documentation.patch
 slub-user-documentation-fix.patch
 slub-add-slabinfo-tool.patch
 slub-add-slabinfo-tool-update-slabinfoc.patch
 slub-major-slabinfo-update.patch
-slub-fixes-to-kmem_cache_shrink.patch
 slub-slabinfo-remove-hackname.patch
 slub-printk-cleanup-object_err.patch
 slub-printk-cleanup-add-slab_err.patch
