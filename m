@@ -1,58 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - slub-use-correct-flags-to-check-for-dma-cache.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:18 -0700
-Message-ID: <200704270821.l3R8LI3a023208@shell0.pdx.osdl.net>
+Subject: - slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:20 -0700
+Message-ID: <200704270821.l3R8LKac023211@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47868 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755518AbXD0IVV (ORCPT
+	by vger.kernel.org with ESMTP id S1755519AbXD0IVZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:21 -0400
+	Fri, 27 Apr 2007 04:21:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Use correct flags to check for DMA cache
+     SLUB: Treat SLAB_HWCACHE_ALIGN as a mininum and not as *the* alignment
 has been removed from the -mm tree.  Its filename was
-     slub-use-correct-flags-to-check-for-dma-cache.patch
+     slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: Use correct flags to check for DMA cache
+Subject: SLUB: Treat SLAB_HWCACHE_ALIGN as a mininum and not as *the* alignment
 From: Christoph Lameter <clameter@sgi.com>
 
-We use a GFP mask to check the SLAB flags if this is a DMA cache.
+Checking for slabs used in powerpc arch code:
 
-Fix this by using the correct SLAB mask and then use the SLUB_DMA for the
-ORing of flags.  If the system does not support DMA then we will OR zero
-which will hopefully get the compiler to drop the useless if statement as
-well.
+The pgtable cache is configured as
+
+          pgtable_cache[i] = kmem_cache_create(name,
+                                                     size, size,
+                                                     SLAB_HWCACHE_ALIGN |
+                                                     SLAB_MUST_HWCACHE_ALIGN,
+                                                     zero_ctor,
+                                                     NULL);
+
+Hmmm.... aligned slabs at size and then we MUST_HWCACHE_ALIGN?? Two
+competing alignment requirements and a constructor. Constructor requires
+the moving of the free pointer after the slab and thus increases the slab
+size.
+
+Sigh. IF SLAB_HWCACHE_ALIGN is set then SLUB believes this to be the
+ultimate demand that overrides all other alignments and only aligns to the
+cacheline. Try the following fix:
+
+SLUB: Treat SLAB_HWCACHE_ALIGN as a mininum and not as *the* alignment
+
+If the specified alignment is higher than L1_CACHE_BYTES and
+SLAB_HWCACHE_ALIGN is set then use the higher alignment.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slub.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-use-correct-flags-to-check-for-dma-cache mm/slub.c
---- a/mm/slub.c~slub-use-correct-flags-to-check-for-dma-cache
+diff -puN mm/slub.c~slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment mm/slub.c
+--- a/mm/slub.c~slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment
 +++ a/mm/slub.c
-@@ -678,8 +678,8 @@ static struct page *allocate_slab(struct
- 	if (s->order)
- 		flags |= __GFP_COMP;
+@@ -1373,10 +1373,7 @@ static int calculate_order(int size)
+ static unsigned long calculate_alignment(unsigned long flags,
+ 		unsigned long align)
+ {
+-	if (flags & SLAB_HWCACHE_ALIGN)
+-		return L1_CACHE_BYTES;
+-
+-	if (flags & SLAB_MUST_HWCACHE_ALIGN)
++	if (flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN))
+ 		return max_t(unsigned long, align, L1_CACHE_BYTES);
  
--	if (s->flags & SLUB_DMA)
--		flags |= GFP_DMA;
-+	if (s->flags & SLAB_CACHE_DMA)
-+		flags |= SLUB_DMA;
- 
- 	if (node == -1)
- 		page = alloc_pages(flags, s->order);
+ 	if (align < ARCH_SLAB_MINALIGN)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -70,7 +91,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-use-correct-flags-to-check-for-dma-cache.patch
 slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
 slub-core-minor-fixes.patch
 slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
