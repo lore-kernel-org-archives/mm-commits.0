@@ -1,54 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-fix-validation.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:22:24 -0700
-Message-ID: <200704270822.l3R8MOLr023323@shell0.pdx.osdl.net>
+Subject: - slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:22:15 -0700
+Message-ID: <200704270822.l3R8MF9U023309@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32947 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755570AbXD0IW1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755561AbXD0IWT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:22:27 -0400
+	Fri, 27 Apr 2007 04:22:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: fix validation
+     SLUB: fix cpu slab flushing behavior so that counters match
 has been removed from the -mm tree.  Its filename was
-     slub-core-fix-validation.patch
+     slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub: fix validation
+Subject: SLUB: fix cpu slab flushing behavior so that counters match
 From: Christoph Lameter <clameter@sgi.com>
 
-Some parts of object validation will never occur because on_freelist does
-return the wrong exit code for a NULL object.
+Currently we have a check for keventd in slab_alloc() and we only schedule
+the event to check for inactive slabs if keventd is up.  This was done in
+the belief that later allocations would start up the checking for all
+slabs.  However, that is not true for slabs that are only allocated from
+during boot.  We will then have per cpus slabs but s->cpu_slabs is zero. 
+As a result flush_all() will not flush the cpu_slabs from these slabcaches
+and slab validation wil report counter inconsistencies.
 
-Fix that.
+Fix that by removing the check for keventd from slab_alloc.  Instead we set
+cpu_slabs to 1 during boot so that slab_alloc believes that a check is
+already scheduled.  Thus is will not try to schedule via keventd during
+early boot.
+
+Later when sysfs is brought up we have to scan through the list of boot
+caches anyways.  At that point we simply flush all active slabs which will
+set cpu_slabs to zero.  Any new cpu slab after sysfs init will then cause
+the inactive cpu slab event to be triggered.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   26 +++++++++++++++++++++++---
+ 1 files changed, 23 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-core-fix-validation mm/slub.c
---- a/mm/slub.c~slub-core-fix-validation
+diff -puN mm/slub.c~slub-fix-cpu-slab-flushing-behavior-so-that-counters-match mm/slub.c
+--- a/mm/slub.c~slub-fix-cpu-slab-flushing-behavior-so-that-counters-match
 +++ a/mm/slub.c
-@@ -594,7 +594,7 @@ static int on_freelist(struct kmem_cache
- 			s->objects - nr);
- 		page->inuse = s->objects - nr;
- 	}
--	return 0;
-+	return search == NULL;
- }
+@@ -65,7 +65,7 @@
+  * SLUB assigns one slab for allocation to each processor.
+  * Allocations only occur from these slabs called cpu slabs.
+  *
+- * If a cpu slab exists then a workqueue thread checks every 10
++ * If a cpu slab exists then a workqueue thread checks every 30
+  * seconds if the cpu slab is still in use. The cpu slab is pushed back
+  * to the list if inactive [only needed for SMP].
+  *
+@@ -1171,7 +1171,7 @@ have_slab:
+ 		SetPageActive(page);
  
- static int alloc_object_checks(struct kmem_cache *s, struct page *page,
+ #ifdef CONFIG_SMP
+-		if (!atomic_read(&s->cpu_slabs) && keventd_up()) {
++		if (!atomic_read(&s->cpu_slabs)) {
+ 			atomic_inc(&s->cpu_slabs);
+ 			schedule_delayed_work(&s->flush, 30 * HZ);
+ 		}
+@@ -1683,7 +1683,20 @@ static int kmem_cache_open(struct kmem_c
+ 
+ #ifdef CONFIG_SMP
+ 	mutex_init(&s->flushing);
+-	atomic_set(&s->cpu_slabs, 0);
++	if (slab_state >= SYSFS)
++		atomic_set(&s->cpu_slabs, 0);
++	else
++		/*
++		 * Keventd may not be up yet. Pretend that we have active
++		 * per_cpu slabs so that there will be no attempt to
++		 * schedule a flusher in slab_alloc.
++		 *
++		 * We fix the situation up later when sysfs is brought up
++		 * by flushing all slabs (which puts the slab caches that
++		 * are mostly/only used in a nice quiet state).
++		 */
++		atomic_set(&s->cpu_slabs, 1);
++
+ 	INIT_DELAYED_WORK(&s->flush, flusher);
+ #endif
+ 	if (init_kmem_cache_nodes(s, gfpflags & ~SLUB_DMA))
+@@ -2945,6 +2958,13 @@ int __init slab_sysfs_init(void)
+ 
+ 		err = sysfs_slab_add(s);
+ 		BUG_ON(err);
++		/*
++		 * Start the periodic checks for inactive cpu slabs.
++		 * flush_all() will zero s->cpu_slabs which will cause
++		 * any allocation of a new cpu slab to schedule an event
++		 * via keventd to watch for inactive cpu slabs.
++		 */
++		flush_all(s);
+ 	}
+ 
+ 	while (alias_list) {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -66,6 +124,9 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
+slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
+slub-core-fix-kmem_cache_destroy.patch
 slub-core-fix-validation.patch
 slub-core-add-after-object-padding.patch
 slub-core-resiliency-fixups.patch
