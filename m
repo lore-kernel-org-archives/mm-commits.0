@@ -1,79 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:20 -0700
-Message-ID: <200704270821.l3R8LKac023211@shell0.pdx.osdl.net>
+Subject: - slub-core-minor-fixes.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:23 -0700
+Message-ID: <200704270821.l3R8LNDj023214@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48359 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755519AbXD0IVZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755520AbXD0IV0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:25 -0400
+	Fri, 27 Apr 2007 04:21:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Treat SLAB_HWCACHE_ALIGN as a mininum and not as *the* alignment
+     slub: minor fixes
 has been removed from the -mm tree.  Its filename was
-     slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+     slub-core-minor-fixes.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: Treat SLAB_HWCACHE_ALIGN as a mininum and not as *the* alignment
+Subject: slub: minor fixes
 From: Christoph Lameter <clameter@sgi.com>
 
-Checking for slabs used in powerpc arch code:
+1. Correct spelling
 
-The pgtable cache is configured as
+2. Partial pages should go to the front of the partial list since they are
+   cache hot.
 
-          pgtable_cache[i] = kmem_cache_create(name,
-                                                     size, size,
-                                                     SLAB_HWCACHE_ALIGN |
-                                                     SLAB_MUST_HWCACHE_ALIGN,
-                                                     zero_ctor,
-                                                     NULL);
-
-Hmmm.... aligned slabs at size and then we MUST_HWCACHE_ALIGN?? Two
-competing alignment requirements and a constructor. Constructor requires
-the moving of the free pointer after the slab and thus increases the slab
-size.
-
-Sigh. IF SLAB_HWCACHE_ALIGN is set then SLUB believes this to be the
-ultimate demand that overrides all other alignments and only aligns to the
-cacheline. Try the following fix:
-
-SLUB: Treat SLAB_HWCACHE_ALIGN as a mininum and not as *the* alignment
-
-If the specified alignment is higher than L1_CACHE_BYTES and
-SLAB_HWCACHE_ALIGN is set then use the higher alignment.
+3. Remove stray printk.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/slub.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment mm/slub.c
---- a/mm/slub.c~slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment
+diff -puN mm/slub.c~slub-core-minor-fixes mm/slub.c
+--- a/mm/slub.c~slub-core-minor-fixes
 +++ a/mm/slub.c
-@@ -1373,10 +1373,7 @@ static int calculate_order(int size)
- static unsigned long calculate_alignment(unsigned long flags,
- 		unsigned long align)
- {
--	if (flags & SLAB_HWCACHE_ALIGN)
--		return L1_CACHE_BYTES;
--
--	if (flags & SLAB_MUST_HWCACHE_ALIGN)
-+	if (flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN))
- 		return max_t(unsigned long, align, L1_CACHE_BYTES);
+@@ -277,7 +277,7 @@ static void print_track(const char *s, s
+ 	} else
+ #endif
+ 		printk(KERN_ERR "%s: 0x%p", s, t->addr);
+-	printk(" jiffies since=%lu cpu=%u pid=%d\n", jiffies - t->when, t->cpu, t->pid);
++	printk(" jiffies_ago=%lu cpu=%u pid=%d\n", jiffies - t->when, t->cpu, t->pid);
+ }
  
- 	if (align < ARCH_SLAB_MINALIGN)
+ static void print_trailer(struct kmem_cache *s, u8 *p)
+@@ -579,7 +579,7 @@ static int alloc_object_checks(struct km
+ 		goto bad;
+ 
+ 	if (object && !on_freelist(s, page, object)) {
+-		printk(KERN_ERR "SLAB: %s Object 0x%p@0x%p "
++		printk(KERN_ERR "SLUB: %s Object 0x%p@0x%p "
+ 			"already allocated.\n",
+ 			s->name, object, page);
+ 		goto dump;
+@@ -862,7 +862,7 @@ static void add_partial(struct kmem_cach
+ 
+ 	spin_lock(&n->list_lock);
+ 	n->nr_partial++;
+-	list_add_tail(&page->lru, &n->partial);
++	list_add(&page->lru, &n->partial);
+ 	spin_unlock(&n->list_lock);
+ }
+ 
+@@ -2520,7 +2520,6 @@ static ssize_t trace_store(struct kmem_c
+ 							size_t length)
+ {
+ 	s->flags &= ~SLAB_TRACE;
+-	printk("_trace_store = %s\n", buf);
+ 	if (buf[0] == '1')
+ 		s->flags |= SLAB_TRACE;
+ 	return length;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -91,7 +94,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
 slub-core-minor-fixes.patch
 slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
 slub-core-fix-another-numa-bootstrap-issue.patch
