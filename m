@@ -1,143 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - maps2-add-proc-pid-pagemap-interface-fix.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:14:49 -0700
-Message-ID: <200704270814.l3R8EnFJ023047@shell0.pdx.osdl.net>
+Subject: - lumpy-only-count-taken-pages-as-scanned.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:16:59 -0700
+Message-ID: <200704270816.l3R8Gx3t023124@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34953 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39898 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755502AbXD0IPn (ORCPT
+	by vger.kernel.org with ESMTP id S1754140AbXD0IRe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:15:43 -0400
+	Fri, 27 Apr 2007 04:17:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps2-add-proc-pid-pagemap-interface fix
+     lumpy: only count taken pages as scanned
 has been removed from the -mm tree.  Its filename was
-     maps2-add-proc-pid-pagemap-interface-fix.patch
+     lumpy-only-count-taken-pages-as-scanned.patch
 
-This patch was dropped because it was folded into maps2-add-proc-pid-pagemap-interface.patch
+This patch was dropped because it was folded into lumpy-reclaim-v4.patch
 
 ------------------------------------------------------
-Subject: maps2-add-proc-pid-pagemap-interface fix
-From: Matt Mackall <mpm@selenic.com>
+Subject: lumpy: only count taken pages as scanned
+From: Andy Whitcroft <apw@shadowen.org>
 
-When CONFIG_HIGHPTE is enabled, use double-buffering in pagemap to
-avoid calling copy_to_user while preemption is disabled.
+When scanning the order sized area around the tag page we pull all pages of
+the matching active state; the non-matching pages are not otherwise affected. 
+We currently count these as scanned increasing the apparent scan rates. 
+Previously we would only count a page scanned if it was actually removed from
+the LRU, either then being reclaimed or rotated back onto the head of the LRU.
 
-Tested on x86 with HIGHPTE with DEBUG_SPINLOCK_SLEEP and
-PROVE_LOCKING.
+The effect of this is to cause reclaim to terminate artificially early when
+the scan count is reached, reducing effectivness.  Move to counting only those
+pages we actually remove from the LRU as scanned.
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   28 ++++++++++++++++++++++++++--
- 1 files changed, 26 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix
-+++ a/fs/proc/task_mmu.c
-@@ -520,6 +520,7 @@ struct pagemapread {
- 	struct mm_struct *mm;
- 	unsigned long next;
- 	unsigned long *buf;
-+	pte_t *ptebuf;
- 	unsigned long pos;
- 	size_t count;
- 	int index;
-@@ -558,6 +559,14 @@ static int pagemap_pte_range(pmd_t *pmd,
- 	int err;
+diff -puN mm/vmscan.c~lumpy-only-count-taken-pages-as-scanned mm/vmscan.c
+--- a/mm/vmscan.c~lumpy-only-count-taken-pages-as-scanned
++++ a/mm/vmscan.c
+@@ -724,11 +724,11 @@ static unsigned long isolate_lru_pages(u
+ 			/* Check that we have not crossed a zone boundary. */
+ 			if (unlikely(page_zone_id(cursor_page) != zone_id))
+ 				continue;
+-			scan++;
+ 			switch (__isolate_lru_page(cursor_page, active)) {
+ 			case 0:
+ 				list_move(&cursor_page->lru, dst);
+ 				nr_taken++;
++				scan++;
+ 				break;
  
- 	pte = pte_offset_map(pmd, addr);
-+
-+#ifdef CONFIG_HIGHPTE
-+	/* copy PTE directory to temporary buffer and unmap it */
-+	memcpy(pm->ptebuf, pte, PAGE_ALIGN((unsigned long)pte) - (unsigned long)pte);
-+	pte_unmap(pte);
-+	pte = pm->ptebuf;
-+#endif
-+
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
- 		if (addr < pm->next)
- 			continue;
-@@ -568,7 +577,11 @@ static int pagemap_pte_range(pmd_t *pmd,
- 		if (err)
- 			return err;
- 	}
-+
-+#ifndef CONFIG_HIGHPTE
- 	pte_unmap(pte - 1);
-+#endif
-+
- 	return 0;
- }
- 
-@@ -640,10 +653,16 @@ static ssize_t pagemap_read(struct file 
- 	if (!page)
- 		goto out;
- 
-+#ifdef CONFIG_HIGHPTE
-+	pm.ptebuf = kzalloc(PAGE_SIZE, GFP_USER);
-+	if (!pm.ptebuf)
-+		goto out_free;
-+#endif
-+
- 	ret = 0;
- 	mm = get_task_mm(task);
- 	if (!mm)
--		goto out_free;
-+		goto out_freepte;
- 
- 	pm.mm = mm;
- 	pm.next = addr;
-@@ -666,7 +685,7 @@ static ssize_t pagemap_read(struct file 
- 	while (pm.count > 0 && vma) {
- 		if (!ptrace_may_attach(task)) {
- 			ret = -EIO;
--			goto out;
-+			goto out_mm;
- 		}
- 		vend = min(vma->vm_start - 1, end - 1) + 1;
- 		ret = pagemap_fill(&pm, vend);
-@@ -685,8 +704,13 @@ static ssize_t pagemap_read(struct file 
- 	if (!ret)
- 		ret = pm.pos - src;
- 
-+out_mm:
- 	mmput(mm);
-+out_freepte:
-+#ifdef CONFIG_HIGHPTE
-+	kfree(pm.ptebuf);
- out_free:
-+#endif
- 	kfree(page);
- out:
- 	put_task_struct(task);
+ 			case -EBUSY:
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-slab-introduce-krealloc.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-pid-pagemap-interface-fix.patch
-maps2-add-proc-pid-pagemap-interface-fix-fix.patch
-maps2-add-proc-kpagemap-interface.patch
-maps2-add-proc-kpagemap-interface-fix.patch
-slob-handle-slab_panic-flag.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+create-the-zone_movable-zone.patch
+handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
+lumpy-reclaim-v4.patch
+lumpy-only-count-taken-pages-as-scanned.patch
+kswapd-use-reclaim-order-in-background-reclaim.patch
+lumpy-increase-pressure-at-the-end-of-the-inactive-list.patch
+introduce-high_order-delineating-easily-reclaimable-orders.patch
+introduce-high_order-delineating-easily-reclaimable-orders-cleanups.patch
+lumpy-increase-pressure-at-the-end-of-the-inactive-list-cleanups.patch
+add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
+anti-fragmentation-switch-over-to-pfn_valid_within.patch
+lumpy-move-to-using-pfn_valid_within.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy-fix.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+slab-numa-kmem_cache-diet.patch
+sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
