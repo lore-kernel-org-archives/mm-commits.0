@@ -1,110 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - maps2-add-proc-kpagemap-interface-fix.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:15:27 -0700
-Message-ID: <200704270815.l3R8FRPY023083@shell0.pdx.osdl.net>
+Subject: - maps2-add-proc-pid-pagemap-interface-fix.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:14:49 -0700
+Message-ID: <200704270814.l3R8EnFJ023047@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43589 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34953 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755504AbXD0IPp (ORCPT
+	by vger.kernel.org with ESMTP id S1755502AbXD0IPn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:15:45 -0400
+	Fri, 27 Apr 2007 04:15:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mpm@selenic.com, mm-commits@vger.kernel.org
+To: mpm@selenic.com, adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make struct proc_kpagemap static
+     maps2-add-proc-pid-pagemap-interface fix
 has been removed from the -mm tree.  Its filename was
-     maps2-add-proc-kpagemap-interface-fix.patch
+     maps2-add-proc-pid-pagemap-interface-fix.patch
 
-This patch was dropped because it was folded into maps2-add-proc-kpagemap-interface.patch
+This patch was dropped because it was folded into maps2-add-proc-pid-pagemap-interface.patch
 
 ------------------------------------------------------
-Subject: make struct proc_kpagemap static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: maps2-add-proc-pid-pagemap-interface fix
+From: Matt Mackall <mpm@selenic.com>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Matt Mackall <mpm@selenic.com>
+When CONFIG_HIGHPTE is enabled, use double-buffering in pagemap to
+avoid calling copy_to_user while preemption is disabled.
+
+Tested on x86 with HIGHPTE with DEBUG_SPINLOCK_SLEEP and
+PROVE_LOCKING.
+
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   28 ++++++++++++++++++++++++++--
+ 1 files changed, 26 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~maps2-add-proc-kpagemap-interface-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~maps2-add-proc-kpagemap-interface-fix
-+++ a/fs/proc/proc_misc.c
-@@ -733,7 +733,7 @@ static ssize_t kpagemap_read(struct file
- 	return ret;
+diff -puN fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix
++++ a/fs/proc/task_mmu.c
+@@ -520,6 +520,7 @@ struct pagemapread {
+ 	struct mm_struct *mm;
+ 	unsigned long next;
+ 	unsigned long *buf;
++	pte_t *ptebuf;
+ 	unsigned long pos;
+ 	size_t count;
+ 	int index;
+@@ -558,6 +559,14 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	int err;
+ 
+ 	pte = pte_offset_map(pmd, addr);
++
++#ifdef CONFIG_HIGHPTE
++	/* copy PTE directory to temporary buffer and unmap it */
++	memcpy(pm->ptebuf, pte, PAGE_ALIGN((unsigned long)pte) - (unsigned long)pte);
++	pte_unmap(pte);
++	pte = pm->ptebuf;
++#endif
++
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+ 		if (addr < pm->next)
+ 			continue;
+@@ -568,7 +577,11 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 		if (err)
+ 			return err;
+ 	}
++
++#ifndef CONFIG_HIGHPTE
+ 	pte_unmap(pte - 1);
++#endif
++
+ 	return 0;
  }
  
--struct proc_dir_entry *proc_kpagemap;
-+static struct proc_dir_entry *proc_kpagemap;
- static struct file_operations proc_kpagemap_operations = {
- 	.llseek = mem_lseek,
- 	.read = kpagemap_read,
+@@ -640,10 +653,16 @@ static ssize_t pagemap_read(struct file 
+ 	if (!page)
+ 		goto out;
+ 
++#ifdef CONFIG_HIGHPTE
++	pm.ptebuf = kzalloc(PAGE_SIZE, GFP_USER);
++	if (!pm.ptebuf)
++		goto out_free;
++#endif
++
+ 	ret = 0;
+ 	mm = get_task_mm(task);
+ 	if (!mm)
+-		goto out_free;
++		goto out_freepte;
+ 
+ 	pm.mm = mm;
+ 	pm.next = addr;
+@@ -666,7 +685,7 @@ static ssize_t pagemap_read(struct file 
+ 	while (pm.count > 0 && vma) {
+ 		if (!ptrace_may_attach(task)) {
+ 			ret = -EIO;
+-			goto out;
++			goto out_mm;
+ 		}
+ 		vend = min(vma->vm_start - 1, end - 1) + 1;
+ 		ret = pagemap_fill(&pm, vend);
+@@ -685,8 +704,13 @@ static ssize_t pagemap_read(struct file 
+ 	if (!ret)
+ 		ret = pm.pos - src;
+ 
++out_mm:
+ 	mmput(mm);
++out_freepte:
++#ifdef CONFIG_HIGHPTE
++	kfree(pm.ptebuf);
+ out_free:
++#endif
+ 	kfree(page);
+ out:
+ 	put_task_struct(task);
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from mpm@selenic.com are
 
-git-acpi.patch
-git-powerpc.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-git-ubi.patch
-git-netdev-all.patch
-drivers-net-vioc-possible-cleanups.patch
-git-net.patch
-net-possible-cleanups.patch
-fs-ocfs2-make-3-functions-static.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-ipwireless_cs.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
+slab-introduce-krealloc.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-pid-pagemap-interface-fix.patch
+maps2-add-proc-pid-pagemap-interface-fix-fix.patch
 maps2-add-proc-kpagemap-interface.patch
 maps2-add-proc-kpagemap-interface-fix.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-kill-net-rxrpc-rxrpc_symsc.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-add-file-position-info-to-proc-fix.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-unexport-pci_proc_attach_device.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-ext2-reservations.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+slob-handle-slab_panic-flag.patch
