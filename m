@@ -1,51 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - maps2-move-the-page-walker-code-to-lib-fix.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:13:54 -0700
-Message-ID: <200704270813.l3R8DsnU023037@shell0.pdx.osdl.net>
+Subject: - maps2-add-proc-pid-pagemap-interface-fix-fix.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:14:52 -0700
+Message-ID: <200704270814.l3R8EqrH023050@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48836 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755501AbXD0ION (ORCPT
+	by vger.kernel.org with ESMTP id S1755503AbXD0IPn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:14:13 -0400
+	Fri, 27 Apr 2007 04:15:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeremy@goop.org, mpm@selenic.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@sw.ru, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps2-move-the-page-walker-code-to-lib-fix
+     maps2-add-proc-pid-pagemap-interface-fix-fix
 has been removed from the -mm tree.  Its filename was
-     maps2-move-the-page-walker-code-to-lib-fix.patch
+     maps2-add-proc-pid-pagemap-interface-fix-fix.patch
 
-This patch was dropped because it was folded into maps2-move-the-page-walker-code-to-lib.patch
+This patch was dropped because it was folded into maps2-add-proc-pid-pagemap-interface.patch
 
 ------------------------------------------------------
-Subject: maps2-move-the-page-walker-code-to-lib-fix
+Subject: maps2-add-proc-pid-pagemap-interface-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lib/pagewalk.c: In function 'walk_pte_range':
-lib/pagewalk.c:15: warning: implicit declaration of function 'kunmap_atomic'
+fs/proc/task_mmu.c: In function 'pagemap_read':
+fs/proc/task_mmu.c:638: warning: implicit declaration of function 'ptrace_may_attach'
 
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Cc: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/pagewalk.c |    1 +
+ fs/proc/task_mmu.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN lib/pagewalk.c~maps2-move-the-page-walker-code-to-lib-fix lib/pagewalk.c
---- a/lib/pagewalk.c~maps2-move-the-page-walker-code-to-lib-fix
-+++ a/lib/pagewalk.c
-@@ -1,4 +1,5 @@
- #include <linux/mm.h>
-+#include <linux/highmem.h>
+diff -puN fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix-fix
++++ a/fs/proc/task_mmu.c
+@@ -4,6 +4,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
++#include <linux/ptrace.h>
+ #include <linux/mempolicy.h>
  
- static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			  struct mm_walk *walk, void *private)
+ #include <asm/elf.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,7 +130,7 @@ mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
 mm-merge-nopfn-into-fault.patch
 smaps-add-clear_refs-file-to-clear-reference.patch
 maps2-move-the-page-walker-code-to-lib.patch
-maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface.patch
 maps2-add-proc-pid-pagemap-interface-fix-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
 mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
