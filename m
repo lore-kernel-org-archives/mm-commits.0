@@ -1,133 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-printk-facility-level-cleanup.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:53 -0700
-Message-ID: <200704270821.l3R8LrTr023272@shell0.pdx.osdl.net>
+Subject: - slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:55 -0700
+Message-ID: <200704270821.l3R8Lt4x023275@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41579 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37117 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755527AbXD0IV4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755541AbXD0IV5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:56 -0400
+	Fri, 27 Apr 2007 04:21:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: printk facility level cleanup
+     SLUB: kmem_cache_close is static and should not be exported
 has been removed from the -mm tree.  Its filename was
-     slub-core-printk-facility-level-cleanup.patch
+     slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: printk facility level cleanup
+Subject: SLUB: kmem_cache_close is static and should not be exported
 From: Christoph Lameter <clameter@sgi.com>
-
-Consistently use KERN_ERR instead of KERN_CRIT.  Fixup one location where
-we did not use a facility level.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+ mm/slub.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN mm/slub.c~slub-core-printk-facility-level-cleanup mm/slub.c
---- a/mm/slub.c~slub-core-printk-facility-level-cleanup
+diff -puN mm/slub.c~slub-core-kmem_cache_close-is-static-and-should-not-be-exported mm/slub.c
+--- a/mm/slub.c~slub-core-kmem_cache_close-is-static-and-should-not-be-exported
 +++ a/mm/slub.c
-@@ -502,14 +502,14 @@ static int check_object(struct kmem_cach
- static int check_slab(struct kmem_cache *s, struct page *page)
- {
- 	if (!PageSlab(page)) {
--		printk(KERN_CRIT "SLUB: %s Not a valid slab page @0x%p "
-+		printk(KERN_ERR "SLUB: %s Not a valid slab page @0x%p "
- 			"flags=%lx mapping=0x%p count=%d \n",
- 			s->name, page, page->flags, page->mapping,
- 			page_count(page));
- 		return 0;
- 	}
- 	if (page->offset * sizeof(void *) != s->offset) {
--		printk(KERN_CRIT "SLUB: %s Corrupted offset %lu in slab @0x%p"
-+		printk(KERN_ERR "SLUB: %s Corrupted offset %lu in slab @0x%p"
- 			" flags=0x%lx mapping=0x%p count=%d\n",
- 			s->name,
- 			(unsigned long)(page->offset * sizeof(void *)),
-@@ -520,7 +520,7 @@ static int check_slab(struct kmem_cache 
- 		return 0;
- 	}
- 	if (page->inuse > s->objects) {
--		printk(KERN_CRIT "SLUB: %s Inuse %u > max %u in slab "
-+		printk(KERN_ERR "SLUB: %s Inuse %u > max %u in slab "
- 			"page @0x%p flags=%lx mapping=0x%p count=%d\n",
- 			s->name, page->inuse, s->objects, page, page->flags,
- 			page->mapping, page_count(page));
-@@ -566,7 +566,7 @@ static int on_freelist(struct kmem_cache
- 	}
+@@ -1677,7 +1677,6 @@ static int kmem_cache_close(struct kmem_
+ 	free_kmem_cache_nodes(s);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(kmem_cache_close);
  
- 	if (page->inuse != s->objects - nr) {
--		printk(KERN_CRIT "slab %s: page 0x%p wrong object count."
-+		printk(KERN_ERR "slab %s: page 0x%p wrong object count."
- 			" counter is %d but counted were %d\n",
- 			s->name, page, page->inuse,
- 			s->objects - nr);
-@@ -601,7 +601,7 @@ static int alloc_object_checks(struct km
- 	init_object(s, object, 1);
- 
- 	if (s->flags & SLAB_TRACE) {
--		printk("TRACE %s alloc 0x%p inuse=%d fp=0x%p\n",
-+		printk(KERN_INFO "TRACE %s alloc 0x%p inuse=%d fp=0x%p\n",
- 			s->name, object, page->inuse,
- 			page->freelist);
- 		dump_stack();
-@@ -630,7 +630,7 @@ static int free_object_checks(struct kme
- 	}
- 
- 	if (on_freelist(s, page, object)) {
--		printk(KERN_CRIT "SLUB: %s slab 0x%p object "
-+		printk(KERN_ERR "SLUB: %s slab 0x%p object "
- 			"0x%p already free.\n", s->name, page, object);
- 		goto fail;
- 	}
-@@ -640,23 +640,23 @@ static int free_object_checks(struct kme
- 
- 	if (unlikely(s != page->slab)) {
- 		if (!PageSlab(page))
--			printk(KERN_CRIT "slab_free %s size %d: attempt to"
-+			printk(KERN_ERR "slab_free %s size %d: attempt to"
- 				"free object(0x%p) outside of slab.\n",
- 				s->name, s->size, object);
- 		else
- 		if (!page->slab)
--			printk(KERN_CRIT
-+			printk(KERN_ERR
- 				"slab_free : no slab(NULL) for object 0x%p.\n",
- 						object);
- 		else
--		printk(KERN_CRIT "slab_free %s(%d): object at 0x%p"
-+		printk(KERN_ERR "slab_free %s(%d): object at 0x%p"
- 				" belongs to slab %s(%d)\n",
- 				s->name, s->size, object,
- 				page->slab->name, page->slab->size);
- 		goto fail;
- 	}
- 	if (s->flags & SLAB_TRACE) {
--		printk("TRACE %s free 0x%p inuse=%d fp=0x%p\n",
-+		printk(KERN_INFO "TRACE %s free 0x%p inuse=%d fp=0x%p\n",
- 			s->name, object, page->inuse,
- 			page->freelist);
- 		print_section("Object", object, s->objsize);
-@@ -1772,7 +1772,7 @@ static int __init setup_slub_debug(char 
- 				slub_debug |= SLAB_TRACE;
- 				break;
- 			default:
--				printk(KERN_CRIT "slub_debug option '%c' "
-+				printk(KERN_ERR "slub_debug option '%c' "
- 					"unknown. skipped\n",*str);
- 			}
- 	}
+ /*
+  * Close a cache and release the kmem_cache structure
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -145,7 +60,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-core-printk-facility-level-cleanup.patch
 slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
 slub-core-add-explanation-for-defrag_ratio-=-100.patch
 slub-core-add-explanation-for-locking.patch
