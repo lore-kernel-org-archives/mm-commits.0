@@ -1,80 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - smaps-add-clear_refs-file-to-clear-reference-docs.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:12:54 -0700
-Message-ID: <200704270812.l3R8Cs41023015@shell0.pdx.osdl.net>
+Subject: - smaps-use-ptep_test_and_clear_young.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:12:49 -0700
+Message-ID: <200704270812.l3R8Cotb023012@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41318 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755500AbXD0INA (ORCPT
+	by vger.kernel.org with ESMTP id S1755501AbXD0INE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:13:00 -0400
+	Fri, 27 Apr 2007 04:13:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smaps: add documentation for clear_refs
+     smaps: use ptep_test_and_clear_young
 has been removed from the -mm tree.  Its filename was
-     smaps-add-clear_refs-file-to-clear-reference-docs.patch
+     smaps-use-ptep_test_and_clear_young.patch
 
 This patch was dropped because it was folded into smaps-add-clear_refs-file-to-clear-reference.patch
 
 ------------------------------------------------------
-Subject: smaps: add documentation for clear_refs
+Subject: smaps: use ptep_test_and_clear_young
 From: David Rientjes <rientjes@google.com>
 
-Adds documentation for new /proc/pid/clear_refs file.
+Use arch-specified ptep_test_and_clear_young() to clear the pte accessed
+bits for /proc/pid/clear_refs.  This avoids a race condition if a pte is
+modified between pte_mkold() and set_pte_at().
 
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   31 +++++++++++++--------------
- 1 files changed, 16 insertions(+), 15 deletions(-)
+ fs/proc/task_mmu.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~smaps-add-clear_refs-file-to-clear-reference-docs Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~smaps-add-clear_refs-file-to-clear-reference-docs
-+++ a/Documentation/filesystems/proc.txt
-@@ -122,21 +122,22 @@ subdirectory has the entries listed in T
+diff -puN fs/proc/task_mmu.c~smaps-use-ptep_test_and_clear_young fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~smaps-use-ptep_test_and_clear_young
++++ a/fs/proc/task_mmu.c
+@@ -273,10 +273,7 @@ static void clear_refs_pte_range(struct 
+ 			continue;
  
- Table 1-1: Process specific entries in /proc 
- ..............................................................................
-- File    Content                                        
-- cmdline Command line arguments                         
-- cpu	 Current and last cpu in which it was executed		(2.4)(smp)
-- cwd	 Link to the current working directory
-- environ Values of environment variables      
-- exe	 Link to the executable of this process
-- fd      Directory, which contains all file descriptors 
-- maps	 Memory maps to executables and library files		(2.4)
-- mem     Memory held by this process                    
-- root	 Link to the root directory of this process
-- stat    Process status                                 
-- statm   Process memory status information              
-- status  Process status in human readable form          
-- wchan   If CONFIG_KALLSYMS is set, a pre-decoded wchan
-- smaps	 Extension based on maps, presenting the rss size for each mapped file
-+ File		Content
-+ clear_refs	Clears page referenced bits shown in smaps output
-+ cmdline	Command line arguments
-+ cpu		Current and last cpu in which it was executed	(2.4)(smp)
-+ cwd		Link to the current working directory
-+ environ	Values of environment variables
-+ exe		Link to the executable of this process
-+ fd		Directory, which contains all file descriptors
-+ maps		Memory maps to executables and library files	(2.4)
-+ mem		Memory held by this process
-+ root		Link to the root directory of this process
-+ stat		Process status
-+ statm		Process memory status information
-+ status		Process status in human readable form
-+ wchan		If CONFIG_KALLSYMS is set, a pre-decoded wchan
-+ smaps		Extension based on maps, the rss size for each mapped file
- ..............................................................................
- 
- For example, to get the status information of a process, all you have to do is
+ 		/* Clear accessed and referenced bits. */
+-		if (pte_young(ptent)) {
+-			ptent = pte_mkold(ptent);
+-			set_pte_at(vma->vm_mm, addr, pte, ptent);
+-		}
++		ptep_test_and_clear_young(vma, addr, pte);
+ 		ClearPageReferenced(page);
+ 	}
+ 	pte_unmap_unlock(pte - 1, ptl);
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -85,6 +62,7 @@ i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
 smaps-extract-pmd-walker-from-smaps-code.patch
 smaps-add-pages-referenced-count-to-smaps.patch
 smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-use-ptep_test_and_clear_young.patch
 smaps-add-clear_refs-file-to-clear-reference-docs.patch
 maps2-uninline-some-functions-in-the-page-walker.patch
 maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
