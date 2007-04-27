@@ -1,71 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-tidy.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:33 -0700
-Message-ID: <200704270821.l3R8LXFN023229@shell0.pdx.osdl.net>
+Subject: - slub-core-tidy-3.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:37 -0700
+Message-ID: <200704270821.l3R8LbuY023244@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54803 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755524AbXD0IVg (ORCPT
+	by vger.kernel.org with ESMTP id S1755530AbXD0IVk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:36 -0400
+	Fri, 27 Apr 2007 04:21:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-core-tidy
+     slub-core-tidy-3
 has been removed from the -mm tree.  Its filename was
-     slub-core-tidy.patch
+     slub-core-tidy-3.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub-core-tidy
+Subject: slub-core-tidy-3
 From: Andrew Morton <akpm@linux-foundation.org>
+
+Diddle whitespace
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ mm/slub.c |   29 ++++++++++++++---------------
+ 1 files changed, 14 insertions(+), 15 deletions(-)
 
-diff -puN arch/frv/Kconfig~slub-core-tidy arch/frv/Kconfig
-diff -puN arch/i386/Kconfig~slub-core-tidy arch/i386/Kconfig
-diff -puN include/linux/mm_types.h~slub-core-tidy include/linux/mm_types.h
-diff -puN include/linux/poison.h~slub-core-tidy include/linux/poison.h
-diff -puN include/linux/slab.h~slub-core-tidy include/linux/slab.h
-diff -puN include/linux/slub_def.h~slub-core-tidy include/linux/slub_def.h
-diff -puN init/Kconfig~slub-core-tidy init/Kconfig
-diff -puN mm/Makefile~slub-core-tidy mm/Makefile
-diff -puN mm/slub.c~slub-core-tidy mm/slub.c
---- a/mm/slub.c~slub-core-tidy
+diff -puN mm/slub.c~slub-core-tidy-3 mm/slub.c
+--- a/mm/slub.c~slub-core-tidy-3
 +++ a/mm/slub.c
-@@ -116,10 +116,6 @@ static enum {
- 	SYSFS		/* Sysfs up */
- } slab_state = DOWN;
+@@ -462,14 +462,14 @@ static int check_object(struct kmem_cach
+ 					"Redzone Inactive check fails");
+ 				return 0;
+ 		}
+-	} else
+-	if ((s->flags & SLAB_POISON) && s->objsize < s->inuse &&
+-	    !check_bytes(endobject, POISON_INUSE, s->inuse - s->objsize))
++	} else if ((s->flags & SLAB_POISON) && s->objsize < s->inuse &&
++			!check_bytes(endobject, POISON_INUSE,
++					s->inuse - s->objsize))
+ 		object_err(s, page, p, "Alignment padding check fails");
  
--int slab_is_available(void) {
--	return slab_state >= UP;
--}
--
- /* A list of all slab caches on the system */
- static DECLARE_RWSEM(slub_lock);
- LIST_HEAD(slab_caches);
-@@ -138,6 +134,11 @@ static void sysfs_slab_remove(struct kme
-  * 			Core slab cache functions
-  *******************************************************************/
+ 	if (s->flags & SLAB_POISON) {
+-		if (!active && (s->flags & __OBJECT_POISON)
+-			&& (!check_bytes(p, POISON_FREE, s->objsize - 1) ||
++		if (!active && (s->flags & __OBJECT_POISON) &&
++			(!check_bytes(p, POISON_FREE, s->objsize - 1) ||
+ 				p[s->objsize -1] != POISON_END)) {
+ 			object_err(s, page, p, "Poison check failed");
+ 			return 0;
+@@ -487,14 +487,14 @@ static int check_object(struct kmem_cach
  
-+int slab_is_available(void)
-+{
-+	return slab_state >= UP;
-+}
-+
- struct kmem_cache_node *get_node(struct kmem_cache *s, int node)
+ 	/* Check free pointer validity */
+ 	if (!check_valid_pointer(s, page, get_freepointer(s, p))) {
+-			object_err(s, page, p, "Freepointer corrupt");
+-			/*
+-			 * No choice but to zap it. This may cause
+-			 * another error because the object count
+-			 * is now wrong.
+-			 */
+-			set_freepointer(s, p, NULL);
+-			return 0;
++		object_err(s, page, p, "Freepointer corrupt");
++		/*
++		 * No choice but to zap it. This may cause
++		 * another error because the object count
++		 * is now wrong.
++		 */
++		set_freepointer(s, p, NULL);
++		return 0;
+ 	}
+ 	return 1;
+ }
+@@ -619,9 +619,8 @@ bad:
+ static int free_object_checks(struct kmem_cache *s, struct page *page,
+ 							void *object)
  {
- #ifdef CONFIG_NUMA
+-	if (!check_slab(s, page)) {
++	if (!check_slab(s, page))
+ 		goto fail;
+-	}
+ 
+ 	if (!check_valid_pointer(s, page, object)) {
+ 		printk(KERN_ERR "SLUB: %s slab 0x%p invalid "
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -155,8 +180,6 @@ mm-move-common-segment-checks-to-separate-helper-function-v7.patch
 slab-mark-set_up_list3s-__init.patch
 extend-print_symbol-capability.patch
 slub-core.patch
-slub-core-tidy.patch
-slub-core-tidy-2.patch
 slub-core-tidy-3.patch
 slub-core-tidy-4.patch
 slub-core-tidy-5.patch
