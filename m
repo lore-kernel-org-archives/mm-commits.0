@@ -1,273 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-tidy-3.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:37 -0700
-Message-ID: <200704270821.l3R8LbuY023244@shell0.pdx.osdl.net>
+Subject: - slub-core-add-explanation-for-locking.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:59 -0700
+Message-ID: <200704270821.l3R8LxAN023281@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54459 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755530AbXD0IVk (ORCPT
+	by vger.kernel.org with ESMTP id S1755531AbXD0IWC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:40 -0400
+	Fri, 27 Apr 2007 04:22:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-core-tidy-3
+     SLUB: Add explanation for locking
 has been removed from the -mm tree.  Its filename was
-     slub-core-tidy-3.patch
+     slub-core-add-explanation-for-locking.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub-core-tidy-3
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: SLUB: Add explanation for locking
+From: Christoph Lameter <clameter@sgi.com>
 
-Diddle whitespace
-
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   29 ++++++++++++++---------------
- 1 files changed, 14 insertions(+), 15 deletions(-)
+ mm/slub.c |   36 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+)
 
-diff -puN mm/slub.c~slub-core-tidy-3 mm/slub.c
---- a/mm/slub.c~slub-core-tidy-3
+diff -puN mm/slub.c~slub-core-add-explanation-for-locking mm/slub.c
+--- a/mm/slub.c~slub-core-add-explanation-for-locking
 +++ a/mm/slub.c
-@@ -462,14 +462,14 @@ static int check_object(struct kmem_cach
- 					"Redzone Inactive check fails");
- 				return 0;
- 		}
--	} else
--	if ((s->flags & SLAB_POISON) && s->objsize < s->inuse &&
--	    !check_bytes(endobject, POISON_INUSE, s->inuse - s->objsize))
-+	} else if ((s->flags & SLAB_POISON) && s->objsize < s->inuse &&
-+			!check_bytes(endobject, POISON_INUSE,
-+					s->inuse - s->objsize))
- 		object_err(s, page, p, "Alignment padding check fails");
- 
- 	if (s->flags & SLAB_POISON) {
--		if (!active && (s->flags & __OBJECT_POISON)
--			&& (!check_bytes(p, POISON_FREE, s->objsize - 1) ||
-+		if (!active && (s->flags & __OBJECT_POISON) &&
-+			(!check_bytes(p, POISON_FREE, s->objsize - 1) ||
- 				p[s->objsize -1] != POISON_END)) {
- 			object_err(s, page, p, "Poison check failed");
- 			return 0;
-@@ -487,14 +487,14 @@ static int check_object(struct kmem_cach
- 
- 	/* Check free pointer validity */
- 	if (!check_valid_pointer(s, page, get_freepointer(s, p))) {
--			object_err(s, page, p, "Freepointer corrupt");
--			/*
--			 * No choice but to zap it. This may cause
--			 * another error because the object count
--			 * is now wrong.
--			 */
--			set_freepointer(s, p, NULL);
--			return 0;
-+		object_err(s, page, p, "Freepointer corrupt");
-+		/*
-+		 * No choice but to zap it. This may cause
-+		 * another error because the object count
-+		 * is now wrong.
-+		 */
-+		set_freepointer(s, p, NULL);
-+		return 0;
- 	}
- 	return 1;
- }
-@@ -619,9 +619,8 @@ bad:
- static int free_object_checks(struct kmem_cache *s, struct page *page,
- 							void *object)
- {
--	if (!check_slab(s, page)) {
-+	if (!check_slab(s, page))
- 		goto fail;
--	}
- 
- 	if (!check_valid_pointer(s, page, object)) {
- 		printk(KERN_ERR "SLUB: %s slab 0x%p invalid "
+@@ -26,6 +26,42 @@
+  *   1. slab_lock(page)
+  *   2. slab->list_lock
+  *
++ *   The slab_lock protects operations on the object of a particular
++ *   slab and its metadata in the page struct. If the slab lock
++ *   has been taken the no allocations nor frees can be performed
++ *   on the objects in the slab nor can the slab be added or removed
++ *   from the partial or full lists since this would mean modifying
++ *   the page_struct of the slab.
++ *
++ *   The list_lock protects the partial and full list on each node and
++ *   the partial slab counter. If taken then no new slabs may be added or
++ *   removed from the lists nor make the number of partial slabs be modified.
++ *   (Note that the total number of slabs is an atomic value that may be
++ *   modified without taking the list lock).
++ *   The list_lock is a centralized lock and thus we avoid taking it as
++ *   much as possible. As long as SLUB does not have to handle partial
++ *   slabs operations can continue without any centralized lock. F.e.
++ *   allocating a long series of objects that fill up slabs does not require
++ *   the list lock.
++ *
++ *   The lock order is sometimes inverted when we are trying to get a slab
++ *   off a list. We take the list_lock and then look for a page on the list
++ *   to use. While we do that objects in the slabs may be freed so we can
++ *   only operate on the slab if we have also taken the slab_lock. So we use
++ *   a slab_try_lock() on the page. If trylock was successful then no frees
++ *   can occur anymore and we can use the slab for allocations etc. If the
++ *   slab_try_lock does not succeed then frees are occur to the slab and
++ *   we better stay away from it for awhile since we may cause a bouncing
++ *   cacheline if we would try to acquire the lock. So go onto the next slab.
++ *   If all pages are busy then we may allocate a new slab instead of reusing
++ *   a partial slab. A new slab has no one operating on it and thus there is
++ *   no danger of cacheline contention.
++ *
++ *   Interrupts are disabled during allocation and deallocation in order to
++ *   make the slab allocator safe to use in the context of an irq. In addition
++ *   interrupts are disabled to insure that the processor does not change
++ *   while handling per_cpu slabs.
++ *
+  * SLUB assigns one slab for allocation to each processor.
+  * Allocations only occur from these slabs called cpu slabs.
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 slab-introduce-krealloc.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agp-build-fix.patch
-git-cpufreq-borkage-fix.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake.patch
-dev_dbg-check-dev_dbg-arguments.patch
-sysfs-binc-printk-fix.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch
-git-gfs2-nmw.patch
-gfs2-printk-warning-fixes.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-fw-device-printk-fix.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-mtd-build-fix.patch
-git-ubi.patch
-git-ubi-fixup.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-git-netdev-all-export-ieee80211_debug_level.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
-sctp_getsockopt_local_addrs-type-fix.patch
-git-net-fix-yamc.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
-rfcomm_worker-fix-wakeup-race.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-fix-x86_64-mm-nmi-watchdog-ops.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-x86_64-unexport-cpu_llc_id.patch
-xfs-clean-up-shrinker-games.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
+ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
 smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-core-tidy-3.patch
-slub-core-tidy-4.patch
-slub-core-tidy-5.patch
-slub-core-tidy-6.patch
-slub-core-tidy-7.patch
-slub-core-tidy-8.patch
-slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking.patch
 slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-the-64k-limits.patch
+slub-core-explain-sizing-of-slabs-in-detail.patch
 slub-core-explain-sizing-of-slabs-in-detail-fix.patch
-slub-core-more-statics.patch
+slub-core-add-checks-for-interrupts-disabled.patch
+slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
+slub-core-missing-inlines-and-statics.patch
+slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
+slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
+slub-core-fix-kmem_cache_destroy.patch
+slub-core-fix-validation.patch
+slub-core-add-after-object-padding.patch
+slub-core-resiliency-fixups.patch
+slub-core-resiliency-fixups-fix.patch
+slub-core-resiliency-test.patch
+slub-core-update-cpu-after-new_slab.patch
+slub-core-fix-sysfs-directory-handling.patch
+slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
+slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
 slub-enable-tracking-of-full-slabs-fix.patch
+slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
+slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch
+slub-add-min_partial.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
+slub-remove-object-activities-out-of-checking-functions.patch
+slub-user-documentation.patch
 slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls-x86_64-fix.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-build-hack.patch
-lguest-build-hack-2.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+slub-major-slabinfo-update.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+kmem_cache-simplify-slab-cache-creation.patch
+slab-allocators-remove-slab_debug_initial-flag.patch
+slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
+slab-allocators-remove-multiple-alignment-specifications.patch
+slab-allocators-remove-slab_ctor_atomic.patch
+fault-injection-fix-failslab-with-config_numa.patch
+mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
+slub-i386-support.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+readahead-state-based-method-aging-accounting.patch
