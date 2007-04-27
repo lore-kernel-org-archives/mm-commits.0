@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-add-min_partial.patch added to -mm tree
-Date: Thu, 26 Apr 2007 23:31:36 -0700
-Message-ID: <200704270631.l3R6Va5v021308@shell0.pdx.osdl.net>
+Subject: + slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch added to -mm tree
+Date: Thu, 26 Apr 2007 23:31:32 -0700
+Message-ID: <200704270631.l3R6VWtr021305@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37856 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755392AbXD0Gbk (ORCPT
+	by vger.kernel.org with ESMTP id S1755387AbXD0Gbk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 27 Apr 2007 02:31:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: clameter@sgi.com, mel@skynet.ie
 
 
 The patch titled
-     SLUB: Add MIN_PARTIAL
+     SLUB: Reduce the order of allocations to avoid fragmentation
 has been added to the -mm tree.  Its filename is
-     slub-add-min_partial.patch
+     slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,142 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Add MIN_PARTIAL
+Subject: SLUB: Reduce the order of allocations to avoid fragmentation
 From: Christoph Lameter <clameter@sgi.com>
 
-We leave a mininum of partial slabs on nodes when we search for
-partial slabs on other node. Define a constant for that value.
+Seems that fragmentation is an important subject. So be safe.
 
-Then modify slub to keep MIN_PARTIAL slabs around.
+If an arch supports 4k page size then assume that defragmentation may be
+a major problem. Reduce the minimum number of objects in a slab and
+limit the order of slabs. Be a little bit more lenient for larger
+page sizes.
 
-This avoids bad situations where a function frees the last object
-in a slab (which results in the page being returned to the page
-allocator) only to then allocate one again (which requires getting
-a page back from the page allocator if the partial list was empty).
-Keeping a couple of slabs on the partial list reduces overhead.
+Change the bootup message of SLUB to show the parameters so that
+log is reviewed.
 
-Empty slabs are added to the end of the partial list to insure that
-partially allocated slabs are consumed first (defragmentation).
-
+Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   55 ++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 36 insertions(+), 19 deletions(-)
+ mm/slub.c |   28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-add-min_partial mm/slub.c
---- a/mm/slub.c~slub-add-min_partial
+diff -puN mm/slub.c~slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation mm/slub.c
+--- a/mm/slub.c~slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation
 +++ a/mm/slub.c
-@@ -139,6 +139,9 @@
-  */
- #define SLUB_UNIMPLEMENTED (SLAB_DEBUG_INITIAL)
+@@ -115,6 +115,25 @@
+ /* Enable to test recovery from slab corruption on boot */
+ #undef SLUB_RESILIENCY_TEST
  
-+/* Mininum number of partial slabs */
-+#define MIN_PARTIAL 2
++#if PAGE_SHIFT <= 12
 +
- #define DEBUG_DEFAULT_FLAGS (SLAB_DEBUG_FREE | SLAB_RED_ZONE | \
- 				SLAB_POISON | SLAB_STORE_USER)
++/*
++ * Small page size. Make sure that we do not fragment memory
++ */
++#define DEFAULT_MAX_ORDER 1
++#define DEFAULT_MIN_OBJECTS 4
++
++#else
++
++/*
++ * Large page machines are customarily able to handle larger
++ * page orders.
++ */
++#define DEFAULT_MAX_ORDER 2
++#define DEFAULT_MIN_OBJECTS 8
++
++#endif
++
  /*
-@@ -657,16 +660,8 @@ static int on_freelist(struct kmem_cache
+  * Flags from the regular SLAB that SLUB does not support:
+  */
+@@ -1401,13 +1420,13 @@ static struct page *get_object_page(cons
+  * take the list_lock.
+  */
+ static int slub_min_order;
+-static int slub_max_order = 4;
++static int slub_max_order = DEFAULT_MAX_ORDER;
+ 
  /*
-  * Tracking of fully allocated slabs for debugging
+  * Minimum number of objects per slab. This is necessary in order to
+  * reduce locking overhead. Similar to the queue size in SLAB.
   */
--static void add_full(struct kmem_cache *s, struct page *page)
-+static void add_full(struct kmem_cache_node *n, struct page *page)
- {
--	struct kmem_cache_node *n;
--
--	VM_BUG_ON(!irqs_disabled());
--
--	if (!(s->flags & SLAB_STORE_USER))
--		return;
--
--	n = get_node(s, page_to_nid(page));
- 	spin_lock(&n->list_lock);
- 	list_add(&page->lru, &n->full);
- 	spin_unlock(&n->list_lock);
-@@ -975,10 +970,16 @@ static __always_inline int slab_trylock(
+-static int slub_min_objects = 8;
++static int slub_min_objects = DEFAULT_MIN_OBJECTS;
+ 
  /*
-  * Management of partially allocated slabs
-  */
--static void add_partial(struct kmem_cache *s, struct page *page)
-+static void add_partial_tail(struct kmem_cache_node *n, struct page *page)
- {
--	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
-+	spin_lock(&n->list_lock);
-+	n->nr_partial++;
-+	list_add_tail(&page->lru, &n->partial);
-+	spin_unlock(&n->list_lock);
-+}
+  * Merge control. If this is set then no merging of slab caches will occur.
+@@ -2239,9 +2258,10 @@ void __init kmem_cache_init(void)
+ 		kmem_size = offsetof(struct kmem_cache, cpu_slab)
+ 			 + nr_cpu_ids * sizeof(struct page *);
  
-+static void add_partial(struct kmem_cache_node *n, struct page *page)
-+{
- 	spin_lock(&n->list_lock);
- 	n->nr_partial++;
- 	list_add(&page->lru, &n->partial);
-@@ -1078,7 +1079,7 @@ static struct page *get_any_partial(stru
- 		n = get_node(s, zone_to_nid(*z));
- 
- 		if (n && cpuset_zone_allowed_hardwall(*z, flags) &&
--				n->nr_partial > 2) {
-+				n->nr_partial > MIN_PARTIAL) {
- 			page = get_partial_node(n);
- 			if (page)
- 				return page;
-@@ -1112,15 +1113,31 @@ static struct page *get_partial(struct k
-  */
- static void putback_slab(struct kmem_cache *s, struct page *page)
- {
-+	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
-+
- 	if (page->inuse) {
-+
- 		if (page->freelist)
--			add_partial(s, page);
--		else if (PageError(page))
--			add_full(s, page);
-+			add_partial(n, page);
-+		else if (PageError(page) && (s->flags & SLAB_STORE_USER))
-+			add_full(n, page);
- 		slab_unlock(page);
-+
- 	} else {
--		slab_unlock(page);
--		discard_slab(s, page);
-+		if (n->nr_partial < MIN_PARTIAL) {
-+			/*
-+			 * Adding an empty page to the partial slabs in order
-+			 * to avoid page allocator overhead. This page needs to
-+			 * come after all the others that are not fully empty
-+			 * in order to make sure that we do maximum
-+			 * defragmentation.
-+			 */
-+			add_partial_tail(n, page);
-+			slab_unlock(page);
-+		} else {
-+			slab_unlock(page);
-+			discard_slab(s, page);
-+		}
- 	}
- }
- 
-@@ -1371,7 +1388,7 @@ checks_ok:
- 	 * then add it.
- 	 */
- 	if (unlikely(!prior))
--		add_partial(s, page);
-+		add_partial(get_node(s, page_to_nid(page)), page);
- 
- out_unlock:
- 	slab_unlock(page);
-@@ -1579,7 +1596,7 @@ static struct kmem_cache_node * __init e
- 	kmalloc_caches->node[node] = n;
- 	init_kmem_cache_node(n);
- 	atomic_long_inc(&n->nr_slabs);
--	add_partial(kmalloc_caches, page);
-+	add_partial(n, page);
- 	return n;
+-	printk(KERN_INFO "SLUB: General Slabs=%d, HW alignment=%d, "
+-		"Processors=%d, Nodes=%d\n",
++	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
++		" Processors=%d, Nodes=%d\n",
+ 		KMALLOC_SHIFT_HIGH, L1_CACHE_BYTES,
++		slub_min_order, slub_max_order, slub_min_objects,
+ 		nr_cpu_ids, nr_node_ids);
  }
  
 _
