@@ -1,131 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-use-enum-for-tracking-modes-instead-of-integers.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:25 -0700
-Message-ID: <200704270821.l3R8LPEJ023217@shell0.pdx.osdl.net>
+Subject: - slub-core-fix-another-numa-bootstrap-issue.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:27 -0700
+Message-ID: <200704270821.l3R8LRxM023220@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53437 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755517AbXD0IV2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755523AbXD0IVa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:28 -0400
+	Fri, 27 Apr 2007 04:21:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: use enum for tracking modes instead of integers
+     slub: fix another NUMA bootstrap issue
 has been removed from the -mm tree.  Its filename was
-     slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+     slub-core-fix-another-numa-bootstrap-issue.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub: use enum for tracking modes instead of integers
+Subject: slub: fix another NUMA bootstrap issue
 From: Christoph Lameter <clameter@sgi.com>
 
-Integers caused some confusion. This cleans it up and uses symbolic constants
-throughout.
+Make sure that the bootstrap allocation occurs on the correct node and
+that the slab we allocated gets put onto the partial list. Otherwise the rest
+of the slab is lost for good.
+
+And while we are at it reduce the amount of #ifdefs by rearranging code.
+
+init_kmem_cache_node already initializes most fields. Avoid memset and just
+set the remaining field manually.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ mm/slub.c |   85 ++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 53 insertions(+), 32 deletions(-)
 
-diff -puN mm/slub.c~slub-core-use-enum-for-tracking-modes-instead-of-integers mm/slub.c
---- a/mm/slub.c~slub-core-use-enum-for-tracking-modes-instead-of-integers
+diff -puN mm/slub.c~slub-core-fix-another-numa-bootstrap-issue mm/slub.c
+--- a/mm/slub.c~slub-core-fix-another-numa-bootstrap-issue
 +++ a/mm/slub.c
-@@ -211,7 +211,10 @@ struct track {
- 	unsigned long when;	/* When did the operation occur */
- };
+@@ -1388,15 +1388,46 @@ static unsigned long calculate_alignment
  
--struct track *get_track(struct kmem_cache *s, void *object, int alloc)
-+enum track_item { TRACK_ALLOC, TRACK_FREE };
+ static void init_kmem_cache_node(struct kmem_cache_node *n)
+ {
+-	memset(n, 0, sizeof(struct kmem_cache_node));
++	n->nr_partial = 0;
+ 	atomic_long_set(&n->nr_slabs, 0);
+ 	spin_lock_init(&n->list_lock);
+ 	INIT_LIST_HEAD(&n->partial);
+ }
+ 
++#ifdef CONFIG_NUMA
++/*
++ * No kmalloc_node yet so do it by hand. We know that this is the first
++ * slab on the node for this slabcache. There are no concurrent accesses
++ * possible.
++ *
++ * Note that this function only works on the kmalloc_node_cache
++ * when allocating for the kmalloc_node_cache.
++ */
++struct kmem_cache_node * __init early_kmem_cache_node_alloc(
++					gfp_t gfpflags, int node)
++{
++	struct page *page;
++	struct kmem_cache_node *n;
 +
-+struct track *get_track(struct kmem_cache *s, void *object,
-+	enum track_item alloc)
++	BUG_ON(kmalloc_caches->size < sizeof(struct kmem_cache_node));
++	page = new_slab(kmalloc_caches, gfpflags | GFP_THISNODE, node);
++	/* new_slab() disables interupts */
++	local_irq_enable();
++
++	BUG_ON(!page);
++	n = page->freelist;
++	BUG_ON(!n);
++	page->freelist = get_freepointer(kmalloc_caches, n);
++	page->inuse++;
++	kmalloc_caches->node[node] = n;
++	init_kmem_cache_node(n);
++	atomic_long_inc(&n->nr_slabs);
++	add_partial(kmalloc_caches, page);
++	return n;
++}
++
+ static void free_kmem_cache_nodes(struct kmem_cache *s)
  {
- 	struct track *p;
+-#ifdef CONFIG_NUMA
+ 	int node;
  
-@@ -224,7 +227,7 @@ struct track *get_track(struct kmem_cach
- }
- 
- static void set_track(struct kmem_cache *s, void *object,
--				int alloc, void *addr)
-+				enum track_item alloc, void *addr)
- {
- 	struct track *p;
- 
-@@ -249,8 +252,8 @@ static void set_track(struct kmem_cache 
- static void init_tracking(struct kmem_cache *s, void *object)
- {
- 	if (s->flags & SLAB_STORE_USER) {
--		set_track(s, object, 0, NULL);
--		set_track(s, object, 1, NULL);
-+		set_track(s, object, TRACK_FREE, NULL);
-+		set_track(s, object, TRACK_ALLOC, NULL);
+ 	for_each_online_node(node) {
+@@ -1405,12 +1436,10 @@ static void free_kmem_cache_nodes(struct
+ 			kmem_cache_free(kmalloc_caches, n);
+ 		s->node[node] = NULL;
  	}
+-#endif
  }
  
-@@ -298,8 +301,8 @@ static void print_trailer(struct kmem_ca
- 		off = s->inuse;
+ static int init_kmem_cache_nodes(struct kmem_cache *s, gfp_t gfpflags)
+ {
+-#ifdef CONFIG_NUMA
+ 	int node;
+ 	int local_node;
  
- 	if (s->flags & SLAB_STORE_USER) {
--		print_track("Last alloc", get_track(s, p, 0));
--		print_track("Last free ", get_track(s, p, 1));
-+		print_track("Last alloc", get_track(s, p, TRACK_ALLOC));
-+		print_track("Last free ", get_track(s, p, TRACK_FREE));
- 		off += 2 * sizeof(struct track);
+@@ -1424,45 +1453,37 @@ static int init_kmem_cache_nodes(struct 
+ 
+ 		if (local_node == node)
+ 			n = &s->local_node;
+-		else
+-		if (slab_state == DOWN) {
+-			/*
+-			 * No kmalloc_node yet so do it by hand.
+-			 * We know that this is the first slab on the
+-			 * node for this slabcache. There are no concurrent
+-			 * accesses possible.
+-			 */
+-			struct page *page;
+-
+-			BUG_ON(s->size < sizeof(struct kmem_cache_node));
+-			page = new_slab(kmalloc_caches, gfpflags, node);
+-			/* new_slab() disables interupts */
+-			local_irq_enable();
+-
+-			BUG_ON(!page);
+-			n = page->freelist;
+-			page->freelist = get_freepointer(kmalloc_caches, n);
+-			page->inuse++;
+-		} else
++		else {
++			if (slab_state == DOWN) {
++				n = early_kmem_cache_node_alloc(gfpflags,
++								node);
++				continue;
++			}
+ 			n = kmem_cache_alloc_node(kmalloc_caches,
+ 							gfpflags, node);
+ 
+-		if (!n) {
+-			free_kmem_cache_nodes(s);
+-			return 0;
+-		}
++			if (!n) {
++				free_kmem_cache_nodes(s);
++				return 0;
++			}
+ 
++		}
+ 		s->node[node] = n;
+ 		init_kmem_cache_node(n);
+-
+-		if (slab_state == DOWN)
+-			atomic_long_inc(&n->nr_slabs);
  	}
- 
-@@ -1186,7 +1189,7 @@ debug:
- 	if (!alloc_object_checks(s, page, object))
- 		goto another_slab;
- 	if (s->flags & SLAB_STORE_USER)
--		set_tracking(s, object, 0);
-+		set_tracking(s, object, TRACK_ALLOC);
- 	goto have_object;
++	return 1;
++}
+ #else
++static void free_kmem_cache_nodes(struct kmem_cache *s)
++{
++}
++
++static int init_kmem_cache_nodes(struct kmem_cache *s, gfp_t gfpflags)
++{
+ 	init_kmem_cache_node(&s->local_node);
+-#endif
+ 	return 1;
  }
++#endif
  
-@@ -1278,7 +1281,7 @@ void kmem_cache_free(struct kmem_cache *
- 
- 
- 	if (unlikely(PageError(page) && (s->flags & SLAB_STORE_USER)))
--		set_tracking(s, x, 1);
-+		set_tracking(s, x, TRACK_FREE);
- 	slab_free(s, page, x);
- }
- EXPORT_SYMBOL(kmem_cache_free);
-@@ -1904,7 +1907,7 @@ void kfree(const void *x)
- 	s = page->slab;
- 
- 	if (unlikely(PageError(page) && (s->flags & SLAB_STORE_USER)))
--		set_tracking(s, (void *)x, 1);
-+		set_tracking(s, (void *)x, TRACK_FREE);
- 	slab_free(s, page, (void *)x);
- }
- EXPORT_SYMBOL(kfree);
-@@ -2267,7 +2270,7 @@ void *__kmalloc_track_caller(size_t size
- 	object = kmem_cache_alloc(s, gfpflags);
- 
- 	if (object && (s->flags & SLAB_STORE_USER))
--		set_track(s, object, 0, caller);
-+		set_track(s, object, TRACK_ALLOC, caller);
- 
- 	return object;
- }
-@@ -2284,7 +2287,7 @@ void *__kmalloc_node_track_caller(size_t
- 	object = kmem_cache_alloc_node(s, gfpflags, node);
- 
- 	if (object && (s->flags & SLAB_STORE_USER))
--		set_track(s, object, 0, caller);
-+		set_track(s, object, TRACK_ALLOC, caller);
- 
- 	return object;
- }
+ int calculate_sizes(struct kmem_cache *s)
+ {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -143,7 +189,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
 slub-core-fix-another-numa-bootstrap-issue.patch
 slub-core-fix-object-counting.patch
 slub-core-drop-version-number.patch
