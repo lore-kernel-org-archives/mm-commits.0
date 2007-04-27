@@ -1,89 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-update-cpu-after-new_slab.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:22:34 -0700
-Message-ID: <200704270822.l3R8MYWd023338@shell0.pdx.osdl.net>
+Subject: + reiserfs-suppress-lockdep-warning.patch added to -mm tree
+Date: Fri, 27 Apr 2007 13:12:18 -0700
+Message-ID: <200704272012.l3RKCI2t006669@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59392 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755529AbXD0IWk (ORCPT
+	by vger.kernel.org with ESMTP id S1757186AbXD0UNt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:22:40 -0400
+	Fri, 27 Apr 2007 16:13:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jeffm@suse.de, adaplas@pol.net, stable@kernel.org, tiwai@suse.de
 
 
 The patch titled
-     slub: update cpu after new_slab()
-has been removed from the -mm tree.  Its filename was
-     slub-core-update-cpu-after-new_slab.patch
+     reiserfs: suppress lockdep warning
+has been added to the -mm tree.  Its filename is
+     reiserfs-suppress-lockdep-warning.patch
 
-This patch was dropped because it was folded into slub-core.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: slub: update cpu after new_slab()
-From: Hugh Dickins <hugh@veritas.com>
+Subject: reiserfs: suppress lockdep warning
+From: Jeff Mahoney <jeffm@suse.de>
 
-SLUB gave me a NULL pointer dereference in slab_alloc(), in the
-slab_lock(page) of its "Current cpuslab is acceptable" block: cpu 1 had
-been looking at cpu_slab[2], which then went NULL beneath it.  Since
-new_slab() may reenable interrupts and sleep (when __GFP_WAIT), we may get
-rescheduled on a different cpu: so need to reevaluate it.
+We're getting lockdep warnings due to a post-2.6.21-rc7 bugfix.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+The xattr_sem can never be taken in the manner described. Internal inodes
+are protected by I_PRIVATE.  Add the appropriate annotation.
+
+Cc: <stable@kernel.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/reiserfs/xattr.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-core-update-cpu-after-new_slab mm/slub.c
---- a/mm/slub.c~slub-core-update-cpu-after-new_slab
-+++ a/mm/slub.c
-@@ -1234,11 +1234,12 @@ have_slab:
+diff -puN fs/reiserfs/xattr.c~reiserfs-suppress-lockdep-warning fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-suppress-lockdep-warning
++++ a/fs/reiserfs/xattr.c
+@@ -68,7 +68,7 @@ static struct dentry *get_xa_root(struct
+ 	if (!privroot)
+ 		return ERR_PTR(-ENODATA);
  
- 	page = new_slab(s, gfpflags, node);
- 	if (page) {
-+		cpu = smp_processor_id();
- 		if (s->cpu_slab[cpu]) {
- 			/*
--			 * Someone else populated the cpu_slab while
--			 * we enabled interrupts. The page may not
--			 * be on the requested node.
-+			 * Someone else populated the cpu_slab while we enabled
-+			 * interrupts, or we have got scheduled on another cpu.
-+			 * The page may not be on the requested node.
- 			 */
- 			if (node == -1 ||
- 				page_to_nid(s->cpu_slab[cpu]) == node) {
+-	mutex_lock(&privroot->d_inode->i_mutex);
++	mutex_lock_nested(&privroot->d_inode->i_mutex, I_MUTEX_XATTR);
+ 	if (REISERFS_SB(sb)->xattr_root) {
+ 		xaroot = dget(REISERFS_SB(sb)->xattr_root);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from jeffm@suse.de are
 
-ia64-race-flushing-icache-in-do_no_page-path.patch
-git-drm.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-i386-make-compat_vdso-runtime-selectable-fix.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slub-core.patch
-slub-core-update-cpu-after-new_slab.patch
-mm-madvise-avoid-exclusive-mmap_sem.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-madv_free-lazytlb-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+reiserfs-suppress-lockdep-warning.patch
