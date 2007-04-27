@@ -1,93 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:08:41 -0700
-Message-ID: <200704270808.l3R88fWH022914@shell0.pdx.osdl.net>
+Subject: - move-free-pages-between-lists-on-steal-fix.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:08:35 -0700
+Message-ID: <200704270808.l3R88ZZL022907@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55591 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755481AbXD0IJH (ORCPT
+	by vger.kernel.org with ESMTP id S1755481AbXD0IJM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:09:07 -0400
+	Fri, 27 Apr 2007 04:09:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, apw@shadowen.org, clameter@engr.sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Avoid unsafe use of struct pages in move_freepages when CONFIG_HOLES_IN_ZONE is set
+     Fix boot problem on IA64 with CONFIG_HOLE_IN_ZONES and CONFIG_PAGE_GROUP_BY_MOBILITY
 has been removed from the -mm tree.  Its filename was
-     move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
+     move-free-pages-between-lists-on-steal-fix.patch
 
 This patch was dropped because it was folded into move-free-pages-between-lists-on-steal.patch
 
 ------------------------------------------------------
-Subject: Avoid unsafe use of struct pages in move_freepages when CONFIG_HOLES_IN_ZONE is set
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: Fix boot problem on IA64 with CONFIG_HOLE_IN_ZONES and CONFIG_PAGE_GROUP_BY_MOBILITY
+From: mel@skynet.ie (Mel Gorman)
 
-In the majority of situations, mem_map is guaranteed to be valid within a
-MAX_ORDER_NR_PAGES block of pages.  However, when CONFIG_HOLES_IN_ZONE is
-set, there is no guarantee that mem_map exists for the entire block.  This
-means that when checking struct pages around a known valid page, there is
-no guarantee they are valid.
+Usually, a mem_map is aligned on MAX_ORDER_NR_PAGES boundaries and the
+struct pages are always valid.  However, this is not always the case when
+CONFIG_HOLES_IN_ZONE is set.
 
-move_freepages() operates on a MAX_ORDER_NR_PAGES range of pages based on
-a known valid page retrieved from the free lists. However, a bug check is
-unsafe when CONFIG_HOLES_IN_ZONE is set and pfn_valid() is called too late.
+move_freepages_block() checks that pages within a MAX_ORDER_NR_PAGES block
+are in the same zone using page_zone().  However, if an invalid page is
+passed to page_zone(), it can result in breakage on machines requiring
+CONFIG_HOLES_IN_ZONE.  This patch avoids the use of page_zone() and instead
+checks the PFNs against the PFN ranges of the zone.  This fixes a boot
+problem on IA64 using the config arch/ia64/configs/sn2_defconfig .
 
-This patch disables the bug check when CONFIG_HOLES_IN_ZONE and checks
-pfn_valid() earlier before calling PageBuddy().  It applies on top of
-move-free-pages-between-lists-on-steal-fix-2.patch from Yasunori Goto in
--mm.
-
-Credit to Bjorn Helgaas for reporting this bug and testing.
+Credit to Christoph Lameter for testing, reporting the bug and verifying
+this fixes the problem.  Credit to Andy Whitcroft for giving the patch a
+quick review to ensure no functionality was changed.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set mm/page_alloc.c
---- a/mm/page_alloc.c~move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set
+diff -puN mm/page_alloc.c~move-free-pages-between-lists-on-steal-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~move-free-pages-between-lists-on-steal-fix
 +++ a/mm/page_alloc.c
-@@ -673,13 +673,18 @@ int move_freepages(struct zone *zone,
- 	unsigned long order;
- 	int blocks_moved = 0;
+@@ -700,18 +700,19 @@ int move_freepages(struct zone *zone,
  
-+#ifndef CONFIG_HOLES_IN_ZONE
-+	/*
-+	 * page_zone is not safe to call in this context when
-+	 * CONFIG_HOLES_IN_ZONE is set. This bug check is probably redundant
-+	 * anyway as we check zone boundaries in move_freepages_block().
-+	 * Remove at a later date when no bug reports exist related to
-+	 * CONFIG_PAGE_GROUP_BY_MOBILITY
-+	 */
- 	BUG_ON(page_zone(start_page) != page_zone(end_page - 1));
-+#endif
+ int move_freepages_block(struct zone *zone, struct page *page, int migratetype)
+ {
+-	unsigned long start_pfn;
++	unsigned long start_pfn, end_pfn;
+ 	struct page *start_page, *end_page;
  
- 	for (page = start_page; page < end_page;) {
--		if (!PageBuddy(page)) {
--			page++;
--			continue;
--		}
- #ifdef CONFIG_HOLES_IN_ZONE
- 		if (!pfn_valid(page_to_pfn(page))) {
- 			page++;
-@@ -687,6 +692,11 @@ int move_freepages(struct zone *zone,
- 		}
- #endif
+ 	start_pfn = page_to_pfn(page);
+ 	start_pfn = start_pfn & ~(MAX_ORDER_NR_PAGES-1);
+ 	start_page = pfn_to_page(start_pfn);
+ 	end_page = start_page + MAX_ORDER_NR_PAGES;
++	end_pfn = start_pfn + MAX_ORDER_NR_PAGES;
  
-+		if (!PageBuddy(page)) {
-+			page++;
-+			continue;
-+		}
-+
- 		order = page_order(page);
- 		list_del(&page->lru);
- 		list_add(&page->lru,
+ 	/* Do not cross zone boundaries */
+-	if (page_zone(page) != page_zone(start_page))
++	if (start_pfn < zone->zone_start_pfn)
+ 		start_page = page;
+-	if (page_zone(page) != page_zone(end_page))
++	if (end_pfn >= zone->zone_start_pfn + zone->spanned_pages)
+ 		return 0;
+ 
+ 	return move_freepages(zone, start_page, end_page, migratetype);
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -99,6 +86,8 @@ choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
 add-a-configure-option-to-group-pages-by-mobility.patch
 drain-per-cpu-lists-when-high-order-allocations-fail.patch
 move-free-pages-between-lists-on-steal.patch
+move-free-pages-between-lists-on-steal-fix.patch
+move-free-pages-between-lists-on-steal-fix-2.patch
 move-free-pages-between-lists-on-steal-avoid-unsafe-use-of-struct-pages-in-move_freepages-when-config_holes_in_zone-is-set.patch
 move-free-pages-between-lists-on-steal-do-not-cross-section-boundary-when-moving-pages-between-mobility-lists.patch
 group-short-lived-and-reclaimable-kernel-allocations.patch
