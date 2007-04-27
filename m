@@ -1,52 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - s390-net-lcs-convert-to-the-kthread-api-fix.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:04:57 -0700
-Message-ID: <200704270804.l3R84vNY022833@shell0.pdx.osdl.net>
+Subject: - add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:07:10 -0700
+Message-ID: <200704270807.l3R87AnF022880@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47801 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755475AbXD0IFG (ORCPT
+	by vger.kernel.org with ESMTP id S1755475AbXD0IHS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:05:06 -0400
+	Fri, 27 Apr 2007 04:07:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, fpavlic@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390-net-lcs-convert-to-the-kthread-api-fix
+     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix
 has been removed from the -mm tree.  Its filename was
-     s390-net-lcs-convert-to-the-kthread-api-fix.patch
+     add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
 
-This patch was dropped because it was folded into s390-net-lcs-convert-to-the-kthread-api.patch
+This patch was dropped because it was folded into add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 
 ------------------------------------------------------
-Subject: s390-net-lcs-convert-to-the-kthread-api-fix
+Subject: add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Frank Pavlic <fpavlic@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Missing \
+
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/lcs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-ia64/page.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/s390/net/lcs.c~s390-net-lcs-convert-to-the-kthread-api-fix drivers/s390/net/lcs.c
---- a/drivers/s390/net/lcs.c~s390-net-lcs-convert-to-the-kthread-api-fix
-+++ a/drivers/s390/net/lcs.c
-@@ -1731,7 +1731,7 @@ lcs_start_kernel_thread(struct work_stru
- 		kthread_run(lcs_recovery, card, "lcs_recover");
- #ifdef CONFIG_IP_MULTICAST
- 	if (lcs_do_start_thread(card, LCS_SET_MC_THREAD))
--		kernel_run(lcs_register_mc_addresses, card, "regipm");
-+		kthread_run(lcs_register_mc_addresses, card, "regipm");
- #endif
- }
+diff -puN include/asm-ia64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix include/asm-ia64/page.h
+--- a/include/asm-ia64/page.h~add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix
++++ a/include/asm-ia64/page.h
+@@ -87,13 +87,13 @@ do {						\
+ } while (0)
  
+ 
+-#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr) \
+-({						\
+-	struct page *page = alloc_page_vma(
+-		GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr); \
+-	if (page)				\
+- 		flush_dcache_page(page);	\
+-	page;					\
++#define __alloc_zeroed_user_highpage(movableflags, vma, vaddr)		\
++({									\
++	struct page *page = alloc_page_vma(				\
++		GFP_HIGHUSER | __GFP_ZERO | movableflags, vma, vaddr);	\
++	if (page)							\
++ 		flush_dcache_page(page);				\
++	page;								\
+ })
+ 
+ #define __HAVE_ARCH_ALLOC_ZEROED_USER_HIGHPAGE
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,7 +129,6 @@ git-s390.patch
 git-s390-fixup.patch
 git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 s390-net-lcs-convert-to-the-kthread-api.patch
-s390-net-lcs-convert-to-the-kthread-api-fix.patch
 git-scsi-misc.patch
 scsi-fix-config_scsi_wait_scan=m.patch
 git-block-fixup.patch
@@ -126,6 +136,7 @@ fix-x86_64-mm-nmi-watchdog-ops.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 x86_64-unexport-cpu_llc_id.patch
 xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
 mm-merge-nopfn-into-fault-fix.patch
