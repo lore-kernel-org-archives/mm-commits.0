@@ -1,83 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-add-explanation-for-locking.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:59 -0700
-Message-ID: <200704270821.l3R8LxAN023281@shell0.pdx.osdl.net>
+Subject: - slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:51 -0700
+Message-ID: <200704270821.l3R8Lp9q023269@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56520 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755531AbXD0IWC (ORCPT
+	by vger.kernel.org with ESMTP id S1755533AbXD0IVy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:22:02 -0400
+	Fri, 27 Apr 2007 04:21:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Add explanation for locking
+     SLUB: We do not need #ifdef CONFIG_SMP around bit spinlocks
 has been removed from the -mm tree.  Its filename was
-     slub-core-add-explanation-for-locking.patch
+     slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: Add explanation for locking
+Subject: SLUB: We do not need #ifdef CONFIG_SMP around bit spinlocks
 From: Christoph Lameter <clameter@sgi.com>
+
+Remove them.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+)
+ mm/slub.c |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN mm/slub.c~slub-core-add-explanation-for-locking mm/slub.c
---- a/mm/slub.c~slub-core-add-explanation-for-locking
+diff -puN mm/slub.c~slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks mm/slub.c
+--- a/mm/slub.c~slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks
 +++ a/mm/slub.c
-@@ -26,6 +26,42 @@
-  *   1. slab_lock(page)
-  *   2. slab->list_lock
-  *
-+ *   The slab_lock protects operations on the object of a particular
-+ *   slab and its metadata in the page struct. If the slab lock
-+ *   has been taken the no allocations nor frees can be performed
-+ *   on the objects in the slab nor can the slab be added or removed
-+ *   from the partial or full lists since this would mean modifying
-+ *   the page_struct of the slab.
-+ *
-+ *   The list_lock protects the partial and full list on each node and
-+ *   the partial slab counter. If taken then no new slabs may be added or
-+ *   removed from the lists nor make the number of partial slabs be modified.
-+ *   (Note that the total number of slabs is an atomic value that may be
-+ *   modified without taking the list lock).
-+ *   The list_lock is a centralized lock and thus we avoid taking it as
-+ *   much as possible. As long as SLUB does not have to handle partial
-+ *   slabs operations can continue without any centralized lock. F.e.
-+ *   allocating a long series of objects that fill up slabs does not require
-+ *   the list lock.
-+ *
-+ *   The lock order is sometimes inverted when we are trying to get a slab
-+ *   off a list. We take the list_lock and then look for a page on the list
-+ *   to use. While we do that objects in the slabs may be freed so we can
-+ *   only operate on the slab if we have also taken the slab_lock. So we use
-+ *   a slab_try_lock() on the page. If trylock was successful then no frees
-+ *   can occur anymore and we can use the slab for allocations etc. If the
-+ *   slab_try_lock does not succeed then frees are occur to the slab and
-+ *   we better stay away from it for awhile since we may cause a bouncing
-+ *   cacheline if we would try to acquire the lock. So go onto the next slab.
-+ *   If all pages are busy then we may allocate a new slab instead of reusing
-+ *   a partial slab. A new slab has no one operating on it and thus there is
-+ *   no danger of cacheline contention.
-+ *
-+ *   Interrupts are disabled during allocation and deallocation in order to
-+ *   make the slab allocator safe to use in the context of an irq. In addition
-+ *   interrupts are disabled to insure that the processor does not change
-+ *   while handling per_cpu slabs.
-+ *
-  * SLUB assigns one slab for allocation to each processor.
-  * Allocations only occur from these slabs called cpu slabs.
-  *
+@@ -833,25 +833,19 @@ static void discard_slab(struct kmem_cac
+  */
+ static __always_inline void slab_lock(struct page *page)
+ {
+-#ifdef CONFIG_SMP
+ 	bit_spin_lock(PG_locked, &page->flags);
+-#endif
+ }
+ 
+ static __always_inline void slab_unlock(struct page *page)
+ {
+-#ifdef CONFIG_SMP
+ 	bit_spin_unlock(PG_locked, &page->flags);
+-#endif
+ }
+ 
+ static __always_inline int slab_trylock(struct page *page)
+ {
+ 	int rc = 1;
+ 
+-#ifdef CONFIG_SMP
+ 	rc = bit_spin_trylock(PG_locked, &page->flags);
+-#endif
+ 	return rc;
+ }
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -95,6 +80,10 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
+slub-core-printk-facility-level-cleanup.patch
+slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
+slub-core-add-explanation-for-defrag_ratio-=-100.patch
 slub-core-add-explanation-for-locking.patch
 slub-core-add-explanation-for-locking-fix.patch
 slub-core-explain-the-64k-limits.patch
