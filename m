@@ -1,76 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:07:29 -0700
-Message-ID: <200704270807.l3R87TN8022883@shell0.pdx.osdl.net>
+Subject: - add-a-configure-option-to-group-pages-by-mobility-speedup.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:08:03 -0700
+Message-ID: <200704270808.l3R883oQ022889@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47358 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57503 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755476AbXD0IHg (ORCPT
+	by vger.kernel.org with ESMTP id S1755479AbXD0IIp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:07:36 -0400
+	Fri, 27 Apr 2007 04:08:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add __GFP_MOVABLE for callers to flag allocations from low memory that may be migrated
+     Reduce the amount of time spent in the per-cpu allocator
 has been removed from the -mm tree.  Its filename was
-     add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
+     add-a-configure-option-to-group-pages-by-mobility-speedup.patch
 
-This patch was dropped because it was folded into add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+This patch was dropped because it was folded into add-a-configure-option-to-group-pages-by-mobility.patch
 
 ------------------------------------------------------
-Subject: Add __GFP_MOVABLE for callers to flag allocations from low memory that may be migrated
+Subject: Reduce the amount of time spent in the per-cpu allocator
 From: Mel Gorman <mel@csn.ul.ie>
 
-This patch flags the allocations from low memory that may be migrated.
+The per-cpu allocator is the most frequently entered path in the page
+allocator as the majority of allocations are order-0 allocations that use it. 
+This patch is mainly a re-ordering to give the patch a cleaner flow and make
+it more human-readable.
 
-A GFP_USER_MOVABLE similar to GFP_HIGH_MOVABLE is not provided in this patch
-because it would only be used once.  This patch uses __GFP_MOVABLE twice for a
-GFP_USER and a GFP_NOIO allocation.  There is little point defining
-GFP_*_MOVABLE for one use unless people feel it would help self-documentation.
+Performance wise, an unlikely() is added for a branch that is rarely executed
+which improves performance very slightly.  A VM_BUG_ON() is removed because
+when the situation does occur, it means we are just really low on memory not
+that the VM is buggy.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    2 +-
- fs/buffer.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   22 +++++++---------------
+ 1 files changed, 7 insertions(+), 15 deletions(-)
 
-diff -puN fs/block_dev.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated fs/block_dev.c
---- a/fs/block_dev.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated
-+++ a/fs/block_dev.c
-@@ -575,7 +575,7 @@ struct block_device *bdget(dev_t dev)
- 		inode->i_rdev = dev;
- 		inode->i_bdev = bdev;
- 		inode->i_data.a_ops = &def_blk_aops;
--		mapping_set_gfp_mask(&inode->i_data, GFP_USER);
-+		mapping_set_gfp_mask(&inode->i_data, GFP_USER|__GFP_MOVABLE);
- 		inode->i_data.backing_dev_info = &default_backing_dev_info;
- 		spin_lock(&bdev_lock);
- 		list_add(&bdev->bd_list, &all_bdevs);
-diff -puN fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated fs/buffer.c
---- a/fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated
-+++ a/fs/buffer.c
-@@ -2650,7 +2650,7 @@ int submit_bh(int rw, struct buffer_head
- 	 * from here on down, it's all bio -- do the initial mapping,
- 	 * submit_bio -> generic_make_request may further map this bio around
- 	 */
--	bio = bio_alloc(GFP_NOIO, 1);
-+	bio = bio_alloc(GFP_NOIO|__GFP_MOVABLE, 1);
+diff -puN mm/page_alloc.c~add-a-configure-option-to-group-pages-by-mobility-speedup mm/page_alloc.c
+--- a/mm/page_alloc.c~add-a-configure-option-to-group-pages-by-mobility-speedup
++++ a/mm/page_alloc.c
+@@ -996,33 +996,25 @@ again:
+ 			if (unlikely(!pcp->count))
+ 				goto failed;
+ 		}
++
+ #ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
+ 		/* Find a page of the appropriate migrate type */
+-		list_for_each_entry(page, &pcp->list, lru) {
+-			if (page_private(page) == migratetype) {
+-				list_del(&page->lru);
+-				pcp->count--;
++		list_for_each_entry(page, &pcp->list, lru)
++			if (page_private(page) == migratetype)
+ 				break;
+-			}
+-		}
  
- 	bio->bi_sector = bh->b_blocknr * (bh->b_size >> 9);
- 	bio->bi_bdev = bh->b_bdev;
+-		/*
+-		 * Check if a page of the appropriate migrate type
+-		 * was found. If not, allocate more to the pcp list
+-		 */
+-		if (&page->lru == &pcp->list) {
++		/* Allocate more to the pcp list if necessary */
++		if (unlikely(&page->lru == &pcp->list)) {
+ 			pcp->count += rmqueue_bulk(zone, 0,
+ 					pcp->batch, &pcp->list, migratetype);
+ 			page = list_entry(pcp->list.next, struct page, lru);
+-			VM_BUG_ON(page_private(page) != migratetype);
+-			list_del(&page->lru);
+-			pcp->count--;
+ 		}
+ #else
+ 		page = list_entry(pcp->list.next, struct page, lru);
++#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
++
+ 		list_del(&page->lru);
+ 		pcp->count--;
+-#endif /* CONFIG_PAGE_GROUP_BY_MOBILITY */
+ 	} else {
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 		page = __rmqueue(zone, order, migratetype);
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
 
 add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
 split-the-free-lists-for-movable-and-unmovable-allocations.patch
 choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
 add-a-configure-option-to-group-pages-by-mobility.patch
