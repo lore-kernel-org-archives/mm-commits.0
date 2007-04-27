@@ -1,223 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io.patch removed from -mm tree
-Date: Thu, 26 Apr 2007 14:19:35 -0700
-Message-ID: <200704262119.l3QLJZW3011788@shell0.pdx.osdl.net>
+Subject: + fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch added to -mm tree
+Date: Thu, 26 Apr 2007 17:53:26 -0700
+Message-ID: <200704270053.l3R0rQQ6015947@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40237 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755124AbXDZVUM (ORCPT
+	by vger.kernel.org with ESMTP id S1755270AbXD0Axq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2007 17:20:12 -0400
+	Thu, 26 Apr 2007 20:53:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sumant.patro@lsi.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, khali@linux-fr.org
 
 
 The patch titled
-     scsi: megaraid_sas - intercepts cmd timeout and throttle io
-has been removed from the -mm tree.  Its filename was
-     scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io.patch
+     fix jdelvare-i2c-i2c-del-driver-returns-void on powerpc
+has been added to the -mm tree.  Its filename is
+     fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: megaraid_sas - intercepts cmd timeout and throttle io
-From: Sumant Patro <sumant.patro@lsi.com>
+Subject: fix jdelvare-i2c-i2c-del-driver-returns-void on powerpc
+From: Andrew Morton <akpm@linux-foundation.org>
 
-eh_timed_out call back (megasas_reset_timer) is used to throttle io to the
-adapter when it is called the first time for a scmd.  The MEGASAS_FW_BUSY
-flag is set and can_queue reduced to 16.  The can_queue is restored from
-completion routine in following two conditions : 5 seconds has elapsed and
-the # of outstanding cmds in FW is < 17.
-
-Signed-off-by: Sumant Patro <sumant.patro@lsi.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_sas.c |   65 +++++++++++++++++++++++--
- drivers/scsi/megaraid/megaraid_sas.h |   13 +++--
- 2 files changed, 70 insertions(+), 8 deletions(-)
+ drivers/macintosh/therm_windtunnel.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io drivers/scsi/megaraid/megaraid_sas.c
---- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io
-+++ a/drivers/scsi/megaraid/megaraid_sas.c
-@@ -10,7 +10,7 @@
-  *	   2 of the License, or (at your option) any later version.
-  *
-  * FILE		: megaraid_sas.c
-- * Version	: v00.00.03.10-rc1
-+ * Version	: v00.00.03.10-rc3
-  *
-  * Authors:
-  *	(email-id : megaraidlinux@lsi.com)
-@@ -886,6 +886,7 @@ megasas_queue_command(struct scsi_cmnd *
- 		goto out_return_cmd;
- 
- 	cmd->scmd = scmd;
-+	scmd->SCp.ptr = (char *)cmd;
- 
- 	/*
- 	 * Issue the command to the FW
-@@ -981,8 +982,8 @@ static int megasas_generic_reset(struct 
- 
- 	instance = (struct megasas_instance *)scmd->device->host->hostdata;
- 
--	scmd_printk(KERN_NOTICE, scmd, "megasas: RESET -%ld cmd=%x\n",
--	       scmd->serial_number, scmd->cmnd[0]);
-+	scmd_printk(KERN_NOTICE, scmd, "megasas: RESET -%ld cmd=%x retries=%x\n",
-+		 scmd->serial_number, scmd->cmnd[0], scmd->retries);
- 
- 	if (instance->hw_crit_error) {
- 		printk(KERN_ERR "megasas: cannot recover from previous reset "
-@@ -1000,6 +1001,40 @@ static int megasas_generic_reset(struct 
+diff -puN drivers/macintosh/therm_windtunnel.c~fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc drivers/macintosh/therm_windtunnel.c
+--- a/drivers/macintosh/therm_windtunnel.c~fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc
++++ a/drivers/macintosh/therm_windtunnel.c
+@@ -459,7 +459,8 @@ therm_of_probe( struct of_device *dev, c
+ static int
+ therm_of_remove( struct of_device *dev )
+ {
+-	return i2c_del_driver( &g4fan_driver );
++	i2c_del_driver( &g4fan_driver );
++	return 0;
  }
  
- /**
-+ * megasas_reset_timer - quiesce the adapter if required
-+ * @scmd:		scsi cmnd
-+ *
-+ * Sets the FW busy flag and reduces the host->can_queue if the
-+ * cmd has not been completed within the timeout period.
-+ */
-+static enum
-+scsi_eh_timer_return megasas_reset_timer(struct scsi_cmnd *scmd)
-+{
-+	struct megasas_cmd *cmd = (struct megasas_cmd *)scmd->SCp.ptr;
-+	struct megasas_instance *instance;
-+	unsigned long flags;
-+
-+	if (cmd) {
-+		if (time_after(jiffies, scmd->jiffies_at_alloc + 170 * HZ))
-+			return EH_NOT_HANDLED;
-+
-+		instance = cmd->instance;
-+		if (!(instance->flag & MEGASAS_FW_BUSY)) {
-+			/* FW is busy, throttle IO */
-+			spin_lock_irqsave(&instance->throttle_io_lock, flags);
-+
-+			instance->host->can_queue = 16;
-+			instance->last_time = jiffies;
-+			instance->flag |= MEGASAS_FW_BUSY;
-+
-+			spin_unlock_irqrestore(&instance->throttle_io_lock, flags);
-+		}
-+		return EH_RESET_TIMER;
-+	}
-+	return EH_HANDLED;
-+}
-+
-+/**
-  * megasas_reset_device -	Device reset handler entry point
-  */
- static int megasas_reset_device(struct scsi_cmnd *scmd)
-@@ -1112,6 +1147,7 @@ static struct scsi_host_template megasas
- 	.eh_device_reset_handler = megasas_reset_device,
- 	.eh_bus_reset_handler = megasas_reset_bus_host,
- 	.eh_host_reset_handler = megasas_reset_bus_host,
-+	.eh_timed_out = megasas_reset_timer,
- 	.bios_param = megasas_bios_param,
- 	.use_clustering = ENABLE_CLUSTERING,
- };
-@@ -1215,9 +1251,8 @@ megasas_complete_cmd(struct megasas_inst
- 	int exception = 0;
- 	struct megasas_header *hdr = &cmd->frame->hdr;
- 
--	if (cmd->scmd) {
-+	if (cmd->scmd)
- 		cmd->scmd->SCp.ptr = (char *)0;
--	}
- 
- 	switch (hdr->cmd) {
- 
-@@ -1806,6 +1841,7 @@ static void megasas_complete_cmd_dpc(uns
- 	u32 context;
- 	struct megasas_cmd *cmd;
- 	struct megasas_instance *instance = (struct megasas_instance *)instance_addr;
-+	unsigned long flags;
- 
- 	/* If we have already declared adapter dead, donot complete cmds */
- 	if (instance->hw_crit_error)
-@@ -1828,6 +1864,22 @@ static void megasas_complete_cmd_dpc(uns
- 	}
- 
- 	*instance->consumer = producer;
-+
-+	/*
-+	 * Check if we can restore can_queue
-+	 */
-+	if (instance->flag & MEGASAS_FW_BUSY
-+		&& time_after(jiffies, instance->last_time + 5 * HZ)
-+		&& atomic_read(&instance->fw_outstanding) < 17) {
-+
-+		spin_lock_irqsave(&instance->throttle_io_lock, flags);
-+
-+		instance->flag &= ~MEGASAS_FW_BUSY;
-+		instance->host->can_queue =
-+				instance->max_fw_cmds - MEGASAS_INT_CMDS;
-+
-+		spin_unlock_irqrestore(&instance->throttle_io_lock, flags);
-+	}
- }
- 
- /**
-@@ -2384,6 +2436,7 @@ megasas_probe_one(struct pci_dev *pdev, 
- 	init_waitqueue_head(&instance->int_cmd_wait_q);
- 	init_waitqueue_head(&instance->abort_cmd_wait_q);
- 
-+	spin_lock_init(&instance->throttle_io_lock);
- 	spin_lock_init(&instance->cmd_pool_lock);
- 
- 	sema_init(&instance->aen_mutex, 1);
-@@ -2398,6 +2451,8 @@ megasas_probe_one(struct pci_dev *pdev, 
- 	instance->init_id = MEGASAS_DEFAULT_INIT_ID;
- 
- 	megasas_dbg_lvl = 0;
-+	instance->flag = 0;
-+	instance->last_time = 0;
- 
- 	/*
- 	 * Initialize MFI Firmware
-diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io drivers/scsi/megaraid/megaraid_sas.h
---- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io
-+++ a/drivers/scsi/megaraid/megaraid_sas.h
-@@ -18,9 +18,9 @@
- /*
-  * MegaRAID SAS Driver meta data
-  */
--#define MEGASAS_VERSION				"00.00.03.10-rc1"
--#define MEGASAS_RELDATE				"Feb 14, 2007"
--#define MEGASAS_EXT_VERSION			"Wed Feb 14 10:14:25 PST 2007"
-+#define MEGASAS_VERSION				"00.00.03.10-rc3"
-+#define MEGASAS_RELDATE				"Mar 28, 2007"
-+#define MEGASAS_EXT_VERSION			"Wed Mar 28 10:25:52 PST 2007"
- 
- /*
-  * Device IDs
-@@ -539,6 +539,8 @@ struct megasas_ctrl_info {
- 
- #define MEGASAS_DBG_LVL				1
- 
-+#define MEGASAS_FW_BUSY				1
-+
- /*
-  * When SCSI mid-layer calls driver's reset routine, driver waits for
-  * MEGASAS_RESET_WAIT_TIME seconds for all outstanding IO to complete. Note
-@@ -1104,6 +1106,11 @@ struct megasas_instance {
- 
- 	struct megasas_instance_template *instancet;
- 	struct tasklet_struct isr_tasklet;
-+
-+	u8 flag;
-+	u8 rsvd[3];
-+	unsigned long last_time;
-+	spinlock_t throttle_io_lock;
- };
- 
- #define MEGASAS_IS_LOGICAL(scp)						\
+ static struct of_device_id therm_of_match[] = {{
 _
 
-Patches currently in -mm which might be from sumant.patro@lsi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scsi-megaraid_sas-intercepts-cmd-timeout-and-throttle-io.patch
+slab-introduce-krealloc-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agp-build-fix.patch
+git-cpufreq-borkage-fix.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+dev_dbg-check-dev_dbg-arguments.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
+gfs2-printk-warning-fixes.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+fw-device-printk-fix.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-mtd-build-fix.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-export-ieee80211_debug_level.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+sctp_getsockopt_local_addrs-type-fix.patch
+git-net-fix-yamc.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api-fix.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+fix-x86_64-mm-nmi-watchdog-ops.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix-2.patch
+maps2-move-the-page-walker-code-to-lib-fix.patch
+maps2-add-proc-pid-pagemap-interface-fix-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks-tidy.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7-tidy.patch
+slab-mark-set_up_list3s-__init.patch
+extend-print_symbol-capability-fix-fix.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-more-statics.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+lutimesat-compat-syscall-and-wire-up-on-x86_64.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls-x86_64-fix.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-build-hack.patch
+lguest-build-hack-2.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch
