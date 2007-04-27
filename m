@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch added to -mm tree
-Date: Thu, 26 Apr 2007 23:31:38 -0700
-Message-ID: <200704270631.l3R6VcbQ021323@shell0.pdx.osdl.net>
+Subject: + slub-i386-support.patch added to -mm tree
+Date: Thu, 26 Apr 2007 23:31:45 -0700
+Message-ID: <200704270631.l3R6VjEf021336@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32971 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755394AbXD0Gbo (ORCPT
+	by vger.kernel.org with ESMTP id S1755399AbXD0Gbt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 02:31:44 -0400
+	Fri, 27 Apr 2007 02:31:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, mel@skynet.ie
+Cc: clameter@sgi.com, wli@holomorphy.com
 
 
 The patch titled
-     SLUB: Free slabs and sort partial slab lists in kmem_cache_shrink
+     SLUB: i386 support
 has been added to the -mm tree.  Its filename is
-     slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
+     slub-i386-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,201 +26,223 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Free slabs and sort partial slab lists in kmem_cache_shrink
+Subject: SLUB: i386 support
 From: Christoph Lameter <clameter@sgi.com>
 
-At kmem_cache_shrink check if we have any empty slabs on the partial
-if so then remove them.
+SLUB cannot run on i386 at this point because i386 uses the page->private and
+page->index field of slab pages for the pgd cache.
 
-Also--as an anti-fragmentation measure--sort the partial slabs so that
-the most fully allocated ones come first and the least allocated last.
+Make SLUB run on i386 by replacing the pgd slab cache with a quicklist.
+Limit the changes as much as possible. Leave the improvised linked list in place
+etc etc. This has been working here for a couple of weeks now.
 
-The next allocations may fill up the nearly full slabs. Having the
-least allocated slabs last gives them the maximum chance that their
-remaining objects may be freed. Thus we can hopefully minimize the
-partial slabs.
-
-I think this is the best one can do in terms antifragmentation
-measures. Real defragmentation (meaning moving objects out of slabs with
-the least free objects to those that are almost full) can be implemted
-by reverse scanning through the list produced here but that would mean
-that we need to provide a callback at slab cache creation that allows
-the deletion or moving of an object. This will involve slab API
-changes, so defer for now.
-
-Cc: Mel Gorman <mel@skynet.ie>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |  118 ++++++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 105 insertions(+), 13 deletions(-)
+ arch/i386/Kconfig          |    8 ++++----
+ arch/i386/kernel/process.c |    1 +
+ arch/i386/kernel/smp.c     |    2 +-
+ arch/i386/mm/init.c        |    7 -------
+ arch/i386/mm/pgtable.c     |   26 +++++++++++++++++---------
+ include/asm-i386/pgalloc.h |    2 --
+ include/asm-i386/pgtable.h |    5 ++---
+ 7 files changed, 25 insertions(+), 26 deletions(-)
 
-diff -puN mm/slub.c~slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink mm/slub.c
---- a/mm/slub.c~slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink
-+++ a/mm/slub.c
-@@ -136,9 +136,19 @@
-  */
- #define SLUB_UNIMPLEMENTED (SLAB_DEBUG_INITIAL)
+diff -puN arch/i386/Kconfig~slub-i386-support arch/i386/Kconfig
+--- a/arch/i386/Kconfig~slub-i386-support
++++ a/arch/i386/Kconfig
+@@ -55,6 +55,10 @@ config ZONE_DMA
+ 	bool
+ 	default y
  
--/* Mininum number of partial slabs */
-+/*
-+ * Mininum number of partial slabs. These will be left on the partial
-+ * lists even if they are empty. kmem_cache_shrink may reclaim them.
-+ */
- #define MIN_PARTIAL 2
- 
-+/*
-+ * Maximum number of desirable partial slabs.
-+ * The existence of more partial slabs makes kmem_cache_shrink
-+ * sort the partial list by the number of objects in the.
-+ */
-+#define MAX_PARTIAL 10
++config QUICKLIST
++	bool
++	default y
 +
- #define DEBUG_DEFAULT_FLAGS (SLAB_DEBUG_FREE | SLAB_RED_ZONE | \
- 				SLAB_POISON | SLAB_STORE_USER)
- /*
-@@ -1951,7 +1961,7 @@ static int kmem_cache_close(struct kmem_
- 	for_each_online_node(node) {
- 		struct kmem_cache_node *n = get_node(s, node);
+ config SBUS
+ 	bool
  
--		free_list(s, n, &n->partial);
-+		n->nr_partial -= free_list(s, n, &n->partial);
- 		if (atomic_long_read(&n->nr_slabs))
- 			return 1;
+@@ -79,10 +83,6 @@ config ARCH_MAY_HAVE_PC_FDC
+ 	bool
+ 	default y
+ 
+-config ARCH_USES_SLAB_PAGE_STRUCT
+-	bool
+-	default y
+-
+ config DMI
+ 	bool
+ 	default y
+diff -puN arch/i386/kernel/process.c~slub-i386-support arch/i386/kernel/process.c
+--- a/arch/i386/kernel/process.c~slub-i386-support
++++ a/arch/i386/kernel/process.c
+@@ -187,6 +187,7 @@ void cpu_idle(void)
+ 			if (__get_cpu_var(cpu_idle_state))
+ 				__get_cpu_var(cpu_idle_state) = 0;
+ 
++			check_pgt_cache();
+ 			rmb();
+ 			idle = pm_idle;
+ 
+diff -puN arch/i386/kernel/smp.c~slub-i386-support arch/i386/kernel/smp.c
+--- a/arch/i386/kernel/smp.c~slub-i386-support
++++ a/arch/i386/kernel/smp.c
+@@ -430,7 +430,7 @@ void flush_tlb_mm (struct mm_struct * mm
  	}
-@@ -2200,6 +2210,79 @@ void kfree(const void *x)
+ 	if (!cpus_empty(cpu_mask))
+ 		flush_tlb_others(cpu_mask, mm, TLB_FLUSH_ALL);
+-
++	check_pgt_cache();
+ 	preempt_enable();
  }
- EXPORT_SYMBOL(kfree);
  
-+/*
-+ *  kmem_cache_shrink removes empty slabs from the partial lists
-+ *  and then sorts the partially allocated slabs by the number
-+ *  of items in use. The slabs with the most items in use
-+ *  come first. New allocations will remove these from the
-+ *  partial list because they are full. The slabs with the
-+ *  least items are placed last. If it happens that the objects
-+ *  are freed then the page can be returned to the page allocator.
-+ */
-+int kmem_cache_shrink(struct kmem_cache *s)
-+{
-+	int node;
-+	int i;
-+	struct kmem_cache_node *n;
-+	struct page *page;
-+	struct page *t;
-+	struct list_head *slabs_by_inuse =
-+		kmalloc(sizeof(struct list_head) * s->objects, GFP_KERNEL);
-+	unsigned long flags;
-+
-+	if (!slabs_by_inuse)
-+		return -ENOMEM;
-+
-+	flush_all(s);
-+	for_each_online_node(node) {
-+		n = get_node(s, node);
-+
-+		if (n->nr_partial <= MIN_PARTIAL)
-+			continue;
-+
-+		for (i = 0; i < s->objects; i++)
-+			INIT_LIST_HEAD(slabs_by_inuse + i);
-+
-+		spin_lock_irqsave(&n->list_lock, flags);
-+
-+		/*
-+		 * Build lists indexed by the items in use in
-+		 * each slab or free slabs if empty.
-+		 *
-+		 * Note that concurrent frees may occur while
-+		 * we hold the list_lock. page->inuse here is
-+		 * the upper limit.
-+		 */
-+		list_for_each_entry_safe(page, t, &n->partial, lru) {
-+			if (!page->inuse) {
-+				list_del(&page->lru);
-+				n->nr_partial--;
-+				discard_slab(s, page);
-+			} else
-+			if (n->nr_partial > MAX_PARTIAL)
-+				list_move(&page->lru,
-+					slabs_by_inuse + page->inuse);
-+		}
-+
-+		if (n->nr_partial <= MAX_PARTIAL)
-+			goto out;
-+
-+		/*
-+		 * Rebuild the partial list with the slabs filled up
-+		 * most first and the least used slabs at the end.
-+		 */
-+		for (i = s->objects - 1; i > 0; i--)
-+			list_splice(slabs_by_inuse + i, n->partial.prev);
-+
-+	out:
-+		spin_unlock_irqrestore(&n->list_lock, flags);
-+	}
-+
-+	kfree(slabs_by_inuse);
-+	return 0;
-+}
-+EXPORT_SYMBOL(kmem_cache_shrink);
-+
- /**
-  * krealloc - reallocate memory. The contents will remain unchanged.
-  *
-@@ -2444,17 +2527,6 @@ static struct notifier_block __cpuinitda
- 
+diff -puN arch/i386/mm/init.c~slub-i386-support arch/i386/mm/init.c
+--- a/arch/i386/mm/init.c~slub-i386-support
++++ a/arch/i386/mm/init.c
+@@ -752,7 +752,6 @@ int remove_memory(u64 start, u64 size)
+ EXPORT_SYMBOL_GPL(remove_memory);
  #endif
  
--/***************************************************************
-- *	Compatiblility definitions
-- **************************************************************/
--
--int kmem_cache_shrink(struct kmem_cache *s)
--{
--	flush_all(s);
--	return 0;
--}
--EXPORT_SYMBOL(kmem_cache_shrink);
--
- #ifdef CONFIG_NUMA
+-struct kmem_cache *pgd_cache;
+ struct kmem_cache *pmd_cache;
  
- /*****************************************************************
-@@ -3228,6 +3300,25 @@ static ssize_t validate_store(struct kme
+ void __init pgtable_cache_init(void)
+@@ -779,12 +778,6 @@ void __init pgtable_cache_init(void)
+ 			pgd_size = PAGE_SIZE;
+ 		}
+ 	}
+-	pgd_cache = kmem_cache_create("pgd",
+-				pgd_size,
+-				pgd_size,
+-				0,
+-				pgd_ctor,
+-				(!SHARED_KERNEL_PMD) ? pgd_dtor : NULL);
+ 	if (!pgd_cache)
+ 		panic("pgtable_cache_init(): Cannot create pgd cache");
  }
- SLAB_ATTR(validate);
+diff -puN arch/i386/mm/pgtable.c~slub-i386-support arch/i386/mm/pgtable.c
+--- a/arch/i386/mm/pgtable.c~slub-i386-support
++++ a/arch/i386/mm/pgtable.c
+@@ -13,6 +13,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/spinlock.h>
+ #include <linux/module.h>
++#include <linux/quicklist.h>
  
-+static ssize_t shrink_show(struct kmem_cache *s, char *buf)
-+{
-+	return 0;
-+}
+ #include <asm/system.h>
+ #include <asm/pgtable.h>
+@@ -205,8 +206,6 @@ void pmd_ctor(void *pmd, struct kmem_cac
+  * against pageattr.c; it is the unique case in which a valid change
+  * of kernel pagetables can't be lazily synchronized by vmalloc faults.
+  * vmalloc faults work because attached pagetables are never freed.
+- * The locking scheme was chosen on the basis of manfred's
+- * recommendations and having no core impact whatsoever.
+  * -- wli
+  */
+ DEFINE_SPINLOCK(pgd_lock);
+@@ -232,9 +231,11 @@ static inline void pgd_list_del(pgd_t *p
+ 		set_page_private(next, (unsigned long)pprev);
+ }
+ 
 +
-+static ssize_t shrink_store(struct kmem_cache *s,
-+			const char *buf, size_t length)
-+{
-+	if (buf[0] == '1') {
-+		int rc = kmem_cache_shrink(s);
 +
-+		if (rc)
-+			return rc;
-+	} else
-+		return -EINVAL;
-+	return length;
-+}
-+SLAB_ATTR(shrink);
-+
- static ssize_t alloc_calls_show(struct kmem_cache *s, char *buf)
+ #if (PTRS_PER_PMD == 1)
+ /* Non-PAE pgd constructor */
+-void pgd_ctor(void *pgd, struct kmem_cache *cache, unsigned long unused)
++void pgd_ctor(void *pgd)
  {
- 	if (!(s->flags & SLAB_STORE_USER))
-@@ -3284,6 +3375,7 @@ static struct attribute * slab_attrs[] =
- 	&poison_attr.attr,
- 	&store_user_attr.attr,
- 	&validate_attr.attr,
-+	&shrink_attr.attr,
- 	&alloc_calls_attr.attr,
- 	&free_calls_attr.attr,
- #ifdef CONFIG_ZONE_DMA
+ 	unsigned long flags;
+ 
+@@ -256,7 +257,7 @@ void pgd_ctor(void *pgd, struct kmem_cac
+ }
+ #else  /* PTRS_PER_PMD > 1 */
+ /* PAE pgd constructor */
+-void pgd_ctor(void *pgd, struct kmem_cache *cache, unsigned long unused)
++void pgd_ctor(void *pgd)
+ {
+ 	/* PAE, kernel PMD may be shared */
+ 
+@@ -275,11 +276,12 @@ void pgd_ctor(void *pgd, struct kmem_cac
+ }
+ #endif	/* PTRS_PER_PMD */
+ 
+-void pgd_dtor(void *pgd, struct kmem_cache *cache, unsigned long unused)
++void pgd_dtor(void *pgd)
+ {
+ 	unsigned long flags; /* can be called from interrupt context */
+ 
+-	BUG_ON(SHARED_KERNEL_PMD);
++	if (SHARED_KERNEL_PMD)
++		return;
+ 
+ 	paravirt_release_pd(__pa(pgd) >> PAGE_SHIFT);
+ 	spin_lock_irqsave(&pgd_lock, flags);
+@@ -321,7 +323,7 @@ static void pmd_cache_free(pmd_t *pmd, i
+ pgd_t *pgd_alloc(struct mm_struct *mm)
+ {
+ 	int i;
+-	pgd_t *pgd = kmem_cache_alloc(pgd_cache, GFP_KERNEL);
++	pgd_t *pgd = quicklist_alloc(0, GFP_KERNEL, pgd_ctor);
+ 
+ 	if (PTRS_PER_PMD == 1 || !pgd)
+ 		return pgd;
+@@ -344,7 +346,7 @@ out_oom:
+ 		paravirt_release_pd(__pa(pmd) >> PAGE_SHIFT);
+ 		pmd_cache_free(pmd, i);
+ 	}
+-	kmem_cache_free(pgd_cache, pgd);
++	quicklist_free(0, pgd_dtor, pgd);
+ 	return NULL;
+ }
+ 
+@@ -361,5 +363,11 @@ void pgd_free(pgd_t *pgd)
+ 			pmd_cache_free(pmd, i);
+ 		}
+ 	/* in the non-PAE case, free_pgtables() clears user pgd entries */
+-	kmem_cache_free(pgd_cache, pgd);
++	quicklist_free(0, pgd_dtor, pgd);
+ }
++
++void check_pgt_cache(void)
++{
++	quicklist_trim(0, pgd_dtor, 25, 16);
++}
++
+diff -puN include/asm-i386/pgalloc.h~slub-i386-support include/asm-i386/pgalloc.h
+--- a/include/asm-i386/pgalloc.h~slub-i386-support
++++ a/include/asm-i386/pgalloc.h
+@@ -65,6 +65,4 @@ do {									\
+ #define pud_populate(mm, pmd, pte)	BUG()
+ #endif
+ 
+-#define check_pgt_cache()	do { } while (0)
+-
+ #endif /* _I386_PGALLOC_H */
+diff -puN include/asm-i386/pgtable.h~slub-i386-support include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~slub-i386-support
++++ a/include/asm-i386/pgtable.h
+@@ -35,17 +35,16 @@ struct vm_area_struct;
+ #define ZERO_PAGE(vaddr) (virt_to_page(empty_zero_page))
+ extern unsigned long empty_zero_page[1024];
+ extern pgd_t swapper_pg_dir[1024];
+-extern struct kmem_cache *pgd_cache;
+ extern struct kmem_cache *pmd_cache;
+ extern spinlock_t pgd_lock;
+ extern struct page *pgd_list;
++void check_pgt_cache(void);
+ 
+ void pmd_ctor(void *, struct kmem_cache *, unsigned long);
+-void pgd_ctor(void *, struct kmem_cache *, unsigned long);
+-void pgd_dtor(void *, struct kmem_cache *, unsigned long);
+ void pgtable_cache_init(void);
+ void paging_init(void);
+ 
++
+ /*
+  * The Linux x86 paging architecture is 'compile-time dual-mode', it
+  * implements both the traditional 2-level x86 page tables and the
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
