@@ -1,128 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-fix-object-counting.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:29 -0700
-Message-ID: <200704270821.l3R8LTPB023223@shell0.pdx.osdl.net>
+Subject: - slub-core-use-enum-for-tracking-modes-instead-of-integers.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:25 -0700
+Message-ID: <200704270821.l3R8LPEJ023217@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45876 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53437 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755521AbXD0IVc (ORCPT
+	by vger.kernel.org with ESMTP id S1755517AbXD0IV2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:32 -0400
+	Fri, 27 Apr 2007 04:21:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: fix object counting
+     slub: use enum for tracking modes instead of integers
 has been removed from the -mm tree.  Its filename was
-     slub-core-fix-object-counting.patch
+     slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub: fix object counting
+Subject: slub: use enum for tracking modes instead of integers
 From: Christoph Lameter <clameter@sgi.com>
 
-Object counting did not take into account that the number of full slabs is the
-total number of slabs - number of partial - number of cpu slabs.  As a results
-the counts were off a bit.  This issue surfaced when slab validation was
-implemented.
+Integers caused some confusion. This cleans it up and uses symbolic constants
+throughout.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   61 ++++++++++++++++++++++++++++------------------------
- 1 files changed, 34 insertions(+), 27 deletions(-)
+ mm/slub.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN mm/slub.c~slub-core-fix-object-counting mm/slub.c
---- a/mm/slub.c~slub-core-fix-object-counting
+diff -puN mm/slub.c~slub-core-use-enum-for-tracking-modes-instead-of-integers mm/slub.c
+--- a/mm/slub.c~slub-core-use-enum-for-tracking-modes-instead-of-integers
 +++ a/mm/slub.c
-@@ -2348,23 +2348,34 @@ static unsigned long slab_objects(struct
- 	int node;
- 	int x;
- 	unsigned long *nodes;
-+	unsigned long *per_cpu;
+@@ -211,7 +211,10 @@ struct track {
+ 	unsigned long when;	/* When did the operation occur */
+ };
  
--	nodes = kmalloc(sizeof(unsigned long) * nr_node_ids, GFP_KERNEL);
-+	nodes = kzalloc(2 * sizeof(unsigned long) * nr_node_ids, GFP_KERNEL);
-+	per_cpu = nodes + nr_node_ids;
+-struct track *get_track(struct kmem_cache *s, void *object, int alloc)
++enum track_item { TRACK_ALLOC, TRACK_FREE };
 +
-+	for_each_possible_cpu(cpu) {
-+		struct page *page = s->cpu_slab[cpu];
-+		int node;
-+
-+		if (page) {
-+			node = page_to_nid(page);
-+			if (flags & SO_CPU) {
-+				int x = 0;
-+
-+				if (flags & SO_OBJECTS)
-+					x = page->inuse;
-+				else
-+					x = 1;
-+				total += x;
-+				nodes[node] += x;
-+			}
-+			per_cpu[node]++;
-+		}
-+	}
++struct track *get_track(struct kmem_cache *s, void *object,
++	enum track_item alloc)
+ {
+ 	struct track *p;
  
- 	for_each_online_node(node) {
- 		struct kmem_cache_node *n = get_node(s, node);
+@@ -224,7 +227,7 @@ struct track *get_track(struct kmem_cach
+ }
  
--		nodes[node] = 0;
--
--		if (flags & SO_FULL) {
--			if (flags & SO_OBJECTS)
--				x = atomic_read(&n->nr_slabs)
--						* s->objects;
--			else
--				x = atomic_read(&n->nr_slabs);
--			total += x;
--			nodes[node] += x;
--		}
- 		if (flags & SO_PARTIAL) {
- 			if (flags & SO_OBJECTS)
- 				x = count_partial(n);
-@@ -2373,24 +2384,20 @@ static unsigned long slab_objects(struct
- 			total += x;
- 			nodes[node] += x;
- 		}
--	}
--
--	if (flags & SO_CPU)
--		for_each_possible_cpu(cpu) {
--			struct page *page = s->cpu_slab[cpu];
+ static void set_track(struct kmem_cache *s, void *object,
+-				int alloc, void *addr)
++				enum track_item alloc, void *addr)
+ {
+ 	struct track *p;
  
--			if (page) {
--				int x = 0;
--				int node = page_to_nid(page);
-+		if (flags & SO_FULL) {
-+			int full_slabs = atomic_read(&n->nr_slabs)
-+					- per_cpu[node]
-+					- n->nr_partial;
+@@ -249,8 +252,8 @@ static void set_track(struct kmem_cache 
+ static void init_tracking(struct kmem_cache *s, void *object)
+ {
+ 	if (s->flags & SLAB_STORE_USER) {
+-		set_track(s, object, 0, NULL);
+-		set_track(s, object, 1, NULL);
++		set_track(s, object, TRACK_FREE, NULL);
++		set_track(s, object, TRACK_ALLOC, NULL);
+ 	}
+ }
  
--				if (flags & SO_OBJECTS)
--					x = page->inuse;
--				else
--					x = 1;
--				total += x;
--				nodes[node] += x;
--			}
-+			if (flags & SO_OBJECTS)
-+				x = full_slabs * s->objects;
-+			else
-+				x = full_slabs;
-+			total += x;
-+			nodes[node] += x;
- 		}
-+	}
+@@ -298,8 +301,8 @@ static void print_trailer(struct kmem_ca
+ 		off = s->inuse;
  
- 	x = sprintf(buf, "%lu", total);
- #ifdef CONFIG_NUMA
+ 	if (s->flags & SLAB_STORE_USER) {
+-		print_track("Last alloc", get_track(s, p, 0));
+-		print_track("Last free ", get_track(s, p, 1));
++		print_track("Last alloc", get_track(s, p, TRACK_ALLOC));
++		print_track("Last free ", get_track(s, p, TRACK_FREE));
+ 		off += 2 * sizeof(struct track);
+ 	}
+ 
+@@ -1186,7 +1189,7 @@ debug:
+ 	if (!alloc_object_checks(s, page, object))
+ 		goto another_slab;
+ 	if (s->flags & SLAB_STORE_USER)
+-		set_tracking(s, object, 0);
++		set_tracking(s, object, TRACK_ALLOC);
+ 	goto have_object;
+ }
+ 
+@@ -1278,7 +1281,7 @@ void kmem_cache_free(struct kmem_cache *
+ 
+ 
+ 	if (unlikely(PageError(page) && (s->flags & SLAB_STORE_USER)))
+-		set_tracking(s, x, 1);
++		set_tracking(s, x, TRACK_FREE);
+ 	slab_free(s, page, x);
+ }
+ EXPORT_SYMBOL(kmem_cache_free);
+@@ -1904,7 +1907,7 @@ void kfree(const void *x)
+ 	s = page->slab;
+ 
+ 	if (unlikely(PageError(page) && (s->flags & SLAB_STORE_USER)))
+-		set_tracking(s, (void *)x, 1);
++		set_tracking(s, (void *)x, TRACK_FREE);
+ 	slab_free(s, page, (void *)x);
+ }
+ EXPORT_SYMBOL(kfree);
+@@ -2267,7 +2270,7 @@ void *__kmalloc_track_caller(size_t size
+ 	object = kmem_cache_alloc(s, gfpflags);
+ 
+ 	if (object && (s->flags & SLAB_STORE_USER))
+-		set_track(s, object, 0, caller);
++		set_track(s, object, TRACK_ALLOC, caller);
+ 
+ 	return object;
+ }
+@@ -2284,7 +2287,7 @@ void *__kmalloc_node_track_caller(size_t
+ 	object = kmem_cache_alloc_node(s, gfpflags, node);
+ 
+ 	if (object && (s->flags & SLAB_STORE_USER))
+-		set_track(s, object, 0, caller);
++		set_track(s, object, TRACK_ALLOC, caller);
+ 
+ 	return object;
+ }
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -140,6 +143,8 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+slub-core-fix-another-numa-bootstrap-issue.patch
 slub-core-fix-object-counting.patch
 slub-core-drop-version-number.patch
 slub-core-tidy.patch
