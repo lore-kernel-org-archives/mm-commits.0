@@ -1,78 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-missing-inlines-and-statics.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:22:13 -0700
-Message-ID: <200704270822.l3R8MDV1023306@shell0.pdx.osdl.net>
+Subject: - slub-core-add-after-object-padding.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:22:26 -0700
+Message-ID: <200704270822.l3R8MQKf023326@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38443 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755559AbXD0IWQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755574AbXD0IW3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:22:16 -0400
+	Fri, 27 Apr 2007 04:22:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Missing inlines and statics
+     slub: add after object padding
 has been removed from the -mm tree.  Its filename was
-     slub-core-missing-inlines-and-statics.patch
+     slub-core-add-after-object-padding.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: Missing inlines and statics
+Subject: slub: add after object padding
 From: Christoph Lameter <clameter@sgi.com>
 
-Fix up a series of missing static and inline attributes.
+Without padding there is the danger that we do not notice writing before the
+allocated object.  So increase the slab size by another word in the debug
+case.  That will force the creation of some fill space which SLUB will
+continue to check.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ mm/slub.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-core-missing-inlines-and-statics mm/slub.c
---- a/mm/slub.c~slub-core-missing-inlines-and-statics
+diff -puN mm/slub.c~slub-core-add-after-object-padding mm/slub.c
+--- a/mm/slub.c~slub-core-add-after-object-padding
 +++ a/mm/slub.c
-@@ -175,7 +175,7 @@ int slab_is_available(void)
- 	return slab_state >= UP;
- }
+@@ -490,7 +490,7 @@ static int check_object(struct kmem_cach
+ 	if (s->flags & SLAB_POISON) {
+ 		if (!active && (s->flags & __OBJECT_POISON) &&
+ 			(!check_bytes(p, POISON_FREE, s->objsize - 1) ||
+-				p[s->objsize -1] != POISON_END)) {
++				p[s->objsize - 1] != POISON_END)) {
+ 			object_err(s, page, p, "Poison check failed");
+ 			return 0;
+ 		}
+@@ -1596,6 +1596,15 @@ static int calculate_sizes(struct kmem_c
+ 		 */
+ 		size += 2 * sizeof(struct track);
  
--struct kmem_cache_node *get_node(struct kmem_cache *s, int node)
-+static inline struct kmem_cache_node *get_node(struct kmem_cache *s, int node)
- {
- #ifdef CONFIG_NUMA
- 	return s->node[node];
-@@ -250,7 +250,7 @@ struct track {
- 
- enum track_item { TRACK_ALLOC, TRACK_FREE };
- 
--struct track *get_track(struct kmem_cache *s, void *object,
-+static struct track *get_track(struct kmem_cache *s, void *object,
- 	enum track_item alloc)
- {
- 	struct track *p;
-@@ -1448,7 +1448,7 @@ static void init_kmem_cache_node(struct 
-  * Note that this function only works on the kmalloc_node_cache
-  * when allocating for the kmalloc_node_cache.
-  */
--struct kmem_cache_node * __init early_kmem_cache_node_alloc(gfp_t gfpflags,
-+static struct kmem_cache_node * __init early_kmem_cache_node_alloc(gfp_t gfpflags,
- 								int node)
- {
- 	struct page *page;
-@@ -2907,7 +2907,7 @@ struct saved_alias {
- 
- struct saved_alias *alias_list;
- 
--int sysfs_slab_alias(struct kmem_cache *s, const char *name)
-+static int sysfs_slab_alias(struct kmem_cache *s, const char *name)
- {
- 	struct saved_alias *al;
- 
++	if (flags & DEBUG_DEFAULT_FLAGS)
++		/*
++		 * Add some empty padding so that we can catch
++		 * overwrites from earlier objects rather than let
++		 * tracking information or the free pointer be
++		 * corrupted if an user writes before the start
++		 * of the object.
++		 */
++		size += sizeof(void *);
+ 	/*
+ 	 * Determine the alignment based on various parameters that the
+ 	 * user specified (this is unecessarily complex due to the attempt
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -90,11 +82,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-core-missing-inlines-and-statics.patch
-slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
-slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
-slub-core-fix-kmem_cache_destroy.patch
-slub-core-fix-validation.patch
 slub-core-add-after-object-padding.patch
 slub-core-resiliency-fixups.patch
 slub-core-resiliency-fixups-fix.patch
