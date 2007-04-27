@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + consolidate-asm-consth-to-linux-consth.patch added to -mm tree
-Date: Fri, 27 Apr 2007 00:35:27 -0700
-Message-ID: <200704270735.l3R7ZRf7022332@shell0.pdx.osdl.net>
+Subject: + iop13xx-msi-support-rev6.patch added to -mm tree
+Date: Fri, 27 Apr 2007 00:38:25 -0700
+Message-ID: <200704270738.l3R7cPfO022380@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33501 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754141AbXD0HgH (ORCPT
+	by vger.kernel.org with ESMTP id S1755447AbXD0Hig (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 03:36:07 -0400
+	Fri, 27 Apr 2007 03:38:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, ak@suse.de, davem@davemloft.net
+Cc: dan.j.williams@intel.com, daniel.e.wolstenholme@intel.com, ebiederm@xmission.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     consolidate asm/const.h to linux/const.h
+     iop13xx: msi support
 has been added to the -mm tree.  Its filename is
-     consolidate-asm-consth-to-linux-consth.patch
+     iop13xx-msi-support-rev6.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,263 +26,408 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: consolidate asm/const.h to linux/const.h
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: iop13xx: msi support
+From: Dan Williams <dan.j.williams@intel.com>
 
-Make a global linux/const.h header file instead of having multiple,
-per-arch files, and convert current users of asm/const.h to use
-linux/const.h.
 
-Built on x86_64 and sparc64.
+Enable devices to signal interrupts via PCI memory cycles.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>
+rev6:
+* fix enable/disable typo, Michael Ellerman
+
+rev5:
+* fix up ack, enable, and disable for iop13xx_msi_chip
+
+rev4:
+* move smp compile fix to separate patch
+* use dynamic_irq_init in create_irq()
+* hookup mask/unmask routines in iop13xx_msi_chip
+
+rev3:
+* change msi.c to use linux/smp.h instead of asm/smp.h
+* call dynamic_irq_cleanup at destroy_irq time
+
+rev2:
+* destroy_irq did not take the full 128 bits of msi_irq_in_use into account
+* added missing '&' for calls to test_and_set_bit and clear_bit
+
+[ebiederm@xmission.com: review comments/suggestions]
+[dan.j.williams@intel.com: cleanups/forward port to 2.6-git]
+Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Daniel Wolstenholme <daniel.e.wolstenholme@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc64/Kbuild    |    1 -
- include/asm-sparc64/const.h   |   19 -------------------
- include/asm-sparc64/lsu.h     |    2 +-
- include/asm-sparc64/mmu.h     |    2 +-
- include/asm-sparc64/page.h    |    2 +-
- include/asm-sparc64/pgtable.h |    2 +-
- include/asm-sparc64/pstate.h  |    2 +-
- include/asm-sparc64/sfafsr.h  |    2 +-
- include/asm-x86_64/const.h    |   20 --------------------
- include/asm-x86_64/page.h     |    2 +-
- include/asm-x86_64/pgtable.h  |    2 +-
- include/linux/Kbuild          |    1 +
- include/linux/const.h         |   19 +++++++++++++++++++
- 13 files changed, 28 insertions(+), 48 deletions(-)
+ arch/arm/mach-iop13xx/Makefile         |    1 
+ arch/arm/mach-iop13xx/irq.c            |    5 
+ arch/arm/mach-iop13xx/msi.c            |  194 +++++++++++++++++++++++
+ arch/arm/mach-iop13xx/pci.c            |   16 +
+ include/asm-arm/arch-iop13xx/iop13xx.h |   29 +++
+ include/asm-arm/arch-iop13xx/irqs.h    |    8 
+ include/asm-arm/arch-iop13xx/msi.h     |   11 +
+ 7 files changed, 262 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-sparc64/const.h~consolidate-asm-consth-to-linux-consth /dev/null
---- a/include/asm-sparc64/const.h
-+++ /dev/null
-@@ -1,19 +0,0 @@
--/* const.h: Macros for dealing with constants.  */
--
--#ifndef _SPARC64_CONST_H
--#define _SPARC64_CONST_H
--
--/* Some constant macros are used in both assembler and
-- * C code.  Therefore we cannot annotate them always with
-- * 'UL' and other type specificers unilaterally.  We
-- * use the following macros to deal with this.
-- */
--
--#ifdef __ASSEMBLY__
--#define _AC(X,Y)	X
--#else
--#define _AC(X,Y)	(X##Y)
--#endif
--
--
--#endif /* !(_SPARC64_CONST_H) */
-diff -puN include/asm-sparc64/Kbuild~consolidate-asm-consth-to-linux-consth include/asm-sparc64/Kbuild
---- a/include/asm-sparc64/Kbuild~consolidate-asm-consth-to-linux-consth
-+++ a/include/asm-sparc64/Kbuild
-@@ -8,7 +8,6 @@ header-y += apb.h
- header-y += asi.h
- header-y += bbc.h
- header-y += bpp.h
--header-y += const.h
- header-y += display7seg.h
- header-y += envctrl.h
- header-y += ipc.h
-diff -puN include/asm-sparc64/lsu.h~consolidate-asm-consth-to-linux-consth include/asm-sparc64/lsu.h
---- a/include/asm-sparc64/lsu.h~consolidate-asm-consth-to-linux-consth
-+++ a/include/asm-sparc64/lsu.h
-@@ -2,7 +2,7 @@
- #ifndef _SPARC64_LSU_H
- #define _SPARC64_LSU_H
+diff -puN arch/arm/mach-iop13xx/irq.c~iop13xx-msi-support-rev6 arch/arm/mach-iop13xx/irq.c
+--- a/arch/arm/mach-iop13xx/irq.c~iop13xx-msi-support-rev6
++++ a/arch/arm/mach-iop13xx/irq.c
+@@ -26,6 +26,7 @@
+ #include <asm/hardware.h>
+ #include <asm/mach-types.h>
+ #include <asm/arch/irqs.h>
++#include <asm/arch/msi.h>
  
--#include <asm/const.h>
-+#include <linux/const.h>
+ /* INTCTL0 CP6 R0 Page 4
+  */
+@@ -258,7 +259,7 @@ void __init iop13xx_init_irq(void)
+ 	write_intbase(INTBASE);
+ 	write_intsize(INTSIZE_4);
  
- /* LSU Control Register */
- #define LSU_CONTROL_PM _AC(0x000001fe00000000,UL) /* Phys-watchpoint byte mask*/
-diff -puN include/asm-sparc64/mmu.h~consolidate-asm-consth-to-linux-consth include/asm-sparc64/mmu.h
---- a/include/asm-sparc64/mmu.h~consolidate-asm-consth-to-linux-consth
-+++ a/include/asm-sparc64/mmu.h
-@@ -1,8 +1,8 @@
- #ifndef __MMU_H
- #define __MMU_H
- 
-+#include <linux/const.h>
- #include <asm/page.h>
--#include <asm/const.h>
- #include <asm/hypervisor.h>
- 
- #define CTX_NR_BITS		13
-diff -puN include/asm-sparc64/page.h~consolidate-asm-consth-to-linux-consth include/asm-sparc64/page.h
---- a/include/asm-sparc64/page.h~consolidate-asm-consth-to-linux-consth
-+++ a/include/asm-sparc64/page.h
-@@ -5,7 +5,7 @@
- 
- #ifdef __KERNEL__
- 
--#include <asm/const.h>
-+#include <linux/const.h>
- 
- #if defined(CONFIG_SPARC64_PAGE_SIZE_8KB)
- #define PAGE_SHIFT   13
-diff -puN include/asm-sparc64/pgtable.h~consolidate-asm-consth-to-linux-consth include/asm-sparc64/pgtable.h
---- a/include/asm-sparc64/pgtable.h~consolidate-asm-consth-to-linux-consth
-+++ a/include/asm-sparc64/pgtable.h
-@@ -15,13 +15,13 @@
- #include <asm-generic/pgtable-nopud.h>
- 
- #include <linux/compiler.h>
-+#include <linux/const.h>
- #include <asm/types.h>
- #include <asm/spitfire.h>
- #include <asm/asi.h>
- #include <asm/system.h>
- #include <asm/page.h>
- #include <asm/processor.h>
--#include <asm/const.h>
- 
- /* The kernel image occupies 0x4000000 to 0x1000000 (4MB --> 32MB).
-  * The page copy blockops can use 0x2000000 to 0x4000000.
-diff -puN include/asm-sparc64/pstate.h~consolidate-asm-consth-to-linux-consth include/asm-sparc64/pstate.h
---- a/include/asm-sparc64/pstate.h~consolidate-asm-consth-to-linux-consth
-+++ a/include/asm-sparc64/pstate.h
-@@ -2,7 +2,7 @@
- #ifndef _SPARC64_PSTATE_H
- #define _SPARC64_PSTATE_H
- 
--#include <asm/const.h>
-+#include <linux/const.h>
- 
- /* The V9 PSTATE Register (with SpitFire extensions).
-  *
-diff -puN include/asm-sparc64/sfafsr.h~consolidate-asm-consth-to-linux-consth include/asm-sparc64/sfafsr.h
---- a/include/asm-sparc64/sfafsr.h~consolidate-asm-consth-to-linux-consth
-+++ a/include/asm-sparc64/sfafsr.h
-@@ -1,7 +1,7 @@
- #ifndef _SPARC64_SFAFSR_H
- #define _SPARC64_SFAFSR_H
- 
--#include <asm/const.h>
-+#include <linux/const.h>
- 
- /* Spitfire Asynchronous Fault Status register, ASI=0x4C VA<63:0>=0x0 */
- 
-diff -puN include/asm-x86_64/const.h~consolidate-asm-consth-to-linux-consth /dev/null
---- a/include/asm-x86_64/const.h
-+++ /dev/null
-@@ -1,20 +0,0 @@
--/* const.h: Macros for dealing with constants.  */
--
--#ifndef _X86_64_CONST_H
--#define _X86_64_CONST_H
--
--/* Some constant macros are used in both assembler and
-- * C code.  Therefore we cannot annotate them always with
-- * 'UL' and other type specificers unilaterally.  We
-- * use the following macros to deal with this.
-- */
--
--#ifdef __ASSEMBLY__
--#define _AC(X,Y)	X
--#else
--#define __AC(X,Y)	(X##Y)
--#define _AC(X,Y)	__AC(X,Y)
--#endif
--
--
--#endif /* !(_X86_64_CONST_H) */
-diff -puN include/asm-x86_64/page.h~consolidate-asm-consth-to-linux-consth include/asm-x86_64/page.h
---- a/include/asm-x86_64/page.h~consolidate-asm-consth-to-linux-consth
-+++ a/include/asm-x86_64/page.h
-@@ -1,7 +1,7 @@
- #ifndef _X86_64_PAGE_H
- #define _X86_64_PAGE_H
- 
--#include <asm/const.h>
-+#include <linux/const.h>
- 
- /* PAGE_SHIFT determines the page size */
- #define PAGE_SHIFT	12
-diff -puN include/asm-x86_64/pgtable.h~consolidate-asm-consth-to-linux-consth include/asm-x86_64/pgtable.h
---- a/include/asm-x86_64/pgtable.h~consolidate-asm-consth-to-linux-consth
-+++ a/include/asm-x86_64/pgtable.h
-@@ -1,7 +1,7 @@
- #ifndef _X86_64_PGTABLE_H
- #define _X86_64_PGTABLE_H
- 
--#include <asm/const.h>
-+#include <linux/const.h>
- #ifndef __ASSEMBLY__
- 
- /*
-diff -puN /dev/null include/linux/const.h
+-	for(i = 0; i < NR_IOP13XX_IRQS; i++) {
++	for(i = 0; i <= IRQ_IOP13XX_HPI; i++) {
+ 		if (i < 32)
+ 			set_irq_chip(i, &iop13xx_irqchip1);
+ 		else if (i < 64)
+@@ -271,4 +272,6 @@ void __init iop13xx_init_irq(void)
+ 		set_irq_handler(i, handle_level_irq);
+ 		set_irq_flags(i, IRQF_VALID | IRQF_PROBE);
+ 	}
++
++	iop13xx_msi_init();
+ }
+diff -puN arch/arm/mach-iop13xx/Makefile~iop13xx-msi-support-rev6 arch/arm/mach-iop13xx/Makefile
+--- a/arch/arm/mach-iop13xx/Makefile~iop13xx-msi-support-rev6
++++ a/arch/arm/mach-iop13xx/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_ARCH_IOP13XX) += pci.o
+ obj-$(CONFIG_ARCH_IOP13XX) += io.o
+ obj-$(CONFIG_MACH_IQ81340SC) += iq81340sc.o
+ obj-$(CONFIG_MACH_IQ81340MC) += iq81340mc.o
++obj-$(CONFIG_PCI_MSI) += msi.o
+diff -puN /dev/null arch/arm/mach-iop13xx/msi.c
 --- /dev/null
-+++ a/include/linux/const.h
-@@ -0,0 +1,19 @@
-+/* const.h: Macros for dealing with constants.  */
-+
-+#ifndef _LINUX_CONST_H
-+#define _LINUX_CONST_H
-+
-+/* Some constant macros are used in both assembler and
-+ * C code.  Therefore we cannot annotate them always with
-+ * 'UL' and other type specifiers unilaterally.  We
-+ * use the following macros to deal with this.
++++ a/arch/arm/mach-iop13xx/msi.c
+@@ -0,0 +1,194 @@
++/*
++ * arch/arm/mach-iop13xx/msi.c
++ *
++ * PCI MSI support for the iop13xx processor
++ *
++ * Copyright (c) 2006, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
++ * Place - Suite 330, Boston, MA 02111-1307 USA.
++ *
 + */
++#include <linux/pci.h>
++#include <linux/msi.h>
++#include <asm/mach/irq.h>
++#include <asm/irq.h>
 +
-+#ifdef __ASSEMBLY__
-+#define _AC(X,Y)	X
-+#else
-+#define __AC(X,Y)	(X##Y)
-+#define _AC(X,Y)	__AC(X,Y)
++
++#define IOP13XX_NUM_MSI_IRQS 128
++static DECLARE_BITMAP(msi_irq_in_use, IOP13XX_NUM_MSI_IRQS);
++
++/* IMIPR0 CP6 R8 Page 1
++ */
++static inline u32 read_imipr_0(void)
++{
++	u32 val;
++	asm volatile("mrc p6, 0, %0, c8, c1, 0":"=r" (val));
++	return val;
++}
++static inline void write_imipr_0(u32 val)
++{
++	asm volatile("mcr p6, 0, %0, c8, c1, 0"::"r" (val));
++}
++
++/* IMIPR1 CP6 R9 Page 1
++ */
++static inline u32 read_imipr_1(void)
++{
++	u32 val;
++	asm volatile("mrc p6, 0, %0, c9, c1, 0":"=r" (val));
++	return val;
++}
++static inline void write_imipr_1(u32 val)
++{
++	asm volatile("mcr p6, 0, %0, c9, c1, 0"::"r" (val));
++}
++
++/* IMIPR2 CP6 R10 Page 1
++ */
++static inline u32 read_imipr_2(void)
++{
++	u32 val;
++	asm volatile("mrc p6, 0, %0, c10, c1, 0":"=r" (val));
++	return val;
++}
++static inline void write_imipr_2(u32 val)
++{
++	asm volatile("mcr p6, 0, %0, c10, c1, 0"::"r" (val));
++}
++
++/* IMIPR3 CP6 R11 Page 1
++ */
++static inline u32 read_imipr_3(void)
++{
++	u32 val;
++	asm volatile("mrc p6, 0, %0, c11, c1, 0":"=r" (val));
++	return val;
++}
++static inline void write_imipr_3(u32 val)
++{
++	asm volatile("mcr p6, 0, %0, c11, c1, 0"::"r" (val));
++}
++
++static u32 (*read_imipr[])(void) = {
++	read_imipr_0,
++	read_imipr_1,
++	read_imipr_2,
++	read_imipr_3,
++};
++
++static void (*write_imipr[])(u32) = {
++	write_imipr_0,
++	write_imipr_1,
++	write_imipr_2,
++	write_imipr_3,
++};
++
++static void iop13xx_msi_handler(unsigned int irq, struct irq_desc *desc)
++{
++	int i, j;
++	unsigned long status;
++
++	/* read IMIPR registers and find any active interrupts,
++	 * then call ISR for each active interrupt
++	 */
++	for (i = 0; i < ARRAY_SIZE(read_imipr); i++) {
++		status = (read_imipr[i])();
++		if (!status)
++			continue;
++
++		do {
++			j = find_first_bit(&status, 32);
++			(write_imipr[i])(1 << j); /* write back to clear bit */
++			desc = irq_desc + IRQ_IOP13XX_MSI_0 + j + (32*i);
++			desc_handle_irq(IRQ_IOP13XX_MSI_0 + j + (32*i),	desc);
++			status = (read_imipr[i])();
++		} while (status);
++	}
++}
++
++void __init iop13xx_msi_init(void)
++{
++	set_irq_chained_handler(IRQ_IOP13XX_INBD_MSI, iop13xx_msi_handler);
++}
++
++/*
++ * Dynamic irq allocate and deallocation
++ */
++int create_irq(void)
++{
++	int irq, pos;
++
++again:
++	pos = find_first_zero_bit(msi_irq_in_use, IOP13XX_NUM_MSI_IRQS);
++	irq = IRQ_IOP13XX_MSI_0 + pos;
++	if (irq > NR_IRQS)
++		return -ENOSPC;
++	/* test_and_set_bit operates on 32-bits at a time */
++	if (test_and_set_bit(pos, msi_irq_in_use))
++		goto again;
++
++	dynamic_irq_init(irq);
++
++	return irq;
++}
++
++void destroy_irq(unsigned int irq)
++{
++	int pos = irq - IRQ_IOP13XX_MSI_0;
++
++	dynamic_irq_cleanup(irq);
++
++	clear_bit(pos, msi_irq_in_use);
++}
++
++void arch_teardown_msi_irq(unsigned int irq)
++{
++	destroy_irq(irq);
++}
++
++static void iop13xx_msi_nop(unsigned int irq)
++{
++	return;
++}
++
++static struct irq_chip iop13xx_msi_chip = {
++	.name = "PCI-MSI",
++	.ack = iop13xx_msi_nop,
++	.enable = unmask_msi_irq,
++	.disable = mask_msi_irq,
++	.mask = mask_msi_irq,
++	.unmask = unmask_msi_irq,
++};
++
++int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
++{
++	int id, irq = create_irq();
++	struct msi_msg msg;
++
++	if (irq < 0)
++		return irq;
++
++	set_irq_msi(irq, desc);
++
++	msg.address_hi = 0x0;
++	msg.address_lo = IOP13XX_MU_MIMR_PCI;
++
++	id = iop13xx_cpu_id();
++	msg.data = (id << IOP13XX_MU_MIMR_CORE_SELECT) | (irq & 0x7f);
++
++	write_msi_msg(irq, &msg);
++	set_irq_chip_and_handler(irq, &iop13xx_msi_chip, handle_simple_irq);
++
++	return irq;
++}
+diff -puN arch/arm/mach-iop13xx/pci.c~iop13xx-msi-support-rev6 arch/arm/mach-iop13xx/pci.c
+--- a/arch/arm/mach-iop13xx/pci.c~iop13xx-msi-support-rev6
++++ a/arch/arm/mach-iop13xx/pci.c
+@@ -559,6 +559,14 @@ void __init iop13xx_atue_setup(void)
+ 	int func = iop13xx_atu_function(IOP13XX_INIT_ATU_ATUE);
+ 	u32 reg_val;
+ 
++#ifdef CONFIG_PCI_MSI
++	/* BAR 0 (inbound msi window) */
++	__raw_writel(IOP13XX_MU_BASE_PHYS, IOP13XX_MU_MUBAR);
++	__raw_writel(~(IOP13XX_MU_WINDOW_SIZE - 1), IOP13XX_ATUE_IALR0);
++	__raw_writel(IOP13XX_MU_BASE_PHYS, IOP13XX_ATUE_IATVR0);
++	__raw_writel(IOP13XX_MU_BASE_PCI, IOP13XX_ATUE_IABAR0);
 +#endif
 +
-+#endif /* !(_LINUX_CONST_H) */
-diff -puN include/linux/Kbuild~consolidate-asm-consth-to-linux-consth include/linux/Kbuild
---- a/include/linux/Kbuild~consolidate-asm-consth-to-linux-consth
-+++ a/include/linux/Kbuild
-@@ -45,6 +45,7 @@ header-y += coda_psdev.h
- header-y += coff.h
- header-y += comstats.h
- header-y += consolemap.h
-+header-y += const.h
- header-y += cycx_cfm.h
- header-y += dlm_device.h
- header-y += dm-ioctl.h
+ 	/* BAR 1 (1:1 mapping with Physical RAM) */
+ 	/* Set limit and enable */
+ 	__raw_writel(~(IOP13XX_MAX_RAM_SIZE - PHYS_OFFSET - 1) & ~0x1,
+@@ -720,6 +728,14 @@ void __init iop13xx_atux_setup(void)
+ 	else
+ 		atux_trhfa_timeout = jiffies;
+ 
++#ifdef CONFIG_PCI_MSI
++	/* BAR 0 (inbound msi window) */
++	__raw_writel(IOP13XX_MU_BASE_PHYS, IOP13XX_MU_MUBAR);
++	__raw_writel(~(IOP13XX_MU_WINDOW_SIZE - 1), IOP13XX_ATUX_IALR0);
++	__raw_writel(IOP13XX_MU_BASE_PHYS, IOP13XX_ATUX_IATVR0);
++	__raw_writel(IOP13XX_MU_BASE_PCI, IOP13XX_ATUX_IABAR0);
++#endif
++
+ 	/* BAR 1 (1:1 mapping with Physical RAM) */
+ 	/* Set limit and enable */
+ 	__raw_writel(~(IOP13XX_MAX_RAM_SIZE - PHYS_OFFSET - 1) & ~0x1,
+diff -puN include/asm-arm/arch-iop13xx/iop13xx.h~iop13xx-msi-support-rev6 include/asm-arm/arch-iop13xx/iop13xx.h
+--- a/include/asm-arm/arch-iop13xx/iop13xx.h~iop13xx-msi-support-rev6
++++ a/include/asm-arm/arch-iop13xx/iop13xx.h
+@@ -176,6 +176,7 @@ static inline int iop13xx_cpu_id(void)
+ #define IOP13XX_ADMA1_PMMR_OFFSET  	0x00000200
+ #define IOP13XX_ADMA2_PMMR_OFFSET  	0x00000400
+ #define IOP13XX_PBI_PMMR_OFFSET    	0x00001580
++#define IOP13XX_MU_PMMR_OFFSET		0x00004000
+ #define IOP13XX_ESSR0_PMMR_OFFSET  	0x00002188
+ #define IOP13XX_ESSR0			IOP13XX_REG_ADDR32(0x00002188)
+ 
+@@ -407,6 +408,34 @@ static inline int iop13xx_cpu_id(void)
+ #define IOP13XX_ATU_OUMBAR_FUNC_NUM_MASK  	(0x7)
+ /*=======================================================================*/
+ 
++/*============================MESSAGING UNIT=============================*/
++#define IOP13XX_MU_OFFSET(ofs)	IOP13XX_REG_ADDR32(IOP13XX_MU_PMMR_OFFSET +\
++							(ofs))
++
++#define IOP13XX_MU_IMR0	IOP13XX_MU_OFFSET(0x10)
++#define IOP13XX_MU_IMR1	IOP13XX_MU_OFFSET(0x14)
++#define IOP13XX_MU_OMR0	IOP13XX_MU_OFFSET(0x18)
++#define IOP13XX_MU_OMR1	IOP13XX_MU_OFFSET(0x1C)
++#define IOP13XX_MU_IDR	       	IOP13XX_MU_OFFSET(0x20)
++#define IOP13XX_MU_IISR	IOP13XX_MU_OFFSET(0x24)
++#define IOP13XX_MU_IIMR	IOP13XX_MU_OFFSET(0x28)
++#define IOP13XX_MU_ODR	       	IOP13XX_MU_OFFSET(0x2C)
++#define IOP13XX_MU_OISR	IOP13XX_MU_OFFSET(0x30)
++#define IOP13XX_MU_OIMR	IOP13XX_MU_OFFSET(0x34)
++#define IOP13XX_MU_IRCSR      	IOP13XX_MU_OFFSET(0x38)
++#define IOP13XX_MU_ORCSR      	IOP13XX_MU_OFFSET(0x3C)
++#define IOP13XX_MU_MIMR	IOP13XX_MU_OFFSET(0x48)
++#define IOP13XX_MU_MUCR	IOP13XX_MU_OFFSET(0x50)
++#define IOP13XX_MU_QBAR	IOP13XX_MU_OFFSET(0x54)
++#define IOP13XX_MU_MUBAR      	IOP13XX_MU_OFFSET(0x84)
++
++#define IOP13XX_MU_WINDOW_SIZE	(8 * 1024)
++#define IOP13XX_MU_BASE_PHYS	(0xff000000)
++#define IOP13XX_MU_BASE_PCI	(0xff000000)
++#define IOP13XX_MU_MIMR_PCI	(IOP13XX_MU_BASE_PCI + 0x48)
++#define IOP13XX_MU_MIMR_CORE_SELECT (15)
++/*=======================================================================*/
++
+ /*==============================ADMA UNITS===============================*/
+ #define IOP13XX_ADMA_PHYS_BASE(chan)	IOP13XX_REG_ADDR32_PHYS((chan << 9))
+ #define IOP13XX_ADMA_UPPER_PA(chan)	(IOP13XX_ADMA_PHYS_BASE(chan) + 0xc0)
+diff -puN include/asm-arm/arch-iop13xx/irqs.h~iop13xx-msi-support-rev6 include/asm-arm/arch-iop13xx/irqs.h
+--- a/include/asm-arm/arch-iop13xx/irqs.h~iop13xx-msi-support-rev6
++++ a/include/asm-arm/arch-iop13xx/irqs.h
+@@ -168,7 +168,7 @@ static inline u32 read_intpnd_3(void)
+ #define IRQ_IOP13XX_ATUE_IMD	(110) /* 14 */
+ #define IRQ_IOP13XX_MU_MSI_TB	(111) /* 15 */
+ #define IRQ_IOP13XX_RSVD_112	(112) /* 16 */
+-#define IRQ_IOP13XX_RSVD_113	(113) /* 17 */
++#define IRQ_IOP13XX_INBD_MSI	(113) /* 17 */
+ #define IRQ_IOP13XX_RSVD_114	(114) /* 18 */
+ #define IRQ_IOP13XX_RSVD_115	(115) /* 19 */
+ #define IRQ_IOP13XX_RSVD_116	(116) /* 20 */
+@@ -184,7 +184,13 @@ static inline u32 read_intpnd_3(void)
+ #define IRQ_IOP13XX_RSVD_126	(126) /* 30 */
+ #define IRQ_IOP13XX_HPI	(127) /* 31 */
+ 
++#ifdef CONFIG_PCI_MSI
++#define IRQ_IOP13XX_MSI_0	(IRQ_IOP13XX_HPI + 1)
++#define NR_IOP13XX_IRQS 	(IRQ_IOP13XX_MSI_0 + 128)
++#else
+ #define NR_IOP13XX_IRQS	(IRQ_IOP13XX_HPI + 1)
++#endif
++
+ #define NR_IRQS		NR_IOP13XX_IRQS
+ 
+ #endif /* _IOP13XX_IRQ_H_ */
+diff -puN /dev/null include/asm-arm/arch-iop13xx/msi.h
+--- /dev/null
++++ a/include/asm-arm/arch-iop13xx/msi.h
+@@ -0,0 +1,11 @@
++#ifndef _IOP13XX_MSI_H_
++#define _IOP13XX_MSI_H_
++#ifdef CONFIG_PCI_MSI
++void iop13xx_msi_init(void);
++#else
++static inline void iop13xx_msi_init(void)
++{
++	return;
++}
++#endif
++#endif
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-git-acpi.patch
-git-drm.patch
-git-ieee1394.patch
-git-kbuild.patch
-romfs-printk-format-warnings.patch
-git-netdev-all.patch
-8250_pci-fix-pci-must_checks.patch
-git-scsi-misc.patch
-git-ipwireless_cs.patch
-fix-mtrr-sections.patch
-x86_64-kill-19000-sparse-warnings.patch
-scripts-kernel-doc-whitespace-cleanup.patch
-reiserfs-proc-support-requires-proc_fs.patch
-kprobes-fix-sparse-null-warning.patch
-header-cleaning-dont-include-smp_lockh-when-not-used.patch
-expose-range-checking-functions-from-arch-specific.patch
-expose-range-checking-functions-from-arch-specific-update.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-parport_serial-fix-pci-must_checks.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
-generate-main-index-page-when-building-htmldocs.patch
-alphabetically-sorted-entries-in.patch
-kernel-doc-html-mode-struct-highlights.patch
-taskstats-fix-getdelays-usage-information.patch
-introduce-a-handy-list_first_entry-macro-v2.patch
-add-pci_try_set_mwi.patch
-consolidate-asm-consth-to-linux-consth.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-s3fb-fix-pci-must_checks.patch
-profile-likely-unlikely-macros.patch
+iop13xx-msi-support-rev6.patch
+dev_dbg-check-dev_dbg-arguments.patch
+git-md-accel.patch
+git-ioat-vs-git-md-accel.patch
+msi-fix-arm-compile.patch
