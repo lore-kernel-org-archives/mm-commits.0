@@ -1,61 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 00:16:18 -0700
-Message-ID: <200704270716.l3R7GJFn021993@shell0.pdx.osdl.net>
+Subject: - congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 00:16:21 -0700
+Message-ID: <200704270716.l3R7GLLU021996@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56258 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755434AbXD0HQW (ORCPT
+	by vger.kernel.org with ESMTP id S1755436AbXD0HQX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 03:16:22 -0400
+	Fri, 27 Apr 2007 03:16:23 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3R7GJCd012652
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3R7GLkN012657
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2007 00:16:20 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2007 00:16:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     congestion_wait(): don't wait when there are no pages under writeback
+     congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug
 has been removed from the -mm tree.  Its filename was
-     congestion-wait-dont-wait-when-there-are-no-pages-under-writeback.patch
+     congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: congestion_wait(): don't wait when there are no pages under writeback
+Subject: congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug
 From: Andrew Morton <akpm@osdl.org>
 
 Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- mm/backing-dev.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/backing-dev.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback mm/backing-dev.c
---- a/mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback
+diff -puN mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug mm/backing-dev.c
+--- a/mm/backing-dev.c~congestion-wait-dont-wait-when-there-are-no-pages-under-writeback-debug
 +++ a/mm/backing-dev.c
-@@ -1,9 +1,11 @@
- 
-+#include <linux/mm.h>
- #include <linux/wait.h>
- #include <linux/backing-dev.h>
- #include <linux/fs.h>
- #include <linux/sched.h>
- #include <linux/module.h>
-+#include <linux/vmstat.h>
- 
- static wait_queue_head_t congestion_wqh[2] = {
- 		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[0]),
-@@ -48,6 +50,8 @@ long congestion_wait(int rw, long timeou
+@@ -50,8 +50,11 @@ long congestion_wait(int rw, long timeou
  	DEFINE_WAIT(wait);
  	wait_queue_head_t *wqh = &congestion_wqh[rw];
  
-+	if (rw == WRITE && global_page_state(NR_WRITEBACK) == 0)
-+		return timeout;
+-	if (rw == WRITE && global_page_state(NR_WRITEBACK) == 0)
++	if (rw == WRITE && global_page_state(NR_WRITEBACK) == 0) {
++		printk("%s: no pages are under writeback\n", __FUNCTION__);
++		dump_stack();
+ 		return timeout;
++	}
  	prepare_to_wait(wqh, &wait, TASK_UNINTERRUPTIBLE);
  	ret = io_schedule_timeout(timeout);
  	finish_wait(wqh, &wait);
