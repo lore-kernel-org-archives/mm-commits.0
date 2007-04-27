@@ -1,70 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-add-after-object-padding.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:22:26 -0700
-Message-ID: <200704270822.l3R8MQKf023326@shell0.pdx.osdl.net>
+Subject: - slub-core-fix-validation.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:22:24 -0700
+Message-ID: <200704270822.l3R8MOLr023323@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54628 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755574AbXD0IW3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755570AbXD0IW1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:22:29 -0400
+	Fri, 27 Apr 2007 04:22:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: add after object padding
+     slub: fix validation
 has been removed from the -mm tree.  Its filename was
-     slub-core-add-after-object-padding.patch
+     slub-core-fix-validation.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub: add after object padding
+Subject: slub: fix validation
 From: Christoph Lameter <clameter@sgi.com>
 
-Without padding there is the danger that we do not notice writing before the
-allocated object.  So increase the slab size by another word in the debug
-case.  That will force the creation of some fill space which SLUB will
-continue to check.
+Some parts of object validation will never occur because on_freelist does
+return the wrong exit code for a NULL object.
+
+Fix that.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletion(-)
+ mm/slub.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-core-add-after-object-padding mm/slub.c
---- a/mm/slub.c~slub-core-add-after-object-padding
+diff -puN mm/slub.c~slub-core-fix-validation mm/slub.c
+--- a/mm/slub.c~slub-core-fix-validation
 +++ a/mm/slub.c
-@@ -490,7 +490,7 @@ static int check_object(struct kmem_cach
- 	if (s->flags & SLAB_POISON) {
- 		if (!active && (s->flags & __OBJECT_POISON) &&
- 			(!check_bytes(p, POISON_FREE, s->objsize - 1) ||
--				p[s->objsize -1] != POISON_END)) {
-+				p[s->objsize - 1] != POISON_END)) {
- 			object_err(s, page, p, "Poison check failed");
- 			return 0;
- 		}
-@@ -1596,6 +1596,15 @@ static int calculate_sizes(struct kmem_c
- 		 */
- 		size += 2 * sizeof(struct track);
+@@ -594,7 +594,7 @@ static int on_freelist(struct kmem_cache
+ 			s->objects - nr);
+ 		page->inuse = s->objects - nr;
+ 	}
+-	return 0;
++	return search == NULL;
+ }
  
-+	if (flags & DEBUG_DEFAULT_FLAGS)
-+		/*
-+		 * Add some empty padding so that we can catch
-+		 * overwrites from earlier objects rather than let
-+		 * tracking information or the free pointer be
-+		 * corrupted if an user writes before the start
-+		 * of the object.
-+		 */
-+		size += sizeof(void *);
- 	/*
- 	 * Determine the alignment based on various parameters that the
- 	 * user specified (this is unecessarily complex due to the attempt
+ static int alloc_object_checks(struct kmem_cache *s, struct page *page,
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -82,6 +66,7 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-core-fix-validation.patch
 slub-core-add-after-object-padding.patch
 slub-core-resiliency-fixups.patch
 slub-core-resiliency-fixups-fix.patch
