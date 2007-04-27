@@ -1,54 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-tidy-2.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:35 -0700
-Message-ID: <200704270821.l3R8LZG8023232@shell0.pdx.osdl.net>
+Subject: - slub-core-tidy-4.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:39 -0700
+Message-ID: <200704270821.l3R8LdL3023247@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55186 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52352 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755525AbXD0IVi (ORCPT
+	by vger.kernel.org with ESMTP id S1755531AbXD0IVm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:38 -0400
+	Fri, 27 Apr 2007 04:21:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-core-tidy-2
+     slub-core-tidy-4
 has been removed from the -mm tree.  Its filename was
-     slub-core-tidy-2.patch
+     slub-core-tidy-4.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub-core-tidy-2
+Subject: slub-core-tidy-4
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It's a ptrdiff_t
-
-Cc: Christoph Lameter <clameter@sgi.com> 
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ mm/slub.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-core-tidy-2 mm/slub.c
---- a/mm/slub.c~slub-core-tidy-2
+diff -puN mm/slub.c~slub-core-tidy-4 mm/slub.c
+--- a/mm/slub.c~slub-core-tidy-4
 +++ a/mm/slub.c
-@@ -319,9 +319,8 @@ static void object_err(struct kmem_cache
+@@ -755,7 +755,7 @@ static struct page *new_slab(struct kmem
+ 		memset(start, POISON_INUSE, PAGE_SIZE << s->order);
  
- 	printk(KERN_ERR "*** SLUB: %s in %s@0x%p Slab 0x%p\n",
- 			reason, s->name, object, page);
--	printk(KERN_ERR "    offset=%u flags=0x%04lx inuse=%u freelist=0x%p\n",
--		(int)(object - addr), page->flags, page->inuse,
--		page->freelist);
-+	printk(KERN_ERR "    offset=%tu flags=0x%04lx inuse=%u freelist=0x%p\n",
-+		object - addr, page->flags, page->inuse, page->freelist);
- 	if (object > addr + 16)
- 		print_section("Bytes b4", object - 16, 16);
- 	print_section("Object", object, s->objsize);
+ 	last = start;
+-	for(p = start + s->size; p < end; p += s->size) {
++	for (p = start + s->size; p < end; p += s->size) {
+ 		setup_object(s, page, last);
+ 		set_freepointer(s, last, p);
+ 		last = p;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,8 +133,6 @@ mm-move-common-segment-checks-to-separate-helper-function-v7.patch
 slab-mark-set_up_list3s-__init.patch
 extend-print_symbol-capability.patch
 slub-core.patch
-slub-core-tidy-2.patch
-slub-core-tidy-3.patch
 slub-core-tidy-4.patch
 slub-core-tidy-5.patch
 slub-core-tidy-6.patch
