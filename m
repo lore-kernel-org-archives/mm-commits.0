@@ -1,55 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-fix-kmem_cache_destroy.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:22:22 -0700
-Message-ID: <200704270822.l3R8MMW1023320@shell0.pdx.osdl.net>
+Subject: - slub-core-resiliency-test.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:22:32 -0700
+Message-ID: <200704270822.l3R8MWWJ023335@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36220 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755571AbXD0IW2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755522AbXD0IWg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:22:28 -0400
+	Fri, 27 Apr 2007 04:22:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: fix kmem_cache_destroy
+     slub: resiliency test
 has been removed from the -mm tree.  Its filename was
-     slub-core-fix-kmem_cache_destroy.patch
+     slub-core-resiliency-test.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub: fix kmem_cache_destroy
+Subject: slub: resiliency test
 From: Christoph Lameter <clameter@sgi.com>
 
-The refcounter needs to be decremented before checking it.
+Add a test that can be performed on bootup to test the recoverability
+from slab corruption.
+
+Note that 2 of those tests are potentially dangerous. Off by default
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Tested-and-approved-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ mm/slub.c |   59 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 59 insertions(+)
 
-diff -puN mm/slub.c~slub-core-fix-kmem_cache_destroy mm/slub.c
---- a/mm/slub.c~slub-core-fix-kmem_cache_destroy
+diff -puN mm/slub.c~slub-core-resiliency-test mm/slub.c
+--- a/mm/slub.c~slub-core-resiliency-test
 +++ a/mm/slub.c
-@@ -1832,9 +1832,8 @@ static int kmem_cache_close(struct kmem_
- void kmem_cache_destroy(struct kmem_cache *s)
- {
- 	down_write(&slub_lock);
--	if (s->refcount)
--		s->refcount--;
--	else {
-+	s->refcount--;
-+	if (!s->refcount) {
- 		list_del(&s->list);
- 		if (kmem_cache_close(s))
- 			WARN_ON(1);
+@@ -112,6 +112,9 @@
+  * - Variable sizing of the per node arrays
+  */
+ 
++/* Enable to test recovery from slab corruption on boot */
++#undef SLUB_RESILIENCY_TEST
++
+ /*
+  * Flags from the regular SLAB that SLUB does not support:
+  */
+@@ -2473,6 +2476,61 @@ static int __init cpucache_init(void)
+ __initcall(cpucache_init);
+ #endif
+ 
++#ifdef SLUB_RESILIENCY_TEST
++static void resiliency_test(void)
++{
++	u8 *p;
++
++	printk(KERN_ERR "SLUB resiliency testing\n");
++	printk(KERN_ERR "-----------------------\n");
++	printk(KERN_ERR "A. Corruption after allocation\n");
++
++	p = kzalloc(16, GFP_KERNEL);
++	p[16] = 0x12;
++	printk(KERN_ERR "\n1. kmalloc-16: Clobber Redzone/next pointer"
++			" 0x12->%p\n\n", p + 16);
++
++	validate_slab_cache(kmalloc_caches + 4);
++
++	/* Hmmm... The next two are dangerous */
++	p = kzalloc(32, GFP_KERNEL);
++	p[32 + sizeof(void *)] = 0x34;
++	printk(KERN_ERR "\n2. kmalloc-32: Clobber next pointer/next slab"
++		 	" 0x34 -> %p\n", p);
++	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
++
++	validate_slab_cache(kmalloc_caches + 5);
++	p = kzalloc(64, GFP_KERNEL);
++	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
++	*p = 0x56;
++	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->%p\n",
++									p);
++	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
++	validate_slab_cache(kmalloc_caches + 6);
++
++	printk(KERN_ERR "\nB. Corruption after free\n");
++	p = kzalloc(128, GFP_KERNEL);
++	kfree(p);
++	*p = 0x78;
++	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->%p\n\n", p);
++	validate_slab_cache(kmalloc_caches + 7);
++
++	p = kzalloc(256, GFP_KERNEL);
++	kfree(p);
++	p[50] = 0x9a;
++	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->%p\n\n", p);
++	validate_slab_cache(kmalloc_caches + 8);
++
++	p = kzalloc(512, GFP_KERNEL);
++	kfree(p);
++	p[512] = 0xab;
++	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->%p\n\n", p);
++	validate_slab_cache(kmalloc_caches + 9);
++}
++#else
++static void resiliency_test(void) {};
++#endif
++
+ /*
+  * These are not as efficient as kmalloc for the non debug case.
+  * We do not have the page struct available so we have to touch one
+@@ -3042,6 +3100,7 @@ static int __init slab_sysfs_init(void)
+ 		kfree(al);
+ 	}
+ 
++	resiliency_test();
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -67,11 +137,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-core-fix-kmem_cache_destroy.patch
-slub-core-fix-validation.patch
-slub-core-add-after-object-padding.patch
-slub-core-resiliency-fixups.patch
-slub-core-resiliency-fixups-fix.patch
 slub-core-resiliency-test.patch
 slub-core-update-cpu-after-new_slab.patch
 slub-core-fix-sysfs-directory-handling.patch
