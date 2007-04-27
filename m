@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-fix-sysfs-directory-handling.patch added to -mm tree
-Date: Thu, 26 Apr 2007 23:31:28 -0700
-Message-ID: <200704270631.l3R6VSBR021299@shell0.pdx.osdl.net>
+Subject: + slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch added to -mm tree
+Date: Thu, 26 Apr 2007 23:31:30 -0700
+Message-ID: <200704270631.l3R6VU3c021302@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56480 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755381AbXD0Gbd (ORCPT
+	by vger.kernel.org with ESMTP id S1755386AbXD0Gbd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 27 Apr 2007 02:31:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: Fix sysfs directory handling
+     SLUB: Conform more to SLABs SLAB_HWCACHE_ALIGN behavior
 has been added to the -mm tree.  Its filename is
-     slub-core-fix-sysfs-directory-handling.patch
+     slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,141 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Fix sysfs directory handling
+Subject: SLUB: Conform more to SLABs SLAB_HWCACHE_ALIGN behavior
 From: Christoph Lameter <clameter@sgi.com>
 
-This fixes the problem that SLUB does not track the names of aliased
-slabs by changing the way that SLUB manages the files in /sys/slab.
+Currently SLUB is using a strict L1_CACHE_BYTES alignment if
+SLAB_HWCACHE_ALIGN is specified. SLAB does not align to a cacheline if the
+object is smaller than half of a cacheline. Small objects are then aligned
+by SLAB to a fraction of a cacheline.
 
-If the slab that is being operated on is not mergeable (usually the
-case if we are debugging) then do not create any aliases. If an alias
-exists that we conflict with then remove it before creating the
-directory for the unmergeable slab. If there is a true slab cache there
-and not an alias then we fail since there is a true duplication of
-slab cache names. So debugging allows the detection of slab name
-duplication as usual.
+Make SLUB just forget about the alignment requirement if the object size
+is less than L1_CACHE_BYTES. It seems that fractional alignments are no
+good because they grow the object and reduce the object density in a cache
+line needlessly causing additional cache line fetches.
 
-If the slab is mergeable then we create a directory with a unique name
-created from the slab size, slab options and the pointer to the kmem_cache
-structure (disambiguation). All names referring to the slabs will
-then be created as symlinks to that unique name. These symlinks are
-not going to be removed on kmem_cache_destroy() since we only carry
-a counter for the number of aliases. If a new symlink is created
-then it may just replace an existing one. This means that one can create
-a gazillion slabs with the same name (if they all refer to mergeable
-caches). It will only increase the alias count. So we have the potential
-of not detecting duplicate slab names (there is actually no harm
-done by doing that....). We will detect the duplications as
-as soon as debugging is enabled because we will then no longer
-generate symlinks and special unique names.
+If we are already throwing the user suggestion of a cache line alignment
+away then lets do the best we can. Maybe SLAB_HWCACHE_ALIGN also needs
+to be tossed given its wishy-washy handling but doing so would require
+an audit of all kmem_cache_allocs throughout the kernel source.
+
+In any case one needs to explictly specify an alignment during
+kmem_cache_create to either slab allocator in order to ensure that the
+objects are cacheline aligned.
+
+[Patch has a nice memory compaction effect on 32 bit platforms]
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   65 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 63 insertions(+), 2 deletions(-)
+ mm/slub.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-core-fix-sysfs-directory-handling mm/slub.c
---- a/mm/slub.c~slub-core-fix-sysfs-directory-handling
+diff -puN mm/slub.c~slub-core-conform-more-to-slabs-slab_hwcache_align-behavior mm/slub.c
+--- a/mm/slub.c~slub-core-conform-more-to-slabs-slab_hwcache_align-behavior
 +++ a/mm/slub.c
-@@ -3021,16 +3021,68 @@ static struct kset_uevent_ops slab_ueven
- 
- decl_subsys(slab, &slab_ktype, &slab_uevent_ops);
- 
-+#define ID_STR_LENGTH 64
-+
-+/* Create a unique string id for a slab cache:
-+ * format
-+ * :[flags-]size:[memory address of kmemcache]
-+ */
-+static char *create_unique_id(struct kmem_cache *s)
-+{
-+	char *name = kmalloc(ID_STR_LENGTH, GFP_KERNEL);
-+	char *p = name;
-+
-+	BUG_ON(!name);
-+
-+	*p++ = ':';
+@@ -1474,9 +1474,19 @@ static int calculate_order(int size)
+  * various ways of specifying it.
+  */
+ static unsigned long calculate_alignment(unsigned long flags,
+-		unsigned long align)
++		unsigned long align, unsigned long size)
+ {
+-	if (flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN))
 +	/*
-+	 * First flags affecting slabcache operations */
-+	if (s->flags & SLAB_CACHE_DMA)
-+		*p++ = 'd';
-+	if (s->flags & SLAB_RECLAIM_ACCOUNT)
-+		*p++ = 'a';
-+	if (s->flags & SLAB_DESTROY_BY_RCU)
-+		*p++ = 'r';\
-+	/* Debug flags */
-+	if (s->flags & SLAB_RED_ZONE)
-+		*p++ = 'Z';
-+	if (s->flags & SLAB_POISON)
-+		*p++ = 'P';
-+	if (s->flags & SLAB_STORE_USER)
-+		*p++ = 'U';
-+	if (p != name + 1)
-+		*p++ = '-';
-+	p += sprintf(p,"%07d:0x%p" ,s->size, s);
-+	BUG_ON(p > name + ID_STR_LENGTH - 1);
-+	return name;
-+}
-+
- static int sysfs_slab_add(struct kmem_cache *s)
- {
- 	int err;
-+	const char *name;
++	 * If the user wants hardware cache aligned objects then
++	 * follow that suggestion if the object is sufficiently
++	 * large.
++	 *
++	 * The hardware cache alignment cannot override the
++	 * specified alignment though. If that is greater
++	 * then use it.
++	 */
++	if ((flags & (SLAB_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN)) &&
++			size > L1_CACHE_BYTES / 2)
+ 		return max_t(unsigned long, align, L1_CACHE_BYTES);
  
- 	if (slab_state < SYSFS)
- 		/* Defer until later */
- 		return 0;
+ 	if (align < ARCH_SLAB_MINALIGN)
+@@ -1664,7 +1674,7 @@ static int calculate_sizes(struct kmem_c
+ 	 * user specified (this is unecessarily complex due to the attempt
+ 	 * to be compatible with SLAB. Should be cleaned up some day).
+ 	 */
+-	align = calculate_alignment(flags, align);
++	align = calculate_alignment(flags, align, s->objsize);
  
-+	if (s->flags & SLUB_NEVER_MERGE) {
-+		/*
-+		 * Slabcache can never be merged so we can use the name proper.
-+		 * This is typically the case for debug situations. In that
-+		 * case we can catch duplicate names easily.
-+		 */
-+		sysfs_remove_link(&slab_subsys.kset.kobj, s->name);
-+		name = s->name;
-+	} else
-+		/*
-+		 * Create a unique name for the slab as a target
-+		 * for the symlinks.
-+		 */
-+		name = create_unique_id(s);
-+
- 	kobj_set_kset_s(s, slab_subsys);
--	kobject_set_name(&s->kobj, s->name);
-+	kobject_set_name(&s->kobj, name);
- 	kobject_init(&s->kobj);
- 	err = kobject_add(&s->kobj);
- 	if (err)
-@@ -3040,6 +3092,10 @@ static int sysfs_slab_add(struct kmem_ca
- 	if (err)
- 		return err;
- 	kobject_uevent(&s->kobj, KOBJ_ADD);
-+	if (!(s->flags & SLUB_NEVER_MERGE)) {
-+		sysfs_slab_alias(s, s->name);
-+		kfree(name);
-+	}
- 	return 0;
- }
+ 	/*
+ 	 * SLUB stores one object immediately after another beginning from
+@@ -2252,7 +2262,7 @@ static struct kmem_cache *find_mergeable
+ 		return NULL;
  
-@@ -3065,9 +3121,14 @@ static int sysfs_slab_alias(struct kmem_
- {
- 	struct saved_alias *al;
+ 	size = ALIGN(size, sizeof(void *));
+-	align = calculate_alignment(flags, align);
++	align = calculate_alignment(flags, align, size);
+ 	size = ALIGN(size, align);
  
--	if (slab_state == SYSFS)
-+	if (slab_state == SYSFS) {
-+		/*
-+		 * If we have a leftover link then remove it.
-+		 */
-+		sysfs_remove_link(&slab_subsys.kset.kobj, name);
- 		return sysfs_create_link(&slab_subsys.kset.kobj,
- 						&s->kobj, name);
-+	}
- 
- 	al = kmalloc(sizeof(struct saved_alias), GFP_KERNEL);
- 	if (!al)
+ 	list_for_each(h, &slab_caches) {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
