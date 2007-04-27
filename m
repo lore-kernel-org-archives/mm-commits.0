@@ -1,49 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-tidy-4.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:39 -0700
-Message-ID: <200704270821.l3R8LdL3023247@shell0.pdx.osdl.net>
+Subject: - slub-core-tidy.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:33 -0700
+Message-ID: <200704270821.l3R8LXFN023229@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52352 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755531AbXD0IVm (ORCPT
+	by vger.kernel.org with ESMTP id S1755524AbXD0IVg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:42 -0400
+	Fri, 27 Apr 2007 04:21:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-core-tidy-4
+     slub-core-tidy
 has been removed from the -mm tree.  Its filename was
-     slub-core-tidy-4.patch
+     slub-core-tidy.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub-core-tidy-4
+Subject: slub-core-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-core-tidy-4 mm/slub.c
---- a/mm/slub.c~slub-core-tidy-4
+diff -puN arch/frv/Kconfig~slub-core-tidy arch/frv/Kconfig
+diff -puN arch/i386/Kconfig~slub-core-tidy arch/i386/Kconfig
+diff -puN include/linux/mm_types.h~slub-core-tidy include/linux/mm_types.h
+diff -puN include/linux/poison.h~slub-core-tidy include/linux/poison.h
+diff -puN include/linux/slab.h~slub-core-tidy include/linux/slab.h
+diff -puN include/linux/slub_def.h~slub-core-tidy include/linux/slub_def.h
+diff -puN init/Kconfig~slub-core-tidy init/Kconfig
+diff -puN mm/Makefile~slub-core-tidy mm/Makefile
+diff -puN mm/slub.c~slub-core-tidy mm/slub.c
+--- a/mm/slub.c~slub-core-tidy
 +++ a/mm/slub.c
-@@ -755,7 +755,7 @@ static struct page *new_slab(struct kmem
- 		memset(start, POISON_INUSE, PAGE_SIZE << s->order);
+@@ -116,10 +116,6 @@ static enum {
+ 	SYSFS		/* Sysfs up */
+ } slab_state = DOWN;
  
- 	last = start;
--	for(p = start + s->size; p < end; p += s->size) {
-+	for (p = start + s->size; p < end; p += s->size) {
- 		setup_object(s, page, last);
- 		set_freepointer(s, last, p);
- 		last = p;
+-int slab_is_available(void) {
+-	return slab_state >= UP;
+-}
+-
+ /* A list of all slab caches on the system */
+ static DECLARE_RWSEM(slub_lock);
+ LIST_HEAD(slab_caches);
+@@ -138,6 +134,11 @@ static void sysfs_slab_remove(struct kme
+  * 			Core slab cache functions
+  *******************************************************************/
+ 
++int slab_is_available(void)
++{
++	return slab_state >= UP;
++}
++
+ struct kmem_cache_node *get_node(struct kmem_cache *s, int node)
+ {
+ #ifdef CONFIG_NUMA
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,6 +155,9 @@ mm-move-common-segment-checks-to-separate-helper-function-v7.patch
 slab-mark-set_up_list3s-__init.patch
 extend-print_symbol-capability.patch
 slub-core.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
 slub-core-tidy-4.patch
 slub-core-tidy-5.patch
 slub-core-tidy-6.patch
