@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch added to -mm tree
-Date: Thu, 26 Apr 2007 23:31:32 -0700
-Message-ID: <200704270631.l3R6VWtr021305@shell0.pdx.osdl.net>
+Subject: + slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch added to -mm tree
+Date: Thu, 26 Apr 2007 23:31:38 -0700
+Message-ID: <200704270631.l3R6VcbQ021323@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52431 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755387AbXD0Gbk (ORCPT
+	by vger.kernel.org with ESMTP id S1755394AbXD0Gbo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 02:31:40 -0400
+	Fri, 27 Apr 2007 02:31:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, mel@skynet.ie
 
 
 The patch titled
-     SLUB: Reduce the order of allocations to avoid fragmentation
+     SLUB: Free slabs and sort partial slab lists in kmem_cache_shrink
 has been added to the -mm tree.  Its filename is
-     slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
+     slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,85 +26,201 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Reduce the order of allocations to avoid fragmentation
+Subject: SLUB: Free slabs and sort partial slab lists in kmem_cache_shrink
 From: Christoph Lameter <clameter@sgi.com>
 
-Seems that fragmentation is an important subject. So be safe.
+At kmem_cache_shrink check if we have any empty slabs on the partial
+if so then remove them.
 
-If an arch supports 4k page size then assume that defragmentation may be
-a major problem. Reduce the minimum number of objects in a slab and
-limit the order of slabs. Be a little bit more lenient for larger
-page sizes.
+Also--as an anti-fragmentation measure--sort the partial slabs so that
+the most fully allocated ones come first and the least allocated last.
 
-Change the bootup message of SLUB to show the parameters so that
-log is reviewed.
+The next allocations may fill up the nearly full slabs. Having the
+least allocated slabs last gives them the maximum chance that their
+remaining objects may be freed. Thus we can hopefully minimize the
+partial slabs.
+
+I think this is the best one can do in terms antifragmentation
+measures. Real defragmentation (meaning moving objects out of slabs with
+the least free objects to those that are almost full) can be implemted
+by reverse scanning through the list produced here but that would mean
+that we need to provide a callback at slab cache creation that allows
+the deletion or moving of an object. This will involve slab API
+changes, so defer for now.
 
 Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ mm/slub.c |  118 ++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 105 insertions(+), 13 deletions(-)
 
-diff -puN mm/slub.c~slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation mm/slub.c
---- a/mm/slub.c~slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation
+diff -puN mm/slub.c~slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink mm/slub.c
+--- a/mm/slub.c~slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink
 +++ a/mm/slub.c
-@@ -115,6 +115,25 @@
- /* Enable to test recovery from slab corruption on boot */
- #undef SLUB_RESILIENCY_TEST
+@@ -136,9 +136,19 @@
+  */
+ #define SLUB_UNIMPLEMENTED (SLAB_DEBUG_INITIAL)
  
-+#if PAGE_SHIFT <= 12
-+
+-/* Mininum number of partial slabs */
 +/*
-+ * Small page size. Make sure that we do not fragment memory
++ * Mininum number of partial slabs. These will be left on the partial
++ * lists even if they are empty. kmem_cache_shrink may reclaim them.
 + */
-+#define DEFAULT_MAX_ORDER 1
-+#define DEFAULT_MIN_OBJECTS 4
-+
-+#else
-+
+ #define MIN_PARTIAL 2
+ 
 +/*
-+ * Large page machines are customarily able to handle larger
-+ * page orders.
++ * Maximum number of desirable partial slabs.
++ * The existence of more partial slabs makes kmem_cache_shrink
++ * sort the partial list by the number of objects in the.
 + */
-+#define DEFAULT_MAX_ORDER 2
-+#define DEFAULT_MIN_OBJECTS 8
++#define MAX_PARTIAL 10
 +
-+#endif
-+
+ #define DEBUG_DEFAULT_FLAGS (SLAB_DEBUG_FREE | SLAB_RED_ZONE | \
+ 				SLAB_POISON | SLAB_STORE_USER)
  /*
-  * Flags from the regular SLAB that SLUB does not support:
-  */
-@@ -1401,13 +1420,13 @@ static struct page *get_object_page(cons
-  * take the list_lock.
-  */
- static int slub_min_order;
--static int slub_max_order = 4;
-+static int slub_max_order = DEFAULT_MAX_ORDER;
+@@ -1951,7 +1961,7 @@ static int kmem_cache_close(struct kmem_
+ 	for_each_online_node(node) {
+ 		struct kmem_cache_node *n = get_node(s, node);
  
- /*
-  * Minimum number of objects per slab. This is necessary in order to
-  * reduce locking overhead. Similar to the queue size in SLAB.
-  */
--static int slub_min_objects = 8;
-+static int slub_min_objects = DEFAULT_MIN_OBJECTS;
- 
- /*
-  * Merge control. If this is set then no merging of slab caches will occur.
-@@ -2239,9 +2258,10 @@ void __init kmem_cache_init(void)
- 		kmem_size = offsetof(struct kmem_cache, cpu_slab)
- 			 + nr_cpu_ids * sizeof(struct page *);
- 
--	printk(KERN_INFO "SLUB: General Slabs=%d, HW alignment=%d, "
--		"Processors=%d, Nodes=%d\n",
-+	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
-+		" Processors=%d, Nodes=%d\n",
- 		KMALLOC_SHIFT_HIGH, L1_CACHE_BYTES,
-+		slub_min_order, slub_max_order, slub_min_objects,
- 		nr_cpu_ids, nr_node_ids);
+-		free_list(s, n, &n->partial);
++		n->nr_partial -= free_list(s, n, &n->partial);
+ 		if (atomic_long_read(&n->nr_slabs))
+ 			return 1;
+ 	}
+@@ -2200,6 +2210,79 @@ void kfree(const void *x)
  }
+ EXPORT_SYMBOL(kfree);
  
++/*
++ *  kmem_cache_shrink removes empty slabs from the partial lists
++ *  and then sorts the partially allocated slabs by the number
++ *  of items in use. The slabs with the most items in use
++ *  come first. New allocations will remove these from the
++ *  partial list because they are full. The slabs with the
++ *  least items are placed last. If it happens that the objects
++ *  are freed then the page can be returned to the page allocator.
++ */
++int kmem_cache_shrink(struct kmem_cache *s)
++{
++	int node;
++	int i;
++	struct kmem_cache_node *n;
++	struct page *page;
++	struct page *t;
++	struct list_head *slabs_by_inuse =
++		kmalloc(sizeof(struct list_head) * s->objects, GFP_KERNEL);
++	unsigned long flags;
++
++	if (!slabs_by_inuse)
++		return -ENOMEM;
++
++	flush_all(s);
++	for_each_online_node(node) {
++		n = get_node(s, node);
++
++		if (n->nr_partial <= MIN_PARTIAL)
++			continue;
++
++		for (i = 0; i < s->objects; i++)
++			INIT_LIST_HEAD(slabs_by_inuse + i);
++
++		spin_lock_irqsave(&n->list_lock, flags);
++
++		/*
++		 * Build lists indexed by the items in use in
++		 * each slab or free slabs if empty.
++		 *
++		 * Note that concurrent frees may occur while
++		 * we hold the list_lock. page->inuse here is
++		 * the upper limit.
++		 */
++		list_for_each_entry_safe(page, t, &n->partial, lru) {
++			if (!page->inuse) {
++				list_del(&page->lru);
++				n->nr_partial--;
++				discard_slab(s, page);
++			} else
++			if (n->nr_partial > MAX_PARTIAL)
++				list_move(&page->lru,
++					slabs_by_inuse + page->inuse);
++		}
++
++		if (n->nr_partial <= MAX_PARTIAL)
++			goto out;
++
++		/*
++		 * Rebuild the partial list with the slabs filled up
++		 * most first and the least used slabs at the end.
++		 */
++		for (i = s->objects - 1; i > 0; i--)
++			list_splice(slabs_by_inuse + i, n->partial.prev);
++
++	out:
++		spin_unlock_irqrestore(&n->list_lock, flags);
++	}
++
++	kfree(slabs_by_inuse);
++	return 0;
++}
++EXPORT_SYMBOL(kmem_cache_shrink);
++
+ /**
+  * krealloc - reallocate memory. The contents will remain unchanged.
+  *
+@@ -2444,17 +2527,6 @@ static struct notifier_block __cpuinitda
+ 
+ #endif
+ 
+-/***************************************************************
+- *	Compatiblility definitions
+- **************************************************************/
+-
+-int kmem_cache_shrink(struct kmem_cache *s)
+-{
+-	flush_all(s);
+-	return 0;
+-}
+-EXPORT_SYMBOL(kmem_cache_shrink);
+-
+ #ifdef CONFIG_NUMA
+ 
+ /*****************************************************************
+@@ -3228,6 +3300,25 @@ static ssize_t validate_store(struct kme
+ }
+ SLAB_ATTR(validate);
+ 
++static ssize_t shrink_show(struct kmem_cache *s, char *buf)
++{
++	return 0;
++}
++
++static ssize_t shrink_store(struct kmem_cache *s,
++			const char *buf, size_t length)
++{
++	if (buf[0] == '1') {
++		int rc = kmem_cache_shrink(s);
++
++		if (rc)
++			return rc;
++	} else
++		return -EINVAL;
++	return length;
++}
++SLAB_ATTR(shrink);
++
+ static ssize_t alloc_calls_show(struct kmem_cache *s, char *buf)
+ {
+ 	if (!(s->flags & SLAB_STORE_USER))
+@@ -3284,6 +3375,7 @@ static struct attribute * slab_attrs[] =
+ 	&poison_attr.attr,
+ 	&store_user_attr.attr,
+ 	&validate_attr.attr,
++	&shrink_attr.attr,
+ 	&alloc_calls_attr.attr,
+ 	&free_calls_attr.attr,
+ #ifdef CONFIG_ZONE_DMA
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
