@@ -1,79 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:11:04 -0700
-Message-ID: <200704270811.l3R8B4Te022956@shell0.pdx.osdl.net>
+Subject: - mm-merge-nopfn-into-fault-fix.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:11:33 -0700
+Message-ID: <200704270811.l3R8BXdi022967@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35149 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39744 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755485AbXD0ILJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755495AbXD0ILf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:11:09 -0400
+	Fri, 27 Apr 2007 04:11:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy
+     mm-merge-nopfn-into-fault-fix
 has been removed from the -mm tree.  Its filename was
-     mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+     mm-merge-nopfn-into-fault-fix.patch
 
-This patch was dropped because it was folded into mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+This patch was dropped because it was folded into mm-merge-nopfn-into-fault.patch
 
 ------------------------------------------------------
-Subject: mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy
+Subject: mm-merge-nopfn-into-fault-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Nick Piggin <npiggin@suse.de>
+drivers/char/mspec.c: In function `mspec_fault':
+drivers/char/mspec.c:195: error: structure has no member named `vma'
+drivers/char/mspec.c:229: error: structure has no member named `vma'
+drivers/char/mspec.c: At top level:
+drivers/char/mspec.c:237: warning: initialization from incompatible pointer type
+
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ drivers/char/mspec.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy include/linux/mm.h
---- a/include/linux/mm.h~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy
-+++ a/include/linux/mm.h
-@@ -216,7 +216,6 @@ struct fault_data {
- 	unsigned long address;
- 	pgoff_t pgoff;
- 	unsigned int flags;
--
- 	int type;
- };
+diff -puN drivers/char/mspec.c~mm-merge-nopfn-into-fault-fix drivers/char/mspec.c
+--- a/drivers/char/mspec.c~mm-merge-nopfn-into-fault-fix
++++ a/drivers/char/mspec.c
+@@ -187,12 +187,12 @@ mspec_close(struct vm_area_struct *vma)
+  * Creates a mspec page and maps it to user space.
+  */
+ static struct page *
+-mspec_fault(struct fault_data *fdata)
++mspec_fault(struct vm_area_struct *vma, struct fault_data *fdata)
+ {
+ 	unsigned long paddr, maddr;
+ 	unsigned long pfn;
+ 	int index = fdata->pgoff;
+-	struct vma_data *vdata = fdata->vma->vm_private_data;
++	struct vma_data *vdata = vma->vm_private_data;
  
-@@ -228,10 +227,15 @@ struct fault_data {
- struct vm_operations_struct {
- 	void (*open)(struct vm_area_struct * area);
- 	void (*close)(struct vm_area_struct * area);
--	struct page * (*fault)(struct vm_area_struct *vma, struct fault_data * fdata);
--	struct page * (*nopage)(struct vm_area_struct * area, unsigned long address, int *type);
--	unsigned long (*nopfn)(struct vm_area_struct * area, unsigned long address);
--	int (*populate)(struct vm_area_struct * area, unsigned long address, unsigned long len, pgprot_t prot, unsigned long pgoff, int nonblock);
-+	struct page *(*fault)(struct vm_area_struct *vma,
-+			struct fault_data *fdata);
-+	struct page *(*nopage)(struct vm_area_struct *area,
-+			unsigned long address, int *type);
-+	unsigned long (*nopfn)(struct vm_area_struct *area,
-+			unsigned long address);
-+	int (*populate)(struct vm_area_struct *area, unsigned long address,
-+			unsigned long len, pgprot_t prot, unsigned long pgoff,
-+			int nonblock);
+ 	maddr = (volatile unsigned long) vdata->maddr[index];
+ 	if (maddr == 0) {
+@@ -226,7 +226,7 @@ mspec_fault(struct fault_data *fdata)
+ 	 * be because another thread has installed the pte first, so it
+ 	 * is no problem.
+ 	 */
+-	vm_insert_pfn(fdata->vma, fdata->address, pfn);
++	vm_insert_pfn(vma, fdata->address, pfn);
  
- 	/* notification that a previously read-only page is about to become
- 	 * writable, if an error is returned it will cause a SIGBUS */
-@@ -1107,8 +1111,8 @@ extern void truncate_inode_pages_range(s
- 
- /* generic vm_area_ops exported for stackable file systems */
- extern struct page *filemap_fault(struct vm_area_struct *, struct fault_data *);
--extern struct page * __deprecated_for_modules filemap_nopage(
--			struct vm_area_struct *, unsigned long, int *);
-+extern struct page * __deprecated_for_modules
-+filemap_nopage(struct vm_area_struct *, unsigned long, int *);
- extern int __deprecated_for_modules filemap_populate(struct vm_area_struct *,
- 		unsigned long, unsigned long, pgprot_t, unsigned long, int);
- 
+ 	return NULL;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -154,7 +145,7 @@ x86_64-unexport-cpu_llc_id.patch
 xfs-clean-up-shrinker-games.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-tidy.patch
+mm-merge-nopfn-into-fault.patch
 mm-merge-nopfn-into-fault-fix.patch
 i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung-fix.patch
 smaps-add-clear_refs-file-to-clear-reference-fix.patch
