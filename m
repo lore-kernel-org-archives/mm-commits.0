@@ -1,53 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-add-checks-for-interrupts-disabled.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:22:09 -0700
-Message-ID: <200704270822.l3R8M9Gt023296@shell0.pdx.osdl.net>
+Subject: - slub-core-explain-the-64k-limits.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:22:03 -0700
+Message-ID: <200704270822.l3R8M3G0023287@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41394 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755556AbXD0IWM (ORCPT
+	by vger.kernel.org with ESMTP id S1755548AbXD0IWG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:22:12 -0400
+	Fri, 27 Apr 2007 04:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: add checks for interrupts disabled
+     SLUB: Explain the 64k limits
 has been removed from the -mm tree.  Its filename was
-     slub-core-add-checks-for-interrupts-disabled.patch
+     slub-core-explain-the-64k-limits.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: add checks for interrupts disabled
+Subject: SLUB: Explain the 64k limits
 From: Christoph Lameter <clameter@sgi.com>
 
-This only adds interrupt disabled checks to code paths taken if debugging
-is on.  I want to avoid constant checks in hot paths (like in SLAB). 
-VM_BUG_ON may be enabled by distributors who want to play it safe.
+Note that these limits could now be removed since we no longer use
+page->private for compound pages.  But I think this is fine for now.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 ++
- 1 files changed, 2 insertions(+)
+ mm/slub.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-core-add-checks-for-interrupts-disabled mm/slub.c
---- a/mm/slub.c~slub-core-add-checks-for-interrupts-disabled
+diff -puN mm/slub.c~slub-core-explain-the-64k-limits mm/slub.c
+--- a/mm/slub.c~slub-core-explain-the-64k-limits
 +++ a/mm/slub.c
-@@ -537,6 +537,8 @@ static int check_object(struct kmem_cach
+@@ -1571,6 +1571,12 @@ static int calculate_sizes(struct kmem_c
+ 		return 0;
  
- static int check_slab(struct kmem_cache *s, struct page *page)
- {
-+	VM_BUG_ON(!irqs_disabled());
+ 	s->objects = (PAGE_SIZE << s->order) / size;
 +
- 	if (!PageSlab(page)) {
- 		printk(KERN_ERR "SLUB: %s Not a valid slab page @0x%p "
- 			"flags=%lx mapping=0x%p count=%d \n",
++	/*
++	 * Verify that the number of objects is within permitted limits.
++	 * The page->inuse field is only 16 bit wide! So we cannot have
++	 * more than 64k objects per slab.
++	 */
+ 	if (!s->objects || s->objects > 65535)
+ 		return 0;
+ 	return 1;
+@@ -1593,9 +1599,23 @@ static int kmem_cache_open(struct kmem_c
+ 
+ 	BUG_ON(flags & SLUB_UNIMPLEMENTED);
+ 
+-	if (s->size >= 65535 * sizeof(void *))
++	/*
++	 * The page->offset field is only 16 bit wide. This is an offset
++	 * in units of words from the beginning of an object. If the slab
++	 * size is bigger then we cannot move the free pointer behind the
++	 * object anymore.
++	 *
++	 * On 32 bit platforms the limit is 256k. On 64bit platforms
++	 * the limit is 512k.
++	 *
++	 * Debugging or ctor/dtors may create a need to move the free
++	 * pointer. Fail if this happens.
++	 */
++	if (s->size >= 65535 * sizeof(void *)) {
+ 		BUG_ON(flags & (SLAB_RED_ZONE | SLAB_POISON |
+ 				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
++		BUG_ON(ctor || dtor);
++	}
+ 	else
+ 		/*
+ 		 * Enable debugging if selected on the kernel commandline.
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -65,6 +93,9 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-core-explain-the-64k-limits.patch
+slub-core-explain-sizing-of-slabs-in-detail.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
 slub-core-add-checks-for-interrupts-disabled.patch
 slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
 slub-core-missing-inlines-and-statics.patch
