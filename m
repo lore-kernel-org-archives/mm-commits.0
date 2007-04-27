@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-set-node_possible_map-at-runtime-try-2.patch added to -mm tree
-Date: Fri, 27 Apr 2007 16:34:30 -0700
-Message-ID: <200704272334.l3RNYUSK010698@shell0.pdx.osdl.net>
+Subject: + rtc-cmos-make-it-load-on-pnpbios-systems.patch added to -mm tree
+Date: Fri, 27 Apr 2007 16:49:32 -0700
+Message-ID: <200704272349.l3RNncxX010924@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33836 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47383 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757903AbXD0XfU (ORCPT
+	by vger.kernel.org with ESMTP id S1757913AbXD0Xtx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 19:35:20 -0400
+	Fri, 27 Apr 2007 19:49:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suresh.b.siddha@intel.com, andi@firstfloor.org, clameter@engr.sgi.com, dada1@cosmosbay.com, mel@csn.ul.ie, rientjes@google.com
+Cc: mvrh@freeshells.ch, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     x86_64: set node_possible_map at runtime
+     rtc-cmos: make it load on PNPBIOS systems
 has been added to the -mm tree.  Its filename is
-     x86_64-set-node_possible_map-at-runtime-try-2.patch
+     rtc-cmos-make-it-load-on-pnpbios-systems.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,158 +26,91 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: set node_possible_map at runtime
-From: Suresh Siddha <suresh.b.siddha@intel.com>
+Subject: rtc-cmos: make it load on PNPBIOS systems
+From: Marko Vrh <mvrh@freeshells.ch>
 
-Set the node_possible_map at runtime on x86_64.  On a non NUMA system,
-num_possible_nodes() will now say '1'.
+Replace CONFIG_PNPACPI with CONFIG_PNP, so it loads on ACPI-less PNPBIOS
+systems.
 
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Marko Vrh <mvrh@freeshells.ch>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/k8topology.c |    7 ++-----
- arch/x86_64/mm/numa.c       |   10 ++++++++--
- arch/x86_64/mm/srat.c       |    8 +++++---
- 3 files changed, 15 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-cmos.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86_64/mm/k8topology.c~x86_64-set-node_possible_map-at-runtime-try-2 arch/x86_64/mm/k8topology.c
---- a/arch/x86_64/mm/k8topology.c~x86_64-set-node_possible_map-at-runtime-try-2
-+++ a/arch/x86_64/mm/k8topology.c
-@@ -49,11 +49,8 @@ int __init k8_scan_nodes(unsigned long s
- 	int found = 0;
- 	u32 reg;
- 	unsigned numnodes;
--	nodemask_t nodes_parsed;
- 	unsigned dualcore = 0;
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-make-it-load-on-pnpbios-systems drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-make-it-load-on-pnpbios-systems
++++ a/drivers/rtc/rtc-cmos.c
+@@ -383,12 +383,12 @@ static irqreturn_t cmos_interrupt(int ir
+ 		return IRQ_NONE;
+ }
  
--	nodes_clear(nodes_parsed);
--
- 	if (!early_pci_allowed())
- 		return -1;
+-#ifdef	CONFIG_PNPACPI
+-#define	is_pnpacpi()	1
++#ifdef	CONFIG_PNP
++#define	is_pnp()	1
+ #define	INITSECTION
  
-@@ -102,7 +99,7 @@ int __init k8_scan_nodes(unsigned long s
- 			       nodeid, (base>>8)&3, (limit>>8) & 3); 
- 			return -1; 
- 		}	
--		if (node_isset(nodeid, nodes_parsed)) { 
-+		if (node_isset(nodeid, node_possible_map)) {
- 			printk(KERN_INFO "Node %d already present. Skipping\n", 
- 			       nodeid);
- 			continue;
-@@ -155,7 +152,7 @@ int __init k8_scan_nodes(unsigned long s
+ #else
+-#define	is_pnpacpi()	0
++#define	is_pnp()	0
+ #define	INITSECTION	__init
+ #endif
  
- 		prevbase = base;
- 
--		node_set(nodeid, nodes_parsed);
-+		node_set(nodeid, node_possible_map);
- 	} 
- 
- 	if (!found)
-diff -puN arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime-try-2 arch/x86_64/mm/numa.c
---- a/arch/x86_64/mm/numa.c~x86_64-set-node_possible_map-at-runtime-try-2
-+++ a/arch/x86_64/mm/numa.c
-@@ -295,7 +295,7 @@ static int __init setup_node_range(int n
- 		ret = -1;
- 	}
- 	nodes[nid].end = *addr;
--	node_set_online(nid);
-+	node_set(nid, node_possible_map);
- 	printk(KERN_INFO "Faking node %d at %016Lx-%016Lx (%LuMB)\n", nid,
- 	       nodes[nid].start, nodes[nid].end,
- 	       (nodes[nid].end - nodes[nid].start) >> 20);
-@@ -479,7 +479,7 @@ out:
- 	 * SRAT.
+@@ -438,7 +438,7 @@ cmos_do_probe(struct device *dev, struct
+ 	 * REVISIT for non-x86 systems we may need to handle io memory
+ 	 * resources: ioremap them, and request_mem_region().
  	 */
- 	remove_all_active_ranges();
--	for_each_online_node(i) {
-+	for_each_node_mask(i, node_possible_map) {
- 		e820_register_active_regions(i, nodes[i].start >> PAGE_SHIFT,
- 						nodes[i].end >> PAGE_SHIFT);
-  		setup_node_bootmem(i, nodes[i].start, nodes[i].end);
-@@ -494,20 +494,25 @@ void __init numa_initmem_init(unsigned l
- { 
- 	int i;
+-	if (is_pnpacpi()) {
++	if (is_pnp()) {
+ 		retval = request_resource(&ioport_resource, ports);
+ 		if (retval < 0) {
+ 			dev_dbg(dev, "i/o registers already in use\n");
+@@ -531,7 +531,7 @@ static void __exit cmos_do_remove(struct
  
-+	nodes_clear(node_possible_map);
-+
- #ifdef CONFIG_NUMA_EMU
- 	if (cmdline && !numa_emulation(start_pfn, end_pfn))
-  		return;
-+	nodes_clear(node_possible_map);
- #endif
+ 	cmos_do_shutdown();
  
- #ifdef CONFIG_ACPI_NUMA
- 	if (!numa_off && !acpi_scan_nodes(start_pfn << PAGE_SHIFT,
- 					  end_pfn << PAGE_SHIFT))
-  		return;
-+	nodes_clear(node_possible_map);
- #endif
+-	if (is_pnpacpi())
++	if (is_pnp())
+ 		release_resource(cmos->iomem);
+ 	rename_region(cmos->iomem, NULL);
  
- #ifdef CONFIG_K8_NUMA
- 	if (!numa_off && !k8_scan_nodes(start_pfn<<PAGE_SHIFT, end_pfn<<PAGE_SHIFT))
- 		return;
-+	nodes_clear(node_possible_map);
- #endif
- 	printk(KERN_INFO "%s\n",
- 	       numa_off ? "NUMA turned off" : "No NUMA configuration found");
-@@ -521,6 +526,7 @@ void __init numa_initmem_init(unsigned l
- 	memnodemap[0] = 0;
- 	nodes_clear(node_online_map);
- 	node_set_online(0);
-+	node_set(0, node_possible_map);
- 	for (i = 0; i < NR_CPUS; i++)
- 		numa_set_node(i, 0);
- 	node_to_cpumask[0] = cpumask_of_cpu(0);
-diff -puN arch/x86_64/mm/srat.c~x86_64-set-node_possible_map-at-runtime-try-2 arch/x86_64/mm/srat.c
---- a/arch/x86_64/mm/srat.c~x86_64-set-node_possible_map-at-runtime-try-2
-+++ a/arch/x86_64/mm/srat.c
-@@ -419,19 +419,21 @@ int __init acpi_scan_nodes(unsigned long
- 		return -1;
- 	}
+@@ -630,7 +630,7 @@ static int cmos_resume(struct device *de
+  * the device node will always be created as a PNPACPI device.
+  */
  
-+	node_possible_map = nodes_parsed;
-+
- 	/* Finally register nodes */
--	for_each_node_mask(i, nodes_parsed)
-+	for_each_node_mask(i, node_possible_map)
- 		setup_node_bootmem(i, nodes[i].start, nodes[i].end);
- 	/* Try again in case setup_node_bootmem missed one due
- 	   to missing bootmem */
--	for_each_node_mask(i, nodes_parsed)
-+	for_each_node_mask(i, node_possible_map)
- 		if (!node_online(i))
- 			setup_node_bootmem(i, nodes[i].start, nodes[i].end);
+-#ifdef	CONFIG_PNPACPI
++#ifdef	CONFIG_PNP
  
- 	for (i = 0; i < NR_CPUS; i++) {
- 		if (cpu_to_node[i] == NUMA_NO_NODE)
- 			continue;
--		if (!node_isset(cpu_to_node[i], nodes_parsed))
-+		if (!node_isset(cpu_to_node[i], node_possible_map))
- 			numa_set_node(i, NUMA_NO_NODE);
- 	}
- 	numa_init_array();
+ #include <linux/pnp.h>
+ 
+@@ -701,11 +701,11 @@ static void __exit cmos_exit(void)
+ }
+ module_exit(cmos_exit);
+ 
+-#else	/* no PNPACPI */
++#else	/* no PNP */
+ 
+ /*----------------------------------------------------------------*/
+ 
+-/* Platform setup should have set up an RTC device, when PNPACPI is
++/* Platform setup should have set up an RTC device, when PNP is
+  * unavailable ... this could happen even on (older) PCs.
+  */
+ 
+@@ -751,7 +751,7 @@ static void __exit cmos_exit(void)
+ module_exit(cmos_exit);
+ 
+ 
+-#endif	/* !PNPACPI */
++#endif	/* !PNP */
+ 
+ MODULE_AUTHOR("David Brownell");
+ MODULE_DESCRIPTION("Driver for PC-style 'CMOS' RTCs");
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from mvrh@freeshells.ch are
 
-slab-x86_64-skip-cache_free_alien-on-non-numa.patch
-x86_64-set-node_possible_map-at-runtime-try-2.patch
-pad-irq_desc-to-internode-cacheline-size.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-fix-idle-load-balancing-in-softirqd-context-fix.patch
-sched-dynticks-idle-load-balancing-v3.patch
-sched-optimize-siblings-status-check-logic-in-wake_idle.patch
-sched-align-rq-to-cacheline-boundary.patch
-sched-dont-renice-kernel-threads.patch
-sched-remove-sleepavg-from-proc.patch
-sched-implement-staircase-deadline-cpu-scheduler.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
-sched-remove-noninteractive-flag.patch
-sched-document-sd-cpu-scheduler.patch
+rtc-cmos-make-it-load-on-pnpbios-systems.patch
