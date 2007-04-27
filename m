@@ -1,114 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:22:18 -0700
-Message-ID: <200704270822.l3R8MIMG023314@shell0.pdx.osdl.net>
+Subject: - slub-core-fix-sysfs-directory-handling.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:22:37 -0700
+Message-ID: <200704270822.l3R8MbYv023341@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41792 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755563AbXD0IWV (ORCPT
+	by vger.kernel.org with ESMTP id S1755555AbXD0IWk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:22:21 -0400
+	Fri, 27 Apr 2007 04:22:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Extract finish_bootstrap function for clean !SYSFS boot
+     SLUB: Fix sysfs directory handling
 has been removed from the -mm tree.  Its filename was
-     slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
+     slub-core-fix-sysfs-directory-handling.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: Extract finish_bootstrap function for clean !SYSFS boot
+Subject: SLUB: Fix sysfs directory handling
 From: Christoph Lameter <clameter@sgi.com>
 
-Extract finish_bootstrap function from slab_sysfs_init.  We can call that
-function also if we do not have sysfs defined.  This enables embedded SMP
-systems to have the periodic 30 second check for unused per cpu slabs.
+This fixes the problem that SLUB does not track the names of aliased
+slabs by changing the way that SLUB manages the files in /sys/slab.
+
+If the slab that is being operated on is not mergeable (usually the
+case if we are debugging) then do not create any aliases. If an alias
+exists that we conflict with then remove it before creating the
+directory for the unmergeable slab. If there is a true slab cache there
+and not an alias then we fail since there is a true duplication of
+slab cache names. So debugging allows the detection of slab name
+duplication as usual.
+
+If the slab is mergeable then we create a directory with a unique name
+created from the slab size, slab options and the pointer to the kmem_cache
+structure (disambiguation). All names referring to the slabs will
+then be created as symlinks to that unique name. These symlinks are
+not going to be removed on kmem_cache_destroy() since we only carry
+a counter for the number of aliases. If a new symlink is created
+then it may just replace an existing one. This means that one can create
+a gazillion slabs with the same name (if they all refer to mergeable
+caches). It will only increase the alias count. So we have the potential
+of not detecting duplicate slab names (there is actually no harm
+done by doing that....). We will detect the duplications as
+as soon as debugging is enabled because we will then no longer
+generate symlinks and special unique names.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   44 +++++++++++++++++++++++++++-----------------
- 1 files changed, 27 insertions(+), 17 deletions(-)
+ mm/slub.c |   65 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 63 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-extract-finish_bootstrap-function-for-clean-sysfs-boot mm/slub.c
---- a/mm/slub.c~slub-extract-finish_bootstrap-function-for-clean-sysfs-boot
+diff -puN mm/slub.c~slub-core-fix-sysfs-directory-handling mm/slub.c
+--- a/mm/slub.c~slub-core-fix-sysfs-directory-handling
 +++ a/mm/slub.c
-@@ -1631,6 +1631,30 @@ static int calculate_sizes(struct kmem_c
+@@ -3021,16 +3021,68 @@ static struct kset_uevent_ops slab_ueven
  
- }
+ decl_subsys(slab, &slab_ktype, &slab_uevent_ops);
  
-+static int __init finish_bootstrap(void)
++#define ID_STR_LENGTH 64
++
++/* Create a unique string id for a slab cache:
++ * format
++ * :[flags-]size:[memory address of kmemcache]
++ */
++static char *create_unique_id(struct kmem_cache *s)
 +{
-+	struct list_head *h;
-+	int err;
++	char *name = kmalloc(ID_STR_LENGTH, GFP_KERNEL);
++	char *p = name;
 +
-+	slab_state = SYSFS;
++	BUG_ON(!name);
 +
-+	list_for_each(h, &slab_caches) {
-+		struct kmem_cache *s =
-+			container_of(h, struct kmem_cache, list);
-+
-+		err = sysfs_slab_add(s);
-+		BUG_ON(err);
-+		/*
-+		 * Start the periodic checks for inactive cpu slabs.
-+		 * flush_all() will zero s->cpu_slabs which will cause
-+		 * any allocation of a new cpu slab to schedule an event
-+		 * via keventd to watch for inactive cpu slabs.
-+		 */
-+		flush_all(s);
-+	}
-+	return 0;
++	*p++ = ':';
++	/*
++	 * First flags affecting slabcache operations */
++	if (s->flags & SLAB_CACHE_DMA)
++		*p++ = 'd';
++	if (s->flags & SLAB_RECLAIM_ACCOUNT)
++		*p++ = 'a';
++	if (s->flags & SLAB_DESTROY_BY_RCU)
++		*p++ = 'r';\
++	/* Debug flags */
++	if (s->flags & SLAB_RED_ZONE)
++		*p++ = 'Z';
++	if (s->flags & SLAB_POISON)
++		*p++ = 'P';
++	if (s->flags & SLAB_STORE_USER)
++		*p++ = 'U';
++	if (p != name + 1)
++		*p++ = '-';
++	p += sprintf(p,"%07d:0x%p" ,s->size, s);
++	BUG_ON(p > name + ID_STR_LENGTH - 1);
++	return name;
 +}
 +
- static int kmem_cache_open(struct kmem_cache *s, gfp_t gfpflags,
- 		const char *name, size_t size,
- 		size_t align, unsigned long flags,
-@@ -2942,7 +2966,6 @@ static int sysfs_slab_alias(struct kmem_
- int __init slab_sysfs_init(void)
+ static int sysfs_slab_add(struct kmem_cache *s)
  {
  	int err;
--	struct list_head *h;
++	const char *name;
  
- 	err = subsystem_register(&slab_subsys);
- 	if (err) {
-@@ -2950,22 +2973,7 @@ int __init slab_sysfs_init(void)
- 		return -ENOSYS;
- 	}
+ 	if (slab_state < SYSFS)
+ 		/* Defer until later */
+ 		return 0;
  
--	slab_state = SYSFS;
--
--	list_for_each(h, &slab_caches) {
--		struct kmem_cache *s =
--			container_of(h, struct kmem_cache, list);
--
--		err = sysfs_slab_add(s);
--		BUG_ON(err);
--		/*
--		 * Start the periodic checks for inactive cpu slabs.
--		 * flush_all() will zero s->cpu_slabs which will cause
--		 * any allocation of a new cpu slab to schedule an event
--		 * via keventd to watch for inactive cpu slabs.
--		 */
--		flush_all(s);
--	}
-+	finish_bootstrap();
- 
- 	while (alias_list) {
- 		struct saved_alias *al = alias_list;
-@@ -2980,4 +2988,6 @@ int __init slab_sysfs_init(void)
++	if (s->flags & SLUB_NEVER_MERGE) {
++		/*
++		 * Slabcache can never be merged so we can use the name proper.
++		 * This is typically the case for debug situations. In that
++		 * case we can catch duplicate names easily.
++		 */
++		sysfs_remove_link(&slab_subsys.kset.kobj, s->name);
++		name = s->name;
++	} else
++		/*
++		 * Create a unique name for the slab as a target
++		 * for the symlinks.
++		 */
++		name = create_unique_id(s);
++
+ 	kobj_set_kset_s(s, slab_subsys);
+-	kobject_set_name(&s->kobj, s->name);
++	kobject_set_name(&s->kobj, name);
+ 	kobject_init(&s->kobj);
+ 	err = kobject_add(&s->kobj);
+ 	if (err)
+@@ -3040,6 +3092,10 @@ static int sysfs_slab_add(struct kmem_ca
+ 	if (err)
+ 		return err;
+ 	kobject_uevent(&s->kobj, KOBJ_ADD);
++	if (!(s->flags & SLUB_NEVER_MERGE)) {
++		sysfs_slab_alias(s, s->name);
++		kfree(name);
++	}
+ 	return 0;
  }
  
- __initcall(slab_sysfs_init);
-+#else
-+__initcall(finish_bootstrap);
- #endif
+@@ -3065,9 +3121,14 @@ static int sysfs_slab_alias(struct kmem_
+ {
+ 	struct saved_alias *al;
+ 
+-	if (slab_state == SYSFS)
++	if (slab_state == SYSFS) {
++		/*
++		 * If we have a leftover link then remove it.
++		 */
++		sysfs_remove_link(&slab_subsys.kset.kobj, name);
+ 		return sysfs_create_link(&slab_subsys.kset.kobj,
+ 						&s->kobj, name);
++	}
+ 
+ 	al = kmalloc(sizeof(struct saved_alias), GFP_KERNEL);
+ 	if (!al)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -126,14 +174,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
-slub-core-fix-kmem_cache_destroy.patch
-slub-core-fix-validation.patch
-slub-core-add-after-object-padding.patch
-slub-core-resiliency-fixups.patch
-slub-core-resiliency-fixups-fix.patch
-slub-core-resiliency-test.patch
-slub-core-update-cpu-after-new_slab.patch
 slub-core-fix-sysfs-directory-handling.patch
 slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
 slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
