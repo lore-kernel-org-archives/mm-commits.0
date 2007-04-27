@@ -1,51 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-resiliency-fixups-fix.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:22:30 -0700
-Message-ID: <200704270822.l3R8MUWv023332@shell0.pdx.osdl.net>
+Subject: - slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:22:11 -0700
+Message-ID: <200704270822.l3R8MBmB023299@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54599 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755538AbXD0IWd (ORCPT
+	by vger.kernel.org with ESMTP id S1755557AbXD0IWO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:22:33 -0400
+	Fri, 27 Apr 2007 04:22:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: resiliency fixups fix
+     SLUB: Use __print_symbol instead of kallsyms_lookup
 has been removed from the -mm tree.  Its filename was
-     slub-core-resiliency-fixups-fix.patch
+     slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub: resiliency fixups fix
+Subject: SLUB: Use __print_symbol instead of kallsyms_lookup
 From: Christoph Lameter <clameter@sgi.com>
 
-Eek.
+SLUB contains a complicated section with #ifdef CONFIG_KALLSYSM and yadda
+dadda.  Remove that and replace with __print_symbol.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   20 ++------------------
+ 1 file changed, 2 insertions(+), 18 deletions(-)
 
-diff -puN mm/slub.c~slub-core-resiliency-fixups-fix mm/slub.c
---- a/mm/slub.c~slub-core-resiliency-fixups-fix
+diff -puN mm/slub.c~slub-core-use-__print_symbol-instead-of-kallsyms_lookup mm/slub.c
+--- a/mm/slub.c~slub-core-use-__print_symbol-instead-of-kallsyms_lookup
 +++ a/mm/slub.c
-@@ -572,7 +572,7 @@ static int check_slab(struct kmem_cache 
- 			page,
- 			page->flags,
- 			page->mapping,
--			page_count(page));\
-+			page_count(page));
- 		dump_stack();
- 		return 0;
- 	}
+@@ -296,27 +296,11 @@ static void init_tracking(struct kmem_ca
+ 
+ static void print_track(const char *s, struct track *t)
+ {
+-#ifdef CONFIG_KALLSYMS
+-	char *modname;
+-	const char *name;
+-	unsigned long offset, size;
+-	char namebuf[KSYM_NAME_LEN + 1];
+-#endif
+-
+ 	if (!t->addr)
+ 		return;
+ 
+-#ifdef CONFIG_KALLSYMS
+-	name = kallsyms_lookup((unsigned long)t->addr, &size, &offset,
+-		&modname, namebuf);
+-
+-	if (name) {
+-		printk(KERN_ERR "%s: %s+%#lx/%#lx", s, name, offset, size);
+-		if (modname)
+-			printk(" [%s]", modname);
+-	} else
+-#endif
+-		printk(KERN_ERR "%s: 0x%p", s, t->addr);
++	printk(KERN_ERR "%s: ", s);
++	__print_symbol("%s", (unsigned long)t->addr);
+ 	printk(" jiffies_ago=%lu cpu=%u pid=%d\n", jiffies - t->when, t->cpu, t->pid);
+ }
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -63,6 +85,14 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
+slub-core-missing-inlines-and-statics.patch
+slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
+slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
+slub-core-fix-kmem_cache_destroy.patch
+slub-core-fix-validation.patch
+slub-core-add-after-object-padding.patch
+slub-core-resiliency-fixups.patch
 slub-core-resiliency-fixups-fix.patch
 slub-core-resiliency-test.patch
 slub-core-update-cpu-after-new_slab.patch
