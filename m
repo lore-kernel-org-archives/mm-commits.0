@@ -1,68 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:06:34 -0700
-Message-ID: <200704270806.l3R86Y21022858@shell0.pdx.osdl.net>
+Subject: - add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:07:29 -0700
+Message-ID: <200704270807.l3R87TN8022883@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47721 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47358 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755472AbXD0IHT (ORCPT
+	by vger.kernel.org with ESMTP id S1755476AbXD0IHg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:07:19 -0400
+	Fri, 27 Apr 2007 04:07:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Do not block align PFN when looking up the pageblock PFN
+     Add __GFP_MOVABLE for callers to flag allocations from low memory that may be migrated
 has been removed from the -mm tree.  Its filename was
-     add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
+     add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
 
-This patch was dropped because it was folded into add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+This patch was dropped because it was folded into add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
 
 ------------------------------------------------------
-Subject: Do not block align PFN when looking up the pageblock PFN
+Subject: Add __GFP_MOVABLE for callers to flag allocations from low memory that may be migrated
 From: Mel Gorman <mel@csn.ul.ie>
 
-The pageblock flags store bits representing a MAX_ORDER_NR_PAGES block of
-pages.  When calling get_pageblock_bitmap(), a non-aligned PFN is passed which
-is then aligned to the MAX_ORDER_NR_PAGES block.  This alignment is
-unnecessary.
+This patch flags the allocations from low memory that may be migrated.
 
-This patch should be considered a fix to the patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch .
+A GFP_USER_MOVABLE similar to GFP_HIGH_MOVABLE is not provided in this patch
+because it would only be used once.  This patch uses __GFP_MOVABLE twice for a
+GFP_USER and a GFP_NOIO allocation.  There is little point defining
+GFP_*_MOVABLE for one use unless people feel it would help self-documentation.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ fs/block_dev.c |    2 +-
+ fs/buffer.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix mm/page_alloc.c
---- a/mm/page_alloc.c~add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix
-+++ a/mm/page_alloc.c
-@@ -3432,9 +3432,7 @@ static inline unsigned long *get_pageblo
- 							unsigned long pfn)
- {
- #ifdef CONFIG_SPARSEMEM
--	unsigned long blockpfn;
--	blockpfn = pfn & ~(MAX_ORDER_NR_PAGES - 1);
--	return __pfn_to_section(blockpfn)->pageblock_flags;
-+	return __pfn_to_section(pfn)->pageblock_flags;
- #else
- 	return zone->pageblock_flags;
- #endif /* CONFIG_SPARSEMEM */
+diff -puN fs/block_dev.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated fs/block_dev.c
+--- a/fs/block_dev.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated
++++ a/fs/block_dev.c
+@@ -575,7 +575,7 @@ struct block_device *bdget(dev_t dev)
+ 		inode->i_rdev = dev;
+ 		inode->i_bdev = bdev;
+ 		inode->i_data.a_ops = &def_blk_aops;
+-		mapping_set_gfp_mask(&inode->i_data, GFP_USER);
++		mapping_set_gfp_mask(&inode->i_data, GFP_USER|__GFP_MOVABLE);
+ 		inode->i_data.backing_dev_info = &default_backing_dev_info;
+ 		spin_lock(&bdev_lock);
+ 		list_add(&bdev->bd_list, &all_bdevs);
+diff -puN fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated fs/buffer.c
+--- a/fs/buffer.c~add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated
++++ a/fs/buffer.c
+@@ -2650,7 +2650,7 @@ int submit_bh(int rw, struct buffer_head
+ 	 * from here on down, it's all bio -- do the initial mapping,
+ 	 * submit_bio -> generic_make_request may further map this bio around
+ 	 */
+-	bio = bio_alloc(GFP_NOIO, 1);
++	bio = bio_alloc(GFP_NOIO|__GFP_MOVABLE, 1);
+ 
+ 	bio->bi_sector = bh->b_blocknr * (bh->b_size >> 9);
+ 	bio->bi_bdev = bh->b_bdev;
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
 
 add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages-fix.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-fix.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-low-memory-that-may-be-migrated.patch
 split-the-free-lists-for-movable-and-unmovable-allocations.patch
 choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
