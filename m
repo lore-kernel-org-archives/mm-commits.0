@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-core-printk-cleanup-object_err.patch added to -mm tree
-Date: Fri, 27 Apr 2007 16:20:09 -0700
-Message-ID: <200704272320.l3RNK94M010455@shell0.pdx.osdl.net>
+Subject: + slub-core-printk-cleanup-add-slab_err.patch added to -mm tree
+Date: Fri, 27 Apr 2007 16:20:48 -0700
+Message-ID: <200704272320.l3RNKrgw010461@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42535 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757884AbXD0XUM (ORCPT
+	by vger.kernel.org with ESMTP id S1757891AbXD0XU6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 19:20:12 -0400
+	Fri, 27 Apr 2007 19:20:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB printk cleanup: object_err()
+     SLUB printk cleanup: add slab_err
 has been added to the -mm tree.  Its filename is
-     slub-core-printk-cleanup-object_err.patch
+     slub-core-printk-cleanup-add-slab_err.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB printk cleanup: object_err()
+Subject: SLUB printk cleanup: add slab_err
 From: Christoph Lameter <clameter@sgi.com>
+
+Add a function to report on an error condition in a slab.  This is similar to
+object_err which reports on an error condition in an object.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ mm/slub.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+)
 
-diff -puN mm/slub.c~slub-core-printk-cleanup-object_err mm/slub.c
---- a/mm/slub.c~slub-core-printk-cleanup-object_err
+diff -puN mm/slub.c~slub-core-printk-cleanup-add-slab_err mm/slub.c
+--- a/mm/slub.c~slub-core-printk-cleanup-add-slab_err
 +++ a/mm/slub.c
-@@ -357,8 +357,8 @@ static void object_err(struct kmem_cache
- {
- 	u8 *addr = page_address(page);
+@@ -368,6 +368,19 @@ static void object_err(struct kmem_cache
+ 	dump_stack();
+ }
  
--	printk(KERN_ERR "*** SLUB: %s in %s@0x%p slab 0x%p\n",
--			reason, s->name, object, page);
-+	printk(KERN_ERR "*** SLUB %s: %s@0x%p slab 0x%p\n",
-+			s->name, reason, object, page);
- 	printk(KERN_ERR "    offset=%tu flags=0x%04lx inuse=%u freelist=0x%p\n",
- 		object - addr, page->flags, page->inuse, page->freelist);
- 	if (object > addr + 16)
++static void slab_err(struct kmem_cache *s, struct page *page, char *reason, ...)
++{
++	va_list args;
++	char buf[100];
++
++	va_start(args, reason);
++	vsnprintf(buf, sizeof(buf), reason, args);
++	va_end(args);
++	printk(KERN_ERR "*** SLUB %s: %s in slab @0x%p\n", s->name, buf,
++		page);
++	dump_stack();
++}
++
+ static void init_object(struct kmem_cache *s, void *object, int active)
+ {
+ 	u8 *p = object;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -71,6 +83,7 @@ slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
 slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
 slub-core-sysfs-support-fix-unique-id-generation.patch
 slub-core-printk-cleanup-object_err.patch
+slub-core-printk-cleanup-add-slab_err.patch
 make-page-private-usable-in-compound-pages-v1.patch
 make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
 optimize-compound_head-by-avoiding-a-shared-page.patch
@@ -94,7 +107,6 @@ slub-add-slabinfo-tool.patch
 slub-add-slabinfo-tool-update-slabinfoc.patch
 slub-major-slabinfo-update.patch
 slub-slabinfo-remove-hackname.patch
-slub-printk-cleanup-add-slab_err.patch
 slub-printk-cleanup-diagnostic-functions.patch
 slub-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch
 slub-printk-cleanup-slab-validation-printks.patch
