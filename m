@@ -1,61 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - slub-fix-numa-bootstrap.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:15 -0700
-Message-ID: <200704270821.l3R8LGKS023203@shell0.pdx.osdl.net>
+Subject: - slub-use-correct-flags-to-check-for-dma-cache.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:18 -0700
+Message-ID: <200704270821.l3R8LI3a023208@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34337 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755516AbXD0IVS (ORCPT
+	by vger.kernel.org with ESMTP id S1755518AbXD0IVV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:18 -0400
+	Fri, 27 Apr 2007 04:21:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Fix numa bootstrap
+     SLUB: Use correct flags to check for DMA cache
 has been removed from the -mm tree.  Its filename was
-     slub-fix-numa-bootstrap.patch
+     slub-use-correct-flags-to-check-for-dma-cache.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: Fix numa bootstrap
+Subject: SLUB: Use correct flags to check for DMA cache
 From: Christoph Lameter <clameter@sgi.com>
 
-NUMA bootstrap calls new_slab() if more than one node is found on bootup. 
-new_slab() assumes a standard slab context where interrupts must be
-disabled.  It enables interrupts for the call into the page allocator and
-then disables them again.  Interrupts do not have to be disabled during on
-bootstrap because we still run single threaded there.
+We use a GFP mask to check the SLAB flags if this is a DMA cache.
 
-I dropped the interrupt preservation code just before SLUB v6 because it
-looked useless there.  SLUB worked on the following NUMA tests that just
-had a single node.  Sigh.
-
-Enable interrupts after calling new_slab.
+Fix this by using the correct SLAB mask and then use the SLUB_DMA for the
+ORing of flags.  If the system does not support DMA then we will OR zero
+which will hopefully get the compiler to drop the useless if statement as
+well.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/slub.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-fix-numa-bootstrap mm/slub.c
---- a/mm/slub.c~slub-fix-numa-bootstrap
+diff -puN mm/slub.c~slub-use-correct-flags-to-check-for-dma-cache mm/slub.c
+--- a/mm/slub.c~slub-use-correct-flags-to-check-for-dma-cache
 +++ a/mm/slub.c
-@@ -1436,6 +1436,8 @@ static int init_kmem_cache_nodes(struct 
+@@ -678,8 +678,8 @@ static struct page *allocate_slab(struct
+ 	if (s->order)
+ 		flags |= __GFP_COMP;
  
- 			BUG_ON(s->size < sizeof(struct kmem_cache_node));
- 			page = new_slab(kmalloc_caches, gfpflags, node);
-+			/* new_slab() disables interupts */
-+			local_irq_enable();
+-	if (s->flags & SLUB_DMA)
+-		flags |= GFP_DMA;
++	if (s->flags & SLAB_CACHE_DMA)
++		flags |= SLUB_DMA;
  
- 			BUG_ON(!page);
- 			n = page->freelist;
+ 	if (node == -1)
+ 		page = alloc_pages(flags, s->order);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -73,7 +70,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-fix-numa-bootstrap.patch
 slub-use-correct-flags-to-check-for-dma-cache.patch
 slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
 slub-core-minor-fixes.patch
