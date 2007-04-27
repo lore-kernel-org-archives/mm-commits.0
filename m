@@ -1,82 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-minor-fixes.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 01:21:23 -0700
-Message-ID: <200704270821.l3R8LNDj023214@shell0.pdx.osdl.net>
+Subject: - slub-core-fix-object-counting.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 01:21:29 -0700
+Message-ID: <200704270821.l3R8LTPB023223@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38705 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755520AbXD0IV0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755521AbXD0IVc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 04:21:26 -0400
+	Fri, 27 Apr 2007 04:21:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: minor fixes
+     slub: fix object counting
 has been removed from the -mm tree.  Its filename was
-     slub-core-minor-fixes.patch
+     slub-core-fix-object-counting.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: slub: minor fixes
+Subject: slub: fix object counting
 From: Christoph Lameter <clameter@sgi.com>
 
-1. Correct spelling
-
-2. Partial pages should go to the front of the partial list since they are
-   cache hot.
-
-3. Remove stray printk.
+Object counting did not take into account that the number of full slabs is the
+total number of slabs - number of partial - number of cpu slabs.  As a results
+the counts were off a bit.  This issue surfaced when slab validation was
+implemented.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/slub.c |   61 ++++++++++++++++++++++++++++------------------------
+ 1 files changed, 34 insertions(+), 27 deletions(-)
 
-diff -puN mm/slub.c~slub-core-minor-fixes mm/slub.c
---- a/mm/slub.c~slub-core-minor-fixes
+diff -puN mm/slub.c~slub-core-fix-object-counting mm/slub.c
+--- a/mm/slub.c~slub-core-fix-object-counting
 +++ a/mm/slub.c
-@@ -277,7 +277,7 @@ static void print_track(const char *s, s
- 	} else
- #endif
- 		printk(KERN_ERR "%s: 0x%p", s, t->addr);
--	printk(" jiffies since=%lu cpu=%u pid=%d\n", jiffies - t->when, t->cpu, t->pid);
-+	printk(" jiffies_ago=%lu cpu=%u pid=%d\n", jiffies - t->when, t->cpu, t->pid);
- }
+@@ -2348,23 +2348,34 @@ static unsigned long slab_objects(struct
+ 	int node;
+ 	int x;
+ 	unsigned long *nodes;
++	unsigned long *per_cpu;
  
- static void print_trailer(struct kmem_cache *s, u8 *p)
-@@ -579,7 +579,7 @@ static int alloc_object_checks(struct km
- 		goto bad;
+-	nodes = kmalloc(sizeof(unsigned long) * nr_node_ids, GFP_KERNEL);
++	nodes = kzalloc(2 * sizeof(unsigned long) * nr_node_ids, GFP_KERNEL);
++	per_cpu = nodes + nr_node_ids;
++
++	for_each_possible_cpu(cpu) {
++		struct page *page = s->cpu_slab[cpu];
++		int node;
++
++		if (page) {
++			node = page_to_nid(page);
++			if (flags & SO_CPU) {
++				int x = 0;
++
++				if (flags & SO_OBJECTS)
++					x = page->inuse;
++				else
++					x = 1;
++				total += x;
++				nodes[node] += x;
++			}
++			per_cpu[node]++;
++		}
++	}
  
- 	if (object && !on_freelist(s, page, object)) {
--		printk(KERN_ERR "SLAB: %s Object 0x%p@0x%p "
-+		printk(KERN_ERR "SLUB: %s Object 0x%p@0x%p "
- 			"already allocated.\n",
- 			s->name, object, page);
- 		goto dump;
-@@ -862,7 +862,7 @@ static void add_partial(struct kmem_cach
+ 	for_each_online_node(node) {
+ 		struct kmem_cache_node *n = get_node(s, node);
  
- 	spin_lock(&n->list_lock);
- 	n->nr_partial++;
--	list_add_tail(&page->lru, &n->partial);
-+	list_add(&page->lru, &n->partial);
- 	spin_unlock(&n->list_lock);
- }
+-		nodes[node] = 0;
+-
+-		if (flags & SO_FULL) {
+-			if (flags & SO_OBJECTS)
+-				x = atomic_read(&n->nr_slabs)
+-						* s->objects;
+-			else
+-				x = atomic_read(&n->nr_slabs);
+-			total += x;
+-			nodes[node] += x;
+-		}
+ 		if (flags & SO_PARTIAL) {
+ 			if (flags & SO_OBJECTS)
+ 				x = count_partial(n);
+@@ -2373,24 +2384,20 @@ static unsigned long slab_objects(struct
+ 			total += x;
+ 			nodes[node] += x;
+ 		}
+-	}
+-
+-	if (flags & SO_CPU)
+-		for_each_possible_cpu(cpu) {
+-			struct page *page = s->cpu_slab[cpu];
  
-@@ -2520,7 +2520,6 @@ static ssize_t trace_store(struct kmem_c
- 							size_t length)
- {
- 	s->flags &= ~SLAB_TRACE;
--	printk("_trace_store = %s\n", buf);
- 	if (buf[0] == '1')
- 		s->flags |= SLAB_TRACE;
- 	return length;
+-			if (page) {
+-				int x = 0;
+-				int node = page_to_nid(page);
++		if (flags & SO_FULL) {
++			int full_slabs = atomic_read(&n->nr_slabs)
++					- per_cpu[node]
++					- n->nr_partial;
+ 
+-				if (flags & SO_OBJECTS)
+-					x = page->inuse;
+-				else
+-					x = 1;
+-				total += x;
+-				nodes[node] += x;
+-			}
++			if (flags & SO_OBJECTS)
++				x = full_slabs * s->objects;
++			else
++				x = full_slabs;
++			total += x;
++			nodes[node] += x;
+ 		}
++	}
+ 
+ 	x = sprintf(buf, "%lu", total);
+ #ifdef CONFIG_NUMA
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -94,9 +140,6 @@ slab-use-num_possible_cpus-in-enable_cpucache.patch
 extend-print_symbol-capability.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-core-minor-fixes.patch
-slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
-slub-core-fix-another-numa-bootstrap-issue.patch
 slub-core-fix-object-counting.patch
 slub-core-drop-version-number.patch
 slub-core-tidy.patch
