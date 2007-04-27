@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + update-documentation-driver-model-platformtxt.patch added to -mm tree
-Date: Thu, 26 Apr 2007 22:17:53 -0700
-Message-ID: <200704270517.l3R5Hrh3020087@shell0.pdx.osdl.net>
+Subject: + slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch added to -mm tree
+Date: Thu, 26 Apr 2007 23:14:58 -0700
+Message-ID: <200704270614.l3R6EwLa021055@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49491 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755347AbXD0FSx (ORCPT
+	by vger.kernel.org with ESMTP id S1755367AbXD0GTx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 01:18:53 -0400
+	Fri, 27 Apr 2007 02:19:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, dilinger@debian.org, dtor@mail.ru, gregkh@suse.de, rmk@arm.linux.org.uk
+Cc: clameter@sgi.com
 
 
 The patch titled
-     update Documentation/driver-model/platform.txt
+     SLUB: Remove duplicate VM_BUG_ON
 has been added to the -mm tree.  Its filename is
-     update-documentation-driver-model-platformtxt.patch
+     slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,114 +26,132 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: update Documentation/driver-model/platform.txt
-From: David Brownell <david-b@pacbell.net>
+Subject: SLUB: Remove duplicate VM_BUG_ON
+From: Christoph Lameter <clameter@sgi.com>
 
-Make note of the legacy "probe-the-hardware" drivers, and some APIs that
-are mostly unused except by such drivers.  We probably can't escape having
-legacy drivers for a while (e.g.  old ISA drivers), but we can at least
-discourage this style code for new drivers, and unless it's unavoidable.
+Somehow this artifact got in during merge with mm.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Greg KH <gregkh@suse.de>
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/driver-model/platform.txt |   40 ++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ mm/slub.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN Documentation/driver-model/platform.txt~update-documentation-driver-model-platformtxt Documentation/driver-model/platform.txt
---- a/Documentation/driver-model/platform.txt~update-documentation-driver-model-platformtxt
-+++ a/Documentation/driver-model/platform.txt
-@@ -96,6 +96,46 @@ System setup also associates those clock
- calls to clk_get(&pdev->dev, clock_name) return them as needed.
+diff -puN mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on mm/slub.c
+--- a/mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on
++++ a/mm/slub.c
+@@ -644,8 +644,6 @@ static void add_full(struct kmem_cache *
  
+ 	VM_BUG_ON(!irqs_disabled());
  
-+Legacy Drivers:  Device Probing
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+Some drivers are not fully converted to the driver model, because they take
-+on a non-driver role:  the driver registers its platform device, rather than
-+leaving that for system infrastructure.  Such drivers can't be hotplugged
-+or coldplugged, since those mechanisms require device creation to be in a
-+different system component than the driver.
-+
-+The only "good" reason for this is to handle older system designs which, like
-+original IBM PCs, rely on error-prone "probe-the-hardware" models for hardware
-+configuration.  Newer systems have largely abandoned that model, in favor of
-+bus-level support for dynamic configuration (PCI, USB), or device tables
-+provided by the boot firmware (e.g. PNPACPI on x86).  There are too many
-+conflicting options about what might be where, and even educated guesses by
-+an operating system will be wrong often enough to make trouble.
-+
-+This style of driver is discouraged.  If you're updating such a driver,
-+please try to move the device enumeration to a more appropriate location,
-+outside the driver.  This will usually be cleanup, since such drivers
-+tend to already have "normal" modes, such as ones using device nodes that
-+were created by PNP or by platform device setup.
-+
-+None the less, there are some APIs to support such legacy drivers.  Avoid
-+using these calls except with such hotplug-deficient drivers.
-+
-+	struct platform_device *platform_device_alloc(
-+			char *name, unsigned id);
-+
-+You can use platform_device_alloc() to dynamically allocate a device, which
-+you will then initialize with resources and platform_device_register().
-+A better solution is usually:
-+
-+	struct platform_device *platform_device_register_simple(
-+			char *name, unsigned id,
-+			struct resource *res, unsigned nres);
-+
-+You can use platform_device_register_simple() as a one-step call to allocate
-+and register a device.
-+
-+
- Device Naming and Driver Binding
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- The platform_device.dev.bus_id is the canonical name for the devices.
+-	VM_BUG_ON(!irqs_disabled());
+-
+ 	if (!(s->flags & SLAB_STORE_USER))
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-acpi.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-at91_cf-minor-fix.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-usb-gadget-rndis-fix-struct-rndis_packet_msg_type.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-kconfig-mentioneds-hibernation-not-just-swsusp.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnpacpi-sets-pnpdev-devarchdata-fix.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-update-to-class-device-removal-patches.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
-workaround-rtc-related-acpi-table-bugs.patch
-revert-rtc-add-rtc_merge_alarm.patch
-remove-rtc_alm_set-mode-bugs.patch
+slab-introduce-krealloc.patch
+slab-introduce-krealloc-fix.patch
+ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+smaps-add-clear_refs-file-to-clear-reference-fix.patch
+smaps-add-clear_refs-file-to-clear-reference-fix-fix.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+extend-print_symbol-capability-fix.patch
+extend-print_symbol-capability-fix-fix.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+slub-fix-numa-bootstrap.patch
+slub-use-correct-flags-to-check-for-dma-cache.patch
+slub-treat-slab_hwcache_align-as-a-mininum-and-not-as-the-alignment.patch
+slub-core-minor-fixes.patch
+slub-core-use-enum-for-tracking-modes-instead-of-integers.patch
+slub-core-fix-another-numa-bootstrap-issue.patch
+slub-core-fix-object-counting.patch
+slub-core-drop-version-number.patch
+slub-core-tidy.patch
+slub-core-tidy-2.patch
+slub-core-tidy-3.patch
+slub-core-tidy-4.patch
+slub-core-tidy-5.patch
+slub-core-tidy-6.patch
+slub-core-tidy-7.patch
+slub-core-tidy-8.patch
+slub-core-tidy-9.patch
+slub-core-we-do-not-need-ifdef-config_smp-around-bit-spinlocks.patch
+slub-core-printk-facility-level-cleanup.patch
+slub-core-kmem_cache_close-is-static-and-should-not-be-exported.patch
+slub-core-add-explanation-for-defrag_ratio-=-100.patch
+slub-core-add-explanation-for-locking.patch
+slub-core-add-explanation-for-locking-fix.patch
+slub-core-explain-the-64k-limits.patch
+slub-core-explain-sizing-of-slabs-in-detail.patch
+slub-core-explain-sizing-of-slabs-in-detail-fix.patch
+slub-core-add-checks-for-interrupts-disabled.patch
+slub-core-use-__print_symbol-instead-of-kallsyms_lookup.patch
+slub-core-missing-inlines-and-statics.patch
+slub-fix-cpu-slab-flushing-behavior-so-that-counters-match.patch
+slub-extract-finish_bootstrap-function-for-clean-sysfs-boot.patch
+slub-core-fix-kmem_cache_destroy.patch
+slub-core-fix-validation.patch
+slub-core-add-after-object-padding.patch
+slub-core-resiliency-fixups.patch
+slub-core-resiliency-fixups-fix.patch
+slub-core-resiliency-test.patch
+slub-core-update-cpu-after-new_slab.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
+slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-remove-object-activities-out-of-checking-functions.patch
+slub-user-documentation.patch
+slub-user-documentation-fix.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+slub-fix-sysfs-directory-handling.patch
+slub-debug-printk-cleanup.patch
+slub-conform-more-to-slabs-slab_hwcache_align-behavior.patch
+slub-add-min_partial.patch
+slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
+slub-major-slabinfo-update.patch
+slub-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-i386-support.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+kmem_cache-simplify-slab-cache-creation.patch
+slab-allocators-remove-slab_debug_initial-flag.patch
+slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
+slab-allocators-remove-multiple-alignment-specifications.patch
+slab-allocators-remove-slab_ctor_atomic.patch
+fault-injection-fix-failslab-with-config_numa.patch
+mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+readahead-state-based-method-aging-accounting.patch
