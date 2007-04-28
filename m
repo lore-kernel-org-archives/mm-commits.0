@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-add-zimage-support.patch added to -mm tree
-Date: Fri, 27 Apr 2007 19:10:21 -0700
-Message-ID: <200704280210.l3S2ALqn013063@shell0.pdx.osdl.net>
+Subject: + lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch added to -mm tree
+Date: Fri, 27 Apr 2007 23:16:17 -0700
+Message-ID: <200704280616.l3S6GHEK016172@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49230 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030918AbXD1CKe (ORCPT
+	by vger.kernel.org with ESMTP id S1749667AbXD1GQY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 22:10:34 -0400
+	Sat, 28 Apr 2007 02:16:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ysato@users.sourceforge.jp
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     h8300: add zImage support
+     lguest simplification: don't pin guest trap handlers
 has been added to the -mm tree.  Its filename is
-     h8300-add-zimage-support.patch
+     lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,368 +26,154 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: h8300: add zImage support
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: lguest simplification: don't pin guest trap handlers
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-h8300 zImage target support.
+We don't actually need the Guest handlers mapped to avoid double
+fault, just the stack pages.  Thanks to Zach for confirming.
 
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/boot/Makefile            |   12 +
- arch/h8300/boot/compressed/Makefile |   37 ++++
- arch/h8300/boot/compressed/head.S   |   47 +++++
- arch/h8300/boot/compressed/misc.c   |  219 ++++++++++++++++++++++++++
- 4 files changed, 314 insertions(+), 1 deletion(-)
+ drivers/lguest/interrupts_and_traps.c |   26 ------------------------
+ drivers/lguest/lg.h                   |    2 -
+ drivers/lguest/page_tables.c          |    6 ++---
+ 3 files changed, 5 insertions(+), 29 deletions(-)
 
-diff -puN arch/h8300/boot/Makefile~h8300-add-zimage-support arch/h8300/boot/Makefile
---- a/arch/h8300/boot/Makefile~h8300-add-zimage-support
-+++ a/arch/h8300/boot/Makefile
-@@ -1,12 +1,22 @@
- # arch/h8300/boot/Makefile
+diff -puN drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers drivers/lguest/interrupts_and_traps.c
+--- a/drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers
++++ a/drivers/lguest/interrupts_and_traps.c
+@@ -138,7 +138,7 @@ static int direct_trap(const struct lgue
+ 	return idt_type(trap->a, trap->b) == 0xF;
+ }
  
--targets := vmlinux.srec vmlinux.bin
-+targets := vmlinux.srec vmlinux.bin zImage
-+subdir- := compressed
+-static void pin_stack_pages(struct lguest *lg)
++void pin_stack_pages(struct lguest *lg)
+ {
+ 	unsigned int i;
  
- OBJCOPYFLAGS_vmlinux.srec := -Osrec
- OBJCOPYFLAGS_vmlinux.bin  := -Obinary
-+OBJCOPYFLAGS_zImage := -O binary -R .note -R .comment -R .stab -R .stabstr -S
+@@ -146,25 +146,6 @@ static void pin_stack_pages(struct lgues
+ 		pin_page(lg, lg->esp1 - i * PAGE_SIZE);
+ }
  
- $(obj)/vmlinux.srec $(obj)/vmlinux.bin:  vmlinux FORCE
- 	$(call if_changed,objcopy)
- 	@echo '  Kernel: $@ is ready'
+-/* We need to ensure all the direct trap pages are mapped after we
+- * clear shadow mappings. */
+-void pin_trap_pages(struct lguest *lg)
+-{
+-	unsigned int i;
+-	struct desc_struct *trap;
+-
+-	for (i = 0; i < FIRST_EXTERNAL_VECTOR; i++) {
+-		trap = &lg->idt[i];
+-		if (direct_trap(lg, trap, i))
+-			pin_page(lg, idt_address(trap->a, trap->b));
+-	}
+-
+-	trap = &lg->syscall_idt;
+-	if (direct_trap(lg, trap, SYSCALL_VECTOR))
+-		pin_page(lg, idt_address(trap->a, trap->b));
+-	pin_stack_pages(lg);
+-}
+-
+ void guest_set_stack(struct lguest *lg, u32 seg, u32 esp, unsigned int pages)
+ {
+ 	/* You cannot have a stack segment with priv level 0. */
+@@ -194,11 +175,6 @@ static void set_trap(struct lguest *lg, 
  
-+$(obj)/zImage: $(obj)/compressed/vmlinux FORCE
-+	$(call if_changed,objcopy)
-+	@echo 'Kernel: $@ is ready'
-+
-+$(obj)/compressed/vmlinux: FORCE
-+	$(Q)$(MAKE) $(build)=$(obj)/compressed $@
-+
- CLEAN_FILES += arch/$(ARCH)/vmlinux.bin arch/$(ARCH)/vmlinux.srec
-+
-diff -puN /dev/null arch/h8300/boot/compressed/Makefile
---- /dev/null
-+++ a/arch/h8300/boot/compressed/Makefile
-@@ -0,0 +1,37 @@
-+#
-+# linux/arch/sh/boot/compressed/Makefile
-+#
-+# create a compressed vmlinux image from the original vmlinux
-+#
-+
-+targets		:= vmlinux vmlinux.bin vmlinux.bin.gz head.o misc.o piggy.o
-+EXTRA_AFLAGS	:= -traditional
-+
-+OBJECTS = $(obj)/head.o $(obj)/misc.o
-+
-+#
-+# IMAGE_OFFSET is the load offset of the compression loader
-+# Assign dummy values if these 2 variables are not defined,
-+# in order to suppress error message.
-+#
-+CONFIG_MEMORY_START     ?= 0x00400000
-+CONFIG_BOOT_LINK_OFFSET ?= 0x00400000
-+IMAGE_OFFSET := $(shell printf "0x%08x" $$[$(CONFIG_MEMORY_START)+$(CONFIG_BOOT_LINK_OFFSET)])
-+
-+LDFLAGS_vmlinux := -T $(obj)/vmlinux.lds
-+
-+$(obj)/vmlinux: $(OBJECTS) $(obj)/piggy.o FORCE
-+	$(call if_changed,ld)
-+	@:
-+
-+$(obj)/vmlinux.bin: vmlinux FORCE
-+	$(call if_changed,objcopy)
-+
-+$(obj)/vmlinux.bin.gz: $(obj)/vmlinux.bin FORCE
-+	$(call if_changed,gzip)
-+
-+LDFLAGS_piggy.o := -r --format binary --oformat elf32-h8300 -T
-+OBJCOPYFLAGS := -O binary
-+
-+$(obj)/piggy.o: $(obj)/vmlinux.scr $(obj)/vmlinux.bin.gz FORCE
-+	$(call if_changed,ld)
-diff -puN /dev/null arch/h8300/boot/compressed/head.S
---- /dev/null
-+++ a/arch/h8300/boot/compressed/head.S
-@@ -0,0 +1,47 @@
-+/*
-+ *  linux/arch/h8300/boot/compressed/head.S
-+ *
-+ *  Copyright (C) 2006 Yoshinori Sato
-+ */
-+
-+.h8300h
-+#include <linux/linkage.h>
-+
-+#define SRAM_START 0xff4000
-+
-+	.section	.text.startup
-+	.global	startup
-+startup:
-+	mov.l	#SRAM_START+0x8000, sp
-+	mov.l	#__sbss, er0
-+	mov.l	#__ebss, er1
-+	sub.l	er0, er1
-+	shlr	er1
-+	shlr	er1
-+	sub.l	er2, er2
-+1:
-+	mov.l	er2, @er0
-+	adds	#4, er0
-+	dec.l	#1, er1
-+	bne	1b
-+	jsr	@_decompress_kernel
-+	jmp	@0x400000
-+
-+	.align	9
-+fake_headers_as_bzImage:
-+	.word	0
-+	.ascii	"HdrS"		; header signature
-+	.word	0x0202		; header version number (>= 0x0105)
-+				; or else old loadlin-1.5 will fail)
-+	.word	0		; default_switch
-+	.word	0		; SETUPSEG
-+	.word	0x1000
-+	.word	0		; pointing to kernel version string
-+	.byte	0		; = 0, old one (LILO, Loadlin,
-+				; 0xTV: T=0 for LILO
-+				;       V = version
-+	.byte	1		; Load flags bzImage=1
-+	.word	0x8000		; size to move, when setup is not
-+	.long	0x100000	; 0x100000 = default for big kernel
-+	.long	0		; address of loaded ramdisk image
-+	.long	0		; its size in bytes
-diff -puN /dev/null arch/h8300/boot/compressed/misc.c
---- /dev/null
-+++ a/arch/h8300/boot/compressed/misc.c
-@@ -0,0 +1,219 @@
-+/*
-+ * arch/h8300/boot/compressed/misc.c
-+ *
-+ * This is a collection of several routines from gzip-1.0.3
-+ * adapted for Linux.
-+ *
-+ * malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
-+ *
-+ * Adapted for h8300 by Yoshinori Sato 2006
-+ */
-+
-+#include <asm/uaccess.h>
-+
-+/*
-+ * gzip declarations
-+ */
-+
-+#define OF(args)  args
-+#define STATIC static
-+
-+#undef memset
-+#undef memcpy
-+#define memzero(s, n)     memset ((s), 0, (n))
-+
-+typedef unsigned char  uch;
-+typedef unsigned short ush;
-+typedef unsigned long  ulg;
-+
-+#define WSIZE 0x8000		/* Window size must be at least 32k, */
-+				/* and a power of two */
-+
-+static uch *inbuf;	     /* input buffer */
-+static uch window[WSIZE];    /* Sliding window buffer */
-+
-+static unsigned insize = 0;  /* valid bytes in inbuf */
-+static unsigned inptr = 0;   /* index of next byte to be processed in inbuf */
-+static unsigned outcnt = 0;  /* bytes in output buffer */
-+
-+/* gzip flag byte */
-+#define ASCII_FLAG   0x01 /* bit 0 set: file probably ASCII text */
-+#define CONTINUATION 0x02 /* bit 1 set: continuation of multi-part gzip file */
-+#define EXTRA_FIELD  0x04 /* bit 2 set: extra field present */
-+#define ORIG_NAME    0x08 /* bit 3 set: original file name present */
-+#define COMMENT      0x10 /* bit 4 set: file comment present */
-+#define ENCRYPTED    0x20 /* bit 5 set: file is encrypted */
-+#define RESERVED     0xC0 /* bit 6,7:   reserved */
-+
-+#define get_byte()  (inptr < insize ? inbuf[inptr++] : fill_inbuf())
-+
-+/* Diagnostic functions */
-+#ifdef DEBUG
-+#  define Assert(cond,msg) {if(!(cond)) error(msg);}
-+#  define Trace(x) fprintf x
-+#  define Tracev(x) {if (verbose) fprintf x ;}
-+#  define Tracevv(x) {if (verbose>1) fprintf x ;}
-+#  define Tracec(c,x) {if (verbose && (c)) fprintf x ;}
-+#  define Tracecv(c,x) {if (verbose>1 && (c)) fprintf x ;}
-+#else
-+#  define Assert(cond,msg)
-+#  define Trace(x)
-+#  define Tracev(x)
-+#  define Tracevv(x)
-+#  define Tracec(c,x)
-+#  define Tracecv(c,x)
-+#endif
-+
-+static int  fill_inbuf(void);
-+static void flush_window(void);
-+static void error(char *m);
-+static void gzip_mark(void **);
-+static void gzip_release(void **);
-+
-+extern char input_data[];
-+extern int input_len;
-+
-+static long bytes_out = 0;
-+static uch *output_data;
-+static unsigned long output_ptr = 0;
-+
-+static void *malloc(int size);
-+static void free(void *where);
-+static void error(char *m);
-+static void gzip_mark(void **);
-+static void gzip_release(void **);
-+
-+int puts(const char *);
-+
-+extern int _text;		/* Defined in vmlinux.lds.S */
-+extern int _end;
-+static unsigned long free_mem_ptr;
-+static unsigned long free_mem_end_ptr;
-+
-+#define HEAP_SIZE             0x10000
-+
-+#include "../../../../lib/inflate.c"
-+
-+#define SCR *((volatile unsigned char *)0xffff8a)
-+#define TDR *((volatile unsigned char *)0xffff8b)
-+#define SSR *((volatile unsigned char *)0xffff8c)
-+
-+static void *malloc(int size)
-+{
-+	void *p;
-+
-+	if (size <0) error("Malloc error");
-+	if (free_mem_ptr == 0) error("Memory error");
-+
-+	free_mem_ptr = (free_mem_ptr + 3) & ~3;	/* Align */
-+
-+	p = (void *)free_mem_ptr;
-+	free_mem_ptr += size;
-+
-+	if (free_mem_ptr >= free_mem_end_ptr)
-+		error("Out of memory");
-+
-+	return p;
-+}
-+
-+static void free(void *where)
-+{	/* Don't care */
-+}
-+
-+static void gzip_mark(void **ptr)
-+{
-+	*ptr = (void *) free_mem_ptr;
-+}
-+
-+static void gzip_release(void **ptr)
-+{
-+	free_mem_ptr = (long) *ptr;
-+}
-+
-+int puts(const char *s)
-+{
-+	return 0;
-+}
-+
-+void* memset(void* s, int c, size_t n)
-+{
-+	int i;
-+	char *ss = (char*)s;
-+
-+	for (i=0;i<n;i++) ss[i] = c;
-+	return s;
-+}
-+
-+void* memcpy(void* __dest, __const void* __src,
-+			    size_t __n)
-+{
-+	int i;
-+	char *d = (char *)__dest, *s = (char *)__src;
-+
-+	for (i=0;i<__n;i++) d[i] = s[i];
-+	return __dest;
-+}
-+
-+/* ===========================================================================
-+ * Fill the input buffer. This is called only when the buffer is empty
-+ * and at least one byte is really needed.
-+ */
-+static int fill_inbuf(void)
-+{
-+	if (insize != 0) {
-+		error("ran out of input data");
-+	}
-+
-+	inbuf = input_data;
-+	insize = input_len;
-+	inptr = 1;
-+	return inbuf[0];
-+}
-+
-+/* ===========================================================================
-+ * Write the output window window[0..outcnt-1] and update crc and bytes_out.
-+ * (Used for the decompressed data only.)
-+ */
-+static void flush_window(void)
-+{
-+    ulg c = crc;         /* temporary variable */
-+    unsigned n;
-+    uch *in, *out, ch;
-+
-+    in = window;
-+    out = &output_data[output_ptr];
-+    for (n = 0; n < outcnt; n++) {
-+	    ch = *out++ = *in++;
-+	    c = crc_32_tab[((int)c ^ ch) & 0xff] ^ (c >> 8);
-+    }
-+    crc = c;
-+    bytes_out += (ulg)outcnt;
-+    output_ptr += (ulg)outcnt;
-+    outcnt = 0;
-+}
-+
-+static void error(char *x)
-+{
-+	puts("\n\n");
-+	puts(x);
-+	puts("\n\n -- System halted");
-+
-+	while(1);	/* Halt */
-+}
-+
-+#define STACK_SIZE (4096)
-+long user_stack [STACK_SIZE];
-+long* stack_start = &user_stack[STACK_SIZE];
-+
-+void decompress_kernel(void)
-+{
-+	output_data = 0;
-+	output_ptr = (unsigned long)0x400000;
-+	free_mem_ptr = (unsigned long)&_end;
-+	free_mem_end_ptr = free_mem_ptr + HEAP_SIZE;
-+
-+	makecrc();
-+	puts("Uncompressing Linux... ");
-+	gunzip();
-+	puts("Ok, booting the kernel.\n");
-+}
+ 	trap->a = ((__KERNEL_CS|GUEST_PL)<<16) | (lo&0x0000FFFF);
+ 	trap->b = (hi&0xFFFFEF00);
+-
+-	/* Make sure trap address is available so we don't fault.  In
+-	 * theory, it could overlap two pages, in practice it's aligned. */
+-	if (direct_trap(lg, trap, num))
+-		pin_page(lg, idt_address(lo, hi));
+ }
+ 
+ void load_guest_idt_entry(struct lguest *lg, unsigned int num, u32 lo, u32 hi)
+diff -puN drivers/lguest/lg.h~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers drivers/lguest/lg.h
+--- a/drivers/lguest/lg.h~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers
++++ a/drivers/lguest/lg.h
+@@ -190,7 +190,7 @@ void maybe_do_interrupt(struct lguest *l
+ int deliver_trap(struct lguest *lg, unsigned int num);
+ void load_guest_idt_entry(struct lguest *lg, unsigned int i, u32 low, u32 hi);
+ void guest_set_stack(struct lguest *lg, u32 seg, u32 esp, unsigned int pages);
+-void pin_trap_pages(struct lguest *lg);
++void pin_stack_pages(struct lguest *lg);
+ void setup_default_idt_entries(struct lguest_ro_state *state,
+ 			       const unsigned long *def);
+ void copy_traps(const struct lguest *lg, struct desc_struct *idt,
+diff -puN drivers/lguest/page_tables.c~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers drivers/lguest/page_tables.c
+--- a/drivers/lguest/page_tables.c~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers
++++ a/drivers/lguest/page_tables.c
+@@ -186,7 +186,7 @@ static int page_writable(struct lguest *
+ void pin_page(struct lguest *lg, unsigned long vaddr)
+ {
+ 	if (!page_writable(lg, vaddr) && !demand_page(lg, vaddr, 0))
+-		kill_guest(lg, "bad trap page %#lx", vaddr);
++		kill_guest(lg, "bad stack page %#lx", vaddr);
+ }
+ 
+ static void release_pgd(struct lguest *lg, spgd_t *spgd)
+@@ -253,7 +253,7 @@ void guest_new_pagetable(struct lguest *
+ 		newpgdir = new_pgdir(lg, pgtable, &repin);
+ 	lg->pgdidx = newpgdir;
+ 	if (repin)
+-		pin_trap_pages(lg);
++		pin_stack_pages(lg);
+ }
+ 
+ static void release_all_pagetables(struct lguest *lg)
+@@ -269,7 +269,7 @@ static void release_all_pagetables(struc
+ void guest_pagetable_clear_all(struct lguest *lg)
+ {
+ 	release_all_pagetables(lg);
+-	pin_trap_pages(lg);
++	pin_stack_pages(lg);
+ }
+ 
+ static void do_set_pte(struct lguest *lg, int idx,
 _
 
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-introduce-config_has_dma.patch
-convert-h8-300-to-generic-timekeeping.patch
-h8300-generic-irq.patch
-h8300-add-zimage-support.patch
+extend-print_symbol-capability.patch
+git-kbuild.patch
+git-net.patch
+allow-boot-time-disable-of-paravirt_ops-patching.patch
+xfs-clean-up-shrinker-games.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+array_size-check-for-type.patch
+array_size-check-for-type-uml-fix.patch
+module-use-krealloc.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+simplify-module_get_kallsym-by-dropping-length-arg.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms.patch
+simplify-kallsyms_lookup.patch
+fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
+fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
+expose-range-checking-functions-from-arch-specific.patch
+expose-range-checking-functions-from-arch-specific-update.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+____call_usermodehelper-dont-flush_signals.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+lguest-the-guest-code.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
+lguest-the-host-code.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch
+lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
+lguest-the-net-driver.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
