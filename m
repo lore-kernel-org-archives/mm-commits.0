@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update.patch added to -mm tree
-Date: Fri, 27 Apr 2007 17:42:56 -0700
-Message-ID: <200704280042.l3S0gugI011736@shell0.pdx.osdl.net>
+Subject: + driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch added to -mm tree
+Date: Fri, 27 Apr 2007 17:45:05 -0700
+Message-ID: <200704280045.l3S0j6Jn011785@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55404 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60416 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757974AbXD1AnN (ORCPT
+	by vger.kernel.org with ESMTP id S1757978AbXD1ApO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 20:43:13 -0400
+	Fri, 27 Apr 2007 20:45:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mreimer@vpop.net, johnpol@2ka.mipt.ru
+Cc: akpm@linux-foundation.org, johnpol@2ka.mipt.ru, mreimer@vpop.net
 
 
 The patch titled
-     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core update
+     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update
 has been added to the -mm tree.  Its filename is
-     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update.patch
+     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,244 +26,210 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core update
-From: Matt Reimer <mreimer@vpop.net>
-
-Thanks for your review Andrew. I made all the code changes you
-suggested in the attached patch.
+Subject: driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update
+From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Matt Reimer <mreimer@vpop.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds1wm.c |   94 +++++++++++++++++------------------
- include/linux/ds1wm.h      |    1 
- 2 files changed, 46 insertions(+), 49 deletions(-)
+ drivers/w1/masters/Kconfig  |    2 +-
+ drivers/w1/masters/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/masters/ds1wm.c~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update drivers/w1/masters/ds1wm.c
---- a/drivers/w1/masters/ds1wm.c~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update
-+++ a/drivers/w1/masters/ds1wm.c
-@@ -32,26 +32,27 @@
- #define DS1WM_INT_EN	0x03	/* R/W interrupt enable */
- #define DS1WM_CLKDIV	0x04	/* R/W 5 bits of divisor and pre-scale */
+diff -puN drivers/w1/masters/Kconfig~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update drivers/w1/masters/Kconfig
+--- a/drivers/w1/masters/Kconfig~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update
++++ a/drivers/w1/masters/Kconfig
+@@ -35,7 +35,7 @@ config W1_MASTER_DS2482
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ds2482.
  
--#define DS1WM_CMD_1W_RESET  1 << 0	/* force reset on 1-wire bus */
--#define DS1WM_CMD_SRA	    1 << 1	/* enable Search ROM accelerator mode */
--#define DS1WM_CMD_DQ_OUTPUT 1 << 2	/* write only - forces bus low */
--#define DS1WM_CMD_DQ_INPUT  1 << 3	/* read only - reflects state of bus */
--
--#define DS1WM_INT_PD	    1 << 0	/* presence detect */
--#define DS1WM_INT_PDR	    1 << 1	/* presence detect result */
--#define DS1WM_INT_TBE	    1 << 2	/* tx buffer empty */
--#define DS1WM_INT_TSRE	    1 << 3	/* tx shift register empty */
--#define DS1WM_INT_RBF	    1 << 4	/* rx buffer full */
--#define DS1WM_INT_RSRF	    1 << 5	/* rx shift register full */
--
--#define DS1WM_INTEN_EPD	    1 << 0	/* enable presence detect int */
--#define DS1WM_INTEN_IAS	    1 << 1	/* INTR active state */
--#define DS1WM_INTEN_ETBE    1 << 2	/* enable tx buffer empty int */
--#define DS1WM_INTEN_ETMT    1 << 3	/* enable tx shift register empty int */
--#define DS1WM_INTEN_ERBF    1 << 4	/* enable rx buffer full int */
--#define DS1WM_INTEN_ERSRF   1 << 5	/* enable rx shift register full int */
--#define DS1WM_INTEN_DQO	    1 << 6	/* enable direct bus driving ops
--					   (undocumented), Szabolcs Gyurko */
-+#define DS1WM_CMD_1W_RESET  (1 << 0)	/* force reset on 1-wire bus */
-+#define DS1WM_CMD_SRA	    (1 << 1)	/* enable Search ROM accelerator mode */
-+#define DS1WM_CMD_DQ_OUTPUT (1 << 2)	/* write only - forces bus low */
-+#define DS1WM_CMD_DQ_INPUT  (1 << 3)	/* read only - reflects state of bus */
-+#define DS1WM_CMD_RST	    (1 << 5)	/* software reset */
-+#define DS1WM_CMD_OD	    (1 << 7)	/* overdrive */
-+
-+#define DS1WM_INT_PD	    (1 << 0)	/* presence detect */
-+#define DS1WM_INT_PDR	    (1 << 1)	/* presence detect result */
-+#define DS1WM_INT_TBE	    (1 << 2)	/* tx buffer empty */
-+#define DS1WM_INT_TSRE	    (1 << 3)	/* tx shift register empty */
-+#define DS1WM_INT_RBF	    (1 << 4)	/* rx buffer full */
-+#define DS1WM_INT_RSRF	    (1 << 5)	/* rx shift register full */
-+
-+#define DS1WM_INTEN_EPD	    (1 << 0)	/* enable presence detect int */
-+#define DS1WM_INTEN_IAS	    (1 << 1)	/* INTR active state */
-+#define DS1WM_INTEN_ETBE    (1 << 2)	/* enable tx buffer empty int */
-+#define DS1WM_INTEN_ETMT    (1 << 3)	/* enable tx shift register empty int */
-+#define DS1WM_INTEN_ERBF    (1 << 4)	/* enable rx buffer full int */
-+#define DS1WM_INTEN_ERSRF   (1 << 5)	/* enable rx shift register full int */
-+#define DS1WM_INTEN_DQO	    (1 << 6)	/* enable direct bus driving ops */
- 
- 
- #define DS1WM_TIMEOUT (HZ * 5)
-@@ -114,11 +115,14 @@ static irqreturn_t ds1wm_isr(int isr, vo
- 	struct ds1wm_data *ds1wm_data = data;
- 	u8 intr = ds1wm_read_register(ds1wm_data, DS1WM_INT);
- 
--	ds1wm_data->slave_present = intr & DS1WM_INT_PDR ? 0 : 1;
-+	ds1wm_data->slave_present = (intr & DS1WM_INT_PDR) ? 0 : 1;
- 
--	if (intr & DS1WM_INT_PD && ds1wm_data->reset_complete)
-+	if ((intr & DS1WM_INT_PD) && ds1wm_data->reset_complete)
- 		complete(ds1wm_data->reset_complete);
- 
-+	if ((intr & DS1WM_INT_TSRE) && ds1wm_data->write_complete)
-+		complete(ds1wm_data->write_complete);
-+
- 	if (intr & DS1WM_INT_RBF) {
- 		ds1wm_data->read_byte = ds1wm_read_register(ds1wm_data,
- 							    DS1WM_DATA);
-@@ -126,16 +130,13 @@ static irqreturn_t ds1wm_isr(int isr, vo
- 			complete(ds1wm_data->read_complete);
- 	}
- 
--	if (intr & DS1WM_INT_TSRE && ds1wm_data->write_complete)
--		complete(ds1wm_data->write_complete);
--
- 	return IRQ_HANDLED;
- }
- 
- static int ds1wm_reset(struct ds1wm_data *ds1wm_data)
- {
- 	unsigned long timeleft;
--	DECLARE_COMPLETION(reset_done);
-+	DECLARE_COMPLETION_ONSTACK(reset_done);
- 
- 	ds1wm_data->reset_complete = &reset_done;
- 
-@@ -174,7 +175,7 @@ static int ds1wm_reset(struct ds1wm_data
- 
- static int ds1wm_write(struct ds1wm_data *ds1wm_data, u8 data)
- {
--	DECLARE_COMPLETION(write_done);
-+	DECLARE_COMPLETION_ONSTACK(write_done);
- 	ds1wm_data->write_complete = &write_done;
- 
- 	ds1wm_write_register(ds1wm_data, DS1WM_DATA, data);
-@@ -187,7 +188,7 @@ static int ds1wm_write(struct ds1wm_data
- 
- static int ds1wm_read(struct ds1wm_data *ds1wm_data, unsigned char write_data)
- {
--	DECLARE_COMPLETION(read_done);
-+	DECLARE_COMPLETION_ONSTACK(read_done);
- 	ds1wm_data->read_complete = &read_done;
- 
- 	ds1wm_write(ds1wm_data, write_data);
-@@ -201,7 +202,7 @@ static int ds1wm_find_divisor(int gclk)
- {
- 	int i;
- 
--	for (i = 0; i < ARRAY_SIZE (freq); i++)
-+	for (i = 0; i < ARRAY_SIZE(freq); i++)
- 		if (gclk <= freq[i].freq)
- 			return freq[i].divisor;
- 
-@@ -228,12 +229,13 @@ static void ds1wm_up(struct ds1wm_data *
- 	/* Let the w1 clock stabilize. */
- 	msleep(1);
- 
--	enable_irq(ds1wm_data->irq);
-+	ds1wm_reset(ds1wm_data);
- }
- 
- static void ds1wm_down(struct ds1wm_data *ds1wm_data)
- {
--	disable_irq(ds1wm_data->irq);
-+	ds1wm_reset(ds1wm_data);
-+
- 	if (ds1wm_data->pdata->disable)
- 		ds1wm_data->pdata->disable(ds1wm_data->pdev);
- 
-@@ -348,23 +350,20 @@ static int ds1wm_probe(struct platform_d
- 	ds1wm_data->pdev = pdev;
- 	ds1wm_data->pdata = plat;
- 
--	ds1wm_data->irq = platform_get_irq(pdev, 0);
--	if (ds1wm_data->irq < 0) {
-+	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (!res) {
- 		ret = -ENXIO;
- 		goto err1;
- 	}
-+	ds1wm_data->irq = res->start;
-+
-+	set_irq_type(ds1wm_data->irq, res->flags & IORESOURCE_IRQ_LOWEDGE ?
-+			IRQ_TYPE_EDGE_FALLING : IRQ_TYPE_EDGE_RISING);
- 
--	if (plat->falling_edge)
--		set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_FALLING);
--	else
--		set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_RISING);
--
--	ret = request_irq(ds1wm_data->irq, ds1wm_isr,
--			  IRQF_DISABLED | IRQF_SAMPLE_RANDOM, "ds1wm",
--			  ds1wm_data);
-+	ret = request_irq(ds1wm_data->irq, ds1wm_isr, IRQF_DISABLED,
-+			  "ds1wm", ds1wm_data);
- 	if (ret)
- 		goto err1;
--	disable_irq(ds1wm_data->irq);
- 
- 	ds1wm_data->clk = clk_get(&pdev->dev, "ds1wm");
- 	if (!ds1wm_data->clk) {
-@@ -383,7 +382,6 @@ static int ds1wm_probe(struct platform_d
- 	return 0;
- 
- err3:
--	ds1wm_reset(ds1wm_data);
- 	ds1wm_down(ds1wm_data);
- 	clk_put(ds1wm_data->clk);
- err2:
-@@ -414,6 +412,9 @@ static int ds1wm_resume(struct platform_
- 
- 	return 0;
- }
-+#else
-+#define ds1wm_suspend NULL
-+#define ds1wm_resume NULL
- #endif
- 
- static int ds1wm_remove(struct platform_device *pdev)
-@@ -421,7 +422,6 @@ static int ds1wm_remove(struct platform_
- 	struct ds1wm_data *ds1wm_data = platform_get_drvdata(pdev);
- 
- 	w1_remove_master_device(&ds1wm_master);
--	ds1wm_reset(ds1wm_data);
- 	ds1wm_down(ds1wm_data);
- 	clk_put(ds1wm_data->clk);
- 	free_irq(ds1wm_data->irq, ds1wm_data);
-@@ -437,19 +437,17 @@ static struct platform_driver ds1wm_driv
- 	},
- 	.probe    = ds1wm_probe,
- 	.remove   = ds1wm_remove,
--#ifdef CONFIG_PM
- 	.suspend  = ds1wm_suspend,
- 	.resume   = ds1wm_resume
--#endif
- };
- 
--static int ds1wm_init(void)
-+static int __init ds1wm_init(void)
- {
- 	printk("DS1WM w1 busmaster driver - (c) 2004 Szabolcs Gyurko\n");
- 	return platform_driver_register(&ds1wm_driver);
- }
- 
--static void ds1wm_exit(void)
-+static void __exit ds1wm_exit(void)
- {
- 	platform_driver_unregister(&ds1wm_driver);
- }
-diff -puN include/linux/ds1wm.h~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update include/linux/ds1wm.h
---- a/include/linux/ds1wm.h~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update
-+++ a/include/linux/ds1wm.h
-@@ -6,7 +6,6 @@ struct ds1wm_platform_data {
- 			     * e.g. on h5xxx and h2200 this is 2
- 			     * (registers aligned to 4-byte boundaries),
- 			     * while on hx4700 this is 1 */
--	int falling_edge;   /* interrupt edge - passed to set_irq_type() */
- 	int active_high;    /* interrupt polarity, passed to DS1WM as IAS bit */
- 	void (*enable)(struct platform_device *pdev);
- 	void (*disable)(struct platform_device *pdev);
+-config W1_DS1WM
++config W1_MASTER_DS1WM
+ 	tristate "Maxim DS1WM 1-wire busmaster"
+ 	depends on W1
+ 	help
+diff -puN drivers/w1/masters/Makefile~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update drivers/w1/masters/Makefile
+--- a/drivers/w1/masters/Makefile~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update
++++ a/drivers/w1/masters/Makefile
+@@ -5,4 +5,4 @@
+ obj-$(CONFIG_W1_MASTER_MATROX)		+= matrox_w1.o
+ obj-$(CONFIG_W1_MASTER_DS2490)		+= ds2490.o
+ obj-$(CONFIG_W1_MASTER_DS2482)		+= ds2482.o
+-obj-$(CONFIG_W1_DS1WM)                  += ds1wm.o
++obj-$(CONFIG_W1_MASTER_DS1WM)		+= ds1wm.o
 _
 
-Patches currently in -mm which might be from mreimer@vpop.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-w1-allow-bus-master-to-have-reset-and-byte-ops.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update.patch
+extend-print_symbol-capability.patch
+slab-introduce-krealloc.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-agp-build-fix.patch
+git-cpufreq-borkage-fix.patch
+git-powerpc.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+dev_dbg-check-dev_dbg-arguments.patch
+sysfs-binc-printk-fix.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch
+git-gfs2-nmw.patch
+gfs2-printk-warning-fixes.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+fw-device-printk-fix.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+git-mtd.patch
+git-mtd-build-fix.patch
+git-ubi.patch
+git-ubi-fixup.patch
+revert-gitpowerpc-ehea-changes.patch
+git-netdev-all.patch
+reapply-gitpowerpc-ehea-changes.patch
+git-netdev-all-export-ieee80211_debug_level.patch
+vioc-warning-fix.patch
+vioc-cast-warning-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net.patch
+git-net-fixup.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
+sctp_getsockopt_local_addrs-type-fix.patch
+git-net-fix-yamc.patch
+irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
+rfcomm_worker-fix-wakeup-race.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390.patch
+git-s390-fixup.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+fix-x86_64-mm-nmi-watchdog-ops.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+x86_64-unexport-cpu_llc_id.patch
+xfs-clean-up-shrinker-games.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+utimensat-implementation-fix.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-build-hack.patch
+lguest-build-hack-2.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+i386-uaccess-debugging.patch
+w1-build-fix.patch
