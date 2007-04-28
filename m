@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + get_unmapped_area-handles-map_fixed-on-frv.patch added to -mm tree
-Date: Sat, 28 Apr 2007 01:34:07 -0700
-Message-ID: <200704280834.l3S8Y7P1018090@shell0.pdx.osdl.net>
+Subject: + get_unmapped_area-handles-map_fixed-on-i386.patch added to -mm tree
+Date: Sat, 28 Apr 2007 01:34:08 -0700
+Message-ID: <200704280834.l3S8Y8b7018093@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54229 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161600AbXD1IeY (ORCPT
+	by vger.kernel.org with ESMTP id S1161597AbXD1IeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 28 Apr 2007 04:34:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, dhowells@redhat.com
+Cc: benh@kernel.crashing.org, agl@us.ibm.com, ak@suse.de, bill.irwin@oracle.com, david@gibson.dropbear.id.au
 
 
 The patch titled
-     get_unmapped_area handles MAP_FIXED on frv
+     get_unmapped_area handles MAP_FIXED on i386
 has been added to the -mm tree.  Its filename is
-     get_unmapped_area-handles-map_fixed-on-frv.patch
+     get_unmapped_area-handles-map_fixed-on-i386.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get_unmapped_area handles MAP_FIXED on frv
+Subject: get_unmapped_area handles MAP_FIXED on i386
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Handle MAP_FIXED in arch_get_unmapped_area on frv.  Trivial case, just return
-the address.
+Handle MAP_FIXED in i386 hugetlb_get_unmapped_area(), just call
+prepare_hugepage_range.
 
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Howells <dhowells@redhat.com>
+Acked-by: William Irwin <bill.irwin@oracle.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/elf-fdpic.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/i386/mm/hugetlbpage.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/frv/mm/elf-fdpic.c~get_unmapped_area-handles-map_fixed-on-frv arch/frv/mm/elf-fdpic.c
---- a/arch/frv/mm/elf-fdpic.c~get_unmapped_area-handles-map_fixed-on-frv
-+++ a/arch/frv/mm/elf-fdpic.c
-@@ -64,6 +64,10 @@ unsigned long arch_get_unmapped_area(str
+diff -puN arch/i386/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-i386 arch/i386/mm/hugetlbpage.c
+--- a/arch/i386/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-i386
++++ a/arch/i386/mm/hugetlbpage.c
+@@ -367,6 +367,12 @@ hugetlb_get_unmapped_area(struct file *f
  	if (len > TASK_SIZE)
  		return -ENOMEM;
  
-+	/* handle MAP_FIXED */
-+	if (flags & MAP_FIXED)
++	if (flags & MAP_FIXED) {
++		if (prepare_hugepage_range(addr, len, pgoff))
++			return -EINVAL;
 +		return addr;
++	}
 +
- 	/* only honour a hint if we're not going to clobber something doing so */
  	if (addr) {
- 		addr = PAGE_ALIGN(addr);
+ 		addr = ALIGN(addr, HPAGE_SIZE);
+ 		vma = find_vma(mm, addr);
 _
 
 Patches currently in -mm which might be from benh@kernel.crashing.org are
