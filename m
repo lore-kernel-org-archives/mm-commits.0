@@ -1,210 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: + i386-__inquire_remote_apic-printk-warning-fix.patch added to -mm tree
-Date: Sat, 28 Apr 2007 04:41:49 -0700
-Message-ID: <200704281144.l3SBiXNd020837@shell0.pdx.osdl.net>
+Subject: - rdmsr_on_cpu-wrmsr_on_cpu.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 04:53:53 -0700
+Message-ID: <200704281156.l3SBubT8020970@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33156 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756269AbXD1Lor (ORCPT
+	by vger.kernel.org with ESMTP id S1756264AbXD1L45 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 07:44:47 -0400
+	Sat, 28 Apr 2007 07:56:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+To: adobriyan@openvz.org, ak@suse.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: __inquire_remote_apic printk warning fix
-has been added to the -mm tree.  Its filename is
-     i386-__inquire_remote_apic-printk-warning-fix.patch
+     rdmsr_on_cpu, wrmsr_on_cpu
+has been removed from the -mm tree.  Its filename was
+     rdmsr_on_cpu-wrmsr_on_cpu.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: i386: __inquire_remote_apic printk warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rdmsr_on_cpu, wrmsr_on_cpu
+From: Alexey Dobriyan <adobriyan@openvz.org>
 
-arch/i386/kernel/smpboot.c: In function '__inquire_remote_apic':
-arch/i386/kernel/smpboot.c:550: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
+There was OpenVZ specific bug rendering some cpufreq drivers unusable on SMP. 
+In short, when cpufreq code thinks it confined itself to needed cpu by means
+of set_cpus_allowed() to execute rdmsr, some "virtual cpu" feature can migrate
+process to anywhere.  This triggers bugons and does wrong things in general.
 
-This function appears to have no callers.
+This got fixed by introducing rdmsr_on_cpu and wrmsr_on_cpu executing rdmsr
+and wrmsr on given physical cpu by means of smp_call_function_single().
 
+Dave Jones mentioned cpufreq might be not only user of rdmsr_on_cpu() and
+wrmsr_on_cpu(), so I'm putting them into arch/{i386,x86_64}/lib/ .
+
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
 Cc: Andi Kleen <ak@suse.de>
+Acked-by: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smpboot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/lib/Makefile       |    2 
+ arch/i386/lib/msr-on-cpu.c   |   70 +++++++++++++++++++++++++++++++++
+ arch/x86_64/lib/Makefile     |    2 
+ arch/x86_64/lib/msr-on-cpu.c |    1 
+ include/asm-i386/msr.h       |    3 +
+ include/asm-x86_64/msr.h     |    2 
+ 6 files changed, 79 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/smpboot.c~i386-__inquire_remote_apic-printk-warning-fix arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~i386-__inquire_remote_apic-printk-warning-fix
-+++ a/arch/i386/kernel/smpboot.c
-@@ -547,7 +547,7 @@ static inline void __inquire_remote_apic
- 		switch (status) {
- 		case APIC_ICR_RR_VALID:
- 			status = apic_read(APIC_RRR);
--			printk("%08x\n", status);
-+			printk("%08X\n", status);
- 			break;
- 		default:
- 			printk("failed\n");
+diff -puN arch/i386/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu arch/i386/lib/Makefile
+--- a/arch/i386/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu
++++ a/arch/i386/lib/Makefile
+@@ -7,3 +7,5 @@ lib-y = checksum.o delay.o usercopy.o ge
+ 	bitops.o semaphore.o
+ 
+ lib-$(CONFIG_X86_USE_3DNOW) += mmx.o
++
++obj-y = msr-on-cpu.o
+diff -puN /dev/null arch/i386/lib/msr-on-cpu.c
+--- /dev/null
++++ a/arch/i386/lib/msr-on-cpu.c
+@@ -0,0 +1,70 @@
++#include <linux/module.h>
++#include <linux/preempt.h>
++#include <linux/smp.h>
++#include <asm/msr.h>
++
++#ifdef CONFIG_SMP
++struct msr_info {
++	u32 msr_no;
++	u32 l, h;
++};
++
++static void __rdmsr_on_cpu(void *info)
++{
++	struct msr_info *rv = info;
++
++	rdmsr(rv->msr_no, rv->l, rv->h);
++}
++
++void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
++{
++	preempt_disable();
++	if (smp_processor_id() == cpu)
++		rdmsr(msr_no, *l, *h);
++	else {
++		struct msr_info rv;
++
++		rv.msr_no = msr_no;
++		smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
++		*l = rv.l;
++		*h = rv.h;
++	}
++	preempt_enable();
++}
++
++static void __wrmsr_on_cpu(void *info)
++{
++	struct msr_info *rv = info;
++
++	wrmsr(rv->msr_no, rv->l, rv->h);
++}
++
++void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
++{
++	preempt_disable();
++	if (smp_processor_id() == cpu)
++		wrmsr(msr_no, l, h);
++	else {
++		struct msr_info rv;
++
++		rv.msr_no = msr_no;
++		rv.l = l;
++		rv.h = h;
++		smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
++	}
++	preempt_enable();
++}
++#else
++void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
++{
++	rdmsr(msr_no, *l, *h);
++}
++
++void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
++{
++	wrmsr(msr_no, l, h);
++}
++#endif
++
++EXPORT_SYMBOL(rdmsr_on_cpu);
++EXPORT_SYMBOL(wrmsr_on_cpu);
+diff -puN arch/x86_64/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu arch/x86_64/lib/Makefile
+--- a/arch/x86_64/lib/Makefile~rdmsr_on_cpu-wrmsr_on_cpu
++++ a/arch/x86_64/lib/Makefile
+@@ -4,7 +4,7 @@
+ 
+ CFLAGS_csum-partial.o := -funroll-loops
+ 
+-obj-y := io.o iomap_copy.o
++obj-y := io.o iomap_copy.o msr-on-cpu.o
+ 
+ lib-y := csum-partial.o csum-copy.o csum-wrappers.o delay.o \
+ 	usercopy.o getuser.o putuser.o  \
+diff -puN /dev/null arch/x86_64/lib/msr-on-cpu.c
+--- /dev/null
++++ a/arch/x86_64/lib/msr-on-cpu.c
+@@ -0,0 +1 @@
++#include "../../i386/lib/msr-on-cpu.c"
+diff -puN include/asm-i386/msr.h~rdmsr_on_cpu-wrmsr_on_cpu include/asm-i386/msr.h
+--- a/include/asm-i386/msr.h~rdmsr_on_cpu-wrmsr_on_cpu
++++ a/include/asm-i386/msr.h
+@@ -83,6 +83,9 @@ static inline void wrmsrl (unsigned long
+ 			  : "c" (counter))
+ #endif	/* !CONFIG_PARAVIRT */
+ 
++void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
++void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
++
+ /* symbolic names for some interesting MSRs */
+ /* Intel defined MSRs. */
+ #define MSR_IA32_P5_MC_ADDR		0
+diff -puN include/asm-x86_64/msr.h~rdmsr_on_cpu-wrmsr_on_cpu include/asm-x86_64/msr.h
+--- a/include/asm-x86_64/msr.h~rdmsr_on_cpu-wrmsr_on_cpu
++++ a/include/asm-x86_64/msr.h
+@@ -160,6 +160,8 @@ static inline unsigned int cpuid_edx(uns
+ #define MSR_IA32_UCODE_WRITE		0x79
+ #define MSR_IA32_UCODE_REV		0x8b
+ 
++void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
++void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
+ 
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@openvz.org are
 
-origin.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-fixup.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-jfs.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-netdev-all.patch
-ne-add-platform_driver-fix.patch
-ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-ocfs2.patch
 git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
+rdmsr_on_cpu-wrmsr_on_cpu.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+utimensat-implementation.patch
 utimensat-implementation-fix.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
-i386-__inquire_remote_apic-printk-warning-fix.patch
