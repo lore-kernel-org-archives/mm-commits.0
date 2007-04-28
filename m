@@ -1,61 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + pata_pcmcia-recognize-2gb-compactflash-from-transcend.patch added to -mm tree
-Date: Fri, 27 Apr 2007 18:49:48 -0700
-Message-ID: <200704280149.l3S1nmiJ012821@shell0.pdx.osdl.net>
+Subject: - s2ram-add-arch-irq-disable-enable-hooks.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 18:54:20 -0700
+Message-ID: <200704280154.l3S1sLSg012868@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43950 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54092 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030872AbXD1BuI (ORCPT
+	by vger.kernel.org with ESMTP id S1030912AbXD1BzH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 21:50:08 -0400
+	Fri, 27 Apr 2007 21:55:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Fabrice.Aeschbacher@siemens.com, alan@redhat.com, bzolnier@gmail.com, fabrice.aeschbacher@siemens.com, stuge-linux-pcmcia@cdy.org
+To: johannes@sipsolutions.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_pcmcia: recognize 2GB CompactFlash from Transcend
-has been added to the -mm tree.  Its filename is
-     pata_pcmcia-recognize-2gb-compactflash-from-transcend.patch
+     s2ram: add arch irq disable/enable hooks
+has been removed from the -mm tree.  Its filename was
+     s2ram-add-arch-irq-disable-enable-hooks.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: pata_pcmcia: recognize 2GB CompactFlash from Transcend
-From: "Aeschbacher, Fabrice" <Fabrice.Aeschbacher@siemens.com>
+Subject: s2ram: add arch irq disable/enable hooks
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Allow the pata_pcmcia driver to automatically detect 2GB CompactFlash cards
-from Transcend.
+For powermac, we need to do some things between suspending devices and
+device_power_off, for example setting the decrementer. This patch
+allows architectures to define arch_s2ram_{en,dis}able_irqs in their
+asm/suspend.h to have control over this step.
 
-Signed-off-by: Fabrice Aeschbacher <fabrice.aeschbacher@siemens.com>
-Cc: "Peter Stuge" <stuge-linux-pcmcia@cdy.org>
-Acked-by: Alan Cox <alan@redhat.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_pcmcia.c |    1 +
- 1 files changed, 1 insertion(+)
+ kernel/power/main.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_pcmcia.c~pata_pcmcia-recognize-2gb-compactflash-from-transcend drivers/ata/pata_pcmcia.c
---- a/drivers/ata/pata_pcmcia.c~pata_pcmcia-recognize-2gb-compactflash-from-transcend
-+++ a/drivers/ata/pata_pcmcia.c
-@@ -396,6 +396,7 @@ static struct pcmcia_device_id pcmcia_de
- 	PCMCIA_DEVICE_PROD_ID12("TOSHIBA", "MK2001MPL", 0xb4585a1a, 0x3489e003),
- 	PCMCIA_DEVICE_PROD_ID1("TRANSCEND    512M   ", 0xd0909443),
- 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS1GCF80", 0x709b1bf1, 0x2a54d4b1),
-+	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS2GCF120", 0x709b1bf1, 0x969aa4f2),
- 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS4GCF120", 0x709b1bf1, 0xf54a91c8),
- 	PCMCIA_DEVICE_PROD_ID12("WIT", "IDE16", 0x244e5994, 0x3e232852),
- 	PCMCIA_DEVICE_PROD_ID12("WEIDA", "TWTTI", 0xcc7cf69c, 0x212bb918),
+diff -puN kernel/power/main.c~s2ram-add-arch-irq-disable-enable-hooks kernel/power/main.c
+--- a/kernel/power/main.c~s2ram-add-arch-irq-disable-enable-hooks
++++ a/kernel/power/main.c
+@@ -111,13 +111,22 @@ static int suspend_prepare(suspend_state
+ 	return error;
+ }
+ 
++#ifndef arch_s2ram_disable_irqs
++#define arch_s2ram_disable_irqs(flags) local_irq_save(*flags)
++#endif
++
++#ifndef arch_s2ram_enable_irqs
++#define arch_s2ram_enable_irqs(flags) local_irq_restore(*flags)
++#endif
++
+ 
+ int suspend_enter(suspend_state_t state)
+ {
+ 	int error = 0;
+ 	unsigned long flags;
+ 
+-	local_irq_save(flags);
++	arch_s2ram_disable_irqs(&flags);
++	BUG_ON(!irqs_disabled());
+ 
+ 	if ((error = device_power_down(PMSG_SUSPEND))) {
+ 		printk(KERN_ERR "Some devices failed to power down\n");
+@@ -126,7 +135,8 @@ int suspend_enter(suspend_state_t state)
+ 	error = pm_ops->enter(state);
+ 	device_power_up();
+  Done:
+-	local_irq_restore(flags);
++	arch_s2ram_enable_irqs(&flags);
++	BUG_ON(irqs_disabled());
+ 	return error;
+ }
+ 
 _
 
-Patches currently in -mm which might be from Fabrice.Aeschbacher@siemens.com are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
-pata_pcmcia-recognize-2gb-compactflash-from-transcend.patch
-ide-cs-recognize-2gb-compactflash-from-transcend.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-implement-pm_opsvalid-for-everybody-fix.patch
+power-management-force-pm_opsvalid-callback-to-be.patch
+git-alsa.patch
+git-powerpc.patch
+git-powerpc-arch-powerpc-sysdev-timerc-build-fix.patch
+s2ram-add-arch-irq-disable-enable-hooks.patch
+power-management-remove-some-useless-code-from-arm.patch
+git-netdev-all-export-ieee80211_debug_level.patch
+git-net.patch
+remove-software_suspend.patch
+power-management-change-sys-power-disk-display.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+kernel-doc-html-mode-struct-highlights.patch
