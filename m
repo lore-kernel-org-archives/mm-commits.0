@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + get_unmapped_area-handles-map_fixed-on-sparc64.patch added to -mm tree
-Date: Sat, 28 Apr 2007 01:34:15 -0700
-Message-ID: <200704280834.l3S8YFA8018107@shell0.pdx.osdl.net>
+Subject: + get_unmapped_area-handles-map_fixed-on-frv.patch added to -mm tree
+Date: Sat, 28 Apr 2007 01:34:07 -0700
+Message-ID: <200704280834.l3S8Y7P1018090@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36282 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965578AbXD1IeX (ORCPT
+	by vger.kernel.org with ESMTP id S1161600AbXD1IeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 04:34:23 -0400
+	Sat, 28 Apr 2007 04:34:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, bill.irwin@oracle.com, davem@davemloft.net
+Cc: benh@kernel.crashing.org, dhowells@redhat.com
 
 
 The patch titled
-     get_unmapped_area handles MAP_FIXED on sparc64
+     get_unmapped_area handles MAP_FIXED on frv
 has been added to the -mm tree.  Its filename is
-     get_unmapped_area-handles-map_fixed-on-sparc64.patch
+     get_unmapped_area-handles-map_fixed-on-frv.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get_unmapped_area handles MAP_FIXED on sparc64
+Subject: get_unmapped_area handles MAP_FIXED on frv
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Handle MAP_FIXED in hugetlb_get_unmapped_area on sparc64 by just using
-prepare_hugepage_range()
+Handle MAP_FIXED in arch_get_unmapped_area on frv.  Trivial case, just return
+the address.
 
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: William Irwin <bill.irwin@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/mm/hugetlbpage.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/frv/mm/elf-fdpic.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/sparc64/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-sparc64 arch/sparc64/mm/hugetlbpage.c
---- a/arch/sparc64/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-sparc64
-+++ a/arch/sparc64/mm/hugetlbpage.c
-@@ -175,6 +175,12 @@ hugetlb_get_unmapped_area(struct file *f
- 	if (len > task_size)
+diff -puN arch/frv/mm/elf-fdpic.c~get_unmapped_area-handles-map_fixed-on-frv arch/frv/mm/elf-fdpic.c
+--- a/arch/frv/mm/elf-fdpic.c~get_unmapped_area-handles-map_fixed-on-frv
++++ a/arch/frv/mm/elf-fdpic.c
+@@ -64,6 +64,10 @@ unsigned long arch_get_unmapped_area(str
+ 	if (len > TASK_SIZE)
  		return -ENOMEM;
  
-+	if (flags & MAP_FIXED) {
-+		if (prepare_hugepage_range(addr, len, pgoff))
-+			return -EINVAL;
++	/* handle MAP_FIXED */
++	if (flags & MAP_FIXED)
 +		return addr;
-+	}
 +
+ 	/* only honour a hint if we're not going to clobber something doing so */
  	if (addr) {
- 		addr = ALIGN(addr, HPAGE_SIZE);
- 		vma = find_vma(mm, addr);
+ 		addr = PAGE_ALIGN(addr);
 _
 
 Patches currently in -mm which might be from benh@kernel.crashing.org are
