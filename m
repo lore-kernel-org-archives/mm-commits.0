@@ -1,72 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - gfs2-printk-warning-fixes.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:51:57 -0700
-Message-ID: <200704281051.l3SApv5T020016@shell0.pdx.osdl.net>
+Subject: - fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:51:52 -0700
+Message-ID: <200704281051.l3SApqAR020012@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36864 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030278AbXD1KwK (ORCPT
+	by vger.kernel.org with ESMTP id S965663AbXD1KwQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:52:10 -0400
+	Sat, 28 Apr 2007 06:52:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gfs2 printk warning fixes
+     fix jdelvare-i2c-i2c-del-driver-returns-void on powerpc
 has been removed from the -mm tree.  Its filename was
-     gfs2-printk-warning-fixes.patch
+     fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gfs2 printk warning fixes
+Subject: fix jdelvare-i2c-i2c-del-driver-returns-void on powerpc
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
-
-fs/gfs2/dir.c: In function 'gfs2_dir_read_leaf':
-fs/gfs2/dir.c:1322: warning: format '%llu' expects type 'long long unsigned int', but argument 3 has type 'sector_t'
-fs/gfs2/dir.c: In function 'gfs2_dir_read':
-fs/gfs2/dir.c:1455: warning: format '%llu' expects type 'long long unsigned int', but argument 3 has type '__u64'
-
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/dir.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/macintosh/therm_windtunnel.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/gfs2/dir.c~gfs2-printk-warning-fixes fs/gfs2/dir.c
---- a/fs/gfs2/dir.c~gfs2-printk-warning-fixes
-+++ a/fs/gfs2/dir.c
-@@ -1319,9 +1319,11 @@ static int gfs2_dir_read_leaf(struct ino
- 			if (IS_ERR(dent))
- 				goto out_kfree;
- 			if (entries2 != g.offset) {
--				fs_warn(sdp, "Number of entries corrupt in dir leaf %llu, "
--				        "entries2 (%u) != g.offset (%u)\n",
--					(u64)bh->b_blocknr, entries2, g.offset);
-+				fs_warn(sdp, "Number of entries corrupt in dir "
-+						"leaf %llu, entries2 (%u) != "
-+						"g.offset (%u)\n",
-+					(unsigned long long)bh->b_blocknr,
-+					entries2, g.offset);
- 					
- 				error = -EIO;
- 				goto out_kfree;
-@@ -1454,7 +1456,8 @@ int gfs2_dir_read(struct inode *inode, u
- 		if (dip->i_di.di_entries != g.offset) {
- 			fs_warn(sdp, "Number of entries corrupt in dir %llu, "
- 				"ip->i_di.di_entries (%u) != g.offset (%u)\n",
--				dip->i_num.no_addr, dip->i_di.di_entries,
-+				(unsigned long long)dip->i_num.no_addr,
-+				dip->i_di.di_entries,
- 				g.offset);
- 			error = -EIO;
- 			goto out;
+diff -puN drivers/macintosh/therm_windtunnel.c~fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc drivers/macintosh/therm_windtunnel.c
+--- a/drivers/macintosh/therm_windtunnel.c~fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc
++++ a/drivers/macintosh/therm_windtunnel.c
+@@ -459,7 +459,8 @@ therm_of_probe( struct of_device *dev, c
+ static int
+ therm_of_remove( struct of_device *dev )
+ {
+-	return i2c_del_driver( &g4fan_driver );
++	i2c_del_driver( &g4fan_driver );
++	return 0;
+ }
+ 
+ static struct of_device_id therm_of_match[] = {{
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
