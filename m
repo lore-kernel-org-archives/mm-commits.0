@@ -1,74 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - i386-mce-check-capability.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:55:25 -0700
-Message-ID: <200704281055.l3SAtPp9020176@shell0.pdx.osdl.net>
+Subject: - i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:55:15 -0700
+Message-ID: <200704281055.l3SAtFns020164@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33814 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965752AbXD1Kzb (ORCPT
+	by vger.kernel.org with ESMTP id S965744AbXD1KzW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:31 -0400
+	Sat, 28 Apr 2007 06:55:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joachim.deguara@amd.com, ak@suse.de, mm-commits@vger.kernel.org
+To: hifumi.hisashi@oss.ntt.co.jp, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 mce: check capability
+     i386 machine_real_restart(): replace spin_lock_irqsave with spin_lock
 has been removed from the -mm tree.  Its filename was
-     i386-mce-check-capability.patch
+     i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 mce: check capability
-From: "Joachim Deguara" <joachim.deguara@amd.com>
+Subject: i386 machine_real_restart(): replace spin_lock_irqsave with spin_lock
+From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 
-Currently the i386 architecture checks the family for mce capability and this
-removes that and uses the CPUID information.  Tested on a K8 revE and a
-family10h processor.
+IRQ is already disabled through local_irq_disable().  So
+spin_lock_irqsave() can be replaced with spin_lock().
 
-This eliminates checking of a set AMD procesor family if mce is 
-allowed and relies on the information being in CPUID.
-
-Signed-off-by: Joachim Deguara <joachim.deguara@amd.com>
+Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mcheck/k7.c  |    3 +++
- arch/i386/kernel/cpu/mcheck/mce.c |    3 +--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ arch/i386/kernel/reboot.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mcheck/k7.c~i386-mce-check-capability arch/i386/kernel/cpu/mcheck/k7.c
---- a/arch/i386/kernel/cpu/mcheck/k7.c~i386-mce-check-capability
-+++ a/arch/i386/kernel/cpu/mcheck/k7.c
-@@ -75,6 +75,9 @@ void amd_mcheck_init(struct cpuinfo_x86 
- 	machine_check_vector = k7_machine_check;
- 	wmb();
+diff -puN arch/i386/kernel/reboot.c~i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock arch/i386/kernel/reboot.c
+--- a/arch/i386/kernel/reboot.c~i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock
++++ a/arch/i386/kernel/reboot.c
+@@ -198,8 +198,6 @@ static unsigned char jump_to_bios [] =
+  */
+ void machine_real_restart(unsigned char *code, int length)
+ {
+-	unsigned long flags;
+-
+ 	local_irq_disable();
  
-+	if (!cpu_has(c, X86_FEATURE_MCE))
-+		return;
-+
- 	printk (KERN_INFO "Intel machine check architecture supported.\n");
- 	rdmsr (MSR_IA32_MCG_CAP, l, h);
- 	if (l & (1<<8))	/* Control register present ? */
-diff -puN arch/i386/kernel/cpu/mcheck/mce.c~i386-mce-check-capability arch/i386/kernel/cpu/mcheck/mce.c
---- a/arch/i386/kernel/cpu/mcheck/mce.c~i386-mce-check-capability
-+++ a/arch/i386/kernel/cpu/mcheck/mce.c
-@@ -38,8 +38,7 @@ void mcheck_init(struct cpuinfo_x86 *c)
+ 	/* Write zero to CMOS register number 0x0f, which the BIOS POST
+@@ -212,9 +210,9 @@ void machine_real_restart(unsigned char 
+ 	   safe side.  (Yes, CMOS_WRITE does outb_p's. -  Paul G.)
+ 	 */
  
- 	switch (c->x86_vendor) {
- 		case X86_VENDOR_AMD:
--			if (c->x86 >= 6)
--				amd_mcheck_init(c);
-+			amd_mcheck_init(c);
- 			break;
+-	spin_lock_irqsave(&rtc_lock, flags);
++	spin_lock(&rtc_lock);
+ 	CMOS_WRITE(0x00, 0x8f);
+-	spin_unlock_irqrestore(&rtc_lock, flags);
++	spin_unlock(&rtc_lock);
  
- 		case X86_VENDOR_INTEL:
+ 	/* Remap the kernel at virtual address zero, as well as offset zero
+ 	   from the kernel segment.  This assumes the kernel segment starts at
 _
 
-Patches currently in -mm which might be from joachim.deguara@amd.com are
+Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
 
-git-alsa.patch
+upper-32-bits.patch
