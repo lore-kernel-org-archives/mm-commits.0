@@ -1,104 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - jfs-use-set_current_state.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:52:10 -0700
-Message-ID: <200704281052.l3SAqAxu020030@shell0.pdx.osdl.net>
+Subject: - spin_lock_unlocked-cleanup-in-arch-mips.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:52:15 -0700
+Message-ID: <200704281052.l3SAqFR5020033@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42471 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031115AbXD1KwU (ORCPT
+	by vger.kernel.org with ESMTP id S1031115AbXD1KwW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:52:20 -0400
+	Sat, 28 Apr 2007 06:52:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: milindchoudhary@gmail.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: milindchoudhary@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jfs: use __set_current_state()
+     SPIN_LOCK_UNLOCKED cleanup in arch/mips
 has been removed from the -mm tree.  Its filename was
-     jfs-use-set_current_state.patch
+     spin_lock_unlocked-cleanup-in-arch-mips.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jfs: use __set_current_state()
+Subject: SPIN_LOCK_UNLOCKED cleanup in arch/mips
 From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-use __set_current_state(TASK_*) instead of current->state = TASK_*, in fs/jfs
+SPIN_LOCK_UNLOCKED cleanup,use DEFINE_SPINLOCK instead
 
 Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_lock.h   |    2 +-
- fs/jfs/jfs_logmgr.c |    4 ++--
- fs/jfs/jfs_txnmgr.c |    6 +++---
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ arch/mips/basler/excite/excite_setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jfs/jfs_lock.h~jfs-use-set_current_state fs/jfs/jfs_lock.h
---- a/fs/jfs/jfs_lock.h~jfs-use-set_current_state
-+++ a/fs/jfs/jfs_lock.h
-@@ -45,7 +45,7 @@ do {							\
- 		io_schedule();				\
- 		lock_cmd;				\
- 	}						\
--	current->state = TASK_RUNNING;			\
-+	__set_current_state(TASK_RUNNING);			\
- 	remove_wait_queue(&wq, &__wait);		\
- } while (0)
+diff -puN arch/mips/basler/excite/excite_setup.c~spin_lock_unlocked-cleanup-in-arch-mips arch/mips/basler/excite/excite_setup.c
+--- a/arch/mips/basler/excite/excite_setup.c~spin_lock_unlocked-cleanup-in-arch-mips
++++ a/arch/mips/basler/excite/excite_setup.c
+@@ -63,7 +63,7 @@ volatile void __iomem * const ocd_base =
+ volatile void __iomem * const titan_base = (void *) (EXCITE_ADDR_TITAN);
  
-diff -puN fs/jfs/jfs_logmgr.c~jfs-use-set_current_state fs/jfs/jfs_logmgr.c
---- a/fs/jfs/jfs_logmgr.c~jfs-use-set_current_state
-+++ a/fs/jfs/jfs_logmgr.c
-@@ -1590,7 +1590,7 @@ void jfs_flush_journal(struct jfs_log *l
- 		set_current_state(TASK_UNINTERRUPTIBLE);
- 		LOGGC_UNLOCK(log);
- 		schedule();
--		current->state = TASK_RUNNING;
-+		__set_current_state(TASK_RUNNING);
- 		LOGGC_LOCK(log);
- 		remove_wait_queue(&target->gcwait, &__wait);
- 	}
-@@ -2361,7 +2361,7 @@ int jfsIOWait(void *arg)
- 		} else {
- 			set_current_state(TASK_INTERRUPTIBLE);
- 			schedule();
--			current->state = TASK_RUNNING;
-+			__set_current_state(TASK_RUNNING);
- 		}
- 	} while (!kthread_should_stop());
+ /* Protect access to shared GPI registers */
+-spinlock_t titan_lock = SPIN_LOCK_UNLOCKED;
++DEFINE_SPINLOCK(titan_lock);
+ int titan_irqflags;
  
-diff -puN fs/jfs/jfs_txnmgr.c~jfs-use-set_current_state fs/jfs/jfs_txnmgr.c
---- a/fs/jfs/jfs_txnmgr.c~jfs-use-set_current_state
-+++ a/fs/jfs/jfs_txnmgr.c
-@@ -136,7 +136,7 @@ static inline void TXN_SLEEP_DROP_LOCK(w
- 	set_current_state(TASK_UNINTERRUPTIBLE);
- 	TXN_UNLOCK();
- 	io_schedule();
--	current->state = TASK_RUNNING;
-+	__set_current_state(TASK_RUNNING);
- 	remove_wait_queue(event, &wait);
- }
- 
-@@ -2798,7 +2798,7 @@ int jfs_lazycommit(void *arg)
- 			set_current_state(TASK_INTERRUPTIBLE);
- 			LAZY_UNLOCK(flags);
- 			schedule();
--			current->state = TASK_RUNNING;
-+			__set_current_state(TASK_RUNNING);
- 			remove_wait_queue(&jfs_commit_thread_wait, &wq);
- 		}
- 	} while (!kthread_should_stop());
-@@ -2990,7 +2990,7 @@ int jfs_sync(void *arg)
- 			set_current_state(TASK_INTERRUPTIBLE);
- 			TXN_UNLOCK();
- 			schedule();
--			current->state = TASK_RUNNING;
-+			__set_current_state(TASK_RUNNING);
- 		}
- 	} while (!kthread_should_stop());
  
 _
 
