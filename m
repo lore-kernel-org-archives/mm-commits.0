@@ -1,121 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: - plan-b-switch-to-refcounting-pci-api.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:51:47 -0700
-Message-ID: <200704281051.l3SApl41020004@shell0.pdx.osdl.net>
+Subject: - gfs2-printk-warning-fixes.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:51:57 -0700
+Message-ID: <200704281051.l3SApv5T020016@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33209 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965654AbXD1KwI (ORCPT
+	by vger.kernel.org with ESMTP id S1030278AbXD1KwK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:52:08 -0400
+	Sat, 28 Apr 2007 06:52:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     plan-b: Switch to refcounting PCI API
+     gfs2 printk warning fixes
 has been removed from the -mm tree.  Its filename was
-     plan-b-switch-to-refcounting-pci-api.patch
+     gfs2-printk-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: plan-b: Switch to refcounting PCI API
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: gfs2 printk warning fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+alpha:
+
+fs/gfs2/dir.c: In function 'gfs2_dir_read_leaf':
+fs/gfs2/dir.c:1322: warning: format '%llu' expects type 'long long unsigned int', but argument 3 has type 'sector_t'
+fs/gfs2/dir.c: In function 'gfs2_dir_read':
+fs/gfs2/dir.c:1455: warning: format '%llu' expects type 'long long unsigned int', but argument 3 has type '__u64'
+
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/planb.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/gfs2/dir.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/video/planb.c~plan-b-switch-to-refcounting-pci-api drivers/media/video/planb.c
---- a/drivers/media/video/planb.c~plan-b-switch-to-refcounting-pci-api
-+++ a/drivers/media/video/planb.c
-@@ -2210,7 +2210,7 @@ static int find_planb(void)
- 		"membase 0x%x (base reg. 0x%x)\n",
- 		bus, PCI_SLOT(dev_fn), PCI_FUNC(dev_fn), old_base, confreg);
- 
--	pdev = pci_find_slot (bus, dev_fn);
-+	pdev = pci_get_bus_and_slot(bus, dev_fn);
- 	if (!pdev) {
- 		printk(KERN_ERR "planb: cannot find slot\n");
- 		goto err_out;
-@@ -2240,6 +2240,7 @@ static int find_planb(void)
- 	pb->planb_base = planb_regs;
- 	pb->planb_base_phys = (struct planb_registers *)new_base;
- 	pb->irq	= irq;
-+	pb->dev = pdev;
- 
- 	return planb_num;
- 
-@@ -2247,6 +2248,7 @@ err_out_disable:
- 	pci_disable_device(pdev);
- err_out:
- 	/* FIXME handle error */   /* comment moved from pci_find_slot, above */
-+	pci_dev_put(pdev);
- 	return 0;
- }
- 
-@@ -2274,6 +2276,8 @@ static void release_planb(void)
- 		printk(KERN_INFO "PlanB: unregistering with v4l\n");
- 		video_unregister_device(&pb->video_dev);
- 
-+		pci_dev_put(pb->dev);
-+
- 		/* note that iounmap() does nothing on the PPC right now */
- 		iounmap ((void *)pb->planb_base);
- 	}
+diff -puN fs/gfs2/dir.c~gfs2-printk-warning-fixes fs/gfs2/dir.c
+--- a/fs/gfs2/dir.c~gfs2-printk-warning-fixes
++++ a/fs/gfs2/dir.c
+@@ -1319,9 +1319,11 @@ static int gfs2_dir_read_leaf(struct ino
+ 			if (IS_ERR(dent))
+ 				goto out_kfree;
+ 			if (entries2 != g.offset) {
+-				fs_warn(sdp, "Number of entries corrupt in dir leaf %llu, "
+-				        "entries2 (%u) != g.offset (%u)\n",
+-					(u64)bh->b_blocknr, entries2, g.offset);
++				fs_warn(sdp, "Number of entries corrupt in dir "
++						"leaf %llu, entries2 (%u) != "
++						"g.offset (%u)\n",
++					(unsigned long long)bh->b_blocknr,
++					entries2, g.offset);
+ 					
+ 				error = -EIO;
+ 				goto out_kfree;
+@@ -1454,7 +1456,8 @@ int gfs2_dir_read(struct inode *inode, u
+ 		if (dip->i_di.di_entries != g.offset) {
+ 			fs_warn(sdp, "Number of entries corrupt in dir %llu, "
+ 				"ip->i_di.di_entries (%u) != g.offset (%u)\n",
+-				dip->i_num.no_addr, dip->i_di.di_entries,
++				(unsigned long long)dip->i_num.no_addr,
++				dip->i_di.di_entries,
+ 				g.offset);
+ 			error = -EIO;
+ 			goto out;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+extend-print_symbol-capability.patch
+add-kvasprintf.patch
+add-kvasprintf-fix.patch
+slab-introduce-krealloc.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
 git-agpgart.patch
 git-powerpc.patch
+git-powerpc-fixup.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+ida-implement-idr-based-id-allocator-fix.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-drm.patch
 git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-fixup.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-jfs.patch
+git-kvm.patch
 git-libata-all.patch
-pata_hpt37x-further-small-fixes.patch
-pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
+ata-printk-warning-fixes.patch
 drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-ata_timing-ensure-t-cycle-is-always-correct.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-sl82c105-switch-to-ref-counting-api.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
 git-netdev-all.patch
-vioc_irq-switch-to-pci-refcount-safe-api.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-pci-syscallc-switch-to-refcounting-api.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-driver_bfin_serial_core.patch
+ne-add-platform_driver-fix.patch
+ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
 driver_bfin_serial_core-update.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-protect-tty-drivers-list-with-tty_mutex.patch
-fix-82875-pci-setup.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-remove-redundant-check-from-proc_sys_setattr.patch
-apm-fix-incorrect-comment.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
 upper-32-bits.patch
-console-utf-8-fixes.patch
-add-pci_try_set_mwi.patch
-edd-switch-to-refcounting-pci-apis.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+utimensat-implementation-fix.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
