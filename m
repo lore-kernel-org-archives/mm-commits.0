@@ -1,64 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:54:53 -0700
-Message-ID: <200704281054.l3SAsr7t020146@shell0.pdx.osdl.net>
+Subject: - i386-mce-check-capability.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:55:25 -0700
+Message-ID: <200704281055.l3SAtPp9020176@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45387 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33814 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031519AbXD1KzQ (ORCPT
+	by vger.kernel.org with ESMTP id S965752AbXD1Kzb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:16 -0400
+	Sat, 28 Apr 2007 06:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: simon@fire.lp0.eu, duncan.sands@math.u-psud.fr, greg@kroah.com, mm-commits@vger.kernel.org
+To: joachim.deguara@amd.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usbatm: Detect usb device shutdown and ignore failed urbs
+     i386 mce: check capability
 has been removed from the -mm tree.  Its filename was
-     usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs.patch
+     i386-mce-check-capability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usbatm: Detect usb device shutdown and ignore failed urbs
-From: Simon Arlott <simon@fire.lp0.eu>
+Subject: i386 mce: check capability
+From: "Joachim Deguara" <joachim.deguara@amd.com>
 
-Detect usb device shutdown and ignore failed urbs.  This happens when the
-driver is unloaded or the device is unplugged.
+Currently the i386 architecture checks the family for mce capability and this
+removes that and uses the CPUID information.  Tested on a K8 revE and a
+family10h processor.
 
-I'm not sure what other urb statuses should be ignored, and the warning
-message doesn't need to be shown when the module is unloaded or the device
-is removed.
+This eliminates checking of a set AMD procesor family if mce is 
+allowed and relies on the information being in CPUID.
 
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Cc: Duncan Sands <duncan.sands@math.u-psud.fr>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Joachim Deguara <joachim.deguara@amd.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/usbatm.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/i386/kernel/cpu/mcheck/k7.c  |    3 +++
+ arch/i386/kernel/cpu/mcheck/mce.c |    3 +--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/atm/usbatm.c~usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs drivers/usb/atm/usbatm.c
---- a/drivers/usb/atm/usbatm.c~usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs
-+++ a/drivers/usb/atm/usbatm.c
-@@ -274,6 +274,9 @@ static void usbatm_complete(struct urb *
- 			(!(channel->usbatm->flags & UDSL_IGNORE_EILSEQ) ||
- 			 urb->status != -EILSEQ ))
- 	{
-+		if (urb->status == -ESHUTDOWN)
-+			return;
+diff -puN arch/i386/kernel/cpu/mcheck/k7.c~i386-mce-check-capability arch/i386/kernel/cpu/mcheck/k7.c
+--- a/arch/i386/kernel/cpu/mcheck/k7.c~i386-mce-check-capability
++++ a/arch/i386/kernel/cpu/mcheck/k7.c
+@@ -75,6 +75,9 @@ void amd_mcheck_init(struct cpuinfo_x86 
+ 	machine_check_vector = k7_machine_check;
+ 	wmb();
+ 
++	if (!cpu_has(c, X86_FEATURE_MCE))
++		return;
 +
- 		if (printk_ratelimit())
- 			atm_warn(channel->usbatm, "%s: urb 0x%p failed (%d)!\n",
- 				__func__, urb, urb->status);
+ 	printk (KERN_INFO "Intel machine check architecture supported.\n");
+ 	rdmsr (MSR_IA32_MCG_CAP, l, h);
+ 	if (l & (1<<8))	/* Control register present ? */
+diff -puN arch/i386/kernel/cpu/mcheck/mce.c~i386-mce-check-capability arch/i386/kernel/cpu/mcheck/mce.c
+--- a/arch/i386/kernel/cpu/mcheck/mce.c~i386-mce-check-capability
++++ a/arch/i386/kernel/cpu/mcheck/mce.c
+@@ -38,8 +38,7 @@ void mcheck_init(struct cpuinfo_x86 *c)
+ 
+ 	switch (c->x86_vendor) {
+ 		case X86_VENDOR_AMD:
+-			if (c->x86 >= 6)
+-				amd_mcheck_init(c);
++			amd_mcheck_init(c);
+ 			break;
+ 
+ 		case X86_VENDOR_INTEL:
 _
 
-Patches currently in -mm which might be from simon@fire.lp0.eu are
+Patches currently in -mm which might be from joachim.deguara@amd.com are
 
-origin.patch
-git-ieee1394.patch
-cxacru-add-documentation-file.patch
-cxacru-cleanup-sysfs-attribute-code.patch
+git-alsa.patch
