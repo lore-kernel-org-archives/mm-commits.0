@@ -1,131 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - s2ram-add-arch-irq-disable-enable-hooks.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:51:24 -0700
-Message-ID: <200704281051.l3SApORu019981@shell0.pdx.osdl.net>
+Subject: - ohci1394-fix-mistake-in-printk-message.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:52:01 -0700
+Message-ID: <200704281052.l3SAq1ZS020019@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46200 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031125AbXD1Kw2 (ORCPT
+	by vger.kernel.org with ESMTP id S1031156AbXD1Kwf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:52:28 -0400
+	Sat, 28 Apr 2007 06:52:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johannes@sipsolutions.net, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: simon@fire.lp0.eu, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s2ram: add arch irq disable/enable hooks
+     ohci1394: Fix mistake in printk message.
 has been removed from the -mm tree.  Its filename was
-     s2ram-add-arch-irq-disable-enable-hooks.patch
+     ohci1394-fix-mistake-in-printk-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s2ram: add arch irq disable/enable hooks
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: ohci1394: Fix mistake in printk message.
+From: Simon Arlott <simon@fire.lp0.eu>
 
-For powermac, we need to do some things between suspending devices and
-device_power_off, for example setting the decrementer.  This patch allows
-architectures to define arch_s2ram_{en,dis}able_irqs in their asm/suspend.h
-to have control over this step.
+Fix the "attempting to setting" message in ohci1394.
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Greg KH <greg@kroah.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pm.h  |   18 ++++++++++++++++++
- kernel/power/main.c |   18 +++++++++++++++---
- 2 files changed, 33 insertions(+), 3 deletions(-)
+ drivers/ieee1394/ohci1394.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pm.h~s2ram-add-arch-irq-disable-enable-hooks include/linux/pm.h
---- a/include/linux/pm.h~s2ram-add-arch-irq-disable-enable-hooks
-+++ a/include/linux/pm.h
-@@ -170,6 +170,24 @@ extern int pm_suspend(suspend_state_t st
+diff -puN drivers/ieee1394/ohci1394.c~ohci1394-fix-mistake-in-printk-message drivers/ieee1394/ohci1394.c
+--- a/drivers/ieee1394/ohci1394.c~ohci1394-fix-mistake-in-printk-message
++++ a/drivers/ieee1394/ohci1394.c
+@@ -610,7 +610,7 @@ static void ohci_initialize(struct ti_oh
+ #endif
  
- extern int pm_valid_only_mem(suspend_state_t state);
- 
-+/**
-+ * arch_suspend_disable_irqs - disable IRQs for suspend
-+ *
-+ * Disables IRQs (in the default case). This is a weak symbol in the common
-+ * code and thus allows architectures to override it if more needs to be
-+ * done. Not called for suspend to disk.
-+ */
-+extern void arch_suspend_disable_irqs(void);
-+
-+/**
-+ * arch_suspend_enable_irqs - enable IRQs after suspend
-+ *
-+ * Enables IRQs (in the default case). This is a weak symbol in the common
-+ * code and thus allows architectures to override it if more needs to be
-+ * done. Not called for suspend to disk.
-+ */
-+extern void arch_suspend_enable_irqs(void);
-+
- /*
-  * Device power management
-  */
-diff -puN kernel/power/main.c~s2ram-add-arch-irq-disable-enable-hooks kernel/power/main.c
---- a/kernel/power/main.c~s2ram-add-arch-irq-disable-enable-hooks
-+++ a/kernel/power/main.c
-@@ -128,13 +128,24 @@ static int suspend_prepare(suspend_state
- 	return error;
- }
- 
-+/* default implementation */
-+void __attribute__ ((weak)) arch_suspend_disable_irqs(void)
-+{
-+	local_irq_disable();
-+}
-+
-+/* default implementation */
-+void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
-+{
-+	local_irq_enable();
-+}
- 
- int suspend_enter(suspend_state_t state)
- {
- 	int error = 0;
--	unsigned long flags;
- 
--	local_irq_save(flags);
-+	arch_suspend_disable_irqs();
-+	BUG_ON(!irqs_disabled());
- 
- 	if ((error = device_power_down(PMSG_SUSPEND))) {
- 		printk(KERN_ERR "Some devices failed to power down\n");
-@@ -143,7 +154,8 @@ int suspend_enter(suspend_state_t state)
- 	error = pm_ops->enter(state);
- 	device_power_up();
-  Done:
--	local_irq_restore(flags);
-+	arch_suspend_enable_irqs();
-+	BUG_ON(irqs_disabled());
- 	return error;
- }
- 
+ 		PRINT(KERN_DEBUG, "Serial EEPROM has suspicious values, "
+-                      "attempting to setting max_packet_size to 512 bytes");
++                      "attempting to set max_packet_size to 512 bytes");
+ 		reg_write(ohci, OHCI1394_BusOptions,
+ 			  (reg_read(ohci, OHCI1394_BusOptions) & 0xf007) | 0x8002);
+ 		ohci->max_packet_size = 512;
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from simon@fire.lp0.eu are
 
 origin.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-implement-pm_opsvalid-for-everybody-fix.patch
-power-management-force-pm_opsvalid-callback-to-be.patch
-git-alsa.patch
-git-powerpc.patch
-git-powerpc-arch-powerpc-sysdev-timerc-build-fix.patch
-power-management-remove-some-useless-code-from-arm.patch
-remove-software_suspend.patch
-power-management-change-sys-power-disk-display.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-kernel-doc-html-mode-struct-highlights.patch
+git-ieee1394.patch
+cxacru-add-documentation-file.patch
+cxacru-cleanup-sysfs-attribute-code.patch
