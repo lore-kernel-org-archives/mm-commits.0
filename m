@@ -1,191 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - device_schedule_callback-needs-a-module-reference.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:51:04 -0700
-Message-ID: <200704281051.l3SAp4gb019968@shell0.pdx.osdl.net>
+Subject: - mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:51:29 -0700
+Message-ID: <200704281051.l3SApTba019984@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49626 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965641AbXD1Kvd (ORCPT
+	by vger.kernel.org with ESMTP id S965645AbXD1Kvm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:51:33 -0400
+	Sat, 28 Apr 2007 06:51:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, cornelia.huck@de.ibm.com, greg@kroah.com, neilb@suse.de, satyam.sharma@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     device_schedule_callback() needs a module reference
+     mod_sysfs_setup() doesn't return errno when kobject_add_dir() failure occurs
 has been removed from the -mm tree.  Its filename was
-     device_schedule_callback-needs-a-module-reference.patch
+     mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: device_schedule_callback() needs a module reference
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: mod_sysfs_setup() doesn't return errno when kobject_add_dir() failure occurs
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-This patch (as896b) fixes an oversight in the design of
-device_schedule_callback().  It is necessary to acquire a reference to the
-module owning the callback routine, to prevent the module from being
-unloaded before the callback can run.
+mod_sysfs_setup() doesn't return an errno when kobject_add_dir() for module
+"holders" directory fails.  So caller of mod_sysfs_setup() will keep going
+and get oops.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Satyam Sharma <satyam.sharma@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c    |   16 ++++++++++------
- fs/sysfs/file.c        |   14 +++++++++++---
- include/linux/device.h |    8 ++++++--
- include/linux/sysfs.h  |    4 ++--
- 4 files changed, 29 insertions(+), 13 deletions(-)
+ kernel/module.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/core.c~device_schedule_callback-needs-a-module-reference drivers/base/core.c
---- a/drivers/base/core.c~device_schedule_callback-needs-a-module-reference
-+++ a/drivers/base/core.c
-@@ -480,9 +480,10 @@ void device_remove_bin_file(struct devic
- EXPORT_SYMBOL_GPL(device_remove_bin_file);
+diff -puN kernel/module.c~mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs kernel/module.c
+--- a/kernel/module.c~mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs
++++ a/kernel/module.c
+@@ -1145,8 +1145,10 @@ int mod_sysfs_setup(struct module *mod,
+ 		goto out;
  
- /**
-- * device_schedule_callback - helper to schedule a callback for a device
-+ * device_schedule_callback_owner - helper to schedule a callback for a device
-  * @dev: device.
-  * @func: callback function to invoke later.
-+ * @owner: module owning the callback routine
-  *
-  * Attribute methods must not unregister themselves or their parent device
-  * (which would amount to the same thing).  Attempts to do so will deadlock,
-@@ -493,20 +494,23 @@ EXPORT_SYMBOL_GPL(device_remove_bin_file
-  * argument in the workqueue's process context.  @dev will be pinned until
-  * @func returns.
-  *
-+ * This routine is usually called via the inline device_schedule_callback(),
-+ * which automatically sets @owner to THIS_MODULE.
-+ *
-  * Returns 0 if the request was submitted, -ENOMEM if storage could not
-- * be allocated.
-+ * be allocated, -ENODEV if a reference to @owner isn't available.
-  *
-  * NOTE: This routine won't work if CONFIG_SYSFS isn't set!  It uses an
-  * underlying sysfs routine (since it is intended for use by attribute
-  * methods), and if sysfs isn't available you'll get nothing but -ENOSYS.
-  */
--int device_schedule_callback(struct device *dev,
--		void (*func)(struct device *))
-+int device_schedule_callback_owner(struct device *dev,
-+		void (*func)(struct device *), struct module *owner)
- {
- 	return sysfs_schedule_callback(&dev->kobj,
--			(void (*)(void *)) func, dev);
-+			(void (*)(void *)) func, dev, owner);
- }
--EXPORT_SYMBOL_GPL(device_schedule_callback);
-+EXPORT_SYMBOL_GPL(device_schedule_callback_owner);
- 
- static void klist_children_get(struct klist_node *n)
- {
-diff -puN fs/sysfs/file.c~device_schedule_callback-needs-a-module-reference fs/sysfs/file.c
---- a/fs/sysfs/file.c~device_schedule_callback-needs-a-module-reference
-+++ a/fs/sysfs/file.c
-@@ -617,6 +617,7 @@ struct sysfs_schedule_callback_struct {
- 	struct kobject 		*kobj;
- 	void			(*func)(void *);
- 	void			*data;
-+	struct module		*owner;
- 	struct work_struct	work;
- };
- 
-@@ -627,6 +628,7 @@ static void sysfs_schedule_callback_work
- 
- 	(ss->func)(ss->data);
- 	kobject_put(ss->kobj);
-+	module_put(ss->owner);
- 	kfree(ss);
- }
- 
-@@ -635,6 +637,7 @@ static void sysfs_schedule_callback_work
-  * @kobj: object we're acting for.
-  * @func: callback function to invoke later.
-  * @data: argument to pass to @func.
-+ * @owner: module owning the callback code
-  *
-  * sysfs attribute methods must not unregister themselves or their parent
-  * kobject (which would amount to the same thing).  Attempts to do so will
-@@ -647,20 +650,25 @@ static void sysfs_schedule_callback_work
-  * until @func returns.
-  *
-  * Returns 0 if the request was submitted, -ENOMEM if storage could not
-- * be allocated.
-+ * be allocated, -ENODEV if a reference to @owner isn't available.
-  */
- int sysfs_schedule_callback(struct kobject *kobj, void (*func)(void *),
--		void *data)
-+		void *data, struct module *owner)
- {
- 	struct sysfs_schedule_callback_struct *ss;
- 
-+	if (!try_module_get(owner))
-+		return -ENODEV;
- 	ss = kmalloc(sizeof(*ss), GFP_KERNEL);
--	if (!ss)
-+	if (!ss) {
-+		module_put(owner);
- 		return -ENOMEM;
+ 	mod->holders_dir = kobject_add_dir(&mod->mkobj.kobj, "holders");
+-	if (!mod->holders_dir)
++	if (!mod->holders_dir) {
++		err = -ENOMEM;
+ 		goto out_unreg;
 +	}
- 	kobject_get(kobj);
- 	ss->kobj = kobj;
- 	ss->func = func;
- 	ss->data = data;
-+	ss->owner = owner;
- 	INIT_WORK(&ss->work, sysfs_schedule_callback_work);
- 	schedule_work(&ss->work);
- 	return 0;
-diff -puN include/linux/device.h~device_schedule_callback-needs-a-module-reference include/linux/device.h
---- a/include/linux/device.h~device_schedule_callback-needs-a-module-reference
-+++ a/include/linux/device.h
-@@ -367,8 +367,12 @@ extern int __must_check device_create_bi
- 					       struct bin_attribute *attr);
- extern void device_remove_bin_file(struct device *dev,
- 				   struct bin_attribute *attr);
--extern int device_schedule_callback(struct device *dev,
--		void (*func)(struct device *));
-+extern int device_schedule_callback_owner(struct device *dev,
-+		void (*func)(struct device *), struct module *owner);
-+
-+/* This is a macro to avoid include problems with THIS_MODULE */
-+#define device_schedule_callback(dev, func)			\
-+	device_schedule_callback_owner(dev, func, THIS_MODULE)
  
- /* device resource management */
- typedef void (*dr_release_t)(struct device *dev, void *res);
-diff -puN include/linux/sysfs.h~device_schedule_callback-needs-a-module-reference include/linux/sysfs.h
---- a/include/linux/sysfs.h~device_schedule_callback-needs-a-module-reference
-+++ a/include/linux/sysfs.h
-@@ -80,7 +80,7 @@ struct sysfs_ops {
- #ifdef CONFIG_SYSFS
- 
- extern int sysfs_schedule_callback(struct kobject *kobj,
--		void (*func)(void *), void *data);
-+		void (*func)(void *), void *data, struct module *owner);
- 
- extern int __must_check
- sysfs_create_dir(struct kobject *, struct dentry *);
-@@ -137,7 +137,7 @@ extern int __must_check sysfs_init(void)
- #else /* CONFIG_SYSFS */
- 
- static inline int sysfs_schedule_callback(struct kobject *kobj,
--		void (*func)(void *), void *data)
-+		void (*func)(void *), void *data, struct module *owner)
- {
- 	return -ENOSYS;
- }
+ 	err = module_param_sysfs_setup(mod, kparam, num_params);
+ 	if (err)
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-git-hid.patch
+git-alsa.patch
+git-dvb.patch
+git-ieee1394.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+fault-injection-disable-stacktrace-filter-for-x86-64.patch
+fault-injection-enable-stacktrace-with-dwarf2-unwinder.patch
+slob-handle-slab_panic-flag.patch
+use-slab_panic-flag-cleanup.patch
+fault-injection-fix-failslab-with-config_numa.patch
+simplify-the-stacktrace-code.patch
+dtlk-fix-error-checks-in-module_init.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
