@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + get_unmapped_area-handles-map_fixed-in-generic-code.patch added to -mm tree
-Date: Sat, 28 Apr 2007 01:34:20 -0700
-Message-ID: <200704280834.l3S8YKSX018116@shell0.pdx.osdl.net>
+Subject: + get_unmapped_area-handles-map_fixed-on-powerpc.patch added to -mm tree
+Date: Sat, 28 Apr 2007 01:33:57 -0700
+Message-ID: <200704280833.l3S8Xvck018081@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36853 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60915 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030413AbXD1IgQ (ORCPT
+	by vger.kernel.org with ESMTP id S1031115AbXD1IgQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 28 Apr 2007 04:36:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: benh@kernel.crashing.org, agl@us.ibm.com, ak@suse.de, bill.irwin@oracle.com,
 
 
 The patch titled
-     get_unmapped_area handles MAP_FIXED in generic code
+     get_unmapped_area handles MAP_FIXED on powerpc
 has been added to the -mm tree.  Its filename is
-     get_unmapped_area-handles-map_fixed-in-generic-code.patch
+     get_unmapped_area-handles-map_fixed-on-powerpc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get_unmapped_area handles MAP_FIXED in generic code
+Subject: get_unmapped_area handles MAP_FIXED on powerpc
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-generic arch_get_unmapped_area() now handles MAP_FIXED.  Now that all
-implementations have been fixed, change the toplevel get_unmapped_area() to
-call into arch or drivers for the MAP_FIXED case.
+The current get_unmapped_area code calls the f_ops->get_unmapped_area or the
+arch one (via the mm) only when MAP_FIXED is not passed.  That makes it
+impossible for archs to impose proper constraints on regions of the virtual
+address space.  To work around that, get_unmapped_area() then calls some
+hugetlbfs specific hacks.
+
+This cause several problems, among others:
+
+- It makes it impossible for a driver or filesystem to do the same thing
+  that hugetlbfs does (for example, to allow a driver to use larger page sizes
+  to map external hardware) if that requires applying a constraint on the
+  addresses (constraining that mapping in certain regions and other mappings
+  out of those regions).
+
+- Some archs like arm, mips, sparc, sparc64, sh and sh64 already want
+  MAP_FIXED to be passed down in order to deal with aliasing issues.  The code
+  is there to handle it...  but is never called.
+
+This series of patches moves the logic to handle MAP_FIXED down to the various
+arch/driver get_unmapped_area() implementations, and then changes the generic
+code to always call them.  The hugetlbfs hacks then disappear from the generic
+code.
+
+Since I need to do some special 64K pages mappings for SPEs on cell, I need to
+work around the first problem at least.  I have further patches thus
+implementing a "slices" layer that handles multiple page sizes through slices
+of the address space for use by hugetlbfs, the SPE code, and possibly others,
+but it requires that serie of patches first/
+
+There is still a potential (but not practical) issue due to the fact that
+filesystems/drivers implemeting g_u_a will effectively bypass all arch checks.
+ This is not an issue in practice as the only filesystems/drivers using that
+hook are doing so for arch specific purposes in the first place.
+
+There is also a problem with mremap that will completely bypass all arch
+checks.  I'll try to address that separately, I'm not 100% certain yet how,
+possibly by making it not work when the vma has a file whose f_ops has a
+get_unmapped_area callback, and by making it use is_hugepage_only_range()
+before expanding into a new area.
+
+Also, I want to turn is_hugepage_only_range() into a more generic
+is_normal_page_range() as that's really what it will end up meaning when used
+in stack grow, brk grow and mremap.
+
+None of the above "issues" however are introduced by this patch, they are
+already there, so I think the patch can go ini for 2.6.22.
+
+
+
+This patch:
+
+Handle MAP_FIXED in powerpc's arch_get_unmapped_area() in all 3
+implementations of it.
 
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: William Irwin <bill.irwin@oracle.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
@@ -45,70 +96,59 @@ Cc: Kyle McMartin <kyle@mcmartin.ca>
 Cc: Grant Grundler <grundler@parisc-linux.org>
 Cc: Matthew Wilcox <willy@debian.org>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: William Irwin <bill.irwin@oracle.com>
 Cc: Adam Litke <agl@us.ibm.com>
 Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN mm/mmap.c~get_unmapped_area-handles-map_fixed-in-generic-code mm/mmap.c
---- a/mm/mmap.c~get_unmapped_area-handles-map_fixed-in-generic-code
-+++ a/mm/mmap.c
-@@ -1209,6 +1209,9 @@ arch_get_unmapped_area(struct file *filp
+diff -puN arch/powerpc/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-powerpc arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-powerpc
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -566,6 +566,13 @@ unsigned long arch_get_unmapped_area(str
  	if (len > TASK_SIZE)
  		return -ENOMEM;
  
-+	if (flags & MAP_FIXED)
++	/* handle fixed mapping: prevent overlap with huge pages */
++	if (flags & MAP_FIXED) {
++		if (is_hugepage_only_range(mm, addr, len))
++			return -EINVAL;
 +		return addr;
++	}
 +
  	if (addr) {
  		addr = PAGE_ALIGN(addr);
  		vma = find_vma(mm, addr);
-@@ -1282,6 +1285,9 @@ arch_get_unmapped_area_topdown(struct fi
+@@ -641,6 +648,13 @@ arch_get_unmapped_area_topdown(struct fi
  	if (len > TASK_SIZE)
  		return -ENOMEM;
  
-+	if (flags & MAP_FIXED)
++	/* handle fixed mapping: prevent overlap with huge pages */
++	if (flags & MAP_FIXED) {
++		if (is_hugepage_only_range(mm, addr, len))
++			return -EINVAL;
 +		return addr;
++	}
 +
- 	/* requesting a specific address */
- 	if (addr) {
- 		addr = PAGE_ALIGN(addr);
-@@ -1370,22 +1376,21 @@ get_unmapped_area(struct file *file, uns
- 		unsigned long pgoff, unsigned long flags)
- {
- 	unsigned long ret;
-+	unsigned long (*get_area)(struct file *, unsigned long,
-+				  unsigned long, unsigned long, unsigned long);
+ 	/* dont allow allocations above current base */
+ 	if (mm->free_area_cache > base)
+ 		mm->free_area_cache = base;
+@@ -823,6 +837,13 @@ unsigned long hugetlb_get_unmapped_area(
+ 	/* Paranoia, caller should have dealt with this */
+ 	BUG_ON((addr + len)  < addr);
  
--	if (!(flags & MAP_FIXED)) {
--		unsigned long (*get_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
--
--		get_area = current->mm->get_unmapped_area;
--		if (file && file->f_op && file->f_op->get_unmapped_area)
--			get_area = file->f_op->get_unmapped_area;
--		addr = get_area(file, addr, len, pgoff, flags);
--		if (IS_ERR_VALUE(addr))
--			return addr;
--	}
-+	get_area = current->mm->get_unmapped_area;
-+	if (file && file->f_op && file->f_op->get_unmapped_area)
-+		get_area = file->f_op->get_unmapped_area;
-+	addr = get_area(file, addr, len, pgoff, flags);
-+	if (IS_ERR_VALUE(addr))
++	/* Handle MAP_FIXED */
++	if (flags & MAP_FIXED) {
++		if (prepare_hugepage_range(addr, len, pgoff))
++			return -EINVAL;
 +		return addr;
- 
- 	if (addr > TASK_SIZE - len)
- 		return -ENOMEM;
- 	if (addr & ~PAGE_MASK)
- 		return -EINVAL;
++	}
 +
- 	if (file && is_file_hugepages(file))  {
- 		/*
- 		 * Check if the given range is hugepage aligned, and
+ 	if (test_thread_flag(TIF_32BIT)) {
+ 		curareas = current->mm->context.low_htlb_areas;
+ 
 _
 
 Patches currently in -mm which might be from benh@kernel.crashing.org are
