@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ida-implement-idr-based-id-allocator-fix.patch added to -mm tree
-Date: Fri, 27 Apr 2007 18:24:45 -0700
-Message-ID: <200704280124.l3S1OkdI012466@shell0.pdx.osdl.net>
+Subject: + ida-implement-idr-based-id-allocator.patch added to -mm tree
+Date: Fri, 27 Apr 2007 18:24:37 -0700
+Message-ID: <200704280124.l3S1ObDa012458@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40494 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42650 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030824AbXD1BZU (ORCPT
+	by vger.kernel.org with ESMTP id S1030823AbXD1BZM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 21:25:20 -0400
+	Fri, 27 Apr 2007 21:25:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, teheo@suse.de
+Cc: teheo@suse.de, greg@kroah.com, htejun@gmail.com
 
 
 The patch titled
-     ida-implement-idr-based-id-allocator-fix
+     ida: implement idr based id allocator
 has been added to the -mm tree.  Its filename is
-     ida-implement-idr-based-id-allocator-fix.patch
+     ida-implement-idr-based-id-allocator.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,209 +26,325 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ida-implement-idr-based-id-allocator-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ida: implement idr based id allocator
+From: Tejun Heo <teheo@suse.de>
 
+Implement idr based id allocator.  ida is used the same way idr is used but
+lacks id -> ptr translation and thus consumes much less memory.  struct
+ida_bitmap is attached as leaf nodes to idr tree which is managed by the
+idr code.  Each ida_bitmap is 128bytes long and contains slightly less than
+a thousand slots.
+
+ida is more aggressive with releasing extra resources acquired using
+ida_pre_get().  After every successful id allocation, ida frees one
+reserved idr_layer if possible.  Reserved ida_bitmap is not freed
+automatically but only one ida_bitmap is reserved and it's almost always
+used right away.  Under most circumstances, ida won't hold on to memory for
+too long which isn't actively used.
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Tejun Heo <teheo@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/idr.h |   29 ++++
+ lib/idr.c           |  245 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 274 insertions(+)
 
-diff -puN include/linux/idr.h~ida-implement-idr-based-id-allocator-fix include/linux/idr.h
-diff -puN lib/idr.c~ida-implement-idr-based-id-allocator-fix lib/idr.c
---- a/lib/idr.c~ida-implement-idr-based-id-allocator-fix
+diff -puN include/linux/idr.h~ida-implement-idr-based-id-allocator include/linux/idr.h
+--- a/include/linux/idr.h~ida-implement-idr-based-id-allocator
++++ a/include/linux/idr.h
+@@ -83,4 +83,33 @@ void idr_remove(struct idr *idp, int id)
+ void idr_destroy(struct idr *idp);
+ void idr_init(struct idr *idp);
+ 
++
++/*
++ * IDA - IDR based id allocator, use when translation from id to
++ * pointer isn't necessary.
++ */
++#define IDA_CHUNK_SIZE		128	/* 128 bytes per chunk */
++#define IDA_BITMAP_LONGS	(128 / sizeof(long) - 1)
++#define IDA_BITMAP_BITS		(IDA_BITMAP_LONGS * sizeof(long) * 8)
++
++struct ida_bitmap {
++	long			nr_busy;
++	unsigned long		bitmap[IDA_BITMAP_LONGS];
++};
++
++struct ida {
++	struct idr		idr;
++	struct ida_bitmap	*free_bitmap;
++};
++
++#define IDA_INIT(name)		{ .idr = IDR_INIT(name), .free_bitmap = NULL, }
++#define DEFINE_IDA(name)	struct ida name = IDA_INIT(name)
++
++int ida_pre_get(struct ida *ida, gfp_t gfp_mask);
++int ida_get_new_above(struct ida *ida, int starting_id, int *p_id);
++int ida_get_new(struct ida *ida, int *p_id);
++void ida_remove(struct ida *ida, int id);
++void ida_destroy(struct ida *ida);
++void ida_init(struct ida *ida);
++
+ #endif /* __IDR_H__ */
+diff -puN lib/idr.c~ida-implement-idr-based-id-allocator lib/idr.c
+--- a/lib/idr.c~ida-implement-idr-based-id-allocator
 +++ a/lib/idr.c
-@@ -507,7 +507,6 @@ void idr_init(struct idr *idp)
+@@ -506,3 +506,248 @@ void idr_init(struct idr *idp)
+ 	spin_lock_init(&idp->lock);
  }
  EXPORT_SYMBOL(idr_init);
- 
--
- /*
-  * IDA - IDR based ID allocator
-  *
-@@ -536,7 +535,7 @@ static void free_bitmap(struct ida *ida,
- }
- 
- /**
-- * idr_pre_get - reserve resources for ida allocation
-+ * ida_pre_get - reserve resources for ida allocation
-  * @ida:	ida handle
-  * @gfp_mask:	memory allocation flag
-  *
++
++
++/*
++ * IDA - IDR based ID allocator
++ *
++ * this is id allocator without id -> pointer translation.  Memory
++ * usage is much lower than full blown idr because each id only
++ * occupies a bit.  ida uses a custom leaf node which contains
++ * IDA_BITMAP_BITS slots.
++ *
++ * 2007-04-25  written by Tejun Heo <htejun@gmail.com>
++ */
++
++static void free_bitmap(struct ida *ida, struct ida_bitmap *bitmap)
++{
++	unsigned long flags;
++
++	if (!ida->free_bitmap) {
++		spin_lock_irqsave(&ida->idr.lock, flags);
++		if (!ida->free_bitmap) {
++			ida->free_bitmap = bitmap;
++			bitmap = NULL;
++		}
++		spin_unlock_irqrestore(&ida->idr.lock, flags);
++	}
++
++	kfree(bitmap);
++}
++
++/**
++ * idr_pre_get - reserve resources for ida allocation
++ * @ida:	ida handle
++ * @gfp_mask:	memory allocation flag
++ *
++ * This function should be called prior to locking and calling the
++ * following function.  It preallocates enough memory to satisfy the
++ * worst possible allocation.
++ *
++ * If the system is REALLY out of memory this function returns 0,
++ * otherwise 1.
++ */
++int ida_pre_get(struct ida *ida, gfp_t gfp_mask)
++{
++	/* allocate idr_layers */
++	if (!idr_pre_get(&ida->idr, gfp_mask))
++		return 0;
++
++	/* allocate free_bitmap */
++	if (!ida->free_bitmap) {
++		struct ida_bitmap *bitmap;
++
++		bitmap = kmalloc(sizeof(struct ida_bitmap), gfp_mask);
++		if (!bitmap)
++			return 0;
++
++		free_bitmap(ida, bitmap);
++	}
++
++	return 1;
++}
++EXPORT_SYMBOL(ida_pre_get);
++
++/**
++ * ida_get_new_above - allocate new ID above or equal to a start id
++ * @ida:	ida handle
++ * @staring_id:	id to start search at
++ * @p_id:	pointer to the allocated handle
++ *
++ * Allocate new ID above or equal to @ida.  It should be called with
++ * any required locks.
++ *
++ * If memory is required, it will return -EAGAIN, you should unlock
++ * and go back to the ida_pre_get() call.  If the ida is full, it will
++ * return -ENOSPC.
++ *
++ * @p_id returns a value in the range 0 ... 0x7fffffff.
++ */
++int ida_get_new_above(struct ida *ida, int starting_id, int *p_id)
++{
++	struct idr_layer *pa[MAX_LEVEL];
++	struct ida_bitmap *bitmap;
++	unsigned long flags;
++	int idr_id = starting_id / IDA_BITMAP_BITS;
++	int offset = starting_id % IDA_BITMAP_BITS;
++	int t, id;
++
++ restart:
++	/* get vacant slot */
++	t = idr_get_empty_slot(&ida->idr, idr_id, pa);
++	if (t < 0) {
++		if (t == -1)
++			return -EAGAIN;
++		else /* will be -3 */
++			return -ENOSPC;
++	}
++
++	if (t * IDA_BITMAP_BITS >= MAX_ID_BIT)
++		return -ENOSPC;
++
++	if (t != idr_id)
++		offset = 0;
++	idr_id = t;
++
++	/* if bitmap isn't there, create a new one */
++	bitmap = (void *)pa[0]->ary[idr_id & IDR_MASK];
++	if (!bitmap) {
++		spin_lock_irqsave(&ida->idr.lock, flags);
++		bitmap = ida->free_bitmap;
++		ida->free_bitmap = NULL;
++		spin_unlock_irqrestore(&ida->idr.lock, flags);
++
++		if (!bitmap)
++			return -EAGAIN;
++
++		memset(bitmap, 0, sizeof(struct ida_bitmap));
++		pa[0]->ary[idr_id & IDR_MASK] = (void *)bitmap;
++		pa[0]->count++;
++	}
++
++	/* lookup for empty slot */
++	t = find_next_zero_bit(bitmap->bitmap, IDA_BITMAP_BITS, offset);
++	if (t == IDA_BITMAP_BITS) {
++		/* no empty slot after offset, continue to the next chunk */
++		idr_id++;
++		offset = 0;
++		goto restart;
++	}
++
++	id = idr_id * IDA_BITMAP_BITS + t;
++	if (id >= MAX_ID_BIT)
++		return -ENOSPC;
++
++	__set_bit(t, bitmap->bitmap);
++	if (++bitmap->nr_busy == IDA_BITMAP_BITS)
++		idr_mark_full(pa, idr_id);
++
++	*p_id = id;
++
++	/* Each leaf node can handle nearly a thousand slots and the
++	 * whole idea of ida is to have small memory foot print.
++	 * Throw away extra resources one by one after each successful
++	 * allocation.
++	 */
++	if (ida->idr.id_free_cnt || ida->free_bitmap) {
++		struct idr_layer *p = alloc_layer(&ida->idr);
++		if (p)
++			kmem_cache_free(idr_layer_cache, p);
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL(ida_get_new_above);
++
++/**
++ * ida_get_new - allocate new ID
++ * @ida:	idr handle
++ * @p_id:	pointer to the allocated handle
++ *
++ * Allocate new ID.  It should be called with any required locks.
++ *
++ * If memory is required, it will return -EAGAIN, you should unlock
++ * and go back to the idr_pre_get() call.  If the idr is full, it will
++ * return -ENOSPC.
++ *
++ * @id returns a value in the range 0 ... 0x7fffffff.
++ */
++int ida_get_new(struct ida *ida, int *p_id)
++{
++	return ida_get_new_above(ida, 0, p_id);
++}
++EXPORT_SYMBOL(ida_get_new);
++
++/**
++ * ida_remove - remove the given ID
++ * @ida:	ida handle
++ * @id:		ID to free
++ */
++void ida_remove(struct ida *ida, int id)
++{
++	struct idr_layer *p = ida->idr.top;
++	int shift = (ida->idr.layers - 1) * IDR_BITS;
++	int idr_id = id / IDA_BITMAP_BITS;
++	int offset = id % IDA_BITMAP_BITS;
++	int n;
++	struct ida_bitmap *bitmap;
++
++	/* clear full bits while looking up the leaf idr_layer */
++	while ((shift > 0) && p) {
++		n = (idr_id >> shift) & IDR_MASK;
++		__clear_bit(n, &p->bitmap);
++		p = p->ary[n];
++		shift -= IDR_BITS;
++	}
++
++	if (p == NULL)
++		goto err;
++
++	n = idr_id & IDR_MASK;
++	__clear_bit(n, &p->bitmap);
++
++	bitmap = (void *)p->ary[n];
++	if (!test_bit(offset, bitmap->bitmap))
++		goto err;
++
++	/* update bitmap and remove it if empty */
++	__clear_bit(offset, bitmap->bitmap);
++	if (--bitmap->nr_busy == 0) {
++		__set_bit(n, &p->bitmap);	/* to please idr_remove() */
++		idr_remove(&ida->idr, idr_id);
++		free_bitmap(ida, bitmap);
++	}
++
++	return;
++
++ err:
++	printk(KERN_WARNING
++	       "ida_remove called for id=%d which is not allocated.\n", id);
++}
++EXPORT_SYMBOL(ida_remove);
++
++/**
++ * ida_destroy - release all cached layers within an ida tree
++ * ida:		ida handle
++ */
++void ida_destroy(struct ida *ida)
++{
++	idr_destroy(&ida->idr);
++	kfree(ida->free_bitmap);
++}
++EXPORT_SYMBOL(ida_destroy);
++
++/**
++ * ida_init - initialize ida handle
++ * @ida:	ida handle
++ *
++ * This function is use to set up the handle (@ida) that you will pass
++ * to the rest of the functions.
++ */
++void ida_init(struct ida *ida)
++{
++	memset(ida, 0, sizeof(struct ida));
++	idr_init(&ida->idr);
++
++}
++EXPORT_SYMBOL(ida_init);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from teheo@suse.de are
 
-extend-print_symbol-capability.patch
-slab-introduce-krealloc.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agp-build-fix.patch
-git-cpufreq-borkage-fix.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake.patch
-dev_dbg-check-dev_dbg-arguments.patch
-sysfs-binc-printk-fix.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch
-git-gfs2-nmw.patch
-gfs2-printk-warning-fixes.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-fw-device-printk-fix.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-mtd-build-fix.patch
-git-ubi.patch
-git-ubi-fixup.patch
-revert-gitpowerpc-ehea-changes.patch
-git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-git-netdev-all-export-ieee80211_debug_level.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-git-net-fix-yamc.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
-rfcomm_worker-fix-wakeup-race.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-fix-x86_64-mm-nmi-watchdog-ops.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-x86_64-unexport-cpu_llc_id.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+idr-fix-obscure-bug-in-allocation-path.patch
+idr-separate-out-idr_mark_full.patch
+ida-implement-idr-based-id-allocator.patch
 ida-implement-idr-based-id-allocator-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-utimensat-implementation-fix.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-build-hack.patch
-lguest-build-hack-2.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-i386-uaccess-debugging.patch
-w1-build-fix.patch
