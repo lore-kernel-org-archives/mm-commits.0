@@ -1,55 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - remove-duplicate-define-of-ohci_quirk_zfmicro.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:54:47 -0700
-Message-ID: <200704281054.l3SAsl2C020143@shell0.pdx.osdl.net>
+Subject: - usb-elan-ftdi-check-for-driver-registration-status-v2.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:54:31 -0700
+Message-ID: <200704281054.l3SAsVsY020129@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52544 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965748AbXD1Kz1 (ORCPT
+	by vger.kernel.org with ESMTP id S965747AbXD1Kz0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:27 -0400
+	Sat, 28 Apr 2007 06:55:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: caglar@pardus.org.tr, greg@kroah.com, tony.olech@elandigitalsystems.com, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, greg@kroah.com, lcapitulino@mandriva.com.br, zaitcev@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove duplicate define of OHCI_QUIRK_ZFMICRO
+     USB Elan FTDI: check for driver registration status
 has been removed from the -mm tree.  Its filename was
-     remove-duplicate-define-of-ohci_quirk_zfmicro.patch
+     usb-elan-ftdi-check-for-driver-registration-status-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove duplicate define of OHCI_QUIRK_ZFMICRO
-From: "S.Caglar Onur" <caglar@pardus.org.tr>
+Subject: USB Elan FTDI: check for driver registration status
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Remove duplicate define of OHCI_QUIRK_ZFMICRO from ftdi-elan.c, its already
-defined in drivers/ush/host/ohci.c
+Add checking of driver registration status and release allocated resources
+if it failed.
 
-Signed-off-by: "S.Caglar Onur" <caglar@pardus.org.tr>
-Cc: <tony.olech@elandigitalsystems.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
+Cc: "Luiz Fernando N. Capitulino" <lcapitulino@mandriva.com.br>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/ftdi-elan.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/usb/misc/ftdi-elan.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN drivers/usb/misc/ftdi-elan.c~remove-duplicate-define-of-ohci_quirk_zfmicro drivers/usb/misc/ftdi-elan.c
---- a/drivers/usb/misc/ftdi-elan.c~remove-duplicate-define-of-ohci_quirk_zfmicro
+diff -puN drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-driver-registration-status-v2 drivers/usb/misc/ftdi-elan.c
+--- a/drivers/usb/misc/ftdi-elan.c~usb-elan-ftdi-check-for-driver-registration-status-v2
 +++ a/drivers/usb/misc/ftdi-elan.c
-@@ -2304,7 +2304,6 @@ static int ftdi_elan_checkingPCI(struct 
- #define OHCI_QUIRK_SUPERIO 0x02
- #define OHCI_QUIRK_INITRESET 0x04
- #define OHCI_BIG_ENDIAN 0x08
--#define OHCI_QUIRK_ZFMICRO 0x10
- #define OHCI_CONTROL_INIT OHCI_CTRL_CBSR
- #define OHCI_INTR_INIT (OHCI_INTR_MIE | OHCI_INTR_UE | OHCI_INTR_RD | \
-         OHCI_INTR_WDH)
+@@ -2910,24 +2910,28 @@ static int __init ftdi_elan_init(void)
+         INIT_LIST_HEAD(&ftdi_static_list);
+         status_queue = create_singlethread_workqueue("ftdi-status-control");
+ 	if (!status_queue)
+-		goto err1;
++		goto err_status_queue;
+         command_queue = create_singlethread_workqueue("ftdi-command-engine");
+ 	if (!command_queue)
+-		goto err2;
++		goto err_command_queue;
+         respond_queue = create_singlethread_workqueue("ftdi-respond-engine");
+ 	if (!respond_queue)
+-		goto err3;
++		goto err_respond_queue;
+         result = usb_register(&ftdi_elan_driver);
+-        if (result)
++        if (result) {
++		destroy_workqueue(status_queue);
++		destroy_workqueue(command_queue);
++		destroy_workqueue(respond_queue);
+                 printk(KERN_ERR "usb_register failed. Error number %d\n",
+ 		       result);
++	}
+         return result;
+ 
+- err3:
++ err_respond_queue:
+ 	destroy_workqueue(command_queue);
+- err2:
++ err_command_queue:
+ 	destroy_workqueue(status_queue);
+- err1:
++ err_status_queue:
+ 	printk(KERN_ERR "%s couldn't create workqueue\n", ftdi_elan_driver.name);
+ 	return -ENOMEM;
+ }
 _
 
-Patches currently in -mm which might be from caglar@pardus.org.tr are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
+git-kbuild.patch
+cris-check-for-memory-allocation.patch
