@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch added to -mm tree
-Date: Sat, 28 Apr 2007 01:06:57 -0700
-Message-ID: <200704280806.l3S86v2v017713@shell0.pdx.osdl.net>
+Subject: + mips-drop-unnecessary-config_isa-from-rbtx49xx.patch added to -mm tree
+Date: Sat, 28 Apr 2007 01:06:59 -0700
+Message-ID: <200704280806.l3S86xjD017716@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53535 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965552AbXD1IHO (ORCPT
+	by vger.kernel.org with ESMTP id S1161590AbXD1IHT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 04:07:14 -0400
+	Sat, 28 Apr 2007 04:07:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, anemo@mba.ocn.ne.jp, jeff@garzik.org, ralf@linux-mips.org
+Cc: anemo@mba.ocn.ne.jp, jeff@garzik.org, ralf@linux-mips.org
 
 
 The patch titled
-     ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix
+     MIPS: Drop unnecessary CONFIG_ISA from RBTX49XX
 has been added to the -mm tree.  Its filename is
-     ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
+     mips-drop-unnecessary-config_isa-from-rbtx49xx.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,212 +26,156 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: MIPS: Drop unnecessary CONFIG_ISA from RBTX49XX
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Those boards do not need CONFIG_ISA if the ne driver could be selectable
+without it.  Disable it and update a defconfig.
+
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/Kconfig                     |    2 -
+ arch/mips/configs/rbhma4500_defconfig |   31 ------------------------
+ 2 files changed, 33 deletions(-)
 
-diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
---- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix
-+++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
-@@ -1039,7 +1039,7 @@ void __init toshiba_rbtx4927_timer_setup
+diff -puN arch/mips/Kconfig~mips-drop-unnecessary-config_isa-from-rbtx49xx arch/mips/Kconfig
+--- a/arch/mips/Kconfig~mips-drop-unnecessary-config_isa-from-rbtx49xx
++++ a/arch/mips/Kconfig
+@@ -786,7 +786,6 @@ config TOSHIBA_RBTX4927
+ 	select HAS_TXX9_SERIAL
+ 	select HW_HAS_PCI
+ 	select I8259
+-	select ISA
+ 	select SWAP_IO_SPACE
+ 	select SYS_HAS_CPU_TX49XX
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+@@ -808,7 +807,6 @@ config TOSHIBA_RBTX4938
+ 	select HAS_TXX9_SERIAL
+ 	select HW_HAS_PCI
+ 	select I8259
+-	select ISA
+ 	select SWAP_IO_SPACE
+ 	select SYS_HAS_CPU_TX49XX
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+diff -puN arch/mips/configs/rbhma4500_defconfig~mips-drop-unnecessary-config_isa-from-rbtx49xx arch/mips/configs/rbhma4500_defconfig
+--- a/arch/mips/configs/rbhma4500_defconfig~mips-drop-unnecessary-config_isa-from-rbtx49xx
++++ a/arch/mips/configs/rbhma4500_defconfig
+@@ -245,7 +245,6 @@ CONFIG_DEFAULT_IOSCHED="anticipatory"
+ #
+ CONFIG_HW_HAS_PCI=y
+ CONFIG_PCI=y
+-CONFIG_ISA=y
+ CONFIG_MMU=y
  
- static int __init toshiba_rbtx4927_rtc_init(void)
- {
--	struct resource res = {
-+	static struct resource __initdata res = {
- 		.start	= 0x1c010000,
- 		.end	= 0x1c010000 + 0x800 - 1,
- 		.flags	= IORESOURCE_MEM,
-@@ -1052,7 +1052,7 @@ device_initcall(toshiba_rbtx4927_rtc_ini
+ #
+@@ -573,7 +572,6 @@ CONFIG_MTD_CFI_UTIL=y
+ #
+ # Plug and Play support
+ #
+-# CONFIG_PNP is not set
+ # CONFIG_PNPACPI is not set
  
- static int __init rbtx4927_ne_init(void)
- {
--	struct resource res[] = {
-+	static struct resource __initdata res[] = {
- 		{
- 			.start	= RBTX4927_RTL_8019_BASE,
- 			.end	= RBTX4927_RTL_8019_BASE + 0x20 - 1,
+ #
+@@ -658,7 +656,6 @@ CONFIG_BLK_DEV_IT8213=m
+ # CONFIG_BLK_DEV_VIA82CXXX is not set
+ CONFIG_BLK_DEV_TC86C001=m
+ # CONFIG_IDE_ARM is not set
+-# CONFIG_IDE_CHIPSETS is not set
+ CONFIG_BLK_DEV_IDEDMA=y
+ # CONFIG_IDEDMA_IVB is not set
+ # CONFIG_IDEDMA_AUTO is not set
+@@ -677,11 +674,6 @@ CONFIG_RAID_ATTRS=m
+ # CONFIG_ATA is not set
+ 
+ #
+-# Old CD-ROM drivers (not SCSI, not IDE)
+-#
+-# CONFIG_CD_NO_IDESCSI is not set
+-
+-#
+ # Multi-device support (RAID and LVM)
+ #
+ # CONFIG_MD is not set
+@@ -742,37 +734,20 @@ CONFIG_NET_ETHERNET=y
+ # CONFIG_SUNGEM is not set
+ # CONFIG_CASSINI is not set
+ # CONFIG_NET_VENDOR_3COM is not set
+-# CONFIG_NET_VENDOR_SMC is not set
+ # CONFIG_DM9000 is not set
+-# CONFIG_NET_VENDOR_RACAL is not set
+ 
+ #
+ # Tulip family network device support
+ #
+ # CONFIG_NET_TULIP is not set
+-# CONFIG_AT1700 is not set
+-# CONFIG_DEPCA is not set
+ # CONFIG_HP100 is not set
+-CONFIG_NET_ISA=y
+-# CONFIG_E2100 is not set
+-# CONFIG_EWRK3 is not set
+-# CONFIG_EEXPRESS is not set
+-# CONFIG_EEXPRESS_PRO is not set
+-# CONFIG_HPLAN_PLUS is not set
+-# CONFIG_HPLAN is not set
+-# CONFIG_LP486E is not set
+-# CONFIG_ETH16I is not set
+ CONFIG_NE2000=y
+-# CONFIG_SEEQ8005 is not set
+ CONFIG_NET_PCI=y
+ # CONFIG_PCNET32 is not set
+ # CONFIG_AMD8111_ETH is not set
+ # CONFIG_ADAPTEC_STARFIRE is not set
+-# CONFIG_AC3200 is not set
+-# CONFIG_APRICOT is not set
+ # CONFIG_B44 is not set
+ # CONFIG_FORCEDETH is not set
+-# CONFIG_CS89x0 is not set
+ # CONFIG_DGRS is not set
+ # CONFIG_EEPRO100 is not set
+ # CONFIG_E100 is not set
+@@ -833,8 +808,6 @@ CONFIG_NET_RADIO=y
+ # Obsolete Wireless cards support (pre-802.11)
+ #
+ # CONFIG_STRIP is not set
+-# CONFIG_ARLAN is not set
+-# CONFIG_WAVELAN is not set
+ 
+ #
+ # Wireless 802.11b ISA/PCI cards support
+@@ -920,9 +893,6 @@ CONFIG_KEYBOARD_ATKBD=y
+ CONFIG_INPUT_MOUSE=y
+ CONFIG_MOUSE_PS2=y
+ # CONFIG_MOUSE_SERIAL is not set
+-# CONFIG_MOUSE_INPORT is not set
+-# CONFIG_MOUSE_LOGIBM is not set
+-# CONFIG_MOUSE_PC110PAD is not set
+ # CONFIG_MOUSE_VSXXXAA is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TOUCHSCREEN is not set
+@@ -1072,7 +1042,6 @@ CONFIG_FB_ATY_CT=y
+ #
+ CONFIG_VGA_CONSOLE=y
+ # CONFIG_VGACON_SOFT_SCROLLBACK is not set
+-# CONFIG_MDA_CONSOLE is not set
+ CONFIG_DUMMY_CONSOLE=y
+ # CONFIG_FRAMEBUFFER_CONSOLE is not set
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-agp-build-fix.patch
-git-cpufreq-borkage-fix.patch
-git-powerpc.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-ida-implement-idr-based-id-allocator-fix.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-define-platform-wakeup-hook-use-in-pci_enable_wake.patch
-dev_dbg-check-dev_dbg-arguments.patch
-sysfs-binc-printk-fix.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch
-git-gfs2-nmw.patch
-gfs2-printk-warning-fixes.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-fw-device-printk-fix.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
-git-mtd.patch
-git-mtd-build-fix.patch
-git-ubi.patch
-git-ubi-fixup.patch
-revert-gitpowerpc-ehea-changes.patch
+git-kbuild.patch
+git-mips.patch
 git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-git-netdev-all-export-ieee80211_debug_level.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
+ne-add-platform_driver.patch
 ne-add-platform_driver-fix.patch
+ne-mips-use-platform_driver-for-ne-on-rbtx49xx.patch
 ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net.patch
-git-net-fixup.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-git-net-fix-yamc.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
-rfcomm_worker-fix-wakeup-race.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390.patch
-git-s390-fixup.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-fix-x86_64-mm-nmi-watchdog-ops.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-x86_64-unexport-cpu_llc_id.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-utimensat-implementation-fix.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+mips-drop-unnecessary-config_isa-from-rbtx49xx.patch
+serial_txx9-use-assigned-device-numbers.patch
+serial_txx9-zap-changelog-from-source-code.patch
