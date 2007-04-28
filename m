@@ -1,81 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - i386-pte-clear-optimization.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:55:33 -0700
-Message-ID: <200704281055.l3SAtXlA020185@shell0.pdx.osdl.net>
+Subject: - i386-pte-xchg-optimization.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:55:35 -0700
+Message-ID: <200704281055.l3SAtZd0020188@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60641 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35630 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965760AbXD1Kzf (ORCPT
+	by vger.kernel.org with ESMTP id S965764AbXD1Kzh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:35 -0400
+	Sat, 28 Apr 2007 06:55:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: pte clear optimization
+     i386: pte xchg optimization
 has been removed from the -mm tree.  Its filename was
-     i386-pte-clear-optimization.patch
+     i386-pte-xchg-optimization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: pte clear optimization
+Subject: i386: pte xchg optimization
 From: Zachary Amsden <zach@vmware.com>
 
-When exiting from an address space, no special hypervisor notification of page
-table updates needs to occur; direct page table hypervisors, such as Xen,
-switch to another address space first (init_mm) and unprotects the page tables
-to avoid the cost of trapping to the hypervisor for each pte_clear.  Shadow
-mode hypervisors, such as VMI and lhype don't need to do the extra work of
-calling through paravirt-ops, and can just directly clear the page table
-entries without notifiying the hypervisor, since all the page tables are about
-to be freed.
+In situations where page table updates need only be made locally, and there is
+no cross-processor A/D bit races involved, we need not use the heavyweight
+xchg instruction to atomically fetch and clear page table entries.  Instead,
+we can just read and clear them directly.
 
-So introduce native_pte_clear functions which bypass any paravirt-ops
-notification.  This results in a significant performance win for VMI and
-removes some indirect calls from zap_pte_range.
+This introduces a neat optimization for non-SMP kernels; drop the atomic xchg
+operations from page table updates.
 
-Note the 3-level paging already had a native_pte_clear function, thus
-demanding argument conformance and extra args for the 2-level definition.
+Thanks to Michel Lespinasse for noting this potential optimization.
 
 Signed-off-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/pgtable-2level.h |    5 +++++
- include/asm-i386/pgtable.h        |    2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ include/asm-i386/pgtable-2level.h |   14 ++++++++++++++
+ include/asm-i386/pgtable-3level.h |   14 ++++++++++++++
+ 2 files changed, 28 insertions(+)
 
-diff -puN include/asm-i386/pgtable-2level.h~i386-pte-clear-optimization include/asm-i386/pgtable-2level.h
---- a/include/asm-i386/pgtable-2level.h~i386-pte-clear-optimization
+diff -puN include/asm-i386/pgtable-2level.h~i386-pte-xchg-optimization include/asm-i386/pgtable-2level.h
+--- a/include/asm-i386/pgtable-2level.h~i386-pte-xchg-optimization
 +++ a/include/asm-i386/pgtable-2level.h
-@@ -36,6 +36,11 @@ static inline void native_set_pmd(pmd_t 
- #define pte_clear(mm,addr,xp)	do { set_pte_at(mm, addr, xp, __pte(0)); } while (0)
- #define pmd_clear(xp)	do { set_pmd(xp, __pmd(0)); } while (0)
+@@ -41,10 +41,24 @@ static inline void native_pte_clear(stru
+ 	*xp = __pte(0);
+ }
  
-+static inline void native_pte_clear(struct mm_struct *mm, unsigned long addr, pte_t *xp)
++/* local pte updates need not use xchg for locking */
++static inline pte_t native_local_ptep_get_and_clear(pte_t *ptep)
 +{
-+	*xp = __pte(0);
++	pte_t res;
++
++	res = *ptep;
++	native_pte_clear(NULL, 0, ptep);
++	return res;
 +}
 +
++#ifdef CONFIG_SMP
  static inline pte_t native_ptep_get_and_clear(pte_t *xp)
  {
  	return __pte(xchg(&xp->pte_low, 0));
-diff -puN include/asm-i386/pgtable.h~i386-pte-clear-optimization include/asm-i386/pgtable.h
---- a/include/asm-i386/pgtable.h~i386-pte-clear-optimization
-+++ a/include/asm-i386/pgtable.h
-@@ -344,7 +344,7 @@ static inline pte_t ptep_get_and_clear_f
- 	pte_t pte;
- 	if (full) {
- 		pte = *ptep;
--		pte_clear(mm, addr, ptep);
-+		native_pte_clear(mm, addr, ptep);
- 	} else {
- 		pte = ptep_get_and_clear(mm, addr, ptep);
- 	}
+ }
++#else
++#define native_ptep_get_and_clear(xp) native_local_ptep_get_and_clear(xp)
++#endif
+ 
+ #define pte_page(x)		pfn_to_page(pte_pfn(x))
+ #define pte_none(x)		(!(x).pte_low)
+diff -puN include/asm-i386/pgtable-3level.h~i386-pte-xchg-optimization include/asm-i386/pgtable-3level.h
+--- a/include/asm-i386/pgtable-3level.h~i386-pte-xchg-optimization
++++ a/include/asm-i386/pgtable-3level.h
+@@ -139,6 +139,17 @@ static inline void pud_clear (pud_t * pu
+ #define pmd_offset(pud, address) ((pmd_t *) pud_page(*(pud)) + \
+ 			pmd_index(address))
+ 
++/* local pte updates need not use xchg for locking */
++static inline pte_t native_local_ptep_get_and_clear(pte_t *ptep)
++{
++	pte_t res;
++
++	res = *ptep;
++	native_pte_clear(NULL, 0, ptep);
++	return res;
++}
++
++#ifdef CONFIG_SMP
+ static inline pte_t native_ptep_get_and_clear(pte_t *ptep)
+ {
+ 	pte_t res;
+@@ -150,6 +161,9 @@ static inline pte_t native_ptep_get_and_
+ 
+ 	return res;
+ }
++#else
++#define native_ptep_get_and_clear(xp) native_local_ptep_get_and_clear(xp)
++#endif
+ 
+ #define __HAVE_ARCH_PTE_SAME
+ static inline int pte_same(pte_t a, pte_t b)
 _
 
 Patches currently in -mm which might be from zach@vmware.com are
