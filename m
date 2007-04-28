@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vioc_irq-switch-to-pci-refcount-safe-api.patch added to -mm tree
-Date: Sat, 28 Apr 2007 01:40:31 -0700
-Message-ID: <200704280840.l3S8eVUa018200@shell0.pdx.osdl.net>
+Subject: + pci-syscallc-switch-to-refcounting-api.patch added to -mm tree
+Date: Sat, 28 Apr 2007 01:40:27 -0700
+Message-ID: <200704280840.l3S8eRS8018194@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44683 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161681AbXD1Ikq (ORCPT
+	by vger.kernel.org with ESMTP id S1161662AbXD1Iki (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 04:40:46 -0400
+	Sat, 28 Apr 2007 04:40:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, driver-support@fabric7.com, jeff@garzik.org, schidambaram@fabric7.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     vioc_irq: Switch to pci refcount safe API
+     pci syscall.c: Switch to refcounting API
 has been added to the -mm tree.  Its filename is
-     vioc_irq-switch-to-pci-refcount-safe-api.patch
+     pci-syscallc-switch-to-refcounting-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vioc_irq: Switch to pci refcount safe API
+Subject: pci syscall.c: Switch to refcounting API
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Sriram Chidambaram <schidambaram@fabric7.com>
-Cc: <driver-support@fabric7.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/vioc/vioc_irq.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/pci/syscall.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/vioc/vioc_irq.c~vioc_irq-switch-to-pci-refcount-safe-api drivers/net/vioc/vioc_irq.c
---- a/drivers/net/vioc/vioc_irq.c~vioc_irq-switch-to-pci-refcount-safe-api
-+++ a/drivers/net/vioc/vioc_irq.c
-@@ -233,9 +233,11 @@ static int get_pci_pin_irq(struct pci_de
+diff -puN drivers/pci/syscall.c~pci-syscallc-switch-to-refcounting-api drivers/pci/syscall.c
+--- a/drivers/pci/syscall.c~pci-syscallc-switch-to-refcounting-api
++++ a/drivers/pci/syscall.c
+@@ -30,7 +30,7 @@ sys_pciconfig_read(unsigned long bus, un
+ 		goto error;
  
- 	devfn = PCI_DEVFN(slot, func);
- 	/* Find pci_dev structure of the requested function */
--	dev = pci_find_slot(dev_in->bus->number, devfn);
-+	dev = pci_get_bus_and_slot(dev_in->bus->number, devfn);
- 	if (dev) {
--		return dev->irq;
-+		int irq = dev->irq
-+		pci_dev_put(dev);
-+		return irq;
- 	} else {
- 		return VIOC_IRQ_NONE;
- 	}
+ 	err = -ENODEV;
+-	dev = pci_find_slot(bus, dfn);
++	dev = pci_get_bus_and_slot(bus, dfn);
+ 	if (!dev)
+ 		goto error;
+ 
+@@ -67,6 +67,7 @@ sys_pciconfig_read(unsigned long bus, un
+ 		err = put_user(dword, (unsigned int __user *)buf);
+ 		break;
+ 	};
++	pci_dev_put(dev);
+ 	return err;
+ 
+ error:
+@@ -84,6 +85,7 @@ error:
+ 		put_user(-1, (unsigned int __user *)buf);
+ 		break;
+ 	};
++	pci_dev_put(dev);
+ 	return err;
+ }
+ 
+@@ -101,7 +103,7 @@ sys_pciconfig_write(unsigned long bus, u
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	dev = pci_find_slot(bus, dfn);
++	dev = pci_get_bus_and_slot(bus, dfn);
+ 	if (!dev)
+ 		return -ENODEV;
+ 
+@@ -139,6 +141,6 @@ sys_pciconfig_write(unsigned long bus, u
+ 		break;
+ 	};
+ 	unlock_kernel();
+-
++	pci_dev_put(dev);
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
