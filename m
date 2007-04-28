@@ -1,118 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - net-tun-tap-fixed-hw-address-handling.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:53:33 -0700
-Message-ID: <200704281053.l3SArXjn020087@shell0.pdx.osdl.net>
+Subject: - delete-unused-header-file-linux-if_wanpipe_commonh.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:53:27 -0700
+Message-ID: <200704281053.l3SArRVr020084@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43526 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51023 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965691AbXD1Kxm (ORCPT
+	by vger.kernel.org with ESMTP id S965692AbXD1Kxu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:53:42 -0400
+	Sat, 28 Apr 2007 06:53:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linuxkernel@bristyle.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, khc@pm.waw.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: tun/tap: fixed hw address handling
+     Delete unused header file linux/if_wanpipe_common.h
 has been removed from the -mm tree.  Its filename was
-     net-tun-tap-fixed-hw-address-handling.patch
+     delete-unused-header-file-linux-if_wanpipe_commonh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net: tun/tap: fixed hw address handling
-From: Brian Braunstein <linuxkernel@bristyle.com>
+Subject: Delete unused header file linux/if_wanpipe_common.h
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Fixed tun/tap driver's handling of hw addresses.  The hw address is stored
-in both the net_device.dev_addr and tun.dev_addr fields.  These fields were
-not kept synchronized, and in fact weren't even initialized to the same
-value.  Now during both init and when performing SIOCSIFHWADDR on the tun
-device these values are both updated.  However, if SIOCSIFHWADDR is
-performed on the net device directly (for instance, setting the hw address
-using ifconfig), the tun device does not get updated.  Perhaps the
-tun.dev_addr field should be removed completely at some point, as it is
-redundant and net_device.dev_addr can be used anywhere it is used.
+Delete the unreferenced header file include/linux/if_wanpipe_common.h,
+as well as the reference to it in the Doc file.
 
-Signed-off-by: Brian Braunstein <linuxkernel@bristyle.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tun.c |   38 +++++++++++++++++++++++++++-----------
- 1 file changed, 27 insertions(+), 11 deletions(-)
+ Documentation/networking/wan-router.txt |    1 
+ include/linux/if_wanpipe_common.h       |   58 ----------------------
+ 2 files changed, 59 deletions(-)
 
-diff -puN drivers/net/tun.c~net-tun-tap-fixed-hw-address-handling drivers/net/tun.c
---- a/drivers/net/tun.c~net-tun-tap-fixed-hw-address-handling
-+++ a/drivers/net/tun.c
-@@ -18,6 +18,10 @@
- /*
-  *  Changes:
-  *
-+ *  Brian Braunstein <linuxkernel@bristyle.com> 2007/03/23
-+ *    Fixed hw address handling.  Now net_device.dev_addr is kept consistent
-+ *    with tun.dev_addr when the address is set by this module.
-+ *
-  *  Mike Kershaw <dragorn@kismetwireless.net> 2005/08/14
-  *    Add TUNSETLINK ioctl to set the link encapsulation
-  *
-@@ -196,7 +200,10 @@ static void tun_net_init(struct net_devi
- 		dev->set_multicast_list = tun_net_mclist;
+diff -puN Documentation/networking/wan-router.txt~delete-unused-header-file-linux-if_wanpipe_commonh Documentation/networking/wan-router.txt
+--- a/Documentation/networking/wan-router.txt~delete-unused-header-file-linux-if_wanpipe_commonh
++++ a/Documentation/networking/wan-router.txt
+@@ -250,7 +250,6 @@ PRODUCT COMPONENTS AND RELATED FILES
+ 	sdladrv.h	SDLA support module API definitions
+ 	sdlasfm.h	SDLA firmware module definitions
+ 	if_wanpipe.h	WANPIPE Socket definitions
+-	if_wanpipe_common.h	WANPIPE Socket/Driver common definitions.
+ 	sdlapci.h	WANPIPE PCI definitions
+ 	
  
- 		ether_setup(dev);
--		random_ether_addr(dev->dev_addr);
-+
-+		/* random address already created for us by tun_set_iff, use it */
-+		memcpy(dev->dev_addr, tun->dev_addr, min(sizeof(tun->dev_addr), sizeof(dev->dev_addr)) );
-+
- 		dev->tx_queue_len = TUN_READQ_SIZE;  /* We prefer our own queue length */
- 		break;
- 	}
-@@ -636,6 +643,7 @@ static int tun_chr_ioctl(struct inode *i
- 		return 0;
- 
- 	case SIOCGIFHWADDR:
-+		/* Note: the actual net device's address may be different */
- 		memcpy(ifr.ifr_hwaddr.sa_data, tun->dev_addr,
- 				min(sizeof ifr.ifr_hwaddr.sa_data, sizeof tun->dev_addr));
- 		if (copy_to_user( argp, &ifr, sizeof ifr))
-@@ -643,16 +651,24 @@ static int tun_chr_ioctl(struct inode *i
- 		return 0;
- 
- 	case SIOCSIFHWADDR:
--		/** Set the character device's hardware address. This is used when
--		 * filtering packets being sent from the network device to the character
--		 * device. */
--		memcpy(tun->dev_addr, ifr.ifr_hwaddr.sa_data,
--				min(sizeof ifr.ifr_hwaddr.sa_data, sizeof tun->dev_addr));
--		DBG(KERN_DEBUG "%s: set hardware address: %x:%x:%x:%x:%x:%x\n",
--				tun->dev->name,
--				tun->dev_addr[0], tun->dev_addr[1], tun->dev_addr[2],
--				tun->dev_addr[3], tun->dev_addr[4], tun->dev_addr[5]);
--		return 0;
-+	{
-+		/* try to set the actual net device's hw address */
-+		int ret = dev_set_mac_address(tun->dev, &ifr.ifr_hwaddr);
-+
-+		if (ret == 0) {
-+			/** Set the character device's hardware address. This is used when
-+			 * filtering packets being sent from the network device to the character
-+			 * device. */
-+			memcpy(tun->dev_addr, ifr.ifr_hwaddr.sa_data,
-+					min(sizeof ifr.ifr_hwaddr.sa_data, sizeof tun->dev_addr));
-+			DBG(KERN_DEBUG "%s: set hardware address: %x:%x:%x:%x:%x:%x\n",
-+					tun->dev->name,
-+					tun->dev_addr[0], tun->dev_addr[1], tun->dev_addr[2],
-+					tun->dev_addr[3], tun->dev_addr[4], tun->dev_addr[5]);
-+		}
-+
-+		return  ret;
-+	}
- 
- 	case SIOCADDMULTI:
- 		/** Add the specified group to the character device's multicast filter
+diff -puN include/linux/if_wanpipe_common.h~delete-unused-header-file-linux-if_wanpipe_commonh /dev/null
+--- a/include/linux/if_wanpipe_common.h
++++ /dev/null
+@@ -1,58 +0,0 @@
+-/*****************************************************************************
+-* if_wanipe_common.h   Sangoma Driver/Socket common area definitions.
+-*
+-* Author:       Nenad Corbic <ncorbic@sangoma.com>
+-*
+-* Copyright:    (c) 2000 Sangoma Technologies Inc.
+-*
+-*               This program is free software; you can redistribute it and/or
+-*               modify it under the terms of the GNU General Public License
+-*               as published by the Free Software Foundation; either version
+-*               2 of the License, or (at your option) any later version.
+-* ============================================================================
+-* Jan 13, 2000  Nenad Corbic      Initial version
+-*****************************************************************************/
+-
+-
+-#ifndef _WANPIPE_SOCK_DRIVER_COMMON_H
+-#define _WANPIPE_SOCK_DRIVER_COMMON_H
+-
+-typedef struct {
+-	struct net_device *slave;
+-	atomic_t packet_sent;
+-	atomic_t receive_block;
+-	atomic_t command;
+-	atomic_t disconnect;
+-	atomic_t driver_busy;
+-	long common_critical;
+-	struct timer_list *tx_timer;
+-	struct sock *sk;		/* Wanpipe Sock bind's here */ 
+-	int (*func)(struct sk_buff *skb, struct net_device *dev, 
+-		    struct sock *sk);
+-
+-	struct work_struct wanpipe_work;    /* deferred keventd work */
+-	unsigned char rw_bind;			  /* Sock bind state */
+-	unsigned char usedby;
+-	unsigned char state;
+-	unsigned char svc;
+-	unsigned short lcn;
+-	void *mbox;
+-} wanpipe_common_t;
+-
+-
+-enum {
+-	WANSOCK_UNCONFIGURED,	/* link/channel is not configured */
+-	WANSOCK_DISCONNECTED,	/* link/channel is disconnected */
+-	WANSOCK_CONNECTING,		/* connection is in progress */
+-	WANSOCK_CONNECTED,		/* link/channel is operational */
+-	WANSOCK_LIMIT,		/* for verification only */
+-	WANSOCK_DUALPORT,		/* for Dual Port cards */
+-	WANSOCK_DISCONNECTING,
+-	WANSOCK_BINDED,
+-	WANSOCK_BIND_LISTEN,
+-	WANSOCK_LISTEN
+-};
+-
+-#endif
+-
+-
 _
 
-Patches currently in -mm which might be from linuxkernel@bristyle.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+arm-remove-useless-config-option-generic_bust_spinlock.patch
+git-powerpc.patch
+git-drm.patch
+git-input.patch
+git-netdev-all.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-scsi-misc.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+arm26-remove-useless-config-option-generic_bust_spinlock.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+cris-remove-code-related-to-pre-22-kernel.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+delete-unused-header-file-math-emu-extendedh.patch
+delete-unused-header-file-linux-awe_voiceh.patch
+add-spaces-on-either-side-of-case-operator.patch
+clarify-the-creation-of-the-localversion_auto-string.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
+video-add-spaces-on-either-side-of-the-case-operator.patch
