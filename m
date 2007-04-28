@@ -1,88 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - s390-cio-delay-uevents-for-subchannels.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:50:57 -0700
-Message-ID: <200704281050.l3SAovJb019962@shell0.pdx.osdl.net>
+Subject: - device_schedule_callback-needs-a-module-reference.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:51:04 -0700
+Message-ID: <200704281051.l3SAp4gb019968@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35531 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965638AbXD1KvV (ORCPT
+	by vger.kernel.org with ESMTP id S965641AbXD1Kvd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:51:21 -0400
+	Sat, 28 Apr 2007 06:51:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, eric.rannaud@gmail.com, greg@kroah.com, heiko.carstens@de.ibm.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, cornelia.huck@de.ibm.com, greg@kroah.com, neilb@suse.de, satyam.sharma@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390: cio: Delay uevents for subchannels
+     device_schedule_callback() needs a module reference
 has been removed from the -mm tree.  Its filename was
-     s390-cio-delay-uevents-for-subchannels.patch
+     device_schedule_callback-needs-a-module-reference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s390: cio: Delay uevents for subchannels
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
+Subject: device_schedule_callback() needs a module reference
+From: Alan Stern <stern@rowland.harvard.edu>
 
-We often have the situation that we register a subchannel and start device
-recognition, only to find out that the device is not usable after all, which
-triggers an unregister of the subchannel.  This often happens on hundreds of
-subchannels on a LPAR, leading to a storm of events which aren't of any use. 
-Therefore, use uevent_suppress to delay the KOBJ_ADD uevent for a subchannel
-until we know that its ccw_device is to be registered.
+This patch (as896b) fixes an oversight in the design of
+device_schedule_callback().  It is necessary to acquire a reference to the
+module owning the callback routine, to prevent the module from being
+unloaded before the callback can run.
 
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Greg K-H <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Eric Rannaud <eric.rannaud@gmail.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Satyam Sharma <satyam.sharma@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/css.c    |    9 +++++++++
- drivers/s390/cio/device.c |    6 ++++++
- 2 files changed, 15 insertions(+)
+ drivers/base/core.c    |   16 ++++++++++------
+ fs/sysfs/file.c        |   14 +++++++++++---
+ include/linux/device.h |    8 ++++++--
+ include/linux/sysfs.h  |    4 ++--
+ 4 files changed, 29 insertions(+), 13 deletions(-)
 
-diff -puN drivers/s390/cio/css.c~s390-cio-delay-uevents-for-subchannels drivers/s390/cio/css.c
---- a/drivers/s390/cio/css.c~s390-cio-delay-uevents-for-subchannels
-+++ a/drivers/s390/cio/css.c
-@@ -135,6 +135,15 @@ css_register_subchannel(struct subchanne
- 	sch->dev.bus = &css_bus_type;
- 	sch->dev.release = &css_subchannel_release;
- 	sch->dev.groups = subch_attr_groups;
-+	/*
-+	 * We don't want to generate uevents for I/O subchannels that don't
-+	 * have a working ccw device behind them since they will be
-+	 * unregistered before they can be used anyway, so we delay the add
-+	 * uevent until after device recognition was successful.
-+	 */
-+	if (!cio_is_console(sch->schid))
-+		/* Console is special, no need to suppress. */
-+		sch->dev.uevent_suppress = 1;
+diff -puN drivers/base/core.c~device_schedule_callback-needs-a-module-reference drivers/base/core.c
+--- a/drivers/base/core.c~device_schedule_callback-needs-a-module-reference
++++ a/drivers/base/core.c
+@@ -480,9 +480,10 @@ void device_remove_bin_file(struct devic
+ EXPORT_SYMBOL_GPL(device_remove_bin_file);
  
- 	css_get_ssd_info(sch);
+ /**
+- * device_schedule_callback - helper to schedule a callback for a device
++ * device_schedule_callback_owner - helper to schedule a callback for a device
+  * @dev: device.
+  * @func: callback function to invoke later.
++ * @owner: module owning the callback routine
+  *
+  * Attribute methods must not unregister themselves or their parent device
+  * (which would amount to the same thing).  Attempts to do so will deadlock,
+@@ -493,20 +494,23 @@ EXPORT_SYMBOL_GPL(device_remove_bin_file
+  * argument in the workqueue's process context.  @dev will be pinned until
+  * @func returns.
+  *
++ * This routine is usually called via the inline device_schedule_callback(),
++ * which automatically sets @owner to THIS_MODULE.
++ *
+  * Returns 0 if the request was submitted, -ENOMEM if storage could not
+- * be allocated.
++ * be allocated, -ENODEV if a reference to @owner isn't available.
+  *
+  * NOTE: This routine won't work if CONFIG_SYSFS isn't set!  It uses an
+  * underlying sysfs routine (since it is intended for use by attribute
+  * methods), and if sysfs isn't available you'll get nothing but -ENOSYS.
+  */
+-int device_schedule_callback(struct device *dev,
+-		void (*func)(struct device *))
++int device_schedule_callback_owner(struct device *dev,
++		void (*func)(struct device *), struct module *owner)
+ {
+ 	return sysfs_schedule_callback(&dev->kobj,
+-			(void (*)(void *)) func, dev);
++			(void (*)(void *)) func, dev, owner);
+ }
+-EXPORT_SYMBOL_GPL(device_schedule_callback);
++EXPORT_SYMBOL_GPL(device_schedule_callback_owner);
  
-diff -puN drivers/s390/cio/device.c~s390-cio-delay-uevents-for-subchannels drivers/s390/cio/device.c
---- a/drivers/s390/cio/device.c~s390-cio-delay-uevents-for-subchannels
-+++ a/drivers/s390/cio/device.c
-@@ -888,6 +888,12 @@ io_subchannel_register(struct work_struc
- 		}
- 		goto out;
- 	}
-+	/*
-+	 * Now we know this subchannel will stay, we can throw
-+	 * our delayed uevent.
-+	 */
-+	sch->dev.uevent_suppress = 0;
-+	kobject_uevent(&sch->dev.kobj, KOBJ_ADD);
- 	/* make it known to the system */
- 	ret = ccw_device_register(cdev);
- 	if (ret) {
+ static void klist_children_get(struct klist_node *n)
+ {
+diff -puN fs/sysfs/file.c~device_schedule_callback-needs-a-module-reference fs/sysfs/file.c
+--- a/fs/sysfs/file.c~device_schedule_callback-needs-a-module-reference
++++ a/fs/sysfs/file.c
+@@ -617,6 +617,7 @@ struct sysfs_schedule_callback_struct {
+ 	struct kobject 		*kobj;
+ 	void			(*func)(void *);
+ 	void			*data;
++	struct module		*owner;
+ 	struct work_struct	work;
+ };
+ 
+@@ -627,6 +628,7 @@ static void sysfs_schedule_callback_work
+ 
+ 	(ss->func)(ss->data);
+ 	kobject_put(ss->kobj);
++	module_put(ss->owner);
+ 	kfree(ss);
+ }
+ 
+@@ -635,6 +637,7 @@ static void sysfs_schedule_callback_work
+  * @kobj: object we're acting for.
+  * @func: callback function to invoke later.
+  * @data: argument to pass to @func.
++ * @owner: module owning the callback code
+  *
+  * sysfs attribute methods must not unregister themselves or their parent
+  * kobject (which would amount to the same thing).  Attempts to do so will
+@@ -647,20 +650,25 @@ static void sysfs_schedule_callback_work
+  * until @func returns.
+  *
+  * Returns 0 if the request was submitted, -ENOMEM if storage could not
+- * be allocated.
++ * be allocated, -ENODEV if a reference to @owner isn't available.
+  */
+ int sysfs_schedule_callback(struct kobject *kobj, void (*func)(void *),
+-		void *data)
++		void *data, struct module *owner)
+ {
+ 	struct sysfs_schedule_callback_struct *ss;
+ 
++	if (!try_module_get(owner))
++		return -ENODEV;
+ 	ss = kmalloc(sizeof(*ss), GFP_KERNEL);
+-	if (!ss)
++	if (!ss) {
++		module_put(owner);
+ 		return -ENOMEM;
++	}
+ 	kobject_get(kobj);
+ 	ss->kobj = kobj;
+ 	ss->func = func;
+ 	ss->data = data;
++	ss->owner = owner;
+ 	INIT_WORK(&ss->work, sysfs_schedule_callback_work);
+ 	schedule_work(&ss->work);
+ 	return 0;
+diff -puN include/linux/device.h~device_schedule_callback-needs-a-module-reference include/linux/device.h
+--- a/include/linux/device.h~device_schedule_callback-needs-a-module-reference
++++ a/include/linux/device.h
+@@ -367,8 +367,12 @@ extern int __must_check device_create_bi
+ 					       struct bin_attribute *attr);
+ extern void device_remove_bin_file(struct device *dev,
+ 				   struct bin_attribute *attr);
+-extern int device_schedule_callback(struct device *dev,
+-		void (*func)(struct device *));
++extern int device_schedule_callback_owner(struct device *dev,
++		void (*func)(struct device *), struct module *owner);
++
++/* This is a macro to avoid include problems with THIS_MODULE */
++#define device_schedule_callback(dev, func)			\
++	device_schedule_callback_owner(dev, func, THIS_MODULE)
+ 
+ /* device resource management */
+ typedef void (*dr_release_t)(struct device *dev, void *res);
+diff -puN include/linux/sysfs.h~device_schedule_callback-needs-a-module-reference include/linux/sysfs.h
+--- a/include/linux/sysfs.h~device_schedule_callback-needs-a-module-reference
++++ a/include/linux/sysfs.h
+@@ -80,7 +80,7 @@ struct sysfs_ops {
+ #ifdef CONFIG_SYSFS
+ 
+ extern int sysfs_schedule_callback(struct kobject *kobj,
+-		void (*func)(void *), void *data);
++		void (*func)(void *), void *data, struct module *owner);
+ 
+ extern int __must_check
+ sysfs_create_dir(struct kobject *, struct dentry *);
+@@ -137,7 +137,7 @@ extern int __must_check sysfs_init(void)
+ #else /* CONFIG_SYSFS */
+ 
+ static inline int sysfs_schedule_callback(struct kobject *kobj,
+-		void (*func)(void *), void *data)
++		void (*func)(void *), void *data, struct module *owner)
+ {
+ 	return -ENOSYS;
+ }
 _
 
-Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
 origin.patch
-partitions-check-the-return-value-of-kobject_add-etc.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-s390-fix.patch
+git-hid.patch
