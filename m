@@ -1,202 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:51:52 -0700
-Message-ID: <200704281051.l3SApqAR020012@shell0.pdx.osdl.net>
+Subject: - jfs-use-set_current_state.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:52:10 -0700
+Message-ID: <200704281052.l3SAqAxu020030@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43640 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965663AbXD1KwQ (ORCPT
+	by vger.kernel.org with ESMTP id S1031115AbXD1KwU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:52:16 -0400
+	Sat, 28 Apr 2007 06:52:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: milindchoudhary@gmail.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix jdelvare-i2c-i2c-del-driver-returns-void on powerpc
+     jfs: use __set_current_state()
 has been removed from the -mm tree.  Its filename was
-     fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc.patch
+     jfs-use-set_current_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix jdelvare-i2c-i2c-del-driver-returns-void on powerpc
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: jfs: use __set_current_state()
+From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jean Delvare <khali@linux-fr.org>
+use __set_current_state(TASK_*) instead of current->state = TASK_*, in fs/jfs
+
+Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/therm_windtunnel.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/jfs/jfs_lock.h   |    2 +-
+ fs/jfs/jfs_logmgr.c |    4 ++--
+ fs/jfs/jfs_txnmgr.c |    6 +++---
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/macintosh/therm_windtunnel.c~fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc drivers/macintosh/therm_windtunnel.c
---- a/drivers/macintosh/therm_windtunnel.c~fix-jdelvare-i2c-i2c-del-driver-returns-void-on-powerpc
-+++ a/drivers/macintosh/therm_windtunnel.c
-@@ -459,7 +459,8 @@ therm_of_probe( struct of_device *dev, c
- static int
- therm_of_remove( struct of_device *dev )
- {
--	return i2c_del_driver( &g4fan_driver );
-+	i2c_del_driver( &g4fan_driver );
-+	return 0;
+diff -puN fs/jfs/jfs_lock.h~jfs-use-set_current_state fs/jfs/jfs_lock.h
+--- a/fs/jfs/jfs_lock.h~jfs-use-set_current_state
++++ a/fs/jfs/jfs_lock.h
+@@ -45,7 +45,7 @@ do {							\
+ 		io_schedule();				\
+ 		lock_cmd;				\
+ 	}						\
+-	current->state = TASK_RUNNING;			\
++	__set_current_state(TASK_RUNNING);			\
+ 	remove_wait_queue(&wq, &__wait);		\
+ } while (0)
+ 
+diff -puN fs/jfs/jfs_logmgr.c~jfs-use-set_current_state fs/jfs/jfs_logmgr.c
+--- a/fs/jfs/jfs_logmgr.c~jfs-use-set_current_state
++++ a/fs/jfs/jfs_logmgr.c
+@@ -1590,7 +1590,7 @@ void jfs_flush_journal(struct jfs_log *l
+ 		set_current_state(TASK_UNINTERRUPTIBLE);
+ 		LOGGC_UNLOCK(log);
+ 		schedule();
+-		current->state = TASK_RUNNING;
++		__set_current_state(TASK_RUNNING);
+ 		LOGGC_LOCK(log);
+ 		remove_wait_queue(&target->gcwait, &__wait);
+ 	}
+@@ -2361,7 +2361,7 @@ int jfsIOWait(void *arg)
+ 		} else {
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 			schedule();
+-			current->state = TASK_RUNNING;
++			__set_current_state(TASK_RUNNING);
+ 		}
+ 	} while (!kthread_should_stop());
+ 
+diff -puN fs/jfs/jfs_txnmgr.c~jfs-use-set_current_state fs/jfs/jfs_txnmgr.c
+--- a/fs/jfs/jfs_txnmgr.c~jfs-use-set_current_state
++++ a/fs/jfs/jfs_txnmgr.c
+@@ -136,7 +136,7 @@ static inline void TXN_SLEEP_DROP_LOCK(w
+ 	set_current_state(TASK_UNINTERRUPTIBLE);
+ 	TXN_UNLOCK();
+ 	io_schedule();
+-	current->state = TASK_RUNNING;
++	__set_current_state(TASK_RUNNING);
+ 	remove_wait_queue(event, &wait);
  }
  
- static struct of_device_id therm_of_match[] = {{
+@@ -2798,7 +2798,7 @@ int jfs_lazycommit(void *arg)
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 			LAZY_UNLOCK(flags);
+ 			schedule();
+-			current->state = TASK_RUNNING;
++			__set_current_state(TASK_RUNNING);
+ 			remove_wait_queue(&jfs_commit_thread_wait, &wq);
+ 		}
+ 	} while (!kthread_should_stop());
+@@ -2990,7 +2990,7 @@ int jfs_sync(void *arg)
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 			TXN_UNLOCK();
+ 			schedule();
+-			current->state = TASK_RUNNING;
++			__set_current_state(TASK_RUNNING);
+ 		}
+ 	} while (!kthread_should_stop());
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from milindchoudhary@gmail.com are
 
 origin.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
-git-acpi.patch
 git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
 git-powerpc.patch
-git-powerpc-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-gfs2-nmw.patch
+spin_lock_unlocked-cleanup-in-arch-powerpc.patch
+spin_lock_unlocked-macro-cleanup-in-arch-ia64.patch
 git-ieee1394.patch
-git-ieee1394-fixup.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
 git-jfs.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
+spin_lock_unlocked-cleanup-in-drivers-ata-pata_winbondc.patch
 git-netdev-all.patch
-ne-add-platform_driver-fix.patch
-ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+nfs-use-__set_current_state.patch
 git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-utimensat-implementation-fix.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+round_up-macro-cleanup-in-drivers-pci.patch
+pcie-remove-spin_lock_unlocked.patch
+round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
+spin_lock_unlocked-cleanup-in-arch-m68k.patch
+round_up-macro-cleanup-in-drivers-char-lpc.patch
+round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
+round_up-macro-cleanup-in-fs-smbfs-requestc.patch
+spin_lock_unlocked-cleanup-in-init_taskh.patch
+spin_lock_unlocked-cleanup-in-drivers-char-keyboard.patch
+spin_lock_unlocked-cleanup-in-drivers-serial.patch
+reiserfs-use-__set_current_state.patch
+drivers-char-use-__set_current_state.patch
