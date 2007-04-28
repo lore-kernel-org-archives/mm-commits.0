@@ -1,208 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-binc-printk-fix.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:51:43 -0700
-Message-ID: <200704281051.l3SAph2j019993@shell0.pdx.osdl.net>
+Subject: - dev_dbg-check-dev_dbg-arguments.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:51:38 -0700
+Message-ID: <200704281051.l3SApc2x019990@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43860 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965657AbXD1Kvs (ORCPT
+	by vger.kernel.org with ESMTP id S965661AbXD1Kvs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 28 Apr 2007 06:51:48 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3SApjbj011371
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 28 Apr 2007 03:51:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs/bin.c printk fix
+     dev_dbg: check dev_dbg() arguments
 has been removed from the -mm tree.  Its filename was
-     sysfs-binc-printk-fix.patch
+     dev_dbg-check-dev_dbg-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysfs/bin.c printk fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dev_dbg: check dev_dbg() arguments
+From: Dan Williams <dan.j.williams@intel.com>
 
-fs/sysfs/bin.c: In function 'read':
-fs/sysfs/bin.c:77: warning: format '%zd' expects type 'signed size_t', but argument 4 has type 'int'
+Duplicate what Zach Brown did for pr_debug in commit
+8b2a1fd1b394c60eaa2587716102dd5e9b4e5990
 
-
-
+[akpm@linux-foundation.org: fix a couple of things which broke]
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/core/hub.c      |    4 +---
+ drivers/usb/host/ohci-hcd.c |    6 ------
+ include/linux/device.h      |    6 +++++-
+ 3 files changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN fs/sysfs/bin.c~sysfs-binc-printk-fix fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~sysfs-binc-printk-fix
-+++ a/fs/sysfs/bin.c
-@@ -74,7 +74,7 @@ read(struct file *file, char __user *use
- 		goto out_unlock;
- 	}
+diff -puN drivers/usb/core/hub.c~dev_dbg-check-dev_dbg-arguments drivers/usb/core/hub.c
+--- a/drivers/usb/core/hub.c~dev_dbg-check-dev_dbg-arguments
++++ a/drivers/usb/core/hub.c
+@@ -119,8 +119,7 @@ MODULE_PARM_DESC(use_both_schemes,
+ 		"first one fails");
  
--	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
-+	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
  
- 	*off = offs + count;
+-#ifdef	DEBUG
+-static inline char *portspeed (int portstatus)
++static inline char *portspeed(int portstatus)
+ {
+ 	if (portstatus & (1 << USB_PORT_FEAT_HIGHSPEED))
+     		return "480 Mb/s";
+@@ -129,7 +128,6 @@ static inline char *portspeed (int ports
+ 	else
+ 		return "12 Mb/s";
+ }
+-#endif
  
+ /* Note that hdev or one of its children must be locked! */
+ static inline struct usb_hub *hdev_to_hub(struct usb_device *hdev)
+diff -puN drivers/usb/host/ohci-hcd.c~dev_dbg-check-dev_dbg-arguments drivers/usb/host/ohci-hcd.c
+--- a/drivers/usb/host/ohci-hcd.c~dev_dbg-check-dev_dbg-arguments
++++ a/drivers/usb/host/ohci-hcd.c
+@@ -486,9 +486,6 @@ static int ohci_run (struct ohci_hcd *oh
+ 	 * or if bus glue did the same (e.g. for PCI add-in cards with
+ 	 * PCI PM support).
+ 	 */
+-	ohci_dbg (ohci, "resetting from state '%s', control = 0x%x\n",
+-			hcfs2string (ohci->hc_control & OHCI_CTRL_HCFS),
+-			ohci_readl (ohci, &ohci->regs->control));
+ 	if ((ohci->hc_control & OHCI_CTRL_RWC) != 0
+ 			&& !device_may_wakeup(hcd->self.controller))
+ 		device_init_wakeup(hcd->self.controller, 1);
+@@ -744,9 +741,6 @@ static void ohci_stop (struct usb_hcd *h
+ {
+ 	struct ohci_hcd		*ohci = hcd_to_ohci (hcd);
+ 
+-	ohci_dbg (ohci, "stop %s controller (state 0x%02x)\n",
+-		hcfs2string (ohci->hc_control & OHCI_CTRL_HCFS),
+-		hcd->state);
+ 	ohci_dump (ohci, 1);
+ 
+ 	flush_scheduled_work();
+diff -puN include/linux/device.h~dev_dbg-check-dev_dbg-arguments include/linux/device.h
+--- a/include/linux/device.h~dev_dbg-check-dev_dbg-arguments
++++ a/include/linux/device.h
+@@ -571,7 +571,11 @@ extern const char *dev_driver_string(str
+ #define dev_dbg(dev, format, arg...)		\
+ 	dev_printk(KERN_DEBUG , dev , format , ## arg)
+ #else
+-#define dev_dbg(dev, format, arg...) do { (void)(dev); } while (0)
++static inline int __attribute__ ((format (printf, 2, 3)))
++dev_dbg(struct device * dev, const char * fmt, ...)
++{
++	return 0;
++}
+ #endif
+ 
+ #define dev_err(dev, format, arg...)		\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 origin.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-fixup.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-jfs.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-netdev-all.patch
-ne-add-platform_driver-fix.patch
-ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-utimensat-implementation-fix.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+iop13xx-msi-support-rev6.patch
+git-md-accel.patch
+git-ioat-vs-git-md-accel.patch
+msi-fix-arm-compile.patch
