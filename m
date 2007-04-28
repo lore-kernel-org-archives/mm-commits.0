@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-powerpc-fixup.patch added to -mm tree
-Date: Sat, 28 Apr 2007 03:07:16 -0700
-Message-ID: <200704281007.l3SA7G33019396@shell0.pdx.osdl.net>
+Subject: + git-ieee1394-fixup.patch added to -mm tree
+Date: Sat, 28 Apr 2007 03:09:13 -0700
+Message-ID: <200704281009.l3SA9Dtm019414@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34547 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756132AbXD1KHS (ORCPT
+	by vger.kernel.org with ESMTP id S1756136AbXD1KJP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:07:18 -0400
+	Sat, 28 Apr 2007 06:09:15 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3SA7GG8010029
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3SA9DG4010084
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 28 Apr 2007 03:07:17 -0700
+	for <mm-commits@vger.kernel.org>; Sat, 28 Apr 2007 03:09:14 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-powerpc-fixup
+     git-ieee1394-fixup
 has been added to the -mm tree.  Its filename is
-     git-powerpc-fixup.patch
+     git-ieee1394-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,47 +30,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-powerpc-fixup
+Subject: git-ieee1394-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/aoa/soundbus/core.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/ieee1394/eth1394.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN sound/aoa/soundbus/core.c~git-powerpc-fixup sound/aoa/soundbus/core.c
---- a/sound/aoa/soundbus/core.c~git-powerpc-fixup
-+++ a/sound/aoa/soundbus/core.c
-@@ -61,16 +61,10 @@ static int soundbus_uevent(struct device
- {
- 	struct soundbus_dev * soundbus_dev;
- 	struct of_device * of;
--<<<<<<< HEAD/sound/aoa/soundbus/core.c
--	char *compat;
--	int retval = 0, i = 0, length = 0;
--	int cplen, seen = 0;
--=======
- 	char *scratch;
- 	const char *compat;
- 	int i = 0;
- 	int length, cplen, seen = 0;
-->>>>>>> /sound/aoa/soundbus/core.c
+diff -puN drivers/ieee1394/eth1394.c~git-ieee1394-fixup drivers/ieee1394/eth1394.c
+--- a/drivers/ieee1394/eth1394.c~git-ieee1394-fixup
++++ a/drivers/ieee1394/eth1394.c
+@@ -761,13 +761,8 @@ static u16 ether1394_type_trans(struct s
+ 	struct eth1394hdr *eth;
+ 	unsigned char *rawp;
  
- 	if (!dev)
- 		return -ENODEV;
-@@ -98,11 +92,7 @@ static int soundbus_uevent(struct device
- 	 * it's not really legal to split it out with commas. We split it
- 	 * up using a number of environment variables instead. */
- 
--<<<<<<< HEAD/sound/aoa/soundbus/core.c
--	compat = (char *) get_property(of->node, "compatible", &cplen);
+-<<<<<<< HEAD/drivers/ieee1394/eth1394.c
+ 	skb_reset_mac_header(skb);
+-	skb_pull (skb, ETH1394_HLEN);
 -=======
- 	compat = of_get_property(of->node, "compatible", &cplen);
-->>>>>>> /sound/aoa/soundbus/core.c
- 	while (compat && cplen > 0) {
- 		int tmp = length;
- 		retval = add_uevent_var(envp, num_envp, &i,
+-	skb->mac.raw = skb->data;
+ 	skb_pull(skb, ETH1394_HLEN);
+->>>>>>> /drivers/ieee1394/eth1394.c
+ 	eth = eth1394_hdr(skb);
+ 
+ 	if (*eth->h_dest & 1) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +82,7 @@ git-dvb.patch
 git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
+git-ieee1394-fixup.patch
 sbp2-include-fixes.patch
 ieee1394-iso-needs-schedh.patch
 git-input.patch
