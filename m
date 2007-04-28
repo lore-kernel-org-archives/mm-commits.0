@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch added to -mm tree
-Date: Fri, 27 Apr 2007 16:55:12 -0700
-Message-ID: <200704272355.l3RNtDGG010997@shell0.pdx.osdl.net>
+Subject: + utimensat-implementation-update.patch added to -mm tree
+Date: Fri, 27 Apr 2007 17:07:54 -0700
+Message-ID: <200704280007.l3S07sJa011197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33278 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55394 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757915AbXD0XzS (ORCPT
+	by vger.kernel.org with ESMTP id S1757934AbXD1AIe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 19:55:18 -0400
+	Fri, 27 Apr 2007 20:08:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dcn@sgi.com, clameter@sgi.com, ebiederm@xmission.com
+Cc: drepper@redhat.com
 
 
 The patch titled
-     ia64-sn-xpc-convert-to-use-kthread-api-fix 2
+     utimensat-implementation update
 has been added to the -mm tree.  Its filename is
-     ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
+     utimensat-implementation-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,101 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64-sn-xpc-convert-to-use-kthread-api-fix 2
-From: Dean Nelson <dcn@sgi.com>
+Subject: utimensat-implementation update
+From: Ulrich Drepper <drepper@redhat.com>
 
-I've tested Eric's patch in conjunction with a fix from Christoph Lameter,
-which you've already got (it cleaned up a couple of compiler errors), and
-the following patch that I'd like added (it cleans up a couple of compiler
-warning errors and makes a few cosmetic changes).
+The completely missing futimensat() functionality is added.  We have such a
+function in glibc but we have to resort to using /proc/self/fd/* which not
+everybody likes (chroot etc).
 
-Signed-off-by: Dean Nelson <dcn@sgi.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/kernel/xpc_main.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ fs/utimes.c |   32 ++++++++++++++++++++++++++------
+ 1 files changed, 26 insertions(+), 6 deletions(-)
 
-diff -puN arch/ia64/sn/kernel/xpc_main.c~ia64-sn-xpc-convert-to-use-kthread-api-fix-2 arch/ia64/sn/kernel/xpc_main.c
---- a/arch/ia64/sn/kernel/xpc_main.c~ia64-sn-xpc-convert-to-use-kthread-api-fix-2
-+++ a/arch/ia64/sn/kernel/xpc_main.c
-@@ -568,7 +568,6 @@ xpc_activate_partition(struct xpc_partit
- 
- 	task = kthread_run(xpc_activating, (void *) ((u64) partid),
- 			  "xpc%02d", partid);
--
- 	if (unlikely(IS_ERR(task))) {
- 		spin_lock_irqsave(&part->act_lock, irq_flags);
- 		part->act_state = XPC_P_INACTIVE;
-@@ -808,7 +807,6 @@ xpc_create_kthreads(struct xpc_channel *
- 			int ignore_disconnecting)
+diff -puN fs/utimes.c~utimensat-implementation-update fs/utimes.c
+--- a/fs/utimes.c~utimensat-implementation-update
++++ a/fs/utimes.c
+@@ -1,4 +1,5 @@
+ #include <linux/compiler.h>
++#include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/linkage.h>
+ #include <linux/namei.h>
+@@ -45,18 +46,34 @@ long do_utimes(int dfd, char __user *fil
  {
- 	unsigned long irq_flags;
--	pid_t pid;
- 	u64 args = XPC_PACK_ARGS(ch->partid, ch->number);
- 	struct xpc_partition *part = &xpc_partitions[ch->partid];
- 	struct task_struct *task;
-@@ -840,7 +838,7 @@ xpc_create_kthreads(struct xpc_channel *
- 		(void) xpc_part_ref(part);
- 		xpc_msgqueue_ref(ch);
+ 	int error;
+ 	struct nameidata nd;
++	struct dentry *dentry;
+ 	struct inode *inode;
+ 	struct iattr newattrs;
++	struct file *f = NULL;
  
--		task = kthread_run(xpc_daemonize_kthread, args,
-+		task = kthread_run(xpc_daemonize_kthread, (void *) args,
- 				   "xpc%02dc%d", ch->partid, ch->number);
- 		if (IS_ERR(task)) {
- 			/* the fork failed */
-@@ -1381,7 +1379,8 @@ xpc_init(void)
- 	 * activate based on info provided by SAL. This new thread is short
- 	 * lived and will exit once discovery is complete.
- 	 */
--	task = kthread_run(xpc_initiate_discovery, NULL, XPC_DISCOVERY_THREAD_NAME);
-+	task = kthread_run(xpc_initiate_discovery, NULL,
-+			   XPC_DISCOVERY_THREAD_NAME);
- 	if (IS_ERR(task)) {
- 		dev_err(xpc_part, "failed while forking discovery thread\n");
+ 	error = -EINVAL;
+ 	if (flags & ~AT_SYMLINK_NOFOLLOW)
+ 		goto out;
  
+-	error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
+-	if (error)
+-		goto out;
++	if (filename == NULL && dfd != AT_FDCWD) {
++		error = -EINVAL;
++		if (flags & AT_SYMLINK_NOFOLLOW)
++			goto out;
++
++		error = -EBADF;
++		f = fget(dfd);
++		if (!f)
++			goto out;
++		dentry = f->f_path.dentry;
++	} else {
++		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
++		if (error)
++			goto out;
++
++		dentry = nd.dentry;
++	}
+ 
+-	inode = nd.dentry->d_inode;
++	inode = dentry->d_inode;
+ 
+ 	error = -EROFS;
+ 	if (IS_RDONLY(inode))
+@@ -94,10 +111,13 @@ long do_utimes(int dfd, char __user *fil
+ 			goto dput_and_out;
+ 	}
+ 	mutex_lock(&inode->i_mutex);
+-	error = notify_change(nd.dentry, &newattrs);
++	error = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
+ dput_and_out:
+-	path_release(&nd);
++	if (f)
++		fput(f);
++	else
++		path_release(&nd);
+ out:
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from dcn@sgi.com are
+Patches currently in -mm which might be from drepper@redhat.com are
 
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+aio-is-unlikely.patch
+utimensat-implementation.patch
+utimensat-implementation-fix.patch
+utimensat-implementation-update.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
+futex_requeue_pi-optimization.patch
