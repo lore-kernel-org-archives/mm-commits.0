@@ -1,137 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:55:39 -0700
-Message-ID: <200704281055.l3SAtd2l020194@shell0.pdx.osdl.net>
+Subject: - x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:55:12 -0700
+Message-ID: <200704281055.l3SAtCXJ020161@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39427 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965804AbXD1Kzn (ORCPT
+	by vger.kernel.org with ESMTP id S965796AbXD1Kzn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 28 Apr 2007 06:55:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 voyager: convert the monitor thread to use the kthread API
+     x86_64: move __vgetcpu_mode & __jiffies to the vsyscall_2 zone
 has been removed from the -mm tree.  Its filename was
-     i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api.patch
+     x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 voyager: convert the monitor thread to use the kthread API
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: x86_64: move __vgetcpu_mode & __jiffies to the vsyscall_2 zone
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-This patch just trivially replaces kernel_thread and daemonize with a
-single call to kthread_run.
+We apparently hit the 1024 limit of vsyscall_0 zone when some debugging
+options are set, or if __vsyscall_gtod_data is 64 bytes larger.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+In order to save 128 bytes from the vsyscall_0 zone, we move __vgetcpu_mode
+& __jiffies to vsyscall_2 zone where they really belong, since they are
+used only from vgetcpu() (which is in this vsyscall_2 area).
+
+After patch is applied, new layout is :
+
+ffffffffff600000 T vgettimeofday
+ffffffffff60004e t vsysc2
+ffffffffff600140 t vread_hpet
+ffffffffff600150 t vread_tsc
+ffffffffff600180 D __vsyscall_gtod_data
+ffffffffff600400 T vtime
+ffffffffff600413 t vsysc1
+ffffffffff600800 T vgetcpu
+ffffffffff600870 D __vgetcpu_mode
+ffffffffff600880 D __jiffies
+ffffffffff600c00 T venosys_1
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mach-voyager/voyager_thread.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/x86_64/kernel/vmlinux.lds.S |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/mach-voyager/voyager_thread.c~i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api arch/i386/mach-voyager/voyager_thread.c
---- a/arch/i386/mach-voyager/voyager_thread.c~i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api
-+++ a/arch/i386/mach-voyager/voyager_thread.c
-@@ -24,6 +24,7 @@
- #include <linux/kmod.h>
- #include <linux/completion.h>
- #include <linux/sched.h>
-+#include <linux/kthread.h>
- #include <asm/desc.h>
- #include <asm/voyager.h>
- #include <asm/vic.h>
-@@ -44,7 +45,7 @@ static __u8 set_timeout = 0;
- static int __init
- voyager_thread_start(void)
- {
--	if(kernel_thread(thread, NULL, CLONE_KERNEL) < 0) {
-+	if (IS_ERR(kthread_run(thread, NULL, "%s", THREAD_NAME))) {
- 		/* This is serious, but not fatal */
- 		printk(KERN_ERR "Voyager: Failed to create system monitor thread!!!\n");
- 		return 1;
-@@ -123,8 +124,6 @@ thread(void *unused)
+diff -puN arch/x86_64/kernel/vmlinux.lds.S~x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone arch/x86_64/kernel/vmlinux.lds.S
+--- a/arch/x86_64/kernel/vmlinux.lds.S~x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone
++++ a/arch/x86_64/kernel/vmlinux.lds.S
+@@ -98,6 +98,12 @@ SECTIONS
+ 		{ *(.vsyscall_clock) }
+   vsyscall_clock = VVIRT(.vsyscall_clock);
  
- 	kvoyagerd_running = 1;
++
++  .vsyscall_1 ADDR(.vsyscall_0) + 1024: AT(VLOAD(.vsyscall_1))
++		{ *(.vsyscall_1) }
++  .vsyscall_2 ADDR(.vsyscall_0) + 2048: AT(VLOAD(.vsyscall_2))
++		{ *(.vsyscall_2) }
++
+   .vgetcpu_mode : AT(VLOAD(.vgetcpu_mode)) { *(.vgetcpu_mode) }
+   vgetcpu_mode = VVIRT(.vgetcpu_mode);
  
--	daemonize(THREAD_NAME);
--
- 	set_timeout = 0;
+@@ -105,10 +111,6 @@ SECTIONS
+   .jiffies : AT(VLOAD(.jiffies)) { *(.jiffies) }
+   jiffies = VVIRT(.jiffies);
  
- 	init_timer(&wakeup_timer);
+-  .vsyscall_1 ADDR(.vsyscall_0) + 1024: AT(VLOAD(.vsyscall_1))
+-		{ *(.vsyscall_1) }
+-  .vsyscall_2 ADDR(.vsyscall_0) + 2048: AT(VLOAD(.vsyscall_2))
+-		{ *(.vsyscall_2) }
+   .vsyscall_3 ADDR(.vsyscall_0) + 3072: AT(VLOAD(.vsyscall_3))
+ 		{ *(.vsyscall_3) }
+ 
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
-arm-ecard-convert-to-use-the-kthread-api.patch
-iop13xx-msi-support-rev6.patch
-powerpc-rtas-msi-support.patch
-macintosh-mediabay-convert-to-kthread-api.patch
-macintosh-adb-convert-to-the-kthread-api.patch
-macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
-powerpc-pseries-rtasd-convert-to-kthread-api.patch
-powerpc-pseries-eeh-convert-to-kthread-api.patch
-dvb_en_50221-convert-to-kthread-api.patch
-mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
-ia64-sn-xpc-convert-to-use-kthread-api.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
-fix-i-oat-for-kexec.patch
-cpqphp-partially-convert-to-use-the-kthread-api.patch
-ibmphp-partially-convert-to-use-the-kthreads-api.patch
-cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
-msi-fix-arm-compile.patch
-s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
-s390-qeth-convert-to-use-the-kthread-api.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
-sparc64-powerc-convert-to-use-the-kthread-api.patch
-i386-irq-kill-irq-compression.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+slab-dont-allocate-empty-shared-caches.patch
+slab-numa-kmem_cache-diet.patch
+optimize-timespec_trunc.patch
 procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
-proc-cleanup-use-seq_release_private-where-appropriate.patch
-smbfs-remove-unnecessary-allow_signal.patch
-pnpbios-conert-to-use-the-kthread-api.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-worker_thread-dont-play-with-sigchld-and-numa-policy.patch
-change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-remvoe-kthread_bind-call-from-_cpu_down.patch
-nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-md-remove-broken-sigkill-support.patch
-mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+vfs-delay-the-dentry-name-generation-on-sockets-and.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
