@@ -1,50 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - git-agp-build-fix.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:50:36 -0700
-Message-ID: <200704281050.l3SAoac2019944@shell0.pdx.osdl.net>
+Subject: - fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:50:53 -0700
+Message-ID: <200704281050.l3SAoroa019959@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51132 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965626AbXD1Kuw (ORCPT
+	by vger.kernel.org with ESMTP id S965635AbXD1KvC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:50:52 -0400
+	Sat, 28 Apr 2007 06:51:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-agp-build-fix
+     fix gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it
 has been removed from the -mm tree.  Its filename was
-     git-agp-build-fix.patch
+     fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-agp-build-fix
+Subject: fix gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/sworks-agp.c |    2 +-
+ drivers/amba/bus.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/sworks-agp.c~git-agp-build-fix drivers/char/agp/sworks-agp.c
---- a/drivers/char/agp/sworks-agp.c~git-agp-build-fix
-+++ a/drivers/char/agp/sworks-agp.c
-@@ -528,7 +528,7 @@ static void __devexit agp_serverworks_re
- 	pci_dev_put(bridge->dev);
- 	agp_remove_bridge(bridge);
- 	agp_put_bridge(bridge);
--	pci_dev_put(serverworks_private.svrwrks_dev)
-+	pci_dev_put(serverworks_private.svrwrks_dev);
- 	serverworks_private.svrwrks_dev = NULL;
- }
+diff -puN drivers/amba/bus.c~fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it drivers/amba/bus.c
+--- a/drivers/amba/bus.c~fix-gregkh-driver-uevent-use-add_uevent_var-instead-of-open-coding-it
++++ a/drivers/amba/bus.c
+@@ -50,7 +50,7 @@ static int amba_uevent(struct device *de
+ 	int retval = 0, i = 0, len = 0;
  
+ 	retval = add_uevent_var(envp, nr_env, &i,
+-				buf, bufsize, &len,
++				buf, bufsz, &len,
+ 				"AMBA_ID=%08x", pcdev->periphid);
+ 	envp[i] = NULL;
+ 	return retval;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
