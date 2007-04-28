@@ -1,242 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: - define-platform-wakeup-hook-use-in-pci_enable_wake.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:51:18 -0700
-Message-ID: <200704281051.l3SApIXi019978@shell0.pdx.osdl.net>
+Subject: - vioc-warning-fix.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:52:44 -0700
+Message-ID: <200704281052.l3SAqiB8020054@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55275 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52340 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031517AbXD1Kw5 (ORCPT
+	by vger.kernel.org with ESMTP id S1031518AbXD1Kw6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:52:57 -0400
+	Sat, 28 Apr 2007 06:52:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, lenb@kernel.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, driver-support@fabric7.com, jeff@garzik.org, schidambaram@fabric7.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     define platform wakeup hook, use in pci_enable_wake()
+     vioc-warning-fix
 has been removed from the -mm tree.  Its filename was
-     define-platform-wakeup-hook-use-in-pci_enable_wake.patch
+     vioc-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: define platform wakeup hook, use in pci_enable_wake()
-From: David Brownell <david-b@pacbell.net>
+Subject: vioc-warning-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This defines a platform hook to enable/disable a device as a wakeup event
-source.  It's initially for use with ACPI, but more generally it could be used
-whenever enable_irq_wake()/disable_irq_wake() don't suffice.
+Fix this, on i386:
 
-The hook is called -- if available -- inside pci_enable_wake(); and the
-semantics of that call are enhanced so that support for PCI PME# is no longer
-needed.  It can now work for devices with "legacy PCI PM", when platform
-support allows it.  (That support would use some board-specific signal for for
-the same purpose as PME#.)
+drivers/net/vioc/vioc_transmit.c: In function 'vioc_tx_interrupt':
+drivers/net/vioc/vioc_transmit.c:387: warning: cast from pointer to integer of different size
 
-[akpm@linux-foundation.org: Make it compile with CONFIG_PM=n]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Len Brown <lenb@kernel.org>
+I dunno what the driver is trying to do here, but it looks unpleasant.
+
+Cc: Sriram Chidambaram <schidambaram@fabric7.com>
+Cc: Fabric7 Driver-Support <driver-support@fabric7.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/main.c |    3 +
- drivers/pci/pci.c         |   60 +++++++++++++++++++++++++-----------
- include/linux/pm.h        |   19 +++++++++++
- 3 files changed, 64 insertions(+), 18 deletions(-)
+ drivers/net/vioc/vioc_vnic.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/power/main.c~define-platform-wakeup-hook-use-in-pci_enable_wake drivers/base/power/main.c
---- a/drivers/base/power/main.c~define-platform-wakeup-hook-use-in-pci_enable_wake
-+++ a/drivers/base/power/main.c
-@@ -29,6 +29,9 @@ LIST_HEAD(dpm_off_irq);
- DECLARE_MUTEX(dpm_sem);
- DECLARE_MUTEX(dpm_list_sem);
+diff -puN drivers/net/vioc/vioc_vnic.h~vioc-warning-fix drivers/net/vioc/vioc_vnic.h
+--- a/drivers/net/vioc/vioc_vnic.h~vioc-warning-fix
++++ a/drivers/net/vioc/vioc_vnic.h
+@@ -103,11 +103,11 @@
+        )
  
-+int (*platform_enable_wakeup)(struct device *dev, int is_on);
-+
-+
- /**
-  *	device_pm_set_parent - Specify power dependency.
-  *	@dev:		Device who needs power.
-diff -puN drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake drivers/pci/pci.c
---- a/drivers/pci/pci.c~define-platform-wakeup-hook-use-in-pci_enable_wake
-+++ a/drivers/pci/pci.c
-@@ -13,6 +13,7 @@
- #include <linux/delay.h>
- #include <linux/init.h>
- #include <linux/pci.h>
-+#include <linux/pm.h>
- #include <linux/module.h>
- #include <linux/spinlock.h>
- #include <linux/string.h>
-@@ -891,31 +892,48 @@ pci_disable_device(struct pci_dev *dev)
- }
+ #define VIOC_IRQ_PARAM_VIOC_ID(param)  \
+-       (int) (((u64) param >> 28) & 0xf)
++       (int) (((long) param >> 28) & 0xf)
+ #define VIOC_IRQ_PARAM_INTR_ID(param)  \
+-       (int) ((u64) param & 0xffff)
++       (int) ((long) param & 0xffff)
+ #define VIOC_IRQ_PARAM_PARAM_ID(param) \
+-       (int) (((u64) param >> 16) & 0xff)
++       (int) (((long) param >> 16) & 0xff)
  
- /**
-- * pci_enable_wake - enable device to generate PME# when suspended
-- * @dev: - PCI device to operate on
-- * @state: - Current state of device.
-- * @enable: - Flag to enable or disable generation
-- * 
-- * Set the bits in the device's PM Capabilities to generate PME# when
-- * the system is suspended. 
-- *
-- * -EIO is returned if device doesn't have PM Capabilities. 
-- * -EINVAL is returned if device supports it, but can't generate wake events.
-- * 0 if operation is successful.
-- * 
-+ * pci_enable_wake - enable PCI device as wakeup event source
-+ * @dev: PCI device affected
-+ * @state: PCI state from which device will issue wakeup events
-+ * @enable: True to enable event generation; false to disable
-+ *
-+ * This enables the device as a wakeup event source, or disables it.
-+ * When such events involves platform-specific hooks, those hooks are
-+ * called automatically by this routine.
-+ *
-+ * Devices with legacy power management (no standard PCI PM capabilities)
-+ * always require such platform hooks.  Depending on the platform, devices
-+ * supporting the standard PCI PME# signal may require such platform hooks;
-+ * they always update bits in config space to allow PME# generation.
-+ *
-+ * -EIO is returned if the device can't ever be a wakeup event source.
-+ * -EINVAL is returned if the device can't generate wakeup events from
-+ * the specified PCI state.  Returns zero if the operation is successful.
-  */
- int pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable)
- {
- 	int pm;
-+	int status;
- 	u16 value;
- 
-+	/* Note that drivers should verify device_may_wakeup(&dev->dev)
-+	 * before calling this function.  Platform code should report
-+	 * errors when drivers try to enable wakeup on devices that
-+	 * can't issue wakeups, or on which wakeups were disabled by
-+	 * userspace updating the /sys/devices.../power/wakeup file.
-+	 */
-+
-+	status = call_platform_enable_wakeup(&dev->dev, enable);
-+
- 	/* find PCI PM capability in list */
- 	pm = pci_find_capability(dev, PCI_CAP_ID_PM);
- 
--	/* If device doesn't support PM Capabilities, but request is to disable
--	 * wake events, it's a nop; otherwise fail */
--	if (!pm) 
--		return enable ? -EIO : 0; 
-+	/* If device doesn't support PM Capabilities, but caller wants to
-+	 * disable wake events, it's a NOP.  Otherwise fail unless the
-+	 * platform hooks handled this legacy device already.
-+	 */
-+	if (!pm)
-+		return enable ? status : 0;
- 
- 	/* Check device's ability to generate PME# */
- 	pci_read_config_word(dev,pm+PCI_PM_PMC,&value);
-@@ -924,8 +942,14 @@ int pci_enable_wake(struct pci_dev *dev,
- 	value >>= ffs(PCI_PM_CAP_PME_MASK) - 1;   /* First bit of mask */
- 
- 	/* Check if it can generate PME# from requested state. */
--	if (!value || !(value & (1 << state))) 
-+	if (!value || !(value & (1 << state))) {
-+		/* if it can't, revert what the platform hook changed,
-+		 * always reporting the base "EINVAL, can't PME#" error
-+		 */
-+		if (enable)
-+			call_platform_enable_wakeup(&dev->dev, 0);
- 		return enable ? -EINVAL : 0;
-+	}
- 
- 	pci_read_config_word(dev, pm + PCI_PM_CTRL, &value);
- 
-@@ -936,7 +960,7 @@ int pci_enable_wake(struct pci_dev *dev,
- 		value &= ~PCI_PM_CTRL_PME_ENABLE;
- 
- 	pci_write_config_word(dev, pm + PCI_PM_CTRL, value);
--	
-+
- 	return 0;
- }
- 
-diff -puN include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake include/linux/pm.h
---- a/include/linux/pm.h~define-platform-wakeup-hook-use-in-pci_enable_wake
-+++ a/include/linux/pm.h
-@@ -273,6 +273,20 @@ extern void __suspend_report_result(cons
- 		__suspend_report_result(__FUNCTION__, fn, ret);		\
- 	} while (0)
- 
-+/*
-+ * Platform hook to activate device wakeup capability, if that's not already
-+ * handled by enable_irq_wake() etc.
-+ * Returns zero on success, else negative errno
-+ */
-+extern int (*platform_enable_wakeup)(struct device *dev, int is_on);
-+
-+static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
-+{
-+	if (platform_enable_wakeup)
-+		return (*platform_enable_wakeup)(dev, is_on);
-+	return 0;
-+}
-+
- #else /* !CONFIG_PM */
- 
- static inline int device_suspend(pm_message_t state)
-@@ -294,6 +308,11 @@ static inline void dpm_runtime_resume(st
- 
- #define suspend_report_result(fn, ret) do { } while (0)
- 
-+static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
-+{
-+	return -EIO;
-+}
-+
- #endif
- 
- /* changes to device_may_wakeup take effect on the next pm state change.
+ #define VIOC_IRQ_PARAM_SET(vioc, intr, param) \
+                ((((u64) vioc & 0xf) << 28) | \
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-implement-pm_opsvalid-for-everybody-fix.patch
+extend-print_symbol-capability.patch
+add-kvasprintf.patch
+add-kvasprintf-fix.patch
+slab-introduce-krealloc.patch
 git-acpi.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-at91_cf-minor-fix.patch
-scsi-newstyle-hotplug-coldplug-support.patch
-blackfin-on-chip-rtc-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver.patch
-kconfig-mentioneds-hibernation-not-just-swsusp.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+ida-implement-idr-based-id-allocator-fix.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-fixup.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-jfs.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-netdev-all.patch
+ne-add-platform_driver-fix.patch
+ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
 parport-dev-driver-model-support-powerpc-fix.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-pnpacpi-sets-pnpdev-devarchdata-fix.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-minor-spi_butterfly-cleanup.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-update-to-class-device-removal-patches.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
-workaround-rtc-related-acpi-table-bugs.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+utimensat-implementation-fix.patch
 revert-rtc-add-rtc_merge_alarm.patch
-remove-rtc_alm_set-mode-bugs.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
