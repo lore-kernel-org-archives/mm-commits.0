@@ -1,56 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - sctp_getsockopt_local_addrs-type-fix.patch removed from -mm tree
-Date: Fri, 27 Apr 2007 18:07:35 -0700
-Message-ID: <200704280107.l3S17aFi012194@shell0.pdx.osdl.net>
+Subject: - sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 18:07:31 -0700
+Message-ID: <200704280107.l3S17Vgj012191@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42995 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965352AbXD1BIO (ORCPT
+	by vger.kernel.org with ESMTP id S965345AbXD1BIN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 21:08:14 -0400
+	Fri, 27 Apr 2007 21:08:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, vladislav.yasevich@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sctp_getsockopt_local_addrs type fix
+     sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix
 has been removed from the -mm tree.  Its filename was
-     sctp_getsockopt_local_addrs-type-fix.patch
+     sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
 
 This patch was dropped because it was folded into sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
 
 ------------------------------------------------------
-Subject: sctp_getsockopt_local_addrs type fix
+Subject: sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
-
-net/sctp/socket.c: In function 'sctp_getsockopt_local_addrs':
-net/sctp/socket.c:4162: warning: passing argument 5 of 'sctp_copy_laddrs' from incompatible pointer type
-
-This appears to be a pretty critical bug.
-
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  net/sctp/socket.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sctp/socket.c~sctp_getsockopt_local_addrs-type-fix net/sctp/socket.c
---- a/net/sctp/socket.c~sctp_getsockopt_local_addrs-type-fix
+diff -puN net/sctp/socket.c~sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix net/sctp/socket.c
+--- a/net/sctp/socket.c~sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix
 +++ a/net/sctp/socket.c
-@@ -4256,7 +4256,7 @@ static int sctp_getsockopt_local_addrs(s
- 	rwlock_t *addr_lock;
- 	int err = 0;
- 	size_t space_left;
--	int bytes_copied = 0;
-+	size_t bytes_copied = 0;
- 	void *addrs;
+@@ -4045,7 +4045,7 @@ static int sctp_getsockopt_local_addrs_o
+ 	to = getaddrs.addrs;
  
- 	if (len <= sizeof(struct sctp_getaddrs))
+ 	/* Allocate space for a local instance of packed array to hold all
+-	 * the data.  We store addresses here first and then put write them
++	 * the data.  We store addresses here first and then copy them
+ 	 * to the user in one shot.
+ 	 */
+ 	addrs = kmalloc(sizeof(union sctp_addr) * getaddrs.addr_num,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,6 +103,7 @@ git-net.patch
 git-net-fixup.patch
 git-net-vs-git-netdev-all.patch
 sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage-fix.patch
 sctp_getsockopt_local_addrs-type-fix.patch
 git-net-fix-yamc.patch
 irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
