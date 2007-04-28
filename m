@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-syscallc-switch-to-refcounting-api.patch added to -mm tree
-Date: Sat, 28 Apr 2007 01:40:27 -0700
-Message-ID: <200704280840.l3S8eRS8018194@shell0.pdx.osdl.net>
+Subject: + sl82c105-switch-to-ref-counting-api.patch added to -mm tree
+Date: Sat, 28 Apr 2007 01:40:25 -0700
+Message-ID: <200704280840.l3S8eP39018191@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60979 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161662AbXD1Iki (ORCPT
+	by vger.kernel.org with ESMTP id S1161667AbXD1Ikj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 04:40:38 -0400
+	Sat, 28 Apr 2007 04:40:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, sshtylyov@ru.mvista.com
 
 
 The patch titled
-     pci syscall.c: Switch to refcounting API
+     sl82c105: Switch to ref counting API
 has been added to the -mm tree.  Its filename is
-     pci-syscallc-switch-to-refcounting-api.patch
+     sl82c105-switch-to-ref-counting-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci syscall.c: Switch to refcounting API
+Subject: sl82c105: Switch to ref counting API
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+Not sure how this one got missed in the great purge some time ago but it
+did.
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/syscall.c |    8 +++++---
+ drivers/ide/pci/sl82c105.c |    8 +++++---
  1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pci/syscall.c~pci-syscallc-switch-to-refcounting-api drivers/pci/syscall.c
---- a/drivers/pci/syscall.c~pci-syscallc-switch-to-refcounting-api
-+++ a/drivers/pci/syscall.c
-@@ -30,7 +30,7 @@ sys_pciconfig_read(unsigned long bus, un
- 		goto error;
- 
- 	err = -ENODEV;
--	dev = pci_find_slot(bus, dfn);
-+	dev = pci_get_bus_and_slot(bus, dfn);
- 	if (!dev)
- 		goto error;
- 
-@@ -67,6 +67,7 @@ sys_pciconfig_read(unsigned long bus, un
- 		err = put_user(dword, (unsigned int __user *)buf);
- 		break;
- 	};
-+	pci_dev_put(dev);
- 	return err;
- 
- error:
-@@ -84,6 +85,7 @@ error:
- 		put_user(-1, (unsigned int __user *)buf);
- 		break;
- 	};
-+	pci_dev_put(dev);
- 	return err;
- }
- 
-@@ -101,7 +103,7 @@ sys_pciconfig_write(unsigned long bus, u
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	dev = pci_find_slot(bus, dfn);
-+	dev = pci_get_bus_and_slot(bus, dfn);
- 	if (!dev)
- 		return -ENODEV;
- 
-@@ -139,6 +141,6 @@ sys_pciconfig_write(unsigned long bus, u
- 		break;
- 	};
- 	unlock_kernel();
+diff -puN drivers/ide/pci/sl82c105.c~sl82c105-switch-to-ref-counting-api drivers/ide/pci/sl82c105.c
+--- a/drivers/ide/pci/sl82c105.c~sl82c105-switch-to-ref-counting-api
++++ a/drivers/ide/pci/sl82c105.c
+@@ -349,7 +349,7 @@ static unsigned int sl82c105_bridge_revi
+ 	/*
+ 	 * The bridge should be part of the same device, but function 0.
+ 	 */
+-	bridge = pci_find_slot(dev->bus->number,
++	bridge = pci_get_bus_and_slot(dev->bus->number,
+ 			       PCI_DEVFN(PCI_SLOT(dev->devfn), 0));
+ 	if (!bridge)
+ 		return -1;
+@@ -359,13 +359,15 @@ static unsigned int sl82c105_bridge_revi
+ 	 */
+ 	if (bridge->vendor != PCI_VENDOR_ID_WINBOND ||
+ 	    bridge->device != PCI_DEVICE_ID_WINBOND_83C553 ||
+-	    bridge->class >> 8 != PCI_CLASS_BRIDGE_ISA)
++	    bridge->class >> 8 != PCI_CLASS_BRIDGE_ISA) {
++	    	pci_dev_put(bridge);
+ 		return -1;
 -
-+	pci_dev_put(dev);
- 	return err;
++	}
+ 	/*
+ 	 * We need to find function 0's revision, not function 1
+ 	 */
+ 	pci_read_config_byte(bridge, PCI_REVISION_ID, &rev);
++	pci_dev_put(bridge);
+ 
+ 	return rev;
  }
 _
 
