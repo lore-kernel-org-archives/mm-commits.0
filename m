@@ -1,170 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - make-sysrq-t-show-all-tasks-again.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:50:31 -0700
-Message-ID: <200704281050.l3SAoVWr019941@shell0.pdx.osdl.net>
+Subject: - git-agp-build-fix.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:50:36 -0700
+Message-ID: <200704281050.l3SAoac2019944@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46718 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51132 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965620AbXD1Kun (ORCPT
+	by vger.kernel.org with ESMTP id S965626AbXD1Kuw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:50:43 -0400
+	Sat, 28 Apr 2007 06:50:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make SysRq-T show all tasks again
+     git-agp-build-fix
 has been removed from the -mm tree.  Its filename was
-     make-sysrq-t-show-all-tasks-again.patch
+     git-agp-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make SysRq-T show all tasks again
-From: Ingo Molnar <mingo@elte.hu>
+Subject: git-agp-build-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-show_state() (SysRq-T) developed the buggy habbit of not showing
-TASK_RUNNING tasks.  This was due to the mistaken belief that state_filter
-== -1 would be a pass-through filter - while in reality it did not let
-TASK_RUNNING == 0 p->state values through.
-
-Fix this by restoring the original '!state_filter means all tasks'
-special-case i had in the original version.  Test-built and test-booted on
-i686, SysRq-T now works as intended.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    4 ++--
- kernel/sched.c        |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/char/agp/sworks-agp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~make-sysrq-t-show-all-tasks-again include/linux/sched.h
---- a/include/linux/sched.h~make-sysrq-t-show-all-tasks-again
-+++ a/include/linux/sched.h
-@@ -196,13 +196,13 @@ extern void init_idle(struct task_struct
- extern cpumask_t nohz_cpu_mask;
- 
- /*
-- * Only dump TASK_* tasks. (-1 for all tasks)
-+ * Only dump TASK_* tasks. (0 for all tasks)
-  */
- extern void show_state_filter(unsigned long state_filter);
- 
- static inline void show_state(void)
- {
--	show_state_filter(-1);
-+	show_state_filter(0);
+diff -puN drivers/char/agp/sworks-agp.c~git-agp-build-fix drivers/char/agp/sworks-agp.c
+--- a/drivers/char/agp/sworks-agp.c~git-agp-build-fix
++++ a/drivers/char/agp/sworks-agp.c
+@@ -528,7 +528,7 @@ static void __devexit agp_serverworks_re
+ 	pci_dev_put(bridge->dev);
+ 	agp_remove_bridge(bridge);
+ 	agp_put_bridge(bridge);
+-	pci_dev_put(serverworks_private.svrwrks_dev)
++	pci_dev_put(serverworks_private.svrwrks_dev);
+ 	serverworks_private.svrwrks_dev = NULL;
  }
- 
- extern void show_regs(struct pt_regs *);
-diff -puN kernel/sched.c~make-sysrq-t-show-all-tasks-again kernel/sched.c
---- a/kernel/sched.c~make-sysrq-t-show-all-tasks-again
-+++ a/kernel/sched.c
-@@ -4746,7 +4746,7 @@ void show_state_filter(unsigned long sta
- 		 * console might take alot of time:
- 		 */
- 		touch_nmi_watchdog();
--		if (p->state & state_filter)
-+		if (!state_filter || (p->state & state_filter))
- 			show_task(p);
- 	} while_each_thread(g, p);
  
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+extend-print_symbol-capability.patch
+add-kvasprintf.patch
+add-kvasprintf-fix.patch
+slab-introduce-krealloc.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+ida-implement-idr-based-id-allocator-fix.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
 git-ieee1394.patch
+git-ieee1394-fixup.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-jfs.patch
 git-kvm.patch
-forcedeth-improve-napi-logic.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-netdev-all.patch
+ne-add-platform_driver-fix.patch
+ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
 add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-h8300-generic-irq.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-simplify-the-stacktrace-code.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-softlockup-trivial-s-99-max_rt_prio.patch
-optimize-timespec_trunc.patch
-futex-restartable-futex_wait.patch
-futex-restartable-futex_wait-fix.patch
-kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
-add-support-for-deferrable-timers-respun.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
 add-support-for-deferrable-timers-respun-tidy.patch
-add-support-for-deferrable-timers-respun-fix.patch
-irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
-move-timekeeping-code-to-timekeepingc.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
 ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-add-touch_all_softlockup_watchdogs.patch
-enhance-initcall_debug-measure-latency.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
 enhance-initcall_debug-measure-latency-fix.patch
-simplify-kallsyms_lookup.patch
-deprecate-sa_xxx-interrupt-flags-v2.patch
-lockdep-treats-down_write_trylock-like-regular-down_write.patch
-pad-irq_desc-to-internode-cacheline-size.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
 pad-irq_desc-to-internode-cacheline-size-fix.patch
-highres-dyntick-prevent-xtime-lock-contention.patch
-lockdep-lookup_chain_cache-comment-errata.patch
-introduce-a-handy-list_first_entry-macro-v2.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
 document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-clean-up-mutex_trylock-noise.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-lockdep-removed-unused-ip-argument-in-mark_lock-mark_held_locks.patch
-schedule_on_each_cpu-use-preempt_disable.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-aio-is-unlikely.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
-sched-optimize-siblings-status-check-logic-in-wake_idle.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-sched-align-rq-to-cacheline-boundary.patch
-sched-dont-renice-kernel-threads.patch
-sched-remove-sleepavg-from-proc.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
 revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-implement-staircase-deadline-cpu-scheduler.patch
-sched-implement-staircase-deadline-cpu-scheduler-misc-fixes.patch
-sched-implement-staircase-deadline-cpu-scheduler-avoid-redundant-reschedule-in-set_user_nice.patch
-sched-implement-staircase-deadline-cpu-scheduler-tweak.patch
-sched-remove-noninteractive-flag.patch
-sched-document-sd-cpu-scheduler.patch
-sched-consolidate-sched_clock-drift-adjustments.patch
 sched-consolidate-sched_clock-drift-adjustments-fix.patch
-sched-add-above-background-load-function.patch
-mm-implement-swap-prefetching.patch
+utimensat-implementation-fix.patch
+revert-rtc-add-rtc_merge_alarm.patch
 declare-struct-ktime.patch
-futex-priority-based-wakeup.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
 make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
-futex_requeue_pi-optimization.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
-timer_stats-slimmed-down-using-statistics-infrastucture.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
-vdso-print-fatal-signals.patch
-vdso-improve-print_fatal_signals-support-by-adding-memory-maps.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
-random-warning-squishes.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
