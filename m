@@ -1,67 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - i386-cleanup-flush_tlb_others-fn.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:55:23 -0700
-Message-ID: <200704281055.l3SAtNMS020173@shell0.pdx.osdl.net>
+Subject: - i386-balance_irq-convert-to-the-kthread-api.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:55:41 -0700
+Message-ID: <200704281055.l3SAtfOf020197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53733 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965749AbXD1Kz2 (ORCPT
+	by vger.kernel.org with ESMTP id S965743AbXD1Kzp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:28 -0400
+	Sat, 28 Apr 2007 06:55:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anil.s.keshavamurthy@intel.com, ak@suse.de, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: clean up flush_tlb_others fn
+     i386 balance_irq: convert to the kthread API
 has been removed from the -mm tree.  Its filename was
-     i386-cleanup-flush_tlb_others-fn.patch
+     i386-balance_irq-convert-to-the-kthread-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: clean up flush_tlb_others fn
-From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Subject: i386 balance_irq: convert to the kthread API
+From: "Eric W. Biederman" <ebiederm@xmission.com>
 
-Cleanup flush_tlb_others(), no functional change.
+This patch just trivial converts from calling kernel_thread and daemonize
+to just calling kthread_run.
 
-Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smp.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ arch/i386/kernel/io_apic.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/smp.c~i386-cleanup-flush_tlb_others-fn arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~i386-cleanup-flush_tlb_others-fn
-+++ a/arch/i386/kernel/smp.c
-@@ -383,17 +383,7 @@ void native_flush_tlb_others(const cpuma
+diff -puN arch/i386/kernel/io_apic.c~i386-balance_irq-convert-to-the-kthread-api arch/i386/kernel/io_apic.c
+--- a/arch/i386/kernel/io_apic.c~i386-balance_irq-convert-to-the-kthread-api
++++ a/arch/i386/kernel/io_apic.c
+@@ -35,6 +35,7 @@
+ #include <linux/msi.h>
+ #include <linux/htirq.h>
+ #include <linux/freezer.h>
++#include <linux/kthread.h>
+ 
+ #include <asm/io.h>
+ #include <asm/smp.h>
+@@ -661,8 +662,6 @@ static int balanced_irq(void *unused)
+ 	unsigned long prev_balance_time = jiffies;
+ 	long time_remaining = balanced_irq_interval;
+ 
+-	daemonize("kirqd");
+-	
+ 	/* push everything to CPU 0 to give us a starting point.  */
+ 	for (i = 0 ; i < NR_IRQS ; i++) {
+ 		irq_desc[i].pending_mask = cpumask_of_cpu(0);
+@@ -722,10 +721,9 @@ static int __init balanced_irq_init(void
+ 	}
  	
- 	flush_mm = mm;
- 	flush_va = va;
--#if NR_CPUS <= BITS_PER_LONG
--	atomic_set_mask(cpumask, &flush_cpumask);
--#else
--	{
--		int k;
--		unsigned long *flush_mask = (unsigned long *)&flush_cpumask;
--		unsigned long *cpu_mask = (unsigned long *)&cpumask;
--		for (k = 0; k < BITS_TO_LONGS(NR_CPUS); ++k)
--			atomic_set_mask(cpu_mask[k], &flush_mask[k]);
--	}
--#endif
-+	cpus_or(flush_cpumask, cpumask, flush_cpumask);
- 	/*
- 	 * We have to send the IPI only to
- 	 * CPUs affected.
+ 	printk(KERN_INFO "Starting balanced_irq\n");
+-	if (kernel_thread(balanced_irq, NULL, CLONE_KERNEL) >= 0) 
++	if (!IS_ERR(kthread_run(balanced_irq, NULL, "kirqd")))
+ 		return 0;
+-	else 
+-		printk(KERN_ERR "balanced_irq_init: failed to spawn balanced_irq");
++	printk(KERN_ERR "balanced_irq_init: failed to spawn balanced_irq");
+ failed:
+ 	for_each_possible_cpu(i) {
+ 		kfree(irq_cpu_data[i].irq_delta);
 _
 
-Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-kprobes-print-details-of-kretprobe-on-assertion-failure.patch
-kprobes-use-hlist_for_each_entry.patch
-kprobes-codingstyle-cleanups.patch
-kprobes-kretprobes-simplifcations.patch
+origin.patch
+arm-ecard-convert-to-use-the-kthread-api.patch
+iop13xx-msi-support-rev6.patch
+powerpc-rtas-msi-support.patch
+macintosh-mediabay-convert-to-kthread-api.patch
+macintosh-adb-convert-to-the-kthread-api.patch
+macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
+powerpc-pseries-rtasd-convert-to-kthread-api.patch
+powerpc-pseries-eeh-convert-to-kthread-api.patch
+dvb_en_50221-convert-to-kthread-api.patch
+mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
+ia64-sn-xpc-convert-to-use-kthread-api.patch
+ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
+ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
+fix-i-oat-for-kexec.patch
+cpqphp-partially-convert-to-use-the-kthread-api.patch
+ibmphp-partially-convert-to-use-the-kthreads-api.patch
+cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
+msi-fix-arm-compile.patch
+s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
+s390-qeth-convert-to-use-the-kthread-api.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
+sparc64-powerc-convert-to-use-the-kthread-api.patch
+i386-irq-kill-irq-compression.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+fix-race-between-proc_readdir-and-remove_proc_entry.patch
+procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
+remove-hardcoding-of-hard_smp_processor_id-on-up.patch
+use-the-apic-to-determine-the-hardware-processor-id-i386.patch
+use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
+proc-cleanup-use-seq_release_private-where-appropriate.patch
+smbfs-remove-unnecessary-allow_signal.patch
+pnpbios-conert-to-use-the-kthread-api.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+change-reparent_to_init-to-reparent_to_kthreadd.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+worker_thread-dont-play-with-sigchld-and-numa-policy.patch
+change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+remvoe-kthread_bind-call-from-_cpu_down.patch
+nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
+md-remove-broken-sigkill-support.patch
+mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
