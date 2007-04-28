@@ -1,55 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - git-ubi-fixup.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 02:45:55 -0700
-Message-ID: <200704280945.l3S9jtqh019105@shell0.pdx.osdl.net>
+Subject: - git-s390-fixup.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 02:48:42 -0700
+Message-ID: <200704280948.l3S9mggd019156@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56621 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754015AbXD1JrT (ORCPT
+	by vger.kernel.org with ESMTP id S1754069AbXD1Jso (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 05:47:19 -0400
+	Sat, 28 Apr 2007 05:48:44 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3S9mg4A009455
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 28 Apr 2007 02:48:43 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-ubi-fixup
+     git-s390-fixup
 has been removed from the -mm tree.  Its filename was
-     git-ubi-fixup.patch
+     git-s390-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-ubi-fixup
+Subject: git-s390-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix conflicts between git-ubi and mainline
-
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/Kconfig |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/s390/cio/chsc.c |  107 --------------------------------------
+ drivers/s390/cio/css.c  |    4 -
+ 2 files changed, 1 insertion(+), 110 deletions(-)
 
-diff -puN drivers/mtd/Kconfig~git-ubi-fixup drivers/mtd/Kconfig
---- a/drivers/mtd/Kconfig~git-ubi-fixup
-+++ a/drivers/mtd/Kconfig
-@@ -287,11 +287,6 @@ source "drivers/mtd/nand/Kconfig"
+diff -puN drivers/s390/cio/chsc.c~git-s390-fixup drivers/s390/cio/chsc.c
+--- a/drivers/s390/cio/chsc.c~git-s390-fixup
++++ a/drivers/s390/cio/chsc.c
+@@ -675,116 +675,9 @@ int chsc_chp_vary(struct chp_id chpid, i
+ 	if (on)
+ 		/* Scan for new devices on varied on path. */
+ 		for_each_subchannel(__s390_vary_chpid_on, NULL);
+-	if (need_rescan || css_slow_subchannels_exist())
+-		queue_work(slow_path_wq, &slow_path_work);
+ 	return 0;
+ }
  
- source "drivers/mtd/onenand/Kconfig"
- 
--<<<<<<< HEAD/drivers/mtd/Kconfig
--endif # MTD
--=======
- source "drivers/mtd/ubi/Kconfig"
- 
--endmenu
+-/*
+- * Channel measurement related functions
+- */
+-static ssize_t
+-chp_measurement_chars_read(struct kobject *kobj, char *buf, loff_t off,
+-			   size_t count)
+-{
+-	struct channel_path *chp;
+-	unsigned int size;
 -
-->>>>>>> /drivers/mtd/Kconfig
-+endif
+-	chp = to_channelpath(container_of(kobj, struct device, kobj));
+-	if (!chp->cmg_chars)
+-		return 0;
+-
+-	size = sizeof(struct cmg_chars);
+-
+-	if (off > size)
+-		return 0;
+-	if (off + count > size)
+-		count = size - off;
+-	memcpy(buf, chp->cmg_chars + off, count);
+-	return count;
+-}
+-
+-static struct bin_attribute chp_measurement_chars_attr = {
+-	.attr = {
+-		.name = "measurement_chars",
+-		.mode = S_IRUSR,
+-	},
+-	.size = sizeof(struct cmg_chars),
+-	.read = chp_measurement_chars_read,
+-};
+-
+-static void
+-chp_measurement_copy_block(struct cmg_entry *buf,
+-			   struct channel_subsystem *css, int chpid)
+-{
+-	void *area;
+-	struct cmg_entry *entry, reference_buf;
+-	int idx;
+-
+-	if (chpid < 128) {
+-		area = css->cub_addr1;
+-		idx = chpid;
+-	} else {
+-		area = css->cub_addr2;
+-		idx = chpid - 128;
+-	}
+-	entry = area + (idx * sizeof(struct cmg_entry));
+-	do {
+-		memcpy(buf, entry, sizeof(*entry));
+-		memcpy(&reference_buf, entry, sizeof(*entry));
+-	} while (reference_buf.values[0] != buf->values[0]);
+-}
+-
+-static ssize_t
+-chp_measurement_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
+-{
+-	struct channel_path *chp;
+-	struct channel_subsystem *css;
+-	unsigned int size;
+-
+-	chp = to_channelpath(container_of(kobj, struct device, kobj));
+-	css = to_css(chp->dev.parent);
+-
+-	size = sizeof(struct cmg_entry);
+-
+-	/* Only allow single reads. */
+-	if (off || count < size)
+-		return 0;
+-	chp_measurement_copy_block((struct cmg_entry *)buf, css, chp->id);
+-	count = size;
+-	return count;
+-}
+-
+-static struct bin_attribute chp_measurement_attr = {
+-	.attr = {
+-		.name = "measurement",
+-		.mode = S_IRUSR,
+-	},
+-	.size = sizeof(struct cmg_entry),
+-	.read = chp_measurement_read,
+-};
+-
+-static void
+-chsc_remove_chp_cmg_attr(struct channel_path *chp)
+-{
+-	device_remove_bin_file(&chp->dev, &chp_measurement_chars_attr);
+-	device_remove_bin_file(&chp->dev, &chp_measurement_attr);
+-}
+-
+-static int
+-chsc_add_chp_cmg_attr(struct channel_path *chp)
+-{
+-	int ret;
+-
+-	ret = device_create_bin_file(&chp->dev, &chp_measurement_chars_attr);
+-	if (ret)
+-		return ret;
+-	ret = device_create_bin_file(&chp->dev, &chp_measurement_attr);
+-	if (ret)
+-		device_remove_bin_file(&chp->dev, &chp_measurement_chars_attr);
+-	return ret;
+-}
+-
+ static void
+ chsc_remove_cmg_attr(struct channel_subsystem *css)
+ {
+diff -puN drivers/s390/cio/css.c~git-s390-fixup drivers/s390/cio/css.c
+--- a/drivers/s390/cio/css.c~git-s390-fixup
++++ a/drivers/s390/cio/css.c
+@@ -189,9 +189,7 @@ static int css_register_subchannel(struc
+ 	if (!cio_is_console(sch->schid))
+ 		/* Console is special, no need to suppress. */
+ 		sch->dev.uevent_suppress = 1;
+-
+-	css_get_ssd_info(sch);
+-
++	css_update_ssd_info(sch);
+ 	/* make it known to the system */
+ 	ret = css_sch_device_register(sch);
+ 	if (ret) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,27 +206,16 @@ drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
 revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
 git-mmc-build-fix.patch
-git-ubi-fixup.patch
-revert-gitpowerpc-ehea-changes.patch
 git-netdev-all.patch
-reapply-gitpowerpc-ehea-changes.patch
-git-netdev-all-export-ieee80211_debug_level.patch
-vioc-warning-fix.patch
-vioc-cast-warning-fix.patch
 ne-add-platform_driver-fix.patch
 ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
 git-e1000.patch
 git-e1000-fixup-2.patch
-git-net-fixup.patch
 git-net-vs-git-netdev-all.patch
 sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-git-net-fix-yamc.patch
-irda_device_dongle_init-fix-kzallocgfp_kernel-in-spinlock.patch
-rfcomm_worker-fix-wakeup-race.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 git-ocfs2.patch
 git-parisc.patch
-git-r8169.patch
 rm9000-serial-driver.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
 git-pciseg.patch
