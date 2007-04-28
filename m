@@ -1,36 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - vioc-warning-fix.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:52:44 -0700
-Message-ID: <200704281052.l3SAqiB8020054@shell0.pdx.osdl.net>
+Subject: - vioc-cast-warning-fix.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:52:49 -0700
+Message-ID: <200704281052.l3SAqnbQ020057@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52340 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031518AbXD1Kw6 (ORCPT
+	by vger.kernel.org with ESMTP id S1031518AbXD1KxD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:52:58 -0400
+	Sat, 28 Apr 2007 06:53:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, driver-support@fabric7.com, jeff@garzik.org, schidambaram@fabric7.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vioc-warning-fix
+     vioc cast warningfix
 has been removed from the -mm tree.  Its filename was
-     vioc-warning-fix.patch
+     vioc-cast-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vioc-warning-fix
+Subject: vioc cast warningfix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this, on i386:
+i386:
 
-drivers/net/vioc/vioc_transmit.c: In function 'vioc_tx_interrupt':
-drivers/net/vioc/vioc_transmit.c:387: warning: cast from pointer to integer of different size
+drivers/net/vioc/vioc_receive.c: In function '_vioc_fill_n_xfer':
+drivers/net/vioc/vioc_receive.c:198: warning: cast from pointer to integer of different size
+drivers/net/vioc/vioc_receive.c:199: warning: cast to pointer from integer of different size
+drivers/net/vioc/vioc_irq.c: In function 'vioc_set_intr_func_param':
+drivers/net/vioc/vioc_irq.c:344: warning: cast to pointer from integer of different size
 
-I dunno what the driver is trying to do here, but it looks unpleasant.
+This code looks fishy.
 
 Cc: Sriram Chidambaram <schidambaram@fabric7.com>
 Cc: Fabric7 Driver-Support <driver-support@fabric7.com>
@@ -38,27 +41,23 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/vioc/vioc_vnic.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/vioc/vioc_receive.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/vioc/vioc_vnic.h~vioc-warning-fix drivers/net/vioc/vioc_vnic.h
---- a/drivers/net/vioc/vioc_vnic.h~vioc-warning-fix
-+++ a/drivers/net/vioc/vioc_vnic.h
-@@ -103,11 +103,11 @@
-        )
- 
- #define VIOC_IRQ_PARAM_VIOC_ID(param)  \
--       (int) (((u64) param >> 28) & 0xf)
-+       (int) (((long) param >> 28) & 0xf)
- #define VIOC_IRQ_PARAM_INTR_ID(param)  \
--       (int) ((u64) param & 0xffff)
-+       (int) ((long) param & 0xffff)
- #define VIOC_IRQ_PARAM_PARAM_ID(param) \
--       (int) (((u64) param >> 16) & 0xff)
-+       (int) (((long) param >> 16) & 0xff)
- 
- #define VIOC_IRQ_PARAM_SET(vioc, intr, param) \
-                ((((u64) vioc & 0xf) << 28) | \
+diff -puN drivers/net/vioc/vioc_receive.c~vioc-cast-warning-fix drivers/net/vioc/vioc_receive.c
+--- a/drivers/net/vioc/vioc_receive.c~vioc-cast-warning-fix
++++ a/drivers/net/vioc/vioc_receive.c
+@@ -195,8 +195,8 @@ static u32 _vioc_fill_n_xfer(struct rxdq
+ 				goto undo_refill;
+ 			}
+ 			/* Cache align */
+-			x = (u64) skb->data;
+-			skb->data = (unsigned char *)ALIGN(x, 64);
++			x = (u64)(long)skb->data;
++			skb->data = (unsigned char *)(long)ALIGN(x, 64);
+ 			rxdq->vbuf[idx].skb = skb;
+ 			rxdq->vbuf[idx].dma =
+ 			    pci_map_single(rxdq->viocdev->pdev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
