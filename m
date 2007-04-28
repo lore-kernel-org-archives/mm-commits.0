@@ -1,70 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch added to -mm tree
-Date: Fri, 27 Apr 2007 18:32:25 -0700
-Message-ID: <200704280132.l3S1WPwi012598@shell0.pdx.osdl.net>
+Subject: - lguest-build-hack.patch removed from -mm tree
+Date: Fri, 27 Apr 2007 18:33:02 -0700
+Message-ID: <200704280133.l3S1X2pa012601@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43284 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030351AbXD1Bcd (ORCPT
+	by vger.kernel.org with ESMTP id S1030800AbXD1BdJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 21:32:33 -0400
+	Fri, 27 Apr 2007 21:33:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeremy@goop.org, rusty@rustcorp.com.au
+To: akpm@linux-foundation.org, jeremy@goop.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest vs x86_64-mm-use-per-cpu-variables-for-gdt-pda
-has been added to the -mm tree.  Its filename is
-     lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+     lguest-build-hack
+has been removed from the -mm tree.  Its filename was
+     lguest-build-hack.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: lguest vs x86_64-mm-use-per-cpu-variables-for-gdt-pda
+Subject: lguest-build-hack
 From: Andrew Morton <akpm@linux-foundation.org>
+
+eep, Jeremy removed pda.h.
+
+See ftp://ftp.firstfloor.org/pub/ak/x86_64/quilt/patches/convert-pda-into-the-percpu-section
+
+help.
 
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    6 +-----
- 1 files changed, 1 insertion(+), 5 deletions(-)
+ drivers/lguest/lguest.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda
+diff -puN drivers/lguest/lguest.c~lguest-build-hack drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-build-hack
 +++ a/drivers/lguest/lguest.c
-@@ -34,7 +34,6 @@
+@@ -34,7 +34,7 @@
  #include <asm/desc.h>
  #include <asm/setup.h>
  #include <asm/e820.h>
 -#include <asm/pda.h>
++//#include <asm/pda.h>
  #include <asm/mce.h>
  
  /* Declarations for definitions in lguest_guest.S */
-@@ -408,7 +407,6 @@ static unsigned lguest_patch(u8 type, u1
- }
- 
- /* From head.S */
--extern void setup_pda(void);
- extern struct Xgt_desc_struct early_gdt_descr;
- 
- __init void lguest_init(void)
-@@ -466,10 +464,8 @@ __init void lguest_init(void)
- 	/* We use top of mem for initial pagetables. */
- 	init_pg_tables_end = __pa(pg0);
- 
--	/* set up PDA descriptor */
--	setup_pda();
+@@ -469,7 +469,7 @@ __init void lguest_init(void)
+ 	/* set up PDA descriptor */
+ 	setup_pda();
  	load_gdt(&early_gdt_descr);
 -	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
-+	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PERCPU) : "memory");
++//	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
  
  	reserve_top_address(lguest_data.reserve_mem);
  
@@ -222,8 +214,8 @@ signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 revoke-wire-up-i386-system-calls.patch
 x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
 lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
 lguest-build-hack.patch
 lguest-build-hack-2.patch
 fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
