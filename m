@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-eliminate-a-piece-of-debugging-code.patch added to -mm tree
-Date: Fri, 27 Apr 2007 17:09:47 -0700
-Message-ID: <200704280009.l3S09lPI011226@shell0.pdx.osdl.net>
+Subject: + uml-only-flush-areas-covered-by-vma.patch added to -mm tree
+Date: Fri, 27 Apr 2007 17:09:51 -0700
+Message-ID: <200704280009.l3S09p1p011232@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54718 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41020 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757938AbXD1AJx (ORCPT
+	by vger.kernel.org with ESMTP id S1757939AbXD1AJz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 20:09:53 -0400
+	Fri, 27 Apr 2007 20:09:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: eliminate a piece of debugging code
+     uml: only flush areas covered by VMA
 has been added to the -mm tree.  Its filename is
-     uml-eliminate-a-piece-of-debugging-code.patch
+     uml-only-flush-areas-covered-by-vma.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: eliminate a piece of debugging code
+Subject: uml: only flush areas covered by VMA
 From: Jeff Dike <jdike@addtoit.com>
 
-I missed removing another piece of debugging in an earlier patch.
+When doing a full address space flush, only look at areas covered by a VMA.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/tlb.c |    1 -
- 1 files changed, 1 deletion(-)
+ arch/um/kernel/skas/tlb.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/kernel/tlb.c~uml-eliminate-a-piece-of-debugging-code arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-eliminate-a-piece-of-debugging-code
-+++ a/arch/um/kernel/tlb.c
-@@ -252,7 +252,6 @@ void fix_range_common(struct mm_struct *
- 					    &op_index, force, mmu, &flush,
- 					    do_ops);
- 	} while (pgd++, addr = next, ((addr != end_addr) && !ret));
--	log_info("total flush time - %Ld nsecs\n", end_time - start_time);
+diff -puN arch/um/kernel/skas/tlb.c~uml-only-flush-areas-covered-by-vma arch/um/kernel/skas/tlb.c
+--- a/arch/um/kernel/skas/tlb.c~uml-only-flush-areas-covered-by-vma
++++ a/arch/um/kernel/skas/tlb.c
+@@ -89,8 +89,13 @@ void flush_tlb_mm_skas(struct mm_struct 
  
- 	if(!ret)
- 		ret = (*do_ops)(mmu, ops, op_index, 1, &flush);
+ void force_flush_all_skas(void)
+ {
+-	unsigned long end = proc_mm ? task_size : CONFIG_STUB_START;
+-        fix_range(current->mm, 0, end, 1);
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma = mm->mmap;
++
++	while(vma != NULL) {
++		fix_range(mm, vma->vm_start, vma->vm_end, 1);
++		vma = vma->vm_next;
++	}
+ }
+ 
+ void flush_tlb_page_skas(struct vm_area_struct *vma, unsigned long address)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
