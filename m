@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-ieee1394-fixup.patch added to -mm tree
-Date: Sat, 28 Apr 2007 03:09:13 -0700
-Message-ID: <200704281009.l3SA9Dtm019414@shell0.pdx.osdl.net>
+Subject: + git-sh-fixup.patch added to -mm tree
+Date: Sat, 28 Apr 2007 03:16:46 -0700
+Message-ID: <200704281016.l3SAGkWO019515@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44441 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756136AbXD1KJP (ORCPT
+	by vger.kernel.org with ESMTP id S1756165AbXD1KQs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:09:15 -0400
+	Sat, 28 Apr 2007 06:16:48 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3SA9DG4010084
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3SAGkC3010256
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 28 Apr 2007 03:09:14 -0700
+	for <mm-commits@vger.kernel.org>; Sat, 28 Apr 2007 03:16:47 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-ieee1394-fixup
+     git-sh-fixup
 has been added to the -mm tree.  Its filename is
-     git-ieee1394-fixup.patch
+     git-sh-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,32 +30,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-ieee1394-fixup
+Subject: git-sh-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/eth1394.c |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/sh/lib/Makefile |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/ieee1394/eth1394.c~git-ieee1394-fixup drivers/ieee1394/eth1394.c
---- a/drivers/ieee1394/eth1394.c~git-ieee1394-fixup
-+++ a/drivers/ieee1394/eth1394.c
-@@ -761,13 +761,8 @@ static u16 ether1394_type_trans(struct s
- 	struct eth1394hdr *eth;
- 	unsigned char *rawp;
+diff -puN arch/sh/lib/Makefile~git-sh-fixup arch/sh/lib/Makefile
+--- a/arch/sh/lib/Makefile~git-sh-fixup
++++ a/arch/sh/lib/Makefile
+@@ -3,11 +3,7 @@
+ #
  
--<<<<<<< HEAD/drivers/ieee1394/eth1394.c
- 	skb_reset_mac_header(skb);
--	skb_pull (skb, ETH1394_HLEN);
+ lib-y  = delay.o memset.o memmove.o memchr.o \
+-<<<<<<< HEAD/arch/sh/lib/Makefile
+-	 checksum.o strlen.o div64.o udivdi3.o \
 -=======
--	skb->mac.raw = skb->data;
- 	skb_pull(skb, ETH1394_HLEN);
-->>>>>>> /drivers/ieee1394/eth1394.c
- 	eth = eth1394_hdr(skb);
+ 	 checksum.o strcasecmp.o strlen.o div64.o \
+->>>>>>> /arch/sh/lib/Makefile
+ 	 div64-generic.o
  
- 	if (*eth->h_dest & 1) {
+ memcpy-y			:= memcpy.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +108,7 @@ fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
 git-pciseg.patch
 git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
 git-scsi-misc.patch
 scsi-fix-config_scsi_wait_scan=m.patch
 git-block-fixup.patch
