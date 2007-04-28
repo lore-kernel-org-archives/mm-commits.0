@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remvoe-kthread_bind-call-from-_cpu_down.patch added to -mm tree
-Date: Fri, 27 Apr 2007 18:43:02 -0700
-Message-ID: <200704280143.l3S1h2fF012729@shell0.pdx.osdl.net>
+Subject: + pata_pcmcia-recognize-2gb-compactflash-from-transcend.patch added to -mm tree
+Date: Fri, 27 Apr 2007 18:49:48 -0700
+Message-ID: <200704280149.l3S1nmiJ012821@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36446 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030862AbXD1BnZ (ORCPT
+	by vger.kernel.org with ESMTP id S1030872AbXD1BuI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 27 Apr 2007 21:43:25 -0400
+	Fri, 27 Apr 2007 21:50:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ego@in.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, rjw@sisk.pl
+Cc: Fabrice.Aeschbacher@siemens.com, alan@redhat.com, bzolnier@gmail.com, fabrice.aeschbacher@siemens.com, stuge-linux-pcmcia@cdy.org
 
 
 The patch titled
-     Remvoe kthread_bind() call from _cpu_down()
+     pata_pcmcia: recognize 2GB CompactFlash from Transcend
 has been added to the -mm tree.  Its filename is
-     remvoe-kthread_bind-call-from-_cpu_down.patch
+     pata_pcmcia-recognize-2gb-compactflash-from-transcend.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remvoe kthread_bind() call from _cpu_down()
-From: Gautham R Shenoy <ego@in.ibm.com>
+Subject: pata_pcmcia: recognize 2GB CompactFlash from Transcend
+From: "Aeschbacher, Fabrice" <Fabrice.Aeschbacher@siemens.com>
 
-We are anyway kthread_stop()ping other per-cpu kernel threads after
-move_task_off_dead_cpu(), so we can do it with the stop_machine_run thread
-as well.
+Allow the pata_pcmcia driver to automatically detect 2GB CompactFlash cards
+from Transcend.
 
-I just checked with Vatsa if there was any subtle reason why they
-had put in the kthread_bind() in cpu.c. Vatsa cannot seem to recollect
-any and I can't see any. So let us just remove the kthread_bind.
-
-Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Fabrice Aeschbacher <fabrice.aeschbacher@siemens.com>
+Cc: "Peter Stuge" <stuge-linux-pcmcia@cdy.org>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    4 ----
- 1 files changed, 4 deletions(-)
+ drivers/ata/pata_pcmcia.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN kernel/cpu.c~remvoe-kthread_bind-call-from-_cpu_down kernel/cpu.c
---- a/kernel/cpu.c~remvoe-kthread_bind-call-from-_cpu_down
-+++ a/kernel/cpu.c
-@@ -175,10 +175,6 @@ static int _cpu_down(unsigned int cpu)
- 	/* This actually kills the CPU. */
- 	__cpu_die(cpu);
- 
--	/* Move it here so it can run. */
--	kthread_bind(p, get_cpu());
--	put_cpu();
--
- 	/* CPU is completely dead: tell everyone.  Too late to complain. */
- 	if (raw_notifier_call_chain(&cpu_chain, CPU_DEAD, hcpu) == NOTIFY_BAD)
- 		BUG();
+diff -puN drivers/ata/pata_pcmcia.c~pata_pcmcia-recognize-2gb-compactflash-from-transcend drivers/ata/pata_pcmcia.c
+--- a/drivers/ata/pata_pcmcia.c~pata_pcmcia-recognize-2gb-compactflash-from-transcend
++++ a/drivers/ata/pata_pcmcia.c
+@@ -396,6 +396,7 @@ static struct pcmcia_device_id pcmcia_de
+ 	PCMCIA_DEVICE_PROD_ID12("TOSHIBA", "MK2001MPL", 0xb4585a1a, 0x3489e003),
+ 	PCMCIA_DEVICE_PROD_ID1("TRANSCEND    512M   ", 0xd0909443),
+ 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS1GCF80", 0x709b1bf1, 0x2a54d4b1),
++	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS2GCF120", 0x709b1bf1, 0x969aa4f2),
+ 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS4GCF120", 0x709b1bf1, 0xf54a91c8),
+ 	PCMCIA_DEVICE_PROD_ID12("WIT", "IDE16", 0x244e5994, 0x3e232852),
+ 	PCMCIA_DEVICE_PROD_ID12("WEIDA", "TWTTI", 0xcc7cf69c, 0x212bb918),
 _
 
-Patches currently in -mm which might be from ego@in.ibm.com are
+Patches currently in -mm which might be from Fabrice.Aeschbacher@siemens.com are
 
-i386-avoid-checking-for-cpu-gone-when-config_hotplug_cpu-not-defined.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-remvoe-kthread_bind-call-from-_cpu_down.patch
-add-suspend-related-notifications-for-cpu-hotplug.patch
-microcode-use-suspend-related-cpu-hotplug-notifications.patch
+pata_pcmcia-recognize-2gb-compactflash-from-transcend.patch
+ide-cs-recognize-2gb-compactflash-from-transcend.patch
