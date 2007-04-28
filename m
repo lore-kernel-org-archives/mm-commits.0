@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-kill-19000-sparse-warnings.patch added to -mm tree
-Date: Fri, 27 Apr 2007 23:31:14 -0700
-Message-ID: <200704280631.l3S6VE6I016396@shell0.pdx.osdl.net>
+Subject: + use-stop_machine_run-in-the-intel-rng-driver-fix-the-memory-leak-intel-rng-driver.patch added to -mm tree
+Date: Sat, 28 Apr 2007 00:16:18 -0700
+Message-ID: <200704280716.l3S7GIcK017021@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51630 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754750AbXD1GbV (ORCPT
+	by vger.kernel.org with ESMTP id S1161468AbXD1HRF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 02:31:21 -0400
+	Sat, 28 Apr 2007 03:17:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, ak@suse.de
+Cc: haruo.tomita@toshiba.co.jp, jbeulich@novell.com, prarit@redhat.com
 
 
 The patch titled
-     x86_64: kill 19000+ sparse warnings
+     Fix the memory leak Intel RNG driver
 has been added to the -mm tree.  Its filename is
-     x86_64-kill-19000-sparse-warnings.patch
+     use-stop_machine_run-in-the-intel-rng-driver-fix-the-memory-leak-intel-rng-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,117 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: kill 19000+ sparse warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Fix the memory leak Intel RNG driver
+From: "Tomita, Haruo" <haruo.tomita@toshiba.co.jp>
 
-Eliminate 19439 (!!) sparse warnings like:
-include/linux/mm.h:321:22: warning: constant 0xffff810000000000 is so big it is unsigned long
+This patch fixes a memory leak in mod_init().
+In the error, intel_rng_hw was freed.
 
-Eliminate 56 sparse warnings like:
-arch/x86_64/kernel/setup.c:248:16: warning: constant 0xffffffff80000000 is so big it is unsigned long
-
-Eliminate 5 sparse warnings like:
-arch/x86_64/kernel/module.c:49:13: warning: constant 0xfffffffffff00000 is so big it is unsigned long
-
-Eliminate 23 sparse warnings like:
-arch/x86_64/mm/init.c:551:37: warning: constant 0xffffc20000000000 is so big it is unsigned long
-
-Eliminate 6 sparse warnings like:
-arch/x86_64/kernel/module.c:49:13: warning: constant 0xffffffff88000000 is so big it is unsigned long
-
-Eliminate 23 sparse warnings like:
-arch/x86_64/mm/init.c:552:6: warning: constant 0xffffe1ffffffffff is so big it is unsigned long
-
-Eliminate 3 sparse warnings like:
-arch/x86_64/kernel/e820.c:186:17: warning: constant 0x3fffffffffff is so big it is long
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/page.h    |    7 ++++---
- include/asm-x86_64/pgtable.h |   10 +++++-----
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/char/hw_random/intel-rng.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-x86_64/page.h~x86_64-kill-19000-sparse-warnings include/asm-x86_64/page.h
---- a/include/asm-x86_64/page.h~x86_64-kill-19000-sparse-warnings
-+++ a/include/asm-x86_64/page.h
-@@ -80,9 +80,10 @@ extern unsigned long phys_base;
+diff -puN drivers/char/hw_random/intel-rng.c~use-stop_machine_run-in-the-intel-rng-driver-fix-the-memory-leak-intel-rng-driver drivers/char/hw_random/intel-rng.c
+--- a/drivers/char/hw_random/intel-rng.c~use-stop_machine_run-in-the-intel-rng-driver-fix-the-memory-leak-intel-rng-driver
++++ a/drivers/char/hw_random/intel-rng.c
+@@ -345,11 +345,11 @@ static int __init mod_init(void)
+ 	}
  
- #define __PHYSICAL_START	CONFIG_PHYSICAL_START
- #define __KERNEL_ALIGN		0x200000
-+
- #define __START_KERNEL		(__START_KERNEL_map + __PHYSICAL_START)
--#define __START_KERNEL_map	0xffffffff80000000
--#define __PAGE_OFFSET           0xffff810000000000
-+#define __START_KERNEL_map	_AC(0xffffffff80000000, UL)
-+#define __PAGE_OFFSET           _AC(0xffff810000000000, UL)
+ 	err = intel_init_hw_struct(intel_rng_hw, dev);
+-	if (err == -ENODEV) {
+-		pci_dev_put(dev);
+-		goto fwh_done;
+-	} else if (err < 0) {
++	if (err) {
+ 		pci_dev_put(dev);
++		kfree(intel_rng_hw);
++		if (err == -ENODEV)
++			goto fwh_done;
+ 		goto out;
+ 	}
  
- /* to align the pointer to the (next) page boundary */
- #define PAGE_ALIGN(addr)	(((addr)+PAGE_SIZE-1)&PAGE_MASK)
-@@ -94,7 +95,7 @@ extern unsigned long phys_base;
- #define __VIRTUAL_MASK		((_AC(1,UL) << __VIRTUAL_MASK_SHIFT) - 1)
- 
- #define KERNEL_TEXT_SIZE  (40*1024*1024)
--#define KERNEL_TEXT_START 0xffffffff80000000
-+#define KERNEL_TEXT_START _AC(0xffffffff80000000, UL)
- 
- #ifndef __ASSEMBLY__
- 
-diff -puN include/asm-x86_64/pgtable.h~x86_64-kill-19000-sparse-warnings include/asm-x86_64/pgtable.h
---- a/include/asm-x86_64/pgtable.h~x86_64-kill-19000-sparse-warnings
-+++ a/include/asm-x86_64/pgtable.h
-@@ -134,11 +134,11 @@ static inline pte_t ptep_get_and_clear_f
- #define USER_PTRS_PER_PGD	((TASK_SIZE-1)/PGDIR_SIZE+1)
- #define FIRST_USER_ADDRESS	0
- 
--#define MAXMEM		 0x3fffffffffff
--#define VMALLOC_START    0xffffc20000000000
--#define VMALLOC_END      0xffffe1ffffffffff
--#define MODULES_VADDR    0xffffffff88000000
--#define MODULES_END      0xfffffffffff00000
-+#define MAXMEM		 _AC(0x3fffffffffff, UL)
-+#define VMALLOC_START    _AC(0xffffc20000000000, UL)
-+#define VMALLOC_END      _AC(0xffffe1ffffffffff, UL)
-+#define MODULES_VADDR    _AC(0xffffffff88000000, UL)
-+#define MODULES_END      _AC(0xfffffffffff00000, UL)
- #define MODULES_LEN   (MODULES_END - MODULES_VADDR)
- 
- #define _PAGE_BIT_PRESENT	0
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from haruo.tomita@toshiba.co.jp are
 
-git-acpi.patch
-git-drm.patch
-git-ieee1394.patch
-git-kbuild.patch
-romfs-printk-format-warnings.patch
-git-netdev-all.patch
-8250_pci-fix-pci-must_checks.patch
-git-scsi-misc.patch
-git-ipwireless_cs.patch
-fix-mtrr-sections.patch
-scripts-kernel-doc-whitespace-cleanup.patch
-reiserfs-proc-support-requires-proc_fs.patch
-kprobes-fix-sparse-null-warning.patch
-header-cleaning-dont-include-smp_lockh-when-not-used.patch
-expose-range-checking-functions-from-arch-specific.patch
-expose-range-checking-functions-from-arch-specific-update.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-parport_serial-fix-pci-must_checks.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
-generate-main-index-page-when-building-htmldocs.patch
-alphabetically-sorted-entries-in.patch
-kernel-doc-html-mode-struct-highlights.patch
-taskstats-fix-getdelays-usage-information.patch
-introduce-a-handy-list_first_entry-macro-v2.patch
-add-pci_try_set_mwi.patch
-consolidate-asm-consth-to-linux-consth.patch
-x86_64-kill-19000-sparse-warnings.patch
-move-log_buf_shift-to-a-more-sensible-place.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-s3fb-fix-pci-must_checks.patch
-profile-likely-unlikely-macros.patch
+use-stop_machine_run-in-the-intel-rng-driver-fix.patch
+use-stop_machine_run-in-the-intel-rng-driver-fix-the-memory-leak-intel-rng-driver.patch
