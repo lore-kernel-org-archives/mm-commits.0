@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + get_unmapped_area-handles-map_fixed-on-arm.patch added to -mm tree
-Date: Sat, 28 Apr 2007 01:34:06 -0700
-Message-ID: <200704280834.l3S8Y6ur018087@shell0.pdx.osdl.net>
+Subject: + get_unmapped_area-handles-map_fixed-on-sparc64.patch added to -mm tree
+Date: Sat, 28 Apr 2007 01:34:15 -0700
+Message-ID: <200704280834.l3S8YFA8018107@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53208 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965573AbXD1IeR (ORCPT
+	by vger.kernel.org with ESMTP id S965578AbXD1IeX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 04:34:17 -0400
+	Sat, 28 Apr 2007 04:34:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, rmk+kernel@arm.linux.org.uk
+Cc: benh@kernel.crashing.org, bill.irwin@oracle.com, davem@davemloft.net
 
 
 The patch titled
-     get_unmapped_area handles MAP_FIXED on arm
+     get_unmapped_area handles MAP_FIXED on sparc64
 has been added to the -mm tree.  Its filename is
-     get_unmapped_area-handles-map_fixed-on-arm.patch
+     get_unmapped_area-handles-map_fixed-on-sparc64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get_unmapped_area handles MAP_FIXED on arm
+Subject: get_unmapped_area handles MAP_FIXED on sparc64
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-ARM already had a case for MAP_FIXED in arch_get_unmapped_area() though it was
-not called before.  Fix the comment to reflect that it will now be called.
+Handle MAP_FIXED in hugetlb_get_unmapped_area on sparc64 by just using
+prepare_hugepage_range()
 
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Acked-by: William Irwin <bill.irwin@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/mmap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/sparc64/mm/hugetlbpage.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/arm/mm/mmap.c~get_unmapped_area-handles-map_fixed-on-arm arch/arm/mm/mmap.c
---- a/arch/arm/mm/mmap.c~get_unmapped_area-handles-map_fixed-on-arm
-+++ a/arch/arm/mm/mmap.c
-@@ -49,8 +49,7 @@ arch_get_unmapped_area(struct file *filp
- #endif
+diff -puN arch/sparc64/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-sparc64 arch/sparc64/mm/hugetlbpage.c
+--- a/arch/sparc64/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-sparc64
++++ a/arch/sparc64/mm/hugetlbpage.c
+@@ -175,6 +175,12 @@ hugetlb_get_unmapped_area(struct file *f
+ 	if (len > task_size)
+ 		return -ENOMEM;
  
- 	/*
--	 * We should enforce the MAP_FIXED case.  However, currently
--	 * the generic kernel code doesn't allow us to handle this.
-+	 * We enforce the MAP_FIXED case.
- 	 */
- 	if (flags & MAP_FIXED) {
- 		if (aliasing && flags & MAP_SHARED && addr & (SHMLBA - 1))
++	if (flags & MAP_FIXED) {
++		if (prepare_hugepage_range(addr, len, pgoff))
++			return -EINVAL;
++		return addr;
++	}
++
+ 	if (addr) {
+ 		addr = ALIGN(addr, HPAGE_SIZE);
+ 		vma = find_vma(mm, addr);
 _
 
 Patches currently in -mm which might be from benh@kernel.crashing.org are
