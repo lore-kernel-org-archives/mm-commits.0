@@ -1,158 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:51:34 -0700
-Message-ID: <200704281051.l3SApYFa019987@shell0.pdx.osdl.net>
+Subject: - sysfs-binc-printk-fix.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:51:43 -0700
+Message-ID: <200704281051.l3SAph2j019993@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60291 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965654AbXD1Kvp (ORCPT
+	by vger.kernel.org with ESMTP id S965657AbXD1Kvs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:51:45 -0400
+	Sat, 28 Apr 2007 06:51:48 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3SApjbj011371
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 28 Apr 2007 03:51:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/base/attribute_container.c: use mutex instead of binary semaphore
+     sysfs/bin.c printk fix
 has been removed from the -mm tree.  Its filename was
-     drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore.patch
+     sysfs-binc-printk-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/base/attribute_container.c: use mutex instead of binary semaphore
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: sysfs/bin.c printk fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-use mutex instead of binary semaphore in
-drivers/base/attribute_container.c
+fs/sysfs/bin.c: In function 'read':
+fs/sysfs/bin.c:77: warning: format '%zd' expects type 'signed size_t', but argument 4 has type 'int'
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/attribute_container.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ fs/sysfs/bin.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/attribute_container.c~drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore drivers/base/attribute_container.c
---- a/drivers/base/attribute_container.c~drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore
-+++ a/drivers/base/attribute_container.c
-@@ -62,7 +62,7 @@ EXPORT_SYMBOL_GPL(attribute_container_cl
- 
- static struct list_head attribute_container_list;
- 
--static DECLARE_MUTEX(attribute_container_mutex);
-+static DEFINE_MUTEX(attribute_container_mutex);
- 
- /**
-  * attribute_container_register - register an attribute container
-@@ -77,9 +77,9 @@ attribute_container_register(struct attr
- 	klist_init(&cont->containers,internal_container_klist_get,
- 		   internal_container_klist_put);
- 		
--	down(&attribute_container_mutex);
-+	mutex_lock(&attribute_container_mutex);
- 	list_add_tail(&cont->node, &attribute_container_list);
--	up(&attribute_container_mutex);
-+	mutex_unlock(&attribute_container_mutex);
- 
- 	return 0;
- }
-@@ -94,7 +94,7 @@ int
- attribute_container_unregister(struct attribute_container *cont)
- {
- 	int retval = -EBUSY;
--	down(&attribute_container_mutex);
-+	mutex_lock(&attribute_container_mutex);
- 	spin_lock(&cont->containers.k_lock);
- 	if (!list_empty(&cont->containers.k_list))
- 		goto out;
-@@ -102,7 +102,7 @@ attribute_container_unregister(struct at
- 	list_del(&cont->node);
-  out:
- 	spin_unlock(&cont->containers.k_lock);
--	up(&attribute_container_mutex);
-+	mutex_unlock(&attribute_container_mutex);
- 	return retval;
- 		
- }
-@@ -145,7 +145,7 @@ attribute_container_add_device(struct de
- {
- 	struct attribute_container *cont;
- 
--	down(&attribute_container_mutex);
-+	mutex_lock(&attribute_container_mutex);
- 	list_for_each_entry(cont, &attribute_container_list, node) {
- 		struct internal_container *ic;
- 
-@@ -173,7 +173,7 @@ attribute_container_add_device(struct de
- 			attribute_container_add_class_device(&ic->classdev);
- 		klist_add_tail(&ic->node, &cont->containers);
+diff -puN fs/sysfs/bin.c~sysfs-binc-printk-fix fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-binc-printk-fix
++++ a/fs/sysfs/bin.c
+@@ -74,7 +74,7 @@ read(struct file *file, char __user *use
+ 		goto out_unlock;
  	}
--	up(&attribute_container_mutex);
-+	mutex_unlock(&attribute_container_mutex);
- }
  
- /* FIXME: can't break out of this unless klist_iter_exit is also
-@@ -211,7 +211,7 @@ attribute_container_remove_device(struct
- {
- 	struct attribute_container *cont;
+-	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
++	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
  
--	down(&attribute_container_mutex);
-+	mutex_lock(&attribute_container_mutex);
- 	list_for_each_entry(cont, &attribute_container_list, node) {
- 		struct internal_container *ic;
- 		struct klist_iter iter;
-@@ -234,7 +234,7 @@ attribute_container_remove_device(struct
- 			}
- 		}
- 	}
--	up(&attribute_container_mutex);
-+	mutex_unlock(&attribute_container_mutex);
- }
+ 	*off = offs + count;
  
- /**
-@@ -255,7 +255,7 @@ attribute_container_device_trigger(struc
- {
- 	struct attribute_container *cont;
- 
--	down(&attribute_container_mutex);
-+	mutex_lock(&attribute_container_mutex);
- 	list_for_each_entry(cont, &attribute_container_list, node) {
- 		struct internal_container *ic;
- 		struct klist_iter iter;
-@@ -273,7 +273,7 @@ attribute_container_device_trigger(struc
- 				fn(cont, dev, &ic->classdev);
- 		}
- 	}
--	up(&attribute_container_mutex);
-+	mutex_unlock(&attribute_container_mutex);
- }
- 
- /**
-@@ -295,12 +295,12 @@ attribute_container_trigger(struct devic
- {
- 	struct attribute_container *cont;
- 
--	down(&attribute_container_mutex);
-+	mutex_lock(&attribute_container_mutex);
- 	list_for_each_entry(cont, &attribute_container_list, node) {
- 		if (cont->match(cont, dev))
- 			fn(cont, dev);
- 	}
--	up(&attribute_container_mutex);
-+	mutex_unlock(&attribute_container_mutex);
- }
- 
- /**
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-qla1280-use-dma_64bit_mask-instead-of-0ull.patch
-include-kern_-constant-in-printk-calls-in-mm-slabc.patch
+extend-print_symbol-capability.patch
+add-kvasprintf.patch
+add-kvasprintf-fix.patch
+slab-introduce-krealloc.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+ida-implement-idr-based-id-allocator-fix.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-fixup.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-jfs.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-netdev-all.patch
+ne-add-platform_driver-fix.patch
+ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
 srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-fix-spinlock-usage-in-hysdn_log_close.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+utimensat-implementation-fix.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
