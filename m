@@ -1,87 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - i386-make-compat_vdso-runtime-selectable-fix.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:55:20 -0700
-Message-ID: <200704281055.l3SAtKVw020170@shell0.pdx.osdl.net>
+Subject: - i386-cleanup-flush_tlb_others-fn.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:55:23 -0700
+Message-ID: <200704281055.l3SAtNMS020173@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52978 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53733 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965746AbXD1KzZ (ORCPT
+	by vger.kernel.org with ESMTP id S965749AbXD1Kz2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:25 -0400
+	Sat, 28 Apr 2007 06:55:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: anil.s.keshavamurthy@intel.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix i386 get_gate_vma oops
+     i386: clean up flush_tlb_others fn
 has been removed from the -mm tree.  Its filename was
-     i386-make-compat_vdso-runtime-selectable-fix.patch
+     i386-cleanup-flush_tlb_others-fn.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix i386 get_gate_vma oops
-From: Hugh Dickins <hugh@veritas.com>
+Subject: i386: clean up flush_tlb_others fn
+From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-Fix oops from i386-make-compat_vdso-runtime-selectable.patch.
+Cleanup flush_tlb_others(), no functional change.
 
-Even mingetty at system startup finds it easy to trigger an oops
-while reading /proc/PID/maps: though it has a good hold on the mm
-itself, that cannot stop exit_mm() from resetting tsk->mm to NULL.
-
-(It is usually show_map()'s call to get_gate_vma() which oopses,
-and I expect we could change that to check priv->tail_vma instead;
-but no matter, even m_start()'s call just after get_task_mm() is racy.)
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/sysenter.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/i386/kernel/smp.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN arch/i386/kernel/sysenter.c~i386-make-compat_vdso-runtime-selectable-fix arch/i386/kernel/sysenter.c
---- a/arch/i386/kernel/sysenter.c~i386-make-compat_vdso-runtime-selectable-fix
-+++ a/arch/i386/kernel/sysenter.c
-@@ -326,8 +326,10 @@ const char *arch_vma_name(struct vm_area
- 
- struct vm_area_struct *get_gate_vma(struct task_struct *tsk)
- {
-+	struct mm_struct *mm = tsk->mm;
-+
- 	/* Check to see if this task was created in compat vdso mode */
--	if (tsk->mm->context.vdso == (void *)VDSO_HIGH_BASE)
-+	if (mm && mm->context.vdso == (void *)VDSO_HIGH_BASE)
- 		return &gate_vma;
- 	return NULL;
- }
+diff -puN arch/i386/kernel/smp.c~i386-cleanup-flush_tlb_others-fn arch/i386/kernel/smp.c
+--- a/arch/i386/kernel/smp.c~i386-cleanup-flush_tlb_others-fn
++++ a/arch/i386/kernel/smp.c
+@@ -383,17 +383,7 @@ void native_flush_tlb_others(const cpuma
+ 	
+ 	flush_mm = mm;
+ 	flush_va = va;
+-#if NR_CPUS <= BITS_PER_LONG
+-	atomic_set_mask(cpumask, &flush_cpumask);
+-#else
+-	{
+-		int k;
+-		unsigned long *flush_mask = (unsigned long *)&flush_cpumask;
+-		unsigned long *cpu_mask = (unsigned long *)&cpumask;
+-		for (k = 0; k < BITS_TO_LONGS(NR_CPUS); ++k)
+-			atomic_set_mask(cpu_mask[k], &flush_mask[k]);
+-	}
+-#endif
++	cpus_or(flush_cpumask, cpumask, flush_cpumask);
+ 	/*
+ 	 * We have to send the IPI only to
+ 	 * CPUs affected.
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
 
-ia64-race-flushing-icache-in-do_no_page-path.patch
-git-drm.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-mm-more-rmap-checking.patch
-mm-make-read_cache_page-synchronous.patch
-fs-buffer-dont-pageuptodate-without-page-locked.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slub-core.patch
-mm-madvise-avoid-exclusive-mmap_sem.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-madv_free-lazytlb-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up-fix.patch
-ext2-reservations.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
+kprobes-print-details-of-kretprobe-on-assertion-failure.patch
+kprobes-use-hlist_for_each_entry.patch
+kprobes-codingstyle-cleanups.patch
+kprobes-kretprobes-simplifcations.patch
