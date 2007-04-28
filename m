@@ -1,71 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:51:29 -0700
-Message-ID: <200704281051.l3SApTba019984@shell0.pdx.osdl.net>
+Subject: - drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:51:34 -0700
+Message-ID: <200704281051.l3SApYFa019987@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57777 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965645AbXD1Kvm (ORCPT
+	by vger.kernel.org with ESMTP id S965654AbXD1Kvp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:51:42 -0400
+	Sat, 28 Apr 2007 06:51:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mod_sysfs_setup() doesn't return errno when kobject_add_dir() failure occurs
+     drivers/base/attribute_container.c: use mutex instead of binary semaphore
 has been removed from the -mm tree.  Its filename was
-     mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs.patch
+     drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mod_sysfs_setup() doesn't return errno when kobject_add_dir() failure occurs
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: drivers/base/attribute_container.c: use mutex instead of binary semaphore
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-mod_sysfs_setup() doesn't return an errno when kobject_add_dir() for module
-"holders" directory fails.  So caller of mod_sysfs_setup() will keep going
-and get oops.
+use mutex instead of binary semaphore in
+drivers/base/attribute_container.c
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/base/attribute_container.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN kernel/module.c~mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs kernel/module.c
---- a/kernel/module.c~mod_sysfs_setup-doesnt-return-errno-when-kobject_add_dir-failure-occurs
-+++ a/kernel/module.c
-@@ -1145,8 +1145,10 @@ int mod_sysfs_setup(struct module *mod,
+diff -puN drivers/base/attribute_container.c~drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore drivers/base/attribute_container.c
+--- a/drivers/base/attribute_container.c~drivers-base-attribute_containerc-use-mutex-instead-of-binary-semaphore
++++ a/drivers/base/attribute_container.c
+@@ -62,7 +62,7 @@ EXPORT_SYMBOL_GPL(attribute_container_cl
+ 
+ static struct list_head attribute_container_list;
+ 
+-static DECLARE_MUTEX(attribute_container_mutex);
++static DEFINE_MUTEX(attribute_container_mutex);
+ 
+ /**
+  * attribute_container_register - register an attribute container
+@@ -77,9 +77,9 @@ attribute_container_register(struct attr
+ 	klist_init(&cont->containers,internal_container_klist_get,
+ 		   internal_container_klist_put);
+ 		
+-	down(&attribute_container_mutex);
++	mutex_lock(&attribute_container_mutex);
+ 	list_add_tail(&cont->node, &attribute_container_list);
+-	up(&attribute_container_mutex);
++	mutex_unlock(&attribute_container_mutex);
+ 
+ 	return 0;
+ }
+@@ -94,7 +94,7 @@ int
+ attribute_container_unregister(struct attribute_container *cont)
+ {
+ 	int retval = -EBUSY;
+-	down(&attribute_container_mutex);
++	mutex_lock(&attribute_container_mutex);
+ 	spin_lock(&cont->containers.k_lock);
+ 	if (!list_empty(&cont->containers.k_list))
  		goto out;
+@@ -102,7 +102,7 @@ attribute_container_unregister(struct at
+ 	list_del(&cont->node);
+  out:
+ 	spin_unlock(&cont->containers.k_lock);
+-	up(&attribute_container_mutex);
++	mutex_unlock(&attribute_container_mutex);
+ 	return retval;
+ 		
+ }
+@@ -145,7 +145,7 @@ attribute_container_add_device(struct de
+ {
+ 	struct attribute_container *cont;
  
- 	mod->holders_dir = kobject_add_dir(&mod->mkobj.kobj, "holders");
--	if (!mod->holders_dir)
-+	if (!mod->holders_dir) {
-+		err = -ENOMEM;
- 		goto out_unreg;
-+	}
+-	down(&attribute_container_mutex);
++	mutex_lock(&attribute_container_mutex);
+ 	list_for_each_entry(cont, &attribute_container_list, node) {
+ 		struct internal_container *ic;
  
- 	err = module_param_sysfs_setup(mod, kparam, num_params);
- 	if (err)
+@@ -173,7 +173,7 @@ attribute_container_add_device(struct de
+ 			attribute_container_add_class_device(&ic->classdev);
+ 		klist_add_tail(&ic->node, &cont->containers);
+ 	}
+-	up(&attribute_container_mutex);
++	mutex_unlock(&attribute_container_mutex);
+ }
+ 
+ /* FIXME: can't break out of this unless klist_iter_exit is also
+@@ -211,7 +211,7 @@ attribute_container_remove_device(struct
+ {
+ 	struct attribute_container *cont;
+ 
+-	down(&attribute_container_mutex);
++	mutex_lock(&attribute_container_mutex);
+ 	list_for_each_entry(cont, &attribute_container_list, node) {
+ 		struct internal_container *ic;
+ 		struct klist_iter iter;
+@@ -234,7 +234,7 @@ attribute_container_remove_device(struct
+ 			}
+ 		}
+ 	}
+-	up(&attribute_container_mutex);
++	mutex_unlock(&attribute_container_mutex);
+ }
+ 
+ /**
+@@ -255,7 +255,7 @@ attribute_container_device_trigger(struc
+ {
+ 	struct attribute_container *cont;
+ 
+-	down(&attribute_container_mutex);
++	mutex_lock(&attribute_container_mutex);
+ 	list_for_each_entry(cont, &attribute_container_list, node) {
+ 		struct internal_container *ic;
+ 		struct klist_iter iter;
+@@ -273,7 +273,7 @@ attribute_container_device_trigger(struc
+ 				fn(cont, dev, &ic->classdev);
+ 		}
+ 	}
+-	up(&attribute_container_mutex);
++	mutex_unlock(&attribute_container_mutex);
+ }
+ 
+ /**
+@@ -295,12 +295,12 @@ attribute_container_trigger(struct devic
+ {
+ 	struct attribute_container *cont;
+ 
+-	down(&attribute_container_mutex);
++	mutex_lock(&attribute_container_mutex);
+ 	list_for_each_entry(cont, &attribute_container_list, node) {
+ 		if (cont->match(cont, dev))
+ 			fn(cont, dev);
+ 	}
+-	up(&attribute_container_mutex);
++	mutex_unlock(&attribute_container_mutex);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-git-alsa.patch
-git-dvb.patch
-git-ieee1394.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-disable-stacktrace-filter-for-x86-64.patch
-fault-injection-enable-stacktrace-with-dwarf2-unwinder.patch
-slob-handle-slab_panic-flag.patch
-use-slab_panic-flag-cleanup.patch
-fault-injection-fix-failslab-with-config_numa.patch
-simplify-the-stacktrace-code.patch
-dtlk-fix-error-checks-in-module_init.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
+qla1280-use-dma_64bit_mask-instead-of-0ull.patch
+include-kern_-constant-in-printk-calls-in-mm-slabc.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+fix-spinlock-usage-in-hysdn_log_close.patch
