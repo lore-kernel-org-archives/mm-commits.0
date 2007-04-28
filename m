@@ -1,64 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - i386-avoid-checking-for-cpu-gone-when-config_hotplug_cpu-not-defined.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:55:18 -0700
-Message-ID: <200704281055.l3SAtISx020167@shell0.pdx.osdl.net>
+Subject: - i386-tsc-remove-xtime_locking-around-cpufreq-notifier.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:55:30 -0700
+Message-ID: <200704281055.l3SAtU0V020182@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54750 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965756AbXD1Kzd (ORCPT
+	by vger.kernel.org with ESMTP id S965816AbXD1Kzt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:33 -0400
+	Sat, 28 Apr 2007 06:55:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anil.s.keshavamurthy@intel.com, ak@suse.de, ego@in.ibm.com, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: avoid checking for cpu gone when CONFIG_HOTPLUG_CPU not defined
+     i386 tsc: remove xtime_lock'ing around cpufreq notifier
 has been removed from the -mm tree.  Its filename was
-     i386-avoid-checking-for-cpu-gone-when-config_hotplug_cpu-not-defined.patch
+     i386-tsc-remove-xtime_locking-around-cpufreq-notifier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: avoid checking for cpu gone when CONFIG_HOTPLUG_CPU not defined
-From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Subject: i386 tsc: remove xtime_lock'ing around cpufreq notifier
+From: Daniel Walker <dwalker@mvista.com>
 
-Avoid checking for cpu gone in mm hot path when CONFIG_HOTPLUG_CPU is not
-defined.
+The locking of the xtime_lock around the cpu notifier is unessesary now. 
+At one time the tsc was used after a frequency change for timekeeping, but
+the re-write of timekeeping no longer uses the TSC unless the frequency is
+constant.
 
-Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+The variables that are changed in this section of code had also once been
+used for timekeeping, but not any longer ..
+
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smp.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/i386/kernel/tsc.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN arch/i386/kernel/smp.c~i386-avoid-checking-for-cpu-gone-when-config_hotplug_cpu-not-defined arch/i386/kernel/smp.c
---- a/arch/i386/kernel/smp.c~i386-avoid-checking-for-cpu-gone-when-config_hotplug_cpu-not-defined
-+++ a/arch/i386/kernel/smp.c
-@@ -367,10 +367,12 @@ void native_flush_tlb_others(const cpuma
- 	BUG_ON(cpu_isset(smp_processor_id(), cpumask));
- 	BUG_ON(!mm);
+diff -puN arch/i386/kernel/tsc.c~i386-tsc-remove-xtime_locking-around-cpufreq-notifier arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~i386-tsc-remove-xtime_locking-around-cpufreq-notifier
++++ a/arch/i386/kernel/tsc.c
+@@ -144,13 +144,10 @@ time_cpufreq_notifier(struct notifier_bl
+ {
+ 	struct cpufreq_freqs *freq = data;
  
-+#ifdef CONFIG_HOTPLUG_CPU
- 	/* If a CPU which we ran on has gone down, OK. */
- 	cpus_and(cpumask, cpumask, cpu_online_map);
--	if (cpus_empty(cpumask))
-+	if (unlikely(cpus_empty(cpumask)))
- 		return;
-+#endif
+-	if (val != CPUFREQ_RESUMECHANGE && val != CPUFREQ_SUSPENDCHANGE)
+-		write_seqlock_irq(&xtime_lock);
+-
+ 	if (!ref_freq) {
+ 		if (!freq->old){
+ 			ref_freq = freq->new;
+-			goto end;
++			return 0;
+ 		}
+ 		ref_freq = freq->old;
+ 		loops_per_jiffy_ref = cpu_data[freq->cpu].loops_per_jiffy;
+@@ -176,9 +173,6 @@ time_cpufreq_notifier(struct notifier_bl
+ 			}
+ 		}
+ 	}
+-end:
+-	if (val != CPUFREQ_RESUMECHANGE && val != CPUFREQ_SUSPENDCHANGE)
+-		write_sequnlock_irq(&xtime_lock);
  
- 	/*
- 	 * i'm not happy about this global shared spinlock in the
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-kprobes-print-details-of-kretprobe-on-assertion-failure.patch
-kprobes-use-hlist_for_each_entry.patch
-kprobes-codingstyle-cleanups.patch
-kprobes-kretprobes-simplifcations.patch
+origin.patch
+git-acpi.patch
+sched-consolidate-sched_clock-drift-adjustments.patch
+sched-consolidate-sched_clock-drift-adjustments-fix.patch
+slim-make-and-config-stuff.patch
+profile-likely-unlikely-macros.patch
