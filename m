@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-omap-add-missing-newline.patch added to -mm tree
-Date: Sat, 28 Apr 2007 00:43:30 -0700
-Message-ID: <200704280743.l3S7hUcC017376@shell0.pdx.osdl.net>
+Subject: + cxacru-cleanup-sysfs-attribute-code.patch added to -mm tree
+Date: Sat, 28 Apr 2007 00:50:34 -0700
+Message-ID: <200704280750.l3S7oYuu017486@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59338 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753091AbXD1Hpy (ORCPT
+	by vger.kernel.org with ESMTP id S1753077AbXD1HvC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 03:45:54 -0400
+	Sat, 28 Apr 2007 03:51:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: carlos.aguiar@indt.org.br, arnaud.patard@rtp-net.org, drzeus@drzeus.cx, tony@atomide.com
+Cc: simon@fire.lp0.eu, duncan.sands@math.u-psud.fr, gregkh@suse.de
 
 
 The patch titled
-     MMC: OMAP: Add missing newline
+     cxacru: Cleanup sysfs attribute code
 has been added to the -mm tree.  Its filename is
-     mmc-omap-add-missing-newline.patch
+     cxacru-cleanup-sysfs-attribute-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,142 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MMC: OMAP: Add missing newline
-From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: cxacru: Cleanup sysfs attribute code
+From: Simon Arlott <simon@fire.lp0.eu>
 
-Add a missing '\n' at the end of the 'cover is open' string in
-mmc_omap_switch_handler().
+This changes the format of unknown status values to be less verbose and
+uses an array instead of several different snprintf calls. Since only
+enum values are assigned to it, poll_state is changed from int to enum.
+Use abs() for dB values instead of two almost identical return lines.
 
-Signed-off-by: Arnaud Patard <arnaud.patard@rtp-net.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: Duncan Sands <duncan.sands@math.u-psud.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/omap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/atm/cxacru.c |   73 +++++++++++++++----------------------
+ 1 file changed, 31 insertions(+), 42 deletions(-)
 
-diff -puN drivers/mmc/host/omap.c~mmc-omap-add-missing-newline drivers/mmc/host/omap.c
---- a/drivers/mmc/host/omap.c~mmc-omap-add-missing-newline
-+++ a/drivers/mmc/host/omap.c
-@@ -604,7 +604,7 @@ static void mmc_omap_switch_handler(stru
- 	}
- 	if (mmc_omap_cover_is_open(host)) {
- 		if (!complained) {
--			dev_info(mmc_dev(host->mmc), "cover is open");
-+			dev_info(mmc_dev(host->mmc), "cover is open\n");
- 			complained = 1;
- 		}
- 		if (mmc_omap_enable_poll)
+diff -puN drivers/usb/atm/cxacru.c~cxacru-cleanup-sysfs-attribute-code drivers/usb/atm/cxacru.c
+--- a/drivers/usb/atm/cxacru.c~cxacru-cleanup-sysfs-attribute-code
++++ a/drivers/usb/atm/cxacru.c
+@@ -171,7 +171,7 @@ struct cxacru_data {
+ 	struct delayed_work poll_work;
+ 	u32 card_info[CXINF_MAX];
+ 	struct mutex poll_state_serialize;
+-	int poll_state;
++	enum cxacru_poll_state poll_state;
+ 
+ 	/* contol handles */
+ 	struct mutex cm_serialize;
+@@ -226,58 +226,48 @@ static ssize_t cxacru_sysfs_showattr_s8(
+ 
+ static ssize_t cxacru_sysfs_showattr_dB(s16 value, char *buf)
+ {
+-	if (unlikely(value < 0)) {
+-		return snprintf(buf, PAGE_SIZE, "%d.%02u\n",
+-						value / 100, -value % 100);
+-	} else {
+-		return snprintf(buf, PAGE_SIZE, "%d.%02u\n",
+-						value / 100, value % 100);
+-	}
++	return snprintf(buf, PAGE_SIZE, "%d.%02u\n",
++					value / 100, abs(value) % 100);
+ }
+ 
+ static ssize_t cxacru_sysfs_showattr_bool(u32 value, char *buf)
+ {
+-	switch (value) {
+-	case 0: return snprintf(buf, PAGE_SIZE, "no\n");
+-	case 1: return snprintf(buf, PAGE_SIZE, "yes\n");
+-	default: return 0;
+-	}
++	static char *str[] = { "no", "yes" };
++	if (unlikely(value >= ARRAY_SIZE(str)))
++		return snprintf(buf, PAGE_SIZE, "%u\n", value);
++	return snprintf(buf, PAGE_SIZE, "%s\n", str[value]);
+ }
+ 
+ static ssize_t cxacru_sysfs_showattr_LINK(u32 value, char *buf)
+ {
+-	switch (value) {
+-	case 1: return snprintf(buf, PAGE_SIZE, "not connected\n");
+-	case 2: return snprintf(buf, PAGE_SIZE, "connected\n");
+-	case 3: return snprintf(buf, PAGE_SIZE, "lost\n");
+-	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
+-	}
++	static char *str[] = { NULL, "not connected", "connected", "lost" };
++	if (unlikely(value >= ARRAY_SIZE(str) || str[value] == NULL))
++		return snprintf(buf, PAGE_SIZE, "%u\n", value);
++	return snprintf(buf, PAGE_SIZE, "%s\n", str[value]);
+ }
+ 
+ static ssize_t cxacru_sysfs_showattr_LINE(u32 value, char *buf)
+ {
+-	switch (value) {
+-	case 0: return snprintf(buf, PAGE_SIZE, "down\n");
+-	case 1: return snprintf(buf, PAGE_SIZE, "attempting to activate\n");
+-	case 2: return snprintf(buf, PAGE_SIZE, "training\n");
+-	case 3: return snprintf(buf, PAGE_SIZE, "channel analysis\n");
+-	case 4: return snprintf(buf, PAGE_SIZE, "exchange\n");
+-	case 5: return snprintf(buf, PAGE_SIZE, "up\n");
+-	case 6: return snprintf(buf, PAGE_SIZE, "waiting\n");
+-	case 7: return snprintf(buf, PAGE_SIZE, "initialising\n");
+-	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
+-	}
++	static char *str[] = { "down", "attempting to activate",
++		"training", "channel analysis", "exchange", "up",
++		"waiting", "initialising"
++	};
++	if (unlikely(value >= ARRAY_SIZE(str)))
++		return snprintf(buf, PAGE_SIZE, "%u\n", value);
++	return snprintf(buf, PAGE_SIZE, "%s\n", str[value]);
+ }
+ 
+ static ssize_t cxacru_sysfs_showattr_MODU(u32 value, char *buf)
+ {
+-	switch (value) {
+-	case 0: return 0;
+-	case 1: return snprintf(buf, PAGE_SIZE, "ANSI T1.413\n");
+-	case 2: return snprintf(buf, PAGE_SIZE, "ITU-T G.992.1 (G.DMT)\n");
+-	case 3: return snprintf(buf, PAGE_SIZE, "ITU-T G.992.2 (G.LITE)\n");
+-	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
+-	}
++	static char *str[] = {
++			NULL,
++			"ANSI T1.413",
++			"ITU-T G.992.1 (G.DMT)",
++			"ITU-T G.992.2 (G.LITE)"
++	};
++	if (unlikely(value >= ARRAY_SIZE(str) || str[value] == NULL))
++		return snprintf(buf, PAGE_SIZE, "%u\n", value);
++	return snprintf(buf, PAGE_SIZE, "%s\n", str[value]);
+ }
+ 
+ /*
+@@ -308,11 +298,10 @@ static ssize_t cxacru_sysfs_show_adsl_st
+ 	struct cxacru_data *instance = usbatm_instance->driver_data;
+ 	u32 value = instance->card_info[CXINF_LINE_STARTABLE];
+ 
+-	switch (value) {
+-	case 0: return snprintf(buf, PAGE_SIZE, "running\n");
+-	case 1: return snprintf(buf, PAGE_SIZE, "stopped\n");
+-	default: return snprintf(buf, PAGE_SIZE, "unknown (%u)\n", value);
+-	}
++	static char *str[] = { "running", "stopped" };
++	if (unlikely(value >= ARRAY_SIZE(str)))
++		return snprintf(buf, PAGE_SIZE, "%u\n", value);
++	return snprintf(buf, PAGE_SIZE, "%s\n", str[value]);
+ }
+ 
+ static ssize_t cxacru_sysfs_store_adsl_state(struct device *dev,
 _
 
-Patches currently in -mm which might be from carlos.aguiar@indt.org.br are
+Patches currently in -mm which might be from simon@fire.lp0.eu are
 
-mmc-omap-add-missing-newline.patch
-mmc-omap-fix-omap-to-use-mmc_power_on.patch
-mmc-omap-clean-up-omap-set_ios-and-make-mmc_power_on.patch
+ohci1394-fix-mistake-in-printk-message.patch
+usbatm-detect-usb-device-shutdown-and-ignore-failed-urbs.patch
+usb-cxacru-adsl-state-management.patch
+cxacru-add-documentation-file.patch
+cxacru-cleanup-sysfs-attribute-code.patch
