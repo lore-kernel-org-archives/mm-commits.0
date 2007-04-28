@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sl82c105-switch-to-ref-counting-api.patch added to -mm tree
-Date: Sat, 28 Apr 2007 01:40:25 -0700
-Message-ID: <200704280840.l3S8eP39018191@shell0.pdx.osdl.net>
+Subject: + plan-b-switch-to-refcounting-pci-api.patch added to -mm tree
+Date: Sat, 28 Apr 2007 01:40:29 -0700
+Message-ID: <200704280840.l3S8eTbO018197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39326 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56140 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161667AbXD1Ikj (ORCPT
+	by vger.kernel.org with ESMTP id S1161670AbXD1Ikn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 04:40:39 -0400
+	Sat, 28 Apr 2007 04:40:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, sshtylyov@ru.mvista.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mchehab@infradead.org
 
 
 The patch titled
-     sl82c105: Switch to ref counting API
+     plan-b: Switch to refcounting PCI API
 has been added to the -mm tree.  Its filename is
-     sl82c105-switch-to-ref-counting-api.patch
+     plan-b-switch-to-refcounting-pci-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sl82c105: Switch to ref counting API
+Subject: plan-b: Switch to refcounting PCI API
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Not sure how this one got missed in the great purge some time ago but it
-did.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/pci/sl82c105.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/media/video/planb.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ide/pci/sl82c105.c~sl82c105-switch-to-ref-counting-api drivers/ide/pci/sl82c105.c
---- a/drivers/ide/pci/sl82c105.c~sl82c105-switch-to-ref-counting-api
-+++ a/drivers/ide/pci/sl82c105.c
-@@ -349,7 +349,7 @@ static unsigned int sl82c105_bridge_revi
- 	/*
- 	 * The bridge should be part of the same device, but function 0.
- 	 */
--	bridge = pci_find_slot(dev->bus->number,
-+	bridge = pci_get_bus_and_slot(dev->bus->number,
- 			       PCI_DEVFN(PCI_SLOT(dev->devfn), 0));
- 	if (!bridge)
- 		return -1;
-@@ -359,13 +359,15 @@ static unsigned int sl82c105_bridge_revi
- 	 */
- 	if (bridge->vendor != PCI_VENDOR_ID_WINBOND ||
- 	    bridge->device != PCI_DEVICE_ID_WINBOND_83C553 ||
--	    bridge->class >> 8 != PCI_CLASS_BRIDGE_ISA)
-+	    bridge->class >> 8 != PCI_CLASS_BRIDGE_ISA) {
-+	    	pci_dev_put(bridge);
- 		return -1;
--
-+	}
- 	/*
- 	 * We need to find function 0's revision, not function 1
- 	 */
- 	pci_read_config_byte(bridge, PCI_REVISION_ID, &rev);
-+	pci_dev_put(bridge);
+diff -puN drivers/media/video/planb.c~plan-b-switch-to-refcounting-pci-api drivers/media/video/planb.c
+--- a/drivers/media/video/planb.c~plan-b-switch-to-refcounting-pci-api
++++ a/drivers/media/video/planb.c
+@@ -2210,7 +2210,7 @@ static int find_planb(void)
+ 		"membase 0x%x (base reg. 0x%x)\n",
+ 		bus, PCI_SLOT(dev_fn), PCI_FUNC(dev_fn), old_base, confreg);
  
- 	return rev;
+-	pdev = pci_find_slot (bus, dev_fn);
++	pdev = pci_get_bus_and_slot(bus, dev_fn);
+ 	if (!pdev) {
+ 		printk(KERN_ERR "planb: cannot find slot\n");
+ 		goto err_out;
+@@ -2240,6 +2240,7 @@ static int find_planb(void)
+ 	pb->planb_base = planb_regs;
+ 	pb->planb_base_phys = (struct planb_registers *)new_base;
+ 	pb->irq	= irq;
++	pb->dev = pdev;
+ 
+ 	return planb_num;
+ 
+@@ -2247,6 +2248,7 @@ err_out_disable:
+ 	pci_disable_device(pdev);
+ err_out:
+ 	/* FIXME handle error */   /* comment moved from pci_find_slot, above */
++	pci_dev_put(pdev);
+ 	return 0;
  }
+ 
+@@ -2274,6 +2276,8 @@ static void release_planb(void)
+ 		printk(KERN_INFO "PlanB: unregistering with v4l\n");
+ 		video_unregister_device(&pb->video_dev);
+ 
++		pci_dev_put(pb->dev);
++
+ 		/* note that iounmap() does nothing on the PPC right now */
+ 		iounmap ((void *)pb->planb_base);
+ 	}
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
