@@ -1,100 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:55:12 -0700
-Message-ID: <200704281055.l3SAtCXJ020161@shell0.pdx.osdl.net>
+Subject: - i386-pte-clear-optimization.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:55:33 -0700
+Message-ID: <200704281055.l3SAtXlA020185@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45930 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965796AbXD1Kzn (ORCPT
+	by vger.kernel.org with ESMTP id S965760AbXD1Kzf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:43 -0400
+	Sat, 28 Apr 2007 06:55:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, ak@suse.de, mm-commits@vger.kernel.org
+To: zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: move __vgetcpu_mode & __jiffies to the vsyscall_2 zone
+     i386: pte clear optimization
 has been removed from the -mm tree.  Its filename was
-     x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone.patch
+     i386-pte-clear-optimization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: move __vgetcpu_mode & __jiffies to the vsyscall_2 zone
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: i386: pte clear optimization
+From: Zachary Amsden <zach@vmware.com>
 
-We apparently hit the 1024 limit of vsyscall_0 zone when some debugging
-options are set, or if __vsyscall_gtod_data is 64 bytes larger.
+When exiting from an address space, no special hypervisor notification of page
+table updates needs to occur; direct page table hypervisors, such as Xen,
+switch to another address space first (init_mm) and unprotects the page tables
+to avoid the cost of trapping to the hypervisor for each pte_clear.  Shadow
+mode hypervisors, such as VMI and lhype don't need to do the extra work of
+calling through paravirt-ops, and can just directly clear the page table
+entries without notifiying the hypervisor, since all the page tables are about
+to be freed.
 
-In order to save 128 bytes from the vsyscall_0 zone, we move __vgetcpu_mode
-& __jiffies to vsyscall_2 zone where they really belong, since they are
-used only from vgetcpu() (which is in this vsyscall_2 area).
+So introduce native_pte_clear functions which bypass any paravirt-ops
+notification.  This results in a significant performance win for VMI and
+removes some indirect calls from zap_pte_range.
 
-After patch is applied, new layout is :
+Note the 3-level paging already had a native_pte_clear function, thus
+demanding argument conformance and extra args for the 2-level definition.
 
-ffffffffff600000 T vgettimeofday
-ffffffffff60004e t vsysc2
-ffffffffff600140 t vread_hpet
-ffffffffff600150 t vread_tsc
-ffffffffff600180 D __vsyscall_gtod_data
-ffffffffff600400 T vtime
-ffffffffff600413 t vsysc1
-ffffffffff600800 T vgetcpu
-ffffffffff600870 D __vgetcpu_mode
-ffffffffff600880 D __jiffies
-ffffffffff600c00 T venosys_1
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/vmlinux.lds.S |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/asm-i386/pgtable-2level.h |    5 +++++
+ include/asm-i386/pgtable.h        |    2 +-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/vmlinux.lds.S~x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone arch/x86_64/kernel/vmlinux.lds.S
---- a/arch/x86_64/kernel/vmlinux.lds.S~x86_64-move-__vgetcpu_mode-__jiffies-to-the-vsyscall_2-zone
-+++ a/arch/x86_64/kernel/vmlinux.lds.S
-@@ -98,6 +98,12 @@ SECTIONS
- 		{ *(.vsyscall_clock) }
-   vsyscall_clock = VVIRT(.vsyscall_clock);
+diff -puN include/asm-i386/pgtable-2level.h~i386-pte-clear-optimization include/asm-i386/pgtable-2level.h
+--- a/include/asm-i386/pgtable-2level.h~i386-pte-clear-optimization
++++ a/include/asm-i386/pgtable-2level.h
+@@ -36,6 +36,11 @@ static inline void native_set_pmd(pmd_t 
+ #define pte_clear(mm,addr,xp)	do { set_pte_at(mm, addr, xp, __pte(0)); } while (0)
+ #define pmd_clear(xp)	do { set_pmd(xp, __pmd(0)); } while (0)
  
++static inline void native_pte_clear(struct mm_struct *mm, unsigned long addr, pte_t *xp)
++{
++	*xp = __pte(0);
++}
 +
-+  .vsyscall_1 ADDR(.vsyscall_0) + 1024: AT(VLOAD(.vsyscall_1))
-+		{ *(.vsyscall_1) }
-+  .vsyscall_2 ADDR(.vsyscall_0) + 2048: AT(VLOAD(.vsyscall_2))
-+		{ *(.vsyscall_2) }
-+
-   .vgetcpu_mode : AT(VLOAD(.vgetcpu_mode)) { *(.vgetcpu_mode) }
-   vgetcpu_mode = VVIRT(.vgetcpu_mode);
- 
-@@ -105,10 +111,6 @@ SECTIONS
-   .jiffies : AT(VLOAD(.jiffies)) { *(.jiffies) }
-   jiffies = VVIRT(.jiffies);
- 
--  .vsyscall_1 ADDR(.vsyscall_0) + 1024: AT(VLOAD(.vsyscall_1))
--		{ *(.vsyscall_1) }
--  .vsyscall_2 ADDR(.vsyscall_0) + 2048: AT(VLOAD(.vsyscall_2))
--		{ *(.vsyscall_2) }
-   .vsyscall_3 ADDR(.vsyscall_0) + 3072: AT(VLOAD(.vsyscall_3))
- 		{ *(.vsyscall_3) }
- 
+ static inline pte_t native_ptep_get_and_clear(pte_t *xp)
+ {
+ 	return __pte(xchg(&xp->pte_low, 0));
+diff -puN include/asm-i386/pgtable.h~i386-pte-clear-optimization include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~i386-pte-clear-optimization
++++ a/include/asm-i386/pgtable.h
+@@ -344,7 +344,7 @@ static inline pte_t ptep_get_and_clear_f
+ 	pte_t pte;
+ 	if (full) {
+ 		pte = *ptep;
+-		pte_clear(mm, addr, ptep);
++		native_pte_clear(mm, addr, ptep);
+ 	} else {
+ 		pte = ptep_get_and_clear(mm, addr, ptep);
+ 	}
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from zach@vmware.com are
 
-origin.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-slab-dont-allocate-empty-shared-caches.patch
-slab-numa-kmem_cache-diet.patch
-optimize-timespec_trunc.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-vfs-delay-the-dentry-name-generation-on-sockets-and.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
+git-acpi.patch
+fix-buslogic-to-stop-using-check_region.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
 ignore-stolen-time-in-the-softlockup-watchdog.patch
 ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
