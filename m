@@ -1,74 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - i386-balance_irq-convert-to-the-kthread-api.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:55:41 -0700
-Message-ID: <200704281055.l3SAtfOf020197@shell0.pdx.osdl.net>
+Subject: - i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:55:39 -0700
+Message-ID: <200704281055.l3SAtd2l020194@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52812 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965743AbXD1Kzp (ORCPT
+	by vger.kernel.org with ESMTP id S965804AbXD1Kzn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:45 -0400
+	Sat, 28 Apr 2007 06:55:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, ak@suse.de, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 balance_irq: convert to the kthread API
+     i386 voyager: convert the monitor thread to use the kthread API
 has been removed from the -mm tree.  Its filename was
-     i386-balance_irq-convert-to-the-kthread-api.patch
+     i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 balance_irq: convert to the kthread API
-From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: i386 voyager: convert the monitor thread to use the kthread API
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patch just trivial converts from calling kernel_thread and daemonize
-to just calling kthread_run.
+This patch just trivially replaces kernel_thread and daemonize with a
+single call to kthread_run.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/io_apic.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/i386/mach-voyager/voyager_thread.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/io_apic.c~i386-balance_irq-convert-to-the-kthread-api arch/i386/kernel/io_apic.c
---- a/arch/i386/kernel/io_apic.c~i386-balance_irq-convert-to-the-kthread-api
-+++ a/arch/i386/kernel/io_apic.c
-@@ -35,6 +35,7 @@
- #include <linux/msi.h>
- #include <linux/htirq.h>
- #include <linux/freezer.h>
+diff -puN arch/i386/mach-voyager/voyager_thread.c~i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api arch/i386/mach-voyager/voyager_thread.c
+--- a/arch/i386/mach-voyager/voyager_thread.c~i386-voyager-convert-the-monitor-thread-to-use-the-kthread-api
++++ a/arch/i386/mach-voyager/voyager_thread.c
+@@ -24,6 +24,7 @@
+ #include <linux/kmod.h>
+ #include <linux/completion.h>
+ #include <linux/sched.h>
 +#include <linux/kthread.h>
+ #include <asm/desc.h>
+ #include <asm/voyager.h>
+ #include <asm/vic.h>
+@@ -44,7 +45,7 @@ static __u8 set_timeout = 0;
+ static int __init
+ voyager_thread_start(void)
+ {
+-	if(kernel_thread(thread, NULL, CLONE_KERNEL) < 0) {
++	if (IS_ERR(kthread_run(thread, NULL, "%s", THREAD_NAME))) {
+ 		/* This is serious, but not fatal */
+ 		printk(KERN_ERR "Voyager: Failed to create system monitor thread!!!\n");
+ 		return 1;
+@@ -123,8 +124,6 @@ thread(void *unused)
  
- #include <asm/io.h>
- #include <asm/smp.h>
-@@ -661,8 +662,6 @@ static int balanced_irq(void *unused)
- 	unsigned long prev_balance_time = jiffies;
- 	long time_remaining = balanced_irq_interval;
+ 	kvoyagerd_running = 1;
  
--	daemonize("kirqd");
--	
- 	/* push everything to CPU 0 to give us a starting point.  */
- 	for (i = 0 ; i < NR_IRQS ; i++) {
- 		irq_desc[i].pending_mask = cpumask_of_cpu(0);
-@@ -722,10 +721,9 @@ static int __init balanced_irq_init(void
- 	}
- 	
- 	printk(KERN_INFO "Starting balanced_irq\n");
--	if (kernel_thread(balanced_irq, NULL, CLONE_KERNEL) >= 0) 
-+	if (!IS_ERR(kthread_run(balanced_irq, NULL, "kirqd")))
- 		return 0;
--	else 
--		printk(KERN_ERR "balanced_irq_init: failed to spawn balanced_irq");
-+	printk(KERN_ERR "balanced_irq_init: failed to spawn balanced_irq");
- failed:
- 	for_each_possible_cpu(i) {
- 		kfree(irq_cpu_data[i].irq_delta);
+-	daemonize(THREAD_NAME);
+-
+ 	set_timeout = 0;
+ 
+ 	init_timer(&wakeup_timer);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
