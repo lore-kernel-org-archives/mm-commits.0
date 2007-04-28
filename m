@@ -1,175 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - git-s390-fixup.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 02:48:42 -0700
-Message-ID: <200704280948.l3S9mggd019156@shell0.pdx.osdl.net>
+Subject: + git-powerpc-fixup.patch added to -mm tree
+Date: Sat, 28 Apr 2007 03:07:16 -0700
+Message-ID: <200704281007.l3SA7G33019396@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43079 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754069AbXD1Jso (ORCPT
+	by vger.kernel.org with ESMTP id S1756132AbXD1KHS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 05:48:44 -0400
+	Sat, 28 Apr 2007 06:07:18 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3S9mg4A009455
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3SA7GG8010029
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 28 Apr 2007 02:48:43 -0700
+	for <mm-commits@vger.kernel.org>; Sat, 28 Apr 2007 03:07:17 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-s390-fixup
-has been removed from the -mm tree.  Its filename was
-     git-s390-fixup.patch
+     git-powerpc-fixup
+has been added to the -mm tree.  Its filename is
+     git-powerpc-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-s390-fixup
+Subject: git-powerpc-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/chsc.c |  107 --------------------------------------
- drivers/s390/cio/css.c  |    4 -
- 2 files changed, 1 insertion(+), 110 deletions(-)
+ sound/aoa/soundbus/core.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN drivers/s390/cio/chsc.c~git-s390-fixup drivers/s390/cio/chsc.c
---- a/drivers/s390/cio/chsc.c~git-s390-fixup
-+++ a/drivers/s390/cio/chsc.c
-@@ -675,116 +675,9 @@ int chsc_chp_vary(struct chp_id chpid, i
- 	if (on)
- 		/* Scan for new devices on varied on path. */
- 		for_each_subchannel(__s390_vary_chpid_on, NULL);
--	if (need_rescan || css_slow_subchannels_exist())
--		queue_work(slow_path_wq, &slow_path_work);
- 	return 0;
- }
- 
--/*
-- * Channel measurement related functions
-- */
--static ssize_t
--chp_measurement_chars_read(struct kobject *kobj, char *buf, loff_t off,
--			   size_t count)
--{
--	struct channel_path *chp;
--	unsigned int size;
--
--	chp = to_channelpath(container_of(kobj, struct device, kobj));
--	if (!chp->cmg_chars)
--		return 0;
--
--	size = sizeof(struct cmg_chars);
--
--	if (off > size)
--		return 0;
--	if (off + count > size)
--		count = size - off;
--	memcpy(buf, chp->cmg_chars + off, count);
--	return count;
--}
--
--static struct bin_attribute chp_measurement_chars_attr = {
--	.attr = {
--		.name = "measurement_chars",
--		.mode = S_IRUSR,
--	},
--	.size = sizeof(struct cmg_chars),
--	.read = chp_measurement_chars_read,
--};
--
--static void
--chp_measurement_copy_block(struct cmg_entry *buf,
--			   struct channel_subsystem *css, int chpid)
--{
--	void *area;
--	struct cmg_entry *entry, reference_buf;
--	int idx;
--
--	if (chpid < 128) {
--		area = css->cub_addr1;
--		idx = chpid;
--	} else {
--		area = css->cub_addr2;
--		idx = chpid - 128;
--	}
--	entry = area + (idx * sizeof(struct cmg_entry));
--	do {
--		memcpy(buf, entry, sizeof(*entry));
--		memcpy(&reference_buf, entry, sizeof(*entry));
--	} while (reference_buf.values[0] != buf->values[0]);
--}
--
--static ssize_t
--chp_measurement_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
--{
--	struct channel_path *chp;
--	struct channel_subsystem *css;
--	unsigned int size;
--
--	chp = to_channelpath(container_of(kobj, struct device, kobj));
--	css = to_css(chp->dev.parent);
--
--	size = sizeof(struct cmg_entry);
--
--	/* Only allow single reads. */
--	if (off || count < size)
--		return 0;
--	chp_measurement_copy_block((struct cmg_entry *)buf, css, chp->id);
--	count = size;
--	return count;
--}
--
--static struct bin_attribute chp_measurement_attr = {
--	.attr = {
--		.name = "measurement",
--		.mode = S_IRUSR,
--	},
--	.size = sizeof(struct cmg_entry),
--	.read = chp_measurement_read,
--};
--
--static void
--chsc_remove_chp_cmg_attr(struct channel_path *chp)
--{
--	device_remove_bin_file(&chp->dev, &chp_measurement_chars_attr);
--	device_remove_bin_file(&chp->dev, &chp_measurement_attr);
--}
--
--static int
--chsc_add_chp_cmg_attr(struct channel_path *chp)
--{
--	int ret;
--
--	ret = device_create_bin_file(&chp->dev, &chp_measurement_chars_attr);
--	if (ret)
--		return ret;
--	ret = device_create_bin_file(&chp->dev, &chp_measurement_attr);
--	if (ret)
--		device_remove_bin_file(&chp->dev, &chp_measurement_chars_attr);
--	return ret;
--}
--
- static void
- chsc_remove_cmg_attr(struct channel_subsystem *css)
+diff -puN sound/aoa/soundbus/core.c~git-powerpc-fixup sound/aoa/soundbus/core.c
+--- a/sound/aoa/soundbus/core.c~git-powerpc-fixup
++++ a/sound/aoa/soundbus/core.c
+@@ -61,16 +61,10 @@ static int soundbus_uevent(struct device
  {
-diff -puN drivers/s390/cio/css.c~git-s390-fixup drivers/s390/cio/css.c
---- a/drivers/s390/cio/css.c~git-s390-fixup
-+++ a/drivers/s390/cio/css.c
-@@ -189,9 +189,7 @@ static int css_register_subchannel(struc
- 	if (!cio_is_console(sch->schid))
- 		/* Console is special, no need to suppress. */
- 		sch->dev.uevent_suppress = 1;
--
--	css_get_ssd_info(sch);
--
-+	css_update_ssd_info(sch);
- 	/* make it known to the system */
- 	ret = css_sch_device_register(sch);
- 	if (ret) {
+ 	struct soundbus_dev * soundbus_dev;
+ 	struct of_device * of;
+-<<<<<<< HEAD/sound/aoa/soundbus/core.c
+-	char *compat;
+-	int retval = 0, i = 0, length = 0;
+-	int cplen, seen = 0;
+-=======
+ 	char *scratch;
+ 	const char *compat;
+ 	int i = 0;
+ 	int length, cplen, seen = 0;
+->>>>>>> /sound/aoa/soundbus/core.c
+ 
+ 	if (!dev)
+ 		return -ENODEV;
+@@ -98,11 +92,7 @@ static int soundbus_uevent(struct device
+ 	 * it's not really legal to split it out with commas. We split it
+ 	 * up using a number of environment variables instead. */
+ 
+-<<<<<<< HEAD/sound/aoa/soundbus/core.c
+-	compat = (char *) get_property(of->node, "compatible", &cplen);
+-=======
+ 	compat = of_get_property(of->node, "compatible", &cplen);
+->>>>>>> /sound/aoa/soundbus/core.c
+ 	while (compat && cplen > 0) {
+ 		int tmp = length;
+ 		retval = add_uevent_var(envp, num_envp, &i,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -181,8 +82,10 @@ add-kvasprintf-fix.patch
 slab-introduce-krealloc.patch
 git-acpi.patch
 git-alsa.patch
+git-alsa-fixup.patch
 git-agpgart.patch
 git-powerpc.patch
+git-powerpc-fixup.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 ida-implement-idr-based-id-allocator-fix.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
@@ -219,14 +122,17 @@ git-parisc.patch
 rm9000-serial-driver.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
 git-pciseg.patch
-git-s390-fixup.patch
 git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 s390-net-lcs-convert-to-the-kthread-api.patch
 git-scsi-misc.patch
 scsi-fix-config_scsi_wait_scan=m.patch
 git-block-fixup.patch
-git-unionfs.patch
 git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-git-net.patch
+git-wireless-vs-git-net-2.patch
+git-wireless-vs-git-net-3.patch
+hack-to-make-wireless-work.patch
 fix-x86_64-mm-nmi-watchdog-ops.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 x86_64-unexport-cpu_llc_id.patch
