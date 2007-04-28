@@ -1,67 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:55:15 -0700
-Message-ID: <200704281055.l3SAtFns020164@shell0.pdx.osdl.net>
+Subject: - remove-duplicate-define-of-ohci_quirk_zfmicro.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:54:47 -0700
+Message-ID: <200704281054.l3SAsl2C020143@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43413 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965744AbXD1KzW (ORCPT
+	by vger.kernel.org with ESMTP id S965748AbXD1Kz1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:55:22 -0400
+	Sat, 28 Apr 2007 06:55:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hifumi.hisashi@oss.ntt.co.jp, ak@suse.de, mm-commits@vger.kernel.org
+To: caglar@pardus.org.tr, greg@kroah.com, tony.olech@elandigitalsystems.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 machine_real_restart(): replace spin_lock_irqsave with spin_lock
+     Remove duplicate define of OHCI_QUIRK_ZFMICRO
 has been removed from the -mm tree.  Its filename was
-     i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock.patch
+     remove-duplicate-define-of-ohci_quirk_zfmicro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 machine_real_restart(): replace spin_lock_irqsave with spin_lock
-From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Subject: Remove duplicate define of OHCI_QUIRK_ZFMICRO
+From: "S.Caglar Onur" <caglar@pardus.org.tr>
 
-IRQ is already disabled through local_irq_disable().  So
-spin_lock_irqsave() can be replaced with spin_lock().
+Remove duplicate define of OHCI_QUIRK_ZFMICRO from ftdi-elan.c, its already
+defined in drivers/ush/host/ohci.c
 
-Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: "S.Caglar Onur" <caglar@pardus.org.tr>
+Cc: <tony.olech@elandigitalsystems.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/reboot.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/usb/misc/ftdi-elan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/i386/kernel/reboot.c~i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock arch/i386/kernel/reboot.c
---- a/arch/i386/kernel/reboot.c~i386-machine_real_restart-replace-spin_lock_irqsave-with-spin_lock
-+++ a/arch/i386/kernel/reboot.c
-@@ -198,8 +198,6 @@ static unsigned char jump_to_bios [] =
-  */
- void machine_real_restart(unsigned char *code, int length)
- {
--	unsigned long flags;
--
- 	local_irq_disable();
- 
- 	/* Write zero to CMOS register number 0x0f, which the BIOS POST
-@@ -212,9 +210,9 @@ void machine_real_restart(unsigned char 
- 	   safe side.  (Yes, CMOS_WRITE does outb_p's. -  Paul G.)
- 	 */
- 
--	spin_lock_irqsave(&rtc_lock, flags);
-+	spin_lock(&rtc_lock);
- 	CMOS_WRITE(0x00, 0x8f);
--	spin_unlock_irqrestore(&rtc_lock, flags);
-+	spin_unlock(&rtc_lock);
- 
- 	/* Remap the kernel at virtual address zero, as well as offset zero
- 	   from the kernel segment.  This assumes the kernel segment starts at
+diff -puN drivers/usb/misc/ftdi-elan.c~remove-duplicate-define-of-ohci_quirk_zfmicro drivers/usb/misc/ftdi-elan.c
+--- a/drivers/usb/misc/ftdi-elan.c~remove-duplicate-define-of-ohci_quirk_zfmicro
++++ a/drivers/usb/misc/ftdi-elan.c
+@@ -2304,7 +2304,6 @@ static int ftdi_elan_checkingPCI(struct 
+ #define OHCI_QUIRK_SUPERIO 0x02
+ #define OHCI_QUIRK_INITRESET 0x04
+ #define OHCI_BIG_ENDIAN 0x08
+-#define OHCI_QUIRK_ZFMICRO 0x10
+ #define OHCI_CONTROL_INIT OHCI_CTRL_CBSR
+ #define OHCI_INTR_INIT (OHCI_INTR_MIE | OHCI_INTR_UE | OHCI_INTR_RD | \
+         OHCI_INTR_WDH)
 _
 
-Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
+Patches currently in -mm which might be from caglar@pardus.org.tr are
 
-upper-32-bits.patch
+origin.patch
