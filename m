@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore.patch added to -mm tree
-Date: Sat, 28 Apr 2007 01:34:22 -0700
-Message-ID: <200704280834.l3S8YMuv018119@shell0.pdx.osdl.net>
+Subject: + get_unmapped_area-handles-map_fixed-in-hugetlbfs.patch added to -mm tree
+Date: Sat, 28 Apr 2007 01:34:18 -0700
+Message-ID: <200704280834.l3S8YIE6018113@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36486 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36662 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031115AbXD1Igc (ORCPT
+	by vger.kernel.org with ESMTP id S1031115AbXD1Igp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 04:36:32 -0400
+	Sat, 28 Apr 2007 04:36:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: benh@kernel.crashing.org, agl@us.ibm.com, ak@suse.de, bill.irwin@oracle.com,
 
 
 The patch titled
-     get_unmapped_area doesn't need hugetlbfs hacks anymore
+     get_unmapped_area handles MAP_FIXED in hugetlbfs
 has been added to the -mm tree.  Its filename is
-     get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore.patch
+     get_unmapped_area-handles-map_fixed-in-hugetlbfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get_unmapped_area doesn't need hugetlbfs hacks anymore
+Subject: get_unmapped_area handles MAP_FIXED in hugetlbfs
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Remove the hugetlbfs specific hacks in toplevel get_unmapped_area() now that
-all archs and hugetlbfs itself do the right thing for both cases.
+Generic hugetlb_get_unmapped_area() now handles MAP_FIXED by just calling
+prepare_hugepage_range()
 
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Acked-by: William Irwin <bill.irwin@oracle.com>
@@ -45,40 +45,31 @@ Cc: Kyle McMartin <kyle@mcmartin.ca>
 Cc: Grant Grundler <grundler@parisc-linux.org>
 Cc: Matthew Wilcox <willy@debian.org>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: William Irwin <bill.irwin@oracle.com>
 Cc: Adam Litke <agl@us.ibm.com>
 Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   16 ----------------
- 1 file changed, 16 deletions(-)
+ fs/hugetlbfs/inode.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/mmap.c~get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore mm/mmap.c
---- a/mm/mmap.c~get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore
-+++ a/mm/mmap.c
-@@ -1391,22 +1391,6 @@ get_unmapped_area(struct file *file, uns
- 	if (addr & ~PAGE_MASK)
- 		return -EINVAL;
+diff -puN fs/hugetlbfs/inode.c~get_unmapped_area-handles-map_fixed-in-hugetlbfs fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~get_unmapped_area-handles-map_fixed-in-hugetlbfs
++++ a/fs/hugetlbfs/inode.c
+@@ -112,6 +112,12 @@ hugetlb_get_unmapped_area(struct file *f
+ 	if (len > TASK_SIZE)
+ 		return -ENOMEM;
  
--	if (file && is_file_hugepages(file))  {
--		/*
--		 * Check if the given range is hugepage aligned, and
--		 * can be made suitable for hugepages.
--		 */
--		ret = prepare_hugepage_range(addr, len, pgoff);
--	} else {
--		/*
--		 * Ensure that a normal request is not falling in a
--		 * reserved hugepage range.  For some archs like IA-64,
--		 * there is a separate region for hugepages.
--		 */
--		ret = is_hugepage_only_range(current->mm, addr, len);
--	}
--	if (ret)
--		return -EINVAL;
- 	return addr;
- }
- 
++	if (flags & MAP_FIXED) {
++		if (prepare_hugepage_range(addr, len, pgoff))
++			return -EINVAL;
++		return addr;
++	}
++
+ 	if (addr) {
+ 		addr = ALIGN(addr, HPAGE_SIZE);
+ 		vma = find_vma(mm, addr);
 _
 
 Patches currently in -mm which might be from benh@kernel.crashing.org are
