@@ -1,216 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: - git-netdev-all-export-ieee80211_debug_level.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:52:38 -0700
-Message-ID: <200704281052.l3SAqcNX020051@shell0.pdx.osdl.net>
+Subject: - net-possible-cleanups.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:53:18 -0700
+Message-ID: <200704281053.l3SArIqB020075@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48505 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965672AbXD1Kx1 (ORCPT
+	by vger.kernel.org with ESMTP id S965687AbXD1Kxe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:53:27 -0400
+	Sat, 28 Apr 2007 06:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dsd@gentoo.org, jeff@garzik.org, johannes@sipsolutions.net, josejx@gentoo.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-netdev-all: export ieee80211_debug_level
+     net/: possible cleanups
 has been removed from the -mm tree.  Its filename was
-     git-netdev-all-export-ieee80211_debug_level.patch
+     net-possible-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-netdev-all: export ieee80211_debug_level
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: net/: possible cleanups
+From: Adrian Bunk <bunk@stusta.de>
 
-Someone has been forgetting their SubmitChecklist medicine.
+- make the following needlessly global variables static:
+  - core/rtnetlink.c: struct rtnl_msg_handlers[]
+  - netfilter/nf_conntrack_proto.c: struct nf_ct_protos[]
+- make the following needlessly global functions static:
+  - core/rtnetlink.c: rtnl_dump_all()
+  - netlink/af_netlink.c: netlink_queue_skip()
 
-ERROR: "ieee80211_debug_level" [net/ieee80211/ieee80211_crypt_ccmp.ko] undefined!
-
-Fix some unneeded space-wasting initialisations, too.  How often must this be
-said?
-
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Joe Jezak <josejx@gentoo.org>
-Cc: Daniel Drake <dsd@gentoo.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ieee80211/ieee80211_module.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h |    1 -
+ include/net/netlink.h                        |    2 --
+ include/net/rtnetlink.h                      |    1 -
+ net/core/rtnetlink.c                         |    6 ++----
+ net/netfilter/nf_conntrack_proto.c           |    2 +-
+ net/netlink/af_netlink.c                     |    4 ++--
+ 6 files changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN net/ieee80211/ieee80211_module.c~git-netdev-all-export-ieee80211_debug_level net/ieee80211/ieee80211_module.c
---- a/net/ieee80211/ieee80211_module.c~git-netdev-all-export-ieee80211_debug_level
-+++ a/net/ieee80211/ieee80211_module.c
-@@ -227,9 +227,11 @@ void free_ieee80211(struct net_device *d
+diff -puN include/net/netfilter/nf_conntrack_l4proto.h~net-possible-cleanups include/net/netfilter/nf_conntrack_l4proto.h
+--- a/include/net/netfilter/nf_conntrack_l4proto.h~net-possible-cleanups
++++ a/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -97,7 +97,6 @@ extern struct nf_conntrack_l4proto nf_co
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_generic;
  
- #ifdef CONFIG_IEEE80211_DEBUG
+ #define MAX_NF_CT_PROTO 256
+-extern struct nf_conntrack_l4proto **nf_ct_protos[PF_MAX];
  
--static int debug = 0;
--u32 ieee80211_debug_level = 0;
--static struct proc_dir_entry *ieee80211_proc = NULL;
-+static int debug;
-+u32 ieee80211_debug_level;
-+static struct proc_dir_entry *ieee80211_proc;
-+
-+EXPORT_SYMBOL(ieee80211_debug_level);
+ extern struct nf_conntrack_l4proto *
+ __nf_ct_l4proto_find(u_int16_t l3proto, u_int8_t l4proto);
+diff -puN include/net/netlink.h~net-possible-cleanups include/net/netlink.h
+--- a/include/net/netlink.h~net-possible-cleanups
++++ a/include/net/netlink.h
+@@ -217,8 +217,6 @@ struct nl_info {
+ extern void		netlink_run_queue(struct sock *sk, unsigned int *qlen,
+ 					  int (*cb)(struct sk_buff *,
+ 						    struct nlmsghdr *));
+-extern void		netlink_queue_skip(struct nlmsghdr *nlh,
+-					   struct sk_buff *skb);
+ extern int		nlmsg_notify(struct sock *sk, struct sk_buff *skb,
+ 				     u32 pid, unsigned int group, int report,
+ 				     gfp_t flags);
+diff -puN include/net/rtnetlink.h~net-possible-cleanups include/net/rtnetlink.h
+--- a/include/net/rtnetlink.h~net-possible-cleanups
++++ a/include/net/rtnetlink.h
+@@ -13,7 +13,6 @@ extern void	rtnl_register(int protocol, 
+ 			      rtnl_doit_func, rtnl_dumpit_func);
+ extern int	rtnl_unregister(int protocol, int msgtype);
+ extern void	rtnl_unregister_all(int protocol);
+-extern int	rtnl_dump_all(struct sk_buff *skb, struct netlink_callback *cb);
  
- static int show_debug_level(char *page, char **start, off_t offset,
- 			    int count, int *eof, void *data)
+ static inline int rtnl_msg_family(struct nlmsghdr *nlh)
+ {
+diff -puN net/core/rtnetlink.c~net-possible-cleanups net/core/rtnetlink.c
+--- a/net/core/rtnetlink.c~net-possible-cleanups
++++ a/net/core/rtnetlink.c
+@@ -97,7 +97,7 @@ int rtattr_parse(struct rtattr *tb[], in
+ 	return 0;
+ }
+ 
+-struct rtnl_link *rtnl_msg_handlers[NPROTO];
++static struct rtnl_link *rtnl_msg_handlers[NPROTO];
+ 
+ static inline int rtm_msgindex(int msgtype)
+ {
+@@ -765,7 +765,7 @@ errout:
+ 	return err;
+ }
+ 
+-int rtnl_dump_all(struct sk_buff *skb, struct netlink_callback *cb)
++static int rtnl_dump_all(struct sk_buff *skb, struct netlink_callback *cb)
+ {
+ 	int idx;
+ 	int s_idx = cb->family;
+@@ -789,8 +789,6 @@ int rtnl_dump_all(struct sk_buff *skb, s
+ 	return skb->len;
+ }
+ 
+-EXPORT_SYMBOL_GPL(rtnl_dump_all);
+-
+ void rtmsg_ifinfo(int type, struct net_device *dev, unsigned change)
+ {
+ 	struct sk_buff *skb;
+diff -puN net/netfilter/nf_conntrack_proto.c~net-possible-cleanups net/netfilter/nf_conntrack_proto.c
+--- a/net/netfilter/nf_conntrack_proto.c~net-possible-cleanups
++++ a/net/netfilter/nf_conntrack_proto.c
+@@ -28,7 +28,7 @@
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ 
+-struct nf_conntrack_l4proto **nf_ct_protos[PF_MAX] __read_mostly;
++static struct nf_conntrack_l4proto **nf_ct_protos[PF_MAX] __read_mostly;
+ struct nf_conntrack_l3proto *nf_ct_l3protos[AF_MAX] __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ct_l3protos);
+ 
+diff -puN net/netlink/af_netlink.c~net-possible-cleanups net/netlink/af_netlink.c
+--- a/net/netlink/af_netlink.c~net-possible-cleanups
++++ a/net/netlink/af_netlink.c
+@@ -121,6 +121,7 @@ static DECLARE_WAIT_QUEUE_HEAD(nl_table_
+ 
+ static int netlink_dump(struct sock *sk);
+ static void netlink_destroy_callback(struct netlink_callback *cb);
++static void netlink_queue_skip(struct nlmsghdr *nlh, struct sk_buff *skb);
+ 
+ static DEFINE_RWLOCK(nl_table_lock);
+ static atomic_t nl_table_users = ATOMIC_INIT(0);
+@@ -1568,7 +1569,7 @@ void netlink_run_queue(struct sock *sk, 
+  * Pulls the given netlink message off the socket buffer so the next
+  * call to netlink_queue_run() will not reconsider the message.
+  */
+-void netlink_queue_skip(struct nlmsghdr *nlh, struct sk_buff *skb)
++static void netlink_queue_skip(struct nlmsghdr *nlh, struct sk_buff *skb)
+ {
+ 	int msglen = NLMSG_ALIGN(nlh->nlmsg_len);
+ 
+@@ -1851,7 +1852,6 @@ core_initcall(netlink_proto_init);
+ 
+ EXPORT_SYMBOL(netlink_ack);
+ EXPORT_SYMBOL(netlink_run_queue);
+-EXPORT_SYMBOL(netlink_queue_skip);
+ EXPORT_SYMBOL(netlink_broadcast);
+ EXPORT_SYMBOL(netlink_dump_start);
+ EXPORT_SYMBOL(netlink_kernel_create);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
 git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
 git-powerpc.patch
-git-powerpc-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-drm.patch
 git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
-git-ieee1394-fixup.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-jfs.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
 git-netdev-all.patch
-ne-add-platform_driver-fix.patch
-ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
 git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-utimensat-implementation-fix.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-ipwireless_cs.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+add-file-position-info-to-proc-fix.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
+unexport-pci_proc_attach_device.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
+the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
+ext2-reservations.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+no-longer-include-asm-kdebugh.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+mutex-subsystem-synchro-test-module.patch
