@@ -1,85 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 03:52:24 -0700
-Message-ID: <200704281052.l3SAqOwf020040@shell0.pdx.osdl.net>
+Subject: - revert-gitpowerpc-ehea-changes.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 03:52:33 -0700
+Message-ID: <200704281052.l3SAqX4X020048@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45893 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031516AbXD1Kwp (ORCPT
+	by vger.kernel.org with ESMTP id S1031515AbXD1Kwu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 06:52:45 -0400
+	Sat, 28 Apr 2007 06:52:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drzeus@drzeus.cx, eric.rannaud@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mmc versus uevent-use-add_uevent_var-instead-of-open-coding-it
+     revert-gitpowerpc-ehea-changes
 has been removed from the -mm tree.  Its filename was
-     git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it.patch
+     revert-gitpowerpc-ehea-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-mmc versus uevent-use-add_uevent_var-instead-of-open-coding-it
+Subject: revert-gitpowerpc-ehea-changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Chase the mmc code around the tree.
+Prevent git-netdev-all from throwing a megareject
 
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Cc: Eric Rannaud <eric.rannaud@gmail.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sysfs.c |   25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+ drivers/net/ehea/ehea_main.c |    8 ++++----
+ drivers/net/ucc_geth.c       |   16 ++++++++--------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/mmc/core/sysfs.c~git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it drivers/mmc/core/sysfs.c
---- a/drivers/mmc/core/sysfs.c~git-mmc-versus-uevent-use-add_uevent_var-instead-of-open-coding-it
-+++ a/drivers/mmc/core/sysfs.c
-@@ -86,31 +86,26 @@ mmc_bus_uevent(struct device *dev, char 
+diff -puN drivers/net/ehea/ehea_main.c~revert-gitpowerpc-ehea-changes drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~revert-gitpowerpc-ehea-changes
++++ a/drivers/net/ehea/ehea_main.c
+@@ -2320,7 +2320,7 @@ static int ehea_setup_single_port(struct
+ 	struct net_device *dev = port->netdev;
+ 	struct ehea_adapter *adapter = port->adapter;
+ 	struct hcp_ehea_port_cb4 *cb4;
+-	const u32 *dn_log_port_id;
++	u32 *dn_log_port_id;
+ 	int jumbo = 0;
+ 
+ 	sema_init(&port->port_lock, 1);
+@@ -2336,7 +2336,7 @@ static int ehea_setup_single_port(struct
+ 	port->of_dev_node = dn;
+ 
+ 	/* Determine logical port id */
+-	dn_log_port_id = of_get_property(dn, "ibm,hea-port-no", NULL);
++	dn_log_port_id = (u32*)get_property(dn, "ibm,hea-port-no", NULL);
+ 
+ 	if (!dn_log_port_id) {
+ 		ehea_error("bad device node: dn_log_port_id=%p",
+@@ -2492,7 +2492,7 @@ static int __devinit ehea_probe(struct i
+ 				const struct of_device_id *id)
  {
- 	struct mmc_card *card = dev_to_mmc_card(dev);
- 	char ccc[13];
--	int i = 0;
-+	int retval = 0, i = 0, length = 0;
+ 	struct ehea_adapter *adapter;
+-	const u64 *adapter_handle;
++	u64 *adapter_handle;
+ 	int ret;
  
--#define add_env(fmt,val)						\
--	({								\
--		int len, ret = -ENOMEM;					\
--		if (i < num_envp) {					\
--			envp[i++] = buf;				\
--			len = snprintf(buf, buf_size, fmt, val) + 1;	\
--			buf_size -= len;				\
--			buf += len;					\
--			if (buf_size >= 0)				\
--				ret = 0;				\
--		}							\
--		ret;							\
--	})
-+#define add_env(fmt,val) do {					\
-+	retval = add_uevent_var(envp, num_envp, &i,		\
-+				buf, buf_size, &length,		\
-+				fmt, val);			\
-+	if (retval)						\
-+		return retval;					\
-+} while (0);
+ 	adapter = kzalloc(sizeof(*adapter), GFP_KERNEL);
+@@ -2502,7 +2502,7 @@ static int __devinit ehea_probe(struct i
+ 		goto out;
+ 	}
  
- 	for (i = 0; i < 12; i++)
- 		ccc[i] = card->csd.cmdclass & (1 << i) ? '1' : '0';
- 	ccc[12] = '\0';
+-	adapter_handle = of_get_property(dev->ofdev.node, "ibm,hea-handle",
++	adapter_handle = (u64*)get_property(dev->ofdev.node, "ibm,hea-handle",
+ 					    NULL);
+ 	if (adapter_handle)
+ 		adapter->handle = *adapter_handle;
+diff -puN drivers/net/ucc_geth.c~revert-gitpowerpc-ehea-changes drivers/net/ucc_geth.c
+--- a/drivers/net/ucc_geth.c~revert-gitpowerpc-ehea-changes
++++ a/drivers/net/ucc_geth.c
+@@ -4080,16 +4080,16 @@ static int ucc_geth_probe(struct of_devi
  
--	i = 0;
- 	add_env("MMC_CCC=%s", ccc);
- 	add_env("MMC_MANFID=%06x", card->cid.manfid);
- 	add_env("MMC_NAME=%s", mmc_card_name(card));
- 	add_env("MMC_OEMID=%04x", card->cid.oemid);
-+#undef add_env
-+	envp[i] = NULL;
+ 	ugeth_vdbg("%s: IN", __FUNCTION__);
  
- 	return 0;
- }
+-	prop = of_get_property(np, "device-id", NULL);
++	prop = get_property(np, "device-id", NULL);
+ 	ucc_num = *prop - 1;
+ 	if ((ucc_num < 0) || (ucc_num > 7))
+ 		return -ENODEV;
+ 
+ 	ug_info = &ugeth_info[ucc_num];
+ 	ug_info->uf_info.ucc_num = ucc_num;
+-	prop = of_get_property(np, "rx-clock", NULL);
++	prop = get_property(np, "rx-clock", NULL);
+ 	ug_info->uf_info.rx_clock = *prop;
+-	prop = of_get_property(np, "tx-clock", NULL);
++	prop = get_property(np, "tx-clock", NULL);
+ 	ug_info->uf_info.tx_clock = *prop;
+ 	err = of_address_to_resource(np, 0, &res);
+ 	if (err)
+@@ -4098,15 +4098,15 @@ static int ucc_geth_probe(struct of_devi
+ 	ug_info->uf_info.regs = res.start;
+ 	ug_info->uf_info.irq = irq_of_parse_and_map(np, 0);
+ 
+-	ph = of_get_property(np, "phy-handle", NULL);
++	ph = get_property(np, "phy-handle", NULL);
+ 	phy = of_find_node_by_phandle(*ph);
+ 
+ 	if (phy == NULL)
+ 		return -ENODEV;
+ 
+-	prop = of_get_property(phy, "reg", NULL);
++	prop = get_property(phy, "reg", NULL);
+ 	ug_info->phy_address = *prop;
+-	prop = of_get_property(phy, "interface", NULL);
++	prop = get_property(phy, "interface", NULL);
+ 	ug_info->enet_interface = *prop;
+ 	ug_info->phy_interrupt = irq_of_parse_and_map(phy, 0);
+ 	ug_info->board_flags = (ug_info->phy_interrupt == NO_IRQ)?
+@@ -4127,7 +4127,7 @@ static int ucc_geth_probe(struct of_devi
+ 	/* timing.						*/
+ 	/* The following compensates by writing to the reserved */
+ 	/* QE Port Output Hold Registers (CPOH1?).              */
+-	prop = of_get_property(phy, "interface", NULL);
++	prop = get_property(phy, "interface", NULL);
+ 	phy_interface = *prop;
+ 	if ((phy_interface == ENET_1000_RGMII) ||
+ 			(phy_interface == ENET_100_RGMII) ||
+@@ -4140,7 +4140,7 @@ static int ucc_geth_probe(struct of_devi
+ 		soc = of_find_node_by_type(NULL, "soc");
+ 		if (soc) {
+ 			unsigned int size;
+-			const void *prop = of_get_property(soc, "reg", &size);
++			const void *prop = get_property(soc, "reg", &size);
+ 			immrbase = of_translate_address(soc, prop);
+ 			of_node_put(soc);
+ 		};
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
