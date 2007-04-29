@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-use-our-own-timer-events.patch added to -mm tree
-Date: Sun, 29 Apr 2007 02:31:31 -0700
-Message-ID: <200704290931.l3T9VV7h012940@shell0.pdx.osdl.net>
+Subject: + s3fb-implement-fb_get_caps.patch added to -mm tree
+Date: Sun, 29 Apr 2007 02:33:35 -0700
+Message-ID: <200704290933.l3T9XZh3012962@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42826 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755093AbXD2Jbp (ORCPT
+	by vger.kernel.org with ESMTP id S1755104AbXD2Jdk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Apr 2007 05:31:45 -0400
+	Sun, 29 Apr 2007 05:33:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, arjan@linux.intel.com
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     vmstat: use our own timer events
+     s3fb: implement fb_get_caps
 has been added to the -mm tree.  Its filename is
-     vmstat-use-our-own-timer-events.patch
+     s3fb-implement-fb_get_caps.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,221 +26,126 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vmstat: use our own timer events
-From: Christoph Lameter <clameter@sgi.com>
+Subject: s3fb: implement fb_get_caps
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-vmstat is currently using the cache reaper to periodically bring the
-statistics up to date.  The cache reaper does only exists in SLUB as a way to
-provide compatibility with SLAB.  This patch removes the vmstat calls from the
-slab allocators and provides its own handling.
+Implement fb_get_caps().  This will allow the driver to tell upper layer that
+it can only support 256 8x16 bitmaps when in tileblitting mode
+(var->bits_per_pixel == 0);
 
-The advantage is also that we can use a different frequency for the updates. 
-Refreshing vm stats is a pretty fast job so we can run this every second and
-stagger this by only one tick.  This will lead to some overlap in large
-systems.  F.e a system running at 250 HZ with 1024 processors will have 4 vm
-updates occurring at once.
-
-However, the vm stats update only accesses per node information.  It is only
-necessary to stagger the vm statistics updates per processor in each node.  Vm
-counter updates occurring on distant nodes will not cause cacheline
-contention.
-
-We could implement an alternate approach that runs the first processor on each
-node at the second and then each of the other processor on a node on a
-subsequent tick.  That may be useful to keep a large amount of the second free
-of timer activity.  Maybe the timer folks will have some feedback on this one?
-
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    3 ---
- mm/slab.c              |    1 -
- mm/slub.c              |    1 -
- mm/vmstat.c            |   39 +++++++++++++++++++++++++++++++++++----
- 4 files changed, 35 insertions(+), 9 deletions(-)
+ drivers/video/s3fb.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN include/linux/vmstat.h~vmstat-use-our-own-timer-events include/linux/vmstat.h
---- a/include/linux/vmstat.h~vmstat-use-our-own-timer-events
-+++ a/include/linux/vmstat.h
-@@ -213,8 +213,6 @@ extern void dec_zone_state(struct zone *
- extern void __dec_zone_state(struct zone *, enum zone_stat_item);
- 
- void refresh_cpu_vm_stats(int);
--void refresh_vm_stats(void);
--
- #else /* CONFIG_SMP */
- 
- /*
-@@ -261,7 +259,6 @@ static inline void __dec_zone_page_state
- #define mod_zone_page_state __mod_zone_page_state
- 
- static inline void refresh_cpu_vm_stats(int cpu) { }
--static inline void refresh_vm_stats(void) { }
- #endif
- 
- #endif /* _LINUX_VMSTAT_H */
-diff -puN mm/slab.c~vmstat-use-our-own-timer-events mm/slab.c
---- a/mm/slab.c~vmstat-use-our-own-timer-events
-+++ a/mm/slab.c
-@@ -4155,7 +4155,6 @@ next:
- 	check_irq_on();
- 	mutex_unlock(&cache_chain_mutex);
- 	next_reap_node();
--	refresh_cpu_vm_stats(smp_processor_id());
- out:
- 	/* Set up the next iteration */
- 	schedule_delayed_work(work, round_jiffies_relative(REAPTIMEOUT_CPUC));
-diff -puN mm/slub.c~vmstat-use-our-own-timer-events mm/slub.c
---- a/mm/slub.c~vmstat-use-our-own-timer-events
-+++ a/mm/slub.c
-@@ -2515,7 +2515,6 @@ static DEFINE_PER_CPU(struct delayed_wor
- static void cache_reap(struct work_struct *unused)
- {
- 	next_reap_node();
--	refresh_cpu_vm_stats(smp_processor_id());
- 	schedule_delayed_work(&__get_cpu_var(reap_work),
- 				      REAPTIMEOUT_CPUC);
- }
-diff -puN mm/vmstat.c~vmstat-use-our-own-timer-events mm/vmstat.c
---- a/mm/vmstat.c~vmstat-use-our-own-timer-events
-+++ a/mm/vmstat.c
-@@ -640,6 +640,22 @@ const struct seq_operations vmstat_op = 
- #endif /* CONFIG_PROC_FS */
- 
- #ifdef CONFIG_SMP
-+static DEFINE_PER_CPU(struct delayed_work, vmstat_work);
-+
-+static void vmstat_update(struct work_struct *w)
-+{
-+	refresh_cpu_vm_stats(smp_processor_id());
-+	schedule_delayed_work(&__get_cpu_var(vmstat_work), HZ);
-+}
-+
-+static void __devinit start_cpu_timer(int cpu)
-+{
-+	struct delayed_work *vmstat_work = &per_cpu(vmstat_work, cpu);
-+
-+	INIT_DELAYED_WORK(vmstat_work, vmstat_update);
-+	schedule_delayed_work_on(cpu, vmstat_work, HZ + cpu);
-+}
-+
- /*
-  * Use the cpu notifier to insure that the thresholds are recalculated
-  * when necessary.
-@@ -648,11 +664,21 @@ static int __cpuinit vmstat_cpuup_callba
- 		unsigned long action,
- 		void *hcpu)
- {
-+	long cpu = (long)hcpu;
-+
- 	switch (action) {
--	case CPU_UP_PREPARE:
--	case CPU_UP_PREPARE_FROZEN:
--	case CPU_UP_CANCELED:
--	case CPU_UP_CANCELED_FROZEN:
-+	case CPU_ONLINE:
-+	case CPU_ONLINE_FROZEN:
-+		start_cpu_timer(cpu);
-+		break;
-+	case CPU_DOWN_PREPARE:
-+	case CPU_DOWN_PREPARE_FROZEN:
-+		cancel_rearming_delayed_work(&per_cpu(vmstat_work, cpu));
-+		per_cpu(vmstat_work, cpu).work.func = NULL;
-+	case CPU_DOWN_FAILED:
-+	case CPU_DOWN_FAILED_FROZEN:
-+		start_cpu_timer(cpu);
-+		break;
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
- 		refresh_zone_stat_thresholds();
-@@ -668,8 +694,13 @@ static struct notifier_block __cpuinitda
- 
- int __init setup_vmstat(void)
- {
-+	int cpu;
-+
- 	refresh_zone_stat_thresholds();
- 	register_cpu_notifier(&vmstat_notifier);
-+
-+	for_each_online_cpu(cpu)
-+		start_cpu_timer(cpu);
+diff -puN drivers/video/s3fb.c~s3fb-implement-fb_get_caps drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~s3fb-implement-fb_get_caps
++++ a/drivers/video/s3fb.c
+@@ -799,6 +799,23 @@ static int s3fb_pan_display(struct fb_va
  	return 0;
  }
- module_init(setup_vmstat)
+ 
++/* Get capabilities of accelerator based on the mode */
++
++static void s3fb_get_caps(struct fb_info *info, struct fb_blit_caps *caps,
++			  struct fb_var_screeninfo *var)
++{
++	if (var->bits_per_pixel == 0) {
++		/* can only support 256 8x16 bitmap */
++		caps->x = 1 << (8 - 1);
++		caps->y = 1 << (16 - 1);
++		caps->len = 256;
++	} else {
++		caps->x = ~(u32)0;
++		caps->y = ~(u32)0;
++		caps->len = ~(u32)0;
++	}
++}
++
+ /* ------------------------------------------------------------------------- */
+ 
+ /* Frame buffer operations */
+@@ -815,6 +832,7 @@ static struct fb_ops s3fb_ops = {
+ 	.fb_fillrect	= s3fb_fillrect,
+ 	.fb_copyarea	= cfb_copyarea,
+ 	.fb_imageblit	= s3fb_imageblit,
++	.fb_get_caps    = s3fb_get_caps,
+ };
+ 
+ /* ------------------------------------------------------------------------- */
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
-extend-print_symbol-capability.patch
-slab-introduce-krealloc.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
-slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
-slub-core-sysfs-support-fix-unique-id-generation.patch
-slub-core-printk-cleanup-object_err.patch
-slub-core-printk-cleanup-add-slab_err.patch
-slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch
-slub-core-fix-slab-validation-error-in-bootstrap-cache.patch
-slub-core-remove-per-cpu-flusher.patch
-make-page-private-usable-in-compound-pages-v1.patch
-make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-enable-tracking-of-full-slabs-fix.patch
-slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
-slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch
-slub-validation-of-slabs-metadata-and-guard-zones-printk-cleanup-slab-validation-printks.patch
-slub-add-min_partial.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
-slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
-slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink-fixes-to-kmem_cache_shrink.patch
-slub-remove-object-activities-out-of-checking-functions.patch
-slub-remove-object-activities-out-of-checking-functions-printk-cleanup-diagnostic-functions.patch
-slub-user-documentation.patch
-slub-user-documentation-fix.patch
-slub-add-slabinfo-tool.patch
-slub-add-slabinfo-tool-update-slabinfoc.patch
-slub-major-slabinfo-update.patch
-slub-slabinfo-remove-hackname.patch
-slub-slabinfo-more-statistic-fixes-and-handling-fixes.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-quicklists-for-page-table-pages.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-kmem_cache-simplify-slab-cache-creation.patch
-slab-allocators-remove-slab_debug_initial-flag.patch
-slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
-slab-allocators-remove-multiple-alignment-specifications.patch
-slab-allocators-remove-slab_ctor_atomic.patch
-fault-injection-fix-failslab-with-config_numa.patch
-mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
-slub-i386-support.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-vmstat-use-our-own-timer-events.patch
-readahead-state-based-method-aging-accounting.patch
+fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
+intelfb-fix-ring-space-calculation.patch
+nvidiafb-bring-back-generic-ddc-reading.patch
+fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
+fbdev-fix-obvious-bug-in-show_pan.patch
+neofb-fill-transp-msb_right-with-the-correct.patch
+atyfb-kill-dead-code.patch
+fbdev-mm-deferred-io-support.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-mm-deferred-io-support-fix-2.patch
+fbdev-hecuba-framebuffer-driver.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+nvidiafb-fix-reversed-ddc-port.patch
+vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
+fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
+rivafb-nvidiafb-enable-hardware-monitoring.patch
+rivafb-handle-i2c-bus-creation-failure.patch
+rivafb-nvidiafb-various-cleanups.patch
+rivafb-fixed-reversed-ddc-ports.patch
+nvidiafb-ensure-that-crtc-registers-are-accessible.patch
+nvidiafb-access-crt-registers-safely.patch
+skeletonfb-various-corrections.patch
+epson1355fbc-fix-error-handling-code.patch
+nvidiafb-vga-state-save-and-restore.patch
+savagefb-rework-i2c-bit-access.patch
+savagefb-vga-state-save-and-restore.patch
+fbdev-link-vgastateo-using-kconfig.patch
+fbcon-delay-screen-update-when-setting-the-mode-of.patch
+nvidiafb-fix-sparse-warning.patch
+rivafb-fix-io-access.patch
+fbdev-kill-sparse-warning-in-deferred-io.patch
+fbdev-add-sparse-annotations-in-svgalibc.patch
+arcfb-kill-sparse-warning.patch
+s3fb-add-sparse-annotations.patch
+hecubafb-kill-sparse-warnings.patch
+i810fb-fix-incorrect-frequency-mask.patch
+vt-add-documentation-for-new-boot-sysfs-options.patch
+skeletonfb-documentation-error-fixes.patch
+fbdev-add-drawing-functions-for-framebuffers-in-system.patch
+arcfb-use-sys-instead-of-cfb-drawing-functions.patch
+hecubafb-use-sys-instead-of-cfb-drawing-functions.patch
+vfb-use-sys-instead-of-cfb-drawing-functions.patch
+fbdev-pass-struct-fb_info-to-fb_read-and-fb_write.patch
+fbdev-add-fb_read-fb_write-functions-for-framebuffers.patch
+arcfb-us-fb_sys_read.patch
+hecubafb-us-fb_sys_read.patch
+vfb-us-fb_sys_read-and-fb_sys_write.patch
+fbdev-consolidate-common-drawing-functions-into-a.patch
+fbdev-advertise-limitation-of-drawing-engine.patch
+fbcon-font-setting-should-check-limitation-of-driver.patch
+vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
+s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch
+fbdev-add-tile-operation-to-get-the-maximum-length.patch
+s3fb-implement-fb_get_tilemax.patch
+fbcon-check-if-the-character-count-can-be-handled.patch
+fbdev-save-the-activate-field-before-calling-fb_check_var.patch
+s3fb-driver-fixes.patch
+vmlfb-framebuffer-driver-for-intel-vermilion-range.patch
+nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
+pm2fb-3dlabs-permedia-2v-reference-board-added.patch
+pm2fb-permedia-2v-memory-clock-setting.patch
+pm2fb-pixclock-setting-restriction.patch
+nvidiafb-prevent-triggering-of-softlockup.patch
+fbdev-fbcon-check-if-mode-can-handle-new-screen.patch
+s3fb-implement-fb_get_caps.patch
+vga-vgastate-fix.patch
+nvidiafb-fix-return-value-of-nvidiafb_open.patch
+atyfb-increase-spll-delay.patch
+atyfb-reorganize-clock-init.patch
+atyfb-halve-xclk-with-mobility-and-32bit-memory.patch
