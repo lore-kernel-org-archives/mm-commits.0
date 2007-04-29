@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + add-unitialized_var-macro-for-suppressing-gcc-warnings.patch added to -mm tree
-Date: Sun, 29 Apr 2007 02:17:59 -0700
-Message-ID: <200704290917.l3T9HxnS012736@shell0.pdx.osdl.net>
+Date: Sun, 29 Apr 2007 02:25:10 -0700
+Message-ID: <200704290925.l3T9PAe1012835@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33045 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48215 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755055AbXD2JSB (ORCPT
+	by vger.kernel.org with ESMTP id S1755055AbXD2JZT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Apr 2007 05:18:01 -0400
+	Sun, 29 Apr 2007 05:25:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -32,6 +32,11 @@ From: Borislav Petkov <bbpetkov@yahoo.de>
 Introduce a macro for suppressing gcc from generating a warning about a
 probable uninitialized state of a variable.
 
+Example:
+
+-	spinlock_t *ptl;
++	spinlock_t *uninitialized_var(ptl);
+
 Not a happy solution, but those warnings are obnoxious.
 
 - Using the usual pointlessly-set-it-to-zero approach wastes several
@@ -47,21 +52,47 @@ Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/compiler-gcc3.h  |    6 ++++++
+ include/linux/compiler-gcc4.h  |    6 ++++++
+ include/linux/compiler-intel.h |    2 ++
+ 3 files changed, 14 insertions(+)
 
-diff -puN include/linux/compiler.h~add-unitialized_var-macro-for-suppressing-gcc-warnings include/linux/compiler.h
---- a/include/linux/compiler.h~add-unitialized_var-macro-for-suppressing-gcc-warnings
-+++ a/include/linux/compiler.h
-@@ -74,6 +74,8 @@ extern void __chk_io_ptr(const void __io
-     (typeof(ptr)) (__ptr + (off)); })
+diff -puN include/linux/compiler-gcc3.h~add-unitialized_var-macro-for-suppressing-gcc-warnings include/linux/compiler-gcc3.h
+--- a/include/linux/compiler-gcc3.h~add-unitialized_var-macro-for-suppressing-gcc-warnings
++++ a/include/linux/compiler-gcc3.h
+@@ -13,4 +13,10 @@
+ #define __must_check		__attribute__((warn_unused_result))
  #endif
  
++/*
++ * A trick to suppress uninitialized variable warning without generating any
++ * code
++ */
 +#define uninitialized_var(x) x = x
 +
- #endif /* __KERNEL__ */
+ #define __always_inline		inline __attribute__((always_inline))
+diff -puN include/linux/compiler-gcc4.h~add-unitialized_var-macro-for-suppressing-gcc-warnings include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~add-unitialized_var-macro-for-suppressing-gcc-warnings
++++ a/include/linux/compiler-gcc4.h
+@@ -16,3 +16,9 @@
+ #define __must_check 		__attribute__((warn_unused_result))
+ #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
+ #define __always_inline		inline __attribute__((always_inline))
++
++/*
++ * A trick to suppress uninitialized variable warning without generating any
++ * code
++ */
++#define uninitialized_var(x) x = x
+diff -puN include/linux/compiler-intel.h~add-unitialized_var-macro-for-suppressing-gcc-warnings include/linux/compiler-intel.h
+--- a/include/linux/compiler-intel.h~add-unitialized_var-macro-for-suppressing-gcc-warnings
++++ a/include/linux/compiler-intel.h
+@@ -22,3 +22,5 @@
+     (typeof(ptr)) (__ptr + (off)); })
  
- #endif /* __ASSEMBLY__ */
+ #endif
++
++#define uninitialized_var(x) x
 _
 
 Patches currently in -mm which might be from bbpetkov@yahoo.de are
