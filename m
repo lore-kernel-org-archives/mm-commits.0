@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atyfb-reorganize-clock-init.patch added to -mm tree
-Date: Sun, 29 Apr 2007 02:33:46 -0700
-Message-ID: <200704290933.l3T9XkTW012975@shell0.pdx.osdl.net>
+Subject: + ibmtr_cs-fix-hang-on-eject.patch added to -mm tree
+Date: Sun, 29 Apr 2007 02:36:25 -0700
+Message-ID: <200704290936.l3T9aPej013007@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58364 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36503 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755121AbXD2Jdy (ORCPT
+	by vger.kernel.org with ESMTP id S1756322AbXD2JiU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Apr 2007 05:33:54 -0400
+	Sun, 29 Apr 2007 05:38:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: syrjala@sci.fi, adaplas@gmail.com
+Cc: paul@booyaka.com, bunk@stusta.de, jeff@garzik.org, linux@dominikbrodowski.net, stable@kernel.org
 
 
 The patch titled
-     atyfb: reorganize clock init
+     ibmtr_cs: fix hang on eject
 has been added to the -mm tree.  Its filename is
-     atyfb-reorganize-clock-init.patch
+     ibmtr_cs-fix-hang-on-eject.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,82 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atyfb: reorganize clock init
-From: Ville Syrjala <syrjala@sci.fi>
+Subject: ibmtr_cs: fix hang on eject
+From: Paul Walmsley <paul@booyaka.com>
 
-Reorganize atyfb clock init code so command line clock overrides are effective
-for all chips.  The old code would silently ignore some of the command line
-clock overrides with some chips.
+Ejecting a PCMCIA IBM Token Ring card that has not had its dev->open()
+called will reliably trigger an uninitialized spinlock oops when spinlock
+debugging is enabled.  The system then hangs, occasionally softlockup
+oopsing.  Apparently ibmtr.c:tok_interrupt() doesn't expect to be called
+before tok_open(), but tok_interrupt() gets called anyway when the card is
+ejected.  So, set an already-existing flag which causes tok_interrupt() to
+bail out early upon card ejection.  Tested by inserting and removing the
+PCMCIA card several times.
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Paul Walmsley <paul@booyaka.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <stable@kernel.org>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |   32 +++++++++++++++++--------------
- 1 file changed, 18 insertions(+), 14 deletions(-)
+ drivers/net/pcmcia/ibmtr_cs.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-reorganize-clock-init drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-reorganize-clock-init
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -2297,20 +2297,6 @@ static int __devinit aty_init(struct fb_
- 		par->pll_limits.xclk = 53;
- 	}
- #endif
--	if (pll)
--		par->pll_limits.pll_max = pll;
--	if (mclk)
--		par->pll_limits.mclk = mclk;
--	if (xclk)
--		par->pll_limits.xclk = xclk;
--
--	aty_calc_mem_refresh(par, par->pll_limits.xclk);
--	par->pll_per = 1000000/par->pll_limits.pll_max;
--	par->mclk_per = 1000000/par->pll_limits.mclk;
--	par->xclk_per = 1000000/par->pll_limits.xclk;
--
--	par->ref_clk_per = 1000000000000ULL / 14318180;
--	xtal = "14.31818";
+diff -puN drivers/net/pcmcia/ibmtr_cs.c~ibmtr_cs-fix-hang-on-eject drivers/net/pcmcia/ibmtr_cs.c
+--- a/drivers/net/pcmcia/ibmtr_cs.c~ibmtr_cs-fix-hang-on-eject
++++ a/drivers/net/pcmcia/ibmtr_cs.c
+@@ -189,16 +189,20 @@ static void ibmtr_detach(struct pcmcia_d
+ {
+     struct ibmtr_dev_t *info = link->priv;
+     struct net_device *dev = info->dev;
++    struct tok_info *ti = netdev_priv(dev);
  
- #ifdef CONFIG_FB_ATY_GX
- 	if (!M64_HAS(INTEGRATED)) {
-@@ -2392,7 +2378,25 @@ static int __devinit aty_init(struct fb_
- 		if (par->pll_limits.mclk == 67 && par->ram_type < SDRAM)
- 			par->pll_limits.mclk = 63;
- 	}
-+#endif
+     DEBUG(0, "ibmtr_detach(0x%p)\n", link);
  
-+	/* Allow command line to override clocks. */
-+	if (pll)
-+		par->pll_limits.pll_max = pll;
-+	if (mclk)
-+		par->pll_limits.mclk = mclk;
-+	if (xclk)
-+		par->pll_limits.xclk = xclk;
++    /*
++     * When the card removal interrupt hits tok_interrupt(),
++     * bail out early, so we don't crash the machine
++     */
++    ti->sram_phys |= 1;
 +
-+	aty_calc_mem_refresh(par, par->pll_limits.xclk);
-+	par->pll_per = 1000000/par->pll_limits.pll_max;
-+	par->mclk_per = 1000000/par->pll_limits.mclk;
-+	par->xclk_per = 1000000/par->pll_limits.xclk;
-+
-+	par->ref_clk_per = 1000000000000ULL / 14318180;
-+	xtal = "14.31818";
-+
-+#ifdef CONFIG_FB_ATY_CT
- 	if (M64_HAS(GTB_DSP)) {
- 		u8 pll_ref_div = aty_ld_pll_ct(PLL_REF_DIV, par);
+     if (link->dev_node)
+ 	unregister_netdev(dev);
+ 
+-    {
+-	struct tok_info *ti = netdev_priv(dev);
+-	del_timer_sync(&(ti->tr_timer));
+-    }
++    del_timer_sync(&(ti->tr_timer));
+ 
+     ibmtr_release(link);
  
 _
 
-Patches currently in -mm which might be from syrjala@sci.fi are
+Patches currently in -mm which might be from paul@booyaka.com are
 
-origin.patch
-git-input.patch
-pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
-pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled.patch
-smsc-ircc2-tidy-up-module-parameter-checking.patch
-smsc-ircc2-add-pnp-support.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-atyfb-increase-spll-delay.patch
-atyfb-reorganize-clock-init.patch
-atyfb-halve-xclk-with-mobility-and-32bit-memory.patch
+git-hid.patch
+ibmtr_cs-fix-hang-on-eject.patch
