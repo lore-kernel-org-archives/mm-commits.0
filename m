@@ -1,102 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - asus_acpi-invert-read-of-wled-proc-file-to-show-correct.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 20:32:25 -0700
-Message-ID: <200704290332.l3T3WPsU007662@shell0.pdx.osdl.net>
+Subject: + blackfin-arch-fix-bug-refuse-to-boot-if-rootfs-image-is-not-attached-when-mtd_uclinux-is-selected.patch added to -mm tree
+Date: Sun, 29 Apr 2007 01:31:37 -0700
+Message-ID: <200704290831.l3T8Vbdb012084@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38924 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59403 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754518AbXD2Dca (ORCPT
+	by vger.kernel.org with ESMTP id S1755050AbXD2IcL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 23:32:30 -0400
+	Sun, 29 Apr 2007 04:32:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bcollins@ubuntu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bryan.wu@analog.com
 
 
 The patch titled
-     asus_acpi: Invert read of wled proc file to show correct state of LED
-has been removed from the -mm tree.  Its filename was
-     asus_acpi-invert-read-of-wled-proc-file-to-show-correct.patch
+     blackfin arch: fix bug refuse to boot if rootfs image is not attached when MTD_UCLINUX is selected
+has been added to the -mm tree.  Its filename is
+     blackfin-arch-fix-bug-refuse-to-boot-if-rootfs-image-is-not-attached-when-mtd_uclinux-is-selected.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: asus_acpi: Invert read of wled proc file to show correct state of LED
-From: Ben Collins <bcollins@ubuntu.com>
+Subject: blackfin arch: fix bug refuse to boot if rootfs image is not attached when MTD_UCLINUX is selected
+From: Bryan Wu <bryan.wu@analog.com>
 
-User with this equipment stated that writes to this file worked correctly,
-but that reads were showing inverted state (1 for off, 0 for on). 
-Following the same style for reads, introduced an invert flag to read_led,
-and used it for wled.
-
-See http://bugzilla.ubuntu.com/show_bug.cgi?id=10770
-
-Signed-off-by: Ben Collins <bcollins@ubuntu.com>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/asus_acpi.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ arch/blackfin/kernel/setup.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/acpi/asus_acpi.c~asus_acpi-invert-read-of-wled-proc-file-to-show-correct drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~asus_acpi-invert-read-of-wled-proc-file-to-show-correct
-+++ a/drivers/acpi/asus_acpi.c
-@@ -558,13 +558,13 @@ proc_read_info(char *page, char **start,
-  */
+diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-refuse-to-boot-if-rootfs-image-is-not-attached-when-mtd_uclinux-is-selected arch/blackfin/kernel/setup.c
+--- a/arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-refuse-to-boot-if-rootfs-image-is-not-attached-when-mtd_uclinux-is-selected
++++ a/arch/blackfin/kernel/setup.c
+@@ -293,6 +293,11 @@ void __init setup_arch(char **cmdline_p)
  
- /* Generic LED functions */
--static int read_led(const char *ledname, int ledmask)
-+static int read_led(const char *ledname, int ledmask, int invert)
- {
- 	if (ledname) {
- 		int led_status;
+ 	memory_end -= mtd_size;
  
- 		if (read_acpi_int(NULL, ledname, &led_status))
--			return led_status;
-+			return (invert) ? !led_status : led_status;
- 		else
- 			printk(KERN_WARNING "Asus ACPI: Error reading LED "
- 			       "status\n");
-@@ -620,7 +620,7 @@ proc_read_mled(char *page, char **start,
- 	       void *data)
- {
- 	return sprintf(page, "%d\n",
--		       read_led(hotk->methods->mled_status, MLED_ON));
-+		       read_led(hotk->methods->mled_status, MLED_ON, 0));
- }
++	if (mtd_size == 0) {
++		console_init();
++		panic("Don't boot kernel without rootfs attached.\n");
++	}
++
+ 	/* Relocate MTD image to the top of memory after the uncached memory area */
+ 	dma_memcpy((char *)memory_end, __bss_stop, mtd_size);
  
- static int
-@@ -666,7 +666,7 @@ proc_read_wled(char *page, char **start,
- 	       void *data)
- {
- 	return sprintf(page, "%d\n",
--		       read_led(hotk->methods->wled_status, WLED_ON));
-+		       read_led(hotk->methods->wled_status, WLED_ON, 1));
- }
- 
- static int
-@@ -683,7 +683,8 @@ static int
- proc_read_bluetooth(char *page, char **start, off_t off, int count, int *eof,
- 		    void *data)
- {
--	return sprintf(page, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
-+	return sprintf(page, "%d\n",
-+		read_led(hotk->methods->bt_status, BT_ON, 0));
- }
- 
- static int
-@@ -703,7 +704,7 @@ proc_read_tled(char *page, char **start,
- 	       void *data)
- {
- 	return sprintf(page, "%d\n",
--		       read_led(hotk->methods->tled_status, TLED_ON));
-+		       read_led(hotk->methods->tled_status, TLED_ON, 0));
- }
- 
- static int
 _
 
-Patches currently in -mm which might be from bcollins@ubuntu.com are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
-asus_acpi-invert-read-of-wled-proc-file-to-show-correct.patch
+origin.patch
+blackfin-Documentation.patch
+blackfin-arch.patch
+blackfin-arch-balance-parenthesis-in-macros.patch
+blackfin-arch-2.6.21-rc4-mm1-update.patch
+blackfin-arch-fix-struct-dmasg-packing-bug.patch
+blackfin-arch-cleanup-cache-header-file.patch
+blackfin-arch-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+blackfin-arch-fix-compiling-error-in-flat-c-file.patch
+blackfin-arch-power-management-replace-firmware-disk-mode.patch
+blackfin-arch-add-kdebug-header-file.patch
+blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
+blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
+blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
+blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
+blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
+blackfin-arch-always-include-linux-kallsysms-header-file.patch
+blackfin-arch-sync-with-uclibc-no-functional-changes.patch
+blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
+blackfin-arch-add-missing-__clear_user-function-to.patch
+blackfin-arch-use-boot_command_line-instead-of.patch
+blackfin-arch-fix-some-coding-style-in-include.patch
+blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
+blackfin-arch-add-missing-blackfin-support-in-lib.patch
+blackfin-arch-fix-bug-data-cannot-be-put-into-l1-data.patch
+blackfin-arch-source-kernel-preemption-option.patch
+blackfin-arch-workaround-bf561-anomaly-05000266.patch
+blackfin-arch-define-a-new-cacheline_aligned-attribute-to-put-it-in-l1-data-memory-with-linkscript-update.patch
+blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch
+blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch
+blackfin-arch-fix-coding-style-in-ints-priority-sc-c-file.patch
+blackfin-arch-fix-bug-refuse-to-boot-if-rootfs-image-is-not-attached-when-mtd_uclinux-is-selected.patch
+blackfin-arch-move-revid-function-into-global-headers-as-inline-functions.patch
+blackfin-arch-need-linux-ttyh-header-for-console_init-prototype.patch
+blackfin-arch-convert-most-blackfin-specific-spi-register-settings-to-common-spi-framework-settings.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+blackfin-on-chip-ethernet-mac-controller-driver.patch
+blackfin-on-chip-ethernet-mac-controller-driver-update.patch
+blackfin-patch-add-blackfin-support-in-smc91x.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
+blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+blackfin-serial-core-driver-uart1-should-depend-on-bf534-bf536-bf537-remove-experimental-marking-from-on-chip-serial-core-driver-and-make-options-less-wordy.patch
+blackfin-spi-controller-driver-update-according-to-david-brownells-review.patch
+move-die-notifier-handling-to-common-code-fix.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+vdso-print-fatal-signals-fix-compiling-error-bug-in.patch
