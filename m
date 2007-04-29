@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-arch-need-linux-ttyh-header-for-console_init-prototype.patch added to -mm tree
-Date: Sun, 29 Apr 2007 01:31:39 -0700
-Message-ID: <200704290831.l3T8VdDW012090@shell0.pdx.osdl.net>
+Subject: + blackfin-serial-core-driver-uart1-should-depend-on-bf534-bf536-bf537-remove-experimental-marking-from-on-chip-serial-core-driver-and-make-options-less-wordy.patch added to -mm tree
+Date: Sun, 29 Apr 2007 01:32:32 -0700
+Message-ID: <200704290832.l3T8WWvv012112@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44637 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33057 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755058AbXD2Ic1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755075AbXD2IdC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Apr 2007 04:32:27 -0400
+	Sun, 29 Apr 2007 04:33:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bryan.wu@analog.com
 
 
 The patch titled
-     blackfin arch: need linux/tty.h header for console_init() prototype
+     blackfin serial core driver: UART1 should depend on BF534/BF536/BF537, remove experimental marking from on-chip serial core driver and make options less wordy.
 has been added to the -mm tree.  Its filename is
-     blackfin-arch-need-linux-ttyh-header-for-console_init-prototype.patch
+     blackfin-serial-core-driver-uart1-should-depend-on-bf534-bf536-bf537-remove-experimental-marking-from-on-chip-serial-core-driver-and-make-options-less-wordy.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,27 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: blackfin arch: need linux/tty.h header for console_init() prototype
+Subject: blackfin serial core driver: UART1 should depend on BF534/BF536/BF537, remove experimental marking from on-chip serial core driver and make options less wordy.
 From: Bryan Wu <bryan.wu@analog.com>
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/setup.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/serial/Kconfig |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-need-linux-ttyh-header-for-console_init-prototype arch/blackfin/kernel/setup.c
---- a/arch/blackfin/kernel/setup.c~blackfin-arch-need-linux-ttyh-header-for-console_init-prototype
-+++ a/arch/blackfin/kernel/setup.c
-@@ -34,6 +34,7 @@
- #include <linux/cpu.h>
- #include <linux/module.h>
- #include <linux/console.h>
-+#include <linux/tty.h>
+diff -puN drivers/serial/Kconfig~blackfin-serial-core-driver-uart1-should-depend-on-bf534-bf536-bf537-remove-experimental-marking-from-on-chip-serial-core-driver-and-make-options-less-wordy drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~blackfin-serial-core-driver-uart1-should-depend-on-bf534-bf536-bf537-remove-experimental-marking-from-on-chip-serial-core-driver-and-make-options-less-wordy
++++ a/drivers/serial/Kconfig
+@@ -509,8 +509,8 @@ config SERIAL_SA1100_CONSOLE
+ 	  kernel at boot time.)
  
- #include <linux/ext2_fs.h>
- #include <linux/cramfs_fs.h>
+ config SERIAL_BFIN
+-	tristate "Blackfin serial port support (EXPERIMENTAL)"
+-	depends on BFIN && EXPERIMENTAL
++	tristate "Blackfin serial port support"
++	depends on BFIN
+ 	select SERIAL_CORE
+ 	select SERIAL_BFIN_UART0 if (BF531 || BF532 || BF533 || BF561)
+ 	help
+@@ -525,7 +525,7 @@ config SERIAL_BFIN_CONSOLE
+ 	select SERIAL_CORE_CONSOLE
+ 
+ choice
+-	prompt  "Blackfin UART Mode"
++	prompt "UART Mode"
+ 	depends on SERIAL_BFIN
+ 	default SERIAL_BFIN_DMA
+ 	help
+@@ -533,14 +533,14 @@ choice
+ 	  of CPUs
+ 
+ config SERIAL_BFIN_DMA
+-	bool "Blackfin UART DMA mode"
++	bool "DMA mode"
+ 	depends on DMA_UNCACHED_1M
+ 	help
+ 	  This driver works under DMA mode. If this option is selected, the
+ 	  blackfin simple dma driver is also enabled.
+ 
+ config SERIAL_BFIN_PIO
+-	bool "Blackfin UART PIO mode"
++	bool "PIO mode"
+ 	help
+ 	  This driver works under PIO mode.
+ 
+@@ -577,7 +577,7 @@ config UART0_RTS_PIN
+ 
+ config SERIAL_BFIN_UART1
+ 	bool "Enable UART1"
+-	depends on SERIAL_BFIN && BF537
++	depends on SERIAL_BFIN && (BF534 || BF536 || BF537)
+ 	help
+ 	  Enable UART1
+ 
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
