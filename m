@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-slabinfo-more-statistic-fixes-and-handling-fixes.patch added to -mm tree
-Date: Sun, 29 Apr 2007 02:29:22 -0700
-Message-ID: <200704290929.l3T9TMps012886@shell0.pdx.osdl.net>
+Subject: + vmstat-use-our-own-timer-events.patch added to -mm tree
+Date: Sun, 29 Apr 2007 02:31:31 -0700
+Message-ID: <200704290931.l3T9VV7h012940@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37342 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755101AbXD2J3f (ORCPT
+	by vger.kernel.org with ESMTP id S1755093AbXD2Jbp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Apr 2007 05:29:35 -0400
+	Sun, 29 Apr 2007 05:31:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: clameter@sgi.com, arjan@linux.intel.com
 
 
 The patch titled
-     SLUB slabinfo: More statistic fixes and handling fixes
+     vmstat: use our own timer events
 has been added to the -mm tree.  Its filename is
-     slub-slabinfo-more-statistic-fixes-and-handling-fixes.patch
+     vmstat-use-our-own-timer-events.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,155 +26,149 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB slabinfo: More statistic fixes and handling fixes
+Subject: vmstat: use our own timer events
 From: Christoph Lameter <clameter@sgi.com>
 
-Make -s be shrink. -r is kind of strange. Free up -s by making the rarely
-used --slab option use -l as an abbreviation.
+vmstat is currently using the cache reaper to periodically bring the
+statistics up to date.  The cache reaper does only exists in SLUB as a way to
+provide compatibility with SLAB.  This patch removes the vmstat calls from the
+slab allocators and provides its own handling.
 
-Fix some additional issues with the total statistics that showed up
-during NUMA testing.
+The advantage is also that we can use a different frequency for the updates. 
+Refreshing vm stats is a pretty fast job so we can run this every second and
+stagger this by only one tick.  This will lead to some overlap in large
+systems.  F.e a system running at 250 HZ with 1024 processors will have 4 vm
+updates occurring at once.
 
-Replace "Waste" items by "Loss" lest one gets the wrong idea.
+However, the vm stats update only accesses per node information.  It is only
+necessary to stagger the vm statistics updates per processor in each node.  Vm
+counter updates occurring on distant nodes will not cause cacheline
+contention.
 
+We could implement an alternate approach that runs the first processor on each
+node at the second and then each of the other processor on a node on a
+subsequent tick.  That may be useful to keep a large amount of the second free
+of timer activity.  Maybe the timer folks will have some feedback on this one?
+
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slabinfo.c |   44 +++++++++++++++++++---------------
- 1 file changed, 25 insertions(+), 19 deletions(-)
+ include/linux/vmstat.h |    3 ---
+ mm/slab.c              |    1 -
+ mm/slub.c              |    1 -
+ mm/vmstat.c            |   39 +++++++++++++++++++++++++++++++++++----
+ 4 files changed, 35 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/vm/slabinfo.c~slub-slabinfo-more-statistic-fixes-and-handling-fixes Documentation/vm/slabinfo.c
---- a/Documentation/vm/slabinfo.c~slub-slabinfo-more-statistic-fixes-and-handling-fixes
-+++ a/Documentation/vm/slabinfo.c
-@@ -80,12 +80,12 @@ void usage(void)
- 		"-a|--aliases           Show aliases\n"
- 		"-h|--help              Show usage information\n"
- 		"-n|--numa              Show NUMA information\n"
--		"-r|--reduce	        Shrink slabs\n"
-+		"-s|--shrink            Shrink slabs\n"
- 		"-v|--validate          Validate slabs\n"
- 		"-t|--tracking          Show alloc/free information\n"
--		"-T|--Totals		Show summary information\n"
--		"-s|--slabs             Show slabs\n"
--		"-S|--Size		Sort by size\n"
-+		"-T|--Totals            Show summary information\n"
-+		"-l|--slabs             Show slabs\n"
-+		"-S|--Size              Sort by size\n"
- 		"-z|--zero              Include empty slabs\n"
- 		"-f|--first-alias       Show first alias\n"
- 		"-i|--inverted          Inverted list\n"
-@@ -371,9 +371,10 @@ void totals(void)
- 				avg_size, total_size = 0;
+diff -puN include/linux/vmstat.h~vmstat-use-our-own-timer-events include/linux/vmstat.h
+--- a/include/linux/vmstat.h~vmstat-use-our-own-timer-events
++++ a/include/linux/vmstat.h
+@@ -213,8 +213,6 @@ extern void dec_zone_state(struct zone *
+ extern void __dec_zone_state(struct zone *, enum zone_stat_item);
  
- 	/* Bytes used for object storage in a slab */
--	unsigned long long min_used = max, max_used = 0, avg_used, total_used = 0;
-+	unsigned long long min_used = max, max_used = 0,
-+				avg_used, total_used = 0;
+ void refresh_cpu_vm_stats(int);
+-void refresh_vm_stats(void);
+-
+ #else /* CONFIG_SMP */
  
--	/* Waste: Bytes used for aligned and padding */
-+	/* Waste: Bytes used for alignment and padding */
- 	unsigned long long min_waste = max, max_waste = 0,
- 				avg_waste, total_waste = 0;
- 	/* Number of objects in a slab */
-@@ -381,11 +382,13 @@ void totals(void)
- 				avg_objects, total_objects = 0;
- 	/* Waste per object */
- 	unsigned long long min_objwaste = max,
--				max_objwaste = 0, avg_objwaste;
-+				max_objwaste = 0, avg_objwaste,
-+				total_objwaste = 0;
+ /*
+@@ -261,7 +259,6 @@ static inline void __dec_zone_page_state
+ #define mod_zone_page_state __mod_zone_page_state
  
- 	/* Memory per object */
- 	unsigned long long min_memobj = max,
--				max_memobj = 0, avg_memobj;
-+				max_memobj = 0, avg_memobj,
-+				total_objsize = 0;
+ static inline void refresh_cpu_vm_stats(int cpu) { }
+-static inline void refresh_vm_stats(void) { }
+ #endif
  
- 	/* Percentage of partial slabs per slab */
- 	unsigned long min_ppart = 100, max_ppart = 0,
-@@ -496,6 +499,9 @@ void totals(void)
- 		total_partobj += objects_in_partial_slabs;
- 		total_ppart += percentage_partial_slabs;
- 		total_ppartobj += percentage_partial_objs;
-+
-+		total_objwaste += s->objects * objwaste;
-+		total_objsize += s->objects * s->slab_size;
- 	}
- 
- 	if (!total_objects) {
-@@ -521,9 +527,9 @@ void totals(void)
- 
- 	/* Per object object sizes */
- 	avg_objsize = total_used / total_objects;
--	avg_objwaste = total_waste / total_objects;
-+	avg_objwaste = total_objwaste / total_objects;
- 	avg_partobj = total_partobj * 100 / total_objects;
--	avg_memobj = total_size / total_objects;
-+	avg_memobj = total_objsize / total_objects;
- 
- 	printf("Slabcache Totals\n");
- 	printf("----------------\n");
-@@ -584,9 +590,9 @@ void totals(void)
- 	printf("Used      %10s  %10s  %10s  %10s\n",
- 			b1,	b2,	b3,	b4);
- 
--	store_size(b1, avg_slabs);store_size(b2, min_slabs);
--	store_size(b3, max_slabs);store_size(b4, total_slabs);
--	printf("Waste     %10s  %10s  %10s  %10s\n",
-+	store_size(b1, avg_waste);store_size(b2, min_waste);
-+	store_size(b3, max_waste);store_size(b4, total_waste);
-+	printf("Loss      %10s  %10s  %10s  %10s\n",
- 			b1,	b2,	b3,	b4);
- 
- 	printf("\n");
-@@ -604,7 +610,7 @@ void totals(void)
- 
- 	store_size(b1, avg_objwaste);store_size(b2, min_objwaste);
- 	store_size(b3, max_objwaste);
--	printf("Waste     %10s  %10s  %10s\n",
-+	printf("Loss      %10s  %10s  %10s\n",
- 			b1,	b2,	b3);
+ #endif /* _LINUX_VMSTAT_H */
+diff -puN mm/slab.c~vmstat-use-our-own-timer-events mm/slab.c
+--- a/mm/slab.c~vmstat-use-our-own-timer-events
++++ a/mm/slab.c
+@@ -4155,7 +4155,6 @@ next:
+ 	check_irq_on();
+ 	mutex_unlock(&cache_chain_mutex);
+ 	next_reap_node();
+-	refresh_cpu_vm_stats(smp_processor_id());
+ out:
+ 	/* Set up the next iteration */
+ 	schedule_delayed_work(work, round_jiffies_relative(REAPTIMEOUT_CPUC));
+diff -puN mm/slub.c~vmstat-use-our-own-timer-events mm/slub.c
+--- a/mm/slub.c~vmstat-use-our-own-timer-events
++++ a/mm/slub.c
+@@ -2515,7 +2515,6 @@ static DEFINE_PER_CPU(struct delayed_wor
+ static void cache_reap(struct work_struct *unused)
+ {
+ 	next_reap_node();
+-	refresh_cpu_vm_stats(smp_processor_id());
+ 	schedule_delayed_work(&__get_cpu_var(reap_work),
+ 				      REAPTIMEOUT_CPUC);
  }
+diff -puN mm/vmstat.c~vmstat-use-our-own-timer-events mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-use-our-own-timer-events
++++ a/mm/vmstat.c
+@@ -640,6 +640,22 @@ const struct seq_operations vmstat_op = 
+ #endif /* CONFIG_PROC_FS */
  
-@@ -838,13 +844,13 @@ void output_slabs(void)
+ #ifdef CONFIG_SMP
++static DEFINE_PER_CPU(struct delayed_work, vmstat_work);
++
++static void vmstat_update(struct work_struct *w)
++{
++	refresh_cpu_vm_stats(smp_processor_id());
++	schedule_delayed_work(&__get_cpu_var(vmstat_work), HZ);
++}
++
++static void __devinit start_cpu_timer(int cpu)
++{
++	struct delayed_work *vmstat_work = &per_cpu(vmstat_work, cpu);
++
++	INIT_DELAYED_WORK(vmstat_work, vmstat_update);
++	schedule_delayed_work_on(cpu, vmstat_work, HZ + cpu);
++}
++
+ /*
+  * Use the cpu notifier to insure that the thresholds are recalculated
+  * when necessary.
+@@ -648,11 +664,21 @@ static int __cpuinit vmstat_cpuup_callba
+ 		unsigned long action,
+ 		void *hcpu)
+ {
++	long cpu = (long)hcpu;
++
+ 	switch (action) {
+-	case CPU_UP_PREPARE:
+-	case CPU_UP_PREPARE_FROZEN:
+-	case CPU_UP_CANCELED:
+-	case CPU_UP_CANCELED_FROZEN:
++	case CPU_ONLINE:
++	case CPU_ONLINE_FROZEN:
++		start_cpu_timer(cpu);
++		break;
++	case CPU_DOWN_PREPARE:
++	case CPU_DOWN_PREPARE_FROZEN:
++		cancel_rearming_delayed_work(&per_cpu(vmstat_work, cpu));
++		per_cpu(vmstat_work, cpu).work.func = NULL;
++	case CPU_DOWN_FAILED:
++	case CPU_DOWN_FAILED_FROZEN:
++		start_cpu_timer(cpu);
++		break;
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+ 		refresh_zone_stat_thresholds();
+@@ -668,8 +694,13 @@ static struct notifier_block __cpuinitda
  
- struct option opts[] = {
- 	{ "aliases", 0, NULL, 'a' },
--	{ "slabs", 0, NULL, 's' },
-+	{ "slabs", 0, NULL, 'l' },
- 	{ "numa", 0, NULL, 'n' },
- 	{ "zero", 0, NULL, 'z' },
- 	{ "help", 0, NULL, 'h' },
- 	{ "validate", 0, NULL, 'v' },
- 	{ "first-alias", 0, NULL, 'f' },
--	{ "reduce", 0, NULL, 'r' },
-+	{ "shrink", 0, NULL, 's' },
- 	{ "track", 0, NULL, 't'},
- 	{ "inverted", 0, NULL, 'i'},
- 	{ "1ref", 0, NULL, '1'},
-@@ -861,7 +867,7 @@ int main(int argc, char *argv[])
- 	if (chdir("/sys/slab"))
- 		fatal("This kernel does not have SLUB support.\n");
- 
--	while ((c = getopt_long(argc, argv, "afhi1nprstvzTS", opts, NULL)) != -1)
-+	while ((c = getopt_long(argc, argv, "afhil1npstvzTS", opts, NULL)) != -1)
- 	switch(c) {
- 		case '1':
- 			show_single_ref = 1;
-@@ -881,10 +887,10 @@ int main(int argc, char *argv[])
- 		case 'n':
- 			show_numa = 1;
- 			break;
--		case 'r':
-+		case 's':
- 			shrink = 1;
- 			break;
--		case 's':
-+		case 'l':
- 			show_slab = 1;
- 			break;
- 		case 't':
+ int __init setup_vmstat(void)
+ {
++	int cpu;
++
+ 	refresh_zone_stat_thresholds();
+ 	register_cpu_notifier(&vmstat_notifier);
++
++	for_each_online_cpu(cpu)
++		start_cpu_timer(cpu);
+ 	return 0;
+ }
+ module_init(setup_vmstat)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -248,5 +242,5 @@ slub-i386-support.patch
 slab-shutdown-cache_reaper-when-cpu-goes-down.patch
 mm-implement-swap-prefetching.patch
 revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-readahead-state-based-method-aging-accounting.patch
 vmstat-use-our-own-timer-events.patch
+readahead-state-based-method-aging-accounting.patch
