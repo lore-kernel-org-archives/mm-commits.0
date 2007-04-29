@@ -1,93 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - sata_nv-add-back-some-verbosity-into-adma-error_handler.patch removed from -mm tree
-Date: Sat, 28 Apr 2007 14:18:36 -0700
-Message-ID: <200704282118.l3SLIbrm029766@shell0.pdx.osdl.net>
+Subject: - asus_acpi-invert-read-of-wled-proc-file-to-show-correct.patch removed from -mm tree
+Date: Sat, 28 Apr 2007 20:32:25 -0700
+Message-ID: <200704290332.l3T3WPsU007662@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58121 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753170AbXD1VSo (ORCPT
+	by vger.kernel.org with ESMTP id S1754518AbXD2Dca (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 28 Apr 2007 17:18:44 -0400
+	Sat, 28 Apr 2007 23:32:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: bcollins@ubuntu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_nv: add back some verbosity into ADMA error_handler
+     asus_acpi: Invert read of wled proc file to show correct state of LED
 has been removed from the -mm tree.  Its filename was
-     sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+     asus_acpi-invert-read-of-wled-proc-file-to-show-correct.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: sata_nv: add back some verbosity into ADMA error_handler
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: asus_acpi: Invert read of wled proc file to show correct state of LED
+From: Ben Collins <bcollins@ubuntu.com>
 
-Some debug output in the ADMA error_handler function was removed recently,
-but it may be useful in certain cases, like NCQ commands timing out.  Add
-it back in, but make it a bit more intelligent so that it only prints if
-command(s) are active and only prints the CPBs for those commands.  That
-way it won't spew at inappropriate times like suspend/resume.
+User with this equipment stated that writes to this file worked correctly,
+but that reads were showing inverted state (1 for off, 0 for on). 
+Following the same style for reads, introduced an invert flag to read_led,
+and used it for wled.
 
-[akpm@osdl.org: cleanup]
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+See http://bugzilla.ubuntu.com/show_bug.cgi?id=10770
+
+Signed-off-by: Ben Collins <bcollins@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |   31 +++++++++++++++++++++++++++++--
- 1 file changed, 29 insertions(+), 2 deletions(-)
+ drivers/acpi/asus_acpi.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/ata/sata_nv.c~sata_nv-add-back-some-verbosity-into-adma-error_handler drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~sata_nv-add-back-some-verbosity-into-adma-error_handler
-+++ a/drivers/ata/sata_nv.c
-@@ -1455,11 +1455,38 @@ static void nv_adma_error_handler(struct
- 			}
- 		}
+diff -puN drivers/acpi/asus_acpi.c~asus_acpi-invert-read-of-wled-proc-file-to-show-correct drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~asus_acpi-invert-read-of-wled-proc-file-to-show-correct
++++ a/drivers/acpi/asus_acpi.c
+@@ -558,13 +558,13 @@ proc_read_info(char *page, char **start,
+  */
  
-+		if (ata_tag_valid(ap->active_tag) || ap->sactive) {
-+			u32 notifier = readl(mmio + NV_ADMA_NOTIFIER);
-+			u32 notifier_error = readl(mmio + NV_ADMA_NOTIFIER_ERROR);
-+			u32 gen_ctl = readl(pp->gen_block + NV_ADMA_GEN_CTL);
-+			u32 status = readw(mmio + NV_ADMA_STAT);
-+
-+			ata_port_printk(ap, KERN_ERR, "EH in ADMA mode, "
-+				"notifier 0x%X notifier_error 0x%X gen_ctl "
-+				"0x%X status 0x%X\n",
-+				notifier, notifier_error, gen_ctl, status);
-+
-+			for (i = 0; i < NV_ADMA_MAX_CPBS; i++) {
-+				struct nv_adma_cpb *cpb = &pp->cpb[i];
-+				if ((ata_tag_valid(ap->active_tag) &&
-+						i == ap->active_tag) ||
-+						ap->sactive & (1 << i))
-+					ata_port_printk(ap, KERN_ERR, "CPB %d: "
-+						"ctl_flags 0x%x, resp_flags "
-+						"0x%x\n",
-+						i, cpb->ctl_flags,
-+						cpb->resp_flags);
-+			}
-+		}
-+
- 		/* Push us back into port register mode for error handling. */
- 		nv_adma_register_mode(ap);
+ /* Generic LED functions */
+-static int read_led(const char *ledname, int ledmask)
++static int read_led(const char *ledname, int ledmask, int invert)
+ {
+ 	if (ledname) {
+ 		int led_status;
  
--		/* Mark all of the CPBs as invalid to prevent them from being executed */
--		for( i=0;i<NV_ADMA_MAX_CPBS;i++)
-+		/*
-+		 * Mark all of the CPBs as invalid to prevent them from being
-+		 * executed
-+		*/
-+		for (i = 0; i< NV_ADMA_MAX_CPBS; i++)
- 			pp->cpb[i].ctl_flags &= ~NV_CPB_CTL_CPB_VALID;
+ 		if (read_acpi_int(NULL, ledname, &led_status))
+-			return led_status;
++			return (invert) ? !led_status : led_status;
+ 		else
+ 			printk(KERN_WARNING "Asus ACPI: Error reading LED "
+ 			       "status\n");
+@@ -620,7 +620,7 @@ proc_read_mled(char *page, char **start,
+ 	       void *data)
+ {
+ 	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->mled_status, MLED_ON));
++		       read_led(hotk->methods->mled_status, MLED_ON, 0));
+ }
  
- 		/* clear CPB fetch count */
+ static int
+@@ -666,7 +666,7 @@ proc_read_wled(char *page, char **start,
+ 	       void *data)
+ {
+ 	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->wled_status, WLED_ON));
++		       read_led(hotk->methods->wled_status, WLED_ON, 1));
+ }
+ 
+ static int
+@@ -683,7 +683,8 @@ static int
+ proc_read_bluetooth(char *page, char **start, off_t off, int count, int *eof,
+ 		    void *data)
+ {
+-	return sprintf(page, "%d\n", read_led(hotk->methods->bt_status, BT_ON));
++	return sprintf(page, "%d\n",
++		read_led(hotk->methods->bt_status, BT_ON, 0));
+ }
+ 
+ static int
+@@ -703,7 +704,7 @@ proc_read_tled(char *page, char **start,
+ 	       void *data)
+ {
+ 	return sprintf(page, "%d\n",
+-		       read_led(hotk->methods->tled_status, TLED_ON));
++		       read_led(hotk->methods->tled_status, TLED_ON, 0));
+ }
+ 
+ static int
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from bcollins@ubuntu.com are
 
-git-libata-all.patch
-sata_nv-add-back-some-verbosity-into-adma-error_handler.patch
+asus_acpi-invert-read-of-wled-proc-file-to-show-correct.patch
