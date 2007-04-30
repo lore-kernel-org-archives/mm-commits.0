@@ -1,51 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - dtlk-fix-error-checks-in-module_init-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:10:38 -0700
-Message-ID: <200704302010.l3UKAcPK013859@shell0.pdx.osdl.net>
+Subject: - document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:12:57 -0700
+Message-ID: <200704302012.l3UKCwJv013891@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43870 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423636AbXD3UKr (ORCPT
+	by vger.kernel.org with ESMTP id S1423668AbXD3UNJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:10:47 -0400
+	Mon, 30 Apr 2007 16:13:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, akinobu.mita@gmail.com, chris@allmedia.com, jrv@vanzandt.mv.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, michael@ellerman.id.au, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dtlk-fix-error-checks-in-module_init-fix
+     document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix
 has been removed from the -mm tree.  Its filename was
-     dtlk-fix-error-checks-in-module_init-fix.patch
+     document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
 
-This patch was dropped because it was folded into dtlk-fix-error-checks-in-module_init.patch
+This patch was dropped because it was folded into document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
 
 ------------------------------------------------------
-Subject: dtlk-fix-error-checks-in-module_init-fix
+Subject: document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Chris Pallotta <chris@allmedia.com>
-Cc: Jim Van Zandt <jrv@vanzandt.mv.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Michael Ellerman <michael@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/dtlk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/spinlock_types.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/dtlk.c~dtlk-fix-error-checks-in-module_init-fix drivers/char/dtlk.c
---- a/drivers/char/dtlk.c~dtlk-fix-error-checks-in-module_init-fix
-+++ a/drivers/char/dtlk.c
-@@ -332,7 +332,7 @@ static int __init dtlk_init(void)
- 	dtlk_major = register_chrdev(0, "dtlk", &dtlk_fops);
- 	if (dtlk_major < 0) {
- 		printk(KERN_ERR "DoubleTalk PC - cannot register device\n");
--		return -EBUSY;
-+		return dtlk_major;
- 	}
- 	err = dtlk_dev_probe();
- 	if (err) {
+diff -puN include/linux/spinlock_types.h~document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix include/linux/spinlock_types.h
+--- a/include/linux/spinlock_types.h~document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix
++++ a/include/linux/spinlock_types.h
+@@ -86,7 +86,8 @@ typedef struct {
+ #endif
+ 
+ /*
+- * SPIN_LOCK_UNLOCKED and RW_LOCK_UNLOCKED are deprecated.
++ * SPIN_LOCK_UNLOCKED and RW_LOCK_UNLOCKED defeat lockdep state tracking and
++ * are hence deprecated.
+  * Please use DEFINE_SPINLOCK()/DEFINE_RWLOCK() or
+  * __SPIN_LOCK_UNLOCKED()/__RW_LOCK_UNLOCKED() as appropriate.
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,7 +144,7 @@ display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
 enhance-initcall_debug-measure-latency.patch
 expose-range-checking-functions-from-arch-specific.patch
 dtlk-fix-error-checks-in-module_init.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
 document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
 upper-32-bits.patch
 driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
