@@ -1,126 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - sched-consolidate-sched_clock-drift-adjustments.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 11:48:22 -0700
-Message-ID: <200704301848.l3UImM6f011825@shell0.pdx.osdl.net>
+Subject: - sched-consolidate-sched_clock-drift-adjustments-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 11:48:26 -0700
+Message-ID: <200704301848.l3UImQef011831@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46147 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946612AbXD3Ssq (ORCPT
+	by vger.kernel.org with ESMTP id S1946611AbXD3Ssv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 14:48:46 -0400
+	Mon, 30 Apr 2007 14:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, kernel@kolivas.org, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwalker@mvista.com, kernel@kolivas.org, mingo@elte.hu, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: consolidate sched_clock drift adjustments
+     sched-consolidate-sched_clock-drift-adjustments-fix
 has been removed from the -mm tree.  Its filename was
-     sched-consolidate-sched_clock-drift-adjustments.patch
+     sched-consolidate-sched_clock-drift-adjustments-fix.patch
 
 This patch was dropped because I need to clear the decks
 
 ------------------------------------------------------
-Subject: sched: consolidate sched_clock drift adjustments
-From: Daniel Walker <dwalker@mvista.com>
+Subject: sched-consolidate-sched_clock-drift-adjustments-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-No functional changes ..
-
-I created sched_clock_drift_adjust() which holds similar code from I also
-added an explicit ifdef on CONFIG_SMP, the comments seemed to suggest it
-wasn't needed, but it can't hurt to make it explicit.
-
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Con Kolivas <kernel@kolivas.org>
+Cc: Daniel Walker <dwalker@mvista.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Con Kolivas <kernel@kolivas.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   34 +++++++++++++++++++++++++---------
- 1 file changed, 25 insertions(+), 9 deletions(-)
+ kernel/sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~sched-consolidate-sched_clock-drift-adjustments kernel/sched.c
---- a/kernel/sched.c~sched-consolidate-sched_clock-drift-adjustments
+diff -puN kernel/sched.c~sched-consolidate-sched_clock-drift-adjustments-fix kernel/sched.c
+--- a/kernel/sched.c~sched-consolidate-sched_clock-drift-adjustments-fix
 +++ a/kernel/sched.c
-@@ -666,6 +666,23 @@ sched_info_switch(struct task_struct *pr
- #define sched_info_switch(t, next)	do { } while (0)
- #endif /* CONFIG_SCHEDSTATS || CONFIG_TASK_DELAY_ACCT */
- 
-+#ifdef CONFIG_SMP
-+static inline unsigned long long
-+sched_clock_drift_adjust(unsigned long long timestamp, struct rq *from,
-+			 struct rq *to)
-+{
-+	return (timestamp - from->most_recent_timestamp)
-+		+ to->most_recent_timestamp;
-+}
-+#else
-+static inline unsigned long long
-+sched_clock_drift_adjust(unsigned long long timestamp, struct rq *from,
-+			 struct rq *to)
-+{
-+	return timestamp
-+}
-+#endif
-+
- static inline int task_queued(struct task_struct *task)
+@@ -679,7 +679,7 @@ static inline unsigned long long
+ sched_clock_drift_adjust(unsigned long long timestamp, struct rq *from,
+ 			 struct rq *to)
  {
- 	return !list_empty(&task->run_list);
-@@ -1044,10 +1061,10 @@ static void activate_task(struct task_st
- 
- #ifdef CONFIG_SMP
- 	if (!local) {
--		/* Compensate for drifting sched_clock */
- 		struct rq *this_rq = this_rq();
--		now = (now - this_rq->most_recent_timestamp)
--			+ rq->most_recent_timestamp;
-+
-+		/* Compensate for drifting sched_clock */
-+		now = sched_clock_drift_adjust(now, this_rq, rq);
- 	}
+-	return timestamp
++	return timestamp;
+ }
  #endif
  
-@@ -1775,8 +1792,8 @@ void fastcall wake_up_new_task(struct ta
- 		 * Not the local CPU - must adjust timestamp. This should
- 		 * get optimised away in the !CONFIG_SMP case.
- 		 */
--		p->timestamp = (p->timestamp - this_rq->most_recent_timestamp)
--					+ rq->most_recent_timestamp;
-+		p->timestamp =
-+			sched_clock_drift_adjust(p->timestamp, this_rq, rq);
- 		activate_task(p, rq, 0);
- 		try_preempt(p, rq);
- 
-@@ -2151,8 +2168,7 @@ static void pull_task(struct rq *src_rq,
- 	set_task_cpu(p, this_cpu);
- 	inc_nr_running(p, this_rq);
- 	enqueue_task(p, this_rq);
--	p->timestamp = (p->timestamp - src_rq->most_recent_timestamp)
--				+ this_rq->most_recent_timestamp;
-+	p->timestamp = sched_clock_drift_adjust(p->timestamp, src_rq, this_rq);
- 	try_preempt(p, this_rq);
- }
- 
-@@ -5086,8 +5102,8 @@ static int __migrate_task(struct task_st
- 		 * afterwards, and pretending it was a local activate.
- 		 * This way is cleaner and logically correct.
- 		 */
--		p->timestamp = p->timestamp - rq_src->most_recent_timestamp
--				+ rq_dest->most_recent_timestamp;
-+		p->timestamp =
-+			sched_clock_drift_adjust(p->timestamp, rq_src, rq_dest);
- 		deactivate_task(p, rq_src);
- 		__activate_task(p, rq_dest);
- 		try_preempt(p, rq_dest);
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+zlib-backout.patch
+extend-print_symbol-capability.patch
+add-kvasprintf.patch
+add-kvasprintf-fix.patch
+slab-introduce-krealloc.patch
 git-acpi.patch
-sched-consolidate-sched_clock-drift-adjustments.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+ida-implement-idr-based-id-allocator-fix.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-fixup.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-jfs.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-netdev-all.patch
+ne-add-platform_driver-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-__inquire_remote_apic-printk-warning-fix.patch
+xfs-clean-up-shrinker-games.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+slub-enable-tracking-of-full-slabs-fix.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-user-documentation-fix.patch
+mm-optimize-kill_bdev-fix.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+driver_bfin_serial_core-update.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
 sched-consolidate-sched_clock-drift-adjustments-fix.patch
-slim-make-and-config-stuff.patch
-profile-likely-unlikely-macros.patch
+utimensat-implementation-fix.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
