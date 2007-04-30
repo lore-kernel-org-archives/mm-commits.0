@@ -1,111 +1,306 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-using-asm-generic-pgtable-header-file-by.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:10:33 -0700
-Message-ID: <200704301910.l3UJAXhi012431@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-sync-with-uclibc-no-functional-changes.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:10:30 -0700
+Message-ID: <200704301910.l3UJAUs0012426@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46828 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946672AbXD3TKi (ORCPT
+	by vger.kernel.org with ESMTP id S1946671AbXD3TKh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:10:38 -0400
+	Mon, 30 Apr 2007 15:10:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin arch: using asm-generic pgtable header file by adding PAGE access macros based on CPLB management
+     Blackfin arch: sync with uClibc no functional changes
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
+     blackfin-arch-sync-with-uclibc-no-functional-changes.patch
 
 This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: Blackfin arch: using asm-generic pgtable header file by adding PAGE access macros based on CPLB management
+Subject: Blackfin arch: sync with uClibc no functional changes
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-blackfin/pgtable.h |   44 ++++++++++++++++++++++++-------
- 1 files changed, 35 insertions(+), 9 deletions(-)
+ arch/blackfin/lib/memchr.S  |   31 ++++++++++++++--------
+ arch/blackfin/lib/memcmp.S  |   46 +++++++++++++++++-----------------
+ arch/blackfin/lib/memcpy.S  |   24 +++++++++++------
+ arch/blackfin/lib/memmove.S |   12 +++++---
+ arch/blackfin/lib/memset.S  |    2 +
+ 5 files changed, 68 insertions(+), 47 deletions(-)
 
-diff -puN include/asm-blackfin/pgtable.h~blackfin-arch-using-asm-generic-pgtable-header-file-by include/asm-blackfin/pgtable.h
---- a/include/asm-blackfin/pgtable.h~blackfin-arch-using-asm-generic-pgtable-header-file-by
-+++ a/include/asm-blackfin/pgtable.h
-@@ -3,7 +3,8 @@
+diff -puN arch/blackfin/lib/memchr.S~blackfin-arch-sync-with-uclibc-no-functional-changes arch/blackfin/lib/memchr.S
+--- a/arch/blackfin/lib/memchr.S~blackfin-arch-sync-with-uclibc-no-functional-changes
++++ a/arch/blackfin/lib/memchr.S
+@@ -29,24 +29,27 @@
  
- #include <asm-generic/4level-fixup.h>
+ #include <linux/linkage.h>
  
--#include <asm/setup.h>
-+#include <asm/page.h>
-+#include <asm/cplb.h>
- 
- typedef pte_t *pte_addr_t;
- /*
-@@ -14,7 +15,12 @@ typedef pte_t *pte_addr_t;
- #define pgd_bad(pgd)		(0)
- #define pgd_clear(pgdp)
- #define kern_addr_valid(addr)	(1)
--#define	pmd_offset(a, b)	((void *)0)
-+
-+#define pmd_offset(a, b)	((void *)0)
-+#define pmd_none(x)		(!pmd_val(x))
-+#define pmd_present(x)		(pmd_val(x))
-+#define pmd_clear(xp)		do { set_pmd(xp, __pmd(0)); } while (0)
-+#define pmd_bad(x)		(pmd_val(x) & ~PAGE_MASK)
- 
- #define kern_addr_valid(addr) (1)
- 
-@@ -37,6 +43,32 @@ static inline int pte_file(pte_t pte)
- 	return 0;
- }
- 
-+#define set_pte(pteptr, pteval) (*(pteptr) = pteval)
-+#define set_pte_at(mm, addr, ptep, pteval) set_pte(ptep, pteval)
-+
-+/*
-+ * Page assess control based on Blackfin CPLB management
-+ */
-+#define _PAGE_RD	(CPLB_USER_RD)
-+#define _PAGE_WR	(CPLB_USER_WR)
-+#define _PAGE_USER	(CPLB_USER_RD | CPLB_USER_WR)
-+#define _PAGE_ACCESSED	CPLB_ALL_ACCESS
-+#define _PAGE_DIRTY	(CPLB_DIRTY)
-+
-+#define PTE_BIT_FUNC(fn, op) \
-+	static inline pte_t pte_##fn(pte_t _pte) { _pte.pte op; return _pte; }
-+
-+PTE_BIT_FUNC(rdprotect, &= ~_PAGE_RD);
-+PTE_BIT_FUNC(mkread, |= _PAGE_RD);
-+PTE_BIT_FUNC(wrprotect, &= ~_PAGE_WR);
-+PTE_BIT_FUNC(mkwrite, |= _PAGE_WR);
-+PTE_BIT_FUNC(exprotect, &= ~_PAGE_USER);
-+PTE_BIT_FUNC(mkexec, |= _PAGE_USER);
-+PTE_BIT_FUNC(mkclean, &= ~_PAGE_DIRTY);
-+PTE_BIT_FUNC(mkdirty, |= _PAGE_DIRTY);
-+PTE_BIT_FUNC(mkold, &= ~_PAGE_ACCESSED);
-+PTE_BIT_FUNC(mkyoung, |= _PAGE_ACCESSED);
-+
- /*
-  * ZERO_PAGE is a global shared page that is always zero: used
-  * for zero-mapped memory areas etc..
-@@ -59,12 +91,6 @@ extern unsigned int kobjsize(const void 
- #define	VMALLOC_START	0
- #define	VMALLOC_END	0xffffffff
- 
--#define  __HAVE_ARCH_ENTER_LAZY_CPU_MODE
--#define arch_enter_lazy_cpu_mode()	do {} while (0)
--#define arch_leave_lazy_cpu_mode()	do {} while (0)
+-.align 2
 -
--#define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
--#define arch_enter_lazy_mmu_mode()	do {} while (0)
--#define arch_leave_lazy_mmu_mode()	do {} while (0)
-+#include <asm-generic/pgtable.h>
+-/*
+- * C Library function MEMCHR
+- * R0 = address
+- * R1 = sought byte
+- * R2 = count
++/* void *memchr(const void *s, int c, size_t n);
++ * R0 = address (s)
++ * R1 = sought byte (c)
++ * R2 = count (n)
++ *
+  * Returns pointer to located character.
+  */
  
- #endif				/* _BLACKFIN_PGTABLE_H */
++.text
++
++.align 2
++
+ ENTRY(_memchr)
+-	P0 = R0 ;             /* P0 = address */
+-	P2 = R2 ;             /* P2 = count */
++	P0 = R0;		/* P0 = address */
++	P2 = R2;		/* P2 = count */
+ 	R1 = R1.B(Z);
+ 	CC = R2 == 0;
+ 	IF CC JUMP .Lfailed;
+ 
+-.Lbytes: LSETUP (.Lbyte_loop_s , .Lbyte_loop_e) LC0=P2;
++.Lbytes:
++	LSETUP (.Lbyte_loop_s, .Lbyte_loop_e) LC0=P2;
+ 
+ .Lbyte_loop_s:
+ 	R3 = B[P0++](Z);
+@@ -55,9 +58,13 @@ ENTRY(_memchr)
+ .Lbyte_loop_e:
+ 	NOP;
+ 
+-.Lfailed: R0=0;
++.Lfailed:
++	R0=0;
+ 	RTS;
+ 
+-.Lfound: R0 = P0;
++.Lfound:
++	R0 = P0;
+ 	R0 += -1;
+ 	RTS;
++
++.size _memchr,.-_memchr
+diff -puN arch/blackfin/lib/memcmp.S~blackfin-arch-sync-with-uclibc-no-functional-changes arch/blackfin/lib/memcmp.S
+--- a/arch/blackfin/lib/memcmp.S~blackfin-arch-sync-with-uclibc-no-functional-changes
++++ a/arch/blackfin/lib/memcmp.S
+@@ -29,39 +29,39 @@
+ 
+ #include <linux/linkage.h>
+ 
+-.align 2
+-
+-/*
+- * C Library function MEMCMP
+- * R0 = First Address
+- * R1 = Second Address
+- * R2 = count
++/* int memcmp(const void *s1, const void *s2, size_t n);
++ * R0 = First Address (s1)
++ * R1 = Second Address (s2)
++ * R2 = count (n)
++ *
+  * Favours word aligned data.
+  */
+ 
++.text
++
++.align 2
++
+ ENTRY(_memcmp)
+ 	I1 = P3;
+ 	P0 = R0;			/* P0 = s1 address */
+ 	P3 = R1;			/* P3 = s2 Address  */
+ 	P2 = R2 ;			/* P2 = count */
+ 	CC = R2 <= 7(IU);
+-	IF CC JUMP  .Ltoo_small;
++	IF CC JUMP .Ltoo_small;
+ 	I0 = R1;			/* s2 */
+ 	R1 = R1 | R0;		/* OR addresses together */
+ 	R1 <<= 30;		/* check bottom two bits */
+ 	CC =  AZ;			/* AZ set if zero. */
+-	IF !CC JUMP  .Lbytes ;	/* Jump if addrs not aligned. */
++	IF !CC JUMP .Lbytes ;	/* Jump if addrs not aligned. */
+ 
+ 	P1 = P2 >> 2;		/* count = n/4 */
+ 	R3 =  3;
+ 	R2 = R2 & R3;		/* remainder */
+ 	P2 = R2;			/* set remainder */
+ 
+-	LSETUP (.Lquad_loop_s , .Lquad_loop_e) LC0=P1;
++	LSETUP (.Lquad_loop_s, .Lquad_loop_e) LC0=P1;
+ .Lquad_loop_s:
+-	NOP;
+-	R0 = [P0++];
+-	R1 = [I0++];
++	MNOP || R0 = [P0++] || R1 = [I0++];
+ 	CC = R0 == R1;
+ 	IF !CC JUMP .Lquad_different;
+ .Lquad_loop_e:
+@@ -73,7 +73,7 @@ ENTRY(_memcmp)
+ 	IF CC JUMP .Lfinished;	/* very unlikely*/
+ 
+ .Lbytes:
+-	LSETUP (.Lbyte_loop_s , .Lbyte_loop_e) LC0=P2;
++	LSETUP (.Lbyte_loop_s, .Lbyte_loop_e) LC0=P2;
+ .Lbyte_loop_s:
+ 	R1 = B[P3++](Z);	/* *s2 */
+ 	R0 = B[P0++](Z);	/* *s1 */
+@@ -88,14 +88,14 @@ ENTRY(_memcmp)
+ 	RTS;
+ 
+ .Lquad_different:
+-/* We've read two quads which don't match.
+- * Can't just compare them, because we're
+- * a little-endian machine, so the MSBs of
+- * the regs occur at later addresses in the
+- * string.
+- * Arrange to re-read those two quads again,
+- * byte-by-byte.
+- */
++	/* We've read two quads which don't match.
++	 * Can't just compare them, because we're
++	 * a little-endian machine, so the MSBs of
++	 * the regs occur at later addresses in the
++	 * string.
++	 * Arrange to re-read those two quads again,
++	 * byte-by-byte.
++	 */
+ 	P0 += -4;		/* back up to the start of the */
+ 	P3 = I0;		/* quads, and increase the*/
+ 	P2 += 4;		/* remainder count*/
+@@ -106,3 +106,5 @@ ENTRY(_memcmp)
+ 	R0 = 0;
+ 	P3 = I1;
+ 	RTS;
++
++.size _memcmp,.-_memcmp
+diff -puN arch/blackfin/lib/memcpy.S~blackfin-arch-sync-with-uclibc-no-functional-changes arch/blackfin/lib/memcpy.S
+--- a/arch/blackfin/lib/memcpy.S~blackfin-arch-sync-with-uclibc-no-functional-changes
++++ a/arch/blackfin/lib/memcpy.S
+@@ -35,6 +35,14 @@
+ 
+ #include <linux/linkage.h>
+ 
++/* void *memcpy(void *dest, const void *src, size_t n);
++ * R0 = To Address (dest) (leave unchanged to form result)
++ * R1 = From Address (src)
++ * R2 = count
++ *
++ * Note: Favours word alignment
++ */
++
+ #ifdef CONFIG_MEMCPY_L1
+ .section .l1.text
+ #else
+@@ -44,8 +52,8 @@
+ .align 2
+ 
+ ENTRY(_memcpy)
+-	CC = R2 <=  0;	/* length not positive?*/
+-	IF CC JUMP  .L_P1L2147483647;	/* Nothing to do */
++	CC = R2 <=  0;	/* length not positive? */
++	IF CC JUMP .L_P1L2147483647;	/* Nothing to do */
+ 
+ 	P0 = R0 ;	/* dst*/
+ 	P1 = R1 ;	/* src*/
+@@ -104,7 +112,7 @@ ENTRY(_memcpy)
+ .Lbytes_left:	P2 = R3;
+ .Lnot_aligned:
+ 	/* From here, we're copying byte-by-byte. */
+-	LSETUP (.Lbyte_start , .Lbyte_end) LC0=P2;
++	LSETUP (.Lbyte_start, .Lbyte_end) LC0=P2;
+ 	R0 = R1;	/* Save src address for return */
+ .Lbyte_start:
+ 	R1 = B[P1++] (X);
+@@ -115,11 +123,11 @@ ENTRY(_memcpy)
+ 	RTS;
+ 
+ .Lhas_overlap:
+-/* Need to reverse the copying, because the
+- * dst would clobber the src.
+- * Don't bother to work out alignment for
+- * the reverse case.
+- */
++	/* Need to reverse the copying, because the
++	 * dst would clobber the src.
++	 * Don't bother to work out alignment for
++	 * the reverse case.
++	 */
+ 	R0 = R1;	/* save src for later. */
+ 	P0 = P0 + P2;
+ 	P0 += -1;
+diff -puN arch/blackfin/lib/memmove.S~blackfin-arch-sync-with-uclibc-no-functional-changes arch/blackfin/lib/memmove.S
+--- a/arch/blackfin/lib/memmove.S~blackfin-arch-sync-with-uclibc-no-functional-changes
++++ a/arch/blackfin/lib/memmove.S
+@@ -43,7 +43,7 @@ ENTRY(_memmove)
+ 	I1 = P3;
+ 	P0 = R0;                  /* P0 = To address */
+ 	P3 = R1;                  /* P3 = From Address */
+-	P2 = R2 ;                 /* P2 = count */
++	P2 = R2;                  /* P2 = count */
+ 	CC = P2 == 0;             /* Check zero count*/
+ 	IF CC JUMP .Lfinished;    /* very unlikely */
+ 
+@@ -55,11 +55,11 @@ ENTRY(_memmove)
+ .Lno_overlap:
+ 	R3 = 11;
+ 	CC = R2 <= R3;
+-	IF CC JUMP  .Lbytes;
++	IF CC JUMP .Lbytes;
+ 	R3 = R1 | R0;             /* OR addresses together */
+ 	R3 <<= 30;                /* check bottom two bits */
+ 	CC =  AZ;                 /* AZ set if zero.*/
+-	IF !CC JUMP  .Lbytes ;    /* Jump if addrs not aligned.*/
++	IF !CC JUMP .Lbytes;      /* Jump if addrs not aligned.*/
+ 
+ 	I0 = P3;
+ 	P1 = P2 >> 2;             /* count = n/4 */
+@@ -69,7 +69,7 @@ ENTRY(_memmove)
+ 	P2 = R2;                  /* set remainder */
+ 	R1 = [I0++];
+ 
+-	LSETUP (.Lquad_loop , .Lquad_loop) LC0=P1;
++	LSETUP (.Lquad_loop, .Lquad_loop) LC0=P1;
+ .Lquad_loop: MNOP || [P0++] = R1 || R1 = [I0++];
+ 	[P0++] = R1;
+ 
+@@ -79,7 +79,7 @@ ENTRY(_memmove)
+ 	P3 = I1;
+ 	RTS;
+ 
+-.Lbytes:     LSETUP (.Lbyte2_s , .Lbyte2_e) LC0=P2;
++.Lbytes:     LSETUP (.Lbyte2_s, .Lbyte2_e) LC0=P2;
+ .Lbyte2_s:   R1 = B[P3++](Z);
+ .Lbyte2_e:   B[P0++] = R1;
+ 
+@@ -99,3 +99,5 @@ ENTRY(_memmove)
+ .Lno_loop: B[P0] = R1;
+ 	P3 = I1;
+ 	RTS;
++
++.size _memmove,.-_memmove
+diff -puN arch/blackfin/lib/memset.S~blackfin-arch-sync-with-uclibc-no-functional-changes arch/blackfin/lib/memset.S
+--- a/arch/blackfin/lib/memset.S~blackfin-arch-sync-with-uclibc-no-functional-changes
++++ a/arch/blackfin/lib/memset.S
+@@ -105,3 +105,5 @@ ENTRY(_memset)
+ 	B[P0++] = R1;
+ 	B[P0++] = R1;
+ 	JUMP .Laligned;
++
++.size _memset,.-_memset
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -113,6 +308,7 @@ Patches currently in -mm which might be from bryan.wu@analog.com are
 origin.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
+blackfin-arch-sync-with-uclibc-no-functional-changes.patch
 blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
 blackfin-arch-add-missing-__clear_user-function-to.patch
 blackfin-arch-use-boot_command_line-instead-of.patch
