@@ -1,72 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - ignore-stolen-time-in-the-softlockup-watchdog-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:02:15 -0700
-Message-ID: <200704302002.l3UK2FNh013654@shell0.pdx.osdl.net>
+Subject: - fix-kevents-childs-priority-greediness-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:03:03 -0700
+Message-ID: <200704302003.l3UK34KJ013673@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35226 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423564AbXD3UED (ORCPT
+	by vger.kernel.org with ESMTP id S1423565AbXD3UEN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:04:03 -0400
+	Mon, 30 Apr 2007 16:04:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clalance@redhat.com, dada1@cosmosbay.com, dhecht@vmware.com, jeremy@goop.org, jmorris@namei.org, johnstul@us.ibm.com, mingo@elte.hu, paulus@samba.org, prarit@redhat.com, ricklind@us.ibm.com, schwidefsky@de.ibm.com, tglx@linutronix.de, zach@vmware.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chrisw@sous-sol.org, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ignore-stolen-time-in-the-softlockup-watchdog-fix
+     fix-kevents-childs-priority-greediness fix
 has been removed from the -mm tree.  Its filename was
-     ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+     fix-kevents-childs-priority-greediness-fix.patch
 
-This patch was dropped because it was folded into ignore-stolen-time-in-the-softlockup-watchdog.patch
+This patch was dropped because it was folded into fix-kevents-childs-priority-greediness.patch
 
 ------------------------------------------------------
-Subject: ignore-stolen-time-in-the-softlockup-watchdog-fix
+Subject: fix-kevents-childs-priority-greediness fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Avoid reevaluating smp_processor_id()
-
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Zachary Amsden <zach@vmware.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Dan Hecht <dhecht@vmware.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Chris Lalancette <clalance@redhat.com>
-Cc: Rick Lindsley <ricklind@us.ibm.com>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/kmod.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog-fix kernel/softlockup.c
---- a/kernel/softlockup.c~ignore-stolen-time-in-the-softlockup-watchdog-fix
-+++ a/kernel/softlockup.c
-@@ -57,7 +57,7 @@ EXPORT_SYMBOL(touch_softlockup_watchdog)
- void softlockup_tick(void)
- {
- 	int this_cpu = smp_processor_id();
--	unsigned long touch_timestamp = __get_cpu_var(touch_timestamp);
-+	unsigned long touch_timestamp = per_cpu(touch_timestamp, this_cpu);
- 	unsigned long print_timestamp;
- 	unsigned long now;
+diff -puN kernel/kmod.c~fix-kevents-childs-priority-greediness-fix kernel/kmod.c
+--- a/kernel/kmod.c~fix-kevents-childs-priority-greediness-fix
++++ a/kernel/kmod.c
+@@ -164,6 +164,11 @@ static int ____call_usermodehelper(void 
  
-@@ -65,7 +65,7 @@ void softlockup_tick(void)
- 	if (touch_timestamp == 0)
- 		return;
+ 	/* We can run anywhere, unlike our parent keventd(). */
+ 	set_cpus_allowed(current, CPU_MASK_ALL);
++
++	/*
++	 * Our parent is keventd, which runs with elevated scheduling priority.
++	 * Avoid propagating that into the userspace child.
++	 */
+ 	set_user_nice(current, 0);
  
--	print_timestamp = __get_cpu_var(print_timestamp);
-+	print_timestamp = per_cpu(print_timestamp, this_cpu);
- 
- 	/* report at most once a second */
- 	if (print_timestamp < (touch_timestamp + 1) ||
+ 	retval = -EPERM;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -160,8 +141,7 @@ add-support-for-deferrable-timers-respun.patch
 linux-sysdevh-needs-to-include-linux-moduleh.patch
 time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness.patch
 fix-kevents-childs-priority-greediness-fix.patch
 display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
 enhance-initcall_debug-measure-latency-fix.patch
