@@ -1,45 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - signal-timer-event-fds-v9-eventfd-core-fix-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:33:14 -0700
-Message-ID: <200704302033.l3UKXEQY014360@shell0.pdx.osdl.net>
+Subject: - signal-timer-event-fds-v9-eventfd-core-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:33:11 -0700
+Message-ID: <200704302033.l3UKXBwL014357@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55278 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946803AbXD3UdQ (ORCPT
+	by vger.kernel.org with ESMTP id S1946790AbXD3UdO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:33:16 -0400
+	Mon, 30 Apr 2007 16:33:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal-timer-event-fds-v9-eventfd-core-fix-fix
+     signal-timer-event-fds-v9-eventfd-core fix
 has been removed from the -mm tree.  Its filename was
-     signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+     signal-timer-event-fds-v9-eventfd-core-fix.patch
 
 This patch was dropped because it was folded into signal-timer-event-fds-v9-eventfd-core.patch
 
 ------------------------------------------------------
-Subject: signal-timer-event-fds-v9-eventfd-core-fix-fix
+Subject: signal-timer-event-fds-v9-eventfd-core fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+OK, breaking the i386 build was going a bit far.
 
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/eventfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sys_ni.c~signal-timer-event-fds-v9-eventfd-core-fix-fix kernel/sys_ni.c
---- a/kernel/sys_ni.c~signal-timer-event-fds-v9-eventfd-core-fix-fix
-+++ a/kernel/sys_ni.c
-@@ -146,3 +146,4 @@ cond_syscall(sys_ioprio_get);
- /* New file descriptors */
- cond_syscall(sys_signalfd);
- cond_syscall(sys_timerfd);
-+cond_syscall(sys_eventfd);
+diff -puN fs/eventfd.c~signal-timer-event-fds-v9-eventfd-core-fix fs/eventfd.c
+--- a/fs/eventfd.c~signal-timer-event-fds-v9-eventfd-core-fix
++++ a/fs/eventfd.c
+@@ -144,7 +144,7 @@ static ssize_t eventfd_write(struct file
+ 
+ 	if (count < sizeof(ucnt))
+ 		return -EINVAL;
+-	if (get_user(ucnt, (const __u64 __user *) buf))
++	if (copy_from_user(&ucnt, buf, sizeof(ucnt)))
+ 		return -EFAULT;
+ 	if (ucnt == ULLONG_MAX)
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,6 +163,7 @@ linux-kernel-markers-i386-optimization.patch
 signal-timer-event-fds-v9-signalfd-core.patch
 signal-timer-event-fds-v9-timerfd-core.patch
 signal-timer-event-fds-v9-eventfd-core.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 revoke-wire-up-i386-system-calls.patch
