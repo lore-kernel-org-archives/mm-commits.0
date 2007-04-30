@@ -1,59 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:35:03 -0700
-Message-ID: <200704302035.l3UKZ4sI014393@shell0.pdx.osdl.net>
+Subject: - git-powerpc-fixup.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 14:34:28 -0700
+Message-ID: <200704302134.l3ULYS3s015429@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52087 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946802AbXD3Uhc (ORCPT
+	by vger.kernel.org with ESMTP id S1423690AbXD3VfB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:37:32 -0400
+	Mon, 30 Apr 2007 17:35:01 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3ULYT4I032750
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2007 14:34:30 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, castet.matthieu@free.fr, jt@hpl.hp.com, kaos@ocs.com.au, lenb@kernel.org, mjg59@srcf.ucam.org, rmk+serial@arm.linux.org.uk, samuel@sortiz.org, syrjala@sci.fi, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-serial-convert-legacy-com-ports-to-platform-devices fix
+     git-powerpc-fixup
 has been removed from the -mm tree.  Its filename was
-     x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+     git-powerpc-fixup.patch
 
-This patch was dropped because it was folded into x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: x86-serial-convert-legacy-com-ports-to-platform-devices fix
+Subject: git-powerpc-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make[1]: *** No rule to make target `arch/x86_64/kernel/legacy_serial.c', needed by `arch/x86_64/kernel/legacy_serial.o'.  Stop.
-
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Keith Owens <kaos@ocs.com.au>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Matthieu CASTET <castet.matthieu@free.fr>
-Cc: Jean Tourrilhes <jt@hpl.hp.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Ville Syrjala <syrjala@sci.fi>
-Cc: Russell King <rmk+serial@arm.linux.org.uk>
-Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ sound/aoa/soundbus/core.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices-fix arch/x86_64/kernel/Makefile
---- a/arch/x86_64/kernel/Makefile~x86-serial-convert-legacy-com-ports-to-platform-devices-fix
-+++ a/arch/x86_64/kernel/Makefile
-@@ -51,6 +51,7 @@ CFLAGS_vsyscall.o		:= $(PROFILING) -g0
+diff -puN sound/aoa/soundbus/core.c~git-powerpc-fixup sound/aoa/soundbus/core.c
+--- a/sound/aoa/soundbus/core.c~git-powerpc-fixup
++++ a/sound/aoa/soundbus/core.c
+@@ -61,16 +61,10 @@ static int soundbus_uevent(struct device
+ {
+ 	struct soundbus_dev * soundbus_dev;
+ 	struct of_device * of;
+-<<<<<<< HEAD/sound/aoa/soundbus/core.c
+-	char *compat;
+-	int retval = 0, i = 0, length = 0;
+-	int cplen, seen = 0;
+-=======
+ 	char *scratch;
+ 	const char *compat;
+ 	int i = 0;
+ 	int length, cplen, seen = 0;
+->>>>>>> /sound/aoa/soundbus/core.c
  
- therm_throt-y                   += ../../i386/kernel/cpu/mcheck/therm_throt.o
- bootflag-y			+= ../../i386/kernel/bootflag.o
-+legacy_serial-y			+= ../../i386/kernel/legacy_serial.o
- cpuid-$(subst m,y,$(CONFIG_X86_CPUID))  += ../../i386/kernel/cpuid.o
- topology-y                     += ../../i386/kernel/topology.o
- microcode-$(subst m,y,$(CONFIG_MICROCODE))  += ../../i386/kernel/microcode.o
+ 	if (!dev)
+ 		return -ENODEV;
+@@ -98,11 +92,7 @@ static int soundbus_uevent(struct device
+ 	 * it's not really legal to split it out with commas. We split it
+ 	 * up using a number of environment variables instead. */
+ 
+-<<<<<<< HEAD/sound/aoa/soundbus/core.c
+-	compat = (char *) get_property(of->node, "compatible", &cplen);
+-=======
+ 	compat = of_get_property(of->node, "compatible", &cplen);
+->>>>>>> /sound/aoa/soundbus/core.c
+ 	while (compat && cplen > 0) {
+ 		int tmp = length;
+ 		retval = add_uevent_var(envp, num_envp, &i,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +81,8 @@ git-acpi.patch
 git-alsa.patch
 git-alsa-fixup.patch
 git-agpgart.patch
-git-powerpc.patch
+git-arm.patch
+git-avr32.patch
 git-powerpc-fixup.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
@@ -88,13 +102,11 @@ git-input.patch
 git-input-fixup.patch
 git-jfs.patch
 git-kvm.patch
-git-libata-all.patch
 ata-printk-warning-fixes.patch
 drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
 revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
 git-mmc-build-fix.patch
-git-netdev-all.patch
 ne-add-platform_driver-fix.patch
 git-e1000.patch
 git-e1000-fixup-2.patch
@@ -103,6 +115,7 @@ sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 git-ocfs2.patch
 git-parisc.patch
+git-r8169.patch
 rm9000-serial-driver.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
 git-pciseg.patch
@@ -112,6 +125,7 @@ git-sh-fixup.patch
 git-scsi-misc.patch
 scsi-fix-config_scsi_wait_scan=m.patch
 git-block-fixup.patch
+git-unionfs.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 i386-__inquire_remote_apic-printk-warning-fix.patch
 xfs-clean-up-shrinker-games.patch
@@ -174,7 +188,6 @@ signal-timer-event-fds-v9-eventfd-core.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
 revoke-wire-up-i386-system-calls.patch
 x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
 lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
 lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
 fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
