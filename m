@@ -1,267 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 14:44:59 -0700
-Message-ID: <200704302144.l3ULixVG015636@shell0.pdx.osdl.net>
+Subject: - pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 14:44:52 -0700
+Message-ID: <200704302144.l3ULiqJw015625@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35724 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946842AbXD3V6I (ORCPT
+	by vger.kernel.org with ESMTP id S1946844AbXD3V6L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 17:58:08 -0400
+	Mon, 30 Apr 2007 17:58:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vladislav.yasevich@hp.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCTP: fix sctp_getsockopt_local_addrs_old() to use local storage
+     pata_hpt3x2n: Add HPT371N support and other bits
 has been removed from the -mm tree.  Its filename was
-     sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+     pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SCTP: fix sctp_getsockopt_local_addrs_old() to use local storage
-From: Vlad Yasevich <vladislav.yasevich@hp.com>
+Subject: pata_hpt3x2n: Add HPT371N support and other bits
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-sctp_getsockopt_local_addrs_old() in net/sctp/socket.c calls copy_to_user()
-while the spinlock addr_lock is held.  This should not be done as
-copy_to_user() might sleep.  The call to sctp_copy_laddrs_to_user() while
-holding the lock is also problematic as it calls copy_to_user()
+Yes its no longer 3x2n but 3xxn, I can rename it if you want Jeff
 
-[akpm@linux-foundation.org: various fixes]
-Signed-off-by: Vlad Yasevich <vladislav.yasevich@hp.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+- Don't reset both ports each time (Sergei)
+- If we can't get a DPLL then abort entirely
+- Use ioport access for clock (from drivers/ide)
+- Add HPT371N support (from drivers/ide)
+
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/socket.c |   96 +++++++++++++++++++++++++++-----------------
- 1 files changed, 60 insertions(+), 36 deletions(-)
+ drivers/ata/pata_hpt3x2n.c |   45 +++++++++++++++++++++++++++++------
+ 1 file changed, 38 insertions(+), 7 deletions(-)
 
-diff -puN net/sctp/socket.c~sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage net/sctp/socket.c
---- a/net/sctp/socket.c~sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage
-+++ a/net/sctp/socket.c
-@@ -3987,7 +3987,7 @@ static int sctp_getsockopt_peer_addrs(st
- 		memcpy(&temp, &from->ipaddr, sizeof(temp));
- 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sp, &temp);
- 		addrlen = sctp_get_af_specific(sk->sk_family)->sockaddr_len;
--		if(space_left < addrlen)
-+		if (space_left < addrlen)
- 			return -ENOMEM;
- 		if (copy_to_user(to, &temp, addrlen))
- 			return -EFAULT;
-@@ -4076,8 +4076,9 @@ done:
- /* Helper function that copies local addresses to user and returns the number
-  * of addresses copied.
+diff -puN drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-add-hpt371n-support-and-other-bits drivers/ata/pata_hpt3x2n.c
+--- a/drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-add-hpt371n-support-and-other-bits
++++ a/drivers/ata/pata_hpt3x2n.c
+@@ -8,10 +8,10 @@
+  * Copyright (C) 1999-2003		Andre Hedrick <andre@linux-ide.org>
+  * Portions Copyright (C) 2001	        Sun Microsystems, Inc.
+  * Portions Copyright (C) 2003		Red Hat Inc
++ * Portions Copyright (C) 2005-2006	MontaVista Software, Inc.
+  *
+  *
+  * TODO
+- *	371N
+  *	Work out best PLL policy
   */
--static int sctp_copy_laddrs_to_user_old(struct sock *sk, __u16 port, int max_addrs,
--					void __user *to)
-+static int sctp_copy_laddrs_old(struct sock *sk, __u16 port,
-+					int max_addrs, void *to,
-+					size_t *bytes_copied)
+ 
+@@ -142,6 +142,7 @@ static int hpt3x2n_cable_detect(struct a
+ /**
+  *	hpt3x2n_pre_reset	-	reset the hpt3x2n bus
+  *	@ap: ATA port to reset
++ *	@deadline: deadline jiffies for the operation
+  *
+  *	Perform the initial reset handling for the 3x2n series controllers.
+  *	Reset the hardware and state machine,
+@@ -151,8 +152,7 @@ static int hpt3xn_pre_reset(struct ata_p
  {
- 	struct list_head *pos, *next;
- 	struct sctp_sockaddr_entry *addr;
-@@ -4094,10 +4095,10 @@ static int sctp_copy_laddrs_to_user_old(
- 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sctp_sk(sk),
- 								&temp);
- 		addrlen = sctp_get_af_specific(temp.sa.sa_family)->sockaddr_len;
--		if (copy_to_user(to, &temp, addrlen))
--			return -EFAULT;
-+		memcpy(to, &temp, addrlen);
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	/* Reset the state machine */
+-	pci_write_config_byte(pdev, 0x50, 0x37);
+-	pci_write_config_byte(pdev, 0x54, 0x37);
++	pci_write_config_byte(pdev, 0x50 + 4 * ap->port_no, 0x37);
+ 	udelay(100);
  
- 		to += addrlen;
-+		*bytes_copied += addrlen;
- 		cnt ++;
- 		if (cnt >= max_addrs) break;
- 	}
-@@ -4105,8 +4106,8 @@ static int sctp_copy_laddrs_to_user_old(
- 	return cnt;
- }
- 
--static int sctp_copy_laddrs_to_user(struct sock *sk, __u16 port,
--				    void __user **to, size_t space_left)
-+static int sctp_copy_laddrs(struct sock *sk, __u16 port, void *to,
-+			    size_t space_left, size_t *bytes_copied)
+ 	return ata_std_prereset(ap, deadline);
+@@ -434,8 +434,9 @@ static int hpt3x2n_pci_clock(struct pci_
  {
- 	struct list_head *pos, *next;
- 	struct sctp_sockaddr_entry *addr;
-@@ -4123,14 +4124,14 @@ static int sctp_copy_laddrs_to_user(stru
- 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sctp_sk(sk),
- 								&temp);
- 		addrlen = sctp_get_af_specific(temp.sa.sa_family)->sockaddr_len;
--		if(space_left<addrlen)
-+		if (space_left < addrlen)
- 			return -ENOMEM;
--		if (copy_to_user(*to, &temp, addrlen))
--			return -EFAULT;
-+		memcpy(to, &temp, addrlen);
+ 	unsigned long freq;
+ 	u32 fcnt;
++	unsigned long iobase = pci_resource_start(pdev, 4);
  
--		*to += addrlen;
-+		to += addrlen;
- 		cnt ++;
- 		space_left -= addrlen;
-+		bytes_copied += addrlen;
- 	}
+-	pci_read_config_dword(pdev, 0x70/*CHECKME*/, &fcnt);
++	fcnt = inl(iobase + 0x90);	/* Not PCI readable for some chips */
+ 	if ((fcnt >> 12) != 0xABCDE) {
+ 		printk(KERN_WARNING "hpt3xn: BIOS clock data not set.\n");
+ 		return 33;	/* Not BIOS set */
+@@ -504,6 +505,7 @@ static int hpt3x2n_init_one(struct pci_d
+ 	unsigned int pci_mhz;
+ 	unsigned int f_low, f_high;
+ 	int adjust;
++	unsigned long iobase = pci_resource_start(dev, 4);
  
- 	return cnt;
-@@ -4154,6 +4155,8 @@ static int sctp_getsockopt_local_addrs_o
- 	int addrlen;
- 	rwlock_t *addr_lock;
- 	int err = 0;
-+	void *addrs;
-+	size_t bytes_copied = 0;
+ 	pci_read_config_dword(dev, PCI_CLASS_REVISION, &class_rev);
+ 	class_rev &= 0xFF;
+@@ -513,6 +515,11 @@ static int hpt3x2n_init_one(struct pci_d
+ 			if (class_rev < 6)
+ 				return -ENODEV;
+ 			break;
++		case PCI_DEVICE_ID_TTI_HPT371:
++			if (class_rev < 2)
++				return -ENODEV;
++			/* 371N if rev > 1 */
++			break;
+ 		case PCI_DEVICE_ID_TTI_HPT372:
+ 			/* 372N if rev >= 1*/
+ 			if (class_rev == 0)
+@@ -540,6 +547,19 @@ static int hpt3x2n_init_one(struct pci_d
+ 	irqmask &= ~0x10;
+ 	pci_write_config_byte(dev, 0x5a, irqmask);
  
- 	if (len != sizeof(struct sctp_getaddrs_old))
- 		return -EINVAL;
-@@ -4181,6 +4184,15 @@ static int sctp_getsockopt_local_addrs_o
- 
- 	to = getaddrs.addrs;
- 
-+	/* Allocate space for a local instance of packed array to hold all
-+	 * the data.  We store addresses here first and then copy them
-+	 * to the user in one shot.
++	/*
++	 * HPT371 chips physically have only one channel, the secondary one,
++	 * but the primary channel registers do exist!  Go figure...
++	 * So,  we manually disable the non-existing channel here
++	 * (if the BIOS hasn't done this already).
 +	 */
-+	addrs = kmalloc(sizeof(union sctp_addr) * getaddrs.addr_num,
-+			GFP_KERNEL);
-+	if (!addrs)
-+		return -ENOMEM;
-+
- 	sctp_read_lock(addr_lock);
- 
- 	/* If the endpoint is bound to 0.0.0.0 or ::0, get the valid
-@@ -4190,13 +4202,9 @@ static int sctp_getsockopt_local_addrs_o
- 		addr = list_entry(bp->address_list.next,
- 				  struct sctp_sockaddr_entry, list);
- 		if (sctp_is_any(&addr->a)) {
--			cnt = sctp_copy_laddrs_to_user_old(sk, bp->port,
--							   getaddrs.addr_num,
--							   to);
--			if (cnt < 0) {
--				err = cnt;
--				goto unlock;
--			}
-+			cnt = sctp_copy_laddrs_old(sk, bp->port,
-+						   getaddrs.addr_num,
-+						   addrs, &bytes_copied);
- 			goto copy_getaddrs;
- 		}
- 	}
-@@ -4206,22 +4214,29 @@ static int sctp_getsockopt_local_addrs_o
- 		memcpy(&temp, &addr->a, sizeof(temp));
- 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sp, &temp);
- 		addrlen = sctp_get_af_specific(temp.sa.sa_family)->sockaddr_len;
--		if (copy_to_user(to, &temp, addrlen)) {
--			err = -EFAULT;
--			goto unlock;
--		}
-+		memcpy(addrs, &temp, addrlen);
- 		to += addrlen;
-+		bytes_copied += addrlen;
- 		cnt ++;
- 		if (cnt >= getaddrs.addr_num) break;
- 	}
- 
- copy_getaddrs:
-+	sctp_read_unlock(addr_lock);
-+
-+	/* copy the entire address list into the user provided space */
-+	if (copy_to_user(to, addrs, bytes_copied)) {
-+		err = -EFAULT;
-+		goto error;
++	if (dev->device == PCI_DEVICE_ID_TTI_HPT371) {
++		u8 mcr1;
++		pci_read_config_byte(dev, 0x50, &mcr1);
++		mcr1 &= ~0x04;
++		pci_write_config_byte(dev, 0x50, mcr1);
 +	}
 +
-+	/* copy the leading structure back to user */
- 	getaddrs.addr_num = cnt;
- 	if (copy_to_user(optval, &getaddrs, sizeof(struct sctp_getaddrs_old)))
- 		err = -EFAULT;
+ 	/* Tune the PLL. HPT recommend using 75 for SATA, 66 for UDMA133 or
+ 	   50 for UDMA100. Right now we always use 66 */
  
--unlock:
--	sctp_read_unlock(addr_lock);
-+error:
-+	kfree(addrs);
- 	return err;
- }
- 
-@@ -4241,7 +4256,8 @@ static int sctp_getsockopt_local_addrs(s
- 	rwlock_t *addr_lock;
- 	int err = 0;
- 	size_t space_left;
--	int bytes_copied;
-+	size_t bytes_copied = 0;
-+	void *addrs;
- 
- 	if (len <= sizeof(struct sctp_getaddrs))
- 		return -EINVAL;
-@@ -4269,6 +4285,9 @@ static int sctp_getsockopt_local_addrs(s
- 	to = optval + offsetof(struct sctp_getaddrs,addrs);
- 	space_left = len - sizeof(struct sctp_getaddrs) -
- 			 offsetof(struct sctp_getaddrs,addrs);
-+	addrs = kmalloc(space_left, GFP_KERNEL);
-+	if (!addrs)
-+		return -ENOMEM;
- 
- 	sctp_read_lock(addr_lock);
- 
-@@ -4279,11 +4298,11 @@ static int sctp_getsockopt_local_addrs(s
- 		addr = list_entry(bp->address_list.next,
- 				  struct sctp_sockaddr_entry, list);
- 		if (sctp_is_any(&addr->a)) {
--			cnt = sctp_copy_laddrs_to_user(sk, bp->port,
--						       &to, space_left);
-+			cnt = sctp_copy_laddrs(sk, bp->port, addrs,
-+						space_left, &bytes_copied);
- 			if (cnt < 0) {
- 				err = cnt;
--				goto unlock;
-+				goto error;
- 			}
- 			goto copy_getaddrs;
- 		}
-@@ -4294,26 +4313,31 @@ static int sctp_getsockopt_local_addrs(s
- 		memcpy(&temp, &addr->a, sizeof(temp));
- 		sctp_get_pf_specific(sk->sk_family)->addr_v4map(sp, &temp);
- 		addrlen = sctp_get_af_specific(temp.sa.sa_family)->sockaddr_len;
--		if(space_left < addrlen)
--			return -ENOMEM; /*fixme: right error?*/
--		if (copy_to_user(to, &temp, addrlen)) {
--			err = -EFAULT;
--			goto unlock;
-+		if (space_left < addrlen) {
-+			err =  -ENOMEM; /*fixme: right error?*/
-+			goto error;
- 		}
-+		memcpy(addrs, &temp, addrlen);
- 		to += addrlen;
-+		bytes_copied += addrlen;
- 		cnt ++;
- 		space_left -= addrlen;
+@@ -558,14 +578,24 @@ static int hpt3x2n_init_one(struct pci_d
+ 			break;
+ 		pci_write_config_dword(dev, 0x5C, (f_high << 16) | f_low);
  	}
- 
- copy_getaddrs:
-+	sctp_read_unlock(addr_lock);
-+
-+	if (copy_to_user(to, addrs, bytes_copied)) {
-+		err = -EFAULT;
-+		goto error;
+-	if (adjust == 8)
+-		printk(KERN_WARNING "hpt3xn: DPLL did not stabilize.\n");
++	if (adjust == 8) {
++		printk(KERN_WARNING "hpt3x2n: DPLL did not stabilize.\n");
++		return -ENODEV;
 +	}
- 	if (put_user(cnt, &((struct sctp_getaddrs __user *)optval)->addr_num))
- 		return -EFAULT;
--	bytes_copied = ((char __user *)to) - optval;
- 	if (put_user(bytes_copied, optlen))
- 		return -EFAULT;
  
--unlock:
--	sctp_read_unlock(addr_lock);
-+error:
-+	kfree(addrs);
- 	return err;
- }
+ 	/* Set our private data up. We only need a few flags so we use
+ 	   it directly */
+ 	port->private_data = NULL;
+-	if (pci_mhz > 60)
++	if (pci_mhz > 60) {
+ 		port->private_data = (void *)PCI66;
++		/*
++		 * On  HPT371N, if ATA clock is 66 MHz we must set bit 2 in
++		 * the MISC. register to stretch the UltraDMA Tss timing.
++		 * NOTE: This register is only writeable via I/O space.
++		 */
++		if (dev->device == PCI_DEVICE_ID_TTI_HPT371)
++			outb(inb(iobase + 0x9c) | 0x04, iobase + 0x9c);
++	}
  
+ 	/* Now kick off ATA set up */
+ 	port_info[0] = port_info[1] = port;
+@@ -574,6 +604,7 @@ static int hpt3x2n_init_one(struct pci_d
+ 
+ static const struct pci_device_id hpt3x2n[] = {
+ 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT366), },
++	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT371), },
+ 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT372), },
+ 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT302), },
+ 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT372N), },
 _
 
-Patches currently in -mm which might be from vladislav.yasevich@hp.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-use-menuconfig-objects-sctp.patch
+git-agpgart.patch
+git-dvb.patch
+ata_timing-ensure-t-cycle-is-always-correct.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_ali-more-work.patch
+sl82c105-switch-to-ref-counting-api.patch
+git-r8169.patch
+serial-suppress-rts-assertion-with-disabled-crtscts.patch
+pci-syscallc-switch-to-refcounting-api.patch
+drivers-scsi-ncr5380c-replacing-yield-with-a.patch
+drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
+driver_bfin_serial_core.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+tty-clarify-documentation-of-write.patch
+tty-i386-x86_64-arbitary-speed-support.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+tty-remove-unnecessary-export-of-proc_clear_tty.patch
+tty-simplify-calling-of-put_pid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+protect-tty-drivers-list-with-tty_mutex.patch
+fix-82875-pci-setup.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+remove-redundant-check-from-proc_sys_setattr.patch
+apm-fix-incorrect-comment.patch
+upper-32-bits.patch
+console-utf-8-fixes.patch
+add-pci_try_set_mwi.patch
+edd-switch-to-refcounting-pci-apis.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
