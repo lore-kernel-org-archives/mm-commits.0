@@ -1,50 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:01:15 -0700
-Message-ID: <200704301901.l3UJ1GmB012189@shell0.pdx.osdl.net>
+Subject: - quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:01:18 -0700
+Message-ID: <200704301901.l3UJ1IF2012194@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49007 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946633AbXD3TBU (ORCPT
+	by vger.kernel.org with ESMTP id S1946639AbXD3TBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:01:20 -0400
+	Mon, 30 Apr 2007 15:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quicklist: avoid useless virt_to_page conversion
+     quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion fix
 has been removed from the -mm tree.  Its filename was
-     quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+     quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
 
 This patch was dropped because it was folded into quicklists-for-page-table-pages.patch
 
 ------------------------------------------------------
-Subject: quicklist: avoid useless virt_to_page conversion
+Subject: quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion fix
 From: Christoph Lameter <clameter@sgi.com>
 
-We already have the pointer to the page struct in __quicklist free.  So use
-that instead of the page address when freeing the page.  This will avoid
-one virt_to_page in the page allocator.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/quicklist.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/quicklist.h~quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion include/linux/quicklist.h
---- a/include/linux/quicklist.h~quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion
+diff -puN include/linux/quicklist.h~quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix include/linux/quicklist.h
+--- a/include/linux/quicklist.h~quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix
 +++ a/include/linux/quicklist.h
 @@ -61,7 +61,7 @@ static inline void __quicklist_free(int 
  	if (unlikely(nid != numa_node_id())) {
  		if (dtor)
  			dtor(p);
--		free_page((unsigned long)p);
-+		free_hot_page(page);
+-		free_hot_page(page);
++		__free_page(page);
  		return;
  	}
  
@@ -82,7 +79,6 @@ slub-add-slabinfo-tool.patch
 slub-exploit-page-mobility-to-increase-allocation-order.patch
 slub-mm-only-make-slub-the-default-slab-allocator.patch
 quicklists-for-page-table-pages.patch
-quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
 quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
 quicklist-support-for-ia64.patch
 quicklist-support-for-x86_64.patch
