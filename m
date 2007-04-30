@@ -1,103 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - return-eperm-not-echild-on-security_task_wait-failure-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:07:18 -0700
-Message-ID: <200704301907.l3UJ7ITJ012296@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-fix-compiling-error-in-flat-c-file.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:09:59 -0700
+Message-ID: <200704301910.l3UJ9xNA012357@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43063 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946657AbXD3TIQ (ORCPT
+	by vger.kernel.org with ESMTP id S1946660AbXD3TKP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:08:16 -0400
+	Mon, 30 Apr 2007 15:10:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmorris@namei.org, chrisw@sous-sol.org, roland@redhat.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     return-eperm-not-echild-on-security_task_wait-failure fix
+     Blackfin arch: fix compiling error in flat c file
 has been removed from the -mm tree.  Its filename was
-     return-eperm-not-echild-on-security_task_wait-failure-fix.patch
+     blackfin-arch-fix-compiling-error-in-flat-c-file.patch
 
-This patch was dropped because it was folded into return-eperm-not-echild-on-security_task_wait-failure.patch
+This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: return-eperm-not-echild-on-security_task_wait-failure fix
-From: James Morris <jmorris@namei.org>
+Subject: Blackfin arch: fix compiling error in flat c file
+From: "Wu, Bryan" <bryan.wu@analog.com>
 
-Signed-off-by: James Morris <jmorris@namei.org>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Chris Wright <chrisw@sous-sol.org>
+THis patch fixed including wrong header file when compiling in 2.6.21-rc4-mm.
+
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/blackfin/kernel/flat.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~return-eperm-not-echild-on-security_task_wait-failure-fix kernel/exit.c
---- a/kernel/exit.c~return-eperm-not-echild-on-security_task_wait-failure-fix
-+++ a/kernel/exit.c
-@@ -1033,6 +1033,8 @@ asmlinkage void sys_exit_group(int error
+diff -puN arch/blackfin/kernel/flat.c~blackfin-arch-fix-compiling-error-in-flat-c-file arch/blackfin/kernel/flat.c
+--- a/arch/blackfin/kernel/flat.c~blackfin-arch-fix-compiling-error-in-flat-c-file
++++ a/arch/blackfin/kernel/flat.c
+@@ -18,8 +18,8 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
  
- static int eligible_child(pid_t pid, int options, struct task_struct *p)
- {
-+	int err;
-+
- 	if (pid > 0) {
- 		if (p->pid != pid)
- 			return 0;
-@@ -1066,8 +1068,9 @@ static int eligible_child(pid_t pid, int
- 	if (delay_group_leader(p))
- 		return 2;
+-#include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/sched.h>
+ #include <linux/flat.h>
  
--	if (security_task_wait(p))
--		return -1;
-+	err = security_task_wait(p);
-+	if (err)
-+		return err;
- 
- 	return 1;
- }
-@@ -1475,7 +1478,7 @@ repeat:
- 				continue;
- 
- 			if (unlikely(ret < 0)) {
--				denied = 1;
-+				denied = ret;
- 				continue;
- 			}
- 			allowed = 1;
-@@ -1579,7 +1582,7 @@ check_continued:
- 	}
- 	retval = -ECHILD;
- 	if (unlikely(denied) && !allowed)
--		retval = -EPERM;
-+		retval = denied;
- end:
- 	current->state = TASK_RUNNING;
- 	remove_wait_queue(&current->signal->wait_chldexit,&wait);
+ #define FLAT_BFIN_RELOC_TYPE_16_BIT 0
 _
 
-Patches currently in -mm which might be from jmorris@namei.org are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
 origin.patch
-git-selinux.patch
-implement-file-posix-capabilities.patch
-file-capabilities-accomodate-future-64-bit-caps.patch
-return-eperm-not-echild-on-security_task_wait-failure.patch
-return-eperm-not-echild-on-security_task_wait-failure-fix.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-remove-redundant-check-from-proc_setattr.patch
-remove-redundant-check-from-proc_sys_setattr.patch
-lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
-mprotect-patch-for-use-by-slim.patch
-integrity-service-api-and-dummy-provider.patch
-slim-main-patch.patch
-slim-secfs-patch.patch
-slim-make-and-config-stuff.patch
-slim-debug-output.patch
-slim-documentation.patch
+blackfin-Documentation.patch
+blackfin-arch.patch
+blackfin-arch-fix-compiling-error-in-flat-c-file.patch
+blackfin-arch-power-management-replace-firmware-disk-mode.patch
+blackfin-arch-add-kdebug-header-file.patch
+blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
+blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
+blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
+blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
+blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
+blackfin-arch-always-include-linux-kallsysms-header-file.patch
+blackfin-arch-sync-with-uclibc-no-functional-changes.patch
+blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
+blackfin-arch-add-missing-__clear_user-function-to.patch
+blackfin-arch-use-boot_command_line-instead-of.patch
+blackfin-arch-fix-some-coding-style-in-include.patch
+blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
+blackfin-arch-add-missing-blackfin-support-in-lib.patch
+blackfin-arch-fix-bug-data-cannot-be-put-into-l1-data.patch
+blackfin-arch-source-kernel-preemption-option.patch
+blackfin-arch-workaround-bf561-anomaly-05000266.patch
+blackfin-arch-define-a-new-cacheline_aligned-attribute-to-put-it-in-l1-data-memory-with-linkscript-update.patch
+blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch
+blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch
+blackfin-arch-fix-coding-style-in-ints-priority-sc-c-file.patch
+blackfin-arch-fix-bug-refuse-to-boot-if-rootfs-image-is-not-attached-when-mtd_uclinux-is-selected.patch
+blackfin-arch-move-revid-function-into-global-headers-as-inline-functions.patch
+blackfin-arch-need-linux-ttyh-header-for-console_init-prototype.patch
+blackfin-arch-convert-most-blackfin-specific-spi-register-settings-to-common-spi-framework-settings.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+blackfin-on-chip-ethernet-mac-controller-driver.patch
+blackfin-on-chip-ethernet-mac-controller-driver-update.patch
+blackfin-patch-add-blackfin-support-in-smc91x.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
+blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+blackfin-spi-controller-driver-update-according-to-david-brownells-review.patch
+blackfin-serial-core-driver-uart1-should-depend-on-bf534-bf536-bf537-remove-experimental-marking-from-on-chip-serial-core-driver-and-make-options-less-wordy.patch
+move-die-notifier-handling-to-common-code-fix.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+vdso-print-fatal-signals-fix-compiling-error-bug-in.patch
