@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + fix-vfat-compat-ioctls-on-64-bit-systems.patch added to -mm tree
-Date: Sun, 29 Apr 2007 17:40:59 -0700
-Message-ID: <200704300040.l3U0exB6026266@shell0.pdx.osdl.net>
+Date: Sun, 29 Apr 2007 17:41:14 -0700
+Message-ID: <200704300041.l3U0fE7X026269@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45200 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51629 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422665AbXD3AlS (ORCPT
+	by vger.kernel.org with ESMTP id S1422692AbXD3Amt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Apr 2007 20:41:18 -0400
+	Sun, 29 Apr 2007 20:42:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hirofumi@mail.parknet.co.jp, bartoldeman@users.sourceforge.net
+Cc: hirofumi@mail.parknet.co.jp, bartoldeman@users.sourceforge.net, stable@kernel.org
 
 
 The patch titled
@@ -73,6 +73,7 @@ int main(void)
 
 Signed-off-by: Bart Oldeman <bartoldeman@users.sourceforge.net>
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
