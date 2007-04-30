@@ -1,76 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - array_size-check-for-type-uml-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:17:02 -0700
-Message-ID: <200704301917.l3UJH2e4012638@shell0.pdx.osdl.net>
+Subject: - uml-tidy-processc-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:22:46 -0700
+Message-ID: <200704301922.l3UJMlgt012745@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48405 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49316 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946702AbXD3TR0 (ORCPT
+	by vger.kernel.org with ESMTP id S1946713AbXD3TWw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:17:26 -0400
+	Mon, 30 Apr 2007 15:22:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: update UML definition of ARRAY_SIZE
+     uml: tidy process.c (fix)
 has been removed from the -mm tree.  Its filename was
-     array_size-check-for-type-uml-fix.patch
+     uml-tidy-processc-fix.patch
 
-This patch was dropped because it was folded into array_size-check-for-type.patch
+This patch was dropped because it was folded into uml-tidy-processc.patch
 
 ------------------------------------------------------
-Subject: uml: update UML definition of ARRAY_SIZE
+Subject: uml: tidy process.c (fix)
 From: Jeff Dike <jdike@addtoit.com>
 
-This is the minimal change needed to keep UML building with the new definition
-of ARRAY_SIZE.  It is defined in user_util.h so that userspace files, which
-can't include kernel.h, can still use ARRAY_SIZE.  However, since user_util.h
-is included everywhere, including kernel files, the token sequence of the
-expansion has to match.
+Use only one ifdef to mark stack_sp as being tt mode only.
 
-This patch copies enough from the kernel headers to make that happen.
-
-However, this is too gross to survive, and so is the entire header.  Future
-patches will make this header disappear, but this is a quick and simple fix
-for the problem in case there is a noticable lag between this patch and the
-more extensive patches which tidy this mess.
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/user_util.h |   15 +++++++++++++--
- 1 files changed, 13 insertions(+), 2 deletions(-)
+ arch/um/include/kern_util.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/include/user_util.h~array_size-check-for-type-uml-fix arch/um/include/user_util.h
---- a/arch/um/include/user_util.h~array_size-check-for-type-uml-fix
-+++ a/arch/um/include/user_util.h
-@@ -8,8 +8,19 @@
+diff -puN arch/um/include/kern_util.h~uml-tidy-processc-fix arch/um/include/kern_util.h
+--- a/arch/um/include/kern_util.h~uml-tidy-processc-fix
++++ a/arch/um/include/kern_util.h
+@@ -8,6 +8,7 @@
  
  #include "sysdep/ptrace.h"
+ #include "sysdep/faultinfo.h"
++#include "uml-config.h"
  
--/* Copied from kernel.h */
--#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-+/* Copied from kernel.h and compiler-gcc.h */
-+
-+/* Force a compilation error if condition is true, but also produce a
-+   result (of value 0 and type size_t), so the expression can be used
-+   e.g. in a structure initializer (or where-ever else comma expressions
-+   aren't permitted). */
-+#define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
-+
-+/* &a[0] degrades to a pointer: a different type from an array */
-+#define __must_be_array(a) \
-+  BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
-+
-+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+ typedef void (*kern_hndl)(int, union uml_pt_regs *);
  
- #define CATCH_EINTR(expr) while ((errno = 0, ((expr) < 0)) && (errno == EINTR))
+@@ -33,7 +34,7 @@ extern int nsyscalls;
+ 	UML_ROUND_DOWN(((unsigned long) addr) + PAGE_SIZE - 1)
  
+ extern int kernel_fork(unsigned long flags, int (*fn)(void *), void * arg);
+-#if defined(CONFIG_MODE_TT) || defined(UML_CONFIG_MODE_TT)
++#ifdef UML_CONFIG_MODE_TT
+ extern unsigned long stack_sp(unsigned long page);
+ #endif
+ extern int kernel_thread_proc(void *data);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
@@ -85,8 +69,6 @@ uml-driver-formatting-fixes.patch
 uml-driver-formatting-fixes-fix.patch
 uml-network-interface-hotplug-error-handling.patch
 array_size-check-for-type.patch
-array_size-check-for-type-uml-fix.patch
-uml-fix-prototypes.patch
 uml-move-sigio-testing-to-sigioc.patch
 uml-create-archh.patch
 uml-create-as-layouth.patch
