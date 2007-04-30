@@ -1,191 +1,354 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-i386-optimization-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:27:16 -0700
-Message-ID: <200704302027.l3UKRHI1014189@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-documentation-markers-update-documentation.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:28:09 -0700
+Message-ID: <200704302028.l3UKS9ie014201@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34404 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946784AbXD3U2B (ORCPT
+	by vger.kernel.org with ESMTP id S1946784AbXD3U2T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:28:01 -0400
+	Mon, 30 Apr 2007 16:28:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@muc.de, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-kernel-markers-i386-optimization-fix
+     markers: update documentation
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-i386-optimization-fix.patch
+     linux-kernel-markers-documentation-markers-update-documentation.patch
 
-This patch was dropped because it was folded into linux-kernel-markers-i386-optimization.patch
+This patch was dropped because it was folded into linux-kernel-markers-documentation.patch
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-i386-optimization-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: markers: update documentation
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Cc: Andi Kleen <ak@muc.de>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Update marker Documentation to be in sync with the flag bitmask change.  Give
+more complete probe example.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/marker.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ Documentation/marker.txt |  188 ++++++++++++++++++++++++++-----------
+ 1 file changed, 136 insertions(+), 52 deletions(-)
 
-diff -puN arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-fix arch/i386/kernel/marker.c
---- a/arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-fix
-+++ a/arch/i386/kernel/marker.c
-@@ -16,8 +16,9 @@
- #include <linux/notifier.h>
- #include <linux/module.h>
- #include <linux/marker.h>
-+#include <linux/kdebug.h>
-+
- #include <asm/cacheflush.h>
--#include <asm/kdebug.h>
+diff -puN Documentation/marker.txt~linux-kernel-markers-documentation-markers-update-documentation Documentation/marker.txt
+--- a/Documentation/marker.txt~linux-kernel-markers-documentation-markers-update-documentation
++++ a/Documentation/marker.txt
+@@ -12,11 +12,11 @@ probe module examples. This is what conn
+ * Purpose of markers
  
- #define BREAKPOINT_INSTRUCTION  0xcc
- #define BREAKPOINT_INS_LEN 1
+ A marker placed in your code provides a hook to a function (probe) that
+-you can provide at runtime. A marker can be on (a probe is connected to it)
+-or off (no probe is attached). An "off" marker has no effect. When turned on,
++you can provide at runtime. A marker can be "on" (a probe is connected to it)
++or "off" (no probe is attached). An "off" marker has no effect. When turned on,
+ the function you provide is called each time the marker is executed in the
+ execution context of the caller. When the function provided ends its execution,
+-it returns to the caller (probe site).
++it returns to the caller (marker site).
+ 
+ You can put markers at important locations in the code. They act as
+ lightweight hooks that can pass an arbitrary number of parameters,
+@@ -40,20 +40,14 @@ In order to use the macro MARK, you shou
+ 
+ Add, in your code :
+ 
+-MARK(subsystem_event, "%d %s %p[struct task_struct]",
+-  someint, somestring, current);
++MARK(subsystem_event, "%d %s", someint, somestring);
+ Where :
+ - subsystem_event is an identifier unique to your event
+     - subsystem is the name of your subsystem.
+     - event is the name of the event to mark.
+-- "%d %s %p[struct task_struct]" is the formatted string for (printk-style).
++- "%d %s" is the formatted string for the serializer.
+ - someint is an integer.
+ - somestring is a char pointer.
+-- current is a pointer to a struct task_struct.
+-
+-The expression %p[struct task_struct] is a suggested marker definition
+-standard that could eventually be used for pointer type checking in
+-sparse. The brackets contain the type to which the pointer refers.
+ 
+ Connecting a function (probe) to a marker is done by providing a probe
+ (function to call) for the specific marker through marker_set_probe(). It will
+@@ -73,7 +67,7 @@ will not call the scheduler due to the t
+ * Optimization for a given architecture
+ 
+ You will find, in asm-*/marker.h, optimisations for given architectures
+-(currently i386 and powerpc). They use a load immediate instead of a data read,
++(currently i386 and powerpc). They use a load immediate instead of a data load,
+ which saves a data cache hit, but also requires cross CPU code modification. In
+ order to support embedded systems which use read-only memory for their code, the
+ optimization can be disabled through menu options.
+@@ -81,25 +75,35 @@ optimization can be disabled through men
+ The MF_* flags can be used to control the type of marker. See the
+ include/marker.h header for the list of flags. They can be specified as the
+ first parameter of the _MARK() macro, such as the following example which is
+-safe wrt lockdep.c (useful for marking lockdep.c functions).
++safe with respect to lockdep.c (useful for marking lockdep.c and printk
++functions).
+ 
+-_MARK(_MF_DEFAULT | ~_MF_LOCKDEP, subsystem_eventb,
+-  MARK_NOARGS);
++_MARK(MF_DEFAULT | ~MF_LOCKDEP, subsystem_eventb, MARK_NOARGS);
+ 
+ Another example is to specify that a specific marker must never call printk :
+-_MARK(_MF_DEFAULT | ~_MF_PRINTK, subsystem_eventc,
+-  "%d %s %p[struct task_struct]",
+-  someint, somestring, current);
++_MARK(MF_DEFAULT | ~MF_PRINTK, subsystem_eventc,
++  "%d %s", someint, somestring,);
+ 
+-Flag compatibility is checked before connecting the probe to the marker.
++Flag compatibility is checked before connecting the probe to the marker : the
++right flags must be given to _marker_set_enable().
+ 
+ 
+ * Probe example
+ 
++You can build the kernel modules, probe-example.ko and marker-example.ko,
++using the following Makefile:
++------------------------------ CUT -------------------------------------
++obj-m := probe-example.o marker-example.o
++KDIR := /lib/modules/$(shell uname -r)/build
++PWD := $(shell pwd)
++default:
++	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
++clean:
++	rm -f *.mod.c *.ko *.o
+ ------------------------------ CUT -------------------------------------
+ /* probe-example.c
+  *
+- * Loads a function at a marker call site.
++ * Connects a two functions to marker call sites.
+  *
+  * (C) Copyright 2007 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+  *
+@@ -109,67 +113,83 @@ Flag compatibility is checked before con
+ 
+ #include <linux/sched.h>
+ #include <linux/kernel.h>
++#include <linux/module.h>
+ #include <linux/marker.h>
++#include <asm/atomic.h>
++
++#define NUM_PROBES (sizeof(probe_array) / sizeof(struct probe_data))
+ 
+-#define SUBSYSTEM_EVENT_FORMAT "%d %s %p[struct task_struct]"
+-void probe_subsystem_event(const char *format, ...)
++struct probe_data {
++	const char *name;
++	const char *format;
++	marker_probe_func *probe_func;
++};
++
++void probe_subsystem_event(const struct __mark_marker_c *mdata,
++		const char *format, ...)
+ {
+ 	va_list ap;
+ 	/* Declare args */
+ 	unsigned int value;
+ 	const char *mystr;
+-	struct task_struct *task;
+ 
+ 	/* Assign args */
+ 	va_start(ap, format);
+ 	value = va_arg(ap, typeof(value));
+ 	mystr = va_arg(ap, typeof(mystr));
+-	task = va_arg(ap, typeof(task));
+-
+-	/* Call tracer */
+-	trace_subsystem_event(value, mystr, task);
+ 
+-	/* Or call printk */
+-	vprintk(format, ap);
++	/* Call printk */
++	printk("Value %u, string %s\n", value, mystr);
+ 
+-	/* or count, check rights... */
++	/* or count, check rights, serialize data in a buffer */
+ 
+ 	va_end(ap);
+ }
+ 
+-#define SUBSYSTEM_EVENTB_FORMAT MARK_NOARGS
+-void probe_subsystem_eventb(const char *format, ...)
++atomic_t eventb_count = ATOMIC_INIT(0);
++
++void probe_subsystem_eventb(const struct __mark_marker_c *mdata,
++	const char *format, ...)
+ {
+-	/* Increment counters, trace, ... but _never_ generate a call to
+-	 * lockdep.c ! */
++	/* Increment counter */
++	atomic_inc(&eventb_count);
+ }
+ 
++static struct probe_data probe_array[] =
++{
++	{	.name = "subsystem_event",
++		.format = "%d %s",
++		.probe_func = probe_subsystem_event },
++	{	.name = "subsystem_eventb",
++		.format = MARK_NOARGS,
++		.probe_func = probe_subsystem_eventb },
++};
++
+ static int __init probe_init(void)
+ {
+ 	int result;
+-	result = marker_set_probe("subsystem_event",
+-			SUBSYSTEM_EVENT_FORMAT,
+-			probe_subsystem_event);
+-	if (!result)
+-		goto cleanup;
+-	result = _marker_set_probe(_MF_DEFAULT & ~_MF_LOCKDEP,
+-			"subsystem_eventb",
+-			SUBSYSTEM_EVENTB_FORMAT,
+-			probe_subsystem_eventb);
+-	if (!result)
+-		goto cleanup;
+-	return 0;
++	uint8_t eID;
+ 
+-cleanup:
+-	marker_remove_probe(probe_subsystem_event);
+-	marker_remove_probe(probe_subsystem_eventb);
+-	return -EPERM;
++	for (eID = 0; eID < NUM_PROBES; eID++) {
++		result = marker_set_probe(probe_array[eID].name,
++				probe_array[eID].format,
++				probe_array[eID].probe_func, &probe_array[eID]);
++		if (!result)
++			printk(KERN_INFO "Unable to register probe %s\n",
++				probe_array[eID].name);
++	}
++	return 0;
+ }
+ 
+ static void __exit probe_fini(void)
+ {
+-	marker_remove_probe(probe_subsystem_event);
+-	marker_remove_probe(probe_subsystem_eventb);
++	uint8_t eID;
++
++	for (eID = 0; eID < NUM_PROBES; eID++) {
++		marker_remove_probe(probe_array[eID].name);
++	}
++	synchronize_sched();	/* Wait for probes to finish */
++	printk("Number of event b : %u\n", atomic_read(&eventb_count));
+ }
+ 
+ module_init(probe_init);
+@@ -179,4 +199,68 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Mathieu Desnoyers");
+ MODULE_DESCRIPTION("SUBSYSTEM Probe");
+ ------------------------------ CUT -------------------------------------
++/* marker-example.c
++ *
++ * Executes a marker when /proc/marker-example is opened.
++ *
++ * (C) Copyright 2007 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
++ *
++ * This file is released under the GPLv2.
++ * See the file COPYING for more details.
++ */
+ 
++#include <linux/module.h>
++#include <linux/marker.h>
++#include <linux/sched.h>
++#include <linux/proc_fs.h>
++
++struct proc_dir_entry *pentry_example = NULL;
++
++static int my_open(struct inode *inode, struct file *file)
++{
++	int i;
++
++	MARK(subsystem_event, "%d %s", 123, "example string");
++	for (i=0; i<10; i++) {
++		MARK(subsystem_eventb, MARK_NOARGS);
++	}
++	return -EPERM;
++}
++
++static struct file_operations mark_ops = {
++	.open = my_open,
++};
++
++static int example_init(void)
++{
++	printk(KERN_ALERT "example init\n");
++	pentry_example = create_proc_entry("marker-example", 0444, NULL);
++	if (pentry_example)
++		pentry_example->proc_fops = &mark_ops;
++	else
++		return -EPERM;
++	return 0;
++}
++
++static void example_exit(void)
++{
++	printk(KERN_ALERT "example exit\n");
++	remove_proc_entry("marker-example", NULL);
++}
++
++module_init(example_init)
++module_exit(example_exit)
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mathieu Desnoyers");
++MODULE_DESCRIPTION("Linux Trace Toolkit example");
++------------------------------ CUT -------------------------------------
++Sequence of operations : (as root)
++make
++insmod marker-example.ko
++insmod probe-example.ko
++  (it is important to load the probe after the marked code)
++cat /proc/marker-example (returns an expected error)
++rmmod marker-example probe-example
++dmesg
++------------------------------ CUT -------------------------------------
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-zlib-backout.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
 git-powerpc.patch
-git-powerpc-fixup.patch
 ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-fixup.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-jfs.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-netdev-all.patch
-ne-add-platform_driver-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-__inquire_remote_apic-printk-warning-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-expose-range-checking-functions-from-arch-specific.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-alpha.patch
+atomich-complete-atomic_long-operations-in-asm-generic.patch
+atomich-i386-type-safety-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-ia64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+local_t-architecture-independant-extension.patch
+local_t-alpha-extension.patch
+local_t-i386-extension.patch
+local_t-ia64-extension.patch
+local_t-mips-extension.patch
+local_t-parisc-cleanup.patch
 local_t-powerpc-extension.patch
+local_t-sparc64-cleanup.patch
+local_t-x86_64-extension.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
 linux-kernel-markers-i386-optimization.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
+linux-kernel-markers-non-optimized-architectures.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+linux-kernel-markers-documentation.patch
+linux-kernel-markers-documentation-markers-update-documentation.patch
+linux-kernel-markers-documentation-fix-typo-and-use-array_size.patch
+markers-define-the-linker-macro-extra_rwdata.patch
+markers-use-extra_rwdata-in-architectures.patch
