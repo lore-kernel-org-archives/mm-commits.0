@@ -1,81 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - exec-fix-remove_arg_zero-add-comment.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:29:44 -0700
-Message-ID: <200704301929.l3UJTiRT012878@shell0.pdx.osdl.net>
+Subject: - merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:30:25 -0700
+Message-ID: <200704301930.l3UJUP1i012922@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53373 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946726AbXD3TaX (ORCPT
+	by vger.kernel.org with ESMTP id S1946725AbXD3TbA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:30:23 -0400
+	Mon, 30 Apr 2007 15:31:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, npiggin@suse.de, ptesarik@suse.cz, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec-fix-remove_arg_zero-add-comment
+     ipcns: fix !CONFIG_IPC_NS behavior
 has been removed from the -mm tree.  Its filename was
-     exec-fix-remove_arg_zero-add-comment.patch
+     merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix.patch
 
-This patch was dropped because it was folded into exec-fix-remove_arg_zero.patch
+This patch was dropped because it was folded into merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
 
 ------------------------------------------------------
-Subject: exec-fix-remove_arg_zero-add-comment
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: ipcns: fix !CONFIG_IPC_NS behavior
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Add Peter's comment to Nick's patch.
+When CONFIG_IPC_NS=n, clone(CLONE_NEWIPC) claims success, but did not actually
+clone a new IPC namespace.
 
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Petr Tesarik <ptesarik@suse.cz>
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Fix this to return -EINVAL so the caller knows his request was denied.
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ include/linux/ipc.h |   10 ++--------
+ ipc/util.c          |    7 +++++++
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN fs/exec.c~exec-fix-remove_arg_zero-add-comment fs/exec.c
---- a/fs/exec.c~exec-fix-remove_arg_zero-add-comment
-+++ a/fs/exec.c
-@@ -982,9 +982,13 @@ void compute_creds(struct linux_binprm *
- 	task_unlock(current);
- 	security_bprm_post_apply_creds(bprm);
- }
--
- EXPORT_SYMBOL(compute_creds);
+diff -puN include/linux/ipc.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix include/linux/ipc.h
+--- a/include/linux/ipc.h~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix
++++ a/include/linux/ipc.h
+@@ -96,16 +96,10 @@ extern struct ipc_namespace init_ipc_ns;
+ #define INIT_IPC_NS(ns)
+ #endif
  
-+/*
-+ * Arguments are '\0' separated strings found at the location bprm->p
-+ * points to; chop off the first by relocating brpm->p to right after
-+ * the first '\0' encountered.
-+ */
- void remove_arg_zero(struct linux_binprm *bprm)
- {
- 	if (bprm->argc) {
-@@ -1023,7 +1027,6 @@ void remove_arg_zero(struct linux_binprm
- 		bprm->argc--;
- 	}
- }
--
- EXPORT_SYMBOL(remove_arg_zero);
+-#ifdef CONFIG_IPC_NS
+-extern void free_ipc_ns(struct kref *kref);
+ extern struct ipc_namespace *copy_ipcs(unsigned long flags,
+ 		struct ipc_namespace *ns);
+-#else
+-static inline struct ipc_namespace *copy_ipcs(unsigned long flags,
+-		struct ipc_namespace *ns)
+-{
+-	return ns;
+-}
++#ifdef CONFIG_IPC_NS
++extern void free_ipc_ns(struct kref *kref);
+ #endif
  
- /*
+ static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
+diff -puN ipc/util.c~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix ipc/util.c
+--- a/ipc/util.c~merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix
++++ a/ipc/util.c
+@@ -111,6 +111,13 @@ void free_ipc_ns(struct kref *kref)
+ 	shm_exit_ns(ns);
+ 	kfree(ns);
+ }
++#else
++struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
++{
++	if (flags & CLONE_NEWIPC)
++		return ERR_PTR(-EINVAL);
++	return ns;
++}
+ #endif
+ 
+ /**
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-lumpy-reclaim-v4.patch
-split-mmap.patch
-only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-mm-remove-destroy_dirty_buffers-from-invalidate_bdev.patch
-mm-optimize-kill_bdev.patch
-mm-optimize-acorn-partition-truncate.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-exec-fix-remove_arg_zero.patch
-exec-fix-remove_arg_zero-add-comment.patch
-lockdep-treats-down_write_trylock-like-regular-down_write.patch
-nfs-fix-congestion-control-use-atomic_longs.patch
+implement-file-posix-capabilities.patch
+file-capabilities-accomodate-future-64-bit-caps.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
+attach_pid-with-struct-pid-parameter.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
