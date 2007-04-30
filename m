@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-fix-compiling-error-in-flat-c-file.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:09:59 -0700
-Message-ID: <200704301910.l3UJ9xNA012357@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-fix-struct-dmasg-packing-bug.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:09:48 -0700
+Message-ID: <200704301909.l3UJ9mEI012344@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53301 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946660AbXD3TKP (ORCPT
+	by vger.kernel.org with ESMTP id S1946661AbXD3TKP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 30 Apr 2007 15:10:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,38 +15,38 @@ To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin arch: fix compiling error in flat c file
+     Blackfin arch: fix struct dmasg packing bug
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-fix-compiling-error-in-flat-c-file.patch
+     blackfin-arch-fix-struct-dmasg-packing-bug.patch
 
 This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: Blackfin arch: fix compiling error in flat c file
+Subject: Blackfin arch: fix struct dmasg packing bug
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
-THis patch fixed including wrong header file when compiling in 2.6.21-rc4-mm.
+This patch fix a bug about struct dmasg packed missing bug.  Using
+__attribute__ instead of pragma.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/flat.c |    2 +-
+ include/asm-blackfin/dma.h |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/blackfin/kernel/flat.c~blackfin-arch-fix-compiling-error-in-flat-c-file arch/blackfin/kernel/flat.c
---- a/arch/blackfin/kernel/flat.c~blackfin-arch-fix-compiling-error-in-flat-c-file
-+++ a/arch/blackfin/kernel/flat.c
-@@ -18,8 +18,8 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
+diff -puN include/asm-blackfin/dma.h~blackfin-arch-fix-struct-dmasg-packing-bug include/asm-blackfin/dma.h
+--- a/include/asm-blackfin/dma.h~blackfin-arch-fix-struct-dmasg-packing-bug
++++ a/include/asm-blackfin/dma.h
+@@ -84,7 +84,7 @@ struct dmasg {
+ 	short x_modify;
+ 	unsigned short y_count;
+ 	short y_modify;
+-};
++} __attribute__((packed));
  
--#include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/sched.h>
- #include <linux/flat.h>
- 
- #define FLAT_BFIN_RELOC_TYPE_16_BIT 0
+ struct dma_register {
+ 	unsigned long next_desc_ptr;	/* DMA Next Descriptor Pointer register */
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -54,6 +54,9 @@ Patches currently in -mm which might be from bryan.wu@analog.com are
 origin.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
+blackfin-arch-fix-struct-dmasg-packing-bug.patch
+blackfin-arch-cleanup-cache-header-file.patch
+blackfin-arch-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
 blackfin-arch-fix-compiling-error-in-flat-c-file.patch
 blackfin-arch-power-management-replace-firmware-disk-mode.patch
 blackfin-arch-add-kdebug-header-file.patch
