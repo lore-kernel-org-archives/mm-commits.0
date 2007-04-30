@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-add-kdebug-header-file.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:10:08 -0700
-Message-ID: <200704301910.l3UJA841012384@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:10:12 -0700
+Message-ID: <200704301910.l3UJACRO012401@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60427 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946659AbXD3TKQ (ORCPT
+	by vger.kernel.org with ESMTP id S1946662AbXD3TKQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 30 Apr 2007 15:10:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,30 +15,49 @@ To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin arch: add kdebug header file
+     blackfin arch fix bug bf561 rev ID are 8-bit
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-add-kdebug-header-file.patch
+     blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
 
 This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: Blackfin arch: add kdebug header file
+Subject: blackfin arch fix bug bf561 rev ID are 8-bit
 From: "Wu, Bryan" <bryan.wu@analog.com>
-
-This patch adds kdebug.h header file to blackfin architecture.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-blackfin/kdebug.h |    1 +
- 1 files changed, 1 insertion(+)
+ arch/blackfin/kernel/setup.c            |    3 +++
+ include/asm-blackfin/mach-bf561/bf561.h |    2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null include/asm-blackfin/kdebug.h
---- /dev/null
-+++ a/include/asm-blackfin/kdebug.h
-@@ -0,0 +1 @@
-+#include <asm-generic/kdebug.h>
+diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-bf561-rev-id-are-8-bit arch/blackfin/kernel/setup.c
+--- a/arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-bf561-rev-id-are-8-bit
++++ a/arch/blackfin/kernel/setup.c
+@@ -117,6 +117,9 @@ static u_int get_dsp_rev_id(void)
+ {
+ 	u_int id;
+ 	id = bfin_read_DSPID() & 0xffff;
++#if defined(CONFIG_BF561)
++	id>>=8;
++#endif
+ 	return id;
+ }
+ 
+diff -puN include/asm-blackfin/mach-bf561/bf561.h~blackfin-arch-fix-bug-bf561-rev-id-are-8-bit include/asm-blackfin/mach-bf561/bf561.h
+--- a/include/asm-blackfin/mach-bf561/bf561.h~blackfin-arch-fix-bug-bf561-rev-id-are-8-bit
++++ a/include/asm-blackfin/mach-bf561/bf561.h
+@@ -30,7 +30,7 @@
+ #ifndef __MACH_BF561_H__
+ #define __MACH_BF561_H__
+ 
+-#define SUPPORTED_DSPID		0x300
++#define SUPPORTED_DSPID		0x3
+ 
+ #define OFFSET_(x) ((x) & 0x0000FFFF)
+ #define L1_ISRAM		0xFFA00000
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -46,7 +65,6 @@ Patches currently in -mm which might be from bryan.wu@analog.com are
 origin.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
-blackfin-arch-add-kdebug-header-file.patch
 blackfin-arch-fix-bug-bf561-rev-id-are-8-bit.patch
 blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
 blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
