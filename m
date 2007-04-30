@@ -1,96 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: - vioc_irq-switch-to-pci-refcount-safe-api.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 14:36:53 -0700
-Message-ID: <200704302136.l3ULarnB015483@shell0.pdx.osdl.net>
+Subject: - git-net-vs-git-netdev-all.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 14:37:07 -0700
+Message-ID: <200704302137.l3ULb7Fs015489@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57085 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423696AbXD3Vhk (ORCPT
+	by vger.kernel.org with ESMTP id S1423699AbXD3Vhx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 17:37:40 -0400
+	Mon, 30 Apr 2007 17:37:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, driver-support@fabric7.com, jeff@garzik.org, schidambaram@fabric7.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vioc_irq: Switch to pci refcount safe API
+     git-net vs git-netdev-all
 has been removed from the -mm tree.  Its filename was
-     vioc_irq-switch-to-pci-refcount-safe-api.patch
+     git-net-vs-git-netdev-all.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: vioc_irq: Switch to pci refcount safe API
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: git-net vs git-netdev-all
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Sriram Chidambaram <schidambaram@fabric7.com>
-Cc: <driver-support@fabric7.com>
+Try to repair these:
+
+drivers/net/vioc/vioc_transmit.c: In function 'init_f7_header':
+drivers/net/vioc/vioc_transmit.c:600: error: 'struct sk_buff' has no member named 'mac'
+drivers/net/vioc/vioc_transmit.c:602: error: 'struct sk_buff' has no member named 'nh'
+drivers/net/vioc/vioc_transmit.c:605: error: 'struct sk_buff' has no member named 'h'
+drivers/net/vioc/vioc_transmit.c:609: error: 'struct sk_buff' has no member named 'h'
+drivers/net/vioc/vioc_transmit.c: In function 'vnic_start_xmit':
+drivers/net/vioc/vioc_transmit.c:703: error: 'struct sk_buff' has no member named 'mac'
+drivers/net/vioc/vioc_transmit.c:704: error: 'struct sk_buff' has no member named 'nh'
+drivers/net/vioc/vioc_transmit.c: In function 'vnic_eth_header':
+drivers/net/vioc/vioc_transmit.c:742: error: 'struct sk_buff' has no member named 'mac'
+
+This driver looks fairly revolting.
+
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/vioc/vioc_irq.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/vioc/vioc_transmit.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/vioc/vioc_irq.c~vioc_irq-switch-to-pci-refcount-safe-api drivers/net/vioc/vioc_irq.c
---- a/drivers/net/vioc/vioc_irq.c~vioc_irq-switch-to-pci-refcount-safe-api
-+++ a/drivers/net/vioc/vioc_irq.c
-@@ -233,9 +233,11 @@ static int get_pci_pin_irq(struct pci_de
+diff -puN drivers/net/vioc/vioc_transmit.c~git-net-vs-git-netdev-all drivers/net/vioc/vioc_transmit.c
+--- a/drivers/net/vioc/vioc_transmit.c~git-net-vs-git-netdev-all
++++ a/drivers/net/vioc/vioc_transmit.c
+@@ -602,16 +602,17 @@ static void init_f7_header(struct sk_buf
+ 	 */
  
- 	devfn = PCI_DEVFN(slot, func);
- 	/* Find pci_dev structure of the requested function */
--	dev = pci_find_slot(dev_in->bus->number, devfn);
-+	dev = pci_get_bus_and_slot(dev_in->bus->number, devfn);
- 	if (dev) {
--		return dev->irq;
-+		int irq = dev->irq;
-+		pci_dev_put(dev);
-+		return irq;
- 	} else {
- 		return VIOC_IRQ_NONE;
+ 	/* Determine packet tag */
+-	if (((struct ethhdr *)skb->mac.raw)->h_proto == ntohs(ETH_P_IP)) {
++	if (((struct ethhdr *)skb_mac_header(skb))->h_proto ==
++				ntohs(ETH_P_IP)) {
+ 		if (skb->ip_summed == VIOC_CSUM_OFFLOAD) {
+-			switch (skb->nh.iph->protocol) {
++			switch (ip_hdr(skb)->protocol) {
+ 			case IPPROTO_TCP:
+ 				tag = VIOC_F7PF_ET_ETH_IPV4_CKS;
+-				skb->h.th->check = 0;
++				tcp_hdr(skb)->check = 0;
+ 				break;
+ 			case IPPROTO_UDP:
+ 				tag = VIOC_F7PF_ET_ETH_IPV4_CKS;
+-				skb->h.uh->check = 0;
++				udp_hdr(skb)->check = 0;
+ 				break;
+ 			default:
+ 				tag = VIOC_F7PF_ET_ETH_IPV4;
+@@ -705,8 +706,8 @@ static int vnic_start_xmit(struct sk_buf
  	}
+ 
+ 	/* Don't rely on the skb pointers being set */
+-	skb->mac.raw = skb->data;
+-	skb->nh.raw = skb->data + ETH_HLEN;
++	skb_set_mac_header(skb, 0);
++	skb_set_network_header(skb, ETH_HLEN);
+ 	skb_push(skb, F7PF_HLEN_STD);
+ 
+ 	init_f7_header(skb);
+@@ -745,7 +746,7 @@ static int vnic_eth_header(struct sk_buf
+ {
+ 	struct ethhdr *eth = (struct ethhdr *)skb_push(skb, ETH_HLEN);
+ 
+-	skb->mac.raw = skb->data;
++	skb_set_mac_header(skb, 0);
+ 
+ 	/*
+ 	 *      Set the protocol type. For a packet of type
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+zlib-backout.patch
+extend-print_symbol-capability.patch
+add-kvasprintf.patch
+add-kvasprintf-fix.patch
+slab-introduce-krealloc.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
 git-agpgart.patch
+git-arm.patch
+git-avr32.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+ida-implement-idr-based-id-allocator-fix.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-drm.patch
 git-dvb.patch
-ata_timing-ensure-t-cycle-is-always-correct.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-sl82c105-switch-to-ref-counting-api.patch
-vioc_irq-switch-to-pci-refcount-safe-api.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-jfs.patch
+git-kvm.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+ne-add-platform_driver-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
 git-r8169.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-pci-syscallc-switch-to-refcounting-api.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-driver_bfin_serial_core.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-protect-tty-drivers-list-with-tty_mutex.patch
-fix-82875-pci-setup.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-remove-redundant-check-from-proc_sys_setattr.patch
-apm-fix-incorrect-comment.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-__inquire_remote_apic-printk-warning-fix.patch
+xfs-clean-up-shrinker-games.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+expose-range-checking-functions-from-arch-specific.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
 upper-32-bits.patch
-console-utf-8-fixes.patch
-add-pci_try_set_mwi.patch
-edd-switch-to-refcounting-pci-apis.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
