@@ -1,192 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - enhance-initcall_debug-measure-latency-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:04:32 -0700
-Message-ID: <200704302004.l3UK4XfZ013717@shell0.pdx.osdl.net>
+Subject: - fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:05:36 -0700
+Message-ID: <200704302005.l3UK5cEj013726@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42772 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423612AbXD3UE7 (ORCPT
+	by vger.kernel.org with ESMTP id S1423632AbXD3UGn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:04:59 -0400
+	Mon, 30 Apr 2007 16:06:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: bunk@stusta.de, adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     enhance-initcall_debug-measure-latency-fix
+     make kernel/module.c:is_exported() static
 has been removed from the -mm tree.  Its filename was
-     enhance-initcall_debug-measure-latency-fix.patch
+     fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
 
-This patch was dropped because it was folded into enhance-initcall_debug-measure-latency.patch
+This patch was dropped because it was folded into fix-race-between-rmmod-and-cat-proc-kallsyms.patch
 
 ------------------------------------------------------
-Subject: enhance-initcall_debug-measure-latency-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: make kernel/module.c:is_exported() static
+From: Adrian Bunk <bunk@stusta.de>
 
-Not all architectures use long long for s64.
+is_exported() can now become static.
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/module.h |    7 -------
+ kernel/module.c        |    2 +-
+ 2 files changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN init/main.c~enhance-initcall_debug-measure-latency-fix init/main.c
---- a/init/main.c~enhance-initcall_debug-measure-latency-fix
-+++ a/init/main.c
-@@ -678,7 +678,7 @@ static void __init do_initcalls(void)
- 			printk(" returned %d.\n", result);
+diff -puN include/linux/module.h~fix-race-between-rmmod-and-cat-proc-kallsyms-fix include/linux/module.h
+--- a/include/linux/module.h~fix-race-between-rmmod-and-cat-proc-kallsyms-fix
++++ a/include/linux/module.h
+@@ -379,8 +379,6 @@ int module_get_kallsym(unsigned int symn
+ /* Look for this name: can be of form module:name. */
+ unsigned long module_kallsyms_lookup_name(const char *name);
  
- 			printk("initcall 0x%p ran for %Ld msecs: ",
--				*call, delta.tv64 >> 20);
-+				*call, (unsigned long long)delta.tv64 >> 20);
- 			print_fn_descriptor_symbol("%s()\n",
- 				(unsigned long) *call);
- 		}
+-int is_exported(const char *name, const struct module *mod);
+-
+ extern void __module_put_and_exit(struct module *mod, long code)
+ 	__attribute__((noreturn));
+ #define module_put_and_exit(code) __module_put_and_exit(THIS_MODULE, code);
+@@ -542,11 +540,6 @@ static inline unsigned long module_kalls
+ 	return 0;
+ }
+ 
+-static inline int is_exported(const char *name, const struct module *mod)
+-{
+-	return 0;
+-}
+-
+ static inline int register_module_notifier(struct notifier_block * nb)
+ {
+ 	/* no events will happen anyway, so this can always succeed */
+diff -puN kernel/module.c~fix-race-between-rmmod-and-cat-proc-kallsyms-fix kernel/module.c
+--- a/kernel/module.c~fix-race-between-rmmod-and-cat-proc-kallsyms-fix
++++ a/kernel/module.c
+@@ -1547,7 +1547,7 @@ static void setup_modinfo(struct module 
+ }
+ 
+ #ifdef CONFIG_KALLSYMS
+-int is_exported(const char *name, const struct module *mod)
++static int is_exported(const char *name, const struct module *mod)
+ {
+ 	if (!mod && lookup_symbol(name, __start___ksymtab, __stop___ksymtab))
+ 		return 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-zlib-backout.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
 git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
 git-powerpc.patch
-git-powerpc-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-drm.patch
 git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
-git-ieee1394-fixup.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-jfs.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
 git-netdev-all.patch
-ne-add-platform_driver-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+ibmtr_cs-fix-hang-on-eject.patch
 git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
 git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-__inquire_remote_apic-printk-warning-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation-fix.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-ipwireless_cs.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+add-file-position-info-to-proc.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
+unexport-pci_proc_attach_device.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
+the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
+ext2-reservations.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+no-longer-include-asm-kdebugh.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+mutex-subsystem-synchro-test-module.patch
