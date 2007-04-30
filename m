@@ -1,214 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 14:44:54 -0700
-Message-ID: <200704302144.l3ULisle015628@shell0.pdx.osdl.net>
+Subject: - scsi-spi-transport-scsi-domain-validation-after-reset.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 14:45:06 -0700
+Message-ID: <200704302145.l3ULj66J015668@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39279 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36060 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423388AbXD3Vpg (ORCPT
+	by vger.kernel.org with ESMTP id S1423723AbXD3Vpl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 17:45:36 -0400
+	Mon, 30 Apr 2007 17:45:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: eric.moore@lsi.com, Eric.Moore@lsi.com, James.Bottomley@steeleye.com, markh@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ata/pata_cmd640.c: fix build with CONFIG_PM=n
+     mpt-fusion: reprogram spi state after host reset
 has been removed from the -mm tree.  Its filename was
-     drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+     scsi-spi-transport-scsi-domain-validation-after-reset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/ata/pata_cmd640.c: fix build with CONFIG_PM=n
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mpt-fusion: reprogram spi state after host reset
+From: Eric Moore <eric.moore@lsi.com>
 
-This is grubby, but all the ata drivers do it this way.
+After host reset, the device are programmed to default asyn narrow nego. 
+We need to reprogram the parameter back to previous values.  If the host
+reset is called as a result of spi_dv_device() commands timing out, its
+possible to get into an infinite loop of dv to host reset.  This will
+prevent that case, as we merely program old values.  If host reset is
+called outside context of domain validation, then we can call
+spi_dv_device.  Please apply.
 
-Would it not be better to do
-
-#define ata_scsi_device_resume NULL
-
-in libata.h, remove all those ifdefs?
-
-(updated version, ug, ug)
-
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Eric Moore <Eric.Moore@lsi.com>
+Cc: Mark Haverkamp <markh@linux-foundation.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cmd640.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/message/fusion/mptbase.h |    1 +
+ drivers/message/fusion/mptspi.c  |   23 +++++++++++++++++++++--
+ 2 files changed, 22 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n drivers/ata/pata_cmd640.c
---- a/drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n
-+++ a/drivers/ata/pata_cmd640.c
-@@ -181,8 +181,10 @@ static struct scsi_host_template cmd640_
- 	.slave_configure	= ata_scsi_slave_config,
- 	.slave_destroy		= ata_scsi_slave_destroy,
- 	.bios_param		= ata_std_bios_param,
-+#ifdef CONFIG_PM
- 	.resume			= ata_scsi_device_resume,
- 	.suspend		= ata_scsi_device_suspend,
-+#endif
- };
+diff -puN drivers/message/fusion/mptbase.h~scsi-spi-transport-scsi-domain-validation-after-reset drivers/message/fusion/mptbase.h
+--- a/drivers/message/fusion/mptbase.h~scsi-spi-transport-scsi-domain-validation-after-reset
++++ a/drivers/message/fusion/mptbase.h
+@@ -994,6 +994,7 @@ typedef struct _MPT_SCSI_HOST {
+ 	int			  scandv_wait_done;
+ 	long			  last_queue_full;
+ 	u16			  tm_iocstatus;
++	u16			  spi_pending;
+ 	struct list_head	  target_reset_list;
+ } MPT_SCSI_HOST;
  
- static struct ata_port_operations cmd640_port_ops = {
-@@ -267,7 +269,11 @@ static int cmd640_init_one(struct pci_de
- static int cmd640_reinit_one(struct pci_dev *pdev)
- {
- 	cmd640_hardware_init(pdev);
-+#ifdef CONFIG_PM
- 	return ata_pci_device_resume(pdev);
-+#else
-+	return 0;
-+#endif
+diff -puN drivers/message/fusion/mptspi.c~scsi-spi-transport-scsi-domain-validation-after-reset drivers/message/fusion/mptspi.c
+--- a/drivers/message/fusion/mptspi.c~scsi-spi-transport-scsi-domain-validation-after-reset
++++ a/drivers/message/fusion/mptspi.c
+@@ -676,7 +676,9 @@ static void mptspi_dv_device(struct _MPT
+ 		return;
+ 	}
+ 
++	hd->spi_pending |= (1 << sdev->id);
+ 	spi_dv_device(sdev);
++	hd->spi_pending &= ~(1 << sdev->id);
+ 
+ 	if (sdev->channel == 1 &&
+ 	    mptscsih_quiesce_raid(hd, 0, vtarget->channel, vtarget->id) < 0)
+@@ -1202,11 +1204,27 @@ mptspi_dv_renegotiate_work(struct work_s
+ 		container_of(work, struct work_queue_wrapper, work);
+ 	struct _MPT_SCSI_HOST *hd = wqw->hd;
+ 	struct scsi_device *sdev;
++	struct scsi_target *starget;
++	struct _CONFIG_PAGE_SCSI_DEVICE_1 pg1;
++	u32 nego;
+ 
+ 	kfree(wqw);
+ 
+-	shost_for_each_device(sdev, hd->ioc->sh)
+-		mptspi_dv_device(hd, sdev);
++	if (hd->spi_pending) {
++		shost_for_each_device(sdev, hd->ioc->sh) {
++			if  (hd->spi_pending & (1 << sdev->id))
++				continue;
++			starget = scsi_target(sdev);
++			nego = mptspi_getRP(starget);
++			pg1.RequestedParameters = cpu_to_le32(nego);
++			pg1.Reserved = 0;
++			pg1.Configuration = 0;
++			mptspi_write_spi_device_pg1(starget, &pg1);
++		}
++	} else {
++		shost_for_each_device(sdev, hd->ioc->sh)
++			mptspi_dv_device(hd, sdev);
++	}
  }
  
- static const struct pci_device_id cmd640[] = {
-@@ -280,7 +286,9 @@ static struct pci_driver cmd640_pci_driv
- 	.id_table	= cmd640,
- 	.probe 		= cmd640_init_one,
- 	.remove		= ata_pci_remove_one,
-+#ifdef CONFIG_PM
- 	.suspend	= ata_pci_device_suspend,
-+#endif
- 	.resume		= cmd640_reinit_one,
- };
+ static void
+@@ -1452,6 +1470,7 @@ mptspi_probe(struct pci_dev *pdev, const
+ 	init_waitqueue_head(&hd->scandv_waitq);
+ 	hd->scandv_wait_done = 0;
+ 	hd->last_queue_full = 0;
++	hd->spi_pending = 0;
  
+ 	/* Some versions of the firmware don't support page 0; without
+ 	 * that we can't get the parameters */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from eric.moore@lsi.com are
 
-origin.patch
-zlib-backout.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-arm.patch
-git-avr32.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-jfs.patch
-git-kvm.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-ne-add-platform_driver-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-ocfs2.patch
-git-parisc.patch
-git-r8169.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
 git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-__inquire_remote_apic-printk-warning-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-expose-range-checking-functions-from-arch-specific.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+fix--confusion-in-fusion-driver.patch
