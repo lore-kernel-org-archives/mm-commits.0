@@ -1,68 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - parport-dev-driver-model-support-powerpc-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:50:14 -0700
-Message-ID: <200704301950.l3UJoEj3013396@shell0.pdx.osdl.net>
+Subject: - fix-sscanf-%n-match-at-end-of-input-string-tidy.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:49:42 -0700
+Message-ID: <200704301949.l3UJnhT7013381@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34827 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031109AbXD3Tuw (ORCPT
+	by vger.kernel.org with ESMTP id S1031117AbXD3Tuy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:50:52 -0400
+	Mon, 30 Apr 2007 15:50:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, david-b@pacbell.net, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, johannes@sipsolutions.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport-dev-driver-model-support-powerpc-fix
+     fix-sscanf-%n-match-at-end-of-input-string-tidy
 has been removed from the -mm tree.  Its filename was
-     parport-dev-driver-model-support-powerpc-fix.patch
+     fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
 
-This patch was dropped because it was folded into parport-dev-driver-model-support.patch
+This patch was dropped because it was folded into fix-sscanf-%n-match-at-end-of-input-string.patch
 
 ------------------------------------------------------
-Subject: parport-dev-driver-model-support-powerpc-fix
+Subject: fix-sscanf-%n-match-at-end-of-input-string-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-http://test.kernel.org/abat/79954/debug/test.log.0 says:
+- Fix comment layout
 
-In file included from drivers/parport/parport_pc.c:66:
-include/asm/parport.h:18: error: conflicting types for parport_pc_probe_port
-include/linux/parport_pc.h:234: error: previous declaration of parport_pc_probe_port was here
-drivers/parport/parport_pc.c:2379: error: conflicting types for parport_pc_probe_port
-drivers/parport/parport_pc.c:2152: error: previous definition of parport_pc_probe_port was here
-drivers/parport/parport_pc.c: In function sio_ite_8872_probe:
+- Fix coding style
 
-I don't think this declaration should be in an arch header at all.  Take it
-out, see what happens ;)
+- `i' is a funny identifier for a pointer.
 
-Why on earth do we have a noninlined function in a header file?  Sigh.
-
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/parport.h |    5 -----
- 1 files changed, 5 deletions(-)
+ lib/vsprintf.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-powerpc/parport.h~parport-dev-driver-model-support-powerpc-fix include/asm-powerpc/parport.h
---- a/include/asm-powerpc/parport.h~parport-dev-driver-model-support-powerpc-fix
-+++ a/include/asm-powerpc/parport.h
-@@ -12,11 +12,6 @@
+diff -puN lib/vsprintf.c~fix-sscanf-%n-match-at-end-of-input-string-tidy lib/vsprintf.c
+--- a/lib/vsprintf.c~fix-sscanf-%n-match-at-end-of-input-string-tidy
++++ a/lib/vsprintf.c
+@@ -826,12 +826,14 @@ int vsscanf(const char * buf, const char
+ 		str = next;
+ 	}
  
- #include <asm/prom.h>
+-	/* Now we've come all the way through so either the input string or
+-	 * the format ended. In the former case, there can be a %n at the
+-	 * current position in the format that needs to be filled. */
+-	if (*fmt == '%' && *(fmt+1) == 'n') {
+-		int *i = (int *)va_arg(args,int*);
+-		*i = str - buf;
++	/*
++	 * Now we've come all the way through so either the input string or the
++	 * format ended. In the former case, there can be a %n at the current
++	 * position in the format that needs to be filled.
++	 */
++	if (*fmt == '%' && *(fmt + 1) == 'n') {
++		int *p = (int *)va_arg(args, int *);
++		*p = str - buf;
+ 	}
  
--extern struct parport *parport_pc_probe_port (unsigned long int base,
--                                              unsigned long int base_hi,
--                                              int irq, int dma,
--                                              struct pci_dev *dev);
--
- static int __devinit parport_pc_find_nonpci_ports (int autoirq, int autodma)
- {
- 	struct device_node *np;
+ 	return num;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,7 +149,7 @@ rtc-add-rtc-rs5c313-driver.patch
 enlarge-console-name.patch
 move-die-notifier-handling-to-common-code.patch
 fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
 parport-dev-driver-model-support-powerpc-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
