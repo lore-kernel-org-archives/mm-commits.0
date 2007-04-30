@@ -1,50 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - utimensat-implementation-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:22:34 -0700
-Message-ID: <200704302022.l3UKMZNi014094@shell0.pdx.osdl.net>
+Subject: - make-futex_wait-use-an-hrtimer-for-timeout-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:23:26 -0700
+Message-ID: <200704302023.l3UKNQec014111@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46577 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946761AbXD3UXX (ORCPT
+	by vger.kernel.org with ESMTP id S1946769AbXD3UYP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:23:23 -0400
+	Mon, 30 Apr 2007 16:24:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@openvz.org, drepper@redhat.com, linux-arch@vger.kernel.org, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, pierre.peiffer@bull.net, sebastien.dugue@bull.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     utimensat-implementation-fix
+     make-futex_wait-use-an-hrtimer-for-timeout-fix
 has been removed from the -mm tree.  Its filename was
-     utimensat-implementation-fix.patch
+     make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
 
-This patch was dropped because it was folded into utimensat-implementation.patch
+This patch was dropped because it was folded into make-futex_wait-use-an-hrtimer-for-timeout.patch
 
 ------------------------------------------------------
-Subject: utimensat-implementation-fix
+Subject: make-futex_wait-use-an-hrtimer-for-timeout-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-err..
+`make headers_check' fails with
 
-Cc: <linux-arch@vger.kernel.org>
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+/usr/src/devel/usr/include/linux/futex.h requires linux/ktime.h, which does not exist in exported headers
+
+Cc: Sebastien Dugue <sebastien.dugue@bull.net>
+Cc: Pierre Peiffer <pierre.peiffer@bull.net>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/syscall_table.S |    1 +
- 1 files changed, 1 insertion(+)
+ include/linux/futex.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/syscall_table.S~utimensat-implementation-fix arch/i386/kernel/syscall_table.S
---- a/arch/i386/kernel/syscall_table.S~utimensat-implementation-fix
-+++ a/arch/i386/kernel/syscall_table.S
-@@ -319,3 +319,4 @@ ENTRY(sys_call_table)
- 	.long sys_move_pages
- 	.long sys_getcpu
- 	.long sys_epoll_pwait
-+	.long sys_utimensat		/* 320 */
+diff -puN include/linux/futex.h~make-futex_wait-use-an-hrtimer-for-timeout-fix include/linux/futex.h
+--- a/include/linux/futex.h~make-futex_wait-use-an-hrtimer-for-timeout-fix
++++ a/include/linux/futex.h
+@@ -1,9 +1,10 @@
+ #ifndef _LINUX_FUTEX_H
+ #define _LINUX_FUTEX_H
+ 
+-#include <linux/ktime.h>
+ #include <linux/sched.h>
+ 
++union ktime;
++
+ /* Second argument to futex syscall */
+ 
+ 
+@@ -95,7 +96,7 @@ struct robust_list_head {
+ #define ROBUST_LIST_LIMIT	2048
+ 
+ #ifdef __KERNEL__
+-long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
++long do_futex(u32 __user *uaddr, int op, u32 val, union ktime *timeout,
+ 	      u32 __user *uaddr2, u32 val2, u32 val3);
+ 
+ extern int
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -152,9 +170,9 @@ kthread-dont-depend-on-work-queues-take-2.patch
 fix-kthread_create-vs-freezer-theoretical-race.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
 utimensat-implementation.patch
-utimensat-implementation-fix.patch
 revert-rtc-add-rtc_merge_alarm.patch
 declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
 make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
 kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
