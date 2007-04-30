@@ -1,72 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - git-powerpc-fixup.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 14:34:28 -0700
-Message-ID: <200704302134.l3ULYS3s015429@shell0.pdx.osdl.net>
+Subject: - git-input-fixup.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 14:34:54 -0700
+Message-ID: <200704302134.l3ULYsEJ015440@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49300 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423690AbXD3VfB (ORCPT
+	by vger.kernel.org with ESMTP id S1423694AbXD3Vf1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 17:35:01 -0400
+	Mon, 30 Apr 2007 17:35:27 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3ULYT4I032750
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3ULYtNq000320
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2007 14:34:30 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2007 14:34:56 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-powerpc-fixup
+     git-input-fixup
 has been removed from the -mm tree.  Its filename was
-     git-powerpc-fixup.patch
+     git-input-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-powerpc-fixup
+Subject: git-input-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/aoa/soundbus/core.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/usb/input/Makefile |    3 ---
+ drivers/usb/input/gtco.c   |   14 --------------
+ 2 files changed, 17 deletions(-)
 
-diff -puN sound/aoa/soundbus/core.c~git-powerpc-fixup sound/aoa/soundbus/core.c
---- a/sound/aoa/soundbus/core.c~git-powerpc-fixup
-+++ a/sound/aoa/soundbus/core.c
-@@ -61,16 +61,10 @@ static int soundbus_uevent(struct device
+diff -puN drivers/usb/input/Makefile~git-input-fixup drivers/usb/input/Makefile
+--- a/drivers/usb/input/Makefile~git-input-fixup
++++ a/drivers/usb/input/Makefile
+@@ -10,9 +10,6 @@ obj-$(CONFIG_USB_ATI_REMOTE)	+= ati_remo
+ obj-$(CONFIG_USB_ATI_REMOTE2)	+= ati_remote2.o
+ obj-$(CONFIG_USB_KBTAB)		+= kbtab.o
+ obj-$(CONFIG_USB_KEYSPAN_REMOTE)	+= keyspan_remote.o
+-obj-$(CONFIG_USB_MTOUCH)	+= mtouchusb.o
+-obj-$(CONFIG_USB_ITMTOUCH)	+= itmtouch.o
+-obj-$(CONFIG_USB_EGALAX)	+= touchkitusb.o
+ obj-$(CONFIG_USB_TOUCHSCREEN)	+= usbtouchscreen.o
+ obj-$(CONFIG_USB_POWERMATE)	+= powermate.o
+ obj-$(CONFIG_USB_WACOM)		+= wacom.o
+diff -puN drivers/usb/input/gtco.c~git-input-fixup drivers/usb/input/gtco.c
+--- a/drivers/usb/input/gtco.c~git-input-fixup
++++ a/drivers/usb/input/gtco.c
+@@ -1000,22 +1000,9 @@ static int gtco_probe(struct usb_interfa
+ static void gtco_disconnect(struct usb_interface *interface)
  {
- 	struct soundbus_dev * soundbus_dev;
- 	struct of_device * of;
--<<<<<<< HEAD/sound/aoa/soundbus/core.c
--	char *compat;
--	int retval = 0, i = 0, length = 0;
--	int cplen, seen = 0;
+ 	/* Grab private device ptr */
+-<<<<<<< HEAD/drivers/usb/input/gtco.c
+-	struct gtco    *device = usb_get_intfdata (interface);
 -=======
- 	char *scratch;
- 	const char *compat;
- 	int i = 0;
- 	int length, cplen, seen = 0;
-->>>>>>> /sound/aoa/soundbus/core.c
+ 	struct gtco *gtco = usb_get_intfdata(interface);
+->>>>>>> /drivers/usb/input/gtco.c
  
- 	if (!dev)
- 		return -ENODEV;
-@@ -98,11 +92,7 @@ static int soundbus_uevent(struct device
- 	 * it's not really legal to split it out with commas. We split it
- 	 * up using a number of environment variables instead. */
- 
--<<<<<<< HEAD/sound/aoa/soundbus/core.c
--	compat = (char *) get_property(of->node, "compatible", &cplen);
+ 	/* Now reverse all the registration stuff */
+-<<<<<<< HEAD/drivers/usb/input/gtco.c
+-	if (device) {
+-		input_unregister_device(device->inputdevice);
+-		usb_kill_urb(device->urbinfo);
+-		usb_free_urb(device->urbinfo);
+-		usb_buffer_free(device->usbdev, REPORT_MAX_SIZE,
+-				device->buffer, device->buf_dma);
+-		kfree(device);
 -=======
- 	compat = of_get_property(of->node, "compatible", &cplen);
-->>>>>>> /sound/aoa/soundbus/core.c
- 	while (compat && cplen > 0) {
- 		int tmp = length;
- 		retval = add_uevent_var(envp, num_envp, &i,
+ 	if (gtco) {
+ 		input_unregister_device(gtco->inputdevice);
+ 		usb_kill_urb(gtco->urbinfo);
+@@ -1023,7 +1010,6 @@ static void gtco_disconnect(struct usb_i
+ 		usb_buffer_free(gtco->usbdev, REPORT_MAX_SIZE,
+ 				gtco->buffer, gtco->buf_dma);
+ 		kfree(gtco);
+->>>>>>> /drivers/usb/input/gtco.c
+ 	}
+ 
+ 	info("gtco driver disconnected");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,8 +99,6 @@ git-alsa-fixup.patch
 git-agpgart.patch
 git-arm.patch
 git-avr32.patch
-git-powerpc-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
 ida-implement-idr-based-id-allocator-fix.patch
 more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
@@ -95,7 +109,6 @@ git-dvb.patch
 git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
-git-ieee1394-fixup.patch
 sbp2-include-fixes.patch
 ieee1394-iso-needs-schedh.patch
 git-input.patch
