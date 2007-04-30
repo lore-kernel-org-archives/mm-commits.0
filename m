@@ -1,52 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-fix-struct-dmasg-packing-bug.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:09:48 -0700
-Message-ID: <200704301909.l3UJ9mEI012344@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-cleanup-cache-header-file.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:09:51 -0700
+Message-ID: <200704301909.l3UJ9pAf012347@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45821 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60014 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946661AbXD3TKP (ORCPT
+	by vger.kernel.org with ESMTP id S1946648AbXD3TJ6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:10:15 -0400
+	Mon, 30 Apr 2007 15:09:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin arch: fix struct dmasg packing bug
+     Blackfin arch: cleanup cache header file
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-fix-struct-dmasg-packing-bug.patch
+     blackfin-arch-cleanup-cache-header-file.patch
 
 This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: Blackfin arch: fix struct dmasg packing bug
+Subject: Blackfin arch: cleanup cache header file
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
-This patch fix a bug about struct dmasg packed missing bug.  Using
-__attribute__ instead of pragma.
+According to Paul's review, this patch cleanup the
+include/asm-blackfin/cache.h comments.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-blackfin/dma.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/asm-blackfin/cache.h |   20 ++++++++++++++------
+ 1 files changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-blackfin/dma.h~blackfin-arch-fix-struct-dmasg-packing-bug include/asm-blackfin/dma.h
---- a/include/asm-blackfin/dma.h~blackfin-arch-fix-struct-dmasg-packing-bug
-+++ a/include/asm-blackfin/dma.h
-@@ -84,7 +84,7 @@ struct dmasg {
- 	short x_modify;
- 	unsigned short y_count;
- 	short y_modify;
--};
-+} __attribute__((packed));
+diff -puN include/asm-blackfin/cache.h~blackfin-arch-cleanup-cache-header-file include/asm-blackfin/cache.h
+--- a/include/asm-blackfin/cache.h~blackfin-arch-cleanup-cache-header-file
++++ a/include/asm-blackfin/cache.h
+@@ -1,13 +1,21 @@
++/*
++ * include/asm-blackfin/cache.h
++ */
+ #ifndef __ARCH_BLACKFIN_CACHE_H
+ #define __ARCH_BLACKFIN_CACHE_H
  
- struct dma_register {
- 	unsigned long next_desc_ptr;	/* DMA Next Descriptor Pointer register */
+-/* bytes per L1 cache line */
+-#define        L1_CACHE_SHIFT  5	/* BlackFin loads 32 bytes for cache */
+-#define        L1_CACHE_BYTES  (1 << L1_CACHE_SHIFT)
++/*
++ * Bytes per L1 cache line
++ * Blackfin loads 32 bytes for cache
++ */
++#define L1_CACHE_SHIFT	5
++#define L1_CACHE_BYTES	(1 << L1_CACHE_SHIFT)
+ 
+-/* For speed we do need to align these ...MaTed---*/
+-/*  But include/linux/cache.h does this for us if we DO not define ...MaTed---*/
+-#define __cacheline_aligned	/***** maybe no need this   Tony *****/
++/*
++ * Don't make __cacheline_aligned and
++ * ____cacheline_aligned defined in include/linux/cache.h
++ */
++#define __cacheline_aligned
+ #define ____cacheline_aligned
+ 
+ /*
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -54,7 +73,6 @@ Patches currently in -mm which might be from bryan.wu@analog.com are
 origin.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
-blackfin-arch-fix-struct-dmasg-packing-bug.patch
 blackfin-arch-cleanup-cache-header-file.patch
 blackfin-arch-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
 blackfin-arch-fix-compiling-error-in-flat-c-file.patch
