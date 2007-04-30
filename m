@@ -1,181 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - ppc4xx_sgdma-needs-dma_mappingh.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 14:44:37 -0700
-Message-ID: <200704302144.l3ULibSv015609@shell0.pdx.osdl.net>
+Subject: - spin_lock_unlocked-cleanup-in-arch-powerpc.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 14:44:39 -0700
+Message-ID: <200704302144.l3ULidSs015612@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57297 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51293 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031142AbXD3VpS (ORCPT
+	by vger.kernel.org with ESMTP id S1031148AbXD3Vp1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 17:45:18 -0400
+	Mon, 30 Apr 2007 17:45:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca, paulus@samba.org, mm-commits@vger.kernel.org
+To: milindchoudhary@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ppc4xx_sgdma needs dma-mapping.h
+     SPIN_LOCK_UNLOCKED cleanup in arch/powerpc
 has been removed from the -mm tree.  Its filename was
-     ppc4xx_sgdma-needs-dma_mappingh.patch
+     spin_lock_unlocked-cleanup-in-arch-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ppc4xx_sgdma needs dma-mapping.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: SPIN_LOCK_UNLOCKED cleanup in arch/powerpc
+From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-For dma_alloc_*()
+SPIN_LOCK_UNLOCKED cleanup,use DEFINE_SPINLOCK or __SPIN_LOCK_UNLOCKED
+where ever appropriate.
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ppc/syslib/ppc4xx_sgdma.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/kernel/irq.c              |    2 +-
+ arch/powerpc/kernel/rtas.c             |    2 +-
+ arch/powerpc/oprofile/op_model_cell.c  |    2 +-
+ arch/powerpc/platforms/cell/spu_base.c |    2 +-
+ arch/powerpc/platforms/ps3/htab.c      |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/ppc/syslib/ppc4xx_sgdma.c~ppc4xx_sgdma-needs-dma_mappingh arch/ppc/syslib/ppc4xx_sgdma.c
---- a/arch/ppc/syslib/ppc4xx_sgdma.c~ppc4xx_sgdma-needs-dma_mappingh
-+++ a/arch/ppc/syslib/ppc4xx_sgdma.c
-@@ -27,6 +27,7 @@
+diff -puN arch/powerpc/kernel/irq.c~spin_lock_unlocked-cleanup-in-arch-powerpc arch/powerpc/kernel/irq.c
+--- a/arch/powerpc/kernel/irq.c~spin_lock_unlocked-cleanup-in-arch-powerpc
++++ a/arch/powerpc/kernel/irq.c
+@@ -394,7 +394,7 @@ EXPORT_SYMBOL(do_softirq);
+ #ifdef CONFIG_PPC_MERGE
  
- #include <asm/system.h>
- #include <asm/io.h>
-+#include <asm/dma-mapping.h>
- #include <asm/ppc4xx_dma.h>
+ static LIST_HEAD(irq_hosts);
+-static spinlock_t irq_big_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(irq_big_lock);
+ static DEFINE_PER_CPU(unsigned int, irq_radix_reader);
+ static unsigned int irq_radix_writer;
+ struct irq_map_entry irq_map[NR_IRQS];
+diff -puN arch/powerpc/kernel/rtas.c~spin_lock_unlocked-cleanup-in-arch-powerpc arch/powerpc/kernel/rtas.c
+--- a/arch/powerpc/kernel/rtas.c~spin_lock_unlocked-cleanup-in-arch-powerpc
++++ a/arch/powerpc/kernel/rtas.c
+@@ -36,7 +36,7 @@
+ #include <asm/syscalls.h>
  
- void
+ struct rtas_t rtas = {
+-	.lock = SPIN_LOCK_UNLOCKED
++	.lock = __SPIN_LOCK_UNLOCKED(rtas.lock)
+ };
+ EXPORT_SYMBOL(rtas);
+ 
+diff -puN arch/powerpc/oprofile/op_model_cell.c~spin_lock_unlocked-cleanup-in-arch-powerpc arch/powerpc/oprofile/op_model_cell.c
+--- a/arch/powerpc/oprofile/op_model_cell.c~spin_lock_unlocked-cleanup-in-arch-powerpc
++++ a/arch/powerpc/oprofile/op_model_cell.c
+@@ -131,7 +131,7 @@ static int pm_rtas_token;
+ static u32 reset_value[NR_PHYS_CTRS];
+ static int num_counters;
+ static int oprofile_running;
+-static spinlock_t virt_cntr_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(virt_cntr_lock);
+ 
+ static u32 ctr_enabled;
+ 
+diff -puN arch/powerpc/platforms/cell/spu_base.c~spin_lock_unlocked-cleanup-in-arch-powerpc arch/powerpc/platforms/cell/spu_base.c
+--- a/arch/powerpc/platforms/cell/spu_base.c~spin_lock_unlocked-cleanup-in-arch-powerpc
++++ a/arch/powerpc/platforms/cell/spu_base.c
+@@ -43,7 +43,7 @@ const struct spu_priv1_ops *spu_priv1_op
+ static struct list_head spu_list[MAX_NUMNODES];
+ static LIST_HEAD(spu_full_list);
+ static DEFINE_MUTEX(spu_mutex);
+-static spinlock_t spu_list_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(spu_list_lock);
+ 
+ EXPORT_SYMBOL_GPL(spu_priv1_ops);
+ 
+diff -puN arch/powerpc/platforms/ps3/htab.c~spin_lock_unlocked-cleanup-in-arch-powerpc arch/powerpc/platforms/ps3/htab.c
+--- a/arch/powerpc/platforms/ps3/htab.c~spin_lock_unlocked-cleanup-in-arch-powerpc
++++ a/arch/powerpc/platforms/ps3/htab.c
+@@ -39,7 +39,7 @@ static unsigned long htab_addr;
+ static unsigned char *bolttab;
+ static unsigned char *inusetab;
+ 
+-static spinlock_t ps3_bolttab_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(ps3_bolttab_lock);
+ 
+ #define debug_dump_hpte(_a, _b, _c, _d, _e, _f, _g) \
+ 	_debug_dump_hpte(_a, _b, _c, _d, _e, _f, _g, __func__, __LINE__)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from milindchoudhary@gmail.com are
 
 origin.patch
-zlib-backout.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
-git-acpi.patch
 git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-arm.patch
-git-avr32.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
+spin_lock_unlocked-macro-cleanup-in-arch-ia64.patch
 git-jfs.patch
-git-kvm.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-ne-add-platform_driver-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+nfs-use-__set_current_state.patch
 git-ocfs2.patch
-git-parisc.patch
-git-r8169.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-__inquire_remote_apic-printk-warning-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-expose-range-checking-functions-from-arch-specific.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+round_up-macro-cleanup-in-drivers-pci.patch
+pcie-remove-spin_lock_unlocked.patch
+round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
+spin_lock_unlocked-cleanup-in-arch-m68k.patch
+round_up-macro-cleanup-in-drivers-char-lpc.patch
+round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
+round_up-macro-cleanup-in-fs-smbfs-requestc.patch
+spin_lock_unlocked-cleanup-in-init_taskh.patch
+spin_lock_unlocked-cleanup-in-drivers-char-keyboard.patch
+spin_lock_unlocked-cleanup-in-drivers-serial.patch
+reiserfs-use-__set_current_state.patch
+drivers-char-use-__set_current_state.patch
