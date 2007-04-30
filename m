@@ -1,226 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:59:15 -0700
-Message-ID: <200704301959.l3UJxFhn013569@shell0.pdx.osdl.net>
+Subject: - add-support-for-deferrable-timers-respun-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:59:57 -0700
+Message-ID: <200704301959.l3UJxwaJ013598@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34153 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59719 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423536AbXD3T7h (ORCPT
+	by vger.kernel.org with ESMTP id S1423623AbXD3UAY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:59:37 -0400
+	Mon, 30 Apr 2007 16:00:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kenchen@google.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, davej@codemonkey.org.uk, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy
+     Add support for deferrable timers (respun) (fix)
 has been removed from the -mm tree.  Its filename was
-     cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+     add-support-for-deferrable-timers-respun-fix.patch
 
-This patch was dropped because it was folded into cache-pipe-buf-page-address-for-non-highmem-arch.patch
+This patch was dropped because it was folded into add-support-for-deferrable-timers-respun.patch
 
 ------------------------------------------------------
-Subject: cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Add support for deferrable timers (respun) (fix)
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Cc: "Ken Chen" <kenchen@google.com>
-Cc: Zach Brown <zach.brown@oracle.com>
+On Wed, Mar 28, 2007 at 01:11:45AM +0400, Oleg Nesterov wrote:
+> On 03/27, Venki Pallipadi wrote:
+> >
+> >  	for (;;) {
+> > -		base = timer->base;
+> > +		tvec_base_t *prelock_base = timer->base;
+> > +		base = timer_get_base(timer);
+> >  		if (likely(base != NULL)) {
+> >  			spin_lock_irqsave(&base->lock, *flags);
+> > -			if (likely(base == timer->base))
+> > +			if (likely(prelock_base == timer->base))
+> >  				return base;
+>
+> I don't think this is correct, at least in theory.
+>
+> Suppose that
+>
+> 	tvec_base_t *prelock_base = timer->base;
+> 	base = timer_get_base(timer);
+>
+> are re-ordered (the second LOAD happens after the first one), and the timer
+> changes its base in between. Now, we lock the old base, and return it because
+> "prelock_base == timer->base" == true.
+>
+
+Great catch. Yes. this is a theoritical possibility, even though most compilers
+would load base only once and use it for prelock_base and 'and' it for
+base. Atleast that is what I see on i386/gcc.
+
+Incremental patch below eliminates this race.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   31 +++++++++++++++++++++++++------
- 1 files changed, 25 insertions(+), 6 deletions(-)
+ kernel/timer.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy fs/pipe.c
---- a/fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy
-+++ a/fs/pipe.c
-@@ -22,17 +22,36 @@
- #include <asm/ioctls.h>
- 
- #ifdef CONFIG_HIGHMEM
--#define pipe_kmap		kmap
--#define pipe_kmap_atomic	kmap_atomic
--#define pipe_kunmap		kunmap
--#define pipe_kunmap_atomic	kunmap_atomic
-+static inline void *pipe_kmap(struct page *page)
-+{
-+	return kmap(page);
-+}
-+
-+static inline void pipe_kunmap(struct page *page)
-+{
-+	kunmap(page);
-+}
-+
-+static inline void *pipe_kmap_atomic(struct page *page, enum km_type type)
-+{
-+	return kmap_atomic(page, type);
-+}
-+
-+static inline void pipe_kunmap_atomic(void *addr, enum km_type type)
-+{
-+	kunmap_atomic(addr, type);
-+}
- #else	/* CONFIG_HIGHMEM */
- static inline void *pipe_kmap(struct page *page)
- {
--	return (void *) page->private;
-+	return (void *)page->private;
+diff -puN kernel/timer.c~add-support-for-deferrable-timers-respun-fix kernel/timer.c
+--- a/kernel/timer.c~add-support-for-deferrable-timers-respun-fix
++++ a/kernel/timer.c
+@@ -103,9 +103,9 @@ static inline unsigned int timer_get_def
+ 	return tbase_get_deferrable(timer->base);
  }
-+
-+static inline void pipe_kunmap(struct page *page)
-+{
-+}
-+
- #define pipe_kmap_atomic(page, type)	pipe_kmap(page)
--#define pipe_kunmap(page)		do { } while (0)
- #define pipe_kunmap_atomic(page, type)	do { } while (0)
- #endif
+ 
+-static inline struct tvec_t_base_s *timer_get_base(struct timer_list *timer)
++static inline struct tvec_t_base_s *tbase_get_base(struct tvec_t_base_s *base)
+ {
+-	return ((struct tvec_t_base_s *)((unsigned long)(timer->base) &
++	return ((struct tvec_t_base_s *)((unsigned long)base &
+ 	                                 ~TBASE_DEFERRABLE_FLAG));
+ }
+ 
+@@ -375,7 +375,7 @@ static tvec_base_t *lock_timer_base(stru
+ 
+ 	for (;;) {
+ 		tvec_base_t *prelock_base = timer->base;
+-		base = timer_get_base(timer);
++		base = tbase_get_base(prelock_base);
+ 		if (likely(base != NULL)) {
+ 			spin_lock_irqsave(&base->lock, *flags);
+ 			if (likely(prelock_base == timer->base))
+@@ -599,7 +599,7 @@ static int cascade(tvec_base_t *base, tv
+ 	 * don't have to detach them individually.
+ 	 */
+ 	list_for_each_entry_safe(timer, tmp, &tv_list, entry) {
+-		BUG_ON(timer_get_base(timer) != base);
++		BUG_ON(tbase_get_base(timer->base) != base);
+ 		internal_add_timer(base, timer);
+ 	}
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-origin.patch
-zlib-backout.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
-slab-introduce-krealloc.patch
 git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-fixup.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-jfs.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-netdev-all.patch
-ne-add-platform_driver-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-__inquire_remote_apic-printk-warning-fix.patch
-xfs-clean-up-shrinker-games.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation-fix.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+cpuidle-hang-fix.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-fix.patch
+add-support-for-deferrable-timers-respun-fix-2.patch
+add-a-new-deferrable-delayed-work-init.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
