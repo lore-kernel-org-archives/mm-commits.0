@@ -1,77 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - add-support-for-deferrable-timers-respun-tidy.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:59:52 -0700
-Message-ID: <200704301959.l3UJxqt8013592@shell0.pdx.osdl.net>
+Subject: - move-timekeeping-code-to-timekeepingc-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:01:48 -0700
+Message-ID: <200704302001.l3UK1mwC013651@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34861 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42748 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423626AbXD3UAa (ORCPT
+	by vger.kernel.org with ESMTP id S1423546AbXD3UCJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:00:30 -0400
+	Mon, 30 Apr 2007 16:02:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@codemonkey.org.uk, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-support-for-deferrable-timers-respun-tidy
+     timekeeping.c needs sysdev.h
 has been removed from the -mm tree.  Its filename was
-     add-support-for-deferrable-timers-respun-tidy.patch
+     move-timekeeping-code-to-timekeepingc-fix.patch
 
-This patch was dropped because it was folded into add-support-for-deferrable-timers-respun.patch
+This patch was dropped because it was folded into move-timekeeping-code-to-timekeepingc.patch
 
 ------------------------------------------------------
-Subject: add-support-for-deferrable-timers-respun-tidy
+Subject: timekeeping.c needs sysdev.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Privatise this #define
+kernel/time/timekeeping.c:270: warning: 'struct sys_device' declared inside parameter list
+kernel/time/timekeeping.c:270: warning: its scope is only this definition or declaration, which is probably not what you want
+kernel/time/timekeeping.c:299: warning: 'struct sys_device' declared inside parameter list
+kernel/time/timekeeping.c:314: error: variable 'timekeeping_sysclass' has initializer but incomplete type
 
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+<etc>
+
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timer.h |    6 ------
- kernel/timer.c        |    7 +++++++
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ kernel/time/timekeeping.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/timer.h~add-support-for-deferrable-timers-respun-tidy include/linux/timer.h
---- a/include/linux/timer.h~add-support-for-deferrable-timers-respun-tidy
-+++ a/include/linux/timer.h
-@@ -9,12 +9,6 @@
- struct tvec_t_base_s;
- 
- extern struct tvec_t_base_s boot_tvec_bases;
--/*
-- * Note that all tvec_bases is 2 byte aligned and lower bit of
-- * base in timer_list is guaranteed to be zero. Use the LSB for
-- * the new flag to indicate whether the timer is deferrable
-- */
--#define TBASE_DEFERRABLE_FLAG		(0x1)
- 
- struct timer_list {
- 	struct list_head entry;
-diff -puN kernel/timer.c~add-support-for-deferrable-timers-respun-tidy kernel/timer.c
---- a/kernel/timer.c~add-support-for-deferrable-timers-respun-tidy
-+++ a/kernel/timer.c
-@@ -48,6 +48,13 @@ u64 jiffies_64 __cacheline_aligned_in_sm
- EXPORT_SYMBOL(jiffies_64);
- 
- /*
-+ * Note that all tvec_bases is 2 byte aligned and lower bit of base in
-+ * timer_list is guaranteed to be zero. Use the LSB for the new flag to
-+ * indicate whether the timer is deferrable
-+ */
-+#define TBASE_DEFERRABLE_FLAG		(0x1)
-+
-+/*
-  * per-CPU timer vector definitions:
-  */
- #define TVN_BITS (CONFIG_BASE_SMALL ? 4 : 6)
+diff -puN kernel/time/timekeeping.c~move-timekeeping-code-to-timekeepingc-fix kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~move-timekeeping-code-to-timekeepingc-fix
++++ a/kernel/time/timekeeping.c
+@@ -13,6 +13,7 @@
+ #include <linux/percpu.h>
+ #include <linux/init.h>
+ #include <linux/mm.h>
++#include <linux/sysdev.h>
+ #include <linux/clocksource.h>
+ #include <linux/jiffies.h>
+ #include <linux/time.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -162,9 +142,9 @@ fix-sscanf-%n-match-at-end-of-input-string.patch
 parport-dev-driver-model-support.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
 add-support-for-deferrable-timers-respun.patch
-add-support-for-deferrable-timers-respun-tidy.patch
 linux-sysdevh-needs-to-include-linux-moduleh.patch
 time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
 move-timekeeping-code-to-timekeepingc-fix.patch
 ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
 fix-kevents-childs-priority-greediness-fix.patch
