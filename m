@@ -1,101 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:06:49 -0700
-Message-ID: <200704301906.l3UJ6nGt012288@shell0.pdx.osdl.net>
+Subject: - return-eperm-not-echild-on-security_task_wait-failure-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:07:18 -0700
+Message-ID: <200704301907.l3UJ7ITJ012296@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43478 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946650AbXD3TGx (ORCPT
+	by vger.kernel.org with ESMTP id S1946657AbXD3TIQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:06:53 -0400
+	Mon, 30 Apr 2007 15:08:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: jmorris@namei.org, chrisw@sous-sol.org, roland@redhat.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab-allocators-remove-slab_debug_initial-flag locks fix
+     return-eperm-not-echild-on-security_task_wait-failure fix
 has been removed from the -mm tree.  Its filename was
-     slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
+     return-eperm-not-echild-on-security_task_wait-failure-fix.patch
 
-This patch was dropped because it was folded into slab-allocators-remove-slab_debug_initial-flag.patch
+This patch was dropped because it was folded into return-eperm-not-echild-on-security_task_wait-failure.patch
 
 ------------------------------------------------------
-Subject: slab-allocators-remove-slab_debug_initial-flag locks fix
-From: Christoph Lameter <clameter@sgi.com>
+Subject: return-eperm-not-echild-on-security_task_wait-failure fix
+From: James Morris <jmorris@namei.org>
 
-Sigh. The only case in which the check is inverted in a constructor.
-
-Invert the check.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: James Morris <jmorris@namei.org>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN fs/locks.c~slab-allocators-remove-slab_debug_initial-flag-locks-fix fs/locks.c
---- a/fs/locks.c~slab-allocators-remove-slab_debug_initial-flag-locks-fix
-+++ a/fs/locks.c
-@@ -203,7 +203,7 @@ static void init_once(void *foo, struct 
+diff -puN kernel/exit.c~return-eperm-not-echild-on-security_task_wait-failure-fix kernel/exit.c
+--- a/kernel/exit.c~return-eperm-not-echild-on-security_task_wait-failure-fix
++++ a/kernel/exit.c
+@@ -1033,6 +1033,8 @@ asmlinkage void sys_exit_group(int error
+ 
+ static int eligible_child(pid_t pid, int options, struct task_struct *p)
  {
- 	struct file_lock *lock = (struct file_lock *) foo;
++	int err;
++
+ 	if (pid > 0) {
+ 		if (p->pid != pid)
+ 			return 0;
+@@ -1066,8 +1068,9 @@ static int eligible_child(pid_t pid, int
+ 	if (delay_group_leader(p))
+ 		return 2;
  
--	if (flags & SLAB_CTOR_CONSTRUCTOR)
-+	if (!(flags & SLAB_CTOR_CONSTRUCTOR))
- 		return;
+-	if (security_task_wait(p))
+-		return -1;
++	err = security_task_wait(p);
++	if (err)
++		return err;
  
- 	locks_init_lock(lock);
+ 	return 1;
+ }
+@@ -1475,7 +1478,7 @@ repeat:
+ 				continue;
+ 
+ 			if (unlikely(ret < 0)) {
+-				denied = 1;
++				denied = ret;
+ 				continue;
+ 			}
+ 			allowed = 1;
+@@ -1579,7 +1582,7 @@ check_continued:
+ 	}
+ 	retval = -ECHILD;
+ 	if (unlikely(denied) && !allowed)
+-		retval = -EPERM;
++		retval = denied;
+ end:
+ 	current->state = TASK_RUNNING;
+ 	remove_wait_queue(&current->signal->wait_chldexit,&wait);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jmorris@namei.org are
 
-extend-print_symbol-capability.patch
-slab-introduce-krealloc.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-make-page-private-usable-in-compound-pages-v1.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-slub-add-min_partial.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab.patch
-slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
-slub-remove-object-activities-out-of-checking-functions.patch
-slub-user-documentation.patch
-slub-add-slabinfo-tool.patch
-quicklists-for-page-table-pages.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-kmem_cache-simplify-slab-cache-creation.patch
-slab-allocators-remove-multiple-alignment-specifications.patch
-fault-injection-fix-failslab-with-config_numa.patch
-mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slab-allocators-remove-slab_debug_initial-flag.patch
-slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
-slab-allocators-remove-slab_ctor_atomic.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-i386-support.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-vmstat-use-our-own-timer-events.patch
-readahead-state-based-method-aging-accounting.patch
+origin.patch
+git-selinux.patch
+implement-file-posix-capabilities.patch
+file-capabilities-accomodate-future-64-bit-caps.patch
+return-eperm-not-echild-on-security_task_wait-failure.patch
+return-eperm-not-echild-on-security_task_wait-failure-fix.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+tty-introduce-no_tty-and-use-it-in-selinux.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+remove-redundant-check-from-proc_setattr.patch
+remove-redundant-check-from-proc_sys_setattr.patch
+lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
+mprotect-patch-for-use-by-slim.patch
+integrity-service-api-and-dummy-provider.patch
+slim-main-patch.patch
+slim-secfs-patch.patch
+slim-make-and-config-stuff.patch
+slim-debug-output.patch
+slim-documentation.patch
