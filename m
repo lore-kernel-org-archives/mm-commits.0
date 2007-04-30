@@ -1,51 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-printk-cleanup-object_err.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 11:53:01 -0700
-Message-ID: <200704301853.l3UIr1if011966@shell0.pdx.osdl.net>
+Subject: - slub-core-sysfs-support-fix-unique-id-generation.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 11:52:58 -0700
+Message-ID: <200704301852.l3UIqwkZ011960@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47681 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423645AbXD3SxG (ORCPT
+	by vger.kernel.org with ESMTP id S1423628AbXD3SxC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 14:53:06 -0400
+	Mon, 30 Apr 2007 14:53:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB printk cleanup: object_err()
+     SLUB sysfs support: fix unique id generation
 has been removed from the -mm tree.  Its filename was
-     slub-core-printk-cleanup-object_err.patch
+     slub-core-sysfs-support-fix-unique-id-generation.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB printk cleanup: object_err()
+Subject: SLUB sysfs support: fix unique id generation
 From: Christoph Lameter <clameter@sgi.com>
+
+Generate a unique id for mergeable slabs through combining the slab size with
+the flags that distinguish slabs of the same size.  That yields a unique id
+that is fairly short and descriptive.  It no longer includes the kmem_cache
+address.
+
+Extract slab_unmergable() from find_mergeable and use that in sysfs_add_slab
+to make handling more consistent.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ mm/slub.c |   48 +++++++++++++++++++++++++++++-------------------
+ 1 files changed, 29 insertions(+), 19 deletions(-)
 
-diff -puN mm/slub.c~slub-core-printk-cleanup-object_err mm/slub.c
---- a/mm/slub.c~slub-core-printk-cleanup-object_err
+diff -puN mm/slub.c~slub-core-sysfs-support-fix-unique-id-generation mm/slub.c
+--- a/mm/slub.c~slub-core-sysfs-support-fix-unique-id-generation
 +++ a/mm/slub.c
-@@ -357,8 +357,8 @@ static void object_err(struct kmem_cache
- {
- 	u8 *addr = page_address(page);
+@@ -2268,6 +2268,17 @@ void __init kmem_cache_init(void)
+ /*
+  * Find a mergeable slab cache
+  */
++static int slab_unmergeable(struct kmem_cache *s)
++{
++	if (slub_nomerge || (s->flags & SLUB_NEVER_MERGE))
++		return 1;
++
++	if (s->ctor || s->dtor)
++		return 1;
++
++	return 0;
++}
++
+ static struct kmem_cache *find_mergeable(size_t size,
+ 		size_t align, unsigned long flags,
+ 		void (*ctor)(void *, struct kmem_cache *, unsigned long),
+@@ -2289,13 +2300,10 @@ static struct kmem_cache *find_mergeable
+ 		struct kmem_cache *s =
+ 			container_of(h, struct kmem_cache, list);
  
--	printk(KERN_ERR "*** SLUB: %s in %s@0x%p slab 0x%p\n",
--			reason, s->name, object, page);
-+	printk(KERN_ERR "*** SLUB %s: %s@0x%p slab 0x%p\n",
-+			s->name, reason, object, page);
- 	printk(KERN_ERR "    offset=%tu flags=0x%04lx inuse=%u freelist=0x%p\n",
- 		object - addr, page->flags, page->inuse, page->freelist);
- 	if (object > addr + 16)
+-		if (size > s->size)
+-			continue;
+-
+-		if (s->flags & SLUB_NEVER_MERGE)
++		if (slab_unmergeable(s))
+ 			continue;
+ 
+-		if (s->dtor || s->ctor)
++		if (size > s->size)
+ 			continue;
+ 
+ 		if (((flags | slub_debug) & SLUB_MERGE_SAME) !=
+@@ -3066,23 +3074,21 @@ static char *create_unique_id(struct kme
+ 
+ 	*p++ = ':';
+ 	/*
+-	 * First flags affecting slabcache operations */
++	 * First flags affecting slabcache operations. We will only
++	 * get here for aliasable slabs so we do not need to support
++	 * too many flags. The flags here must cover all flags that
++	 * are matched during merging to guarantee that the id is
++	 * unique.
++	 */
+ 	if (s->flags & SLAB_CACHE_DMA)
+ 		*p++ = 'd';
+ 	if (s->flags & SLAB_RECLAIM_ACCOUNT)
+ 		*p++ = 'a';
+-	if (s->flags & SLAB_DESTROY_BY_RCU)
+-		*p++ = 'r';\
+-	/* Debug flags */
+-	if (s->flags & SLAB_RED_ZONE)
+-		*p++ = 'Z';
+-	if (s->flags & SLAB_POISON)
+-		*p++ = 'P';
+-	if (s->flags & SLAB_STORE_USER)
+-		*p++ = 'U';
++	if (s->flags & SLAB_DEBUG_FREE)
++		*p++ = 'F';
+ 	if (p != name + 1)
+ 		*p++ = '-';
+-	p += sprintf(p,"%07d:0x%p" ,s->size, s);
++	p += sprintf(p, "%07d", s->size);
+ 	BUG_ON(p > name + ID_STR_LENGTH - 1);
+ 	return name;
+ }
+@@ -3091,12 +3097,14 @@ static int sysfs_slab_add(struct kmem_ca
+ {
+ 	int err;
+ 	const char *name;
++	int unmergeable;
+ 
+ 	if (slab_state < SYSFS)
+ 		/* Defer until later */
+ 		return 0;
+ 
+-	if (s->flags & SLUB_NEVER_MERGE) {
++	unmergeable = slab_unmergeable(s);
++	if (unmergeable) {
+ 		/*
+ 		 * Slabcache can never be merged so we can use the name proper.
+ 		 * This is typically the case for debug situations. In that
+@@ -3104,12 +3112,13 @@ static int sysfs_slab_add(struct kmem_ca
+ 		 */
+ 		sysfs_remove_link(&slab_subsys.kset.kobj, s->name);
+ 		name = s->name;
+-	} else
++	} else {
+ 		/*
+ 		 * Create a unique name for the slab as a target
+ 		 * for the symlinks.
+ 		 */
+ 		name = create_unique_id(s);
++	}
+ 
+ 	kobj_set_kset_s(s, slab_subsys);
+ 	kobject_set_name(&s->kobj, name);
+@@ -3122,7 +3131,8 @@ static int sysfs_slab_add(struct kmem_ca
+ 	if (err)
+ 		return err;
+ 	kobject_uevent(&s->kobj, KOBJ_ADD);
+-	if (!(s->flags & SLUB_NEVER_MERGE)) {
++	if (!unmergeable) {
++		/* Setup first alias */
+ 		sysfs_slab_alias(s, s->name);
+ 		kfree(name);
+ 	}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -65,6 +170,7 @@ smaps-add-clear_refs-file-to-clear-reference.patch
 slab-use-num_possible_cpus-in-enable_cpucache.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-core-sysfs-support-fix-unique-id-generation.patch
 slub-core-printk-cleanup-object_err.patch
 slub-core-printk-cleanup-add-slab_err.patch
 slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch
