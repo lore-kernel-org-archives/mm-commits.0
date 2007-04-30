@@ -1,131 +1,480 @@
 From: akpm@linux-foundation.org
-Subject: - tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:58:27 -0700
-Message-ID: <200704301958.l3UJwRTI013540@shell0.pdx.osdl.net>
+Subject: - fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:58:50 -0700
+Message-ID: <200704301958.l3UJwoFs013543@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51834 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031582AbXD3T6e (ORCPT
+	by vger.kernel.org with ESMTP id S1423456AbXD3T6z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:58:34 -0400
+	Mon, 30 Apr 2007 15:58:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, hugh@veritas.com, mm-commits@vger.kernel.org
+To: agruen@suse.de, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: in tiocsctty when we steal a tty hang it up.
+     Fix __d_path() for lazy unmounts and make it unambiguous
 has been removed from the -mm tree.  Its filename was
-     tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
+     fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: tty: in tiocsctty when we steal a tty hang it up.
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: Fix __d_path() for lazy unmounts and make it unambiguous
+From: Andreas Gruenbacher <agruen@suse.de>
 
-The linux implementation of TIOCSCTTY includes an extention that provides for
-making a tty that is already the controlling tty of another session our
-controlling tty.  To do this it must steal the tty away from the previous
-group that used it as a controlling tty.
+Fix __d_path() for lazy unmounts and make it unambiguous; exclude unreachable
+mount points from /proc/mounts
 
-The way we are currently stealing the controlling tty away is weird.  In
-general there is a well defined process for loosing the controlling tty.  TTY
-hangup processing.  However the linux extension that steals the tty from
-another process group does not invoke that.  And instead just forgets the
-controlling tty of the processes that were part of the session.
+First, when d_path() hits a lazily unmounted mount point, it tries to prepend
+the name of the lazily unmounted dentry to the path name.  It gets this wrong,
+and also overwrites the slash that separates the name from the following
+pathname component.
 
-I can not imagine how our current behaviour of stealling a tty is correct or
-how a set of processes could deal with it reasonably.  So this patch modifies
-the tty stealing to call tty_vhangup so we get full hanup processing when we
-steal a tty.
+Second, it isn't always possible to tell from the __d_path result whether the
+specified root and rootmnt (i.e., the chroot) was reached: lazy unmounts of
+bind mounts will produce a path that does start with a non-slash so we can
+tell from that, but other lazy unmounts will produce a path that starts with a
+slash, just like "ordinary" paths.
 
-I did a quick survey of user space the only application I found using this
-extended behaviour is sysvinit.  I perform a limited amount of testing and
-nothing appears to have broken with this change.  And I did see sysvinit pass
-through this piece of code.
+Third, sys_getcwd() shouldn't return disconnected paths.  The patch checks for
+that, and makes it fail with -ENOENT in that case.
 
-In terms of the tty leaks that started this patch series this fix should
-remove the last path into proc_clear_tty that has a session or a process
-group.
+Fourth, this now allows us to tell unreachable mount points from reachable
+ones when generating the /proc/mounts and /proc/$pid/mountstats files. 
+Unreachable mount points are not interesting to processes (they can't get
+there, anyway), so we hide unreachable mounts.  In particular, ordinary
+processes also will no longer see the rootfs mount (it is unreachable, after
+all).  The rootfs mount point will still be reachable to processes like the
+initial initrd init process, and so those processes will continue to see this
+mount point.
 
-[hugh@veritas.com: init hangs on tty_mutex]
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+The attached patch cleans up __d_path() to fix the bug with overlapping
+pathname components.  It also adds a @fail_deleted argument, which allows to
+get rid of some of the mess in sys_getcwd().  We make sure that paths will
+only start with a slash if the path leads all the way up to the root.  If the
+resulting path would otherwise be empty, we return "." instead so that some
+users of seq_path for files in /proc won't break.
+
+The @fail_deleted argument allows sys_getcwd() to be simplified.  Grabbing the
+dcache_lock can be moved into __d_path().
+
+The @fail_deleted argument could be added to d_path() as well: this would
+allow callers to recognize deleted files without having to resort to the
+ambiguous check for the " (deleted)" string at the end of the pathnames.  This
+is not currently done, but it might be worthwhile.
+
+This patch also removes some code duplication between mounts_open() and
+mountstats_open().
+
+Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
+Reviewed-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- char/tty_io.c |    0 
- 1 files changed
+ fs/dcache.c    |  157 ++++++++++++++++++++++++++---------------------
+ fs/namespace.c |   23 ++++++
+ fs/proc/base.c |   52 ++++++---------
+ 3 files changed, 131 insertions(+), 101 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up drivers/char/tty_io.c
+diff -puN fs/dcache.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous fs/dcache.c
+--- a/fs/dcache.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous
++++ a/fs/dcache.c
+@@ -1767,52 +1767,51 @@ shouldnt_be_hashed:
+ }
+ 
+ /**
+- * d_path - return the path of a dentry
++ * __d_path - return the path of a dentry
+  * @dentry: dentry to report
+  * @vfsmnt: vfsmnt to which the dentry belongs
+  * @root: root dentry
+  * @rootmnt: vfsmnt to which the root dentry belongs
+  * @buffer: buffer to return value in
+  * @buflen: buffer length
++ * @fail_deleted: what to return for deleted files
+  *
+- * Convert a dentry into an ASCII path name. If the entry has been deleted
++ * Convert a dentry into an ASCII path name. If the entry has been deleted,
++ * then if @fail_deleted is true, ERR_PTR(-ENOENT) is returned. Otherwise,
+  * the string " (deleted)" is appended. Note that this is ambiguous.
+  *
+- * Returns the buffer or an error code if the path was too long.
++ * If @dentry is not connected to @root, the path returned will be relative
++ * (i.e., it will not start with a slash).
+  *
+- * "buflen" should be positive. Caller holds the dcache_lock.
++ * Returns the buffer or an error code.
+  */
+-static char * __d_path( struct dentry *dentry, struct vfsmount *vfsmnt,
+-			struct dentry *root, struct vfsmount *rootmnt,
+-			char *buffer, int buflen)
+-{
+-	char * end = buffer+buflen;
+-	char * retval;
+-	int namelen;
++static char *__d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
++		      struct dentry *root, struct vfsmount *rootmnt,
++		      char *buffer, int buflen, int fail_deleted)
++{
++	int namelen, is_slash;
++
++	if (buflen < 2)
++		return ERR_PTR(-ENAMETOOLONG);
++	buffer += --buflen;
++	*buffer = '\0';
+ 
+-	*--end = '\0';
+-	buflen--;
++	spin_lock(&dcache_lock);
+ 	if (!IS_ROOT(dentry) && d_unhashed(dentry)) {
+-		buflen -= 10;
+-		end -= 10;
+-		if (buflen < 0)
++		if (fail_deleted) {
++			buffer = ERR_PTR(-ENOENT);
++			goto out;
++		}
++		if (buflen < 10)
+ 			goto Elong;
+-		memcpy(end, " (deleted)", 10);
++		buflen -= 10;
++		buffer -= 10;
++		memcpy(buffer, " (deleted)", 10);
+ 	}
+-
+-	if (buflen < 1)
+-		goto Elong;
+-	/* Get '/' right */
+-	retval = end-1;
+-	*retval = '/';
+-
+-	for (;;) {
++	while (dentry != root || vfsmnt != rootmnt) {
+ 		struct dentry * parent;
+ 
+-		if (dentry == root && vfsmnt == rootmnt)
+-			break;
+ 		if (dentry == vfsmnt->mnt_root || IS_ROOT(dentry)) {
+-			/* Global root? */
+ 			spin_lock(&vfsmount_lock);
+ 			if (vfsmnt->mnt_parent == vfsmnt) {
+ 				spin_unlock(&vfsmount_lock);
+@@ -1826,33 +1825,63 @@ static char * __d_path( struct dentry *d
+ 		parent = dentry->d_parent;
+ 		prefetch(parent);
+ 		namelen = dentry->d_name.len;
+-		buflen -= namelen + 1;
+-		if (buflen < 0)
++		if (buflen < namelen + 1)
+ 			goto Elong;
+-		end -= namelen;
+-		memcpy(end, dentry->d_name.name, namelen);
+-		*--end = '/';
+-		retval = end;
++		buflen -= namelen + 1;
++		buffer -= namelen;
++		memcpy(buffer, dentry->d_name.name, namelen);
++		*--buffer = '/';
+ 		dentry = parent;
+ 	}
++	/* Get '/' right. */
++	if (*buffer != '/')
++		*--buffer = '/';
+ 
+-	return retval;
++out:
++	spin_unlock(&dcache_lock);
++	return buffer;
+ 
+ global_root:
++	/*
++	 * We went past the (vfsmount, dentry) we were looking for and have
++	 * either hit a root dentry, a lazily unmounted dentry, an
++	 * unconnected dentry, or the file is on a pseudo filesystem.
++	 */
+ 	namelen = dentry->d_name.len;
+-	buflen -= namelen;
+-	if (buflen < 0)
++	is_slash = (namelen == 1 && *dentry->d_name.name == '/');
++	if (is_slash || (dentry->d_sb->s_flags & MS_NOUSER)) {
++		/*
++		 * Make sure we won't return a pathname starting with '/'.
++		 *
++		 * Historically, we also glue together the root dentry and
++		 * remaining name for pseudo filesystems like pipefs, which
++		 * have the MS_NOUSER flag set. This results in pathnames
++		 * like "pipe:[439336]".
++		 */
++		if (*buffer == '/') {
++			buffer++;
++			buflen++;
++		}
++		if (is_slash) {
++			if (*buffer == '\0')
++				*--buffer = '.';
++			goto out;
++		}
++	}
++	if (buflen < namelen)
+ 		goto Elong;
+-	retval -= namelen-1;	/* hit the slash */
+-	memcpy(retval, dentry->d_name.name, namelen);
+-	return retval;
++	buffer -= namelen;
++	memcpy(buffer, dentry->d_name.name, namelen);
++	goto out;
++
+ Elong:
+-	return ERR_PTR(-ENAMETOOLONG);
++	buffer = ERR_PTR(-ENAMETOOLONG);
++	goto out;
+ }
+ 
+ /* write full pathname into buffer and return start of pathname */
+-char * d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
+-				char *buf, int buflen)
++char *d_path(struct dentry *dentry, struct vfsmount *vfsmnt, char *buf,
++	     int buflen)
+ {
+ 	char *res;
+ 	struct vfsmount *rootmnt;
+@@ -1862,9 +1891,7 @@ char * d_path(struct dentry *dentry, str
+ 	rootmnt = mntget(current->fs->rootmnt);
+ 	root = dget(current->fs->root);
+ 	read_unlock(&current->fs->lock);
+-	spin_lock(&dcache_lock);
+-	res = __d_path(dentry, vfsmnt, root, rootmnt, buf, buflen);
+-	spin_unlock(&dcache_lock);
++	res = __d_path(dentry, vfsmnt, root, rootmnt, buf, buflen, 0);
+ 	dput(root);
+ 	mntput(rootmnt);
+ 	return res;
+@@ -1890,10 +1917,10 @@ char * d_path(struct dentry *dentry, str
+  */
+ asmlinkage long sys_getcwd(char __user *buf, unsigned long size)
+ {
+-	int error;
++	int error, len;
+ 	struct vfsmount *pwdmnt, *rootmnt;
+ 	struct dentry *pwd, *root;
+-	char *page = (char *) __get_free_page(GFP_USER);
++	char *page = (char *) __get_free_page(GFP_USER), *cwd;
+ 
+ 	if (!page)
+ 		return -ENOMEM;
+@@ -1905,29 +1932,21 @@ asmlinkage long sys_getcwd(char __user *
+ 	root = dget(current->fs->root);
+ 	read_unlock(&current->fs->lock);
+ 
++	cwd = __d_path(pwd, pwdmnt, root, rootmnt, page, PAGE_SIZE, 1);
++	error = PTR_ERR(cwd);
++	if (IS_ERR(cwd))
++		goto out;
+ 	error = -ENOENT;
+-	/* Has the current directory has been unlinked? */
+-	spin_lock(&dcache_lock);
+-	if (pwd->d_parent == pwd || !d_unhashed(pwd)) {
+-		unsigned long len;
+-		char * cwd;
+-
+-		cwd = __d_path(pwd, pwdmnt, root, rootmnt, page, PAGE_SIZE);
+-		spin_unlock(&dcache_lock);
+-
+-		error = PTR_ERR(cwd);
+-		if (IS_ERR(cwd))
+-			goto out;
++	if (*cwd != '/')
++		goto out;
+ 
+-		error = -ERANGE;
+-		len = PAGE_SIZE + page - cwd;
+-		if (len <= size) {
+-			error = len;
+-			if (copy_to_user(buf, cwd, len))
+-				error = -EFAULT;
+-		}
+-	} else
+-		spin_unlock(&dcache_lock);
++	error = -ERANGE;
++	len = PAGE_SIZE + page - cwd;
++	if (len <= size) {
++		error = len;
++		if (copy_to_user(buf, cwd, len))
++			error = -EFAULT;
++	}
+ 
+ out:
+ 	dput(pwd);
+diff -puN fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous fs/namespace.c
+--- a/fs/namespace.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous
++++ a/fs/namespace.c
+@@ -348,8 +348,16 @@ static inline void mangle(struct seq_fil
+ 	seq_escape(m, s, " \t\n\\");
+ }
+ 
++/* Keep in sync with fs/proc/base.c! */
++struct proc_mounts {
++        struct seq_file m;
++        void *page;
++        int event;
++};
++
+ static int show_vfsmnt(struct seq_file *m, void *v)
+ {
++	void *page = container_of(m, struct proc_mounts, m)->page;
+ 	struct vfsmount *mnt = v;
+ 	int err = 0;
+ 	static struct proc_fs_info {
+@@ -371,10 +379,15 @@ static int show_vfsmnt(struct seq_file *
+ 		{ 0, NULL }
+ 	};
+ 	struct proc_fs_info *fs_infop;
++	char *path;
++
++	path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
++	if (IS_ERR(path) || *path != '/')
++		return err;
+ 
+ 	mangle(m, mnt->mnt_devname ? mnt->mnt_devname : "none");
+ 	seq_putc(m, ' ');
+-	seq_path(m, mnt, mnt->mnt_root, " \t\n\\");
++	mangle(m, path);
+ 	seq_putc(m, ' ');
+ 	mangle(m, mnt->mnt_sb->s_type->name);
+ 	seq_puts(m, mnt->mnt_sb->s_flags & MS_RDONLY ? " ro" : " rw");
+@@ -401,8 +414,14 @@ struct seq_operations mounts_op = {
+ 
+ static int show_vfsstat(struct seq_file *m, void *v)
+ {
++	void *page = container_of(m, struct proc_mounts, m)->page;
+ 	struct vfsmount *mnt = v;
+ 	int err = 0;
++	char *path;
++
++	path = d_path(mnt->mnt_root, mnt, page, PAGE_SIZE);
++	if (IS_ERR(path) || *path != '/')
++		return err; /* error or path unreachable from chroot */
+ 
+ 	/* device */
+ 	if (mnt->mnt_devname) {
+@@ -413,7 +432,7 @@ static int show_vfsstat(struct seq_file 
+ 
+ 	/* mount point */
+ 	seq_puts(m, " mounted on ");
+-	seq_path(m, mnt, mnt->mnt_root, " \t\n\\");
++	mangle(m, path);
+ 	seq_putc(m, ' ');
+ 
+ 	/* file system type */
+diff -puN fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous fs/proc/base.c
+--- a/fs/proc/base.c~fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous
++++ a/fs/proc/base.c
+@@ -356,13 +356,16 @@ static const struct inode_operations pro
+ 	.setattr	= proc_setattr,
+ };
+ 
++/* Keep in sync with fs/namespace.c! */
+ extern struct seq_operations mounts_op;
+ struct proc_mounts {
+ 	struct seq_file m;
++	void *page;
+ 	int event;
+ };
+ 
+-static int mounts_open(struct inode *inode, struct file *file)
++static int __mounts_open(struct inode *inode, struct file *file,
++			 struct seq_operations *seq_ops)
+ {
+ 	struct task_struct *task = get_proc_task(inode);
+ 	struct mnt_namespace *ns = NULL;
+@@ -385,12 +388,16 @@ static int mounts_open(struct inode *ino
+ 		p = kmalloc(sizeof(struct proc_mounts), GFP_KERNEL);
+ 		if (p) {
+ 			file->private_data = &p->m;
+-			ret = seq_open(file, &mounts_op);
++			p->page = (void *)__get_free_page(GFP_KERNEL);
++			if (p->page)
++				ret = seq_open(file, seq_ops);
+ 			if (!ret) {
+ 				p->m.private = ns;
+ 				p->event = ns->event;
+ 				return 0;
+ 			}
++			if (p->page)
++				free_page((unsigned long)p->page);
+ 			kfree(p);
+ 		}
+ 		put_mnt_ns(ns);
+@@ -398,17 +405,26 @@ static int mounts_open(struct inode *ino
+ 	return ret;
+ }
+ 
++static int mounts_open(struct inode *inode, struct file *file)
++{
++	return __mounts_open(inode, file, &mounts_op);
++}
++
+ static int mounts_release(struct inode *inode, struct file *file)
+ {
+-	struct seq_file *m = file->private_data;
+-	struct mnt_namespace *ns = m->private;
++	struct proc_mounts *p =
++		container_of(file->private_data, struct proc_mounts, m);
++	struct mnt_namespace *ns = p->m.private;
++
++	free_page((unsigned long)p->page);
+ 	put_mnt_ns(ns);
+ 	return seq_release(inode, file);
+ }
+ 
+ static unsigned mounts_poll(struct file *file, poll_table *wait)
+ {
+-	struct proc_mounts *p = file->private_data;
++	struct proc_mounts *p =
++		container_of(file->private_data, struct proc_mounts, m);
+ 	struct mnt_namespace *ns = p->m.private;
+ 	unsigned res = 0;
+ 
+@@ -435,31 +451,7 @@ static const struct file_operations proc
+ extern struct seq_operations mountstats_op;
+ static int mountstats_open(struct inode *inode, struct file *file)
+ {
+-	int ret = seq_open(file, &mountstats_op);
+-
+-	if (!ret) {
+-		struct seq_file *m = file->private_data;
+-		struct mnt_namespace *mnt_ns = NULL;
+-		struct task_struct *task = get_proc_task(inode);
+-
+-		if (task) {
+-			task_lock(task);
+-			if (task->nsproxy)
+-				mnt_ns = task->nsproxy->mnt_ns;
+-			if (mnt_ns)
+-				get_mnt_ns(mnt_ns);
+-			task_unlock(task);
+-			put_task_struct(task);
+-		}
+-
+-		if (mnt_ns)
+-			m->private = mnt_ns;
+-		else {
+-			seq_release(inode, file);
+-			ret = -EINVAL;
+-		}
+-	}
+-	return ret;
++	return __mounts_open(inode, file, &mountstats_op);
+ }
+ 
+ static const struct file_operations proc_mountstats_operations = {
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from agruen@suse.de are
 
-origin.patch
-arm-ecard-convert-to-use-the-kthread-api.patch
-iop13xx-msi-support-rev6.patch
-macintosh-mediabay-convert-to-kthread-api.patch
-macintosh-adb-convert-to-the-kthread-api.patch
-macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
-powerpc-pseries-rtasd-convert-to-kthread-api.patch
-powerpc-pseries-eeh-convert-to-kthread-api.patch
-dvb_en_50221-convert-to-kthread-api.patch
-mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
-ia64-sn-xpc-convert-to-use-kthread-api.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
-fix-i-oat-for-kexec.patch
-cpqphp-partially-convert-to-use-the-kthread-api.patch
-ibmphp-partially-convert-to-use-the-kthreads-api.patch
-cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
-msi-fix-arm-compile.patch
-s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
-s390-qeth-convert-to-use-the-kthread-api.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
-sparc64-powerc-convert-to-use-the-kthread-api.patch
-i386-irq-kill-irq-compression.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-tty-in-tiocsctty-when-we-steal-a-tty-hang-it-up.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
-proc-cleanup-use-seq_release_private-where-appropriate.patch
-smbfs-remove-unnecessary-allow_signal.patch
-pnpbios-conert-to-use-the-kthread-api.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-worker_thread-dont-play-with-sigchld-and-numa-policy.patch
-change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-remvoe-kthread_bind-call-from-_cpu_down.patch
-nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-md-remove-broken-sigkill-support.patch
-mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+fix-__d_path-for-lazy-unmounts-and-make-it-unambiguous.patch
+remove-redundant-check-from-proc_setattr.patch
+remove-redundant-check-from-proc_sys_setattr.patch
