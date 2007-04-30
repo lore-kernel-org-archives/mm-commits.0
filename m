@@ -1,59 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:11:04 -0700
-Message-ID: <200704301911.l3UJB5Qc012474@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-workaround-bf561-anomaly-05000266.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:10:58 -0700
+Message-ID: <200704301910.l3UJAw6F012466@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54496 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946662AbXD3TLI (ORCPT
+	by vger.kernel.org with ESMTP id S1946660AbXD3TLD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:11:08 -0400
+	Mon, 30 Apr 2007 15:11:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@analog.com, mm-commits@vger.kernel.org
+To: bryan.wu@analog.com, sonic.zhang@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin arch: fix bug asserting gpio requested doesnt make sense with GPIO whole PORT accesses
+     blackfin arch: workaround BF561 anomaly 05000266
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch
+     blackfin-arch-workaround-bf561-anomaly-05000266.patch
 
 This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: blackfin arch: fix bug asserting gpio requested doesnt make sense with GPIO whole PORT accesses
+Subject: blackfin arch: workaround BF561 anomaly 05000266
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
-A BUG_ON will fire in the STAMP533 board when enable ethernet support.  This
-BUG_ON asserting is useless in the whole PORT accesses.  So remove it.
+http://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_item_id=2958
 
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/bfin_gpio.c |    2 --
- 1 files changed, 2 deletions(-)
+ arch/blackfin/kernel/setup.c |    5 +++++
+ 1 files changed, 5 insertions(+)
 
-diff -puN arch/blackfin/kernel/bfin_gpio.c~blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses arch/blackfin/kernel/bfin_gpio.c
---- a/arch/blackfin/kernel/bfin_gpio.c~blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses
-+++ a/arch/blackfin/kernel/bfin_gpio.c
-@@ -316,7 +316,6 @@ SET_GPIO_P(maskb)
- void set_gpiop_data(unsigned short gpio, unsigned short arg)
- {
- 	unsigned long flags;
--	BUG_ON(!(reserved_map[gpio_bank(gpio)] & gpio_bit(gpio)));
- 	local_irq_save(flags);
- 	gpio_bankb[gpio_bank(gpio)]->data = arg;
- 	bfin_read_CHIPID();
-@@ -386,7 +385,6 @@ unsigned short get_gpiop_data(unsigned s
- {
- 	unsigned long flags;
- 	unsigned short ret;
--	BUG_ON(!(reserved_map[gpio_bank(gpio)] & gpio_bit(gpio)));
- 	local_irq_save(flags);
- 	ret = gpio_bankb[gpio_bank(gpio)]->data;
- 	bfin_read_CHIPID();
+diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-workaround-bf561-anomaly-05000266 arch/blackfin/kernel/setup.c
+--- a/arch/blackfin/kernel/setup.c~blackfin-arch-workaround-bf561-anomaly-05000266
++++ a/arch/blackfin/kernel/setup.c
+@@ -210,6 +210,11 @@ void __init setup_arch(char **cmdline_p)
+ 		panic("ANOMALY 05000273, SCLK can not be same as CCLK");
+ #endif
+ 
++#if defined(ANOMALY_05000266)
++	bfin_read_IMDMA_D0_IRQ_STATUS();
++	bfin_read_IMDMA_D1_IRQ_STATUS();
++#endif
++
+ #ifdef DEBUG_SERIAL_EARLY_INIT
+ 	bfin_console_init();	/* early console registration */
+ 	/* this give a chance to get printk() working before crash. */
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -61,6 +57,8 @@ Patches currently in -mm which might be from bryan.wu@analog.com are
 origin.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
+blackfin-arch-workaround-bf561-anomaly-05000266.patch
+blackfin-arch-define-a-new-cacheline_aligned-attribute-to-put-it-in-l1-data-memory-with-linkscript-update.patch
 blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch
 blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch
 blackfin-arch-fix-coding-style-in-ints-priority-sc-c-file.patch
