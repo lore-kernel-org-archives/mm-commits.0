@@ -1,63 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-printk-cleanup-add-slab_err.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 11:53:05 -0700
-Message-ID: <200704301853.l3UIr5OP011970@shell0.pdx.osdl.net>
+Subject: - slub-core-fix-slab-validation-error-in-bootstrap-cache.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 11:53:12 -0700
+Message-ID: <200704301853.l3UIrC2O011978@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36257 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43165 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423660AbXD3SxK (ORCPT
+	by vger.kernel.org with ESMTP id S1946636AbXD3Sxf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 14:53:10 -0400
+	Mon, 30 Apr 2007 14:53:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB printk cleanup: add slab_err
+     SLUB: Fix slab validation error in bootstrap cache
 has been removed from the -mm tree.  Its filename was
-     slub-core-printk-cleanup-add-slab_err.patch
+     slub-core-fix-slab-validation-error-in-bootstrap-cache.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB printk cleanup: add slab_err
+Subject: SLUB: Fix slab validation error in bootstrap cache
 From: Christoph Lameter <clameter@sgi.com>
 
-Add a function to report on an error condition in a slab.  This is similar to
-object_err which reports on an error condition in an object.
+Bootstrap does not properly setup the redzone information when we
+allocate the kmem_cache_node information by hand early in the bootstrap.
+With full debugging on slab validation complains about wrong Redzone
+information (and fixes it, good but ...)
+
+Do proper initialization of the object with the redzone information.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/slub.c~slub-core-printk-cleanup-add-slab_err mm/slub.c
---- a/mm/slub.c~slub-core-printk-cleanup-add-slab_err
+diff -puN mm/slub.c~slub-core-fix-slab-validation-error-in-bootstrap-cache mm/slub.c
+--- a/mm/slub.c~slub-core-fix-slab-validation-error-in-bootstrap-cache
 +++ a/mm/slub.c
-@@ -368,6 +368,19 @@ static void object_err(struct kmem_cache
- 	dump_stack();
- }
- 
-+static void slab_err(struct kmem_cache *s, struct page *page, char *reason, ...)
-+{
-+	va_list args;
-+	char buf[100];
-+
-+	va_start(args, reason);
-+	vsnprintf(buf, sizeof(buf), reason, args);
-+	va_end(args);
-+	printk(KERN_ERR "*** SLUB %s: %s in slab @0x%p\n", s->name, buf,
-+		page);
-+	dump_stack();
-+}
-+
- static void init_object(struct kmem_cache *s, void *object, int active)
- {
- 	u8 *p = object;
+@@ -1562,6 +1562,7 @@ static struct kmem_cache_node * __init e
+ 	page->freelist = get_freepointer(kmalloc_caches, n);
+ 	page->inuse++;
+ 	kmalloc_caches->node[node] = n;
++	init_object(kmalloc_caches, n, 1);
+ 	init_kmem_cache_node(n);
+ 	atomic_long_inc(&n->nr_slabs);
+ 	add_partial(kmalloc_caches, page);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -77,8 +69,6 @@ smaps-add-clear_refs-file-to-clear-reference.patch
 slab-use-num_possible_cpus-in-enable_cpucache.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
-slub-core-printk-cleanup-add-slab_err.patch
-slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch
 slub-core-fix-slab-validation-error-in-bootstrap-cache.patch
 slub-core-remove-per-cpu-flusher.patch
 make-page-private-usable-in-compound-pages-v1.patch
