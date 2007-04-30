@@ -1,82 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: - signal-timer-event-fds-v9-signalfd-core-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:30:44 -0700
-Message-ID: <200704302030.l3UKUih6014290@shell0.pdx.osdl.net>
+Subject: - signal-timer-event-fds-v9-timerfd-core-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:31:58 -0700
+Message-ID: <200704302031.l3UKVwgX014315@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50253 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41806 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946805AbXD3Uar (ORCPT
+	by vger.kernel.org with ESMTP id S1946793AbXD3UcB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:30:47 -0400
+	Mon, 30 Apr 2007 16:32:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal-timer-event-fds-v9-signalfd-core fix
+     signal-timer-event-fds-v9-timerfd-core-fix
 has been removed from the -mm tree.  Its filename was
-     signal-timer-event-fds-v9-signalfd-core-fix.patch
+     signal-timer-event-fds-v9-timerfd-core-fix.patch
 
-This patch was dropped because it was folded into signal-timer-event-fds-v9-signalfd-core.patch
+This patch was dropped because it was folded into signal-timer-event-fds-v9-timerfd-core.patch
 
 ------------------------------------------------------
-Subject: signal-timer-event-fds-v9-signalfd-core fix
+Subject: signal-timer-event-fds-v9-timerfd-core-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-i386:
-
-fs/signalfd.c: In function 'signalfd_copyinfo':
-fs/signalfd.c:179: warning: cast from pointer to integer of different size
-fs/signalfd.c:179: warning: cast from pointer to integer of different size
-fs/signalfd.c:179: warning: cast from pointer to integer of different size
-fs/signalfd.c:179: warning: cast from pointer to integer of different size
-fs/signalfd.c:186: warning: cast from pointer to integer of different size
-fs/signalfd.c:186: warning: cast from pointer to integer of different size
-fs/signalfd.c:186: warning: cast from pointer to integer of different size
-fs/signalfd.c:186: warning: cast from pointer to integer of different size
-fs/signalfd.c:202: warning: cast from pointer to integer of different size
-fs/signalfd.c:202: warning: cast from pointer to integer of different size
-fs/signalfd.c:202: warning: cast from pointer to integer of different size
-fs/signalfd.c:202: warning: cast from pointer to integer of different size
 
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/signalfd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/sys_ni.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/signalfd.c~signal-timer-event-fds-v9-signalfd-core-fix fs/signalfd.c
---- a/fs/signalfd.c~signal-timer-event-fds-v9-signalfd-core-fix
-+++ a/fs/signalfd.c
-@@ -176,14 +176,14 @@ static int signalfd_copyinfo(struct sign
- 	case __SI_TIMER:
- 		 err |= __put_user(kinfo->si_tid, &uinfo->tid);
- 		 err |= __put_user(kinfo->si_overrun, &uinfo->overrun);
--		 err |= __put_user(kinfo->si_ptr, &uinfo->svptr);
-+		 err |= __put_user((long)kinfo->si_ptr, &uinfo->svptr);
- 		break;
- 	case __SI_POLL:
- 		err |= __put_user(kinfo->si_band, &uinfo->band);
- 		err |= __put_user(kinfo->si_fd, &uinfo->fd);
- 		break;
- 	case __SI_FAULT:
--		err |= __put_user(kinfo->si_addr, &uinfo->addr);
-+		err |= __put_user((long)kinfo->si_addr, &uinfo->addr);
- #ifdef __ARCH_SI_TRAPNO
- 		err |= __put_user(kinfo->si_trapno, &uinfo->trapno);
- #endif
-@@ -199,7 +199,7 @@ static int signalfd_copyinfo(struct sign
- 	case __SI_MESGQ: /* But this is */
- 		err |= __put_user(kinfo->si_pid, &uinfo->pid);
- 		err |= __put_user(kinfo->si_uid, &uinfo->uid);
--		err |= __put_user(kinfo->si_ptr, &uinfo->svptr);
-+		err |= __put_user((long)kinfo->si_ptr, &uinfo->svptr);
- 		break;
- 	default: /* this is just in case for now ... */
- 		err |= __put_user(kinfo->si_pid, &uinfo->pid);
+diff -puN kernel/sys_ni.c~signal-timer-event-fds-v9-timerfd-core-fix kernel/sys_ni.c
+--- a/kernel/sys_ni.c~signal-timer-event-fds-v9-timerfd-core-fix
++++ a/kernel/sys_ni.c
+@@ -144,3 +144,4 @@ cond_syscall(sys_ioprio_get);
+ 
+ /* New file descriptors */
+ cond_syscall(sys_signalfd);
++cond_syscall(sys_timerfd);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -192,8 +155,7 @@ atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 local_t-powerpc-extension.patch
 linux-kernel-markers-i386-optimization.patch
 signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core.patch
 signal-timer-event-fds-v9-timerfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix.patch
 signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
