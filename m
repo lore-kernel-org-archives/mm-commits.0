@@ -1,152 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - deprecate-smbfs-in-favour-of-cifs-docs.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:23:41 -0700
-Message-ID: <200704301923.l3UJNfmO012757@shell0.pdx.osdl.net>
+Subject: - doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:26:00 -0700
+Message-ID: <200704301926.l3UJQ0o6012803@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52738 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946714AbXD3TX7 (ORCPT
+	by vger.kernel.org with ESMTP id S1946723AbXD3T0V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:23:59 -0400
+	Mon, 30 Apr 2007 15:26:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olecom@flower.upol.cz, sfrench@us.ibm.com, urban@teststation.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     deprecate-smbfs-in-favour-of-cifs docs
+     doc: atomic_add_unless() doesn't imply mb() on failure
 has been removed from the -mm tree.  Its filename was
-     deprecate-smbfs-in-favour-of-cifs-docs.patch
+     doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
 
-This patch was dropped because it was folded into deprecate-smbfs-in-favour-of-cifs.patch
+This patch was dropped because we don't seem to be able to agree on it
 
 ------------------------------------------------------
-Subject: deprecate-smbfs-in-favour-of-cifs docs
-From: Oleg Verych <olecom@flower.upol.cz>
+Subject: doc: atomic_add_unless() doesn't imply mb() on failure
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Signed-off-by: Oleg Verych <olecom@flower.upol.cz>
-Cc: Urban Widmark <urban@teststation.com>
-Cc: Steven French <sfrench@us.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Most implementations of atomic_add_unless() can fail (return 0) after the
+first atomic_read() (before cmpxchg).  In that case we have a compiler
+barrier only.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/Kconfig |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ Documentation/atomic_ops.txt      |    3 ++-
+ Documentation/memory-barriers.txt |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/Kconfig~deprecate-smbfs-in-favour-of-cifs-docs fs/Kconfig
---- a/fs/Kconfig~deprecate-smbfs-in-favour-of-cifs-docs
-+++ a/fs/Kconfig
-@@ -1175,7 +1175,7 @@ config BEFS_DEBUG
- 	depends on BEFS_FS
- 	help
- 	  If you say Y here, you can use the 'debug' mount option to enable
--	  debugging output from the driver. 
-+	  debugging output from the driver.
+diff -puN Documentation/atomic_ops.txt~doc-atomic_add_unless-doesnt-imply-mb-on-failure Documentation/atomic_ops.txt
+--- a/Documentation/atomic_ops.txt~doc-atomic_add_unless-doesnt-imply-mb-on-failure
++++ a/Documentation/atomic_ops.txt
+@@ -137,7 +137,8 @@ If the atomic value v is not equal to u,
+ returns non zero. If v is equal to u then it returns zero. This is done as
+ an atomic operation.
  
- config BFS_FS
- 	tristate "BFS file system support (EXPERIMENTAL)"
-@@ -1278,7 +1278,7 @@ config JFFS2_FS_XATTR
- 	  Extended attributes are name:value pairs associated with inodes by
- 	  the kernel or by users (see the attr(5) manual page, or visit
- 	  <http://acl.bestbits.at/> for details).
--	  
-+
- 	  If unsure, say N.
+-atomic_add_unless requires explicit memory barriers around the operation.
++atomic_add_unless requires explicit memory barriers around the operation
++unless it fails (returns 0).
  
- config JFFS2_FS_POSIX_ACL
-@@ -1289,10 +1289,10 @@ config JFFS2_FS_POSIX_ACL
- 	help
- 	  Posix Access Control Lists (ACLs) support permissions for users and
- 	  groups beyond the owner/group/world scheme.
--	  
-+
- 	  To learn more about Access Control Lists, visit the Posix ACLs for
- 	  Linux website <http://acl.bestbits.at/>.
--	  
-+
- 	  If you don't know what Access Control Lists are, say N
+ atomic_inc_not_zero, equivalent to atomic_add_unless(v, 1, 0)
  
- config JFFS2_FS_SECURITY
-@@ -1304,7 +1304,7 @@ config JFFS2_FS_SECURITY
- 	  implemented by security modules like SELinux.  This option
- 	  enables an extended attribute handler for file security
- 	  labels in the jffs2 filesystem.
--	  
-+
- 	  If you are not using a security module that requires using
- 	  extended attributes for file security labels, say N.
- 
-@@ -1796,7 +1796,7 @@ config RPCSEC_GSS_SPKM3
- 	  If unsure, say N.
- 
- config SMB_FS
--	tristate "SMB file system support (to mount Windows shares etc.)"
-+	tristate "SMB file system support (OBSOLETE, please use CIFS)"
- 	depends on INET
- 	select NLS
- 	help
-@@ -1819,8 +1819,8 @@ config SMB_FS
- 	  General information about how to connect Linux, Windows machines and
- 	  Macs is on the WWW at <http://www.eats.com/linux_mac_win.html>.
- 
--	  To compile the SMB support as a module, choose M here: the module will
--	  be called smbfs.  Most people say N, however.
-+	  To compile the SMB support as a module, choose M here:
-+	  the module will be called smbfs.  Most people say N, however.
- 
- config SMB_NLS_DEFAULT
- 	bool "Use a default NLS"
-@@ -1852,7 +1852,7 @@ config SMB_NLS_REMOTE
- 	  smbmount from samba 2.2.0 or later supports this.
- 
- config CIFS
--	tristate "CIFS support (advanced network filesystem for Samba, Window and other CIFS compliant servers)"
-+	tristate "CIFS support (advanced network filesystem, SMBFS successor)"
- 	depends on INET
- 	select NLS
- 	help
-@@ -1907,16 +1907,16 @@ config CIFS_WEAK_PW_HASH
- 	  LANMAN based servers such as OS/2 and Windows 95, but such
- 	  mounts may be less secure than mounts using NTLM or more recent
- 	  security mechanisms if you are on a public network.  Unless you
--	  have a need to access old SMB servers (and are on a private 
-+	  have a need to access old SMB servers (and are on a private
- 	  network) you probably want to say N.  Even if this support
- 	  is enabled in the kernel build, they will not be used
- 	  automatically. At runtime LANMAN mounts are disabled but
- 	  can be set to required (or optional) either in
- 	  /proc/fs/cifs (see fs/cifs/README for more detail) or via an
--	  option on the mount command. This support is disabled by 
-+	  option on the mount command. This support is disabled by
- 	  default in order to reduce the possibility of a downgrade
- 	  attack.
-- 
-+
- 	  If unsure, say N.
- 
- config CIFS_XATTR
-@@ -1957,7 +1957,7 @@ config CIFS_DEBUG2
- 	   messages in some error paths, slowing performance. This
- 	   option can be turned off unless you are debugging
- 	   cifs problems.  If unsure, say N.
--	   
-+
- config CIFS_EXPERIMENTAL
- 	  bool "CIFS Experimental Features (EXPERIMENTAL)"
- 	  depends on CIFS && EXPERIMENTAL
-@@ -2038,7 +2038,7 @@ config CODA_FS_OLD_API
- 	  However this new API is not backward compatible with older
- 	  clients. If you really need to run the old Coda userspace
- 	  cache manager then say Y.
--	  
-+
- 	  For most cases you probably want to say N.
- 
- config AFS_FS
+diff -puN Documentation/memory-barriers.txt~doc-atomic_add_unless-doesnt-imply-mb-on-failure Documentation/memory-barriers.txt
+--- a/Documentation/memory-barriers.txt~doc-atomic_add_unless-doesnt-imply-mb-on-failure
++++ a/Documentation/memory-barriers.txt
+@@ -1492,7 +1492,7 @@ about the state (old or new) implies an 
+ 	atomic_dec_and_test();
+ 	atomic_sub_and_test();
+ 	atomic_add_negative();
+-	atomic_add_unless();
++	atomic_add_unless();	/* when succeeds (returns 1) */
+ 	test_and_set_bit();
+ 	test_and_clear_bit();
+ 	test_and_change_bit();
 _
 
-Patches currently in -mm which might be from olecom@flower.upol.cz are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-deprecate-smbfs-in-favour-of-cifs.patch
-deprecate-smbfs-in-favour-of-cifs-docs.patch
+origin.patch
+git-dvb.patch
+fix-refrigerator-vs-thaw_process-race.patch
+doc-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+softlockup-trivial-s-99-max_rt_prio.patch
+fix-race-between-proc_get_inode-and-remove_proc_entry.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+futex-restartable-futex_wait.patch
+futex-restartable-futex_wait-fix.patch
+add-support-for-deferrable-timers-respun.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+add-support-for-deferrable-timers-respun-fix.patch
+add-a-new-deferrable-delayed-work-init.patch
+reimplement-flush_workqueue.patch
+implement-flush_work.patch
+implement-flush_work-sanity.patch
+implement-flush_work_keventd.patch
+flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
+workqueue-fix-freezeable-workqueues-implementation.patch
+workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
+workqueue-dont-clear-cwq-thread-until-it-exits.patch
+workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
+workqueue-kill-run_scheduled_work.patch
+workqueue-dont-save-interrupts-in-run_workqueue.patch
+workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
+workqueue-introduce-cpu_singlethread_map.patch
+workqueue-introduce-workqueue_struct-singlethread.patch
+workqueue-make-init_workqueues-__init.patch
+make-queue_delayed_work-friendly-to-flush_fork.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+workqueue-introduce-wq_per_cpu-helper.patch
+make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
+ipvs-flush-defense_work-before-module-unload.patch
+workqueue-kill-noautorel-works.patch
+worker_thread-dont-play-with-signals.patch
+worker_thread-fix-racy-try_to_freeze-usage.patch
+zap_other_threads-remove-unneeded-exit_signal-change.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
+____call_usermodehelper-dont-flush_signals.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+change-reparent_to_init-to-reparent_to_kthreadd.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+usbatm_heavy_init-dont-use-clone_sighand.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+worker_thread-dont-play-with-sigchld-and-numa-policy.patch
+change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-frozen_process-to-kernel-power-processc.patch
+remvoe-kthread_bind-call-from-_cpu_down.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
