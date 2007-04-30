@@ -1,87 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-powerpc-optimization-markers-changes-to-the-powerpc-marker-header.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:27:00 -0700
-Message-ID: <200704302027.l3UKR0Sw014181@shell0.pdx.osdl.net>
+Subject: - linux-kernel-markers-i386-optimization-markers-document-the-i386-marker-header.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:27:21 -0700
+Message-ID: <200704302027.l3UKRLk1014197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49104 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946737AbXD3U1J (ORCPT
+	by vger.kernel.org with ESMTP id S1946785AbXD3U1a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:27:09 -0400
+	Mon, 30 Apr 2007 16:27:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markers: changes to the powerpc marker header 
+     markers: document the i386 marker header
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-powerpc-optimization-markers-changes-to-the-powerpc-marker-header.patch
+     linux-kernel-markers-i386-optimization-markers-document-the-i386-m=
+arker-header.patch
 
-This patch was dropped because it was folded into linux-kernel-markers-powerpc-optimization.patch
+This patch was dropped because it was folded into linux-kernel-markers-=
+i386-optimization.patch
 
 ------------------------------------------------------
-Subject: markers: changes to the powerpc marker header 
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: markers: document the i386 marker header
+=46rom: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use the new MF_* bitmask, use the __markers, __markers_data and
-__markers_strings sections, add documentation.
+Document the i386 marker header, change it to use the __marker, __marke=
+r_data
+and __marker_strings sections.  Change the flag usage to use MF_* direc=
+tly
+(which is now a bitmask).  In marker.c, for the i386 optimized marker
+enabling, check the a simple test is the value will be changed.  If not=
+,
+simply return : we would set it to the same value anyway.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/marker.h |   40 +++++++++++++++++++++++----------
- 1 file changed, 28 insertions(+), 12 deletions(-)
+ arch/i386/kernel/marker.c |    8 +++++--
+ include/asm-i386/marker.h |   40 +++++++++++++++++++++++++-----------
+ 2 files changed, 34 insertions(+), 14 deletions(-)
 
-diff -puN include/asm-powerpc/marker.h~linux-kernel-markers-powerpc-optimization-markers-changes-to-the-powerpc-marker-header include/asm-powerpc/marker.h
---- a/include/asm-powerpc/marker.h~linux-kernel-markers-powerpc-optimization-markers-changes-to-the-powerpc-marker-header
-+++ a/include/asm-powerpc/marker.h
+diff -puN arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimizat=
+ion-markers-document-the-i386-marker-header arch/i386/kernel/marker.c
+--- a/arch/i386/kernel/marker.c~linux-kernel-markers-i386-optimization-=
+markers-document-the-i386-marker-header
++++ a/arch/i386/kernel/marker.c
+@@ -4,7 +4,9 @@
+  *
+  * Permits marker activation by XMC with correct serialization.
+  *
+- * Reentrant for NMI and trap handler instrumentation.=C2=A0:-)
++ * Reentrant for NMI and trap handler instrumentation. Permits XMC to =
+a
++ * location that has preemption enabled because it involves no tempora=
+ry or
++ * reused data structure.
+  *
+  * Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+  */
+@@ -63,8 +65,10 @@ int marker_optimized_set_enable(void *ad
+ 	int ret;
+ 	char *dest =3D address;
+=20
++	if (!(enable ^ dest[1])) /* Must be a state change 0<->1 to execute *=
+/
++		return 0;
++
+ 	mutex_lock(&mark_mutex);
+-	BUG_ON(!(enable ^ dest[1]));	/* Must be a state change 0<->1 */
+ 	target_eip =3D (long)address + BREAKPOINT_INS_LEN;
+ 	/* register_die_notifier has memory barriers */
+ 	register_die_notifier(&mark_notify);
+diff -puN include/asm-i386/marker.h~linux-kernel-markers-i386-optimizat=
+ion-markers-document-the-i386-marker-header include/asm-i386/marker.h
+--- a/include/asm-i386/marker.h~linux-kernel-markers-i386-optimization-=
+markers-document-the-i386-marker-header
++++ a/include/asm-i386/marker.h
 @@ -1,3 +1,6 @@
-+#ifndef _ASM_POWERPC_MARKER_H
-+#define _ASM_POWERPC_MARKER_H
++#ifndef _ASM_I386_MARKER_H
++#define _ASM_I386_MARKER_H
 +
  /*
   * marker.h
   *
-@@ -14,42 +17,54 @@
- 
+@@ -12,42 +15,54 @@
+=20
  #ifdef CONFIG_MARKERS
- 
+=20
 -#define _MF_DEFAULT (_MF_OPTIMIZED | _MF_LOCKDEP | _MF_PRINTK)
 +#define MF_DEFAULT (MF_OPTIMIZED | MF_LOCKDEP | MF_PRINTK)
- 
+=20
 +/* Optimized version of the markers */
  #define MARK_OPTIMIZED(flags, name, format, args...) \
  	do { \
--		static marker_probe_func *__mark_call_##name = \
+-		static marker_probe_func *__mark_call_##name =3D \
 -					__mark_empty_function; \
 -		static const struct __mark_marker_c __mark_c_##name \
--			__attribute__((section(".markers.c"))) = \
+-			__attribute__((section(".markers.c"))) =3D \
 -			{ #name, &__mark_call_##name, format, \
 -			(flags) | _MF_OPTIMIZED } ; \
 +		static const char __mstrtab_name_##name[] \
 +		__attribute__((section("__markers_strings"))) \
-+		= #name; \
++		=3D #name; \
 +		static const char __mstrtab_format_##name[] \
 +		__attribute__((section("__markers_strings"))) \
-+		= format; \
++		=3D format; \
 +		static struct __mark_marker_data __mark_data_##name \
-+		__attribute__((section("__markers_data"))) = \
++		__attribute__((section("__markers_data"))) =3D \
 +		{ __mstrtab_name_##name,  __mstrtab_format_##name, \
 +		(flags) | MF_OPTIMIZED, __mark_empty_function, NULL }; \
  		char condition; \
 -		asm volatile(	".section .markers, \"a\", @progbits;\n\t" \
 +		asm volatile(	".section __markers, \"a\", @progbits;\n\t" \
- 					PPC_LONG "%1, 0f;\n\t" \
+ 					".long %1, 0f;\n\t" \
  					".previous;\n\t" \
- 					".align 4\n\t" \
+ 					".align 2\n\t" \
  					"0:\n\t" \
- 					"li %0,0;\n\t" \
- 				: "=r" (condition) \
--				: "i" (&__mark_c_##name)); \
-+				: "i" (&__mark_data_##name)); \
+ 					"movb $0,%0;\n\t" \
+ 				: "=3Dr" (condition) \
+-				: "m" (__mark_c_##name)); \
++				: "m" (__mark_data_##name)); \
  		__mark_check_format(format, ## args); \
  		if (unlikely(condition)) { \
  			preempt_disable(); \
@@ -91,35 +136,39 @@ diff -puN include/asm-powerpc/marker.h~linux-kernel-markers-powerpc-optimization
  			preempt_enable(); \
  		} \
  	} while (0)
- 
-+/* Marker macro selecting the generic or optimized version of marker, depending
+=20
++/* Marker macro selecting the generic or optimized version of marker, =
+depending
 + * on the flags specified. */
  #define _MARK(flags, format, args...) \
  do { \
--	if ((flags) & _MF_OPTIMIZED) \
-+	if ((flags) & MF_OPTIMIZED) \
+-	if (((flags) & _MF_LOCKDEP) && ((flags) & _MF_OPTIMIZED)) \
++	if (((flags) & MF_LOCKDEP) && ((flags) & MF_OPTIMIZED)) \
  		MARK_OPTIMIZED(flags, format, ## args); \
  	else \
  		MARK_GENERIC(flags, format, ## args); \
  } while (0)
- 
+=20
 -#define MARK(format, args...) _MARK(_MF_DEFAULT, format, ## args)
 +/* Marker with default behavior */
 +#define MARK(format, args...) _MARK(MF_DEFAULT, format, ## args)
 +
-+/* Architecture dependant marker information, used internally for marker
++/* Architecture dependant marker information, used internally for mark=
+er
 + * activation. */
- 
- /* Offset of the immediate value from the start of the addi instruction (result
-  * of the li mnemonic), in bytes. */
-@@ -63,3 +78,4 @@ do { \
+=20
+ /* Offset of the immediate value from the start of the movb instructio=
+n, in
+  * bytes. */
+@@ -61,3 +76,4 @@ do { \
  extern int marker_optimized_set_enable(void *address, char enable);
- 
+=20
  #endif
-+#endif //_ASM_POWERPC_MARKER_H
++#endif //_ASM_I386_MARKER_H
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.=
+ca are
 
 origin.patch
 git-powerpc.patch
@@ -133,7 +182,8 @@ atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-parisc.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-sparc64.patch
 atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-x86_64.patch
-atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dependency.patch
+atomich-atomic_add_unless-as-inline-remove-systemh-atomich-circular-dep=
+endency.patch
 local_t-architecture-independant-extension.patch
 local_t-alpha-extension.patch
 local_t-i386-extension.patch
@@ -146,13 +196,13 @@ local_t-x86_64-extension.patch
 linux-kernel-markers-kconfig-menus.patch
 linux-kernel-markers-architecture-independant-code.patch
 linux-kernel-markers-powerpc-optimization.patch
-linux-kernel-markers-powerpc-optimization-markers-changes-to-the-powerpc-marker-header.patch
 linux-kernel-markers-i386-optimization.patch
-linux-kernel-markers-i386-optimization-fix.patch
-linux-kernel-markers-i386-optimization-markers-document-the-i386-marker-header.patch
+linux-kernel-markers-i386-optimization-markers-document-the-i386-marker=
+-header.patch
 markers-add-instrumentation-markers-menus-to-avr32.patch
 linux-kernel-markers-non-optimized-architectures.patch
-markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patc=
+h
 linux-kernel-markers-documentation.patch
 linux-kernel-markers-documentation-markers-update-documentation.patch
 linux-kernel-markers-documentation-fix-typo-and-use-array_size.patch
