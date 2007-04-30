@@ -1,93 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-dirindex-error-pointer-issues-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:32:21 -0700
-Message-ID: <200704301932.l3UJWL5e012980@shell0.pdx.osdl.net>
+Subject: - add-file-position-info-to-proc-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:34:07 -0700
+Message-ID: <200704301934.l3UJY8xw013020@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41504 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37412 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946724AbXD3Td5 (ORCPT
+	by vger.kernel.org with ESMTP id S1946728AbXD3Tew (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:33:57 -0400
+	Mon, 30 Apr 2007 15:34:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@sw.ru, adilger@clusterfs.com, dmonakhov@openvz.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: dirindex error pointer issues (b)
+     make struct proc_fdinfo_file_operations static
 has been removed from the -mm tree.  Its filename was
-     ext3-dirindex-error-pointer-issues-fix.patch
+     add-file-position-info-to-proc-fix.patch
 
-This patch was dropped because it was folded into ext3-dirindex-error-pointer-issues.patch
+This patch was dropped because it was folded into add-file-position-info-to-proc.patch
 
 ------------------------------------------------------
-Subject: ext3: dirindex error pointer issues (b)
-From: Dmitriy Monakhov <dmonakhov@sw.ru>
+Subject: make struct proc_fdinfo_file_operations static
+From: Adrian Bunk <bunk@stusta.de>
 
-Dmitriy Monakhov <dmonakhov@sw.ru> writes:
-
->  - ext3_dx_find_entry() exit with out setting proper error pointer
->  - do_split() exit with out setting proper error pointer
->    it is realy painful because many callers contain folowing code:
->            de = do_split(handle,dir, &bh, frame, &hinfo, &retval);
->            if (!(de))
->                         return retval;
->            <<< WOW retval wasn't changed by do_split(), so caller failed
->            <<< but return SUCCESS :)
->  - Rearrange do_split() error path. Current error path is realy ugly, all
->    this up and down jump stuff doesn't make code easy to understand.
-
-Ohh my first patch change error message semantics in do_split(). Initially when
-ext3_append() failed we just exit without printing error. In fact ext3_append()
-may fail, it is legal and it's happens qite often (ENOSPC for example). This
-cause annoying fake error message. So restore this semantic as it was before
-patch.
-
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
-Cc: Andreas Dilger <adilger@clusterfs.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |    2 +-
- fs/ext4/namei.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext3/namei.c~ext3-dirindex-error-pointer-issues-fix fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-dirindex-error-pointer-issues-fix
-+++ a/fs/ext3/namei.c
-@@ -1197,8 +1197,8 @@ journal_error:
- 	brelse(*bh);
- 	brelse(bh2);
- 	*bh = NULL;
--errout:
- 	ext3_std_error(dir->i_sb, err);
-+errout:
- 	*error = err;
- 	return NULL;
+diff -puN fs/proc/base.c~add-file-position-info-to-proc-fix fs/proc/base.c
+--- a/fs/proc/base.c~add-file-position-info-to-proc-fix
++++ a/fs/proc/base.c
+@@ -1443,7 +1443,7 @@ static ssize_t proc_fdinfo_read(struct f
+ 	return err;
  }
-diff -puN fs/ext4/namei.c~ext3-dirindex-error-pointer-issues-fix fs/ext4/namei.c
---- a/fs/ext4/namei.c~ext3-dirindex-error-pointer-issues-fix
-+++ a/fs/ext4/namei.c
-@@ -1195,8 +1195,8 @@ journal_error:
- 	brelse(*bh);
- 	brelse(bh2);
- 	*bh = NULL;
--errout:
- 	ext4_std_error(dir->i_sb, err);
-+errout:
- 	*error = err;
- 	return NULL;
- }
+ 
+-const struct file_operations proc_fdinfo_file_operations = {
++static const struct file_operations proc_fdinfo_file_operations = {
+ 	.open		= nonseekable_open,
+ 	.read		= proc_fdinfo_read,
+ };
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-git-libata-all.patch
-freevxfs-possible-null-pointer-dereference-fix.patch
-reiserfs-possible-null-pointer-dereference-during-resize.patch
-ext3-dirindex-error-pointer-issues.patch
-ext3-dirindex-error-pointer-issues-fix.patch
-floppy-handle-device_create_file-failure-while-init.patch
+git-acpi.patch
+git-powerpc.patch
+git-drm.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+kconfig-abort-configuration-with-recursive-dependencies.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-netdev-all.patch
+ibmtr_cs-fix-hang-on-eject.patch
+git-ocfs2.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-wd33c93c-cleanups.patch
+drivers-scsi-qla4xxx-possible-cleanups.patch
+make-seagate_st0x_detect-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+git-ipwireless_cs.patch
+proper-prototype-for-hugetlb_get_unmapped_area.patch
+mm-slabc-proper-prototypes.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+drivers-macintosh-mac_hidc-make-code-static.patch
+add-file-position-info-to-proc.patch
+add-file-position-info-to-proc-fix.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
+unexport-pci_proc_attach_device.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
+the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
+ext2-reservations.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+no-longer-include-asm-kdebugh.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+slim-main-patch.patch
+slim-debug-output.patch
+mutex-subsystem-synchro-test-module.patch
