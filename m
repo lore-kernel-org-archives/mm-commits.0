@@ -1,189 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - expose-range-checking-functions-from-arch-specific-update.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:06:18 -0700
-Message-ID: <200704302006.l3UK6IwZ013739@shell0.pdx.osdl.net>
+Subject: - pnpacpi-sets-pnpdev-devarchdata-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:05:01 -0700
+Message-ID: <200704302005.l3UK56j0013723@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42522 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423632AbXD3UHH (ORCPT
+	by vger.kernel.org with ESMTP id S1946752AbXD3UHQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:07:07 -0400
+	Mon, 30 Apr 2007 16:07:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, linux-arch@vger.kernel.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, ambx1@neo.rr.com, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, greg@kroah.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     expose-range-checking-functions-from-arch-specific update
+     pnpacpi-sets-pnpdev-devarchdata fix
 has been removed from the -mm tree.  Its filename was
-     expose-range-checking-functions-from-arch-specific-update.patch
+     pnpacpi-sets-pnpdev-devarchdata-fix.patch
 
-This patch was dropped because it was folded into expose-range-checking-functions-from-arch-specific.patch
+This patch was dropped because it was folded into pnpacpi-sets-pnpdev-devarchdata.patch
 
 ------------------------------------------------------
-Subject: expose-range-checking-functions-from-arch-specific update
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: pnpacpi-sets-pnpdev-devarchdata fix
+From: David Brownell <david-b@pacbell.net>
 
-range_within() was too ambitious: it started inspiring people.  Remove it.
+Handle PNP devices that have the same IDs a bit more sanely ...  this at
+least arranges multiple one-to-one mappings between PNP nodes and ACPI
+nodes that all share the same PNP0c02 id.  (Maybe mapped to the wrong node
+though...)
 
-val_outside() was a terrible name, too.  Try range_over_limit().
+This remains a hack, since it masks failures where PNP0a03 (a PCI root
+bridge) is handled by ACPI special case code (/sys/devices/pci0000:00 on my
+systems instead of /sys/devices/pnp0/pnp00:0/pci0000:00!) not pure PNPACPI
+logic.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+I suspect that pnp_dev.number and some acpi_device field need to be
+compared, (so the right PNP0c02 nodes hook up to each other, PNP0a03
+likewise) but I'll leave that to someone who knows how those ACPI table
+lookups "should" work.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/range.h |   12 ++++++------
- include/asm-i386/range.h    |    8 ++++----
- include/asm-i386/uaccess.h  |    8 ++++----
- include/linux/kernel.h      |   21 ---------------------
- 4 files changed, 14 insertions(+), 35 deletions(-)
+ drivers/pnp/pnpacpi/core.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN include/asm-generic/range.h~expose-range-checking-functions-from-arch-specific-update include/asm-generic/range.h
---- a/include/asm-generic/range.h~expose-range-checking-functions-from-arch-specific-update
-+++ a/include/asm-generic/range.h
-@@ -2,18 +2,18 @@
- #define _ASM_GENERIC_RANGE_H
+diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-sets-pnpdev-devarchdata-fix drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~pnpacpi-sets-pnpdev-devarchdata-fix
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -243,6 +243,7 @@ static int __init acpi_pnp_match(struct 
  
- /**
-- * val_outside - is a value and length past a limit?
-- * @val: the start value
-+ * range_over_limit() - is a start and length past a limit?
-+ * @start: the start value
-  * @len: the length from the start
-  * @limit: the first invalid value
-  *
-- * Like val + len > limit, except with overflow checking.
-+ * Like start + len > limit, except with overflow checking.
-  */
--static inline bool val_outside(unsigned long val, unsigned long len,
--			       unsigned long limit)
-+static inline bool range_over_limit(unsigned long start, unsigned long len,
-+				    unsigned long limit)
- 
- {
--	return val + len > limit || val + len < val;
-+	return start + len > limit || start + len < start;
+ 	/* true means it matched */
+ 	return acpi->flags.hardware_id
++		&& !acpi_get_physical_device(acpi->handle)
+ 		&& compare_pnp_id(pnp->id, acpi->pnp.hardware_id);
  }
- 
- #endif	/* _ASM_GENERIC_RANGE_H */
-diff -puN include/asm-i386/range.h~expose-range-checking-functions-from-arch-specific-update include/asm-i386/range.h
---- a/include/asm-i386/range.h~expose-range-checking-functions-from-arch-specific-update
-+++ a/include/asm-i386/range.h
-@@ -1,14 +1,14 @@
- #ifndef __ASM_RANGE_H
- #define __ASM_RANGE_H
- 
--/* Is val + size > limit? This needs 33-bit arithmetic. We have a carry... */
--static inline bool val_outside(unsigned long val, unsigned long len,
--			       unsigned long limit)
-+/* Is start + size > limit? This needs 33-bit arithmetic. We have a carry... */
-+static inline bool range_over_limit(unsigned long start, unsigned long len,
-+				    unsigned long limit)
- {
- 	unsigned long flag, roksum;
- 	asm("addl %3,%1 ; sbbl %0,%0; cmpl %1,%4; sbbl $0,%0"
- 		:"=&r" (flag), "=r" (roksum)
--		:"1" (val), "g" (len), "rm" (limit));
-+		:"1" (start), "g" (len), "rm" (limit));
- 	return flag;
- }
- #endif	/* __ASM_RANGE_H */
-diff -puN include/asm-i386/uaccess.h~expose-range-checking-functions-from-arch-specific-update include/asm-i386/uaccess.h
---- a/include/asm-i386/uaccess.h~expose-range-checking-functions-from-arch-specific-update
-+++ a/include/asm-i386/uaccess.h
-@@ -51,10 +51,10 @@ extern struct movsl_mask {
-  * This is equivalent to the following test:
-  * (u33)addr + (u33)size > (u33)current->addr_limit.seg
-  */
--#define __range_ok(addr, size) ({				\
--	__chk_user_ptr(addr);					\
--	val_outside((int)(addr), (size),			\
--		    current_thread_info()->addr_limit.seg);	\
-+#define __range_ok(addr, size) ({					\
-+	__chk_user_ptr(addr);						\
-+	range_over_limit((int)(addr), (size),				\
-+			 current_thread_info()->addr_limit.seg);	\
- })
- 
- /**
-diff -puN include/linux/kernel.h~expose-range-checking-functions-from-arch-specific-update include/linux/kernel.h
---- a/include/linux/kernel.h~expose-range-checking-functions-from-arch-specific-update
-+++ a/include/linux/kernel.h
-@@ -16,7 +16,6 @@
- #include <linux/log2.h>
- #include <asm/byteorder.h>
- #include <asm/bug.h>
--#include <asm/range.h>
- 
- extern const char linux_banner[];
- extern const char linux_proc_banner[];
-@@ -312,26 +311,6 @@ static inline int __attribute__ ((format
- 	(void)__tmp; \
- })
- 
--/**
-- * range_within - is one range within another?
-- * @start: the start value
-- * @len: the length from the start
-- * @base: the first valid value
-- * @limit: the first invalid value
-- *
-- * This is usually used for memory range testing.  The common cases of
-- * constant 0 start and constant 0 len cases are optimized out.
-- */
--static inline bool range_within(unsigned long start, unsigned long len,
--				unsigned long base, unsigned long limit)
--{
--	if (start < base)
--		return false;
--	if (__builtin_constant_p(len) && len == 0)
--		return start - base <= limit - base;
--	return !val_outside(limit, start, len);
--}
--
- struct sysinfo;
- extern int do_sysinfo(struct sysinfo *info);
  
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-extend-print_symbol-capability.patch
-git-kbuild.patch
-xfs-clean-up-shrinker-games.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-array_size-check-for-type.patch
-module-use-krealloc.patch
-futex-restartable-futex_wait.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-simplify-module_get_kallsym-by-dropping-length-arg.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-simplify-kallsyms_lookup.patch
-fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
-fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
-expose-range-checking-functions-from-arch-specific.patch
-expose-range-checking-functions-from-arch-specific-update.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-____call_usermodehelper-dont-flush_signals.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-lguest-the-guest-code.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
-lguest-the-host-code.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch
-lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+rework-pm_ops-pm_disk_mode-kill-misuse.patch
+power-management-remove-firmware-disk-mode.patch
+power-management-implement-pm_opsvalid-for-everybody.patch
+power-management-implement-pm_opsvalid-for-everybody-fix.patch
+git-acpi.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+at91_cf-minor-fix.patch
+scsi-newstyle-hotplug-coldplug-support.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+kconfig-mentioneds-hibernation-not-just-swsusp.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+init-dma-masks-in-pnp_dev.patch
+rtc-add-rtc-rs5c313-driver.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+char-cs5535_gpio-add-module_device_table.patch
+parport-dev-driver-model-support.patch
+layered-parport-code-uses-parport-dev.patch
+pnpacpi-sets-pnpdev-devarchdata.patch
+pnpacpi-sets-pnpdev-devarchdata-fix.patch
+fix-hotplug-for-legacy-platform-drivers.patch
+minor-spi_butterfly-cleanup.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+rtc-update-to-class-device-removal-patches.patch
+rtc-kconfig-cleanup.patch
+rtc-cmos-wakeup-interface.patch
+acpi-wakeup-hooks-for-rtc-cmos.patch
+workaround-rtc-related-acpi-table-bugs.patch
+revert-rtc-add-rtc_merge_alarm.patch
+remove-rtc_alm_set-mode-bugs.patch
