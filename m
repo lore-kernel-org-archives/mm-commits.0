@@ -1,501 +1,340 @@
 From: akpm@linux-foundation.org
-Subject: - pm-introduce-suspend-notifiers-rev-2.patch removed from -mm tree
-Date: Sun, 29 Apr 2007 12:15:46 -0700
-Message-ID: <200704291915.l3TJFkr3021755@shell0.pdx.osdl.net>
+Subject: + fix-vfat-compat-ioctls-on-64-bit-systems.patch added to -mm tree
+Date: Sun, 29 Apr 2007 17:40:59 -0700
+Message-ID: <200704300040.l3U0exB6026266@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50955 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45200 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752869AbXD2TQ1 (ORCPT
+	by vger.kernel.org with ESMTP id S1422665AbXD3AlS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 29 Apr 2007 15:16:27 -0400
+	Sun, 29 Apr 2007 20:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hirofumi@mail.parknet.co.jp, bartoldeman@users.sourceforge.net
 
 
 The patch titled
-     PM: Introduce suspend notifiers
-has been removed from the -mm tree.  Its filename was
-     pm-introduce-suspend-notifiers-rev-2.patch
+     fat: fix VFAT compat ioctls on 64-bit systems
+has been added to the -mm tree.  Its filename is
+     fix-vfat-compat-ioctls-on-64-bit-systems.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: PM: Introduce suspend notifiers
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: fat: fix VFAT compat ioctls on 64-bit systems
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Make it possible to register suspend notifiers so that subsystems can perform
-suspend-related operations that should not be carried out by device drivers'
-.suspend() and .resume() routines.
+If you compile and run the below test case in an msdos or vfat directory on
+an x86-64 system with -m32 you'll get garbage in the kernel_dirent struct
+followed by a SIGSEGV.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+The patch fixes this.
+
+Reported and initial fix by Bart Oldeman
+
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+struct kernel_dirent {
+         long            d_ino;
+         long		d_off;
+         unsigned short  d_reclen;
+         char            d_name[256]; /* We must not include limits.h! */
+};
+#define VFAT_IOCTL_READDIR_BOTH  _IOR('r', 1, struct kernel_dirent [2])
+#define VFAT_IOCTL_READDIR_SHORT  _IOR('r', 2, struct kernel_dirent [2])
+
+int main(void)
+{
+         int fd = open(".", O_RDONLY);
+         struct kernel_dirent de[2];
+
+         while (1) {
+                 int i = ioctl(fd, VFAT_IOCTL_READDIR_BOTH, (long)de);
+                 if (i == -1) break;
+                 if (de[0].d_reclen == 0) break;
+                 printf("SFN: reclen=%2d off=%d ino=%d, %-12s",
+ 		       de[0].d_reclen, de[0].d_off, de[0].d_ino, de[0].d_name);
+ 		if (de[1].d_reclen)
+ 		  printf("\tLFN: reclen=%2d off=%d ino=%d, %s",
+ 		    de[1].d_reclen, de[1].d_off, de[1].d_ino, de[1].d_name);
+ 		printf("\n");
+         }
+         return 0;
+}
+
+Signed-off-by: Bart Oldeman <bartoldeman@users.sourceforge.net>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/suspend-notifiers.txt |   48 ++++++++++++++++++
- include/linux/notifier.h                  |    6 ++
- include/linux/suspend.h                   |   19 +++++++
- kernel/power/Makefile                     |    2 
- kernel/power/disk.c                       |   23 ++++++++-
- kernel/power/main.c                       |   16 +++++-
- kernel/power/notify.c                     |   51 ++++++++++++++++++++
- kernel/power/power.h                      |    3 +
- kernel/power/user.c                       |   45 +++++++++++++----
- 9 files changed, 199 insertions(+), 14 deletions(-)
+ fs/fat/dir.c |  199 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 100 insertions(+), 99 deletions(-)
 
-diff -puN /dev/null Documentation/power/suspend-notifiers.txt
---- /dev/null
-+++ a/Documentation/power/suspend-notifiers.txt
-@@ -0,0 +1,48 @@
-+Suspend notifiers
-+	(C) 2007 Rafael J. Wysocki <rjw@sisk.pl>, GPL
-+
-+There are some operations that device drivers may want to carry out in their
-+.suspend() routines, but shouldn't, because they can cause a suspend to fail.
-+For example, a driver may want to allocate a substantial amount of memory
-+(like 50 MB) in .suspend(), but that shouldn't be done after the swsusp's memory
-+shrinker has run.  Also, there may be some operations, that subsystems may want
-+to carry out before a suspend or after a resume, requiring the system to be
-+fully functional, so the drivers' .suspend() and .resume() routines are not
-+suitable for this purpose.
-+
-+The subsystems that have such needs can register suspend notifiers that will be
-+notified of the following events by the suspend core:
-+
-+SUSPEND_PREPARE		the system is going to suspend, tasks will be frozen
-+			immediately
-+
-+SUSPEND_ENTER_PREPARE	tasks have been frozen, memory is going to be freed
-+			and devices are going to be suspended
-+
-+SUSPEND_THAW_PREPARE	devices have been resumed, tasks will be thawed
-+			immediately
-+
-+SUSPEND_FINISHED	the resume is complete, the system is fully functional
-+
-+SUSPEND_RESTORE_PREPARE	the system is preparing to restore the swsusp's suspend
-+			image, tasks have been frozen and devices are going to
-+			be suspended
-+
-+It is generally assumed that whatever the notifiers do for SUSPEND_PREPARE,
-+should be undone for SUSPEND_FINISHED, and what is done for
-+SUSPEND_ENTER_PREPARE, should be undone for SUSPEND_FINISHED (eg. if memory is
-+allocated for SUSPEND_ENTER_PREPARE, it should be freed for SUSPEND_FINISHED).
-+Moreover, if the SUSPEND_PREPARE hooks are called, SUSPEND_FINISHED will be
-+called too and if SUSPEND_ENTER_PREPARE are called, SUSPEND_THAW_PREPARE will be
-+called either, even if the suspend fails.  This way, for example, the memory
-+allocated with SUSPEND_ENTER_PREPARE can always be freed with
-+SUSPEND_THAW_PREPARE and need not be leaked in case the suspend fails.
-+
-+The suspend notifiers are called with pm_mutex held.
-+
-+The suspend notifiers are defined in the usual way, but their last argument is
-+meaningless (it is always NULL).  To register and/or unregister a suspend
-+notifier use the functions register_suspend_notifier() and
-+unregister_suspend_notifier(), respectively, defined in kernel/power/notify.c .
-+If you don't need to unregister the notifier, you can also use the
-+suspend_notifier() macro defined in include/linux/suspend.h .
-diff -puN include/linux/notifier.h~pm-introduce-suspend-notifiers-rev-2 include/linux/notifier.h
---- a/include/linux/notifier.h~pm-introduce-suspend-notifiers-rev-2
-+++ a/include/linux/notifier.h
-@@ -187,5 +187,11 @@ extern int srcu_notifier_call_chain(stru
- #define CPU_DOWN_FAILED		0x0006 /* CPU (unsigned)v NOT going down */
- #define CPU_DEAD		0x0007 /* CPU (unsigned)v dead */
+diff -puN fs/fat/dir.c~fix-vfat-compat-ioctls-on-64-bit-systems fs/fat/dir.c
+--- a/fs/fat/dir.c~fix-vfat-compat-ioctls-on-64-bit-systems
++++ a/fs/fat/dir.c
+@@ -422,7 +422,7 @@ EODir:
+ EXPORT_SYMBOL_GPL(fat_search_long);
  
-+#define SUSPEND_PREPARE		0x0002 /* Going to freeze tasks */
-+#define SUSPEND_ENTER_PREPARE	0x0003 /* Tasks are frozen, we are suspending */
-+#define SUSPEND_THAW_PREPARE	0x0004 /* Going to thaw frozen tasks */
-+#define SUSPEND_FINISHED	0x0005 /* Tasks have been thawed */
-+#define SUSPEND_RESTORE_PREPARE	0x0006 /* STD restore is going to happen */
-+
- #endif /* __KERNEL__ */
- #endif /* _LINUX_NOTIFIER_H */
-diff -puN include/linux/suspend.h~pm-introduce-suspend-notifiers-rev-2 include/linux/suspend.h
---- a/include/linux/suspend.h~pm-introduce-suspend-notifiers-rev-2
-+++ a/include/linux/suspend.h
-@@ -52,4 +52,23 @@ struct saved_context;
- void __save_processor_state(struct saved_context *ctxt);
- void __restore_processor_state(struct saved_context *ctxt);
- 
-+#ifdef CONFIG_PM
-+int register_suspend_notifier(struct notifier_block *nb);
-+void unregister_suspend_notifier(struct notifier_block *nb);
-+
-+#define suspend_notifier(fn, pri) {				\
-+	static struct notifier_block fn##_nb =			\
-+		{ .notifier_call = fn, .priority = pri };	\
-+	register_suspend_notifier(&fn##_nb);			\
-+}
-+#else /* CONFIG_PM */
-+static inline int register_suspend_notifier(struct notifier_block *nb) {
-+	return 0;
-+}
-+static inline void unregister_suspend_notifier(struct notifier_block *nb) {
-+}
-+
-+#define suspend_notifier(fn, pri)	do { (void)(fn); } while (0)
-+#endif /* CONFIG_PM */
-+
- #endif /* _LINUX_SWSUSP_H */
-diff -puN kernel/power/Makefile~pm-introduce-suspend-notifiers-rev-2 kernel/power/Makefile
---- a/kernel/power/Makefile~pm-introduce-suspend-notifiers-rev-2
-+++ a/kernel/power/Makefile
-@@ -3,7 +3,7 @@ ifeq ($(CONFIG_PM_DEBUG),y)
- EXTRA_CFLAGS	+=	-DDEBUG
- endif
- 
--obj-y				:= main.o process.o console.o
-+obj-y				:= main.o process.o console.o notify.o
- obj-$(CONFIG_PM_LEGACY)		+= pm.o
- obj-$(CONFIG_SOFTWARE_SUSPEND)	+= swsusp.o disk.o snapshot.o swap.o user.o
- 
-diff -puN kernel/power/disk.c~pm-introduce-suspend-notifiers-rev-2 kernel/power/disk.c
---- a/kernel/power/disk.c~pm-introduce-suspend-notifiers-rev-2
-+++ a/kernel/power/disk.c
-@@ -139,10 +139,18 @@ int pm_suspend_disk(void)
- 	if (error)
- 		goto Exit;
- 
-+	error = suspend_notifier_call_chain(SUSPEND_PREPARE);
-+	if (error)
-+		goto Finish;
-+
- 	error = prepare_processes();
- 	if (error)
- 		goto Finish;
- 
-+	error = suspend_notifier_call_chain(SUSPEND_ENTER_PREPARE);
-+	if (error)
-+		goto Thaw;
-+
- 	if (pm_disk_mode == PM_DISK_TESTPROC) {
- 		printk("swsusp debug: Waiting for 5 seconds.\n");
- 		mdelay(5000);
-@@ -205,8 +213,10 @@ int pm_suspend_disk(void)
- 	device_resume();
- 	resume_console();
-  Thaw:
-+	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
- 	unprepare_processes();
-  Finish:
-+	suspend_notifier_call_chain(SUSPEND_FINISHED);
- 	free_basic_memory_bitmaps();
-  Exit:
- 	atomic_inc(&snapshot_device_available);
-@@ -267,6 +277,10 @@ static int software_resume(void)
- 	if (error)
- 		goto Finish;
- 
-+	error = suspend_notifier_call_chain(SUSPEND_PREPARE);
-+	if (error)
-+		goto Done;
-+
- 	pr_debug("PM: Preparing processes for restore.\n");
- 	error = prepare_processes();
- 	if (error) {
-@@ -279,9 +293,13 @@ static int software_resume(void)
- 	error = swsusp_read();
- 	if (error) {
- 		swsusp_free();
--		goto Thaw;
-+		goto Unprepare;
- 	}
- 
-+	error = suspend_notifier_call_chain(SUSPEND_RESTORE_PREPARE);
-+	if (error)
-+		goto Thaw;
-+
- 	pr_debug("PM: Preparing devices for restore.\n");
- 
- 	suspend_console();
-@@ -299,9 +317,12 @@ static int software_resume(void)
- 	device_resume();
- 	resume_console();
-  Thaw:
-+	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
-+ Unprepare:
- 	printk(KERN_ERR "PM: Restore failed, recovering.\n");
- 	unprepare_processes();
-  Done:
-+	suspend_notifier_call_chain(SUSPEND_FINISHED);
- 	free_basic_memory_bitmaps();
-  Finish:
- 	atomic_inc(&snapshot_device_available);
-diff -puN kernel/power/main.c~pm-introduce-suspend-notifiers-rev-2 kernel/power/main.c
---- a/kernel/power/main.c~pm-introduce-suspend-notifiers-rev-2
-+++ a/kernel/power/main.c
-@@ -86,11 +86,20 @@ static int suspend_prepare(suspend_state
- 
- 	pm_prepare_console();
- 
-+	error = suspend_notifier_call_chain(SUSPEND_PREPARE);
-+	if (error)
-+		goto Finish;
-+
- 	if (freeze_processes()) {
- 		error = -EAGAIN;
--		goto Thaw;
-+		thaw_processes();
-+		goto Finish;
- 	}
- 
-+	error = suspend_notifier_call_chain(SUSPEND_ENTER_PREPARE);
-+	if (error)
-+		goto Thaw;
-+
- 	if ((free_pages = global_page_state(NR_FREE_PAGES))
- 			< FREE_PAGE_NUMBER) {
- 		pr_debug("PM: free some memory\n");
-@@ -123,8 +132,11 @@ static int suspend_prepare(suspend_state
- 	device_resume();
- 	resume_console();
-  Thaw:
-+	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
- 	thaw_processes();
-+ Finish:
- 	pm_restore_console();
-+	suspend_notifier_call_chain(SUSPEND_FINISHED);
- 	return error;
+ struct fat_ioctl_filldir_callback {
+-	struct dirent __user *dirent;
++	void __user *dirent;
+ 	int result;
+ 	/* for dir ioctl */
+ 	const char *longname;
+@@ -647,62 +647,85 @@ static int fat_readdir(struct file *filp
+ 	return __fat_readdir(inode, filp, dirent, filldir, 0, 0);
  }
  
-@@ -174,8 +186,10 @@ static void suspend_finish(suspend_state
- 	pm_finish(state);
- 	device_resume();
- 	resume_console();
-+	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
- 	thaw_processes();
- 	pm_restore_console();
-+	suspend_notifier_call_chain(SUSPEND_FINISHED);
- }
- 
- 
-diff -puN /dev/null kernel/power/notify.c
---- /dev/null
-+++ a/kernel/power/notify.c
-@@ -0,0 +1,51 @@
-+/*
-+ * linux/kernel/power/notify.c
-+ *
-+ * This file contains functions used for registering and calling suspend
-+ * notifiers that can be used by subsystems for carrying out some special
-+ * suspend-related operations.
-+ *
-+ * Copyright (C) 2007 Rafael J. Wysocki <rjw@sisk.pl>
-+ *
-+ * This file is released under the GPLv2.
-+ *
-+ */
-+
-+#include <linux/smp.h>
-+#include <linux/notifier.h>
-+#include <linux/module.h>
-+#include <linux/suspend.h>
-+
-+static DEFINE_MUTEX(suspend_notifier_lock);
-+
-+static RAW_NOTIFIER_HEAD(suspend_chain);
-+
-+int register_suspend_notifier(struct notifier_block *nb)
-+{
-+	int ret;
-+	mutex_lock(&suspend_notifier_lock);
-+	ret = raw_notifier_chain_register(&suspend_chain, nb);
-+	mutex_unlock(&suspend_notifier_lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL(register_suspend_notifier);
-+
-+void unregister_suspend_notifier(struct notifier_block *nb)
-+{
-+	mutex_lock(&suspend_notifier_lock);
-+	raw_notifier_chain_unregister(&suspend_chain, nb);
-+	mutex_unlock(&suspend_notifier_lock);
-+}
-+EXPORT_SYMBOL(unregister_suspend_notifier);
-+
-+int suspend_notifier_call_chain(unsigned long val)
-+{
-+	int error = 0;
-+
-+	mutex_lock(&suspend_notifier_lock);
-+	if (raw_notifier_call_chain(&suspend_chain, val, NULL) == NOTIFY_BAD)
-+		error = -EINVAL;
-+
-+	mutex_unlock(&suspend_notifier_lock);
-+	return error;
-+}
-diff -puN kernel/power/power.h~pm-introduce-suspend-notifiers-rev-2 kernel/power/power.h
---- a/kernel/power/power.h~pm-introduce-suspend-notifiers-rev-2
-+++ a/kernel/power/power.h
-@@ -170,3 +170,6 @@ extern int suspend_enter(suspend_state_t
- struct timeval;
- extern void swsusp_show_speed(struct timeval *, struct timeval *,
- 				unsigned int, char *);
-+
-+/* kernel/power/notify.c */
-+extern int suspend_notifier_call_chain(unsigned long val);
-diff -puN kernel/power/user.c~pm-introduce-suspend-notifiers-rev-2 kernel/power/user.c
---- a/kernel/power/user.c~pm-introduce-suspend-notifiers-rev-2
-+++ a/kernel/power/user.c
-@@ -75,6 +75,18 @@ static int snapshot_open(struct inode *i
- 	return 0;
- }
- 
-+static void snapshot_unfreeze(struct snapshot_data *data)
-+{
-+	if (!data->frozen)
-+		return;
-+
-+	mutex_lock(&pm_mutex);
-+	thaw_processes();
-+	suspend_notifier_call_chain(SUSPEND_FINISHED);
-+	mutex_unlock(&pm_mutex);
-+	data->frozen = 0;
+-static int fat_ioctl_filldir(void *__buf, const char *name, int name_len,
+-			     loff_t offset, u64 ino, unsigned int d_type)
++#define FAT_IOCTL_FILLDIR_FUNC(func, dirent_type)			   \
++static int func(void *__buf, const char *name, int name_len,		   \
++			     loff_t offset, u64 ino, unsigned int d_type)  \
++{									   \
++	struct fat_ioctl_filldir_callback *buf = __buf;			   \
++	struct dirent_type __user *d1 = buf->dirent;			   \
++	struct dirent_type __user *d2 = d1 + 1;				   \
++									   \
++	if (buf->result)						   \
++		return -EINVAL;						   \
++	buf->result++;							   \
++									   \
++	if (name != NULL) {						   \
++		/* dirent has only short name */			   \
++		if (name_len >= sizeof(d1->d_name))			   \
++			name_len = sizeof(d1->d_name) - 1;		   \
++									   \
++		if (put_user(0, d2->d_name)			||	   \
++		    put_user(0, &d2->d_reclen)			||	   \
++		    copy_to_user(d1->d_name, name, name_len)	||	   \
++		    put_user(0, d1->d_name + name_len)		||	   \
++		    put_user(name_len, &d1->d_reclen))			   \
++			goto efault;					   \
++	} else {							   \
++		/* dirent has short and long name */			   \
++		const char *longname = buf->longname;			   \
++		int long_len = buf->long_len;				   \
++		const char *shortname = buf->shortname;			   \
++		int short_len = buf->short_len;				   \
++									   \
++		if (long_len >= sizeof(d1->d_name))			   \
++			long_len = sizeof(d1->d_name) - 1;		   \
++		if (short_len >= sizeof(d1->d_name))			   \
++			short_len = sizeof(d1->d_name) - 1;		   \
++									   \
++		if (copy_to_user(d2->d_name, longname, long_len)	|| \
++		    put_user(0, d2->d_name + long_len)			|| \
++		    put_user(long_len, &d2->d_reclen)			|| \
++		    put_user(ino, &d2->d_ino)				|| \
++		    put_user(offset, &d2->d_off)			|| \
++		    copy_to_user(d1->d_name, shortname, short_len)	|| \
++		    put_user(0, d1->d_name + short_len)			|| \
++		    put_user(short_len, &d1->d_reclen))			   \
++			goto efault;					   \
++	}								   \
++	return 0;							   \
++efault:									   \
++	buf->result = -EFAULT;						   \
++	return -EFAULT;							   \
 +}
 +
- static int snapshot_release(struct inode *inode, struct file *filp)
++FAT_IOCTL_FILLDIR_FUNC(fat_ioctl_filldir, dirent)
++
++static int fat_ioctl_readdir(struct inode *inode, struct file *filp,
++			     void __user *dirent, filldir_t filldir,
++			     int short_only, int both)
  {
- 	struct snapshot_data *data;
-@@ -83,11 +95,7 @@ static int snapshot_release(struct inode
- 	free_basic_memory_bitmaps();
- 	data = filp->private_data;
- 	free_all_swap_pages(data->swap);
--	if (data->frozen) {
--		mutex_lock(&pm_mutex);
--		thaw_processes();
--		mutex_unlock(&pm_mutex);
+-	struct fat_ioctl_filldir_callback *buf = __buf;
+-	struct dirent __user *d1 = buf->dirent;
+-	struct dirent __user *d2 = d1 + 1;
+-
+-	if (buf->result)
+-		return -EINVAL;
+-	buf->result++;
+-
+-	if (name != NULL) {
+-		/* dirent has only short name */
+-		if (name_len >= sizeof(d1->d_name))
+-			name_len = sizeof(d1->d_name) - 1;
+-
+-		if (put_user(0, d2->d_name)			||
+-		    put_user(0, &d2->d_reclen)			||
+-		    copy_to_user(d1->d_name, name, name_len)	||
+-		    put_user(0, d1->d_name + name_len)		||
+-		    put_user(name_len, &d1->d_reclen))
+-			goto efault;
+-	} else {
+-		/* dirent has short and long name */
+-		const char *longname = buf->longname;
+-		int long_len = buf->long_len;
+-		const char *shortname = buf->shortname;
+-		int short_len = buf->short_len;
+-
+-		if (long_len >= sizeof(d1->d_name))
+-			long_len = sizeof(d1->d_name) - 1;
+-		if (short_len >= sizeof(d1->d_name))
+-			short_len = sizeof(d1->d_name) - 1;
+-
+-		if (copy_to_user(d2->d_name, longname, long_len)	||
+-		    put_user(0, d2->d_name + long_len)			||
+-		    put_user(long_len, &d2->d_reclen)			||
+-		    put_user(ino, &d2->d_ino)				||
+-		    put_user(offset, &d2->d_off)			||
+-		    copy_to_user(d1->d_name, shortname, short_len)	||
+-		    put_user(0, d1->d_name + short_len)			||
+-		    put_user(short_len, &d1->d_reclen))
+-			goto efault;
++	struct fat_ioctl_filldir_callback buf;
++	int ret;
++
++	buf.dirent = dirent;
++	buf.result = 0;
++	mutex_lock(&inode->i_mutex);
++	ret = -ENOENT;
++	if (!IS_DEADDIR(inode)) {
++		ret = __fat_readdir(inode, filp, &buf, filldir,
++				    short_only, both);
+ 	}
+-	return 0;
+-efault:
+-	buf->result = -EFAULT;
+-	return -EFAULT;
++	mutex_unlock(&inode->i_mutex);
++	if (ret >= 0)
++		ret = buf.result;
++	return ret;
+ }
+ 
+-static int fat_dir_ioctl(struct inode * inode, struct file * filp,
+-		  unsigned int cmd, unsigned long arg)
++static int fat_dir_ioctl(struct inode *inode, struct file *filp,
++			 unsigned int cmd, unsigned long arg)
+ {
+-	struct fat_ioctl_filldir_callback buf;
+-	struct dirent __user *d1;
+-	int ret, short_only, both;
++	struct dirent __user *d1 = (struct dirent __user *)arg;
++	int short_only, both;
+ 
+ 	switch (cmd) {
+ 	case VFAT_IOCTL_READDIR_SHORT:
+@@ -717,7 +740,6 @@ static int fat_dir_ioctl(struct inode * 
+ 		return fat_generic_ioctl(inode, filp, cmd, arg);
+ 	}
+ 
+-	d1 = (struct dirent __user *)arg;
+ 	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct dirent[2])))
+ 		return -EFAULT;
+ 	/*
+@@ -728,69 +750,48 @@ static int fat_dir_ioctl(struct inode * 
+ 	if (put_user(0, &d1->d_reclen))
+ 		return -EFAULT;
+ 
+-	buf.dirent = d1;
+-	buf.result = 0;
+-	mutex_lock(&inode->i_mutex);
+-	ret = -ENOENT;
+-	if (!IS_DEADDIR(inode)) {
+-		ret = __fat_readdir(inode, filp, &buf, fat_ioctl_filldir,
+-				    short_only, both);
 -	}
-+	snapshot_unfreeze(data);
- 	atomic_inc(&snapshot_device_available);
- 	return 0;
+-	mutex_unlock(&inode->i_mutex);
+-	if (ret >= 0)
+-		ret = buf.result;
+-	return ret;
++	return fat_ioctl_readdir(inode, filp, d1, fat_ioctl_filldir,
++				 short_only, both);
  }
-@@ -147,6 +155,10 @@ static inline int snapshot_suspend(int p
- 	int error;
  
- 	mutex_lock(&pm_mutex);
-+	error = suspend_notifier_call_chain(SUSPEND_ENTER_PREPARE);
-+	if (error)
-+		goto Finish;
+ #ifdef CONFIG_COMPAT
+ #define	VFAT_IOCTL_READDIR_BOTH32	_IOR('r', 1, struct compat_dirent[2])
+ #define	VFAT_IOCTL_READDIR_SHORT32	_IOR('r', 2, struct compat_dirent[2])
+ 
+-static long fat_compat_put_dirent32(struct dirent *d,
+-				    struct compat_dirent __user *d32)
+-{
+-        if (!access_ok(VERIFY_WRITE, d32, sizeof(struct compat_dirent)))
+-                return -EFAULT;
++FAT_IOCTL_FILLDIR_FUNC(fat_compat_ioctl_filldir, compat_dirent)
+ 
+-        __put_user(d->d_ino, &d32->d_ino);
+-        __put_user(d->d_off, &d32->d_off);
+-        __put_user(d->d_reclen, &d32->d_reclen);
+-        if (__copy_to_user(d32->d_name, d->d_name, d->d_reclen))
+-		return -EFAULT;
+-
+-        return 0;
+-}
+-
+-static long fat_compat_dir_ioctl(struct file *file, unsigned cmd,
++static long fat_compat_dir_ioctl(struct file *filp, unsigned cmd,
+ 				 unsigned long arg)
+ {
+-	struct compat_dirent __user *p = compat_ptr(arg);
+-	int ret;
+-	mm_segment_t oldfs = get_fs();
+-	struct dirent d[2];
++	struct inode *inode = filp->f_path.dentry->d_inode;
++	struct compat_dirent __user *d1 = compat_ptr(arg);
++	int short_only, both;
+ 
+ 	switch (cmd) {
+-	case VFAT_IOCTL_READDIR_BOTH32:
+-		cmd = VFAT_IOCTL_READDIR_BOTH;
+-		break;
+ 	case VFAT_IOCTL_READDIR_SHORT32:
+-		cmd = VFAT_IOCTL_READDIR_SHORT;
++		short_only = 1;
++		both = 0;
++		break;
++	case VFAT_IOCTL_READDIR_BOTH32:
++		short_only = 0;
++		both = 1;
+ 		break;
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+ 
+-	set_fs(KERNEL_DS);
+-	lock_kernel();
+-	ret = fat_dir_ioctl(file->f_path.dentry->d_inode, file,
+-			    cmd, (unsigned long) &d);
+-	unlock_kernel();
+-	set_fs(oldfs);
+-	if (ret >= 0) {
+-		ret |= fat_compat_put_dirent32(&d[0], p);
+-		ret |= fat_compat_put_dirent32(&d[1], p + 1);
+-	}
+-	return ret;
++	if (!access_ok(VERIFY_WRITE, d1, sizeof(struct compat_dirent[2])))
++		return -EFAULT;
++	/*
++	 * Yes, we don't need this put_user() absolutely. However old
++	 * code didn't return the right value. So, app use this value,
++	 * in order to check whether it is EOF.
++	 */
++	if (put_user(0, &d1->d_reclen))
++		return -EFAULT;
 +
- 	/* Free memory before shutting down devices. */
- 	error = swsusp_shrink_memory();
- 	if (error)
-@@ -175,6 +187,7 @@ static inline int snapshot_suspend(int p
- 	device_resume();
- 	resume_console();
-  Finish:
-+	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
- 	mutex_unlock(&pm_mutex);
- 	return error;
++	return fat_ioctl_readdir(inode, filp, d1, fat_compat_ioctl_filldir,
++				 short_only, both);
  }
-@@ -185,6 +198,10 @@ static inline int snapshot_restore(int p
- 
- 	mutex_lock(&pm_mutex);
- 	pm_prepare_console();
-+	error = suspend_notifier_call_chain(SUSPEND_RESTORE_PREPARE);
-+	if (error)
-+		goto Finish;
-+
- 	if (platform_suspend) {
- 		error = platform_prepare();
- 		if (error)
-@@ -207,6 +224,7 @@ static inline int snapshot_restore(int p
- 	device_resume();
- 	resume_console();
-  Finish:
-+	suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
- 	pm_restore_console();
- 	mutex_unlock(&pm_mutex);
- 	return error;
-@@ -235,8 +253,13 @@ static int snapshot_ioctl(struct inode *
- 		if (data->frozen)
- 			break;
- 		mutex_lock(&pm_mutex);
-+		error = suspend_notifier_call_chain(SUSPEND_PREPARE);
-+		if (error)
-+			break;
-+
- 		if (freeze_processes()) {
- 			thaw_processes();
-+			suspend_notifier_call_chain(SUSPEND_FINISHED);
- 			error = -EBUSY;
- 		}
- 		mutex_unlock(&pm_mutex);
-@@ -245,12 +268,7 @@ static int snapshot_ioctl(struct inode *
- 		break;
- 
- 	case SNAPSHOT_UNFREEZE:
--		if (!data->frozen)
--			break;
--		mutex_lock(&pm_mutex);
--		thaw_processes();
--		mutex_unlock(&pm_mutex);
--		data->frozen = 0;
-+		snapshot_unfreeze(data);
- 		break;
- 
- 	case SNAPSHOT_ATOMIC_SNAPSHOT:
-@@ -349,6 +367,10 @@ static int snapshot_ioctl(struct inode *
- 			break;
- 		}
- 
-+		error = suspend_notifier_call_chain(SUSPEND_ENTER_PREPARE);
-+		if (error)
-+			goto OutS3;
-+
- 		if (pm_ops->prepare) {
- 			error = pm_ops->prepare(PM_SUSPEND_MEM);
- 			if (error)
-@@ -375,6 +397,7 @@ static int snapshot_ioctl(struct inode *
- 			pm_ops->finish(PM_SUSPEND_MEM);
- 
-  OutS3:
-+		suspend_notifier_call_chain(SUSPEND_THAW_PREPARE);
- 		mutex_unlock(&pm_mutex);
- 		break;
+ #endif /* CONFIG_COMPAT */
  
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-rework-pm_ops-pm_disk_mode-kill-misuse.patch
-power-management-remove-firmware-disk-mode.patch
-power-management-implement-pm_opsvalid-for-everybody.patch
-power-management-implement-pm_opsvalid-for-everybody-fix.patch
-power-management-force-pm_opsvalid-callback-to-be.patch
-fix-refrigerator-vs-thaw_process-race.patch
-swsusp-use-inline-functions-for-changing-page-flags.patch
-swsusp-do-not-use-page-flags.patch
-mm-remove-unused-page-flags.patch
-swsusp-fix-error-paths-in-snapshot_open.patch
-swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
-freezer-remove-pf_nofreeze-from-handle_initrd.patch
-swsusp-use-rbtree-for-tracking-allocated-swap.patch
-freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch
-remove-software_suspend.patch
-power-management-change-sys-power-disk-display.patch
-kconfig-mentioneds-hibernation-not-just-swsusp.patch
-swsusp-fix-snapshot_release.patch
-swsusp-free-more-memory.patch
-pm-introduce-suspend-notifiers-rev-2.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-remvoe-kthread_bind-call-from-_cpu_down.patch
-add-suspend-related-notifications-for-cpu-hotplug.patch
-microcode-use-suspend-related-cpu-hotplug-notifications.patch
-add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
-shrink_slab-handle-bad-shrinkers.patch
+is_power_of_2-in-fat.patch
+fat_dont-use_free_clusters-for-fat32.patch
+fix-vfat-compat-ioctls-on-64-bit-systems.patch
