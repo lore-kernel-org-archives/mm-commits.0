@@ -1,98 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 11:53:09 -0700
-Message-ID: <200704301853.l3UIr9CW011975@shell0.pdx.osdl.net>
+Subject: - slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 11:52:55 -0700
+Message-ID: <200704301852.l3UIqtcU011955@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52775 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49786 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946631AbXD3SxN (ORCPT
+	by vger.kernel.org with ESMTP id S1946592AbXD3SxP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 14:53:13 -0400
+	Mon, 30 Apr 2007 14:53:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mel@skynet.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB printk cleanup: Fix up printks in the resiliency check
+     SLUB: Reduce the order of allocations to avoid fragmentation
 has been removed from the -mm tree.  Its filename was
-     slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch
+     slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB printk cleanup: Fix up printks in the resiliency check
+Subject: SLUB: Reduce the order of allocations to avoid fragmentation
 From: Christoph Lameter <clameter@sgi.com>
 
+Seems that fragmentation is an important subject. So be safe.
+
+If an arch supports 4k page size then assume that defragmentation may be
+a major problem. Reduce the minimum number of objects in a slab and
+limit the order of slabs. Be a little bit more lenient for larger
+page sizes.
+
+Change the bootup message of SLUB to show the parameters so that
+log is reviewed.
+
+Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   14 ++++++++------
- 1 files changed, 8 insertions(+), 6 deletions(-)
+ mm/slub.c |   28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check mm/slub.c
---- a/mm/slub.c~slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check
+diff -puN mm/slub.c~slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation mm/slub.c
+--- a/mm/slub.c~slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation
 +++ a/mm/slub.c
-@@ -2529,6 +2529,8 @@ __initcall(cpucache_init);
- #endif
+@@ -115,6 +115,25 @@
+ /* Enable to test recovery from slab corruption on boot */
+ #undef SLUB_RESILIENCY_TEST
  
- #ifdef SLUB_RESILIENCY_TEST
-+static unsigned long validate_slab_cache(struct kmem_cache *s);
++#if PAGE_SHIFT <= 12
 +
- static void resiliency_test(void)
- {
- 	u8 *p;
-@@ -2540,7 +2542,7 @@ static void resiliency_test(void)
- 	p = kzalloc(16, GFP_KERNEL);
- 	p[16] = 0x12;
- 	printk(KERN_ERR "\n1. kmalloc-16: Clobber Redzone/next pointer"
--			" 0x12->%p\n\n", p + 16);
-+			" 0x12->0x%p\n\n", p + 16);
++/*
++ * Small page size. Make sure that we do not fragment memory
++ */
++#define DEFAULT_MAX_ORDER 1
++#define DEFAULT_MIN_OBJECTS 4
++
++#else
++
++/*
++ * Large page machines are customarily able to handle larger
++ * page orders.
++ */
++#define DEFAULT_MAX_ORDER 2
++#define DEFAULT_MIN_OBJECTS 8
++
++#endif
++
+ /*
+  * Flags from the regular SLAB that SLUB does not support:
+  */
+@@ -1401,13 +1420,13 @@ static struct page *get_object_page(cons
+  * take the list_lock.
+  */
+ static int slub_min_order;
+-static int slub_max_order = 4;
++static int slub_max_order = DEFAULT_MAX_ORDER;
  
- 	validate_slab_cache(kmalloc_caches + 4);
+ /*
+  * Minimum number of objects per slab. This is necessary in order to
+  * reduce locking overhead. Similar to the queue size in SLAB.
+  */
+-static int slub_min_objects = 8;
++static int slub_min_objects = DEFAULT_MIN_OBJECTS;
  
-@@ -2548,14 +2550,14 @@ static void resiliency_test(void)
- 	p = kzalloc(32, GFP_KERNEL);
- 	p[32 + sizeof(void *)] = 0x34;
- 	printk(KERN_ERR "\n2. kmalloc-32: Clobber next pointer/next slab"
--		 	" 0x34 -> %p\n", p);
-+		 	" 0x34 -> -0x%p\n", p);
- 	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
+ /*
+  * Merge control. If this is set then no merging of slab caches will occur.
+@@ -2239,9 +2258,10 @@ void __init kmem_cache_init(void)
+ 		kmem_size = offsetof(struct kmem_cache, cpu_slab)
+ 			 + nr_cpu_ids * sizeof(struct page *);
  
- 	validate_slab_cache(kmalloc_caches + 5);
- 	p = kzalloc(64, GFP_KERNEL);
- 	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
- 	*p = 0x56;
--	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->%p\n",
-+	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
- 									p);
- 	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
- 	validate_slab_cache(kmalloc_caches + 6);
-@@ -2564,19 +2566,19 @@ static void resiliency_test(void)
- 	p = kzalloc(128, GFP_KERNEL);
- 	kfree(p);
- 	*p = 0x78;
--	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->%p\n\n", p);
-+	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
- 	validate_slab_cache(kmalloc_caches + 7);
- 
- 	p = kzalloc(256, GFP_KERNEL);
- 	kfree(p);
- 	p[50] = 0x9a;
--	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->%p\n\n", p);
-+	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
- 	validate_slab_cache(kmalloc_caches + 8);
- 
- 	p = kzalloc(512, GFP_KERNEL);
- 	kfree(p);
- 	p[512] = 0xab;
--	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->%p\n\n", p);
-+	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
- 	validate_slab_cache(kmalloc_caches + 9);
+-	printk(KERN_INFO "SLUB: General Slabs=%d, HW alignment=%d, "
+-		"Processors=%d, Nodes=%d\n",
++	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
++		" Processors=%d, Nodes=%d\n",
+ 		KMALLOC_SHIFT_HIGH, L1_CACHE_BYTES,
++		slub_min_order, slub_max_order, slub_min_objects,
+ 		nr_cpu_ids, nr_node_ids);
  }
- #else
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -112,6 +120,10 @@ smaps-add-clear_refs-file-to-clear-reference.patch
 slab-use-num_possible_cpus-in-enable_cpucache.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
+slub-core-sysfs-support-fix-unique-id-generation.patch
+slub-core-printk-cleanup-object_err.patch
+slub-core-printk-cleanup-add-slab_err.patch
 slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch
 slub-core-fix-slab-validation-error-in-bootstrap-cache.patch
 slub-core-remove-per-cpu-flusher.patch
