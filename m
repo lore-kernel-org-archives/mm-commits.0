@@ -1,199 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:10:21 -0700
-Message-ID: <200704301910.l3UJALb5012417@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-using-asm-generic-pgtable-header-file-by.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:10:33 -0700
+Message-ID: <200704301910.l3UJAXhi012431@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42794 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946668AbXD3TK0 (ORCPT
+	by vger.kernel.org with ESMTP id S1946672AbXD3TKi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:10:26 -0400
+	Mon, 30 Apr 2007 15:10:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin arch fix bug interrupt setup problem request_irq: set_gpio_dir called before gpio_request
+     Blackfin arch: using asm-generic pgtable header file by adding PAGE access macros based on CPLB management
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
+     blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
 
 This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: blackfin arch fix bug interrupt setup problem request_irq: set_gpio_dir called before gpio_request
+Subject: Blackfin arch: using asm-generic pgtable header file by adding PAGE access macros based on CPLB management
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/mach-common/ints-priority-dc.c |   36 ++++++++++++----
- arch/blackfin/mach-common/ints-priority-sc.c |   38 +++++++++++++----
- include/asm-blackfin/gpio.h                  |    6 +-
- 3 files changed, 63 insertions(+), 17 deletions(-)
+ include/asm-blackfin/pgtable.h |   44 ++++++++++++++++++++++++-------
+ 1 files changed, 35 insertions(+), 9 deletions(-)
 
-diff -puN arch/blackfin/mach-common/ints-priority-dc.c~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq arch/blackfin/mach-common/ints-priority-dc.c
---- a/arch/blackfin/mach-common/ints-priority-dc.c~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq
-+++ a/arch/blackfin/mach-common/ints-priority-dc.c
-@@ -217,11 +217,18 @@ static void bf561_gpio_unmask_irq(unsign
- static unsigned int bf561_gpio_irq_startup(unsigned int irq)
- {
- 	unsigned int ret;
-+	u16 gpionr = irq - IRQ_PF0;
+diff -puN include/asm-blackfin/pgtable.h~blackfin-arch-using-asm-generic-pgtable-header-file-by include/asm-blackfin/pgtable.h
+--- a/include/asm-blackfin/pgtable.h~blackfin-arch-using-asm-generic-pgtable-header-file-by
++++ a/include/asm-blackfin/pgtable.h
+@@ -3,7 +3,8 @@
+ 
+ #include <asm-generic/4level-fixup.h>
+ 
+-#include <asm/setup.h>
++#include <asm/page.h>
++#include <asm/cplb.h>
+ 
+ typedef pte_t *pte_addr_t;
+ /*
+@@ -14,7 +15,12 @@ typedef pte_t *pte_addr_t;
+ #define pgd_bad(pgd)		(0)
+ #define pgd_clear(pgdp)
+ #define kern_addr_valid(addr)	(1)
+-#define	pmd_offset(a, b)	((void *)0)
 +
-+	if (!(gpio_enabled[gpio_bank(gpionr)] & gpio_bit(gpionr))) {
++#define pmd_offset(a, b)	((void *)0)
++#define pmd_none(x)		(!pmd_val(x))
++#define pmd_present(x)		(pmd_val(x))
++#define pmd_clear(xp)		do { set_pmd(xp, __pmd(0)); } while (0)
++#define pmd_bad(x)		(pmd_val(x) & ~PAGE_MASK)
  
--	ret = gpio_request(irq - IRQ_PF0, NULL);
-+		ret = gpio_request(gpionr, NULL);
-+		if(ret)
-+			return ret;
+ #define kern_addr_valid(addr) (1)
  
--	if (!ret)
--	  bf561_gpio_unmask_irq(irq);
-+	}
-+
-+	gpio_enabled[gpio_bank(gpionr)] |= gpio_bit(gpionr);
-+	bf561_gpio_unmask_irq(irq);
- 
-   return ret;
- 
-@@ -231,15 +238,15 @@ static void bf561_gpio_irq_shutdown(unsi
- {
- 	bf561_gpio_mask_irq(irq);
- 	gpio_free(irq - IRQ_PF0);
-+	gpio_enabled[gpio_bank(irq - IRQ_PF0)] &= ~gpio_bit(irq - IRQ_PF0);
+@@ -37,6 +43,32 @@ static inline int pte_file(pte_t pte)
+ 	return 0;
  }
  
- static int bf561_gpio_irq_type(unsigned int irq, unsigned int type)
- {
- 
-+	unsigned int ret;
- 	u16 gpionr = irq - IRQ_PF0;
- 
--		set_gpio_dir(gpionr, 0);
--		set_gpio_inen(gpionr, 1);
- 
- 		if (type == IRQ_TYPE_PROBE) {
- 			/* only probe unenabled GPIO interrupt lines */
-@@ -250,11 +257,26 @@ static int bf561_gpio_irq_type(unsigned 
- 		}
- 
- 		if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING |
--			    IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW))
-+			    IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
++#define set_pte(pteptr, pteval) (*(pteptr) = pteval)
++#define set_pte_at(mm, addr, ptep, pteval) set_pte(ptep, pteval)
 +
-+		if (!(gpio_enabled[gpio_bank(gpionr)] & gpio_bit(gpionr))) {
++/*
++ * Page assess control based on Blackfin CPLB management
++ */
++#define _PAGE_RD	(CPLB_USER_RD)
++#define _PAGE_WR	(CPLB_USER_WR)
++#define _PAGE_USER	(CPLB_USER_RD | CPLB_USER_WR)
++#define _PAGE_ACCESSED	CPLB_ALL_ACCESS
++#define _PAGE_DIRTY	(CPLB_DIRTY)
 +
-+			ret = gpio_request(gpionr, NULL);
-+			if(ret)
-+				return ret;
++#define PTE_BIT_FUNC(fn, op) \
++	static inline pte_t pte_##fn(pte_t _pte) { _pte.pte op; return _pte; }
 +
-+		}
++PTE_BIT_FUNC(rdprotect, &= ~_PAGE_RD);
++PTE_BIT_FUNC(mkread, |= _PAGE_RD);
++PTE_BIT_FUNC(wrprotect, &= ~_PAGE_WR);
++PTE_BIT_FUNC(mkwrite, |= _PAGE_WR);
++PTE_BIT_FUNC(exprotect, &= ~_PAGE_USER);
++PTE_BIT_FUNC(mkexec, |= _PAGE_USER);
++PTE_BIT_FUNC(mkclean, &= ~_PAGE_DIRTY);
++PTE_BIT_FUNC(mkdirty, |= _PAGE_DIRTY);
++PTE_BIT_FUNC(mkold, &= ~_PAGE_ACCESSED);
++PTE_BIT_FUNC(mkyoung, |= _PAGE_ACCESSED);
++
+ /*
+  * ZERO_PAGE is a global shared page that is always zero: used
+  * for zero-mapped memory areas etc..
+@@ -59,12 +91,6 @@ extern unsigned int kobjsize(const void 
+ #define	VMALLOC_START	0
+ #define	VMALLOC_END	0xffffffff
  
- 			gpio_enabled[gpio_bank(gpionr)] |= gpio_bit(gpionr);
--		else
-+		} else {
- 			gpio_enabled[gpio_bank(gpionr)] &= ~gpio_bit(gpionr);
-+			return 0;
-+		}
-+
-+
-+		set_gpio_dir(gpionr, 0);
-+		set_gpio_inen(gpionr, 1);
-+
+-#define  __HAVE_ARCH_ENTER_LAZY_CPU_MODE
+-#define arch_enter_lazy_cpu_mode()	do {} while (0)
+-#define arch_leave_lazy_cpu_mode()	do {} while (0)
+-
+-#define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+-#define arch_enter_lazy_mmu_mode()	do {} while (0)
+-#define arch_leave_lazy_mmu_mode()	do {} while (0)
++#include <asm-generic/pgtable.h>
  
- 		if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)) {
- 			gpio_edge_triggered[gpio_bank(gpionr)] |= gpio_bit(gpionr);
-diff -puN arch/blackfin/mach-common/ints-priority-sc.c~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq arch/blackfin/mach-common/ints-priority-sc.c
---- a/arch/blackfin/mach-common/ints-priority-sc.c~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq
-+++ a/arch/blackfin/mach-common/ints-priority-sc.c
-@@ -326,11 +326,18 @@ static void bfin_gpio_unmask_irq(unsigne
- static unsigned int bfin_gpio_irq_startup(unsigned int irq)
- {
- 	unsigned int ret;
-+	u16 gpionr = irq - IRQ_PF0;
-+
-+	if (!(gpio_enabled[gpio_bank(gpionr)] & gpio_bit(gpionr))) {
-+
-+		ret = gpio_request(gpionr, NULL);
-+		if(ret)
-+			return ret;
- 
--	ret = gpio_request(irq - IRQ_PF0, NULL);
-+	}
- 
--	if (!ret)
--		bfin_gpio_unmask_irq(irq);
-+	gpio_enabled[gpio_bank(gpionr)] |= gpio_bit(gpionr);
-+	bfin_gpio_unmask_irq(irq);
- 
- 	return ret;
- }
-@@ -339,14 +346,15 @@ static void bfin_gpio_irq_shutdown(unsig
- {
- 	bfin_gpio_mask_irq(irq);
- 	gpio_free(irq - IRQ_PF0);
-+	gpio_enabled[gpio_bank(irq - IRQ_PF0)] &= ~gpio_bit(irq - IRQ_PF0);
- }
- 
- static int bfin_gpio_irq_type(unsigned int irq, unsigned int type)
- {
-+
-+	unsigned int ret;
- 	u16 gpionr = irq - IRQ_PF0;
- 
--		set_gpio_dir(gpionr, 0);
--		set_gpio_inen(gpionr, 1);
- 
- 		if (type == IRQ_TYPE_PROBE) {
- 			/* only probe unenabled GPIO interrupt lines */
-@@ -357,10 +365,26 @@ static int bfin_gpio_irq_type(unsigned i
- 		}
- 
- 		if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING |
--			    IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW))
-+			    IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
-+
-+		if (!(gpio_enabled[gpio_bank(gpionr)] & gpio_bit(gpionr))) {
-+
-+			ret = gpio_request(gpionr, NULL);
-+			if(ret)
-+				return ret;
-+
-+		}
-+
- 			gpio_enabled[gpio_bank(gpionr)] |= gpio_bit(gpionr);
--		else
-+		} else {
- 			gpio_enabled[gpio_bank(gpionr)] &= ~gpio_bit(gpionr);
-+			return 0;
-+		}
-+
-+
-+		set_gpio_dir(gpionr, 0);
-+		set_gpio_inen(gpionr, 1);
-+
- 
- 		if (type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)) {
- 			gpio_edge_triggered[gpio_bank(gpionr)] |= gpio_bit(gpionr);
-diff -puN include/asm-blackfin/gpio.h~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq include/asm-blackfin/gpio.h
---- a/include/asm-blackfin/gpio.h~blackfin-arch-fix-bug-interrupt-setup-problem-request_irq
-+++ a/include/asm-blackfin/gpio.h
-@@ -85,9 +85,9 @@
- #ifndef __ARCH_BLACKFIN_GPIO_H__
- #define __ARCH_BLACKFIN_GPIO_H__
- 
--#define gpio_bank(x) (x >> 4)
--#define gpio_bit(x)  (1<<(x & 0xF))
--#define gpio_sub_n(x) (x & 0xF)
-+#define gpio_bank(x) ((x) >> 4)
-+#define gpio_bit(x)  (1<<((x) & 0xF))
-+#define gpio_sub_n(x) ((x) & 0xF)
- 
- #define GPIO_BANKSIZE 16
- 
+ #endif				/* _BLACKFIN_PGTABLE_H */
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -201,10 +113,6 @@ Patches currently in -mm which might be from bryan.wu@analog.com are
 origin.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
-blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
-blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
-blackfin-arch-always-include-linux-kallsysms-header-file.patch
-blackfin-arch-sync-with-uclibc-no-functional-changes.patch
 blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
 blackfin-arch-add-missing-__clear_user-function-to.patch
 blackfin-arch-use-boot_command_line-instead-of.patch
