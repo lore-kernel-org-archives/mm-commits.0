@@ -1,103 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:03:39 -0700
-Message-ID: <200704302003.l3UK3eg7013685@shell0.pdx.osdl.net>
+Subject: - enhance-initcall_debug-measure-latency-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:04:32 -0700
+Message-ID: <200704302004.l3UK4XfZ013717@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57113 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423561AbXD3UEg (ORCPT
+	by vger.kernel.org with ESMTP id S1423612AbXD3UE7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:04:36 -0400
+	Mon, 30 Apr 2007 16:04:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jengelh@gmx.de, linux@treblig.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix
+     enhance-initcall_debug-measure-latency-fix
 has been removed from the -mm tree.  Its filename was
-     display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+     enhance-initcall_debug-measure-latency-fix.patch
 
-This patch was dropped because it was folded into display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+This patch was dropped because it was folded into enhance-initcall_debug-measure-latency.patch
 
 ------------------------------------------------------
-Subject: display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix
+Subject: enhance-initcall_debug-measure-latency-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dave Gilbert <linux@treblig.org>
-Cc: Jan Engelhardt <jengelh@gmx.de>
+Not all architectures use long long for s64.
+
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ init/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/genhd.c~display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix block/genhd.c
---- a/block/genhd.c~display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix
-+++ a/block/genhd.c
-@@ -214,16 +214,16 @@ struct gendisk *get_gendisk(dev_t dev, i
- }
+diff -puN init/main.c~enhance-initcall_debug-measure-latency-fix init/main.c
+--- a/init/main.c~enhance-initcall_debug-measure-latency-fix
++++ a/init/main.c
+@@ -678,7 +678,7 @@ static void __init do_initcalls(void)
+ 			printk(" returned %d.\n", result);
  
- /*
-- * printk a full list of all partitions - intended for
-- * places where the root filesystem can't be mounted and thus
-- * to give the victim some idea of what went wrong
-+ * print a full list of all partitions - intended for places where the root
-+ * filesystem can't be mounted and thus to give the victim some idea of what
-+ * went wrong
-  */
- void __init printk_all_partitions(void)
- {
- 	int n;
- 	struct gendisk *sgp;
--	mutex_lock(&block_subsys_lock);
- 
-+	mutex_lock(&block_subsys_lock);
- 	/* For each block device... */
- 	list_for_each_entry(sgp, &block_subsys.kset.list, kobj.entry) {
- 		char buf[BDEVNAME_SIZE];
-@@ -231,7 +231,7 @@ void __init printk_all_partitions(void)
- 		 * Don't show empty devices or things that have been surpressed
- 		 */
- 		if (get_capacity(sgp) == 0 ||
--		  (sgp->flags & GENHD_FL_SUPPRESS_PARTITION_INFO))
-+		    (sgp->flags & GENHD_FL_SUPPRESS_PARTITION_INFO))
- 			continue;
- 
- 		/*
-@@ -239,13 +239,13 @@ void __init printk_all_partitions(void)
- 		 * hex - the same format as the root= option takes.
- 		 */
- 		printk("%02x%02x %10llu %s",
--		       sgp->major, sgp->first_minor,
--		       (unsigned long long)get_capacity(sgp) >> 1,
--		       disk_name(sgp, 0, buf));
-+			sgp->major, sgp->first_minor,
-+			(unsigned long long)get_capacity(sgp) >> 1,
-+			disk_name(sgp, 0, buf));
- 		if (sgp->driverfs_dev != NULL &&
--		  sgp->driverfs_dev->driver != NULL)
-+		    sgp->driverfs_dev->driver != NULL)
- 			printk(" driver: %s\n",
--			       sgp->driverfs_dev->driver->name);
-+				sgp->driverfs_dev->driver->name);
- 		else
- 			printk(" (driver?)\n");
- 
-@@ -256,9 +256,9 @@ void __init printk_all_partitions(void)
- 			if (sgp->part[n]->nr_sects == 0)
- 				continue;
- 			printk("  %02x%02x %10llu %s\n",
--			       sgp->major, n + 1 + sgp->first_minor,
--			       (unsigned long long)sgp->part[n]->nr_sects >> 1,
--			       disk_name(sgp, n + 1, buf));
-+				sgp->major, n + 1 + sgp->first_minor,
-+				(unsigned long long)sgp->part[n]->nr_sects >> 1,
-+				disk_name(sgp, n + 1, buf));
- 		} /* partition subloop */
- 	} /* Block device loop */
- 
+ 			printk("initcall 0x%p ran for %Ld msecs: ",
+-				*call, delta.tv64 >> 20);
++				*call, (unsigned long long)delta.tv64 >> 20);
+ 			print_fn_descriptor_symbol("%s()\n",
+ 				(unsigned long) *call);
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -193,7 +141,7 @@ time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc.patch
 fix-kevents-childs-priority-greediness.patch
 display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency.patch
 enhance-initcall_debug-measure-latency-fix.patch
 expose-range-checking-functions-from-arch-specific-update-fix.patch
 pad-irq_desc-to-internode-cacheline-size-fix.patch
