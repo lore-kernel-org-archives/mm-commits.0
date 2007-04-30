@@ -1,266 +1,442 @@
 From: akpm@linux-foundation.org
-Subject: - driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:14:10 -0700
-Message-ID: <200704302014.l3UKEBXE013917@shell0.pdx.osdl.net>
+Subject: - mpc52xx-psc-spi-master-driver-update.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:15:21 -0700
+Message-ID: <200704302015.l3UKFMrq013949@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49786 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946753AbXD3UOt (ORCPT
+	by vger.kernel.org with ESMTP id S1030285AbXD3UQZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:14:49 -0400
+	Mon, 30 Apr 2007 16:16:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mreimer@vpop.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: dragos.carp@toptica.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core update
+     mpc52xx-psc-spi-master-driver update
 has been removed from the -mm tree.  Its filename was
-     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update.patch
+     mpc52xx-psc-spi-master-driver-update.patch
 
-This patch was dropped because it was folded into driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+This patch was dropped because it was folded into mpc52xx-psc-spi-master-driver.patch
 
 ------------------------------------------------------
-Subject: driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core update
-From: Matt Reimer <mreimer@vpop.net>
+Subject: mpc52xx-psc-spi-master-driver update
+From: Dragos Carp <dragos.carp@toptica.com>
 
-Thanks for your review Andrew. I made all the code changes you
-suggested in the attached patch.
+Related to your comments: I used the constants that were already defined
+in the mpc52xx.h or mpc52xx_psc.h. I could define them there, but this
+will be probably a different patch.
+I chose the bus number starting with 0, because I wanted to use the same
+rule as the mpc52xx_psc_uart driver, anyway using the OpenFirmware the
+bus number will be dynamic allocated based on the order in the
+configuration file.
+I also changed the name of the driver according to
+Documentation/powerpc/mpc52xx-device-tree-bindings.txt.
 
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+The newlines were inserted and the inline-s removed.
+
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds1wm.c |   94 +++++++++++++++++------------------
- include/linux/ds1wm.h      |    1 
- 2 files changed, 46 insertions(+), 49 deletions(-)
+ drivers/spi/mpc52xx_psc_spi.c |  235 ++++++++++++++++++++++++++++----
+ 1 file changed, 206 insertions(+), 29 deletions(-)
 
-diff -puN drivers/w1/masters/ds1wm.c~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update drivers/w1/masters/ds1wm.c
---- a/drivers/w1/masters/ds1wm.c~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update
-+++ a/drivers/w1/masters/ds1wm.c
-@@ -32,26 +32,27 @@
- #define DS1WM_INT_EN	0x03	/* R/W interrupt enable */
- #define DS1WM_CLKDIV	0x04	/* R/W 5 bits of divisor and pre-scale */
- 
--#define DS1WM_CMD_1W_RESET  1 << 0	/* force reset on 1-wire bus */
--#define DS1WM_CMD_SRA	    1 << 1	/* enable Search ROM accelerator mode */
--#define DS1WM_CMD_DQ_OUTPUT 1 << 2	/* write only - forces bus low */
--#define DS1WM_CMD_DQ_INPUT  1 << 3	/* read only - reflects state of bus */
--
--#define DS1WM_INT_PD	    1 << 0	/* presence detect */
--#define DS1WM_INT_PDR	    1 << 1	/* presence detect result */
--#define DS1WM_INT_TBE	    1 << 2	/* tx buffer empty */
--#define DS1WM_INT_TSRE	    1 << 3	/* tx shift register empty */
--#define DS1WM_INT_RBF	    1 << 4	/* rx buffer full */
--#define DS1WM_INT_RSRF	    1 << 5	/* rx shift register full */
--
--#define DS1WM_INTEN_EPD	    1 << 0	/* enable presence detect int */
--#define DS1WM_INTEN_IAS	    1 << 1	/* INTR active state */
--#define DS1WM_INTEN_ETBE    1 << 2	/* enable tx buffer empty int */
--#define DS1WM_INTEN_ETMT    1 << 3	/* enable tx shift register empty int */
--#define DS1WM_INTEN_ERBF    1 << 4	/* enable rx buffer full int */
--#define DS1WM_INTEN_ERSRF   1 << 5	/* enable rx shift register full int */
--#define DS1WM_INTEN_DQO	    1 << 6	/* enable direct bus driving ops
--					   (undocumented), Szabolcs Gyurko */
-+#define DS1WM_CMD_1W_RESET  (1 << 0)	/* force reset on 1-wire bus */
-+#define DS1WM_CMD_SRA	    (1 << 1)	/* enable Search ROM accelerator mode */
-+#define DS1WM_CMD_DQ_OUTPUT (1 << 2)	/* write only - forces bus low */
-+#define DS1WM_CMD_DQ_INPUT  (1 << 3)	/* read only - reflects state of bus */
-+#define DS1WM_CMD_RST	    (1 << 5)	/* software reset */
-+#define DS1WM_CMD_OD	    (1 << 7)	/* overdrive */
+diff -puN drivers/spi/mpc52xx_psc_spi.c~mpc52xx-psc-spi-master-driver-update drivers/spi/mpc52xx_psc_spi.c
+--- a/drivers/spi/mpc52xx_psc_spi.c~mpc52xx-psc-spi-master-driver-update
++++ a/drivers/spi/mpc52xx_psc_spi.c
+@@ -15,7 +15,13 @@
+ #include <linux/init.h>
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
 +
-+#define DS1WM_INT_PD	    (1 << 0)	/* presence detect */
-+#define DS1WM_INT_PDR	    (1 << 1)	/* presence detect result */
-+#define DS1WM_INT_TBE	    (1 << 2)	/* tx buffer empty */
-+#define DS1WM_INT_TSRE	    (1 << 3)	/* tx shift register empty */
-+#define DS1WM_INT_RBF	    (1 << 4)	/* rx buffer full */
-+#define DS1WM_INT_RSRF	    (1 << 5)	/* rx shift register full */
-+
-+#define DS1WM_INTEN_EPD	    (1 << 0)	/* enable presence detect int */
-+#define DS1WM_INTEN_IAS	    (1 << 1)	/* INTR active state */
-+#define DS1WM_INTEN_ETBE    (1 << 2)	/* enable tx buffer empty int */
-+#define DS1WM_INTEN_ETMT    (1 << 3)	/* enable tx shift register empty int */
-+#define DS1WM_INTEN_ERBF    (1 << 4)	/* enable rx buffer full int */
-+#define DS1WM_INTEN_ERSRF   (1 << 5)	/* enable rx shift register full int */
-+#define DS1WM_INTEN_DQO	    (1 << 6)	/* enable direct bus driving ops */
- 
- 
- #define DS1WM_TIMEOUT (HZ * 5)
-@@ -114,11 +115,14 @@ static irqreturn_t ds1wm_isr(int isr, vo
- 	struct ds1wm_data *ds1wm_data = data;
- 	u8 intr = ds1wm_read_register(ds1wm_data, DS1WM_INT);
- 
--	ds1wm_data->slave_present = intr & DS1WM_INT_PDR ? 0 : 1;
-+	ds1wm_data->slave_present = (intr & DS1WM_INT_PDR) ? 0 : 1;
- 
--	if (intr & DS1WM_INT_PD && ds1wm_data->reset_complete)
-+	if ((intr & DS1WM_INT_PD) && ds1wm_data->reset_complete)
- 		complete(ds1wm_data->reset_complete);
- 
-+	if ((intr & DS1WM_INT_TSRE) && ds1wm_data->write_complete)
-+		complete(ds1wm_data->write_complete);
-+
- 	if (intr & DS1WM_INT_RBF) {
- 		ds1wm_data->read_byte = ds1wm_read_register(ds1wm_data,
- 							    DS1WM_DATA);
-@@ -126,16 +130,13 @@ static irqreturn_t ds1wm_isr(int isr, vo
- 			complete(ds1wm_data->read_complete);
- 	}
- 
--	if (intr & DS1WM_INT_TSRE && ds1wm_data->write_complete)
--		complete(ds1wm_data->write_complete);
--
- 	return IRQ_HANDLED;
- }
- 
- static int ds1wm_reset(struct ds1wm_data *ds1wm_data)
- {
- 	unsigned long timeleft;
--	DECLARE_COMPLETION(reset_done);
-+	DECLARE_COMPLETION_ONSTACK(reset_done);
- 
- 	ds1wm_data->reset_complete = &reset_done;
- 
-@@ -174,7 +175,7 @@ static int ds1wm_reset(struct ds1wm_data
- 
- static int ds1wm_write(struct ds1wm_data *ds1wm_data, u8 data)
- {
--	DECLARE_COMPLETION(write_done);
-+	DECLARE_COMPLETION_ONSTACK(write_done);
- 	ds1wm_data->write_complete = &write_done;
- 
- 	ds1wm_write_register(ds1wm_data, DS1WM_DATA, data);
-@@ -187,7 +188,7 @@ static int ds1wm_write(struct ds1wm_data
- 
- static int ds1wm_read(struct ds1wm_data *ds1wm_data, unsigned char write_data)
- {
--	DECLARE_COMPLETION(read_done);
-+	DECLARE_COMPLETION_ONSTACK(read_done);
- 	ds1wm_data->read_complete = &read_done;
- 
- 	ds1wm_write(ds1wm_data, write_data);
-@@ -201,7 +202,7 @@ static int ds1wm_find_divisor(int gclk)
- {
- 	int i;
- 
--	for (i = 0; i < ARRAY_SIZE (freq); i++)
-+	for (i = 0; i < ARRAY_SIZE(freq); i++)
- 		if (gclk <= freq[i].freq)
- 			return freq[i].divisor;
- 
-@@ -228,12 +229,13 @@ static void ds1wm_up(struct ds1wm_data *
- 	/* Let the w1 clock stabilize. */
- 	msleep(1);
- 
--	enable_irq(ds1wm_data->irq);
-+	ds1wm_reset(ds1wm_data);
- }
- 
- static void ds1wm_down(struct ds1wm_data *ds1wm_data)
- {
--	disable_irq(ds1wm_data->irq);
-+	ds1wm_reset(ds1wm_data);
-+
- 	if (ds1wm_data->pdata->disable)
- 		ds1wm_data->pdata->disable(ds1wm_data->pdev);
- 
-@@ -348,23 +350,20 @@ static int ds1wm_probe(struct platform_d
- 	ds1wm_data->pdev = pdev;
- 	ds1wm_data->pdata = plat;
- 
--	ds1wm_data->irq = platform_get_irq(pdev, 0);
--	if (ds1wm_data->irq < 0) {
-+	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (!res) {
- 		ret = -ENXIO;
- 		goto err1;
- 	}
-+	ds1wm_data->irq = res->start;
-+
-+	set_irq_type(ds1wm_data->irq, res->flags & IORESOURCE_IRQ_LOWEDGE ?
-+			IRQ_TYPE_EDGE_FALLING : IRQ_TYPE_EDGE_RISING);
- 
--	if (plat->falling_edge)
--		set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_FALLING);
--	else
--		set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_RISING);
--
--	ret = request_irq(ds1wm_data->irq, ds1wm_isr,
--			  IRQF_DISABLED | IRQF_SAMPLE_RANDOM, "ds1wm",
--			  ds1wm_data);
-+	ret = request_irq(ds1wm_data->irq, ds1wm_isr, IRQF_DISABLED,
-+			  "ds1wm", ds1wm_data);
- 	if (ret)
- 		goto err1;
--	disable_irq(ds1wm_data->irq);
- 
- 	ds1wm_data->clk = clk_get(&pdev->dev, "ds1wm");
- 	if (!ds1wm_data->clk) {
-@@ -383,7 +382,6 @@ static int ds1wm_probe(struct platform_d
- 	return 0;
- 
- err3:
--	ds1wm_reset(ds1wm_data);
- 	ds1wm_down(ds1wm_data);
- 	clk_put(ds1wm_data->clk);
- err2:
-@@ -414,6 +412,9 @@ static int ds1wm_resume(struct platform_
- 
- 	return 0;
- }
++#if defined(CONFIG_PPC_MERGE)
++#include <asm/of_platform.h>
 +#else
-+#define ds1wm_suspend NULL
-+#define ds1wm_resume NULL
- #endif
+ #include <linux/platform_device.h>
++#endif
++
+ #include <linux/workqueue.h>
+ #include <linux/completion.h>
+ #include <linux/io.h>
+@@ -36,6 +42,7 @@ struct mpc52xx_psc_spi {
  
- static int ds1wm_remove(struct platform_device *pdev)
-@@ -421,7 +422,6 @@ static int ds1wm_remove(struct platform_
- 	struct ds1wm_data *ds1wm_data = platform_get_drvdata(pdev);
+ 	/* driver internal data */
+ 	struct mpc52xx_psc __iomem *psc;
++	unsigned int irq;
+ 	u8 bits_per_word;
+ 	u8 busy;
  
- 	w1_remove_master_device(&ds1wm_master);
--	ds1wm_reset(ds1wm_data);
- 	ds1wm_down(ds1wm_data);
- 	clk_put(ds1wm_data->clk);
- 	free_irq(ds1wm_data->irq, ds1wm_data);
-@@ -437,19 +437,17 @@ static struct platform_driver ds1wm_driv
+@@ -70,7 +77,7 @@ static int mpc52xx_psc_spi_transfer_setu
+ 	return 0;
+ }
+ 
+-static inline void mpc52xx_psc_spi_activate_cs(struct spi_device *spi)
++static void mpc52xx_psc_spi_activate_cs(struct spi_device *spi)
+ {
+ 	struct mpc52xx_psc_spi_cs *cs = spi->controller_state;
+ 	struct mpc52xx_psc_spi *mps = spi_master_get_devdata(spi->master);
+@@ -114,7 +121,7 @@ static inline void mpc52xx_psc_spi_activ
+ 				(spi->mode & SPI_CS_HIGH) ? 1 : 0);
+ }
+ 
+-static inline void mpc52xx_psc_spi_deactivate_cs(struct spi_device *spi)
++static void mpc52xx_psc_spi_deactivate_cs(struct spi_device *spi)
+ {
+ 	struct mpc52xx_psc_spi *mps = spi_master_get_devdata(spi->master);
+ 
+@@ -127,7 +134,7 @@ static inline void mpc52xx_psc_spi_deact
+ /* wake up when 80% fifo full */
+ #define MPC52xx_PSC_RFALARM (MPC52xx_PSC_BUFSIZE * 20 / 100)
+ 
+-static inline int mpc52xx_psc_spi_transfer_rxtx(struct spi_device *spi,
++static int mpc52xx_psc_spi_transfer_rxtx(struct spi_device *spi,
+ 						struct spi_transfer *t)
+ {
+ 	struct mpc52xx_psc_spi *mps = spi_master_get_devdata(spi->master);
+@@ -309,21 +316,25 @@ static int mpc52xx_psc_spi_transfer(stru
+ 
+ static void mpc52xx_psc_spi_cleanup(struct spi_device *spi)
+ {
+-	if (spi->controller_state)
+-		kfree(spi->controller_state);
++	kfree(spi->controller_state);
+ }
+ 
+ static int mpc52xx_psc_spi_port_config(int psc_id, struct mpc52xx_psc_spi *mps)
+ {
+ 	struct mpc52xx_cdm __iomem *cdm;
+ 	struct mpc52xx_gpio __iomem *gpio;
+-	struct mpc52xx_psc __iomem *psc;
++	struct mpc52xx_psc __iomem *psc = mps->psc;
+ 	u32 ul;
+ 	u32 mclken_div;
+ 	int ret = 0;
+ 
++#if defined(CONFIG_PPC_MERGE)
++	cdm = mpc52xx_find_and_map("mpc52xx-cdm");
++	gpio = mpc52xx_find_and_map("mpc52xx-gpio");
++#else
+ 	cdm = ioremap(MPC52xx_PA(MPC52xx_CDM_OFFSET), MPC52xx_CDM_SIZE);
+ 	gpio = ioremap(MPC52xx_PA(MPC52xx_GPIO_OFFSET), MPC52xx_GPIO_SIZE);
++#endif
+ 	if (!cdm || !gpio) {
+ 		printk(KERN_ERR "Error mapping CDM/GPIO\n");
+ 		ret = -EFAULT;
+@@ -379,14 +390,6 @@ static int mpc52xx_psc_spi_port_config(i
+ 		ret = -EINVAL;
+ 		goto unmap_regs;
+ 	}
+-	psc = ioremap(MPC52xx_PA(MPC52xx_PSCx_OFFSET(psc_id)),
+-			MPC52xx_PSC_SIZE);
+-	if (!psc) {
+-		printk(KERN_ERR "Error mapping PSC%d\n", psc_id);
+-		ret = -EFAULT;
+-		goto unmap_regs;
+-	}
+-	mps->psc = psc;
+ 
+ 	/* Reset the PSC into a known state */
+ 	out_8(&psc->command, MPC52xx_PSC_RST_RX);
+@@ -399,7 +402,7 @@ static int mpc52xx_psc_spi_port_config(i
+ 	out_8(&psc->rfcntl, 0);
+ 	out_8(&psc->mode, MPC52xx_PSC_MODE_FFULL);
+ 
+-	/* Configure 8bit codec mode as an SPI master and use EOF flags */
++	/* Configure 8bit codec mode as a SPI master and use EOF flags */
+ 	/* SICR_SIM_CODEC8|SICR_GENCLK|SICR_SPI|SICR_MSTR|SICR_USEEOF */
+ 	out_be32(&psc->sicr, 0x0180C800);
+ 	out_be16(&psc->ccr, 0x070F); /* by default SPI Clk 1MHz */
+@@ -411,8 +414,10 @@ static int mpc52xx_psc_spi_port_config(i
+ 	mps->bits_per_word = 8;
+ 
+ unmap_regs:
+-	if (cdm)  iounmap(cdm);
+-	if (gpio) iounmap(gpio);
++	if (cdm)
++		iounmap(cdm);
++	if (gpio)
++		iounmap(gpio);
+ 
+ 	return ret;
+ }
+@@ -431,12 +436,13 @@ static irqreturn_t mpc52xx_psc_spi_isr(i
+ 	return IRQ_NONE;
+ }
+ 
++#if !defined(CONFIG_PPC_MERGE)
+ static int __init mpc52xx_psc_spi_probe(struct platform_device *dev)
+ {
+ 	struct fsl_spi_platform_data *pdata = dev->dev.platform_data;
+ 	struct mpc52xx_psc_spi *mps;
+ 	struct spi_master *master;
+-	unsigned int irq = platform_get_irq(dev, 0);
++	struct mpc52xx_psc __iomem *psc;
+ 	int ret;
+ 
+ 	if (pdata == NULL)
+@@ -459,14 +465,32 @@ static int __init mpc52xx_psc_spi_probe(
+ 	master->transfer = mpc52xx_psc_spi_transfer;
+ 	master->cleanup = mpc52xx_psc_spi_cleanup;
+ 
+-	ret = mpc52xx_psc_spi_port_config(dev->id, mps);
+-	if (ret < 0)
++	switch(dev->id) {
++	case 1: case 2: case 3: case 6:
++		break;
++	default:
++		ret = -EINVAL;
+ 		goto free_master;
++	}
++	psc = ioremap(MPC52xx_PA(MPC52xx_PSCx_OFFSET(dev->id)),
++			MPC52xx_PSC_SIZE);
++	if (!psc) {
++		printk(KERN_ERR "Error mapping PSC%d\n", dev->id);
++		ret = -EFAULT;
++		goto free_master;
++	}
++	mps->psc = psc;
+ 
+-	ret = request_irq(irq, mpc52xx_psc_spi_isr, 0, "mpc52xx_psc_spi", mps);
++	mps->irq = platform_get_irq(dev, 0);
++	ret = request_irq(mps->irq, mpc52xx_psc_spi_isr, 0,
++				"mpc52xx-psc-spi", mps);
+ 	if (ret)
+ 		goto free_master;
+ 
++	ret = mpc52xx_psc_spi_port_config(dev->id, mps);
++	if (ret < 0)
++		goto free_irq;
++
+ 	spin_lock_init(&mps->lock);
+ 	init_completion(&mps->done);
+ 	INIT_WORK(&mps->work, mpc52xx_psc_spi_work);
+@@ -476,7 +500,7 @@ static int __init mpc52xx_psc_spi_probe(
+ 		master->cdev.dev->bus_id);
+ 	if (mps->workqueue == NULL) {
+ 		ret = -EBUSY;
+-		goto err_workq;
++		goto free_irq;
+ 	}
+ 
+ 	ret = spi_register_master(master);
+@@ -487,10 +511,11 @@ static int __init mpc52xx_psc_spi_probe(
+ 
+ unreg_master:
+ 	destroy_workqueue(mps->workqueue);
+-err_workq:
+-	free_irq(irq, mps);
++free_irq:
++	free_irq(mps->irq, mps);
+ free_master:
+-	if (mps->psc)  iounmap(mps->psc);
++	if (mps->psc)
++		iounmap(mps->psc);
+ 	spi_master_put(master);
+ 
+ 	return ret;
+@@ -500,13 +525,13 @@ static int __exit mpc52xx_psc_spi_remove
+ {
+ 	struct spi_master *master = platform_get_drvdata(dev);
+ 	struct mpc52xx_psc_spi *mps = spi_master_get_devdata(master);
+-	unsigned int irq = platform_get_irq(dev, 0);
+ 
+ 	flush_workqueue(mps->workqueue);
+ 	destroy_workqueue(mps->workqueue);
+ 	spi_unregister_master(master);
+-	free_irq(irq, mps);
+-	if (mps->psc)  iounmap(mps->psc);
++	free_irq(mps->irq, mps);
++	if (mps->psc)
++		iounmap(mps->psc);
+ 
+ 	return 0;
+ }
+@@ -514,26 +539,178 @@ static int __exit mpc52xx_psc_spi_remove
+ static struct platform_driver mpc52xx_psc_spi_platform_driver = {
+ 	.remove = __exit_p(mpc52xx_psc_spi_remove),
+ 	.driver = {
+-		.name = "mpc52xx_psc_spi",
++		.name = "mpc52xx-psc-spi",
+ 		.owner = THIS_MODULE,
  	},
- 	.probe    = ds1wm_probe,
- 	.remove   = ds1wm_remove,
--#ifdef CONFIG_PM
- 	.suspend  = ds1wm_suspend,
- 	.resume   = ds1wm_resume
--#endif
  };
++#endif	/* !defined(CONFIG_PPC_MERGE) */
  
--static int ds1wm_init(void)
-+static int __init ds1wm_init(void)
- {
- 	printk("DS1WM w1 busmaster driver - (c) 2004 Szabolcs Gyurko\n");
- 	return platform_driver_register(&ds1wm_driver);
- }
  
--static void ds1wm_exit(void)
-+static void __exit ds1wm_exit(void)
++#if defined(CONFIG_PPC_MERGE)
++static int __init mpc52xx_psc_spi_of_probe(struct of_device *op,
++	const struct of_device_id *match)
++{
++	struct device *dev = &op->dev;
++	struct fsl_spi_platform_data *pdata = dev->platform_data;
++	struct mpc52xx_psc_spi *mps;
++	struct spi_master *master;
++	int ret;
++	const u32 *regaddr_p;
++	u64 regaddr64, size64;
++	struct mpc52xx_psc __iomem *psc;
++
++	if (dev == NULL)
++		return -ENODEV;
++
++	master = spi_alloc_master(dev, sizeof *mps);
++	if (master == NULL)
++		return -ENOMEM;
++	dev_set_drvdata(dev, master);
++	mps = spi_master_get_devdata(master);
++
++	regaddr_p = of_get_address(op->node, 0, &size64, NULL);
++	if (!regaddr_p) {
++		printk(KERN_ERR "Invalid PSC address\n");
++		ret = -EINVAL;
++		goto free_master;
++	}
++	regaddr64 = of_translate_address(op->node, regaddr_p);
++	psc = ioremap((u32)regaddr64, (u32)size64);
++	if (!psc) {
++		printk(KERN_ERR "Error mapping memory at %x (%x bytes)\n",
++			(u32)regaddr64, (u32)size64);
++		ret = -EFAULT;
++		goto free_master;
++	}
++	mps->psc = psc;
++
++	mps->irq = irq_of_parse_and_map(op->node, 0);
++	ret = request_irq(mps->irq, mpc52xx_psc_spi_isr, 0,
++				"mpc52xx-psc-spi", mps);
++	if (ret)
++		goto free_master;
++
++	if (pdata == NULL) {
++		struct device_node *np;
++		int i = 0;
++
++		dev_warn(dev, "probe called without platform data, no "
++				"(de)activate_cs function will be called\n");
++
++		mps->activate_cs = NULL;
++		mps->deactivate_cs = NULL;
++		mps->sysclk = 0;
++		master->bus_num = -1;
++		for_each_node_by_type(np, "spi") {
++			if (of_find_device_by_node(np) == op) {
++				master->bus_num = i;
++				break;
++			}
++			i++;
++		}
++		master->num_chipselect = 255;
++	} else {
++		mps->activate_cs = pdata->activate_cs;
++		mps->deactivate_cs = pdata->deactivate_cs;
++		mps->sysclk = pdata->sysclk;
++		master->bus_num = pdata->bus_num;
++		master->num_chipselect = pdata->max_chipselect;
++	}
++	master->setup = mpc52xx_psc_spi_setup;
++	master->transfer = mpc52xx_psc_spi_transfer;
++	master->cleanup = mpc52xx_psc_spi_cleanup;
++
++	ret = mpc52xx_psc_spi_port_config(master->bus_num, mps);
++	if (ret < 0)
++		goto free_irq;
++
++	spin_lock_init(&mps->lock);
++	init_completion(&mps->done);
++	INIT_WORK(&mps->work, mpc52xx_psc_spi_work);
++	INIT_LIST_HEAD(&mps->queue);
++
++	mps->workqueue = create_singlethread_workqueue(
++		master->cdev.dev->bus_id);
++	if (mps->workqueue == NULL) {
++		ret = -EBUSY;
++		goto free_irq;
++	}
++
++	ret = spi_register_master(master);
++	if (ret < 0)
++		goto unreg_master;
++
++	return ret;
++
++unreg_master:
++	destroy_workqueue(mps->workqueue);
++free_irq:
++	free_irq(mps->irq, mps);
++free_master:
++	if (mps->psc)
++		iounmap(mps->psc);
++	spi_master_put(master);
++
++	return ret;
++}
++
++static int __exit mpc52xx_psc_spi_of_remove(struct of_device *op)
++{
++	struct spi_master *master = dev_get_drvdata(&op->dev);
++	struct mpc52xx_psc_spi *mps = spi_master_get_devdata(master);
++
++	flush_workqueue(mps->workqueue);
++	destroy_workqueue(mps->workqueue);
++	spi_unregister_master(master);
++	free_irq(mps->irq, mps);
++	if (mps->psc)
++		iounmap(mps->psc);
++
++	return 0;
++}
++
++static struct of_device_id mpc52xx_psc_spi_of_match[] = {
++	{ .type = "spi", .compatible = "mpc52xx-psc-spi", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, mpc52xx_psc_spi_of_match);
++
++static struct of_platform_driver mpc52xx_psc_spi_of_driver = {
++	.owner = THIS_MODULE,
++	.name = "mpc52xx-psc-spi",
++	.match_table = mpc52xx_psc_spi_of_match,
++	.probe = mpc52xx_psc_spi_of_probe,
++	.remove = __exit_p(mpc52xx_psc_spi_of_remove),
++	.driver = {
++		.name = "mpc52xx-psc-spi",
++		.owner = THIS_MODULE,
++	},
++};
++#endif	/* defined(CONFIG_PPC_MERGE) */
++
+ /* ======================================================================== */
+ /* Module                                                                   */
+ /* ======================================================================== */
+ 
+ static int __init mpc52xx_psc_spi_init(void)
  {
- 	platform_driver_unregister(&ds1wm_driver);
++#if defined(CONFIG_PPC_MERGE)
++	return of_register_platform_driver(&mpc52xx_psc_spi_of_driver);
++#else
+ 	return platform_driver_probe(&mpc52xx_psc_spi_platform_driver,
+ 			mpc52xx_psc_spi_probe);
++#endif
  }
-diff -puN include/linux/ds1wm.h~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update include/linux/ds1wm.h
---- a/include/linux/ds1wm.h~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update
-+++ a/include/linux/ds1wm.h
-@@ -6,7 +6,6 @@ struct ds1wm_platform_data {
- 			     * e.g. on h5xxx and h2200 this is 2
- 			     * (registers aligned to 4-byte boundaries),
- 			     * while on hx4700 this is 1 */
--	int falling_edge;   /* interrupt edge - passed to set_irq_type() */
- 	int active_high;    /* interrupt polarity, passed to DS1WM as IAS bit */
- 	void (*enable)(struct platform_device *pdev);
- 	void (*disable)(struct platform_device *pdev);
+ module_init(mpc52xx_psc_spi_init);
+ 
+ static void __exit mpc52xx_psc_spi_exit(void)
+ {
++#if defined(CONFIG_PPC_MERGE)
++	of_unregister_platform_driver(&mpc52xx_psc_spi_of_driver);
++#else
+ 	platform_driver_unregister(&mpc52xx_psc_spi_platform_driver);
++#endif
+ }
+ module_exit(mpc52xx_psc_spi_exit);
+ 
 _
 
-Patches currently in -mm which might be from mreimer@vpop.net are
+Patches currently in -mm which might be from dragos.carp@toptica.com are
 
-w1-allow-bus-master-to-have-reset-and-byte-ops.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-update.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+mpc52xx-psc-spi-master-driver.patch
+mpc52xx-psc-spi-master-driver-update.patch
