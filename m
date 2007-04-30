@@ -1,235 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: - add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:47:44 -0700
-Message-ID: <200704301947.l3UJli14013334@shell0.pdx.osdl.net>
+Subject: - parport-dev-driver-model-support-powerpc-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:50:14 -0700
+Message-ID: <200704301950.l3UJoEj3013396@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40428 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34827 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755413AbXD3Ts3 (ORCPT
+	by vger.kernel.org with ESMTP id S1031109AbXD3Tuw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:48:29 -0400
+	Mon, 30 Apr 2007 15:50:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xyzzy@speakeasy.org, dwmw2@infradead.org, mchehab@infradead.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, david-b@pacbell.net, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add ability to keep track of callers of symbol_(get|put) (update)
+     parport-dev-driver-model-support-powerpc-fix
 has been removed from the -mm tree.  Its filename was
-     add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
+     parport-dev-driver-model-support-powerpc-fix.patch
 
-This patch was dropped because it was folded into add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+This patch was dropped because it was folded into parport-dev-driver-model-support.patch
 
 ------------------------------------------------------
-Subject: Add ability to keep track of callers of symbol_(get|put) (update)
-From: Trent Piepho <xyzzy@speakeasy.org>
+Subject: parport-dev-driver-model-support-powerpc-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+http://test.kernel.org/abat/79954/debug/test.log.0 says:
+
+In file included from drivers/parport/parport_pc.c:66:
+include/asm/parport.h:18: error: conflicting types for parport_pc_probe_port
+include/linux/parport_pc.h:234: error: previous declaration of parport_pc_probe_port was here
+drivers/parport/parport_pc.c:2379: error: conflicting types for parport_pc_probe_port
+drivers/parport/parport_pc.c:2152: error: previous definition of parport_pc_probe_port was here
+drivers/parport/parport_pc.c: In function sio_ite_8872_probe:
+
+I don't think this declaration should be in an arch header at all.  Take it
+out, see what happens ;)
+
+Why on earth do we have a noninlined function in a header file?  Sigh.
+
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |    2 
- kernel/module.c        |   99 +++++++++++++++++++++++++++------------
- 2 files changed, 70 insertions(+), 31 deletions(-)
+ include/asm-powerpc/parport.h |    5 -----
+ 1 files changed, 5 deletions(-)
 
-diff -puN include/linux/module.h~add-ability-to-keep-track-of-callers-of-symbol_getput-update include/linux/module.h
---- a/include/linux/module.h~add-ability-to-keep-track-of-callers-of-symbol_getput-update
-+++ a/include/linux/module.h
-@@ -169,7 +169,7 @@ struct notifier_block;
- /* Get/put a kernel symbol (calls must be symmetric) */
- void *__symbol_get(const char *symbol, struct module *user);
- void *__symbol_get_gpl(const char *symbol);
--#define symbol_get(x) ((typeof(&x))(__symbol_get(MODULE_SYMBOL_PREFIX#x, \
-+#define symbol_get(x) ((typeof(&x))(__symbol_get(MODULE_SYMBOL_PREFIX #x, \
- 			THIS_MODULE)))
+diff -puN include/asm-powerpc/parport.h~parport-dev-driver-model-support-powerpc-fix include/asm-powerpc/parport.h
+--- a/include/asm-powerpc/parport.h~parport-dev-driver-model-support-powerpc-fix
++++ a/include/asm-powerpc/parport.h
+@@ -12,11 +12,6 @@
  
- #ifndef __GENKSYMS__
-diff -puN kernel/module.c~add-ability-to-keep-track-of-callers-of-symbol_getput-update kernel/module.c
---- a/kernel/module.c~add-ability-to-keep-track-of-callers-of-symbol_getput-update
-+++ a/kernel/module.c
-@@ -518,8 +518,10 @@ struct module_use
- 	int count;
- };
+ #include <asm/prom.h>
  
--/* Does a already use b?  Return NULL if it doesn't, a pointer to the
--   relevant module_use structure if it does. */
-+/*
-+ * Does a already use b?  Return NULL if it doesn't, a pointer to the
-+ * relevant module_use structure if it does.
-+ */
- static struct module_use *already_uses(struct module *a, struct module *b)
+-extern struct parport *parport_pc_probe_port (unsigned long int base,
+-                                              unsigned long int base_hi,
+-                                              int irq, int dma,
+-                                              struct pci_dev *dev);
+-
+ static int __devinit parport_pc_find_nonpci_ports (int autoirq, int autodma)
  {
- 	struct module_use *use;
-@@ -534,18 +536,31 @@ static struct module_use *already_uses(s
- 	return NULL;
- }
- 
--/* Module a uses b
--   If inc is set, then the use count will be incremented. */
-+/*
-+ * Module a uses b.  If module a is a _new_ user of module b, module b's ref
-+ * count will be incremented.  If a is not a new user of b, and inc is true,
-+ * then the use count (i.e.  how many times a uses b) will be incremented.  If a
-+ * is NULL, then the ref count will just always be incremented.
-+ */
- static int use_module(struct module *a, struct module *b, bool inc)
- {
- 	struct module_use *use;
- 	int no_warn;
- 
--	if (b == NULL) return 1;
-+	if (b == NULL)
-+		return 1;
- 
--	if ((use = already_uses(a, b))) {
--		if (inc) use->count++;
--		DEBUGP("%s: %s already used %s, count now at %d\n", __FUNCTION__, a->name, b->name, use->count);
-+	DEBUGP("%s: %s uses %s\n", __FUNCTION__, a?a->name:"(unknown)",
-+	       b->name);
-+	if (a == NULL)
-+		return strong_try_module_get(b);
-+
-+	use = already_uses(a, b);
-+	if (use) {
-+		if (inc)
-+			use->count++;
-+		DEBUGP("%s: %s already used %s, count now at %d\n",
-+		       __FUNCTION__, a->name, b->name, use->count);
- 		return 1;
- 	}
- 
-@@ -567,21 +582,39 @@ static int use_module(struct module *a, 
- 	return 1;
- }
- 
--/* Module a is "un-using" module b.  The use count is decremented, and if
--   it reaches zero the module_use is removed.  Returns number of
--   remaining uses. */
-+/*
-+ * Module a is "un-using" module b.  The use count is decremented, and if
-+ * it reaches zero the module_use is removed and module b's ref-count is
-+ * decremented.  Returns number of remaining uses.  If a is NULL, then
-+ * just decrement b's ref count.
-+ */
- static int unuse_module(struct module *a, struct module *b)
- {
--	struct module_use *use = already_uses(a, b);
--	DEBUGP("%s: unuse %s by %s\n", __FUNCTION__, b->name, a->name);
-+	struct module_use *use;
- 
--	BUG_ON(!use);
--	DEBUGP("%s: %s used %s %d time(s)\n", __FUNCTION__, a->name, b->name, use->count);
--	if (! --(use->count)) {
--		DEBUGP("%s: removing module_use structure and sysfs link\n", __FUNCTION__);
-+	DEBUGP("%s: unuse %s by %s\n", __FUNCTION__, b->name,
-+	       a?a->name:"(unknown)");
-+	if (!a) {
-+		module_put(b);
-+		return 0;
-+	}
-+
-+	use = already_uses(a, b);
-+	if (!use) {
-+	    printk(KERN_ERR "module %s trying to un-use a module, %s, which "
-+	           "it is not using", a->name, b->name);
-+            BUG();
-+	}
-+
-+	DEBUGP("%s: %s used %s %d time(s)\n", __FUNCTION__,
-+	       a->name, b->name, use->count);
-+	if (!--(use->count)) {
-+		DEBUGP("%s: removing module_use structure and sysfs link\n",
-+		       __FUNCTION__);
- 		list_del(&use->list);
- 		kfree(use);
- 		sysfs_remove_link(b->holders_dir, a->name);
-+		module_put(b);
- 		return 0;
- 	}
- 	return use->count;
-@@ -598,9 +631,14 @@ static void module_unload_free(struct mo
- 		list_for_each_entry(use, &i->modules_which_use_me, list) {
- 			if (use->module_which_uses == mod) {
- 				DEBUGP("%s unusing %s\n", mod->name, i->name);
--				if (unuse_module(mod, i))
--					printk(KERN_ERR "%s unloading but still has uses of %s\n", mod->name, i->name);
--				module_put(i);
-+				if (unuse_module(mod, i)) {
-+					/* Someone messed up! */
-+					printk(KERN_ERR "module %s unloading "
-+					       "but still has uses of %s\n",
-+					       mod->name, i->name);
-+					while (unuse_module(mod, i))
-+						;
-+				}
- 				/* There can be at most one match. */
- 				break;
- 			}
-@@ -789,15 +827,14 @@ void __symbol_put(const char *symbol, st
- 	unsigned long flags;
- 	const unsigned long *crc;
- 
--	DEBUGP("%s: putting %s by %s\n", __FUNCTION__, symbol, user?user->name:"(unknown)");
-+	DEBUGP("%s: putting symbol %s by %s\n", __FUNCTION__, symbol,
-+	       user?user->name:"(unknown)");
- 	spin_lock_irqsave(&modlist_lock, flags);
- 	if (!__find_symbol(symbol, &owner, &crc, 1))
- 		BUG();
- 
--	/* If the symbol is owned by a module, put it if no user was
--	   specified or if this is the last of user's uses of the module. */
--	if (owner && (!user || !unuse_module(user, owner)))
--		module_put(owner);
-+	if (owner)
-+		unuse_module(user, owner);
- 	spin_unlock_irqrestore(&modlist_lock, flags);
- }
- EXPORT_SYMBOL(__symbol_put);
-@@ -807,15 +844,15 @@ void __symbol_put_addr(void *addr, struc
- 	struct module *modaddr;
- 	unsigned long flags;
- 
--	DEBUGP("%s: putting %p by %s\n", __FUNCTION__, addr, user?user->name:"(unknown)");
-+	DEBUGP("%s: putting %p by %s\n", __FUNCTION__, addr,
-+	       user?user->name:"(unknown)");
- 	if (core_kernel_text((unsigned long)addr))
- 		return;
- 
- 	if (!(modaddr = module_text_address((unsigned long)addr)))
- 		BUG();
- 	spin_lock_irqsave(&modlist_lock, flags);
--	if (!user || !unuse_module(user, modaddr))
--		module_put(modaddr);
-+	unuse_module(user, modaddr);
- 	spin_unlock_irqrestore(&modlist_lock, flags);
- }
- EXPORT_SYMBOL_GPL(__symbol_put_addr);
-@@ -1267,10 +1304,12 @@ void *__symbol_get(const char *symbol, s
- 	unsigned long value, flags;
- 	const unsigned long *crc;
- 
--	DEBUGP("%s: get symbol %s by %s\n", __FUNCTION__, symbol, user?user->name:"(unknown)");
-+	DEBUGP("%s: get symbol %s by %s\n", __FUNCTION__, symbol,
-+	       user?user->name:"(unknown)");
- 	spin_lock_irqsave(&modlist_lock, flags);
- 	value = __find_symbol(symbol, &owner, &crc, 1);
--	DEBUGP("%s: symbol %s is 0WN3D by %s\n", __FUNCTION__, symbol, owner?owner->name:"yer mom");
-+	DEBUGP("%s: symbol %s is 0WN3D by %s\n", __FUNCTION__, symbol,
-+	       value?(owner?owner->name:"yer mom"):"no one");
- 	if (value && owner && !use_module(user, owner, true))
- 		value = 0;
- 	spin_unlock_irqrestore(&modlist_lock, flags);
+ 	struct device_node *np;
 _
 
-Patches currently in -mm which might be from xyzzy@speakeasy.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+zlib-backout.patch
+extend-print_symbol-capability.patch
+add-kvasprintf.patch
+add-kvasprintf-fix.patch
+slab-introduce-krealloc.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+ida-implement-idr-based-id-allocator-fix.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-drm.patch
 git-dvb.patch
-fix-constant-folding-and-poor-optimization-in-byte-swapping.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput-update.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-fixup.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-jfs.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-netdev-all.patch
+ne-add-platform_driver-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-__inquire_remote_apic-printk-warning-fix.patch
+xfs-clean-up-shrinker-games.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation-fix.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
