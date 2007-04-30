@@ -1,53 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - mm-optimize-kill_bdev-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:01:51 -0700
-Message-ID: <200704301901.l3UJ1qfF012205@shell0.pdx.osdl.net>
+Subject: - lazy-freeing-of-memory-through-madv_free-sparc-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:02:51 -0700
+Message-ID: <200704301902.l3UJ2pMK012230@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53656 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946639AbXD3TB6 (ORCPT
+	by vger.kernel.org with ESMTP id S1946627AbXD3TDC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:01:58 -0400
+	Mon, 30 Apr 2007 15:03:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-optimize-kill_bdev-fix
+     lazy-freeing-of-memory-through-madv_free-sparc-fix
 has been removed from the -mm tree.  Its filename was
-     mm-optimize-kill_bdev-fix.patch
+     lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
 
-This patch was dropped because it was folded into mm-optimize-kill_bdev.patch
+This patch was dropped because it was folded into lazy-freeing-of-memory-through-madv_free.patch
 
 ------------------------------------------------------
-Subject: mm-optimize-kill_bdev-fix
+Subject: lazy-freeing-of-memory-through-madv_free-sparc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ include/asm-sparc/mman.h   |    2 --
+ include/asm-sparc64/mman.h |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN fs/block_dev.c~mm-optimize-kill_bdev-fix fs/block_dev.c
---- a/fs/block_dev.c~mm-optimize-kill_bdev-fix
-+++ a/fs/block_dev.c
-@@ -55,9 +55,11 @@ static sector_t max_block(struct block_d
- 	return retval;
- }
+diff -puN include/asm-sparc/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix include/asm-sparc/mman.h
+--- a/include/asm-sparc/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix
++++ a/include/asm-sparc/mman.h
+@@ -33,8 +33,6 @@
+ #define MC_LOCKAS       5  /* Lock an entire address space of the calling process */
+ #define MC_UNLOCKAS     6  /* Unlock entire address space of calling process */
  
--/* Kill _all_ buffers, dirty or not.. */
-+/* Kill _all_ buffers and pagecache , dirty or not.. */
- static void kill_bdev(struct block_device *bdev)
- {
-+	if (bdev->bd_inode->i_mapping->nrpages == 0)
-+		return;
- 	invalidate_bh_lrus();
- 	truncate_inode_pages(bdev->bd_inode->i_mapping, 0);
- }	
+-#define MADV_FREE	0x5		/* (Solaris) contents can be freed */
+-
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ #define arch_mmap_check	sparc_mmap_check
+diff -puN include/asm-sparc64/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix include/asm-sparc64/mman.h
+--- a/include/asm-sparc64/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix
++++ a/include/asm-sparc64/mman.h
+@@ -33,8 +33,6 @@
+ #define MC_LOCKAS       5  /* Lock an entire address space of the calling process */
+ #define MC_UNLOCKAS     6  /* Unlock entire address space of calling process */
+ 
+-#define MADV_FREE	0x5		/* (Solaris) contents can be freed */
+-
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
+ #define arch_mmap_check	sparc64_mmap_check
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,8 +130,7 @@ mm-move-common-segment-checks-to-separate-helper-function-v7.patch
 slab-mark-set_up_list3s-__init.patch
 slub-core.patch
 mm-optimize-kill_bdev.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
+lazy-freeing-of-memory-through-madv_free.patch
 lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
 lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
 driver_bfin_serial_core-update.patch
