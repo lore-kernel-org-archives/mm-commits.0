@@ -1,55 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - slub-core-fix-slab-validation-error-in-bootstrap-cache.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 11:53:12 -0700
-Message-ID: <200704301853.l3UIrC2O011978@shell0.pdx.osdl.net>
+Subject: - slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 11:53:09 -0700
+Message-ID: <200704301853.l3UIr9CW011975@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43165 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946636AbXD3Sxf (ORCPT
+	by vger.kernel.org with ESMTP id S1946631AbXD3SxN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 14:53:35 -0400
+	Mon, 30 Apr 2007 14:53:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Fix slab validation error in bootstrap cache
+     SLUB printk cleanup: Fix up printks in the resiliency check
 has been removed from the -mm tree.  Its filename was
-     slub-core-fix-slab-validation-error-in-bootstrap-cache.patch
+     slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch
 
 This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: SLUB: Fix slab validation error in bootstrap cache
+Subject: SLUB printk cleanup: Fix up printks in the resiliency check
 From: Christoph Lameter <clameter@sgi.com>
-
-Bootstrap does not properly setup the redzone information when we
-allocate the kmem_cache_node information by hand early in the bootstrap.
-With full debugging on slab validation complains about wrong Redzone
-information (and fixes it, good but ...)
-
-Do proper initialization of the object with the redzone information.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slub.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN mm/slub.c~slub-core-fix-slab-validation-error-in-bootstrap-cache mm/slub.c
---- a/mm/slub.c~slub-core-fix-slab-validation-error-in-bootstrap-cache
+diff -puN mm/slub.c~slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check mm/slub.c
+--- a/mm/slub.c~slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check
 +++ a/mm/slub.c
-@@ -1562,6 +1562,7 @@ static struct kmem_cache_node * __init e
- 	page->freelist = get_freepointer(kmalloc_caches, n);
- 	page->inuse++;
- 	kmalloc_caches->node[node] = n;
-+	init_object(kmalloc_caches, n, 1);
- 	init_kmem_cache_node(n);
- 	atomic_long_inc(&n->nr_slabs);
- 	add_partial(kmalloc_caches, page);
+@@ -2529,6 +2529,8 @@ __initcall(cpucache_init);
+ #endif
+ 
+ #ifdef SLUB_RESILIENCY_TEST
++static unsigned long validate_slab_cache(struct kmem_cache *s);
++
+ static void resiliency_test(void)
+ {
+ 	u8 *p;
+@@ -2540,7 +2542,7 @@ static void resiliency_test(void)
+ 	p = kzalloc(16, GFP_KERNEL);
+ 	p[16] = 0x12;
+ 	printk(KERN_ERR "\n1. kmalloc-16: Clobber Redzone/next pointer"
+-			" 0x12->%p\n\n", p + 16);
++			" 0x12->0x%p\n\n", p + 16);
+ 
+ 	validate_slab_cache(kmalloc_caches + 4);
+ 
+@@ -2548,14 +2550,14 @@ static void resiliency_test(void)
+ 	p = kzalloc(32, GFP_KERNEL);
+ 	p[32 + sizeof(void *)] = 0x34;
+ 	printk(KERN_ERR "\n2. kmalloc-32: Clobber next pointer/next slab"
+-		 	" 0x34 -> %p\n", p);
++		 	" 0x34 -> -0x%p\n", p);
+ 	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
+ 
+ 	validate_slab_cache(kmalloc_caches + 5);
+ 	p = kzalloc(64, GFP_KERNEL);
+ 	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
+ 	*p = 0x56;
+-	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->%p\n",
++	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
+ 									p);
+ 	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
+ 	validate_slab_cache(kmalloc_caches + 6);
+@@ -2564,19 +2566,19 @@ static void resiliency_test(void)
+ 	p = kzalloc(128, GFP_KERNEL);
+ 	kfree(p);
+ 	*p = 0x78;
+-	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->%p\n\n", p);
++	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
+ 	validate_slab_cache(kmalloc_caches + 7);
+ 
+ 	p = kzalloc(256, GFP_KERNEL);
+ 	kfree(p);
+ 	p[50] = 0x9a;
+-	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->%p\n\n", p);
++	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
+ 	validate_slab_cache(kmalloc_caches + 8);
+ 
+ 	p = kzalloc(512, GFP_KERNEL);
+ 	kfree(p);
+ 	p[512] = 0xab;
+-	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->%p\n\n", p);
++	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
+ 	validate_slab_cache(kmalloc_caches + 9);
+ }
+ #else
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -69,6 +112,7 @@ smaps-add-clear_refs-file-to-clear-reference.patch
 slab-use-num_possible_cpus-in-enable_cpucache.patch
 i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch
 slub-core-fix-slab-validation-error-in-bootstrap-cache.patch
 slub-core-remove-per-cpu-flusher.patch
 make-page-private-usable-in-compound-pages-v1.patch
