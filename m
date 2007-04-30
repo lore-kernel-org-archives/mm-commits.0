@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-use-boot_command_line-instead-of.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:10:40 -0700
-Message-ID: <200704301910.l3UJAe5W012447@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-add-missing-__clear_user-function-to.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:10:37 -0700
+Message-ID: <200704301910.l3UJAbQh012438@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58009 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946674AbXD3TKo (ORCPT
+	by vger.kernel.org with ESMTP id S1946673AbXD3TKk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:10:44 -0400
+	Mon, 30 Apr 2007 15:10:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin arch: use boot_command_line instead of saved_command_line in setup c file
+     Blackfin arch: add missing __clear_user function to uaccess header file
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-use-boot_command_line-instead-of.patch
+     blackfin-arch-add-missing-__clear_user-function-to.patch
 
 This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: blackfin arch: use boot_command_line instead of saved_command_line in setup c file
+Subject: Blackfin arch: add missing __clear_user function to uaccess header file
 From: "Wu, Bryan" <bryan.wu@analog.com>
-
-As boot_command_line is added in init/main.c for arch-specific boot command
-line, replace old saved_command_line to boot_command_line for right boot
-command passing in -mm tree.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/setup.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/asm-blackfin/uaccess.h |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-use-boot_command_line-instead-of arch/blackfin/kernel/setup.c
---- a/arch/blackfin/kernel/setup.c~blackfin-arch-use-boot_command_line-instead-of
-+++ a/arch/blackfin/kernel/setup.c
-@@ -221,8 +221,8 @@ void __init setup_arch(char **cmdline_p)
+diff -puN include/asm-blackfin/uaccess.h~blackfin-arch-add-missing-__clear_user-function-to include/asm-blackfin/uaccess.h
+--- a/include/asm-blackfin/uaccess.h~blackfin-arch-add-missing-__clear_user-function-to
++++ a/include/asm-blackfin/uaccess.h
+@@ -260,10 +260,12 @@ static inline long strnlen_user(const ch
+  * Zero Userspace
+  */
  
- 	/* Keep a copy of command line */
- 	*cmdline_p = &command_line[0];
--	memcpy(saved_command_line, command_line, COMMAND_LINE_SIZE);
--	saved_command_line[COMMAND_LINE_SIZE - 1] = 0;
-+	memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
-+	boot_command_line[COMMAND_LINE_SIZE - 1] = 0;
+-static inline unsigned long clear_user(void *to, unsigned long n)
++static inline unsigned long __clear_user(void *to, unsigned long n)
+ {
+ 	memset(to, 0, n);
+ 	return 0;
+ }
  
- 	/* setup memory defaults from the user config */
- 	physical_mem_end = 0;
++#define clear_user(to, n) __clear_user(to, n)
++
+ #endif				/* _BLACKFIN_UACCESS_H */
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -57,6 +56,7 @@ Patches currently in -mm which might be from bryan.wu@analog.com are
 origin.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
+blackfin-arch-add-missing-__clear_user-function-to.patch
 blackfin-arch-use-boot_command_line-instead-of.patch
 blackfin-arch-fix-some-coding-style-in-include.patch
 blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
