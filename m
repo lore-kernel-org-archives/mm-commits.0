@@ -1,52 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - move-die-notifier-handling-to-common-code-fixes-2.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:48:18 -0700
-Message-ID: <200704301948.l3UJmII9013343@shell0.pdx.osdl.net>
+Subject: - move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:48:21 -0700
+Message-ID: <200704301948.l3UJmL6l013346@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57488 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031580AbXD3Txz (ORCPT
+	by vger.kernel.org with ESMTP id S1031578AbXD3TyB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:53:55 -0400
+	Mon, 30 Apr 2007 15:54:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     move-die-notifier-handling-to-common-code-fixes-2
+     move-die-notifier-handling-to-common-code: fix vmalloc_sync_all()
 has been removed from the -mm tree.  Its filename was
-     move-die-notifier-handling-to-common-code-fixes-2.patch
+     move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
 
 This patch was dropped because it was folded into move-die-notifier-handling-to-common-code.patch
 
 ------------------------------------------------------
-Subject: move-die-notifier-handling-to-common-code-fixes-2
+Subject: move-die-notifier-handling-to-common-code: fix vmalloc_sync_all()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/char/ipmi/ipmi_watchdog.c: In function 'check_parms':
-drivers/char/ipmi/ipmi_watchdog.c:1226: warning: implicit declaration of function 'register_die_notifier'
-drivers/char/ipmi/ipmi_watchdog.c:1234: warning: implicit declaration of function 'unregister_die_notifier'
+Christoph removed the vmalloc_sync_all() calls from i386 and x86_64's
+register_die_notifier().  Apparently we need them.
+
+Put them back by making vmalloc_sync_all() a vmalloc API function and play
+tricks with attribute(weak) for architectures which do not implement it.
 
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_watchdog.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/i386/mm/fault.c         |    1 +
+ arch/x86_64/mm/fault.c       |    1 +
+ include/asm-i386/pgtable.h   |    2 --
+ include/asm-x86_64/pgtable.h |    1 -
+ include/linux/vmalloc.h      |    1 +
+ kernel/die_notifier.c        |    2 ++
+ mm/vmalloc.c                 |    7 +++++++
+ 7 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_watchdog.c~move-die-notifier-handling-to-common-code-fixes-2 drivers/char/ipmi/ipmi_watchdog.c
---- a/drivers/char/ipmi/ipmi_watchdog.c~move-die-notifier-handling-to-common-code-fixes-2
-+++ a/drivers/char/ipmi/ipmi_watchdog.c
-@@ -39,6 +39,7 @@
- #include <linux/miscdevice.h>
- #include <linux/init.h>
- #include <linux/completion.h>
-+#include <linux/kdebug.h>
- #include <linux/rwsem.h>
- #include <linux/errno.h>
- #include <asm/uaccess.h>
+diff -puN arch/i386/mm/fault.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/arch/i386/mm/fault.c
+@@ -21,6 +21,7 @@
+ #include <linux/vt_kern.h>		/* For unblank_screen() */
+ #include <linux/highmem.h>
+ #include <linux/bootmem.h>		/* for max_low_pfn */
++#include <linux/vmalloc.h>
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+diff -puN arch/x86_64/mm/fault.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all arch/x86_64/mm/fault.c
+--- a/arch/x86_64/mm/fault.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/arch/x86_64/mm/fault.c
+@@ -21,6 +21,7 @@
+ #include <linux/tty.h>
+ #include <linux/vt_kern.h>		/* For unblank_screen() */
+ #include <linux/compiler.h>
++#include <linux/vmalloc.h>
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+diff -puN include/asm-i386/pgtable.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/include/asm-i386/pgtable.h
+@@ -243,8 +243,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ static inline pte_t pte_mkwrite(pte_t pte)	{ (pte).pte_low |= _PAGE_RW; return pte; }
+ static inline pte_t pte_mkhuge(pte_t pte)	{ (pte).pte_low |= _PAGE_PSE; return pte; }
+ 
+-extern void vmalloc_sync_all(void);
+-
+ #ifdef CONFIG_X86_PAE
+ # include <asm/pgtable-3level.h>
+ #else
+diff -puN include/asm-x86_64/pgtable.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all include/asm-x86_64/pgtable.h
+--- a/include/asm-x86_64/pgtable.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/include/asm-x86_64/pgtable.h
+@@ -411,7 +411,6 @@ static inline pte_t pte_modify(pte_t pte
+ 
+ extern spinlock_t pgd_lock;
+ extern struct list_head pgd_list;
+-void vmalloc_sync_all(void);
+ 
+ extern int kern_addr_valid(unsigned long addr); 
+ 
+diff -puN include/linux/vmalloc.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/include/linux/vmalloc.h
+@@ -53,6 +53,7 @@ extern void vunmap(void *addr);
+ 
+ extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
+ 							unsigned long pgoff);
++void vmalloc_sync_all(void);
+  
+ /*
+  *	Lowlevel-APIs (not for driver use!)
+diff -puN kernel/die_notifier.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all kernel/die_notifier.c
+--- a/kernel/die_notifier.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/kernel/die_notifier.c
+@@ -1,6 +1,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/notifier.h>
++#include <linux/vmalloc.h>
+ #include <linux/kdebug.h>
+ 
+ 
+@@ -23,6 +24,7 @@ int notify_die(enum die_val val, const c
+ 
+ int register_die_notifier(struct notifier_block *nb)
+ {
++	vmalloc_sync_all();
+ 	return atomic_notifier_chain_register(&die_chain, nb);
+ }
+ EXPORT_SYMBOL_GPL(register_die_notifier);
+diff -puN mm/vmalloc.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all mm/vmalloc.c
+--- a/mm/vmalloc.c~move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all
++++ a/mm/vmalloc.c
+@@ -757,3 +757,10 @@ out_einval_locked:
+ }
+ EXPORT_SYMBOL(remap_vmalloc_range);
+ 
++/*
++ * Implement a stub for vmalloc_sync_all() if the architecture chose not to
++ * have one.
++ */
++void  __attribute__((weak)) vmalloc_sync_all(void)
++{
++}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,7 +220,6 @@ fix-cycladesh-for-x86_64-and-probably-others.patch
 rtc-add-rtc-rs5c313-driver.patch
 enlarge-console-name.patch
 move-die-notifier-handling-to-common-code.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
 move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
 fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
 parport-dev-driver-model-support-powerpc-fix.patch
