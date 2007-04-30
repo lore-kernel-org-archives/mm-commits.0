@@ -1,51 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:12:57 -0700
-Message-ID: <200704302012.l3UKCwJv013891@shell0.pdx.osdl.net>
+Subject: - driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:14:14 -0700
+Message-ID: <200704302014.l3UKEElg013920@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55324 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423668AbXD3UNJ (ORCPT
+	by vger.kernel.org with ESMTP id S1946752AbXD3UOX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:13:09 -0400
+	Mon, 30 Apr 2007 16:14:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, michael@ellerman.id.au, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, johnpol@2ka.mipt.ru, mreimer@vpop.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix
+     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update
 has been removed from the -mm tree.  Its filename was
-     document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
 
-This patch was dropped because it was folded into document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+This patch was dropped because it was folded into driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
 
 ------------------------------------------------------
-Subject: document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix
+Subject: driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Matt Reimer <mreimer@vpop.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spinlock_types.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/w1/masters/Kconfig  |    2 +-
+ drivers/w1/masters/Makefile |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/spinlock_types.h~document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix include/linux/spinlock_types.h
---- a/include/linux/spinlock_types.h~document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix
-+++ a/include/linux/spinlock_types.h
-@@ -86,7 +86,8 @@ typedef struct {
- #endif
+diff -puN drivers/w1/masters/Kconfig~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update drivers/w1/masters/Kconfig
+--- a/drivers/w1/masters/Kconfig~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update
++++ a/drivers/w1/masters/Kconfig
+@@ -35,7 +35,7 @@ config W1_MASTER_DS2482
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ds2482.
  
- /*
-- * SPIN_LOCK_UNLOCKED and RW_LOCK_UNLOCKED are deprecated.
-+ * SPIN_LOCK_UNLOCKED and RW_LOCK_UNLOCKED defeat lockdep state tracking and
-+ * are hence deprecated.
-  * Please use DEFINE_SPINLOCK()/DEFINE_RWLOCK() or
-  * __SPIN_LOCK_UNLOCKED()/__RW_LOCK_UNLOCKED() as appropriate.
-  */
+-config W1_DS1WM
++config W1_MASTER_DS1WM
+ 	tristate "Maxim DS1WM 1-wire busmaster"
+ 	depends on W1
+ 	help
+diff -puN drivers/w1/masters/Makefile~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update drivers/w1/masters/Makefile
+--- a/drivers/w1/masters/Makefile~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update
++++ a/drivers/w1/masters/Makefile
+@@ -5,4 +5,4 @@
+ obj-$(CONFIG_W1_MASTER_MATROX)		+= matrox_w1.o
+ obj-$(CONFIG_W1_MASTER_DS2490)		+= ds2490.o
+ obj-$(CONFIG_W1_MASTER_DS2482)		+= ds2482.o
+-obj-$(CONFIG_W1_DS1WM)                  += ds1wm.o
++obj-$(CONFIG_W1_MASTER_DS1WM)		+= ds1wm.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -145,8 +154,8 @@ enhance-initcall_debug-measure-latency.patch
 expose-range-checking-functions-from-arch-specific.patch
 dtlk-fix-error-checks-in-module_init.patch
 document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
 upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
 driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
