@@ -1,75 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - make-static-counters-in-new_inode-and-iunique-be-32-bits-comments.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:16:04 -0700
-Message-ID: <200704302016.l3UKG4gl013967@shell0.pdx.osdl.net>
+Subject: - utimensat-implementation-update.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:22:37 -0700
+Message-ID: <200704302022.l3UKMbNU014097@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53834 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946764AbXD3UVz (ORCPT
+	by vger.kernel.org with ESMTP id S1946767AbXD3UXQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:21:55 -0400
+	Mon, 30 Apr 2007 16:23:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@redhat.com, hch@lst.de, mm-commits@vger.kernel.org
+To: drepper@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make-static-counters-in-new_inode-and-iunique-be-32-bits comments
+     utimensat-implementation update
 has been removed from the -mm tree.  Its filename was
-     make-static-counters-in-new_inode-and-iunique-be-32-bits-comments.patch
+     utimensat-implementation-update.patch
 
-This patch was dropped because it was folded into make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+This patch was dropped because it was folded into utimensat-implementation.patch
 
 ------------------------------------------------------
-Subject: make-static-counters-in-new_inode-and-iunique-be-32-bits comments
-From: Jeff Layton <jlayton@redhat.com>
+Subject: utimensat-implementation update
+From: Ulrich Drepper <drepper@redhat.com>
 
-mention that it's only the case for 32bit, non-LFS stat.
+The completely missing futimensat() functionality is added.  We have such a
+function in glibc but we have to resort to using /proc/self/fd/* which not
+everybody likes (chroot etc).
 
-Cc: Christoph Hellwig <hch@lst.de>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ fs/utimes.c |   32 ++++++++++++++++++++++++++------
+ 1 files changed, 26 insertions(+), 6 deletions(-)
 
-diff -puN fs/inode.c~make-static-counters-in-new_inode-and-iunique-be-32-bits-comments fs/inode.c
---- a/fs/inode.c~make-static-counters-in-new_inode-and-iunique-be-32-bits-comments
-+++ a/fs/inode.c
-@@ -535,7 +535,11 @@ repeat:
-  */
- struct inode *new_inode(struct super_block *sb)
+diff -puN fs/utimes.c~utimensat-implementation-update fs/utimes.c
+--- a/fs/utimes.c~utimensat-implementation-update
++++ a/fs/utimes.c
+@@ -1,4 +1,5 @@
+ #include <linux/compiler.h>
++#include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/linkage.h>
+ #include <linux/namei.h>
+@@ -45,18 +46,34 @@ long do_utimes(int dfd, char __user *fil
  {
--	/* 32 bits for compatability mode stat calls */
-+	/*
-+	 * On a 32bit, non LFS stat() call, glibc will generate an EOVERFLOW
-+	 * error if st_ino won't fit in target struct field. Use 32bit counter
-+	 * here to attempt to avoid that.
-+	 */
- 	static unsigned int last_ino;
- 	struct inode * inode;
- 
-@@ -695,7 +699,11 @@ static unsigned long hash(struct super_b
-  */
- ino_t iunique(struct super_block *sb, ino_t max_reserved)
- {
--	/* 32 bits for compatability mode stat calls */
-+	/*
-+	 * On a 32bit, non LFS stat() call, glibc will generate an EOVERFLOW
-+	 * error if st_ino won't fit in target struct field. Use 32bit counter
-+	 * here to attempt to avoid that.
-+	 */
- 	static unsigned int counter;
+ 	int error;
+ 	struct nameidata nd;
++	struct dentry *dentry;
  	struct inode *inode;
- 	struct hlist_head *head;
+ 	struct iattr newattrs;
++	struct file *f = NULL;
+ 
+ 	error = -EINVAL;
+ 	if (flags & ~AT_SYMLINK_NOFOLLOW)
+ 		goto out;
+ 
+-	error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
+-	if (error)
+-		goto out;
++	if (filename == NULL && dfd != AT_FDCWD) {
++		error = -EINVAL;
++		if (flags & AT_SYMLINK_NOFOLLOW)
++			goto out;
++
++		error = -EBADF;
++		f = fget(dfd);
++		if (!f)
++			goto out;
++		dentry = f->f_path.dentry;
++	} else {
++		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
++		if (error)
++			goto out;
++
++		dentry = nd.dentry;
++	}
+ 
+-	inode = nd.dentry->d_inode;
++	inode = dentry->d_inode;
+ 
+ 	error = -EROFS;
+ 	if (IS_RDONLY(inode))
+@@ -94,10 +111,13 @@ long do_utimes(int dfd, char __user *fil
+ 			goto dput_and_out;
+ 	}
+ 	mutex_lock(&inode->i_mutex);
+-	error = notify_change(nd.dentry, &newattrs);
++	error = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
+ dput_and_out:
+-	path_release(&nd);
++	if (f)
++		fput(f);
++	else
++		path_release(&nd);
+ out:
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from drepper@redhat.com are
 
-nfs-suppress-warnings-about-nfs4err_old_stateid-in-nfs4_handle_exception.patch
-make-iunique-use-a-do-while-loop-rather-than-its-obscure-goto-loop.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
-make-static-counters-in-new_inode-and-iunique-be-32-bits-comments.patch
-change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
-rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+allow-access-to-proc-pid-fd-after-setuid.patch
+futex-restartable-futex_wait.patch
+aio-is-unlikely.patch
+utimensat-implementation.patch
+utimensat-implementation-update.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix-2.patch
+futex_requeue_pi-optimization.patch
