@@ -1,85 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - ata-printk-warning-fixes.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 14:44:48 -0700
-Message-ID: <200704302144.l3ULimeY015618@shell0.pdx.osdl.net>
+Subject: - drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 14:44:54 -0700
+Message-ID: <200704302144.l3ULisle015628@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45073 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423711AbXD3Vpf (ORCPT
+	by vger.kernel.org with ESMTP id S1423388AbXD3Vpg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 17:45:35 -0400
+	Mon, 30 Apr 2007 17:45:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata: printk warning fixes
+     drivers/ata/pata_cmd640.c: fix build with CONFIG_PM=n
 has been removed from the -mm tree.  Its filename was
-     ata-printk-warning-fixes.patch
+     drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ata: printk warning fixes
+Subject: drivers/ata/pata_cmd640.c: fix build with CONFIG_PM=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/libata-core.c: In function 'ata_hpa_resize':
-drivers/ata/libata-core.c:986: warning: format '%lld' expects type 'long long int', but argument 5 has type 'u64'
-drivers/ata/libata-core.c:986: warning: format '%lld' expects type 'long long int', but argument 6 has type 'u64'
-drivers/ata/libata-core.c:990: warning: format '%lld' expects type 'long long int', but argument 4 has type 'u64'
-drivers/ata/libata-core.c:990: warning: format '%lld' expects type 'long long int', but argument 5 has type 'u64'
-drivers/ata/libata-core.c:1003: warning: format '%lld' expects type 'long long int', but argument 4 has type 'u64'
+This is grubby, but all the ata drivers do it this way.
 
-Also fix various 80-col bustage.
+Would it not be better to do
+
+#define ata_scsi_device_resume NULL
+
+in libata.h, remove all those ifdefs?
+
+(updated version, ug, ug)
 
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ drivers/ata/pata_cmd640.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/ata/libata-core.c~ata-printk-warning-fixes drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~ata-printk-warning-fixes
-+++ a/drivers/ata/libata-core.c
-@@ -982,25 +982,28 @@ static u64 ata_hpa_resize(struct ata_dev
- 		hpa_sectors = ata_read_native_max_address(dev);
+diff -puN drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n drivers/ata/pata_cmd640.c
+--- a/drivers/ata/pata_cmd640.c~drivers-ata-pata_cmd640c-fix-build-with-config_pm=n
++++ a/drivers/ata/pata_cmd640.c
+@@ -181,8 +181,10 @@ static struct scsi_host_template cmd640_
+ 	.slave_configure	= ata_scsi_slave_config,
+ 	.slave_destroy		= ata_scsi_slave_destroy,
+ 	.bios_param		= ata_std_bios_param,
++#ifdef CONFIG_PM
+ 	.resume			= ata_scsi_device_resume,
+ 	.suspend		= ata_scsi_device_suspend,
++#endif
+ };
  
- 	/* if no hpa, both should be equal */
--	ata_dev_printk(dev, KERN_INFO, "%s 1: sectors = %lld, hpa_sectors = %lld\n",
--		__FUNCTION__, sectors, hpa_sectors);
-+	ata_dev_printk(dev, KERN_INFO, "%s 1: sectors = %lld, "
-+				"hpa_sectors = %lld\n",
-+		__FUNCTION__, (long long)sectors, (long long)hpa_sectors);
+ static struct ata_port_operations cmd640_port_ops = {
+@@ -267,7 +269,11 @@ static int cmd640_init_one(struct pci_de
+ static int cmd640_reinit_one(struct pci_dev *pdev)
+ {
+ 	cmd640_hardware_init(pdev);
++#ifdef CONFIG_PM
+ 	return ata_pci_device_resume(pdev);
++#else
++	return 0;
++#endif
+ }
  
- 	if (hpa_sectors > sectors) {
- 		ata_dev_printk(dev, KERN_INFO,
- 			"Host Protected Area detected:\n"
- 			"\tcurrent size: %lld sectors\n"
- 			"\tnative size: %lld sectors\n",
--			sectors, hpa_sectors);
-+			(long long)sectors, (long long)hpa_sectors);
+ static const struct pci_device_id cmd640[] = {
+@@ -280,7 +286,9 @@ static struct pci_driver cmd640_pci_driv
+ 	.id_table	= cmd640,
+ 	.probe 		= cmd640_init_one,
+ 	.remove		= ata_pci_remove_one,
++#ifdef CONFIG_PM
+ 	.suspend	= ata_pci_device_suspend,
++#endif
+ 	.resume		= cmd640_reinit_one,
+ };
  
- 		if (ata_ignore_hpa) {
- 			if (ata_id_has_lba48(dev->id))
- 				hpa_sectors = ata_set_native_max_address_ext(dev, hpa_sectors);
- 			else
--				hpa_sectors = ata_set_native_max_address(dev, hpa_sectors);
-+				hpa_sectors = ata_set_native_max_address(dev,
-+								hpa_sectors);
- 
- 			if (hpa_sectors) {
--				ata_dev_printk(dev, KERN_INFO,
--					"native size increased to %lld sectors\n", hpa_sectors);
-+				ata_dev_printk(dev, KERN_INFO, "native size "
-+					"increased to %lld sectors\n",
-+					(long long)hpa_sectors);
- 				return hpa_sectors;
- 			}
- 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
