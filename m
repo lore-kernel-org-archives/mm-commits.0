@@ -1,53 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - fix-kevents-childs-priority-greediness-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:03:03 -0700
-Message-ID: <200704302003.l3UK34KJ013673@shell0.pdx.osdl.net>
+Subject: - display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:03:39 -0700
+Message-ID: <200704302003.l3UK3eg7013685@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50775 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423565AbXD3UEN (ORCPT
+	by vger.kernel.org with ESMTP id S1423561AbXD3UEg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:04:13 -0400
+	Mon, 30 Apr 2007 16:04:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chrisw@sous-sol.org, jengelh@gmx.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jengelh@gmx.de, linux@treblig.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-kevents-childs-priority-greediness fix
+     display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix
 has been removed from the -mm tree.  Its filename was
-     fix-kevents-childs-priority-greediness-fix.patch
+     display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
 
-This patch was dropped because it was folded into fix-kevents-childs-priority-greediness.patch
+This patch was dropped because it was folded into display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
 
 ------------------------------------------------------
-Subject: fix-kevents-childs-priority-greediness fix
+Subject: display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Dave Gilbert <linux@treblig.org>
 Cc: Jan Engelhardt <jengelh@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ block/genhd.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN kernel/kmod.c~fix-kevents-childs-priority-greediness-fix kernel/kmod.c
---- a/kernel/kmod.c~fix-kevents-childs-priority-greediness-fix
-+++ a/kernel/kmod.c
-@@ -164,6 +164,11 @@ static int ____call_usermodehelper(void 
+diff -puN block/genhd.c~display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix block/genhd.c
+--- a/block/genhd.c~display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix
++++ a/block/genhd.c
+@@ -214,16 +214,16 @@ struct gendisk *get_gendisk(dev_t dev, i
+ }
  
- 	/* We can run anywhere, unlike our parent keventd(). */
- 	set_cpus_allowed(current, CPU_MASK_ALL);
-+
-+	/*
-+	 * Our parent is keventd, which runs with elevated scheduling priority.
-+	 * Avoid propagating that into the userspace child.
-+	 */
- 	set_user_nice(current, 0);
+ /*
+- * printk a full list of all partitions - intended for
+- * places where the root filesystem can't be mounted and thus
+- * to give the victim some idea of what went wrong
++ * print a full list of all partitions - intended for places where the root
++ * filesystem can't be mounted and thus to give the victim some idea of what
++ * went wrong
+  */
+ void __init printk_all_partitions(void)
+ {
+ 	int n;
+ 	struct gendisk *sgp;
+-	mutex_lock(&block_subsys_lock);
  
- 	retval = -EPERM;
++	mutex_lock(&block_subsys_lock);
+ 	/* For each block device... */
+ 	list_for_each_entry(sgp, &block_subsys.kset.list, kobj.entry) {
+ 		char buf[BDEVNAME_SIZE];
+@@ -231,7 +231,7 @@ void __init printk_all_partitions(void)
+ 		 * Don't show empty devices or things that have been surpressed
+ 		 */
+ 		if (get_capacity(sgp) == 0 ||
+-		  (sgp->flags & GENHD_FL_SUPPRESS_PARTITION_INFO))
++		    (sgp->flags & GENHD_FL_SUPPRESS_PARTITION_INFO))
+ 			continue;
+ 
+ 		/*
+@@ -239,13 +239,13 @@ void __init printk_all_partitions(void)
+ 		 * hex - the same format as the root= option takes.
+ 		 */
+ 		printk("%02x%02x %10llu %s",
+-		       sgp->major, sgp->first_minor,
+-		       (unsigned long long)get_capacity(sgp) >> 1,
+-		       disk_name(sgp, 0, buf));
++			sgp->major, sgp->first_minor,
++			(unsigned long long)get_capacity(sgp) >> 1,
++			disk_name(sgp, 0, buf));
+ 		if (sgp->driverfs_dev != NULL &&
+-		  sgp->driverfs_dev->driver != NULL)
++		    sgp->driverfs_dev->driver != NULL)
+ 			printk(" driver: %s\n",
+-			       sgp->driverfs_dev->driver->name);
++				sgp->driverfs_dev->driver->name);
+ 		else
+ 			printk(" (driver?)\n");
+ 
+@@ -256,9 +256,9 @@ void __init printk_all_partitions(void)
+ 			if (sgp->part[n]->nr_sects == 0)
+ 				continue;
+ 			printk("  %02x%02x %10llu %s\n",
+-			       sgp->major, n + 1 + sgp->first_minor,
+-			       (unsigned long long)sgp->part[n]->nr_sects >> 1,
+-			       disk_name(sgp, n + 1, buf));
++				sgp->major, n + 1 + sgp->first_minor,
++				(unsigned long long)sgp->part[n]->nr_sects >> 1,
++				disk_name(sgp, n + 1, buf));
+ 		} /* partition subloop */
+ 	} /* Block device loop */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -142,7 +192,7 @@ linux-sysdevh-needs-to-include-linux-moduleh.patch
 time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc.patch
 fix-kevents-childs-priority-greediness.patch
-fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
 display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
 enhance-initcall_debug-measure-latency-fix.patch
 expose-range-checking-functions-from-arch-specific-update-fix.patch
