@@ -1,107 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - add-file-position-info-to-proc-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:34:07 -0700
-Message-ID: <200704301934.l3UJY8xw013020@shell0.pdx.osdl.net>
+Subject: - fix-cycladesh-for-x86_64-and-probably-others-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:34:39 -0700
+Message-ID: <200704301934.l3UJYe30013027@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37412 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946728AbXD3Tew (ORCPT
+	by vger.kernel.org with ESMTP id S1946727AbXD3TfR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:34:52 -0400
+	Mon, 30 Apr 2007 15:35:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, klaus.kudielka@gmx.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make struct proc_fdinfo_file_operations static
+     fix-cycladesh-for-x86_64-and-probably-others-fix
 has been removed from the -mm tree.  Its filename was
-     add-file-position-info-to-proc-fix.patch
+     fix-cycladesh-for-x86_64-and-probably-others-fix.patch
 
-This patch was dropped because it was folded into add-file-position-info-to-proc.patch
+This patch was dropped because it was folded into fix-cycladesh-for-x86_64-and-probably-others.patch
 
 ------------------------------------------------------
-Subject: make struct proc_fdinfo_file_operations static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: fix-cycladesh-for-x86_64-and-probably-others-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
+drivers/char/cyclades.c: In function 'cyz_issue_cmd':
+drivers/char/cyclades.c:1549: warning: assignment from incompatible pointer type
+
+Cc: Klaus Kudielka <klaus.kudielka@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 +-
+ drivers/char/cyclades.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~add-file-position-info-to-proc-fix fs/proc/base.c
---- a/fs/proc/base.c~add-file-position-info-to-proc-fix
-+++ a/fs/proc/base.c
-@@ -1443,7 +1443,7 @@ static ssize_t proc_fdinfo_read(struct f
- 	return err;
- }
+diff -puN include/linux/cyclades.h~fix-cycladesh-for-x86_64-and-probably-others-fix include/linux/cyclades.h
+diff -puN drivers/char/cyclades.c~fix-cycladesh-for-x86_64-and-probably-others-fix drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~fix-cycladesh-for-x86_64-and-probably-others-fix
++++ a/drivers/char/cyclades.c
+@@ -1533,7 +1533,7 @@ cyz_issue_cmd(struct cyclades_card *cinf
+ 	struct FIRM_ID __iomem *firm_id;
+ 	struct ZFW_CTRL __iomem *zfw_ctrl;
+ 	struct BOARD_CTRL __iomem *board_ctrl;
+-	unsigned long __iomem *pci_doorbell;
++	uclong __iomem *pci_doorbell;
+ 	int index;
  
--const struct file_operations proc_fdinfo_file_operations = {
-+static const struct file_operations proc_fdinfo_file_operations = {
- 	.open		= nonseekable_open,
- 	.read		= proc_fdinfo_read,
- };
+ 	firm_id = cinfo->base_addr + ID_ADDRESS;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+zlib-backout.patch
+extend-print_symbol-capability.patch
+add-kvasprintf.patch
+add-kvasprintf-fix.patch
+slab-introduce-krealloc.patch
 git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
 git-powerpc.patch
+git-powerpc-fixup.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+ida-implement-idr-based-id-allocator-fix.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-drm.patch
 git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+git-ieee1394-fixup.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-jfs.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
 git-netdev-all.patch
-ibmtr_cs-fix-hang-on-eject.patch
+ne-add-platform_driver-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
 git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-git-ipwireless_cs.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-drivers-macintosh-mac_hidc-make-code-static.patch
-add-file-position-info-to-proc.patch
-add-file-position-info-to-proc-fix.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-unexport-pci_proc_attach_device.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms-fix.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-ext2-reservations.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-__inquire_remote_apic-printk-warning-fix.patch
+xfs-clean-up-shrinker-games.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+fix-cycladesh-for-x86_64-and-probably-others-fix.patch
+rtc-add-rtc-rs5c313-driver-tidy.patch
+rtc-add-rtc-rs5c313-driver-is-busted.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code-fixes-2.patch
+move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
+fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
+parport-dev-driver-model-support-powerpc-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation-fix.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
