@@ -1,55 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - pad-irq_desc-to-internode-cacheline-size-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:08:56 -0700
-Message-ID: <200704302008.l3UK8vBN013819@shell0.pdx.osdl.net>
+Subject: - dtlk-fix-error-checks-in-module_init-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:10:38 -0700
+Message-ID: <200704302010.l3UKAcPK013859@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47532 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423669AbXD3UJM (ORCPT
+	by vger.kernel.org with ESMTP id S1423636AbXD3UKr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:09:12 -0400
+	Mon, 30 Apr 2007 16:10:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kiran@scalex86.org, mingo@elte.hu, shai@scalex86.org, suresh.b.siddha@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, akinobu.mita@gmail.com, chris@allmedia.com, jrv@vanzandt.mv.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pad-irq_desc-to-internode-cacheline-size-fix
+     dtlk-fix-error-checks-in-module_init-fix
 has been removed from the -mm tree.  Its filename was
-     pad-irq_desc-to-internode-cacheline-size-fix.patch
+     dtlk-fix-error-checks-in-module_init-fix.patch
 
-This patch was dropped because it was folded into pad-irq_desc-to-internode-cacheline-size.patch
+This patch was dropped because it was folded into dtlk-fix-error-checks-in-module_init.patch
 
 ------------------------------------------------------
-Subject: pad-irq_desc-to-internode-cacheline-size-fix
+Subject: dtlk-fix-error-checks-in-module_init-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ravikiran Thirumalai <kiran@scalex86.org>
-Cc: Shai Fultheim <shai@scalex86.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Chris Pallotta <chris@allmedia.com>
+Cc: Jim Van Zandt <jrv@vanzandt.mv.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irq.h |    2 --
- irq/handle.c        |    0 
- 2 files changed, 2 deletions(-)
+ drivers/char/dtlk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/irq.h~pad-irq_desc-to-internode-cacheline-size-fix include/linux/irq.h
---- a/include/linux/irq.h~pad-irq_desc-to-internode-cacheline-size-fix
-+++ a/include/linux/irq.h
-@@ -147,8 +147,6 @@ struct irq_chip {
-  * @dir:		/proc/irq/ procfs entry
-  * @affinity_entry:	/proc/irq/smp_affinity procfs entry on SMP
-  * @name:		flow handler name for /proc/interrupts output
-- *
-- * Pad this out to 32 bytes for cache and indexing reasons.
-  */
- struct irq_desc {
- 	irq_flow_handler_t	handle_irq;
-diff -puN kernel/irq/handle.c~pad-irq_desc-to-internode-cacheline-size-fix kernel/irq/handle.c
+diff -puN drivers/char/dtlk.c~dtlk-fix-error-checks-in-module_init-fix drivers/char/dtlk.c
+--- a/drivers/char/dtlk.c~dtlk-fix-error-checks-in-module_init-fix
++++ a/drivers/char/dtlk.c
+@@ -332,7 +332,7 @@ static int __init dtlk_init(void)
+ 	dtlk_major = register_chrdev(0, "dtlk", &dtlk_fops);
+ 	if (dtlk_major < 0) {
+ 		printk(KERN_ERR "DoubleTalk PC - cannot register device\n");
+-		return -EBUSY;
++		return dtlk_major;
+ 	}
+ 	err = dtlk_dev_probe();
+ 	if (err) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -147,8 +143,7 @@ fix-kevents-childs-priority-greediness.patch
 display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
 enhance-initcall_debug-measure-latency.patch
 expose-range-checking-functions-from-arch-specific.patch
-pad-irq_desc-to-internode-cacheline-size.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init.patch
 dtlk-fix-error-checks-in-module_init-fix.patch
 document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
 upper-32-bits.patch
