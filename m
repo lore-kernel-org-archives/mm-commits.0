@@ -1,55 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 11:58:10 -0700
-Message-ID: <200704301858.l3UIwBUb012066@shell0.pdx.osdl.net>
+Subject: - slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 11:58:31 -0700
+Message-ID: <200704301858.l3UIwW02012072@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49292 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423645AbXD3S6e (ORCPT
+	by vger.kernel.org with ESMTP id S1423715AbXD3S65 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 14:58:34 -0400
+	Mon, 30 Apr 2007 14:58:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: add checks for interrupts disabled
+     SLUB: fix PageError checks during validation
 has been removed from the -mm tree.  Its filename was
-     slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+     slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
 
-This patch was dropped because it was folded into slub-enable-tracking-of-full-slabs.patch
+This patch was dropped because it was folded into slub-validation-of-slabs-metadata-and-guard-zones.patch
 
 ------------------------------------------------------
-Subject: SLUB: add checks for interrupts disabled
+Subject: SLUB: fix PageError checks during validation
 From: Christoph Lameter <clameter@sgi.com>
 
-This only adds interrupt disabled checks to code paths taken if debugging
-is on.  I want to avoid constant checks in hot paths (like in SLAB). 
-VM_BUG_ON may be enabled by distributors who want to play it safe.
+If validation is run without slub_debug then we report uselessly that slabs
+do not have the pageerror flag set (which they should not since debug is
+off....)
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/slub.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled mm/slub.c
---- a/mm/slub.c~slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled
+diff -puN mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation mm/slub.c
+--- a/mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation
 +++ a/mm/slub.c
-@@ -642,6 +642,10 @@ static void add_full(struct kmem_cache *
- {
- 	struct kmem_cache_node *n;
+@@ -2615,9 +2615,15 @@ static void validate_slab_slab(struct km
+ 		printk(KERN_INFO "SLUB: %s Skipped busy slab %p\n",
+ 			s->name, page);
  
-+	VM_BUG_ON(!irqs_disabled());
-+
-+	VM_BUG_ON(!irqs_disabled());
-+
- 	if (!(s->flags & SLAB_STORE_USER))
- 		return;
+-	if (!PageError(page))
+-		printk(KERN_ERR "SLUB: %s PageError not set on slab %p\n",
+-			s->name, page);
++	if (s->flags & DEBUG_DEFAULT_FLAGS) {
++		if (!PageError(page))
++			printk(KERN_ERR "SLUB: %s PageError not set "
++				"on slab %p\n", s->name, page);
++	} else {
++		if (PageError(page))
++			printk(KERN_ERR "SLUB: %s PageError set on "
++				"slab %p\n", s->name, page);
++	}
+ }
  
+ static int validate_slab_node(struct kmem_cache *s, struct kmem_cache_node *n)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -74,7 +82,6 @@ optimize-compound_head-by-avoiding-a-shared-page.patch
 add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
 slub-fix-object-tracking.patch
 slub-enable-tracking-of-full-slabs.patch
-slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
 slub-validation-of-slabs-metadata-and-guard-zones.patch
 slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
 slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch
