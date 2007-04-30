@@ -1,751 +1,834 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-on-chip-ethernet-mac-controller-driver-update.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:14:31 -0700
-Message-ID: <200704301914.l3UJEVSe012560@shell0.pdx.osdl.net>
+Subject: - blackfin-spi-controller-driver-update-according-to-david-brownells-review.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:15:26 -0700
+Message-ID: <200704301915.l3UJFRFg012604@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46463 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946693AbXD3TOp (ORCPT
+	by vger.kernel.org with ESMTP id S1946702AbXD3TPd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:14:45 -0400
+	Mon, 30 Apr 2007 15:15:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin: on-chip ethernet MAC controller driver (update)
+     blackfin spi controller driver: update according to David Brownell's review
 has been removed from the -mm tree.  Its filename was
-     blackfin-on-chip-ethernet-mac-controller-driver-update.patch
+     blackfin-spi-controller-driver-update-according-to-david-brownells-review.patch
 
-This patch was dropped because it was folded into blackfin-on-chip-ethernet-mac-controller-driver.patch
+This patch was dropped because it was folded into blackfin-blackfin-on-chip-spi-controller-driver.patch
 
 ------------------------------------------------------
-Subject: Blackfin: on-chip ethernet MAC controller driver (update)
-From: "Wu, Bryan" <bryan.wu@analog.com>
+Subject: blackfin spi controller driver: update according to David Brownell's review
+From: Bryan Wu <bryan.wu@analog.com>
 
-a) Change to follow kernel coding style
-b) rename some functions and structures
-c) change '//' to '/* */'
-d) use pr_debug()
+(http://lkml.org/lkml/2007/4/16/333)
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bfin_mac.c |  249 ++++++++++++++++++---------------------
- drivers/net/bfin_mac.h |  127 ++++++++++---------
- 2 files changed, 185 insertions(+), 191 deletions(-)
+ drivers/spi/Kconfig       |   11 -
+ drivers/spi/Makefile      |    4 
+ drivers/spi/spi_bfin5xx.c |  337 +++++++++++++++++++-----------------
+ 3 files changed, 189 insertions(+), 163 deletions(-)
 
-diff -puN drivers/net/bfin_mac.c~blackfin-on-chip-ethernet-mac-controller-driver-update drivers/net/bfin_mac.c
---- a/drivers/net/bfin_mac.c~blackfin-on-chip-ethernet-mac-controller-driver-update
-+++ a/drivers/net/bfin_mac.c
-@@ -6,8 +6,6 @@
-  * Created:
-  * Description:
-  *
-- * Rev:          $Id: bfin_mac.c,v 1.60 2006/12/16 11:23:56 hennerich Exp $
-- *
-  * Modified:
-  *               Copyright 2004-2006 Analog Devices Inc.
-  *
-@@ -83,16 +81,14 @@ MODULE_DESCRIPTION("Blackfin MAC Driver"
- static void desc_list_free(void);
+diff -puN drivers/spi/Kconfig~blackfin-spi-controller-driver-update-according-to-david-brownells-review drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~blackfin-spi-controller-driver-update-according-to-david-brownells-review
++++ a/drivers/spi/Kconfig
+@@ -58,6 +58,12 @@ config SPI_ATMEL
+ 	  This selects a driver for the Atmel SPI Controller, present on
+ 	  many AT32 (AVR32) and AT91 (ARM) chips.
  
- /* pointers to maintain transmit list */
--struct net_dma_desc_tx *tx_list_head;
--struct net_dma_desc_tx *tx_list_tail;
--struct net_dma_desc_rx *rx_list_head;
--struct net_dma_desc_rx *rx_list_tail;
--struct net_dma_desc_rx *current_rx_ptr;
--struct net_dma_desc_tx *current_tx_ptr;
--struct net_dma_desc_tx *tx_desc;
--struct net_dma_desc_rx *rx_desc;
--
--extern void get_bf537_ether_addr(char *addr);
-+static struct net_dma_desc_tx *tx_list_head;
-+static struct net_dma_desc_tx *tx_list_tail;
-+static struct net_dma_desc_rx *rx_list_head;
-+static struct net_dma_desc_rx *rx_list_tail;
-+static struct net_dma_desc_rx *current_rx_ptr;
-+static struct net_dma_desc_tx *current_tx_ptr;
-+static struct net_dma_desc_tx *tx_desc;
-+static struct net_dma_desc_rx *rx_desc;
- 
- static int desc_list_init(void)
- {
-@@ -131,22 +127,22 @@ static int desc_list_init(void)
- 		tmp_desc_tx->desc_a.start_addr =
- 		    (unsigned long)tmp_desc_tx->packet;
- 		tmp_desc_tx->desc_a.x_count = 0;
--		tmp_desc_tx->desc_a.config.b_DMA_EN = 0;	//disabled
--		tmp_desc_tx->desc_a.config.b_WNR = 0;	//read from memory
--		tmp_desc_tx->desc_a.config.b_WDSIZE = 2;	//wordsize is 32 bits
--		tmp_desc_tx->desc_a.config.b_NDSIZE = 6;	//6 half words is desc size.
--		tmp_desc_tx->desc_a.config.b_FLOW = 7;	//large desc flow
-+		tmp_desc_tx->desc_a.config.b_DMA_EN = 0;	/* disabled */
-+		tmp_desc_tx->desc_a.config.b_WNR = 0;		/* read from memory */
-+		tmp_desc_tx->desc_a.config.b_WDSIZE = 2;	/* wordsize is 32 bits */
-+		tmp_desc_tx->desc_a.config.b_NDSIZE = 6;	/* 6 half words is desc size. */
-+		tmp_desc_tx->desc_a.config.b_FLOW = 7;		/* large desc flow */
- 		tmp_desc_tx->desc_a.next_dma_desc = &(tmp_desc_tx->desc_b);
- 
- 		tmp_desc_tx->desc_b.start_addr =
- 		    (unsigned long)(&(tmp_desc_tx->status));
- 		tmp_desc_tx->desc_b.x_count = 0;
--		tmp_desc_tx->desc_b.config.b_DMA_EN = 1;	//enabled
--		tmp_desc_tx->desc_b.config.b_WNR = 1;	//write to memory
--		tmp_desc_tx->desc_b.config.b_WDSIZE = 2;	//wordsize is 32 bits
--		tmp_desc_tx->desc_b.config.b_DI_EN = 0;	//disable interrupt
-+		tmp_desc_tx->desc_b.config.b_DMA_EN = 1;	/* enabled */
-+		tmp_desc_tx->desc_b.config.b_WNR = 1;		/* write to memory */
-+		tmp_desc_tx->desc_b.config.b_WDSIZE = 2;	/* wordsize is 32 bits */
-+		tmp_desc_tx->desc_b.config.b_DI_EN = 0;		/* disable interrupt */
- 		tmp_desc_tx->desc_b.config.b_NDSIZE = 6;
--		tmp_desc_tx->desc_b.config.b_FLOW = 7;	//stop mode
-+		tmp_desc_tx->desc_b.config.b_FLOW = 7;		/* stop mode */
- 		tmp_desc_tx->skb = NULL;
- 		tx_list_tail->desc_b.next_dma_desc = &(tmp_desc_tx->desc_a);
- 		tx_list_tail->next = tmp_desc_tx;
-@@ -180,22 +176,22 @@ static int desc_list_init(void)
- 		tmp_desc_rx->desc_a.start_addr =
- 		    (unsigned long)new_skb->data - 2;
- 		tmp_desc_rx->desc_a.x_count = 0;
--		tmp_desc_rx->desc_a.config.b_DMA_EN = 1;	//enabled
--		tmp_desc_rx->desc_a.config.b_WNR = 1;	//Write to memory
--		tmp_desc_rx->desc_a.config.b_WDSIZE = 2;	//wordsize is 32 bits
--		tmp_desc_rx->desc_a.config.b_NDSIZE = 6;	//6 half words is desc size.
--		tmp_desc_rx->desc_a.config.b_FLOW = 7;	//large desc flow
-+		tmp_desc_rx->desc_a.config.b_DMA_EN = 1;	/* enabled */
-+		tmp_desc_rx->desc_a.config.b_WNR = 1;		/* Write to memory */
-+		tmp_desc_rx->desc_a.config.b_WDSIZE = 2;	/* wordsize is 32 bits */
-+		tmp_desc_rx->desc_a.config.b_NDSIZE = 6;	/* 6 half words is desc size. */
-+		tmp_desc_rx->desc_a.config.b_FLOW = 7;		/* large desc flow */
- 		tmp_desc_rx->desc_a.next_dma_desc = &(tmp_desc_rx->desc_b);
- 
- 		tmp_desc_rx->desc_b.start_addr =
- 		    (unsigned long)(&(tmp_desc_rx->status));
- 		tmp_desc_rx->desc_b.x_count = 0;
--		tmp_desc_rx->desc_b.config.b_DMA_EN = 1;	//enabled
--		tmp_desc_rx->desc_b.config.b_WNR = 1;	//Write to memory
--		tmp_desc_rx->desc_b.config.b_WDSIZE = 2;	//wordsize is 32 bits
-+		tmp_desc_rx->desc_b.config.b_DMA_EN = 1;	/* enabled */
-+		tmp_desc_rx->desc_b.config.b_WNR = 1;		/* Write to memory */
-+		tmp_desc_rx->desc_b.config.b_WDSIZE = 2;	/* wordsize is 32 bits */
- 		tmp_desc_rx->desc_b.config.b_NDSIZE = 6;
--		tmp_desc_rx->desc_b.config.b_DI_EN = 1;	//enable interrupt
--		tmp_desc_rx->desc_b.config.b_FLOW = 7;	//large mode
-+		tmp_desc_rx->desc_b.config.b_DI_EN = 1;		/* enable interrupt */
-+		tmp_desc_rx->desc_b.config.b_FLOW = 7;		/* large mode */
- 		rx_list_tail->desc_b.next_dma_desc = &(tmp_desc_rx->desc_a);
- 
- 		rx_list_tail->next = tmp_desc_rx;
-@@ -254,16 +250,15 @@ static void desc_list_free(void)
- 
- /*---PHY CONTROL AND CONFIGURATION-----------------------------------------*/
- 
--//
--//Set FER regs to MUX in Ethernet pins
--//
--
--static void SetupPinMux(void)
-+/* Set FER regs to MUX in Ethernet pins */
-+static void setup_pin_mux(void)
- {
- 	unsigned int fer_val;
- 
--	// FER reg bug work-around
--	// read it once
-+	/*
-+	 * FER reg bug work-around
-+	 * read it once
-+	 */
- 	fer_val = bfin_read_PORTH_FER();
- 
- #if defined(CONFIG_BFIN_MAC_RMII)
-@@ -271,122 +266,114 @@ static void SetupPinMux(void)
- #else
- 	fer_val = 0xffff;
- #endif
--	// write it twice to the same value
-+	/* write it twice to the same value */
- 
- 	bfin_write_PORTH_FER(fer_val);
- 	bfin_write_PORTH_FER(fer_val);
- }
- 
--//
--//Wait until the previous MDC/MDIO transaction has completed
--//
--
--static void PollMdcDone(void)
-+/* Wait until the previous MDC/MDIO transaction has completed */
-+static void poll_mdc_done(void)
- {
--	// poll the STABUSY bit
-+	/* poll the STABUSY bit */
- 	while ((bfin_read_EMAC_STAADD()) & STABUSY) {
- 	};
- }
- 
--//
--//Read an off-chip register in a PHY through the MDC/MDIO port
--//
--
--static u16 RdPHYReg(u16 PHYAddr, u16 RegAddr)
--{
--	PollMdcDone();
--	bfin_write_EMAC_STAADD(SET_PHYAD(PHYAddr) | SET_REGAD(RegAddr) | STABUSY);	// read mode
--	PollMdcDone();
-+/* Read an off-chip register in a PHY through the MDC/MDIO port */
-+static u16 read_phy_reg(u16 PHYAddr, u16 RegAddr)
-+{
-+	poll_mdc_done();
-+	bfin_write_EMAC_STAADD(SET_PHYAD(PHYAddr) | SET_REGAD(RegAddr) | STABUSY);	/* read mode */
-+	poll_mdc_done();
- 
- 	return (u16) bfin_read_EMAC_STADAT();
- }
- 
--//
--//Write an off-chip register in a PHY through the MDC/MDIO port
--//
--
--static void RawWrPHYReg(u16 PHYAddr, u16 RegAddr, u32 Data)
-+/* Write an off-chip register in a PHY through the MDC/MDIO port */
-+static void raw_write_phy_reg(u16 PHYAddr, u16 RegAddr, u32 Data)
- {
--
- 	bfin_write_EMAC_STADAT(Data);
- 
--	bfin_write_EMAC_STAADD(SET_PHYAD(PHYAddr) | SET_REGAD(RegAddr) | STAOP | STABUSY);	//write mode
-+	bfin_write_EMAC_STAADD(SET_PHYAD(PHYAddr) | SET_REGAD(RegAddr) | STAOP | STABUSY);	/* write mode */
- 
--	PollMdcDone();
-+	poll_mdc_done();
- }
- 
--static void WrPHYReg(u16 PHYAddr, u16 RegAddr, u32 Data)
-+static void write_phy_reg(u16 PHYAddr, u16 RegAddr, u32 Data)
- {
--	PollMdcDone();
--	RawWrPHYReg(PHYAddr, RegAddr, Data);
-+	poll_mdc_done();
-+	raw_write_phy_reg(PHYAddr, RegAddr, Data);
- }
- 
--//
--//set up the phy
--//
-+/* set up the phy */
- static void bf537mac_setphy(struct net_device *dev)
- {
- 	u16 phydat;
- 	u32 sysctl;
- 	struct bf537mac_local *lp = netdev_priv(dev);
- 
--	//printk(KERN_DEBUG CARDNAME ": start settting up phy\n");
-+	pr_debug("start settting up phy\n");
- 
--	//Program PHY registers
-+	/* Program PHY registers */
- 	phydat = 0;
- 
--	// issue a reset
--	RawWrPHYReg(lp->PhyAddr, PHYREG_MODECTL, 0x8000);
-+	/* issue a reset */
-+	raw_write_phy_reg(lp->PhyAddr, PHYREG_MODECTL, 0x8000);
- 
--	// wait half a second
-+	/* wait half a second */
- 	udelay(500);
- 
--	phydat = RdPHYReg(lp->PhyAddr, PHYREG_MODECTL);
-+	phydat = read_phy_reg(lp->PhyAddr, PHYREG_MODECTL);
- 
--	// advertise flow control supported
--	phydat = RdPHYReg(lp->PhyAddr, PHYREG_ANAR);
-+	/* advertise flow control supported */
-+	phydat = read_phy_reg(lp->PhyAddr, PHYREG_ANAR);
- 	phydat |= (1 << 10);
--	WrPHYReg(lp->PhyAddr, PHYREG_ANAR, phydat);
-+	write_phy_reg(lp->PhyAddr, PHYREG_ANAR, phydat);
- 
- 	phydat = 0;
- 	if (lp->Negotiate) {
--		phydat |= 0x1000;	// enable auto negotiation
-+		phydat |= 0x1000;	/* enable auto negotiation */
- 	} else {
- 		if (lp->FullDuplex) {
--			phydat |= (1 << 8);	// full duplex
-+			phydat |= (1 << 8);	/* full duplex */
- 		} else {
--			phydat &= (~(1 << 8));	// half duplex
-+			phydat &= (~(1 << 8));	/* half duplex */
- 		}
- 		if (!lp->Port10) {
--			phydat |= (1 << 13);	// 100 Mbps
-+			phydat |= (1 << 13);	/* 100 Mbps */
- 		} else {
--			phydat &= (~(1 << 13));	// 10 Mbps
-+			phydat &= (~(1 << 13));	/* 10 Mbps */
- 		}
- 	}
- 
- 	if (lp->Loopback) {
--		phydat |= (1 << 14);	// enable TX->RX loopback
--		//WrPHYReg(lp->PhyAddr, PHYREG_MODECTL, phydat);
-+		phydat |= (1 << 14);	/* enable TX->RX loopback */
-+#if 0
-+		write_phy_reg(lp->PhyAddr, PHYREG_MODECTL, phydat);
-+#endif
- 	}
- 
--	WrPHYReg(lp->PhyAddr, PHYREG_MODECTL, phydat);
-+	write_phy_reg(lp->PhyAddr, PHYREG_MODECTL, phydat);
- 	udelay(500);
- 
--	phydat = RdPHYReg(lp->PhyAddr, PHYREG_MODECTL);
--	// check for SMSC PHY
--	if ((RdPHYReg(lp->PhyAddr, PHYREG_PHYID1) == 0x7)
--	    && ((RdPHYReg(lp->PhyAddr, PHYREG_PHYID2) & 0xfff0) == 0xC0A0)) {
--		// we have SMSC PHY so reqest interrupt on link down condition
--		WrPHYReg(lp->PhyAddr, 30, 0x0ff);	// enable interrupts
--		// enable PHY_INT
-+	phydat = read_phy_reg(lp->PhyAddr, PHYREG_MODECTL);
-+	/* check for SMSC PHY */
-+	if ((read_phy_reg(lp->PhyAddr, PHYREG_PHYID1) == 0x7)
-+	    && ((read_phy_reg(lp->PhyAddr, PHYREG_PHYID2) & 0xfff0) == 0xC0A0)) {
-+		/* we have SMSC PHY so reqest interrupt on link down condition */
-+		write_phy_reg(lp->PhyAddr, 30, 0x0ff);	/* enable interrupts */
-+		/* enable PHY_INT */
- 		sysctl = bfin_read_EMAC_SYSCTL();
- 		sysctl |= 0x1;
--		//bfin_write_EMAC_SYSCTL(sysctl);
-+#if 0
-+		bfin_write_EMAC_SYSCTL(sysctl);
-+#endif
- 	}
- }
- 
- /**************************************************************************/
--void SetupSystemRegs(struct net_device *dev)
-+void setup_system_regs(struct net_device *dev)
- {
- 	int PHYADDR;
- 	unsigned short sysctl, phydat;
-@@ -414,12 +401,12 @@ void SetupSystemRegs(struct net_device *
- 	/* full duplex          */
- 	/* 100 Mbps             */
- 	phydat = PHY_ANEG_EN | PHY_DUPLEX | PHY_SPD_SET;
--	WrPHYReg(PHYADDR, PHYREG_MODECTL, phydat);
-+	write_phy_reg(PHYADDR, PHYREG_MODECTL, phydat);
- 
- 	/* test if full duplex supported */
- 	do {
- 		msleep(100);
--		phydat = RdPHYReg(PHYADDR, PHYREG_MODESTAT);
-+		phydat = read_phy_reg(PHYADDR, PHYREG_MODESTAT);
- 		if (count > 30) {
- 			printk(KERN_NOTICE CARDNAME
- 			       ": Link is down, please check your network connection\n");
-@@ -428,7 +415,7 @@ void SetupSystemRegs(struct net_device *
- 		count++;
- 	} while (!(phydat & 0x0004));
- 
--	phydat = RdPHYReg(PHYADDR, PHYREG_ANLPAR);
-+	phydat = read_phy_reg(PHYADDR, PHYREG_ANLPAR);
- 
- 	if ((phydat & 0x0100) || (phydat & 0x0040)) {
- 		opmode = FDMODE;
-@@ -443,7 +430,9 @@ void SetupSystemRegs(struct net_device *
- 
- 	bfin_write_EMAC_OPMODE(opmode);
- 
--	//bfin_write_EMAC_MMC_CTL(RSTC | CROLL | MMCE);
-+#if 0
-+	bfin_write_EMAC_MMC_CTL(RSTC | CROLL | MMCE);
-+#endif
- 	bfin_write_EMAC_MMC_CTL(RSTC | CROLL);
- 
- 	/* Initialize the TX DMA channel registers */
-@@ -459,9 +448,9 @@ void SetupSystemRegs(struct net_device *
- 	bfin_write_DMA1_Y_MODIFY(0);
- }
- 
--void SetupMacAddr(u8 * mac_addr)
-+void setup_mac_addr(u8 * mac_addr)
- {
--	// this depends on a little-endian machine
-+	/* this depends on a little-endian machine */
- 	bfin_write_EMAC_ADDRLO(*(u32 *) & mac_addr[0]);
- 	bfin_write_EMAC_ADDRHI(*(u16 *) & mac_addr[4]);
- }
-@@ -470,7 +459,7 @@ static void adjust_tx_list(void)
- {
- 	if (tx_list_head->status.status_word != 0
- 	    && current_tx_ptr != tx_list_head) {
--		goto adjust_head;	// released something, just return;
-+		goto adjust_head;	/* released something, just return; */
- 	}
- 
- 	/* if nothing released, check wait condition */
-@@ -514,13 +503,13 @@ static int bf537mac_hard_start_xmit(stru
- 	unsigned int data;
- 
- 	current_tx_ptr->skb = skb;
--	// Is skb->data always 16-bit aligned? Do we need to memcpy((char *)(tail->packet + 2),skb->data,len)?
-+	/* Is skb->data always 16-bit aligned? Do we need to memcpy((char *)(tail->packet + 2),skb->data,len)? */
- 	if ((((unsigned int)(skb->data)) & 0x02) == 2) {
--		//move skb->data to current_tx_ptr payload
-+		/* move skb->data to current_tx_ptr payload */
- 		data = (unsigned int)(skb->data) - 2;
- 		*((unsigned short *)data) = (unsigned short)(skb->len);
- 		current_tx_ptr->desc_a.start_addr = (unsigned long)data;
--		blackfin_dcache_flush_range(data, (data + (skb->len)) + 2);	//this is important!
-+		blackfin_dcache_flush_range(data, (data + (skb->len)) + 2);	/* this is important! */
- 
- 	} else {
- 		*((unsigned short *)(current_tx_ptr->packet)) =
-@@ -538,14 +527,16 @@ static int bf537mac_hard_start_xmit(stru
- 					    2);
- 	}
- 
--	current_tx_ptr->desc_a.config.b_DMA_EN = 1;	//enable this packet's dma
-+	current_tx_ptr->desc_a.config.b_DMA_EN = 1;	/* enable this packet's dma */
- 
--	if (bfin_read_DMA2_IRQ_STATUS() & 0x08) {	//tx dma is running, just return
-+	if (bfin_read_DMA2_IRQ_STATUS() & 0x08) {	/* tx dma is running, just return */
- 		goto out;
--	} else {		//tx dma is not running
-+	} else {
-+		/* tx dma is not running */
- 		bfin_write_DMA2_NEXT_DESC_PTR(&(current_tx_ptr->desc_a));
--		bfin_write_DMA2_CONFIG(*((unsigned short *)(&(current_tx_ptr->desc_a.config))));	// dma enabled, read from memory, size is 6
--		// Turn on the EMAC tx
-+		/* dma enabled, read from memory, size is 6 */
-+		bfin_write_DMA2_CONFIG(*((unsigned short *)(&(current_tx_ptr->desc_a.config))));
-+		/* Turn on the EMAC tx */
- 		bfin_write_EMAC_OPMODE(bfin_read_EMAC_OPMODE() | TE);
- 	}
- 
-@@ -577,7 +568,8 @@ static void bf537mac_rx(struct net_devic
- 	skb_reserve(new_skb, 2);
- 	current_rx_ptr->skb = new_skb;
- 	current_rx_ptr->desc_a.start_addr = (unsigned long)new_skb->data - 2;
--/*
++config SPI_BFIN
++	tristate "SPI controller driver for ADI Blackfin5xx"
++	depends on SPI_MASTER && BFIN
++	help
++	  This is the SPI controller master driver for Blackfin 5xx processor.
 +
-+#if 0
- 	int i;
- 	if (len >= 64) {
- 		for (i=0;i<len;i++) {
-@@ -586,7 +578,7 @@ static void bf537mac_rx(struct net_devic
- 		}
- 	printk("\n");
+ config SPI_BITBANG
+ 	tristate "Bitbanging SPI master"
+ 	depends on SPI_MASTER && EXPERIMENTAL
+@@ -156,11 +162,6 @@ config SPI_AT25
+ #
+ # Add new SPI protocol masters in alphabetical order above this line
+ #
+-config SPI_BFIN
+-	tristate "SPI controller driver for ADI Blackfin5xx"
+-	depends on SPI_MASTER && BFIN
+-	help
+-	  This is the SPI controller master driver for Blackfin 5xx processor.
+ 
+ # (slave support would go here)
+ 
+diff -puN drivers/spi/Makefile~blackfin-spi-controller-driver-update-according-to-david-brownells-review drivers/spi/Makefile
+--- a/drivers/spi/Makefile~blackfin-spi-controller-driver-update-according-to-david-brownells-review
++++ a/drivers/spi/Makefile
+@@ -11,8 +11,9 @@ endif
+ obj-$(CONFIG_SPI_MASTER)		+= spi.o
+ 
+ # SPI master controller drivers (bus)
+-obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
+ obj-$(CONFIG_SPI_ATMEL)			+= atmel_spi.o
++obj-$(CONFIG_SPI_BFIN)			+= spi_bfin5xx.o
++obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
+ obj-$(CONFIG_SPI_BUTTERFLY)		+= spi_butterfly.o
+ obj-$(CONFIG_SPI_IMX)			+= spi_imx.o
+ obj-$(CONFIG_SPI_PXA2XX)		+= pxa2xx_spi.o
+@@ -20,7 +21,6 @@ obj-$(CONFIG_SPI_OMAP_UWIRE)		+= omap_uw
+ obj-$(CONFIG_SPI_MPC83xx)		+= spi_mpc83xx.o
+ obj-$(CONFIG_SPI_S3C24XX_GPIO)		+= spi_s3c24xx_gpio.o
+ obj-$(CONFIG_SPI_S3C24XX)		+= spi_s3c24xx.o
+-obj-$(CONFIG_SPI_BFIN)			+= spi_bfin5xx.o
+ # 	... add above this line ...
+ 
+ # SPI protocol drivers (device/link on bus)
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-controller-driver-update-according-to-david-brownells-review drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-controller-driver-update-according-to-david-brownells-review
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -76,7 +76,6 @@ DEFINE_SPI_REG(SHAW, 0x18)
+ #define QUEUE_RUNNING 0
+ #define QUEUE_STOPPED 1
+ int dma_requested;
+-char chip_select_flag;
+ 
+ struct driver_data {
+ 	/* Driver model hookup */
+@@ -175,8 +174,9 @@ static int flush(struct driver_data *drv
+ 	unsigned long limit = loops_per_jiffy << 1;
+ 
+ 	/* wait for stop and clear stat */
+-	do {
+-	} while (!(read_STAT() & BIT_STAT_SPIF) && limit--);
++	while (!(read_STAT() & BIT_STAT_SPIF) && limit--)
++		continue;
++
+ 	write_STAT(BIT_STAT_CLR);
+ 
+ 	return limit;
+@@ -192,42 +192,50 @@ static void restore_state(struct driver_
+ 	bfin_spi_disable(drv_data);
+ 	pr_debug("restoring spi ctl state\n");
+ 
+-#if defined(CONFIG_BF534)||defined(CONFIG_BF536)||defined(CONFIG_BF537)
+-	if (chip->chip_select_num == 1) {
+-		pr_debug("set for chip select 1\n");
++#if defined(CONFIG_BF534) || defined(CONFIG_BF536) || defined(CONFIG_BF537)
++	pr_debug("chip select number is %d\n", chip->chip_select_num);
++
++	switch (chip->chip_select_num) {
++	case 1:
+ 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3c00);
+ 		SSYNC();
++		break;
+ 
+-	} else if (chip->chip_select_num == 2 || chip->chip_select_num == 3) {
+-		pr_debug("set for chip select 2\n");
++	case 2:
++	case 3:
+ 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PJSE_SPI);
+ 		SSYNC();
+ 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3800);
+ 		SSYNC();
++		break;
+ 
+-	} else if (chip->chip_select_num == 4) {
++	case 4:
+ 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PFS4E_SPI);
+ 		SSYNC();
+ 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3840);
+ 		SSYNC();
++		break;
+ 
+-	} else if (chip->chip_select_num == 5) {
++	case 5:
+ 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PFS5E_SPI);
+ 		SSYNC();
+ 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3820);
+ 		SSYNC();
++		break;
+ 
+-	} else if (chip->chip_select_num == 6) {
++	case 6:
+ 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PFS6E_SPI);
+ 		SSYNC();
+ 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3810);
+ 		SSYNC();
++		break;
+ 
+-	} else if (chip->chip_select_num == 7) {
++	case 7:
+ 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PJCE_SPI);
+ 		SSYNC();
+ 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3800);
+ 		SSYNC();
++		break;
  	}
--*/
-+#endif
- 
- 	len = (unsigned short)((current_rx_ptr->status.status_word) & RX_FRLEN);
- 	skb_put(skb, len);
-@@ -618,7 +610,7 @@ static irqreturn_t bf537mac_interrupt(in
- 	int number = 0;
- 
-       get_one_packet:
--	if (current_rx_ptr->status.status_word == 0) {	// no more new packet received
-+	if (current_rx_ptr->status.status_word == 0) {	/* no more new packet received */
- 		if (number == 0) {
- 			if (current_rx_ptr->next->status.status_word != 0) {
- 				current_rx_ptr = current_rx_ptr->next;
-@@ -662,9 +654,8 @@ static void bf537mac_reset(void)
- static int bf537mac_enable(struct net_device *dev)
- {
- 	u32 opmode;
--	//u32 pkt_status;
- 
--	//printk("%s: %s\n", dev->name, __FUNCTION__);
-+	pr_debug("%s: %s\n", dev->name, __FUNCTION__);
- 
- 	/* Set RX DMA */
- 	bfin_write_DMA1_NEXT_DESC_PTR(&(rx_list_head->desc_a));
-@@ -673,7 +664,7 @@ static int bf537mac_enable(struct net_de
- 				 *)(&(rx_list_head->desc_a.config))));
- 
- 	/* Wait MII done */
--	PollMdcDone();
-+	poll_mdc_done();
- 
- 	/* We enable only RX here */
- 	/* ASTP   : Enable Automatic Pad Stripping
-@@ -704,7 +695,7 @@ static int bf537mac_enable(struct net_de
- /* Our watchdog timed out. Called by the networking layer */
- static void bf537mac_timeout(struct net_device *dev)
- {
--	//printk("%s: %s\n", dev->name, __FUNCTION__);
-+	pr_debug("%s: %s\n", dev->name, __FUNCTION__);
- 
- 	bf537mac_reset();
- 
-@@ -727,7 +718,7 @@ static struct net_device_stats *bf537mac
- {
- 	struct bf537mac_local *lp = netdev_priv(dev);
- 
--	//printk("%s: %s\n", dev->name, __FUNCTION__);
-+	pr_debug("%s: %s\n", dev->name, __FUNCTION__);
- 
- 	return &lp->stats;
- }
-@@ -781,7 +772,7 @@ static void bf537mac_shutdown(struct net
-  */
- static int bf537mac_open(struct net_device *dev)
- {
--	//printk("%s: %s\n", dev->name, __FUNCTION__);
-+	pr_debug("%s: %s\n", dev->name, __FUNCTION__);
- 
- 	/*
- 	 * Check that the address is valid.  If its not, refuse
-@@ -797,11 +788,11 @@ static int bf537mac_open(struct net_devi
- 	desc_list_init();
- 
- 	bf537mac_setphy(dev);
--	SetupSystemRegs(dev);
-+	setup_system_regs(dev);
- 	bf537mac_reset();
- 	bf537mac_enable(dev);
- 
--	//printk(KERN_DEBUG CARDNAME ": hardware init finished\n");
-+	pr_debug("hardware init finished\n");
- 	netif_start_queue(dev);
- 	netif_carrier_on(dev);
- 
-@@ -816,7 +807,7 @@ static int bf537mac_open(struct net_devi
-  */
- static int bf537mac_close(struct net_device *dev)
- {
--	//printk("%s: %s\n", dev->name, __FUNCTION__);
-+	pr_debug("%s: %s\n", dev->name, __FUNCTION__);
- 
- 	netif_stop_queue(dev);
- 	netif_carrier_off(dev);
-@@ -843,7 +834,7 @@ static int __init bf537mac_probe(struct 
- 	/*todo: how to proble? which is revision_register */
- 	bfin_write_EMAC_ADDRLO(0x12345678);
- 	if (bfin_read_EMAC_ADDRLO() != 0x12345678) {
--		//printk(CARDNAME ": can't detect bf537 mac!\n");
-+		pr_debug("can't detect bf537 mac!\n");
- 		retval = -ENODEV;
- 		goto err_out;
- 	}
-@@ -860,7 +851,7 @@ static int __init bf537mac_probe(struct 
- 		random_ether_addr(dev->dev_addr);
- 	}
- 
--	SetupMacAddr(dev->dev_addr);
-+	setup_mac_addr(dev->dev_addr);
- 
- 	/* Fill in the fields of the device structure with ethernet values. */
- 	ether_setup(dev);
-@@ -871,7 +862,9 @@ static int __init bf537mac_probe(struct 
- 	dev->tx_timeout = bf537mac_timeout;
- 	dev->get_stats = bf537mac_query_statistics;
- 	dev->set_multicast_list = bf537mac_set_multicast_list;
--	//  dev->ethtool_ops = &bf537mac_ethtool_ops;
-+#if 0
-+	dev->ethtool_ops = &bf537mac_ethtool_ops;
-+#endif
- #ifdef CONFIG_NET_POLL_CONTROLLER
- 	dev->poll_controller = bf537mac_poll;
  #endif
-@@ -885,8 +878,8 @@ static int __init bf537mac_probe(struct 
- 	lp->FlowControl = 0;
- 	spin_lock_init(&lp->lock);
  
--	// set the GPIO pins to Ethernet mode
--	SetupPinMux();
-+	/* set the GPIO pins to Ethernet mode */
-+	setup_pin_mux();
+@@ -251,8 +259,8 @@ static void null_writer(struct driver_da
  
- 	/* now, enable interrupts */
- 	/* register irq handler */
-@@ -898,7 +891,7 @@ static int __init bf537mac_probe(struct 
- 		return -EBUSY;
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(0);
+-		do {
+-		} while ((read_STAT() & BIT_STAT_TXS));
++		while ((read_STAT() & BIT_STAT_TXS))
++			continue;
+ 		drv_data->tx += n_bytes;
+ 	}
+ }
+@@ -263,8 +271,8 @@ static void null_reader(struct driver_da
+ 	dummy_read();
+ 
+ 	while (drv_data->rx < drv_data->rx_end) {
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_RXS));
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
+ 		dummy_read();
+ 		drv_data->rx += n_bytes;
+ 	}
+@@ -275,14 +283,14 @@ static void u8_writer(struct driver_data
+ 	pr_debug("cr8-s is 0x%x\n", read_STAT());
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(*(u8 *) (drv_data->tx));
+-		do {
+-		} while (read_STAT() & BIT_STAT_TXS);
++		while (read_STAT() & BIT_STAT_TXS)
++			continue;
+ 		++drv_data->tx;
  	}
  
--	/* Enable PHY output early*/
-+	/* Enable PHY output early */
- 	if (!(bfin_read_VR_CTL() & PHYCLKOE))
- 		bfin_write_VR_CTL(bfin_read_VR_CTL() | PHYCLKOE);
+ 	/* poll for SPI completion before returning */
+-	do {
+-	} while (!(read_STAT() & BIT_STAT_SPIF));
++	while (!(read_STAT() & BIT_STAT_SPIF))
++		continue;
+ }
  
-diff -puN drivers/net/bfin_mac.h~blackfin-on-chip-ethernet-mac-controller-driver-update drivers/net/bfin_mac.h
---- a/drivers/net/bfin_mac.h~blackfin-on-chip-ethernet-mac-controller-driver-update
-+++ a/drivers/net/bfin_mac.h
-@@ -6,8 +6,6 @@
-  * Created:
-  * Description:
-  *
-- * Rev:          $Id: bfin_mac.h,v 1.8 2006/08/22 10:50:04 magicyang Exp $
-- *
-  * Modified:
-  *               Copyright 2004-2006 Analog Devices Inc.
-  *
-@@ -29,44 +27,44 @@
-  * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-  */
+ static void u8_cs_chg_writer(struct driver_data *drv_data)
+@@ -294,10 +302,10 @@ static void u8_cs_chg_writer(struct driv
+ 		SSYNC();
  
--// -----------------------------------------------------------------------
--//                     PHY REGISTER NAMES                               //
--// -----------------------------------------------------------------------
--#define PHYREG_MODECTL          0x0000
--#define PHYREG_MODESTAT         0x0001
--#define PHYREG_PHYID1           0x0002
--#define PHYREG_PHYID2           0x0003
--#define PHYREG_ANAR                     0x0004
--#define PHYREG_ANLPAR           0x0005
--#define PHYREG_ANER                     0x0006
--#define PHYREG_NSR                      0x0010
--#define PHYREG_LBREMR           0x0011
--#define PHYREG_REC                      0x0012
--#define PHYREG_10CFG            0x0013
--#define PHYREG_PHY1_1           0x0014
--#define PHYREG_PHY1_2           0x0015
--#define PHYREG_PHY2                     0x0016
--#define PHYREG_TW_1                     0x0017
--#define PHYREG_TW_2                     0x0018
--#define PHYREG_TEST                     0x0019
--
--#define PHY_RESET               0x8000
--#define PHY_ANEG_EN             0x1000
--#define PHY_DUPLEX              0x0100
--#define PHY_SPD_SET             0x2000
+ 		write_TDBR(*(u8 *) (drv_data->tx));
+-		do {
+-		} while (read_STAT() & BIT_STAT_TXS);
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_SPIF));
++		while (read_STAT() & BIT_STAT_TXS)
++			continue;
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
+ 		write_FLAG(0xFF00 | chip->flag);
+ 		SSYNC();
+ 		if (chip->cs_chg_udelay)
+@@ -318,13 +326,14 @@ static void u8_reader(struct driver_data
+ 	dummy_read();
+ 
+ 	while (drv_data->rx < drv_data->rx_end - 1) {
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_RXS));
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
+ 		*(u8 *) (drv_data->rx) = read_RDBR();
+ 		++drv_data->rx;
+ 	}
+-	do {
+-	} while (!(read_STAT() & BIT_STAT_RXS));
++
++	while (!(read_STAT() & BIT_STAT_RXS))
++		continue;
+ 	*(u8 *) (drv_data->rx) = read_SHAW();
+ 	++drv_data->rx;
+ }
+@@ -338,10 +347,10 @@ static void u8_cs_chg_reader(struct driv
+ 		SSYNC();
+ 
+ 		read_RDBR();	/* kick off */
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_RXS));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_SPIF));
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
+ 		*(u8 *) (drv_data->rx) = read_SHAW();
+ 		write_FLAG(0xFF00 | chip->flag);
+ 		SSYNC();
+@@ -358,10 +367,10 @@ static void u8_duplex(struct driver_data
+ 	/* in duplex mode, clk is triggered by writing of TDBR */
+ 	while (drv_data->rx < drv_data->rx_end) {
+ 		write_TDBR(*(u8 *) (drv_data->tx));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_SPIF));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_RXS));
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
+ 		*(u8 *) (drv_data->rx) = read_RDBR();
+ 		++drv_data->rx;
+ 		++drv_data->tx;
+@@ -377,10 +386,10 @@ static void u8_cs_chg_duplex(struct driv
+ 		SSYNC();
+ 
+ 		write_TDBR(*(u8 *) (drv_data->tx));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_SPIF));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_RXS));
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
+ 		*(u8 *) (drv_data->rx) = read_RDBR();
+ 		write_FLAG(0xFF00 | chip->flag);
+ 		SSYNC();
+@@ -398,14 +407,14 @@ static void u16_writer(struct driver_dat
+ 	pr_debug("cr16 is 0x%x\n", read_STAT());
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(*(u16 *) (drv_data->tx));
+-		do {
+-		} while ((read_STAT() & BIT_STAT_TXS));
++		while ((read_STAT() & BIT_STAT_TXS))
++			continue;
+ 		drv_data->tx += 2;
+ 	}
+ 
+ 	/* poll for SPI completion before returning */
+-	do {
+-	} while (!(read_STAT() & BIT_STAT_SPIF));
++	while (!(read_STAT() & BIT_STAT_SPIF))
++		continue;
+ }
+ 
+ static void u16_cs_chg_writer(struct driver_data *drv_data)
+@@ -417,10 +426,10 @@ static void u16_cs_chg_writer(struct dri
+ 		SSYNC();
+ 
+ 		write_TDBR(*(u16 *) (drv_data->tx));
+-		do {
+-		} while ((read_STAT() & BIT_STAT_TXS));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_SPIF));
++		while ((read_STAT() & BIT_STAT_TXS))
++			continue;
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
+ 		write_FLAG(0xFF00 | chip->flag);
+ 		SSYNC();
+ 		if (chip->cs_chg_udelay)
+@@ -437,13 +446,14 @@ static void u16_reader(struct driver_dat
+ 	dummy_read();
+ 
+ 	while (drv_data->rx < (drv_data->rx_end - 2)) {
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_RXS));
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
+ 		*(u16 *) (drv_data->rx) = read_RDBR();
+ 		drv_data->rx += 2;
+ 	}
+-	do {
+-	} while (!(read_STAT() & BIT_STAT_RXS));
++
++	while (!(read_STAT() & BIT_STAT_RXS))
++		continue;
+ 	*(u16 *) (drv_data->rx) = read_SHAW();
+ 	drv_data->rx += 2;
+ }
+@@ -457,10 +467,10 @@ static void u16_cs_chg_reader(struct dri
+ 		SSYNC();
+ 
+ 		read_RDBR();	/* kick off */
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_RXS));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_SPIF));
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
+ 		*(u16 *) (drv_data->rx) = read_SHAW();
+ 		write_FLAG(0xFF00 | chip->flag);
+ 		SSYNC();
+@@ -477,10 +487,10 @@ static void u16_duplex(struct driver_dat
+ 	/* in duplex mode, clk is triggered by writing of TDBR */
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(*(u16 *) (drv_data->tx));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_SPIF));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_RXS));
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
+ 		*(u16 *) (drv_data->rx) = read_RDBR();
+ 		drv_data->rx += 2;
+ 		drv_data->tx += 2;
+@@ -496,10 +506,10 @@ static void u16_cs_chg_duplex(struct dri
+ 		SSYNC();
+ 
+ 		write_TDBR(*(u16 *) (drv_data->tx));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_SPIF));
+-		do {
+-		} while (!(read_STAT() & BIT_STAT_RXS));
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
+ 		*(u16 *) (drv_data->rx) = read_RDBR();
+ 		write_FLAG(0xFF00 | chip->flag);
+ 		SSYNC();
+@@ -528,8 +538,9 @@ static void *next_transfer(struct driver
+ 		return DONE_STATE;
+ }
+ 
+-/* caller already set message->status; dma and pio irqs are blocked
+- * give finished message back
 +/*
-+ * PHY REGISTER NAMES
++ * caller already set message->status;
++ * dma and pio irqs are blocked give finished message back
+  */
+ static void giveback(struct driver_data *drv_data)
+ {
+@@ -549,6 +560,7 @@ static void giveback(struct driver_data 
+ 				   struct spi_transfer, transfer_list);
+ 
+ 	msg->state = NULL;
++
+ 	/* disable chip select signal. And not stop spi in autobuffer mode */
+ 	if (drv_data->tx_dma != 0xFFFF) {
+ 		write_FLAG(0xFF00);
+@@ -567,15 +579,19 @@ static irqreturn_t dma_irq_handler(int i
+ 	pr_debug("in dma_irq_handler\n");
+ 	clear_dma_irqstat(CH_SPI);
+ 
+-	/* wait for the last transaction shifted out.  yes, these two
++	/*
++	 * wait for the last transaction shifted out.  yes, these two
+ 	 * while loops are supposed to be the same (see the HRM).
+ 	 */
+ 	if (drv_data->tx != NULL) {
+-		while (bfin_read_SPI_STAT() & TXS) ;
+-		while (bfin_read_SPI_STAT() & TXS) ;
++		while (bfin_read_SPI_STAT() & TXS)
++			continue;
++		while (bfin_read_SPI_STAT() & TXS)
++			continue;
+ 	}
+ 
+-	while (!(bfin_read_SPI_STAT() & SPIF)) ;
++	while (!(bfin_read_SPI_STAT() & SPIF))
++		continue;
+ 
+ 	bfin_spi_disable(drv_data);
+ 
+@@ -609,8 +625,11 @@ static void pump_transfers(unsigned long
+ 	transfer = drv_data->cur_transfer;
+ 	chip = drv_data->cur_chip;
+ 
+-	/* if msg is error or done, report it back using complete() callback */
+-	/* Handle for abort */
++	/*
++	 * if msg is error or done, report it back using complete() callback
++	 */
++
++	 /* Handle for abort */
+ 	if (message->state == ERROR_STATE) {
+ 		message->status = -EIO;
+ 		giveback(drv_data);
+@@ -676,7 +695,6 @@ static void pump_transfers(unsigned long
+ 	     drv_data->write, chip->write, null_writer);
+ 
+ 	/* speed and width has been set on per message */
+-
+ 	message->state = RUNNING_STATE;
+ 	dma_config = 0;
+ 
+@@ -690,8 +708,12 @@ static void pump_transfers(unsigned long
+ 
+ 	pr_debug("now pumping a transfer: width is %d, len is %d\n", width,
+ 		 transfer->len);
+-	/* Try to map dma buffer and do a dma transfer if successful */
+-	/* use different way to r/w according to drv_data->cur_chip->enable_dma */
++
++	/*
++	 * Try to map dma buffer and do a dma transfer if
++	 * successful use different way to r/w according to
++	 * drv_data->cur_chip->enable_dma
++	 */
+ 	if (drv_data->cur_chip->enable_dma && drv_data->len > 6) {
+ 
+ 		write_STAT(BIT_STAT_CLR);
+@@ -699,8 +721,8 @@ static void pump_transfers(unsigned long
+ 		clear_dma_irqstat(CH_SPI);
+ 		bfin_spi_disable(drv_data);
+ 
+-		pr_debug("doing dma transfer\n");
+ 		/* config dma channel */
++		pr_debug("doing dma transfer\n");
+ 		if (width == CFG_SPI_WORDSIZE16) {
+ 			set_dma_x_count(CH_SPI, drv_data->len);
+ 			set_dma_x_modify(CH_SPI, 2);
+@@ -711,9 +733,8 @@ static void pump_transfers(unsigned long
+ 			dma_width = WDSIZE_8;
+ 		}
+ 
+-		/* Go baby, go */
+ 		/* set transfer width,direction. And enable spi */
+-		cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* clear the TIMOD bits */
++		cr = (read_CTRL() & (~BIT_CTL_TIMOD));
+ 
+ 		/* dirty hack for autobuffer DMA mode */
+ 		if (drv_data->tx_dma == 0xFFFF) {
+@@ -727,6 +748,7 @@ static void pump_transfers(unsigned long
+ 			enable_dma(CH_SPI);
+ 			write_CTRL(cr | CFG_SPI_DMAWRITE | (width << 8) |
+ 				   (CFG_SPI_ENABLE << 14));
++
+ 			/* just return here, there can only be one transfer in this mode */
+ 			message->status = 0;
+ 			giveback(drv_data);
+@@ -760,6 +782,7 @@ static void pump_transfers(unsigned long
+ 			write_CTRL(cr);
+ 		} else if (drv_data->tx != NULL) {
+ 			pr_debug("doing DMA out.\n");
++
+ 			/* start dma */
+ 			dma_enable_irq(CH_SPI);
+ 			dma_config = (RESTART | dma_width | DI_EN);
+@@ -771,13 +794,14 @@ static void pump_transfers(unsigned long
+ 				   (CFG_SPI_ENABLE << 14));
+ 
+ 		}
+-	} else {		/* IO mode write then read */
+-		/* Go baby, go */
++	} else {
++		/* IO mode write then read */
+ 		pr_debug("doing IO transfer\n");
+ 
+ 		write_STAT(BIT_STAT_CLR);
+ 
+-		if (drv_data->tx != NULL && drv_data->rx != NULL) {	/* full duplex mode */
++		if (drv_data->tx != NULL && drv_data->rx != NULL) {
++			/* full duplex mode */
+ 			BUG_ON((drv_data->tx_end - drv_data->tx) !=
+ 			       (drv_data->rx_end - drv_data->rx));
+ 			cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* clear the TIMOD bits */
+@@ -793,7 +817,8 @@ static void pump_transfers(unsigned long
+ 
+ 			if (drv_data->tx != drv_data->tx_end)
+ 				tranf_success = 0;
+-		} else if (drv_data->tx != NULL) {	/* write only half duplex */
++		} else if (drv_data->tx != NULL) {
++			/* write only half duplex */
+ 			cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* clear the TIMOD bits */
+ 			cr |=
+ 			    CFG_SPI_WRITE | (width << 8) | (CFG_SPI_ENABLE <<
+@@ -807,8 +832,8 @@ static void pump_transfers(unsigned long
+ 
+ 			if (drv_data->tx != drv_data->tx_end)
+ 				tranf_success = 0;
+-		} else if (drv_data->rx != NULL) {	/* read only half duplex */
+-
++		} else if (drv_data->rx != NULL) {
++			/* read only half duplex */
+ 			cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* cleare the TIMOD bits */
+ 			cr |=
+ 			    CFG_SPI_READ | (width << 8) | (CFG_SPI_ENABLE <<
+@@ -887,7 +912,10 @@ static void pump_messages(struct work_st
+ 	spin_unlock_irqrestore(&drv_data->lock, flags);
+ }
+ 
+-/* got a msg to transfer, queue it in drv_data->queue. And kick off message pumper */
++/*
++ * got a msg to transfer, queue it in drv_data->queue.
++ * And kick off message pumper
 + */
-+#define PHYREG_MODECTL		0x0000
-+#define PHYREG_MODESTAT		0x0001
-+#define PHYREG_PHYID1		0x0002
-+#define PHYREG_PHYID2		0x0003
-+#define PHYREG_ANAR		0x0004
-+#define PHYREG_ANLPAR		0x0005
-+#define PHYREG_ANER		0x0006
-+#define PHYREG_NSR		0x0010
-+#define PHYREG_LBREMR		0x0011
-+#define PHYREG_REC		0x0012
-+#define PHYREG_10CFG		0x0013
-+#define PHYREG_PHY1_1		0x0014
-+#define PHYREG_PHY1_2		0x0015
-+#define PHYREG_PHY2		0x0016
-+#define PHYREG_TW_1		0x0017
-+#define PHYREG_TW_2		0x0018
-+#define PHYREG_TEST		0x0019
+ static int transfer(struct spi_device *spi, struct spi_message *msg)
+ {
+ 	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
+@@ -923,16 +951,15 @@ static int setup(struct spi_device *spi)
+ 	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
+ 	u8 spi_flg;
+ 
+-	if (chip_select_flag & (1 << (spi->chip_select))) {
+-		printk(KERN_ERR
+-		       "spi_bfin: error: %s is using the same chip selection as another device.\n",
+-		       spi->modalias);
+-		return -ENODEV;
++	/* Abort device setup if requested features are not supported */
++	if (spi->mode & ~(SPI_CPOL | SPI_CPHA | SPI_LSB_FIRST)) {
++		dev_err(&spi->dev, "requested mode not fully supported\n");
++		return -EINVAL;
+ 	}
+-	chip_select_flag |= (1 << (spi->chip_select));
+ 
++	/* Zero (the default) here means 8 bits */
+ 	if (!spi->bits_per_word)
+-		spi->bits_per_word = 16;
++		spi->bits_per_word = 8;
+ 
+ 	if (spi->bits_per_word != 8 && spi->bits_per_word != 16)
+ 		return -EINVAL;
+@@ -958,13 +985,20 @@ static int setup(struct spi_device *spi)
+ 		chip->cs_chg_udelay = chip_info->cs_chg_udelay;
+ 	}
+ 
++	/* translate common spi framework into our register */
+ 	if (spi->mode & SPI_CPOL)
+-		chip->ctl_reg &= CPOL;
++		chip->ctl_reg |= CPOL;
+ 	if (spi->mode & SPI_CPHA)
+-		chip->ctl_reg &= CPHA;
+-
+-	/* if any one SPI chip is registered and wants DMA, request the
+-	   DMA channel for it */
++		chip->ctl_reg |= CPHA;
++	if (spi->mode & SPI_LSB_FIRST)
++		chip->ctl_reg |= LSBF;
++	/* we dont support running in slave mode (yet?) */
++	chip->ctl_reg |= MSTR;
 +
-+#define PHY_RESET		0x8000
-+#define PHY_ANEG_EN		0x1000
-+#define PHY_DUPLEX		0x0100
-+#define PHY_SPD_SET		0x2000
++	/*
++	 * if any one SPI chip is registered and wants DMA, request the
++	 * DMA channel for it
++	 */
+ 	if (chip->enable_dma && !dma_requested) {
+ 		/* register dma irq handler */
+ 		if (request_dma(CH_SPI, "BF53x_SPI_DMA") < 0) {
+@@ -981,50 +1015,59 @@ static int setup(struct spi_device *spi)
+ 		dma_requested = 1;
+ 	}
  
- #define BFIN_MAC_CSUM_OFFLOAD
+-	/* Notice: for blackfin, the speed_hz is the value of register
+-	   SPI_BAUD, not the real baudrate */
++	/*
++	 * Notice: for blackfin, the speed_hz is the value of register
++	 * SPI_BAUD, not the real baudrate
++	 */
+ 	chip->baud = hz_to_spi_baud(spi->max_speed_hz);
+ 	spi_flg = ~(1 << (spi->chip_select));
+ 	chip->flag = ((u16) spi_flg << 8) | (1 << (spi->chip_select));
+ 	chip->chip_select_num = spi->chip_select;
  
- typedef struct _DMA_CONFIG {
--	unsigned short b_DMA_EN:1;	//Bit 0 : DMA Enable
--	unsigned short b_WNR:1;	//Bit 1 : DMA Direction
--	unsigned short b_WDSIZE:2;	//Bit 2 & 3 : DMA Tranfer Word size
--	unsigned short b_DMA2D:1;	//Bit 4 : DMA Mode 2D or 1D
--	unsigned short b_RESTART:1;	//Bit 5 : Retain the FIFO
--	unsigned short b_DI_SEL:1;	//Bit 6 : Data Interrupt Timing Select
--	unsigned short b_DI_EN:1;	//Bit 7 : Data Interrupt Enable
--	unsigned short b_NDSIZE:4;	//Bit 8 to 11 : Flex descriptor Size
--	unsigned short b_FLOW:3;	//Bit 12 to 14 : FLOW
-+	unsigned short b_DMA_EN:1;	/* Bit 0 : DMA Enable */
-+	unsigned short b_WNR:1;		/* Bit 1 : DMA Direction */
-+	unsigned short b_WDSIZE:2;	/* Bit 2 & 3 : DMA Tranfer Word size */
-+	unsigned short b_DMA2D:1;	/* Bit 4 : DMA Mode 2D or 1D */
-+	unsigned short b_RESTART:1;	/* Bit 5 : Retain the FIFO */
-+	unsigned short b_DI_SEL:1;	/* Bit 6 : Data Interrupt Timing Select */
-+	unsigned short b_DI_EN:1;	/* Bit 7 : Data Interrupt Enable */
-+	unsigned short b_NDSIZE:4;	/* Bit 8 to 11 : Flex descriptor Size */
-+	unsigned short b_FLOW:3;	/* Bit 12 to 14 : FLOW */
- } DMA_CONFIG_REG;
- 
- struct dma_descriptor {
-@@ -76,23 +74,24 @@ struct dma_descriptor {
- 	unsigned short x_count;
- };
- 
--/*
-+#if 0
- struct status_area {
--  unsigned short ip_hdr_chksum;         // the IP header checksum
--  unsigned short ip_payload_chksum;     // the IP header and payload checksum
--  unsigned long  status_word;           // the frame status word
-+  unsigned short ip_hdr_chksum;         /* the IP header checksum */
-+  unsigned short ip_payload_chksum;     /* the IP header and payload checksum */
-+  unsigned long  status_word;           /* the frame status word */
- };
--*/
-+#endif
+-	if (chip->bits_per_word <= 8) {
++	switch (chip->bits_per_word) {
++	case 8:
+ 		chip->n_bytes = 1;
+ 		chip->width = CFG_SPI_WORDSIZE8;
+-		chip->read =
+-		    chip->cs_change_per_word ? u8_cs_chg_reader : u8_reader;
+-		chip->write =
+-		    chip->cs_change_per_word ? u8_cs_chg_writer : u8_writer;
+-		chip->duplex =
+-		    chip->cs_change_per_word ? u8_cs_chg_duplex : u8_duplex;
+-		pr_debug("8bit: chip->write is %p, u8_writer is %p\n",
+-			 chip->write, u8_writer);
+-	} else if (spi->bits_per_word <= 16) {
++		chip->read = chip->cs_change_per_word ?
++			u8_cs_chg_reader : u8_reader;
++		chip->write = chip->cs_change_per_word ?
++			u8_cs_chg_writer : u8_writer;
++		chip->duplex = chip->cs_change_per_word ?
++			u8_cs_chg_duplex : u8_duplex;
++		break;
 +
- struct status_area_rx {
- #if defined(BFIN_MAC_CSUM_OFFLOAD)
--	unsigned short ip_hdr_csum;	// ip header checksum
--	unsigned short ip_payload_csum;	// ip payload(udp or tcp or others) checksum
-+	unsigned short ip_hdr_csum;	/* ip header checksum */
-+	unsigned short ip_payload_csum;	/* ip payload(udp or tcp or others) checksum */
- #endif
--	unsigned long status_word;	// the frame status word
-+	unsigned long status_word;	/* the frame status word */
- };
- 
- struct status_area_tx {
--	unsigned long status_word;	// the frame status word
-+	unsigned long status_word;	/* the frame status word */
- };
- 
- /* use two descriptors for a packet */
-@@ -124,23 +123,25 @@ struct bf537mac_local {
- 
- 	int version;
- 
--	int FlowEnabled;	// record if data flow is active
--	int EtherIntIVG;	// IVG for the ethernet interrupt
--	int RXIVG;		// IVG for the RX completion
--	int TXIVG;		// IVG for the TX completion
--	int PhyAddr;		// PHY address
--	int OpMode;		// set these bits n the OPMODE regs
--	int Port10;		// set port speed to 10 Mbit/s
--	int GenChksums;		// IP checksums to be calculated
--	int NoRcveLnth;		// dont insert recv length at start of buffer
--	int StripPads;		// remove trailing pad bytes
--	int FullDuplex;		// set full duplex mode
--	int Negotiate;		// enable auto negotiation
--	int Loopback;		// loopback at the PHY
--	int Cache;		// Buffers may be cached
--	int FlowControl;	// flow control active
--	int CLKIN;		// clock in value in MHZ
--	unsigned short IntMask;	// interrupt mask
--	unsigned char Mac[6];	// MAC address of the board
-+	int FlowEnabled;	/* record if data flow is active */
-+	int EtherIntIVG;	/* IVG for the ethernet interrupt */
-+	int RXIVG;		/* IVG for the RX completion */
-+	int TXIVG;		/* IVG for the TX completion */
-+	int PhyAddr;		/* PHY address */
-+	int OpMode;		/* set these bits n the OPMODE regs */
-+	int Port10;		/* set port speed to 10 Mbit/s */
-+	int GenChksums;		/* IP checksums to be calculated */
-+	int NoRcveLnth;		/* dont insert recv length at start of buffer */
-+	int StripPads;		/* remove trailing pad bytes */
-+	int FullDuplex;		/* set full duplex mode */
-+	int Negotiate;		/* enable auto negotiation */
-+	int Loopback;		/* loopback at the PHY */
-+	int Cache;		/* Buffers may be cached */
-+	int FlowControl;	/* flow control active */
-+	int CLKIN;		/* clock in value in MHZ */
-+	unsigned short IntMask;	/* interrupt mask */
-+	unsigned char Mac[6];	/* MAC address of the board */
- 	spinlock_t lock;
- };
++	case 16:
+ 		chip->n_bytes = 2;
+ 		chip->width = CFG_SPI_WORDSIZE16;
+-		chip->read =
+-		    chip->cs_change_per_word ? u16_cs_chg_reader : u16_reader;
+-		chip->write =
+-		    chip->cs_change_per_word ? u16_cs_chg_writer : u16_writer;
+-		chip->duplex =
+-		    chip->cs_change_per_word ? u16_cs_chg_duplex : u16_duplex;
+-		pr_debug("16bit: chip->write is %p, u16_writer is %p\n",
+-			 chip->write, u16_writer);
+-	} else {
+-		dev_err(&spi->dev, "invalid wordsize\n");
++		chip->read = chip->cs_change_per_word ?
++			u16_cs_chg_reader : u16_reader;
++		chip->write = chip->cs_change_per_word ?
++			u16_cs_chg_writer : u16_writer;
++		chip->duplex = chip->cs_change_per_word ?
++			u16_cs_chg_duplex : u16_duplex;
++		break;
 +
-+extern void get_bf537_ether_addr(char *addr);
++	default:
++		dev_err(&spi->dev, "%d bits_per_word is not supported\n",
++				chip->bits_per_word);
+ 		kfree(chip);
+ 		return -ENODEV;
+ 	}
+-	pr_debug
+-	    ("setup spi chip %s, width is %d, dma is %d, ctl_reg is 0x%x, flag_reg is 0x%x\n",
+-	     spi->modalias, chip->width, chip->enable_dma, chip->ctl_reg,
+-	     chip->flag);
++
++	pr_debug("setup spi chip %s, width is %d, dma is %d,",
++			spi->modalias, chip->width, chip->enable_dma);
++	pr_debug("ctl_reg is 0x%x, flag_reg is 0x%x\n",
++			chip->ctl_reg, chip->flag);
++
+ 	spi_set_ctldata(spi, chip);
+ 
+ 	return 0;
+ }
+ 
+-/* callback for spi framework. clean driver specific data */
++/*
++ * callback for spi framework.
++ * clean driver specific data
++ */
+ static void cleanup(const struct spi_device *spi)
+ {
+ 	struct chip_data *chip = spi_get_ctldata((struct spi_device *)spi);
+@@ -1032,7 +1075,7 @@ static void cleanup(const struct spi_dev
+ 	kfree(chip);
+ }
+ 
+-static int init_queue(struct driver_data *drv_data)
++static inline int init_queue(struct driver_data *drv_data)
+ {
+ 	INIT_LIST_HEAD(&drv_data->queue);
+ 	spin_lock_init(&drv_data->lock);
+@@ -1054,7 +1097,7 @@ static int init_queue(struct driver_data
+ 	return 0;
+ }
+ 
+-static int start_queue(struct driver_data *drv_data)
++static inline int start_queue(struct driver_data *drv_data)
+ {
+ 	unsigned long flags;
+ 
+@@ -1076,7 +1119,7 @@ static int start_queue(struct driver_dat
+ 	return 0;
+ }
+ 
+-static int stop_queue(struct driver_data *drv_data)
++static inline int stop_queue(struct driver_data *drv_data)
+ {
+ 	unsigned long flags;
+ 	unsigned limit = 500;
+@@ -1084,10 +1127,12 @@ static int stop_queue(struct driver_data
+ 
+ 	spin_lock_irqsave(&drv_data->lock, flags);
+ 
+-	/* This is a bit lame, but is optimized for the common execution path.
++	/*
++	 * This is a bit lame, but is optimized for the common execution path.
+ 	 * A wait_queue on the drv_data->busy could be used, but then the common
+ 	 * execution path (pump_messages) would be required to call wake_up or
+-	 * friends on every SPI message. Do this instead */
++	 * friends on every SPI message. Do this instead
++	 */
+ 	drv_data->run = QUEUE_STOPPED;
+ 	while (!list_empty(&drv_data->queue) && drv_data->busy && limit--) {
+ 		spin_unlock_irqrestore(&drv_data->lock, flags);
+@@ -1103,7 +1148,7 @@ static int stop_queue(struct driver_data
+ 	return status;
+ }
+ 
+-static int destroy_queue(struct driver_data *drv_data)
++static inline int destroy_queue(struct driver_data *drv_data)
+ {
+ 	int status;
+ 
+@@ -1116,7 +1161,7 @@ static int destroy_queue(struct driver_d
+ 	return 0;
+ }
+ 
+-static int bfin5xx_spi_probe(struct platform_device *pdev)
++static int __init bfin5xx_spi_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct bfin5xx_spi_master *platform_info;
+@@ -1126,7 +1171,7 @@ static int bfin5xx_spi_probe(struct plat
+ 
+ 	platform_info = dev->platform_data;
+ 
+-	/* Allocate master with space for drv_data and null dma buffer */
++	/* Allocate master with space for drv_data */
+ 	master = spi_alloc_master(dev, sizeof(struct driver_data) + 16);
+ 	if (!master) {
+ 		dev_err(&pdev->dev, "can not alloc spi_master\n");
+@@ -1172,7 +1217,7 @@ static int bfin5xx_spi_probe(struct plat
+ }
+ 
+ /* stop hardware and remove the driver */
+-static int bfin5xx_spi_remove(struct platform_device *pdev)
++static int __devexit bfin5xx_spi_remove(struct platform_device *pdev)
+ {
+ 	struct driver_data *drv_data = platform_get_drvdata(pdev);
+ 	int status = 0;
+@@ -1203,31 +1248,12 @@ static int bfin5xx_spi_remove(struct pla
+ 	return 0;
+ }
+ 
+-/* PM, do nothing now */
+ #ifdef CONFIG_PM
+-static int suspend_devices(struct device *dev, void *pm_message)
+-{
+-	pm_message_t *state = pm_message;
+-
+-	if (dev->power.power_state.event != state->event && dev->driver != NULL) {
+-		dev_warn(dev, "pm state does not match request\n");
+-		return -1;
+-	}
+-
+-	return 0;
+-}
+-
+ static int bfin5xx_spi_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+ 	struct driver_data *drv_data = platform_get_drvdata(pdev);
+ 	int status = 0;
+ 
+-	/* Check all childern for current power state */
+-	if (device_for_each_child(&pdev->dev, &state, suspend_devices) != 0) {
+-		dev_warn(&pdev->dev, "suspend aborted\n");
+-		return -1;
+-	}
+-
+ 	status = stop_queue(drv_data);
+ 	if (status != 0)
+ 		return status;
+@@ -1260,7 +1286,7 @@ static int bfin5xx_spi_resume(struct pla
+ #define bfin5xx_spi_resume NULL
+ #endif				/* CONFIG_PM */
+ 
+-static struct platform_driver driver = {
++static struct platform_driver bfin5xx_spi_driver = {
+ 	.driver = {
+ 		   .name = "bfin-spi-master",
+ 		   .bus = &platform_bus_type,
+@@ -1274,15 +1300,14 @@ static struct platform_driver driver = {
+ 
+ static int __init bfin5xx_spi_init(void)
+ {
+-	platform_driver_register(&driver);
+-	return 0;
++	return platform_driver_register(&bfin5xx_spi_driver);
+ }
+ 
+ module_init(bfin5xx_spi_init);
+ 
+ static void __exit bfin5xx_spi_exit(void)
+ {
+-	platform_driver_unregister(&driver);
++	platform_driver_unregister(&bfin5xx_spi_driver);
+ }
+ 
+ module_exit(bfin5xx_spi_exit);
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -754,13 +837,9 @@ origin.patch
 blackfin-arch.patch
 driver_bfin_serial_core.patch
 blackfin-on-chip-ethernet-mac-controller-driver.patch
-blackfin-on-chip-ethernet-mac-controller-driver-update.patch
 blackfin-patch-add-blackfin-support-in-smc91x.patch
 blackfin-on-chip-rtc-controller-driver.patch
-blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
 blackfin-blackfin-on-chip-spi-controller-driver.patch
-blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
-blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
 blackfin-spi-controller-driver-update-according-to-david-brownells-review.patch
 blackfin-serial-core-driver-uart1-should-depend-on-bf534-bf536-bf537-remove-experimental-marking-from-on-chip-serial-core-driver-and-make-options-less-wordy.patch
 move-die-notifier-handling-to-common-code-fix.patch
