@@ -1,106 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: - cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:59:11 -0700
-Message-ID: <200704301959.l3UJxCwJ013566@shell0.pdx.osdl.net>
+Subject: - cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:59:15 -0700
+Message-ID: <200704301959.l3UJxFhn013569@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60129 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34153 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423560AbXD3T7X (ORCPT
+	by vger.kernel.org with ESMTP id S1423536AbXD3T7h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:59:23 -0400
+	Mon, 30 Apr 2007 15:59:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenchen@google.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kenchen@google.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cache pipe buf page address for non-highmem arch (fix)
+     cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy
 has been removed from the -mm tree.  Its filename was
-     cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
+     cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
 
 This patch was dropped because it was folded into cache-pipe-buf-page-address-for-non-highmem-arch.patch
 
 ------------------------------------------------------
-Subject: cache pipe buf page address for non-highmem arch (fix)
-From: "Ken Chen" <kenchen@google.com>
+Subject: cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On 3/26/07, Andrew Morton <akpm@linux-foundation.org> wrote:
-> LTP's vmsplice01 triggers the below:
->
-> Unable to handle kernel NULL pointer dereference at 0000000000000130 RIP:
->  [<ffffffff8029e1b6>] pipe_to_file+0x1f3/0x2a6
-
-Ouch, generic_pipe_buf_map() and unmap is used by both pipe and
-splice, I better constrain all changes within fs/pipe.c because from
-splice path, the page->private is not initialized.
-
-Double ouch for missing test that code path.  Here is an updated
-patch, tested with LTP and FIO.  I will write more test cases to make
-sure all code path are covered.
-
-
+Cc: "Ken Chen" <kenchen@google.com>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   27 ++++++++++++++++++++++++---
- 1 files changed, 24 insertions(+), 3 deletions(-)
+ fs/pipe.c |   31 +++++++++++++++++++++++++------
+ 1 files changed, 25 insertions(+), 6 deletions(-)
 
-diff -puN fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch-fix fs/pipe.c
---- a/fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch-fix
+diff -puN fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy fs/pipe.c
+--- a/fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy
 +++ a/fs/pipe.c
-@@ -184,13 +184,34 @@ void *generic_pipe_buf_map(struct pipe_i
- {
- 	if (atomic) {
- 		buf->flags |= PIPE_BUF_FLAG_ATOMIC;
-+		return kmap_atomic(buf->page, KM_USER0);
-+	}
-+
-+	return kmap(buf->page);
-+}
-+
-+void generic_pipe_buf_unmap(struct pipe_inode_info *pipe,
-+			    struct pipe_buffer *buf, void *map_data)
-+{
-+	if (buf->flags & PIPE_BUF_FLAG_ATOMIC) {
-+		buf->flags &= ~PIPE_BUF_FLAG_ATOMIC;
-+		kunmap_atomic(map_data, KM_USER0);
-+	} else
-+		kunmap(buf->page);
-+}
-+
-+static void *pipe_buf_map(struct pipe_inode_info *pipe,
-+			   struct pipe_buffer *buf, int atomic)
-+{
-+	if (atomic) {
-+		buf->flags |= PIPE_BUF_FLAG_ATOMIC;
- 		return pipe_kmap_atomic(buf->page, KM_USER0);
- 	}
+@@ -22,17 +22,36 @@
+ #include <asm/ioctls.h>
  
- 	return pipe_kmap(buf->page);
+ #ifdef CONFIG_HIGHMEM
+-#define pipe_kmap		kmap
+-#define pipe_kmap_atomic	kmap_atomic
+-#define pipe_kunmap		kunmap
+-#define pipe_kunmap_atomic	kunmap_atomic
++static inline void *pipe_kmap(struct page *page)
++{
++	return kmap(page);
++}
++
++static inline void pipe_kunmap(struct page *page)
++{
++	kunmap(page);
++}
++
++static inline void *pipe_kmap_atomic(struct page *page, enum km_type type)
++{
++	return kmap_atomic(page, type);
++}
++
++static inline void pipe_kunmap_atomic(void *addr, enum km_type type)
++{
++	kunmap_atomic(addr, type);
++}
+ #else	/* CONFIG_HIGHMEM */
+ static inline void *pipe_kmap(struct page *page)
+ {
+-	return (void *) page->private;
++	return (void *)page->private;
  }
++
++static inline void pipe_kunmap(struct page *page)
++{
++}
++
+ #define pipe_kmap_atomic(page, type)	pipe_kmap(page)
+-#define pipe_kunmap(page)		do { } while (0)
+ #define pipe_kunmap_atomic(page, type)	do { } while (0)
+ #endif
  
--void generic_pipe_buf_unmap(struct pipe_inode_info *pipe,
-+static void pipe_buf_unmap(struct pipe_inode_info *pipe,
- 			    struct pipe_buffer *buf, void *map_data)
- {
- 	if (buf->flags & PIPE_BUF_FLAG_ATOMIC) {
-@@ -225,8 +246,8 @@ int generic_pipe_buf_pin(struct pipe_ino
- 
- static const struct pipe_buf_operations anon_pipe_buf_ops = {
- 	.can_merge = 1,
--	.map = generic_pipe_buf_map,
--	.unmap = generic_pipe_buf_unmap,
-+	.map = pipe_buf_map,
-+	.unmap = pipe_buf_unmap,
- 	.pin = generic_pipe_buf_pin,
- 	.release = anon_pipe_buf_release,
- 	.steal = generic_pipe_buf_steal,
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+zlib-backout.patch
+extend-print_symbol-capability.patch
+add-kvasprintf.patch
+add-kvasprintf-fix.patch
+slab-introduce-krealloc.patch
+git-acpi.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+git-powerpc.patch
+git-powerpc-fixup.patch
+ppc4xx_sgdma-needs-dma_mappingh.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+ida-implement-idr-based-id-allocator-fix.patch
+more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-ieee1394-fixup.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-input-fixup.patch
+git-jfs.patch
+git-kvm.patch
+git-libata-all.patch
+ata-printk-warning-fixes.patch
+drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
+revert-rm-pointless-dmaengine-exports.patch
+git-md-accel-fix.patch
+git-mmc-build-fix.patch
+git-netdev-all.patch
+ne-add-platform_driver-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-net-vs-git-netdev-all.patch
+sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-ocfs2.patch
+git-parisc.patch
+rm9000-serial-driver.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-__inquire_remote_apic-printk-warning-fix.patch
+xfs-clean-up-shrinker-games.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-remove-artificial-software-max_loop-limit.patch
+add-support-for-deferrable-timers-respun-tidy.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc-fix.patch
+ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
+fix-kevents-childs-priority-greediness-fix.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
+enhance-initcall_debug-measure-latency-fix.patch
+expose-range-checking-functions-from-arch-specific-update-fix.patch
+pad-irq_desc-to-internode-cacheline-size-fix.patch
+dtlk-fix-error-checks-in-module_init-fix.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation-fix.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
+kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix.patch
+signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
+signal-timer-event-fds-v9-timerfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix.patch
+signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+git-gccbug-fixup.patch
+w1-build-fix.patch
