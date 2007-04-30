@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-spi-controller-driver-update-according-to-david-brownells-review.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:15:26 -0700
-Message-ID: <200704301915.l3UJFRFg012604@shell0.pdx.osdl.net>
+Subject: - blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:15:16 -0700
+Message-ID: <200704301915.l3UJFGoS012598@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60552 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946702AbXD3TPd (ORCPT
+	by vger.kernel.org with ESMTP id S1946701AbXD3TPd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 30 Apr 2007 15:15:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,819 +15,739 @@ To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin spi controller driver: update according to David Brownell's review
+     Blackfin: spi driver cleanup and coding style fixing
 has been removed from the -mm tree.  Its filename was
-     blackfin-spi-controller-driver-update-according-to-david-brownells-review.patch
+     blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
 
 This patch was dropped because it was folded into blackfin-blackfin-on-chip-spi-controller-driver.patch
 
 ------------------------------------------------------
-Subject: blackfin spi controller driver: update according to David Brownell's review
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: Blackfin: spi driver cleanup and coding style fixing
+From: "Wu, Bryan" <bryan.wu@analog.com>
 
-(http://lkml.org/lkml/2007/4/16/333)
+This patch cleanup blackfin SPI driver code and fix some coding style
+problems.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/Kconfig       |   11 -
- drivers/spi/Makefile      |    4 
- drivers/spi/spi_bfin5xx.c |  337 +++++++++++++++++++-----------------
- 3 files changed, 189 insertions(+), 163 deletions(-)
+ drivers/spi/spi_bfin5xx.c |  322 ++++++++++++++++++++----------------
+ 1 files changed, 179 insertions(+), 143 deletions(-)
 
-diff -puN drivers/spi/Kconfig~blackfin-spi-controller-driver-update-according-to-david-brownells-review drivers/spi/Kconfig
---- a/drivers/spi/Kconfig~blackfin-spi-controller-driver-update-according-to-david-brownells-review
-+++ a/drivers/spi/Kconfig
-@@ -58,6 +58,12 @@ config SPI_ATMEL
- 	  This selects a driver for the Atmel SPI Controller, present on
- 	  many AT32 (AVR32) and AT91 (ARM) chips.
- 
-+config SPI_BFIN
-+	tristate "SPI controller driver for ADI Blackfin5xx"
-+	depends on SPI_MASTER && BFIN
-+	help
-+	  This is the SPI controller master driver for Blackfin 5xx processor.
-+
- config SPI_BITBANG
- 	tristate "Bitbanging SPI master"
- 	depends on SPI_MASTER && EXPERIMENTAL
-@@ -156,11 +162,6 @@ config SPI_AT25
- #
- # Add new SPI protocol masters in alphabetical order above this line
- #
--config SPI_BFIN
--	tristate "SPI controller driver for ADI Blackfin5xx"
--	depends on SPI_MASTER && BFIN
--	help
--	  This is the SPI controller master driver for Blackfin 5xx processor.
- 
- # (slave support would go here)
- 
-diff -puN drivers/spi/Makefile~blackfin-spi-controller-driver-update-according-to-david-brownells-review drivers/spi/Makefile
---- a/drivers/spi/Makefile~blackfin-spi-controller-driver-update-according-to-david-brownells-review
-+++ a/drivers/spi/Makefile
-@@ -11,8 +11,9 @@ endif
- obj-$(CONFIG_SPI_MASTER)		+= spi.o
- 
- # SPI master controller drivers (bus)
--obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
- obj-$(CONFIG_SPI_ATMEL)			+= atmel_spi.o
-+obj-$(CONFIG_SPI_BFIN)			+= spi_bfin5xx.o
-+obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
- obj-$(CONFIG_SPI_BUTTERFLY)		+= spi_butterfly.o
- obj-$(CONFIG_SPI_IMX)			+= spi_imx.o
- obj-$(CONFIG_SPI_PXA2XX)		+= pxa2xx_spi.o
-@@ -20,7 +21,6 @@ obj-$(CONFIG_SPI_OMAP_UWIRE)		+= omap_uw
- obj-$(CONFIG_SPI_MPC83xx)		+= spi_mpc83xx.o
- obj-$(CONFIG_SPI_S3C24XX_GPIO)		+= spi_s3c24xx_gpio.o
- obj-$(CONFIG_SPI_S3C24XX)		+= spi_s3c24xx.o
--obj-$(CONFIG_SPI_BFIN)			+= spi_bfin5xx.o
- # 	... add above this line ...
- 
- # SPI protocol drivers (device/link on bus)
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-controller-driver-update-according-to-david-brownells-review drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-controller-driver-update-according-to-david-brownells-review
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing
 +++ a/drivers/spi/spi_bfin5xx.c
-@@ -76,7 +76,6 @@ DEFINE_SPI_REG(SHAW, 0x18)
+@@ -7,8 +7,6 @@
+  * Description:  SPI controller driver for Blackfin 5xx
+  * Bugs:         Enter bugs at http://blackfin.uclinux.org/
+  *
+- * Rev:          $Id: spi_bfin5xx.c 2508 2006-12-06 07:35:43Z sonicz $
+- *
+  * Modified:
+  *	March 10, 2006  bfin5xx_spi.c Created. (Luke Yang)
+  *      August 7, 2006  added full duplex mode (Axel Weiss & Luke Yang)
+@@ -55,17 +53,6 @@ MODULE_AUTHOR("Luke Yang");
+ MODULE_DESCRIPTION("Blackfin 5xx SPI Contoller");
+ MODULE_LICENSE("GPL");
+ 
+-#ifdef DEBUG
+-#define ASSERT(expr) \
+-	if (!(expr)) { \
+-		printk(KERN_DEBUG "assertion failed! %s[%d]: %s\n", \
+-		       __FUNCTION__, __LINE__, #expr); \
+-		panic(KERN_DEBUG "%s", __FUNCTION__); \
+-	}
+-#else
+-#define ASSERT(expr)
+-#endif
+-
+ #define IS_DMA_ALIGNED(x) (((u32)(x)&0x07)==0)
+ 
+ #define DEFINE_SPI_REG(reg, off) \
+@@ -82,15 +69,12 @@ DEFINE_SPI_REG(TDBR, 0x0C)
+ DEFINE_SPI_REG(RDBR, 0x10)
+ DEFINE_SPI_REG(BAUD, 0x14)
+ DEFINE_SPI_REG(SHAW, 0x18)
+-
+ #define START_STATE ((void*)0)
+ #define RUNNING_STATE ((void*)1)
+ #define DONE_STATE ((void*)2)
+ #define ERROR_STATE ((void*)-1)
+-
  #define QUEUE_RUNNING 0
  #define QUEUE_STOPPED 1
+-
  int dma_requested;
--char chip_select_flag;
+ char chip_select_flag;
  
- struct driver_data {
- 	/* Driver model hookup */
-@@ -175,8 +174,9 @@ static int flush(struct driver_data *drv
+@@ -175,12 +159,13 @@ void bfin_spi_disable(struct driver_data
+ static u16 hz_to_spi_baud(u32 speed_hz)
+ {
+ 	u_long sclk = get_sclk();
+-	u16 spi_baud = (sclk / (2*speed_hz));
++	u16 spi_baud = (sclk / (2 * speed_hz));
+ 
+-	if ((sclk % (2*speed_hz)) > 0)
++	if ((sclk % (2 * speed_hz)) > 0)
+ 		spi_baud++;
+ 
+-	pr_debug("sclk = %ld, speed_hz = %d, spi_baud = %d\n", sclk, speed_hz, spi_baud);
++	pr_debug("sclk = %ld, speed_hz = %d, spi_baud = %d\n", sclk, speed_hz,
++		 spi_baud);
+ 
+ 	return spi_baud;
+ }
+@@ -190,7 +175,8 @@ static int flush(struct driver_data *drv
  	unsigned long limit = loops_per_jiffy << 1;
  
  	/* wait for stop and clear stat */
--	do {
--	} while (!(read_STAT() & BIT_STAT_SPIF) && limit--);
-+	while (!(read_STAT() & BIT_STAT_SPIF) && limit--)
-+		continue;
-+
+-	do {} while (!(read_STAT() & BIT_STAT_SPIF) && limit--);
++	do {
++	} while (!(read_STAT() & BIT_STAT_SPIF) && limit--);
  	write_STAT(BIT_STAT_CLR);
  
  	return limit;
-@@ -192,42 +192,50 @@ static void restore_state(struct driver_
- 	bfin_spi_disable(drv_data);
- 	pr_debug("restoring spi ctl state\n");
- 
--#if defined(CONFIG_BF534)||defined(CONFIG_BF536)||defined(CONFIG_BF537)
--	if (chip->chip_select_num == 1) {
--		pr_debug("set for chip select 1\n");
-+#if defined(CONFIG_BF534) || defined(CONFIG_BF536) || defined(CONFIG_BF537)
-+	pr_debug("chip select number is %d\n", chip->chip_select_num);
-+
-+	switch (chip->chip_select_num) {
-+	case 1:
- 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3c00);
- 		SSYNC();
-+		break;
- 
--	} else if (chip->chip_select_num == 2 || chip->chip_select_num == 3) {
--		pr_debug("set for chip select 2\n");
-+	case 2:
-+	case 3:
- 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PJSE_SPI);
- 		SSYNC();
- 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3800);
- 		SSYNC();
-+		break;
- 
--	} else if (chip->chip_select_num == 4) {
-+	case 4:
- 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PFS4E_SPI);
- 		SSYNC();
- 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3840);
- 		SSYNC();
-+		break;
- 
--	} else if (chip->chip_select_num == 5) {
-+	case 5:
- 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PFS5E_SPI);
- 		SSYNC();
- 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3820);
- 		SSYNC();
-+		break;
- 
--	} else if (chip->chip_select_num == 6) {
-+	case 6:
- 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PFS6E_SPI);
- 		SSYNC();
- 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3810);
- 		SSYNC();
-+		break;
- 
--	} else if (chip->chip_select_num == 7) {
-+	case 7:
- 		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PJCE_SPI);
- 		SSYNC();
- 		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3800);
- 		SSYNC();
-+		break;
- 	}
- #endif
- 
-@@ -251,8 +259,8 @@ static void null_writer(struct driver_da
+@@ -265,7 +251,8 @@ static void null_writer(struct driver_da
  
  	while (drv_data->tx < drv_data->tx_end) {
  		write_TDBR(0);
--		do {
--		} while ((read_STAT() & BIT_STAT_TXS));
-+		while ((read_STAT() & BIT_STAT_TXS))
-+			continue;
+-		do {} while ((read_STAT() & BIT_STAT_TXS));
++		do {
++		} while ((read_STAT() & BIT_STAT_TXS));
  		drv_data->tx += n_bytes;
  	}
  }
-@@ -263,8 +271,8 @@ static void null_reader(struct driver_da
+@@ -276,7 +263,8 @@ static void null_reader(struct driver_da
  	dummy_read();
  
  	while (drv_data->rx < drv_data->rx_end) {
--		do {
--		} while (!(read_STAT() & BIT_STAT_RXS));
-+		while (!(read_STAT() & BIT_STAT_RXS))
-+			continue;
+-		do {} while (!(read_STAT() & BIT_STAT_RXS));
++		do {
++		} while (!(read_STAT() & BIT_STAT_RXS));
  		dummy_read();
  		drv_data->rx += n_bytes;
  	}
-@@ -275,14 +283,14 @@ static void u8_writer(struct driver_data
+@@ -286,13 +274,15 @@ static void u8_writer(struct driver_data
+ {
  	pr_debug("cr8-s is 0x%x\n", read_STAT());
  	while (drv_data->tx < drv_data->tx_end) {
- 		write_TDBR(*(u8 *) (drv_data->tx));
--		do {
--		} while (read_STAT() & BIT_STAT_TXS);
-+		while (read_STAT() & BIT_STAT_TXS)
-+			continue;
+-		write_TDBR(*(u8 *)(drv_data->tx));
+-		do {} while (read_STAT() & BIT_STAT_TXS);
++		write_TDBR(*(u8 *) (drv_data->tx));
++		do {
++		} while (read_STAT() & BIT_STAT_TXS);
  		++drv_data->tx;
  	}
  
- 	/* poll for SPI completion before returning */
--	do {
--	} while (!(read_STAT() & BIT_STAT_SPIF));
-+	while (!(read_STAT() & BIT_STAT_SPIF))
-+		continue;
+-	// poll for SPI completion before returning
+-	do {} while (!(read_STAT() & BIT_STAT_SPIF));
++	/* poll for SPI completion before returning */
++	do {
++	} while (!(read_STAT() & BIT_STAT_SPIF));
  }
  
  static void u8_cs_chg_writer(struct driver_data *drv_data)
-@@ -294,10 +302,10 @@ static void u8_cs_chg_writer(struct driv
+@@ -303,10 +293,12 @@ static void u8_cs_chg_writer(struct driv
+ 		write_FLAG(chip->flag);
  		SSYNC();
  
- 		write_TDBR(*(u8 *) (drv_data->tx));
--		do {
--		} while (read_STAT() & BIT_STAT_TXS);
--		do {
--		} while (!(read_STAT() & BIT_STAT_SPIF));
-+		while (read_STAT() & BIT_STAT_TXS)
-+			continue;
-+		while (!(read_STAT() & BIT_STAT_SPIF))
-+			continue;
- 		write_FLAG(0xFF00 | chip->flag);
+-		write_TDBR(*(u8 *)(drv_data->tx));
+-		do {} while (read_STAT() & BIT_STAT_TXS);
+-		do {} while (!(read_STAT() & BIT_STAT_SPIF));
+-		write_FLAG(0xFF00|chip->flag);
++		write_TDBR(*(u8 *) (drv_data->tx));
++		do {
++		} while (read_STAT() & BIT_STAT_TXS);
++		do {
++		} while (!(read_STAT() & BIT_STAT_SPIF));
++		write_FLAG(0xFF00 | chip->flag);
  		SSYNC();
  		if (chip->cs_chg_udelay)
-@@ -318,13 +326,14 @@ static void u8_reader(struct driver_data
+ 			udelay(chip->cs_chg_udelay);
+@@ -320,18 +312,20 @@ static void u8_reader(struct driver_data
+ {
+ 	pr_debug("cr-8 is 0x%x\n", read_STAT());
+ 
+-	// clear TDBR buffer before read(else it will be shifted out)
++	/* clear TDBR buffer before read(else it will be shifted out) */
+ 	write_TDBR(0xFFFF);
+ 
  	dummy_read();
  
  	while (drv_data->rx < drv_data->rx_end - 1) {
--		do {
--		} while (!(read_STAT() & BIT_STAT_RXS));
-+		while (!(read_STAT() & BIT_STAT_RXS))
-+			continue;
- 		*(u8 *) (drv_data->rx) = read_RDBR();
+-		do {} while (!(read_STAT() & BIT_STAT_RXS));
+-		*(u8 *)(drv_data->rx) = read_RDBR();
++		do {
++		} while (!(read_STAT() & BIT_STAT_RXS));
++		*(u8 *) (drv_data->rx) = read_RDBR();
  		++drv_data->rx;
  	}
--	do {
--	} while (!(read_STAT() & BIT_STAT_RXS));
-+
-+	while (!(read_STAT() & BIT_STAT_RXS))
-+		continue;
- 	*(u8 *) (drv_data->rx) = read_SHAW();
+-	do {} while (!(read_STAT() & BIT_STAT_RXS));
+-	*(u8 *)(drv_data->rx) = read_SHAW();
++	do {
++	} while (!(read_STAT() & BIT_STAT_RXS));
++	*(u8 *) (drv_data->rx) = read_SHAW();
  	++drv_data->rx;
  }
-@@ -338,10 +347,10 @@ static void u8_cs_chg_reader(struct driv
+ 
+@@ -343,11 +337,13 @@ static void u8_cs_chg_reader(struct driv
+ 		write_FLAG(chip->flag);
  		SSYNC();
  
- 		read_RDBR();	/* kick off */
--		do {
--		} while (!(read_STAT() & BIT_STAT_RXS));
--		do {
--		} while (!(read_STAT() & BIT_STAT_SPIF));
-+		while (!(read_STAT() & BIT_STAT_RXS))
-+			continue;
-+		while (!(read_STAT() & BIT_STAT_SPIF))
-+			continue;
- 		*(u8 *) (drv_data->rx) = read_SHAW();
- 		write_FLAG(0xFF00 | chip->flag);
+-		read_RDBR(); /* kick off */
+-		do {} while (!(read_STAT() & BIT_STAT_RXS));
+-		do {} while (!(read_STAT() & BIT_STAT_SPIF));
+-		*(u8 *)(drv_data->rx) = read_SHAW();
+-		write_FLAG(0xFF00|chip->flag);
++		read_RDBR();	/* kick off */
++		do {
++		} while (!(read_STAT() & BIT_STAT_RXS));
++		do {
++		} while (!(read_STAT() & BIT_STAT_SPIF));
++		*(u8 *) (drv_data->rx) = read_SHAW();
++		write_FLAG(0xFF00 | chip->flag);
  		SSYNC();
-@@ -358,10 +367,10 @@ static void u8_duplex(struct driver_data
+ 		if (chip->cs_chg_udelay)
+ 			udelay(chip->cs_chg_udelay);
+@@ -361,11 +357,12 @@ static void u8_duplex(struct driver_data
+ {
  	/* in duplex mode, clk is triggered by writing of TDBR */
  	while (drv_data->rx < drv_data->rx_end) {
- 		write_TDBR(*(u8 *) (drv_data->tx));
--		do {
--		} while (!(read_STAT() & BIT_STAT_SPIF));
--		do {
--		} while (!(read_STAT() & BIT_STAT_RXS));
-+		while (!(read_STAT() & BIT_STAT_SPIF))
-+			continue;
-+		while (!(read_STAT() & BIT_STAT_RXS))
-+			continue;
- 		*(u8 *) (drv_data->rx) = read_RDBR();
+-		write_TDBR(*(u8 *)(drv_data->tx));
+-		do {} while (!(read_STAT() & BIT_STAT_SPIF));
+-		do {} while (!(read_STAT() & BIT_STAT_RXS));
+-		*(u8 *)(drv_data->rx) = read_RDBR();
+-		//if (*(u8 *)(drv_data->rx)) pr_debug(KERN_NOTICE "u8_duplex: %c\n", *(u8 *)(drv_data->rx));
++		write_TDBR(*(u8 *) (drv_data->tx));
++		do {
++		} while (!(read_STAT() & BIT_STAT_SPIF));
++		do {
++		} while (!(read_STAT() & BIT_STAT_RXS));
++		*(u8 *) (drv_data->rx) = read_RDBR();
  		++drv_data->rx;
  		++drv_data->tx;
-@@ -377,10 +386,10 @@ static void u8_cs_chg_duplex(struct driv
+ 	}
+@@ -379,11 +376,13 @@ static void u8_cs_chg_duplex(struct driv
+ 		write_FLAG(chip->flag);
  		SSYNC();
  
- 		write_TDBR(*(u8 *) (drv_data->tx));
--		do {
--		} while (!(read_STAT() & BIT_STAT_SPIF));
--		do {
--		} while (!(read_STAT() & BIT_STAT_RXS));
-+		while (!(read_STAT() & BIT_STAT_SPIF))
-+			continue;
-+		while (!(read_STAT() & BIT_STAT_RXS))
-+			continue;
- 		*(u8 *) (drv_data->rx) = read_RDBR();
- 		write_FLAG(0xFF00 | chip->flag);
+-		write_TDBR(*(u8 *)(drv_data->tx));
+-		do {} while (!(read_STAT() & BIT_STAT_SPIF));
+-		do {} while (!(read_STAT() & BIT_STAT_RXS));
+-		*(u8 *)(drv_data->rx) = read_RDBR();
+-		write_FLAG(0xFF00|chip->flag);
++		write_TDBR(*(u8 *) (drv_data->tx));
++		do {
++		} while (!(read_STAT() & BIT_STAT_SPIF));
++		do {
++		} while (!(read_STAT() & BIT_STAT_RXS));
++		*(u8 *) (drv_data->rx) = read_RDBR();
++		write_FLAG(0xFF00 | chip->flag);
  		SSYNC();
-@@ -398,14 +407,14 @@ static void u16_writer(struct driver_dat
+ 		if (chip->cs_chg_udelay)
+ 			udelay(chip->cs_chg_udelay);
+@@ -398,13 +397,15 @@ static void u16_writer(struct driver_dat
+ {
  	pr_debug("cr16 is 0x%x\n", read_STAT());
  	while (drv_data->tx < drv_data->tx_end) {
- 		write_TDBR(*(u16 *) (drv_data->tx));
--		do {
--		} while ((read_STAT() & BIT_STAT_TXS));
-+		while ((read_STAT() & BIT_STAT_TXS))
-+			continue;
+-		write_TDBR(*(u16 *)(drv_data->tx));
+-		do {} while ((read_STAT() & BIT_STAT_TXS));
++		write_TDBR(*(u16 *) (drv_data->tx));
++		do {
++		} while ((read_STAT() & BIT_STAT_TXS));
  		drv_data->tx += 2;
  	}
  
- 	/* poll for SPI completion before returning */
--	do {
--	} while (!(read_STAT() & BIT_STAT_SPIF));
-+	while (!(read_STAT() & BIT_STAT_SPIF))
-+		continue;
+-	// poll for SPI completion before returning
+-	do {} while (!(read_STAT() & BIT_STAT_SPIF));
++	/* poll for SPI completion before returning */
++	do {
++	} while (!(read_STAT() & BIT_STAT_SPIF));
  }
  
  static void u16_cs_chg_writer(struct driver_data *drv_data)
-@@ -417,10 +426,10 @@ static void u16_cs_chg_writer(struct dri
+@@ -415,10 +416,12 @@ static void u16_cs_chg_writer(struct dri
+ 		write_FLAG(chip->flag);
  		SSYNC();
  
- 		write_TDBR(*(u16 *) (drv_data->tx));
--		do {
--		} while ((read_STAT() & BIT_STAT_TXS));
--		do {
--		} while (!(read_STAT() & BIT_STAT_SPIF));
-+		while ((read_STAT() & BIT_STAT_TXS))
-+			continue;
-+		while (!(read_STAT() & BIT_STAT_SPIF))
-+			continue;
- 		write_FLAG(0xFF00 | chip->flag);
+-		write_TDBR(*(u16 *)(drv_data->tx));
+-		do {} while ((read_STAT() & BIT_STAT_TXS));
+-		do {} while (!(read_STAT() & BIT_STAT_SPIF));
+-		write_FLAG(0xFF00|chip->flag);
++		write_TDBR(*(u16 *) (drv_data->tx));
++		do {
++		} while ((read_STAT() & BIT_STAT_TXS));
++		do {
++		} while (!(read_STAT() & BIT_STAT_SPIF));
++		write_FLAG(0xFF00 | chip->flag);
  		SSYNC();
  		if (chip->cs_chg_udelay)
-@@ -437,13 +446,14 @@ static void u16_reader(struct driver_dat
+ 			udelay(chip->cs_chg_udelay);
+@@ -434,12 +437,14 @@ static void u16_reader(struct driver_dat
  	dummy_read();
  
  	while (drv_data->rx < (drv_data->rx_end - 2)) {
--		do {
--		} while (!(read_STAT() & BIT_STAT_RXS));
-+		while (!(read_STAT() & BIT_STAT_RXS))
-+			continue;
- 		*(u16 *) (drv_data->rx) = read_RDBR();
+-		do {} while (!(read_STAT() & BIT_STAT_RXS));
+-		*(u16 *)(drv_data->rx) = read_RDBR();
++		do {
++		} while (!(read_STAT() & BIT_STAT_RXS));
++		*(u16 *) (drv_data->rx) = read_RDBR();
  		drv_data->rx += 2;
  	}
--	do {
--	} while (!(read_STAT() & BIT_STAT_RXS));
-+
-+	while (!(read_STAT() & BIT_STAT_RXS))
-+		continue;
- 	*(u16 *) (drv_data->rx) = read_SHAW();
+-	do {} while (!(read_STAT() & BIT_STAT_RXS));
+-	*(u16 *)(drv_data->rx) = read_SHAW();
++	do {
++	} while (!(read_STAT() & BIT_STAT_RXS));
++	*(u16 *) (drv_data->rx) = read_SHAW();
  	drv_data->rx += 2;
  }
-@@ -457,10 +467,10 @@ static void u16_cs_chg_reader(struct dri
+ 
+@@ -451,11 +456,13 @@ static void u16_cs_chg_reader(struct dri
+ 		write_FLAG(chip->flag);
  		SSYNC();
  
- 		read_RDBR();	/* kick off */
--		do {
--		} while (!(read_STAT() & BIT_STAT_RXS));
--		do {
--		} while (!(read_STAT() & BIT_STAT_SPIF));
-+		while (!(read_STAT() & BIT_STAT_RXS))
-+			continue;
-+		while (!(read_STAT() & BIT_STAT_SPIF))
-+			continue;
- 		*(u16 *) (drv_data->rx) = read_SHAW();
- 		write_FLAG(0xFF00 | chip->flag);
+-		read_RDBR();  /* kick off */
+-		do {} while (!(read_STAT() & BIT_STAT_RXS));
+-		do {} while (!(read_STAT() & BIT_STAT_SPIF));
+-		*(u16 *)(drv_data->rx) = read_SHAW();
+-		write_FLAG(0xFF00|chip->flag);
++		read_RDBR();	/* kick off */
++		do {
++		} while (!(read_STAT() & BIT_STAT_RXS));
++		do {
++		} while (!(read_STAT() & BIT_STAT_SPIF));
++		*(u16 *) (drv_data->rx) = read_SHAW();
++		write_FLAG(0xFF00 | chip->flag);
  		SSYNC();
-@@ -477,10 +487,10 @@ static void u16_duplex(struct driver_dat
+ 		if (chip->cs_chg_udelay)
+ 			udelay(chip->cs_chg_udelay);
+@@ -469,10 +476,12 @@ static void u16_duplex(struct driver_dat
+ {
  	/* in duplex mode, clk is triggered by writing of TDBR */
  	while (drv_data->tx < drv_data->tx_end) {
- 		write_TDBR(*(u16 *) (drv_data->tx));
--		do {
--		} while (!(read_STAT() & BIT_STAT_SPIF));
--		do {
--		} while (!(read_STAT() & BIT_STAT_RXS));
-+		while (!(read_STAT() & BIT_STAT_SPIF))
-+			continue;
-+		while (!(read_STAT() & BIT_STAT_RXS))
-+			continue;
- 		*(u16 *) (drv_data->rx) = read_RDBR();
+-		write_TDBR(*(u16 *)(drv_data->tx));
+-		do {} while (!(read_STAT() & BIT_STAT_SPIF));
+-		do {} while (!(read_STAT() & BIT_STAT_RXS));
+-		*(u16 *)(drv_data->rx) = read_RDBR();
++		write_TDBR(*(u16 *) (drv_data->tx));
++		do {
++		} while (!(read_STAT() & BIT_STAT_SPIF));
++		do {
++		} while (!(read_STAT() & BIT_STAT_RXS));
++		*(u16 *) (drv_data->rx) = read_RDBR();
  		drv_data->rx += 2;
  		drv_data->tx += 2;
-@@ -496,10 +506,10 @@ static void u16_cs_chg_duplex(struct dri
+ 	}
+@@ -486,11 +495,13 @@ static void u16_cs_chg_duplex(struct dri
+ 		write_FLAG(chip->flag);
  		SSYNC();
  
- 		write_TDBR(*(u16 *) (drv_data->tx));
--		do {
--		} while (!(read_STAT() & BIT_STAT_SPIF));
--		do {
--		} while (!(read_STAT() & BIT_STAT_RXS));
-+		while (!(read_STAT() & BIT_STAT_SPIF))
-+			continue;
-+		while (!(read_STAT() & BIT_STAT_RXS))
-+			continue;
- 		*(u16 *) (drv_data->rx) = read_RDBR();
- 		write_FLAG(0xFF00 | chip->flag);
+-		write_TDBR(*(u16 *)(drv_data->tx));
+-		do {} while (!(read_STAT() & BIT_STAT_SPIF));
+-		do {} while (!(read_STAT() & BIT_STAT_RXS));
+-		*(u16 *)(drv_data->rx) = read_RDBR();
+-		write_FLAG(0xFF00|chip->flag);
++		write_TDBR(*(u16 *) (drv_data->tx));
++		do {
++		} while (!(read_STAT() & BIT_STAT_SPIF));
++		do {
++		} while (!(read_STAT() & BIT_STAT_RXS));
++		*(u16 *) (drv_data->rx) = read_RDBR();
++		write_FLAG(0xFF00 | chip->flag);
  		SSYNC();
-@@ -528,8 +538,9 @@ static void *next_transfer(struct driver
+ 		if (chip->cs_chg_udelay)
+ 			udelay(chip->cs_chg_udelay);
+@@ -510,9 +521,8 @@ static void *next_transfer(struct driver
+ 	/* Move to next transfer */
+ 	if (trans->transfer_list.next != &msg->transfers) {
+ 		drv_data->cur_transfer =
+-			list_entry(trans->transfer_list.next,
+-					struct spi_transfer,
+-					transfer_list);
++		    list_entry(trans->transfer_list.next,
++			       struct spi_transfer, transfer_list);
+ 		return RUNNING_STATE;
+ 	} else
  		return DONE_STATE;
- }
+@@ -536,8 +546,7 @@ static void giveback(struct driver_data 
+ 	spin_unlock_irqrestore(&drv_data->lock, flags);
  
--/* caller already set message->status; dma and pio irqs are blocked
-- * give finished message back
-+/*
-+ * caller already set message->status;
-+ * dma and pio irqs are blocked give finished message back
-  */
- static void giveback(struct driver_data *drv_data)
- {
-@@ -549,6 +560,7 @@ static void giveback(struct driver_data 
- 				   struct spi_transfer, transfer_list);
+ 	last_transfer = list_entry(msg->transfers.prev,
+-					struct spi_transfer,
+-					transfer_list);
++				   struct spi_transfer, transfer_list);
  
  	msg->state = NULL;
-+
  	/* disable chip select signal. And not stop spi in autobuffer mode */
- 	if (drv_data->tx_dma != 0xFFFF) {
- 		write_FLAG(0xFF00);
-@@ -567,15 +579,19 @@ static irqreturn_t dma_irq_handler(int i
- 	pr_debug("in dma_irq_handler\n");
- 	clear_dma_irqstat(CH_SPI);
- 
--	/* wait for the last transaction shifted out.  yes, these two
-+	/*
-+	 * wait for the last transaction shifted out.  yes, these two
+@@ -562,14 +571,11 @@ static irqreturn_t dma_irq_handler(int i
  	 * while loops are supposed to be the same (see the HRM).
  	 */
  	if (drv_data->tx != NULL) {
--		while (bfin_read_SPI_STAT() & TXS) ;
--		while (bfin_read_SPI_STAT() & TXS) ;
-+		while (bfin_read_SPI_STAT() & TXS)
-+			continue;
-+		while (bfin_read_SPI_STAT() & TXS)
-+			continue;
+-		while (bfin_read_SPI_STAT() & TXS)
+-			;
+-		while (bfin_read_SPI_STAT() & TXS)
+-			;
++		while (bfin_read_SPI_STAT() & TXS) ;
++		while (bfin_read_SPI_STAT() & TXS) ;
  	}
  
--	while (!(bfin_read_SPI_STAT() & SPIF)) ;
-+	while (!(bfin_read_SPI_STAT() & SPIF))
-+		continue;
+-	while (!(bfin_read_SPI_STAT() & SPIF))
+-		;
++	while (!(bfin_read_SPI_STAT() & SPIF)) ;
  
  	bfin_spi_disable(drv_data);
  
-@@ -609,8 +625,11 @@ static void pump_transfers(unsigned long
- 	transfer = drv_data->cur_transfer;
- 	chip = drv_data->cur_chip;
- 
--	/* if msg is error or done, report it back using complete() callback */
--	/* Handle for abort */
-+	/*
-+	 * if msg is error or done, report it back using complete() callback
-+	 */
-+
-+	 /* Handle for abort */
- 	if (message->state == ERROR_STATE) {
- 		message->status = -EIO;
- 		giveback(drv_data);
-@@ -676,7 +695,6 @@ static void pump_transfers(unsigned long
- 	     drv_data->write, chip->write, null_writer);
+@@ -621,8 +627,7 @@ static void pump_transfers(unsigned long
+ 	/* Delay if requested at end of transfer */
+ 	if (message->state == RUNNING_STATE) {
+ 		previous = list_entry(transfer->transfer_list.prev,
+-					struct spi_transfer,
+-					transfer_list);
++				      struct spi_transfer, transfer_list);
+ 		if (previous->delay_usecs)
+ 			udelay(previous->delay_usecs);
+ 	}
+@@ -638,7 +643,8 @@ static void pump_transfers(unsigned long
+ 	if (transfer->tx_buf != NULL) {
+ 		drv_data->tx = (void *)transfer->tx_buf;
+ 		drv_data->tx_end = drv_data->tx + transfer->len;
+-		pr_debug("tx_buf is %p, tx_end is %p\n", transfer->tx_buf, drv_data->tx_end);
++		pr_debug("tx_buf is %p, tx_end is %p\n", transfer->tx_buf,
++			 drv_data->tx_end);
+ 	} else {
+ 		drv_data->tx = NULL;
+ 	}
+@@ -646,7 +652,8 @@ static void pump_transfers(unsigned long
+ 	if (transfer->rx_buf != NULL) {
+ 		drv_data->rx = transfer->rx_buf;
+ 		drv_data->rx_end = drv_data->rx + transfer->len;
+-		pr_debug("rx_buf is %p, rx_end is %p\n", transfer->rx_buf, drv_data->rx_end);
++		pr_debug("rx_buf is %p, rx_end is %p\n", transfer->rx_buf,
++			 drv_data->rx_end);
+ 	} else {
+ 		drv_data->rx = NULL;
+ 	}
+@@ -664,8 +671,9 @@ static void pump_transfers(unsigned long
+ 	drv_data->write = drv_data->tx ? chip->write : null_writer;
+ 	drv_data->read = drv_data->rx ? chip->read : null_reader;
+ 	drv_data->duplex = chip->duplex ? chip->duplex : null_writer;
+-	pr_debug("transfer: drv_data->write is %p, chip->write is %p, null_wr is %p\n",
+-	       drv_data->write, chip->write, null_writer);
++	pr_debug
++	    ("transfer: drv_data->write is %p, chip->write is %p, null_wr is %p\n",
++	     drv_data->write, chip->write, null_writer);
  
  	/* speed and width has been set on per message */
--
- 	message->state = RUNNING_STATE;
- 	dma_config = 0;
  
-@@ -690,8 +708,12 @@ static void pump_transfers(unsigned long
+@@ -680,7 +688,8 @@ static void pump_transfers(unsigned long
+ 	}
+ 	write_FLAG(chip->flag);
  
- 	pr_debug("now pumping a transfer: width is %d, len is %d\n", width,
- 		 transfer->len);
--	/* Try to map dma buffer and do a dma transfer if successful */
--	/* use different way to r/w according to drv_data->cur_chip->enable_dma */
-+
-+	/*
-+	 * Try to map dma buffer and do a dma transfer if
-+	 * successful use different way to r/w according to
-+	 * drv_data->cur_chip->enable_dma
-+	 */
+-	pr_debug("now pumping a transfer: width is %d, len is %d\n",width,transfer->len);
++	pr_debug("now pumping a transfer: width is %d, len is %d\n", width,
++		 transfer->len);
+ 	/* Try to map dma buffer and do a dma transfer if successful */
+ 	/* use different way to r/w according to drv_data->cur_chip->enable_dma */
  	if (drv_data->cur_chip->enable_dma && drv_data->len > 6) {
+@@ -711,23 +720,25 @@ static void pump_transfers(unsigned long
+ 			pr_debug("doing autobuffer DMA out.\n");
  
- 		write_STAT(BIT_STAT_CLR);
-@@ -699,8 +721,8 @@ static void pump_transfers(unsigned long
- 		clear_dma_irqstat(CH_SPI);
- 		bfin_spi_disable(drv_data);
- 
--		pr_debug("doing dma transfer\n");
- 		/* config dma channel */
-+		pr_debug("doing dma transfer\n");
- 		if (width == CFG_SPI_WORDSIZE16) {
- 			set_dma_x_count(CH_SPI, drv_data->len);
- 			set_dma_x_modify(CH_SPI, 2);
-@@ -711,9 +733,8 @@ static void pump_transfers(unsigned long
- 			dma_width = WDSIZE_8;
- 		}
- 
--		/* Go baby, go */
- 		/* set transfer width,direction. And enable spi */
--		cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* clear the TIMOD bits */
-+		cr = (read_CTRL() & (~BIT_CTL_TIMOD));
- 
- 		/* dirty hack for autobuffer DMA mode */
- 		if (drv_data->tx_dma == 0xFFFF) {
-@@ -727,6 +748,7 @@ static void pump_transfers(unsigned long
+ 			/* no irq in autobuffer mode */
+-			dma_config = (DMAFLOW_AUTO | RESTART | dma_width | DI_EN);
++			dma_config =
++			    (DMAFLOW_AUTO | RESTART | dma_width | DI_EN);
+ 			set_dma_config(CH_SPI, dma_config);
+ 			set_dma_start_addr(CH_SPI, (unsigned long)drv_data->tx);
  			enable_dma(CH_SPI);
- 			write_CTRL(cr | CFG_SPI_DMAWRITE | (width << 8) |
- 				   (CFG_SPI_ENABLE << 14));
-+
- 			/* just return here, there can only be one transfer in this mode */
+-			write_CTRL(cr | CFG_SPI_DMAWRITE | (width << 8) | (CFG_SPI_ENABLE << 14));
+-			/* just return here, there can only be one transfer in this mode*/
++			write_CTRL(cr | CFG_SPI_DMAWRITE | (width << 8) |
++				   (CFG_SPI_ENABLE << 14));
++			/* just return here, there can only be one transfer in this mode */
  			message->status = 0;
  			giveback(drv_data);
-@@ -760,6 +782,7 @@ static void pump_transfers(unsigned long
+ 			return;
+ 		}
+ 
+-		/* In dma mode, rx or tx must be NULL in one transfer*/
++		/* In dma mode, rx or tx must be NULL in one transfer */
+ 		if (drv_data->rx != NULL) {
+ 			/* set transfer mode, and enable SPI */
+ 			pr_debug("doing DMA in.\n");
+ 
+-			/* disable SPI before write to TDBR*/
++			/* disable SPI before write to TDBR */
+ 			write_CTRL(cr & ~BIT_CTL_ENABLE);
+ 
+ 			/* clear tx reg soformer data is not shifted out */
+@@ -735,14 +746,16 @@ static void pump_transfers(unsigned long
+ 
+ 			set_dma_x_count(CH_SPI, drv_data->len);
+ 
+-			/* start dma*/
++			/* start dma */
+ 			dma_enable_irq(CH_SPI);
+ 			dma_config = (WNR | RESTART | dma_width | DI_EN);
+ 			set_dma_config(CH_SPI, dma_config);
+ 			set_dma_start_addr(CH_SPI, (unsigned long)drv_data->rx);
+ 			enable_dma(CH_SPI);
+ 
+-			cr |= CFG_SPI_DMAREAD | (width << 8) | (CFG_SPI_ENABLE << 14);
++			cr |=
++			    CFG_SPI_DMAREAD | (width << 8) | (CFG_SPI_ENABLE <<
++							      14);
+ 			/* set transfer mode, and enable SPI */
  			write_CTRL(cr);
  		} else if (drv_data->tx != NULL) {
- 			pr_debug("doing DMA out.\n");
-+
- 			/* start dma */
- 			dma_enable_irq(CH_SPI);
- 			dma_config = (RESTART | dma_width | DI_EN);
-@@ -771,13 +794,14 @@ static void pump_transfers(unsigned long
- 				   (CFG_SPI_ENABLE << 14));
+@@ -754,7 +767,8 @@ static void pump_transfers(unsigned long
+ 			set_dma_start_addr(CH_SPI, (unsigned long)drv_data->tx);
+ 			enable_dma(CH_SPI);
+ 
+-			write_CTRL(cr | CFG_SPI_DMAWRITE | (width << 8) | (CFG_SPI_ENABLE << 14));
++			write_CTRL(cr | CFG_SPI_DMAWRITE | (width << 8) |
++				   (CFG_SPI_ENABLE << 14));
  
  		}
--	} else {		/* IO mode write then read */
--		/* Go baby, go */
-+	} else {
-+		/* IO mode write then read */
- 		pr_debug("doing IO transfer\n");
+ 	} else {		/* IO mode write then read */
+@@ -763,10 +777,13 @@ static void pump_transfers(unsigned long
  
  		write_STAT(BIT_STAT_CLR);
  
--		if (drv_data->tx != NULL && drv_data->rx != NULL) {	/* full duplex mode */
-+		if (drv_data->tx != NULL && drv_data->rx != NULL) {
-+			/* full duplex mode */
- 			BUG_ON((drv_data->tx_end - drv_data->tx) !=
- 			       (drv_data->rx_end - drv_data->rx));
+-		if (drv_data->tx != NULL && drv_data->rx != NULL) { /* full duplex mode */
+-			ASSERT((drv_data->tx_end - drv_data->tx) == (drv_data->rx_end - drv_data->rx));
++		if (drv_data->tx != NULL && drv_data->rx != NULL) {	/* full duplex mode */
++			BUG_ON((drv_data->tx_end - drv_data->tx) !=
++			       (drv_data->rx_end - drv_data->rx));
  			cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* clear the TIMOD bits */
-@@ -793,7 +817,8 @@ static void pump_transfers(unsigned long
+-			cr |= CFG_SPI_WRITE | (width << 8) | (CFG_SPI_ENABLE << 14);
++			cr |=
++			    CFG_SPI_WRITE | (width << 8) | (CFG_SPI_ENABLE <<
++							    14);
+ 			pr_debug("IO duplex: cr is 0x%x\n", cr);
+ 
+ 			write_CTRL(cr);
+@@ -776,9 +793,11 @@ static void pump_transfers(unsigned long
  
  			if (drv_data->tx != drv_data->tx_end)
  				tranf_success = 0;
--		} else if (drv_data->tx != NULL) {	/* write only half duplex */
-+		} else if (drv_data->tx != NULL) {
-+			/* write only half duplex */
+-		} else if (drv_data->tx != NULL) {        /* write only half duplex */
++		} else if (drv_data->tx != NULL) {	/* write only half duplex */
  			cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* clear the TIMOD bits */
- 			cr |=
- 			    CFG_SPI_WRITE | (width << 8) | (CFG_SPI_ENABLE <<
-@@ -807,8 +832,8 @@ static void pump_transfers(unsigned long
+-			cr |= CFG_SPI_WRITE | (width << 8) | (CFG_SPI_ENABLE << 14);
++			cr |=
++			    CFG_SPI_WRITE | (width << 8) | (CFG_SPI_ENABLE <<
++							    14);
+ 			pr_debug("IO write: cr is 0x%x\n", cr);
+ 
+ 			write_CTRL(cr);
+@@ -788,10 +807,12 @@ static void pump_transfers(unsigned long
  
  			if (drv_data->tx != drv_data->tx_end)
  				tranf_success = 0;
--		} else if (drv_data->rx != NULL) {	/* read only half duplex */
--
-+		} else if (drv_data->rx != NULL) {
-+			/* read only half duplex */
+-		} else if (drv_data->rx != NULL) {        /* read only half duplex */
++		} else if (drv_data->rx != NULL) {	/* read only half duplex */
+ 
  			cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* cleare the TIMOD bits */
- 			cr |=
- 			    CFG_SPI_READ | (width << 8) | (CFG_SPI_ENABLE <<
-@@ -887,7 +912,10 @@ static void pump_messages(struct work_st
- 	spin_unlock_irqrestore(&drv_data->lock, flags);
- }
+-			cr |= CFG_SPI_READ | (width << 8) | (CFG_SPI_ENABLE << 14);
++			cr |=
++			    CFG_SPI_READ | (width << 8) | (CFG_SPI_ENABLE <<
++							   14);
+ 			pr_debug("IO read: cr is 0x%x\n", cr);
  
--/* got a msg to transfer, queue it in drv_data->queue. And kick off message pumper */
-+/*
-+ * got a msg to transfer, queue it in drv_data->queue.
-+ * And kick off message pumper
-+ */
- static int transfer(struct spi_device *spi, struct spi_message *msg)
- {
- 	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
-@@ -923,16 +951,15 @@ static int setup(struct spi_device *spi)
- 	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
+ 			write_CTRL(cr);
+@@ -809,7 +830,7 @@ static void pump_transfers(unsigned long
+ 			/* Update total byte transfered */
+ 			message->actual_length += drv_data->len;
+ 
+-			/* Move to next transfer of this msg*/
++			/* Move to next transfer of this msg */
+ 			message->state = next_transfer(drv_data);
+ 		}
+ 
+@@ -842,20 +863,21 @@ static void pump_messages(struct work_st
+ 
+ 	/* Extract head of queue */
+ 	drv_data->cur_msg = list_entry(drv_data->queue.next,
+-					struct spi_message, queue);
++				       struct spi_message, queue);
+ 	list_del_init(&drv_data->cur_msg->queue);
+ 
+-	/* Initial message state*/
++	/* Initial message state */
+ 	drv_data->cur_msg->state = START_STATE;
+ 	drv_data->cur_transfer = list_entry(drv_data->cur_msg->transfers.next,
+-						struct spi_transfer,
+-						transfer_list);
++					    struct spi_transfer, transfer_list);
+ 
+ 	/* Setup the SSP using the per chip configuration */
+ 	drv_data->cur_chip = spi_get_ctldata(drv_data->cur_msg->spi);
+ 	restore_state(drv_data);
+-	pr_debug("got a message to pump, state is set to: baud %d, flag 0x%x, ctl 0x%x\n",
+-	       drv_data->cur_chip->baud, drv_data->cur_chip->flag, drv_data->cur_chip->ctl_reg);
++	pr_debug
++	    ("got a message to pump, state is set to: baud %d, flag 0x%x, ctl 0x%x\n",
++	     drv_data->cur_chip->baud, drv_data->cur_chip->flag,
++	     drv_data->cur_chip->ctl_reg);
+ 	pr_debug("the first transfer len is %d\n", drv_data->cur_transfer->len);
+ 
+ 	/* Mark as busy and launch transfers */
+@@ -902,7 +924,9 @@ static int setup(struct spi_device *spi)
  	u8 spi_flg;
  
--	if (chip_select_flag & (1 << (spi->chip_select))) {
--		printk(KERN_ERR
--		       "spi_bfin: error: %s is using the same chip selection as another device.\n",
--		       spi->modalias);
--		return -ENODEV;
-+	/* Abort device setup if requested features are not supported */
-+	if (spi->mode & ~(SPI_CPOL | SPI_CPHA | SPI_LSB_FIRST)) {
-+		dev_err(&spi->dev, "requested mode not fully supported\n");
-+		return -EINVAL;
+ 	if (chip_select_flag & (1 << (spi->chip_select))) {
+-		printk(KERN_ERR "spi_bfin: error: %s is using the same chip selection as another device.\n", spi->modalias);
++		printk(KERN_ERR
++		       "spi_bfin: error: %s is using the same chip selection as another device.\n",
++		       spi->modalias);
+ 		return -ENODEV;
  	}
--	chip_select_flag |= (1 << (spi->chip_select));
- 
-+	/* Zero (the default) here means 8 bits */
- 	if (!spi->bits_per_word)
--		spi->bits_per_word = 16;
-+		spi->bits_per_word = 8;
- 
- 	if (spi->bits_per_word != 8 && spi->bits_per_word != 16)
- 		return -EINVAL;
-@@ -958,13 +985,20 @@ static int setup(struct spi_device *spi)
- 		chip->cs_chg_udelay = chip_info->cs_chg_udelay;
- 	}
- 
-+	/* translate common spi framework into our register */
- 	if (spi->mode & SPI_CPOL)
--		chip->ctl_reg &= CPOL;
-+		chip->ctl_reg |= CPOL;
- 	if (spi->mode & SPI_CPHA)
--		chip->ctl_reg &= CPHA;
--
--	/* if any one SPI chip is registered and wants DMA, request the
--	   DMA channel for it */
-+		chip->ctl_reg |= CPHA;
-+	if (spi->mode & SPI_LSB_FIRST)
-+		chip->ctl_reg |= LSBF;
-+	/* we dont support running in slave mode (yet?) */
-+	chip->ctl_reg |= MSTR;
-+
-+	/*
-+	 * if any one SPI chip is registered and wants DMA, request the
-+	 * DMA channel for it
-+	 */
+ 	chip_select_flag |= (1 << (spi->chip_select));
+@@ -927,7 +951,7 @@ static int setup(struct spi_device *spi)
+ 	/* chip_info isn't always needed */
+ 	if (chip_info) {
+ 		chip->enable_dma = chip_info->enable_dma != 0
+-					&& drv_data->master_info->enable_dma;
++		    && drv_data->master_info->enable_dma;
+ 		chip->ctl_reg = chip_info->ctl_reg;
+ 		chip->bits_per_word = chip_info->bits_per_word;
+ 		chip->cs_change_per_word = chip_info->cs_change_per_word;
+@@ -944,10 +968,12 @@ static int setup(struct spi_device *spi)
  	if (chip->enable_dma && !dma_requested) {
  		/* register dma irq handler */
  		if (request_dma(CH_SPI, "BF53x_SPI_DMA") < 0) {
-@@ -981,50 +1015,59 @@ static int setup(struct spi_device *spi)
- 		dma_requested = 1;
- 	}
- 
--	/* Notice: for blackfin, the speed_hz is the value of register
--	   SPI_BAUD, not the real baudrate */
-+	/*
-+	 * Notice: for blackfin, the speed_hz is the value of register
-+	 * SPI_BAUD, not the real baudrate
-+	 */
+-			pr_debug("Unable to request BlackFin SPI DMA channel\n");
++			pr_debug
++			    ("Unable to request BlackFin SPI DMA channel\n");
+ 			return -ENODEV;
+ 		}
+-		if (set_dma_callback(CH_SPI, (void *)dma_irq_handler, drv_data) < 0) {
++		if (set_dma_callback(CH_SPI, (void *)dma_irq_handler, drv_data)
++		    < 0) {
+ 			pr_debug("Unable to set dma callback\n");
+ 			return -EPERM;
+ 		}
+@@ -959,30 +985,40 @@ static int setup(struct spi_device *spi)
+ 	   SPI_BAUD, not the real baudrate */
  	chip->baud = hz_to_spi_baud(spi->max_speed_hz);
  	spi_flg = ~(1 << (spi->chip_select));
- 	chip->flag = ((u16) spi_flg << 8) | (1 << (spi->chip_select));
+-	chip->flag = ((u16)spi_flg << 8 ) | (1 << (spi->chip_select));
++	chip->flag = ((u16) spi_flg << 8) | (1 << (spi->chip_select));
  	chip->chip_select_num = spi->chip_select;
  
--	if (chip->bits_per_word <= 8) {
-+	switch (chip->bits_per_word) {
-+	case 8:
+ 	if (chip->bits_per_word <= 8) {
  		chip->n_bytes = 1;
  		chip->width = CFG_SPI_WORDSIZE8;
--		chip->read =
--		    chip->cs_change_per_word ? u8_cs_chg_reader : u8_reader;
--		chip->write =
--		    chip->cs_change_per_word ? u8_cs_chg_writer : u8_writer;
--		chip->duplex =
--		    chip->cs_change_per_word ? u8_cs_chg_duplex : u8_duplex;
--		pr_debug("8bit: chip->write is %p, u8_writer is %p\n",
--			 chip->write, u8_writer);
--	} else if (spi->bits_per_word <= 16) {
-+		chip->read = chip->cs_change_per_word ?
-+			u8_cs_chg_reader : u8_reader;
-+		chip->write = chip->cs_change_per_word ?
-+			u8_cs_chg_writer : u8_writer;
-+		chip->duplex = chip->cs_change_per_word ?
-+			u8_cs_chg_duplex : u8_duplex;
-+		break;
-+
-+	case 16:
+-		chip->read = chip->cs_change_per_word? u8_cs_chg_reader: u8_reader;
+-		chip->write = chip->cs_change_per_word? u8_cs_chg_writer: u8_writer;
+-		chip->duplex = chip->cs_change_per_word? u8_cs_chg_duplex: u8_duplex;
+-		pr_debug("8bit: chip->write is %p, u8_writer is %p\n", chip->write, u8_writer);
++		chip->read =
++		    chip->cs_change_per_word ? u8_cs_chg_reader : u8_reader;
++		chip->write =
++		    chip->cs_change_per_word ? u8_cs_chg_writer : u8_writer;
++		chip->duplex =
++		    chip->cs_change_per_word ? u8_cs_chg_duplex : u8_duplex;
++		pr_debug("8bit: chip->write is %p, u8_writer is %p\n",
++			 chip->write, u8_writer);
+ 	} else if (spi->bits_per_word <= 16) {
  		chip->n_bytes = 2;
  		chip->width = CFG_SPI_WORDSIZE16;
--		chip->read =
--		    chip->cs_change_per_word ? u16_cs_chg_reader : u16_reader;
--		chip->write =
--		    chip->cs_change_per_word ? u16_cs_chg_writer : u16_writer;
--		chip->duplex =
--		    chip->cs_change_per_word ? u16_cs_chg_duplex : u16_duplex;
--		pr_debug("16bit: chip->write is %p, u16_writer is %p\n",
--			 chip->write, u16_writer);
--	} else {
--		dev_err(&spi->dev, "invalid wordsize\n");
-+		chip->read = chip->cs_change_per_word ?
-+			u16_cs_chg_reader : u16_reader;
-+		chip->write = chip->cs_change_per_word ?
-+			u16_cs_chg_writer : u16_writer;
-+		chip->duplex = chip->cs_change_per_word ?
-+			u16_cs_chg_duplex : u16_duplex;
-+		break;
-+
-+	default:
-+		dev_err(&spi->dev, "%d bits_per_word is not supported\n",
-+				chip->bits_per_word);
+-		chip->read = chip->cs_change_per_word? u16_cs_chg_reader: u16_reader;
+-		chip->write = chip->cs_change_per_word? u16_cs_chg_writer: u16_writer;
+-		chip->duplex = chip->cs_change_per_word? u16_cs_chg_duplex: u16_duplex;
+-		pr_debug("16bit: chip->write is %p, u16_writer is %p\n", chip->write, u16_writer);
++		chip->read =
++		    chip->cs_change_per_word ? u16_cs_chg_reader : u16_reader;
++		chip->write =
++		    chip->cs_change_per_word ? u16_cs_chg_writer : u16_writer;
++		chip->duplex =
++		    chip->cs_change_per_word ? u16_cs_chg_duplex : u16_duplex;
++		pr_debug("16bit: chip->write is %p, u16_writer is %p\n",
++			 chip->write, u16_writer);
+ 	} else {
+ 		dev_err(&spi->dev, "invalid wordsize\n");
  		kfree(chip);
  		return -ENODEV;
  	}
--	pr_debug
--	    ("setup spi chip %s, width is %d, dma is %d, ctl_reg is 0x%x, flag_reg is 0x%x\n",
--	     spi->modalias, chip->width, chip->enable_dma, chip->ctl_reg,
--	     chip->flag);
-+
-+	pr_debug("setup spi chip %s, width is %d, dma is %d,",
-+			spi->modalias, chip->width, chip->enable_dma);
-+	pr_debug("ctl_reg is 0x%x, flag_reg is 0x%x\n",
-+			chip->ctl_reg, chip->flag);
-+
+-	pr_debug("setup spi chip %s, width is %d, dma is %d, ctl_reg is 0x%x, flag_reg is 0x%x\n",
+-	       spi->modalias, chip->width, chip->enable_dma, chip->ctl_reg, chip->flag);
++	pr_debug
++	    ("setup spi chip %s, width is %d, dma is %d, ctl_reg is 0x%x, flag_reg is 0x%x\n",
++	     spi->modalias, chip->width, chip->enable_dma, chip->ctl_reg,
++	     chip->flag);
  	spi_set_ctldata(spi, chip);
  
  	return 0;
- }
+@@ -1006,12 +1042,12 @@ static int init_queue(struct driver_data
  
--/* callback for spi framework. clean driver specific data */
-+/*
-+ * callback for spi framework.
-+ * clean driver specific data
-+ */
- static void cleanup(const struct spi_device *spi)
- {
- 	struct chip_data *chip = spi_get_ctldata((struct spi_device *)spi);
-@@ -1032,7 +1075,7 @@ static void cleanup(const struct spi_dev
- 	kfree(chip);
- }
+ 	/* init transfer tasklet */
+ 	tasklet_init(&drv_data->pump_transfers,
+-			pump_transfers,	(unsigned long)drv_data);
++		     pump_transfers, (unsigned long)drv_data);
  
--static int init_queue(struct driver_data *drv_data)
-+static inline int init_queue(struct driver_data *drv_data)
- {
- 	INIT_LIST_HEAD(&drv_data->queue);
- 	spin_lock_init(&drv_data->lock);
-@@ -1054,7 +1097,7 @@ static int init_queue(struct driver_data
- 	return 0;
- }
+ 	/* init messages workqueue */
+ 	INIT_WORK(&drv_data->pump_messages, pump_messages);
+-	drv_data->workqueue = create_singlethread_workqueue(
+-					drv_data->master->cdev.dev->bus_id);
++	drv_data->workqueue =
++	    create_singlethread_workqueue(drv_data->master->cdev.dev->bus_id);
+ 	if (drv_data->workqueue == NULL)
+ 		return -EBUSY;
  
--static int start_queue(struct driver_data *drv_data)
-+static inline int start_queue(struct driver_data *drv_data)
- {
- 	unsigned long flags;
- 
-@@ -1076,7 +1119,7 @@ static int start_queue(struct driver_dat
- 	return 0;
- }
- 
--static int stop_queue(struct driver_data *drv_data)
-+static inline int stop_queue(struct driver_data *drv_data)
- {
- 	unsigned long flags;
- 	unsigned limit = 500;
-@@ -1084,10 +1127,12 @@ static int stop_queue(struct driver_data
- 
- 	spin_lock_irqsave(&drv_data->lock, flags);
- 
--	/* This is a bit lame, but is optimized for the common execution path.
-+	/*
-+	 * This is a bit lame, but is optimized for the common execution path.
- 	 * A wait_queue on the drv_data->busy could be used, but then the common
- 	 * execution path (pump_messages) would be required to call wake_up or
--	 * friends on every SPI message. Do this instead */
-+	 * friends on every SPI message. Do this instead
-+	 */
- 	drv_data->run = QUEUE_STOPPED;
- 	while (!list_empty(&drv_data->queue) && drv_data->busy && limit--) {
- 		spin_unlock_irqrestore(&drv_data->lock, flags);
-@@ -1103,7 +1148,7 @@ static int stop_queue(struct driver_data
+@@ -1129,7 +1165,7 @@ static int bfin5xx_spi_probe(struct plat
+ 	pr_debug("controller probe successfully\n");
  	return status;
- }
  
--static int destroy_queue(struct driver_data *drv_data)
-+static inline int destroy_queue(struct driver_data *drv_data)
+-out_error_queue_alloc:
++      out_error_queue_alloc:
+ 	destroy_queue(drv_data);
+ 	spi_master_put(master);
+ 	return status;
+@@ -1181,8 +1217,7 @@ static int suspend_devices(struct device
  {
- 	int status;
+ 	pm_message_t *state = pm_message;
  
-@@ -1116,7 +1161,7 @@ static int destroy_queue(struct driver_d
- 	return 0;
- }
- 
--static int bfin5xx_spi_probe(struct platform_device *pdev)
-+static int __init bfin5xx_spi_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct bfin5xx_spi_master *platform_info;
-@@ -1126,7 +1171,7 @@ static int bfin5xx_spi_probe(struct plat
- 
- 	platform_info = dev->platform_data;
- 
--	/* Allocate master with space for drv_data and null dma buffer */
-+	/* Allocate master with space for drv_data */
- 	master = spi_alloc_master(dev, sizeof(struct driver_data) + 16);
- 	if (!master) {
- 		dev_err(&pdev->dev, "can not alloc spi_master\n");
-@@ -1172,7 +1217,7 @@ static int bfin5xx_spi_probe(struct plat
- }
- 
- /* stop hardware and remove the driver */
--static int bfin5xx_spi_remove(struct platform_device *pdev)
-+static int __devexit bfin5xx_spi_remove(struct platform_device *pdev)
- {
- 	struct driver_data *drv_data = platform_get_drvdata(pdev);
- 	int status = 0;
-@@ -1203,31 +1248,12 @@ static int bfin5xx_spi_remove(struct pla
- 	return 0;
- }
- 
--/* PM, do nothing now */
- #ifdef CONFIG_PM
--static int suspend_devices(struct device *dev, void *pm_message)
--{
--	pm_message_t *state = pm_message;
--
--	if (dev->power.power_state.event != state->event && dev->driver != NULL) {
--		dev_warn(dev, "pm state does not match request\n");
--		return -1;
--	}
--
--	return 0;
--}
--
- static int bfin5xx_spi_suspend(struct platform_device *pdev, pm_message_t state)
- {
- 	struct driver_data *drv_data = platform_get_drvdata(pdev);
- 	int status = 0;
- 
--	/* Check all childern for current power state */
--	if (device_for_each_child(&pdev->dev, &state, suspend_devices) != 0) {
--		dev_warn(&pdev->dev, "suspend aborted\n");
--		return -1;
--	}
--
- 	status = stop_queue(drv_data);
- 	if (status != 0)
- 		return status;
-@@ -1260,7 +1286,7 @@ static int bfin5xx_spi_resume(struct pla
+-	if (dev->power.power_state.event != state->event &&
+-	    dev->driver != NULL) {
++	if (dev->power.power_state.event != state->event && dev->driver != NULL) {
+ 		dev_warn(dev, "pm state does not match request\n");
+ 		return -1;
+ 	}
+@@ -1231,15 +1266,14 @@ static int bfin5xx_spi_resume(struct pla
+ #else
+ #define bfin5xx_spi_suspend NULL
  #define bfin5xx_spi_resume NULL
- #endif				/* CONFIG_PM */
+-#endif /* CONFIG_PM */
+-
++#endif				/* CONFIG_PM */
  
--static struct platform_driver driver = {
-+static struct platform_driver bfin5xx_spi_driver = {
+ static struct platform_driver driver = {
  	.driver = {
- 		   .name = "bfin-spi-master",
- 		   .bus = &platform_bus_type,
-@@ -1274,15 +1300,14 @@ static struct platform_driver driver = {
- 
- static int __init bfin5xx_spi_init(void)
- {
--	platform_driver_register(&driver);
--	return 0;
-+	return platform_driver_register(&bfin5xx_spi_driver);
+-		.name = "bfin-spi-master",
+-		.bus = &platform_bus_type,
+-		.owner = THIS_MODULE,
+-	},
++		   .name = "bfin-spi-master",
++		   .bus = &platform_bus_type,
++		   .owner = THIS_MODULE,
++		   },
+ 	.probe = bfin5xx_spi_probe,
+ 	.remove = __devexit_p(bfin5xx_spi_remove),
+ 	.shutdown = bfin5xx_spi_shutdown,
+@@ -1252,10 +1286,12 @@ static int __init bfin5xx_spi_init(void)
+ 	platform_driver_register(&driver);
+ 	return 0;
  }
- 
++
  module_init(bfin5xx_spi_init);
  
  static void __exit bfin5xx_spi_exit(void)
  {
--	platform_driver_unregister(&driver);
-+	platform_driver_unregister(&bfin5xx_spi_driver);
+ 	platform_driver_unregister(&driver);
  }
- 
++
  module_exit(bfin5xx_spi_exit);
 _
 
@@ -840,6 +760,8 @@ blackfin-on-chip-ethernet-mac-controller-driver.patch
 blackfin-patch-add-blackfin-support-in-smc91x.patch
 blackfin-on-chip-rtc-controller-driver.patch
 blackfin-blackfin-on-chip-spi-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
+blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
 blackfin-spi-controller-driver-update-according-to-david-brownells-review.patch
 blackfin-serial-core-driver-uart1-should-depend-on-bf534-bf536-bf537-remove-experimental-marking-from-on-chip-serial-core-driver-and-make-options-less-wordy.patch
 move-die-notifier-handling-to-common-code-fix.patch
