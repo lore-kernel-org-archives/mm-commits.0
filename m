@@ -1,78 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-balance-parenthesis-in-macros.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:09:35 -0700
-Message-ID: <200704301909.l3UJ9a1p012334@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-always-include-linux-kallsysms-header-file.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:10:27 -0700
+Message-ID: <200704301910.l3UJARDx012423@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44212 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946665AbXD3TKS (ORCPT
+	by vger.kernel.org with ESMTP id S1946670AbXD3TKc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:10:18 -0400
+	Mon, 30 Apr 2007 15:10:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, bryan.wu@analog.com, mm-commits@vger.kernel.org
+To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin: balance parenthesis in macros
+     Blackfin arch: always include linux kallsysms header file in trap c
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-balance-parenthesis-in-macros.patch
+     blackfin-arch-always-include-linux-kallsysms-header-file.patch
 
 This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: blackfin: balance parenthesis in macros
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: Blackfin arch: always include linux kallsysms header file in trap c
+From: "Wu, Bryan" <bryan.wu@analog.com>
 
-Balance parenthesis in blackfin header files.
+Just include linux/kallsyms.h all the time as the header will handle
+prototypes/defines when CONFIG_KALLSYMS is disabled ...  fixes build error
+when disabled due to print_ip_sym not being macroed away
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Bryan Wu <bryan.wu@analog.com>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-blackfin/mach-bf535/bf535.h |    4 ++--
- include/asm-blackfin/scatterlist.h      |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/blackfin/kernel/traps.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-blackfin/mach-bf535/bf535.h~blackfin-arch-balance-parenthesis-in-macros include/asm-blackfin/mach-bf535/bf535.h
---- a/include/asm-blackfin/mach-bf535/bf535.h~blackfin-arch-balance-parenthesis-in-macros
-+++ a/include/asm-blackfin/mach-bf535/bf535.h
-@@ -224,7 +224,7 @@
- #define UART0_LSR_TEMT			0x40	/* TSR and UARTx_thr both empty */
+diff -puN arch/blackfin/kernel/traps.c~blackfin-arch-always-include-linux-kallsysms-header-file arch/blackfin/kernel/traps.c
+--- a/arch/blackfin/kernel/traps.c~blackfin-arch-always-include-linux-kallsysms-header-file
++++ a/arch/blackfin/kernel/traps.c
+@@ -35,6 +35,8 @@
+ #include <asm/irq_handler.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
++#include <linux/kallsyms.h>
++
+ #ifdef CONFIG_KGDB
+ # include <linux/debugger.h>
+ # include <linux/kgdb.h>
+@@ -52,9 +54,6 @@ asmlinkage void trap_c(struct pt_regs *f
  
- #define UART0_MSR_ADDR		0xffc0180c	/* UART 0 Modem status register  16 bit */
--#define UART0_MSR			HALFWORD_REF(UART0_MSR_ADDR
-+#define UART0_MSR			HALFWORD_REF(UART0_MSR_ADDR)
- #define UART0_SCR_ADDR		0xffc0180e	/* UART 0 Scratch register  16 bit */
- #define UART0_SCR			HALFWORD_REF(UART0_SCR_ADDR)
- #define UART0_IRCR_ADDR		0xffc01810	/* UART 0 IrDA Control register  16 bit */
-@@ -331,7 +331,7 @@
- #define UART1_LSR_TEMT          0x40	/* TSR and UARTx_thr both empty */
+ int kstack_depth_to_print = 48;
  
- #define UART1_MSR_ADDR		0xffc01c0c	/* UART 1 Modem status register  16 bit */
--#define UART1_MSR			HALFWORD_REF(UART1_MSR_ADDR
-+#define UART1_MSR			HALFWORD_REF(UART1_MSR_ADDR)
- #define UART1_SCR_ADDR		0xffc01c0e	/* UART 1 Scratch register  16 bit */
- #define UART1_SCR			HALFWORD_REF(UART1_SCR_ADDR)
- 
-diff -puN include/asm-blackfin/scatterlist.h~blackfin-arch-balance-parenthesis-in-macros include/asm-blackfin/scatterlist.h
---- a/include/asm-blackfin/scatterlist.h~blackfin-arch-balance-parenthesis-in-macros
-+++ a/include/asm-blackfin/scatterlist.h
-@@ -17,7 +17,7 @@ struct scatterlist {
-  * returns, or alternatively stop on the first sg_dma_len(sg) which
-  * is 0.
-  */
--#define sg_address(sg) (page_address((sg)->page) + (sg)->offset
-+#define sg_address(sg) (page_address((sg)->page) + (sg)->offset)
- #define sg_dma_address(sg)      ((sg)->dma_address)
- #define sg_dma_len(sg)          ((sg)->length)
- 
+-#ifdef CONFIG_KALLSYMS
+-#include <linux/kallsyms.h>
+-#endif
+ static int printk_address(unsigned long address)
+ {
+ 	struct vm_list_struct *vml;
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
-git-powerpc.patch
+origin.patch
+blackfin-Documentation.patch
 blackfin-arch.patch
-blackfin-arch-balance-parenthesis-in-macros.patch
+blackfin-arch-always-include-linux-kallsysms-header-file.patch
+blackfin-arch-sync-with-uclibc-no-functional-changes.patch
+blackfin-arch-using-asm-generic-pgtable-header-file-by.patch
+blackfin-arch-add-missing-__clear_user-function-to.patch
+blackfin-arch-use-boot_command_line-instead-of.patch
+blackfin-arch-fix-some-coding-style-in-include.patch
+blackfin-arch-add-scm_timestampns-and-siocgstampns-to.patch
+blackfin-arch-add-missing-blackfin-support-in-lib.patch
+blackfin-arch-fix-bug-data-cannot-be-put-into-l1-data.patch
+blackfin-arch-source-kernel-preemption-option.patch
+blackfin-arch-workaround-bf561-anomaly-05000266.patch
+blackfin-arch-define-a-new-cacheline_aligned-attribute-to-put-it-in-l1-data-memory-with-linkscript-update.patch
+blackfin-arch-fix-bug-asserting-gpio-requested-doesnt-make-sense-with-gpio-whole-port-accesses.patch
+blackfin-arch-04-and-05-silicon-doesnt-exist-for-bf534-bf536-adn-bf537-so-dont-let-people-select-the-option.patch
+blackfin-arch-fix-coding-style-in-ints-priority-sc-c-file.patch
+blackfin-arch-fix-bug-refuse-to-boot-if-rootfs-image-is-not-attached-when-mtd_uclinux-is-selected.patch
+blackfin-arch-move-revid-function-into-global-headers-as-inline-functions.patch
+blackfin-arch-need-linux-ttyh-header-for-console_init-prototype.patch
+blackfin-arch-convert-most-blackfin-specific-spi-register-settings-to-common-spi-framework-settings.patch
+driver_bfin_serial_core.patch
+driver_bfin_serial_core-update.patch
+blackfin-on-chip-ethernet-mac-controller-driver.patch
+blackfin-on-chip-ethernet-mac-controller-driver-update.patch
+blackfin-patch-add-blackfin-support-in-smc91x.patch
+blackfin-on-chip-rtc-controller-driver.patch
+blackfin-on-chip-rtc-controller-driver-fix-rtc_update_irq-augument.patch
+blackfin-blackfin-on-chip-spi-controller-driver.patch
+blackfin-blackfin-on-chip-spi-controller-driver-cleanup-and-coding-style-fixing.patch
+blackfin-blackfin-on-chip-spi-controller-driver-fix-reboot-kernel-mounting-spi-flash-print-error-bug.patch
+blackfin-spi-controller-driver-update-according-to-david-brownells-review.patch
+blackfin-serial-core-driver-uart1-should-depend-on-bf534-bf536-bf537-remove-experimental-marking-from-on-chip-serial-core-driver-and-make-options-less-wordy.patch
+move-die-notifier-handling-to-common-code-fix.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+vdso-print-fatal-signals-fix-compiling-error-bug-in.patch
