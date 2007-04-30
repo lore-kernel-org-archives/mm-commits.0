@@ -1,60 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 10:38:04 -0700
-Message-ID: <200704301738.l3UHc5tv009934@shell0.pdx.osdl.net>
+Subject: - revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 11:47:10 -0700
+Message-ID: <200704301847.l3UIlAhs011757@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52224 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031560AbXD3RiV (ORCPT
+	by vger.kernel.org with ESMTP id S1946583AbXD3SrN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 13:38:21 -0400
+	Mon, 30 Apr 2007 14:47:13 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l3UIlBnH024974
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2007 11:47:12 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anemo@mba.ocn.ne.jp, jeff@garzik.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix
+     revert sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update
 has been removed from the -mm tree.  Its filename was
-     ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
+     revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because I need to clear the decks
 
 ------------------------------------------------------
-Subject: ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix
+Subject: revert sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
---- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix
-+++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
-@@ -1039,7 +1039,7 @@ void __init toshiba_rbtx4927_timer_setup
- 
- static int __init toshiba_rbtx4927_rtc_init(void)
- {
--	struct resource res = {
-+	static struct resource __initdata res = {
- 		.start	= 0x1c010000,
- 		.end	= 0x1c010000 + 0x800 - 1,
- 		.flags	= IORESOURCE_MEM,
-@@ -1052,7 +1052,7 @@ device_initcall(toshiba_rbtx4927_rtc_ini
- 
- static int __init rbtx4927_ne_init(void)
- {
--	struct resource res[] = {
-+	static struct resource __initdata res[] = {
- 		{
- 			.start	= RBTX4927_RTL_8019_BASE,
- 			.end	= RBTX4927_RTL_8019_BASE + 0x20 - 1,
+diff -puN kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update kernel/sched.c
+--- a/kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array-update
++++ a/kernel/sched.c
+@@ -4102,8 +4102,7 @@ void rt_mutex_setprio(struct task_struct
+ 		 * our priority decreased, or if our priority became higher
+ 		 * than the current's.
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) ||
+-				(delta > 0 && task_running(rq, p)))
++		if (TASK_PREEMPTS_CURR(p, rq) || (delta > 0 && task_running(rq, p)))
+ 			resched_task(rq->curr);
+ 	}
+ 	task_rq_unlock(rq, &flags);
+@@ -4155,8 +4154,7 @@ void set_user_nice(struct task_struct *p
+ 		 * our priority decreased, or if our priority became higher
+ 		 * than the current's.
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) ||
+-				(delta > 0 && task_running(rq, p)))
++		if (TASK_PREEMPTS_CURR(p, rq) || (delta > 0 && task_running(rq, p)))
+ 			resched_task(rq->curr);
+ 	}
+ out_unlock:
+@@ -4386,8 +4384,7 @@ recheck:
+ 		 * our priority decreased, or our priority became higher
+ 		 * than the current's.
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) ||
+-				(task_running(rq, p) && p->prio > oldprio))
++		if (TASK_PREEMPTS_CURR(p, rq) || (task_running(rq, p) && p->prio > oldprio))
+ 			resched_task(rq->curr);
+ 	}
+ 	__task_rq_unlock(rq);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +110,6 @@ git-md-accel-fix.patch
 git-mmc-build-fix.patch
 git-netdev-all.patch
 ne-add-platform_driver-fix.patch
-ne-mips-use-platform_driver-for-ne-on-rbtx49xx-fix.patch
 git-e1000.patch
 git-e1000-fixup-2.patch
 git-net-vs-git-netdev-all.patch
