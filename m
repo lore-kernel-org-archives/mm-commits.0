@@ -1,49 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:10:15 -0700
-Message-ID: <200704301910.l3UJAFdl012405@shell0.pdx.osdl.net>
+Subject: - blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:10:18 -0700
+Message-ID: <200704301910.l3UJAIu5012409@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33499 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48614 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946664AbXD3TKS (ORCPT
+	by vger.kernel.org with ESMTP id S1946667AbXD3TKV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:10:18 -0400
+	Mon, 30 Apr 2007 15:10:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin arch fix bug prevent warning in case BF531 is target
+     blackfin arch fix stamp537 ISP1716 IRQ setting bug
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
+     blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
 
 This patch was dropped because it was folded into blackfin-arch.patch
 
 ------------------------------------------------------
-Subject: blackfin arch fix bug prevent warning in case BF531 is target
+Subject: blackfin arch fix stamp537 ISP1716 IRQ setting bug
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/setup.c |    2 +-
+ arch/blackfin/mach-bf537/boards/stamp.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target arch/blackfin/kernel/setup.c
---- a/arch/blackfin/kernel/setup.c~blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target
-+++ a/arch/blackfin/kernel/setup.c
-@@ -571,7 +571,7 @@ static void __init generate_cpl_tables(v
- 			 * rootfs size, there can be overlapping memory areas.
- 			 */
+diff -puN arch/blackfin/mach-bf537/boards/stamp.c~blackfin-arch-fix-stamp537-isp1716-irq-setting-bug arch/blackfin/mach-bf537/boards/stamp.c
+--- a/arch/blackfin/mach-bf537/boards/stamp.c~blackfin-arch-fix-stamp537-isp1716-irq-setting-bug
++++ a/arch/blackfin/mach-bf537/boards/stamp.c
+@@ -68,7 +68,7 @@ static struct resource bfin_isp1761_reso
+ 	[1] = {
+ 		.start  = ISP1761_IRQ,
+ 		.end    = ISP1761_IRQ,
+-		.flags  = IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
++		.flags  = IORESOURCE_IRQ,
+ 	},
+ };
  
--			if (as_1m) {
-+			if (as_1m &&  i!=L1I_MEM && i!=L1D_MEM) {
- #ifdef CONFIG_MTD_UCLINUX
- 				if (i == SDRAM_RAM_MTD) {
- 					if ((cplb_data[SDRAM_KERN].end + 1) > cplb_data[SDRAM_RAM_MTD].start)
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
@@ -51,7 +51,6 @@ Patches currently in -mm which might be from bryan.wu@analog.com are
 origin.patch
 blackfin-Documentation.patch
 blackfin-arch.patch
-blackfin-arch-fix-bug-prevent-warning-in-case-bf531-is-target.patch
 blackfin-arch-fix-stamp537-isp1716-irq-setting-bug.patch
 blackfin-arch-fix-bug-interrupt-setup-problem-request_irq.patch
 blackfin-arch-pnav-and-bluetechnix-cm-bf537-use-the-mac.patch
