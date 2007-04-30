@@ -1,50 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - kthread-dont-depend-on-work-queues-take-2-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 13:18:40 -0700
-Message-ID: <200704302018.l3UKIeiZ013999@shell0.pdx.osdl.net>
+Subject: - fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 13:19:25 -0700
+Message-ID: <200704302019.l3UKJQtw014034@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55814 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031588AbXD3UTS (ORCPT
+	by vger.kernel.org with ESMTP id S1946756AbXD3UUT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 16:19:18 -0400
+	Mon, 30 Apr 2007 16:20:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, ego@in.ibm.com, oleg@tv-sign.ru, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kthread-dont-depend-on-work-queues-take-2-fix
+     fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious
 has been removed from the -mm tree.  Its filename was
-     kthread-dont-depend-on-work-queues-take-2-fix.patch
+     fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
 
-This patch was dropped because it was folded into kthread-dont-depend-on-work-queues-take-2.patch
+This patch was dropped because it was folded into fix-kthread_create-vs-freezer-theoretical-race.patch
 
 ------------------------------------------------------
-Subject: kthread-dont-depend-on-work-queues-take-2-fix
+Subject: fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ kernel/kthread.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kthread.c~kthread-dont-depend-on-work-queues-take-2-fix kernel/kthread.c
---- a/kernel/kthread.c~kthread-dont-depend-on-work-queues-take-2-fix
+diff -puN kernel/kthread.c~fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious kernel/kthread.c
+--- a/kernel/kthread.c~fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious
 +++ a/kernel/kthread.c
-@@ -218,7 +218,7 @@ static __init void kthreadd_setup(void)
- 	struct k_sigaction sa;
- 	sigset_t blocked;
- 
--	strcpy(tsk->comm, "kthreadd");
-+	set_task_comm(tsk, "kthreadd");
- 
- 	/* Block and flush all signals */
- 	sigfillset(&blocked);
+@@ -162,7 +162,10 @@ EXPORT_SYMBOL(kthread_create);
+  */
+ void kthread_bind(struct task_struct *k, unsigned int cpu)
+ {
+-	BUG_ON(k->state != TASK_UNINTERRUPTIBLE);
++	if (k->state != TASK_UNINTERRUPTIBLE) {
++		WARN_ON(1);
++		return;
++	}
+ 	/* Must have done schedule() in kthread() before we set_task_cpu */
+ 	wait_task_inactive(k);
+ 	set_task_cpu(k, cpu);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,7 +154,7 @@ driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 kthread-dont-depend-on-work-queues-take-2.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
 fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
 speedup-divides-by-cpu_power-in-scheduler.patch
 utimensat-implementation-fix.patch
