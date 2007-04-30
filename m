@@ -1,62 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - lazy-freeing-of-memory-through-madv_free-sparc-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:02:51 -0700
-Message-ID: <200704301902.l3UJ2pMK012230@shell0.pdx.osdl.net>
+Subject: - lazy-freeing-of-memory-through-madv_free-fix.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:02:44 -0700
+Message-ID: <200704301902.l3UJ2j6F012224@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42261 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946627AbXD3TDC (ORCPT
+	by vger.kernel.org with ESMTP id S1946645AbXD3TDN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:03:02 -0400
+	Mon, 30 Apr 2007 15:03:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, drepper@redhat.com, hugh@veritas.com, mtk-manpages@gmx.net, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lazy-freeing-of-memory-through-madv_free-sparc-fix
+     lazy-freeing-of-memory-through-madv_free-fix
 has been removed from the -mm tree.  Its filename was
-     lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
+     lazy-freeing-of-memory-through-madv_free-fix.patch
 
 This patch was dropped because it was folded into lazy-freeing-of-memory-through-madv_free.patch
 
 ------------------------------------------------------
-Subject: lazy-freeing-of-memory-through-madv_free-sparc-fix
+Subject: lazy-freeing-of-memory-through-madv_free-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/mman.h   |    2 --
- include/asm-sparc64/mman.h |    2 --
- 2 files changed, 4 deletions(-)
+ mm/rmap.c   |    2 +-
+ mm/vmscan.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-sparc/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix include/asm-sparc/mman.h
---- a/include/asm-sparc/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix
-+++ a/include/asm-sparc/mman.h
-@@ -33,8 +33,6 @@
- #define MC_LOCKAS       5  /* Lock an entire address space of the calling process */
- #define MC_UNLOCKAS     6  /* Unlock entire address space of calling process */
+diff -puN mm/rmap.c~lazy-freeing-of-memory-through-madv_free-fix mm/rmap.c
+--- a/mm/rmap.c~lazy-freeing-of-memory-through-madv_free-fix
++++ a/mm/rmap.c
+@@ -712,8 +712,8 @@ static int try_to_unmap_one(struct page 
  
--#define MADV_FREE	0x5		/* (Solaris) contents can be freed */
--
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
- #define arch_mmap_check	sparc_mmap_check
-diff -puN include/asm-sparc64/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix include/asm-sparc64/mman.h
---- a/include/asm-sparc64/mman.h~lazy-freeing-of-memory-through-madv_free-sparc-fix
-+++ a/include/asm-sparc64/mman.h
-@@ -33,8 +33,6 @@
- #define MC_LOCKAS       5  /* Lock an entire address space of the calling process */
- #define MC_UNLOCKAS     6  /* Unlock entire address space of calling process */
+ 	/* MADV_FREE is used to lazily free memory from userspace. */
+ 	if (PageLazyFree(page) && !migration) {
+-		/* There is new data in the page.  Reinstate it. */
+ 		if (unlikely(pte_dirty(pteval))) {
++			/* There is new data in the page.  Reinstate it. */
+ 			set_pte_at(mm, address, pte, pteval);
+ 			ret = SWAP_FAIL;
+ 			goto out_unmap;
+diff -puN mm/vmscan.c~lazy-freeing-of-memory-through-madv_free-fix mm/vmscan.c
+--- a/mm/vmscan.c~lazy-freeing-of-memory-through-madv_free-fix
++++ a/mm/vmscan.c
+@@ -457,7 +457,7 @@ static unsigned long shrink_page_list(st
  
--#define MADV_FREE	0x5		/* (Solaris) contents can be freed */
--
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
- #define arch_mmap_check	sparc64_mmap_check
+ 		/*
+ 		 * MADV_DONTNEED pages get reclaimed lazily, unless the
+-		 * process reuses it before we get to it.
++		 * process reuses them before we get to them.
+ 		 */
+ 		if (PageLazyFree(page)) {
+ 			switch (try_to_unmap(page, 0)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,6 +137,7 @@ slab-mark-set_up_list3s-__init.patch
 slub-core.patch
 mm-optimize-kill_bdev.patch
 lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-fix.patch
 lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
 lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
 driver_bfin_serial_core-update.patch
