@@ -1,269 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 11:47:13 -0700
-Message-ID: <200704301847.l3UIlD4Z011760@shell0.pdx.osdl.net>
+Subject: - slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 11:52:50 -0700
+Message-ID: <200704301852.l3UIqoGx011951@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33490 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946629AbXD3Swa (ORCPT
+	by vger.kernel.org with ESMTP id S1423614AbXD3Sw4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 14:52:30 -0400
+	Mon, 30 Apr 2007 14:52:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dmitry.adamushko@gmail.com, kernel@kolivas.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array
+     SLUB: Conform more to SLABs SLAB_HWCACHE_ALIGN behavior
 has been removed from the -mm tree.  Its filename was
-     revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+     slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
 
-This patch was dropped because I need to clear the decks
+This patch was dropped because it was folded into slub-core.patch
 
 ------------------------------------------------------
-Subject: revert sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: SLUB: Conform more to SLABs SLAB_HWCACHE_ALIGN behavior
+From: Christoph Lameter <clameter@sgi.com>
 
-For staircase.
+Currently SLUB is using a strict L1_CACHE_BYTES alignment if
+SLAB_HWCACHE_ALIGN is specified. SLAB does not align to a cacheline if the
+object is smaller than half of a cacheline. Small objects are then aligned
+by SLAB to a fraction of a cacheline.
 
-Cc: Dmitry Adamushko <dmitry.adamushko@gmail.com>
-Cc: Con Kolivas <kernel@kolivas.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Make SLUB just forget about the alignment requirement if the object size
+is less than L1_CACHE_BYTES. It seems that fractional alignments are no
+good because they grow the object and reduce the object density in a cache
+line needlessly causing additional cache line fetches.
+
+If we are already throwing the user suggestion of a cache line alignment
+away then lets do the best we can. Maybe SLAB_HWCACHE_ALIGN also needs
+to be tossed given its wishy-washy handling but doing so would require
+an audit of all kmem_cache_allocs throughout the kernel source.
+
+In any case one needs to explictly specify an alignment during
+kmem_cache_create to either slab allocator in order to ensure that the
+objects are cacheline aligned.
+
+[Patch has a nice memory compaction effect on 32 bit platforms]
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ mm/slub.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array kernel/sched.c
---- a/kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array
-+++ a/kernel/sched.c
-@@ -169,7 +169,7 @@ unsigned long long __attribute__((weak))
- 		(MAX_BONUS / 2 + DELTA((p)) + 1) / MAX_BONUS - 1))
+diff -puN mm/slub.c~slub-core-conform-more-to-slabs-slab_hwcache_align-behavior mm/slub.c
+--- a/mm/slub.c~slub-core-conform-more-to-slabs-slab_hwcache_align-behavior
++++ a/mm/slub.c
+@@ -1474,9 +1474,19 @@ static int calculate_order(int size)
+  * various ways of specifying it.
+  */
+ static unsigned long calculate_alignment(unsigned long flags,
+-		unsigned long align)
++		unsigned long align, unsigned long size)
+ {
+-	if (flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN))
++	/*
++	 * If the user wants hardware cache aligned objects then
++	 * follow that suggestion if the object is sufficiently
++	 * large.
++	 *
++	 * The hardware cache alignment cannot override the
++	 * specified alignment though. If that is greater
++	 * then use it.
++	 */
++	if ((flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN)) &&
++			size > L1_CACHE_BYTES / 2)
+ 		return max_t(unsigned long, align, L1_CACHE_BYTES);
  
- #define TASK_PREEMPTS_CURR(p, rq) \
--	(((p)->prio < (rq)->curr->prio) && ((p)->array == (rq)->active))
-+	((p)->prio < (rq)->curr->prio)
+ 	if (align < ARCH_SLAB_MINALIGN)
+@@ -1664,7 +1674,7 @@ static int calculate_sizes(struct kmem_c
+ 	 * user specified (this is unecessarily complex due to the attempt
+ 	 * to be compatible with SLAB. Should be cleaned up some day).
+ 	 */
+-	align = calculate_alignment(flags, align);
++	align = calculate_alignment(flags, align, s->objsize);
  
- #define SCALE_PRIO(x, prio) \
- 	max(x * (MAX_PRIO - prio) / (MAX_USER_PRIO / 2), MIN_TIMESLICE)
-@@ -4077,13 +4077,13 @@ void rt_mutex_setprio(struct task_struct
- 	struct prio_array *array;
- 	unsigned long flags;
- 	struct rq *rq;
--	int delta;
-+	int oldprio;
+ 	/*
+ 	 * SLUB stores one object immediately after another beginning from
+@@ -2252,7 +2262,7 @@ static struct kmem_cache *find_mergeable
+ 		return NULL;
  
- 	BUG_ON(prio < 0 || prio > MAX_PRIO);
+ 	size = ALIGN(size, sizeof(void *));
+-	align = calculate_alignment(flags, align);
++	align = calculate_alignment(flags, align, size);
+ 	size = ALIGN(size, align);
  
- 	rq = task_rq_lock(p, &flags);
- 
--	delta = prio - p->prio;
-+	oldprio = p->prio;
- 	array = p->array;
- 	if (array)
- 		dequeue_task(p, array);
-@@ -4099,10 +4099,13 @@ void rt_mutex_setprio(struct task_struct
- 		enqueue_task(p, array);
- 		/*
- 		 * Reschedule if we are currently running on this runqueue and
--		 * our priority decreased, or if our priority became higher
--		 * than the current's.
-+		 * our priority decreased, or if we are not currently running on
-+		 * this runqueue and our priority is higher than the current's
- 		 */
--		if (TASK_PREEMPTS_CURR(p, rq) || (delta > 0 && task_running(rq, p)))
-+		if (task_running(rq, p)) {
-+			if (p->prio > oldprio)
-+				resched_task(rq->curr);
-+		} else if (TASK_PREEMPTS_CURR(p, rq))
- 			resched_task(rq->curr);
- 	}
- 	task_rq_unlock(rq, &flags);
-@@ -4150,11 +4153,10 @@ void set_user_nice(struct task_struct *p
- 		enqueue_task(p, array);
- 		inc_raw_weighted_load(rq, p);
- 		/*
--		 * Reschedule if we are currently running on this runqueue and
--		 * our priority decreased, or if our priority became higher
--		 * than the current's.
-+		 * If the task increased its priority or is running and
-+		 * lowered its priority, then reschedule its CPU:
- 		 */
--		if (TASK_PREEMPTS_CURR(p, rq) || (delta > 0 && task_running(rq, p)))
-+		if (delta < 0 || (delta > 0 && task_running(rq, p)))
- 			resched_task(rq->curr);
- 	}
- out_unlock:
-@@ -4381,10 +4383,13 @@ recheck:
- 		__activate_task(p, rq);
- 		/*
- 		 * Reschedule if we are currently running on this runqueue and
--		 * our priority decreased, or our priority became higher
--		 * than the current's.
-+		 * our priority decreased, or if we are not currently running on
-+		 * this runqueue and our priority is higher than the current's
- 		 */
--		if (TASK_PREEMPTS_CURR(p, rq) || (task_running(rq, p) && p->prio > oldprio))
-+		if (task_running(rq, p)) {
-+			if (p->prio > oldprio)
-+				resched_task(rq->curr);
-+		} else if (TASK_PREEMPTS_CURR(p, rq))
- 			resched_task(rq->curr);
- 	}
- 	__task_rq_unlock(rq);
+ 	list_for_each(h, &slab_caches) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-origin.patch
-zlib-backout.patch
 extend-print_symbol-capability.patch
-add-kvasprintf.patch
-add-kvasprintf-fix.patch
 slab-introduce-krealloc.patch
-git-acpi.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-git-powerpc.patch
-git-powerpc-fixup.patch
-ppc4xx_sgdma-needs-dma_mappingh.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-ida-implement-idr-based-id-allocator-fix.patch
-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-ieee1394-fixup.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-input-fixup.patch
-git-jfs.patch
-git-kvm.patch
-git-libata-all.patch
-ata-printk-warning-fixes.patch
-drivers-ata-pata_cmd640c-fix-build-with-config_pm=n.patch
-revert-rm-pointless-dmaengine-exports.patch
-git-md-accel-fix.patch
-git-mmc-build-fix.patch
-git-netdev-all.patch
-ne-add-platform_driver-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-net-vs-git-netdev-all.patch
-sctp-fix-sctp_getsockopt_local_addrs_old-to-use-local-storage.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-ocfs2.patch
-git-parisc.patch
-rm9000-serial-driver.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-__inquire_remote_apic-printk-warning-fix.patch
-xfs-clean-up-shrinker-games.patch
+ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
+ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
 add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
 smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-slab-mark-set_up_list3s-__init.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
 slub-core.patch
+slub-core-conform-more-to-slabs-slab_hwcache_align-behavior.patch
+slub-core-reduce-the-order-of-allocations-to-avoid-fragmentation.patch
+slub-core-sysfs-support-fix-unique-id-generation.patch
+slub-core-printk-cleanup-object_err.patch
+slub-core-printk-cleanup-add-slab_err.patch
+slub-core-printk-cleanup-fix-up-printks-in-the-resiliency-check.patch
+slub-core-fix-slab-validation-error-in-bootstrap-cache.patch
+slub-core-remove-per-cpu-flusher.patch
+make-page-private-usable-in-compound-pages-v1.patch
+make-page-private-usable-in-compound-pages-v1-hugetlb-fix.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
 slub-enable-tracking-of-full-slabs-fix.patch
+slub-enable-tracking-of-full-slabs-add-checks-for-interrupts-disabled.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-validation-of-slabs-metadata-and-guard-zones-fix-pageerror-checks-during-validation.patch
+slub-validation-of-slabs-metadata-and-guard-zones-remove-duplicate-vm_bug_on.patch
+slub-validation-of-slabs-metadata-and-guard-zones-printk-cleanup-slab-validation-printks.patch
+slub-add-min_partial.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
 slub-add-ability-to-list-alloc--free-callers-per-slab-tidy.patch
+slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
+slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink-fixes-to-kmem_cache_shrink.patch
+slub-remove-object-activities-out-of-checking-functions.patch
+slub-remove-object-activities-out-of-checking-functions-printk-cleanup-diagnostic-functions.patch
+slub-user-documentation.patch
 slub-user-documentation-fix.patch
-mm-optimize-kill_bdev-fix.patch
-lazy-freeing-of-memory-through-madv_free-fix.patch
-lazy-freeing-of-memory-through-madv_free-sparc-fix.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
-driver_bfin_serial_core-update.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace-fix-fix-fix.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others-fix.patch
-rtc-add-rtc-rs5c313-driver-tidy.patch
-rtc-add-rtc-rs5c313-driver-is-busted.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code-fixes-2.patch
-move-die-notifier-handling-to-common-code-fix-vmalloc_sync_all.patch
-fix-sscanf-%n-match-at-end-of-input-string-tidy.patch
-parport-dev-driver-model-support-powerpc-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch-fix-tidy.patch
-add-support-for-deferrable-timers-respun-tidy.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc-fix.patch
-ignore-stolen-time-in-the-softlockup-watchdog-fix.patch
-fix-kevents-childs-priority-greediness-fix.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount-fix.patch
-enhance-initcall_debug-measure-latency-fix.patch
-expose-range-checking-functions-from-arch-specific-update-fix.patch
-pad-irq_desc-to-internode-cacheline-size-fix.patch
-dtlk-fix-error-checks-in-module_init-fix.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation-fix.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-kconfig-update.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2-fix.patch
-fix-kthread_create-vs-freezer-theoretical-race-dont-be-obnoxious.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
-sched-consolidate-sched_clock-drift-adjustments-fix.patch
-utimensat-implementation-fix.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix.patch
-kprobes-the-on-off-knob-thru-debugfs-updated-fix-fix-fix.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix.patch
-signal-timer-event-fds-v9-signalfd-core-fix-fix.patch
-signal-timer-event-fds-v9-timerfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix.patch
-signal-timer-event-fds-v9-eventfd-core-fix-fix.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices-fix.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-git-gccbug-fixup.patch
-w1-build-fix.patch
+slub-add-slabinfo-tool.patch
+slub-add-slabinfo-tool-update-slabinfoc.patch
+slub-major-slabinfo-update.patch
+slub-slabinfo-remove-hackname.patch
+slub-slabinfo-more-statistic-fixes-and-handling-fixes.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+quicklists-for-page-table-pages.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion.patch
+quicklists-for-page-table-pages-avoid-useless-virt_to_page-conversion-fix.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+quicklist-support-for-sparc64.patch
+slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+kmem_cache-simplify-slab-cache-creation.patch
+slab-allocators-remove-slab_debug_initial-flag.patch
+slab-allocators-remove-slab_debug_initial-flag-locks-fix.patch
+slab-allocators-remove-multiple-alignment-specifications.patch
+slab-allocators-remove-slab_ctor_atomic.patch
+fault-injection-fix-failslab-with-config_numa.patch
+mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
+slub-i386-support.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+vmstat-use-our-own-timer-events.patch
+readahead-state-based-method-aging-accounting.patch
