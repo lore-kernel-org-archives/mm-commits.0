@@ -1,111 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - uml-tidy-processc-fix.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 12:22:46 -0700
-Message-ID: <200704301922.l3UJMlgt012745@shell0.pdx.osdl.net>
+Subject: - deprecate-smbfs-in-favour-of-cifs-docs.patch removed from -mm tree
+Date: Mon, 30 Apr 2007 12:23:41 -0700
+Message-ID: <200704301923.l3UJNfmO012757@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49316 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52738 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946713AbXD3TWw (ORCPT
+	by vger.kernel.org with ESMTP id S1946714AbXD3TX7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 15:22:52 -0400
+	Mon, 30 Apr 2007 15:23:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: olecom@flower.upol.cz, sfrench@us.ibm.com, urban@teststation.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: tidy process.c (fix)
+     deprecate-smbfs-in-favour-of-cifs docs
 has been removed from the -mm tree.  Its filename was
-     uml-tidy-processc-fix.patch
+     deprecate-smbfs-in-favour-of-cifs-docs.patch
 
-This patch was dropped because it was folded into uml-tidy-processc.patch
+This patch was dropped because it was folded into deprecate-smbfs-in-favour-of-cifs.patch
 
 ------------------------------------------------------
-Subject: uml: tidy process.c (fix)
-From: Jeff Dike <jdike@addtoit.com>
+Subject: deprecate-smbfs-in-favour-of-cifs docs
+From: Oleg Verych <olecom@flower.upol.cz>
 
-Use only one ifdef to mark stack_sp as being tt mode only.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Oleg Verych <olecom@flower.upol.cz>
+Cc: Urban Widmark <urban@teststation.com>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/kern_util.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/Kconfig |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN arch/um/include/kern_util.h~uml-tidy-processc-fix arch/um/include/kern_util.h
---- a/arch/um/include/kern_util.h~uml-tidy-processc-fix
-+++ a/arch/um/include/kern_util.h
-@@ -8,6 +8,7 @@
+diff -puN fs/Kconfig~deprecate-smbfs-in-favour-of-cifs-docs fs/Kconfig
+--- a/fs/Kconfig~deprecate-smbfs-in-favour-of-cifs-docs
++++ a/fs/Kconfig
+@@ -1175,7 +1175,7 @@ config BEFS_DEBUG
+ 	depends on BEFS_FS
+ 	help
+ 	  If you say Y here, you can use the 'debug' mount option to enable
+-	  debugging output from the driver. 
++	  debugging output from the driver.
  
- #include "sysdep/ptrace.h"
- #include "sysdep/faultinfo.h"
-+#include "uml-config.h"
+ config BFS_FS
+ 	tristate "BFS file system support (EXPERIMENTAL)"
+@@ -1278,7 +1278,7 @@ config JFFS2_FS_XATTR
+ 	  Extended attributes are name:value pairs associated with inodes by
+ 	  the kernel or by users (see the attr(5) manual page, or visit
+ 	  <http://acl.bestbits.at/> for details).
+-	  
++
+ 	  If unsure, say N.
  
- typedef void (*kern_hndl)(int, union uml_pt_regs *);
+ config JFFS2_FS_POSIX_ACL
+@@ -1289,10 +1289,10 @@ config JFFS2_FS_POSIX_ACL
+ 	help
+ 	  Posix Access Control Lists (ACLs) support permissions for users and
+ 	  groups beyond the owner/group/world scheme.
+-	  
++
+ 	  To learn more about Access Control Lists, visit the Posix ACLs for
+ 	  Linux website <http://acl.bestbits.at/>.
+-	  
++
+ 	  If you don't know what Access Control Lists are, say N
  
-@@ -33,7 +34,7 @@ extern int nsyscalls;
- 	UML_ROUND_DOWN(((unsigned long) addr) + PAGE_SIZE - 1)
+ config JFFS2_FS_SECURITY
+@@ -1304,7 +1304,7 @@ config JFFS2_FS_SECURITY
+ 	  implemented by security modules like SELinux.  This option
+ 	  enables an extended attribute handler for file security
+ 	  labels in the jffs2 filesystem.
+-	  
++
+ 	  If you are not using a security module that requires using
+ 	  extended attributes for file security labels, say N.
  
- extern int kernel_fork(unsigned long flags, int (*fn)(void *), void * arg);
--#if defined(CONFIG_MODE_TT) || defined(UML_CONFIG_MODE_TT)
-+#ifdef UML_CONFIG_MODE_TT
- extern unsigned long stack_sp(unsigned long page);
- #endif
- extern int kernel_thread_proc(void *data);
+@@ -1796,7 +1796,7 @@ config RPCSEC_GSS_SPKM3
+ 	  If unsure, say N.
+ 
+ config SMB_FS
+-	tristate "SMB file system support (to mount Windows shares etc.)"
++	tristate "SMB file system support (OBSOLETE, please use CIFS)"
+ 	depends on INET
+ 	select NLS
+ 	help
+@@ -1819,8 +1819,8 @@ config SMB_FS
+ 	  General information about how to connect Linux, Windows machines and
+ 	  Macs is on the WWW at <http://www.eats.com/linux_mac_win.html>.
+ 
+-	  To compile the SMB support as a module, choose M here: the module will
+-	  be called smbfs.  Most people say N, however.
++	  To compile the SMB support as a module, choose M here:
++	  the module will be called smbfs.  Most people say N, however.
+ 
+ config SMB_NLS_DEFAULT
+ 	bool "Use a default NLS"
+@@ -1852,7 +1852,7 @@ config SMB_NLS_REMOTE
+ 	  smbmount from samba 2.2.0 or later supports this.
+ 
+ config CIFS
+-	tristate "CIFS support (advanced network filesystem for Samba, Window and other CIFS compliant servers)"
++	tristate "CIFS support (advanced network filesystem, SMBFS successor)"
+ 	depends on INET
+ 	select NLS
+ 	help
+@@ -1907,16 +1907,16 @@ config CIFS_WEAK_PW_HASH
+ 	  LANMAN based servers such as OS/2 and Windows 95, but such
+ 	  mounts may be less secure than mounts using NTLM or more recent
+ 	  security mechanisms if you are on a public network.  Unless you
+-	  have a need to access old SMB servers (and are on a private 
++	  have a need to access old SMB servers (and are on a private
+ 	  network) you probably want to say N.  Even if this support
+ 	  is enabled in the kernel build, they will not be used
+ 	  automatically. At runtime LANMAN mounts are disabled but
+ 	  can be set to required (or optional) either in
+ 	  /proc/fs/cifs (see fs/cifs/README for more detail) or via an
+-	  option on the mount command. This support is disabled by 
++	  option on the mount command. This support is disabled by
+ 	  default in order to reduce the possibility of a downgrade
+ 	  attack.
+- 
++
+ 	  If unsure, say N.
+ 
+ config CIFS_XATTR
+@@ -1957,7 +1957,7 @@ config CIFS_DEBUG2
+ 	   messages in some error paths, slowing performance. This
+ 	   option can be turned off unless you are debugging
+ 	   cifs problems.  If unsure, say N.
+-	   
++
+ config CIFS_EXPERIMENTAL
+ 	  bool "CIFS Experimental Features (EXPERIMENTAL)"
+ 	  depends on CIFS && EXPERIMENTAL
+@@ -2038,7 +2038,7 @@ config CODA_FS_OLD_API
+ 	  However this new API is not backward compatible with older
+ 	  clients. If you really need to run the old Coda userspace
+ 	  cache manager then say Y.
+-	  
++
+ 	  For most cases you probably want to say N.
+ 
+ config AFS_FS
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from olecom@flower.upol.cz are
 
-uml-delete-unused-code.patch
-uml-formatting-fixes.patch
-uml-host_info-tidying.patch
-uml-mark-tt-mode-code-for-future-removal.patch
-uml-print-coredump-limits.patch
-uml-handle-block-device-hotplug-errors.patch
-uml-driver-formatting-fixes.patch
-uml-driver-formatting-fixes-fix.patch
-uml-network-interface-hotplug-error-handling.patch
-array_size-check-for-type.patch
-uml-move-sigio-testing-to-sigioc.patch
-uml-create-archh.patch
-uml-create-as-layouth.patch
-uml-move-remaining-useful-contents-of-user_utilh.patch
-uml-remove-user_utilh.patch
-uml-add-missing-__init-declarations.patch
-remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
-uml-speed-up-exec.patch
-uml-no-locking-needed-in-tlsc.patch
-uml-tidy-processc.patch
-uml-tidy-processc-fix.patch
-uml-remove-page_size.patch
-uml-kernel_thread-shouldnt-panic.patch
-uml-tidy-fault-code.patch
-uml-kernel-segfaults-should-dump-proper-registers.patch
-uml-comment-early-boot-locking.patch
-uml-irq-locking-commentary.patch
-uml-delete-host_frame_size.patch
-uml-drivers-get-release-methods.patch
-uml-dump-registers-on-ptrace-or-wait-failure.patch
-uml-speed-up-page-table-walking.patch
-uml-remove-unused-x86_64-code.patch
-uml-start-fixing-os_read_file-and-os_write_file.patch
-uml-tidy-libc-code.patch
-uml-convert-libc-layer-to-call-read-and-write.patch
-uml-batch-i-o-requests.patch
-uml-send-pointers-instead-of-structures-to-i-o-thread.patch
-uml-dump-core-on-panic.patch
-uml-dont-try-to-handle-signals-on-initial-process-stack.patch
-uml-change-remaining-callers-of-os_read_write_file.patch
-uml-formatting-fixes-around-os_read_write_file-callers.patch
-uml-remove-debugging-remnants.patch
-uml-rename-os_read_write_file_k-back-to-os_read_write_file.patch
-uml-aio-deadlock-avoidance.patch
-uml-speed-page-fault-path.patch
-uml-eliminate-a-piece-of-debugging-code.patch
-uml-more-page-fault-path-trimming.patch
-uml-only-flush-areas-covered-by-vma.patch
-uml-out-of-tmpfs-space-error-clarification.patch
-uml-virtualized-time-fix.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+deprecate-smbfs-in-favour-of-cifs-docs.patch
