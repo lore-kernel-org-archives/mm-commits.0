@@ -1,202 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 14:44:52 -0700
-Message-ID: <200704302144.l3ULiqJw015625@shell0.pdx.osdl.net>
+Subject: + rtc-add-rtc-class-driver-for-the-maxim-max6900-update.patch added to -mm tree
+Date: Mon, 30 Apr 2007 17:04:55 -0700
+Message-ID: <200705010004.l4104taA018258@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60315 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46392 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946844AbXD3V6L (ORCPT
+	by vger.kernel.org with ESMTP id S1754284AbXEAAF2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 17:58:11 -0400
+	Mon, 30 Apr 2007 20:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dale@farnsworth.org, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org
 
 
 The patch titled
-     pata_hpt3x2n: Add HPT371N support and other bits
-has been removed from the -mm tree.  Its filename was
-     pata_hpt3x2n-add-hpt371n-support-and-other-bits.patch
+     rtc: Add RTC class driver for the Maxim MAX6900 (update)
+has been added to the -mm tree.  Its filename is
+     rtc-add-rtc-class-driver-for-the-maxim-max6900-update.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pata_hpt3x2n: Add HPT371N support and other bits
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: rtc: Add RTC class driver for the Maxim MAX6900 (update)
+From: Dale Farnsworth <dale@farnsworth.org>
 
-Yes its no longer 3x2n but 3xxn, I can rename it if you want Jeff
+I believe I addressed all of Jean's comments.  I thank Jean for sending
+them and apologize for losing the email.  Regarding moving it to the
+new-style i2c interface, I think Jean is referring to changes in -mm, but
+not yet in mainline.  I will be happy to revisit this driver and make the
+changes when the new i2c-core infrastructure goes in.
 
-- Don't reset both ports each time (Sergei)
-- If we can't get a DPLL then abort entirely
-- Use ioport access for clock (from drivers/ide)
-- Add HPT371N support (from drivers/ide)
-
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Dale Farnsworth <dale@farnsworth.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt3x2n.c |   45 +++++++++++++++++++++++++++++------
- 1 file changed, 38 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-max6900.c |   33 ++++++++++++++++-----------------
+ 1 files changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-add-hpt371n-support-and-other-bits drivers/ata/pata_hpt3x2n.c
---- a/drivers/ata/pata_hpt3x2n.c~pata_hpt3x2n-add-hpt371n-support-and-other-bits
-+++ a/drivers/ata/pata_hpt3x2n.c
-@@ -8,10 +8,10 @@
-  * Copyright (C) 1999-2003		Andre Hedrick <andre@linux-ide.org>
-  * Portions Copyright (C) 2001	        Sun Microsystems, Inc.
-  * Portions Copyright (C) 2003		Red Hat Inc
-+ * Portions Copyright (C) 2005-2006	MontaVista Software, Inc.
-  *
-  *
-  * TODO
-- *	371N
-  *	Work out best PLL policy
-  */
+diff -puN drivers/rtc/rtc-max6900.c~rtc-add-rtc-class-driver-for-the-maxim-max6900-update drivers/rtc/rtc-max6900.c
+--- a/drivers/rtc/rtc-max6900.c~rtc-add-rtc-class-driver-for-the-maxim-max6900-update
++++ a/drivers/rtc/rtc-max6900.c
+@@ -61,16 +61,16 @@ static int max6900_i2c_read_regs(struct 
+ 	u8 reg_addr[1] = { MAX6900_REG_BURST_READ };
+ 	struct i2c_msg msgs[2] = {
+ 		{
+-			client->addr,
+-			0, /* write */
+-			sizeof(reg_addr),
+-			reg_addr
++			.addr	= client->addr,
++			.flags	= 0, /* write */
++			.len	= sizeof(reg_addr),
++			.buf	= reg_addr
+ 		},
+ 		{
+-			client->addr,
+-			I2C_M_RD,
+-			MAX6900_REG_LEN,
+-			buf
++			.addr	= client->addr,
++			.flags	= I2C_M_RD,
++			.len	= MAX6900_REG_LEN,
++			.buf	= buf
+ 		}
+ 	};
+ 	int rc;
+@@ -89,10 +89,10 @@ static int max6900_i2c_write_regs(struct
+ 	u8 i2c_buf[MAX6900_REG_LEN + 1] = { MAX6900_REG_BURST_WRITE };
+ 	struct i2c_msg msgs[1] = {
+ 		{
+-			client->addr,
+-			0, /* write */
+-			MAX6900_REG_LEN + 1,
+-			i2c_buf
++			.addr	= client->addr,
++			.flags	= 0, /* write */
++			.len	= MAX6900_REG_LEN + 1,
++			.buf	= i2c_buf
+ 		}
+ 	};
+ 	int rc;
+@@ -128,7 +128,7 @@ static int max6900_i2c_validate_client(s
  
-@@ -142,6 +142,7 @@ static int hpt3x2n_cable_detect(struct a
- /**
-  *	hpt3x2n_pre_reset	-	reset the hpt3x2n bus
-  *	@ap: ATA port to reset
-+ *	@deadline: deadline jiffies for the operation
-  *
-  *	Perform the initial reset handling for the 3x2n series controllers.
-  *	Reset the hardware and state machine,
-@@ -151,8 +152,7 @@ static int hpt3xn_pre_reset(struct ata_p
- {
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	/* Reset the state machine */
--	pci_write_config_byte(pdev, 0x50, 0x37);
--	pci_write_config_byte(pdev, 0x54, 0x37);
-+	pci_write_config_byte(pdev, 0x50 + 4 * ap->port_no, 0x37);
- 	udelay(100);
- 
- 	return ata_std_prereset(ap, deadline);
-@@ -434,8 +434,9 @@ static int hpt3x2n_pci_clock(struct pci_
- {
- 	unsigned long freq;
- 	u32 fcnt;
-+	unsigned long iobase = pci_resource_start(pdev, 4);
- 
--	pci_read_config_dword(pdev, 0x70/*CHECKME*/, &fcnt);
-+	fcnt = inl(iobase + 0x90);	/* Not PCI readable for some chips */
- 	if ((fcnt >> 12) != 0xABCDE) {
- 		printk(KERN_WARNING "hpt3xn: BIOS clock data not set.\n");
- 		return 33;	/* Not BIOS set */
-@@ -504,6 +505,7 @@ static int hpt3x2n_init_one(struct pci_d
- 	unsigned int pci_mhz;
- 	unsigned int f_low, f_high;
- 	int adjust;
-+	unsigned long iobase = pci_resource_start(dev, 4);
- 
- 	pci_read_config_dword(dev, PCI_CLASS_REVISION, &class_rev);
- 	class_rev &= 0xFF;
-@@ -513,6 +515,11 @@ static int hpt3x2n_init_one(struct pci_d
- 			if (class_rev < 6)
- 				return -ENODEV;
- 			break;
-+		case PCI_DEVICE_ID_TTI_HPT371:
-+			if (class_rev < 2)
-+				return -ENODEV;
-+			/* 371N if rev > 1 */
-+			break;
- 		case PCI_DEVICE_ID_TTI_HPT372:
- 			/* 372N if rev >= 1*/
- 			if (class_rev == 0)
-@@ -540,6 +547,19 @@ static int hpt3x2n_init_one(struct pci_d
- 	irqmask &= ~0x10;
- 	pci_write_config_byte(dev, 0x5a, irqmask);
- 
-+	/*
-+	 * HPT371 chips physically have only one channel, the secondary one,
-+	 * but the primary channel registers do exist!  Go figure...
-+	 * So,  we manually disable the non-existing channel here
-+	 * (if the BIOS hasn't done this already).
-+	 */
-+	if (dev->device == PCI_DEVICE_ID_TTI_HPT371) {
-+		u8 mcr1;
-+		pci_read_config_byte(dev, 0x50, &mcr1);
-+		mcr1 &= ~0x04;
-+		pci_write_config_byte(dev, 0x50, mcr1);
-+	}
-+
- 	/* Tune the PLL. HPT recommend using 75 for SATA, 66 for UDMA133 or
- 	   50 for UDMA100. Right now we always use 66 */
- 
-@@ -558,14 +578,24 @@ static int hpt3x2n_init_one(struct pci_d
- 			break;
- 		pci_write_config_dword(dev, 0x5C, (f_high << 16) | f_low);
- 	}
--	if (adjust == 8)
--		printk(KERN_WARNING "hpt3xn: DPLL did not stabilize.\n");
-+	if (adjust == 8) {
-+		printk(KERN_WARNING "hpt3x2n: DPLL did not stabilize.\n");
+ 	reserved = i2c_smbus_read_byte_data(client, MAX6900_REG_RESERVED_READ);
+ 	if (reserved != 0x07)
+-			return -ENODEV;
 +		return -ENODEV;
-+	}
  
- 	/* Set our private data up. We only need a few flags so we use
- 	   it directly */
- 	port->private_data = NULL;
--	if (pci_mhz > 60)
-+	if (pci_mhz > 60) {
- 		port->private_data = (void *)PCI66;
-+		/*
-+		 * On  HPT371N, if ATA clock is 66 MHz we must set bit 2 in
-+		 * the MISC. register to stretch the UltraDMA Tss timing.
-+		 * NOTE: This register is only writeable via I/O space.
-+		 */
-+		if (dev->device == PCI_DEVICE_ID_TTI_HPT371)
-+			outb(inb(iobase + 0x9c) | 0x04, iobase + 0x9c);
-+	}
+ 	rc = max6900_i2c_read_regs(client, regs);
+ 	if (rc < 0)
+@@ -230,8 +230,8 @@ static struct i2c_driver max6900_driver 
+ 		.name	= DRV_NAME,
+ 	},
+ 	.id		= I2C_DRIVERID_MAX6900,
+-	.attach_adapter = &max6900_attach_adapter,
+-	.detach_client	= &max6900_detach_client,
++	.attach_adapter = max6900_attach_adapter,
++	.detach_client	= max6900_detach_client,
+ };
  
- 	/* Now kick off ATA set up */
- 	port_info[0] = port_info[1] = port;
-@@ -574,6 +604,7 @@ static int hpt3x2n_init_one(struct pci_d
+ static const struct rtc_class_ops max6900_rtc_ops = {
+@@ -259,8 +259,7 @@ static int max6900_probe(struct i2c_adap
+ 	client->addr = addr;
+ 	client->adapter = adapter;
+ 	client->driver = &max6900_driver;
+-	client->flags = 0;
+-	strcpy(client->name, DRV_NAME);
++	strlcpy(client->name, DRV_NAME, I2C_NAME_SIZE);
  
- static const struct pci_device_id hpt3x2n[] = {
- 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT366), },
-+	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT371), },
- 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT372), },
- 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT302), },
- 	{ PCI_VDEVICE(TTI, PCI_DEVICE_ID_TTI_HPT372N), },
+ 	if (kind < 0) {
+ 		rc = max6900_i2c_validate_client(client);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from dale@farnsworth.org are
 
 origin.patch
-git-agpgart.patch
-git-dvb.patch
-ata_timing-ensure-t-cycle-is-always-correct.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-pata_ali-more-work.patch
-sl82c105-switch-to-ref-counting-api.patch
 git-r8169.patch
-serial-suppress-rts-assertion-with-disabled-crtscts.patch
-pci-syscallc-switch-to-refcounting-api.patch
-drivers-scsi-ncr5380c-replacing-yield-with-a.patch
-drivers-scsi-mca_53c9xc-save_flags-cli-removal.patch
-driver_bfin_serial_core.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-tty-clarify-documentation-of-write.patch
-tty-i386-x86_64-arbitary-speed-support.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-protect-tty-drivers-list-with-tty_mutex.patch
-fix-82875-pci-setup.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-remove-redundant-check-from-proc_sys_setattr.patch
-apm-fix-incorrect-comment.patch
-upper-32-bits.patch
-console-utf-8-fixes.patch
-add-pci_try_set_mwi.patch
-edd-switch-to-refcounting-pci-apis.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900-update.patch
