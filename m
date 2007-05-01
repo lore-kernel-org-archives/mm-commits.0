@@ -1,49 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-specify-amount-of-kernel-memory-at-boot-time.patch removed from -mm tree
-Date: Tue, 01 May 2007 11:52:02 -0700
-Message-ID: <200705011852.l41Iq2Ip003733@shell0.pdx.osdl.net>
+Subject: - ia64-specify-amount-of-kernel-memory-at-boot-time.patch removed from -mm tree
+Date: Tue, 01 May 2007 11:52:05 -0700
+Message-ID: <200705011852.l41Iq5N9003736@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33553 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161726AbXEASwK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 14:52:10 -0400
+	by vger.kernel.org with ESMTP id S1161730AbXEASwN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 14:52:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 - Specify amount of kernel memory at boot time
+     ia64 - Specify amount of kernel memory at boot time
 has been removed from the -mm tree.  Its filename was
-     x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
+     ia64-specify-amount-of-kernel-memory-at-boot-time.patch
 
 This patch was dropped because it was folded into handle-kernelcore=-generic.patch
 
 ------------------------------------------------------
-Subject: x86_64 - Specify amount of kernel memory at boot time
+Subject: ia64 - Specify amount of kernel memory at boot time
 From: Mel Gorman <mel@csn.ul.ie>
 
-This patch adds the kernelcore= parameter for x86_64.
+This patch adds the kernelcore= parameter for ia64.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/e820.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/ia64/kernel/efi.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN arch/x86_64/kernel/e820.c~x86_64-specify-amount-of-kernel-memory-at-boot-time arch/x86_64/kernel/e820.c
---- a/arch/x86_64/kernel/e820.c~x86_64-specify-amount-of-kernel-memory-at-boot-time
-+++ a/arch/x86_64/kernel/e820.c
-@@ -618,6 +618,7 @@ static int __init parse_memopt(char *p)
- 	return 0;
- } 
- early_param("mem", parse_memopt);
-+early_param("kernelcore", cmdline_parse_kernelcore);
+diff -puN arch/ia64/kernel/efi.c~ia64-specify-amount-of-kernel-memory-at-boot-time arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~ia64-specify-amount-of-kernel-memory-at-boot-time
++++ a/arch/ia64/kernel/efi.c
+@@ -28,6 +28,7 @@
+ #include <linux/time.h>
+ #include <linux/efi.h>
+ #include <linux/kexec.h>
++#include <linux/mm.h>
  
- static int userdef __initdata;
- 
+ #include <asm/io.h>
+ #include <asm/kregs.h>
+@@ -422,6 +423,8 @@ efi_init (void)
+ 			mem_limit = memparse(cp + 4, &cp);
+ 		} else if (memcmp(cp, "max_addr=", 9) == 0) {
+ 			max_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
++		} else if (memcmp(cp, "kernelcore=",11) == 0) {
++			cmdline_parse_kernelcore(cp+11);
+ 		} else if (memcmp(cp, "min_addr=", 9) == 0) {
+ 			min_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
+ 		} else {
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -69,7 +78,6 @@ dont-group-high-order-atomic-allocations.patch
 create-the-zone_movable-zone.patch
 allow-huge-page-allocations-to-use-gfp_high_movable.patch
 handle-kernelcore=-generic.patch
-x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
 ia64-specify-amount-of-kernel-memory-at-boot-time.patch
 add-documentation-for-additional-boot-parameter-and-sysctl.patch
 handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
