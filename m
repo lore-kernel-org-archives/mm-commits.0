@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail.patch added to -mm tree
-Date: Tue, 01 May 2007 15:41:38 -0700
-Message-ID: <200705012241.l41Mfc4n008373@shell0.pdx.osdl.net>
+Subject: + ide-cs-recognize-2gb-compactflash-from-transcend.patch added to -mm tree
+Date: Tue, 01 May 2007 15:44:59 -0700
+Message-ID: <200705012244.l41MixRF008414@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55258 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754725AbXEAWnP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 18:43:15 -0400
+	by vger.kernel.org with ESMTP id S1754770AbXEAWpq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 18:45:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dkukawka@suse.de, lenb@kernel.org, luming.yu@intel.com
+Cc: Fabrice.Aeschbacher@siemens.com, bzolnier@gmail.com, fabrice.aeschbacher@siemens.com, linux@dominikbrodowski.net, peter@stuge.se
 
 
 The patch titled
-     ACPI video: don't export sysfs backlight interface if query _BCL fail
+     ide-cs: recognize 2GB CompactFlash from Transcend
 has been added to the -mm tree.  Its filename is
-     acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail.patch
+     ide-cs-recognize-2gb-compactflash-from-transcend.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,135 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI video: don't export sysfs backlight interface if query _BCL fail
-From: Danny Kukawka <dkukawka@suse.de>
+Subject: ide-cs: recognize 2GB CompactFlash from Transcend
+From: "Aeschbacher, Fabrice" <Fabrice.Aeschbacher@siemens.com>
 
-Currently the acpi video module export the backlight interface to sysfs
-also if acpi_video_device_lcd_query_levels() fails to read _BLC method
-(e.g.  because the method is not available).  In this case the userspace
-don't know which brightness level are supported and can't set a brightness
-level (echo return with: "write error: Invalid Argument").  This happend
-e.g.  on a ASUS RF1 (correct supported by the asus-laptop module).
+Without the following patch, the kernel does not automatically detect
+2GB CompactFlash cards from Transcend.
 
-The video module should not export the backlight interface if query _BLC fail,
-because you can't set anything from userspace and this make it useless.
-
-See also: http://bugzilla.kernel.org/show_bug.cgi?id=8375
-
-Signed-off-by: Danny Kukawka <dkukawka@suse.de>
-Cc: "Yu, Luming" <luming.yu@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Fabrice Aeschbacher <fabrice.aeschbacher@siemens.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Acked-by: Peter Stuge <peter@stuge.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/video.c |   78 +++++++++++++++++++++--------------------
- 1 files changed, 41 insertions(+), 37 deletions(-)
+ drivers/ide/legacy/ide-cs.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/acpi/video.c~acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail
-+++ a/drivers/acpi/video.c
-@@ -531,7 +531,6 @@ acpi_video_bus_DOS(struct acpi_video_bus
- 
- static void acpi_video_device_find_cap(struct acpi_video_device *device)
- {
--	acpi_integer status;
- 	acpi_handle h_dummy1;
- 	int i;
- 	u32 max_level = 0;
-@@ -565,50 +564,55 @@ static void acpi_video_device_find_cap(s
- 		device->cap._DSS = 1;
- 	}
- 
--	status = acpi_video_device_lcd_query_levels(device, &obj);
-+	if (ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device, &obj))) {
- 
--	if (obj && obj->type == ACPI_TYPE_PACKAGE && obj->package.count >= 2) {
--		int count = 0;
--		union acpi_object *o;
--
--		br = kzalloc(sizeof(*br), GFP_KERNEL);
--		if (!br) {
--			printk(KERN_ERR "can't allocate memory\n");
--		} else {
--			br->levels = kmalloc(obj->package.count *
--					     sizeof *(br->levels), GFP_KERNEL);
--			if (!br->levels)
--				goto out;
--
--			for (i = 0; i < obj->package.count; i++) {
--				o = (union acpi_object *)&obj->package.
--				    elements[i];
--				if (o->type != ACPI_TYPE_INTEGER) {
--					printk(KERN_ERR PREFIX "Invalid data\n");
--					continue;
--				}
--				br->levels[count] = (u32) o->integer.value;
--				if (br->levels[count] > max_level)
--					max_level = br->levels[count];
--				count++;
--			}
--		      out:
--			if (count < 2) {
--				kfree(br->levels);
--				kfree(br);
-+		if (obj->package.count >= 2) {
-+			int count = 0;
-+			union acpi_object *o;
-+
-+			br = kzalloc(sizeof(*br), GFP_KERNEL);
-+			if (!br) {
-+				printk(KERN_ERR "can't allocate memory\n");
- 			} else {
--				br->count = count;
--				device->brightness = br;
--				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--						  "found %d brightness levels\n",
--						  count));
-+				br->levels = kmalloc(obj->package.count *
-+						     sizeof *(br->levels), GFP_KERNEL);
-+				if (!br->levels) 
-+					goto out;
-+
-+				for (i = 0; i < obj->package.count; i++) {
-+					o = (union acpi_object *)&obj->package.
-+					    elements[i];
-+					if (o->type != ACPI_TYPE_INTEGER) {
-+						printk(KERN_ERR PREFIX "Invalid data\n");
-+						continue;
-+					}
-+					br->levels[count] = (u32) o->integer.value;
-+
-+					if (br->levels[count] > max_level)
-+						max_level = br->levels[count];
-+					count++;
-+				}
-+			      out:
-+				if (count < 2) {
-+					kfree(br->levels);
-+					kfree(br);
-+				} else {
-+					br->count = count;
-+					device->brightness = br;
-+					ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+							  "found %d brightness levels\n",
-+							  count));
-+				}
- 			}
- 		}
-+
-+	} else {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available LCD brightness level\n"));
- 	}
- 
- 	kfree(obj);
- 
--	if (device->cap._BCL && device->cap._BCM && device->cap._BQC){
-+	if (device->cap._BCL && device->cap._BCM && device->cap._BQC && max_level > 0){
- 		unsigned long tmp;
- 		static int count = 0;
- 		char *name;
+diff -puN drivers/ide/legacy/ide-cs.c~ide-cs-recognize-2gb-compactflash-from-transcend drivers/ide/legacy/ide-cs.c
+--- a/drivers/ide/legacy/ide-cs.c~ide-cs-recognize-2gb-compactflash-from-transcend
++++ a/drivers/ide/legacy/ide-cs.c
+@@ -401,6 +401,7 @@ static struct pcmcia_device_id ide_ids[]
+ 	PCMCIA_DEVICE_PROD_ID12("TOSHIBA", "MK2001MPL", 0xb4585a1a, 0x3489e003),
+ 	PCMCIA_DEVICE_PROD_ID1("TRANSCEND    512M   ", 0xd0909443),
+ 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS1GCF80", 0x709b1bf1, 0x2a54d4b1),
++	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS2GCF120", 0x709b1bf1, 0x969aa4f2),
+ 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS4GCF120", 0x709b1bf1, 0xf54a91c8),
+ 	PCMCIA_DEVICE_PROD_ID12("WIT", "IDE16", 0x244e5994, 0x3e232852),
+ 	PCMCIA_DEVICE_PROD_ID12("WEIDA", "TWTTI", 0xcc7cf69c, 0x212bb918),
 _
 
-Patches currently in -mm which might be from dkukawka@suse.de are
+Patches currently in -mm which might be from Fabrice.Aeschbacher@siemens.com are
 
-acpi-video-dont-export-sysfs-backlight-interface-if-query-_bcl-fail.patch
+pata_pcmcia-recognize-2gb-compactflash-from-transcend.patch
+ide-cs-recognize-2gb-compactflash-from-transcend.patch
