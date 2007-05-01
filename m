@@ -1,58 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-specify-amount-of-kernel-memory-at-boot-time.patch removed from -mm tree
-Date: Tue, 01 May 2007 11:52:05 -0700
-Message-ID: <200705011852.l41Iq5N9003736@shell0.pdx.osdl.net>
+Subject: - add-documentation-for-additional-boot-parameter-and-sysctl.patch removed from -mm tree
+Date: Tue, 01 May 2007 11:52:08 -0700
+Message-ID: <200705011852.l41Iq8Lg003739@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55977 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161730AbXEASwN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 14:52:13 -0400
+	by vger.kernel.org with ESMTP id S1161740AbXEASwQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 14:52:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64 - Specify amount of kernel memory at boot time
+     Add documentation for additional boot parameter and sysctl
 has been removed from the -mm tree.  Its filename was
-     ia64-specify-amount-of-kernel-memory-at-boot-time.patch
+     add-documentation-for-additional-boot-parameter-and-sysctl.patch
 
 This patch was dropped because it was folded into handle-kernelcore=-generic.patch
 
 ------------------------------------------------------
-Subject: ia64 - Specify amount of kernel memory at boot time
+Subject: Add documentation for additional boot parameter and sysctl
 From: Mel Gorman <mel@csn.ul.ie>
 
-This patch adds the kernelcore= parameter for ia64.
+Once all patches are applied, a new command-line parameter exist and a new
+sysctl.  This patch adds the necessary documentation.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/efi.c |    3 +++
- 1 files changed, 3 insertions(+)
+ Documentation/filesystems/proc.txt  |   15 +++++++++++++++
+ Documentation/kernel-parameters.txt |   16 ++++++++++++++++
+ Documentation/sysctl/vm.txt         |    3 ++-
+ 3 files changed, 33 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/efi.c~ia64-specify-amount-of-kernel-memory-at-boot-time arch/ia64/kernel/efi.c
---- a/arch/ia64/kernel/efi.c~ia64-specify-amount-of-kernel-memory-at-boot-time
-+++ a/arch/ia64/kernel/efi.c
-@@ -28,6 +28,7 @@
- #include <linux/time.h>
- #include <linux/efi.h>
- #include <linux/kexec.h>
-+#include <linux/mm.h>
+diff -puN Documentation/filesystems/proc.txt~add-documentation-for-additional-boot-parameter-and-sysctl Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~add-documentation-for-additional-boot-parameter-and-sysctl
++++ a/Documentation/filesystems/proc.txt
+@@ -1289,6 +1289,21 @@ nr_hugepages configures number of hugetl
+ hugetlb_shm_group contains group id that is allowed to create SysV shared
+ memory segment using hugetlb page.
  
- #include <asm/io.h>
- #include <asm/kregs.h>
-@@ -422,6 +423,8 @@ efi_init (void)
- 			mem_limit = memparse(cp + 4, &cp);
- 		} else if (memcmp(cp, "max_addr=", 9) == 0) {
- 			max_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
-+		} else if (memcmp(cp, "kernelcore=",11) == 0) {
-+			cmdline_parse_kernelcore(cp+11);
- 		} else if (memcmp(cp, "min_addr=", 9) == 0) {
- 			min_addr = GRANULEROUNDDOWN(memparse(cp + 9, &cp));
- 		} else {
++hugepages_treat_as_movable
++--------------------------
++
++This parameter is only useful when kernelcore= is specified at boot time to
++create ZONE_MOVABLE for pages that may be reclaimed or migrated. Huge pages
++are not movable so are not normally allocated from ZONE_MOVABLE. A non-zero
++value written to hugepages_treat_as_movable allows huge pages to be allocated
++from ZONE_MOVABLE.
++
++Once enabled, the ZONE_MOVABLE is treated as an area of memory the huge
++pages pool can easily grow or shrink within. Assuming that applications are
++not running that mlock() a lot of memory, it is likely the huge pages pool
++can grow to the size of ZONE_MOVABLE by repeatedly entering the desired value
++into nr_hugepages and triggering page reclaim.
++
+ laptop_mode
+ -----------
+ 
+diff -puN Documentation/kernel-parameters.txt~add-documentation-for-additional-boot-parameter-and-sysctl Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~add-documentation-for-additional-boot-parameter-and-sysctl
++++ a/Documentation/kernel-parameters.txt
+@@ -778,6 +778,22 @@ and is between 256 and 4096 characters. 
+ 	js=		[HW,JOY] Analog joystick
+ 			See Documentation/input/joystick.txt.
+ 
++	kernelcore=nn[KMG]	[KNL,IA-32,IA-64,PPC,X86-64] This parameter
++			specifies the amount of memory usable by the kernel
++			for non-movable allocations.  The requested amount is
++			spread evenly throughout all nodes in the system. The
++			remaining memory in each node is used for Movable
++			pages. In the event, a node is too small to have both
++			kernelcore and Movable pages, kernelcore pages will
++			take priority and other nodes will have a larger number
++			of kernelcore pages.  The Movable zone is used for the
++			allocation of pages that may be reclaimed or moved
++			by the page migration subsystem.  This means that
++			HugeTLB pages may not be allocated from this zone.
++			Note that allocations like PTEs-from-HighMem still
++			use the HighMem zone if it exists, and the Normal
++			zone if it does not.
++
+ 	keepinitrd	[HW,ARM]
+ 
+ 	kstack=N	[IA-32,X86-64] Print N words from the kernel stack
+diff -puN Documentation/sysctl/vm.txt~add-documentation-for-additional-boot-parameter-and-sysctl Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~add-documentation-for-additional-boot-parameter-and-sysctl
++++ a/Documentation/sysctl/vm.txt
+@@ -36,7 +36,8 @@ Currently, these files are in /proc/sys/
+ 
+ dirty_ratio, dirty_background_ratio, dirty_expire_centisecs,
+ dirty_writeback_centisecs, vfs_cache_pressure, laptop_mode,
+-block_dump, swap_token_timeout, drop-caches:
++block_dump, swap_token_timeout, drop-caches,
++hugepages_treat_as_movable:
+ 
+ See Documentation/filesystems/proc.txt
+ 
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -78,7 +125,6 @@ dont-group-high-order-atomic-allocations.patch
 create-the-zone_movable-zone.patch
 allow-huge-page-allocations-to-use-gfp_high_movable.patch
 handle-kernelcore=-generic.patch
-ia64-specify-amount-of-kernel-memory-at-boot-time.patch
 add-documentation-for-additional-boot-parameter-and-sysctl.patch
 handle-kernelcore=-boot-parameter-in-common-code-to-avoid-boot-problem-on-ia64.patch
 lumpy-reclaim-v4.patch
