@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + udf-decrement-correct-link-count-in-udf_rmdir.patch added to -mm tree
-Date: Tue, 01 May 2007 14:01:51 -0700
-Message-ID: <200705012101.l41L1pos006652@shell0.pdx.osdl.net>
+Subject: + rpc-add-wrapper-for-svc_reserve-to-account-for-checksum-fix.patch added to -mm tree
+Date: Tue, 01 May 2007 15:00:16 -0700
+Message-ID: <200705012200.l41M0GDN007707@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54450 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946010AbXEAVDM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 17:03:12 -0400
+	by vger.kernel.org with ESMTP id S1946005AbXEAWAf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 18:00:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: molletts@yahoo.com, haveblue@us.ibm.com, jack@ucw.cz, stable@kernel.org
+Cc: jlayton@redhat.com, neilb@suse.de
 
 
 The patch titled
-     udf: decrement correct link count in udf_rmdir
+     rpc-add-wrapper-for-svc_reserve-to-account-for-checksum fix
 has been added to the -mm tree.  Its filename is
-     udf-decrement-correct-link-count-in-udf_rmdir.patch
+     rpc-add-wrapper-for-svc_reserve-to-account-for-checksum-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: udf: decrement correct link count in udf_rmdir
-From: Stephen Mollett <molletts@yahoo.com>
+Subject: rpc-add-wrapper-for-svc_reserve-to-account-for-checksum fix
+From: Jeff Layton <jlayton@redhat.com>
 
-It appears that a minor thinko occurred in udf_rmdir and the
-(already-cleared) link count on the directory that is being removed was
-being decremented instead of the link count on its parent directory.  This
-gives rise to lots of kernel messages similar to:
+> As far as your suggestion to use RPC_MAX_AUTH_SIZE, that sounds like a good
+> idea to me. I'm all for avoiding "magic" numbers. How does this look? I also
+> cleaned up the comments as well.
+>
 
-UDF-fs warning (device loop1): udf_rmdir: empty directory has nlink != 2 (8)
-
-when removing directory trees.  No other ill effects have been observed but
-I guess it could theoretically result in the link count overflowing on a
-very long-lived, much modified directory.
-
-Signed-off-by: Stephen Mollett <molletts@yahoo.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: <stable@kernel.org>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Acked-by: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/namei.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sunrpc/svc.h |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/udf/namei.c~udf-decrement-correct-link-count-in-udf_rmdir fs/udf/namei.c
---- a/fs/udf/namei.c~udf-decrement-correct-link-count-in-udf_rmdir
-+++ a/fs/udf/namei.c
-@@ -878,7 +878,7 @@ static int udf_rmdir(struct inode * dir,
- 			inode->i_nlink);
- 	clear_nlink(inode);
- 	inode->i_size = 0;
--	inode_dec_link_count(inode);
-+	inode_dec_link_count(dir);
- 	inode->i_ctime = dir->i_ctime = dir->i_mtime = current_fs_time(dir->i_sb);
- 	mark_inode_dirty(dir);
+diff -puN include/linux/sunrpc/svc.h~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum-fix include/linux/sunrpc/svc.h
+--- a/include/linux/sunrpc/svc.h~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum-fix
++++ a/include/linux/sunrpc/svc.h
+@@ -399,10 +399,9 @@ char *		   svc_print_addr(struct svc_rqs
+ /*
+  * When we want to reduce the size of the reserved space in the response
+  * buffer, we need to take into account the size of any checksum data that
+- * may be at the end of the packet. For now, just use a hardcoded value
+- * for each possible authflavor. This will need to be updated when new
+- * encryption types or algorithms are added, or we'll have to come up with
+- * a way to reasonably calculate this on the fly (maybe via a new auth_op).
++ * may be at the end of the packet. This is difficult to determine exactly
++ * for all cases without actually generating the checksum, so we just use a
++ * static value.
+  */
+ static inline void
+ svc_reserve_auth(struct svc_rqst *rqstp, int space)
+@@ -411,7 +410,7 @@ svc_reserve_auth(struct svc_rqst *rqstp,
  
+ 	switch(rqstp->rq_authop->flavour) {
+ 		case RPC_AUTH_GSS:
+-			added_space = 56; /* determined empirically */
++			added_space = RPC_MAX_AUTH_SIZE;
+ 	}
+ 	return svc_reserve(rqstp, space + added_space);
+ }
 _
 
-Patches currently in -mm which might be from molletts@yahoo.com are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-udf-decrement-correct-link-count-in-udf_rmdir.patch
+nfs-suppress-warnings-about-nfs4err_old_stateid-in-nfs4_handle_exception.patch
+make-iunique-use-a-do-while-loop-rather-than-its-obscure-goto-loop.patch
+make-static-counters-in-new_inode-and-iunique-be-32-bits.patch
+change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
+rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch
+rpc-add-wrapper-for-svc_reserve-to-account-for-checksum-fix.patch
