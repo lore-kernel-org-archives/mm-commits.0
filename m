@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ide-cs-recognize-2gb-compactflash-from-transcend.patch added to -mm tree
-Date: Tue, 01 May 2007 15:44:59 -0700
-Message-ID: <200705012244.l41MixRF008414@shell0.pdx.osdl.net>
+Subject: + sunrpc-fix-error-path-in-module_init.patch added to -mm tree
+Date: Tue, 01 May 2007 15:51:41 -0700
+Message-ID: <200705012251.l41Mpf1i008568@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49421 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754770AbXEAWpq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 18:45:46 -0400
+	by vger.kernel.org with ESMTP id S1754754AbXEAWvy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 18:51:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Fabrice.Aeschbacher@siemens.com, bzolnier@gmail.com, fabrice.aeschbacher@siemens.com, linux@dominikbrodowski.net, peter@stuge.se
+Cc: akinobu.mita@gmail.com, neilb@suse.de
 
 
 The patch titled
-     ide-cs: recognize 2GB CompactFlash from Transcend
+     sunrpc: fix error path in module_init
 has been added to the -mm tree.  Its filename is
-     ide-cs-recognize-2gb-compactflash-from-transcend.patch
+     sunrpc-fix-error-path-in-module_init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide-cs: recognize 2GB CompactFlash from Transcend
-From: "Aeschbacher, Fabrice" <Fabrice.Aeschbacher@siemens.com>
+Subject: sunrpc: fix error path in module_init
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Without the following patch, the kernel does not automatically detect
-2GB CompactFlash cards from Transcend.
+register_rpc_pipefs() needs to clean up rpc_inode_cache
+by kmem_cache_destroy() on register_filesystem() failure.
 
-Signed-off-by: Fabrice Aeschbacher <fabrice.aeschbacher@siemens.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Acked-by: Peter Stuge <peter@stuge.se>
+init_sunrpc() needs to unregister rpc_pipe_fs by unregister_rpc_pipefs()
+when rpc_init_mempool() returns error.
+
+Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/legacy/ide-cs.c |    1 +
- 1 files changed, 1 insertion(+)
+ net/sunrpc/rpc_pipe.c    |    9 ++++++++-
+ net/sunrpc/sunrpc_syms.c |    6 ++++--
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ide/legacy/ide-cs.c~ide-cs-recognize-2gb-compactflash-from-transcend drivers/ide/legacy/ide-cs.c
---- a/drivers/ide/legacy/ide-cs.c~ide-cs-recognize-2gb-compactflash-from-transcend
-+++ a/drivers/ide/legacy/ide-cs.c
-@@ -401,6 +401,7 @@ static struct pcmcia_device_id ide_ids[]
- 	PCMCIA_DEVICE_PROD_ID12("TOSHIBA", "MK2001MPL", 0xb4585a1a, 0x3489e003),
- 	PCMCIA_DEVICE_PROD_ID1("TRANSCEND    512M   ", 0xd0909443),
- 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS1GCF80", 0x709b1bf1, 0x2a54d4b1),
-+	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS2GCF120", 0x709b1bf1, 0x969aa4f2),
- 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS4GCF120", 0x709b1bf1, 0xf54a91c8),
- 	PCMCIA_DEVICE_PROD_ID12("WIT", "IDE16", 0x244e5994, 0x3e232852),
- 	PCMCIA_DEVICE_PROD_ID12("WEIDA", "TWTTI", 0xcc7cf69c, 0x212bb918),
+diff -puN net/sunrpc/rpc_pipe.c~sunrpc-fix-error-path-in-module_init net/sunrpc/rpc_pipe.c
+--- a/net/sunrpc/rpc_pipe.c~sunrpc-fix-error-path-in-module_init
++++ a/net/sunrpc/rpc_pipe.c
+@@ -845,6 +845,8 @@ init_once(void * foo, struct kmem_cache 
+ 
+ int register_rpc_pipefs(void)
+ {
++	int err;
++
+ 	rpc_inode_cachep = kmem_cache_create("rpc_inode_cache",
+ 				sizeof(struct rpc_inode),
+ 				0, (SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
+@@ -852,7 +854,12 @@ int register_rpc_pipefs(void)
+ 				init_once, NULL);
+ 	if (!rpc_inode_cachep)
+ 		return -ENOMEM;
+-	register_filesystem(&rpc_pipe_fs_type);
++	err = register_filesystem(&rpc_pipe_fs_type);
++	if (err) {
++		kmem_cache_destroy(rpc_inode_cachep);
++		return err;
++	}
++
+ 	return 0;
+ }
+ 
+diff -puN net/sunrpc/sunrpc_syms.c~sunrpc-fix-error-path-in-module_init net/sunrpc/sunrpc_syms.c
+--- a/net/sunrpc/sunrpc_syms.c~sunrpc-fix-error-path-in-module_init
++++ a/net/sunrpc/sunrpc_syms.c
+@@ -146,9 +146,11 @@ init_sunrpc(void)
+ 	int err = register_rpc_pipefs();
+ 	if (err)
+ 		goto out;
+-	err = rpc_init_mempool() != 0;
+-	if (err)
++	err = rpc_init_mempool();
++	if (err) {
++		unregister_rpc_pipefs();
+ 		goto out;
++	}
+ #ifdef RPC_DEBUG
+ 	rpc_register_sysctl();
+ #endif
 _
 
-Patches currently in -mm which might be from Fabrice.Aeschbacher@siemens.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-pata_pcmcia-recognize-2gb-compactflash-from-transcend.patch
-ide-cs-recognize-2gb-compactflash-from-transcend.patch
+origin.patch
+git-alsa.patch
+git-dvb.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+fault-injection-disable-stacktrace-filter-for-x86-64.patch
+fault-injection-enable-stacktrace-with-dwarf2-unwinder.patch
+slob-handle-slab_panic-flag.patch
+use-slab_panic-flag-cleanup.patch
+fault-injection-fix-failslab-with-config_numa.patch
+simplify-the-stacktrace-code.patch
+dtlk-fix-error-checks-in-module_init.patch
+sunrpc-fix-error-path-in-module_init.patch
