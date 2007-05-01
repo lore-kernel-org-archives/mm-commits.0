@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sunrpc-fix-error-path-in-module_init.patch added to -mm tree
-Date: Tue, 01 May 2007 15:51:41 -0700
-Message-ID: <200705012251.l41Mpf1i008568@shell0.pdx.osdl.net>
+Subject: + fault-injection-enable-stacktrace-with-dwarf2-unwinder.patch added to -mm tree
+Date: Tue, 01 May 2007 15:53:56 -0700
+Message-ID: <200705012253.l41MrvwV008588@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38096 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35798 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754754AbXEAWvy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 18:51:54 -0400
+	by vger.kernel.org with ESMTP id S1754785AbXEAWyI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 18:54:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, neilb@suse.de
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     sunrpc: fix error path in module_init
+     fault injection: enable stacktrace with dwarf2 unwinder
 has been added to the -mm tree.  Its filename is
-     sunrpc-fix-error-path-in-module_init.patch
+     fault-injection-enable-stacktrace-with-dwarf2-unwinder.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sunrpc: fix error path in module_init
+Subject: fault injection: enable stacktrace with dwarf2 unwinder
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-register_rpc_pipefs() needs to clean up rpc_inode_cache
-by kmem_cache_destroy() on register_filesystem() failure.
+We can enable stacktrace filter with dwarf2 unwinder on x86-64.
 
-init_sunrpc() needs to unregister rpc_pipe_fs by unregister_rpc_pipefs()
-when rpc_init_mempool() returns error.
-
-Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/rpc_pipe.c    |    9 ++++++++-
- net/sunrpc/sunrpc_syms.c |    6 ++++--
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ lib/Kconfig.debug |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN net/sunrpc/rpc_pipe.c~sunrpc-fix-error-path-in-module_init net/sunrpc/rpc_pipe.c
---- a/net/sunrpc/rpc_pipe.c~sunrpc-fix-error-path-in-module_init
-+++ a/net/sunrpc/rpc_pipe.c
-@@ -845,6 +845,8 @@ init_once(void * foo, struct kmem_cache 
- 
- int register_rpc_pipefs(void)
- {
-+	int err;
-+
- 	rpc_inode_cachep = kmem_cache_create("rpc_inode_cache",
- 				sizeof(struct rpc_inode),
- 				0, (SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
-@@ -852,7 +854,12 @@ int register_rpc_pipefs(void)
- 				init_once, NULL);
- 	if (!rpc_inode_cachep)
- 		return -ENOMEM;
--	register_filesystem(&rpc_pipe_fs_type);
-+	err = register_filesystem(&rpc_pipe_fs_type);
-+	if (err) {
-+		kmem_cache_destroy(rpc_inode_cachep);
-+		return err;
-+	}
-+
- 	return 0;
- }
- 
-diff -puN net/sunrpc/sunrpc_syms.c~sunrpc-fix-error-path-in-module_init net/sunrpc/sunrpc_syms.c
---- a/net/sunrpc/sunrpc_syms.c~sunrpc-fix-error-path-in-module_init
-+++ a/net/sunrpc/sunrpc_syms.c
-@@ -146,9 +146,11 @@ init_sunrpc(void)
- 	int err = register_rpc_pipefs();
- 	if (err)
- 		goto out;
--	err = rpc_init_mempool() != 0;
--	if (err)
-+	err = rpc_init_mempool();
-+	if (err) {
-+		unregister_rpc_pipefs();
- 		goto out;
-+	}
- #ifdef RPC_DEBUG
- 	rpc_register_sysctl();
- #endif
+diff -puN lib/Kconfig.debug~fault-injection-enable-stacktrace-with-dwarf2-unwinder lib/Kconfig.debug
+--- a/lib/Kconfig.debug~fault-injection-enable-stacktrace-with-dwarf2-unwinder
++++ a/lib/Kconfig.debug
+@@ -463,7 +463,8 @@ config FAULT_INJECTION_DEBUG_FS
+ config FAULT_INJECTION_STACKTRACE_FILTER
+ 	bool "stacktrace filter for fault-injection capabilities"
+ 	depends on FAULT_INJECTION_DEBUG_FS && STACKTRACE_SUPPORT
+-	depends on !X86_64
++	select UNWIND_INFO if X86
++	select STACK_UNWIND if X86
+ 	select STACKTRACE
+ 	select FRAME_POINTER
+ 	help
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
