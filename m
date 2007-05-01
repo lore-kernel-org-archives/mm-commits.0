@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-suspend-related-notifications-for-cpu-hotplug-cleanup.patch added to -mm tree
-Date: Tue, 01 May 2007 15:24:10 -0700
-Message-ID: <200705012224.l41MOA4w008087@shell0.pdx.osdl.net>
+Subject: + workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch added to -mm tree
+Date: Tue, 01 May 2007 15:25:53 -0700
+Message-ID: <200705012225.l41MPrjk008108@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45730 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754045AbXEAWZE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 18:25:04 -0400
+	by vger.kernel.org with ESMTP id S1753525AbXEAW0R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 18:26:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ego@in.ibm.com, pavel@ucw.cz, rjw@sisk.pl
+Cc: oleg@tv-sign.ru, ego@in.ibm.com, rjw@sisk.pl
 
 
 The patch titled
-     add-suspend-related-notifications-for-cpu-hotplug-cleanup
+     workqueues: shift kthread_bind() from CPU_UP_PREPARE to CPU_ONLINE
 has been added to the -mm tree.  Its filename is
-     add-suspend-related-notifications-for-cpu-hotplug-cleanup.patch
+     workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,76 +25,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-suspend-related-notifications-for-cpu-hotplug-cleanup
+Subject: workqueues: shift kthread_bind() from CPU_UP_PREPARE to CPU_ONLINE
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Oops. I completely misread the ->cpus_allowed check in try_to_wake_up(), and
-so workqueue_cpu_callback() needs a simple fix: CPU_UP_CANCELED should rebind
-cwq->thread. Or, better, we should not bind the task until CPU_ONLINE.
+CPU_UP_PREPARE binds cwq->thread to the new CPU.  So CPU_UP_CANCELED tries to
+wake up the task which is bound to the failed CPU.
 
-I'll send the patch soon, but it conflicts with Rafael's
-
-	add-suspend-related-notifications-for-cpu-hotplug.patch
-
-, so I am sending this cleanup first to make them independent.
-
-Actually, I believe almost all subsystems could be simplified as well, most
-of them don't care about CPU_TASKS_FROZEN bit.
+With this patch we don't bind cwq->thread until CPU becomes online.  The first
+wake_up() after kthread_create() is a bit special, make a simple helper for
+that.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ kernel/workqueue.c |   23 +++++++++++++++--------
+ 1 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN kernel/workqueue.c~add-suspend-related-notifications-for-cpu-hotplug-cleanup kernel/workqueue.c
---- a/kernel/workqueue.c~add-suspend-related-notifications-for-cpu-hotplug-cleanup
+diff -puN kernel/workqueue.c~workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online
 +++ a/kernel/workqueue.c
-@@ -749,6 +749,8 @@ static int __devinit workqueue_cpu_callb
- 	struct cpu_workqueue_struct *cwq;
- 	struct workqueue_struct *wq;
+@@ -668,15 +668,21 @@ static int create_workqueue_thread(struc
  
-+	action &= ~CPU_TASKS_FROZEN;
+ 	cwq->thread = p;
+ 	cwq->should_stop = 0;
+-	if (!is_single_threaded(wq))
+-		kthread_bind(p, cpu);
+-
+-	if (is_single_threaded(wq) || cpu_online(cpu))
+-		wake_up_process(p);
+ 
+ 	return 0;
+ }
+ 
++static void start_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
++{
++	struct task_struct *p = cwq->thread;
 +
- 	switch (action) {
- 	case CPU_LOCK_ACQUIRE:
++	if (p != NULL) {
++		if (cpu >= 0)
++			kthread_bind(p, cpu);
++		wake_up_process(p);
++	}
++}
++
+ struct workqueue_struct *__create_workqueue(const char *name,
+ 					    int singlethread, int freezeable)
+ {
+@@ -702,6 +708,7 @@ struct workqueue_struct *__create_workqu
+ 	if (singlethread) {
+ 		cwq = init_cpu_workqueue(wq, singlethread_cpu);
+ 		err = create_workqueue_thread(cwq, singlethread_cpu);
++		start_workqueue_thread(cwq, -1);
+ 	} else {
  		mutex_lock(&workqueue_mutex);
-@@ -759,7 +761,6 @@ static int __devinit workqueue_cpu_callb
- 		return NOTIFY_OK;
- 
- 	case CPU_UP_PREPARE:
--	case CPU_UP_PREPARE_FROZEN:
- 		cpu_set(cpu, cpu_populated_map);
+ 		list_add(&wq->list, &workqueues);
+@@ -711,6 +718,7 @@ struct workqueue_struct *__create_workqu
+ 			if (err || !cpu_online(cpu))
+ 				continue;
+ 			err = create_workqueue_thread(cwq, cpu);
++			start_workqueue_thread(cwq, cpu);
+ 		}
+ 		mutex_unlock(&workqueue_mutex);
  	}
- 
-@@ -768,23 +769,19 @@ static int __devinit workqueue_cpu_callb
- 
- 		switch (action) {
- 		case CPU_UP_PREPARE:
--		case CPU_UP_PREPARE_FROZEN:
- 			if (!create_workqueue_thread(cwq, cpu))
- 				break;
- 			printk(KERN_ERR "workqueue for %i failed\n", cpu);
+@@ -808,12 +816,11 @@ static int __devinit workqueue_cpu_callb
  			return NOTIFY_BAD;
  
  		case CPU_ONLINE:
--		case CPU_ONLINE_FROZEN:
- 			wake_up_process(cwq->thread);
+-			wake_up_process(cwq->thread);
++			start_workqueue_thread(cwq, cpu);
  			break;
  
  		case CPU_UP_CANCELED:
--		case CPU_UP_CANCELED_FROZEN:
- 			if (cwq->thread)
- 				wake_up_process(cwq->thread);
+-			if (cwq->thread)
+-				wake_up_process(cwq->thread);
++			start_workqueue_thread(cwq, -1);
  		case CPU_DEAD:
--		case CPU_DEAD_FROZEN:
  			cleanup_workqueue_thread(cwq, cpu);
  			break;
- 		}
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -135,6 +145,7 @@ workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
 workqueue-introduce-cpu_singlethread_map.patch
 workqueue-introduce-workqueue_struct-singlethread.patch
 workqueue-make-init_workqueues-__init.patch
+workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch
 make-queue_delayed_work-friendly-to-flush_fork.patch
 unify-queue_delayed_work-and-queue_delayed_work_on.patch
 workqueue-introduce-wq_per_cpu-helper.patch
