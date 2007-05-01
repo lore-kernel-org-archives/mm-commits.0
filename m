@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - x86-specify-amount-of-kernel-memory-at-boot-time.patch removed from -mm tree
-Date: Tue, 01 May 2007 11:51:56 -0700
-Message-ID: <200705011851.l41Ipu76003727@shell0.pdx.osdl.net>
+Subject: - ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch removed from -mm tree
+Date: Tue, 01 May 2007 11:52:00 -0700
+Message-ID: <200705011852.l41Iq0wi003730@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37995 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34962 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161718AbXEASwF (ORCPT
+	by vger.kernel.org with ESMTP id S1161721AbXEASwF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 14:52:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,36 +14,49 @@ To: mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 - Specify amount of kernel memory at boot time
+     ppc and powerpc - Specify amount of kernel memory at boot time
 has been removed from the -mm tree.  Its filename was
-     x86-specify-amount-of-kernel-memory-at-boot-time.patch
+     ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
 
 This patch was dropped because it was folded into handle-kernelcore=-generic.patch
 
 ------------------------------------------------------
-Subject: x86 - Specify amount of kernel memory at boot time
+Subject: ppc and powerpc - Specify amount of kernel memory at boot time
 From: Mel Gorman <mel@csn.ul.ie>
 
-This patch adds the kernelcore= parameter for x86.
+This patch adds the kernelcore= parameter for ppc and powerpc.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/setup.c |    1 +
- 1 files changed, 1 insertion(+)
+ arch/powerpc/kernel/prom.c |    1 +
+ arch/ppc/mm/init.c         |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN arch/i386/kernel/setup.c~x86-specify-amount-of-kernel-memory-at-boot-time arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~x86-specify-amount-of-kernel-memory-at-boot-time
-+++ a/arch/i386/kernel/setup.c
-@@ -195,6 +195,7 @@ static int __init parse_mem(char *arg)
+diff -puN arch/powerpc/kernel/prom.c~ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time arch/powerpc/kernel/prom.c
+--- a/arch/powerpc/kernel/prom.c~ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time
++++ a/arch/powerpc/kernel/prom.c
+@@ -432,6 +432,7 @@ static int __init early_parse_mem(char *
  	return 0;
  }
- early_param("mem", parse_mem);
+ early_param("mem", early_parse_mem);
 +early_param("kernelcore", cmdline_parse_kernelcore);
  
- #ifdef CONFIG_PROC_VMCORE
- /* elfcorehdr= specifies the location of elf core header
+ /*
+  * The device tree may be allocated below our memory limit, or inside the
+diff -puN arch/ppc/mm/init.c~ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time arch/ppc/mm/init.c
+--- a/arch/ppc/mm/init.c~ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time
++++ a/arch/ppc/mm/init.c
+@@ -214,6 +214,8 @@ void MMU_setup(void)
+ 	}
+ }
+ 
++early_param("kernelcore", cmdline_parse_kernelcore);
++
+ /*
+  * MMU_init sets up the basic memory mappings for the kernel,
+  * including both RAM and possibly some I/O regions,
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
@@ -69,7 +82,6 @@ dont-group-high-order-atomic-allocations.patch
 create-the-zone_movable-zone.patch
 allow-huge-page-allocations-to-use-gfp_high_movable.patch
 handle-kernelcore=-generic.patch
-x86-specify-amount-of-kernel-memory-at-boot-time.patch
 ppc-and-powerpc-specify-amount-of-kernel-memory-at-boot-time.patch
 x86_64-specify-amount-of-kernel-memory-at-boot-time.patch
 ia64-specify-amount-of-kernel-memory-at-boot-time.patch
