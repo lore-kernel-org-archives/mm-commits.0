@@ -1,128 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - md-remove-broken-sigkill-support.patch removed from -mm tree
-Date: Mon, 30 Apr 2007 17:16:29 -0700
-Message-ID: <200705010016.l410GUOF018455@shell0.pdx.osdl.net>
+Subject: + uml-fix-prototypes.patch added to -mm tree
+Date: Mon, 30 Apr 2007 19:06:42 -0700
+Message-ID: <200705010206.l4126gHn020182@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42083 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946187AbXEAAQf (ORCPT
+	by vger.kernel.org with ESMTP id S1423460AbXEACGs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2007 20:16:35 -0400
+	Mon, 30 Apr 2007 22:06:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: blaisorblade@yahoo.it, jdike@addtoit.com
 
 
 The patch titled
-     md: remove broken SIGKILL support
-has been removed from the -mm tree.  Its filename was
-     md-remove-broken-sigkill-support.patch
+     uml: fix prototypes
+has been added to the -mm tree.  Its filename is
+     uml-fix-prototypes.patch
 
-This patch was dropped because it was nacked by the maintainer
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: md: remove broken SIGKILL support
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: uml: fix prototypes
+From: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 
-Currently md_thread calls allow_signal so it can receive a SIGKILL but then
-does nothing with it except flush the sigkill so that it not can use an
-interruptible sleep.
+Declare strlcpy and strlcat more correctly.
 
-This whole dance is silly so remove the unnecessary and broken signal
-handling logic.
-
-Cc: Neil Brown <neilb@suse.de>
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    6 ------
- 1 files changed, 6 deletions(-)
+ arch/um/include/user.h |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/md.c~md-remove-broken-sigkill-support drivers/md/md.c
---- a/drivers/md/md.c~md-remove-broken-sigkill-support
-+++ a/drivers/md/md.c
-@@ -4542,17 +4542,11 @@ static int md_thread(void * arg)
- 	 */
+diff -puN arch/um/include/user.h~uml-fix-prototypes arch/um/include/user.h
+--- a/arch/um/include/user.h~uml-fix-prototypes
++++ a/arch/um/include/user.h
+@@ -14,6 +14,11 @@
+  */
+ #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
  
- 	current->flags |= PF_NOFREEZE;
--	allow_signal(SIGKILL);
- 	while (!kthread_should_stop()) {
++/*
++ * This will provide the size_t definition in both kernel and userspace builds
++ */
++#include <linux/types.h>
++
+ extern void panic(const char *fmt, ...)
+ 	__attribute__ ((format (printf, 1, 2)));
+ extern int printk(const char *fmt, ...)
+@@ -21,8 +26,7 @@ extern int printk(const char *fmt, ...)
+ extern void schedule(void);
+ extern int in_aton(char *str);
+ extern int open_gdb_chan(void);
+-/* These use size_t, however unsigned long is correct on both i386 and x86_64. */
+-extern unsigned long strlcpy(char *, const char *, unsigned long);
+-extern unsigned long strlcat(char *, const char *, unsigned long);
++extern size_t strlcpy(char *, const char *, size_t);
++extern size_t strlcat(char *, const char *, size_t);
  
- 		/* We need to wait INTERRUPTIBLE so that
- 		 * we don't add to the load-average.
--		 * That means we need to be sure no signals are
--		 * pending
- 		 */
--		if (signal_pending(current))
--			flush_signals(current);
--
- 		wait_event_interruptible_timeout
- 			(thread->wqueue,
- 			 test_bit(THREAD_WAKEUP, &thread->flags)
+ #endif
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from blaisorblade@yahoo.it are
 
-origin.patch
-git-arm.patch
-iop13xx-msi-support-rev6.patch
-macintosh-mediabay-convert-to-kthread-api.patch
-macintosh-adb-convert-to-the-kthread-api.patch
-macintosh-therm_pm72c-partially-convert-to-kthread-api.patch
-powerpc-pseries-rtasd-convert-to-kthread-api.patch
-powerpc-pseries-eeh-convert-to-kthread-api.patch
-dvb_en_50221-convert-to-kthread-api.patch
-mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
-ia64-sn-xpc-convert-to-use-kthread-api.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
-fix-i-oat-for-kexec.patch
-cpqphp-partially-convert-to-use-the-kthread-api.patch
-ibmphp-partially-convert-to-use-the-kthreads-api.patch
-cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
-msi-fix-arm-compile.patch
-s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
-s390-qeth-convert-to-use-the-kthread-api.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
-sparc64-powerc-convert-to-use-the-kthread-api.patch
-i386-irq-kill-irq-compression.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
-proc-cleanup-use-seq_release_private-where-appropriate.patch
-smbfs-remove-unnecessary-allow_signal.patch
-pnpbios-conert-to-use-the-kthread-api.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-worker_thread-dont-play-with-sigchld-and-numa-policy.patch
-change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-remvoe-kthread_bind-call-from-_cpu_down.patch
-nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-md-remove-broken-sigkill-support.patch
-mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+uml-delete-unused-code.patch
+uml-formatting-fixes.patch
+uml-host_info-tidying.patch
+uml-mark-tt-mode-code-for-future-removal.patch
+uml-print-coredump-limits.patch
+uml-handle-block-device-hotplug-errors.patch
+uml-driver-formatting-fixes.patch
+uml-driver-formatting-fixes-fix.patch
+uml-network-interface-hotplug-error-handling.patch
+uml-move-sigio-testing-to-sigioc.patch
+uml-create-archh.patch
+uml-create-as-layouth.patch
+uml-move-remaining-useful-contents-of-user_utilh.patch
+uml-remove-user_utilh.patch
+uml-add-missing-__init-declarations.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+uml-improve-checking-and-diagnostics-of-ethernet-macs.patch
+uml-eliminate-temporary-buffer-in-eth_configure.patch
+uml-replace-one-element-array-with-zero-element-array.patch
+uml-fix-umid-in-xterm-titles.patch
+uml-speed-up-exec.patch
+uml-no-locking-needed-in-tlsc.patch
+uml-tidy-processc.patch
+uml-remove-page_size.patch
+uml-kernel_thread-shouldnt-panic.patch
+uml-tidy-fault-code.patch
+uml-kernel-segfaults-should-dump-proper-registers.patch
+uml-comment-early-boot-locking.patch
+uml-irq-locking-commentary.patch
+uml-delete-host_frame_size.patch
+uml-drivers-get-release-methods.patch
+uml-dump-registers-on-ptrace-or-wait-failure.patch
+uml-speed-up-page-table-walking.patch
+uml-remove-unused-x86_64-code.patch
+uml-start-fixing-os_read_file-and-os_write_file.patch
+uml-tidy-libc-code.patch
+uml-convert-libc-layer-to-call-read-and-write.patch
+uml-batch-i-o-requests.patch
+uml-send-pointers-instead-of-structures-to-i-o-thread.patch
+uml-dump-core-on-panic.patch
+uml-dont-try-to-handle-signals-on-initial-process-stack.patch
+uml-change-remaining-callers-of-os_read_write_file.patch
+uml-formatting-fixes-around-os_read_write_file-callers.patch
+uml-remove-debugging-remnants.patch
+uml-rename-os_read_write_file_k-back-to-os_read_write_file.patch
+uml-aio-deadlock-avoidance.patch
+uml-speed-page-fault-path.patch
+uml-eliminate-a-piece-of-debugging-code.patch
+uml-more-page-fault-path-trimming.patch
+uml-only-flush-areas-covered-by-vma.patch
+uml-out-of-tmpfs-space-error-clarification.patch
+uml-virtualized-time-fix.patch
+uml-fix-prototypes.patch
