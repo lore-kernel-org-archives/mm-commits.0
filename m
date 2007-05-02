@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cx88-fix-compilation-on-alpha.patch added to -mm tree
-Date: Tue, 01 May 2007 17:08:10 -0700
-Message-ID: <200705020008.l4208Awm009793@shell0.pdx.osdl.net>
+Subject: + add-the-combined-mode-for-ati-sb700.patch added to -mm tree
+Date: Tue, 01 May 2007 17:14:18 -0700
+Message-ID: <200705020014.l420EIZa009872@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43698 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946144AbXEBAIR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:08:17 -0400
+	by vger.kernel.org with ESMTP id S1946128AbXEBAOa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:14:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, mchehab@infradead.org
+Cc: henry.su@amd.com, htejun@gmail.com, jeff@garzik.org, luugi.marsan@amd.com
 
 
 The patch titled
-     cx88: fix compilation on alpha
+     Add the combined mode for ATI SB700
 has been added to the -mm tree.  Its filename is
-     cx88-fix-compilation-on-alpha.patch
+     add-the-combined-mode-for-ati-sb700.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,62 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cx88: fix compilation on alpha
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Add the combined mode for ATI SB700
+From: "Henry Su" <henry.su@amd.com>
 
-error: 'DMA_32BIT_MASK' undeclared
+Besides those modes in ATI SB600 SATA controller, ATI SB700 supports one
+more mode:the combined mode.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+The combined mode is a Legacy IDE mode used for compatibility with some old
+OS without AHCI driver, but now it is not necessary for Linux since the
+kernel has supported AHCI.
+
+Signed-off-by: Luugi Marsan <luugi.marsan@amd.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx88/cx88-alsa.c  |    1 +
- drivers/media/video/cx88/cx88-mpeg.c  |    1 +
- drivers/media/video/cx88/cx88-video.c |    1 +
- 3 files changed, 3 insertions(+)
+ drivers/pci/quirks.c    |    1 +
+ include/linux/pci_ids.h |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/media/video/cx88/cx88-alsa.c~cx88-fix-compilation-on-alpha drivers/media/video/cx88/cx88-alsa.c
---- a/drivers/media/video/cx88/cx88-alsa.c~cx88-fix-compilation-on-alpha
-+++ a/drivers/media/video/cx88/cx88-alsa.c
-@@ -27,6 +27,7 @@
- #include <linux/init.h>
- #include <linux/device.h>
- #include <linux/interrupt.h>
-+#include <linux/dma-mapping.h>
- #include <asm/delay.h>
- #include <sound/driver.h>
- #include <sound/core.h>
-diff -puN drivers/media/video/cx88/cx88-mpeg.c~cx88-fix-compilation-on-alpha drivers/media/video/cx88/cx88-mpeg.c
---- a/drivers/media/video/cx88/cx88-mpeg.c~cx88-fix-compilation-on-alpha
-+++ a/drivers/media/video/cx88/cx88-mpeg.c
-@@ -27,6 +27,7 @@
- #include <linux/init.h>
- #include <linux/device.h>
- #include <linux/interrupt.h>
-+#include <linux/dma-mapping.h>
- #include <asm/delay.h>
+diff -puN drivers/pci/quirks.c~add-the-combined-mode-for-ati-sb700 drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~add-the-combined-mode-for-ati-sb700
++++ a/drivers/pci/quirks.c
+@@ -875,6 +875,7 @@ static void __devinit quirk_sb600_sata(s
+ 	}
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP600_SATA, quirk_sb600_sata);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP700_SATA, quirk_sb600_sata);
  
- #include "cx88.h"
-diff -puN drivers/media/video/cx88/cx88-video.c~cx88-fix-compilation-on-alpha drivers/media/video/cx88/cx88-video.c
---- a/drivers/media/video/cx88/cx88-video.c~cx88-fix-compilation-on-alpha
-+++ a/drivers/media/video/cx88/cx88-video.c
-@@ -36,6 +36,7 @@
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/kthread.h>
-+#include <linux/dma-mapping.h>
- #include <asm/div64.h>
+ /*
+  *	Serverworks CSB5 IDE does not fully support native mode
+diff -puN include/linux/pci_ids.h~add-the-combined-mode-for-ati-sb700 include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~add-the-combined-mode-for-ati-sb700
++++ a/include/linux/pci_ids.h
+@@ -370,6 +370,7 @@
+ #define PCI_DEVICE_ID_ATI_IXP600_SATA	0x4380
+ #define PCI_DEVICE_ID_ATI_IXP600_SMBUS	0x4385
+ #define PCI_DEVICE_ID_ATI_IXP600_IDE	0x438c
++#define PCI_DEVICE_ID_ATI_IXP700_SATA	0x4390
  
- #include "cx88.h"
+ #define PCI_VENDOR_ID_VLSI		0x1004
+ #define PCI_DEVICE_ID_VLSI_82C592	0x0005
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from henry.su@amd.com are
 
-origin.patch
-cx88-fix-compilation-on-alpha.patch
-git-parisc.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-git-watchdog.patch
-reiserfs-shrink-superblock-if-no-xattrs.patch
-i386-schedh-inclusion-from-moduleh-is-baack.patch
+add-the-combined-mode-for-ati-sb700.patch
