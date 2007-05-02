@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-fix-resume-logic.patch added to -mm tree
-Date: Tue, 01 May 2007 17:34:02 -0700
-Message-ID: <200705020034.l420Y2lw010228@shell0.pdx.osdl.net>
+Subject: + clockevents-fix-resume-logic.patch added to -mm tree
+Date: Tue, 01 May 2007 17:34:06 -0700
+Message-ID: <200705020034.l420Y6X4010238@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49032 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2992536AbXEBAeR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:34:17 -0400
+	by vger.kernel.org with ESMTP id S2992536AbXEBAeT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:34:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     clocksource: fix resume logic
+     clockevents: fix resume logic
 has been added to the -mm tree.  Its filename is
-     clocksource-fix-resume-logic.patch
+     clockevents-fix-resume-logic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,19 +25,16 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clocksource: fix resume logic
+Subject: clockevents: fix resume logic
 From: Thomas Gleixner <tglx@linutronix.de>
 
-We need to make sure that the clocksources are resumed, when timekeeping is
-resumed.  The current resume logic does not guarantee this.
+We need to make sure, that the clockevent devices are resumed, before the tick
+is resumed.  The current resume logic does not guarantee this.
 
-Add a resume function pointer to the clocksource struct, so clocksource
-drivers which need to reinitialize the clocksource can provide a resume
-function.
+Add CLOCK_EVT_MODE_RESUME and call the set mode functions of the clock event
+devices before resuming the tick / oneshot functionality.
 
-Add a resume function, which calls the maybe available clocksource resume
-functions and resets the watchdog function, so a stable TSC can be used
-accross suspend/resume.
+Fixup the existing users.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: john stultz <johnstul@us.ibm.com>
@@ -46,138 +43,210 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |    3 ++
- kernel/time/clocksource.c   |   45 ++++++++++++++++++++++++++++++++++
- kernel/timer.c              |    2 +
- 3 files changed, 50 insertions(+)
+ arch/i386/kernel/apic.c      |    3 +
+ arch/i386/kernel/hpet.c      |   71 ++-------------------------------
+ arch/i386/kernel/i8253.c     |    4 +
+ arch/sparc64/kernel/time.c   |    1 
+ include/linux/clockchips.h   |    1 
+ kernel/time/tick-broadcast.c |    2 
+ kernel/time/tick-common.c    |   16 ++++---
+ 7 files changed, 26 insertions(+), 72 deletions(-)
 
-diff -puN include/linux/clocksource.h~clocksource-fix-resume-logic include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-fix-resume-logic
-+++ a/include/linux/clocksource.h
-@@ -49,6 +49,7 @@ struct clocksource;
-  * @shift:		cycle to nanosecond divisor (power of two)
-  * @flags:		flags describing special properties
-  * @vread:		vsyscall based read
-+ * @resume:		resume function for the clocksource, if necessary
-  * @cycle_interval:	Used internally by timekeeping core, please ignore.
-  * @xtime_interval:	Used internally by timekeeping core, please ignore.
-  */
-@@ -65,6 +66,7 @@ struct clocksource {
- 	u32 shift;
- 	unsigned long flags;
- 	cycle_t (*vread)(void);
-+	void (*resume)(void);
+diff -puN arch/i386/kernel/apic.c~clockevents-fix-resume-logic arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~clockevents-fix-resume-logic
++++ a/arch/i386/kernel/apic.c
+@@ -263,6 +263,9 @@ static void lapic_timer_setup(enum clock
+ 		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
+ 		apic_write_around(APIC_LVTT, v);
+ 		break;
++	case CLOCK_EVT_MODE_RESUME:
++		/* Nothing to do here */
++		break;
+ 	}
  
- 	/* timekeeping specific data, ignore */
- 	cycle_t cycle_interval;
-@@ -209,6 +211,7 @@ static inline void clocksource_calculate
- extern int clocksource_register(struct clocksource*);
- extern struct clocksource* clocksource_get_next(void);
- extern void clocksource_change_rating(struct clocksource *cs, int rating);
-+extern void clocksource_resume(void);
- 
- #ifdef CONFIG_GENERIC_TIME_VSYSCALL
- extern void update_vsyscall(struct timespec *ts, struct clocksource *c);
-diff -puN kernel/time/clocksource.c~clocksource-fix-resume-logic kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-fix-resume-logic
-+++ a/kernel/time/clocksource.c
-@@ -74,6 +74,8 @@ static struct clocksource *watchdog;
- static struct timer_list watchdog_timer;
- static DEFINE_SPINLOCK(watchdog_lock);
- static cycle_t watchdog_last;
-+static int watchdog_resumed;
+ 	local_irq_restore(flags);
+diff -puN arch/i386/kernel/hpet.c~clockevents-fix-resume-logic arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~clockevents-fix-resume-logic
++++ a/arch/i386/kernel/hpet.c
+@@ -187,6 +187,10 @@ static void hpet_set_mode(enum clock_eve
+ 		cfg &= ~HPET_TN_ENABLE;
+ 		hpet_writel(cfg, HPET_T0_CFG);
+ 		break;
 +
++	case CLOCK_EVT_MODE_RESUME:
++		hpet_enable_int();
++		break;
+ 	}
+ }
+ 
+@@ -217,6 +221,7 @@ static struct clocksource clocksource_hp
+ 	.mask		= HPET_MASK,
+ 	.shift		= HPET_SHIFT,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++	.resume		= hpet_start_counter,
+ };
+ 
  /*
-  * Interval: 0.5sec Treshold: 0.0625s
-  */
-@@ -98,15 +100,26 @@ static void clocksource_watchdog(unsigne
- 	struct clocksource *cs, *tmp;
- 	cycle_t csnow, wdnow;
- 	int64_t wd_nsec, cs_nsec;
-+	int resumed;
+@@ -291,7 +296,6 @@ int __init hpet_enable(void)
  
- 	spin_lock(&watchdog_lock);
+ 	clocksource_register(&clocksource_hpet);
  
-+	resumed = watchdog_resumed;
-+	if (unlikely(resumed))
-+		watchdog_resumed = 0;
-+
- 	wdnow = watchdog->read();
- 	wd_nsec = cyc2ns(watchdog, (wdnow - watchdog_last) & watchdog->mask);
- 	watchdog_last = wdnow;
- 
- 	list_for_each_entry_safe(cs, tmp, &watchdog_list, wd_list) {
- 		csnow = cs->read();
-+
-+		if (unlikely(resumed)) {
-+			cs->wd_last = csnow;
-+			continue;
-+		}
-+
- 		/* Initialized ? */
- 		if (!(cs->flags & CLOCK_SOURCE_WATCHDOG)) {
- 			if ((cs->flags & CLOCK_SOURCE_IS_CONTINUOUS) &&
-@@ -136,6 +149,13 @@ static void clocksource_watchdog(unsigne
- 	}
- 	spin_unlock(&watchdog_lock);
+-
+ 	if (id & HPET_ID_LEGSUP) {
+ 		hpet_enable_int();
+ 		hpet_reserve_platform_timers(id);
+@@ -524,68 +528,3 @@ irqreturn_t hpet_rtc_interrupt(int irq, 
+ 	return IRQ_HANDLED;
  }
-+static void clocksource_resume_watchdog(void)
-+{
-+	spin_lock(&watchdog_lock);
-+	watchdog_resumed = 1;
-+	spin_unlock(&watchdog_lock);
-+}
-+
- static void clocksource_check_watchdog(struct clocksource *cs)
- {
- 	struct clocksource *cse;
-@@ -182,9 +202,34 @@ static void clocksource_check_watchdog(s
- 	if (cs->flags & CLOCK_SOURCE_IS_CONTINUOUS)
- 		cs->flags |= CLOCK_SOURCE_VALID_FOR_HRES;
- }
-+
-+static inline void clocksource_resume_watchdog(void) { }
  #endif
- 
- /**
-+ * clocksource_resume - resume the clocksource(s)
-+ */
-+void clocksource_resume(void)
-+{
-+	struct list_head *tmp;
-+	unsigned long flags;
+-
+-
+-/*
+- * Suspend/resume part
+- */
+-
+-#ifdef CONFIG_PM
+-
+-static int hpet_suspend(struct sys_device *sys_device, pm_message_t state)
+-{
+-	unsigned long cfg = hpet_readl(HPET_CFG);
+-
+-	cfg &= ~(HPET_CFG_ENABLE|HPET_CFG_LEGACY);
+-	hpet_writel(cfg, HPET_CFG);
+-
+-	return 0;
+-}
+-
+-static int hpet_resume(struct sys_device *sys_device)
+-{
+-	unsigned int id;
+-
+-	hpet_start_counter();
+-
+-	id = hpet_readl(HPET_ID);
+-
+-	if (id & HPET_ID_LEGSUP)
+-		hpet_enable_int();
+-
+-	return 0;
+-}
+-
+-static struct sysdev_class hpet_class = {
+-	set_kset_name("hpet"),
+-	.suspend	= hpet_suspend,
+-	.resume		= hpet_resume,
+-};
+-
+-static struct sys_device hpet_device = {
+-	.id		= 0,
+-	.cls		= &hpet_class,
+-};
+-
+-
+-static __init int hpet_register_sysfs(void)
+-{
+-	int err;
+-
+-	if (!is_hpet_capable())
+-		return 0;
+-
+-	err = sysdev_class_register(&hpet_class);
+-
+-	if (!err) {
+-		err = sysdev_register(&hpet_device);
+-		if (err)
+-			sysdev_class_unregister(&hpet_class);
+-	}
+-
+-	return err;
+-}
+-
+-device_initcall(hpet_register_sysfs);
+-
+-#endif
+diff -puN arch/i386/kernel/i8253.c~clockevents-fix-resume-logic arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~clockevents-fix-resume-logic
++++ a/arch/i386/kernel/i8253.c
+@@ -62,6 +62,10 @@ static void init_pit_timer(enum clock_ev
+ 		outb_p(0x38, PIT_MODE);
+ 		udelay(10);
+ 		break;
 +
-+	spin_lock_irqsave(&clocksource_lock, flags);
-+
-+	list_for_each(tmp, &clocksource_list) {
-+		struct clocksource *cs;
-+
-+		cs = list_entry(tmp, struct clocksource, list);
-+		if (cs->resume)
-+			cs->resume();
-+	}
-+
-+	clocksource_resume_watchdog();
-+
-+	spin_unlock_irqrestore(&clocksource_lock, flags);
-+}
-+
-+/**
-  * clocksource_get_next - Returns the selected clocksource
-  *
-  */
-diff -puN kernel/timer.c~clocksource-fix-resume-logic kernel/timer.c
---- a/kernel/timer.c~clocksource-fix-resume-logic
-+++ a/kernel/timer.c
-@@ -1499,6 +1499,8 @@ unregister_time_interpolator(struct time
- 		prev = &curr->next;
++	case CLOCK_EVT_MODE_RESUME:
++		/* Nothing to do here */
++		break;
  	}
+ 	spin_unlock_irqrestore(&i8253_lock, flags);
+ }
+diff -puN arch/sparc64/kernel/time.c~clockevents-fix-resume-logic arch/sparc64/kernel/time.c
+--- a/arch/sparc64/kernel/time.c~clockevents-fix-resume-logic
++++ a/arch/sparc64/kernel/time.c
+@@ -927,6 +927,7 @@ static void sparc64_timer_setup(enum clo
+ 	case CLOCK_EVT_MODE_PERIODIC:
+ 	case CLOCK_EVT_MODE_UNUSED:
+ 		WARN_ON(1);
++	case CLOCK_EVT_MODE_RESUME:
+ 		break;
+ 	};
+ }
+diff -puN include/linux/clockchips.h~clockevents-fix-resume-logic include/linux/clockchips.h
+--- a/include/linux/clockchips.h~clockevents-fix-resume-logic
++++ a/include/linux/clockchips.h
+@@ -23,6 +23,7 @@ enum clock_event_mode {
+ 	CLOCK_EVT_MODE_SHUTDOWN,
+ 	CLOCK_EVT_MODE_PERIODIC,
+ 	CLOCK_EVT_MODE_ONESHOT,
++	CLOCK_EVT_MODE_RESUME,
+ };
  
-+	clocksource_resume();
+ /* Clock event notification values */
+diff -puN kernel/time/tick-broadcast.c~clockevents-fix-resume-logic kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~clockevents-fix-resume-logic
++++ a/kernel/time/tick-broadcast.c
+@@ -309,6 +309,8 @@ int tick_resume_broadcast(void)
+ 	bc = tick_broadcast_device.evtdev;
+ 
+ 	if (bc) {
++		clockevents_set_mode(bc, CLOCK_EVT_MODE_RESUME);
 +
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 	if (ti == time_interpolator) {
- 		/* we lost the best time-interpolator: */
+ 		switch (tick_broadcast_device.mode) {
+ 		case TICKDEV_MODE_PERIODIC:
+ 			if(!cpus_empty(tick_broadcast_mask))
+diff -puN kernel/time/tick-common.c~clockevents-fix-resume-logic kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~clockevents-fix-resume-logic
++++ a/kernel/time/tick-common.c
+@@ -318,12 +318,17 @@ static void tick_resume(void)
+ {
+ 	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
+ 	unsigned long flags;
++	int broadcast = tick_resume_broadcast();
+ 
+ 	spin_lock_irqsave(&tick_device_lock, flags);
+-	if (td->mode == TICKDEV_MODE_PERIODIC)
+-		tick_setup_periodic(td->evtdev, 0);
+-	else
+-		tick_resume_oneshot();
++	clockevents_set_mode(td->evtdev, CLOCK_EVT_MODE_RESUME);
++
++	if (!broadcast) {
++		if (td->mode == TICKDEV_MODE_PERIODIC)
++			tick_setup_periodic(td->evtdev, 0);
++		else
++			tick_resume_oneshot();
++	}
+ 	spin_unlock_irqrestore(&tick_device_lock, flags);
+ }
+ 
+@@ -360,8 +365,7 @@ static int tick_notify(struct notifier_b
+ 		break;
+ 
+ 	case CLOCK_EVT_NOTIFY_RESUME:
+-		if (!tick_resume_broadcast())
+-			tick_resume();
++		tick_resume();
+ 		break;
+ 
+ 	default:
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
