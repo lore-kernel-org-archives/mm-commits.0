@@ -1,65 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: + git-hid-fixup.patch added to -mm tree
-Date: Tue, 01 May 2007 22:47:07 -0700
-Message-ID: <200705020547.l425l75R014732@shell0.pdx.osdl.net>
+Subject: - git-md-accel-fix.patch removed from -mm tree
+Date: Tue, 01 May 2007 22:47:44 -0700
+Message-ID: <200705020547.l425liiM014742@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51953 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40058 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2992765AbXEBFrJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 01:47:09 -0400
+	by vger.kernel.org with ESMTP id S2992770AbXEBFrq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 01:47:46 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l425l7Js005677
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l425liXo005687
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 1 May 2007 22:47:08 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 1 May 2007 22:47:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-hid-fixup
-has been added to the -mm tree.  Its filename is
-     git-hid-fixup.patch
+     git-md-accel-fix
+has been removed from the -mm tree.  Its filename was
+     git-md-accel-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-hid-fixup
+Subject: git-md-accel-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/Kconfig |    5 -----
- 1 file changed, 5 deletions(-)
+ arm/mach-iop32x/iq31244.c |    0 
+ drivers/dma/dmaengine.c   |    5 -----
+ 2 files changed, 5 deletions(-)
 
-diff -puN drivers/hid/Kconfig~git-hid-fixup drivers/hid/Kconfig
---- a/drivers/hid/Kconfig~git-hid-fixup
-+++ a/drivers/hid/Kconfig
-@@ -36,10 +36,8 @@ config HID_DEBUG
- 
- 	If unsure, say N
- 
--<<<<<<< HEAD/drivers/hid/Kconfig
- source "drivers/hid/usbhid/Kconfig"
- 
--=======
- config HIDRAW
- 	bool "/dev/hidraw raw HID device support"
- 	depends on HID
-@@ -59,7 +57,4 @@ config HIDRAW
- 
- 	If unsure, say Y.
- 
--
-->>>>>>> /drivers/hid/Kconfig
- endmenu
--
+diff -puN drivers/dma/dmaengine.c~git-md-accel-fix drivers/dma/dmaengine.c
+--- a/drivers/dma/dmaengine.c~git-md-accel-fix
++++ a/drivers/dma/dmaengine.c
+@@ -586,11 +586,6 @@ subsys_initcall(dma_bus_init);
+ EXPORT_SYMBOL(dma_async_client_register);
+ EXPORT_SYMBOL(dma_async_client_unregister);
+ EXPORT_SYMBOL(dma_async_client_chan_request);
+-EXPORT_SYMBOL(dma_async_memcpy_buf_to_buf);
+-EXPORT_SYMBOL(dma_async_memcpy_buf_to_pg);
+-EXPORT_SYMBOL(dma_async_memcpy_pg_to_pg);
+-EXPORT_SYMBOL(dma_async_memcpy_complete);
+-EXPORT_SYMBOL(dma_async_memcpy_issue_pending);
+ EXPORT_SYMBOL(dma_async_device_register);
+ EXPORT_SYMBOL(dma_async_device_unregister);
+ EXPORT_SYMBOL(dma_chan_cleanup);
+diff -puN arch/arm/mach-iop32x/iq31244.c~git-md-accel-fix arch/arm/mach-iop32x/iq31244.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
