@@ -1,107 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - revert-rm-pointless-dmaengine-exports.patch removed from -mm tree
-Date: Tue, 01 May 2007 22:45:57 -0700
-Message-ID: <200705020545.l425jvS5014725@shell0.pdx.osdl.net>
+Subject: + git-hid-fixup.patch added to -mm tree
+Date: Tue, 01 May 2007 22:47:07 -0700
+Message-ID: <200705020547.l425l75R014732@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37934 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51953 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2992787AbXEBFqA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 01:46:00 -0400
+	by vger.kernel.org with ESMTP id S2992765AbXEBFrJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 01:47:09 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l425jwHp005653
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l425l7Js005677
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 1 May 2007 22:45:59 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 1 May 2007 22:47:08 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     revert rm-pointless-dmaengine-exports
-has been removed from the -mm tree.  Its filename was
-     revert-rm-pointless-dmaengine-exports.patch
+     git-hid-fixup
+has been added to the -mm tree.  Its filename is
+     git-hid-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: revert rm-pointless-dmaengine-exports
+Subject: git-hid-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmaengine.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ drivers/hid/Kconfig |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/dma/dmaengine.c~revert-rm-pointless-dmaengine-exports drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~revert-rm-pointless-dmaengine-exports
-+++ a/drivers/dma/dmaengine.c
-@@ -176,7 +176,6 @@ void dma_chan_cleanup(struct kref *kref)
- 	chan->client = NULL;
- 	kref_put(&chan->device->refcount, dma_async_device_cleanup);
- }
--EXPORT_SYMBOL(dma_chan_cleanup);
+diff -puN drivers/hid/Kconfig~git-hid-fixup drivers/hid/Kconfig
+--- a/drivers/hid/Kconfig~git-hid-fixup
++++ a/drivers/hid/Kconfig
+@@ -36,10 +36,8 @@ config HID_DEBUG
  
- static void dma_chan_free_rcu(struct rcu_head *rcu)
- {
-@@ -262,7 +261,6 @@ struct dma_client *dma_async_client_regi
+ 	If unsure, say N
  
- 	return client;
- }
--EXPORT_SYMBOL(dma_async_client_register);
+-<<<<<<< HEAD/drivers/hid/Kconfig
+ source "drivers/hid/usbhid/Kconfig"
  
- /**
-  * dma_async_client_unregister - unregister a client and free the &dma_client
-@@ -289,7 +287,6 @@ void dma_async_client_unregister(struct 
- 	kfree(client);
- 	dma_chans_rebalance();
- }
--EXPORT_SYMBOL(dma_async_client_unregister);
+-=======
+ config HIDRAW
+ 	bool "/dev/hidraw raw HID device support"
+ 	depends on HID
+@@ -59,7 +57,4 @@ config HIDRAW
  
- /**
-  * dma_async_client_chan_request - request DMA channels
-@@ -307,7 +304,6 @@ void dma_async_client_chan_request(struc
- 	client->chans_desired = number;
- 	dma_chans_rebalance();
- }
--EXPORT_SYMBOL(dma_async_client_chan_request);
+ 	If unsure, say Y.
  
- /**
-  * dma_async_device_register - registers DMA devices found
-@@ -350,7 +346,6 @@ int dma_async_device_register(struct dma
- 
- 	return 0;
- }
--EXPORT_SYMBOL(dma_async_device_register);
- 
- /**
-  * dma_async_device_cleanup - function called when all references are released
-@@ -395,12 +390,23 @@ void dma_async_device_unregister(struct 
- 	kref_put(&device->refcount, dma_async_device_cleanup);
- 	wait_for_completion(&device->done);
- }
--EXPORT_SYMBOL(dma_async_device_unregister);
- 
- static int __init dma_bus_init(void)
- {
- 	mutex_init(&dma_list_mutex);
- 	return class_register(&dma_devclass);
- }
-+
- subsys_initcall(dma_bus_init);
- 
-+EXPORT_SYMBOL(dma_async_client_register);
-+EXPORT_SYMBOL(dma_async_client_unregister);
-+EXPORT_SYMBOL(dma_async_client_chan_request);
-+EXPORT_SYMBOL(dma_async_memcpy_buf_to_buf);
-+EXPORT_SYMBOL(dma_async_memcpy_buf_to_pg);
-+EXPORT_SYMBOL(dma_async_memcpy_pg_to_pg);
-+EXPORT_SYMBOL(dma_async_memcpy_complete);
-+EXPORT_SYMBOL(dma_async_memcpy_issue_pending);
-+EXPORT_SYMBOL(dma_async_device_register);
-+EXPORT_SYMBOL(dma_async_device_unregister);
-+EXPORT_SYMBOL(dma_chan_cleanup);
+-
+->>>>>>> /drivers/hid/Kconfig
+ endmenu
+-
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,13 +79,13 @@ even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-drm.patch
 git-gfs2-nmw.patch
+git-hid-fixup.patch
 git-ieee1394.patch
 sbp2-include-fixes.patch
 ieee1394-iso-needs-schedh.patch
 git-input.patch
 git-jfs.patch
 git-kvm.patch
-revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
 git-mmc.patch
 git-mmc-build-fix.patch
