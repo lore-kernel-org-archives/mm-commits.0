@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible.patch added to -mm tree
-Date: Tue, 01 May 2007 17:28:03 -0700
-Message-ID: <200705020028.l420S3fo010107@shell0.pdx.osdl.net>
+Subject: + clocksource-fix-resume-logic.patch added to -mm tree
+Date: Tue, 01 May 2007 17:34:02 -0700
+Message-ID: <200705020034.l420Y2lw010228@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37961 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161717AbXEBA2J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:28:09 -0400
+	by vger.kernel.org with ESMTP id S2992536AbXEBAeR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:34:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, hugh@veritas.com
+Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     page migration: Only migrate pages if allocation in the highest zone is possible
+     clocksource: fix resume logic
 has been added to the -mm tree.  Its filename is
-     page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible.patch
+     clocksource-fix-resume-logic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,105 +25,191 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: page migration: Only migrate pages if allocation in the highest zone is possible
-From: Christoph Lameter <clameter@sgi.com>
+Subject: clocksource: fix resume logic
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Address spaces contain an allocation flag that specifies restriction on the
-zone for pages placed in the mapping.  I.e.  some device may require pages
-to be allocated from a DMA zone.  Block devices may not be able to use
-pages from HIGHMEM.
+We need to make sure that the clocksources are resumed, when timekeeping is
+resumed.  The current resume logic does not guarantee this.
 
-Memory policies and the common use of page migration works only on the
-highest zone.  If the address space does not allow allocation from the
-highest zone then the pages in the address space are not migratable simply
-because we can only allocate memory for a specified node if we allow
-allocation for the highest zone on each node.
+Add a resume function pointer to the clocksource struct, so clocksource
+drivers which need to reinitialize the clocksource can provide a resume
+function.
 
-Acked-by: Hugh Dickins <hugh@veritas.com>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Add a resume function, which calls the maybe available clocksource resume
+functions and resets the watchdog function, so a stable TSC can be used
+accross suspend/resume.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |   11 +++++++++++
- 1 files changed, 11 insertions(+)
+ include/linux/clocksource.h |    3 ++
+ kernel/time/clocksource.c   |   45 ++++++++++++++++++++++++++++++++++
+ kernel/timer.c              |    2 +
+ 3 files changed, 50 insertions(+)
 
-diff -puN include/linux/migrate.h~page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible include/linux/migrate.h
---- a/include/linux/migrate.h~page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible
-+++ a/include/linux/migrate.h
-@@ -2,6 +2,8 @@
- #define _LINUX_MIGRATE_H
+diff -puN include/linux/clocksource.h~clocksource-fix-resume-logic include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-fix-resume-logic
++++ a/include/linux/clocksource.h
+@@ -49,6 +49,7 @@ struct clocksource;
+  * @shift:		cycle to nanosecond divisor (power of two)
+  * @flags:		flags describing special properties
+  * @vread:		vsyscall based read
++ * @resume:		resume function for the clocksource, if necessary
+  * @cycle_interval:	Used internally by timekeeping core, please ignore.
+  * @xtime_interval:	Used internally by timekeeping core, please ignore.
+  */
+@@ -65,6 +66,7 @@ struct clocksource {
+ 	u32 shift;
+ 	unsigned long flags;
+ 	cycle_t (*vread)(void);
++	void (*resume)(void);
  
- #include <linux/mm.h>
-+#include <linux/mempolicy.h>
-+#include <linux/pagemap.h>
+ 	/* timekeeping specific data, ignore */
+ 	cycle_t cycle_interval;
+@@ -209,6 +211,7 @@ static inline void clocksource_calculate
+ extern int clocksource_register(struct clocksource*);
+ extern struct clocksource* clocksource_get_next(void);
+ extern void clocksource_change_rating(struct clocksource *cs, int rating);
++extern void clocksource_resume(void);
  
- typedef struct page *new_page_t(struct page *, unsigned long private, int **);
+ #ifdef CONFIG_GENERIC_TIME_VSYSCALL
+ extern void update_vsyscall(struct timespec *ts, struct clocksource *c);
+diff -puN kernel/time/clocksource.c~clocksource-fix-resume-logic kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-fix-resume-logic
++++ a/kernel/time/clocksource.c
+@@ -74,6 +74,8 @@ static struct clocksource *watchdog;
+ static struct timer_list watchdog_timer;
+ static DEFINE_SPINLOCK(watchdog_lock);
+ static cycle_t watchdog_last;
++static int watchdog_resumed;
++
+ /*
+  * Interval: 0.5sec Treshold: 0.0625s
+  */
+@@ -98,15 +100,26 @@ static void clocksource_watchdog(unsigne
+ 	struct clocksource *cs, *tmp;
+ 	cycle_t csnow, wdnow;
+ 	int64_t wd_nsec, cs_nsec;
++	int resumed;
  
-@@ -10,6 +12,15 @@ static inline int vma_migratable(struct 
- {
- 	if (vma->vm_flags & (VM_IO|VM_HUGETLB|VM_PFNMAP|VM_RESERVED))
- 		return 0;
-+	/*
-+	 * Migration allocates pages in the highest zone. If we cannot
-+	 * do so then migration (at least from node to node) is not
-+	 * possible.
-+	 */
-+	if (vma->vm_file &&
-+		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
-+								< policy_zone)
-+			return 0;
- 	return 1;
+ 	spin_lock(&watchdog_lock);
+ 
++	resumed = watchdog_resumed;
++	if (unlikely(resumed))
++		watchdog_resumed = 0;
++
+ 	wdnow = watchdog->read();
+ 	wd_nsec = cyc2ns(watchdog, (wdnow - watchdog_last) & watchdog->mask);
+ 	watchdog_last = wdnow;
+ 
+ 	list_for_each_entry_safe(cs, tmp, &watchdog_list, wd_list) {
+ 		csnow = cs->read();
++
++		if (unlikely(resumed)) {
++			cs->wd_last = csnow;
++			continue;
++		}
++
+ 		/* Initialized ? */
+ 		if (!(cs->flags & CLOCK_SOURCE_WATCHDOG)) {
+ 			if ((cs->flags & CLOCK_SOURCE_IS_CONTINUOUS) &&
+@@ -136,6 +149,13 @@ static void clocksource_watchdog(unsigne
+ 	}
+ 	spin_unlock(&watchdog_lock);
  }
++static void clocksource_resume_watchdog(void)
++{
++	spin_lock(&watchdog_lock);
++	watchdog_resumed = 1;
++	spin_unlock(&watchdog_lock);
++}
++
+ static void clocksource_check_watchdog(struct clocksource *cs)
+ {
+ 	struct clocksource *cse;
+@@ -182,9 +202,34 @@ static void clocksource_check_watchdog(s
+ 	if (cs->flags & CLOCK_SOURCE_IS_CONTINUOUS)
+ 		cs->flags |= CLOCK_SOURCE_VALID_FOR_HRES;
+ }
++
++static inline void clocksource_resume_watchdog(void) { }
+ #endif
  
+ /**
++ * clocksource_resume - resume the clocksource(s)
++ */
++void clocksource_resume(void)
++{
++	struct list_head *tmp;
++	unsigned long flags;
++
++	spin_lock_irqsave(&clocksource_lock, flags);
++
++	list_for_each(tmp, &clocksource_list) {
++		struct clocksource *cs;
++
++		cs = list_entry(tmp, struct clocksource, list);
++		if (cs->resume)
++			cs->resume();
++	}
++
++	clocksource_resume_watchdog();
++
++	spin_unlock_irqrestore(&clocksource_lock, flags);
++}
++
++/**
+  * clocksource_get_next - Returns the selected clocksource
+  *
+  */
+diff -puN kernel/timer.c~clocksource-fix-resume-logic kernel/timer.c
+--- a/kernel/timer.c~clocksource-fix-resume-logic
++++ a/kernel/timer.c
+@@ -1499,6 +1499,8 @@ unregister_time_interpolator(struct time
+ 		prev = &curr->next;
+ 	}
+ 
++	clocksource_resume();
++
+ 	write_seqlock_irqsave(&xtime_lock, flags);
+ 	if (ti == time_interpolator) {
+ 		/* we lost the best time-interpolator: */
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-extend-print_symbol-capability.patch
-slab-introduce-krealloc.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
-ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-make-page-private-usable-in-compound-pages-v1.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-slub-add-min_partial.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab.patch
-slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
-slub-remove-object-activities-out-of-checking-functions.patch
-slub-user-documentation.patch
-slub-add-slabinfo-tool.patch
-quicklists-for-page-table-pages.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-quicklist-support-for-sparc64.patch
-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-kmem_cache-simplify-slab-cache-creation.patch
-slab-allocators-remove-multiple-alignment-specifications.patch
-fault-injection-fix-failslab-with-config_numa.patch
-mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slab-allocators-remove-slab_debug_initial-flag.patch
-slab-allocators-remove-slab_ctor_atomic.patch
-slab-allocators-remove-useless-__gfp_no_grow-flag.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-i386-support.patch
-page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-vmstat-use-our-own-timer-events.patch
-readahead-state-based-method-aging-accounting.patch
+origin.patch
+git-arm.patch
+git-avr32.patch
+git-ieee1394.patch
+git-input.patch
+h8300-generic-irq.patch
+optimize-timespec_trunc.patch
+kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+add-support-for-deferrable-timers-respun.patch
+irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
+move-timekeeping-code-to-timekeepingc.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+replace-deprecated-sa_xxx-interrupt-flags.patch
+deprecate-sa_xxx-interrupt-flags-v2.patch
+pad-irq_desc-to-internode-cacheline-size.patch
+highres-dyntick-prevent-xtime-lock-contention.patch
+introduce-a-handy-list_first_entry-macro-v2.patch
+the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+declare-struct-ktime.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-arm.patch
+clocksource-fix-resume-logic.patch
+acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set.patch
+clockevents-fix-resume-logic.patch
+timer_stats-slimmed-down-using-statistics-infrastucture.patch
