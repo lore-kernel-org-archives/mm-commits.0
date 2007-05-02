@@ -1,176 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - serial-use-resource_size_t-for-serial-port-io-addresses.patch removed from -mm tree
-Date: Wed, 02 May 2007 15:10:23 -0700
-Message-ID: <200705022210.l42MAOsp031327@shell0.pdx.osdl.net>
+Subject: - serial-suppress-rts-assertion-with-disabled-crtscts.patch removed from -mm tree
+Date: Wed, 02 May 2007 15:10:30 -0700
+Message-ID: <200705022210.l42MAVQH031339@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45276 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2993189AbXEBWKo (ORCPT
+	by vger.kernel.org with ESMTP id S2993191AbXEBWKo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 18:10:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@gibson.dropbear.id.au, dwg@au1.ibm.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: kebkal@gmail.com, alan@lxorguk.ukuu.org.uk, lesha@evologics.de, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial: use resource_size_t for serial port IO addresses
+     serial: suppress RTS assertion with disabled CRTSCTS
 has been removed from the -mm tree.  Its filename was
-     serial-use-resource_size_t-for-serial-port-io-addresses.patch
+     serial-suppress-rts-assertion-with-disabled-crtscts.patch
 
 This patch was dropped because it was nacked by the maintainer
 
 ------------------------------------------------------
-Subject: serial: use resource_size_t for serial port IO addresses
-From: David Gibson <david@gibson.dropbear.id.au>
+Subject: serial: suppress RTS assertion with disabled CRTSCTS
+From: "Oleksiy Kebkal" <kebkal@gmail.com>
 
-At present, various parts of the serial code use unsigned long to define
-resource addresses.  This is a problem, because some 32-bit platforms have
-physical addresses larger than 32-bits, and have mmio serial uarts located
-above the 4GB point.
+This patch leaves RTS alone when CRTSCTS is not set.
 
-This patch changes the type of mapbase in both struct uart_port and struct
-plat_serial8250_port to resource_size_t, which can be configured to be 64 bits
-on such platforms.  The mapbase in serial_struct can't safely be changed,
-because that structure is user visible.
+Current behaviour doesn't give any possibility to
 
-Signed-off-by: David Gibson <dwg@au1.ibm.com>
+1.  preconfigure port setting, because open operation implies RTS
+   assertion and initial serial port setting may be wrong.
+
+2.  realize peculiar serial flow control required by some hardware
+   especially in embedded devices.
+
+Signed-off-by: Oleksiy Kebkal <lesha@evologics.de>
 Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c        |    5 +++--
- drivers/serial/8250_early.c  |   16 +++++++++-------
- drivers/serial/serial_core.c |    9 +++++----
- include/linux/serial_8250.h  |    2 +-
- include/linux/serial_core.h  |    2 +-
- 5 files changed, 19 insertions(+), 15 deletions(-)
+ drivers/serial/serial_core.c |   42 ++++++++++++++++++++++-----------
+ 1 files changed, 28 insertions(+), 14 deletions(-)
 
-diff -puN drivers/serial/8250.c~serial-use-resource_size_t-for-serial-port-io-addresses drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-use-resource_size_t-for-serial-port-io-addresses
-+++ a/drivers/serial/8250.c
-@@ -2650,8 +2650,9 @@ static int __devinit serial8250_probe(st
- 		ret = serial8250_register_port(&port);
- 		if (ret < 0) {
- 			dev_err(&dev->dev, "unable to register port at index %d "
--				"(IO%lx MEM%lx IRQ%d): %d\n", i,
--				p->iobase, p->mapbase, p->irq, ret);
-+				"(IO%lx MEM%llx IRQ%d): %d\n", i,
-+				p->iobase, (unsigned long long)p->mapbase,
-+				p->irq, ret);
- 		}
- 	}
- 	return 0;
-diff -puN drivers/serial/8250_early.c~serial-use-resource_size_t-for-serial-port-io-addresses drivers/serial/8250_early.c
---- a/drivers/serial/8250_early.c~serial-use-resource_size_t-for-serial-port-io-addresses
-+++ a/drivers/serial/8250_early.c
-@@ -145,8 +145,9 @@ static int __init parse_options(struct e
- 		port->mapbase = simple_strtoul(options + 5, &options, 0);
- 		port->membase = ioremap(port->mapbase, mapsize);
- 		if (!port->membase) {
--			printk(KERN_ERR "%s: Couldn't ioremap 0x%lx\n",
--				__FUNCTION__, port->mapbase);
-+			printk(KERN_ERR "%s: Couldn't ioremap 0x%llx\n",
-+				__FUNCTION__,
-+			       (unsigned long long)port->mapbase);
- 			return -ENOMEM;
- 		}
- 		mmio = 1;
-@@ -168,9 +169,10 @@ static int __init parse_options(struct e
- 			device->baud);
- 	}
- 
--	printk(KERN_INFO "Early serial console at %s 0x%lx (options '%s')\n",
-+	printk(KERN_INFO "Early serial console at %s 0x%llx (options '%s')\n",
- 		mmio ? "MMIO" : "I/O port",
--		mmio ? port->mapbase : (unsigned long) port->iobase,
-+		mmio ? (unsigned long long) port->mapbase
-+	             : (unsigned long long) port->iobase,
- 		device->options);
- 	return 0;
- }
-@@ -236,10 +238,10 @@ static int __init early_uart_console_swi
- 	mmio = (port->iotype == UPIO_MEM);
- 	line = serial8250_start_console(port, device->options);
- 	if (line < 0)
--		printk("No ttyS device at %s 0x%lx for console\n",
-+		printk("No ttyS device at %s 0x%llx for console\n",
- 			mmio ? "MMIO" : "I/O port",
--			mmio ? port->mapbase :
--			    (unsigned long) port->iobase);
-+			mmio ? (unsigned long long) port->mapbase
-+		             : (unsigned long long) port->iobase);
- 
- 	unregister_console(&early_uart_console);
- 	if (mmio)
-diff -puN drivers/serial/serial_core.c~serial-use-resource_size_t-for-serial-port-io-addresses drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-use-resource_size_t-for-serial-port-io-addresses
+diff -puN drivers/serial/serial_core.c~serial-suppress-rts-assertion-with-disabled-crtscts drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-suppress-rts-assertion-with-disabled-crtscts
 +++ a/drivers/serial/serial_core.c
-@@ -633,7 +633,7 @@ static int uart_get_info(struct uart_sta
- 	tmp.hub6	    = port->hub6;
- 	tmp.io_type         = port->iotype;
- 	tmp.iomem_reg_shift = port->regshift;
--	tmp.iomem_base      = (void *)port->mapbase;
-+	tmp.iomem_base      = (void *)(unsigned long)port->mapbase;
+@@ -185,11 +185,15 @@ static int uart_startup(struct uart_stat
+ 			uart_change_speed(state, NULL);
  
- 	if (copy_to_user(retinfo, &tmp, sizeof(*retinfo)))
- 		return -EFAULT;
-@@ -1673,10 +1673,11 @@ static int uart_line_info(char *buf, str
- 		return 0;
+ 			/*
+-			 * Setup the RTS and DTR signals once the
+-			 * port is open and ready to respond.
++			 * Setup the RTS (in the case of hardware flow control)
++			 * and DTR signals once the port is open and ready to
++			 * respond.
+ 			 */
+-			if (info->tty->termios->c_cflag & CBAUD)
+-				uart_set_mctrl(port, TIOCM_RTS | TIOCM_DTR);
++			if (info->tty->termios->c_cflag & CBAUD) {
++				uart_set_mctrl(port, TIOCM_DTR);
++				if (info->flags & UIF_CTS_FLOW)
++					uart_set_mctrl(port, TIOCM_RTS);
++			}
+ 		}
  
- 	mmio = port->iotype >= UPIO_MEM;
--	ret = sprintf(buf, "%d: uart:%s %s%08lX irq:%d",
-+	ret = sprintf(buf, "%d: uart:%s %s%08llX irq:%d",
- 			port->line, uart_type(port),
- 			mmio ? "mmio:0x" : "port:",
--			mmio ? port->mapbase : (unsigned long) port->iobase,
-+			mmio ? (unsigned long long)port->mapbase
-+		             : (unsigned long long) port->iobase,
- 			port->irq);
+ 		if (info->flags & UIF_CTS_FLOW) {
+@@ -230,10 +234,14 @@ static void uart_shutdown(struct uart_st
+ 		info->flags &= ~UIF_INITIALIZED;
  
- 	if (port->type == PORT_UNKNOWN) {
-@@ -2070,7 +2071,7 @@ uart_report_port(struct uart_driver *drv
- 	case UPIO_TSI:
- 	case UPIO_DWAPB:
- 		snprintf(address, sizeof(address),
--			 "MMIO 0x%lx", port->mapbase);
-+			 "MMIO 0x%llx", (unsigned long long)port->mapbase);
- 		break;
- 	default:
- 		strlcpy(address, "*unknown*", sizeof(address));
-diff -puN include/linux/serial_8250.h~serial-use-resource_size_t-for-serial-port-io-addresses include/linux/serial_8250.h
---- a/include/linux/serial_8250.h~serial-use-resource_size_t-for-serial-port-io-addresses
-+++ a/include/linux/serial_8250.h
-@@ -20,7 +20,7 @@
- struct plat_serial8250_port {
- 	unsigned long	iobase;		/* io base address */
- 	void __iomem	*membase;	/* ioremap cookie or NULL */
--	unsigned long	mapbase;	/* resource base */
-+	resource_size_t	mapbase;	/* resource base */
- 	unsigned int	irq;		/* interrupt number */
- 	unsigned int	uartclk;	/* UART clock rate */
- 	unsigned char	regshift;	/* register shift */
-diff -puN include/linux/serial_core.h~serial-use-resource_size_t-for-serial-port-io-addresses include/linux/serial_core.h
---- a/include/linux/serial_core.h~serial-use-resource_size_t-for-serial-port-io-addresses
-+++ a/include/linux/serial_core.h
-@@ -276,7 +276,7 @@ struct uart_port {
- 	const struct uart_ops	*ops;
- 	unsigned int		custom_divisor;
- 	unsigned int		line;			/* port index */
--	unsigned long		mapbase;		/* for ioremap */
-+	resource_size_t		mapbase;		/* for ioremap */
- 	struct device		*dev;			/* parent device */
- 	unsigned char		hub6;			/* this should be in the 8250 driver */
- 	unsigned char		unused[3];
+ 		/*
+-		 * Turn off DTR and RTS early.
++		 * Turn off DTR and RTS (in the case of hardware flow control)
++		 * early.
+ 		 */
+-		if (!info->tty || (info->tty->termios->c_cflag & HUPCL))
+-			uart_clear_mctrl(port, TIOCM_DTR | TIOCM_RTS);
++		if (!info->tty || (info->tty->termios->c_cflag & HUPCL)) {
++			uart_clear_mctrl(port, TIOCM_DTR);
++			if (info->flags & UIF_CTS_FLOW)
++				uart_clear_mctrl(port, TIOCM_RTS);
++               }
+ 
+ 		/*
+ 		 * clear delta_msr_wait queue to avoid mem leaks: we may free
+@@ -1164,14 +1172,16 @@ static void uart_set_termios(struct tty_
+ 	uart_change_speed(state, old_termios);
+ 
+ 	/* Handle transition to B0 status */
+-	if ((old_termios->c_cflag & CBAUD) && !(cflag & CBAUD))
+-		uart_clear_mctrl(state->port, TIOCM_RTS | TIOCM_DTR);
++	if ((old_termios->c_cflag & CBAUD) && !(cflag & CBAUD)) {
++		uart_clear_mctrl(state->port, TIOCM_DTR);
++		if (state->info->flags & UIF_CTS_FLOW)
++			uart_clear_mctrl(state->port, TIOCM_RTS);
++       }
+ 
+ 	/* Handle transition away from B0 status */
+ 	if (!(old_termios->c_cflag & CBAUD) && (cflag & CBAUD)) {
+ 		unsigned int mask = TIOCM_DTR;
+-		if (!(cflag & CRTSCTS) ||
+-		    !test_bit(TTY_THROTTLED, &tty->flags))
++		if (!test_bit(TTY_THROTTLED, &tty->flags))
+ 			mask |= TIOCM_RTS;
+ 		uart_set_mctrl(state->port, mask);
+ 	}
+@@ -1415,10 +1425,14 @@ static void uart_update_termios(struct u
+ 		uart_change_speed(state, NULL);
+ 
+ 		/*
+-		 * And finally enable the RTS and DTR signals.
++		 * And finally enable the RTS (in the of case hardware flow
++		 * control) and DTR signals.
+ 		 */
+-		if (tty->termios->c_cflag & CBAUD)
+-			uart_set_mctrl(port, TIOCM_DTR | TIOCM_RTS);
++		if (tty->termios->c_cflag & CBAUD) {
++			uart_set_mctrl(port, TIOCM_DTR);
++			if (state->info->flags & UIF_CTS_FLOW)
++				uart_set_mctrl(port, TIOCM_RTS);
++		}
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from david@gibson.dropbear.id.au are
-
-origin.patch
-serial-define-fixed_port-flag-for-serial_core.patch
-serial-use-resource_size_t-for-serial-port-io-addresses.patch
-get_unmapped_area-handles-map_fixed-on-powerpc.patch
-get_unmapped_area-handles-map_fixed-on-i386.patch
-get_unmapped_area-handles-map_fixed-in-hugetlbfs.patch
-get_unmapped_area-handles-map_fixed-in-generic-code.patch
-get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore.patch
+Patches currently in -mm which might be from kebkal@gmail.com are
