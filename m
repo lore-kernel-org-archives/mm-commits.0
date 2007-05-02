@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-remove-sys-class-rtc-dev-fix.patch added to -mm tree
-Date: Tue, 01 May 2007 17:00:11 -0700
-Message-ID: <200705020000.l4200Bi6009655@shell0.pdx.osdl.net>
+Subject: + scsi-lpfc-lpfc_initc-remove-unused-variable.patch added to -mm tree
+Date: Tue, 01 May 2007 17:01:02 -0700
+Message-ID: <200705020001.l42012j5009681@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46269 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946101AbXEBAAu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:00:50 -0400
+	by vger.kernel.org with ESMTP id S1946102AbXEBABM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:01:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, a.zummo@towertech.it, dbrownell@users.sourceforge.net, gregkh@suse.de
+Cc: bunk@stusta.de
 
 
 The patch titled
-     drivers/rtc/rtc-dev.c should #include "rtc-core.h"
+     scsi/lpfc/lpfc_init.c: remove unused variable
 has been added to the -mm tree.  Its filename is
-     rtc-remove-sys-class-rtc-dev-fix.patch
+     scsi-lpfc-lpfc_initc-remove-unused-variable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-dev.c should #include "rtc-core.h"
+Subject: scsi/lpfc/lpfc_init.c: remove unused variable
 From: Adrian Bunk <bunk@stusta.de>
 
-Every file should include the headers containing the prototypes for
-its global functions.
-
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/scsi/lpfc/lpfc_init.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-dev.c~rtc-remove-sys-class-rtc-dev-fix drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-remove-sys-class-rtc-dev-fix
-+++ a/drivers/rtc/rtc-dev.c
-@@ -13,6 +13,7 @@
- 
- #include <linux/module.h>
- #include <linux/rtc.h>
-+#include "rtc-core.h"
- 
- static dev_t rtc_devt;
+diff -puN drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-lpfc_initc-remove-unused-variable drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~scsi-lpfc-lpfc_initc-remove-unused-variable
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -1416,7 +1416,7 @@ lpfc_pci_probe_one(struct pci_dev *pdev,
+ 	struct lpfc_sli  *psli;
+ 	struct lpfc_iocbq *iocbq_entry = NULL, *iocbq_next = NULL;
+ 	unsigned long bar0map_len, bar2map_len;
+-	int error = -ENODEV, retval;
++	int error = -ENODEV;
+ 	int i;
+ 	uint16_t iotag;
  
 _
 
@@ -78,6 +73,7 @@ drivers-scsi-wd33c93c-cleanups.patch
 drivers-scsi-qla4xxx-possible-cleanups.patch
 make-seagate_st0x_detect-static.patch
 remove-the-broken-scsi_acornscsi_3-driver.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
 git-unionfs.patch
 git-ipwireless_cs.patch
 proper-prototype-for-hugetlb_get_unmapped_area.patch
