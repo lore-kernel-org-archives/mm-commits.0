@@ -1,122 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch removed from -mm tree
-Date: Wed, 02 May 2007 12:34:37 -0700
-Message-ID: <200705021934.l42JYb4w028325@shell0.pdx.osdl.net>
+Subject: - s390-net-lcs-convert-to-the-kthread-api.patch removed from -mm tree
+Date: Wed, 02 May 2007 12:34:22 -0700
+Message-ID: <200705021934.l42JYMR0028306@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43881 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50669 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766742AbXEBTf3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:35:29 -0400
+	by vger.kernel.org with ESMTP id S1766765AbXEBTfJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:35:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, dhowells@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, fpavlic@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synchro_test: convert to the kthread API
+     s390/net/lcs: convert to the kthread API
 has been removed from the -mm tree.  Its filename was
-     mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
+     s390-net-lcs-convert-to-the-kthread-api.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: synchro_test: convert to the kthread API
+Subject: s390/net/lcs: convert to the kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Cc: David Howells <dhowells@redhat.com>
+Use kthread_run to start the lcs kernel threads not a combination of
+kernel_thread and daemonize.  This makes the code slightly simpler and more
+maintainable.
+
+[akpm@linux-foundation.org: build fix]
+Cc: Frank Pavlic <fpavlic@de.ibm.com>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/synchro-test.c |   16 ++++++----------
- 1 files changed, 6 insertions(+), 10 deletions(-)
+ drivers/s390/net/lcs.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN kernel/synchro-test.c~mutex-subsystem-synchro-test-module-convert-to-the-kthread-api kernel/synchro-test.c
---- a/kernel/synchro-test.c~mutex-subsystem-synchro-test-module-convert-to-the-kthread-api
-+++ a/kernel/synchro-test.c
-@@ -30,6 +30,7 @@
- #include <linux/timer.h>
- #include <linux/completion.h>
- #include <linux/mutex.h>
+diff -puN drivers/s390/net/lcs.c~s390-net-lcs-convert-to-the-kthread-api drivers/s390/net/lcs.c
+--- a/drivers/s390/net/lcs.c~s390-net-lcs-convert-to-the-kthread-api
++++ a/drivers/s390/net/lcs.c
+@@ -36,6 +36,7 @@
+ #include <linux/in.h>
+ #include <linux/igmp.h>
+ #include <linux/delay.h>
 +#include <linux/kthread.h>
+ #include <net/arp.h>
+ #include <net/ip.h>
  
- #define MAX_THREADS 64
+@@ -1248,7 +1249,6 @@ lcs_register_mc_addresses(void *data)
+ 	struct in_device *in4_dev;
  
-@@ -224,7 +225,6 @@ static int mutexer(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
+ 	card = (struct lcs_card *) data;
+-	daemonize("regipm");
  
--	daemonize("Mutex%u", N);
- 	set_user_nice(current, 19);
+ 	if (!lcs_do_run_thread(card, LCS_SET_MC_THREAD))
+ 		return 0;
+@@ -1728,11 +1728,10 @@ lcs_start_kernel_thread(struct work_stru
+ 	struct lcs_card *card = container_of(work, struct lcs_card, kernel_thread_starter);
+ 	LCS_DBF_TEXT(5, trace, "krnthrd");
+ 	if (lcs_do_start_thread(card, LCS_RECOVERY_THREAD))
+-		kernel_thread(lcs_recovery, (void *) card, SIGCHLD);
++		kthread_run(lcs_recovery, card, "lcs_recover");
+ #ifdef CONFIG_IP_MULTICAST
+ 	if (lcs_do_start_thread(card, LCS_SET_MC_THREAD))
+-		kernel_thread(lcs_register_mc_addresses,
+-				(void *) card, SIGCHLD);
++		kthread_run(lcs_register_mc_addresses, card, "regipm");
+ #endif
+ }
  
- 	while (atomic_read(&do_stuff)) {
-@@ -246,7 +246,6 @@ static int semaphorer(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
+@@ -2232,7 +2231,6 @@ lcs_recovery(void *ptr)
+         int rc;
  
--	daemonize("Sem%u", N);
- 	set_user_nice(current, 19);
+ 	card = (struct lcs_card *) ptr;
+-	daemonize("lcs_recover");
  
- 	while (atomic_read(&do_stuff)) {
-@@ -268,7 +267,6 @@ static int reader(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
- 
--	daemonize("Read%u", N);
- 	set_user_nice(current, 19);
- 
- 	while (atomic_read(&do_stuff)) {
-@@ -292,7 +290,6 @@ static int writer(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
- 
--	daemonize("Write%u", N);
- 	set_user_nice(current, 19);
- 
- 	while (atomic_read(&do_stuff)) {
-@@ -316,7 +313,6 @@ static int downgrader(void *arg)
- {
- 	unsigned int N = (unsigned long) arg;
- 
--	daemonize("Down%u", N);
- 	set_user_nice(current, 19);
- 
- 	while (atomic_read(&do_stuff)) {
-@@ -433,27 +429,27 @@ static int __init do_tests(void)
- 	for (loop = 0; loop < MAX_THREADS; loop++) {
- 		if (loop < nummx) {
- 			init_completion(&mx_comp[loop]);
--			kernel_thread(mutexer, (void *) loop, 0);
-+			kthread_run(mutexer, (void *) loop, "Mutex%u", loop);
- 		}
- 
- 		if (loop < numsm) {
- 			init_completion(&sm_comp[loop]);
--			kernel_thread(semaphorer, (void *) loop, 0);
-+			kthread_run(semaphorer, (void *) loop, "Sem%u", loop);
- 		}
- 
- 		if (loop < numrd) {
- 			init_completion(&rd_comp[loop]);
--			kernel_thread(reader, (void *) loop, 0);
-+			kthread_run(reader, (void *) loop, "Read%u", loop);
- 		}
- 
- 		if (loop < numwr) {
- 			init_completion(&wr_comp[loop]);
--			kernel_thread(writer, (void *) loop, 0);
-+			kthread_run(writer, (void *) loop, "Write%u", loop);
- 		}
- 
- 		if (loop < numdg) {
- 			init_completion(&dg_comp[loop]);
--			kernel_thread(downgrader, (void *) loop, 0);
-+			kthread_run(downgrader, (void *) loop, "Down%u", loop);
- 		}
- 	}
- 
+ 	LCS_DBF_TEXT(4, trace, "recover1");
+ 	if (!lcs_do_run_thread(card, LCS_RECOVERY_THREAD))
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -127,6 +90,9 @@ iop13xx-msi-support-rev6.patch
 dvb_en_50221-convert-to-kthread-api.patch
 fix-i-oat-for-kexec.patch
 msi-fix-arm-compile.patch
+s390-net-lcs-convert-to-the-kthread-api.patch
+sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
+sparc64-powerc-convert-to-use-the-kthread-api.patch
 i386-irq-kill-irq-compression.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
