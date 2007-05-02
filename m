@@ -1,56 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - git-md-accel-fix.patch removed from -mm tree
-Date: Tue, 01 May 2007 22:47:44 -0700
-Message-ID: <200705020547.l425liiM014742@shell0.pdx.osdl.net>
+Subject: - git-gccbug-fixup.patch removed from -mm tree
+Date: Tue, 01 May 2007 23:01:41 -0700
+Message-ID: <200705020601.l4261fqd014922@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40058 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2992770AbXEBFrq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 01:47:46 -0400
+	by vger.kernel.org with ESMTP id S1754784AbXEBGBo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 02:01:44 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l425liXo005687
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l4261gSO006094
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 1 May 2007 22:47:46 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 1 May 2007 23:01:43 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-md-accel-fix
+     git-gccbug-fixup
 has been removed from the -mm tree.  Its filename was
-     git-md-accel-fix.patch
+     git-gccbug-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-md-accel-fix
+Subject: git-gccbug-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arm/mach-iop32x/iq31244.c |    0 
- drivers/dma/dmaengine.c   |    5 -----
- 2 files changed, 5 deletions(-)
+ fs/ocfs2/dlm/dlmdomain.c |    4 ----
+ fs/ocfs2/vote.c          |    4 ----
+ 2 files changed, 8 deletions(-)
 
-diff -puN drivers/dma/dmaengine.c~git-md-accel-fix drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~git-md-accel-fix
-+++ a/drivers/dma/dmaengine.c
-@@ -586,11 +586,6 @@ subsys_initcall(dma_bus_init);
- EXPORT_SYMBOL(dma_async_client_register);
- EXPORT_SYMBOL(dma_async_client_unregister);
- EXPORT_SYMBOL(dma_async_client_chan_request);
--EXPORT_SYMBOL(dma_async_memcpy_buf_to_buf);
--EXPORT_SYMBOL(dma_async_memcpy_buf_to_pg);
--EXPORT_SYMBOL(dma_async_memcpy_pg_to_pg);
--EXPORT_SYMBOL(dma_async_memcpy_complete);
--EXPORT_SYMBOL(dma_async_memcpy_issue_pending);
- EXPORT_SYMBOL(dma_async_device_register);
- EXPORT_SYMBOL(dma_async_device_unregister);
- EXPORT_SYMBOL(dma_chan_cleanup);
-diff -puN arch/arm/mach-iop32x/iq31244.c~git-md-accel-fix arch/arm/mach-iop32x/iq31244.c
+diff -puN fs/ocfs2/dlm/dlmdomain.c~git-gccbug-fixup fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~git-gccbug-fixup
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -1034,11 +1034,7 @@ static int dlm_try_to_join_domain(struct
+ {
+ 	int status = 0, tmpstat, node;
+ 	struct domain_join_ctxt *ctxt;
+-<<<<<<< HEAD/fs/ocfs2/dlm/dlmdomain.c
+ 	enum dlm_query_join_response response = JOIN_DISALLOW;
+-=======
+-	enum dlm_query_join_response response = JOIN_OK;
+->>>>>>> /fs/ocfs2/dlm/dlmdomain.c
+ 
+ 	mlog_entry("%p", dlm);
+ 
+diff -puN fs/ocfs2/vote.c~git-gccbug-fixup fs/ocfs2/vote.c
+--- a/fs/ocfs2/vote.c~git-gccbug-fixup
++++ a/fs/ocfs2/vote.c
+@@ -489,11 +489,7 @@ static int ocfs2_do_request_vote(struct 
+ 				 struct ocfs2_vote_msg *request,
+ 				 struct ocfs2_net_response_cb *callback)
+ {
+-<<<<<<< HEAD/fs/ocfs2/vote.c
+ 	int status, response = -EBUSY;
+-=======
+-	int status, response = -1;
+->>>>>>> /fs/ocfs2/vote.c
+ 	unsigned int response_id;
+ 	struct ocfs2_msg_hdr *hdr;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,16 +91,13 @@ ieee1394-iso-needs-schedh.patch
 git-input.patch
 git-jfs.patch
 git-kvm.patch
-git-md-accel-fix.patch
 git-mmc.patch
-git-mmc-build-fix.patch
 ne-add-platform_driver-fix.patch
 git-e1000.patch
 git-e1000-fixup-2.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 git-ocfs2.patch
 git-parisc.patch
-git-r8169.patch
 rm9000-serial-driver.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
 git-pciseg.patch
