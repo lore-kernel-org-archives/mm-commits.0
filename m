@@ -1,52 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch removed from -mm tree
-Date: Wed, 02 May 2007 14:54:01 -0700
-Message-ID: <200705022154.l42Ls1LQ031007@shell0.pdx.osdl.net>
+Subject: - page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible-fix.patch removed from -mm tree
+Date: Wed, 02 May 2007 14:55:11 -0700
+Message-ID: <200705022155.l42LtDVj031033@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42942 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767121AbXEBVyU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 17:54:20 -0400
+	by vger.kernel.org with ESMTP id S1767097AbXEBVzU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 17:55:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, drepper@redhat.com, hugh@veritas.com, mtk-manpages@gmx.net, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
+     page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible-fix
 has been removed from the -mm tree.  Its filename was
-     lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+     page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible-fix.patch
 
-This patch was dropped because it was folded into lazy-freeing-of-memory-through-madv_free.patch
+This patch was dropped because it was folded into page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible.patch
 
 ------------------------------------------------------
-Subject: lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
+Subject: page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Improve compilation outcomes.
+
+Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    1 +
- 1 files changed, 1 insertion(+)
+ include/linux/migrate.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/madvise.c~lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem mm/madvise.c
---- a/mm/madvise.c~lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
-+++ a/mm/madvise.c
-@@ -22,6 +22,7 @@ static int madvise_need_mmap_write(int b
- 	case MADV_REMOVE:
- 	case MADV_WILLNEED:
- 	case MADV_DONTNEED:
-+	case MADV_FREE:
+diff -puN include/linux/migrate.h~page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible-fix include/linux/migrate.h
+--- a/include/linux/migrate.h~page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible-fix
++++ a/include/linux/migrate.h
+@@ -12,6 +12,7 @@ static inline int vma_migratable(struct 
+ {
+ 	if (vma->vm_flags & (VM_IO|VM_HUGETLB|VM_PFNMAP|VM_RESERVED))
  		return 0;
- 	default:
- 		/* be safe, default to 1. list exceptions explicitly */
++#ifdef CONFIG_NUMA
+ 	/*
+ 	 * Migration allocates pages in the highest zone. If we cannot
+ 	 * do so then migration (at least from node to node) is not
+@@ -21,6 +22,7 @@ static inline int vma_migratable(struct 
+ 		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
+ 								< policy_zone)
+ 			return 0;
++#endif
+ 	return 1;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +66,7 @@ slab-mark-set_up_list3s-__init.patch
 slub-core.patch
 mm-optimize-kill_bdev.patch
 lazy-freeing-of-memory-through-madv_free.patch
-lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible.patch
 page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible-fix.patch
 srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
 uml-driver-formatting-fixes-fix.patch
