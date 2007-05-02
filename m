@@ -1,93 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch removed from -mm tree
-Date: Wed, 02 May 2007 12:34:08 -0700
-Message-ID: <200705021934.l42JY8ta028291@shell0.pdx.osdl.net>
+Subject: - s390-qeth-convert-to-use-the-kthread-api.patch removed from -mm tree
+Date: Wed, 02 May 2007 12:34:17 -0700
+Message-ID: <200705021934.l42JYHnc028303@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55580 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766751AbXEBTfB (ORCPT
+	by vger.kernel.org with ESMTP id S1766739AbXEBTfB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:35:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, swen@vnet.ibm.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, fpavlic@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390/scsi/zfcp_erp: partially convert to use the kthread API
+     s390 qeth: convert to use the kthread API
 has been removed from the -mm tree.  Its filename was
-     s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
+     s390-qeth-convert-to-use-the-kthread-api.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: s390/scsi/zfcp_erp: partially convert to use the kthread API
+Subject: s390 qeth: convert to use the kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Modify zfcperp%s to be started with kthread_run not a combination of
-kernel_thread, daemonize and siginitsetinv making the code slightly simpler
-and more maintainable.
+This patch modifies the qeth_recover thread to be started with kthread_run
+not a combination of kernel_thread and daemonize.  Resulting in slightly
+simpler and more maintainable code.
 
-akpm: this driver needs to be taught about kthread_stop() and
-kthread_should_stop(), too.
-
-Cc: Swen Schillig <swen@vnet.ibm.com>
+Cc: Frank Pavlic <fpavlic@de.ibm.com>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/scsi/zfcp_erp.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/s390/net/qeth_main.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/s390/scsi/zfcp_erp.c~s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api drivers/s390/scsi/zfcp_erp.c
---- a/drivers/s390/scsi/zfcp_erp.c~s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api
-+++ a/drivers/s390/scsi/zfcp_erp.c
-@@ -21,6 +21,7 @@
- 
- #define ZFCP_LOG_AREA			ZFCP_LOG_AREA_ERP
- 
+diff -puN drivers/s390/net/qeth_main.c~s390-qeth-convert-to-use-the-kthread-api drivers/s390/net/qeth_main.c
+--- a/drivers/s390/net/qeth_main.c~s390-qeth-convert-to-use-the-kthread-api
++++ a/drivers/s390/net/qeth_main.c
+@@ -50,6 +50,7 @@
+ #include <linux/mii.h>
+ #include <linux/rcupdate.h>
+ #include <linux/ethtool.h>
 +#include <linux/kthread.h>
- #include "zfcp_ext.h"
  
- static int zfcp_erp_adisc(struct zfcp_port *);
-@@ -985,12 +986,13 @@ static void zfcp_erp_action_dismiss(stru
- int
- zfcp_erp_thread_setup(struct zfcp_adapter *adapter)
- {
--	int retval = 0;
-+	struct task_struct *task;
+ #include <net/arp.h>
+ #include <net/ip.h>
+@@ -957,7 +958,6 @@ qeth_recover(void *ptr)
+ 	int rc = 0;
  
- 	atomic_clear_mask(ZFCP_STATUS_ADAPTER_ERP_THREAD_UP, &adapter->status);
- 
--	retval = kernel_thread(zfcp_erp_thread, adapter, SIGCHLD);
--	if (retval < 0) {
-+	task = kthread_run(zfcp_erp_thread, adapter,
-+			   "zfcperp%s", zfcp_get_busid_by_adapter(adapter));
-+	if (IS_ERR(task)) {
- 		ZFCP_LOG_NORMAL("error: creation of erp thread failed for "
- 				"adapter %s\n",
- 				zfcp_get_busid_by_adapter(adapter));
-@@ -1002,7 +1004,7 @@ zfcp_erp_thread_setup(struct zfcp_adapte
- 		debug_text_event(adapter->erp_dbf, 5, "a_thset_ok");
- 	}
- 
--	return (retval < 0);
-+	return IS_ERR(task);
+ 	card = (struct qeth_card *) ptr;
+-	daemonize("qeth_recover");
+ 	QETH_DBF_TEXT(trace,2,"recover1");
+ 	QETH_DBF_HEX(trace, 2, &card, sizeof(void *));
+ 	if (!qeth_do_run_thread(card, QETH_RECOVER_THREAD))
+@@ -1014,7 +1014,7 @@ qeth_start_kernel_thread(struct work_str
+ 	    card->write.state != CH_STATE_UP)
+ 		return;
+ 	if (qeth_do_start_thread(card, QETH_RECOVER_THREAD))
+-		kernel_thread(qeth_recover, (void *) card, SIGCHLD);
++		kthread_run(qeth_recover, card, "qeth_recover");
  }
  
- /*
-@@ -1054,9 +1056,6 @@ zfcp_erp_thread(void *data)
- 	struct zfcp_erp_action *erp_action;
- 	unsigned long flags;
  
--	daemonize("zfcperp%s", zfcp_get_busid_by_adapter(adapter));
--	/* Block all signals */
--	siginitsetinv(&current->blocked, 0);
- 	atomic_set_mask(ZFCP_STATUS_ADAPTER_ERP_THREAD_UP, &adapter->status);
- 	debug_text_event(adapter->erp_dbf, 5, "a_th_run");
- 	wake_up(&adapter->erp_thread_wqh);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -98,7 +76,6 @@ iop13xx-msi-support-rev6.patch
 dvb_en_50221-convert-to-kthread-api.patch
 fix-i-oat-for-kexec.patch
 msi-fix-arm-compile.patch
-s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
 s390-qeth-convert-to-use-the-kthread-api.patch
 s390-net-lcs-convert-to-the-kthread-api.patch
 sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
