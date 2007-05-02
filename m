@@ -1,57 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch removed from -mm tree
-Date: Wed, 02 May 2007 14:29:16 -0700
-Message-ID: <200705022129.l42LTG6S030420@shell0.pdx.osdl.net>
+Subject: - lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch removed from -mm tree
+Date: Wed, 02 May 2007 14:54:01 -0700
+Message-ID: <200705022154.l42Ls1LQ031007@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46161 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766800AbXEBVaN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 17:30:13 -0400
+	by vger.kernel.org with ESMTP id S1767121AbXEBVyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 17:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Christian.Limpach@cl.cam.ac.uk, chrisw@sous-sol.org, clameter@sgi.com, ian.pratt@xensource.com, jeremy@goop.org, jeremy@xensource.com, mingo@elte.hu, mpm@waste.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, drepper@redhat.com, hugh@veritas.com, mtk-manpages@gmx.net, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix
+     lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
 has been removed from the -mm tree.  Its filename was
-     add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+     lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
 
-This patch was dropped because it was folded into add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+This patch was dropped because it was folded into lazy-freeing-of-memory-through-madv_free.patch
 
 ------------------------------------------------------
-Subject: add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix
+Subject: lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ug.
-
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Christian Limpach <Christian.Limpach@cl.cam.ac.uk>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Ian Pratt <ian.pratt@xensource.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Matt Mackall <mpm@waste.org>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/madvise.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN mm/memory.c~add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix mm/memory.c
---- a/mm/memory.c~add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix
-+++ a/mm/memory.c
-@@ -1455,7 +1455,7 @@ static int apply_to_pte_range(struct mm_
- 	pte_t *pte;
- 	int err;
- 	struct page *pmd_page;
--	spinlock_t *ptl;
-+	spinlock_t *ptl = ptl;		/* Suppress gcc warning */
- 
- 	pte = (mm == &init_mm) ?
- 		pte_alloc_kernel(pmd, addr) :
+diff -puN mm/madvise.c~lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem mm/madvise.c
+--- a/mm/madvise.c~lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem
++++ a/mm/madvise.c
+@@ -22,6 +22,7 @@ static int madvise_need_mmap_write(int b
+ 	case MADV_REMOVE:
+ 	case MADV_WILLNEED:
+ 	case MADV_DONTNEED:
++	case MADV_FREE:
+ 		return 0;
+ 	default:
+ 		/* be safe, default to 1. list exceptions explicitly */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,15 +55,7 @@ origin.patch
 slab-introduce-krealloc.patch
 rm9000-serial-driver.patch
 add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
 smaps-add-clear_refs-file-to-clear-reference.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
 slab-mark-set_up_list3s-__init.patch
 slub-core.patch
 mm-optimize-kill_bdev.patch
