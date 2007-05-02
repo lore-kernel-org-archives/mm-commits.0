@@ -1,154 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-sn-xpc-convert-to-use-kthread-api.patch removed from -mm tree
-Date: Wed, 02 May 2007 12:33:28 -0700
-Message-ID: <200705021933.l42JXSXC028265@shell0.pdx.osdl.net>
+Subject: - powerpc-pseries-eeh-convert-to-kthread-api.patch removed from -mm tree
+Date: Wed, 02 May 2007 12:33:19 -0700
+Message-ID: <200705021933.l42JXJu1028258@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57977 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766663AbXEBTeJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:34:09 -0400
+	by vger.kernel.org with ESMTP id S1766691AbXEBTeM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:34:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, holt@sgi.com, jes@sgi.com, rja@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, linas@austin.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64 sn xpc: convert to use kthread API
+     powerpc pseries eeh: convert to kthread API
 has been removed from the -mm tree.  Its filename was
-     ia64-sn-xpc-convert-to-use-kthread-api.patch
+     powerpc-pseries-eeh-convert-to-kthread-api.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ia64 sn xpc: convert to use kthread API
+Subject: powerpc pseries eeh: convert to kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patch starts the xpc kernel threads using kthread_run not a
-combination of kernel_thread and daemonize.  Resuling in slightly simpler
-and more maintainable code.
+This patch modifies the startup of eehd to use kthread_run not a
+combination of kernel_thread and daemonize.  Making the code slightly
+simpler and more maintainable.
 
-Cc: Jes Sorensen <jes@sgi.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Linas Vepstas <linas@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/kernel/xpc_main.c |   31 +++++++++++++------------------
- 1 files changed, 13 insertions(+), 18 deletions(-)
+ arch/powerpc/platforms/pseries/eeh_event.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/sn/kernel/xpc_main.c~ia64-sn-xpc-convert-to-use-kthread-api arch/ia64/sn/kernel/xpc_main.c
---- a/arch/ia64/sn/kernel/xpc_main.c~ia64-sn-xpc-convert-to-use-kthread-api
-+++ a/arch/ia64/sn/kernel/xpc_main.c
-@@ -50,6 +50,7 @@
- #include <linux/init.h>
- #include <linux/sched.h>
- #include <linux/syscalls.h>
+diff -puN arch/powerpc/platforms/pseries/eeh_event.c~powerpc-pseries-eeh-convert-to-kthread-api arch/powerpc/platforms/pseries/eeh_event.c
+--- a/arch/powerpc/platforms/pseries/eeh_event.c~powerpc-pseries-eeh-convert-to-kthread-api
++++ a/arch/powerpc/platforms/pseries/eeh_event.c
+@@ -23,6 +23,7 @@
+ #include <linux/mutex.h>
+ #include <linux/pci.h>
+ #include <linux/workqueue.h>
 +#include <linux/kthread.h>
- #include <linux/cache.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
-@@ -253,8 +254,6 @@ xpc_hb_checker(void *ignore)
+ #include <asm/eeh_event.h>
+ #include <asm/ppc-pci.h>
  
- 	/* this thread was marked active by xpc_hb_init() */
+@@ -59,7 +60,6 @@ static int eeh_event_handler(void * dumm
+ 	struct eeh_event	*event;
+ 	struct pci_dn *pdn;
  
--	daemonize(XPC_HB_CHECK_THREAD_NAME);
--
- 	set_cpus_allowed(current, cpumask_of_cpu(XPC_HB_CHECK_CPU));
+-	daemonize ("eehd");
+ 	set_current_state(TASK_INTERRUPTIBLE);
  
- 	xpc_hb_check_timeout = jiffies + (xpc_hb_check_interval * HZ);
-@@ -324,8 +323,6 @@ xpc_hb_checker(void *ignore)
- static int
- xpc_initiate_discovery(void *ignore)
+ 	spin_lock_irqsave(&eeh_eventlist_lock, flags);
+@@ -105,7 +105,7 @@ static int eeh_event_handler(void * dumm
+  */
+ static void eeh_thread_launcher(struct work_struct *dummy)
  {
--	daemonize(XPC_DISCOVERY_THREAD_NAME);
--
- 	xpc_discovery();
+-	if (kernel_thread(eeh_event_handler, NULL, CLONE_KERNEL) < 0)
++	if (IS_ERR(kthread_run(eeh_event_handler, NULL, "eehd")))
+ 		printk(KERN_ERR "Failed to start EEH daemon\n");
+ }
  
- 	dev_dbg(xpc_part, "discovery thread is exiting\n");
-@@ -494,8 +491,6 @@ xpc_activating(void *__partid)
- 
- 	dev_dbg(xpc_part, "bringing partition %d up\n", partid);
- 
--	daemonize("xpc%02d", partid);
--
- 	/*
- 	 * This thread needs to run at a realtime priority to prevent a
- 	 * significant performance degradation.
-@@ -559,7 +554,7 @@ xpc_activate_partition(struct xpc_partit
- {
- 	partid_t partid = XPC_PARTID(part);
- 	unsigned long irq_flags;
--	pid_t pid;
-+	struct task_struct *task;
- 
- 
- 	spin_lock_irqsave(&part->act_lock, irq_flags);
-@@ -571,9 +566,10 @@ xpc_activate_partition(struct xpc_partit
- 
- 	spin_unlock_irqrestore(&part->act_lock, irq_flags);
- 
--	pid = kernel_thread(xpc_activating, (void *) ((u64) partid), 0);
-+	task = kthread_run(xpc_activating, (void *) ((u64) partid),
-+			  "xpc%02d", partid);
- 
--	if (unlikely(pid <= 0)) {
-+	if (unlikely(IS_ERR(task))) {
- 		spin_lock_irqsave(&part->act_lock, irq_flags);
- 		part->act_state = XPC_P_INACTIVE;
- 		XPC_SET_REASON(part, xpcCloneKThreadFailed, __LINE__);
-@@ -724,8 +720,6 @@ xpc_daemonize_kthread(void *args)
- 	unsigned long irq_flags;
- 
- 
--	daemonize("xpc%02dc%d", partid, ch_number);
--
- 	dev_dbg(xpc_chan, "kthread starting, partid=%d, channel=%d\n",
- 		partid, ch_number);
- 
-@@ -844,8 +838,9 @@ xpc_create_kthreads(struct xpc_channel *
- 		(void) xpc_part_ref(part);
- 		xpc_msgqueue_ref(ch);
- 
--		pid = kernel_thread(xpc_daemonize_kthread, (void *) args, 0);
--		if (pid < 0) {
-+		task = kthread_run(xpc_daemonize_kthread, args,
-+				   "xpc%02dc%d", partid, ch_number);
-+		if (IS_ERR(task)) {
- 			/* the fork failed */
- 
- 			/*
-@@ -1222,7 +1217,7 @@ xpc_init(void)
- 	int ret;
- 	partid_t partid;
- 	struct xpc_partition *part;
--	pid_t pid;
-+	struct task_struct *task;
- 	size_t buf_size;
- 
- 
-@@ -1353,8 +1348,8 @@ xpc_init(void)
- 	 * The real work-horse behind xpc.  This processes incoming
- 	 * interrupts and monitors remote heartbeats.
- 	 */
--	pid = kernel_thread(xpc_hb_checker, NULL, 0);
--	if (pid < 0) {
-+	task = kthread_run(xpc_hb_checker, NULL, XPC_HB_CHECK_THREAD_NAME);
-+	if (IS_ERR(task)) {
- 		dev_err(xpc_part, "failed while forking hb check thread\n");
- 
- 		/* indicate to others that our reserved page is uninitialized */
-@@ -1384,8 +1379,8 @@ xpc_init(void)
- 	 * activate based on info provided by SAL. This new thread is short
- 	 * lived and will exit once discovery is complete.
- 	 */
--	pid = kernel_thread(xpc_initiate_discovery, NULL, 0);
--	if (pid < 0) {
-+	task = kthread_run(xpc_initiate_discovery, NULL, XPC_DISCOVERY_THREAD_NAME);
-+	if (IS_ERR(task)) {
- 		dev_err(xpc_part, "failed while forking discovery thread\n");
- 
- 		/* mark this new thread as a non-starter */
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -156,7 +72,9 @@ Patches currently in -mm which might be from ebiederm@xmission.com are
 origin.patch
 git-arm.patch
 iop13xx-msi-support-rev6.patch
+powerpc-pseries-eeh-convert-to-kthread-api.patch
 dvb_en_50221-convert-to-kthread-api.patch
+mm-only-saa7134-tvaudio-convert-to-kthread-api.patch
 ia64-sn-xpc-convert-to-use-kthread-api.patch
 ia64-sn-xpc-convert-to-use-kthread-api-fix.patch
 ia64-sn-xpc-convert-to-use-kthread-api-fix-2.patch
