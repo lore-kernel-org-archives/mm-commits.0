@@ -1,70 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - s390-qeth-convert-to-use-the-kthread-api.patch removed from -mm tree
-Date: Wed, 02 May 2007 12:34:17 -0700
-Message-ID: <200705021934.l42JYHnc028303@shell0.pdx.osdl.net>
+Subject: - mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch removed from -mm tree
+Date: Wed, 02 May 2007 12:34:37 -0700
+Message-ID: <200705021934.l42JYb4w028325@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55728 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766739AbXEBTfB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:35:01 -0400
+	by vger.kernel.org with ESMTP id S1766742AbXEBTf3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:35:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, fpavlic@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, dhowells@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390 qeth: convert to use the kthread API
+     synchro_test: convert to the kthread API
 has been removed from the -mm tree.  Its filename was
-     s390-qeth-convert-to-use-the-kthread-api.patch
+     mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: s390 qeth: convert to use the kthread API
+Subject: synchro_test: convert to the kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-This patch modifies the qeth_recover thread to be started with kthread_run
-not a combination of kernel_thread and daemonize.  Resulting in slightly
-simpler and more maintainable code.
-
-Cc: Frank Pavlic <fpavlic@de.ibm.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/qeth_main.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/synchro-test.c |   16 ++++++----------
+ 1 files changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN drivers/s390/net/qeth_main.c~s390-qeth-convert-to-use-the-kthread-api drivers/s390/net/qeth_main.c
---- a/drivers/s390/net/qeth_main.c~s390-qeth-convert-to-use-the-kthread-api
-+++ a/drivers/s390/net/qeth_main.c
-@@ -50,6 +50,7 @@
- #include <linux/mii.h>
- #include <linux/rcupdate.h>
- #include <linux/ethtool.h>
+diff -puN kernel/synchro-test.c~mutex-subsystem-synchro-test-module-convert-to-the-kthread-api kernel/synchro-test.c
+--- a/kernel/synchro-test.c~mutex-subsystem-synchro-test-module-convert-to-the-kthread-api
++++ a/kernel/synchro-test.c
+@@ -30,6 +30,7 @@
+ #include <linux/timer.h>
+ #include <linux/completion.h>
+ #include <linux/mutex.h>
 +#include <linux/kthread.h>
  
- #include <net/arp.h>
- #include <net/ip.h>
-@@ -957,7 +958,6 @@ qeth_recover(void *ptr)
- 	int rc = 0;
+ #define MAX_THREADS 64
  
- 	card = (struct qeth_card *) ptr;
--	daemonize("qeth_recover");
- 	QETH_DBF_TEXT(trace,2,"recover1");
- 	QETH_DBF_HEX(trace, 2, &card, sizeof(void *));
- 	if (!qeth_do_run_thread(card, QETH_RECOVER_THREAD))
-@@ -1014,7 +1014,7 @@ qeth_start_kernel_thread(struct work_str
- 	    card->write.state != CH_STATE_UP)
- 		return;
- 	if (qeth_do_start_thread(card, QETH_RECOVER_THREAD))
--		kernel_thread(qeth_recover, (void *) card, SIGCHLD);
-+		kthread_run(qeth_recover, card, "qeth_recover");
- }
+@@ -224,7 +225,6 @@ static int mutexer(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
  
+-	daemonize("Mutex%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -246,7 +246,6 @@ static int semaphorer(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
+ 
+-	daemonize("Sem%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -268,7 +267,6 @@ static int reader(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
+ 
+-	daemonize("Read%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -292,7 +290,6 @@ static int writer(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
+ 
+-	daemonize("Write%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -316,7 +313,6 @@ static int downgrader(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
+ 
+-	daemonize("Down%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -433,27 +429,27 @@ static int __init do_tests(void)
+ 	for (loop = 0; loop < MAX_THREADS; loop++) {
+ 		if (loop < nummx) {
+ 			init_completion(&mx_comp[loop]);
+-			kernel_thread(mutexer, (void *) loop, 0);
++			kthread_run(mutexer, (void *) loop, "Mutex%u", loop);
+ 		}
+ 
+ 		if (loop < numsm) {
+ 			init_completion(&sm_comp[loop]);
+-			kernel_thread(semaphorer, (void *) loop, 0);
++			kthread_run(semaphorer, (void *) loop, "Sem%u", loop);
+ 		}
+ 
+ 		if (loop < numrd) {
+ 			init_completion(&rd_comp[loop]);
+-			kernel_thread(reader, (void *) loop, 0);
++			kthread_run(reader, (void *) loop, "Read%u", loop);
+ 		}
+ 
+ 		if (loop < numwr) {
+ 			init_completion(&wr_comp[loop]);
+-			kernel_thread(writer, (void *) loop, 0);
++			kthread_run(writer, (void *) loop, "Write%u", loop);
+ 		}
+ 
+ 		if (loop < numdg) {
+ 			init_completion(&dg_comp[loop]);
+-			kernel_thread(downgrader, (void *) loop, 0);
++			kthread_run(downgrader, (void *) loop, "Down%u", loop);
+ 		}
+ 	}
  
 _
 
@@ -76,10 +127,6 @@ iop13xx-msi-support-rev6.patch
 dvb_en_50221-convert-to-kthread-api.patch
 fix-i-oat-for-kexec.patch
 msi-fix-arm-compile.patch
-s390-qeth-convert-to-use-the-kthread-api.patch
-s390-net-lcs-convert-to-the-kthread-api.patch
-sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
-sparc64-powerc-convert-to-use-the-kthread-api.patch
 i386-irq-kill-irq-compression.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
