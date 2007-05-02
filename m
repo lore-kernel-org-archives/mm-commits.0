@@ -1,118 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - cpci_hotplug-partially-convert-to-use-the-kthread-api.patch removed from -mm tree
-Date: Wed, 02 May 2007 12:33:54 -0700
-Message-ID: <200705021933.l42JXtnd028282@shell0.pdx.osdl.net>
+Subject: - s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch removed from -mm tree
+Date: Wed, 02 May 2007 12:34:08 -0700
+Message-ID: <200705021934.l42JY8ta028291@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55022 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766738AbXEBTeu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:34:50 -0400
+	by vger.kernel.org with ESMTP id S1766751AbXEBTfB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:35:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, greg@kroah.com, kristen.c.accardi@intel.com, scottm@somanetworks.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, swen@vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpci_hotplug: partially convert to use the kthread API
+     s390/scsi/zfcp_erp: partially convert to use the kthread API
 has been removed from the -mm tree.  Its filename was
-     cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
+     s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: cpci_hotplug: partially convert to use the kthread API
+Subject: s390/scsi/zfcp_erp: partially convert to use the kthread API
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-kthread_run replaces the kernel_thread and daemonize calls during thread
-startup.
+Modify zfcperp%s to be started with kthread_run not a combination of
+kernel_thread, daemonize and siginitsetinv making the code slightly simpler
+and more maintainable.
 
-Calls to signal_pending were also removed as it is currently impossible for
-the cpci_hotplug thread to receive signals.
+akpm: this driver needs to be taught about kthread_stop() and
+kthread_should_stop(), too.
 
-akpm: needs to be converted to kthread_should_stop() and kthread_stop().
-
+Cc: Swen Schillig <swen@vnet.ibm.com>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Scott Murray <scottm@somanetworks.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/cpci_hotplug_core.c |   22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+ drivers/s390/scsi/zfcp_erp.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pci/hotplug/cpci_hotplug_core.c~cpci_hotplug-partially-convert-to-use-the-kthread-api drivers/pci/hotplug/cpci_hotplug_core.c
---- a/drivers/pci/hotplug/cpci_hotplug_core.c~cpci_hotplug-partially-convert-to-use-the-kthread-api
-+++ a/drivers/pci/hotplug/cpci_hotplug_core.c
-@@ -33,6 +33,7 @@
- #include <linux/init.h>
- #include <linux/interrupt.h>
- #include <linux/smp_lock.h>
+diff -puN drivers/s390/scsi/zfcp_erp.c~s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api drivers/s390/scsi/zfcp_erp.c
+--- a/drivers/s390/scsi/zfcp_erp.c~s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api
++++ a/drivers/s390/scsi/zfcp_erp.c
+@@ -21,6 +21,7 @@
+ 
+ #define ZFCP_LOG_AREA			ZFCP_LOG_AREA_ERP
+ 
 +#include <linux/kthread.h>
- #include <asm/atomic.h>
- #include <linux/delay.h>
- #include "cpci_hotplug.h"
-@@ -521,17 +522,13 @@ event_thread(void *data)
- {
- 	int rc;
+ #include "zfcp_ext.h"
  
--	lock_kernel();
--	daemonize("cpci_hp_eventd");
--	unlock_kernel();
--
- 	dbg("%s - event thread started", __FUNCTION__);
- 	while (1) {
- 		dbg("event thread sleeping");
- 		down_interruptible(&event_semaphore);
- 		dbg("event thread woken, thread_finished = %d",
- 		    thread_finished);
--		if (thread_finished || signal_pending(current))
-+		if (thread_finished)
- 			break;
- 		do {
- 			rc = check_slots();
-@@ -562,12 +559,8 @@ poll_thread(void *data)
+ static int zfcp_erp_adisc(struct zfcp_port *);
+@@ -985,12 +986,13 @@ static void zfcp_erp_action_dismiss(stru
+ int
+ zfcp_erp_thread_setup(struct zfcp_adapter *adapter)
  {
- 	int rc;
- 
--	lock_kernel();
--	daemonize("cpci_hp_polld");
--	unlock_kernel();
--
- 	while (1) {
--		if (thread_finished || signal_pending(current))
-+		if (thread_finished)
- 			break;
- 		if (controller->ops->query_enum()) {
- 			do {
-@@ -592,7 +585,7 @@ poll_thread(void *data)
- static int
- cpci_start_thread(void)
- {
--	int pid;
+-	int retval = 0;
 +	struct task_struct *task;
  
- 	/* initialize our semaphores */
- 	init_MUTEX_LOCKED(&event_semaphore);
-@@ -600,14 +593,13 @@ cpci_start_thread(void)
- 	thread_finished = 0;
+ 	atomic_clear_mask(ZFCP_STATUS_ADAPTER_ERP_THREAD_UP, &adapter->status);
  
- 	if (controller->irq)
--		pid = kernel_thread(event_thread, NULL, 0);
-+		task = kthread_run(event_thread, NULL, "cpci_hp_eventd");
- 	else
--		pid = kernel_thread(poll_thread, NULL, 0);
--	if (pid < 0) {
-+		task = kthread_run(poll_thread, NULL, "cpci_hp_polld");
+-	retval = kernel_thread(zfcp_erp_thread, adapter, SIGCHLD);
+-	if (retval < 0) {
++	task = kthread_run(zfcp_erp_thread, adapter,
++			   "zfcperp%s", zfcp_get_busid_by_adapter(adapter));
 +	if (IS_ERR(task)) {
- 		err("Can't start up our thread");
- 		return -1;
+ 		ZFCP_LOG_NORMAL("error: creation of erp thread failed for "
+ 				"adapter %s\n",
+ 				zfcp_get_busid_by_adapter(adapter));
+@@ -1002,7 +1004,7 @@ zfcp_erp_thread_setup(struct zfcp_adapte
+ 		debug_text_event(adapter->erp_dbf, 5, "a_thset_ok");
  	}
--	dbg("Our thread pid = %d", pid);
- 	return 0;
+ 
+-	return (retval < 0);
++	return IS_ERR(task);
  }
  
+ /*
+@@ -1054,9 +1056,6 @@ zfcp_erp_thread(void *data)
+ 	struct zfcp_erp_action *erp_action;
+ 	unsigned long flags;
+ 
+-	daemonize("zfcperp%s", zfcp_get_busid_by_adapter(adapter));
+-	/* Block all signals */
+-	siginitsetinv(&current->blocked, 0);
+ 	atomic_set_mask(ZFCP_STATUS_ADAPTER_ERP_THREAD_UP, &adapter->status);
+ 	debug_text_event(adapter->erp_dbf, 5, "a_th_run");
+ 	wake_up(&adapter->erp_thread_wqh);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -122,7 +97,6 @@ git-arm.patch
 iop13xx-msi-support-rev6.patch
 dvb_en_50221-convert-to-kthread-api.patch
 fix-i-oat-for-kexec.patch
-cpci_hotplug-partially-convert-to-use-the-kthread-api.patch
 msi-fix-arm-compile.patch
 s390-scsi-zfcp_erp-partially-convert-to-use-the-kthread-api.patch
 s390-qeth-convert-to-use-the-kthread-api.patch
