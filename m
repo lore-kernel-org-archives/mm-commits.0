@@ -1,135 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - sas_scsi_host-partially-convert-to-use-the-kthread-api.patch removed from -mm tree
-Date: Wed, 02 May 2007 12:34:27 -0700
-Message-ID: <200705021934.l42JYRau028317@shell0.pdx.osdl.net>
+Subject: - add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch removed from -mm tree
+Date: Wed, 02 May 2007 14:29:16 -0700
+Message-ID: <200705022129.l42LTG6S030420@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50376 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46161 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766768AbXEBTfP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 15:35:15 -0400
+	by vger.kernel.org with ESMTP id S1766800AbXEBVaN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 17:30:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, James.Bottomley@SteelEye.com, djwong@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Christian.Limpach@cl.cam.ac.uk, chrisw@sous-sol.org, clameter@sgi.com, ian.pratt@xensource.com, jeremy@goop.org, jeremy@xensource.com, mingo@elte.hu, mpm@waste.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sas_scsi_host: partially convert to use the kthread API
+     add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix
 has been removed from the -mm tree.  Its filename was
-     sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
+     add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
 
 ------------------------------------------------------
-Subject: sas_scsi_host: partially convert to use the kthread API
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch modifies the sas scsi host thread startup to use kthread_run not
-kernel_thread and deamonize.  kthread_run is slightly simpler and more
-maintainable.
+ug.
 
-akpm: the driver should also be converted to use kthread_should_stop() and
-kthread_stop().
-
-Cc: Darrick J. Wong <djwong@us.ibm.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Christian Limpach <Christian.Limpach@cl.cam.ac.uk>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Ian Pratt <ian.pratt@xensource.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Matt Mackall <mpm@waste.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/libsas/sas_scsi_host.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/memory.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/libsas/sas_scsi_host.c~sas_scsi_host-partially-convert-to-use-the-kthread-api drivers/scsi/libsas/sas_scsi_host.c
---- a/drivers/scsi/libsas/sas_scsi_host.c~sas_scsi_host-partially-convert-to-use-the-kthread-api
-+++ a/drivers/scsi/libsas/sas_scsi_host.c
-@@ -38,6 +38,7 @@
+diff -puN mm/memory.c~add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix mm/memory.c
+--- a/mm/memory.c~add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix
++++ a/mm/memory.c
+@@ -1455,7 +1455,7 @@ static int apply_to_pte_range(struct mm_
+ 	pte_t *pte;
+ 	int err;
+ 	struct page *pmd_page;
+-	spinlock_t *ptl;
++	spinlock_t *ptl = ptl;		/* Suppress gcc warning */
  
- #include <linux/err.h>
- #include <linux/blkdev.h>
-+#include <linux/kthread.h>
- #include <linux/scatterlist.h>
- 
- /* ---------- SCSI Host glue ---------- */
-@@ -869,7 +870,6 @@ static int sas_queue_thread(void *_sas_h
- 	struct sas_ha_struct *sas_ha = _sas_ha;
- 	struct scsi_core *core = &sas_ha->core;
- 
--	daemonize("sas_queue_%d", core->shost->host_no);
- 	current->flags |= PF_NOFREEZE;
- 
- 	complete(&queue_th_comp);
-@@ -888,19 +888,20 @@ static int sas_queue_thread(void *_sas_h
- 
- int sas_init_queue(struct sas_ha_struct *sas_ha)
- {
--	int res;
- 	struct scsi_core *core = &sas_ha->core;
-+	struct task_struct *task;
- 
- 	spin_lock_init(&core->task_queue_lock);
- 	core->task_queue_size = 0;
- 	INIT_LIST_HEAD(&core->task_queue);
- 	init_MUTEX_LOCKED(&core->queue_thread_sema);
- 
--	res = kernel_thread(sas_queue_thread, sas_ha, 0);
--	if (res >= 0)
-+	task = kthread_run(sas_queue_thread, sas_ha,
-+			   "sas_queue_%d", core->shost->host_no);
-+	if (!IS_ERR(task))
- 		wait_for_completion(&queue_th_comp);
- 
--	return res < 0 ? res : 0;
-+	return IS_ERR(task) ? PTR_ERR(task) : 0;
- }
- 
- void sas_shutdown_queue(struct sas_ha_struct *sas_ha)
+ 	pte = (mm == &init_mm) ?
+ 		pte_alloc_kernel(pmd, addr) :
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-arm.patch
-iop13xx-msi-support-rev6.patch
-dvb_en_50221-convert-to-kthread-api.patch
-fix-i-oat-for-kexec.patch
-msi-fix-arm-compile.patch
-sas_scsi_host-partially-convert-to-use-the-kthread-api.patch
-sparc64-powerc-convert-to-use-the-kthread-api.patch
-i386-irq-kill-irq-compression.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-allow-access-to-proc-pid-fd-after-setuid.patch
+slab-introduce-krealloc.patch
+rm9000-serial-driver.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range-fix.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+lazy-freeing-of-memory-through-madv_free.patch
+lazy-freeing-of-memory-through-madv_free-vs-mm-madvise-avoid-exclusive-mmap_sem.patch
+page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible-fix.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
 merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-fix-race-between-proc_get_inode-and-remove_proc_entry.patch
-fix-race-between-proc_readdir-and-remove_proc_entry.patch
-procfs-reorder-struct-pid_dentry-to-save-space-on-64bit-archs-and-constify-them.patch
-tty-remove-unnecessary-export-of-proc_clear_tty.patch
-tty-simplify-calling-of-put_pid.patch
-tty-introduce-no_tty-and-use-it-in-selinux.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
-proc-cleanup-use-seq_release_private-where-appropriate.patch
-smbfs-remove-unnecessary-allow_signal.patch
-pnpbios-conert-to-use-the-kthread-api.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 kthread-dont-depend-on-work-queues-take-2.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-worker_thread-dont-play-with-sigchld-and-numa-policy.patch
-change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
 fix-kthread_create-vs-freezer-theoretical-race.patch
-remvoe-kthread_bind-call-from-_cpu_down.patch
-nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-mutex-subsystem-synchro-test-module-convert-to-the-kthread-api.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
