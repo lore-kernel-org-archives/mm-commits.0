@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set.patch added to -mm tree
-Date: Tue, 01 May 2007 17:34:04 -0700
-Message-ID: <200705020034.l420Y42h010231@shell0.pdx.osdl.net>
+Subject: + lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem.patch added to -mm tree
+Date: Tue, 01 May 2007 17:40:30 -0700
+Message-ID: <200705020040.l420eUM3010357@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36285 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946074AbXEBAfi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:35:38 -0400
+	by vger.kernel.org with ESMTP id S2992483AbXEBAkg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:40:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, mingo@elte.hu
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     ACPI: keep TSC stable, when lapic_timer_c2_ok is set
+     lguest: properly kill guest userspace programs accessing kernel mem
 has been added to the -mm tree.  Its filename is
-     acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set.patch
+     lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,110 +25,125 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: keep TSC stable, when lapic_timer_c2_ok is set
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: lguest: properly kill guest userspace programs accessing kernel mem
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-The local apic timer stop in C2 resp.  C3 states is coupled with the stop of
-the TSC.  When the local apic timer is marked stable in C2 on the kernel
-commandline, then keep the TSC marked stable in C2 as well.
+Kernel pages on x86 are protected by not having the _PAGE_USER bit set. 
+When guest userspace accesses a kernel page, we didn't check this, so we'd
+think we'd handled the fault and return to the guest, causing the guest
+userspace program to loop instead of segfaulting.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   21 ++++++++-------------
- 1 files changed, 8 insertions(+), 13 deletions(-)
+ drivers/lguest/core.c        |    2 +-
+ drivers/lguest/lg.h          |    2 +-
+ drivers/lguest/page_tables.c |   12 ++++++++----
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set
-+++ a/drivers/acpi/processor_idle.c
-@@ -225,18 +225,23 @@ static void acpi_state_timer_broadcast(s
- 				       struct acpi_processor_cx *cx,
- 				       int broadcast)
+diff -puN drivers/lguest/core.c~lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem
++++ a/drivers/lguest/core.c
+@@ -345,7 +345,7 @@ int run_guest(struct lguest *lg, char *_
+ 			}
+ 			break;
+ 		case 14: /* We've intercepted a page fault. */
+-			if (demand_page(lg, cr2, lg->regs->errcode & 2))
++			if (demand_page(lg, cr2, lg->regs->errcode))
+ 				continue;
+ 
+ 			/* If lguest_data is NULL, this won't hurt. */
+diff -puN drivers/lguest/lg.h~lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem drivers/lguest/lg.h
+--- a/drivers/lguest/lg.h~lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem
++++ a/drivers/lguest/lg.h
+@@ -214,7 +214,7 @@ void guest_pagetable_flush_user(struct l
+ void guest_set_pte(struct lguest *lg, unsigned long cr3,
+ 		   unsigned long vaddr, gpte_t val);
+ void map_switcher_in_guest(struct lguest *lg, struct lguest_pages *pages);
+-int demand_page(struct lguest *info, unsigned long cr2, int write);
++int demand_page(struct lguest *info, unsigned long cr2, int errcode);
+ void pin_page(struct lguest *lg, unsigned long vaddr);
+ 
+ /* lguest_user.c: */
+diff -puN drivers/lguest/page_tables.c~lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem drivers/lguest/page_tables.c
+--- a/drivers/lguest/page_tables.c~lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem
++++ a/drivers/lguest/page_tables.c
+@@ -109,7 +109,7 @@ static void check_gpgd(struct lguest *lg
+ 
+ /* We fault pages in, which allows us to update accessed/dirty bits.
+  * Return true if we got page. */
+-int demand_page(struct lguest *lg, unsigned long vaddr, int write)
++int demand_page(struct lguest *lg, unsigned long vaddr, int errcode)
  {
--#ifdef CONFIG_GENERIC_CLOCKEVENTS
--
- 	int state = cx - pr->power.states;
+ 	gpgd_t gpgd;
+ 	spgd_t *spgd;
+@@ -142,12 +142,16 @@ int demand_page(struct lguest *lg, unsig
+ 		return 0;
  
- 	if (state >= pr->power.timer_broadcast_on_state) {
+ 	/* Write to read-only page? */
+-	if (write && !(gpte.flags & _PAGE_RW))
++	if ((errcode & 2) && !(gpte.flags & _PAGE_RW))
++		return 0;
 +
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
- 		unsigned long reason;
++	/* User access to a non-user page? */
++	if ((errcode & 4) && !(gpte.flags & _PAGE_USER))
+ 		return 0;
  
- 		reason = broadcast ?  CLOCK_EVT_NOTIFY_BROADCAST_ENTER :
- 			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
- 		clockevents_notify(reason, &pr->id);
--	}
- #endif
-+
-+#ifdef CONFIG_GENERIC_TIME
-+		/* TSC halts in C2/3, so notify users */
-+		mark_tsc_unstable();
-+#endif
-+	}
+ 	check_gpte(lg, gpte);
+ 	gpte.flags |= _PAGE_ACCESSED;
+-	if (write)
++	if (errcode & 2)
+ 		gpte.flags |= _PAGE_DIRTY;
+ 
+ 	/* We're done with the old pte. */
+@@ -185,7 +189,7 @@ static int page_writable(struct lguest *
+ 
+ void pin_page(struct lguest *lg, unsigned long vaddr)
+ {
+-	if (!page_writable(lg, vaddr) && !demand_page(lg, vaddr, 0))
++	if (!page_writable(lg, vaddr) && !demand_page(lg, vaddr, 2))
+ 		kill_guest(lg, "bad stack page %#lx", vaddr);
  }
- 
- #else
-@@ -925,11 +930,6 @@ static int acpi_idle_enter_c2(struct cpu
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 
--#ifdef CONFIG_GENERIC_TIME
--	/* TSC halts in C2, so notify users */
--		mark_tsc_unstable("possible TSC halt in C2");
--#endif
--
- 	local_irq_enable();
- 	current_thread_info()->status |= TS_POLLING;
- 
-@@ -1009,11 +1009,6 @@ static int acpi_idle_enter_c3(struct cpu
- 		spin_unlock(&c3_lock);
- 	}
- 
--#ifdef CONFIG_GENERIC_TIME
--	/* TSC halts in C3, so notify users */
--		mark_tsc_unstable("TSC halts in C3");
--#endif
--
- 	local_irq_enable();
- 	current_thread_info()->status |= TS_POLLING;
  
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-git-arm.patch
-git-avr32.patch
-git-ieee1394.patch
-git-input.patch
-h8300-generic-irq.patch
-optimize-timespec_trunc.patch
-kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
-add-support-for-deferrable-timers-respun.patch
-irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
-move-timekeeping-code-to-timekeepingc.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-replace-deprecated-sa_xxx-interrupt-flags.patch
-deprecate-sa_xxx-interrupt-flags-v2.patch
-pad-irq_desc-to-internode-cacheline-size.patch
-highres-dyntick-prevent-xtime-lock-contention.patch
-introduce-a-handy-list_first_entry-macro-v2.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
-declare-struct-ktime.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
-clocksource-fix-resume-logic.patch
-acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set.patch
-clockevents-fix-resume-logic.patch
-timer_stats-slimmed-down-using-statistics-infrastucture.patch
+extend-print_symbol-capability.patch
+git-kbuild.patch
+xfs-clean-up-shrinker-games.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+array_size-check-for-type.patch
+module-use-krealloc.patch
+futex-restartable-futex_wait.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+simplify-module_get_kallsym-by-dropping-length-arg.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms.patch
+simplify-kallsyms_lookup.patch
+fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
+fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
+____call_usermodehelper-dont-flush_signals.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+futex-new-private-futexes.patch
+lguest-the-guest-code.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
+lguest-the-guest-code-handle-new-paravirt-lazy-mode-fix-userspace.patch
+lguest-the-host-code.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch
+lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
+lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
+lguest-the-net-driver.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
