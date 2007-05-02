@@ -1,79 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch added to -mm tree
-Date: Tue, 01 May 2007 17:59:03 -0700
-Message-ID: <200705020059.l420x3D3010634@shell0.pdx.osdl.net>
+Subject: - git-alsa-fixup.patch removed from -mm tree
+Date: Tue, 01 May 2007 22:45:00 -0700
+Message-ID: <200705020545.l425j1ul014693@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47509 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S2992643AbXEBA7M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:59:12 -0400
+	by vger.kernel.org with ESMTP id S1754090AbXEBFpE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 01:45:04 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l425j13w005640
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 1 May 2007 22:45:02 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeremy@goop.org, rusty@rustcorp.com.au
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest vs x86_64-mm-use-per-cpu-variables-for-gdt-pda
-has been added to the -mm tree.  Its filename is
-     lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+     git-alsa-fixup
+has been removed from the -mm tree.  Its filename was
+     git-alsa-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: lguest vs x86_64-mm-use-per-cpu-variables-for-gdt-pda
+Subject: git-alsa-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    6 +-----
- 1 files changed, 1 insertion(+), 5 deletions(-)
+ Documentation/sound/alsa/ALSA-Configuration.txt |    5 --
+ sound/pci/hda/hda_intel.c                       |    5 --
+ sound/pci/hda/patch_sigmatel.c                  |   35 --------------
+ sound/soc/Kconfig                               |    6 --
+ 4 files changed, 51 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda
-+++ a/drivers/lguest/lguest.c
-@@ -34,7 +34,6 @@
- #include <asm/desc.h>
- #include <asm/setup.h>
- #include <asm/e820.h>
--#include <asm/pda.h>
- #include <asm/mce.h>
+diff -puN sound/pci/hda/hda_intel.c~git-alsa-fixup sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~git-alsa-fixup
++++ a/sound/pci/hda/hda_intel.c
+@@ -993,13 +993,8 @@ static int __devinit azx_codec_create(st
+ 	if ((err = snd_hda_bus_new(chip->card, &bus_temp, &chip->bus)) < 0)
+ 		return err;
  
- /* Declarations for definitions in lguest_guest.S */
-@@ -414,7 +413,6 @@ static unsigned lguest_patch(u8 type, u1
- }
+-<<<<<<< HEAD/sound/pci/hda/hda_intel.c
+-	codecs = 0;
+-	for (c = 0; c < azx_max_codecs[chip->driver_type]; c++) {
+-=======
+ 	codecs = audio_codecs = 0;
+ 	for (c = 0; c < AZX_MAX_CODECS; c++) {
+->>>>>>> /sound/pci/hda/hda_intel.c
+ 		if ((chip->codec_mask & (1 << c)) & probe_mask) {
+ 			struct hda_codec *codec;
+ 			err = snd_hda_codec_new(chip->bus, c, &codec);
+diff -puN sound/pci/hda/patch_sigmatel.c~git-alsa-fixup sound/pci/hda/patch_sigmatel.c
+--- a/sound/pci/hda/patch_sigmatel.c~git-alsa-fixup
++++ a/sound/pci/hda/patch_sigmatel.c
+@@ -60,14 +60,9 @@ enum {
+ 	STAC_D945GTP5,
+ 	STAC_MACMINI,
+ 	STAC_MACBOOK,
+-<<<<<<< HEAD/sound/pci/hda/patch_sigmatel.c
+-	STAC_MACBOOK_PRO_V1,
+-	STAC_MACBOOK_PRO_V2,
+-=======
+ 	STAC_MACBOOK_PRO_V1,
+ 	STAC_MACBOOK_PRO_V2,
+ 	STAC_IMAC_INTEL,
+->>>>>>> /sound/pci/hda/patch_sigmatel.c
+ 	STAC_922X_MODELS
+ };
  
- /* From head.S */
--extern void setup_pda(void);
- extern struct Xgt_desc_struct early_gdt_descr;
+@@ -536,17 +531,7 @@ static unsigned int macbook_pro_v1_pin_c
+ 	0x02a19320, 0x400000fb
+ };
  
- __init void lguest_init(void)
-@@ -472,10 +470,8 @@ __init void lguest_init(void)
- 	/* We use top of mem for initial pagetables. */
- 	init_pg_tables_end = __pa(pg0);
+-<<<<<<< HEAD/sound/pci/hda/patch_sigmatel.c
+-static unsigned int macbook_pro_v1_pin_configs[10] = {
+-	0x0321e230, 0x03a1e020, 0x9017e110, 0x01014010,
+-	0x01a19021, 0x0381e021, 0x1345e240, 0x13c5e22e,
+-	0x02a19320, 0x400000fb
+-};
+-
+-static unsigned int macbook_pro_v2_pin_configs[10] = {
+-=======
+ static unsigned int macbook_pro_v2_pin_configs[10] = {
+->>>>>>> /sound/pci/hda/patch_sigmatel.c
+ 	0x0221401f, 0x90a70120, 0x01813024, 0x01014010,
+ 	0x400000fd, 0x01016011, 0x1345e240, 0x13c5e22e,
+ 	0x400000fc, 0x400000fb,
+@@ -562,18 +547,11 @@ static unsigned int *stac922x_brd_tbl[ST
+ 	[STAC_D945_REF] = ref922x_pin_configs,
+ 	[STAC_D945GTP3] = d945gtp3_pin_configs,
+ 	[STAC_D945GTP5] = d945gtp5_pin_configs,
+-<<<<<<< HEAD/sound/pci/hda/patch_sigmatel.c
+-	[STAC_MACMINI] = d945gtp5_pin_configs,
+-	[STAC_MACBOOK] = macbook_pin_configs,
+-	[STAC_MACBOOK_PRO_V1] = macbook_pro_v1_pin_configs,
+-	[STAC_MACBOOK_PRO_V2] = macbook_pro_v2_pin_configs,
+-=======
+ 	[STAC_MACMINI] = macbook_pro_v1_pin_configs,
+ 	[STAC_MACBOOK] = macbook_pro_v1_pin_configs,
+ 	[STAC_MACBOOK_PRO_V1] = macbook_pro_v1_pin_configs,
+ 	[STAC_MACBOOK_PRO_V2] = macbook_pro_v2_pin_configs,
+ 	[STAC_IMAC_INTEL] = imac_intel_pin_configs,
+->>>>>>> /sound/pci/hda/patch_sigmatel.c
+ };
  
--	/* set up PDA descriptor */
--	setup_pda();
- 	load_gdt(&early_gdt_descr);
--	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_PDA) : "memory");
-+	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_DS) : "memory");
+ static const char *stac922x_models[STAC_922X_MODELS] = {
+@@ -582,14 +560,9 @@ static const char *stac922x_models[STAC_
+ 	[STAC_D945GTP3]	= "3stack",
+ 	[STAC_MACMINI]	= "macmini",
+ 	[STAC_MACBOOK]	= "macbook",
+-<<<<<<< HEAD/sound/pci/hda/patch_sigmatel.c
+-	[STAC_MACBOOK_PRO_V1]	= "macbook-pro-v1",
+-	[STAC_MACBOOK_PRO_V2]	= "macbook-pro",
+-=======
+ 	[STAC_MACBOOK_PRO_V1]	= "macbook-pro-v1",
+ 	[STAC_MACBOOK_PRO_V2]	= "macbook-pro",
+ 	[STAC_IMAC_INTEL] = "imac-intel",
+->>>>>>> /sound/pci/hda/patch_sigmatel.c
+ };
  
- 	reserve_top_address(lguest_data.reserve_mem);
+ static struct snd_pci_quirk stac922x_cfg_tbl[] = {
+@@ -1947,13 +1920,6 @@ static int patch_stac922x(struct hda_cod
+ 		 */
+ 		printk(KERN_INFO "hda_codec: STAC922x, Apple subsys_id=%x\n", codec->subsystem_id);
+ 		switch (codec->subsystem_id) {
+-<<<<<<< HEAD/sound/pci/hda/patch_sigmatel.c
+-		case 0x106b0200: /* MacBook Pro first generation */
+-			spec->board_config = STAC_MACBOOK_PRO_V1;
+-			break;
+-		case 0x106b1e00: /* MacBook Pro second generation */
+-			spec->board_config = STAC_MACBOOK_PRO_V2;
+-=======
+ 		case 0x106b0a00: /* MacBook First generatoin */
+ 			spec->board_config = STAC_MACBOOK;
+ 			break;
+@@ -1965,7 +1931,6 @@ static int patch_stac922x(struct hda_cod
+ 			break;
+ 		case 0x106b0700: /* Intel-based iMac */
+ 			spec->board_config = STAC_IMAC_INTEL;
+->>>>>>> /sound/pci/hda/patch_sigmatel.c
+ 			break;
+ 		}
+ 	}
+diff -puN sound/soc/Kconfig~git-alsa-fixup sound/soc/Kconfig
+--- a/sound/soc/Kconfig~git-alsa-fixup
++++ a/sound/soc/Kconfig
+@@ -9,15 +9,9 @@ config SND_SOC_AC97_BUS
+ 	bool
  
+ config SND_SOC
+-<<<<<<< HEAD/sound/soc/Kconfig
+-	tristate "SoC audio support"
+-	depends on SND
+-	select SND_PCM
+-=======
+ 	tristate "ALSA for SoC audio support"
+ 	depends on SND
+ 	select SND_PCM
+->>>>>>> /sound/soc/Kconfig
+ 	---help---
+ 
+ 	  If you want ASoC support, you should say Y here and also to the
+diff -puN Documentation/sound/alsa/ALSA-Configuration.txt~git-alsa-fixup Documentation/sound/alsa/ALSA-Configuration.txt
+--- a/Documentation/sound/alsa/ALSA-Configuration.txt~git-alsa-fixup
++++ a/Documentation/sound/alsa/ALSA-Configuration.txt
+@@ -907,14 +907,9 @@ Prior to version 0.9.0rc4 options had a 
+ 	  5stack	D945 5stack + SPDIF
+ 	  macmini	Intel Mac Mini
+ 	  macbook	Intel Mac Book
+-<<<<<<< HEAD/Documentation/sound/alsa/ALSA-Configuration.txt
+-	  macbook-pro-v1 Intel Mac Book Pro 1st generation
+-	  macbook-pro	Intel Mac Book Pro 2nd generation
+-=======
+ 	  macbook-pro-v1 Intel Mac Book Pro 1st generation
+ 	  macbook-pro	Intel Mac Book Pro 2nd generation
+ 	  imac-intel	Intel iMac
+->>>>>>> /Documentation/sound/alsa/ALSA-Configuration.txt
+ 
+ 	STAC9202/9250/9251
+ 	  ref		Reference board, base config
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-extend-print_symbol-capability.patch
-add-kvasprintf.patch
 zlib-backout.patch
 slab-introduce-krealloc.patch
 git-acpi.patch
@@ -88,7 +202,6 @@ more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-drm.patch
-git-dvb.patch
 git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 git-gfs2-nmw.patch
 git-ieee1394.patch
@@ -99,6 +212,7 @@ git-jfs.patch
 git-kvm.patch
 revert-rm-pointless-dmaengine-exports.patch
 git-md-accel-fix.patch
+git-mmc.patch
 git-mmc-build-fix.patch
 ne-add-platform_driver-fix.patch
 git-e1000.patch
