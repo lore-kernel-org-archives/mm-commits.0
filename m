@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + block2mtd_paramline-mustnt-be-__initdata.patch added to -mm tree
-Date: Tue, 01 May 2007 16:55:56 -0700
-Message-ID: <200705012355.l41Ntu1a009569@shell0.pdx.osdl.net>
+Subject: + rtc-remove-sys-class-rtc-dev-fix.patch added to -mm tree
+Date: Tue, 01 May 2007 17:00:11 -0700
+Message-ID: <200705020000.l4200Bi6009655@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58300 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946005AbXEAX6C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 19:58:02 -0400
+	by vger.kernel.org with ESMTP id S1946101AbXEBAAu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2007 20:00:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, dwmw2@infradead.org, joern@lazybastard.org, stable@kernel.org
+Cc: bunk@stusta.de, a.zummo@towertech.it, dbrownell@users.sourceforge.net, gregkh@suse.de
 
 
 The patch titled
-     block2mtd_paramline[] mustn't be __initdata
+     drivers/rtc/rtc-dev.c should #include "rtc-core.h"
 has been added to the -mm tree.  Its filename is
-     block2mtd_paramline-mustnt-be-__initdata.patch
+     rtc-remove-sys-class-rtc-dev-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: block2mtd_paramline[] mustn't be __initdata
+Subject: drivers/rtc/rtc-dev.c should #include "rtc-core.h"
 From: Adrian Bunk <bunk@stusta.de>
 
-block2mtd_paramline[] is used in the non-__init block2mtd_setup()
+Every file should include the headers containing the prototypes for
+its global functions.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Joern Engel <joern@lazybastard.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: <stable@kernel.org>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/block2mtd.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-dev.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/mtd/devices/block2mtd.c~block2mtd_paramline-mustnt-be-__initdata drivers/mtd/devices/block2mtd.c
---- a/drivers/mtd/devices/block2mtd.c~block2mtd_paramline-mustnt-be-__initdata
-+++ a/drivers/mtd/devices/block2mtd.c
-@@ -373,7 +373,7 @@ static inline void kill_final_newline(ch
+diff -puN drivers/rtc/rtc-dev.c~rtc-remove-sys-class-rtc-dev-fix drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-remove-sys-class-rtc-dev-fix
++++ a/drivers/rtc/rtc-dev.c
+@@ -13,6 +13,7 @@
  
- #ifndef MODULE
- static int block2mtd_init_called = 0;
--static __initdata char block2mtd_paramline[80 + 12]; /* 80 for device, 12 for erase size */
-+static char block2mtd_paramline[80 + 12]; /* 80 for device, 12 for erase size */
- #endif
+ #include <linux/module.h>
+ #include <linux/rtc.h>
++#include "rtc-core.h"
  
+ static dev_t rtc_devt;
  
 _
 
@@ -99,6 +99,7 @@ the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
 ext2-reservations.patch
 make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
 remove-nfs4_acl_add_ace.patch
+rtc-remove-sys-class-rtc-dev-fix.patch
 linux-kernel-markers-kconfig-menus.patch
 linux-kernel-markers-architecture-independant-code.patch
 linux-kernel-markers-i386-optimization.patch
