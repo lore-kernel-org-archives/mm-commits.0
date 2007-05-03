@@ -1,90 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - idr-fix-obscure-bug-in-allocation-path.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:30:54 -0700
-Message-ID: <200705031930.l43JUsog018219@shell0.pdx.osdl.net>
+Subject: - git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:30:35 -0700
+Message-ID: <200705031930.l43JUZ02018198@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53166 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767821AbXECTc7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:32:59 -0400
+	by vger.kernel.org with ESMTP id S1767824AbXECTdC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: teheo@suse.de, greg@kroah.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     idr: fix obscure bug in allocation path
+     git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 has been removed from the -mm tree.  Its filename was
-     idr-fix-obscure-bug-in-allocation-path.patch
+     git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: idr: fix obscure bug in allocation path
-From: Tejun Heo <teheo@suse.de>
+Subject: git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In sub_alloc(), when bitmap search fails, it goes up one level to continue
-search.  This is done by updating the id cursor and searching the upper
-level again.  If the cursor was at the end of the upper level, we need to
-go further than that.
-
-This wasn't implemented and when that happens the part of the cursor which
-indexes into the upper level wraps and sub_alloc() ends up searching the
-wrong bitmap.  It allocates id which doesn't match the actual slot.
-
-This patch fixes this by restarting from the top if the search needs to go
-higher than one level.
-
-Signed-off-by: Tejun Heo <htejun@gmail.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
+ drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/idr.c~idr-fix-obscure-bug-in-allocation-path lib/idr.c
---- a/lib/idr.c~idr-fix-obscure-bug-in-allocation-path
-+++ a/lib/idr.c
-@@ -100,10 +100,11 @@ static int sub_alloc(struct idr *idp, vo
- 	int n, m, sh;
- 	struct idr_layer *p, *new;
- 	struct idr_layer *pa[MAX_LEVEL];
--	int l, id;
-+	int l, id, oid;
- 	long bm;
+diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+--- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+@@ -839,7 +839,6 @@ static void class_dev_create(struct pvr2
+ 		sfp->unit_number_created_ok = !0;
+ 	}
  
- 	id = *starting_id;
-+ restart:
- 	p = idp->top;
- 	l = idp->layers;
- 	pa[l--] = NULL;
-@@ -117,12 +118,23 @@ static int sub_alloc(struct idr *idp, vo
- 		if (m == IDR_SIZE) {
- 			/* no space available go back to previous layer. */
- 			l++;
-+			oid = id;
- 			id = (id | ((1 << (IDR_BITS * l)) - 1)) + 1;
-+
-+			/* if already at the top layer, we need to grow */
- 			if (!(p = pa[l])) {
- 				*starting_id = id;
- 				return -2;
- 			}
--			continue;
-+
-+			/* If we need to go up one layer, continue the
-+			 * loop; otherwise, restart from the top.
-+			 */
-+			sh = IDR_BITS * (l + 1);
-+			if (oid >> sh == id >> sh)
-+				continue;
-+			else
-+				goto restart;
- 		}
- 		if (m != n) {
- 			sh = IDR_BITS*l;
+-	sfp->attr_bus_info.attr.owner = THIS_MODULE;
+ 	sfp->attr_bus_info.attr.name = "bus_info_str";
+ 	sfp->attr_bus_info.attr.mode = S_IRUGO;
+ 	sfp->attr_bus_info.show = bus_info_show;
 _
 
-Patches currently in -mm which might be from teheo@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+slab-introduce-krealloc.patch
+rm9000-serial-driver.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+cx88-video-build-fix.patch
+zlib-backout.patch
+git-acpi.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-arm.patch
+git-avr32.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+git-drm.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-jfs.patch
+git-kbuild.patch
+git-kvm.patch
+git-mmc.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-nfs.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+do_tty_write-can-block-even-with-o_nonblock-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
