@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + rename-thread_info-to-stack.patch added to -mm tree
-Date: Wed, 02 May 2007 21:27:31 -0700
-Message-ID: <200705030427.l434RVbf004709@shell0.pdx.osdl.net>
+Subject: + wrap-access-to-thread_info.patch added to -mm tree
+Date: Wed, 02 May 2007 21:27:30 -0700
+Message-ID: <200705030427.l434RUJa004706@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51664 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767382AbXECE1t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 00:27:49 -0400
+	by vger.kernel.org with ESMTP id S1767377AbXECE1q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 00:27:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: zippel@linux-m68k.org
 
 
 The patch titled
-     rename thread_info to stack
+     wrap access to thread_info
 has been added to the -mm tree.  Its filename is
-     rename-thread_info-to-stack.patch
+     wrap-access-to-thread_info.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,242 +25,196 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rename thread_info to stack
+Subject: wrap access to thread_info
 From: Roman Zippel <zippel@linux-m68k.org>
 
-This finally renames the thread_info field in task structure to stack, so that
-the assumptions about this field are gone and archs have more freedom about
-placing the thread_info structure.
+Recently a few direct accesses to the thread_info in the task structure snuck
+back, so this wraps them with the appropriate wrapper.
 
 Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/asm-offsets.c   |    2 +-
- arch/ia64/kernel/mca.c            |    2 +-
- arch/mips/kernel/asm-offsets.c    |    2 +-
- arch/parisc/kernel/asm-offsets.c  |    2 +-
- arch/powerpc/kernel/asm-offsets.c |    2 +-
- arch/ppc/kernel/asm-offsets.c     |    2 +-
- arch/s390/kernel/asm-offsets.c    |    2 +-
- arch/sparc/kernel/asm-offsets.c   |    2 +-
- arch/v850/kernel/asm-offsets.c    |    2 +-
- arch/xtensa/kernel/asm-offsets.c  |    2 +-
- include/asm-m68k/thread_info.h    |    6 +++---
- include/linux/init_task.h         |    2 +-
- include/linux/sched.h             |    8 ++++----
- kernel/fork.c                     |    4 ++--
- 14 files changed, 20 insertions(+), 20 deletions(-)
+ arch/avr32/kernel/process.c      |    6 +++---
+ arch/avr32/kernel/ptrace.c       |    2 +-
+ arch/i386/kernel/traps.c         |    2 +-
+ arch/mips/kernel/smtc.c          |    2 +-
+ arch/x86_64/kernel/irq.c         |    2 +-
+ include/asm-i386/thread_info.h   |    2 +-
+ include/asm-ia64/thread_info.h   |    2 +-
+ include/asm-mips/system.h        |    2 +-
+ include/asm-parisc/compat.h      |    2 +-
+ include/asm-x86_64/thread_info.h |    2 +-
+ kernel/mutex.c                   |    8 ++++----
+ 11 files changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN arch/h8300/kernel/asm-offsets.c~rename-thread_info-to-stack arch/h8300/kernel/asm-offsets.c
---- a/arch/h8300/kernel/asm-offsets.c~rename-thread_info-to-stack
-+++ a/arch/h8300/kernel/asm-offsets.c
-@@ -30,7 +30,7 @@ int main(void)
- 	DEFINE(TASK_PTRACE, offsetof(struct task_struct, ptrace));
- 	DEFINE(TASK_BLOCKED, offsetof(struct task_struct, blocked));
- 	DEFINE(TASK_THREAD, offsetof(struct task_struct, thread));
--	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, thread_info));
-+	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, stack));
- 	DEFINE(TASK_MM, offsetof(struct task_struct, mm));
- 	DEFINE(TASK_ACTIVE_MM, offsetof(struct task_struct, active_mm));
- 
-diff -puN arch/ia64/kernel/mca.c~rename-thread_info-to-stack arch/ia64/kernel/mca.c
---- a/arch/ia64/kernel/mca.c~rename-thread_info-to-stack
-+++ a/arch/ia64/kernel/mca.c
-@@ -1689,7 +1689,7 @@ format_mca_init_stack(void *mca_data, un
- 	ti->preempt_count = 1;
- 	ti->task = p;
- 	ti->cpu = cpu;
--	p->thread_info = ti;
-+	p->stack = ti;
- 	p->state = TASK_UNINTERRUPTIBLE;
- 	cpu_set(cpu, p->cpus_allowed);
- 	INIT_LIST_HEAD(&p->tasks);
-diff -puN arch/mips/kernel/asm-offsets.c~rename-thread_info-to-stack arch/mips/kernel/asm-offsets.c
---- a/arch/mips/kernel/asm-offsets.c~rename-thread_info-to-stack
-+++ a/arch/mips/kernel/asm-offsets.c
-@@ -82,7 +82,7 @@ void output_task_defines(void)
+diff -puN arch/avr32/kernel/process.c~wrap-access-to-thread_info arch/avr32/kernel/process.c
+--- a/arch/avr32/kernel/process.c~wrap-access-to-thread_info
++++ a/arch/avr32/kernel/process.c
+@@ -330,13 +330,13 @@ int copy_thread(int nr, unsigned long cl
  {
- 	text("/* MIPS task_struct offsets. */");
- 	offset("#define TASK_STATE         ", struct task_struct, state);
--	offset("#define TASK_THREAD_INFO   ", struct task_struct, thread_info);
-+	offset("#define TASK_THREAD_INFO   ", struct task_struct, stack);
- 	offset("#define TASK_FLAGS         ", struct task_struct, flags);
- 	offset("#define TASK_MM            ", struct task_struct, mm);
- 	offset("#define TASK_PID           ", struct task_struct, pid);
-diff -puN arch/parisc/kernel/asm-offsets.c~rename-thread_info-to-stack arch/parisc/kernel/asm-offsets.c
---- a/arch/parisc/kernel/asm-offsets.c~rename-thread_info-to-stack
-+++ a/arch/parisc/kernel/asm-offsets.c
-@@ -54,7 +54,7 @@
+ 	struct pt_regs *childregs;
  
- int main(void)
+-	childregs = ((struct pt_regs *)(THREAD_SIZE + (unsigned long)p->thread_info)) - 1;
++	childregs = ((struct pt_regs *)(THREAD_SIZE + (unsigned long)task_stack_page(p))) - 1;
+ 	*childregs = *regs;
+ 
+ 	if (user_mode(regs))
+ 		childregs->sp = usp;
+ 	else
+-		childregs->sp = (unsigned long)p->thread_info + THREAD_SIZE;
++		childregs->sp = (unsigned long)task_stack_page(p) + THREAD_SIZE;
+ 
+ 	childregs->r12 = 0; /* Set return value for child */
+ 
+@@ -403,7 +403,7 @@ unsigned long get_wchan(struct task_stru
+ 	if (!p || p == current || p->state == TASK_RUNNING)
+ 		return 0;
+ 
+-	stack_page = (unsigned long)p->thread_info;
++	stack_page = (unsigned long)task_stack_page(p);
+ 	BUG_ON(!stack_page);
+ 
+ 	/*
+diff -puN arch/avr32/kernel/ptrace.c~wrap-access-to-thread_info arch/avr32/kernel/ptrace.c
+--- a/arch/avr32/kernel/ptrace.c~wrap-access-to-thread_info
++++ a/arch/avr32/kernel/ptrace.c
+@@ -24,7 +24,7 @@
+ 
+ static struct pt_regs *get_user_regs(struct task_struct *tsk)
  {
--	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, thread_info));
-+	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, stack));
- 	DEFINE(TASK_STATE, offsetof(struct task_struct, state));
- 	DEFINE(TASK_FLAGS, offsetof(struct task_struct, flags));
- 	DEFINE(TASK_SIGPENDING, offsetof(struct task_struct, pending));
-diff -puN arch/powerpc/kernel/asm-offsets.c~rename-thread_info-to-stack arch/powerpc/kernel/asm-offsets.c
---- a/arch/powerpc/kernel/asm-offsets.c~rename-thread_info-to-stack
-+++ a/arch/powerpc/kernel/asm-offsets.c
-@@ -58,7 +58,7 @@ int main(void)
- #ifdef CONFIG_PPC64
- 	DEFINE(AUDITCONTEXT, offsetof(struct task_struct, audit_context));
- #else
--	DEFINE(THREAD_INFO, offsetof(struct task_struct, thread_info));
-+	DEFINE(THREAD_INFO, offsetof(struct task_struct, stack));
- 	DEFINE(PTRACE, offsetof(struct task_struct, ptrace));
- #endif /* CONFIG_PPC64 */
- 
-diff -puN arch/ppc/kernel/asm-offsets.c~rename-thread_info-to-stack arch/ppc/kernel/asm-offsets.c
---- a/arch/ppc/kernel/asm-offsets.c~rename-thread_info-to-stack
-+++ a/arch/ppc/kernel/asm-offsets.c
-@@ -35,7 +35,7 @@ int
- main(void)
- {
- 	DEFINE(THREAD, offsetof(struct task_struct, thread));
--	DEFINE(THREAD_INFO, offsetof(struct task_struct, thread_info));
-+	DEFINE(THREAD_INFO, offsetof(struct task_struct, stack));
- 	DEFINE(MM, offsetof(struct task_struct, mm));
- 	DEFINE(PTRACE, offsetof(struct task_struct, ptrace));
- 	DEFINE(KSP, offsetof(struct thread_struct, ksp));
-diff -puN arch/s390/kernel/asm-offsets.c~rename-thread_info-to-stack arch/s390/kernel/asm-offsets.c
---- a/arch/s390/kernel/asm-offsets.c~rename-thread_info-to-stack
-+++ a/arch/s390/kernel/asm-offsets.c
-@@ -15,7 +15,7 @@
- 
- int main(void)
- {
--	DEFINE(__THREAD_info, offsetof(struct task_struct, thread_info),);
-+	DEFINE(__THREAD_info, offsetof(struct task_struct, stack),);
- 	DEFINE(__THREAD_ksp, offsetof(struct task_struct, thread.ksp),);
- 	DEFINE(__THREAD_per, offsetof(struct task_struct, thread.per_info),);
- 	DEFINE(__THREAD_mm_segment,
-diff -puN arch/sparc/kernel/asm-offsets.c~rename-thread_info-to-stack arch/sparc/kernel/asm-offsets.c
---- a/arch/sparc/kernel/asm-offsets.c~rename-thread_info-to-stack
-+++ a/arch/sparc/kernel/asm-offsets.c
-@@ -28,7 +28,7 @@ int foo(void)
- 	DEFINE(AOFF_task_gid, offsetof(struct task_struct, gid));
- 	DEFINE(AOFF_task_euid, offsetof(struct task_struct, euid));
- 	DEFINE(AOFF_task_egid, offsetof(struct task_struct, egid));
--	/* DEFINE(THREAD_INFO, offsetof(struct task_struct, thread_info)); */
-+	/* DEFINE(THREAD_INFO, offsetof(struct task_struct, stack)); */
- 	DEFINE(ASIZ_task_uid,	sizeof(current->uid));
- 	DEFINE(ASIZ_task_gid,	sizeof(current->gid));
- 	DEFINE(ASIZ_task_euid,	sizeof(current->euid));
-diff -puN arch/v850/kernel/asm-offsets.c~rename-thread_info-to-stack arch/v850/kernel/asm-offsets.c
---- a/arch/v850/kernel/asm-offsets.c~rename-thread_info-to-stack
-+++ a/arch/v850/kernel/asm-offsets.c
-@@ -29,7 +29,7 @@ int main (void)
- 	DEFINE (TASK_PTRACE, offsetof (struct task_struct, ptrace));
- 	DEFINE (TASK_BLOCKED, offsetof (struct task_struct, blocked));
- 	DEFINE (TASK_THREAD, offsetof (struct task_struct, thread));
--	DEFINE (TASK_THREAD_INFO, offsetof (struct task_struct, thread_info));
-+	DEFINE (TASK_THREAD_INFO, offsetof (struct task_struct, stack));
- 	DEFINE (TASK_MM, offsetof (struct task_struct, mm));
- 	DEFINE (TASK_ACTIVE_MM, offsetof (struct task_struct, active_mm));
- 	DEFINE (TASK_PID, offsetof (struct task_struct, pid));
-diff -puN arch/xtensa/kernel/asm-offsets.c~rename-thread_info-to-stack arch/xtensa/kernel/asm-offsets.c
---- a/arch/xtensa/kernel/asm-offsets.c~rename-thread_info-to-stack
-+++ a/arch/xtensa/kernel/asm-offsets.c
-@@ -70,7 +70,7 @@ int main(void)
- 	DEFINE(TASK_ACTIVE_MM, offsetof (struct task_struct, active_mm));
- 	DEFINE(TASK_PID, offsetof (struct task_struct, pid));
- 	DEFINE(TASK_THREAD, offsetof (struct task_struct, thread));
--	DEFINE(TASK_THREAD_INFO, offsetof (struct task_struct, thread_info));
-+	DEFINE(TASK_THREAD_INFO, offsetof (struct task_struct, stack));
- 	DEFINE(TASK_STRUCT_SIZE, sizeof (struct task_struct));
- 	BLANK();
- 
-diff -puN include/asm-m68k/thread_info.h~rename-thread_info-to-stack include/asm-m68k/thread_info.h
---- a/include/asm-m68k/thread_info.h~rename-thread_info-to-stack
-+++ a/include/asm-m68k/thread_info.h
-@@ -37,17 +37,17 @@ struct thread_info {
- #define init_stack		(init_thread_union.stack)
- 
- #define task_thread_info(tsk)	(&(tsk)->thread.info)
--#define task_stack_page(tsk)	((void *)(tsk)->thread_info)
-+#define task_stack_page(tsk)	((tsk)->stack)
- #define current_thread_info()	task_thread_info(current)
- 
- #define __HAVE_THREAD_FUNCTIONS
- 
- #define setup_thread_stack(p, org) ({			\
--	*(struct task_struct **)(p)->thread_info = (p);	\
-+	*(struct task_struct **)(p)->stack = (p);	\
- 	task_thread_info(p)->task = (p);		\
- })
- 
--#define end_of_stack(p) ((unsigned long *)(p)->thread_info + 1)
-+#define end_of_stack(p) ((unsigned long *)(p)->stack + 1)
- 
- /* entry.S relies on these definitions!
-  * bits 0-7 are tested at every exception exit
-diff -puN include/linux/init_task.h~rename-thread_info-to-stack include/linux/init_task.h
---- a/include/linux/init_task.h~rename-thread_info-to-stack
-+++ a/include/linux/init_task.h
-@@ -118,7 +118,7 @@ extern struct group_info init_groups;
- #define INIT_TASK(tsk)	\
- {									\
- 	.state		= 0,						\
--	.thread_info	= &init_thread_info,				\
-+	.stack		= &init_thread_info,				\
- 	.usage		= ATOMIC_INIT(2),				\
- 	.flags		= 0,						\
- 	.lock_depth	= -1,						\
-diff -puN include/linux/sched.h~rename-thread_info-to-stack include/linux/sched.h
---- a/include/linux/sched.h~rename-thread_info-to-stack
-+++ a/include/linux/sched.h
-@@ -832,7 +832,7 @@ struct prio_array;
- 
- struct task_struct {
- 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
--	struct thread_info *thread_info;
-+	void *stack;
- 	atomic_t usage;
- 	unsigned int flags;	/* per process flags, defined below */
- 	unsigned int ptrace;
-@@ -1529,8 +1529,8 @@ static inline void unlock_task_sighand(s
- 
- #ifndef __HAVE_THREAD_FUNCTIONS
- 
--#define task_thread_info(task) (task)->thread_info
--#define task_stack_page(task) ((void*)((task)->thread_info))
-+#define task_thread_info(task)	((struct thread_info *)(task)->stack)
-+#define task_stack_page(task)	((task)->stack)
- 
- static inline void setup_thread_stack(struct task_struct *p, struct task_struct *org)
- {
-@@ -1540,7 +1540,7 @@ static inline void setup_thread_stack(st
- 
- static inline unsigned long *end_of_stack(struct task_struct *p)
- {
--	return (unsigned long *)(p->thread_info + 1);
-+	return (unsigned long *)(task_thread_info(p) + 1);
+-	return (struct pt_regs *)((unsigned long) tsk->thread_info +
++	return (struct pt_regs *)((unsigned long)task_stack_page(tsk) +
+ 				  THREAD_SIZE - sizeof(struct pt_regs));
  }
  
- #endif
-diff -puN kernel/fork.c~rename-thread_info-to-stack kernel/fork.c
---- a/kernel/fork.c~rename-thread_info-to-stack
-+++ a/kernel/fork.c
-@@ -106,7 +106,7 @@ static struct kmem_cache *mm_cachep;
+diff -puN arch/i386/kernel/traps.c~wrap-access-to-thread_info arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~wrap-access-to-thread_info
++++ a/arch/i386/kernel/traps.c
+@@ -373,7 +373,7 @@ void show_registers(struct pt_regs *regs
+ 	       regs->xds & 0xffff, regs->xes & 0xffff, regs->xfs & 0xffff, gs, ss);
+ 	printk(KERN_EMERG "Process %.*s (pid: %d, ti=%p task=%p task.ti=%p)",
+ 		TASK_COMM_LEN, current->comm, current->pid,
+-		current_thread_info(), current, current->thread_info);
++		current_thread_info(), current, task_thread_info(current));
+ 	/*
+ 	 * When in-kernel, we also print out the stack and code at the
+ 	 * time of the fault..
+diff -puN arch/mips/kernel/smtc.c~wrap-access-to-thread_info arch/mips/kernel/smtc.c
+--- a/arch/mips/kernel/smtc.c~wrap-access-to-thread_info
++++ a/arch/mips/kernel/smtc.c
+@@ -560,7 +560,7 @@ void smtc_boot_secondary(int cpu, struct
+ 	write_tc_gpr_sp(__KSTK_TOS(idle));
  
- void free_task(struct task_struct *tsk)
+ 	/* global pointer */
+-	write_tc_gpr_gp((unsigned long)idle->thread_info);
++	write_tc_gpr_gp((unsigned long)task_thread_info(idle));
+ 
+ 	smtc_status |= SMTC_MTC_ACTIVE;
+ 	write_tc_c0_tchalt(0);
+diff -puN arch/x86_64/kernel/irq.c~wrap-access-to-thread_info arch/x86_64/kernel/irq.c
+--- a/arch/x86_64/kernel/irq.c~wrap-access-to-thread_info
++++ a/arch/x86_64/kernel/irq.c
+@@ -32,7 +32,7 @@ atomic_t irq_err_count;
+  */
+ static inline void stack_overflow_check(struct pt_regs *regs)
  {
--	free_thread_info(tsk->thread_info);
-+	free_thread_info(tsk->stack);
- 	rt_mutex_debug_task_free(tsk);
- 	free_task_struct(tsk);
+-	u64 curbase = (u64) current->thread_info;
++	u64 curbase = (u64)task_stack_page(current);
+ 	static unsigned long warned = -60*HZ;
+ 
+ 	if (regs->rsp >= curbase && regs->rsp <= curbase + THREAD_SIZE &&
+diff -puN include/asm-i386/thread_info.h~wrap-access-to-thread_info include/asm-i386/thread_info.h
+--- a/include/asm-i386/thread_info.h~wrap-access-to-thread_info
++++ a/include/asm-i386/thread_info.h
+@@ -170,7 +170,7 @@ static inline struct thread_info *curren
+ #define TS_USEDFPU		0x0001	/* FPU was used by this task this quantum (SMP) */
+ #define TS_POLLING		0x0002	/* True if in idle loop and not sleeping */
+ 
+-#define tsk_is_polling(t) ((t)->thread_info->status & TS_POLLING)
++#define tsk_is_polling(t) (task_thread_info(t)->status & TS_POLLING)
+ 
+ #endif /* __KERNEL__ */
+ 
+diff -puN include/asm-ia64/thread_info.h~wrap-access-to-thread_info include/asm-ia64/thread_info.h
+--- a/include/asm-ia64/thread_info.h~wrap-access-to-thread_info
++++ a/include/asm-ia64/thread_info.h
+@@ -108,6 +108,6 @@ struct thread_info {
+ 
+ #define TS_POLLING		1 	/* true if in idle loop and not sleeping */
+ 
+-#define tsk_is_polling(t) ((t)->thread_info->status & TS_POLLING)
++#define tsk_is_polling(t) (task_thread_info(t)->status & TS_POLLING)
+ 
+ #endif /* _ASM_IA64_THREAD_INFO_H */
+diff -puN include/asm-mips/system.h~wrap-access-to-thread_info include/asm-mips/system.h
+--- a/include/asm-mips/system.h~wrap-access-to-thread_info
++++ a/include/asm-mips/system.h
+@@ -55,7 +55,7 @@ do {									\
+ 	if (cpu_has_dsp)						\
+ 		__save_dsp(prev);					\
+ 	next->thread.emulated_fp = 0;					\
+-	(last) = resume(prev, next, next->thread_info);			\
++	(last) = resume(prev, next, task_thread_info(next));		\
+ 	if (cpu_has_dsp)						\
+ 		__restore_dsp(current);					\
+ } while(0)
+diff -puN include/asm-parisc/compat.h~wrap-access-to-thread_info include/asm-parisc/compat.h
+--- a/include/asm-parisc/compat.h~wrap-access-to-thread_info
++++ a/include/asm-parisc/compat.h
+@@ -152,7 +152,7 @@ static __inline__ void __user *compat_al
+ 
+ static inline int __is_compat_task(struct task_struct *t)
+ {
+-	return test_ti_thread_flag(t->thread_info, TIF_32BIT);
++	return test_ti_thread_flag(task_thread_info(t), TIF_32BIT);
  }
-@@ -177,7 +177,7 @@ static struct task_struct *dup_task_stru
+ 
+ static inline int is_compat_task(void)
+diff -puN include/asm-x86_64/thread_info.h~wrap-access-to-thread_info include/asm-x86_64/thread_info.h
+--- a/include/asm-x86_64/thread_info.h~wrap-access-to-thread_info
++++ a/include/asm-x86_64/thread_info.h
+@@ -160,7 +160,7 @@ static inline struct thread_info *stack_
+ #define TS_COMPAT		0x0002	/* 32bit syscall active */
+ #define TS_POLLING		0x0004	/* true if in idle loop and not sleeping */
+ 
+-#define tsk_is_polling(t) ((t)->thread_info->status & TS_POLLING)
++#define tsk_is_polling(t) (task_thread_info(t)->status & TS_POLLING)
+ 
+ #endif /* __KERNEL__ */
+ 
+diff -puN kernel/mutex.c~wrap-access-to-thread_info kernel/mutex.c
+--- a/kernel/mutex.c~wrap-access-to-thread_info
++++ a/kernel/mutex.c
+@@ -133,7 +133,7 @@ __mutex_lock_common(struct mutex *lock, 
+ 
+ 	debug_mutex_lock_common(lock, &waiter);
+ 	mutex_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
+-	debug_mutex_add_waiter(lock, &waiter, task->thread_info);
++	debug_mutex_add_waiter(lock, &waiter, task_thread_info(task));
+ 
+ 	/* add waiting tasks to the end of the waitqueue (FIFO): */
+ 	list_add_tail(&waiter.list, &lock->wait_list);
+@@ -159,7 +159,7 @@ __mutex_lock_common(struct mutex *lock, 
+ 		 */
+ 		if (unlikely(state == TASK_INTERRUPTIBLE &&
+ 						signal_pending(task))) {
+-			mutex_remove_waiter(lock, &waiter, task->thread_info);
++			mutex_remove_waiter(lock, &waiter, task_thread_info(task));
+ 			mutex_release(&lock->dep_map, 1, _RET_IP_);
+ 			spin_unlock_mutex(&lock->wait_lock, flags);
+ 
+@@ -175,8 +175,8 @@ __mutex_lock_common(struct mutex *lock, 
  	}
  
- 	*tsk = *orig;
--	tsk->thread_info = ti;
-+	tsk->stack = ti;
- 	setup_thread_stack(tsk, orig);
+ 	/* got the lock - rejoice! */
+-	mutex_remove_waiter(lock, &waiter, task->thread_info);
+-	debug_mutex_set_owner(lock, task->thread_info);
++	mutex_remove_waiter(lock, &waiter, task_thread_info(task));
++	debug_mutex_set_owner(lock, task_thread_info(task));
  
- #ifdef CONFIG_CC_STACKPROTECTOR
+ 	/* set it to 0 if there are no waiters left: */
+ 	if (likely(list_empty(&lock->wait_list)))
 _
 
 Patches currently in -mm which might be from zippel@linux-m68k.org are
