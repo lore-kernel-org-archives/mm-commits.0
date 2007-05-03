@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cm4000_cs-fix-error-paths.patch added to -mm tree
-Date: Thu, 03 May 2007 13:49:24 -0700
-Message-ID: <200705032049.l43KnOHn019174@shell0.pdx.osdl.net>
+Subject: + cm4000_cs-use-bitrev.patch added to -mm tree
+Date: Thu, 03 May 2007 13:49:56 -0700
+Message-ID: <200705032049.l43KnuwG019196@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45685 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49153 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031206AbXECUwb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:52:31 -0400
+	by vger.kernel.org with ESMTP id S1031288AbXECUwi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akinobu.mita@gmail.com, laforge@gnumonks.org, linux@dominikbrodowski.net
 
 
 The patch titled
-     cm4000_cs: fix error paths
+     cm4000_cs: use bitrev
 has been added to the -mm tree.  Its filename is
-     cm4000_cs-fix-error-paths.patch
+     cm4000_cs-use-bitrev.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cm4000_cs: fix error paths
+Subject: cm4000_cs: use bitrev
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-This patch fixes error paths in module_init and probe functions in cm4000_cs
-and cm4040_cs drivers.
+Cleanup using bitrev8 in cm4000_cs driver.
 
 Cc: Harald Welte <laforge@gnumonks.org>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
@@ -37,81 +36,79 @@ Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/cm4000_cs.c |    9 +++++++--
- drivers/char/pcmcia/cm4040_cs.c |    7 ++++++-
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ drivers/char/pcmcia/Kconfig     |    1 
+ drivers/char/pcmcia/cm4000_cs.c |   35 +++++-------------------------
+ 2 files changed, 7 insertions(+), 29 deletions(-)
 
-diff -puN drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-fix-error-paths drivers/char/pcmcia/cm4000_cs.c
---- a/drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-fix-error-paths
+diff -puN drivers/char/pcmcia/Kconfig~cm4000_cs-use-bitrev drivers/char/pcmcia/Kconfig
+--- a/drivers/char/pcmcia/Kconfig~cm4000_cs-use-bitrev
++++ a/drivers/char/pcmcia/Kconfig
+@@ -21,6 +21,7 @@ config SYNCLINK_CS
+ config CARDMAN_4000
+ 	tristate "Omnikey Cardman 4000 support"
+ 	depends on PCMCIA
++	select BITREVERSE
+ 	help
+ 	  Enable support for the Omnikey Cardman 4000 PCMCIA Smartcard
+ 	  reader.
+diff -puN drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-use-bitrev drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-use-bitrev
 +++ a/drivers/char/pcmcia/cm4000_cs.c
-@@ -1881,8 +1881,11 @@ static int cm4000_probe(struct pcmcia_de
- 	init_waitqueue_head(&dev->readq);
+@@ -31,6 +31,7 @@
+ #include <linux/init.h>
+ #include <linux/fs.h>
+ #include <linux/delay.h>
++#include <linux/bitrev.h>
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
  
- 	ret = cm4000_config(link, i);
--	if (ret)
-+	if (ret) {
-+		dev_table[i] = NULL;
-+		kfree(dev);
- 		return ret;
-+	}
+@@ -194,41 +195,17 @@ static inline unsigned char xinb(unsigne
+ }
+ #endif
  
- 	class_device_create(cmm_class, NULL, MKDEV(major, i), NULL,
- 			    "cmm%d", i);
-@@ -1907,7 +1910,7 @@ static void cm4000_detach(struct pcmcia_
- 	cm4000_release(link);
+-#define	b_0000	15
+-#define	b_0001	14
+-#define	b_0010	13
+-#define	b_0011	12
+-#define	b_0100	11
+-#define	b_0101	10
+-#define	b_0110	9
+-#define	b_0111	8
+-#define	b_1000	7
+-#define	b_1001	6
+-#define	b_1010	5
+-#define	b_1011	4
+-#define	b_1100	3
+-#define	b_1101	2
+-#define	b_1110	1
+-#define	b_1111	0
+-
+-static unsigned char irtab[16] = {
+-	b_0000, b_1000, b_0100, b_1100,
+-	b_0010, b_1010, b_0110, b_1110,
+-	b_0001, b_1001, b_0101, b_1101,
+-	b_0011, b_1011, b_0111, b_1111
+-};
++static inline unsigned char invert_revert(unsigned char ch)
++{
++	return bitrev8(~ch);
++}
  
- 	dev_table[devno] = NULL;
-- 	kfree(dev);
-+	kfree(dev);
+ static void str_invert_revert(unsigned char *b, int len)
+ {
+ 	int i;
  
- 	class_device_destroy(cmm_class, MKDEV(major, devno));
+ 	for (i = 0; i < len; i++)
+-		b[i] = (irtab[b[i] & 0x0f] << 4) | irtab[b[i] >> 4];
+-}
+-
+-static unsigned char invert_revert(unsigned char ch)
+-{
+-	return (irtab[ch & 0x0f] << 4) | irtab[ch >> 4];
++		b[i] = invert_revert(b[i]);
+ }
  
-@@ -1956,12 +1959,14 @@ static int __init cmm_init(void)
- 	if (major < 0) {
- 		printk(KERN_WARNING MODULE_NAME
- 			": could not get major number\n");
-+		class_destroy(cmm_class);
- 		return major;
- 	}
- 
- 	rc = pcmcia_register_driver(&cm4000_driver);
- 	if (rc < 0) {
- 		unregister_chrdev(major, DEVICE_NAME);
-+		class_destroy(cmm_class);
- 		return rc;
- 	}
- 
-diff -puN drivers/char/pcmcia/cm4040_cs.c~cm4000_cs-fix-error-paths drivers/char/pcmcia/cm4040_cs.c
---- a/drivers/char/pcmcia/cm4040_cs.c~cm4000_cs-fix-error-paths
-+++ a/drivers/char/pcmcia/cm4040_cs.c
-@@ -636,8 +636,11 @@ static int reader_probe(struct pcmcia_de
- 	setup_timer(&dev->poll_timer, cm4040_do_poll, 0);
- 
- 	ret = reader_config(link, i);
--	if (ret)
-+	if (ret) {
-+		dev_table[i] = NULL;
-+		kfree(dev);
- 		return ret;
-+	}
- 
- 	class_device_create(cmx_class, NULL, MKDEV(major, i), NULL,
- 			    "cmx%d", i);
-@@ -708,12 +711,14 @@ static int __init cm4040_init(void)
- 	if (major < 0) {
- 		printk(KERN_WARNING MODULE_NAME
- 			": could not get major number\n");
-+		class_destroy(cmx_class);
- 		return major;
- 	}
- 
- 	rc = pcmcia_register_driver(&reader_driver);
- 	if (rc < 0) {
- 		unregister_chrdev(major, DEVICE_NAME);
-+		class_destroy(cmx_class);
- 		return rc;
- 	}
- 
+ #define	ATRLENCK(dev,pos) \
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
