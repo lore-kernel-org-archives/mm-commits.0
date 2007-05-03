@@ -1,146 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: + i386-add-support-for-picopower-irq-router.patch added to -mm tree
-Date: Wed, 02 May 2007 22:26:25 -0700
-Message-ID: <200705030526.l435QPtQ005510@shell0.pdx.osdl.net>
+Subject: + make-vm-statistics-update-interval-configurable.patch added to -mm tree
+Date: Wed, 02 May 2007 22:39:42 -0700
+Message-ID: <200705030539.l435dg6j005668@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35021 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767393AbXECF0b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 01:26:31 -0400
+	by vger.kernel.org with ESMTP id S1767401AbXECFju (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 01:39:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tmb@mandriva.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     i386: add support for picopower irq router
+     Make vm statistics update interval configurable
 has been added to the -mm tree.  Its filename is
-     i386-add-support-for-picopower-irq-router.patch
+     make-vm-statistics-update-interval-configurable.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: add support for picopower irq router
-=46rom: Thomas Backlund <tmb@mandriva.org>
+Subject: Make vm statistics update interval configurable
+From: Christoph Lameter <clameter@sgi.com>
 
-Add support for PicoPower PT86C523 IRQ router to be used with the in-ke=
-rnel
-yenta driver for CardBus.  With this patch cardbus works on e.g.  Dell
-Latitude XPi P150CD.
+Make it configurable.  Code in mm makes the vm statistics intervals
+independent from the cache reaper use that opportunity to make it
+configurable.
 
-Initial patch for kernel 2.4 series by Sune M=C3=B8lgaard
-http://molgaard.org/code/linux-2.4.31-picopower.patch
-
-Ported to 2.6.20 by Chmouel Boudjnah (http://www.chmouel.com)
-
-Testing and confirmation that it works by Austin Acton
-
-Cleaned up a little for inclusion in a 2.6.21-rc7 based kernel.
-
-Added some more cleanups according to CodingStyle, as noted by
-Randy Dunlap on LKML.
-
-Signed-off-by: Thomas Backlund <tmb@mandriva.org>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/irq.c     |   37 +++++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h |    3 +++
- 2 files changed, 40 insertions(+)
+ Documentation/sysctl/vm.txt |   19 +++++++++++++++++++
+ include/linux/sysctl.h      |    1 +
+ kernel/sysctl.c             |   12 ++++++++++++
+ mm/vmstat.c                 |    4 +++-
+ 4 files changed, 35 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/pci/irq.c~i386-add-support-for-picopower-irq-router=
- arch/i386/pci/irq.c
---- a/arch/i386/pci/irq.c~i386-add-support-for-picopower-irq-router
-+++ a/arch/i386/pci/irq.c
-@@ -491,6 +491,24 @@ static int pirq_amd756_set(struct pci_de
- 	return 1;
+diff -puN Documentation/sysctl/vm.txt~make-vm-statistics-update-interval-configurable Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~make-vm-statistics-update-interval-configurable
++++ a/Documentation/sysctl/vm.txt
+@@ -32,6 +32,7 @@ Currently, these files are in /proc/sys/
+ - min_slab_ratio
+ - panic_on_oom
+ - swap_prefetch
++- stat_interval
+ 
+ ==============================================================
+ 
+@@ -229,3 +230,21 @@ copying back pages from swap into the sw
+ practice it can take many minutes before the vm is idle enough.
+ 
+ The default value is 1.
++
++================================================================
++
++stat_interval
++
++The period (seconds) in which the vm statistics are consolidated if the
++kernel supports SMP. Differentials to VM statistics are kept in per cpu
++fields and are only consolidated with per zone and global counters if the
++differentials cross certain limits. This limits the frequency of global
++updates and results in good scaling of the VM counters. However, if those
++counters are below the limits then the global and per zone counters are
++off by that value.  So we should consolidate the counters at some point.
++So the kernel runs a statistics update at regular intervals to consolidate
++the per cpu differentials that are below the update limits. The interval
++determines the frequency of these consolidations.
++
++The default value is 1 second.
++
+diff -puN include/linux/sysctl.h~make-vm-statistics-update-interval-configurable include/linux/sysctl.h
+--- a/include/linux/sysctl.h~make-vm-statistics-update-interval-configurable
++++ a/include/linux/sysctl.h
+@@ -208,6 +208,7 @@ enum
+ 	VM_VDSO_ENABLED=34,	/* map VDSO into new processes? */
+ 	VM_MIN_SLAB=35,		 /* Percent pages ignored by zone reclaim */
+ 	VM_HUGETLB_TREAT_MOVABLE=36, /* Allocate hugepages from ZONE_MOVABLE */
++	VM_STAT_INTERVAL=37,	/* Statistics timer */
+ 
+ 	/* s390 vm cmm sysctls */
+ 	VM_CMM_PAGES=1111,
+diff -puN kernel/sysctl.c~make-vm-statistics-update-interval-configurable kernel/sysctl.c
+--- a/kernel/sysctl.c~make-vm-statistics-update-interval-configurable
++++ a/kernel/sysctl.c
+@@ -78,6 +78,7 @@ extern int sysctl_drop_caches;
+ extern int percpu_pagelist_fraction;
+ extern int compat_log;
+ extern int maps_protect;
++extern int sysctl_stat_interval;
+ 
+ /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
+ static int maxolduid = 65535;
+@@ -866,6 +867,17 @@ static ctl_table vm_table[] = {
+ 		.extra2		= &one_hundred,
+ 	},
+ #endif
++#ifdef CONFIG_SMP
++	{
++		.ctl_name	= VM_STAT_INTERVAL,
++		.procname	= "stat_interval",
++		.data		= &sysctl_stat_interval,
++		.maxlen		= sizeof(sysctl_stat_interval),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec_jiffies,
++		.strategy	= &sysctl_jiffies,
++	},
++#endif
+ #if defined(CONFIG_X86_32) || \
+    (defined(CONFIG_SUPERH) && defined(CONFIG_VSYSCALL))
+ 	{
+diff -puN mm/vmstat.c~make-vm-statistics-update-interval-configurable mm/vmstat.c
+--- a/mm/vmstat.c~make-vm-statistics-update-interval-configurable
++++ a/mm/vmstat.c
+@@ -641,11 +641,13 @@ const struct seq_operations vmstat_op = 
+ 
+ #ifdef CONFIG_SMP
+ static DEFINE_PER_CPU(struct delayed_work, vmstat_work);
++int sysctl_stat_interval __read_mostly = HZ;
+ 
+ static void vmstat_update(struct work_struct *w)
+ {
+ 	refresh_cpu_vm_stats(smp_processor_id());
+-	schedule_delayed_work(&__get_cpu_var(vmstat_work), HZ);
++	schedule_delayed_work(&__get_cpu_var(vmstat_work),
++		sysctl_stat_interval);
  }
-=20
-+/*
-+ * PicoPower PT86C523
-+ */
-+static int pirq_pico_get(struct pci_dev *router, struct pci_dev *dev, =
-int pirq)
-+{
-+	outb(0x10 + ((pirq - 1) >> 1), 0x24);
-+	return ((pirq - 1) & 1) ? (inb(0x26) >> 4) : (inb(0x26) & 0xf);
-+}
-+
-+static int pirq_pico_set(struct pci_dev *router, struct pci_dev *dev, =
-int pirq, int irq)
-+{
-+	unsigned int x;
-+	outb(0x10 + ((pirq - 1) >> 1), 0x24);
-+	x =3D inb(0x26);
-+	x =3D ((pirq - 1) & 1) ? ((x & 0x0f) | (irq << 4)) : ((x & 0xf0) | (i=
-rq));
-+	outb(x, 0x26);
-+}
-+
- #ifdef CONFIG_PCI_BIOS
-=20
- static int pirq_bios_set(struct pci_dev *router, struct pci_dev *dev, =
-int pirq, int irq)
-@@ -719,6 +737,24 @@ static __init int amd_router_probe(struc
- 	return 1;
- }
- 	=09
-+static __init int pico_router_probe(struct irq_router *r, struct pci_d=
-ev *router, u16 device)
-+{
-+	switch (device) {
-+	case PCI_DEVICE_ID_PICOPOWER_PT86C523:
-+		r->name =3D "PicoPower PT86C523";
-+		r->get =3D pirq_pico_get;
-+		r->set =3D pirq_pico_set;
-+		return 1;
-+
-+	case PCI_DEVICE_ID_PICOPOWER_PT86C523BBP:
-+		r->name =3D "PicoPower PT86C523 rev. BB+";
-+		r->get =3D pirq_pico_get;
-+		r->set =3D pirq_pico_set;
-+		return 1;
-+	}
-+	return 0;
-+}
-+
- static __initdata struct irq_router_handler pirq_routers[] =3D {
- 	{ PCI_VENDOR_ID_INTEL, intel_router_probe },
- 	{ PCI_VENDOR_ID_AL, ali_router_probe },
-@@ -730,6 +766,7 @@ static __initdata struct irq_router_hand
- 	{ PCI_VENDOR_ID_VLSI, vlsi_router_probe },
- 	{ PCI_VENDOR_ID_SERVERWORKS, serverworks_router_probe },
- 	{ PCI_VENDOR_ID_AMD, amd_router_probe },
-+	{ PCI_VENDOR_ID_PICOPOWER, pico_router_probe },
- 	/* Someone with docs needs to add the ATI Radeon IGP */
- 	{ 0, NULL }
- };
-diff -puN include/linux/pci_ids.h~i386-add-support-for-picopower-irq-ro=
-uter include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~i386-add-support-for-picopower-irq-router
-+++ a/include/linux/pci_ids.h
-@@ -819,6 +819,9 @@
- #define PCI_DEVICE_ID_UMC_UM8886BF	0x673a
- #define PCI_DEVICE_ID_UMC_UM8886A	0x886a
-=20
-+#define PCI_VENDOR_ID_PICOPOWER		0x1066
-+#define PCI_DEVICE_ID_PICOPOWER_PT86C523	0x0002
-+#define PCI_DEVICE_ID_PICOPOWER_PT86C523BBP	0x8002
-=20
- #define PCI_VENDOR_ID_MYLEX		0x1069
- #define PCI_DEVICE_ID_MYLEX_DAC960_P	0x0001
+ 
+ static void __devinit start_cpu_timer(int cpu)
 _
 
-Patches currently in -mm which might be from tmb@mandriva.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-i386-add-support-for-picopower-irq-router.patch
+origin.patch
+slab-introduce-krealloc.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+slub-core.patch
+make-page-private-usable-in-compound-pages-v1.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-add-min_partial.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
+slub-remove-object-activities-out-of-checking-functions.patch
+slub-user-documentation.patch
+slub-add-slabinfo-tool.patch
+quicklists-for-page-table-pages.patch
+quicklist-support-for-sparc64.patch
+slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+kmem_cache-simplify-slab-cache-creation.patch
+slab-allocators-remove-multiple-alignment-specifications.patch
+fault-injection-fix-failslab-with-config_numa.patch
+mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
+slab-allocators-remove-slab_debug_initial-flag.patch
+slab-allocators-remove-slab_ctor_atomic.patch
+slab-allocators-remove-useless-__gfp_no_grow-flag.patch
+page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-i386-support.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+vmstat-use-our-own-timer-events.patch
+make-vm-statistics-update-interval-configurable.patch
+readahead-state-based-method-aging-accounting.patch
+make-vm-statistics-update-interval-configurable-fix.patch
