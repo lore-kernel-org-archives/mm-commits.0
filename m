@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch added to -mm tree
-Date: Thu, 03 May 2007 13:02:00 -0700
-Message-ID: <200705032002.l43K20P4018664@shell0.pdx.osdl.net>
+Subject: + natsemi-allow-users-to-disable-workaround-for-dspcfg-reset.patch added to -mm tree
+Date: Thu, 03 May 2007 13:01:58 -0700
+Message-ID: <200705032001.l43K1x6F018661@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42803 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752277AbXECUFV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:05:21 -0400
+	by vger.kernel.org with ESMTP id S1753640AbXECUFY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:05:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, broonie@sirena.org.uk, jeff@garzik.org, thockin@hockin.org
+Cc: broonie@sirena.org.uk, jeff@garzik.org, thockin@hockin.org
 
 
 The patch titled
-     natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix
+     natsemi: Allow users to disable workaround for DspCfg reset
 has been added to the -mm tree.  Its filename is
-     natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
+     natsemi-allow-users-to-disable-workaround-for-dspcfg-reset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,186 +25,182 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: natsemi: Allow users to disable workaround for DspCfg reset
+From: Mark Brown <broonie@sirena.org.uk>
 
-whitespace bustage
+The natsemi driver contains a workaround for broken hardware which can
+partially reset the chip at unpredictable times, detected by checking for
+spontaneous changes in the DspCfg register.  The effects of the hardware bug
+appear to be variable and can range from minor problems like small numbers of
+corrupted packets to major ones such as the chip becoming non-functional.  In
+the case of minor problems the chip reconfiguration required to work around
+the hardware can cause more problems than the bug itself.
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Mark Brown <broonie@sirena.org.uk>
+Since we have no way of automatically determining how badly the problem
+manifests on any given system provide an option in sysfs allowing users to
+disable the workaround at runtime and provides a module option to set the
+default.
+
+Signed-off-by: Mark Brown <broonie@sirena.org.uk>
 Cc: Tim Hockin <thockin@hockin.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/natsemi.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/net/natsemi.c |   68 ++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 66 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix drivers/net/natsemi.c
---- a/drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix
+diff -puN drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset
 +++ a/drivers/net/natsemi.c
-@@ -661,13 +661,13 @@ static int netdev_get_regs(struct net_de
+@@ -81,6 +81,8 @@ static const int multicast_filter_limit 
+    Setting to > 1518 effectively disables this feature. */
+ static int rx_copybreak;
+ 
++static int dspcfg_workaround = 1;
++
+ /* Used to pass the media type, etc.
+    Both 'options[]' and 'full_duplex[]' should exist for driver
+    interoperability.
+@@ -139,12 +141,14 @@ MODULE_LICENSE("GPL");
+ module_param(mtu, int, 0);
+ module_param(debug, int, 0);
+ module_param(rx_copybreak, int, 0);
++module_param(dspcfg_workaround, int, 1);
+ module_param_array(options, int, NULL, 0);
+ module_param_array(full_duplex, int, NULL, 0);
+ MODULE_PARM_DESC(mtu, "DP8381x MTU (all boards)");
+ MODULE_PARM_DESC(debug, "DP8381x default debug level");
+ MODULE_PARM_DESC(rx_copybreak,
+ 	"DP8381x copy breakpoint for copy-only-tiny-frames");
++MODULE_PARM_DESC(dspcfg_workaround, "DP8381x: control DspCfg workaround");
+ MODULE_PARM_DESC(options,
+ 	"DP8381x: Bits 0-3: media type, bit 17: full duplex");
+ MODULE_PARM_DESC(full_duplex, "DP8381x full duplex setting(s) (1)");
+@@ -590,6 +594,7 @@ struct netdev_private {
+ 	u32 srr;
+ 	/* expected DSPCFG value */
+ 	u16 dspcfg;
++	int dspcfg_workaround;
+ 	/* parms saved in ethtool format */
+ 	u16	speed;		/* The forced speed, 10Mb, 100Mb, gigabit */
+ 	u8	duplex;		/* Duplex, half or full */
+@@ -656,6 +661,56 @@ static int netdev_get_regs(struct net_de
  static int netdev_get_eeprom(struct net_device *dev, u8 *buf);
  static const struct ethtool_ops ethtool_ops;
  
--#define NATSEMI_ATTR(_name) \
--static ssize_t natsemi_show_##_name(struct device *dev, \
--         struct device_attribute *attr, char *buf); \
--	 static ssize_t natsemi_set_##_name(struct device *dev, \
--		struct device_attribute *attr, \
--	        const char *buf, size_t count); \
--	 static DEVICE_ATTR(_name, 0644, natsemi_show_##_name, natsemi_set_##_name)
-+#define NATSEMI_ATTR(_name)						\
-+static ssize_t natsemi_show_##_name(struct device *dev,			\
-+	struct device_attribute *attr, char *buf);			\
-+	static ssize_t natsemi_set_##_name(struct device *dev,		\
-+		struct device_attribute *attr,				\
-+		const char *buf, size_t count);				\
-+	static DEVICE_ATTR(_name, 0644, natsemi_show_##_name, natsemi_set_##_name)
- 
- #define NATSEMI_CREATE_FILE(_dev, _name) \
-          device_create_file(&_dev->dev, &dev_attr_##_name)
-@@ -693,14 +693,14 @@ static ssize_t natsemi_set_dspcfg_workar
- 	int new_setting;
- 	u32 flags;
- 
--        /* Find out the new setting */
--        if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
--                new_setting = 1;
--        else if (!strncmp("off", buf, count - 1)
--                 || !strncmp("0", buf, count - 1))
-+	/* Find out the new setting */
-+	if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
-+		new_setting = 1;
-+	else if (!strncmp("off", buf, count - 1) ||
-+			!strncmp("0", buf, count - 1))
- 		new_setting = 0;
++#define NATSEMI_ATTR(_name) \
++static ssize_t natsemi_show_##_name(struct device *dev, \
++         struct device_attribute *attr, char *buf); \
++	 static ssize_t natsemi_set_##_name(struct device *dev, \
++		struct device_attribute *attr, \
++	        const char *buf, size_t count); \
++	 static DEVICE_ATTR(_name, 0644, natsemi_show_##_name, natsemi_set_##_name)
++
++#define NATSEMI_CREATE_FILE(_dev, _name) \
++         device_create_file(&_dev->dev, &dev_attr_##_name)
++#define NATSEMI_REMOVE_FILE(_dev, _name) \
++         device_create_file(&_dev->dev, &dev_attr_##_name)
++
++NATSEMI_ATTR(dspcfg_workaround);
++
++static ssize_t natsemi_show_dspcfg_workaround(struct device *dev,
++				  	      struct device_attribute *attr,
++					      char *buf)
++{
++	struct netdev_private *np = netdev_priv(to_net_dev(dev));
++
++	return sprintf(buf, "%s\n", np->dspcfg_workaround ? "on" : "off");
++}
++
++static ssize_t natsemi_set_dspcfg_workaround(struct device *dev,
++					     struct device_attribute *attr,
++					     const char *buf, size_t count)
++{
++	struct netdev_private *np = netdev_priv(to_net_dev(dev));
++	int new_setting;
++	u32 flags;
++
++        /* Find out the new setting */
++        if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
++                new_setting = 1;
++        else if (!strncmp("off", buf, count - 1)
++                 || !strncmp("0", buf, count - 1))
++		new_setting = 0;
++	else
++                 return count;
++
++	spin_lock_irqsave(&np->lock, flags);
++
++	np->dspcfg_workaround = new_setting;
++
++	spin_unlock_irqrestore(&np->lock, flags);
++
++	return count;
++}
++
+ static inline void __iomem *ns_ioaddr(struct net_device *dev)
+ {
+ 	return (void __iomem *) dev->base_addr;
+@@ -820,6 +875,7 @@ static int __devinit natsemi_probe1 (str
+ 		np->ignore_phy = 1;
  	else
--                 return count;
-+		return count;
+ 		np->ignore_phy = 0;
++	np->dspcfg_workaround = dspcfg_workaround;
  
- 	spin_lock_irqsave(&np->lock, flags);
+ 	/* Initial port:
+ 	 * - If configured to ignore the PHY set up for external.
+@@ -899,6 +955,9 @@ static int __devinit natsemi_probe1 (str
+ 	if (i)
+ 		goto err_register_netdev;
  
++	if (NATSEMI_CREATE_FILE(pdev, dspcfg_workaround))
++		goto err_create_file;
++
+ 	if (netif_msg_drv(np)) {
+ 		printk(KERN_INFO "natsemi %s: %s at %#08lx (%s), ",
+ 			dev->name, natsemi_pci_info[chip_idx].name, iostart,
+@@ -915,6 +974,9 @@ static int __devinit natsemi_probe1 (str
+ 	}
+ 	return 0;
+ 
++ err_create_file:
++ 	unregister_netdev(dev);
++
+  err_register_netdev:
+ 	iounmap(ioaddr);
+ 
+@@ -1727,7 +1789,8 @@ static void init_registers(struct net_de
+  *    It seems that a reference set for this chip went out with incorrect info,
+  *    and there exist boards that aren't quite right.  An unexpected voltage
+  *    drop can cause the PHY to get itself in a weird state (basically reset).
+- *    NOTE: this only seems to affect revC chips.
++ *    NOTE: this only seems to affect revC chips.  The user can disable
++ *    this check via dspcfg_workaround sysfs option.
+  * 3) check of death of the RX path due to OOM
+  */
+ static void netdev_timer(unsigned long data)
+@@ -1753,7 +1816,7 @@ static void netdev_timer(unsigned long d
+ 		writew(1, ioaddr+PGSEL);
+ 		dspcfg = readw(ioaddr+DSPCFG);
+ 		writew(0, ioaddr+PGSEL);
+-		if (dspcfg != np->dspcfg) {
++		if (np->dspcfg_workaround && dspcfg != np->dspcfg) {
+ 			if (!netif_queue_stopped(dev)) {
+ 				spin_unlock_irq(&np->lock);
+ 				if (netif_msg_drv(np))
+@@ -3157,6 +3220,7 @@ static void __devexit natsemi_remove1 (s
+ 	struct net_device *dev = pci_get_drvdata(pdev);
+ 	void __iomem * ioaddr = ns_ioaddr(dev);
+ 
++	NATSEMI_REMOVE_FILE(pdev, dspcfg_workaround);
+ 	unregister_netdev (dev);
+ 	pci_release_regions (pdev);
+ 	iounmap(ioaddr);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from broonie@sirena.org.uk are
 
-origin.patch
-slab-introduce-krealloc.patch
-rm9000-serial-driver.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-cx88-video-build-fix.patch
-zlib-backout.patch
-git-acpi.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-arm.patch
-git-avr32.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-git-drm.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-jfs.patch
-git-kbuild.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
+natsemi-improve-diagnostics-for-dspcfg-workaround.patch
+natsemi-allow-users-to-disable-workaround-for-dspcfg-reset.patch
 natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-nfs.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
