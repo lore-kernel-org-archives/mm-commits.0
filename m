@@ -1,90 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: + ps3-make-ps3videomode-v-0-auto-mode-work-again.patch added to -mm tree
-Date: Wed, 02 May 2007 23:21:56 -0700
-Message-ID: <200705030621.l436LuGf006236@shell0.pdx.osdl.net>
+Subject: - input-ff-add-ff_raw-effect.patch removed from -mm tree
+Date: Wed, 02 May 2007 23:25:55 -0700
+Message-ID: <200705030625.l436Ptw5006281@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44016 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932332AbXECGW6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 02:22:58 -0400
+	by vger.kernel.org with ESMTP id S1030799AbXECG0d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 02:26:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Masashi_Kimoto@hq.scei.sony.co.jp, Geert.Uytterhoeven@sonycom.com, adaplas@pol.net
+To: jirislaby@gmail.com, dtor@mail.ru, johann.deneux@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3: Make `ps3videomode -v 0 (auto mode) work again
-has been added to the -mm tree.  Its filename is
-     ps3-make-ps3videomode-v-0-auto-mode-work-again.patch
+     Input: ff, add FF_RAW effect
+has been removed from the -mm tree.  Its filename was
+     input-ff-add-ff_raw-effect.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ps3: Make `ps3videomode -v 0 (auto mode) work again
-From: Masashi Kimoto <Masashi_Kimoto@hq.scei.sony.co.jp>
+Subject: Input: ff, add FF_RAW effect
+From: Jiri Slaby <jirislaby@gmail.com>
 
-ps3: Make `ps3videomode -v 0' (auto mode) work again
+Add new FF_RAW effect for devices such Phantom. The new model has up to 6DOF
+torque force feedback independent on any 3d-or-so value.
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: johann deneux <johann.deneux@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ps3/ps3av.c         |    7 +++++++
- drivers/video/ps3fb.c       |    5 +++++
- include/asm-powerpc/ps3av.h |    1 +
- 3 files changed, 13 insertions(+)
+ drivers/input/ff-memless.c |    4 ++++
+ include/linux/input.h      |    4 +++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ps3/ps3av.c~ps3-make-ps3videomode-v-0-auto-mode-work-again drivers/ps3/ps3av.c
---- a/drivers/ps3/ps3av.c~ps3-make-ps3videomode-v-0-auto-mode-work-again
-+++ a/drivers/ps3/ps3av.c
-@@ -744,6 +744,13 @@ int ps3av_set_video_mode(u32 id, int boo
+diff -puN drivers/input/ff-memless.c~input-ff-add-ff_raw-effect drivers/input/ff-memless.c
+--- a/drivers/input/ff-memless.c~input-ff-add-ff_raw-effect
++++ a/drivers/input/ff-memless.c
+@@ -275,6 +275,10 @@ static void ml_combine_effects(struct ff
+ 			min(i + effect->u.rumble.weak_magnitude, 0xffffU);
+ 		break;
  
- EXPORT_SYMBOL_GPL(ps3av_set_video_mode);
- 
-+int ps3av_get_auto_mode(int boot)
-+{
-+	return ps3av_auto_videomode(&ps3av.av_hw_conf, boot);
-+}
++	case FF_RAW:
++		memcpy(effect->u.ff_raw, new->u.ff_raw, sizeof(new->u.ff_raw));
++		break;
 +
-+EXPORT_SYMBOL_GPL(ps3av_get_auto_mode);
-+
- int ps3av_set_mode(u32 id, int boot)
- {
- 	int res;
-diff -puN drivers/video/ps3fb.c~ps3-make-ps3videomode-v-0-auto-mode-work-again drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3-make-ps3videomode-v-0-auto-mode-work-again
-+++ a/drivers/video/ps3fb.c
-@@ -732,6 +732,11 @@ static int ps3fb_ioctl(struct fb_info *i
- 			if (copy_from_user(&val, argp, sizeof(val)))
- 				break;
+ 	default:
+ 		printk(KERN_ERR "ff-memless: invalid type in ml_combine_effects()\n");
+ 		break;
+diff -puN include/linux/input.h~input-ff-add-ff_raw-effect include/linux/input.h
+--- a/include/linux/input.h~input-ff-add-ff_raw-effect
++++ a/include/linux/input.h
+@@ -857,6 +857,7 @@ struct ff_effect {
+ 		struct ff_periodic_effect periodic;
+ 		struct ff_condition_effect condition[2]; /* One for each axis */
+ 		struct ff_rumble_effect rumble;
++		__u32 ff_raw[6];
+ 	} u;
+ };
  
-+			if (!(val & PS3AV_MODE_MASK)) {
-+				u32 id = ps3av_get_auto_mode(0);
-+				if (id > 0)
-+					val = (val & ~PS3AV_MODE_MASK) | id;
-+			}
- 			DPRINTK("PS3FB_IOCTL_SETMODE:%x\n", val);
- 			retval = -EINVAL;
- 			old_mode = ps3fb_mode;
-diff -puN include/asm-powerpc/ps3av.h~ps3-make-ps3videomode-v-0-auto-mode-work-again include/asm-powerpc/ps3av.h
---- a/include/asm-powerpc/ps3av.h~ps3-make-ps3videomode-v-0-auto-mode-work-again
-+++ a/include/asm-powerpc/ps3av.h
-@@ -706,6 +706,7 @@ extern int ps3av_vuart_read(struct ps3_v
+@@ -872,9 +873,10 @@ struct ff_effect {
+ #define FF_DAMPER	0x55
+ #define FF_INERTIA	0x56
+ #define FF_RAMP		0x57
++#define FF_RAW		0x58
  
- extern int ps3av_set_video_mode(u32, int);
- extern int ps3av_set_audio_mode(u32, u32, u32, u32, u32);
-+extern int ps3av_get_auto_mode(int);
- extern int ps3av_set_mode(u32, int);
- extern int ps3av_get_mode(void);
- extern int ps3av_get_scanmode(int);
+ #define FF_EFFECT_MIN	FF_RUMBLE
+-#define FF_EFFECT_MAX	FF_RAMP
++#define FF_EFFECT_MAX	FF_RAW
+ 
+ /*
+  * Force feedback periodic effect types
 _
 
-Patches currently in -mm which might be from Masashi_Kimoto@hq.scei.sony.co.jp are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-ps3-make-ps3videomode-v-0-auto-mode-work-again.patch
+serial-serial_core-use-pr_debug.patch
+input-ff-add-ff_raw-effect.patch
+input-phantom-add-a-new-driver.patch
+misc-add-sensable-phantom-driver.patch
+char-rocket-add-module_device_table.patch
+char-cs5535_gpio-add-module_device_table.patch
+drivers-char-use-__set_current_state.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+char-cyclades-remove-pause.patch
+char-cyclades-cy_readx-writex-cleanup.patch
+char-cyclades-timer-cleanup.patch
+char-cyclades-remove-volatiles.patch
+char-cyclades-remove-useless-casts.patch
+char-cyclades-create-cy_init_ze.patch
+char-cyclades-use-pci_iomap-unmap.patch
+char-cyclades-init-ze-immediately.patch
+char-cyclades-create-cy_pci_probe.patch
+char-cyclades-move-card-entries-init-into-function.patch
+char-cyclades-init-card-struct-immediately.patch
+char-cyclades-remove-some-global-vars.patch
+char-cyclades-cy_init-error-handling.patch
+char-cyclades-tty_register_device-separately-for-each-device.patch
+char-cyclades-clear-interrupts-before-releasing.patch
+char-cyclades-allow-debug_shirq.patch
+char-mxser-schedule-for-removal.patch
+char-isicom-use-pr_debug.patch
+shrink_slab-handle-bad-shrinkers.patch
