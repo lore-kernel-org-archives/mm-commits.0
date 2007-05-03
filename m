@@ -1,244 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: + x86-msr-add-support-for-safe-variants.patch added to -mm tree
-Date: Wed, 02 May 2007 16:27:39 -0700
-Message-ID: <200705022330.l42NUTZB032739@shell0.pdx.osdl.net>
+Subject: - ne-mips-use-platform_driver-for-ne-on-rbtx49xx.patch removed from -mm tree
+Date: Wed, 02 May 2007 20:38:12 -0700
+Message-ID: <200705030338.l433cCrX004071@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60597 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46378 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767245AbXEBXbK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 19:31:10 -0400
+	by vger.kernel.org with ESMTP id S1767350AbXECDi1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 23:38:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: r.marek@assembler.cz, adobriyan@openvz.org, ak@suse.de, davej@redhat.com, khali@linux-fr.org
+To: anemo@mba.ocn.ne.jp, jeff@garzik.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: MSR: add support for safe variants
-has been added to the -mm tree.  Its filename is
-     x86-msr-add-support-for-safe-variants.patch
+     ne: MIPS: Use platform_driver for ne on RBTX49XX
+has been removed from the -mm tree.  Its filename was
+     ne-mips-use-platform_driver-for-ne-on-rbtx49xx.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: x86: MSR: add support for safe variants
-From: Rudolf Marek <r.marek@assembler.cz>
+Subject: ne: MIPS: Use platform_driver for ne on RBTX49XX
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Add safe (exception handled) variants of rdmsr_on_cpu and wrmsr_on_cpu. 
-You should use these when the target MSR may not actually exist, as doing
-so could trigger an exception which the regular functions do not handle. 
-The safe variants are slower, though.
+This patch lets RBTX49XX boards use generic platform_driver interface for the
+ne driver.
 
-The upcoming coretemp hardware monitoring driver will need this.
+* Use platform_device to pass ioaddr and irq to the ne driver.
+* Remove unnecessary ifdefs for RBTX49XX from the ne driver.
+* Make the ne driver selectable on these boards regardless of CONFIG_ISA
+* Add an ifdef for netcard_portlist[] to avoid unnecessary auto-probe.
+  (I'm not sure M32R needs auto-probe but it is current behavior)
 
-Signed-off-by: Rudolf Marek <r.marek@assembler.cz>
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Dave Jones <davej@redhat.com>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lib/msr-on-cpu.c |   73 ++++++++++++++++++++++++++++++++---
- include/asm-i386/msr.h     |   12 +++++
- include/asm-x86_64/msr.h   |   11 +++++
- 3 files changed, 89 insertions(+), 7 deletions(-)
+ arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |   19 +++++++++
+ arch/mips/tx4938/toshiba_rbtx4938/setup.c                  |   20 ++++++++++
+ drivers/net/Kconfig                                        |    2 -
+ drivers/net/ne.c                                           |   13 ++----
+ 4 files changed, 44 insertions(+), 10 deletions(-)
 
-diff -puN arch/i386/lib/msr-on-cpu.c~x86-msr-add-support-for-safe-variants arch/i386/lib/msr-on-cpu.c
---- a/arch/i386/lib/msr-on-cpu.c~x86-msr-add-support-for-safe-variants
-+++ a/arch/i386/lib/msr-on-cpu.c
-@@ -6,6 +6,7 @@
- struct msr_info {
- 	u32 msr_no;
- 	u32 l, h;
-+	int err;
- };
- 
- static void __rdmsr_on_cpu(void *info)
-@@ -15,20 +16,38 @@ static void __rdmsr_on_cpu(void *info)
- 	rdmsr(rv->msr_no, rv->l, rv->h);
+diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
+--- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx
++++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
+@@ -1049,3 +1049,22 @@ static int __init toshiba_rbtx4927_rtc_i
+ 	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
  }
- 
--void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
-+static void __rdmsr_safe_on_cpu(void *info)
- {
-+	struct msr_info *rv = info;
+ device_initcall(toshiba_rbtx4927_rtc_init);
 +
-+	rv->err = rdmsr_safe(rv->msr_no, &rv->l, &rv->h);
-+}
-+
-+static int _rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h, int safe)
++static int __init rbtx4927_ne_init(void)
 +{
-+	int err = 0;
- 	preempt_disable();
- 	if (smp_processor_id() == cpu)
--		rdmsr(msr_no, *l, *h);
-+		if (safe)
-+			err = rdmsr_safe(msr_no, l, h);
-+		else
-+			rdmsr(msr_no, *l, *h);
- 	else {
- 		struct msr_info rv;
- 
- 		rv.msr_no = msr_no;
--		smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
-+		if (safe) {
-+			smp_call_function_single(cpu, __rdmsr_safe_on_cpu,
-+						 &rv, 0, 1);
-+			err = rv.err;
-+		} else {
-+			smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
++	struct resource res[] = {
++		{
++			.start	= RBTX4927_RTL_8019_BASE,
++			.end	= RBTX4927_RTL_8019_BASE + 0x20 - 1,
++			.flags	= IORESOURCE_IO,
++		}, {
++			.start	= RBTX4927_RTL_8019_IRQ,
++			.flags	= IORESOURCE_IRQ,
 +		}
- 		*l = rv.l;
- 		*h = rv.h;
- 	}
- 	preempt_enable();
-+	return err;
- }
- 
- static void __wrmsr_on_cpu(void *info)
-@@ -38,21 +57,63 @@ static void __wrmsr_on_cpu(void *info)
- 	wrmsr(rv->msr_no, rv->l, rv->h);
- }
- 
--void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
-+static void __wrmsr_safe_on_cpu(void *info)
- {
-+	struct msr_info *rv = info;
-+
-+	rv->err = wrmsr_safe(rv->msr_no, rv->l, rv->h);
++	};
++	struct platform_device *dev =
++		platform_device_register_simple("ne", -1,
++						res, ARRAY_SIZE(res));
++	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
 +}
-+
-+static int _wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h, int safe)
-+{
-+	int err = 0;
- 	preempt_disable();
- 	if (smp_processor_id() == cpu)
--		wrmsr(msr_no, l, h);
-+		if (safe)
-+			err = wrmsr_safe(msr_no, l, h);
-+		else
-+			wrmsr(msr_no, l, h);
- 	else {
- 		struct msr_info rv;
++device_initcall(rbtx4927_ne_init);
+diff -puN arch/mips/tx4938/toshiba_rbtx4938/setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx arch/mips/tx4938/toshiba_rbtx4938/setup.c
+--- a/arch/mips/tx4938/toshiba_rbtx4938/setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx
++++ a/arch/mips/tx4938/toshiba_rbtx4938/setup.c
+@@ -20,6 +20,7 @@
+ #include <linux/console.h>
+ #include <linux/pci.h>
+ #include <linux/pm.h>
++#include <linux/platform_device.h>
  
- 		rv.msr_no = msr_no;
- 		rv.l = l;
- 		rv.h = h;
--		smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
-+		if (safe) {
-+			smp_call_function_single(cpu, __wrmsr_safe_on_cpu,
-+						 &rv, 0, 1);
-+			err = rv.err;
-+		} else {
-+			smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
+ #include <asm/wbflush.h>
+ #include <asm/reboot.h>
+@@ -1037,3 +1038,22 @@ static int __init tx4938_spi_proc_setup(
+ 
+ __initcall(tx4938_spi_proc_setup);
+ #endif
++
++static int __init rbtx4938_ne_init(void)
++{
++	struct resource res[] = {
++		{
++			.start	= RBTX4938_RTL_8019_BASE,
++			.end	= RBTX4938_RTL_8019_BASE + 0x20 - 1,
++			.flags	= IORESOURCE_IO,
++		}, {
++			.start	= RBTX4938_RTL_8019_IRQ,
++			.flags	= IORESOURCE_IRQ,
 +		}
- 	}
- 	preempt_enable();
-+	return err;
++	};
++	struct platform_device *dev =
++		platform_device_register_simple("ne", -1,
++						res, ARRAY_SIZE(res));
++	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
 +}
-+
-+void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
-+{
-+	_wrmsr_on_cpu(cpu, msr_no, l, h, 0);
-+}
-+
-+void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
-+{
-+	_rdmsr_on_cpu(cpu, msr_no, l, h, 0);
-+}
-+
-+/* These "safe" variants are slower and should be used when the target MSR
-+   may not actually exist. */
-+int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
-+{
-+	return _wrmsr_on_cpu(cpu, msr_no, l, h, 1);
-+}
-+
-+int rdmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
-+{
-+	return _rdmsr_on_cpu(cpu, msr_no, l, h, 1);
- }
++device_initcall(rbtx4938_ne_init);
+diff -puN drivers/net/Kconfig~ne-mips-use-platform_driver-for-ne-on-rbtx49xx drivers/net/Kconfig
+--- a/drivers/net/Kconfig~ne-mips-use-platform_driver-for-ne-on-rbtx49xx
++++ a/drivers/net/Kconfig
+@@ -1148,7 +1148,7 @@ config ETH16I
  
- EXPORT_SYMBOL(rdmsr_on_cpu);
- EXPORT_SYMBOL(wrmsr_on_cpu);
-+EXPORT_SYMBOL(rdmsr_safe_on_cpu);
-+EXPORT_SYMBOL(wrmsr_safe_on_cpu);
-diff -puN include/asm-i386/msr.h~x86-msr-add-support-for-safe-variants include/asm-i386/msr.h
---- a/include/asm-i386/msr.h~x86-msr-add-support-for-safe-variants
-+++ a/include/asm-i386/msr.h
-@@ -77,7 +77,7 @@ static inline unsigned long long native_
- #ifdef CONFIG_PARAVIRT
- #include <asm/paravirt.h>
- #else
+ config NE2000
+ 	tristate "NE2000/NE1000 support"
+-	depends on NET_ISA || (Q40 && m) || M32R
++	depends on NET_ISA || (Q40 && m) || M32R || TOSHIBA_RBTX4927 || TOSHIBA_RBTX4938
+ 	select CRC32
+ 	---help---
+ 	  If you have a network (Ethernet) card of this type, say Y and read
+diff -puN drivers/net/ne.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx drivers/net/ne.c
+--- a/drivers/net/ne.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx
++++ a/drivers/net/ne.c
+@@ -56,10 +56,6 @@ static const char version2[] =
+ #include <asm/system.h>
+ #include <asm/io.h>
+ 
+-#if defined(CONFIG_TOSHIBA_RBTX4927) || defined(CONFIG_TOSHIBA_RBTX4938)
+-#include <asm/tx4938/rbtx4938.h>
+-#endif
 -
-+#include <linux/errno.h>
- /*
-  * Access to machine-specific registers (available on 586 and better only)
-  * Note: the rd* operations modify the parameters directly (without using
-@@ -148,6 +148,8 @@ static inline void wrmsrl (unsigned long
- #ifdef CONFIG_SMP
- void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
- void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
-+int rdmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
-+int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
- #else  /*  CONFIG_SMP  */
- static inline void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
- {
-@@ -157,6 +159,14 @@ static inline void wrmsr_on_cpu(unsigned
- {
- 	wrmsr(msr_no, l, h);
- }
-+static inline int rdmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
-+{
-+	return rdmsr_safe(msr_no, l, h);
-+}
-+static inline int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
-+{
-+	return wrmsr_safe(msr_no, l, h);
-+}
- #endif  /*  CONFIG_SMP  */
- #endif
- #endif
-diff -puN include/asm-x86_64/msr.h~x86-msr-add-support-for-safe-variants include/asm-x86_64/msr.h
---- a/include/asm-x86_64/msr.h~x86-msr-add-support-for-safe-variants
-+++ a/include/asm-x86_64/msr.h
-@@ -4,6 +4,7 @@
- #include <asm/msr-index.h>
+ #include "8390.h"
  
- #ifndef __ASSEMBLY__
-+#include <linux/errno.h>
- /*
-  * Access to machine-specific registers (available on 586 and better only)
-  * Note: the rd* operations modify the parameters directly (without using
-@@ -162,6 +163,8 @@ static inline unsigned int cpuid_edx(uns
- #ifdef CONFIG_SMP
- void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
- void wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
-+int rdmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h);
-+int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h);
- #else  /*  CONFIG_SMP  */
- static inline void rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
- {
-@@ -171,6 +174,14 @@ static inline void wrmsr_on_cpu(unsigned
- {
- 	wrmsr(msr_no, l, h);
- }
-+static inline int rdmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h)
-+{
-+	return rdmsr_safe(msr_no, l, h);
-+}
-+static inline int wrmsr_safe_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h)
-+{
-+	return wrmsr_safe(msr_no, l, h);
-+}
- #endif  /* CONFIG_SMP */
- #endif /* __ASSEMBLY__ */
- #endif	/* X86_64_MSR_H */
+ #define DRV_NAME "ne"
+@@ -81,7 +77,10 @@ static const char version2[] =
+ /* A zero-terminated list of I/O addresses to be probed at boot. */
+ #ifndef MODULE
+ static unsigned int netcard_portlist[] __initdata = {
+-	0x300, 0x280, 0x320, 0x340, 0x360, 0x380, 0
++#if defined(CONFIG_ISA) || defined(CONFIG_M32R)
++	0x300, 0x280, 0x320, 0x340, 0x360, 0x380,
++#endif
++	0
+ };
+ #endif
+ 
+@@ -227,10 +226,6 @@ struct net_device * __init ne_probe(int 
+ 	sprintf(dev->name, "eth%d", unit);
+ 	netdev_boot_setup_check(dev);
+ 
+-#ifdef CONFIG_TOSHIBA_RBTX4938
+-	dev->base_addr = RBTX4938_RTL_8019_BASE;
+-	dev->irq = RBTX4938_RTL_8019_IRQ;
+-#endif
+ 	err = do_ne_probe(dev);
+ 	if (err)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from r.marek@assembler.cz are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+
+origin.patch
+git-kbuild.patch
+git-mips.patch
+ne-mips-use-platform_driver-for-ne-on-rbtx49xx.patch
+mips-drop-unnecessary-config_isa-from-rbtx49xx.patch
+serial_txx9-use-assigned-device-numbers.patch
+serial_txx9-zap-changelog-from-source-code.patch
