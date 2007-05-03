@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch added to -mm tree
-Date: Thu, 03 May 2007 14:28:28 -0700
-Message-ID: <200705032131.l43LVI68020458@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch added to -mm tree
+Date: Thu, 03 May 2007 14:34:16 -0700
+Message-ID: <200705032137.l43Lb60V020536@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59883 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030180AbXECVdM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 17:33:12 -0400
+	by vger.kernel.org with ESMTP id S1767438AbXECVhK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 17:37:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com
 
 
 The patch titled
-     acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable
+     fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
 has been added to the -mm tree.  Its filename is
-     acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
+     fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable
+Subject: fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
+fs/sysfs/bin.c: In function 'read':
+fs/sysfs/bin.c:58: warning: format '%zd' expects type 'signed size_t', but argument 4 has type 'int'
+
+I made the local size_t, to force some fishy-looking arithmetic in there to
+use unsigned arithmetic.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    2 +-
+ fs/sysfs/bin.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable
-+++ a/drivers/acpi/processor_idle.c
-@@ -239,7 +239,7 @@ static void acpi_state_timer_broadcast(s
+diff -puN fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
++++ a/fs/sysfs/bin.c
+@@ -54,7 +54,7 @@ read(struct file *file, char __user *use
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	int size = dentry->d_inode->i_size;
+ 	loff_t offs = *off;
+-	int count = min_t(size_t, bytes, PAGE_SIZE);
++	size_t count = min_t(size_t, bytes, PAGE_SIZE);
  
- #ifdef CONFIG_GENERIC_TIME
- 		/* TSC halts in C2/3, so notify users */
--		mark_tsc_unstable();
-+		mark_tsc_unstable("TSC halts in C2/3");
- #endif
- 	}
- }
+ 	if (size) {
+ 		if (offs > size)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +77,7 @@ git-agpgart.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 git-arm.patch
 git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
 git-drm.patch
 cinergyt2-fix-file-release-handler.patch
