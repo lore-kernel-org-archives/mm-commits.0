@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + old-buffer-overflow-in-moxa-driver.patch added to -mm tree
-Date: Wed, 02 May 2007 21:13:58 -0700
-Message-ID: <200705030413.l434DwAT004520@shell0.pdx.osdl.net>
+Date: Wed, 02 May 2007 21:21:34 -0700
+Message-ID: <200705030421.l434LZav004644@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58462 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767367AbXECEOe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 00:14:34 -0400
+	by vger.kernel.org with ESMTP id S1767378AbXECEWJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 00:22:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -39,7 +39,7 @@ Debian has been shipping the following patch from Andres Salomon.
 (akpm: it's a privileged operation)
 
 Signed-off-by: dann frazier <dannf@hp.com>
-Cc: Andres Salomon <dilinger@debian.org>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
