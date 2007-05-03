@@ -1,59 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:31:29 -0700
-Message-ID: <200705031931.l43JVTJu018271@shell0.pdx.osdl.net>
+Subject: - i386-__inquire_remote_apic-printk-warning-fix.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:31:34 -0700
+Message-ID: <200705031931.l43JVYqb018274@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52491 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767870AbXECTdi (ORCPT
+	by vger.kernel.org with ESMTP id S1767871AbXECTdi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-s390 vs gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+     i386: __inquire_remote_apic printk warning fix
 has been removed from the -mm tree.  Its filename was
-     git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+     i386-__inquire_remote_apic-printk-warning-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-s390 vs gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+Subject: i386: __inquire_remote_apic printk warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Sigh.
+arch/i386/kernel/smpboot.c: In function '__inquire_remote_apic':
+arch/i386/kernel/smpboot.c:550: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+This function appears to have no callers.
+
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/chp.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/i386/kernel/smpboot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/s390/cio/chp.c~git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/s390/cio/chp.c
---- a/drivers/s390/cio/chp.c~git-s390-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-+++ a/drivers/s390/cio/chp.c
-@@ -165,7 +165,6 @@ static struct bin_attribute chp_measurem
- 	.attr = {
- 		.name = "measurement_chars",
- 		.mode = S_IRUSR,
--		.owner = THIS_MODULE,
- 	},
- 	.size = sizeof(struct cmg_chars),
- 	.read = chp_measurement_chars_read,
-@@ -217,7 +216,6 @@ static struct bin_attribute chp_measurem
- 	.attr = {
- 		.name = "measurement",
- 		.mode = S_IRUSR,
--		.owner = THIS_MODULE,
- 	},
- 	.size = sizeof(struct cmg_entry),
- 	.read = chp_measurement_read,
+diff -puN arch/i386/kernel/smpboot.c~i386-__inquire_remote_apic-printk-warning-fix arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~i386-__inquire_remote_apic-printk-warning-fix
++++ a/arch/i386/kernel/smpboot.c
+@@ -548,7 +548,7 @@ static inline void __inquire_remote_apic
+ 		switch (status) {
+ 		case APIC_ICR_RR_VALID:
+ 			status = apic_read(APIC_RRR);
+-			printk("%08x\n", status);
++			printk("%08lx\n", status);
+ 			break;
+ 		default:
+ 			printk("failed\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
