@@ -1,178 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - ida-implement-idr-based-id-allocator-fix.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:31:00 -0700
-Message-ID: <200705031931.l43JV0IK018228@shell0.pdx.osdl.net>
+Subject: - idr-separate-out-idr_mark_full.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:30:56 -0700
+Message-ID: <200705031930.l43JUuBK018222@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40552 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767831AbXECTdF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:05 -0400
+	by vger.kernel.org with ESMTP id S1767825AbXECTdB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, teheo@suse.de, mm-commits@vger.kernel.org
+To: teheo@suse.de, greg@kroah.com, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ida-implement-idr-based-id-allocator-fix
+     idr: separate out idr_mark_full()
 has been removed from the -mm tree.  Its filename was
-     ida-implement-idr-based-id-allocator-fix.patch
+     idr-separate-out-idr_mark_full.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ida-implement-idr-based-id-allocator-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: idr: separate out idr_mark_full()
+From: Tejun Heo <teheo@suse.de>
 
+Separate out idr_mark_full() from sub_alloc() and make marking the
+allocated slot full the responsibility of idr_get_new_above_int().
+
+Allocation part of idr_get_new_above_int() is renamed to
+idr_get_empty_slot().  New idr_get_new_above_int() allocates a slot using
+the function, install the user pointer and marks it full using
+idr_mark_full().
+
+This change doesn't introduce any behavior change.  This will be
+used by ida.
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Tejun Heo <teheo@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ lib/idr.c |   71 +++++++++++++++++++++++++++++++++-------------------
+ 1 files changed, 46 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/idr.h~ida-implement-idr-based-id-allocator-fix include/linux/idr.h
-diff -puN lib/idr.c~ida-implement-idr-based-id-allocator-fix lib/idr.c
---- a/lib/idr.c~ida-implement-idr-based-id-allocator-fix
+diff -puN lib/idr.c~idr-separate-out-idr_mark_full lib/idr.c
+--- a/lib/idr.c~idr-separate-out-idr_mark_full
 +++ a/lib/idr.c
-@@ -507,7 +507,6 @@ void idr_init(struct idr *idp)
- }
- EXPORT_SYMBOL(idr_init);
- 
--
- /*
-  * IDA - IDR based ID allocator
-  *
-@@ -536,7 +535,7 @@ static void free_bitmap(struct ida *ida,
+@@ -70,6 +70,26 @@ static void free_layer(struct idr *idp, 
+ 	spin_unlock_irqrestore(&idp->lock, flags);
  }
  
++static void idr_mark_full(struct idr_layer **pa, int id)
++{
++	struct idr_layer *p = pa[0];
++	int l = 0;
++
++	__set_bit(id & IDR_MASK, &p->bitmap);
++	/*
++	 * If this layer is full mark the bit in the layer above to
++	 * show that this part of the radix tree is full.  This may
++	 * complete the layer above and require walking up the radix
++	 * tree.
++	 */
++	while (p->bitmap == IDR_FULL) {
++		if (!(p = pa[++l]))
++			break;
++		id = id >> IDR_BITS;
++		__set_bit((id & IDR_MASK), &p->bitmap);
++	}
++}
++
  /**
-- * idr_pre_get - reserve resources for ida allocation
-+ * ida_pre_get - reserve resources for ida allocation
-  * @ida:	ida handle
-  * @gfp_mask:	memory allocation flag
-  *
+  * idr_pre_get - reserver resources for idr allocation
+  * @idp:	idr handle
+@@ -95,11 +115,10 @@ int idr_pre_get(struct idr *idp, gfp_t g
+ }
+ EXPORT_SYMBOL(idr_pre_get);
+ 
+-static int sub_alloc(struct idr *idp, void *ptr, int *starting_id)
++static int sub_alloc(struct idr *idp, int *starting_id, struct idr_layer **pa)
+ {
+ 	int n, m, sh;
+ 	struct idr_layer *p, *new;
+-	struct idr_layer *pa[MAX_LEVEL];
+ 	int l, id, oid;
+ 	long bm;
+ 
+@@ -156,30 +175,13 @@ static int sub_alloc(struct idr *idp, vo
+ 		pa[l--] = p;
+ 		p = p->ary[m];
+ 	}
+-	/*
+-	 * We have reached the leaf node, plant the
+-	 * users pointer and return the raw id.
+-	 */
+-	p->ary[m] = (struct idr_layer *)ptr;
+-	__set_bit(m, &p->bitmap);
+-	p->count++;
+-	/*
+-	 * If this layer is full mark the bit in the layer above
+-	 * to show that this part of the radix tree is full.
+-	 * This may complete the layer above and require walking
+-	 * up the radix tree.
+-	 */
+-	n = id;
+-	while (p->bitmap == IDR_FULL) {
+-		if (!(p = pa[++l]))
+-			break;
+-		n = n >> IDR_BITS;
+-		__set_bit((n & IDR_MASK), &p->bitmap);
+-	}
+-	return(id);
++
++	pa[l] = p;
++	return id;
+ }
+ 
+-static int idr_get_new_above_int(struct idr *idp, void *ptr, int starting_id)
++static int idr_get_empty_slot(struct idr *idp, int starting_id,
++			      struct idr_layer **pa)
+ {
+ 	struct idr_layer *p, *new;
+ 	int layers, v, id;
+@@ -225,12 +227,31 @@ build_up:
+ 	}
+ 	idp->top = p;
+ 	idp->layers = layers;
+-	v = sub_alloc(idp, ptr, &id);
++	v = sub_alloc(idp, &id, pa);
+ 	if (v == -2)
+ 		goto build_up;
+ 	return(v);
+ }
+ 
++static int idr_get_new_above_int(struct idr *idp, void *ptr, int starting_id)
++{
++	struct idr_layer *pa[MAX_LEVEL];
++	int id;
++
++	id = idr_get_empty_slot(idp, starting_id, pa);
++	if (id >= 0) {
++		/*
++		 * Successfully found an empty slot.  Install the user
++		 * pointer and mark the slot full.
++		 */
++		pa[0]->ary[id & IDR_MASK] = (struct idr_layer *)ptr;
++		pa[0]->count++;
++		idr_mark_full(pa, id);
++	}
++
++	return id;
++}
++
+ /**
+  * idr_get_new_above - allocate new idr entry above or equal to a start id
+  * @idp: idr handle
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-slab-introduce-krealloc.patch
-rm9000-serial-driver.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-cx88-video-build-fix.patch
-zlib-backout.patch
-git-acpi.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-arm.patch
-git-avr32.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-git-drm.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-jfs.patch
-git-kbuild.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-nfs.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+Patches currently in -mm which might be from teheo@suse.de are
