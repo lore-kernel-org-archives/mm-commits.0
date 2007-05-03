@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-simple_read_from_buffer-in-kernel.patch added to -mm tree
-Date: Thu, 03 May 2007 13:50:46 -0700
-Message-ID: <200705032050.l43KokQX019214@shell0.pdx.osdl.net>
+Subject: + use-simple_read_from_buffer-in-fs.patch added to -mm tree
+Date: Thu, 03 May 2007 13:50:30 -0700
+Message-ID: <200705032050.l43KoUXU019208@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40409 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030180AbXECUwv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:52:51 -0400
+	by vger.kernel.org with ESMTP id S1031305AbXECUw4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:52:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, pj@sgi.com, rdunlap@xenotime.net
+Cc: akinobu.mita@gmail.com, gregkh@suse.de, joel.becker@oracle.com
 
 
 The patch titled
-     use simple_read_from_buffer in kernel/
+     use simple_read_from_buffer() in fs/
 has been added to the -mm tree.  Its filename is
-     use-simple_read_from_buffer-in-kernel.patch
+     use-simple_read_from_buffer-in-fs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,146 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use simple_read_from_buffer in kernel/
+Subject: use simple_read_from_buffer() in fs/
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Cleanup using simple_read_from_buffer() for /dev/cpuset/tasks and
-/proc/config.gz.
+Cleanup using simple_read_from_buffer() in binfmt_misc, configfs, and sysfs.
 
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Joel Becker <joel.becker@oracle.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/configs.c |   15 +++------------
- kernel/cpuset.c  |    7 +------
- 2 files changed, 4 insertions(+), 18 deletions(-)
+ fs/binfmt_misc.c   |   13 +------------
+ fs/configfs/file.c |   33 ++-------------------------------
+ fs/sysfs/file.c    |   33 ++-------------------------------
+ 3 files changed, 5 insertions(+), 74 deletions(-)
 
-diff -puN kernel/configs.c~use-simple_read_from_buffer-in-kernel kernel/configs.c
---- a/kernel/configs.c~use-simple_read_from_buffer-in-kernel
-+++ a/kernel/configs.c
-@@ -61,18 +61,9 @@ static ssize_t
- ikconfig_read_current(struct file *file, char __user *buf,
- 		      size_t len, loff_t * offset)
+diff -puN fs/binfmt_misc.c~use-simple_read_from_buffer-in-fs fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~use-simple_read_from_buffer-in-fs
++++ a/fs/binfmt_misc.c
+@@ -675,19 +675,8 @@ static ssize_t
+ bm_status_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
  {
--	loff_t pos = *offset;
--	ssize_t count;
+ 	char *s = enabled ? "enabled" : "disabled";
+-	int len = strlen(s);
+-	loff_t pos = *ppos;
+ 
+-	if (pos < 0)
+-		return -EINVAL;
+-	if (pos >= len)
+-		return 0;
+-	if (len < pos + nbytes)
+-		nbytes = len - pos;
+-	if (copy_to_user(buf, s + pos, nbytes))
+-		return -EFAULT;
+-	*ppos = pos + nbytes;
+-	return nbytes;
++	return simple_read_from_buffer(buf, nbytes, ppos, s, strlen(s));
+ }
+ 
+ static ssize_t bm_status_write(struct file * file, const char __user * buffer,
+diff -puN fs/configfs/file.c~use-simple_read_from_buffer-in-fs fs/configfs/file.c
+--- a/fs/configfs/file.c~use-simple_read_from_buffer-in-fs
++++ a/fs/configfs/file.c
+@@ -77,36 +77,6 @@ static int fill_read_buffer(struct dentr
+ 	return ret;
+ }
+ 
 -
--	if (pos >= kernel_config_data_size)
+-/**
+- *	flush_read_buffer - push buffer to userspace.
+- *	@buffer:	data buffer for file.
+- *	@userbuf:	user-passed buffer.
+- *	@count:		number of bytes requested.
+- *	@ppos:		file position.
+- *
+- *	Copy the buffer we filled in fill_read_buffer() to userspace.
+- *	This is done at the reader's leisure, copying and advancing
+- *	the amount they specify each time.
+- *	This may be called continuously until the buffer is empty.
+- */
+-static int flush_read_buffer(struct configfs_buffer * buffer, char __user * buf,
+-			     size_t count, loff_t * ppos)
+-{
+-	int error;
+-
+-	if (*ppos > buffer->count)
 -		return 0;
 -
--	count = min(len, (size_t)(kernel_config_data_size - pos));
--	if (copy_to_user(buf, kernel_config_data + MAGIC_SIZE + pos, count))
--		return -EFAULT;
+-	if (count > (buffer->count - *ppos))
+-		count = buffer->count - *ppos;
 -
--	*offset += count;
--	return count;
-+	return simple_read_from_buffer(buf, len, offset,
-+				       kernel_config_data + MAGIC_SIZE,
-+				       kernel_config_data_size);
+-	error = copy_to_user(buf,buffer->page + *ppos,count);
+-	if (!error)
+-		*ppos += count;
+-	return error ? -EFAULT : count;
+-}
+-
+ /**
+  *	configfs_read_file - read an attribute.
+  *	@file:	file pointer.
+@@ -139,7 +109,8 @@ configfs_read_file(struct file *file, ch
+ 	}
+ 	pr_debug("%s: count = %zd, ppos = %lld, buf = %s\n",
+ 		 __FUNCTION__, count, *ppos, buffer->page);
+-	retval = flush_read_buffer(buffer,buf,count,ppos);
++	retval = simple_read_from_buffer(buf, count, ppos, buffer->page,
++					 buffer->count);
+ out:
+ 	up(&buffer->sem);
+ 	return retval;
+diff -puN fs/sysfs/file.c~use-simple_read_from_buffer-in-fs fs/sysfs/file.c
+--- a/fs/sysfs/file.c~use-simple_read_from_buffer-in-fs
++++ a/fs/sysfs/file.c
+@@ -104,36 +104,6 @@ static int fill_read_buffer(struct dentr
+ 	return ret;
  }
  
- static const struct file_operations ikconfig_file_ops = {
-diff -puN kernel/cpuset.c~use-simple_read_from_buffer-in-kernel kernel/cpuset.c
---- a/kernel/cpuset.c~use-simple_read_from_buffer-in-kernel
-+++ a/kernel/cpuset.c
-@@ -1710,12 +1710,7 @@ static ssize_t cpuset_tasks_read(struct 
- {
- 	struct ctr_struct *ctr = file->private_data;
- 
--	if (*ppos + nbytes > ctr->bufsz)
--		nbytes = ctr->bufsz - *ppos;
--	if (copy_to_user(buf, ctr->buf + *ppos, nbytes))
--		return -EFAULT;
--	*ppos += nbytes;
--	return nbytes;
-+	return simple_read_from_buffer(buf, nbytes, ppos, ctr->buf, ctr->bufsz);
- }
- 
- static int cpuset_tasks_release(struct inode *unused_inode, struct file *file)
+-
+-/**
+- *	flush_read_buffer - push buffer to userspace.
+- *	@buffer:	data buffer for file.
+- *	@buf:		user-passed buffer.
+- *	@count:		number of bytes requested.
+- *	@ppos:		file position.
+- *
+- *	Copy the buffer we filled in fill_read_buffer() to userspace.
+- *	This is done at the reader's leisure, copying and advancing 
+- *	the amount they specify each time.
+- *	This may be called continuously until the buffer is empty.
+- */
+-static int flush_read_buffer(struct sysfs_buffer * buffer, char __user * buf,
+-			     size_t count, loff_t * ppos)
+-{
+-	int error;
+-
+-	if (*ppos > buffer->count)
+-		return 0;
+-
+-	if (count > (buffer->count - *ppos))
+-		count = buffer->count - *ppos;
+-
+-	error = copy_to_user(buf,buffer->page + *ppos,count);
+-	if (!error)
+-		*ppos += count;
+-	return error ? -EFAULT : count;
+-}
+-
+ /**
+  *	sysfs_read_file - read an attribute. 
+  *	@file:	file pointer.
+@@ -167,7 +137,8 @@ sysfs_read_file(struct file *file, char 
+ 	}
+ 	pr_debug("%s: count = %zd, ppos = %lld, buf = %s\n",
+ 		 __FUNCTION__, count, *ppos, buffer->page);
+-	retval = flush_read_buffer(buffer,buf,count,ppos);
++	retval = simple_read_from_buffer(buf, count, ppos, buffer->page,
++					 buffer->count);
+ out:
+ 	up(&buffer->sem);
+ 	return retval;
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
