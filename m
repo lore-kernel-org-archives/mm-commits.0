@@ -1,169 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:31:06 -0700
-Message-ID: <200705031931.l43JV6r5018237@shell0.pdx.osdl.net>
+Subject: - kbuild-handle-compressed-cpio-initramfs-es.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:31:11 -0700
+Message-ID: <200705031931.l43JVBFj018243@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46930 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767839AbXECTdJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:09 -0400
+	by vger.kernel.org with ESMTP id S1767845AbXECTdP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: landau.alex@gmail.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     even even more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+     kbuild: handle compressed cpio initramfs-es
 has been removed from the -mm tree.  Its filename was
-     even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+     kbuild-handle-compressed-cpio-initramfs-es.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: even even more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kbuild: handle compressed cpio initramfs-es
+From: "Alex Landau" <landau.alex@gmail.com>
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Tejun Heo <htejun@gmail.com>
+Make kbuild handle compressed cpio initramfs-es.  An already compressed
+cpio is copied directly to usr/, while a non-compressed cpio is filtered
+through gzip (no changes here) on its way to usr/.
+
+If the user has created a compressed cpio by other means, this saves him
+from uncompressing it, just to be compressed again by kbuild.
+
+Signed-off-by: Alex Landau <landau.alex@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ibmveth.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gen_initramfs_list.sh |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ibmveth.c~even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/net/ibmveth.c
---- a/drivers/net/ibmveth.c~even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-+++ a/drivers/net/ibmveth.c
-@@ -1309,7 +1309,7 @@ const char * buf, size_t count)
+diff -puN scripts/gen_initramfs_list.sh~kbuild-handle-compressed-cpio-initramfs-es scripts/gen_initramfs_list.sh
+--- a/scripts/gen_initramfs_list.sh~kbuild-handle-compressed-cpio-initramfs-es
++++ a/scripts/gen_initramfs_list.sh
+@@ -191,9 +191,10 @@ input_file() {
+ 	source="$1"
+ 	if [ -f "$1" ]; then
+ 		${dep_list}header "$1"
+-		is_cpio="$(echo "$1" | sed 's/^.*\.cpio/cpio/')"
++		is_cpio="$(echo "$1" | sed 's/^.*\.cpio\(\..*\)\?/cpio/')"
+ 		if [ $2 -eq 0 -a ${is_cpio} == "cpio" ]; then
+ 			cpio_file=$1
++			echo "$1" | grep -q '^.*\.cpio\..*' && is_cpio_compressed="compressed"
+ 			[ ! -z ${dep_list} ] && echo "$1"
+ 			return 0
+ 		fi
+@@ -223,6 +224,7 @@ cpio_file=
+ cpio_list=
+ output="/dev/stdout"
+ output_file=""
++is_cpio_compressed=
  
- #define ATTR(_name, _mode)      \
-         struct attribute veth_##_name##_attr = {               \
--        .name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE \
-+        .name = __stringify(_name), .mode = _mode, \
-         };
- 
- static ATTR(active, 0644);
+ arg="$1"
+ case "$arg" in
+@@ -282,7 +284,11 @@ if [ ! -z ${output_file} ]; then
+ 		cpio_tfile=${cpio_file}
+ 	fi
+ 	rm ${cpio_list}
+-	cat ${cpio_tfile} | gzip -f -9 - > ${output_file}
++	if [ "${is_cpio_compressed}" = "compressed" ]; then
++		cat ${cpio_tfile} > ${output_file}
++	else
++		cat ${cpio_tfile} | gzip -f -9 - > ${output_file}
++	fi
+ 	[ -z ${cpio_file} ] && rm ${cpio_tfile}
+ fi
+ exit 0
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from landau.alex@gmail.com are
 
-origin.patch
-slab-introduce-krealloc.patch
-rm9000-serial-driver.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-cx88-video-build-fix.patch
-zlib-backout.patch
-git-acpi.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-arm.patch
-git-avr32.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-git-drm.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-jfs.patch
 git-kbuild.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-nfs.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
