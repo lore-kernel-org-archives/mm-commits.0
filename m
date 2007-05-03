@@ -1,89 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - input-phantom-add-a-new-driver.patch removed from -mm tree
-Date: Wed, 02 May 2007 23:25:58 -0700
-Message-ID: <200705030625.l436PwH5006284@shell0.pdx.osdl.net>
+Subject: + misc-add-sensable-phantom-driver.patch added to -mm tree
+Date: Wed, 02 May 2007 23:50:06 -0700
+Message-ID: <200705030650.l436o6dC006663@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43400 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030912AbXECG0f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 02:26:35 -0400
+	by vger.kernel.org with ESMTP id S1161797AbXECGuK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 02:50:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, dtor@mail.ru, johann.deneux@gmail.com, stenyak@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Input: phantom, add a new driver
-has been removed from the -mm tree.  Its filename was
-     input-phantom-add-a-new-driver.patch
+     Misc: add sensable phantom driver
+has been added to the -mm tree.  Its filename is
+     misc-add-sensable-phantom-driver.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Input: phantom, add a new driver
+Subject: Misc: add sensable phantom driver
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Sensable Phantom is a up to 7DOF force feedback (up to 6DOF FF) device. 
-It's atypical, so it's based on the newly added FF_RAW effect.
+Add sensable phantom driver
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: johann deneux <johann.deneux@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: <stenyak@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                  |    5 
- drivers/input/misc/Kconfig   |    9 
- drivers/input/misc/Makefile  |    1 
- drivers/input/misc/phantom.c |  387 +++++++++++++++++++++++++++++++++
- 4 files changed, 402 insertions(+)
+ Documentation/ioctl-number.txt |    3 
+ MAINTAINERS                    |    5 
+ drivers/misc/Kconfig           |    9 
+ drivers/misc/Makefile          |    1 
+ drivers/misc/phantom.c         |  459 +++++++++++++++++++++++++++++++
+ include/linux/phantom.h        |   42 ++
+ 6 files changed, 518 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~input-phantom-add-a-new-driver MAINTAINERS
---- a/MAINTAINERS~input-phantom-add-a-new-driver
-+++ a/MAINTAINERS
-@@ -3093,6 +3093,11 @@ L: 	selinux@tycho.nsa.gov (subscribers-o
- W:	http://www.nsa.gov/selinux
- S:	Supported
- 
-+SENSABLE PHANTOM
-+P:	Jiri Slaby
-+M:	jirislaby@gmail.com
-+S:	Maintained
-+
- SERIAL ATA (SATA) SUBSYSTEM:
- P:	Jeff Garzik
- M:	jgarzik@pobox.com
-diff -puN drivers/input/misc/Kconfig~input-phantom-add-a-new-driver drivers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~input-phantom-add-a-new-driver
-+++ a/drivers/input/misc/Kconfig
-@@ -113,4 +113,13 @@ config HP_SDC_RTC
- 	  Say Y here if you want to support the built-in real time clock
- 	  of the HP SDC controller.
+diff -puN Documentation/ioctl-number.txt~misc-add-sensable-phantom-driver Documentation/ioctl-number.txt
+--- a/Documentation/ioctl-number.txt~misc-add-sensable-phantom-driver
++++ a/Documentation/ioctl-number.txt
+@@ -138,7 +138,8 @@ Code	Seq#	Include File		Comments
+ 'm'	00-1F	net/irda/irmod.h	conflict!
+ 'n'	00-7F	linux/ncp_fs.h
+ 'n'	E0-FF	video/matrox.h          matroxfb
+-'p'	00-3F	linux/mc146818rtc.h
++'p'	00-0F	linux/phantom.h		conflict! (OpenHaptics needs this)
++'p'	00-3F	linux/mc146818rtc.h	conflict!
+ 'p'	40-7F	linux/nvram.h
+ 'p'	80-9F				user-space parport
+ 					<mailto:tim@cyberelk.net>
+diff -puN drivers/misc/Kconfig~misc-add-sensable-phantom-driver drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~misc-add-sensable-phantom-driver
++++ a/drivers/misc/Kconfig
+@@ -25,6 +25,15 @@ config IBM_ASM
+ 	  information on the specific driver level and support statement
+ 	  for your IBM server.
  
 +config PHANTOM
 +	tristate "Sensable PHANToM"
-+	depends on PCI && INPUT_FF_MEMLESS
++	depends on PCI
 +	help
 +	  Say Y here if you want to build a driver for Sensable PHANToM device.
 +
 +	  If you choose to build module, its name will be phantom. If unsure,
 +	  say N here.
 +
- endif
-diff -puN drivers/input/misc/Makefile~input-phantom-add-a-new-driver drivers/input/misc/Makefile
---- a/drivers/input/misc/Makefile~input-phantom-add-a-new-driver
-+++ a/drivers/input/misc/Makefile
-@@ -14,3 +14,4 @@ obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wist
- obj-$(CONFIG_INPUT_ATLAS_BTNS)		+= atlas_btns.o
- obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
- obj-$(CONFIG_INPUT_IXP4XX_BEEPER)	+= ixp4xx-beeper.o
-+obj-$(CONFIG_PHANTOM)			+= phantom.o
-diff -puN /dev/null drivers/input/misc/phantom.c
+ 
+ 	  If unsure, say N.
+ 
+diff -puN drivers/misc/Makefile~misc-add-sensable-phantom-driver drivers/misc/Makefile
+--- a/drivers/misc/Makefile~misc-add-sensable-phantom-driver
++++ a/drivers/misc/Makefile
+@@ -14,3 +14,4 @@ obj-$(CONFIG_TIFM_7XX1)       	+= tifm_7
+ obj-$(CONFIG_SGI_IOC4)		+= ioc4.o
+ obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
+ obj-$(CONFIG_THINKPAD_ACPI)	+= thinkpad_acpi.o
++obj-$(CONFIG_PHANTOM)		+= phantom.o
+diff -puN /dev/null drivers/misc/phantom.c
 --- /dev/null
-+++ a/drivers/input/misc/phantom.c
-@@ -0,0 +1,387 @@
++++ a/drivers/misc/phantom.c
+@@ -0,0 +1,459 @@
 +/*
 + *  Copyright (C) 2005-2007 Jiri Slaby <jirislaby@gmail.com>
 + *
@@ -104,49 +106,44 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +#include <linux/fs.h>
 +#include <linux/poll.h>
 +#include <linux/interrupt.h>
-+#include <linux/input.h>
++#include <linux/cdev.h>
++#include <linux/phantom.h>
 +
 +#include <asm/io.h>
 +
-+#define PHANTOM_VERSION		"n0.9.4"
++#define PHANTOM_VERSION		"n0.9.5"
 +
-+#define PHM_MAX_TORQUES		3
++#define PHANTOM_MAX_MINORS	8
 +
-+#define PHN_CONTROL		0x6
-+#define PHN_CTL_AMP		0x1
-+#define PHN_CTL_BUT		0x2
-+#define PHN_CTL_IRQ		0x10
-+
-+#define PHN_IRQCTL		0x4c
-+
-+#define PHN_ZERO_FORCE		2048
-+
-+#define PCI_ENCODER(dev, axis) ((0 - (int)ioread32((dev)->iaddr + (axis))) & \
-+									0xffff)
++#define PHN_IRQCTL		0x4c    /* irq control in caddr space */
 +
 +#define PHB_RUNNING		1
-+#define PHB_RESET		2
 +
 +static struct class *phantom_class;
++static int phantom_major;
 +
 +struct phantom_device {
++	unsigned int opened;
 +	void __iomem *caddr;
 +	u32 __iomem *iaddr;
 +	u32 __iomem *oaddr;
-+	u32 amp_bit;
-+	s16 torques[PHM_MAX_TORQUES];
 +	unsigned long status;
++	unsigned int counter;
 +
-+	struct input_dev *idev;
++	wait_queue_head_t wait;
++	struct cdev cdev;
++
++	struct mutex open_lock;
 +};
++
++static unsigned char phantom_devices[PHANTOM_MAX_MINORS];
 +
 +static int phantom_status(struct phantom_device *dev, unsigned long newstat)
 +{
 +	pr_debug("phantom_status %lx %lx\n", dev->status, newstat);
 +
 +	if (!(dev->status & PHB_RUNNING) && (newstat & PHB_RUNNING)) {
-+		iowrite32(PHN_CTL_IRQ | PHN_CTL_AMP, dev->iaddr + PHN_CONTROL);
-+		dev->amp_bit = PHN_CTL_IRQ;
++		iowrite32(PHN_CTL_IRQ, dev->iaddr + PHN_CONTROL);
 +		iowrite32(0x43, dev->caddr + PHN_IRQCTL);
 +	} else if ((dev->status & PHB_RUNNING) && !(newstat & PHB_RUNNING))
 +		iowrite32(0, dev->caddr + PHN_IRQCTL);
@@ -156,134 +153,195 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +	return 0;
 +}
 +
-+static void phantom_close(struct input_dev *idev)
++/*
++ * File ops
++ */
++
++static int phantom_ioctl(struct inode *inode, struct file *file, u_int cmd,
++	u_long arg)
 +{
-+	struct phantom_device *dev = idev->private;
++	struct phantom_device *dev = file->private_data;
++	struct phm_regs rs;
++	struct phm_reg r;
++	void __user *argp = (void __user *)arg;
++	unsigned int i;
 +
-+	phantom_status(dev, dev->status & ~PHB_RUNNING);
-+}
++	if (_IOC_TYPE(cmd) != PH_IOC_MAGIC ||
++			_IOC_NR(cmd) > PH_IOC_MAXNR)
++		return -ENOTTY;
 +
-+static void phantom_reset(struct phantom_device *dev)
-+{
-+	pr_debug("resetting\n");
++	switch (cmd) {
++	case PHN_SET_REG:
++		if (copy_from_user(&r, argp, sizeof(r)))
++			return -EFAULT;
 +
-+	iowrite32(~0x1f, dev->iaddr);
-+	wmb();
-+	iowrite32(0x1f, dev->iaddr);
-+	dev->status |= PHB_RESET;
-+}
++		if (r.reg > 7)
++			return -EINVAL;
 +
-+static void phantom_autocenter(struct input_dev *idev, u16 magnitude)
-+{
-+	struct phantom_device *dev = idev->private;
++		if (r.reg == PHN_CONTROL && (r.value & PHN_CTL_IRQ) &&
++				phantom_status(dev, dev->status | PHB_RUNNING))
++			return -ENODEV;
 +
-+	phantom_reset(dev);
-+}
++		pr_debug("phantom: writing %x to %u\n", r.value, r.reg);
++		iowrite32(r.value, dev->iaddr + r.reg);
 +
-+static int phantom_play(struct input_dev *idev, void *data,
-+		struct ff_effect *eff)
-+{
-+	struct phantom_device *dev = idev->private;
-+	unsigned int a;
-+	int retval;
++		if (r.reg == PHN_CONTROL && !(r.value & PHN_CTL_IRQ))
++			phantom_status(dev, dev->status & ~PHB_RUNNING);
++		break;
++	case PHN_SET_REGS:
++		if (copy_from_user(&rs, argp, sizeof(rs)))
++			return -EFAULT;
 +
-+	pr_debug("playing\n");
++		pr_debug("phantom: SRS %u regs %x\n", rs.count, rs.mask);
++		for (i = 0; i < min(rs.count, 8U); i++)
++			if ((1 << i) & rs.mask)
++				iowrite32(rs.values[i], dev->oaddr + i);
++		break;
++	case PHN_GET_REG:
++		if (copy_from_user(&r, argp, sizeof(r)))
++			return -EFAULT;
 +
-+	if (unlikely(!(dev->status & PHB_RUNNING))) {
-+		retval = phantom_status(dev, dev->status | PHB_RUNNING);
-+		if (retval)
-+			return retval;
++		if (r.reg > 7)
++			return -EINVAL;
++
++		r.value = ioread32(dev->iaddr + r.reg);
++
++		if (copy_to_user(argp, &r, sizeof(r)))
++			return -EFAULT;
++		break;
++	case PHN_GET_REGS:
++		if (copy_from_user(&rs, argp, sizeof(rs)))
++			return -EFAULT;
++
++		pr_debug("phantom: GRS %u regs %x\n", rs.count, rs.mask);
++		for (i = 0; i < min(rs.count, 8U); i++)
++			if ((1 << i) & rs.mask)
++				rs.values[i] = ioread32(dev->iaddr + i);
++
++		if (copy_to_user(argp, &rs, sizeof(rs)))
++			return -EFAULT;
++		break;
++	default:
++		return -ENOTTY;
 +	}
-+
-+	if (unlikely(!(dev->status & PHB_RESET)))
-+		printk(KERN_INFO "phantom: phantom is used, but the device was"
-+				"not reset since last module load\n");
-+
-+	for (a = 0; a < PHM_MAX_TORQUES; a++)
-+		dev->torques[a] = eff->u.ff_raw[a];
 +
 +	return 0;
 +}
 +
++static int phantom_open(struct inode *inode, struct file *file)
++{
++	struct phantom_device *dev = container_of(inode->i_cdev,
++			struct phantom_device, cdev);
++
++	if (mutex_lock_interruptible(&dev->open_lock))
++		return -ERESTARTSYS;
++
++	if (dev->opened) {
++		mutex_unlock(&dev->open_lock);
++		return -EINVAL;
++	}
++
++	file->private_data = dev;
++
++	dev->opened++;
++	mutex_unlock(&dev->open_lock);
++
++	return 0;
++}
++
++static int phantom_release(struct inode *inode, struct file *file)
++{
++	struct phantom_device *dev = file->private_data;
++
++	if (mutex_lock_interruptible(&dev->open_lock))
++		return -ERESTARTSYS;
++
++	dev->opened = 0;
++	phantom_status(dev, dev->status & ~PHB_RUNNING);
++
++	mutex_unlock(&dev->open_lock);
++
++	return 0;
++}
++
++static unsigned int phantom_poll(struct file *file, poll_table *wait)
++{
++	struct phantom_device *dev = file->private_data;
++	unsigned int mask = 0;
++
++	pr_debug("phantom_poll: %u\n", dev->counter);
++	poll_wait(file, &dev->wait, wait);
++	if (dev->counter) {
++		mask = POLLIN | POLLRDNORM;
++		dev->counter--;
++	} else if ((dev->status & PHB_RUNNING) == 0)
++		mask = POLLIN | POLLRDNORM | POLLERR;
++	pr_debug("phantom_poll end: %x/%u\n", mask, dev->counter);
++
++	return mask;
++}
++
++static struct file_operations phantom_file_ops = {
++	.open = phantom_open,
++	.release = phantom_release,
++	.ioctl = phantom_ioctl,
++	.poll = phantom_poll,
++};
++
 +static irqreturn_t phantom_isr(int irq, void *data)
 +{
 +	struct phantom_device *dev = data;
-+	struct input_dev *idev = dev->idev;
-+	unsigned int a, hw_status;
 +
-+	hw_status = ioread32(dev->iaddr + PHN_CONTROL);
-+	if (!(hw_status & PHN_CTL_IRQ))
++	if (!(ioread32(dev->iaddr + PHN_CONTROL) & PHN_CTL_IRQ))
 +		return IRQ_NONE;
 +
 +	iowrite32(0, dev->iaddr);
-+	wmb();
 +	iowrite32(0xc0, dev->iaddr);
 +
-+	if (unlikely(idev == NULL))
-+		return IRQ_HANDLED;
-+
-+	input_report_abs(idev, ABS_X, PCI_ENCODER(dev, 0));
-+	input_report_abs(idev, ABS_Y, PCI_ENCODER(dev, 1));
-+	input_report_abs(idev, ABS_Z, PCI_ENCODER(dev, 2));
-+	input_report_abs(idev, ABS_RX, PCI_ENCODER(dev, 3));
-+	input_report_abs(idev, ABS_RY, PCI_ENCODER(dev, 4));
-+	input_report_abs(idev, ABS_RZ, PCI_ENCODER(dev, 5));
-+	input_report_key(idev, BTN_0, !!(hw_status & PHN_CTL_BUT));
-+	input_sync(idev);
-+	input_event(idev, EV_SYN, SYN_CONFIG, 0);
-+
-+	for (a = 0; a < PHM_MAX_TORQUES; a++)
-+		iowrite32(dev->torques[a] + PHN_ZERO_FORCE, dev->oaddr + a);
-+	iowrite32(dev->amp_bit, dev->iaddr + PHN_CONTROL);
-+	dev->amp_bit ^= PHN_CTL_AMP;
++	dev->counter++;
++	wake_up_interruptible(&dev->wait);
 +
 +	return IRQ_HANDLED;
 +}
 +
-+/******************************************************************************
++/*
 + * Init and deinit driver
 + */
-+static void __devinit phantom_init_idev(const struct pci_dev *pdev,
-+		struct phantom_device *dev)
++
++static unsigned int __devinit phantom_get_free(void)
 +{
-+	struct input_dev *idev = dev->idev;
++	unsigned int i;
 +
-+	idev->private = dev;
-+	idev->name = "Sensable Phantom";
-+	idev->id.bustype = BUS_PCI;
-+	idev->id.vendor = pdev->vendor;
-+	idev->id.product = pdev->device;
-+	idev->id.version = 1;
-+	idev->close = phantom_close;
++	for (i = 0; i < PHANTOM_MAX_MINORS; i++)
++		if (phantom_devices[i] == 0)
++			break;
 +
-+	set_bit(BTN_0, idev->keybit);
-+	input_set_abs_params(idev, ABS_X, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_Y, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_Z, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_RX, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_RY, -0x8000, 0x7fff, 4, 0);
-+	input_set_abs_params(idev, ABS_RZ, -0x8000, 0x7fff, 4, 0);
-+	set_bit(FF_RAW, idev->ffbit);
-+
-+	set_bit(EV_KEY, idev->evbit);
-+	set_bit(EV_ABS, idev->evbit);
-+	set_bit(EV_FF, idev->evbit);
-+	set_bit(FF_AUTOCENTER, idev->ffbit); /* reset phantom */
++	return i;
 +}
 +
 +static int __devinit phantom_probe(struct pci_dev *pdev,
 +	const struct pci_device_id *pci_id)
 +{
 +	struct phantom_device *pht;
++	unsigned int minor;
 +	int retval;
 +
 +	retval = pci_enable_device(pdev);
 +	if (retval)
 +		goto err;
 +
++	minor = phantom_get_free();
++	if (minor == PHANTOM_MAX_MINORS) {
++		dev_err(&pdev->dev, "too many devices found!\n");
++		retval = -EIO;
++		goto err_dis;
++	}
++
++	phantom_devices[minor] = 1;
++
 +	retval = pci_request_regions(pdev, "phantom");
 +	if (retval)
-+		goto err;
++		goto err_null;
 +
 +	retval = -ENOMEM;
 +	pht = kzalloc(sizeof(*pht), GFP_KERNEL);
@@ -308,6 +366,11 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +		goto err_unmi;
 +	}
 +
++	mutex_init(&pht->open_lock);
++	init_waitqueue_head(&pht->wait);
++	cdev_init(&pht->cdev, &phantom_file_ops);
++	pht->cdev.owner = THIS_MODULE;
++
 +	iowrite32(0, pht->caddr + PHN_IRQCTL);
 +	retval = request_irq(pdev->irq, phantom_isr,
 +			IRQF_SHARED | IRQF_DISABLED, "phantom", pht);
@@ -316,34 +379,19 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +		goto err_unmo;
 +	}
 +
-+	pht->idev = input_allocate_device();
-+	if (pht->idev == NULL) {
-+		dev_err(&pdev->dev, "can't create input device\n");
-+		retval = -ENOMEM;
++	retval = cdev_add(&pht->cdev, MKDEV(phantom_major, minor), 1);
++	if (retval) {
++		dev_err(&pdev->dev, "chardev registration failed\n");
 +		goto err_irq;
 +	}
 +
-+	phantom_init_idev(pdev, pht);
-+
-+	retval = input_ff_create_memless(pht->idev, NULL, phantom_play);
-+	if (retval) {
-+		dev_err(&pdev->dev, "can't create FF device\n");
-+		goto err_idev;
-+	}
-+
-+	pht->idev->ff->set_autocenter = phantom_autocenter;
-+
-+	retval = input_register_device(pht->idev);
-+	if (retval) {
-+		dev_err(&pdev->dev, "can't register input device\n");
-+		goto err_idev;
-+	}
++	if (IS_ERR(device_create(phantom_class, &pdev->dev, MKDEV(phantom_major,
++			minor), "phantom%u", minor)))
++		dev_err(&pdev->dev, "can't create device\n");
 +
 +	pci_set_drvdata(pdev, pht);
 +
 +	return 0;
-+err_idev:
-+	input_free_device(pht->idev);
 +err_irq:
 +	free_irq(pdev->irq, pht);
 +err_unmo:
@@ -356,6 +404,10 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +	kfree(pht);
 +err_reg:
 +	pci_release_regions(pdev);
++err_null:
++	phantom_devices[minor] = 0;
++err_dis:
++	pci_disable_device(pdev);
 +err:
 +	return retval;
 +}
@@ -363,11 +415,13 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +static void __devexit phantom_remove(struct pci_dev *pdev)
 +{
 +	struct phantom_device *pht = pci_get_drvdata(pdev);
++	unsigned int minor = MINOR(pht->cdev.dev);
++
++	device_destroy(phantom_class, MKDEV(phantom_major, minor));
++
++	cdev_del(&pht->cdev);
 +
 +	iowrite32(0, pht->caddr + PHN_IRQCTL);
-+
-+	input_unregister_device(pht->idev);
-+
 +	free_irq(pdev->irq, pht);
 +
 +	pci_iounmap(pdev, pht->oaddr);
@@ -377,8 +431,13 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +	kfree(pht);
 +
 +	pci_release_regions(pdev);
++
++	phantom_devices[minor] = 0;
++
++	pci_disable_device(pdev);
 +}
 +
++#ifdef CONFIG_PM
 +static int phantom_suspend(struct pci_dev *pdev, pm_message_t state)
 +{
 +	struct phantom_device *dev = pci_get_drvdata(pdev);
@@ -396,6 +455,7 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +
 +	return 0;
 +}
++#endif
 +
 +static struct pci_device_id phantom_pci_tbl[] __devinitdata = {
 +	{ PCI_DEVICE(PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050),
@@ -409,8 +469,10 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +	.id_table = phantom_pci_tbl,
 +	.probe = phantom_probe,
 +	.remove = __devexit_p(phantom_remove),
++#ifdef CONFIG_PM
 +	.suspend = phantom_suspend,
 +	.resume = phantom_resume
++#endif
 +};
 +
 +static ssize_t phantom_show_version(struct class *cls, char *buf)
@@ -423,6 +485,7 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +static int __init phantom_init(void)
 +{
 +	int retval;
++	dev_t dev;
 +
 +	phantom_class = class_create(THIS_MODULE, "phantom");
 +	if (IS_ERR(phantom_class)) {
@@ -436,16 +499,25 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +		goto err_class;
 +	}
 +
++	retval = alloc_chrdev_region(&dev, 0, PHANTOM_MAX_MINORS, "phantom");
++	if (retval) {
++		printk(KERN_ERR "phantom: can't register character device\n");
++		goto err_attr;
++	}
++	phantom_major = MAJOR(dev);
++
 +	retval = pci_register_driver(&phantom_pci_driver);
 +	if (retval) {
 +		printk(KERN_ERR "phantom: can't register pci driver\n");
-+		goto err_attr;
++		goto err_unchr;
 +	}
 +
 +	printk(KERN_INFO "Phantom Linux Driver, version " PHANTOM_VERSION ", "
 +			"init OK\n");
 +
 +	return 0;
++err_unchr:
++	unregister_chrdev_region(dev, PHANTOM_MAX_MINORS);
 +err_attr:
 +	class_remove_file(phantom_class, &class_attr_version);
 +err_class:
@@ -457,6 +529,8 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +static void __exit phantom_exit(void)
 +{
 +	pci_unregister_driver(&phantom_pci_driver);
++
++	unregister_chrdev_region(MKDEV(phantom_major, 0), PHANTOM_MAX_MINORS);
 +
 +	class_remove_file(phantom_class, &class_attr_version);
 +	class_destroy(phantom_class);
@@ -471,16 +545,76 @@ diff -puN /dev/null drivers/input/misc/phantom.c
 +MODULE_DESCRIPTION("Sensable Phantom driver");
 +MODULE_LICENSE("GPL");
 +MODULE_VERSION(PHANTOM_VERSION);
+diff -puN /dev/null include/linux/phantom.h
+--- /dev/null
++++ a/include/linux/phantom.h
+@@ -0,0 +1,42 @@
++/*
++ *  Copyright (C) 2005-2007 Jiri Slaby <jirislaby@gmail.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ */
++
++#ifndef __PHANTOM_H
++#define __PHANTOM_H
++
++#include <asm/types.h>
++
++/* PHN_(G/S)ET_REG param */
++struct phm_reg {
++	__u32 reg;
++	__u32 value;
++};
++
++/* PHN_(G/S)ET_REGS param */
++struct phm_regs {
++	__u32 count;
++	__u32 mask;
++	__u32 values[8];
++};
++
++#define PH_IOC_MAGIC		'p'
++#define PHN_GET_REG		_IOWR(PH_IOC_MAGIC, 0, struct phm_reg *)
++#define PHN_SET_REG		_IOW (PH_IOC_MAGIC, 1, struct phm_reg *)
++#define PHN_GET_REGS		_IOWR(PH_IOC_MAGIC, 2, struct phm_regs *)
++#define PHN_SET_REGS		_IOW (PH_IOC_MAGIC, 3, struct phm_regs *)
++#define PH_IOC_MAXNR		3
++
++#define PHN_CONTROL		0x6     /* control byte in iaddr space */
++#define PHN_CTL_AMP		0x1     /*   switch after torques change */
++#define PHN_CTL_BUT		0x2     /*   is button switched */
++#define PHN_CTL_IRQ		0x10    /*   is irq enabled */
++
++#define PHN_ZERO_FORCE		2048	/* zero torque on motor */
++
++#endif
+diff -puN MAINTAINERS~misc-add-sensable-phantom-driver MAINTAINERS
+--- a/MAINTAINERS~misc-add-sensable-phantom-driver
++++ a/MAINTAINERS
+@@ -3088,6 +3088,11 @@ L: 	selinux@tycho.nsa.gov (subscribers-o
+ W:	http://www.nsa.gov/selinux
+ S:	Supported
+ 
++SENSABLE PHANTOM
++P:	Jiri Slaby
++M:	jirislaby@gmail.com
++S:	Maintained
++
+ SERIAL ATA (SATA) SUBSYSTEM:
+ P:	Jeff Garzik
+ M:	jgarzik@pobox.com
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
 serial-serial_core-use-pr_debug.patch
-input-phantom-add-a-new-driver.patch
-misc-add-sensable-phantom-driver.patch
 char-rocket-add-module_device_table.patch
 char-cs5535_gpio-add-module_device_table.patch
 drivers-char-use-__set_current_state.patch
+misc-add-sensable-phantom-driver.patch
 unify-queue_delayed_work-and-queue_delayed_work_on.patch
 char-cyclades-remove-pause.patch
 char-cyclades-cy_readx-writex-cleanup.patch
