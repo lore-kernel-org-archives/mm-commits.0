@@ -1,79 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - pm-include-eio-from-errno-baseh.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:30:31 -0700
-Message-ID: <200705031930.l43JUVFx018192@shell0.pdx.osdl.net>
+Subject: - git-mmc-build-fix.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:30:37 -0700
+Message-ID: <200705031930.l43JUbmW018201@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55473 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49207 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767789AbXECTcl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:32:41 -0400
+	by vger.kernel.org with ESMTP id S1767795AbXECTcr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:32:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, david-b@pacbell.net, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm: include EIO from errno-base.h
+     git-mmc build fix
 has been removed from the -mm tree.  Its filename was
-     pm-include-eio-from-errno-baseh.patch
+     git-mmc-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm: include EIO from errno-base.h
-From: David Rientjes <rientjes@google.com>
+Subject: git-mmc build fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-For backwards compatibility, call_platform_enable_wakeup() can return 0
-instead of -EIO since we aren't guaranteed to have errno defined.
+sparc64:
 
-Cc: David Brownell <david-b@pacbell.net>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+drivers/misc/tifm_7xx1.c: In function `tifm_7xx1_probe':                        drivers/misc/tifm_7xx1.c:294: error: `DMA_32BIT_MASK' undeclared (first use in this function)                                                                   
+
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pm.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/tifm_7xx1.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/pm.h~pm-include-eio-from-errno-baseh include/linux/pm.h
---- a/include/linux/pm.h~pm-include-eio-from-errno-baseh
-+++ a/include/linux/pm.h
-@@ -332,7 +332,7 @@ static inline void dpm_runtime_resume(st
+diff -puN drivers/misc/tifm_7xx1.c~git-mmc-build-fix drivers/misc/tifm_7xx1.c
+--- a/drivers/misc/tifm_7xx1.c~git-mmc-build-fix
++++ a/drivers/misc/tifm_7xx1.c
+@@ -10,6 +10,7 @@
+  */
  
- static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
- {
--	return -EIO;
-+	return 0;
- }
+ #include <linux/tifm.h>
++#include <linux/dma-mapping.h>
  
- #endif
+ #define DRIVER_NAME "tifm_7xx1"
+ #define DRIVER_VERSION "0.8"
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
+slab-introduce-krealloc.patch
+rm9000-serial-driver.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
 smaps-add-clear_refs-file-to-clear-reference.patch
-cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
-mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
-oom-fix-constraint-deadlock.patch
-git-cpufreq.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+cx88-video-build-fix.patch
+zlib-backout.patch
+git-acpi.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-arm.patch
+git-avr32.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+git-drm.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-jfs.patch
+git-kbuild.patch
+git-kvm.patch
+git-mmc.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-nfs.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
 maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
-cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+do_tty_write-can-block-even-with-o_nonblock-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
