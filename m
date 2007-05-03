@@ -1,171 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - git-mmc-build-fix.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:30:37 -0700
-Message-ID: <200705031930.l43JUbmW018201@shell0.pdx.osdl.net>
+Subject: - extend-print_symbol-capability.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:30:08 -0700
+Message-ID: <200705031930.l43JU8fd018123@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49207 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767795AbXECTcr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:32:47 -0400
+	by vger.kernel.org with ESMTP id S1767810AbXECTcs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:32:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drzeus@drzeus.cx, mm-commits@vger.kernel.org
+To: rpeterso@redhat.com, clameter@sgi.com, pmarques@grupopie.com, rdunlap@xenotime.net, rusty@rustcorp.com.au, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mmc build fix
+     Extend print_symbol capability
 has been removed from the -mm tree.  Its filename was
-     git-mmc-build-fix.patch
+     extend-print_symbol-capability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-mmc build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Extend print_symbol capability
+From: Robert Peterson <rpeterso@redhat.com>
 
-sparc64:
+Today's print_symbol function dumps a kernel symbol with printk.  This
+patch extends the functionality of kallsyms.c so that the symbol lookup
+function may be used without the printk.  This is useful for modules that
+want to dump symbols elsewhere, for example, to debugfs.  I intend to use
+the new function call in the GFS2 file system (which will be a separate
+patch).
 
-drivers/misc/tifm_7xx1.c: In function `tifm_7xx1_probe':                        drivers/misc/tifm_7xx1.c:294: error: `DMA_32BIT_MASK' undeclared (first use in this function)                                                                   
-
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+[akpm@linux-foundation.org: build fix]
+[clameter@sgi.com: sprint_symbol should return length of string like sprintf]
+Signed-off-by: Robert Peterson <rpeterso@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Acked-by: Paulo Marques <pmarques@grupopie.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/tifm_7xx1.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/kallsyms.h |   13 ++++++++++++-
+ kernel/kallsyms.c        |   23 +++++++++++++++--------
+ 2 files changed, 27 insertions(+), 9 deletions(-)
 
-diff -puN drivers/misc/tifm_7xx1.c~git-mmc-build-fix drivers/misc/tifm_7xx1.c
---- a/drivers/misc/tifm_7xx1.c~git-mmc-build-fix
-+++ a/drivers/misc/tifm_7xx1.c
-@@ -10,6 +10,7 @@
-  */
+diff -puN include/linux/kallsyms.h~extend-print_symbol-capability include/linux/kallsyms.h
+--- a/include/linux/kallsyms.h~extend-print_symbol-capability
++++ a/include/linux/kallsyms.h
+@@ -7,6 +7,8 @@
  
- #include <linux/tifm.h>
-+#include <linux/dma-mapping.h>
  
- #define DRIVER_NAME "tifm_7xx1"
- #define DRIVER_VERSION "0.8"
+ #define KSYM_NAME_LEN 127
++#define KSYM_SYMBOL_LEN (sizeof("%s+%#lx/%#lx [%s]") + KSYM_NAME_LEN +	\
++			 2*(BITS_PER_LONG*3/10) + MODULE_NAME_LEN + 1)
+ 
+ #ifdef CONFIG_KALLSYMS
+ /* Lookup the address for a symbol. Returns 0 if not found. */
+@@ -22,7 +24,10 @@ const char *kallsyms_lookup(unsigned lon
+ 			    unsigned long *offset,
+ 			    char **modname, char *namebuf);
+ 
+-/* Replace "%s" in format with address, if found */
++/* Look up a kernel symbol and return it in a text buffer. */
++extern int sprint_symbol(char *buffer, unsigned long address);
++
++/* Look up a kernel symbol and print it to the kernel messages. */
+ extern void __print_symbol(const char *fmt, unsigned long address);
+ 
+ #else /* !CONFIG_KALLSYMS */
+@@ -47,6 +52,12 @@ static inline const char *kallsyms_looku
+ 	return NULL;
+ }
+ 
++static inline int sprint_symbol(char *buffer, unsigned long addr)
++{
++	*buffer = '\0';
++	return 0;
++}
++
+ /* Stupid that this does nothing, but I didn't create this mess. */
+ #define __print_symbol(fmt, addr)
+ #endif /*CONFIG_KALLSYMS*/
+diff -puN kernel/kallsyms.c~extend-print_symbol-capability kernel/kallsyms.c
+--- a/kernel/kallsyms.c~extend-print_symbol-capability
++++ a/kernel/kallsyms.c
+@@ -267,27 +267,33 @@ const char *kallsyms_lookup(unsigned lon
+ 	return NULL;
+ }
+ 
+-/* Replace "%s" in format with address, or returns -errno. */
+-void __print_symbol(const char *fmt, unsigned long address)
++/* Look up a kernel symbol and return it in a text buffer. */
++int sprint_symbol(char *buffer, unsigned long address)
+ {
+ 	char *modname;
+ 	const char *name;
+ 	unsigned long offset, size;
+ 	char namebuf[KSYM_NAME_LEN+1];
+-	char buffer[sizeof("%s+%#lx/%#lx [%s]") + KSYM_NAME_LEN +
+-		    2*(BITS_PER_LONG*3/10) + MODULE_NAME_LEN + 1];
+ 
+ 	name = kallsyms_lookup(address, &size, &offset, &modname, namebuf);
+-
+ 	if (!name)
+-		sprintf(buffer, "0x%lx", address);
++		return sprintf(buffer, "0x%lx", address);
+ 	else {
+ 		if (modname)
+-			sprintf(buffer, "%s+%#lx/%#lx [%s]", name, offset,
++			return sprintf(buffer, "%s+%#lx/%#lx [%s]", name, offset,
+ 				size, modname);
+ 		else
+-			sprintf(buffer, "%s+%#lx/%#lx", name, offset, size);
++			return sprintf(buffer, "%s+%#lx/%#lx", name, offset, size);
+ 	}
++}
++
++/* Look up a kernel symbol and print it to the kernel messages. */
++void __print_symbol(const char *fmt, unsigned long address)
++{
++	char buffer[KSYM_SYMBOL_LEN];
++
++	sprint_symbol(buffer, address);
++
+ 	printk(fmt, buffer);
+ }
+ 
+@@ -452,3 +458,4 @@ static int __init kallsyms_init(void)
+ __initcall(kallsyms_init);
+ 
+ EXPORT_SYMBOL(__print_symbol);
++EXPORT_SYMBOL_GPL(sprint_symbol);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rpeterso@redhat.com are
 
 origin.patch
-slab-introduce-krealloc.patch
-rm9000-serial-driver.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-cx88-video-build-fix.patch
-zlib-backout.patch
-git-acpi.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-arm.patch
-git-avr32.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-git-drm.patch
 git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-jfs.patch
-git-kbuild.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-nfs.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
