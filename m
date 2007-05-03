@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cm4000_cs-use-bitrev.patch added to -mm tree
-Date: Thu, 03 May 2007 13:49:56 -0700
-Message-ID: <200705032049.l43KnuwG019196@shell0.pdx.osdl.net>
+Subject: + use-simple_read_from_buffer-in-kernel.patch added to -mm tree
+Date: Thu, 03 May 2007 13:50:46 -0700
+Message-ID: <200705032050.l43KokQX019214@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49153 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031288AbXECUwi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:52:38 -0400
+	by vger.kernel.org with ESMTP id S1030180AbXECUwv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:52:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, laforge@gnumonks.org, linux@dominikbrodowski.net
+Cc: akinobu.mita@gmail.com, pj@sgi.com, rdunlap@xenotime.net
 
 
 The patch titled
-     cm4000_cs: use bitrev
+     use simple_read_from_buffer in kernel/
 has been added to the -mm tree.  Its filename is
-     cm4000_cs-use-bitrev.patch
+     use-simple_read_from_buffer-in-kernel.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cm4000_cs: use bitrev
+Subject: use simple_read_from_buffer in kernel/
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Cleanup using bitrev8 in cm4000_cs driver.
+Cleanup using simple_read_from_buffer() for /dev/cpuset/tasks and
+/proc/config.gz.
 
-Cc: Harald Welte <laforge@gnumonks.org>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/Kconfig     |    1 
- drivers/char/pcmcia/cm4000_cs.c |   35 +++++-------------------------
- 2 files changed, 7 insertions(+), 29 deletions(-)
+ kernel/configs.c |   15 +++------------
+ kernel/cpuset.c  |    7 +------
+ 2 files changed, 4 insertions(+), 18 deletions(-)
 
-diff -puN drivers/char/pcmcia/Kconfig~cm4000_cs-use-bitrev drivers/char/pcmcia/Kconfig
---- a/drivers/char/pcmcia/Kconfig~cm4000_cs-use-bitrev
-+++ a/drivers/char/pcmcia/Kconfig
-@@ -21,6 +21,7 @@ config SYNCLINK_CS
- config CARDMAN_4000
- 	tristate "Omnikey Cardman 4000 support"
- 	depends on PCMCIA
-+	select BITREVERSE
- 	help
- 	  Enable support for the Omnikey Cardman 4000 PCMCIA Smartcard
- 	  reader.
-diff -puN drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-use-bitrev drivers/char/pcmcia/cm4000_cs.c
---- a/drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-use-bitrev
-+++ a/drivers/char/pcmcia/cm4000_cs.c
-@@ -31,6 +31,7 @@
- #include <linux/init.h>
- #include <linux/fs.h>
- #include <linux/delay.h>
-+#include <linux/bitrev.h>
- #include <asm/uaccess.h>
- #include <asm/io.h>
- 
-@@ -194,41 +195,17 @@ static inline unsigned char xinb(unsigne
- }
- #endif
- 
--#define	b_0000	15
--#define	b_0001	14
--#define	b_0010	13
--#define	b_0011	12
--#define	b_0100	11
--#define	b_0101	10
--#define	b_0110	9
--#define	b_0111	8
--#define	b_1000	7
--#define	b_1001	6
--#define	b_1010	5
--#define	b_1011	4
--#define	b_1100	3
--#define	b_1101	2
--#define	b_1110	1
--#define	b_1111	0
--
--static unsigned char irtab[16] = {
--	b_0000, b_1000, b_0100, b_1100,
--	b_0010, b_1010, b_0110, b_1110,
--	b_0001, b_1001, b_0101, b_1101,
--	b_0011, b_1011, b_0111, b_1111
--};
-+static inline unsigned char invert_revert(unsigned char ch)
-+{
-+	return bitrev8(~ch);
-+}
- 
- static void str_invert_revert(unsigned char *b, int len)
+diff -puN kernel/configs.c~use-simple_read_from_buffer-in-kernel kernel/configs.c
+--- a/kernel/configs.c~use-simple_read_from_buffer-in-kernel
++++ a/kernel/configs.c
+@@ -61,18 +61,9 @@ static ssize_t
+ ikconfig_read_current(struct file *file, char __user *buf,
+ 		      size_t len, loff_t * offset)
  {
- 	int i;
- 
- 	for (i = 0; i < len; i++)
--		b[i] = (irtab[b[i] & 0x0f] << 4) | irtab[b[i] >> 4];
--}
+-	loff_t pos = *offset;
+-	ssize_t count;
 -
--static unsigned char invert_revert(unsigned char ch)
--{
--	return (irtab[ch & 0x0f] << 4) | irtab[ch >> 4];
-+		b[i] = invert_revert(b[i]);
+-	if (pos >= kernel_config_data_size)
+-		return 0;
+-
+-	count = min(len, (size_t)(kernel_config_data_size - pos));
+-	if (copy_to_user(buf, kernel_config_data + MAGIC_SIZE + pos, count))
+-		return -EFAULT;
+-
+-	*offset += count;
+-	return count;
++	return simple_read_from_buffer(buf, len, offset,
++				       kernel_config_data + MAGIC_SIZE,
++				       kernel_config_data_size);
  }
  
- #define	ATRLENCK(dev,pos) \
+ static const struct file_operations ikconfig_file_ops = {
+diff -puN kernel/cpuset.c~use-simple_read_from_buffer-in-kernel kernel/cpuset.c
+--- a/kernel/cpuset.c~use-simple_read_from_buffer-in-kernel
++++ a/kernel/cpuset.c
+@@ -1710,12 +1710,7 @@ static ssize_t cpuset_tasks_read(struct 
+ {
+ 	struct ctr_struct *ctr = file->private_data;
+ 
+-	if (*ppos + nbytes > ctr->bufsz)
+-		nbytes = ctr->bufsz - *ppos;
+-	if (copy_to_user(buf, ctr->buf + *ppos, nbytes))
+-		return -EFAULT;
+-	*ppos += nbytes;
+-	return nbytes;
++	return simple_read_from_buffer(buf, nbytes, ppos, ctr->buf, ctr->bufsz);
+ }
+ 
+ static int cpuset_tasks_release(struct inode *unused_inode, struct file *file)
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
