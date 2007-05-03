@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vt-add-color-support-to-the-underline-and-italic-attributes-fix-2.patch added to -mm tree
-Date: Wed, 02 May 2007 22:47:51 -0700
-Message-ID: <200705030547.l435lpXI005776@shell0.pdx.osdl.net>
+Subject: + afs-make-the-match_-functions-take-const-options.patch added to -mm tree
+Date: Wed, 02 May 2007 22:51:23 -0700
+Message-ID: <200705030551.l435pNwA005824@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36676 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932203AbXECFr6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 01:47:58 -0400
+	by vger.kernel.org with ESMTP id S932203AbXECFvd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 01:51:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, adaplas@pol.net, jengelh@gmx.de
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     SIS USB2VGA Warning fix
+     AFS: Make the match_*() functions take const options
 has been added to the -mm tree.  Its filename is
-     vt-add-color-support-to-the-underline-and-italic-attributes-fix-2.patch
+     afs-make-the-match_-functions-take-const-options.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,122 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SIS USB2VGA Warning fix
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: AFS: Make the match_*() functions take const options
+From: David Howells <dhowells@redhat.com>
 
-drivers/usb/misc/sisusbvga/sisusb_con.c:1436: warning: initialization from incompatible pointer type
+Make the match_*() functions take a const pointer to the options table and
+make strings pointers in the options table const too.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Jan Engelhardt <jengelh@gmx.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/sisusbvga/sisusb_con.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/parser.h |    8 ++++----
+ lib/parser.c           |   10 +++++-----
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/usb/misc/sisusbvga/sisusb_con.c~vt-add-color-support-to-the-underline-and-italic-attributes-fix-2 drivers/usb/misc/sisusbvga/sisusb_con.c
---- a/drivers/usb/misc/sisusbvga/sisusb_con.c~vt-add-color-support-to-the-underline-and-italic-attributes-fix-2
-+++ a/drivers/usb/misc/sisusbvga/sisusb_con.c
-@@ -321,7 +321,7 @@ sisusbcon_deinit(struct vc_data *c)
- /* interface routine */
- static u8
- sisusbcon_build_attr(struct vc_data *c, u8 color, u8 intensity,
--			    u8 blink, u8 underline, u8 reverse)
-+			    u8 blink, u8 underline, u8 reverse, u8 unused)
- {
- 	u8 attr = color;
+diff -puN include/linux/parser.h~afs-make-the-match_-functions-take-const-options include/linux/parser.h
+--- a/include/linux/parser.h~afs-make-the-match_-functions-take-const-options
++++ a/include/linux/parser.h
+@@ -11,10 +11,10 @@
+ /* associates an integer enumerator with a pattern string. */
+ struct match_token {
+ 	int token;
+-	char *pattern;
++	const char *pattern;
+ };
  
+-typedef struct match_token match_table_t[];
++typedef const struct match_token match_table_t[];
+ 
+ /* Maximum number of arguments that match_token will find in a pattern */
+ enum {MAX_OPT_ARGS = 3};
+@@ -29,5 +29,5 @@ int match_token(char *, match_table_t ta
+ int match_int(substring_t *, int *result);
+ int match_octal(substring_t *, int *result);
+ int match_hex(substring_t *, int *result);
+-void match_strcpy(char *, substring_t *);
+-char *match_strdup(substring_t *);
++void match_strcpy(char *, const substring_t *);
++char *match_strdup(const substring_t *);
+diff -puN lib/parser.c~afs-make-the-match_-functions-take-const-options lib/parser.c
+--- a/lib/parser.c~afs-make-the-match_-functions-take-const-options
++++ a/lib/parser.c
+@@ -22,7 +22,7 @@
+  * match extremely simple token=arg style patterns. If the pattern is found,
+  * the location(s) of the arguments will be returned in the @args array.
+  */
+-static int match_one(char *s, char *p, substring_t args[])
++static int match_one(char *s, const char *p, substring_t args[])
+ {
+ 	char *meta;
+ 	int argc = 0;
+@@ -43,7 +43,7 @@ static int match_one(char *s, char *p, s
+ 		p = meta + 1;
+ 
+ 		if (isdigit(*p))
+-			len = simple_strtoul(p, &p, 10);
++			len = simple_strtoul(p, (char **) &p, 10);
+ 		else if (*p == '%') {
+ 			if (*s++ != '%')
+ 				return 0;
+@@ -102,7 +102,7 @@ static int match_one(char *s, char *p, s
+  */
+ int match_token(char *s, match_table_t table, substring_t args[])
+ {
+-	struct match_token *p;
++	const struct match_token *p;
+ 
+ 	for (p = table; !match_one(s, p->pattern, args) ; p++)
+ 		;
+@@ -190,7 +190,7 @@ int match_hex(substring_t *s, int *resul
+  * &substring_t @s to the c-style string @to. Caller guarantees that @to is
+  * large enough to hold the characters of @s.
+  */
+-void match_strcpy(char *to, substring_t *s)
++void match_strcpy(char *to, const substring_t *s)
+ {
+ 	memcpy(to, s->from, s->to - s->from);
+ 	to[s->to - s->from] = '\0';
+@@ -204,7 +204,7 @@ void match_strcpy(char *to, substring_t 
+  * the &substring_t @s. The caller is responsible for freeing the returned
+  * string with kfree().
+  */
+-char *match_strdup(substring_t *s)
++char *match_strdup(const substring_t *s)
+ {
+ 	char *p = kmalloc(s->to - s->from + 1, GFP_KERNEL);
+ 	if (p)
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-partitions-check-the-return-value-of-kobject_add-etc.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix-2.patch
+origin.patch
+get_unmapped_area-handles-map_fixed-on-powerpc.patch
+get_unmapped_area-handles-map_fixed-on-frv.patch
+get_unmapped_area-handles-map_fixed-in-hugetlbfs.patch
+get_unmapped_area-handles-map_fixed-in-generic-code.patch
+get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore.patch
+m68k-export-csum_partial_copy_from_user.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+romfs-printk-format-warnings.patch
+use-slab_panic-flag-cleanup.patch
+use-symbolic-constants-in-generic-lseek-code.patch
+use-use-seek_max-to-validate-user-lseek-arguments.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+workqueue-kill-noautorel-works.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+afs-make-the-match_-functions-take-const-options.patch
+afs-af_rxrpc-miscellaneous-fixes.patch
+afs-fix-use-of-__exit-functions-from-__init-path.patch
+mutex-subsystem-synchro-test-module.patch
