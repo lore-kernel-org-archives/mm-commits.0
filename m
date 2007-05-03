@@ -1,55 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:31:02 -0700
-Message-ID: <200705031931.l43JV27R018231@shell0.pdx.osdl.net>
+Subject: - ida-implement-idr-based-id-allocator-fix.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:31:00 -0700
+Message-ID: <200705031931.l43JV0IK018228@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41548 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767834AbXECTdF (ORCPT
+	by vger.kernel.org with ESMTP id S1767831AbXECTdF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, teheo@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+     ida-implement-idr-based-id-allocator-fix
 has been removed from the -mm tree.  Its filename was
-     more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+     ida-implement-idr-based-id-allocator-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+Subject: ida-implement-idr-based-id-allocator-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Greg KH <greg@kroah.com>
+Cc: Tejun Heo <teheo@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |    2 --
- 1 file changed, 2 deletions(-)
+ lib/idr.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/pci/probe.c~more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/pci/probe.c
---- a/drivers/pci/probe.c~more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-+++ a/drivers/pci/probe.c
-@@ -39,7 +39,6 @@ static void pci_create_legacy_files(stru
- 		b->legacy_io->attr.name = "legacy_io";
- 		b->legacy_io->size = 0xffff;
- 		b->legacy_io->attr.mode = S_IRUSR | S_IWUSR;
--		b->legacy_io->attr.owner = THIS_MODULE;
- 		b->legacy_io->read = pci_read_legacy_io;
- 		b->legacy_io->write = pci_write_legacy_io;
- 		class_device_create_bin_file(&b->class_dev, b->legacy_io);
-@@ -49,7 +48,6 @@ static void pci_create_legacy_files(stru
- 		b->legacy_mem->attr.name = "legacy_mem";
- 		b->legacy_mem->size = 1024*1024;
- 		b->legacy_mem->attr.mode = S_IRUSR | S_IWUSR;
--		b->legacy_mem->attr.owner = THIS_MODULE;
- 		b->legacy_mem->mmap = pci_mmap_legacy_mem;
- 		class_device_create_bin_file(&b->class_dev, b->legacy_mem);
- 	}
+diff -puN include/linux/idr.h~ida-implement-idr-based-id-allocator-fix include/linux/idr.h
+diff -puN lib/idr.c~ida-implement-idr-based-id-allocator-fix lib/idr.c
+--- a/lib/idr.c~ida-implement-idr-based-id-allocator-fix
++++ a/lib/idr.c
+@@ -507,7 +507,6 @@ void idr_init(struct idr *idp)
+ }
+ EXPORT_SYMBOL(idr_init);
+ 
+-
+ /*
+  * IDA - IDR based ID allocator
+  *
+@@ -536,7 +535,7 @@ static void free_bitmap(struct ida *ida,
+ }
+ 
+ /**
+- * idr_pre_get - reserve resources for ida allocation
++ * ida_pre_get - reserve resources for ida allocation
+  * @ida:	ida handle
+  * @gfp_mask:	memory allocation flag
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
