@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cinergyt2-fix-file-release-handler.patch added to -mm tree
-Date: Thu, 03 May 2007 13:08:10 -0700
-Message-ID: <200705032008.l43K8AWc018718@shell0.pdx.osdl.net>
+Subject: + auerswald-fix-file-release-handler.patch added to -mm tree
+Date: Thu, 03 May 2007 13:11:32 -0700
+Message-ID: <200705032011.l43KBWbR018758@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43228 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754124AbXECUKk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:10:40 -0400
+	by vger.kernel.org with ESMTP id S1754236AbXECUNg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:13:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jirislaby@gmail.com, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, jirislaby@gmail.com
 
 
 The patch titled
-     cinergyt2: fix file release handler
+     auerswald: fix file release handler
 has been added to the -mm tree.  Its filename is
-     cinergyt2-fix-file-release-handler.patch
+     auerswald-fix-file-release-handler.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cinergyt2: fix file release handler
+Subject: auerswald: fix file release handler
 From: Andrew Morton <akpm@linux-foundation.org>
 
-If this mutex_lock_interruptible() does fail due to signal_pending() then the
-state of the driver will get trashed in interesting ways, because userspace
-cannot and will not retry the close().
+If this down_interruptible() does fail due to signal_pending() then the state
+of the driver will get trashed in interesting ways, because userspace cannot
+and will not retry the close().
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg KH <greg@kroah.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/cinergyT2/cinergyT2.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/usb/misc/auerswald.c |   10 ++--------
+ 1 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/media/dvb/cinergyT2/cinergyT2.c~cinergyt2-fix-file-release-handler drivers/media/dvb/cinergyT2/cinergyT2.c
---- a/drivers/media/dvb/cinergyT2/cinergyT2.c~cinergyt2-fix-file-release-handler
-+++ a/drivers/media/dvb/cinergyT2/cinergyT2.c
-@@ -519,8 +519,7 @@ static int cinergyt2_release (struct ino
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct cinergyt2 *cinergyt2 = dvbdev->priv;
+diff -puN drivers/usb/misc/auerswald.c~auerswald-fix-file-release-handler drivers/usb/misc/auerswald.c
+--- a/drivers/usb/misc/auerswald.c~auerswald-fix-file-release-handler
++++ a/drivers/usb/misc/auerswald.c
+@@ -1822,16 +1822,10 @@ static int auerchar_release (struct inod
+ 	pauerswald_t cp;
+ 	dbg("release");
  
--	if (mutex_lock_interruptible(&cinergyt2->sem))
+-	/* get the mutexes */
+-	if (down_interruptible (&ccp->mutex)) {
 -		return -ERESTARTSYS;
-+	mutex_lock(&cinergyt2->sem);
- 
- 	if (!cinergyt2->disconnect_pending && (file->f_flags & O_ACCMODE) != O_RDONLY) {
- 		cancel_delayed_work(&cinergyt2->query_work);
+-	}
++	down(&ccp->mutex);
+ 	cp = ccp->auerdev;
+ 	if (cp) {
+-		if (down_interruptible (&cp->mutex)) {
+-			up (&ccp->mutex);
+-			return -ERESTARTSYS;
+-		}
++		down(&cp->mutex);
+ 		/* remove an open service */
+ 		auerswald_removeservice (cp, &ccp->scontext);
+ 		/* detach from device */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,3 +187,4 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 w1-build-fix.patch
+auerswald-fix-file-release-handler.patch
