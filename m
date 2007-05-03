@@ -1,115 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - platform-reorder-platform_device_del.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:31:08 -0700
-Message-ID: <200705031931.l43JV8sY018240@shell0.pdx.osdl.net>
+Subject: - reiserfs-suppress-lockdep-warning.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:30:14 -0700
+Message-ID: <200705031930.l43JUEYs018174@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42046 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767854AbXECTdX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:23 -0400
+	by vger.kernel.org with ESMTP id S1767866AbXECTdf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, mm-commits@vger.kernel.org
+To: jeffm@suse.de, adaplas@pol.net, stable@kernel.org, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     platform: reorder platform_device_del
+     reiserfs: suppress lockdep warning
 has been removed from the -mm tree.  Its filename was
-     platform-reorder-platform_device_del.patch
+     reiserfs-suppress-lockdep-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: platform: reorder platform_device_del
-From: Jean Delvare <khali@linux-fr.org>
+Subject: reiserfs: suppress lockdep warning
+From: Jeff Mahoney <jeffm@suse.de>
 
-In platform_device_del(), we currently delete the device resources first,
-then we delete the device itself.  This causes a (minor) bug to occur when
-one unregisters a platform device before unregistering its platform driver,
-and the driver is requesting (in .probe()) and releasing (in .remove()) a
-resource of the device.  The device resources are already gone by the time
-the driver gets the chance to release the resources it had been requesting,
-causing an error like: Trying to free nonexistent resource
-<0000000000000295-0000000000000296>
+We're getting lockdep warnings due to a post-2.6.21-rc7 bugfix.
 
-If the platform driver is unregistered first, the problem doesn't occur, as
-the driver will have the opportunity to release the resources it had
-requested before the device resources themselves are released.  It's a bit
-odd that unregistering the driver first or the device first doesn't lead to
-the same result.
+The xattr_sem can never be taken in the manner described. Internal inodes
+are protected by I_PRIVATE.  Add the appropriate annotation.
 
-So I believe that we should delete the device first in
-platform_device_del().  I've searched the git history and found that it
-used to be the case before 2.6.8, but was changed here:
-
-http://www.kernel.org/git/?p=linux/kernel/git/torvalds/old-2.6-bkcvs.git;a=commitdiff;h=96ef7b3689936ee1e64b711511342026a8ce459c
-
-> 2004/07/14 16:09:44-07:00 dtor_core
-> [PATCH] Driver core: Fix OOPS in device_platform_unregister
->
-> Driver core: platform_device_unregister should release resources first
->              and only then call device_unregister, otherwise if there
->              are no more references to the device it will be freed and
->              the fucntion will try to access freed memory.
-
-However we now have an explicit call to put_device() at the end of
-platform_device_unregister() so I guess the original problem no longer
-exists and it is safe to revert that change.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: <stable@kernel.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/platform.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/reiserfs/xattr.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/platform.c~platform-reorder-platform_device_del drivers/base/platform.c
---- a/drivers/base/platform.c~platform-reorder-platform_device_del
-+++ a/drivers/base/platform.c
-@@ -292,20 +292,22 @@ EXPORT_SYMBOL_GPL(platform_device_add);
-  *	@pdev:	platform device we're removing
-  *
-  *	Note that this function will also release all memory- and port-based
-- *	resources owned by the device (@dev->resource).
-+ *	resources owned by the device (@dev->resource).  This function
-+ *	must _only_ be externally called in error cases.  All other usage
-+ *	is a bug.
-  */
- void platform_device_del(struct platform_device *pdev)
- {
- 	int i;
+diff -puN fs/reiserfs/xattr.c~reiserfs-suppress-lockdep-warning fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-suppress-lockdep-warning
++++ a/fs/reiserfs/xattr.c
+@@ -68,7 +68,7 @@ static struct dentry *get_xa_root(struct
+ 	if (!privroot)
+ 		return ERR_PTR(-ENODATA);
  
- 	if (pdev) {
-+		device_del(&pdev->dev);
-+
- 		for (i = 0; i < pdev->num_resources; i++) {
- 			struct resource *r = &pdev->resource[i];
- 			if (r->flags & (IORESOURCE_MEM|IORESOURCE_IO))
- 				release_resource(r);
- 		}
--
--		device_del(&pdev->dev);
- 	}
- }
- EXPORT_SYMBOL_GPL(platform_device_del);
+-	mutex_lock(&privroot->d_inode->i_mutex);
++	mutex_lock_nested(&privroot->d_inode->i_mutex, I_MUTEX_XATTR);
+ 	if (REISERFS_SB(sb)->xattr_root) {
+ 		xaroot = dget(REISERFS_SB(sb)->xattr_root);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from jeffm@suse.de are
 
 origin.patch
-xtensa-strlcpy-is-smart-enough.patch
-git-alsa.patch
-apple-smc-driver-hardware-monitoring-and-control.patch
-x86-msr-add-support-for-safe-variants.patch
-oss-strlcpy-is-smart-enough.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900-update.patch
-legacy-pc-parports-support-parport-dev.patch
-layered-parport-code-uses-parport-dev.patch
-clean-up-mutex_trylock-noise.patch
-fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
-rivafb-handle-i2c-bus-creation-failure.patch
-rivafb-nvidiafb-various-cleanups.patch
-rivafb-fixed-reversed-ddc-ports.patch
-rename-device_is_compatible-to-of_device_is_compatible.patch
