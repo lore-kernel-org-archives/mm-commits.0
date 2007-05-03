@@ -1,116 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - block2mtd_paramline-mustnt-be-__initdata.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:31:19 -0700
-Message-ID: <200705031931.l43JVJUP018259@shell0.pdx.osdl.net>
+Subject: + wavefront-only-declare-isapnp-on-config_pnp.patch added to -mm tree
+Date: Thu, 03 May 2007 12:55:42 -0700
+Message-ID: <200705031955.l43Jtg5X018563@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46832 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1162237AbXECTfn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:35:43 -0400
+	by vger.kernel.org with ESMTP id S1751878AbXECT6m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:58:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dwmw2@infradead.org, joern@lazybastard.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, ambx1@neo.rr.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     block2mtd_paramline[] mustn't be __initdata
-has been removed from the -mm tree.  Its filename was
-     block2mtd_paramline-mustnt-be-__initdata.patch
+     wavefront: only declare isapnp on CONFIG_PNP
+has been added to the -mm tree.  Its filename is
+     wavefront-only-declare-isapnp-on-config_pnp.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: block2mtd_paramline[] mustn't be __initdata
-From: Adrian Bunk <bunk@stusta.de>
+Subject: wavefront: only declare isapnp on CONFIG_PNP
+From: David Rientjes <rientjes@google.com>
 
-block2mtd_paramline[] is used in the non-__init block2mtd_setup()
+isapnp[] is only used for CONFIG_PNP.  If this configuration option is
+not set, do not declare the array.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Joern Engel <joern@lazybastard.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: <stable@kernel.org>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/block2mtd.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ sound/isa/wavefront/wavefront.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/mtd/devices/block2mtd.c~block2mtd_paramline-mustnt-be-__initdata drivers/mtd/devices/block2mtd.c
---- a/drivers/mtd/devices/block2mtd.c~block2mtd_paramline-mustnt-be-__initdata
-+++ a/drivers/mtd/devices/block2mtd.c
-@@ -373,7 +373,7 @@ static inline void kill_final_newline(ch
- 
- #ifndef MODULE
- static int block2mtd_init_called = 0;
--static __initdata char block2mtd_paramline[80 + 12]; /* 80 for device, 12 for erase size */
-+static char block2mtd_paramline[80 + 12]; /* 80 for device, 12 for erase size */
- #endif
- 
- 
+diff -puN sound/isa/wavefront/wavefront.c~wavefront-only-declare-isapnp-on-config_pnp sound/isa/wavefront/wavefront.c
+--- a/sound/isa/wavefront/wavefront.c~wavefront-only-declare-isapnp-on-config_pnp
++++ a/sound/isa/wavefront/wavefront.c
+@@ -40,7 +40,9 @@ MODULE_SUPPORTED_DEVICE("{{Turtle Beach,
+ static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	    /* Index 0-MAX */
+ static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	    /* ID for this card */
+ static int enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE;	    /* Enable this card */
++#ifdef CONFIG_PNP
+ static int isapnp[SNDRV_CARDS] = {[0 ... (SNDRV_CARDS - 1)] = 1};
++#endif
+ static long cs4232_pcm_port[SNDRV_CARDS] = SNDRV_DEFAULT_PORT;	/* PnP setup */
+ static int cs4232_pcm_irq[SNDRV_CARDS] = SNDRV_DEFAULT_IRQ; /* 5,7,9,11,12,15 */
+ static long cs4232_mpu_port[SNDRV_CARDS] = SNDRV_DEFAULT_PORT; /* PnP setup */
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-git-acpi.patch
-git-alsa.patch
-git-powerpc.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mmc.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-ibmtr_cs-fix-hang-on-eject.patch
-git-ocfs2.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
+mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
+oom-fix-constraint-deadlock.patch
+wavefront-only-declare-isapnp-on-config_pnp.patch
+git-cpufreq.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
 maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-add-file-position-info-to-proc.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-unexport-pci_proc_attach_device.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-ext2-reservations.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-rtc-remove-sys-class-rtc-dev-fix.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
