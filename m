@@ -1,58 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:31:04 -0700
-Message-ID: <200705031931.l43JV4bu018234@shell0.pdx.osdl.net>
+Subject: - even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:31:06 -0700
+Message-ID: <200705031931.l43JV6r5018237@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48260 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767825AbXECTdH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:07 -0400
+	by vger.kernel.org with ESMTP id S1767839AbXECTdJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     even more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+     even even more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 has been removed from the -mm tree.  Its filename was
-     even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+     even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: even more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+Subject: even even more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 From: Andrew Morton <akpm@linux-foundation.org>
-
-grep?
 
 Cc: Greg KH <greg@kroah.com>
 Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/windfarm_core.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/ibmveth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/macintosh/windfarm_core.c~even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/macintosh/windfarm_core.c
---- a/drivers/macintosh/windfarm_core.c~even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-+++ a/drivers/macintosh/windfarm_core.c
-@@ -213,7 +213,6 @@ int wf_register_control(struct wf_contro
- 	list_add(&new_ct->link, &wf_controls);
+diff -puN drivers/net/ibmveth.c~even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/net/ibmveth.c
+--- a/drivers/net/ibmveth.c~even-even-more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/net/ibmveth.c
+@@ -1309,7 +1309,7 @@ const char * buf, size_t count)
  
- 	new_ct->attr.attr.name = new_ct->name;
--	new_ct->attr.attr.owner = THIS_MODULE;
- 	new_ct->attr.attr.mode = 0644;
- 	new_ct->attr.show = wf_show_control;
- 	new_ct->attr.store = wf_store_control;
-@@ -323,7 +322,6 @@ int wf_register_sensor(struct wf_sensor 
- 	list_add(&new_sr->link, &wf_sensors);
+ #define ATTR(_name, _mode)      \
+         struct attribute veth_##_name##_attr = {               \
+-        .name = __stringify(_name), .mode = _mode, .owner = THIS_MODULE \
++        .name = __stringify(_name), .mode = _mode, \
+         };
  
- 	new_sr->attr.attr.name = new_sr->name;
--	new_sr->attr.attr.owner = THIS_MODULE;
- 	new_sr->attr.attr.mode = 0444;
- 	new_sr->attr.show = wf_show_sensor;
- 	new_sr->attr.store = NULL;
+ static ATTR(active, 0644);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
