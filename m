@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch added to -mm tree
-Date: Wed, 02 May 2007 23:10:21 -0700
-Message-ID: <200705030610.l436AL8v006063@shell0.pdx.osdl.net>
+Subject: + ps3fb-use-__func__-instead-of-__function__.patch added to -mm tree
+Date: Wed, 02 May 2007 23:21:59 -0700
+Message-ID: <200705030621.l436LxE1006239@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42649 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754496AbXECGKb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 02:10:31 -0400
+	by vger.kernel.org with ESMTP id S1754568AbXECGWx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 02:22:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, clameter@engr.sgi.com, menage@google.com, pj@sgi.com
+Cc: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net
 
 
 The patch titled
-     cpusets: allow empty {cpus,mems}_allowed to be set for unpopulated cpuset
+     ps3fb: Use __func__ instead of __FUNCTION__
 has been added to the -mm tree.  Its filename is
-     cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
+     ps3fb-use-__func__-instead-of-__function__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,110 +25,211 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpusets: allow empty {cpus,mems}_allowed to be set for unpopulated cpuset
-From: David Rientjes <rientjes@google.com>
+Subject: ps3fb: Use __func__ instead of __FUNCTION__
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-You currently cannot remove all cpus or mems from cpus_allowed or
-mems_allowed of a cpuset.  We now allow both if there are no attached
-tasks.
+ps3fb: Replace GNU extension `__FUNCTION__' by C99 `__func__'
 
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Signed-off-by: Paul Menage <menage@google.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   38 ++++++++++++++++++++++++++++++--------
- 1 file changed, 30 insertions(+), 8 deletions(-)
+ drivers/video/ps3fb.c |   54 ++++++++++++++++++++++------------------
+ 1 file changed, 30 insertions(+), 24 deletions(-)
 
-diff -puN kernel/cpuset.c~cpusets-allow-empty-cpusmems_allowed-to-be-set-for kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-allow-empty-cpusmems_allowed-to-be-set-for
-+++ a/kernel/cpuset.c
-@@ -766,11 +766,22 @@ static int update_cpumask(struct cpuset 
- 		return -EACCES;
+diff -puN drivers/video/ps3fb.c~ps3fb-use-__func__-instead-of-__function__ drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-use-__func__-instead-of-__function__
++++ a/drivers/video/ps3fb.c
+@@ -47,7 +47,7 @@
+ #include <asm/ps3.h>
  
- 	trialcs = *cs;
--	retval = cpulist_parse(buf, trialcs.cpus_allowed);
--	if (retval < 0)
--		return retval;
-+
-+	/*
-+	 * We allow a cpuset's cpus_allowed to be empty; if it has attached
-+	 * tasks, we'll catch it later when we validate the change and return
-+	 * -ENOSPC.
-+	 */
-+	if (!*buf) {
-+		cpus_clear(trialcs.cpus_allowed);
-+	} else {
-+		retval = cpulist_parse(buf, trialcs.cpus_allowed);
-+		if (retval < 0)
-+			return retval;
-+	}
- 	cpus_and(trialcs.cpus_allowed, trialcs.cpus_allowed, cpu_online_map);
--	if (cpus_empty(trialcs.cpus_allowed))
-+	/* cpus_allowed cannot be empty for a cpuset with attached tasks. */
-+	if (atomic_read(&cs->count) && cpus_empty(trialcs.cpus_allowed))
- 		return -ENOSPC;
- 	retval = validate_change(cs, &trialcs);
- 	if (retval < 0)
-@@ -860,16 +871,27 @@ static int update_nodemask(struct cpuset
- 		return -EACCES;
+ #ifdef PS3FB_DEBUG
+-#define DPRINTK(fmt, args...) printk("%s: " fmt, __FUNCTION__ , ##args)
++#define DPRINTK(fmt, args...) printk("%s: " fmt, __func__ , ##args)
+ #else
+ #define DPRINTK(fmt, args...)
+ #endif
+@@ -396,7 +396,7 @@ static int ps3fb_sync(u32 frame)
  
- 	trialcs = *cs;
--	retval = nodelist_parse(buf, trialcs.mems_allowed);
--	if (retval < 0)
--		goto done;
-+
-+	/*
-+	 * We allow a cpuset's mems_allowed to be empty; if it has attached
-+	 * tasks, we'll catch it later when we validate the change and return
-+	 * -ENOSPC.
-+	 */
-+	if (!*buf) {
-+		nodes_clear(trialcs.mems_allowed);
-+	} else {
-+		retval = nodelist_parse(buf, trialcs.mems_allowed);
-+		if (retval < 0)
-+			goto done;
-+	}
- 	nodes_and(trialcs.mems_allowed, trialcs.mems_allowed, node_online_map);
- 	oldmem = cs->mems_allowed;
- 	if (nodes_equal(oldmem, trialcs.mems_allowed)) {
- 		retval = 0;		/* Too easy - nothing to do */
- 		goto done;
+ 	if (frame > ps3fb.num_frames - 1) {
+ 		printk(KERN_WARNING "%s: invalid frame number (%u)\n",
+-		       __FUNCTION__, frame);
++		       __func__, frame);
+ 		return -EINVAL;
  	}
--	if (nodes_empty(trialcs.mems_allowed)) {
-+	/* mems_allowed cannot be empty for a cpuset with attached tasks. */
-+	if (atomic_read(&cs->count) && nodes_empty(trialcs.mems_allowed)) {
- 		retval = -ENOSPC;
- 		goto done;
+ 	offset = xres * yres * BPP * frame;
+@@ -409,23 +409,26 @@ static int ps3fb_sync(u32 frame)
+ 					   (xres << 16) | yres,
+ 					   xres * BPP);	/* line_length */
+ 	if (status)
+-		printk(KERN_ERR "%s: lv1_gpu_context_attribute FB_BLIT failed: %d\n",
+-		       __FUNCTION__, status);
++		printk(KERN_ERR
++		       "%s: lv1_gpu_context_attribute FB_BLIT failed: %d\n",
++		       __func__, status);
+ #ifdef HEAD_A
+ 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
+ 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
+ 					   0, offset, 0, 0);
+ 	if (status)
+-		printk(KERN_ERR "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
+-		       __FUNCTION__, status);
++		printk(KERN_ERR
++		       "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
++		       __func__, status);
+ #endif
+ #ifdef HEAD_B
+ 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
+ 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
+ 					   1, offset, 0, 0);
+ 	if (status)
+-		printk(KERN_ERR "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
+-		       __FUNCTION__, status);
++		printk(KERN_ERR
++		       "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
++		       __func__, status);
+ #endif
+ 	return 0;
+ }
+@@ -634,7 +637,7 @@ static int ps3fb_blank(int blank, struct
+ {
+ 	int retval;
+ 
+-	DPRINTK("%s: blank:%d\n", __FUNCTION__, blank);
++	DPRINTK("%s: blank:%d\n", __func__, blank);
+ 	switch (blank) {
+ 	case FB_BLANK_POWERDOWN:
+ 	case FB_BLANK_HSYNC_SUSPEND:
+@@ -830,7 +833,7 @@ static irqreturn_t ps3fb_vsync_interrupt
+ 	status = lv1_gpu_context_intr(ps3fb.context_handle, &v1);
+ 	if (status) {
+ 		printk(KERN_ERR "%s: lv1_gpu_context_intr failed: %d\n",
+-		       __FUNCTION__, status);
++		       __func__, status);
+ 		return IRQ_NONE;
  	}
+ 
+@@ -889,7 +892,7 @@ static int ps3fb_vsync_settings(struct g
+ 		dinfo->nvcore_frequency/1000000, dinfo->memory_frequency/1000000);
+ 
+ 	if (dinfo->version_driver != GPU_DRIVER_INFO_VERSION) {
+-		printk(KERN_ERR "%s: version_driver err:%x\n", __FUNCTION__,
++		printk(KERN_ERR "%s: version_driver err:%x\n", __func__,
+ 		       dinfo->version_driver);
+ 		return -EINVAL;
+ 	}
+@@ -898,7 +901,7 @@ static int ps3fb_vsync_settings(struct g
+ 	error = ps3_alloc_irq(PS3_BINDING_CPU_ANY, dinfo->irq.irq_outlet,
+ 			      &ps3fb.irq_no);
+ 	if (error) {
+-		printk(KERN_ERR "%s: ps3_alloc_irq failed %d\n", __FUNCTION__,
++		printk(KERN_ERR "%s: ps3_alloc_irq failed %d\n", __func__,
+ 		       error);
+ 		return error;
+ 	}
+@@ -906,7 +909,7 @@ static int ps3fb_vsync_settings(struct g
+ 	error = request_irq(ps3fb.irq_no, ps3fb_vsync_interrupt, IRQF_DISABLED,
+ 			    "ps3fb vsync", ps3fb.dev);
+ 	if (error) {
+-		printk(KERN_ERR "%s: request_irq failed %d\n", __FUNCTION__,
++		printk(KERN_ERR "%s: request_irq failed %d\n", __func__,
+ 		       error);
+ 		ps3_free_irq(ps3fb.irq_no);
+ 		return error;
+@@ -925,7 +928,7 @@ static int ps3fb_xdr_settings(u64 xdr_lp
+ 				       xdr_lpar, ps3fb_videomemory.size, 0);
+ 	if (status) {
+ 		printk(KERN_ERR "%s: lv1_gpu_context_iomap failed: %d\n",
+-		       __FUNCTION__, status);
++		       __func__, status);
+ 		return -ENXIO;
+ 	}
+ 	DPRINTK("video:%p xdr_ea:%p ioif:%lx lpar:%lx phys:%lx size:%lx\n",
+@@ -937,8 +940,9 @@ static int ps3fb_xdr_settings(u64 xdr_lp
+ 					   xdr_lpar, ps3fb_videomemory.size,
+ 					   GPU_IOIF, 0);
+ 	if (status) {
+-		printk(KERN_ERR "%s: lv1_gpu_context_attribute FB_SETUP failed: %d\n",
+-		       __FUNCTION__, status);
++		printk(KERN_ERR
++		       "%s: lv1_gpu_context_attribute FB_SETUP failed: %d\n",
++		       __func__, status);
+ 		return -ENXIO;
+ 	}
+ 	return 0;
+@@ -985,7 +989,7 @@ static int __init ps3fb_probe(struct pla
+ 					 &ps3fb.memory_handle, &ddr_lpar);
+ 	if (status) {
+ 		printk(KERN_ERR "%s: lv1_gpu_memory_allocate failed: %d\n",
+-		       __FUNCTION__, status);
++		       __func__, status);
+ 		goto err;
+ 	}
+ 	DPRINTK("ddr:lpar:0x%lx\n", ddr_lpar);
+@@ -996,14 +1000,14 @@ static int __init ps3fb_probe(struct pla
+ 					  &lpar_reports, &lpar_reports_size);
+ 	if (status) {
+ 		printk(KERN_ERR "%s: lv1_gpu_context_attribute failed: %d\n",
+-		       __FUNCTION__, status);
++		       __func__, status);
+ 		goto err_gpu_memory_free;
+ 	}
+ 
+ 	/* vsync interrupt */
+ 	ps3fb.dinfo = ioremap(lpar_driver_info, 128 * 1024);
+ 	if (!ps3fb.dinfo) {
+-		printk(KERN_ERR "%s: ioremap failed\n", __FUNCTION__);
++		printk(KERN_ERR "%s: ioremap failed\n", __func__);
+ 		goto err_gpu_context_free;
+ 	}
+ 
+@@ -1162,8 +1166,9 @@ int ps3fb_set_sync(void)
+ 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_SYNC,
+ 					   0, L1GPU_DISPLAY_SYNC_VSYNC, 0, 0);
+ 	if (status) {
+-		printk(KERN_ERR "%s: lv1_gpu_context_attribute DISPLAY_SYNC failed: %d\n",
+-		       __FUNCTION__, status);
++		printk(KERN_ERR
++		       "%s: lv1_gpu_context_attribute DISPLAY_SYNC failed: %d\n",
++		       __func__, status);
+ 		return -1;
+ 	}
+ #endif
+@@ -1173,8 +1178,9 @@ int ps3fb_set_sync(void)
+ 					   1, L1GPU_DISPLAY_SYNC_VSYNC, 0, 0);
+ 
+ 	if (status) {
+-		printk(KERN_ERR "%s: lv1_gpu_context_attribute DISPLAY_MODE failed: %d\n",
+-		       __FUNCTION__, status);
++		printk(KERN_ERR
++		       "%s: lv1_gpu_context_attribute DISPLAY_MODE failed: %d\n",
++		       __func__, status);
+ 		return -1;
+ 	}
+ #endif
+@@ -1199,7 +1205,7 @@ static int __init ps3fb_init(void)
+ 
+ 	error = ps3av_dev_open();
+ 	if (error) {
+-		printk(KERN_ERR "%s: ps3av_dev_open failed\n", __FUNCTION__);
++		printk(KERN_ERR "%s: ps3av_dev_open failed\n", __func__);
+ 		goto err;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-i386-add-ptep_test_and_clear_dirtyyoung.patch
-i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
-mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
-oom-fix-constraint-deadlock.patch
-git-cpufreq.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
+ps3fb-thread-updates.patch
+ps3av-thread-updates.patch
+ps3fb-kill-superfluous-zero-initializations.patch
+ps3fb-atomic-fixes.patch
+ps3av-misc-updates.patch
+ps3-make-ps3videomode-v-0-auto-mode-work-again.patch
+ps3fb-use-__func__-instead-of-__function__.patch
+ps3av-use-__func__-instead-of-__function__.patch
+fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
+fbdev-fb_do_show_logo-updates.patch
+fbdev-correct-image-offsets-when-rotating-logo.patch
