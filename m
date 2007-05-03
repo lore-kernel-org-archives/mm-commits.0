@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hide-spinlock-in-linux-quotah-behind-__kernel__.patch added to -mm tree
-Date: Thu, 03 May 2007 01:26:47 -0700
-Message-ID: <200705030826.l438Qlei008050@shell0.pdx.osdl.net>
+Subject: + sanitize-linux-isdn_divertifh-for-userspace.patch added to -mm tree
+Date: Thu, 03 May 2007 01:28:00 -0700
+Message-ID: <200705030828.l438S03S008066@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52810 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751630AbXECI07 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 04:26:59 -0400
+	by vger.kernel.org with ESMTP id S1751704AbXECI2I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 04:28:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, dwmw2@infradead.org, jack@ucw.cz
+Cc: vapier@gentoo.org, dwmw2@infradead.org, kkeil@suse.de
 
 
 The patch titled
-     hide spinlock in linux/quota.h behind __KERNEL__
+     sanitize linux/isdn_divertif.h for userspace
 has been added to the -mm tree.  Its filename is
-     hide-spinlock-in-linux-quotah-behind-__kernel__.patch
+     sanitize-linux-isdn_divertifh-for-userspace.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hide spinlock in linux/quota.h behind __KERNEL__
+Subject: sanitize linux/isdn_divertif.h for userspace
 From: Mike Frysinger <vapier@gentoo.org>
 
+the isdn_divertif contains kernel-only references so I've wrapped them in
+__KERNEL__ and add proper #include statements.
+
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Jan Kara <jack@ucw.cz>
+Cc: Karsten Keil <kkeil@suse.de>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quota.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/Kbuild          |    2 +-
+ include/linux/isdn_divertif.h |    5 +++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/quota.h~hide-spinlock-in-linux-quotah-behind-__kernel__ include/linux/quota.h
---- a/include/linux/quota.h~hide-spinlock-in-linux-quotah-behind-__kernel__
-+++ a/include/linux/quota.h
-@@ -44,8 +44,6 @@
- typedef __kernel_uid32_t qid_t; /* Type in which we store ids in memory */
- typedef __u64 qsize_t;          /* Type in which we store sizes */
+diff -puN include/linux/isdn_divertif.h~sanitize-linux-isdn_divertifh-for-userspace include/linux/isdn_divertif.h
+--- a/include/linux/isdn_divertif.h~sanitize-linux-isdn_divertifh-for-userspace
++++ a/include/linux/isdn_divertif.h
+@@ -24,6 +24,10 @@
+ #define DIVERT_REL_ERR  0x04  /* module not registered */
+ #define DIVERT_REG_NAME isdn_register_divert
  
--extern spinlock_t dq_data_lock;
--
- /* Size of blocks in which are counted size limits */
- #define QUOTABLOCK_BITS 10
- #define QUOTABLOCK_SIZE (1 << QUOTABLOCK_BITS)
-@@ -139,6 +137,8 @@ struct if_dqinfo {
- #include <linux/dqblk_v1.h>
- #include <linux/dqblk_v2.h>
- 
-+extern spinlock_t dq_data_lock;
++#ifdef __KERNEL__
++#include <linux/isdnif.h>
++#include <linux/types.h>
 +
- /* Maximal numbers of writes for quota operation (insert/delete/update)
-  * (over VFS all formats) */
- #define DQUOT_INIT_ALLOC max(V1_INIT_ALLOC, V2_INIT_ALLOC)
+ /***************************************************************/
+ /* structure exchanging data between isdn hl and divert module */
+ /***************************************************************/ 
+@@ -40,3 +44,4 @@ typedef struct
+ /* function register */
+ /*********************/
+ extern int DIVERT_REG_NAME(isdn_divert_if *);
++#endif
+diff -puN include/linux/Kbuild~sanitize-linux-isdn_divertifh-for-userspace include/linux/Kbuild
+--- a/include/linux/Kbuild~sanitize-linux-isdn_divertifh-for-userspace
++++ a/include/linux/Kbuild
+@@ -92,7 +92,6 @@ header-y += ip_mp_alg.h
+ header-y += ipsec.h
+ header-y += ipx.h
+ header-y += irda.h
+-header-y += isdn_divertif.h
+ header-y += iso_fs.h
+ header-y += ixjuser.h
+ header-y += jffs2.h
+@@ -241,6 +240,7 @@ unifdef-y += ipv6.h
+ unifdef-y += ipv6_route.h
+ unifdef-y += isdn.h
+ unifdef-y += isdnif.h
++unifdef-y += isdn_divertif.h
+ unifdef-y += isdn_ppp.h
+ unifdef-y += isicom.h
+ unifdef-y += jbd.h
 _
 
 Patches currently in -mm which might be from vapier@gentoo.org are
@@ -66,3 +87,4 @@ git-cpufreq.patch
 git-kbuild.patch
 dont-force-uclinux-mtd-map-to-be-root-dev.patch
 hide-spinlock-in-linux-quotah-behind-__kernel__.patch
+sanitize-linux-isdn_divertifh-for-userspace.patch
