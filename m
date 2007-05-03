@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + do_tty_write-can-block-even-with-o_nonblock.patch added to -mm tree
-Date: Thu, 03 May 2007 00:00:11 -0700
-Message-ID: <200705030700.l4370Bk0006813@shell0.pdx.osdl.net>
+Subject: + synclink_gt-use-dynamic-tty-device-registration.patch added to -mm tree
+Date: Thu, 03 May 2007 00:05:34 -0700
+Message-ID: <200705030705.l4375YLk006884@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54912 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40304 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754737AbXECHAc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 03:00:32 -0400
+	by vger.kernel.org with ESMTP id S1755218AbXECHGH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 03:06:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: djohnson+linux-kernel@sw.starentnetworks.com, alan@redhat.com
+Cc: paulkf@microgate.com
 
 
 The patch titled
-     do_tty_write() can block even with O_NONBLOCK?
+     synclink_gt use dynamic tty device registration
 has been added to the -mm tree.  Its filename is
-     do_tty_write-can-block-even-with-o_nonblock.patch
+     synclink_gt-use-dynamic-tty-device-registration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: do_tty_write() can block even with O_NONBLOCK?
-From: Dave Johnson <djohnson+linux-kernel@sw.starentnetworks.com>
+Subject: synclink_gt use dynamic tty device registration
+From: Paul Fulghum <paulkf@microgate.com>
 
-I have two processes with the same tty open, one opens blocking and one
-opens nonblocking.
+Change synclink_gt driver to use dynamic tty device registration.
 
-If the blocking process blocks doing a write (due to flow control, just
-going to fast, etc...) the nonblocking process will also block when it
-writes until the blocking process unblocks.
-
-This seems to occur because do_tty_write() isn't checking for O_NONBLOCK
-when taking the tty's write mutex.
-
-Signed-off-by: Dave Johnson <djohnson+linux-kernel@sw.starentnetworks.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/char/synclink_gt.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN drivers/char/tty_io.c~do_tty_write-can-block-even-with-o_nonblock drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~do_tty_write-can-block-even-with-o_nonblock
-+++ a/drivers/char/tty_io.c
-@@ -1699,9 +1699,13 @@ static inline ssize_t do_tty_write(
- 	ssize_t ret = 0, written = 0;
- 	unsigned int chunk;
- 	
--	/* FIXME: O_NDELAY ... */
--	if (mutex_lock_interruptible(&tty->atomic_write_lock)) {
--		return -ERESTARTSYS;
-+	if (file->f_flags & O_NONBLOCK) {
-+		if (!mutex_trylock(&tty->atomic_write_lock))
-+			return -EAGAIN;
-+	}
-+	else {
-+		if (mutex_lock_interruptible(&tty->atomic_write_lock))
-+			return -ERESTARTSYS;
+diff -puN drivers/char/synclink_gt.c~synclink_gt-use-dynamic-tty-device-registration drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink_gt-use-dynamic-tty-device-registration
++++ a/drivers/char/synclink_gt.c
+@@ -3415,6 +3415,9 @@ static void device_init(int adapter_num,
+ 			}
+ 		}
+ 	}
++
++	for (i=0; i < port_count; ++i)
++		tty_register_device(serial_driver, port_array[i]->line, &(port_array[i]->pdev->dev));
+ }
+ 
+ static int __devinit init_one(struct pci_dev *dev,
+@@ -3466,6 +3469,8 @@ static void slgt_cleanup(void)
+ 	printk("unload %s %s\n", driver_name, driver_version);
+ 
+ 	if (serial_driver) {
++		for (info=slgt_device_list ; info != NULL ; info=info->next_device)
++			tty_unregister_device(serial_driver, info->line);
+ 		if ((rc = tty_unregister_driver(serial_driver)))
+ 			DBGERR(("tty_unregister_driver error=%d\n", rc));
+ 		put_tty_driver(serial_driver);
+@@ -3506,23 +3511,10 @@ static int __init slgt_init(void)
+ 
+  	printk("%s %s\n", driver_name, driver_version);
+ 
+-	slgt_device_count = 0;
+-	if ((rc = pci_register_driver(&pci_driver)) < 0) {
+-		printk("%s pci_register_driver error=%d\n", driver_name, rc);
+-		return rc;
+-	}
+-	pci_registered = 1;
+-
+-	if (!slgt_device_list) {
+-		printk("%s no devices found\n",driver_name);
+-		pci_unregister_driver(&pci_driver);
+-		return -ENODEV;
+-	}
+-
+ 	serial_driver = alloc_tty_driver(MAX_DEVICES);
+ 	if (!serial_driver) {
+-		rc = -ENOMEM;
+-		goto error;
++		printk("%s can't allocate tty driver\n", driver_name);
++		return -ENOMEM;
  	}
  
- 	/*
+ 	/* Initialize the tty_driver structure */
+@@ -3539,7 +3531,7 @@ static int __init slgt_init(void)
+ 		B9600 | CS8 | CREAD | HUPCL | CLOCAL;
+ 	serial_driver->init_termios.c_ispeed = 9600;
+ 	serial_driver->init_termios.c_ospeed = 9600;
+-	serial_driver->flags = TTY_DRIVER_REAL_RAW;
++	serial_driver->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+ 	tty_set_operations(serial_driver, &ops);
+ 	if ((rc = tty_register_driver(serial_driver)) < 0) {
+ 		DBGERR(("%s can't register serial driver\n", driver_name));
+@@ -3552,6 +3544,16 @@ static int __init slgt_init(void)
+ 		driver_name, driver_version,
+ 		serial_driver->major);
+ 
++	slgt_device_count = 0;
++	if ((rc = pci_register_driver(&pci_driver)) < 0) {
++		printk("%s pci_register_driver error=%d\n", driver_name, rc);
++		goto error;
++	}
++	pci_registered = 1;
++
++	if (!slgt_device_list)
++		printk("%s no devices found\n",driver_name);
++
+ 	return 0;
+ 
+ error:
 _
 
-Patches currently in -mm which might be from djohnson+linux-kernel@sw.starentnetworks.com are
+Patches currently in -mm which might be from paulkf@microgate.com are
 
-do_tty_write-can-block-even-with-o_nonblock.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
+drivers-char-synclinkc-check-kmalloc-return-value.patch
+synclink_gt-use-dynamic-tty-device-registration.patch
