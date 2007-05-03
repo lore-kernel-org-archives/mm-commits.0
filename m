@@ -1,79 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - propagate-errors-from-find-in-scripts-gen_initramfs_listsh.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:31:14 -0700
-Message-ID: <200705031931.l43JVEUm018251@shell0.pdx.osdl.net>
+Subject: - kconfig-correct-minor-typo-in-kconfig-warning-message.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:31:17 -0700
+Message-ID: <200705031931.l43JVHGq018255@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53099 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767847AbXECTdV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:21 -0400
+	by vger.kernel.org with ESMTP id S1767850AbXECTdW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael@ellerman.id.au, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Propagate errors from find in scripts/gen_initramfs_list.sh
+     KCONFIG: correct minor typo in Kconfig warning message
 has been removed from the -mm tree.  Its filename was
-     propagate-errors-from-find-in-scripts-gen_initramfs_listsh.patch
+     kconfig-correct-minor-typo-in-kconfig-warning-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Propagate errors from find in scripts/gen_initramfs_list.sh
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: KCONFIG: correct minor typo in Kconfig warning message
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-If the find(1) in scripts/gen_initramfs_list.sh generates any errors, it
-will cause gen_initramfs_list.sh to fail (because of "set -e"), however
-the errors from find are not printed to the user. This is rather confusing:
-
-~/src/powerpc$ make O=~/build/powerpc-cell32/
-make[2]: *** [usr/initramfs_data.cpio.gz] Error 1
-make[1]: *** [usr] Error 2
-make[1]: *** Waiting for unfinished jobs....
-make[1]: *** wait: No child processes.  Stop.
-make: *** [_all] Error 2
-
-It is much easier to work out what the problem is if we let the errors
-from find hit the console, eg:
-
-~/src/powerpc$ make O=~/build/powerpc-cell32/
-find: /home/michael/initramfs-source/home: Permission denied
-find: /home/michael/initramfs-source/lost+found: Permission denied
-find: /home/michael/initramfs-source/opt: Permission denied
-find: /home/michael/initramfs-source/root: Permission denied
-make[2]: *** [usr/initramfs_data.cpio.gz] Error 1
-make[1]: *** [usr] Error 2
-make[1]: *** Waiting for unfinished jobs....
-make[1]: *** wait: No child processes.  Stop.
-make: *** [_all] Error 2
-
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gen_initramfs_list.sh |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ scripts/kconfig/menu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/gen_initramfs_list.sh~propagate-errors-from-find-in-scripts-gen_initramfs_listsh scripts/gen_initramfs_list.sh
---- a/scripts/gen_initramfs_list.sh~propagate-errors-from-find-in-scripts-gen_initramfs_listsh
-+++ a/scripts/gen_initramfs_list.sh
-@@ -171,7 +171,7 @@ dir_filelist() {
- 	${dep_list}header "$1"
- 
- 	srcdir=$(echo "$1" | sed -e 's://*:/:g')
--	dirlist=$(find "${srcdir}" -printf "%p %m %U %G\n" 2>/dev/null)
-+	dirlist=$(find "${srcdir}" -printf "%p %m %U %G\n")
- 
- 	# If $dirlist is only one line, then the directory is empty
- 	if [  "$(echo "${dirlist}" | wc -l)" -gt 1 ]; then
+diff -puN scripts/kconfig/menu.c~kconfig-correct-minor-typo-in-kconfig-warning-message scripts/kconfig/menu.c
+--- a/scripts/kconfig/menu.c~kconfig-correct-minor-typo-in-kconfig-warning-message
++++ a/scripts/kconfig/menu.c
+@@ -203,7 +203,7 @@ void sym_check_prop(struct symbol *sym)
+ 			else if (sym2->type == S_UNKNOWN)
+ 				prop_warn(prop,
+ 				    "'select' used by config symbol '%s' "
+-				    "refer to undefined symbol '%s'",
++				    "refers to undefined symbol '%s'",
+ 				    sym->name, sym2->name);
+ 			else if (sym2->type != S_BOOLEAN && sym2->type != S_TRISTATE)
+ 				prop_warn(prop,
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-git-powerpc.patch
+arm26-remove-useless-config-option-generic_bust_spinlock.patch
+remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+remove-unused-header-file-drivers-serial-crisv10h.patch
+cris-remove-code-related-to-pre-22-kernel.patch
+remove-unused-header-file-arch-um-kernel-tt-include-mode_kern-tth.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+arm-remove-useless-config-option-generic_bust_spinlock.patch
+git-avr32.patch
+git-drm.patch
+git-input.patch
 git-kbuild.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+git-net.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-scsi-misc.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+delete-unused-header-file-math-emu-extendedh.patch
+delete-unused-header-file-linux-awe_voiceh.patch
+add-spaces-on-either-side-of-case-operator.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
+video-add-spaces-on-either-side-of-the-case-operator.patch
