@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch added to -mm tree
-Date: Thu, 03 May 2007 14:25:17 -0700
-Message-ID: <200705032128.l43LS7WO020381@shell0.pdx.osdl.net>
+Subject: + acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch added to -mm tree
+Date: Thu, 03 May 2007 14:28:28 -0700
+Message-ID: <200705032131.l43LVI68020458@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60436 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031125AbXECV2M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 17:28:12 -0400
+	by vger.kernel.org with ESMTP id S1030180AbXECVdM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 17:33:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de
+Cc: akpm@linux-foundation.org, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
+     acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
+     acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
+Subject: acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/kernel/suspend.c: In function '__save_processor_state':
-arch/x86_64/kernel/suspend.c:51: warning: implicit declaration of function 'mtrr_save_fixed_ranges'
-arch/x86_64/kernel/suspend.c: In function '__restore_processor_state':
-arch/x86_64/kernel/suspend.c:112: warning: implicit declaration of function 'mtrr_ap_init'
-
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/suspend.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/processor_idle.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/suspend.c~fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap arch/x86_64/kernel/suspend.c
---- a/arch/x86_64/kernel/suspend.c~fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/arch/x86_64/kernel/suspend.c
-@@ -9,9 +9,11 @@
+diff -puN drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable
++++ a/drivers/acpi/processor_idle.c
+@@ -239,7 +239,7 @@ static void acpi_state_timer_broadcast(s
  
- #include <linux/smp.h>
- #include <linux/suspend.h>
-+
- #include <asm/proto.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
-+#include <asm/mtrr.h>
- 
- /* References to section boundaries */
- extern const void __nosave_begin, __nosave_end;
+ #ifdef CONFIG_GENERIC_TIME
+ 		/* TSC halts in C2/3, so notify users */
+-		mark_tsc_unstable();
++		mark_tsc_unstable("TSC halts in C2/3");
+ #endif
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,6 +166,7 @@ fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
 fs-convert-core-functions-to-zero_user_page-fix-2.patch
 ntfs-use-zero_user_page-fix.patch
 make-vm-statistics-update-interval-configurable-fix.patch
+acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
 rename-thread_info-to-stack-fix.patch
 reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 fbdev-hecuba-framebuffer-driver.patch
