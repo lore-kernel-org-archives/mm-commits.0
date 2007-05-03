@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-add-support-for-picopower-irq-router-fix.patch added to -mm tree
-Date: Thu, 03 May 2007 14:22:23 -0700
-Message-ID: <200705032125.l43LPDhI020352@shell0.pdx.osdl.net>
+Subject: + fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch added to -mm tree
+Date: Thu, 03 May 2007 14:25:17 -0700
+Message-ID: <200705032128.l43LS7WO020381@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34294 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161425AbXECVZj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 17:25:39 -0400
+	by vger.kernel.org with ESMTP id S1031125AbXECV2M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 17:28:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tmb@mandriva.org
+Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     i386-add-support-for-picopower-irq-router-fix
+     fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
 has been added to the -mm tree.  Its filename is
-     i386-add-support-for-picopower-irq-router-fix.patch
+     fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386-add-support-for-picopower-irq-router-fix
+Subject: fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/pci/irq.c: In function 'pirq_pico_set':
-arch/i386/pci/irq.c:510: warning: no return statement in function returning non-void
-arch/i386/pci/irq.c:510: warning: control reaches end of non-void function
+arch/x86_64/kernel/suspend.c: In function '__save_processor_state':
+arch/x86_64/kernel/suspend.c:51: warning: implicit declaration of function 'mtrr_save_fixed_ranges'
+arch/x86_64/kernel/suspend.c: In function '__restore_processor_state':
+arch/x86_64/kernel/suspend.c:112: warning: implicit declaration of function 'mtrr_ap_init'
 
-Cc: Thomas Backlund <tmb@mandriva.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/irq.c |    4 +++-
- linux/pci_ids.h     |    0 
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ arch/x86_64/kernel/suspend.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/i386/pci/irq.c~i386-add-support-for-picopower-irq-router-fix arch/i386/pci/irq.c
---- a/arch/i386/pci/irq.c~i386-add-support-for-picopower-irq-router-fix
-+++ a/arch/i386/pci/irq.c
-@@ -500,13 +500,15 @@ static int pirq_pico_get(struct pci_dev 
- 	return ((pirq - 1) & 1) ? (inb(0x26) >> 4) : (inb(0x26) & 0xf);
- }
+diff -puN arch/x86_64/kernel/suspend.c~fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap arch/x86_64/kernel/suspend.c
+--- a/arch/x86_64/kernel/suspend.c~fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
++++ a/arch/x86_64/kernel/suspend.c
+@@ -9,9 +9,11 @@
  
--static int pirq_pico_set(struct pci_dev *router, struct pci_dev *dev, int pirq, int irq)
-+static int pirq_pico_set(struct pci_dev *router, struct pci_dev *dev, int pirq,
-+			int irq)
- {
- 	unsigned int x;
- 	outb(0x10 + ((pirq - 1) >> 1), 0x24);
- 	x = inb(0x26);
- 	x = ((pirq - 1) & 1) ? ((x & 0x0f) | (irq << 4)) : ((x & 0xf0) | (irq));
- 	outb(x, 0x26);
-+	return 1;
- }
+ #include <linux/smp.h>
+ #include <linux/suspend.h>
++
+ #include <asm/proto.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
++#include <asm/mtrr.h>
  
- #ifdef CONFIG_PCI_BIOS
-diff -puN include/linux/pci_ids.h~i386-add-support-for-picopower-irq-router-fix include/linux/pci_ids.h
+ /* References to section boundaries */
+ extern const void __nosave_begin, __nosave_end;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,6 +108,7 @@ git-block-fixup.patch
 git-unionfs.patch
 auerswald-fix-file-release-handler.patch
 git-wireless.patch
+fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 i386-add-support-for-picopower-irq-router-fix.patch
 xfs-clean-up-shrinker-games.patch
