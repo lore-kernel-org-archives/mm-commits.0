@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-pata_qdic-probe-code.patch added to -mm tree
-Date: Thu, 03 May 2007 12:57:43 -0700
-Message-ID: <200705031957.l43JvhBM018580@shell0.pdx.osdl.net>
+Subject: + natsemi-improve-diagnostics-for-dspcfg-workaround.patch added to -mm tree
+Date: Thu, 03 May 2007 12:59:09 -0700
+Message-ID: <200705031959.l43Jx9qJ018596@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41534 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49720 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753759AbXECUAZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:00:25 -0400
+	by vger.kernel.org with ESMTP id S1752989AbXECUDD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:03:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samuel.thibault@ens-lyon.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
+Cc: broonie@sirena.org.uk, jeff@garzik.org, thockin@hockin.org
 
 
 The patch titled
-     Fix pata_qdi.c probe code
+     natsemi: Improve diagnostics for DspCfg workaround
 has been added to the -mm tree.  Its filename is
-     fix-pata_qdic-probe-code.patch
+     natsemi-improve-diagnostics-for-dspcfg-workaround.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix pata_qdi.c probe code
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: natsemi: Improve diagnostics for DspCfg workaround
+From: Mark Brown <broonie@sirena.org.uk>
 
-There is a small typo in the probe code of pata_qdi.c.
+The natsemi driver has a workaround for broken hardware which resets itself
+from time to time.  There is a diagnostic message for this workaround but it
+is not printed by default, making the driver behavior more obscure than it
+needs to be.  Make the message be displayed by default.
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Mark Brown <broonie@sirena.org.uk>
+Cc: Tim Hockin <thockin@hockin.org>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_qdi.c |    2 +-
+ drivers/net/natsemi.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_qdi.c~fix-pata_qdic-probe-code drivers/ata/pata_qdi.c
---- a/drivers/ata/pata_qdi.c~fix-pata_qdic-probe-code
-+++ a/drivers/ata/pata_qdi.c
-@@ -375,7 +375,7 @@ static __init int qdi_init(void)
- 				res = inb(port + 3);
- 				if (res & 1) {
- 					/* Single channel mode */
--					if (qdi_init_one(port, 6580, ide_port[r & 0x01], ide_irq[r & 0x01], r & 0x04))
-+					if (qdi_init_one(port, 6580, ide_port[r & 0x01], ide_irq[r & 0x01], r & 0x04) == 0)
- 						ct++;
- 				} else {
- 					/* Dual channel mode */
+diff -puN drivers/net/natsemi.c~natsemi-improve-diagnostics-for-dspcfg-workaround drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-improve-diagnostics-for-dspcfg-workaround
++++ a/drivers/net/natsemi.c
+@@ -1756,7 +1756,7 @@ static void netdev_timer(unsigned long d
+ 		if (dspcfg != np->dspcfg) {
+ 			if (!netif_queue_stopped(dev)) {
+ 				spin_unlock_irq(&np->lock);
+-				if (netif_msg_hw(np))
++				if (netif_msg_drv(np))
+ 					printk(KERN_NOTICE "%s: possible phy reset: "
+ 						"re-initializing\n", dev->name);
+ 				disable_irq(dev->irq);
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from broonie@sirena.org.uk are
 
-fix-pata_qdic-probe-code.patch
+natsemi-improve-diagnostics-for-dspcfg-workaround.patch
+subject-natsemi-allow-users-to-disable-workaround-for.patch
