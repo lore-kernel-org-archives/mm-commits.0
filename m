@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-taskstatsh-to-headers-package.patch added to -mm tree
-Date: Wed, 02 May 2007 21:01:37 -0700
-Message-ID: <200705030401.l4341bDs004396@shell0.pdx.osdl.net>
+Subject: + old-buffer-overflow-in-moxa-driver.patch added to -mm tree
+Date: Wed, 02 May 2007 21:13:58 -0700
+Message-ID: <200705030413.l434DwAT004520@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41618 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767355AbXECEBr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 00:01:47 -0400
+	by vger.kernel.org with ESMTP id S1767367AbXECEOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 00:14:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dzickus@redhat.com
+Cc: dannf@hp.com, dilinger@debian.org
 
 
 The patch titled
-     add taskstats.h to headers package
+     old buffer overflow in moxa driver
 has been added to the -mm tree.  Its filename is
-     add-taskstatsh-to-headers-package.patch
+     old-buffer-overflow-in-moxa-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add taskstats.h to headers package
-From: Don Zickus <dzickus@redhat.com>
+Subject: old buffer overflow in moxa driver
+From: dann frazier <dannf@hp.com>
 
-taskstats.h is missing from the kernel headers package.  It was designed
-to be used from userland, so it should be safe.
+I noticed that the moxa input checking security bug described by
+CVE-2005-0504 appears to remain unfixed upstream.
 
-Signed-off-by: Don Zickus <dzickus@redhat.com>
+The issue is described here:
+  http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2005-0504
+
+Debian has been shipping the following patch from Andres Salomon.
+
+(akpm: it's a privileged operation)
+
+Signed-off-by: dann frazier <dannf@hp.com>
+Cc: Andres Salomon <dilinger@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/moxa.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/Kbuild~add-taskstatsh-to-headers-package include/linux/Kbuild
---- a/include/linux/Kbuild~add-taskstatsh-to-headers-package
-+++ a/include/linux/Kbuild
-@@ -318,6 +318,7 @@ unifdef-y += soundcard.h
- unifdef-y += stat.h
- unifdef-y += stddef.h
- unifdef-y += sysctl.h
-+unifdef-y += taskstats.h
- unifdef-y += tcp.h
- unifdef-y += time.h
- unifdef-y += timex.h
+diff -puN drivers/char/moxa.c~old-buffer-overflow-in-moxa-driver drivers/char/moxa.c
+--- a/drivers/char/moxa.c~old-buffer-overflow-in-moxa-driver
++++ a/drivers/char/moxa.c
+@@ -1582,7 +1582,7 @@ copy:
+ 
+ 	if(copy_from_user(&dltmp, argp, sizeof(struct dl_str)))
+ 		return -EFAULT;
+-	if(dltmp.cardno < 0 || dltmp.cardno >= MAX_BOARDS)
++	if(dltmp.cardno < 0 || dltmp.cardno >= MAX_BOARDS || dltmp.len < 0)
+ 		return -EINVAL;
+ 
+ 	switch(cmd)
+@@ -2529,6 +2529,8 @@ static int moxaloadbios(int cardno, unsi
+ 	void __iomem *baseAddr;
+ 	int i;
+ 
++	if(len < 0 || len > sizeof(moxaBuff))
++		return -EINVAL;
+ 	if(copy_from_user(moxaBuff, tmp, len))
+ 		return -EFAULT;
+ 	baseAddr = moxa_boards[cardno].basemem;
+@@ -2576,7 +2578,7 @@ static int moxaload320b(int cardno, unsi
+ 	void __iomem *baseAddr;
+ 	int i;
+ 
+-	if(len > sizeof(moxaBuff))
++	if(len < 0 || len > sizeof(moxaBuff))
+ 		return -EINVAL;
+ 	if(copy_from_user(moxaBuff, tmp, len))
+ 		return -EFAULT;
+@@ -2596,6 +2598,8 @@ static int moxaloadcode(int cardno, unsi
+ 	void __iomem *baseAddr, *ofsAddr;
+ 	int retval, port, i;
+ 
++	if(len < 0 || len > sizeof(moxaBuff))
++		return -EINVAL;
+ 	if(copy_from_user(moxaBuff, tmp, len))
+ 		return -EFAULT;
+ 	baseAddr = moxa_boards[cardno].basemem;
 _
 
-Patches currently in -mm which might be from dzickus@redhat.com are
+Patches currently in -mm which might be from dannf@hp.com are
 
-add-taskstatsh-to-headers-package.patch
+old-buffer-overflow-in-moxa-driver.patch
