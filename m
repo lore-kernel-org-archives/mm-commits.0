@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revoke-core-code-change-revoke_table-to-fileset-and-revoke_details.patch added to -mm tree
-Date: Thu, 03 May 2007 13:21:05 -0700
-Message-ID: <200705032021.l43KL5KW018861@shell0.pdx.osdl.net>
+Subject: + misc-add-sensable-phantom-driver-v3.patch added to -mm tree
+Date: Thu, 03 May 2007 13:25:18 -0700
+Message-ID: <200705032025.l43KPISA018907@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38359 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933036AbXECUXL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:23:11 -0400
+	by vger.kernel.org with ESMTP id S1031288AbXECU1V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:27:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penberg@cs.helsinki.fi
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     revoke: change revoke_table to fileset and revoke_details
+     Misc: phantom, diff to -v3
 has been added to the -mm tree.  Its filename is
-     revoke-core-code-change-revoke_table-to-fileset-and-revoke_details.patch
+     misc-add-sensable-phantom-driver-v3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,391 +25,155 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revoke: change revoke_table to fileset and revoke_details
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: Misc: phantom, diff to -v3
+From: Jiri Slaby <jirislaby@gmail.com>
 
-The revoke_table struct is overloaded because it serves two purposes: it
-manages the pre-allocated set of files and tracks the revoke operation so
-that we know where to start restore if the operation fails.  This splits
-file set management to separate struct fileset and renames struct
-revoke_table to revoke_details.
+phantom, diff to -v3
 
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/revoke.c |  171 +++++++++++++++++++++++++++++---------------------
- 1 files changed, 101 insertions(+), 70 deletions(-)
+ drivers/misc/phantom.c |   24 ++++++++++++++----------
+ include/linux/Kbuild   |    1 +
+ 2 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN fs/revoke.c~revoke-core-code-change-revoke_table-to-fileset-and-revoke_details fs/revoke.c
---- a/fs/revoke.c~revoke-core-code-change-revoke_table-to-fileset-and-revoke_details
-+++ a/fs/revoke.c
-@@ -18,19 +18,71 @@
- #include <linux/revoked_fs_i.h>
- #include <linux/syscalls.h>
+diff -puN drivers/misc/phantom.c~misc-add-sensable-phantom-driver-v3 drivers/misc/phantom.c
+--- a/drivers/misc/phantom.c~misc-add-sensable-phantom-driver-v3
++++ a/drivers/misc/phantom.c
+@@ -21,6 +21,7 @@
+ #include <linux/cdev.h>
+ #include <linux/phantom.h>
  
--/*
-- * This is used for pre-allocating an array of file pointers so that we don't
-- * have to do memory allocation under tasklist_lock.
-+/**
-+ * fileset - an array of file pointers.
-+ * @files:    the array of file pointers
-+ * @nr:               number of elements in the array
-+ * @end:      index to next unused file pointer
-+ */
-+struct fileset {
-+	struct file	**files;
-+	unsigned long	nr;
-+	unsigned long	end;
-+};
++#include <asm/atomic.h>
+ #include <asm/io.h>
+ 
+ #define PHANTOM_VERSION		"n0.9.5"
+@@ -40,7 +41,7 @@ struct phantom_device {
+ 	u32 __iomem *iaddr;
+ 	u32 __iomem *oaddr;
+ 	unsigned long status;
+-	unsigned int counter;
++	atomic_t counter;
+ 
+ 	wait_queue_head_t wait;
+ 	struct cdev cdev;
+@@ -55,6 +56,7 @@ static int phantom_status(struct phantom
+ 	pr_debug("phantom_status %lx %lx\n", dev->status, newstat);
+ 
+ 	if (!(dev->status & PHB_RUNNING) && (newstat & PHB_RUNNING)) {
++		atomic_set(&dev->counter, 0);
+ 		iowrite32(PHN_CTL_IRQ, dev->iaddr + PHN_CONTROL);
+ 		iowrite32(0x43, dev->caddr + PHN_IRQCTL);
+ 	} else if ((dev->status & PHB_RUNNING) && !(newstat & PHB_RUNNING))
+@@ -145,6 +147,8 @@ static int phantom_open(struct inode *in
+ 	struct phantom_device *dev = container_of(inode->i_cdev,
+ 			struct phantom_device, cdev);
+ 
++	nonseekable_open(inode, file);
 +
-+/**
-+ * revoke_details - details of the revoke operation
-+ * @inode:            invalidate open file descriptors of this inode
-+ * @fset:             set of files that point to a revoked inode
-+ * @restore_start:    index to the first file pointer that is currently in
-+ *                    use by a file descriptor but the real file has not
-+ *                    been revoked
-  */
--struct revoke_table {
--	struct file **files;
--	unsigned long size;
--	unsigned long end;
--	unsigned long restore_start;
-+struct revoke_details {
-+	struct fileset	*fset;
-+	unsigned long	restore_start;
+ 	if (mutex_lock_interruptible(&dev->open_lock))
+ 		return -ERESTARTSYS;
+ 
+@@ -165,8 +169,7 @@ static int phantom_release(struct inode 
+ {
+ 	struct phantom_device *dev = file->private_data;
+ 
+-	if (mutex_lock_interruptible(&dev->open_lock))
+-		return -ERESTARTSYS;
++	mutex_lock(&dev->open_lock);
+ 
+ 	dev->opened = 0;
+ 	phantom_status(dev, dev->status & ~PHB_RUNNING);
+@@ -181,14 +184,14 @@ static unsigned int phantom_poll(struct 
+ 	struct phantom_device *dev = file->private_data;
+ 	unsigned int mask = 0;
+ 
+-	pr_debug("phantom_poll: %u\n", dev->counter);
++	pr_debug("phantom_poll: %d\n", atomic_read(&dev->counter));
+ 	poll_wait(file, &dev->wait, wait);
+-	if (dev->counter) {
++	if (atomic_read(&dev->counter)) {
+ 		mask = POLLIN | POLLRDNORM;
+-		dev->counter--;
++		atomic_dec(&dev->counter);
+ 	} else if ((dev->status & PHB_RUNNING) == 0)
+ 		mask = POLLIN | POLLRDNORM | POLLERR;
+-	pr_debug("phantom_poll end: %x/%u\n", mask, dev->counter);
++	pr_debug("phantom_poll end: %x/%d\n", mask, atomic_read(&dev->counter));
+ 
+ 	return mask;
+ }
+@@ -210,7 +213,7 @@ static irqreturn_t phantom_isr(int irq, 
+ 	iowrite32(0, dev->iaddr);
+ 	iowrite32(0xc0, dev->iaddr);
+ 
+-	dev->counter++;
++	atomic_inc(&dev->counter);
+ 	wake_up_interruptible(&dev->wait);
+ 
+ 	return IRQ_HANDLED;
+@@ -367,6 +370,9 @@ static int phantom_resume(struct pci_dev
+ 
+ 	return 0;
+ }
++#else
++#define phantom_suspend	NULL
++#define phantom_resume	NULL
+ #endif
+ 
+ static struct pci_device_id phantom_pci_tbl[] __devinitdata = {
+@@ -381,10 +387,8 @@ static struct pci_driver phantom_pci_dri
+ 	.id_table = phantom_pci_tbl,
+ 	.probe = phantom_probe,
+ 	.remove = __devexit_p(phantom_remove),
+-#ifdef CONFIG_PM
+ 	.suspend = phantom_suspend,
+ 	.resume = phantom_resume
+-#endif
  };
  
- static struct kmem_cache *revokefs_inode_cache;
- 
-+static inline bool fset_is_full(struct fileset *set)
-+{
-+	return set->nr == set->end;
-+}
-+
-+static inline struct file *fset_get_filp(struct fileset *set)
-+{
-+	return set->files[set->end++];
-+}
-+
-+static struct fileset *alloc_fset(unsigned long size)
-+{
-+	struct fileset *fset;
-+
-+	fset = kzalloc(sizeof *fset, GFP_KERNEL);
-+	if (!fset)
-+		return NULL;
-+
-+	fset->files = kcalloc(size, sizeof(struct file *), GFP_KERNEL);
-+	if (!fset->files) {
-+		kfree(fset);
-+		return NULL;
-+	}
-+	fset->nr = size;
-+	return fset;
-+}
-+
-+static void free_fset(struct fileset *fset)
-+{
-+      int i;
-+
-+      for (i = fset->end; i < fset->nr; i++)
-+              fput(fset->files[i]);
-+
-+      kfree(fset->files);
-+      kfree(fset);
-+}
-+
- /*
-  * Revoked file descriptors point to inodes in the revokefs filesystem.
-  */
-@@ -84,22 +136,12 @@ static inline bool can_revoke_file(struc
- 	return file->f_dentry->d_inode == inode;
- }
- 
--static inline bool revoke_table_is_full(struct revoke_table *table)
--{
--	return table->end == table->size;
--}
--
--static inline struct file *revoke_table_get(struct revoke_table *table)
--{
--	return table->files[table->end++];
--}
--
- /*
-  * 	LOCKING: task_lock(owner)
-  */
- static int revoke_fds(struct task_struct *owner,
- 		      struct inode *inode,
--		      struct file *to_exclude, struct revoke_table *table)
-+		      struct file *to_exclude, struct fileset *fset)
- {
- 	struct files_struct *files;
- 	struct fdtable *fdt;
-@@ -127,12 +169,12 @@ static int revoke_fds(struct task_struct
- 			goto failed;
- 		}
- 
--		if (revoke_table_is_full(table)) {
-+		if (fset_is_full(fset)) {
- 			err = -ENOMEM;
- 			goto failed;
- 		}
- 
--		new_filp = revoke_table_get(table);
-+		new_filp = fset_get_filp(fset);
- 
- 		/*
- 		 * Replace original struct file pointer with a pointer to
-@@ -208,17 +250,17 @@ static int __revoke_break_cow(struct tas
- 	return err;
- }
- 
--static int revoke_break_cow(struct revoke_table *table, struct inode *inode,
-+static int revoke_break_cow(struct fileset *fset, struct inode *inode,
- 			    struct file *to_exclude)
- {
- 	unsigned long i;
- 	int err = 0;
- 
--	for (i = 0; i < table->end; i++) {
-+	for (i = 0; i < fset->end; i++) {
- 		struct revokefs_inode_info *info;
- 		struct file *this;
- 
--		this = table->files[i];
-+		this = fset->files[i];
- 		info = revokefs_i(this->f_dentry->d_inode);
- 
- 		err = __revoke_break_cow(info->owner, inode, to_exclude);
-@@ -399,32 +441,32 @@ static void restore_file(struct revokefs
- 	info->owner = NULL;	/* To avoid double-restore. */
- }
- 
--static void restore_files(struct revoke_table *table)
-+static void restore_files(struct revoke_details *details)
- {
- 	unsigned long i;
- 
--	for (i = table->restore_start; i < table->end; i++) {
-+	for (i = details->restore_start; i < details->fset->end; i++) {
- 		struct revokefs_inode_info *info;
- 		struct file *filp;
- 
--		filp = table->files[i];
-+		filp = details->fset->files[i];
- 		info = revokefs_i(filp->f_dentry->d_inode);
- 
- 		restore_file(info);
- 	}
- }
- 
--static int revoke_files(struct revoke_table *table)
-+static int revoke_files(struct revoke_details *details)
- {
- 	unsigned long i;
- 	int err = 0;
- 
--	for (i = 0; i < table->end; i++) {
-+	for (i = 0; i < details->fset->end; i++) {
- 		struct revokefs_inode_info *info;
- 		struct file *this, *filp;
- 		struct inode *inode;
- 
--		this = table->files[i];
-+		this = details->fset->files[i];
- 		inode = this->f_dentry->d_inode;
- 		info = revokefs_i(inode);
- 
-@@ -432,7 +474,7 @@ static int revoke_files(struct revoke_ta
- 		 * Increase count before attempting to close file as
- 		 * an partially closed file can no longer be restored.
- 		 */
--		table->restore_start++;
-+		details->restore_start++;
- 		filp = info->file;
- 		err = filp->f_op->revoke(filp, inode->i_mapping);
- 		put_task_struct(info->owner);
-@@ -481,50 +523,31 @@ static unsigned long inode_fds(struct in
- 	return nr_fds;
- }
- 
--static void free_revoke_table(struct revoke_table *table)
--{
--	int i;
--
--	for (i = table->end; i < table->size; i++)
--		fput(table->files[i]);
--
--	kfree(table->files);
--	kfree(table);
--}
--
--static struct revoke_table *__alloc_revoke_table(unsigned long size)
-+static struct fileset *__alloc_revoke_fset(unsigned long size)
- {
--	struct revoke_table *table;
-+	struct fileset *fset;
- 	int i;
- 
--	table = kzalloc(sizeof *table, GFP_KERNEL);
--	if (!table)
--		return NULL;
--
--	table->size = size;
--	table->files = kcalloc(size, sizeof(struct file *), GFP_KERNEL);
--	if (!table->files) {
--		kfree(table);
-+	fset = alloc_fset(size);
-+	if (!fset)
- 		return NULL;
--	}
- 
--	for (i = 0; i < table->size; i++) {
-+	for (i = 0; i < fset->nr; i++) {
- 		struct file *filp;
- 
- 		filp = get_revoked_file();
- 		if (!filp)
- 			goto err;
- 
--		table->files[i] = filp;
-+		fset->files[i] = filp;
- 	}
--	return table;
-+	return fset;
-   err:
--	free_revoke_table(table);
-+	free_fset(fset);
- 	return NULL;
- }
- 
--static struct revoke_table *alloc_revoke_table(struct inode *inode,
--					       struct file *to_exclude)
-+static struct fileset *alloc_revoke_fset(struct inode *inode, struct file *to_exclude)
- {
- 	unsigned long nr_fds;
- 
-@@ -532,12 +555,13 @@ static struct revoke_table *alloc_revoke
- 	nr_fds = inode_fds(inode, to_exclude);
- 	read_unlock(&tasklist_lock);
- 
--	return __alloc_revoke_table(nr_fds);
-+	return __alloc_revoke_fset(nr_fds);
- }
- 
- static int do_revoke(struct inode *inode, struct file *to_exclude)
- {
--	struct revoke_table *table = NULL;
-+	struct revoke_details details;
-+	struct fileset *fset = NULL;
- 	struct task_struct *g, *p;
- 	int err = 0;
- 
-@@ -552,8 +576,12 @@ static int do_revoke(struct inode *inode
- 		goto out;
- 	}
- 
--	table = alloc_revoke_table(inode, to_exclude);
--	if (!table) {
-+	/*
-+	 * Pre-allocate memory because the first pass is done under
-+	 * tasklist_lock.
-+	 */
-+	fset = alloc_revoke_fset(inode, to_exclude);
-+	if (!fset) {
- 		err = -ENOMEM;
- 		goto out;
- 	}
-@@ -563,9 +591,9 @@ static int do_revoke(struct inode *inode
- 	/*
- 	 * If someone forked while we were allocating memory, try again.
- 	 */
--	if (inode_fds(inode, to_exclude) > table->size) {
-+	if (inode_fds(inode, to_exclude) > fset->nr) {
- 		read_unlock(&tasklist_lock);
--		free_revoke_table(table);
-+		free_fset(fset);
- 		goto retry;
- 	}
- 
-@@ -574,7 +602,7 @@ static int do_revoke(struct inode *inode
- 	 * new operations on them.
- 	 */
- 	do_each_thread(g, p) {
--		err = revoke_fds(p, inode, to_exclude, table);
-+		err = revoke_fds(p, inode, to_exclude, fset);
- 		if (err)
- 			goto exit_loop;
- 	}
-@@ -593,24 +621,27 @@ static int do_revoke(struct inode *inode
- 	/*
-  	 * Break COW for private mappings.
-  	 */
--	err = revoke_break_cow(table, inode, to_exclude);
-+	err = revoke_break_cow(fset, inode, to_exclude);
- 	if (err)
- 		goto out_restore;
- 
-+	details.fset = fset;
-+	details.restore_start = 0;
-+
- 	/*
- 	 * Now, revoke the files for good.
- 	 */
--	err = revoke_files(table);
-+	err = revoke_files(&details);
- 	if (err)
- 		goto out_restore;
- 
-   out_free_table:
--	free_revoke_table(table);
-+	free_fset(fset);
-   out:
- 	return err;
- 
-   out_restore:
--	restore_files(table);
-+	restore_files(&details);
- 	goto out_free_table;
- }
- 
+ static ssize_t phantom_show_version(struct class *cls, char *buf)
+diff -puN include/linux/Kbuild~misc-add-sensable-phantom-driver-v3 include/linux/Kbuild
+--- a/include/linux/Kbuild~misc-add-sensable-phantom-driver-v3
++++ a/include/linux/Kbuild
+@@ -121,6 +121,7 @@ header-y += pci_regs.h
+ header-y += personality.h
+ header-y += pfkeyv2.h
+ header-y += pg.h
++header-y += phantom.h
+ header-y += pkt_cls.h
+ header-y += pkt_sched.h
+ header-y += posix_types.h
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-slab-introduce-krealloc.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-slab-dont-allocate-empty-shared-caches.patch
-slab-numa-kmem_cache-diet.patch
-slab-mark-set_up_list3s-__init.patch
-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-fault-injection-fix-failslab-with-config_numa.patch
-increase-slab-redzone-to-64bits.patch
-module-use-krealloc.patch
-slab-use-cpu_lock_.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-revoke-special-mmap-handling.patch
-revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
-revoke-core-code.patch
-revoke-core-code-misc-fixes.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-core-code-move-magic.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
-revoke-core-code-break-cow-for-private-mappings.patch
-revoke-core-code-generic_file_revoke-stub-for-nommu.patch
-revoke-core-code-break-cow-fixes.patch
-revoke-core-code-mapping-revocation.patch
-revoke-core-code-only-fput-unused-files.patch
-revoke-core-code-rename-to-can_revoke_filevma.patch
-revoke-core-code-change-revoke_table-to-fileset-and-revoke_details.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-slab-leaks3-default-y.patch
+serial-serial_core-use-pr_debug.patch
+cinergyt2-fix-file-release-handler.patch
+auerswald-fix-file-release-handler.patch
+char-rocket-add-module_device_table.patch
+char-cs5535_gpio-add-module_device_table.patch
+drivers-char-use-__set_current_state.patch
+misc-add-sensable-phantom-driver.patch
+misc-add-sensable-phantom-driver-v3.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+char-cyclades-remove-pause.patch
+char-cyclades-cy_readx-writex-cleanup.patch
+char-cyclades-timer-cleanup.patch
+char-cyclades-remove-volatiles.patch
+char-cyclades-remove-useless-casts.patch
+char-cyclades-create-cy_init_ze.patch
+char-cyclades-use-pci_iomap-unmap.patch
+char-cyclades-init-ze-immediately.patch
+char-cyclades-create-cy_pci_probe.patch
+char-cyclades-move-card-entries-init-into-function.patch
+char-cyclades-init-card-struct-immediately.patch
+char-cyclades-remove-some-global-vars.patch
+char-cyclades-cy_init-error-handling.patch
+char-cyclades-tty_register_device-separately-for-each-device.patch
+char-cyclades-clear-interrupts-before-releasing.patch
+char-cyclades-allow-debug_shirq.patch
+char-mxser-schedule-for-removal.patch
+char-isicom-use-pr_debug.patch
+shrink_slab-handle-bad-shrinkers.patch
