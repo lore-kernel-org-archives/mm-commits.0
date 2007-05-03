@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-simple_read_from_buffer-in-fs.patch added to -mm tree
-Date: Thu, 03 May 2007 13:50:30 -0700
-Message-ID: <200705032050.l43KoUXU019208@shell0.pdx.osdl.net>
+Subject: + rename-thread_info-to-stack-fix.patch added to -mm tree
+Date: Thu, 03 May 2007 14:15:13 -0700
+Message-ID: <200705032118.l43LI45g020221@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51248 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031305AbXECUw4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:52:56 -0400
+	by vger.kernel.org with ESMTP id S1161441AbXECVSl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 17:18:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, gregkh@suse.de, joel.becker@oracle.com
+Cc: akpm@linux-foundation.org, ak@suse.de, zippel@linux-m68k.org
 
 
 The patch titled
-     use simple_read_from_buffer() in fs/
+     rename-thread_info-to-stack-fix
 has been added to the -mm tree.  Its filename is
-     use-simple_read_from_buffer-in-fs.patch
+     rename-thread_info-to-stack-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,165 +25,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use simple_read_from_buffer() in fs/
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: rename-thread_info-to-stack-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Cleanup using simple_read_from_buffer() in binfmt_misc, configfs, and sysfs.
-
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Joel Becker <joel.becker@oracle.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c   |   13 +------------
- fs/configfs/file.c |   33 ++-------------------------------
- fs/sysfs/file.c    |   33 ++-------------------------------
- 3 files changed, 5 insertions(+), 74 deletions(-)
+ include/asm-x86_64/system.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_misc.c~use-simple_read_from_buffer-in-fs fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~use-simple_read_from_buffer-in-fs
-+++ a/fs/binfmt_misc.c
-@@ -675,19 +675,8 @@ static ssize_t
- bm_status_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
- {
- 	char *s = enabled ? "enabled" : "disabled";
--	int len = strlen(s);
--	loff_t pos = *ppos;
- 
--	if (pos < 0)
--		return -EINVAL;
--	if (pos >= len)
--		return 0;
--	if (len < pos + nbytes)
--		nbytes = len - pos;
--	if (copy_to_user(buf, s + pos, nbytes))
--		return -EFAULT;
--	*ppos = pos + nbytes;
--	return nbytes;
-+	return simple_read_from_buffer(buf, nbytes, ppos, s, strlen(s));
- }
- 
- static ssize_t bm_status_write(struct file * file, const char __user * buffer,
-diff -puN fs/configfs/file.c~use-simple_read_from_buffer-in-fs fs/configfs/file.c
---- a/fs/configfs/file.c~use-simple_read_from_buffer-in-fs
-+++ a/fs/configfs/file.c
-@@ -77,36 +77,6 @@ static int fill_read_buffer(struct dentr
- 	return ret;
- }
- 
--
--/**
-- *	flush_read_buffer - push buffer to userspace.
-- *	@buffer:	data buffer for file.
-- *	@userbuf:	user-passed buffer.
-- *	@count:		number of bytes requested.
-- *	@ppos:		file position.
-- *
-- *	Copy the buffer we filled in fill_read_buffer() to userspace.
-- *	This is done at the reader's leisure, copying and advancing
-- *	the amount they specify each time.
-- *	This may be called continuously until the buffer is empty.
-- */
--static int flush_read_buffer(struct configfs_buffer * buffer, char __user * buf,
--			     size_t count, loff_t * ppos)
--{
--	int error;
--
--	if (*ppos > buffer->count)
--		return 0;
--
--	if (count > (buffer->count - *ppos))
--		count = buffer->count - *ppos;
--
--	error = copy_to_user(buf,buffer->page + *ppos,count);
--	if (!error)
--		*ppos += count;
--	return error ? -EFAULT : count;
--}
--
- /**
-  *	configfs_read_file - read an attribute.
-  *	@file:	file pointer.
-@@ -139,7 +109,8 @@ configfs_read_file(struct file *file, ch
- 	}
- 	pr_debug("%s: count = %zd, ppos = %lld, buf = %s\n",
- 		 __FUNCTION__, count, *ppos, buffer->page);
--	retval = flush_read_buffer(buffer,buf,count,ppos);
-+	retval = simple_read_from_buffer(buf, count, ppos, buffer->page,
-+					 buffer->count);
- out:
- 	up(&buffer->sem);
- 	return retval;
-diff -puN fs/sysfs/file.c~use-simple_read_from_buffer-in-fs fs/sysfs/file.c
---- a/fs/sysfs/file.c~use-simple_read_from_buffer-in-fs
-+++ a/fs/sysfs/file.c
-@@ -104,36 +104,6 @@ static int fill_read_buffer(struct dentr
- 	return ret;
- }
- 
--
--/**
-- *	flush_read_buffer - push buffer to userspace.
-- *	@buffer:	data buffer for file.
-- *	@buf:		user-passed buffer.
-- *	@count:		number of bytes requested.
-- *	@ppos:		file position.
-- *
-- *	Copy the buffer we filled in fill_read_buffer() to userspace.
-- *	This is done at the reader's leisure, copying and advancing 
-- *	the amount they specify each time.
-- *	This may be called continuously until the buffer is empty.
-- */
--static int flush_read_buffer(struct sysfs_buffer * buffer, char __user * buf,
--			     size_t count, loff_t * ppos)
--{
--	int error;
--
--	if (*ppos > buffer->count)
--		return 0;
--
--	if (count > (buffer->count - *ppos))
--		count = buffer->count - *ppos;
--
--	error = copy_to_user(buf,buffer->page + *ppos,count);
--	if (!error)
--		*ppos += count;
--	return error ? -EFAULT : count;
--}
--
- /**
-  *	sysfs_read_file - read an attribute. 
-  *	@file:	file pointer.
-@@ -167,7 +137,8 @@ sysfs_read_file(struct file *file, char 
- 	}
- 	pr_debug("%s: count = %zd, ppos = %lld, buf = %s\n",
- 		 __FUNCTION__, count, *ppos, buffer->page);
--	retval = flush_read_buffer(buffer,buf,count,ppos);
-+	retval = simple_read_from_buffer(buf, count, ppos, buffer->page,
-+					 buffer->count);
- out:
- 	up(&buffer->sem);
- 	return retval;
+diff -puN include/asm-x86_64/system.h~rename-thread_info-to-stack-fix include/asm-x86_64/system.h
+--- a/include/asm-x86_64/system.h~rename-thread_info-to-stack-fix
++++ a/include/asm-x86_64/system.h
+@@ -39,7 +39,7 @@
+ 		       [threadrsp] "i" (offsetof(struct task_struct, thread.rsp)), \
+ 		       [ti_flags] "i" (offsetof(struct thread_info, flags)),\
+ 		       [tif_fork] "i" (TIF_FORK),			  \
+-		       [thread_info] "i" (offsetof(struct task_struct, thread_info)), \
++		       [thread_info] "i" (offsetof(struct task_struct, stack)), \
+ 		       [pda_pcurrent] "i" (offsetof(struct x8664_pda, pcurrent))   \
+ 		     : "memory", "cc" __EXTRA_CLOBBER)
+     
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-slob-handle-slab_panic-flag.patch
-fault-injection-fix-failslab-with-config_numa.patch
-hugetlbfs-add-null-check-in-hugetlb_zero_setup.patch
-slob-fix-page-order-calculation-on-not-4kb-page.patch
+slab-introduce-krealloc.patch
+rm9000-serial-driver.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+cx88-video-build-fix.patch
+zlib-backout.patch
+git-acpi.patch
 git-alsa.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-disable-stacktrace-filter-for-x86-64.patch
-fault-injection-enable-stacktrace-with-dwarf2-unwinder.patch
-use-slab_panic-flag-cleanup.patch
-simplify-the-stacktrace-code.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-arm.patch
+git-avr32.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+git-drm.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-jfs.patch
+git-kbuild.patch
+git-kvm.patch
+git-mmc.patch
+git-mtd.patch
+natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-nfs.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
 dtlk-fix-error-checks-in-module_init.patch
-procfs-use-simple_read_from_buffer.patch
-cm4000_cs-fix-error-paths.patch
-cm4000_cs-use-bitrev.patch
-use-simple_read_from_buffer-in-fs.patch
-use-simple_read_from_buffer-in-kernel.patch
-sunrpc-fix-error-path-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+do_tty_write-can-block-even-with-o_nonblock-tidy.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
