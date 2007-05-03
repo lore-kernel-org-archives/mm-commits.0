@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + auerswald-fix-file-release-handler.patch added to -mm tree
-Date: Thu, 03 May 2007 13:11:32 -0700
-Message-ID: <200705032011.l43KBWbR018758@shell0.pdx.osdl.net>
+Subject: + revoke-core-code-rename-to-can_revoke_filevma.patch added to -mm tree
+Date: Thu, 03 May 2007 13:17:52 -0700
+Message-ID: <200705032017.l43KHqkA018824@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41735 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754236AbXECUNg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:13:36 -0400
+	by vger.kernel.org with ESMTP id S1754399AbXECUT7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 16:19:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, jirislaby@gmail.com
+Cc: penberg@cs.helsinki.fi
 
 
 The patch titled
-     auerswald: fix file release handler
+     revoke: rename to can_revoke_{file|vma}
 has been added to the -mm tree.  Its filename is
-     auerswald-fix-file-release-handler.patch
+     revoke-core-code-rename-to-can_revoke_filevma.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,166 +25,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: auerswald: fix file release handler
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revoke: rename to can_revoke_{file|vma}
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-If this down_interruptible() does fail due to signal_pending() then the state
-of the driver will get trashed in interesting ways, because userspace cannot
-and will not retry the close().
+The inode_matches and need_revoke functions have confusing names so rename
+them to can_revoke_file and can_revoke_vma respectively.
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/auerswald.c |   10 ++--------
- 1 files changed, 2 insertions(+), 8 deletions(-)
+ fs/revoke.c |   33 ++++++++++++++++-----------------
+ 1 files changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN drivers/usb/misc/auerswald.c~auerswald-fix-file-release-handler drivers/usb/misc/auerswald.c
---- a/drivers/usb/misc/auerswald.c~auerswald-fix-file-release-handler
-+++ a/drivers/usb/misc/auerswald.c
-@@ -1822,16 +1822,10 @@ static int auerchar_release (struct inod
- 	pauerswald_t cp;
- 	dbg("release");
+diff -puN fs/revoke.c~revoke-core-code-rename-to-can_revoke_filevma fs/revoke.c
+--- a/fs/revoke.c~revoke-core-code-rename-to-can_revoke_filevma
++++ a/fs/revoke.c
+@@ -75,10 +75,13 @@ static struct file *get_revoked_file(voi
+ 	return NULL;
+ }
  
--	/* get the mutexes */
--	if (down_interruptible (&ccp->mutex)) {
--		return -ERESTARTSYS;
--	}
-+	down(&ccp->mutex);
- 	cp = ccp->auerdev;
- 	if (cp) {
--		if (down_interruptible (&cp->mutex)) {
--			up (&ccp->mutex);
--			return -ERESTARTSYS;
--		}
-+		down(&cp->mutex);
- 		/* remove an open service */
- 		auerswald_removeservice (cp, &ccp->scontext);
- 		/* detach from device */
+-static inline int inode_matches(struct file *file, struct inode *inode,
+-				struct file *to_exclude)
++static inline bool can_revoke_file(struct file *file, struct inode *inode,
++				   struct file *to_exclude)
+ {
+-	return file && file != to_exclude && file->f_dentry->d_inode == inode;
++	if (!file || file == to_exclude)
++		return false;
++
++	return file->f_dentry->d_inode == inode;
+ }
+ 
+ static inline bool revoke_table_is_full(struct revoke_table *table)
+@@ -116,7 +119,7 @@ static int revoke_fds(struct task_struct
+ 		struct inode *new_inode;
+ 
+ 		filp = fcheck_files(files, fd);
+-		if (!inode_matches(filp, inode, to_exclude))
++		if (!can_revoke_file(filp, inode, to_exclude))
+ 			continue;
+ 
+ 		if (!filp->f_op->revoke) {
+@@ -159,22 +162,18 @@ static int revoke_fds(struct task_struct
+ 	return err;
+ }
+ 
+-static inline bool need_revoke(struct vm_area_struct *vma,
+-			       struct inode *inode,
+-			       struct file *to_exclude)
++static inline bool can_revoke_vma(struct vm_area_struct *vma,
++				  struct inode *inode, struct file *to_exclude)
+ {
+ 	struct file *file = vma->vm_file;
+ 
+ 	if (vma->vm_flags & VM_REVOKED)
+ 		return false;
+ 
+-	if (!file)
+-		return false;
+-
+-	if (file->f_path.dentry->d_inode != inode)
++	if (!file || file == to_exclude)
+ 		return false;
+ 
+-	return file != to_exclude;
++	return file->f_path.dentry->d_inode == inode;
+ }
+ 
+ static int __revoke_break_cow(struct task_struct *tsk, struct inode *inode,
+@@ -191,7 +190,7 @@ static int __revoke_break_cow(struct tas
+ 		if (vma->vm_flags & VM_SHARED)
+ 			continue;
+ 
+-		if (!need_revoke(vma, inode, to_exclude))
++		if (!can_revoke_vma(vma, inode, to_exclude))
+ 			continue;
+ 
+ 		ret = get_user_pages(tsk, tsk->mm, vma->vm_start,
+@@ -287,7 +286,7 @@ static int revoke_mm(struct mm_struct *m
+ 		if (!(vma->vm_flags & VM_SHARED))
+ 			continue;
+ 
+-		if (!need_revoke(vma, mapping->host, to_exclude))
++		if (!can_revoke_vma(vma, mapping->host, to_exclude))
+ 			continue;
+ 
+ 		err = revoke_vma(vma, &details);
+@@ -320,7 +319,7 @@ static void revoke_mapping_tree(struct a
+ 		if (!(vma->vm_flags & VM_SHARED))
+ 			continue;
+ 
+-		if (likely(!need_revoke(vma, mapping->host, to_exclude)))
++		if (likely(!can_revoke_vma(vma, mapping->host, to_exclude)))
+ 			continue;
+ 
+ 		err = revoke_mm(vma->vm_mm, mapping, to_exclude);
+@@ -348,7 +347,7 @@ static void revoke_mapping_list(struct a
+ 	list_for_each_entry(vma, &mapping->i_mmap_nonlinear, shared.vm_set.list) {
+ 		int err;
+ 
+-		if (likely(!need_revoke(vma, mapping->host, to_exclude)))
++		if (likely(!can_revoke_vma(vma, mapping->host, to_exclude)))
+ 			continue;
+ 
+ 		err = revoke_mm(vma->vm_mm, mapping, to_exclude);
+@@ -470,7 +469,7 @@ static unsigned long inode_fds(struct in
+ 			struct file *file;
+ 
+ 			file = fcheck_files(files, fd);
+-			if (inode_matches(file, inode, to_exclude)) {
++			if (can_revoke_file(file, inode, to_exclude)) {
+ 				nr_fds += fdt->max_fds;
+ 				break;
+ 			}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
-origin.patch
 slab-introduce-krealloc.patch
-rm9000-serial-driver.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+slab-dont-allocate-empty-shared-caches.patch
+slab-numa-kmem_cache-diet.patch
 slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-cx88-video-build-fix.patch
-zlib-backout.patch
-git-acpi.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-arm.patch
-git-avr32.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-git-drm.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-jfs.patch
-git-kbuild.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-nfs.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
+slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+fault-injection-fix-failslab-with-config_numa.patch
+increase-slab-redzone-to-64bits.patch
+module-use-krealloc.patch
+slab-use-cpu_lock_.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+revoke-special-mmap-handling.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+revoke-core-code.patch
+revoke-core-code-misc-fixes.patch
 revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-core-code-move-magic.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
+revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
+revoke-core-code-break-cow-for-private-mappings.patch
+revoke-core-code-generic_file_revoke-stub-for-nommu.patch
+revoke-core-code-break-cow-fixes.patch
+revoke-core-code-mapping-revocation.patch
+revoke-core-code-only-fput-unused-files.patch
+revoke-core-code-rename-to-can_revoke_filevma.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
 revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
-auerswald-fix-file-release-handler.patch
+slab-leaks3-default-y.patch
