@@ -1,41 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - ne-add-platform_driver.patch removed from -mm tree
-Date: Wed, 02 May 2007 20:38:09 -0700
-Message-ID: <200705030338.l433c91m004068@shell0.pdx.osdl.net>
+Subject: + ne-add-platform_driver.patch added to -mm tree
+Date: Wed, 02 May 2007 20:39:50 -0700
+Message-ID: <200705030339.l433donQ004094@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53838 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767349AbXECDi1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 23:38:27 -0400
+	by vger.kernel.org with ESMTP id S1767351AbXECDkG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2007 23:40:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, jeff@garzik.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: anemo@mba.ocn.ne.jp, ralf@linux-mips.org
 
 
 The patch titled
-     ne: Add platform_driver
-has been removed from the -mm tree.  Its filename was
+     ne: add platform_driver
+has been added to the -mm tree.  Its filename is
      ne-add-platform_driver.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ne: Add platform_driver
+Subject: ne: add platform_driver
 From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Currently ne.c has some codes to support RBTX49XX boards but it is not
-complete.  Instead of adding more hacks to fix it, this patch add an generic
-platform_driver interface to the driver and let RBTX49XX use it.  This is a
-first step.
-
-* Add platform_driver interface to ne driver.
-  (Existing legacy ports did not covered by this ne_driver for now)
-* Make ioaddr 'unsigned long'.
-* Move a printk down to show dev->name assigned in register_netdev.
+Add a platform_driver interface to ne driver.  (Existing legacy ports did not
+covered by this ne_driver for now)
 
 Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -191,8 +187,10 @@ Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 origin.patch
 git-kbuild.patch
 git-mips.patch
-ne-add-platform_driver.patch
-ne-mips-use-platform_driver-for-ne-on-rbtx49xx.patch
 mips-drop-unnecessary-config_isa-from-rbtx49xx.patch
+ne-add-platform_driver.patch
+ne-misc-fixes-for-platform-driver.patch
+ne-add-needs_portlist-to-control-isa-auto-probe.patch
+ne-mips-use-platform_driver-for-ne-on-rbtx49xx.patch
 serial_txx9-use-assigned-device-numbers.patch
 serial_txx9-zap-changelog-from-source-code.patch
