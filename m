@@ -1,48 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch removed from -mm tree
-Date: Thu, 03 May 2007 12:30:35 -0700
-Message-ID: <200705031930.l43JUZ02018198@shell0.pdx.osdl.net>
+Subject: - more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch removed from -mm tree
+Date: Thu, 03 May 2007 12:31:02 -0700
+Message-ID: <200705031931.l43JV27R018231@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35972 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767824AbXECTdC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:02 -0400
+	by vger.kernel.org with ESMTP id S1767834AbXECTdF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 15:33:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+     more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 has been removed from the -mm tree.  Its filename was
-     git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
+     more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
+Subject: more fix gregkh-driver-sysfs-kill-unnecessary-attribute-owner
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Greg KH <greg@kroah.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/pci/probe.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/media/video/pvrusb2/pvrusb2-sysfs.c
---- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-vs-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
-+++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-@@ -839,7 +839,6 @@ static void class_dev_create(struct pvr2
- 		sfp->unit_number_created_ok = !0;
+diff -puN drivers/pci/probe.c~more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner drivers/pci/probe.c
+--- a/drivers/pci/probe.c~more-fix-gregkh-driver-sysfs-kill-unnecessary-attribute-owner
++++ a/drivers/pci/probe.c
+@@ -39,7 +39,6 @@ static void pci_create_legacy_files(stru
+ 		b->legacy_io->attr.name = "legacy_io";
+ 		b->legacy_io->size = 0xffff;
+ 		b->legacy_io->attr.mode = S_IRUSR | S_IWUSR;
+-		b->legacy_io->attr.owner = THIS_MODULE;
+ 		b->legacy_io->read = pci_read_legacy_io;
+ 		b->legacy_io->write = pci_write_legacy_io;
+ 		class_device_create_bin_file(&b->class_dev, b->legacy_io);
+@@ -49,7 +48,6 @@ static void pci_create_legacy_files(stru
+ 		b->legacy_mem->attr.name = "legacy_mem";
+ 		b->legacy_mem->size = 1024*1024;
+ 		b->legacy_mem->attr.mode = S_IRUSR | S_IWUSR;
+-		b->legacy_mem->attr.owner = THIS_MODULE;
+ 		b->legacy_mem->mmap = pci_mmap_legacy_mem;
+ 		class_device_create_bin_file(&b->class_dev, b->legacy_mem);
  	}
- 
--	sfp->attr_bus_info.attr.owner = THIS_MODULE;
- 	sfp->attr_bus_info.attr.name = "bus_info_str";
- 	sfp->attr_bus_info.attr.mode = S_IRUGO;
- 	sfp->attr_bus_info.show = bus_info_show;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
