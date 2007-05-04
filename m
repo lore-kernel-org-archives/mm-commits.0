@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-copyright-and-version-changes.patch added to -mm tree
-Date: Thu, 03 May 2007 23:45:57 -0700
-Message-ID: <200705040645.l446jvjx030916@shell0.pdx.osdl.net>
+Subject: + atl1-use-dev_printk-macros.patch added to -mm tree
+Date: Thu, 03 May 2007 23:48:31 -0700
+Message-ID: <200705040648.l446mVDB030942@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58221 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767709AbXEDGqB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:46:01 -0400
+	by vger.kernel.org with ESMTP id S1754137AbXEDGss (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: jacliburn@bellsouth.net, csnook@redhat.com
 
 
 The patch titled
-     Char: cyclades, copyright and version changes
+     atl1: use dev_printk macros
 has been added to the -mm tree.  Its filename is
-     char-cyclades-copyright-and-version-changes.patch
+     atl1-use-dev_printk-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,104 +25,480 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: cyclades, copyright and version changes
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: atl1: use dev_printk macros
+From: Jay Cliburn <jacliburn@bellsouth.net>
 
-- add copyright
-- move version one number upper and use MODULE_VERSION
+Use dev_printk macros for PCI related errors, warnings, debug and info console
+messages.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
+Acked-by: Chris Snook <csnook@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/atl1/atl1_ethtool.c |   19 ++----
+ drivers/net/atl1/atl1_hw.c      |   22 +++----
+ drivers/net/atl1/atl1_main.c    |   83 +++++++++++++-----------------
+ drivers/net/atl1/atl1_param.c   |   31 +++++------
+ 4 files changed, 68 insertions(+), 87 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-copyright-and-version-changes drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-copyright-and-version-changes
-+++ a/drivers/char/cyclades.c
-@@ -10,15 +10,14 @@
-  *
-  * Initially written by Randolph Bentson <bentson@grieg.seaslug.org>.
-  * Modified and maintained by Marcio Saito <marcio@cyclades.com>.
-- * Currently maintained by Cyclades team <async@cyclades.com>.
-  *
-- * For Technical support and installation problems, please send e-mail
-- * to support@cyclades.com.
-+ * Copyright (C) 2007 Jiri Slaby <jirislaby@gmail.com>
-  *
-  * Much of the design and some of the code came from serial.c
-  * which was copyright (C) 1991, 1992  Linus Torvalds.  It was
-  * extensively rewritten by Theodore Ts'o, 8/16/92 -- 9/14/92,
-  * and then fixed as suggested by Michael K. Johnson 12/12/92.
-+ * Converted to pci probing and cleaned up by Jiri Slaby.
-  *
-  * This version supports shared IRQ's (only for PCI boards).
-  *
-@@ -591,7 +590,7 @@
-  *
+diff -puN drivers/net/atl1/atl1_ethtool.c~atl1-use-dev_printk-macros drivers/net/atl1/atl1_ethtool.c
+--- a/drivers/net/atl1/atl1_ethtool.c~atl1-use-dev_printk-macros
++++ a/drivers/net/atl1/atl1_ethtool.c
+@@ -156,8 +156,7 @@ static int atl1_set_settings(struct net_
+ 	u16 old_media_type = hw->media_type;
+ 
+ 	if (netif_running(adapter->netdev)) {
+-		printk(KERN_DEBUG "%s: ethtool shutting down adapter\n",
+-			atl1_driver_name);
++		dev_dbg(&adapter->pdev->dev, "ethtool shutting down adapter\n");
+ 		atl1_down(adapter);
+ 	}
+ 
+@@ -166,9 +165,8 @@ static int atl1_set_settings(struct net_
+ 	else {
+ 		if (ecmd->speed == SPEED_1000) {
+ 			if (ecmd->duplex != DUPLEX_FULL) {
+-				printk(KERN_WARNING
+-				       "%s: can't force to 1000M half duplex\n",
+-					atl1_driver_name);
++				dev_warn(&adapter->pdev->dev,
++					"can't force to 1000M half duplex\n");
+ 				ret_val = -EINVAL;
+ 				goto exit_sset;
+ 			}
+@@ -206,9 +204,8 @@ static int atl1_set_settings(struct net_
+ 	}
+ 	if (atl1_phy_setup_autoneg_adv(hw)) {
+ 		ret_val = -EINVAL;
+-		printk(KERN_WARNING
+-			"%s: invalid ethtool speed/duplex setting\n",
+-			atl1_driver_name);
++		dev_warn(&adapter->pdev->dev,
++			"invalid ethtool speed/duplex setting\n");
+ 		goto exit_sset;
+ 	}
+ 	if (hw->media_type == MEDIA_TYPE_AUTO_SENSOR ||
+@@ -239,12 +236,10 @@ exit_sset:
+ 		hw->media_type = old_media_type;
+ 
+ 	if (netif_running(adapter->netdev)) {
+-		printk(KERN_DEBUG "%s: ethtool starting adapter\n",
+-			atl1_driver_name);
++		dev_dbg(&adapter->pdev->dev, "ethtool starting adapter\n");
+ 		atl1_up(adapter);
+ 	} else if (!ret_val) {
+-		printk(KERN_DEBUG "%s: ethtool resetting adapter\n",
+-			atl1_driver_name);
++		dev_dbg(&adapter->pdev->dev, "ethtool resetting adapter\n");
+ 		atl1_reset(adapter);
+ 	}
+ 	return ret_val;
+diff -puN drivers/net/atl1/atl1_hw.c~atl1-use-dev_printk-macros drivers/net/atl1/atl1_hw.c
+--- a/drivers/net/atl1/atl1_hw.c~atl1-use-dev_printk-macros
++++ a/drivers/net/atl1/atl1_hw.c
+@@ -38,6 +38,7 @@
   */
+ s32 atl1_reset_hw(struct atl1_hw *hw)
+ {
++	struct pci_dev *pdev = hw->back->pdev;
+ 	u32 icr;
+ 	int i;
  
--#define CY_VERSION	"2.4"
-+#define CY_VERSION	"2.5"
+@@ -74,7 +75,7 @@ s32 atl1_reset_hw(struct atl1_hw *hw)
+ 	}
  
- /* If you need to install more boards than NR_CARDS, change the constant
-    in the definition below. No other change is necessary to support up to
-@@ -5240,3 +5239,4 @@ module_init(cy_init);
- module_exit(cy_cleanup_module);
+ 	if (icr) {
+-		printk (KERN_DEBUG "icr = %x\n", icr); 
++		dev_dbg(&pdev->dev, "ICR = 0x%x\n", icr);
+ 		return icr;
+ 	}
  
- MODULE_LICENSE("GPL");
-+MODULE_VERSION(CY_VERSION);
+@@ -437,6 +438,7 @@ s32 atl1_phy_enter_power_saving(struct a
+  */
+ static s32 atl1_phy_reset(struct atl1_hw *hw)
+ {
++	struct pci_dev *pdev = hw->back->pdev;
+ 	s32 ret_val;
+ 	u16 phy_data;
+ 
+@@ -468,8 +470,7 @@ static s32 atl1_phy_reset(struct atl1_hw
+ 		u32 val;
+ 		int i;
+ 		/* pcie serdes link may be down! */
+-		printk(KERN_DEBUG "%s: autoneg caused pcie phy link down\n", 
+-			atl1_driver_name);
++		dev_dbg(&pdev->dev, "pcie phy link down\n");
+ 
+ 		for (i = 0; i < 25; i++) {
+ 			msleep(1);
+@@ -479,9 +480,7 @@ static s32 atl1_phy_reset(struct atl1_hw
+ 		}
+ 
+ 		if ((val & (MDIO_START | MDIO_BUSY)) != 0) {
+-			printk(KERN_WARNING 
+-				"%s: pcie link down at least for 25ms\n", 
+-				atl1_driver_name);
++			dev_warn(&pdev->dev, "pcie link down at least 25ms\n");
+ 			return ret_val;
+ 		}
+ 	}
+@@ -571,6 +570,7 @@ s32 atl1_phy_setup_autoneg_adv(struct at
+  */
+ static s32 atl1_setup_link(struct atl1_hw *hw)
+ {
++	struct pci_dev *pdev = hw->back->pdev;
+ 	s32 ret_val;
+ 
+ 	/*
+@@ -581,15 +581,13 @@ static s32 atl1_setup_link(struct atl1_h
+ 	 */
+ 	ret_val = atl1_phy_setup_autoneg_adv(hw);
+ 	if (ret_val) {
+-		printk(KERN_DEBUG "%s: error setting up autonegotiation\n", 
+-			atl1_driver_name);
++		dev_dbg(&pdev->dev, "error setting up autonegotiation\n");
+ 		return ret_val;
+ 	}
+ 	/* SW.Reset , En-Auto-Neg if needed */
+ 	ret_val = atl1_phy_reset(hw);
+ 	if (ret_val) {
+-		printk(KERN_DEBUG "%s: error resetting the phy\n", 
+-			atl1_driver_name);
++		dev_dbg(&pdev->dev, "error resetting phy\n");
+ 		return ret_val;
+ 	}
+ 	hw->phy_configured = true;
+@@ -669,6 +667,7 @@ s32 atl1_init_hw(struct atl1_hw *hw)
+  */
+ s32 atl1_get_speed_and_duplex(struct atl1_hw *hw, u16 *speed, u16 *duplex)
+ {
++	struct pci_dev *pdev = hw->back->pdev;
+ 	s32 ret_val;
+ 	u16 phy_data;
+ 
+@@ -691,8 +690,7 @@ s32 atl1_get_speed_and_duplex(struct atl
+ 		*speed = SPEED_10;
+ 		break;
+ 	default:
+-		printk(KERN_DEBUG "%s: error getting speed\n", 
+-			atl1_driver_name);
++		dev_dbg(&pdev->dev, "error getting speed\n");
+ 		return ATL1_ERR_PHY_SPEED;
+ 		break;
+ 	}
+diff -puN drivers/net/atl1/atl1_main.c~atl1-use-dev_printk-macros drivers/net/atl1/atl1_main.c
+--- a/drivers/net/atl1/atl1_main.c~atl1-use-dev_printk-macros
++++ a/drivers/net/atl1/atl1_main.c
+@@ -188,8 +188,7 @@ s32 atl1_setup_ring_resources(struct atl
+ 	size = sizeof(struct atl1_buffer) * (tpd_ring->count + rfd_ring->count);
+ 	tpd_ring->buffer_info = kzalloc(size, GFP_KERNEL);
+ 	if (unlikely(!tpd_ring->buffer_info)) {
+-		printk(KERN_WARNING "%s: kzalloc failed , size = D%d\n",
+-			atl1_driver_name, size);
++		dev_err(&pdev->dev, "kzalloc failed , size = D%d\n", size);
+ 		goto err_nomem;
+ 	}
+ 	rfd_ring->buffer_info =
+@@ -207,9 +206,7 @@ s32 atl1_setup_ring_resources(struct atl
+ 	ring_header->desc = pci_alloc_consistent(pdev, ring_header->size,
+ 						&ring_header->dma);
+ 	if (unlikely(!ring_header->desc)) {
+-		printk(KERN_WARNING
+-			"%s: pci_alloc_consistent failed, size = D%d\n",
+-			atl1_driver_name, size);
++		dev_err(&pdev->dev, "pci_alloc_consistent failed\n");
+ 		goto err_nomem;
+ 	}
+ 
+@@ -373,8 +370,7 @@ static void atl1_rx_checksum(struct atl1
+ 		if (rrd->err_flg & (ERR_FLAG_CRC | ERR_FLAG_TRUNC |
+ 					ERR_FLAG_CODE | ERR_FLAG_OV)) {
+ 			adapter->hw_csum_err++;
+-			printk(KERN_DEBUG "%s: rx checksum error\n",
+-				atl1_driver_name);
++			dev_dbg(&adapter->pdev->dev, "rx checksum error\n");
+ 			return;
+ 		}
+ 	}
+@@ -393,8 +389,9 @@ static void atl1_rx_checksum(struct atl1
+ 	}
+ 
+ 	/* IPv4, but hardware thinks its checksum is wrong */
+-	printk(KERN_DEBUG "%s: hw csum wrong pkt_flag:%x, err_flag:%x\n",
+-		atl1_driver_name, rrd->pkt_flg, rrd->err_flg);
++	dev_dbg(&adapter->pdev->dev,
++		"hw csum wrong, pkt_flag:%x, err_flag:%x\n",
++		rrd->pkt_flg, rrd->err_flg);
+ 	skb->ip_summed = CHECKSUM_COMPLETE;
+ 	skb->csum = htons(rrd->xsz.xsum_sz.rx_chksum);
+ 	adapter->hw_csum_err++;
+@@ -507,14 +504,13 @@ chk_rrd:
+ 			/* rrd seems to be bad */
+ 			if (unlikely(i-- > 0)) {
+ 				/* rrd may not be DMAed completely */
+-				printk(KERN_DEBUG
+-					"%s: RRD may not be DMAed completely\n",
+-					atl1_driver_name);
++				dev_dbg(&adapter->pdev->dev,
++					"incomplete RRD DMA transfer\n");
+ 				udelay(1);
+ 				goto chk_rrd;
+ 			}
+ 			/* bad rrd */
+-			printk(KERN_DEBUG "%s: bad RRD\n", atl1_driver_name);
++			dev_dbg(&adapter->pdev->dev, "bad RRD\n");
+ 			/* see if update RFD index */
+ 			if (rrd->num_buf > 1) {
+ 				u16 num_buf;
+@@ -685,8 +681,8 @@ static void atl1_check_for_link(struct a
+ 	/* notify upper layer link down ASAP */
+ 	if (!(phy_data & BMSR_LSTATUS)) {	/* Link Down */
+ 		if (netif_carrier_ok(netdev)) {	/* old link state: Up */
+-			printk(KERN_INFO "%s: %s link is down\n",
+-			       atl1_driver_name, netdev->name);
++			dev_info(&adapter->pdev->dev, "%s link is down\n",
++				netdev->name);
+ 			adapter->link_speed = SPEED_0;
+ 			netif_carrier_off(netdev);
+ 			netif_stop_queue(netdev);
+@@ -731,8 +727,8 @@ static irqreturn_t atl1_intr(int irq, vo
+ 
+ 		/* check if PCIE PHY Link down */
+ 		if (status & ISR_PHY_LINKDOWN) {
+-			printk(KERN_DEBUG "%s: pcie phy link down %x\n",
+-				atl1_driver_name, status);
++			dev_dbg(&adapter->pdev->dev, "pcie phy link down %x\n",
++				status);
+ 			if (netif_running(adapter->netdev)) {	/* reset MAC */
+ 				iowrite32(0, adapter->hw.hw_addr + REG_IMR);
+ 				schedule_work(&adapter->pcie_dma_to_rst_task);
+@@ -742,9 +738,9 @@ static irqreturn_t atl1_intr(int irq, vo
+ 
+ 		/* check if DMA read/write error ? */
+ 		if (status & (ISR_DMAR_TO_RST | ISR_DMAW_TO_RST)) {
+-			printk(KERN_DEBUG
+-				"%s: pcie DMA r/w error (status = 0x%x)\n",
+-				atl1_driver_name, status);
++			dev_dbg(&adapter->pdev->dev,
++				"pcie DMA r/w error (status = 0x%x)\n",
++				status);
+ 			iowrite32(0, adapter->hw.hw_addr + REG_IMR);
+ 			schedule_work(&adapter->pcie_dma_to_rst_task);
+ 			return IRQ_HANDLED;
+@@ -762,14 +758,13 @@ static irqreturn_t atl1_intr(int irq, vo
+ 
+ 		/* rx exception */
+ 		if (unlikely(status & (ISR_RXF_OV | ISR_RFD_UNRUN |
++			ISR_RRD_OV | ISR_HOST_RFD_UNRUN |
++			ISR_HOST_RRD_OV | ISR_CMB_RX))) {
++			if (status & (ISR_RXF_OV | ISR_RFD_UNRUN |
+ 				ISR_RRD_OV | ISR_HOST_RFD_UNRUN |
+-				ISR_HOST_RRD_OV | ISR_CMB_RX))) {
+-			if (status &
+-			    (ISR_RXF_OV | ISR_RFD_UNRUN | ISR_RRD_OV |
+-			     ISR_HOST_RFD_UNRUN | ISR_HOST_RRD_OV))
+-				printk(KERN_INFO
+-					"%s: rx exception: status = 0x%x\n",
+-					atl1_driver_name, status);
++				ISR_HOST_RRD_OV))
++				dev_dbg(&adapter->pdev->dev,
++					"rx exception, ISR = 0x%x\n", status);
+ 			atl1_intr_rx(adapter);
+ 		}
+ 
+@@ -874,8 +869,7 @@ static u32 atl1_check_link(struct atl1_a
+ 	atl1_read_phy_reg(hw, MII_BMSR, &phy_data);
+ 	if (!(phy_data & BMSR_LSTATUS)) {	/* link down */
+ 		if (netif_carrier_ok(netdev)) {	/* old link state: Up */
+-			printk(KERN_INFO "%s: link is down\n",
+-				atl1_driver_name);
++			dev_info(&adapter->pdev->dev, "link is down\n");
+ 			adapter->link_speed = SPEED_0;
+ 			netif_carrier_off(netdev);
+ 			netif_stop_queue(netdev);
+@@ -918,11 +912,11 @@ static u32 atl1_check_link(struct atl1_a
+ 			adapter->link_speed = speed;
+ 			adapter->link_duplex = duplex;
+ 			atl1_setup_mac_ctrl(adapter);
+-			printk(KERN_INFO "%s: %s link is up %d Mbps %s\n",
+-			       atl1_driver_name, netdev->name,
+-			       adapter->link_speed,
+-			       adapter->link_duplex ==
+-			       FULL_DUPLEX ? "full duplex" : "half duplex");
++			dev_info(&adapter->pdev->dev,
++				"%s link is up %d Mbps %s\n",
++				netdev->name, adapter->link_speed,
++				adapter->link_duplex == FULL_DUPLEX ?
++				"full duplex" : "half duplex");
+ 		}
+ 		if (!netif_carrier_ok(netdev)) {	/* Link down -> Up */
+ 			netif_carrier_on(netdev);
+@@ -1330,8 +1324,8 @@ static int atl1_tx_csum(struct atl1_adap
+ 		cso = skb_transport_offset(skb);
+ 		css = cso + skb->csum_offset;
+ 		if (unlikely(cso & 0x1)) {
+-			printk(KERN_DEBUG "%s: payload offset != even number\n",
+-				atl1_driver_name);
++			dev_dbg(&adapter->pdev->dev,
++				"payload offset not an even number\n");
+ 			return -1;
+ 		}
+ 		csum->csumpl |= (cso & CSUM_PARAM_PLOADOFFSET_MASK) <<
+@@ -1579,7 +1573,7 @@ static int atl1_xmit_frame(struct sk_buf
+ 	if (!spin_trylock(&adapter->lock)) {
+ 		/* Can't get lock - tell upper layer to requeue */
+ 		local_irq_restore(flags);
+-		printk(KERN_DEBUG "%s: TX locked\n", atl1_driver_name);
++		dev_dbg(&adapter->pdev->dev, "tx locked\n");
+ 		return NETDEV_TX_LOCKED;
+ 	}
+ 
+@@ -1587,7 +1581,7 @@ static int atl1_xmit_frame(struct sk_buf
+ 		/* not enough descriptors */
+ 		netif_stop_queue(netdev);
+ 		spin_unlock_irqrestore(&adapter->lock, flags);
+-		printk(KERN_DEBUG "%s: TX busy\n", atl1_driver_name);
++		dev_dbg(&adapter->pdev->dev, "tx busy\n");
+ 		return NETDEV_TX_BUSY;
+ 	}
+ 
+@@ -1841,8 +1835,7 @@ static int atl1_change_mtu(struct net_de
+ 
+ 	if ((max_frame < MINIMUM_ETHERNET_FRAME_SIZE) ||
+ 	    (max_frame > MAX_JUMBO_FRAME_SIZE)) {
+-		printk(KERN_WARNING "%s: invalid MTU setting\n",
+-			atl1_driver_name);
++		dev_warn(&adapter->pdev->dev, "invalid MTU setting\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2136,9 +2129,7 @@ static int __devinit atl1_probe(struct p
+ 	if (err) {
+ 		err = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
+ 		if (err) {
+-			printk(KERN_DEBUG
+-				"%s: no usable DMA configuration, aborting\n",
+-				atl1_driver_name);
++			dev_err(&pdev->dev, "no usable DMA configuration\n");
+ 			goto err_dma;
+ 		}
+ 		pci_using_64 = false;
+@@ -2175,7 +2166,9 @@ static int __devinit atl1_probe(struct p
+ 		goto err_pci_iomap;
+ 	}
+ 	/* get device revision number */
+-	adapter->hw.dev_rev = ioread16(adapter->hw.hw_addr + (REG_MASTER_CTRL + 2));
++	adapter->hw.dev_rev = ioread16(adapter->hw.hw_addr +
++					(REG_MASTER_CTRL + 2));
++	dev_info(&pdev->dev, "version %s\n", DRIVER_VERSION);
+ 
+ 	/* set default ring resource counts */
+ 	adapter->rfd_ring.count = adapter->rrd_ring.count = ATL1_DEFAULT_RFD;
+@@ -2466,8 +2459,6 @@ static void __exit atl1_exit_module(void
+  */
+ static int __init atl1_init_module(void)
+ {
+-	printk(KERN_INFO "%s - version %s\n", atl1_driver_string, DRIVER_VERSION);
+-	printk(KERN_INFO "%s\n", atl1_copyright);
+ 	return pci_register_driver(&atl1_driver);
+ }
+ 
+diff -puN drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros drivers/net/atl1/atl1_param.c
+--- a/drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros
++++ a/drivers/net/atl1/atl1_param.c
+@@ -94,7 +94,7 @@ struct atl1_option {
+ 	} arg;
+ };
+ 
+-static int __devinit atl1_validate_option(int *value, struct atl1_option *opt)
++static int __devinit atl1_validate_option(int *value, struct atl1_option *opt, struct pci_dev *pdev)
+ {
+ 	if (*value == OPTION_UNSET) {
+ 		*value = opt->def;
+@@ -105,19 +105,17 @@ static int __devinit atl1_validate_optio
+ 	case enable_option:
+ 		switch (*value) {
+ 		case OPTION_ENABLED:
+-			printk(KERN_INFO "%s: %s Enabled\n", atl1_driver_name,
+-				opt->name);
++			dev_info(&pdev->dev, "%s enabled\n", opt->name);
+ 			return 0;
+ 		case OPTION_DISABLED:
+-			printk(KERN_INFO "%s: %s Disabled\n", atl1_driver_name,
+-				opt->name);
++			dev_info(&pdev->dev, "%s disabled\n", opt->name);
+ 			return 0;
+ 		}
+ 		break;
+ 	case range_option:
+ 		if (*value >= opt->arg.r.min && *value <= opt->arg.r.max) {
+-			printk(KERN_INFO "%s: %s set to %i\n",
+-				atl1_driver_name, opt->name, *value);
++			dev_info(&pdev->dev, "%s set to %i\n", opt->name,
++				*value);
+ 			return 0;
+ 		}
+ 		break;
+@@ -129,8 +127,8 @@ static int __devinit atl1_validate_optio
+ 				ent = &opt->arg.l.p[i];
+ 				if (*value == ent->i) {
+ 					if (ent->str[0] != '\0')
+-						printk(KERN_INFO "%s: %s\n",
+-						       atl1_driver_name, ent->str);
++						dev_info(&pdev->dev, "%s\n",
++							ent->str);
+ 					return 0;
+ 				}
+ 			}
+@@ -141,8 +139,8 @@ static int __devinit atl1_validate_optio
+ 		break;
+ 	}
+ 
+-	printk(KERN_INFO "%s: invalid %s specified (%i) %s\n",
+-	       atl1_driver_name, opt->name, *value, opt->err);
++	dev_info(&pdev->dev, "invalid %s specified (%i) %s\n",
++		opt->name, *value, opt->err);
+ 	*value = opt->def;
+ 	return -1;
+ }
+@@ -158,12 +156,11 @@ static int __devinit atl1_validate_optio
+  */
+ void __devinit atl1_check_options(struct atl1_adapter *adapter)
+ {
++	struct pci_dev *pdev = adapter->pdev;
+ 	int bd = adapter->bd_number;
+ 	if (bd >= ATL1_MAX_NIC) {
+-		printk(KERN_NOTICE "%s: warning: no configuration for board #%i\n",
+-			atl1_driver_name, bd);
+-		printk(KERN_NOTICE "%s: using defaults for all values\n",
+-			atl1_driver_name);
++		dev_notice(&pdev->dev, "no configuration for board#%i\n", bd);
++		dev_notice(&pdev->dev, "using defaults for all values\n");
+ 	}
+ 	{			/* Interrupt Moderate Timer */
+ 		struct atl1_option opt = {
+@@ -178,7 +175,7 @@ void __devinit atl1_check_options(struct
+ 		int val;
+ 		if (num_int_mod_timer > bd) {
+ 			val = int_mod_timer[bd];
+-			atl1_validate_option(&val, &opt);
++			atl1_validate_option(&val, &opt, pdev);
+ 			adapter->imt = (u16) val;
+ 		} else
+ 			adapter->imt = (u16) (opt.def);
+@@ -198,7 +195,7 @@ void __devinit atl1_check_options(struct
+ 		int val;
+ 		if (num_flash_vendor > bd) {
+ 			val = flash_vendor[bd];
+-			atl1_validate_option(&val, &opt);
++			atl1_validate_option(&val, &opt, pdev);
+ 			adapter->hw.flash_vendor = (u8) val;
+ 		} else
+ 			adapter->hw.flash_vendor = (u8) (opt.def);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from jacliburn@bellsouth.net are
 
-serial-serial_core-use-pr_debug.patch
-cinergyt2-fix-file-release-handler.patch
-auerswald-fix-file-release-handler.patch
-char-rocket-add-module_device_table.patch
-char-cs5535_gpio-add-module_device_table.patch
-drivers-char-use-__set_current_state.patch
-misc-add-sensable-phantom-driver.patch
-misc-add-sensable-phantom-driver-v3.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-char-cyclades-remove-pause.patch
-char-cyclades-cy_readx-writex-cleanup.patch
-char-cyclades-timer-cleanup.patch
-char-cyclades-remove-volatiles.patch
-char-cyclades-remove-useless-casts.patch
-char-cyclades-create-cy_init_ze.patch
-char-cyclades-use-pci_iomap-unmap.patch
-char-cyclades-init-ze-immediately.patch
-char-cyclades-create-cy_pci_probe.patch
-char-cyclades-move-card-entries-init-into-function.patch
-char-cyclades-init-card-struct-immediately.patch
-char-cyclades-remove-some-global-vars.patch
-char-cyclades-cy_init-error-handling.patch
-char-cyclades-tty_register_device-separately-for-each-device.patch
-char-cyclades-clear-interrupts-before-releasing.patch
-char-cyclades-allow-debug_shirq.patch
-char-mxser-schedule-for-removal.patch
-char-isicom-use-pr_debug.patch
-char-cyclades-use-is_cyc_z-macro.patch
-char-cyclades-switch-to-pci-probing.patch
-char-cyclades-depends-on-pci-or-isa.patch
-char-cyclades-unexport-struct-cyclades_card.patch
-char-cyclades-remove-useless-fileds-from-cyclades_card.patch
-char-cyclades-irq-is-int.patch
-char-cyclades-printk-cleanups.patch
-char-cyclades-mark-cyy_init_card-as-__devinit-not-__init.patch
-char-cyclades-simplify-variables-initialization.patch
-char-cyclades-get-rid-of-phys-addresses.patch
-char-cyclades-make-info-card-a-pointer.patch
-char-cyclades-remove-sleep_on.patch
-char-cyclades-fix-blockmove.patch
-char-cyclades-timers-cleanup.patch
-char-cyclades-remove-unused-timestamps.patch
-char-cyclades-remove-locking-macros.patch
-char-cyclades-conditions-cleanup.patch
-char-cyclades-fix-tty-device-unregister.patch
-char-cyclades-dynamic-ports.patch
-char-cyclades-probe-cleanup.patch
-char-cyclades-copyright-and-version-changes.patch
-shrink_slab-handle-bad-shrinkers.patch
+atl1-use-dev_printk-macros.patch
+atl1-fix-whitespace-damage.patch
