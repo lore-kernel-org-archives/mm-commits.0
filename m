@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-timers-cleanup.patch added to -mm tree
-Date: Thu, 03 May 2007 23:45:43 -0700
-Message-ID: <200705040645.l446jhh0030895@shell0.pdx.osdl.net>
+Subject: + char-cyclades-remove-unused-timestamps.patch added to -mm tree
+Date: Thu, 03 May 2007 23:45:45 -0700
+Message-ID: <200705040645.l446jjjM030898@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34987 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965746AbXEDGpq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:45:46 -0400
+	by vger.kernel.org with ESMTP id S965744AbXEDGps (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: cyclades, timers cleanup
+     Char: cyclades, remove unused timestamps
 has been added to the -mm tree.  Its filename is
-     char-cyclades-timers-cleanup.patch
+     char-cyclades-remove-unused-timestamps.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: cyclades, timers cleanup
+Subject: Char: cyclades, remove unused timestamps
 From: Jiri Slaby <jirislaby@gmail.com>
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
+ drivers/char/cyclades.c  |   12 ------------
+ include/linux/cyclades.h |    2 --
+ 2 files changed, 14 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-timers-cleanup drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-timers-cleanup
+diff -puN drivers/char/cyclades.c~char-cyclades-remove-unused-timestamps drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-remove-unused-timestamps
 +++ a/drivers/char/cyclades.c
-@@ -932,15 +932,9 @@ do_softint(struct work_struct *work)
- 	if (test_and_clear_bit(Cy_EVENT_OPEN_WAKEUP, &info->event))
- 		wake_up_interruptible(&info->open_wait);
- #ifdef CONFIG_CYZ_INTR
--	if (test_and_clear_bit(Cy_EVENT_Z_RX_FULL, &info->event)) {
--		if (cyz_rx_full_timer[info->line].function == NULL) {
--			cyz_rx_full_timer[info->line].expires = jiffies + 1;
--			cyz_rx_full_timer[info->line].function = cyz_rx_restart;
--			cyz_rx_full_timer[info->line].data =
--						(unsigned long)info;
--			add_timer(&cyz_rx_full_timer[info->line]);
--		}
--	}
-+	if (test_and_clear_bit(Cy_EVENT_Z_RX_FULL, &info->event) &&
-+			!timer_pending(&cyz_rx_full_timer[info->line]))
-+		mod_timer(&cyz_rx_full_timer[info->line], jiffies + 1);
- #endif
- 	if (test_and_clear_bit(Cy_EVENT_DELTA_WAKEUP, &info->event))
- 		wake_up_interruptible(&info->delta_msr_wait);
-@@ -1887,7 +1881,6 @@ static void cyz_rx_restart(unsigned long
- 		printk(KERN_ERR "cyc:cyz_rx_restart retval on ttyC%d was %x\n",
- 			info->line, retval);
- 	}
--	cyz_rx_full_timer[info->line].function = NULL;
- 	CY_UNLOCK(info, flags);
- }
+@@ -1049,7 +1049,6 @@ static void cyy_intr_chip(struct cyclade
+ 		channel = (u_short) (save_xir & CyIRChannel);
+ 		i = channel + chip * 4 + cinfo->first_line;
+ 		info = &cy_port[i];
+-		info->last_active = jiffies;
+ 		save_car = readb(base_addr + (CyCAR << index));
+ 		cy_writeb(base_addr + (CyCAR << index), save_xir);
  
-@@ -4529,8 +4522,8 @@ static void __devinit cy_init_card(struc
- 			else
- 				info->xmit_fifo_size = 4 * CYZ_FIFO_SIZE;
- #ifdef CONFIG_CYZ_INTR
--			init_timer(&cyz_rx_full_timer[port]);
--			cyz_rx_full_timer[port].function = NULL;
-+			setup_timer(&cyz_rx_full_timer[port],
-+				cyz_rx_restart, (unsigned long)info);
+@@ -1225,7 +1224,6 @@ static void cyy_intr_chip(struct cyclade
+ 			goto txend;
+ 		}
+ 		info = &cy_port[i];
+-		info->last_active = jiffies;
+ 		if (info->tty == 0) {
+ 			cy_writeb(base_addr + (CySRER << index),
+ 				  readb(base_addr + (CySRER << index)) &
+@@ -1339,7 +1337,6 @@ txend:
+ 		save_xir = (u_char) readb(base_addr + (CyMIR << index));
+ 		channel = (u_short) (save_xir & CyIRChannel);
+ 		info = &cy_port[channel + chip * 4 + cinfo->first_line];
+-		info->last_active = jiffies;
+ 		save_car = readb(base_addr + (CyCAR << index));
+ 		cy_writeb(base_addr + (CyCAR << index), save_xir);
+ 
+@@ -1570,9 +1567,6 @@ cyz_handle_rx(struct cyclades_port *info
+ 		char_count = rx_put - rx_get + rx_bufsize;
+ 
+ 	if (char_count) {
+-		info->last_active = jiffies;
+-		info->jiffies[1] = jiffies;
+-
+ #ifdef CY_ENABLE_MONITORING
+ 		info->mon.int_count++;
+ 		info->mon.char_count += char_count;
+@@ -1678,8 +1672,6 @@ cyz_handle_tx(struct cyclades_port *info
+ 			info->x_char = 0;
+ 			char_count--;
+ 			info->icount.tx++;
+-			info->last_active = jiffies;
+-			info->jiffies[2] = jiffies;
+ 		}
+ #ifdef BLOCKMOVE
+ 		while (0 < (small_count = min_t(unsigned int,
+@@ -1699,8 +1691,6 @@ cyz_handle_tx(struct cyclades_port *info
+ 			info->xmit_cnt -= small_count;
+ 			info->xmit_tail = (info->xmit_tail + small_count) &
+ 					(SERIAL_XMIT_SIZE - 1);
+-			info->last_active = jiffies;
+-			info->jiffies[2] = jiffies;
+ 		}
+ #else
+ 		while (info->xmit_cnt && char_count) {
+@@ -1713,8 +1703,6 @@ cyz_handle_tx(struct cyclades_port *info
+ 			tx_put = (tx_put + 1) & (tx_bufsize - 1);
+ 			char_count--;
+ 			info->icount.tx++;
+-			info->last_active = jiffies;
+-			info->jiffies[2] = jiffies;
+ 		}
  #endif
- 		} else {
- 			info->type = PORT_CIRRUS;
+ ztxdone:
+diff -puN include/linux/cyclades.h~char-cyclades-remove-unused-timestamps include/linux/cyclades.h
+--- a/include/linux/cyclades.h~char-cyclades-remove-unused-timestamps
++++ a/include/linux/cyclades.h
+@@ -569,7 +569,6 @@ struct cyclades_port {
+ 	int			close_delay;
+ 	unsigned short		closing_wait;
+ 	unsigned long		event;
+-	unsigned long		last_active;
+ 	int			count;	/* # of fd on device */
+ 	int                     breakon;
+ 	int                     breakoff;
+@@ -580,7 +579,6 @@ struct cyclades_port {
+ 	int			xmit_cnt;
+         int                     default_threshold;
+         int                     default_timeout;
+-	unsigned long		jiffies[3];
+ 	unsigned long		rflush_count;
+ 	struct cyclades_monitor	mon;
+ 	struct cyclades_idle_stats	idle_stats;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
