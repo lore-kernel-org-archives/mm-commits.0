@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-get-rid-of-phys-addresses.patch added to -mm tree
-Date: Thu, 03 May 2007 23:45:35 -0700
-Message-ID: <200705040645.l446jZSh030883@shell0.pdx.osdl.net>
+Subject: + char-cyclades-remove-sleep_on.patch added to -mm tree
+Date: Thu, 03 May 2007 23:45:39 -0700
+Message-ID: <200705040645.l446jd58030889@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38394 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965737AbXEDGpj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:45:39 -0400
+	by vger.kernel.org with ESMTP id S965749AbXEDGpm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:45:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: cyclades, get rid of phys addresses
+     Char: cyclades, remove sleep_on
 has been added to the -mm tree.  Its filename is
-     char-cyclades-get-rid-of-phys-addresses.patch
+     char-cyclades-remove-sleep_on.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,126 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: cyclades, get rid of phys addresses
+Subject: Char: cyclades, remove sleep_on
 From: Jiri Slaby <jirislaby@gmail.com>
+
+convert to wait_* and completion
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/char/cyclades.c  |   45 +++++++++++++------------------------
+ include/linux/cyclades.h |    2 -
+ 2 files changed, 17 insertions(+), 30 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-get-rid-of-phys-addresses drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-get-rid-of-phys-addresses
+diff -puN drivers/char/cyclades.c~char-cyclades-remove-sleep_on drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-remove-sleep_on
 +++ a/drivers/char/cyclades.c
-@@ -4797,9 +4797,7 @@ static void __devinit plx_init(void __io
- 	cy_writel(addr + initctl, readl(addr + initctl) & ~0x20000000);
- }
+@@ -947,7 +947,7 @@ do_softint(struct work_struct *work)
+ 	tty_wakeup(tty);
+ #ifdef Z_WAKE
+ 	if (test_and_clear_bit(Cy_EVENT_SHUTDOWN_WAKEUP, &info->event))
+-		wake_up_interruptible(&info->shutdown_wait);
++		complete(&info->shutdown_wait);
+ #endif
+ } /* do_softint */
  
--static int __devinit cy_init_Ze(unsigned long cy_pci_phys0,
--		unsigned long cy_pci_phys2,
--		struct RUNTIME_9060 __iomem *cy_pci_addr0,
-+static int __devinit cy_init_Ze(struct RUNTIME_9060 __iomem *cy_pci_addr0,
- 		int cy_pci_irq, struct pci_dev *pdev)
- {
- 	void __iomem *cy_pci_addr2;
-@@ -4869,7 +4867,7 @@ static int __devinit cy_pci_probe(struct
- {
- 	unsigned char cyy_rev_id;
- 	int cy_pci_irq;
--	__u32 cy_pci_phys0, cy_pci_phys2, mailbox;
-+	__u32 mailbox;
- 	void __iomem *cy_pci_addr0, *cy_pci_addr2;
- 	unsigned int device_id;
- 	unsigned short j, cy_pci_nchan, plx_ver;
-@@ -4883,8 +4881,6 @@ static int __devinit cy_pci_probe(struct
+@@ -2324,9 +2324,8 @@ block_til_ready(struct tty_struct *tty, 
+ 	 * until it's done, and then try again.
+ 	 */
+ 	if (tty_hung_up_p(filp) || (info->flags & ASYNC_CLOSING)) {
+-		if (info->flags & ASYNC_CLOSING) {
+-			interruptible_sleep_on(&info->close_wait);
+-		}
++		wait_event_interruptible(info->close_wait,
++				!(info->flags & ASYNC_CLOSING));
+ 		return (info->flags & ASYNC_HUP_NOTIFY) ? -EAGAIN: -ERESTARTSYS;
+ 	}
  
- 	/* read PCI configuration area */
- 	cy_pci_irq = pdev->irq;
--	cy_pci_phys0 = pci_resource_start(pdev, 0);
--	cy_pci_phys2 = pci_resource_start(pdev, 2);
- 	pci_read_config_byte(pdev, PCI_REVISION_ID, &cyy_rev_id);
+@@ -2597,8 +2596,8 @@ static int cy_open(struct tty_struct *tt
+ 	 * If the port is the middle of closing, bail out now
+ 	 */
+ 	if (tty_hung_up_p(filp) || (info->flags & ASYNC_CLOSING)) {
+-		if (info->flags & ASYNC_CLOSING)
+-			interruptible_sleep_on(&info->close_wait);
++		wait_event_interruptible(info->close_wait,
++				!(info->flags & ASYNC_CLOSING));
+ 		return (info->flags & ASYNC_HUP_NOTIFY) ? -EAGAIN: -ERESTARTSYS;
+ 	}
  
- 	device_id = pdev->device & ~PCI_DEVICE_ID_MASK;
-@@ -5038,8 +5034,7 @@ static int __devinit cy_pci_probe(struct
+@@ -2805,7 +2804,7 @@ static void cy_close(struct tty_struct *
+ 					"ttyC%d was %x\n", info->line, retval);
+ 			}
+ 			CY_UNLOCK(info, flags);
+-			interruptible_sleep_on(&info->shutdown_wait);
++			wait_for_completion_interruptible(&info->shutdown_wait);
+ 			CY_LOCK(info, flags);
  		}
+ #endif
+@@ -4091,32 +4090,20 @@ cy_ioctl(struct tty_struct *tty, struct 
+ 	case TIOCMIWAIT:
+ 		CY_LOCK(info, flags);
+ 		/* note the counters on entry */
+-		cprev = info->icount;
++		cnow = info->icount;
+ 		CY_UNLOCK(info, flags);
+-		while (1) {
+-			interruptible_sleep_on(&info->delta_msr_wait);
+-			/* see if a signal did it */
+-			if (signal_pending(current)) {
+-				return -ERESTARTSYS;
+-			}
+-
++		ret_val = wait_event_interruptible(info->delta_msr_wait, ({
++			cprev = cnow;
+ 			CY_LOCK(info, flags);
+ 			cnow = info->icount;	/* atomic copy */
+ 			CY_UNLOCK(info, flags);
  
- 		if (mailbox == ZE_V1) {
--			retval = cy_init_Ze(cy_pci_phys0, cy_pci_phys2,
--					cy_pci_addr0, cy_pci_irq, pdev);
-+			retval = cy_init_Ze(cy_pci_addr0, cy_pci_irq, pdev);
- 			return retval;
- 		} else {
- 			cy_pci_addr2 = pci_iomap(pdev, 2, CyPCI_Zwin);
+-			if (cnow.rng == cprev.rng && cnow.dsr == cprev.dsr &&
+-			    cnow.dcd == cprev.dcd && cnow.cts == cprev.cts) {
+-				return -EIO;	/* no change => error */
+-			}
+-			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
+-			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
+-			    ((arg & TIOCM_CD) && (cnow.dcd != cprev.dcd)) ||
+-			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
+-				return 0;
+-			}
+-			cprev = cnow;
+-		}
+-		/* NOTREACHED */
++			((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
++			((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
++			((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
++			((arg & TIOCM_CTS) && (cnow.cts != cprev.cts));
++		}));
++		break;
+ 
+ 		/*
+ 		 * Get counter of input serial line interrupts (DCD,RI,DSR,CTS)
+@@ -4534,7 +4521,7 @@ static void __devinit cy_init_card(struc
+ 		INIT_WORK(&info->tqueue, do_softint);
+ 		init_waitqueue_head(&info->open_wait);
+ 		init_waitqueue_head(&info->close_wait);
+-		init_waitqueue_head(&info->shutdown_wait);
++		init_completion(&info->shutdown_wait);
+ 		init_waitqueue_head(&info->delta_msr_wait);
+ 
+ 		if (IS_CYC_Z(*cinfo)) {
+diff -puN include/linux/cyclades.h~char-cyclades-remove-sleep_on include/linux/cyclades.h
+--- a/include/linux/cyclades.h~char-cyclades-remove-sleep_on
++++ a/include/linux/cyclades.h
+@@ -588,7 +588,7 @@ struct cyclades_port {
+ 	struct work_struct	tqueue;
+ 	wait_queue_head_t       open_wait;
+ 	wait_queue_head_t       close_wait;
+-	wait_queue_head_t       shutdown_wait;
++	struct completion       shutdown_wait;
+ 	wait_queue_head_t       delta_msr_wait;
+ 	int throttle;
+ };
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
