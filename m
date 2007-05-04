@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + stop-ignoring-argument-in-drivers-network-b44c.patch added to -mm tree
-Date: Fri, 04 May 2007 12:46:28 -0700
-Message-ID: <200705041946.l44JkSne012595@shell0.pdx.osdl.net>
+Subject: + wm8750-typo-fix.patch added to -mm tree
+Date: Fri, 04 May 2007 12:49:05 -0700
+Message-ID: <200705041949.l44Jn5Ws012626@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57555 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422665AbXEDTqi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 15:46:38 -0400
+	by vger.kernel.org with ESMTP id S1161544AbXEDTug (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 15:50:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mtt.martin@gmail.com, jeff@garzik.org, mchan@broadcom.com
+Cc: akpm@linux-foundation.org, perex@suse.cz, stable@kernel.org, tiwai@suse.de
 
 
 The patch titled
-     Stop ignoring argument in drivers/network/b44.c
+     wm8750 typo fix
 has been added to the -mm tree.  Its filename is
-     stop-ignoring-argument-in-drivers-network-b44c.patch
+     wm8750-typo-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,212 +25,169 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Stop ignoring argument in drivers/network/b44.c
-From: Matthew Martin <mtt.martin@gmail.com>
+Subject: wm8750 typo fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch uses the phy_id variable in b44_readphy and b44_writephy.
+I quuestion the testing status of that patch!
 
-Signed-off-by: Matthew Martin <mtt.martin@gmail.com>
-Cc: Michael Chan <mchan@broadcom.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/b44.c |   88 +++++++++++++++++++++++++-------------------
- 1 files changed, 51 insertions(+), 37 deletions(-)
+ sound/soc/codecs/wm8750.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/b44.c~stop-ignoring-argument-in-drivers-network-b44c drivers/net/b44.c
---- a/drivers/net/b44.c~stop-ignoring-argument-in-drivers-network-b44c
-+++ a/drivers/net/b44.c
-@@ -327,45 +327,59 @@ static void b44_enable_ints(struct b44 *
- 	bw32(bp, B44_IMASK, bp->imask);
- }
+diff -puN sound/soc/codecs/wm8750.c~wm8750-typo-fix sound/soc/codecs/wm8750.c
+--- a/sound/soc/codecs/wm8750.c~wm8750-typo-fix
++++ a/sound/soc/codecs/wm8750.c
+@@ -808,7 +808,7 @@ static int wm8750_init(struct snd_soc_de
+ 	codec->dai = &wm8750_dai;
+ 	codec->num_dai = 1;
+ 	codec->reg_cache_size = sizeof(wm8750_reg);
+-	codec->reg_cache = kmemdup(wm8750_reg, sizeof(wm8750_reg), GFP_KRENEL);
++	codec->reg_cache = kmemdup(wm8750_reg, sizeof(wm8750_reg), GFP_KERNEL);
+ 	if (codec->reg_cache == NULL)
+ 		return -ENOMEM;
  
--static int b44_readphy(struct b44 *bp, int reg, u32 *val)
-+static int b44_readphy(struct b44 *bp, int reg, u32 *val, int phy_addr)
- {
- 	int err;
- 
- 	bw32(bp, B44_EMAC_ISTAT, EMAC_INT_MII);
--	bw32(bp, B44_MDIO_DATA, (MDIO_DATA_SB_START |
--			     (MDIO_OP_READ << MDIO_DATA_OP_SHIFT) |
--			     (bp->phy_addr << MDIO_DATA_PMD_SHIFT) |
--			     (reg << MDIO_DATA_RA_SHIFT) |
--			     (MDIO_TA_VALID << MDIO_DATA_TA_SHIFT)));
-+
-+	if (!phy_addr)
-+		bw32(bp, B44_MDIO_DATA, (MDIO_DATA_SB_START |
-+				     (MDIO_OP_READ << MDIO_DATA_OP_SHIFT) |
-+				     (bp->phy_addr << MDIO_DATA_PMD_SHIFT) |
-+				     (reg << MDIO_DATA_RA_SHIFT) |
-+				     (MDIO_TA_VALID << MDIO_DATA_TA_SHIFT)));
-+	else
-+		bw32(bp, B44_MDIO_DATA, (MDIO_DATA_SB_START |
-+				     (MDIO_OP_READ << MDIO_DATA_OP_SHIFT) |
-+				     (phy_addr << MDIO_DATA_PMD_SHIFT) |
-+				     (reg << MDIO_DATA_RA_SHIFT) |
-+				     (MDIO_TA_VALID << MDIO_DATA_TA_SHIFT)));
-+
- 	err = b44_wait_bit(bp, B44_EMAC_ISTAT, EMAC_INT_MII, 100, 0);
- 	*val = br32(bp, B44_MDIO_DATA) & MDIO_DATA_DATA;
- 
- 	return err;
- }
- 
--static int b44_writephy(struct b44 *bp, int reg, u32 val)
-+static int b44_writephy(struct b44 *bp, int reg, u32 val, int phy_addr)
- {
- 	bw32(bp, B44_EMAC_ISTAT, EMAC_INT_MII);
--	bw32(bp, B44_MDIO_DATA, (MDIO_DATA_SB_START |
--			     (MDIO_OP_WRITE << MDIO_DATA_OP_SHIFT) |
--			     (bp->phy_addr << MDIO_DATA_PMD_SHIFT) |
--			     (reg << MDIO_DATA_RA_SHIFT) |
--			     (MDIO_TA_VALID << MDIO_DATA_TA_SHIFT) |
--			     (val & MDIO_DATA_DATA)));
-+
-+	if (!phy_addr)
-+		bw32(bp, B44_MDIO_DATA, (MDIO_DATA_SB_START |
-+				     (MDIO_OP_WRITE << MDIO_DATA_OP_SHIFT) |
-+				     (bp->phy_addr << MDIO_DATA_PMD_SHIFT) |
-+				     (reg << MDIO_DATA_RA_SHIFT) |
-+				     (MDIO_TA_VALID << MDIO_DATA_TA_SHIFT) |
-+				     (val & MDIO_DATA_DATA)));
-+	else
-+		bw32(bp, B44_MDIO_DATA, (MDIO_DATA_SB_START |
-+				     (MDIO_OP_WRITE << MDIO_DATA_OP_SHIFT) |
-+				     (phy_addr << MDIO_DATA_PMD_SHIFT) |
-+				     (reg << MDIO_DATA_RA_SHIFT) |
-+				     (MDIO_TA_VALID << MDIO_DATA_TA_SHIFT) |
-+				     (val & MDIO_DATA_DATA)));
-+
- 	return b44_wait_bit(bp, B44_EMAC_ISTAT, EMAC_INT_MII, 100, 0);
- }
- 
- /* miilib interface */
--/* FIXME FIXME: phy_id is ignored, bp->phy_addr use is unconditional
-- * due to code existing before miilib use was added to this driver.
-- * Someone should remove this artificial driver limitation in
-- * b44_{read,write}phy.  bp->phy_addr itself is fine (and needed).
-- */
- static int b44_mii_read(struct net_device *dev, int phy_id, int location)
- {
- 	u32 val;
- 	struct b44 *bp = netdev_priv(dev);
--	int rc = b44_readphy(bp, location, &val);
-+	int rc = b44_readphy(bp, location, &val, phy_id);
- 	if (rc)
- 		return 0xffffffff;
- 	return val;
-@@ -375,7 +389,7 @@ static void b44_mii_write(struct net_dev
- 			 int val)
- {
- 	struct b44 *bp = netdev_priv(dev);
--	b44_writephy(bp, location, val);
-+	b44_writephy(bp, location, val, phy_id);
- }
- 
- static int b44_phy_reset(struct b44 *bp)
-@@ -383,11 +397,11 @@ static int b44_phy_reset(struct b44 *bp)
- 	u32 val;
- 	int err;
- 
--	err = b44_writephy(bp, MII_BMCR, BMCR_RESET);
-+	err = b44_writephy(bp, MII_BMCR, BMCR_RESET, 0);
- 	if (err)
- 		return err;
- 	udelay(100);
--	err = b44_readphy(bp, MII_BMCR, &val);
-+	err = b44_readphy(bp, MII_BMCR, &val, 0);
- 	if (!err) {
- 		if (val & BMCR_RESET) {
- 			printk(KERN_ERR PFX "%s: PHY Reset would not complete.\n",
-@@ -446,15 +460,15 @@ static int b44_setup_phy(struct b44 *bp)
- 	u32 val;
- 	int err;
- 
--	if ((err = b44_readphy(bp, B44_MII_ALEDCTRL, &val)) != 0)
-+	if ((err = b44_readphy(bp, B44_MII_ALEDCTRL, &val, 0)) != 0)
- 		goto out;
- 	if ((err = b44_writephy(bp, B44_MII_ALEDCTRL,
--				val & MII_ALEDCTRL_ALLMSK)) != 0)
-+				val & MII_ALEDCTRL_ALLMSK, 0)) != 0)
- 		goto out;
--	if ((err = b44_readphy(bp, B44_MII_TLEDCTRL, &val)) != 0)
-+	if ((err = b44_readphy(bp, B44_MII_TLEDCTRL, &val, 0)) != 0)
- 		goto out;
- 	if ((err = b44_writephy(bp, B44_MII_TLEDCTRL,
--				val | MII_TLEDCTRL_ENABLE)) != 0)
-+				val | MII_TLEDCTRL_ENABLE, 0)) != 0)
- 		goto out;
- 
- 	if (!(bp->flags & B44_FLAG_FORCE_LINK)) {
-@@ -472,22 +486,22 @@ static int b44_setup_phy(struct b44 *bp)
- 		if (bp->flags & B44_FLAG_PAUSE_AUTO)
- 			adv |= ADVERTISE_PAUSE_CAP | ADVERTISE_PAUSE_ASYM;
- 
--		if ((err = b44_writephy(bp, MII_ADVERTISE, adv)) != 0)
-+		if ((err = b44_writephy(bp, MII_ADVERTISE, adv, 0)) != 0)
- 			goto out;
- 		if ((err = b44_writephy(bp, MII_BMCR, (BMCR_ANENABLE |
--						       BMCR_ANRESTART))) != 0)
-+						       BMCR_ANRESTART), 0)) != 0)
- 			goto out;
- 	} else {
- 		u32 bmcr;
- 
--		if ((err = b44_readphy(bp, MII_BMCR, &bmcr)) != 0)
-+		if ((err = b44_readphy(bp, MII_BMCR, &bmcr, 0)) != 0)
- 			goto out;
- 		bmcr &= ~(BMCR_FULLDPLX | BMCR_ANENABLE | BMCR_SPEED100);
- 		if (bp->flags & B44_FLAG_100_BASE_T)
- 			bmcr |= BMCR_SPEED100;
- 		if (bp->flags & B44_FLAG_FULL_DUPLEX)
- 			bmcr |= BMCR_FULLDPLX;
--		if ((err = b44_writephy(bp, MII_BMCR, bmcr)) != 0)
-+		if ((err = b44_writephy(bp, MII_BMCR, bmcr, 0)) != 0)
- 			goto out;
- 
- 		/* Since we will not be negotiating there is no safe way
-@@ -541,8 +555,8 @@ static void b44_check_phy(struct b44 *bp
- {
- 	u32 bmsr, aux;
- 
--	if (!b44_readphy(bp, MII_BMSR, &bmsr) &&
--	    !b44_readphy(bp, B44_MII_AUXCTRL, &aux) &&
-+	if (!b44_readphy(bp, MII_BMSR, &bmsr, 0) &&
-+	    !b44_readphy(bp, B44_MII_AUXCTRL, &aux, 0) &&
- 	    (bmsr != 0xffff)) {
- 		if (aux & MII_AUXCTRL_SPEED)
- 			bp->flags |= B44_FLAG_100_BASE_T;
-@@ -565,8 +579,8 @@ static void b44_check_phy(struct b44 *bp
- 			bw32(bp, B44_TX_CTRL, val);
- 
- 			if (!(bp->flags & B44_FLAG_FORCE_LINK) &&
--			    !b44_readphy(bp, MII_ADVERTISE, &local_adv) &&
--			    !b44_readphy(bp, MII_LPA, &remote_adv))
-+			    !b44_readphy(bp, MII_ADVERTISE, &local_adv, 0) &&
-+			    !b44_readphy(bp, MII_LPA, &remote_adv, 0))
- 				b44_set_flow_ctrl(bp, local_adv, remote_adv);
- 
- 			/* Link now up */
-@@ -1766,12 +1780,12 @@ static int b44_nway_reset(struct net_dev
- 	int r;
- 
- 	spin_lock_irq(&bp->lock);
--	b44_readphy(bp, MII_BMCR, &bmcr);
--	b44_readphy(bp, MII_BMCR, &bmcr);
-+	b44_readphy(bp, MII_BMCR, &bmcr, 0);
-+	b44_readphy(bp, MII_BMCR, &bmcr, 0);
- 	r = -EINVAL;
- 	if (bmcr & BMCR_ANENABLE) {
- 		b44_writephy(bp, MII_BMCR,
--			     bmcr | BMCR_ANRESTART);
-+			     bmcr | BMCR_ANRESTART, 0);
- 		r = 0;
- 	}
- 	spin_unlock_irq(&bp->lock);
 _
 
-Patches currently in -mm which might be from mtt.martin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-stop-ignoring-argument-in-drivers-network-b44c.patch
+origin.patch
+slab-introduce-krealloc.patch
+rm9000-serial-driver.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+cx88-video-build-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-arm.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+git-drm.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
+git-jfs.patch
+git-kbuild.patch
+git-kvm.patch
+git-mmc.patch
+git-mtd.patch
+natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-nfs.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+do_tty_write-can-block-even-with-o_nonblock-tidy.patch
+tty-add-compat_ioctl-fix.patch
+synclink_gt-add-compat_ioctl-fix.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
+rename-thread_info-to-stack-fix.patch
+char-cyclades-conditions-cleanup-fix.patch
+char-cyclades-probe-cleanup-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
+wm8750-typo-fix.patch
