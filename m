@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-constructor-from-buffer_head.patch added to -mm tree
-Date: Fri, 04 May 2007 12:54:41 -0700
-Message-ID: <200705041954.l44Jsfiw012711@shell0.pdx.osdl.net>
+Subject: + s390-fix-subsystem-removal-fallout.patch added to -mm tree
+Date: Fri, 04 May 2007 12:55:36 -0700
+Message-ID: <200705041955.l44Jtabs012750@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39837 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161558AbXEDTyp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 15:54:45 -0400
+	by vger.kernel.org with ESMTP id S1161926AbXEDTzm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 15:55:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: cornelia.huck@de.ibm.com
 
 
 The patch titled
-     Remove constructor from buffer_head
+     s390: fix subsystem removal fallout
 has been added to the -mm tree.  Its filename is
-     remove-constructor-from-buffer_head.patch
+     s390-fix-subsystem-removal-fallout.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,117 +25,138 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove constructor from buffer_head
-From: Christoph Lameter <clameter@sgi.com>
+Subject: s390: fix subsystem removal fallout
+From: Cornelia Huck <cornelia.huck@de.ibm.com>
 
-needs changelog
+This patch fixes compilation on s390 in the current driver tree. It
+should probably be merged into
+remove-struct-subsystem-as-it-is-no-longer-needed.patch.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   22 ++++------------------
- 1 files changed, 4 insertions(+), 18 deletions(-)
+ arch/s390/hypfs/inode.c |    2 +-
+ arch/s390/kernel/ipl.c  |   26 +++++++++++++-------------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/buffer.c~remove-constructor-from-buffer_head fs/buffer.c
---- a/fs/buffer.c~remove-constructor-from-buffer_head
-+++ a/fs/buffer.c
-@@ -2931,9 +2931,10 @@ static void recalc_bh_state(void)
- 	
- struct buffer_head *alloc_buffer_head(gfp_t gfp_flags)
+diff -puN arch/s390/hypfs/inode.c~s390-fix-subsystem-removal-fallout arch/s390/hypfs/inode.c
+--- a/arch/s390/hypfs/inode.c~s390-fix-subsystem-removal-fallout
++++ a/arch/s390/hypfs/inode.c
+@@ -477,7 +477,7 @@ static int __init hypfs_init(void)
+ 			goto fail_diag;
+ 		}
+ 	}
+-	kset_set_kset_s(&s390_subsys, hypervisor_subsys);
++	kobj_set_kset_s(&s390_subsys, hypervisor_subsys);
+ 	rc = subsystem_register(&s390_subsys);
+ 	if (rc)
+ 		goto fail_sysfs;
+diff -puN arch/s390/kernel/ipl.c~s390-fix-subsystem-removal-fallout arch/s390/kernel/ipl.c
+--- a/arch/s390/kernel/ipl.c~s390-fix-subsystem-removal-fallout
++++ a/arch/s390/kernel/ipl.c
+@@ -814,23 +814,23 @@ static int __init ipl_register_fcp_files
  {
--	struct buffer_head *ret = kmem_cache_alloc(bh_cachep,
-+	struct buffer_head *ret = kmem_cache_zalloc(bh_cachep,
- 				set_migrateflags(gfp_flags, __GFP_RECLAIMABLE));
- 	if (ret) {
-+		INIT_LIST_HEAD(&ret->b_assoc_buffers);
- 		get_cpu_var(bh_accounting).nr++;
- 		recalc_bh_state();
- 		put_cpu_var(bh_accounting);
-@@ -2952,17 +2953,6 @@ void free_buffer_head(struct buffer_head
+ 	int rc;
+ 
+-	rc = sysfs_create_group(&ipl_subsys.kset.kobj,
++	rc = sysfs_create_group(&ipl_subsys.kobj,
+ 				&ipl_fcp_attr_group);
+ 	if (rc)
+ 		goto out;
+-	rc = sysfs_create_bin_file(&ipl_subsys.kset.kobj,
++	rc = sysfs_create_bin_file(&ipl_subsys.kobj,
+ 				   &ipl_parameter_attr);
+ 	if (rc)
+ 		goto out_ipl_parm;
+-	rc = sysfs_create_bin_file(&ipl_subsys.kset.kobj,
++	rc = sysfs_create_bin_file(&ipl_subsys.kobj,
+ 				   &ipl_scp_data_attr);
+ 	if (!rc)
+ 		goto out;
+ 
+-	sysfs_remove_bin_file(&ipl_subsys.kset.kobj, &ipl_parameter_attr);
++	sysfs_remove_bin_file(&ipl_subsys.kobj, &ipl_parameter_attr);
+ 
+ out_ipl_parm:
+-	sysfs_remove_group(&ipl_subsys.kset.kobj, &ipl_fcp_attr_group);
++	sysfs_remove_group(&ipl_subsys.kobj, &ipl_fcp_attr_group);
+ out:
+ 	return rc;
  }
- EXPORT_SYMBOL(free_buffer_head);
+@@ -844,7 +844,7 @@ static int __init ipl_init(void)
+ 		return rc;
+ 	switch (ipl_info.type) {
+ 	case IPL_TYPE_CCW:
+-		rc = sysfs_create_group(&ipl_subsys.kset.kobj,
++		rc = sysfs_create_group(&ipl_subsys.kobj,
+ 					&ipl_ccw_attr_group);
+ 		break;
+ 	case IPL_TYPE_FCP:
+@@ -852,11 +852,11 @@ static int __init ipl_init(void)
+ 		rc = ipl_register_fcp_files();
+ 		break;
+ 	case IPL_TYPE_NSS:
+-		rc = sysfs_create_group(&ipl_subsys.kset.kobj,
++		rc = sysfs_create_group(&ipl_subsys.kobj,
+ 					&ipl_nss_attr_group);
+ 		break;
+ 	default:
+-		rc = sysfs_create_group(&ipl_subsys.kset.kobj,
++		rc = sysfs_create_group(&ipl_subsys.kobj,
+ 					&ipl_unknown_attr_group);
+ 		break;
+ 	}
+@@ -883,7 +883,7 @@ static int __init reipl_nss_init(void)
  
--static void
--init_buffer_head(void *data, struct kmem_cache *cachep, unsigned long flags)
--{
--	if (flags & SLAB_CTOR_CONSTRUCTOR) {
--		struct buffer_head * bh = (struct buffer_head *)data;
--
--		memset(bh, 0, sizeof(*bh));
--		INIT_LIST_HEAD(&bh->b_assoc_buffers);
--	}
--}
--
- static void buffer_exit_cpu(int cpu)
- {
- 	int i;
-@@ -2989,12 +2979,8 @@ void __init buffer_init(void)
- {
- 	int nrpages;
- 
--	bh_cachep = kmem_cache_create("buffer_head",
--					sizeof(struct buffer_head), 0,
--					(SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|
--					SLAB_MEM_SPREAD),
--					init_buffer_head,
--					NULL);
-+	bh_cachep = KMEM_CACHE(buffer_head,
-+			SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|SLAB_MEM_SPREAD);
- 
- 	/*
- 	 * Limit the bh occupancy to 10% of ZONE_NORMAL
+ 	if (!MACHINE_IS_VM)
+ 		return 0;
+-	rc = sysfs_create_group(&reipl_subsys.kset.kobj, &reipl_nss_attr_group);
++	rc = sysfs_create_group(&reipl_subsys.kobj, &reipl_nss_attr_group);
+ 	if (rc)
+ 		return rc;
+ 	strncpy(reipl_nss_name, kernel_nss_name, NSS_NAME_SIZE + 1);
+@@ -898,7 +898,7 @@ static int __init reipl_ccw_init(void)
+ 	reipl_block_ccw = (void *) get_zeroed_page(GFP_KERNEL);
+ 	if (!reipl_block_ccw)
+ 		return -ENOMEM;
+-	rc = sysfs_create_group(&reipl_subsys.kset.kobj, &reipl_ccw_attr_group);
++	rc = sysfs_create_group(&reipl_subsys.kobj, &reipl_ccw_attr_group);
+ 	if (rc) {
+ 		free_page((unsigned long)reipl_block_ccw);
+ 		return rc;
+@@ -936,7 +936,7 @@ static int __init reipl_fcp_init(void)
+ 	reipl_block_fcp = (void *) get_zeroed_page(GFP_KERNEL);
+ 	if (!reipl_block_fcp)
+ 		return -ENOMEM;
+-	rc = sysfs_create_group(&reipl_subsys.kset.kobj, &reipl_fcp_attr_group);
++	rc = sysfs_create_group(&reipl_subsys.kobj, &reipl_fcp_attr_group);
+ 	if (rc) {
+ 		free_page((unsigned long)reipl_block_fcp);
+ 		return rc;
+@@ -988,7 +988,7 @@ static int __init dump_ccw_init(void)
+ 	dump_block_ccw = (void *) get_zeroed_page(GFP_KERNEL);
+ 	if (!dump_block_ccw)
+ 		return -ENOMEM;
+-	rc = sysfs_create_group(&dump_subsys.kset.kobj, &dump_ccw_attr_group);
++	rc = sysfs_create_group(&dump_subsys.kobj, &dump_ccw_attr_group);
+ 	if (rc) {
+ 		free_page((unsigned long)dump_block_ccw);
+ 		return rc;
+@@ -1012,7 +1012,7 @@ static int __init dump_fcp_init(void)
+ 	dump_block_fcp = (void *) get_zeroed_page(GFP_KERNEL);
+ 	if (!dump_block_fcp)
+ 		return -ENOMEM;
+-	rc = sysfs_create_group(&dump_subsys.kset.kobj, &dump_fcp_attr_group);
++	rc = sysfs_create_group(&dump_subsys.kobj, &dump_fcp_attr_group);
+ 	if (rc) {
+ 		free_page((unsigned long)dump_block_fcp);
+ 		return rc;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
 
 origin.patch
-slab-introduce-krealloc.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-slub-core.patch
-slub-change-default-alignments.patch
-powerpc-disable-slub-for-configurations-in-which-slab-page-structs-are-modified.patch
-make-page-private-usable-in-compound-pages-v1.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-slub-add-min_partial.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab.patch
-slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
-slub-remove-object-activities-out-of-checking-functions.patch
-slub-user-documentation.patch
-slub-add-slabinfo-tool.patch
-quicklists-for-page-table-pages.patch
-quicklist-support-for-sparc64.patch
-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-kmem_cache-simplify-slab-cache-creation.patch
-slab-allocators-remove-multiple-alignment-specifications.patch
-fault-injection-fix-failslab-with-config_numa.patch
-mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
-slab-allocators-remove-slab_debug_initial-flag.patch
-slab-allocators-remove-slab_ctor_atomic.patch
-slab-allocators-remove-useless-__gfp_no_grow-flag.patch
-page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-i386-support.patch
-remove-constructor-from-buffer_head.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-vmstat-use-our-own-timer-events.patch
-make-vm-statistics-update-interval-configurable.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-readahead-state-based-method-aging-accounting.patch
+s390-fix-subsystem-removal-fallout.patch
+partitions-check-the-return-value-of-kobject_add-etc.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
