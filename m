@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lib-hexdump-fix.patch added to -mm tree
-Date: Thu, 03 May 2007 18:58:26 -0700
-Message-ID: <200705040158.l441wQM8027026@shell0.pdx.osdl.net>
+Subject: + use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch added to -mm tree
+Date: Thu, 03 May 2007 20:14:46 -0700
+Message-ID: <200705040314.l443EkpP027902@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56471 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754502AbXEDB6f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 21:58:35 -0400
+	by vger.kernel.org with ESMTP id S1754137AbXEDDO4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 23:14:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, randy.dunlap@oracle.com
+Cc: matthias.kaehlcke@gmail.com, axboe@kernel.dk
 
 
 The patch titled
-     lib-hexdump-fix
+     use mutex instead of binary semaphore in CDU-31A driver
 has been added to the -mm tree.  Its filename is
-     lib-hexdump-fix.patch
+     use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,183 +25,241 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib-hexdump-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: use mutex instead of binary semaphore in CDU-31A driver
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Use mutex instead of binary semaphore in CDU-31A driver.
+
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    3 ++-
- lib/hexdump.c          |    5 ++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/cdrom/cdu31a.c |   50 +++++++++++++++++++--------------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/kernel.h~lib-hexdump-fix include/linux/kernel.h
---- a/include/linux/kernel.h~lib-hexdump-fix
-+++ a/include/linux/kernel.h
-@@ -218,7 +218,8 @@ enum {
- 	DUMP_PREFIX_ADDRESS,
- 	DUMP_PREFIX_OFFSET
- };
--extern void hex_dumper(void *buf, size_t len, char *linebuf, size_t linebuflen);
-+extern void hex_dumper(const void *buf, size_t len, char *linebuf,
-+				size_t linebuflen);
- extern void print_hex_dump(const char *level, int prefix_type,
- 				void *buf, size_t len);
- #define hextoasc(x)	"0123456789abcdef"[x]
-diff -puN lib/hexdump.c~lib-hexdump-fix lib/hexdump.c
---- a/lib/hexdump.c~lib-hexdump-fix
-+++ a/lib/hexdump.c
-@@ -32,7 +32,7 @@
-  * Prints the offsets of the block of memory, not addresses:
-  * 0009ab42: 40414243 44454647 48494a4b 4c4d4e4f-@ABCDEFG HIJKLMNO
-  */
--void hex_dumper(void *buf, size_t len, char *linebuf, size_t linebuflen)
-+void hex_dumper(const void *buf, size_t len, char *linebuf, size_t linebuflen)
- {
- 	const u8 *ptr = buf;
- 	u8 ch;
-@@ -87,8 +87,7 @@ void print_hex_dump(const char *level, i
- 		remaining -= 16;
- 		hex_dumper(ptr + i, linelen, linebuf, sizeof(linebuf));
+diff -puN drivers/cdrom/cdu31a.c~use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver drivers/cdrom/cdu31a.c
+--- a/drivers/cdrom/cdu31a.c~use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver
++++ a/drivers/cdrom/cdu31a.c
+@@ -263,7 +263,7 @@ static int sony_toc_read = 0;	/* Has the
+ static struct s_sony_subcode last_sony_subcode;	/* Points to the last
+ 						   subcode address read */
  
--		switch (prefix_type)
--		{
-+		switch (prefix_type) {
- 		case DUMP_PREFIX_ADDRESS:
- 			printk("%s%*p: %s\n", level,
- 				(int)(2 * sizeof(void *)), ptr + i, linebuf);
+-static DECLARE_MUTEX(sony_sem);		/* Semaphore for drive hardware access */
++static DEFINE_MUTEX(sony_mtx);		/* Mutex for drive hardware access */
+ 
+ static int is_double_speed = 0;	/* does the drive support double speed ? */
+ 
+@@ -339,11 +339,11 @@ static int scd_drive_status(struct cdrom
+ 		return -EINVAL;
+ 	if (sony_spun_up)
+ 		return CDS_DISC_OK;
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	if (scd_spinup() == 0)
+ 		sony_spun_up = 1;
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return sony_spun_up ? CDS_DISC_OK : CDS_DRIVE_NOT_READY;
+ }
+ 
+@@ -452,7 +452,7 @@ static int scd_reset(struct cdrom_device
+ {
+ 	unsigned long retry_count;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	reset_drive();
+ 
+@@ -461,7 +461,7 @@ static int scd_reset(struct cdrom_device
+ 		sony_sleep();
+ 	}
+ 
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return 0;
+ }
+ 
+@@ -655,10 +655,10 @@ static int scd_select_speed(struct cdrom
+ 	else
+ 		sony_speed = speed - 1;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	set_drive_params(sony_speed);
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return 0;
+ }
+ 
+@@ -673,10 +673,10 @@ static int scd_lock_door(struct cdrom_de
+ 	} else {
+ 		is_auto_eject = 0;
+ 	}
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	set_drive_params(sony_speed);
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return 0;
+ }
+ 
+@@ -1143,7 +1143,7 @@ static void handle_abort_timeout(unsigne
+ {
+ 	pr_debug(PFX "Entering %s\n", __FUNCTION__);
+ 	/* If it is in use, ignore it. */
+-	if (down_trylock(&sony_sem) == 0) {
++	if (mutex_trylock(&sony_mtx) == 0) {
+ 		/* We can't use abort_read(), because it will sleep
+ 		   or schedule in the timer interrupt.  Just start
+ 		   the operation, finish it on the next access to
+@@ -1154,7 +1154,7 @@ static void handle_abort_timeout(unsigne
+ 
+ 		sony_blocks_left = 0;
+ 		abort_read_started = 1;
+-		up(&sony_sem);
++		mutex_unlock(&sony_mtx);
+ 	}
+ 	pr_debug(PFX "Leaving %s\n", __FUNCTION__);
+ }
+@@ -1300,7 +1300,7 @@ static void do_cdu31a_request(request_qu
+ 	pr_debug(PFX "Entering %s\n", __FUNCTION__);
+ 
+ 	spin_unlock_irq(q->queue_lock);
+-	if (down_interruptible(&sony_sem)) {
++	if (mutex_lock_interruptible(&sony_mtx)) {
+ 		spin_lock_irq(q->queue_lock);
+ 		return;
+ 	}
+@@ -1435,7 +1435,7 @@ static void do_cdu31a_request(request_qu
+ 	add_timer(&cdu31a_abort_timer);
+ #endif
+ 
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	spin_lock_irq(q->queue_lock);
+ 	pr_debug(PFX "Leaving %s at %d\n", __FUNCTION__, __LINE__);
+ }
+@@ -1906,10 +1906,10 @@ static int scd_get_last_session(struct c
+ 		return 1;
+ 
+ 	if (!sony_toc_read) {
+-		if (down_interruptible(&sony_sem))
++		if (mutex_lock_interruptible(&sony_mtx))
+ 			return -ERESTARTSYS;
+ 		sony_get_toc();
+-		up(&sony_sem);
++		mutex_unlock(&sony_mtx);
+ 	}
+ 
+ 	ms_info->addr_format = CDROM_LBA;
+@@ -1988,11 +1988,11 @@ scd_get_mcn(struct cdrom_device_info *cd
+ 	unsigned int res_size;
+ 
+ 	memset(mcn->medium_catalog_number, 0, 14);
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	do_sony_cd_cmd(SONY_REQ_UPC_EAN_CMD,
+ 		       NULL, 0, resbuffer, &res_size);
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	if ((res_size < 2) || ((resbuffer[0] & 0xf0) == 0x20));
+ 	else {
+ 		/* packed bcd to single ASCII digits */
+@@ -2207,7 +2207,7 @@ static int read_audio(struct cdrom_read_
+ 	unsigned int res_size;
+ 	unsigned int cframe;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	if (!sony_spun_up)
+ 		scd_spinup();
+@@ -2343,7 +2343,7 @@ static int read_audio(struct cdrom_read_
+ 	}
+ 
+  out_up:
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 
+ 	return retval;
+ }
+@@ -2373,7 +2373,7 @@ static int scd_tray_move(struct cdrom_de
+ {
+ 	int retval;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	if (position == 1 /* open tray */ ) {
+ 		unsigned char res_reg[12];
+@@ -2392,7 +2392,7 @@ static int scd_tray_move(struct cdrom_de
+ 			sony_spun_up = 1;
+ 		retval = 0;
+ 	}
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return retval;
+ }
+ 
+@@ -2407,7 +2407,7 @@ static int scd_audio_ioctl(struct cdrom_
+ 	unsigned char params[7];
+ 	int i, retval;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	switch (cmd) {
+ 	case CDROMSTART:	/* Spin up the drive */
+@@ -2665,7 +2665,7 @@ static int scd_audio_ioctl(struct cdrom_
+ 		retval = -EINVAL;
+ 		break;
+ 	}
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return retval;
+ }
+ 
+@@ -2675,7 +2675,7 @@ static int scd_read_audio(struct cdrom_d
+ 	void __user *argp = (void __user *)arg;
+ 	int retval;
+ 
+-	if (down_interruptible(&sony_sem))
++	if (mutex_lock_interruptible(&sony_mtx))
+ 		return -ERESTARTSYS;
+ 	switch (cmd) {
+ 	case CDROMREADAUDIO:	/* Read 2352 byte audio tracks and 2340 byte
+@@ -2749,7 +2749,7 @@ static int scd_read_audio(struct cdrom_d
+ 	default:
+ 		retval = -EINVAL;
+ 	}
+-	up(&sony_sem);
++	mutex_unlock(&sony_mtx);
+ 	return retval;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-slab-introduce-krealloc.patch
-rm9000-serial-driver.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
+include-kern_-constant-in-printk-calls-in-mm-slabc.patch
 srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-cx88-video-build-fix.patch
-git-acpi.patch
-git-alsa.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-arm.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
-git-drm.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-input.patch
-git-jfs.patch
-git-kbuild.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-nfs.patch
-git-ocfs2.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-wireless.patch
-fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
-tty-add-compat_ioctl-fix.patch
-synclink_gt-add-compat_ioctl-fix.patch
-lib-hexdump-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
-rename-thread_info-to-stack-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+git-dvb.patch
+use-mutex-instead-of-binary-semaphore-in-idt77252-driver.patch
+qla1280-use-dma_64bit_mask-instead-of-0ull.patch
+use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
+use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
+use-mutex-instead-of-semaphore-in-berkshire-usb-pc-watchdog-driver.patch
+use-mutex-instead-of-semaphore-in-rocketport-driver.patch
+use-mutex-instead-of-semaphore-in-tpm-driver.patch
+use-mutex-instead-of-semaphore-in-hdaps-driver.patch
+use-mutex-instead-of-semaphore-for-misc-char-devices.patch
+fix-spinlock-usage-in-hysdn_log_close.patch
+use-mutex-instead-of-semaphore-in-capi-20-interface.patch
+use-mutex-instead-of-semaphore-in-virtual-console-driver.patch
