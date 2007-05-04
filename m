@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: + ubi-dereference-after-kfree-in-create_vtbl-2.patch added to -mm tree
-Date: Fri, 04 May 2007 15:14:41 -0700
-Message-ID: <200705042214.l44MEfP1021909@shell0.pdx.osdl.net>
+Subject: + maintainer-change-for-connect-tech-inc.patch added to -mm tree
+Date: Fri, 04 May 2007 15:18:35 -0700
+Message-ID: <200705042218.l44MIZub022551@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59509 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031717AbXEDWO6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:14:58 -0400
+	by vger.kernel.org with ESMTP id S1031722AbXEDWSs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:18:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam.sharma@gmail.com, dedekind@infradead.org, fmalita@gmail.com, ssatyam@cse.iitk.ac.in
+Cc: stuartm@connecttech.com
 
 
 The patch titled
-     UBI: dereference after kfree in create_vtbl
+     MAINTAINER change for Connect Tech Inc
 has been added to the -mm tree.  Its filename is
-     ubi-dereference-after-kfree-in-create_vtbl-2.patch
+     maintainer-change-for-connect-tech-inc.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: UBI: dereference after kfree in create_vtbl
-From: "Satyam Sharma" <satyam.sharma@gmail.com>
+Subject: MAINTAINER change for Connect Tech Inc
+=46rom: Stuart MacDonald <stuartm@connecttech.com>
 
-Fix write_error logic in drivers/mtd/ubi/vtbl.c:create_vtbl().  On a write
-failure, we add the corrupted physical eraseblock to the corrupted list,
-and then attempt to retry (upto a maximum of 5 times).  Also, fix an oops
-by pushing kfree(new_seb) below after dereferencing it for
-ubi_scan_add_to_list().
+I am no longer with CTI. The Support Department will handle all
+inquiries regarding the WH.
 
-Signed-off-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
-Signed-off-by: Florin Malita <fmalita@gmail.com>
-Cc: Artem Bityutskiy <dedekind@infradead.org>
+Signed-off-by: Stuart MacDonald <stuartm@connecttech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/vtbl.c |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
+ Documentation/usb/usb-serial.txt |    2 +-
+ MAINTAINERS                      |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mtd/ubi/vtbl.c~ubi-dereference-after-kfree-in-create_vtbl-2 drivers/mtd/ubi/vtbl.c
---- a/drivers/mtd/ubi/vtbl.c~ubi-dereference-after-kfree-in-create_vtbl-2
-+++ a/drivers/mtd/ubi/vtbl.c
-@@ -317,14 +317,12 @@ retry:
- 	return err;
- 
- write_error:
--	kfree(new_seb);
- 	/* May be this physical eraseblock went bad, try to pick another one */
--	if (++tries <= 5) {
--		err = ubi_scan_add_to_list(si, new_seb->pnum, new_seb->ec,
--					   &si->corr);
-+	err = ubi_scan_add_to_list(si, new_seb->pnum, new_seb->ec, &si->corr);
-+	kfree(new_seb);
-+	if (++tries <= 5)
- 		if (!err)
- 			goto retry;
--	}
- out_free:
- 	ubi_free_vid_hdr(ubi, vid_hdr);
- 	return err;
+diff -puN Documentation/usb/usb-serial.txt~maintainer-change-for-connec=
+t-tech-inc Documentation/usb/usb-serial.txt
+--- a/Documentation/usb/usb-serial.txt~maintainer-change-for-connect-te=
+ch-inc
++++ a/Documentation/usb/usb-serial.txt
+@@ -42,7 +42,7 @@ ConnectTech WhiteHEAT 4 port converter
+   http://www.connecttech.com
+=20
+   For any questions or problems with this driver, please contact
+-  Stuart MacDonald at stuartm@connecttech.com
++  Connect Tech's Support Department at support@connecttech.com
+=20
+=20
+ HandSpring Visor, Palm USB, and Cli=E9 USB driver
+diff -puN MAINTAINERS~maintainer-change-for-connect-tech-inc MAINTAINER=
+S
+--- a/MAINTAINERS~maintainer-change-for-connect-tech-inc
++++ a/MAINTAINERS
+@@ -3695,8 +3695,8 @@ W:	http://www.kroah.com/linux/
+ S:	Maintained
+=20
+ USB SERIAL WHITEHEAT DRIVER
+-P:	Stuart MacDonald
+-M:	stuartm@connecttech.com
++P:	Support Department
++M:	support@connecttech.com
+ L:	linux-usb-users@lists.sourceforge.net
+ L:	linux-usb-devel@lists.sourceforge.net
+ W:	http://www.connecttech.com
 _
 
-Patches currently in -mm which might be from satyam.sharma@gmail.com are
+Patches currently in -mm which might be from stuartm@connecttech.com ar=
+e
 
 origin.patch
-ubi-dereference-after-kfree-in-create_vtbl-2.patch
+maintainer-change-for-connect-tech-inc.patch
