@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pata_scc-fix-compilation.patch added to -mm tree
-Date: Thu, 03 May 2007 18:05:56 -0700
-Message-ID: <200705040105.l4415urO026346@shell0.pdx.osdl.net>
+Subject: + ehci-ps3-ohci-ps3-fix-compilation.patch added to -mm tree
+Date: Thu, 03 May 2007 18:07:29 -0700
+Message-ID: <200705040107.l4417TrR026361@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33775 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754317AbXEDBGA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 21:06:00 -0400
+	by vger.kernel.org with ESMTP id S1767562AbXEDBHn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 21:07:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, htejun@gmail.com
+Cc: adobriyan@gmail.com, geert@linux-m68k.org, geoffrey.levand@am.sony.com, greg@kroah.com, paulus@samba.org
 
 
 The patch titled
-     pata_scc: fix compilation
+     ehci-ps3, ohci-ps3: fix compilation
 has been added to the -mm tree.  Its filename is
-     pata_scc-fix-compilation.patch
+     ehci-ps3-ohci-ps3-fix-compilation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_scc: fix compilation
+Subject: ehci-ps3, ohci-ps3: fix compilation
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
+As seen on powerpc-cell et al:
+
+  CC [M]  drivers/usb/host/ehci-hcd.o
+In file included from drivers/usb/host/ehci-hcd.c:941:
+drivers/usb/host/ehci-ps3.c:79: error: conflicting types for 'dev_dbg'
+include/linux/device.h:576: error: previous definition of 'dev_dbg' was here
+make[4]: *** [drivers/usb/host/ehci-hcd.o] Error 1
+  CC [M]  drivers/usb/host/ohci-hcd.o
+In file included from drivers/usb/host/ohci-hcd.c:921:
+drivers/usb/host/ohci-ps3.c:83: error: conflicting types for 'dev_dbg'
+include/linux/device.h:576: error: previous definition of 'dev_dbg' was here
+
+dev_dbg() will check format string for you in dummy case also, so remove
+buggers.
+
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Acked-by: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: <geoffrey.levand@am.sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_scc.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/host/ehci-ps3.c |    7 -------
+ drivers/usb/host/ohci-ps3.c |    8 --------
+ 2 files changed, 15 deletions(-)
 
-diff -puN drivers/ata/pata_scc.c~pata_scc-fix-compilation drivers/ata/pata_scc.c
---- a/drivers/ata/pata_scc.c~pata_scc-fix-compilation
-+++ a/drivers/ata/pata_scc.c
-@@ -1142,14 +1142,14 @@ static int scc_init_one (struct pci_dev 
- 	static int printed_version;
- 	unsigned int board_idx = (unsigned int) ent->driver_data;
- 	const struct ata_port_info *ppi[] = { &scc_port_info[board_idx], NULL };
--	struct device *dev = &pdev->dev;
-+	struct ata_host *host;
- 	int rc;
+diff -puN drivers/usb/host/ehci-ps3.c~ehci-ps3-ohci-ps3-fix-compilation drivers/usb/host/ehci-ps3.c
+--- a/drivers/usb/host/ehci-ps3.c~ehci-ps3-ohci-ps3-fix-compilation
++++ a/drivers/usb/host/ehci-ps3.c
+@@ -73,13 +73,6 @@ static const struct hc_driver ps3_ehci_h
+ #endif
+ };
  
- 	if (!printed_version++)
- 		dev_printk(KERN_DEBUG, &pdev->dev,
- 			   "version " DRV_VERSION "\n");
+-#if !defined(DEBUG)
+-#undef dev_dbg
+-static inline int __attribute__ ((format (printf, 2, 3))) dev_dbg(
+-	const struct device *_dev, const char *fmt, ...) {return 0;}
+-#endif
+-
+-
+ static int ps3_ehci_sb_probe(struct ps3_system_bus_device *dev)
+ {
+ 	int result;
+diff -puN drivers/usb/host/ohci-ps3.c~ehci-ps3-ohci-ps3-fix-compilation drivers/usb/host/ohci-ps3.c
+--- a/drivers/usb/host/ohci-ps3.c~ehci-ps3-ohci-ps3-fix-compilation
++++ a/drivers/usb/host/ohci-ps3.c
+@@ -75,14 +75,6 @@ static const struct hc_driver ps3_ohci_h
+ #endif
+ };
  
--	host = ata_port_alloc_pinfo(&pdev->dev, ppi, 1);
-+	host = ata_host_alloc_pinfo(&pdev->dev, ppi, 1);
- 	if (!host)
- 		return -ENOMEM;
- 
+-/* redefine dev_dbg to do a syntax check */
+-
+-#if !defined(DEBUG)
+-#undef dev_dbg
+-static inline int __attribute__ ((format (printf, 2, 3))) dev_dbg(
+-	const struct device *_dev, const char *fmt, ...) {return 0;}
+-#endif
+-
+ static int ps3_ohci_sb_probe(struct ps3_system_bus_device *dev)
+ {
+ 	int result;
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
+ehci-ps3-ohci-ps3-fix-compilation.patch
 git-dvb.patch
 pata_scc-fix-compilation.patch
 git-parisc.patch
