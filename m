@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch added to -mm tree
-Date: Fri, 04 May 2007 14:04:11 -0700
-Message-ID: <200705042104.l44L4BNO014099@shell0.pdx.osdl.net>
+Subject: + reiser4-fix-write_extent.patch added to -mm tree
+Date: Fri, 04 May 2007 14:29:26 -0700
+Message-ID: <200705042129.l44LTQTD014449@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52428 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40650 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S376156AbXEDVEQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 17:04:16 -0400
+	by vger.kernel.org with ESMTP id S1161531AbXEDV3h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 17:29:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au
+Cc: edward@namesys.com, ignatich@gmail.com
 
 
 The patch titled
-     lguest: fix obscure but nasty cow bug
+     reiser4: fix write_extent
 has been added to the -mm tree.  Its filename is
-     lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch
+     reiser4-fix-write_extent.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,169 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest: fix obscure but nasty cow bug
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: reiser4: fix write_extent
+From: Edward Shishkin <edward@namesys.com>
 
-Nasty bug where the host is the first to write a MAP_PRIVATE page: the
-guest still references the old one and won't see the write.  This can
-happen with just the wrong data layouts for the initial setup hypercall
-(the other places in the code are always written guest-first).
+Prepared-by Ignatich <ignatich@gmail.com>
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Fix reiser4_write_extent():
+   1) handling incomplete writes missed in reiser4-temp-fix.patch
+   2) bugs in the case of returned errors
+
+Signed-off-by: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/hypercalls.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ fs/reiser4/plugin/item/extent_file_ops.c |   54 ++++++++++++---------
+ 1 files changed, 31 insertions(+), 23 deletions(-)
 
-diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-fix-obscure-but-nasty-cow-bug drivers/lguest/hypercalls.c
---- a/drivers/lguest/hypercalls.c~lguest-the-host-code-fix-obscure-but-nasty-cow-bug
-+++ a/drivers/lguest/hypercalls.c
-@@ -155,6 +155,12 @@ static void initialize(struct lguest *lg
- 	    || put_user(4U*1024*1024, &lg->lguest_data->reserve_mem)
- 	    || put_user(lg->guestid, &lg->lguest_data->guestid))
- 		kill_guest(lg, "bad guest page %p", lg->lguest_data);
+diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-write_extent fs/reiser4/plugin/item/extent_file_ops.c
+--- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-write_extent
++++ a/fs/reiser4/plugin/item/extent_file_ops.c
+@@ -941,15 +941,15 @@ static int write_extent_reserve_space(st
+  * reiser4_write_extent - write method of extent item plugin
+  * @file: file to write to
+  * @buf: address of user-space buffer
+- * @write_amount: number of bytes to write
+- * @off: position in file to write to
++ * @count: number of bytes to write
++ * @pos: position in file to write to
+  *
+  */
+ ssize_t reiser4_write_extent(struct file *file, const char __user *buf,
+ 			     size_t count, loff_t *pos)
+ {
+ 	int have_to_update_extent;
+-	int nr_pages;
++	int nr_pages, nr_dirty;
+ 	struct page *page;
+ 	jnode *jnodes[WRITE_GRANULARITY + 1];
+ 	struct inode *inode;
+@@ -958,7 +958,7 @@ ssize_t reiser4_write_extent(struct file
+ 	int i;
+ 	int to_page, page_off;
+ 	size_t left, written;
+-	int result;
++	int result = 0;
+ 
+ 	inode = file->f_dentry->d_inode;
+ 	if (write_extent_reserve_space(inode))
+@@ -972,10 +972,12 @@ ssize_t reiser4_write_extent(struct file
+ 
+ 	BUG_ON(get_current_context()->trans->atom != NULL);
+ 
++	left = count;
+ 	index = *pos >> PAGE_CACHE_SHIFT;
+ 	/* calculate number of pages which are to be written */
+       	end = ((*pos + count - 1) >> PAGE_CACHE_SHIFT);
+ 	nr_pages = end - index + 1;
++	nr_dirty = 0;
+ 	assert("", nr_pages <= WRITE_GRANULARITY + 1);
+ 
+ 	/* get pages and jnodes */
+@@ -983,22 +985,18 @@ ssize_t reiser4_write_extent(struct file
+ 		page = find_or_create_page(inode->i_mapping, index + i,
+ 					   reiser4_ctx_gfp_mask_get());
+ 		if (page == NULL) {
+-			while(i --) {
+-				unlock_page(jnode_page(jnodes[i]));
+-				page_cache_release(jnode_page(jnodes[i]));
+-			}
+-			return RETERR(-ENOMEM);
++			nr_pages = i;
++			result = RETERR(-ENOMEM);
++			goto out;
+ 		}
+ 
+ 		jnodes[i] = jnode_of_page(page);
+ 		if (IS_ERR(jnodes[i])) {
+ 			unlock_page(page);
+ 			page_cache_release(page);
+-			while (i --) {
+-				jput(jnodes[i]);
+-				page_cache_release(jnode_page(jnodes[i]));
+-			}
+-			return RETERR(-ENOMEM);
++			nr_pages = i;
++			result = RETERR(-ENOMEM);
++			goto out;
+ 		}
+ 		/* prevent jnode and page from disconnecting */
+ 		JF_SET(jnodes[i], JNODE_WRITE_PREPARED);
+@@ -1009,7 +1007,6 @@ ssize_t reiser4_write_extent(struct file
+ 
+ 	have_to_update_extent = 0;
+ 
+-	left = count;
+ 	page_off = (*pos & (PAGE_CACHE_SIZE - 1));
+ 	for (i = 0; i < nr_pages; i ++) {
+ 		to_page = PAGE_CACHE_SIZE - page_off;
+@@ -1045,12 +1042,19 @@ ssize_t reiser4_write_extent(struct file
+ 					     page_off + to_page);
+ 
+ 		written = filemap_copy_from_user(page, page_off, buf, to_page);
++		if (unlikely(written != to_page)) {
++			unlock_page(page);
++			result = RETERR(-EFAULT);
++			break;
++		}
 +
-+	/* This is the one case where the above accesses might have
-+	 * been the first write to a Guest page.  This may have caused
-+	 * a copy-on-write fault, but the Guest might be referring to
-+	 * the old (read-only) page. */
-+	guest_pagetable_clear_all(lg);
+ 		flush_dcache_page(page);
+ 		reiser4_set_page_dirty_internal(page);
+ 		unlock_page(page);
++		nr_dirty++;
++
+ 		mark_page_accessed(page);
+ 		SetPageUptodate(page);
+-		page_cache_release(page);
+ 
+ 		if (jnodes[i]->blocknr == 0)
+ 			have_to_update_extent ++;
+@@ -1062,25 +1066,29 @@ ssize_t reiser4_write_extent(struct file
+ 	}
+ 
+ 	if (have_to_update_extent) {
+-		update_extents(file, jnodes, nr_pages, *pos);
++		update_extents(file, jnodes, nr_dirty, *pos);
+ 	} else {
+-		for (i = 0; i < nr_pages; i ++) {
++		for (i = 0; i < nr_dirty; i ++) {
++			int ret;
+ 			spin_lock_jnode(jnodes[i]);
+-			result = reiser4_try_capture(jnodes[i],
++			ret = reiser4_try_capture(jnodes[i],
+ 						     ZNODE_WRITE_LOCK, 0);
+-			BUG_ON(result != 0);
++			BUG_ON(ret != 0);
+ 			jnode_make_dirty_locked(jnodes[i]);
+ 			spin_unlock_jnode(jnodes[i]);
+ 		}
+ 	}
+-
++out:
+ 	for (i = 0; i < nr_pages; i ++) {
++		page_cache_release(jnode_page(jnodes[i]));
+ 		JF_CLR(jnodes[i], JNODE_WRITE_PREPARED);
+ 		jput(jnodes[i]);
+ 	}
+ 
+-	/* the only error handled so far is EFAULT on copy_from_user  */
+-	return (count - left) ? (count - left) : -EFAULT;
++	/* the only errors handled so far is ENOMEM and
++	   EFAULT on copy_from_user  */
++
++	return (count - left) ? (count - left) : result;
  }
  
- /* Even if we go out to userspace and come back, we don't want to do
+ int reiser4_do_readpage_extent(reiser4_extent * ext, reiser4_block_nr pos,
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from edward@namesys.com are
 
-origin.patch
-array_size-check-for-type.patch
-git-kbuild.patch
-xfs-clean-up-shrinker-games.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-module-use-krealloc.patch
-get_futex_key-get_key_refs-and-drop_key_refs.patch
-futex-restartable-futex_wait.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-simplify-module_get_kallsym-by-dropping-length-arg.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-simplify-kallsyms_lookup.patch
-fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
-fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
-____call_usermodehelper-dont-flush_signals.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-futex-new-private-futexes.patch
-lguest-the-guest-code.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
-lguest-the-guest-code-handle-new-paravirt-lazy-mode-fix-userspace.patch
-lguest-the-host-code.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch
-lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
-lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem.patch
-lguest-the-host-code-remove-put_user-etc-warnings-add-bloat.patch
-lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
-lguest-documentation-and-example-updates.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
+reiser4.patch
+reiser4-fix-for-drop-unused-semaphorespatch.patch
+reiser4-use-simple_prepare_write-to-zero-page-data.patch
+reiser4-use-zero_user_page.patch
+reiser4-remove-typedefs.patch
+reiser4-fix-write_extent.patch
 mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
