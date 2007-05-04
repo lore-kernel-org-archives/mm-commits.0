@@ -1,64 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-nfs-build-fix.patch removed from -mm tree
-Date: Fri, 04 May 2007 12:12:34 -0700
-Message-ID: <200705041912.l44JCYkP011623@shell0.pdx.osdl.net>
+Subject: - git-net-locking-borkage-fix.patch removed from -mm tree
+Date: Fri, 04 May 2007 12:17:53 -0700
+Message-ID: <200705041917.l44JHs5S011737@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39250 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031484AbXEDTMs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 15:12:48 -0400
+	by vger.kernel.org with ESMTP id S1161606AbXEDTSQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 15:18:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfs build fix
+     git-net-locking-borkage-fix
 has been removed from the -mm tree.  Its filename was
-     git-nfs-build-fix.patch
+     git-net-locking-borkage-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-nfs build fix
+Subject: git-net-locking-borkage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/nfs/pagelist.c:226: error: conflicting types for 'nfs_pageio_init'
-include/linux/nfs_page.h:80: error: previous declaration of 'nfs_pageio_init' was here
-
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nfs_page.h |   12 +++++++-----
- nfs/pagelist.c           |    0 
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ net/netlink/af_netlink.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/nfs_page.h~git-nfs-build-fix include/linux/nfs_page.h
---- a/include/linux/nfs_page.h~git-nfs-build-fix
-+++ a/include/linux/nfs_page.h
-@@ -73,11 +73,13 @@ extern	void nfs_release_request(struct n
+diff -puN net/netlink/af_netlink.c~git-net-locking-borkage-fix net/netlink/af_netlink.c
+--- a/net/netlink/af_netlink.c~git-net-locking-borkage-fix
++++ a/net/netlink/af_netlink.c
+@@ -142,7 +142,10 @@ static void netlink_sock_destruct(struct
+ {
+ 	struct netlink_sock *nlk = nlk_sk(sk);
  
- extern	int nfs_scan_list(struct nfs_inode *nfsi, struct list_head *head, struct list_head *dst,
- 			  pgoff_t idx_start, unsigned int npages);
--extern	void nfs_pageio_init(struct nfs_pageio_descriptor *desc,
--			     struct inode *inode,
--			     int (*doio)(struct inode *, struct list_head *, unsigned int, size_t, int),
--			     size_t bsize,
--			     int how);
-+extern void nfs_pageio_init(struct nfs_pageio_descriptor *desc,
-+		     struct inode *inode,
-+		     int (*doio)(struct inode *, struct list_head *,
-+				unsigned int, size_t, int),
-+		     unsigned int bsize,
-+		     int io_flags);
-+
- extern	int nfs_pageio_add_request(struct nfs_pageio_descriptor *,
- 				   struct nfs_page *);
- extern	void nfs_pageio_complete(struct nfs_pageio_descriptor *desc);
-diff -puN fs/nfs/pagelist.c~git-nfs-build-fix fs/nfs/pagelist.c
+-	BUG_ON(mutex_is_locked(nlk_sk(sk)->cb_mutex));
++	if (mutex_is_locked(nlk_sk(sk)->cb_mutex)) {
++		WARN_ON(1);
++		return;
++	}
+ 	if (nlk->cb) {
+ 		if (nlk->cb->done)
+ 			nlk->cb->done(nlk->cb);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,7 +90,6 @@ git-e1000-fixup-2.patch
 git-net-locking-borkage-fix.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 git-nfs.patch
-git-nfs-build-fix.patch
 git-ocfs2.patch
 git-parisc.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
