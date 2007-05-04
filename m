@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch added to -mm tree
-Date: Thu, 03 May 2007 22:27:08 -0700
-Message-ID: <200705040527.l445R88B029769@shell0.pdx.osdl.net>
+Subject: + power-management-use-mutexes-instead-of-semaphores.patch added to -mm tree
+Date: Thu, 03 May 2007 22:50:14 -0700
+Message-ID: <200705040550.l445oErR030063@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41894 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161835AbXEDF1S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:27:18 -0400
+	by vger.kernel.org with ESMTP id S1767694AbXEDFuS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:50:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de
+Cc: matthias.kaehlcke@gmail.com
 
 
 The patch titled
-     make arch/i386/kernel/io_apic.c:timer_irq_works() static again
+     Power Management: use mutexes instead of semaphores
 has been added to the -mm tree.  Its filename is
-     make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+     power-management-use-mutexes-instead-of-semaphores.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,102 +25,240 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make arch/i386/kernel/io_apic.c:timer_irq_works() static again
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Power Management: use mutexes instead of semaphores
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-timer_irq_works() needlessly became global.
+The Power Management code uses semaphores as mutexes.  Use the mutex API
+instead of the (binary) semaphores.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/io_apic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/power/main.c    |   12 ++++++------
+ drivers/base/power/power.h   |    4 ++--
+ drivers/base/power/resume.c  |   12 ++++++------
+ drivers/base/power/runtime.c |   12 ++++++------
+ drivers/base/power/suspend.c |   14 +++++++-------
+ 5 files changed, 27 insertions(+), 27 deletions(-)
 
-diff -puN arch/i386/kernel/io_apic.c~make-arch-i386-kernel-io_apicctimer_irq_works-static-again arch/i386/kernel/io_apic.c
---- a/arch/i386/kernel/io_apic.c~make-arch-i386-kernel-io_apicctimer_irq_works-static-again
-+++ a/arch/i386/kernel/io_apic.c
-@@ -1902,7 +1902,7 @@ __setup("no_timer_check", notimercheck);
-  *	- if this function detects that timer IRQs are defunct, then we fall
-  *	  back to ISA timer IRQs
+diff -puN drivers/base/power/main.c~power-management-use-mutexes-instead-of-semaphores drivers/base/power/main.c
+--- a/drivers/base/power/main.c~power-management-use-mutexes-instead-of-semaphores
++++ a/drivers/base/power/main.c
+@@ -26,8 +26,8 @@ LIST_HEAD(dpm_active);
+ LIST_HEAD(dpm_off);
+ LIST_HEAD(dpm_off_irq);
+ 
+-DECLARE_MUTEX(dpm_sem);
+-DECLARE_MUTEX(dpm_list_sem);
++DEFINE_MUTEX(dpm_mtx);
++DEFINE_MUTEX(dpm_list_mtx);
+ 
+ int (*platform_enable_wakeup)(struct device *dev, int is_on);
+ 
+@@ -59,12 +59,12 @@ int device_pm_add(struct device * dev)
+ 	pr_debug("PM: Adding info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus",
+ 		 kobject_name(&dev->kobj));
+-	down(&dpm_list_sem);
++	mutex_lock(&dpm_list_mtx);
+ 	list_add_tail(&dev->power.entry, &dpm_active);
+ 	device_pm_set_parent(dev, dev->parent);
+ 	if ((error = dpm_sysfs_add(dev)))
+ 		list_del(&dev->power.entry);
+-	up(&dpm_list_sem);
++	mutex_unlock(&dpm_list_mtx);
+ 	return error;
+ }
+ 
+@@ -73,11 +73,11 @@ void device_pm_remove(struct device * de
+ 	pr_debug("PM: Removing info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus",
+ 		 kobject_name(&dev->kobj));
+-	down(&dpm_list_sem);
++	mutex_lock(&dpm_list_mtx);
+ 	dpm_sysfs_remove(dev);
+ 	put_device(dev->power.pm_parent);
+ 	list_del_init(&dev->power.entry);
+-	up(&dpm_list_sem);
++	mutex_unlock(&dpm_list_mtx);
+ }
+ 
+ 
+diff -puN drivers/base/power/power.h~power-management-use-mutexes-instead-of-semaphores drivers/base/power/power.h
+--- a/drivers/base/power/power.h~power-management-use-mutexes-instead-of-semaphores
++++ a/drivers/base/power/power.h
+@@ -14,12 +14,12 @@ extern void device_shutdown(void);
+ /*
+  * Used to synchronize global power management operations.
   */
--int __init timer_irq_works(void)
-+static int __init timer_irq_works(void)
+-extern struct semaphore dpm_sem;
++extern struct mutex dpm_mtx;
+ 
+ /*
+  * Used to serialize changes to the dpm_* lists.
+  */
+-extern struct semaphore dpm_list_sem;
++extern struct mutex dpm_list_mtx;
+ 
+ /*
+  * The PM lists.
+diff -puN drivers/base/power/resume.c~power-management-use-mutexes-instead-of-semaphores drivers/base/power/resume.c
+--- a/drivers/base/power/resume.c~power-management-use-mutexes-instead-of-semaphores
++++ a/drivers/base/power/resume.c
+@@ -80,7 +80,7 @@ static int resume_device_early(struct de
+  */
+ void dpm_resume(void)
  {
- 	unsigned long t1 = jiffies;
+-	down(&dpm_list_sem);
++	mutex_lock(&dpm_list_mtx);
+ 	while(!list_empty(&dpm_off)) {
+ 		struct list_head * entry = dpm_off.next;
+ 		struct device * dev = to_device(entry);
+@@ -88,13 +88,13 @@ void dpm_resume(void)
+ 		get_device(dev);
+ 		list_move_tail(entry, &dpm_active);
+ 
+-		up(&dpm_list_sem);
++		mutex_unlock(&dpm_list_mtx);
+ 		if (!dev->power.prev_state.event)
+ 			resume_device(dev);
+-		down(&dpm_list_sem);
++		mutex_lock(&dpm_list_mtx);
+ 		put_device(dev);
+ 	}
+-	up(&dpm_list_sem);
++	mutex_unlock(&dpm_list_mtx);
+ }
+ 
+ 
+@@ -108,9 +108,9 @@ void dpm_resume(void)
+ void device_resume(void)
+ {
+ 	might_sleep();
+-	down(&dpm_sem);
++	mutex_lock(&dpm_mtx);
+ 	dpm_resume();
+-	up(&dpm_sem);
++	mutex_unlock(&dpm_mtx);
+ }
+ 
+ EXPORT_SYMBOL_GPL(device_resume);
+diff -puN drivers/base/power/runtime.c~power-management-use-mutexes-instead-of-semaphores drivers/base/power/runtime.c
+--- a/drivers/base/power/runtime.c~power-management-use-mutexes-instead-of-semaphores
++++ a/drivers/base/power/runtime.c
+@@ -32,9 +32,9 @@ static void runtime_resume(struct device
+ 
+ void dpm_runtime_resume(struct device * dev)
+ {
+-	down(&dpm_sem);
++	mutex_lock(&dpm_mtx);
+ 	runtime_resume(dev);
+-	up(&dpm_sem);
++	mutex_unlock(&dpm_mtx);
+ }
+ EXPORT_SYMBOL(dpm_runtime_resume);
+ 
+@@ -49,7 +49,7 @@ int dpm_runtime_suspend(struct device * 
+ {
+ 	int error = 0;
+ 
+-	down(&dpm_sem);
++	mutex_lock(&dpm_mtx);
+ 	if (dev->power.power_state.event == state.event)
+ 		goto Done;
+ 
+@@ -59,7 +59,7 @@ int dpm_runtime_suspend(struct device * 
+ 	if (!(error = suspend_device(dev, state)))
+ 		dev->power.power_state = state;
+  Done:
+-	up(&dpm_sem);
++	mutex_unlock(&dpm_mtx);
+ 	return error;
+ }
+ EXPORT_SYMBOL(dpm_runtime_suspend);
+@@ -78,8 +78,8 @@ EXPORT_SYMBOL(dpm_runtime_suspend);
+  */
+ void dpm_set_power_state(struct device * dev, pm_message_t state)
+ {
+-	down(&dpm_sem);
++	mutex_lock(&dpm_mtx);
+ 	dev->power.power_state = state;
+-	up(&dpm_sem);
++	mutex_unlock(&dpm_mtx);
+ }
+ #endif  /*  0  */
+diff -puN drivers/base/power/suspend.c~power-management-use-mutexes-instead-of-semaphores drivers/base/power/suspend.c
+--- a/drivers/base/power/suspend.c~power-management-use-mutexes-instead-of-semaphores
++++ a/drivers/base/power/suspend.c
+@@ -108,7 +108,7 @@ int suspend_device(struct device * dev, 
+ 
+ /*
+  * This is called with interrupts off, only a single CPU
+- * running. We can't do down() on a semaphore (and we don't
++ * running. We can't acquire a mutex or semaphore (and we don't
+  * need the protection)
+  */
+ static int suspend_device_late(struct device *dev, pm_message_t state)
+@@ -153,18 +153,18 @@ int device_suspend(pm_message_t state)
+ 	int error = 0;
+ 
+ 	might_sleep();
+-	down(&dpm_sem);
+-	down(&dpm_list_sem);
++	mutex_lock(&dpm_mtx);
++	mutex_lock(&dpm_list_mtx);
+ 	while (!list_empty(&dpm_active) && error == 0) {
+ 		struct list_head * entry = dpm_active.prev;
+ 		struct device * dev = to_device(entry);
+ 
+ 		get_device(dev);
+-		up(&dpm_list_sem);
++		mutex_unlock(&dpm_list_mtx);
+ 
+ 		error = suspend_device(dev, state);
+ 
+-		down(&dpm_list_sem);
++		mutex_lock(&dpm_list_mtx);
+ 
+ 		/* Check if the device got removed */
+ 		if (!list_empty(&dev->power.entry)) {
+@@ -179,11 +179,11 @@ int device_suspend(pm_message_t state)
+ 				error == -EAGAIN ? " (please convert to suspend_late)" : "");
+ 		put_device(dev);
+ 	}
+-	up(&dpm_list_sem);
++	mutex_unlock(&dpm_list_mtx);
+ 	if (error)
+ 		dpm_resume();
+ 
+-	up(&dpm_sem);
++	mutex_unlock(&dpm_mtx);
+ 	return error;
+ }
  
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-git-acpi.patch
-git-alsa.patch
-git-powerpc.patch
-git-drm.patch
+include-kern_-constant-in-printk-calls-in-mm-slabc.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+power-management-use-mutexes-instead-of-semaphores.patch
+sysdev-use-mutex-instead-of-semaphore.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mmc.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-ibmtr_cs-fix-hang-on-eject.patch
-git-ocfs2.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-drivers-scsi-ipsc-remove-kernel-24-code.patch
-drivers-scsi-nsp32c-remove-kernel-24-code.patch
-git-unionfs.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-apple-smc-driver-hardware-monitoring-and-control-cleanup.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-add-file-position-info-to-proc.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-unexport-pci_proc_attach_device.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-ext2-reservations.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-rtc-remove-sys-class-rtc-dev-fix.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-drivers-video-sis-remove-more-kernel-24-code.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+use-mutex-instead-of-binary-semaphore-in-idt77252-driver.patch
+qla1280-use-dma_64bit_mask-instead-of-0ull.patch
+use-mutex-instead-of-binary-semaphore-in-cdu-31a-driver.patch
+use-mutex-instead-of-semaphore-in-sbpcd-driver.patch
+use-mutex-instead-of-semaphore-in-berkshire-usb-pc-watchdog-driver.patch
+use-mutex-instead-of-semaphore-in-rocketport-driver.patch
+use-mutex-instead-of-semaphore-in-tpm-driver.patch
+use-mutex-instead-of-semaphore-in-hdaps-driver.patch
+use-mutex-instead-of-semaphore-for-misc-char-devices.patch
+fix-spinlock-usage-in-hysdn_log_close.patch
+use-mutex-instead-of-semaphore-in-capi-20-interface.patch
+use-mutex-instead-of-semaphore-in-virtual-console-driver.patch
+kcopyd-use-mutex-instead-of-semaphore.patch
+pvrusb2-use-mutex-instead-of-semaphore.patch
+scx200-use-mutex-instead-of-semaphore.patch
