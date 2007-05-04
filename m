@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-ambiguous-gdthtable-definition.patch added to -mm tree
-Date: Fri, 04 May 2007 15:00:38 -0700
-Message-ID: <200705042200.l44M0cbO019515@shell0.pdx.osdl.net>
+Subject: + i386-voyager-use-__maybe_unused.patch added to -mm tree
+Date: Fri, 04 May 2007 15:00:46 -0700
+Message-ID: <200705042200.l44M0krJ019544@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46902 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54822 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031509AbXEDWAo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:00:44 -0400
+	by vger.kernel.org with ESMTP id S1031509AbXEDWAx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:00:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, achim_leubner@adaptec.com
+Cc: rientjes@google.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     scsi: fix ambiguous gdthtable definition
+     i386: voyager: use __maybe_unused
 has been added to the -mm tree.  Its filename is
-     scsi-fix-ambiguous-gdthtable-definition.patch
+     i386-voyager-use-__maybe_unused.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: fix ambiguous gdthtable definition
+Subject: i386: voyager: use __maybe_unused
 From: David Rientjes <rientjes@google.com>
 
-Labeling a variable as __attribute_used__ is ambiguous: it means
-__attribute__((unused)) for gcc <3.4 and __attribute__((used)) for gcc >=3.4. 
-There is no such thing as labeling a variable as __attribute__((used)).  We
-assume that we're simply suppressing a warning here if gdthtable[] is declared
-but unreferenced.
+Replace automatic variable instances of __attribute__((unused)) with
+__maybe_unused in mca_nmi_hook().
 
-Cc: Achim Leubner <achim_leubner@adaptec.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/mach-voyager/voyager_basic.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~scsi-fix-ambiguous-gdthtable-definition drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~scsi-fix-ambiguous-gdthtable-definition
-+++ a/drivers/scsi/gdth.c
-@@ -876,7 +876,7 @@ static int __init gdth_search_pci(gdth_p
- /* Vortex only makes RAID controllers.
-  * We do not really want to specify all 550 ids here, so wildcard match.
-  */
--static struct pci_device_id gdthtable[] __attribute_used__ = {
-+static struct pci_device_id gdthtable[] __maybe_unused = {
-     {PCI_VENDOR_ID_VORTEX,PCI_ANY_ID,PCI_ANY_ID, PCI_ANY_ID},
-     {PCI_VENDOR_ID_INTEL,PCI_DEVICE_ID_INTEL_SRC,PCI_ANY_ID,PCI_ANY_ID}, 
-     {PCI_VENDOR_ID_INTEL,PCI_DEVICE_ID_INTEL_SRC_XSCALE,PCI_ANY_ID,PCI_ANY_ID}, 
+diff -puN arch/i386/mach-voyager/voyager_basic.c~i386-voyager-use-__maybe_unused arch/i386/mach-voyager/voyager_basic.c
+--- a/arch/i386/mach-voyager/voyager_basic.c~i386-voyager-use-__maybe_unused
++++ a/arch/i386/mach-voyager/voyager_basic.c
+@@ -292,8 +292,8 @@ machine_emergency_restart(void)
+ void
+ mca_nmi_hook(void)
+ {
+-	__u8 dumpval __attribute__((unused)) = inb(0xf823);
+-	__u8 swnmi __attribute__((unused)) = inb(0xf813);
++	__u8 dumpval __maybe_unused = inb(0xf823);
++	__u8 swnmi __maybe_unused = inb(0xf813);
+ 
+ 	/* FIXME: assume dump switch pressed */
+ 	/* check to see if the dump switch was pressed */
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
