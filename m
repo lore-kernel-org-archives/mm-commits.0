@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm.patch added to -mm tree
-Date: Fri, 04 May 2007 01:56:52 -0700
-Message-ID: <200705040856.l448uqqf000375@shell0.pdx.osdl.net>
+Subject: + compiler-define-__attribute_unused__.patch added to -mm tree
+Date: Fri, 04 May 2007 02:09:12 -0700
+Message-ID: <200705040909.l4499Cmd000536@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38710 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767764AbXEDI5L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 04:57:11 -0400
+	by vger.kernel.org with ESMTP id S1422906AbXEDJJv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:09:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mreimer@vpop.net, johnpol@2ka.mipt.ru
+Cc: rientjes@google.com
 
 
 The patch titled
-     ds1wm: disable interrupts when turning off ds1wm
+     compiler: define __attribute_unused__
 has been added to the -mm tree.  Its filename is
-     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm.patch
+     compiler-define-__attribute_unused__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ds1wm: disable interrupts when turning off ds1wm
-From: Matt Reimer <mreimer@vpop.net>
+Subject: compiler: define __attribute_unused__
+From: David Rientjes <rientjes@google.com>
 
-Disable interrupts when turning off ds1wm.
+For all supported versions of gcc (major version 3 and above), functions and
+variables may be declared with __attribute__((unused)) to suppress warnings if
+they are declared but unused.
 
-Signed-off-by: Matt Reimer <mreimer@vpop.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+This shouldn't be confused with functions being declared with
+__attribute__((used)).  This specifies that the function code shall still be
+emitted even if it appears to be unreferenced, normally used if embedded in
+inline assembly.  For gcc 3.4 and later, unreferenced static variables and
+functions are not emitted so this attribute is necessary to force variables
+and functions to be output.  Earlier versions of gcc can simply use
+__attribute__((unused)) to suppress warnings about such variables: we do not
+require any special classification to ensure they are emitted.
+
+We introduce __attribute_unused__ for variables that should not produce a
+compile warning if they can, due to preprocessor macros, go unreferenced.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds1wm.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/compiler-gcc.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN drivers/w1/masters/ds1wm.c~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm drivers/w1/masters/ds1wm.c
---- a/drivers/w1/masters/ds1wm.c~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm
-+++ a/drivers/w1/masters/ds1wm.c
-@@ -237,6 +237,10 @@ static void ds1wm_down(struct ds1wm_data
- {
- 	ds1wm_reset(ds1wm_data);
- 
-+	/* Disable interrupts. */
-+	ds1wm_write_register(ds1wm_data, DS1WM_INT_EN,
-+			     ds1wm_data->active_high ? DS1WM_INTEN_IAS : 0);
+diff -puN include/linux/compiler-gcc.h~compiler-define-__attribute_unused__ include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-define-__attribute_unused__
++++ a/include/linux/compiler-gcc.h
+@@ -40,3 +40,19 @@
+ #define  noinline			__attribute__((noinline))
+ #define __attribute_pure__		__attribute__((pure))
+ #define __attribute_const__		__attribute__((__const__))
 +
- 	if (ds1wm_data->pdata->disable)
- 		ds1wm_data->pdata->disable(ds1wm_data->pdev);
- 
++/*
++ * __attribute_unused__ shall be used for functions or variables to suppress
++ * warnings when they may be declared but, due to preprocessor macros,
++ * commenting, etc., go unreferenced.
++ *
++ * In contrast, __attribute_used__ shall be used only for functions.  gcc <3.4
++ * emits code for static functions that are unreferenced and outputs a warning.
++ * __attribute_used__ will correctly suppress this warning.  gcc >=3.4 does not
++ * emit code for static functions that are unreferenced (and thus there is no
++ * warning), but __attribute_used__ forces the function code to be output.  Use
++ * __attribute_unused__ to suppress warnings about functions being unused or
++ * __attribute_used__ to ensure code is emitted when it is referenced only in
++ * inline assembly.
++ */
++#define __attribute_unused__		__attribute__((unused))
 _
 
-Patches currently in -mm which might be from mreimer@vpop.net are
+Patches currently in -mm which might be from rientjes@google.com are
 
-w1-allow-bus-master-to-have-reset-and-byte-ops.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-fix.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-simplify-platform_data.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm.patch
+origin.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
+mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
+oom-fix-constraint-deadlock.patch
+wavefront-only-declare-isapnp-on-config_pnp.patch
+git-cpufreq.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
+compiler-define-__attribute_unused__.patch
+i386-pci-type-may-be-unused.patch
+sh-dma-use-__attribute_unused__.patch
+scsi-fix-ambiguous-gdthtable-definition.patch
+frv-gdb-use-__attribute_unused__.patch
+i386-voyager-use-__attribute_unused__.patch
+mips-excite-use-__attribute_unused__.patch
+mips-tlbex-use-__attribute_unused__.patch
+powerpc-ps3-use-__attribute_unused__.patch
+i386-mmzone-use-__attribute_unused__.patch
