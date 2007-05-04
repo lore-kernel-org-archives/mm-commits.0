@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-ambiguous-gdthtable-definition.patch added to -mm tree
-Date: Fri, 04 May 2007 02:09:20 -0700
-Message-ID: <200705040909.l4499K7C000545@shell0.pdx.osdl.net>
+Subject: + frv-gdb-use-__attribute_unused__.patch added to -mm tree
+Date: Fri, 04 May 2007 02:09:22 -0700
+Message-ID: <200705040909.l4499Mwm000548@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60290 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767761AbXEDJKC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:02 -0400
+	by vger.kernel.org with ESMTP id S1767767AbXEDJKH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, achim_leubner@adaptec.com
+Cc: rientjes@google.com, dhowells@redhat.com
 
 
 The patch titled
-     scsi: fix ambiguous gdthtable definition
+     frv: gdb: use __attribute_unused__
 has been added to the -mm tree.  Its filename is
-     scsi-fix-ambiguous-gdthtable-definition.patch
+     frv-gdb-use-__attribute_unused__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: fix ambiguous gdthtable definition
+Subject: frv: gdb: use __attribute_unused__
 From: David Rientjes <rientjes@google.com>
 
-Labeling a variable as __attribute_used__ is ambiguous: it means
-__attribute__((unused)) for gcc <3.4 and __attribute__((used)) for gcc >=3.4. 
-There is no such thing as labeling a variable as __attribute__((used)).  We
-assume that we're simply suppressing a warning here if gdthtable[] is declared
-but unreferenced.
+Replace function instances of __attribute__((unused)) with
+__attribute_unused__ to suppress warnings.
 
-Cc: Achim Leubner <achim_leubner@adaptec.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/frv/kernel/gdb-stub.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~scsi-fix-ambiguous-gdthtable-definition drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~scsi-fix-ambiguous-gdthtable-definition
-+++ a/drivers/scsi/gdth.c
-@@ -876,7 +876,7 @@ static int __init gdth_search_pci(gdth_p
- /* Vortex only makes RAID controllers.
-  * We do not really want to specify all 550 ids here, so wildcard match.
+diff -puN arch/frv/kernel/gdb-stub.c~frv-gdb-use-__attribute_unused__ arch/frv/kernel/gdb-stub.c
+--- a/arch/frv/kernel/gdb-stub.c~frv-gdb-use-__attribute_unused__
++++ a/arch/frv/kernel/gdb-stub.c
+@@ -1195,7 +1195,7 @@ static void gdbstub_check_breakpoint(voi
+ /*
+  *
   */
--static struct pci_device_id gdthtable[] __attribute_used__ = {
-+static struct pci_device_id gdthtable[] __attribute_unused__ = {
-     {PCI_VENDOR_ID_VORTEX,PCI_ANY_ID,PCI_ANY_ID, PCI_ANY_ID},
-     {PCI_VENDOR_ID_INTEL,PCI_DEVICE_ID_INTEL_SRC,PCI_ANY_ID,PCI_ANY_ID}, 
-     {PCI_VENDOR_ID_INTEL,PCI_DEVICE_ID_INTEL_SRC_XSCALE,PCI_ANY_ID,PCI_ANY_ID}, 
+-static void __attribute__((unused)) gdbstub_show_regs(void)
++static void __attribute_unused__ gdbstub_show_regs(void)
+ {
+ 	unsigned long *reg;
+ 	int loop;
+@@ -1223,7 +1223,7 @@ static void __attribute__((unused)) gdbs
+ /*
+  * dump debugging regs
+  */
+-static void __attribute__((unused)) gdbstub_dump_debugregs(void)
++static void __attribute_unused__ gdbstub_dump_debugregs(void)
+ {
+ 	gdbstub_printk("DCR    %08lx  ", __debug_status.dcr);
+ 	gdbstub_printk("BRR    %08lx\n", __debug_status.brr);
+@@ -2079,25 +2079,25 @@ void gdbstub_exit(int status)
+  * GDB wants to call malloc() and free() to allocate memory for calling kernel
+  * functions directly from its command line
+  */
+-static void *malloc(size_t size) __attribute__((unused));
++static void *malloc(size_t size) __attribute_unused__;
+ static void *malloc(size_t size)
+ {
+ 	return kmalloc(size, GFP_ATOMIC);
+ }
+ 
+-static void free(void *p) __attribute__((unused));
++static void free(void *p) __attribute_unused__;
+ static void free(void *p)
+ {
+ 	kfree(p);
+ }
+ 
+-static uint32_t ___get_HSR0(void) __attribute__((unused));
++static uint32_t ___get_HSR0(void) __attribute_unused__;
+ static uint32_t ___get_HSR0(void)
+ {
+ 	return __get_HSR(0);
+ }
+ 
+-static uint32_t ___set_HSR0(uint32_t x) __attribute__((unused));
++static uint32_t ___set_HSR0(uint32_t x) __attribute_unused__;
+ static uint32_t ___set_HSR0(uint32_t x)
+ {
+ 	__set_HSR(0, x);
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
