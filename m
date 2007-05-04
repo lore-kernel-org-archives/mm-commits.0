@@ -1,118 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: + apple-smc-driver-hardware-monitoring-and-control-cleanup.patch added to -mm tree
-Date: Thu, 03 May 2007 22:07:25 -0700
-Message-ID: <200705040507.l4457PED029502@shell0.pdx.osdl.net>
+Subject: - per-cpuset-hugetlb-accounting-and-administration.patch removed from -mm tree
+Date: Thu, 03 May 2007 22:17:36 -0700
+Message-ID: <200705040517.l445HaYJ029645@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45667 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767678AbXEDFHm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:07:42 -0400
+	by vger.kernel.org with ESMTP id S1753105AbXEDFRu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:17:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, dtor@mail.ru, nicolas@boichat.ch
+To: kenchen@google.com, agl@us.ibm.com, hermes@gibson.dropbear.id.au, pj@sgi.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make drivers/hwmon/applesmc.c:backlight_work static
-has been added to the -mm tree.  Its filename is
-     apple-smc-driver-hardware-monitoring-and-control-cleanup.patch
+     per-cpuset hugetlb accounting and administration
+has been removed from the -mm tree.  Its filename was
+     per-cpuset-hugetlb-accounting-and-administration.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because me no likee
 
 ------------------------------------------------------
-Subject: make drivers/hwmon/applesmc.c:backlight_work static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: per-cpuset hugetlb accounting and administration
+From: "Ken Chen" <kenchen@google.com>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Existing application heavily depends on accurate free hugetlb page pool
+presented in /proc/meminfo.  Enterprise applications typically query
+HugePages_Free field to know how much hugetlb pages are available for it to
+use and intelligently segment its memory demand into several memory
+segments, one to use the full extent of hugetlb page and have the rest to
+fall back to normal page segment.
+
+The reporting data with cpuset configured breaks that information, as it
+presents global stats.  This will cause hiccup in application when run
+inside cpuset that application will be mislead by the kernel and
+mis-configure its hugetlb segment.
+
+The following patch attempts to fix this deficiency when hugetlb is used
+with cpuset to preserve the user space visible interface.  This is required
+for compatibility and to allow existing application in the field to operate
+normally regardless whether it is run with or without cpuset configured.
+
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <hermes@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   28 +++++++++++++++++-----------
+ 1 files changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~apple-smc-driver-hardware-monitoring-and-control-cleanup drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~apple-smc-driver-hardware-monitoring-and-control-cleanup
-+++ a/drivers/hwmon/applesmc.c
-@@ -742,7 +742,7 @@ static void applesmc_backlight_set(struc
- 	applesmc_write_key(BACKLIGHT_KEY, buffer, 2);
- 	mutex_unlock(&applesmc_lock);
- }
--DECLARE_WORK(backlight_work, &applesmc_backlight_set);
-+static DECLARE_WORK(backlight_work, &applesmc_backlight_set);
+diff -puN mm/hugetlb.c~per-cpuset-hugetlb-accounting-and-administration mm/hugetlb.c
+--- a/mm/hugetlb.c~per-cpuset-hugetlb-accounting-and-administration
++++ a/mm/hugetlb.c
+@@ -219,7 +219,7 @@ static void try_to_free_low(unsigned lon
+ 			update_and_free_page(page);
+ 			free_huge_pages--;
+ 			free_huge_pages_node[page_to_nid(page)]--;
+-			if (count >= nr_huge_pages)
++			if (count >= cpuset_mems_nr(nr_huge_pages_node))
+ 				return;
+ 		}
+ 	}
+@@ -232,24 +232,30 @@ static inline void try_to_free_low(unsig
  
- static void applesmc_brightness_set(struct led_classdev *led_cdev,
- 						enum led_brightness value)
+ static unsigned long set_max_huge_pages(unsigned long count)
+ {
+-	while (count > nr_huge_pages) {
++	unsigned int cpuset_nr_huge_pages = cpuset_mems_nr(nr_huge_pages_node);
++
++	while (count > cpuset_nr_huge_pages) {
+ 		if (!alloc_fresh_huge_page())
+-			return nr_huge_pages;
++			return cpuset_nr_huge_pages;
++		cpuset_nr_huge_pages++;
+ 	}
+-	if (count >= nr_huge_pages)
+-		return nr_huge_pages;
++	if (count >= cpuset_nr_huge_pages)
++		return cpuset_nr_huge_pages;
+ 
+ 	spin_lock(&hugetlb_lock);
+ 	count = max(count, resv_huge_pages);
+ 	try_to_free_low(count);
+-	while (count < nr_huge_pages) {
++
++	cpuset_nr_huge_pages = cpuset_mems_nr(nr_huge_pages_node);
++	while (count < cpuset_nr_huge_pages) {
+ 		struct page *page = dequeue_huge_page(NULL, 0);
+ 		if (!page)
+ 			break;
+ 		update_and_free_page(page);
++		cpuset_nr_huge_pages--;
+ 	}
+ 	spin_unlock(&hugetlb_lock);
+-	return nr_huge_pages;
++	return cpuset_nr_huge_pages;
+ }
+ 
+ int hugetlb_sysctl_handler(struct ctl_table *table, int write,
+@@ -278,12 +284,12 @@ int hugetlb_treat_movable_handler(struct
+ int hugetlb_report_meminfo(char *buf)
+ {
+ 	return sprintf(buf,
+-			"HugePages_Total: %5lu\n"
+-			"HugePages_Free:  %5lu\n"
++			"HugePages_Total: %5u\n"
++			"HugePages_Free:  %5u\n"
+ 			"HugePages_Rsvd:  %5lu\n"
+ 			"Hugepagesize:    %5lu kB\n",
+-			nr_huge_pages,
+-			free_huge_pages,
++			cpuset_mems_nr(nr_huge_pages_node),
++			cpuset_mems_nr(free_huge_pages_node),
+ 			resv_huge_pages,
+ 			HPAGE_SIZE/1024);
+ }
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from kenchen@google.com are
 
-origin.patch
-proper-prototype-for-hugetlb_get_unmapped_area.patch
-mm-slabc-proper-prototypes.patch
-git-acpi.patch
-git-alsa.patch
-git-powerpc.patch
-git-drm.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-kconfig-abort-configuration-with-recursive-dependencies.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mmc.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-ibmtr_cs-fix-hang-on-eject.patch
-git-ocfs2.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-drivers-scsi-qla4xxx-possible-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-git-unionfs.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-apple-smc-driver-hardware-monitoring-and-control-cleanup.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-add-file-position-info-to-proc.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-unexport-pci_proc_attach_device.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-ext2-reservations.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-rtc-remove-sys-class-rtc-dev-fix.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+fix-leaky-resv_huge_pages-when-cpuset-is-in-use.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+remove-artificial-software-max_loop-limit.patch
+pretend-cpuset-has-some-form-of-hugetlb-page-reservation.patch
+per-cpuset-hugetlb-accounting-and-administration.patch
