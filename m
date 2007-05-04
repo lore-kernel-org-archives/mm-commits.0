@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nbd-check-the-return-value-of-sysfs_create_file-fix.patch added to -mm tree
-Date: Thu, 03 May 2007 23:15:25 -0700
-Message-ID: <200705040615.l446FPPt030449@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch added to -mm tree
+Date: Thu, 03 May 2007 23:30:33 -0700
+Message-ID: <200705040630.l446UXBT030658@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39518 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932286AbXEDGPd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:15:33 -0400
+	by vger.kernel.org with ESMTP id S1161608AbXEDGah (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:30:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, paul.clements@steeleye.com, xiyou.wangcong@gmail.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, htejun@gmail.com
 
 
 The patch titled
-     nbd-check-the-return-value-of-sysfs_create_file-fix
+     fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
 has been added to the -mm tree.  Its filename is
-     nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+     fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,61 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nbd-check-the-return-value-of-sysfs_create_file-fix
+Subject: fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Paul Clements <paul.clements@steeleye.com>
+fs/sysfs/bin.c: In function 'read':
+fs/sysfs/bin.c:58: warning: format '%zd' expects type 'signed size_t', but argument 4 has type 'int'
+
+I made the local size_t, to force some fishy-looking arithmetic in there to
+use unsigned arithmetic.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ fs/sysfs/bin.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/nbd.c~nbd-check-the-return-value-of-sysfs_create_file-fix drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-check-the-return-value-of-sysfs_create_file-fix
-+++ a/drivers/block/nbd.c
-@@ -366,23 +366,25 @@ static struct disk_attribute pid_attr = 
- 	.show = pid_show,
- };
- 
--static void nbd_do_it(struct nbd_device *lo)
-+static int nbd_do_it(struct nbd_device *lo)
- {
- 	struct request *req;
-+	int ret;
- 
- 	BUG_ON(lo->magic != LO_MAGIC);
- 
- 	lo->pid = current->pid;
--	if (sysfs_create_file(&lo->disk->kobj, &pid_attr.attr)) {
-+	ret = sysfs_create_file(&lo->disk->kobj, &pid_attr.attr);
-+	if (ret) {
- 		printk(KERN_ERR "nbd: sysfs_create_file failed!");
--		return;
-+		return ret;
+diff -puN fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write
++++ a/fs/sysfs/bin.c
+@@ -74,7 +74,7 @@ read(struct file *file, char __user *use
+ 		goto out_unlock;
  	}
  
- 	while ((req = nbd_read_stat(lo)) != NULL)
- 		nbd_end_request(req);
+-	pr_debug("offs = %lld, *off = %lld, count = %zd\n", offs, *off, count);
++	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
  
- 	sysfs_remove_file(&lo->disk->kobj, &pid_attr.attr);
--	return;
-+	return 0;
- }
+ 	*off = offs + count;
  
- static void nbd_clear_que(struct nbd_device *lo)
-@@ -572,7 +574,9 @@ static int nbd_ioctl(struct inode *inode
- 	case NBD_DO_IT:
- 		if (!lo->file)
- 			return -EINVAL;
--		nbd_do_it(lo);
-+		error = nbd_do_it(lo);
-+		if (error)
-+			return error;
- 		/* on return tidy up in case we have a signal */
- 		/* Forcibly shutdown the socket causing all listeners
- 		 * to error
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
