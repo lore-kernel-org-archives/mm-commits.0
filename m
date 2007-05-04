@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sh-dma-use-__attribute_unused__.patch added to -mm tree
-Date: Fri, 04 May 2007 02:09:18 -0700
-Message-ID: <200705040909.l4499IcC000542@shell0.pdx.osdl.net>
+Subject: + scsi-fix-ambiguous-gdthtable-definition.patch added to -mm tree
+Date: Fri, 04 May 2007 02:09:20 -0700
+Message-ID: <200705040909.l4499K7C000545@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45274 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767753AbXEDJJ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:09:58 -0400
+	by vger.kernel.org with ESMTP id S1767761AbXEDJKC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, lethal@linux-sh.org
+Cc: rientjes@google.com, achim_leubner@adaptec.com
 
 
 The patch titled
-     sh: dma: use __attribute_unused__
+     scsi: fix ambiguous gdthtable definition
 has been added to the -mm tree.  Its filename is
-     sh-dma-use-__attribute_unused__.patch
+     scsi-fix-ambiguous-gdthtable-definition.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sh: dma: use __attribute_unused__
+Subject: scsi: fix ambiguous gdthtable definition
 From: David Rientjes <rientjes@google.com>
 
-There is no such thing as labeling a variable as __attribute__((used)).  Since
-ts_shift is not referenced in inline assembly, we assume that we're simply
-suppressing a warning here if the variable is declared but unreferenced.
+Labeling a variable as __attribute_used__ is ambiguous: it means
+__attribute__((unused)) for gcc <3.4 and __attribute__((used)) for gcc >=3.4. 
+There is no such thing as labeling a variable as __attribute__((used)).  We
+assume that we're simply suppressing a warning here if gdthtable[] is declared
+but unreferenced.
 
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Achim Leubner <achim_leubner@adaptec.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sh/cpu-sh3/dma.h        |    2 +-
- include/asm-sh/cpu-sh4/dma-sh7780.h |    2 +-
- include/asm-sh/cpu-sh4/dma.h        |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/scsi/gdth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-sh/cpu-sh3/dma.h~sh-dma-use-__attribute_unused__ include/asm-sh/cpu-sh3/dma.h
---- a/include/asm-sh/cpu-sh3/dma.h~sh-dma-use-__attribute_unused__
-+++ a/include/asm-sh/cpu-sh3/dma.h
-@@ -26,7 +26,7 @@ enum {
- 	XMIT_SZ_128BIT,
- };
- 
--static unsigned int ts_shift[] __attribute__ ((used)) = {
-+static unsigned int ts_shift[] __attribute_unused__ = {
- 	[XMIT_SZ_8BIT]		= 0,
- 	[XMIT_SZ_16BIT]		= 1,
- 	[XMIT_SZ_32BIT]		= 2,
-diff -puN include/asm-sh/cpu-sh4/dma-sh7780.h~sh-dma-use-__attribute_unused__ include/asm-sh/cpu-sh4/dma-sh7780.h
---- a/include/asm-sh/cpu-sh4/dma-sh7780.h~sh-dma-use-__attribute_unused__
-+++ a/include/asm-sh/cpu-sh4/dma-sh7780.h
-@@ -28,7 +28,7 @@ enum {
- /*
-  * The DMA count is defined as the number of bytes to transfer.
+diff -puN drivers/scsi/gdth.c~scsi-fix-ambiguous-gdthtable-definition drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~scsi-fix-ambiguous-gdthtable-definition
++++ a/drivers/scsi/gdth.c
+@@ -876,7 +876,7 @@ static int __init gdth_search_pci(gdth_p
+ /* Vortex only makes RAID controllers.
+  * We do not really want to specify all 550 ids here, so wildcard match.
   */
--static unsigned int __attribute__ ((used)) ts_shift[] = {
-+static unsigned int ts_shift[] __attribute_unused__ = {
- 	[XMIT_SZ_8BIT]		= 0,
- 	[XMIT_SZ_16BIT]		= 1,
- 	[XMIT_SZ_32BIT]		= 2,
-diff -puN include/asm-sh/cpu-sh4/dma.h~sh-dma-use-__attribute_unused__ include/asm-sh/cpu-sh4/dma.h
---- a/include/asm-sh/cpu-sh4/dma.h~sh-dma-use-__attribute_unused__
-+++ a/include/asm-sh/cpu-sh4/dma.h
-@@ -53,7 +53,7 @@ enum {
- /*
-  * The DMA count is defined as the number of bytes to transfer.
-  */
--static unsigned int ts_shift[] __attribute__ ((used)) = {
-+static unsigned int ts_shift[] __attribute_unused__ = {
- 	[XMIT_SZ_64BIT]		= 3,
- 	[XMIT_SZ_8BIT]		= 0,
- 	[XMIT_SZ_16BIT]		= 1,
+-static struct pci_device_id gdthtable[] __attribute_used__ = {
++static struct pci_device_id gdthtable[] __attribute_unused__ = {
+     {PCI_VENDOR_ID_VORTEX,PCI_ANY_ID,PCI_ANY_ID, PCI_ANY_ID},
+     {PCI_VENDOR_ID_INTEL,PCI_DEVICE_ID_INTEL_SRC,PCI_ANY_ID,PCI_ANY_ID}, 
+     {PCI_VENDOR_ID_INTEL,PCI_DEVICE_ID_INTEL_SRC_XSCALE,PCI_ANY_ID,PCI_ANY_ID}, 
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
