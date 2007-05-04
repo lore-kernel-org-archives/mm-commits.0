@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfs-build-fix.patch added to -mm tree
-Date: Fri, 04 May 2007 11:21:29 -0700
-Message-ID: <200705041824.l44IOLES010419@shell0.pdx.osdl.net>
+Subject: + char-cyclades-conditions-cleanup-fix.patch added to -mm tree
+Date: Fri, 04 May 2007 11:38:04 -0700
+Message-ID: <200705041840.l44Ieup0010809@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48594 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46970 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161368AbXEDSZD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 14:25:03 -0400
+	by vger.kernel.org with ESMTP id S1161606AbXEDSlI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 14:41:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: akpm@linux-foundation.org, jirislaby@gmail.com
 
 
 The patch titled
-     git-nfs build fix
+     char-cyclades-conditions-cleanup-fix
 has been added to the -mm tree.  Its filename is
-     git-nfs-build-fix.patch
+     char-cyclades-conditions-cleanup-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfs build fix
+Subject: char-cyclades-conditions-cleanup-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/nfs/pagelist.c:226: error: conflicting types for 'nfs_pageio_init'
-include/linux/nfs_page.h:80: error: previous declaration of 'nfs_pageio_init' was here
+wtf?
 
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nfs_page.h |   12 +++++++-----
- nfs/pagelist.c           |    0 
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/char/cyclades.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/nfs_page.h~git-nfs-build-fix include/linux/nfs_page.h
---- a/include/linux/nfs_page.h~git-nfs-build-fix
-+++ a/include/linux/nfs_page.h
-@@ -73,11 +73,13 @@ extern	void nfs_release_request(struct n
+diff -puN drivers/char/cyclades.c~char-cyclades-conditions-cleanup-fix drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-conditions-cleanup-fix
++++ a/drivers/char/cyclades.c
+@@ -1820,7 +1820,7 @@ static irqreturn_t cyz_interrupt(int irq
+ {
+ 	struct cyclades_card *cinfo = dev_id;
  
- extern	int nfs_scan_list(struct nfs_inode *nfsi, struct list_head *head, struct list_head *dst,
- 			  pgoff_t idx_start, unsigned int npages);
--extern	void nfs_pageio_init(struct nfs_pageio_descriptor *desc,
--			     struct inode *inode,
--			     int (*doio)(struct inode *, struct list_head *, unsigned int, size_t, int),
--			     size_t bsize,
--			     int how);
-+extern void nfs_pageio_init(struct nfs_pageio_descriptor *desc,
-+		     struct inode *inode,
-+		     int (*doio)(struct inode *, struct list_head *,
-+				unsigned int, size_t, int),
-+		     unsigned int bsize,
-+		     int io_flags);
-+
- extern	int nfs_pageio_add_request(struct nfs_pageio_descriptor *,
- 				   struct nfs_page *);
- extern	void nfs_pageio_complete(struct nfs_pageio_descriptor *desc);
-diff -puN fs/nfs/pagelist.c~git-nfs-build-fix fs/nfs/pagelist.c
+-	if (unlikely(cinfo == NULL))
++	if (unlikely(cinfo == NULL)) {
+ #ifdef CY_DEBUG_INTERRUPTS
+ 		printk(KERN_DEBUG "cyz_interrupt: spurious interrupt %d\n",irq);
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +91,7 @@ git-e1000.patch
 git-e1000-fixup-2.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 git-nfs.patch
+git-nfs-build-fix.patch
 git-ocfs2.patch
 git-parisc.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
@@ -186,6 +173,8 @@ ntfs-use-zero_user_page-fix.patch
 make-vm-statistics-update-interval-configurable-fix.patch
 acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
 rename-thread_info-to-stack-fix.patch
+char-cyclades-conditions-cleanup-fix.patch
+char-cyclades-probe-cleanup-fix.patch
 reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 fbdev-hecuba-framebuffer-driver.patch
 vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
@@ -199,4 +188,3 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 w1-build-fix.patch
-git-nfs-build-fix.patch
