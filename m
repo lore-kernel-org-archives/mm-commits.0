@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + frv-gdb-use-__attribute_unused__.patch added to -mm tree
-Date: Fri, 04 May 2007 02:09:22 -0700
-Message-ID: <200705040909.l4499Mwm000548@shell0.pdx.osdl.net>
+Subject: + i386-voyager-use-__attribute_unused__.patch added to -mm tree
+Date: Fri, 04 May 2007 02:09:25 -0700
+Message-ID: <200705040909.l4499PaT000551@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48896 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767767AbXEDJKH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:07 -0400
+	by vger.kernel.org with ESMTP id S1767764AbXEDJKG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, dhowells@redhat.com
+Cc: rientjes@google.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     frv: gdb: use __attribute_unused__
+     i386: voyager: use __attribute_unused__
 has been added to the -mm tree.  Its filename is
-     frv-gdb-use-__attribute_unused__.patch
+     i386-voyager-use-__attribute_unused__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,71 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: frv: gdb: use __attribute_unused__
+Subject: i386: voyager: use __attribute_unused__
 From: David Rientjes <rientjes@google.com>
 
-Replace function instances of __attribute__((unused)) with
-__attribute_unused__ to suppress warnings.
+Replace automatic variable instances of __attribute__((unused)) with
+__attribute_unused__ in mca_nmi_hook().
 
-Cc: David Howells <dhowells@redhat.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/gdb-stub.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/i386/mach-voyager/voyager_basic.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/frv/kernel/gdb-stub.c~frv-gdb-use-__attribute_unused__ arch/frv/kernel/gdb-stub.c
---- a/arch/frv/kernel/gdb-stub.c~frv-gdb-use-__attribute_unused__
-+++ a/arch/frv/kernel/gdb-stub.c
-@@ -1195,7 +1195,7 @@ static void gdbstub_check_breakpoint(voi
- /*
-  *
-  */
--static void __attribute__((unused)) gdbstub_show_regs(void)
-+static void __attribute_unused__ gdbstub_show_regs(void)
+diff -puN arch/i386/mach-voyager/voyager_basic.c~i386-voyager-use-__attribute_unused__ arch/i386/mach-voyager/voyager_basic.c
+--- a/arch/i386/mach-voyager/voyager_basic.c~i386-voyager-use-__attribute_unused__
++++ a/arch/i386/mach-voyager/voyager_basic.c
+@@ -292,8 +292,8 @@ machine_emergency_restart(void)
+ void
+ mca_nmi_hook(void)
  {
- 	unsigned long *reg;
- 	int loop;
-@@ -1223,7 +1223,7 @@ static void __attribute__((unused)) gdbs
- /*
-  * dump debugging regs
-  */
--static void __attribute__((unused)) gdbstub_dump_debugregs(void)
-+static void __attribute_unused__ gdbstub_dump_debugregs(void)
- {
- 	gdbstub_printk("DCR    %08lx  ", __debug_status.dcr);
- 	gdbstub_printk("BRR    %08lx\n", __debug_status.brr);
-@@ -2079,25 +2079,25 @@ void gdbstub_exit(int status)
-  * GDB wants to call malloc() and free() to allocate memory for calling kernel
-  * functions directly from its command line
-  */
--static void *malloc(size_t size) __attribute__((unused));
-+static void *malloc(size_t size) __attribute_unused__;
- static void *malloc(size_t size)
- {
- 	return kmalloc(size, GFP_ATOMIC);
- }
+-	__u8 dumpval __attribute__((unused)) = inb(0xf823);
+-	__u8 swnmi __attribute__((unused)) = inb(0xf813);
++	__u8 dumpval __attribute_unused__ = inb(0xf823);
++	__u8 swnmi __attribute_unused__ = inb(0xf813);
  
--static void free(void *p) __attribute__((unused));
-+static void free(void *p) __attribute_unused__;
- static void free(void *p)
- {
- 	kfree(p);
- }
- 
--static uint32_t ___get_HSR0(void) __attribute__((unused));
-+static uint32_t ___get_HSR0(void) __attribute_unused__;
- static uint32_t ___get_HSR0(void)
- {
- 	return __get_HSR(0);
- }
- 
--static uint32_t ___set_HSR0(uint32_t x) __attribute__((unused));
-+static uint32_t ___set_HSR0(uint32_t x) __attribute_unused__;
- static uint32_t ___set_HSR0(uint32_t x)
- {
- 	__set_HSR(0, x);
+ 	/* FIXME: assume dump switch pressed */
+ 	/* check to see if the dump switch was pressed */
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
