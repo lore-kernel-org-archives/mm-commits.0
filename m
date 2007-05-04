@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-switch-to-pci-probing.patch added to -mm tree
-Date: Thu, 03 May 2007 23:45:19 -0700
-Message-ID: <200705040645.l446jJ31030859@shell0.pdx.osdl.net>
+Subject: + char-cyclades-unexport-struct-cyclades_card.patch added to -mm tree
+Date: Thu, 03 May 2007 23:45:23 -0700
+Message-ID: <200705040645.l446jNOX030865@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54666 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965692AbXEDGpY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:45:24 -0400
+	by vger.kernel.org with ESMTP id S965698AbXEDGp1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:45:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: cyclades, switch to pci probing
+     Char: cyclades, unexport struct cyclades_card
 has been added to the -mm tree.  Its filename is
-     char-cyclades-switch-to-pci-probing.patch
+     char-cyclades-unexport-struct-cyclades_card.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,120 +25,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: cyclades, switch to pci probing
+Subject: Char: cyclades, unexport struct cyclades_card
 From: Jiri Slaby <jirislaby@gmail.com>
+
+Do not export internal card data to userspace. cytune doesn't use this
+anyway.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   65 +++++++++-----------------------------
- 1 file changed, 17 insertions(+), 48 deletions(-)
+ drivers/char/cyclades.c  |    8 --------
+ include/linux/cyclades.h |   15 ++-------------
+ 2 files changed, 2 insertions(+), 21 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-switch-to-pci-probing drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-switch-to-pci-probing
+diff -puN drivers/char/cyclades.c~char-cyclades-unexport-struct-cyclades_card drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-unexport-struct-cyclades_card
 +++ a/drivers/char/cyclades.c
-@@ -5297,46 +5297,9 @@ static int __devinit cy_pci_probe(struct
- 
- 	return 0;
- }
--#endif
--
--/*
-- * ---------------------------------------------------------------------
-- * cy_detect_pci() - Test PCI bus presence and Cyclom-Ye/PCI.
-- * sets global variables and return the number of PCI boards found.
-- * ---------------------------------------------------------------------
-- */
--static int __init cy_detect_pci(void)
--{
--#ifdef CONFIG_PCI
--	struct pci_dev *pdev = NULL;
--	unsigned int i, device_id, dev_index = 0;
--
--	for (i = 0; i < NR_CARDS; i++) {
--		/* look for a Cyclades card by vendor and device id */
--		while ((device_id = cy_pci_dev_id[dev_index].device) != 0) {
--			if ((pdev = pci_get_device(PCI_VENDOR_ID_CYCLADES,
--						   device_id, pdev)) == NULL) {
--				dev_index++;	/* try next device id */
--			} else {
--				break;	/* found a board */
--			}
--		}
--
--		if (device_id == 0)
+@@ -4049,14 +4049,6 @@ cy_ioctl(struct tty_struct *tty, struct 
+ 	case CYGETRTSDTR_INV:
+ 		ret_val = info->rtsdtr_inv;
+ 		break;
+-	case CYGETCARDINFO:
+-		if (copy_to_user(argp, &cy_card[info->card],
+-				 sizeof(struct cyclades_card))) {
+-			ret_val = -EFAULT;
 -			break;
--
--		i -= !!cy_pci_probe(pdev, &cy_pci_dev_id[dev_index]);
--	}
--
--	return i;
+-		}
+-		ret_val = 0;
+-		break;
+ 	case CYGETCD1400VER:
+ 		ret_val = info->chip_rev;
+ 		break;
+diff -puN include/linux/cyclades.h~char-cyclades-unexport-struct-cyclades_card include/linux/cyclades.h
+--- a/include/linux/cyclades.h~char-cyclades-unexport-struct-cyclades_card
++++ a/include/linux/cyclades.h
+@@ -110,7 +110,6 @@ struct cyclades_idle_stats {
+ #define CYZSETPOLLCYCLE		0x43590e
+ #define CYZGETPOLLCYCLE		0x43590f
+ #define CYGETCD1400VER		0x435910
+-#define CYGETCARDINFO		0x435911
+ #define	CYSETWAIT		0x435912
+ #define	CYGETWAIT		0x435913
+ 
+@@ -506,8 +505,9 @@ struct ZFW_CTRL {
+ /****************** ****************** *******************/
+ #endif
+ 
++#ifdef __KERNEL__
++
+ /* Per card data structure */
+-struct resource;
+ struct cyclades_card {
+     unsigned long base_phys;
+     unsigned long ctl_phys;
+@@ -520,20 +520,9 @@ struct cyclades_card {
+     int bus_index;	/* address shift - 0 for ISA, 1 for PCI */
+     int	intr_enabled;	/* FW Interrupt flag - 0 disabled, 1 enabled */
+     struct pci_dev *pdev;
+-#ifdef __KERNEL__
+     spinlock_t card_lock;
 -#else
--	return 0;
--#endif				/* ifdef CONFIG_PCI */
--}				/* cy_detect_pci */
- 
--static void __devexit cy_pci_release(struct pci_dev *pdev)
-+static void __devexit cy_pci_remove(struct pci_dev *pdev)
- {
--#ifdef CONFIG_PCI
- 	struct cyclades_card *cinfo = pci_get_drvdata(pdev);
- 	unsigned int i;
- 
-@@ -5370,9 +5333,16 @@ static void __devexit cy_pci_release(str
- 	for (i = cinfo->first_line; i < cinfo->first_line +
- 			cinfo->nports; i++)
- 		tty_unregister_device(cy_serial_driver, i);
+-    unsigned long filler;
 -#endif
- }
+ };
  
-+static struct pci_driver cy_pci_driver = {
-+	.name = "cyclades",
-+	.id_table = cy_pci_dev_id,
-+	.probe = cy_pci_probe,
-+	.remove = __devexit_p(cy_pci_remove)
-+};
-+#endif
-+
- /*
-  * This routine prints out the appropriate serial driver version number
-  * and identifies which options were configured into this driver.
-@@ -5533,13 +5503,12 @@ static int __init cy_init(void)
- 	/* look for isa boards */
- 	nboards = cy_detect_isa();
- 
-+#ifdef CONFIG_PCI
- 	/* look for pci boards */
--	nboards += cy_detect_pci();
+-struct cyclades_chip {
+-  int filler;
+-};
 -
--	if (nboards == 0) {
--		retval = -ENODEV;
-+	retval = pci_register_driver(&cy_pci_driver);
-+	if (retval && !nboards)
- 		goto err_unr;
--	}
-+#endif
- 
- 	return 0;
- err_unr:
-@@ -5564,12 +5533,12 @@ static void __exit cy_cleanup_module(voi
- 
- 	put_tty_driver(cy_serial_driver);
- 
-+#ifdef CONFIG_PCI
-+	pci_unregister_driver(&cy_pci_driver);
-+#endif
-+
- 	for (i = 0; i < NR_CARDS; i++) {
- 		if (cy_card[i].base_addr) {
--			if (cy_card[i].pdev) {
--				cy_pci_release(cy_card[i].pdev);
--				continue;
--			}
- 			/* clear interrupt */
- 			cy_writeb(cy_card[i].base_addr + Cy_ClrIntr, 0);
- 			iounmap(cy_card[i].base_addr);
+-
+-#ifdef __KERNEL__
+-
+ /***************************************
+  * Memory access functions/macros      *
+  * (required to support Alpha systems) *
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
