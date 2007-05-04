@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-voyager-use-__attribute_unused__.patch added to -mm tree
-Date: Fri, 04 May 2007 02:09:25 -0700
-Message-ID: <200705040909.l4499PaT000551@shell0.pdx.osdl.net>
+Subject: + i386-pci-type-may-be-unused.patch added to -mm tree
+Date: Fri, 04 May 2007 02:09:15 -0700
+Message-ID: <200705040909.l4499FqC000539@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60038 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767764AbXEDJKG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:06 -0400
+	by vger.kernel.org with ESMTP id S1422909AbXEDJJ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:09:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, James.Bottomley@HansenPartnership.com
+Cc: rientjes@google.com, ak@suse.de
 
 
 The patch titled
-     i386: voyager: use __attribute_unused__
+     i386 pci: type may be unused
 has been added to the -mm tree.  Its filename is
-     i386-voyager-use-__attribute_unused__.patch
+     i386-pci-type-may-be-unused.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: voyager: use __attribute_unused__
+Subject: i386 pci: type may be unused
 From: David Rientjes <rientjes@google.com>
 
-Replace automatic variable instances of __attribute__((unused)) with
-__attribute_unused__ in mca_nmi_hook().
+In the case of !CONFIG_PCI_DIRECT && !CONFIG_PCI_MMCONFIG, type is
+unreferened.
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mach-voyager/voyager_basic.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/pci/init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/mach-voyager/voyager_basic.c~i386-voyager-use-__attribute_unused__ arch/i386/mach-voyager/voyager_basic.c
---- a/arch/i386/mach-voyager/voyager_basic.c~i386-voyager-use-__attribute_unused__
-+++ a/arch/i386/mach-voyager/voyager_basic.c
-@@ -292,8 +292,8 @@ machine_emergency_restart(void)
- void
- mca_nmi_hook(void)
+diff -puN arch/i386/pci/init.c~i386-pci-type-may-be-unused arch/i386/pci/init.c
+--- a/arch/i386/pci/init.c~i386-pci-type-may-be-unused
++++ a/arch/i386/pci/init.c
+@@ -6,7 +6,7 @@
+    in the right sequence from here. */
+ static __init int pci_access_init(void)
  {
--	__u8 dumpval __attribute__((unused)) = inb(0xf823);
--	__u8 swnmi __attribute__((unused)) = inb(0xf813);
-+	__u8 dumpval __attribute_unused__ = inb(0xf823);
-+	__u8 swnmi __attribute_unused__ = inb(0xf813);
+-	int type = 0;
++	int type __attribute_unused__ = 0;
  
- 	/* FIXME: assume dump switch pressed */
- 	/* check to see if the dump switch was pressed */
+ #ifdef CONFIG_PCI_DIRECT
+ 	type = pci_direct_probe();
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
