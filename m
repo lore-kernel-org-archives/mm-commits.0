@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hpt366-dont-check-enablebits-for-hpt36x.patch added to -mm tree
-Date: Fri, 04 May 2007 15:19:51 -0700
-Message-ID: <200705042219.l44MJppw022737@shell0.pdx.osdl.net>
+Subject: + pm-separate-hibernation-code-from-suspend-code-fix.patch added to -mm tree
+Date: Fri, 04 May 2007 15:55:03 -0700
+Message-ID: <200705042255.l44Mt4Lk027474@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58651 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031717AbXEDWVS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:21:18 -0400
+	by vger.kernel.org with ESMTP id S1767768AbXEDWzS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:55:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sshtylyov@ru.mvista.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, michal.kepien@poczta.onet.pl, stable@kernel.org
+Cc: rjw@sisk.pl
 
 
 The patch titled
-     hpt366: don't check enablebits for HPT36x
+     PM: Separate hibernation code from suspend code (fix)
 has been added to the -mm tree.  Its filename is
-     hpt366-dont-check-enablebits-for-hpt36x.patch
+     pm-separate-hibernation-code-from-suspend-code-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hpt366: don't check enablebits for HPT36x
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: PM: Separate hibernation code from suspend code (fix)
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-HPT36x chip don't seem to have the channel enable bits, so prevent the IDE
-core from checking them...
+Remove unnecessary comments in include/linux/suspend.h and  add a comment
+describing hibernation_set_ops() in kernel/power/disk.c .
 
-Hopefully addresses http://lkml.org/lkml/2007/5/4/337
-
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: Michal Kepien <michal.kepien@poczta.onet.pl>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: <stable@kernel.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/pci/hpt366.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletion(-)
+ include/linux/suspend.h |    8 --------
+ kernel/power/disk.c     |    5 +++++
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN drivers/ide/pci/hpt366.c~hpt366-dont-check-enablebits-for-hpt36x drivers/ide/pci/hpt366.c
---- a/drivers/ide/pci/hpt366.c~hpt366-dont-check-enablebits-for-hpt36x
-+++ a/drivers/ide/pci/hpt366.c
-@@ -1,5 +1,5 @@
- /*
-- * linux/drivers/ide/pci/hpt366.c		Version 1.02	Apr 18, 2007
-+ * linux/drivers/ide/pci/hpt366.c		Version 1.03	May 4, 2007
-  *
-  * Copyright (C) 1999-2003		Andre Hedrick <andre@linux-ide.org>
-  * Portions Copyright (C) 2001	        Sun Microsystems, Inc.
-@@ -1512,7 +1512,12 @@ static int __devinit init_setup_hpt366(s
- 	if (rev > 2)
- 		goto init_single;
+diff -puN include/linux/suspend.h~pm-separate-hibernation-code-from-suspend-code-fix include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-separate-hibernation-code-from-suspend-code-fix
++++ a/include/linux/suspend.h
+@@ -58,15 +58,7 @@ extern void swsusp_set_page_free(struct 
+ extern void swsusp_unset_page_free(struct page *);
+ extern unsigned long get_safe_page(gfp_t gfp_mask);
  
-+	/*
-+	 * HPT36x chips are single channel and
-+	 * do not seem to have the channel enable bit...
-+	 */
- 	d->channels = 1;
-+	d->enablebits[0].reg = 0;
+-/**
+- * hibernation_set_ops - set the global hibernate operations
+- * @ops: the hibernation operations to use in subsequent hibernation transitions
+- */
+ extern void hibernation_set_ops(struct hibernation_ops *ops);
+-
+-/**
+- * hibernate - hibernate the system
+- */
+ extern int hibernate(void);
+ #else
+ static inline void register_nosave_region(unsigned long b, unsigned long e) {}
+diff -puN kernel/power/disk.c~pm-separate-hibernation-code-from-suspend-code-fix kernel/power/disk.c
+--- a/kernel/power/disk.c~pm-separate-hibernation-code-from-suspend-code-fix
++++ a/kernel/power/disk.c
+@@ -47,6 +47,11 @@ enum {
  
- 	if ((dev2 = pci_get_slot(dev->bus, dev->devfn + 1)) != NULL) {
- 	  	u8  pin1 = 0, pin2 = 0;
+ struct hibernation_ops *hibernation_ops;
+ 
++/**
++ * hibernation_set_ops - set the global hibernate operations
++ * @ops: the hibernation operations to use in subsequent hibernation transitions
++ */
++
+ void hibernation_set_ops(struct hibernation_ops *ops)
+ {
+ 	if (ops && !(ops->prepare && ops->enter && ops->finish)) {
 _
 
-Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-sl82c105-switch-to-ref-counting-api.patch
-hpt366-dont-check-enablebits-for-hpt36x.patch
-3x59x-fix-pci-resource-management.patch
-clockchipsh-kernel-doc-fix.patch
+fix-refrigerator-vs-thaw_process-race.patch
+swsusp-use-inline-functions-for-changing-page-flags.patch
+swsusp-do-not-use-page-flags.patch
+mm-remove-unused-page-flags.patch
+swsusp-fix-error-paths-in-snapshot_open.patch
+swsusp-use-gfp_kernel-for-creating-basic-data-structures.patch
+freezer-remove-pf_nofreeze-from-handle_initrd.patch
+swsusp-use-rbtree-for-tracking-allocated-swap.patch
+freezer-fix-racy-usage-of-try_to_freeze-in-kswapd.patch
+remove-software_suspend.patch
+power-management-change-sys-power-disk-display.patch
+kconfig-mentioneds-hibernation-not-just-swsusp.patch
+swsusp-fix-snapshot_release.patch
+swsusp-free-more-memory.patch
+pm-separate-hibernation-code-from-suspend-code.patch
+pm-separate-hibernation-code-from-suspend-code-fix.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-frozen_process-to-kernel-power-processc.patch
+remvoe-kthread_bind-call-from-_cpu_down.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+add-suspend-related-notifications-for-cpu-hotplug.patch
+add-suspend-related-notifications-for-cpu-hotplug-cleanup.patch
+microcode-use-suspend-related-cpu-hotplug-notifications.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+shrink_slab-handle-bad-shrinkers.patch
