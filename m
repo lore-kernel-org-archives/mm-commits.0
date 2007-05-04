@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-probe-cleanup-fix.patch added to -mm tree
-Date: Fri, 04 May 2007 11:38:18 -0700
-Message-ID: <200705041841.l44If9He010814@shell0.pdx.osdl.net>
+Subject: + git-net-locking-borkage-fix.patch added to -mm tree
+Date: Fri, 04 May 2007 11:57:55 -0700
+Message-ID: <200705041900.l44J0kA6011321@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38746 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161609AbXEDSlR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 14:41:17 -0400
+	by vger.kernel.org with ESMTP id S1161896AbXEDTBJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 15:01:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jirislaby@gmail.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net
 
 
 The patch titled
-     char-cyclades-probe-cleanup-fix
+     git-net-locking-borkage-fix
 has been added to the -mm tree.  Its filename is
-     char-cyclades-probe-cleanup-fix.patch
+     git-net-locking-borkage-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: char-cyclades-probe-cleanup-fix
+Subject: git-net-locking-borkage-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-wtf2?
-
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netlink/af_netlink.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-probe-cleanup-fix drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-probe-cleanup-fix
-+++ a/drivers/char/cyclades.c
-@@ -4922,7 +4922,7 @@ static int __devinit cy_pci_probe(struct
- 		if (irq != 0 && irq != 255) {
- 			retval = request_irq(irq, cyz_interrupt,
- 					IRQF_SHARED, "Cyclades-Z",
--					&cy_card[j]);
-+					&cy_card[card_no]);
- 			if (retval) {
- 				dev_err(&pdev->dev, "could not allocate IRQ\n");
- 				goto err_unmap;
+diff -puN net/netlink/af_netlink.c~git-net-locking-borkage-fix net/netlink/af_netlink.c
+--- a/net/netlink/af_netlink.c~git-net-locking-borkage-fix
++++ a/net/netlink/af_netlink.c
+@@ -142,7 +142,10 @@ static void netlink_sock_destruct(struct
+ {
+ 	struct netlink_sock *nlk = nlk_sk(sk);
+ 
+-	BUG_ON(mutex_is_locked(nlk_sk(sk)->cb_mutex));
++	if (mutex_is_locked(nlk_sk(sk)->cb_mutex)) {
++		WARN_ON(1);
++		return;
++	}
+ 	if (nlk->cb) {
+ 		if (nlk->cb->done)
+ 			nlk->cb->done(nlk->cb);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,6 +91,7 @@ git-mtd.patch
 natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
 git-e1000.patch
 git-e1000-fixup-2.patch
+git-net-locking-borkage-fix.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 git-nfs.patch
 git-nfs-build-fix.patch
