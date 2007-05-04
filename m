@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-mutex-instead-of-semaphore-in-virtual-console-driver.patch added to -mm tree
-Date: Thu, 03 May 2007 20:17:01 -0700
-Message-ID: <200705040317.l443H1ml027973@shell0.pdx.osdl.net>
+Subject: + use-mutex-instead-of-binary-semaphore-in-idt77252-driver.patch added to -mm tree
+Date: Thu, 03 May 2007 20:20:03 -0700
+Message-ID: <200705040320.l443K32b028013@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33642 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51023 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767618AbXEDDRH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 23:17:07 -0400
+	by vger.kernel.org with ESMTP id S1754315AbXEDDU1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 23:20:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com, adaplas@pol.net
+Cc: matthias.kaehlcke@gmail.com, chas@cmf.nrl.navy.mil
 
 
 The patch titled
-     use mutex instead of semaphore in virtual console driver
+     use mutex instead of binary semaphore in idt77252 driver
 has been added to the -mm tree.  Its filename is
-     use-mutex-instead-of-semaphore-in-virtual-console-driver.patch
+     use-mutex-instead-of-binary-semaphore-in-idt77252-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,122 +25,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use mutex instead of semaphore in virtual console driver
+Subject: use mutex instead of binary semaphore in idt77252 driver
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-The virtual console driver uses a semaphore as mutex.  Use the mutex API
-instead of the (binary) semaphore.
+Use mutex instead of binary semaphore in idt77252 driver.
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: chas williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vc_screen.c |   16 ++++++++--------
- drivers/char/vt.c        |    4 ++--
- include/linux/vt_kern.h  |    2 +-
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/atm/idt77252.c |   24 ++++++++++++------------
+ drivers/atm/idt77252.h |    2 +-
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/char/vc_screen.c~use-mutex-instead-of-semaphore-in-virtual-console-driver drivers/char/vc_screen.c
---- a/drivers/char/vc_screen.c~use-mutex-instead-of-semaphore-in-virtual-console-driver
-+++ a/drivers/char/vc_screen.c
-@@ -69,11 +69,11 @@ static loff_t vcs_lseek(struct file *fil
- {
- 	int size;
+diff -puN drivers/atm/idt77252.c~use-mutex-instead-of-binary-semaphore-in-idt77252-driver drivers/atm/idt77252.c
+--- a/drivers/atm/idt77252.c~use-mutex-instead-of-binary-semaphore-in-idt77252-driver
++++ a/drivers/atm/idt77252.c
+@@ -2435,7 +2435,7 @@ idt77252_open(struct atm_vcc *vcc)
  
--	down(&con_buf_sem);
-+	mutex_lock(&con_buf_mtx);
- 	size = vcs_size(file->f_path.dentry->d_inode);
- 	switch (orig) {
- 		default:
--			up(&con_buf_sem);
-+			mutex_unlock(&con_buf_mtx);
- 			return -EINVAL;
- 		case 2:
- 			offset += size;
-@@ -84,11 +84,11 @@ static loff_t vcs_lseek(struct file *fil
- 			break;
+ 	set_bit(ATM_VF_ADDR, &vcc->flags);
+ 
+-	down(&card->mutex);
++	mutex_lock(&card->mutex);
+ 
+ 	OPRINTK("%s: opening vpi.vci: %d.%d\n", card->name, vpi, vci);
+ 
+@@ -2446,7 +2446,7 @@ idt77252_open(struct atm_vcc *vcc)
+ 		break;
+ 	default:
+ 		printk("%s: Unsupported AAL: %d\n", card->name, vcc->qos.aal);
+-		up(&card->mutex);
++		mutex_unlock(&card->mutex);
+ 		return -EPROTONOSUPPORT;
  	}
- 	if (offset < 0 || offset > size) {
--		up(&con_buf_sem);
-+		mutex_unlock(&con_buf_mtx);
- 		return -EINVAL;
+ 
+@@ -2455,7 +2455,7 @@ idt77252_open(struct atm_vcc *vcc)
+ 		card->vcs[index] = kzalloc(sizeof(struct vc_map), GFP_KERNEL);
+ 		if (!card->vcs[index]) {
+ 			printk("%s: can't alloc vc in open()\n", card->name);
+-			up(&card->mutex);
++			mutex_unlock(&card->mutex);
+ 			return -ENOMEM;
+ 		}
+ 		card->vcs[index]->card = card;
+@@ -2484,14 +2484,14 @@ idt77252_open(struct atm_vcc *vcc)
+ 	if (inuse) {
+ 		printk("%s: %s vci already in use.\n", card->name,
+ 		       inuse == 1 ? "tx" : inuse == 2 ? "rx" : "tx and rx");
+-		up(&card->mutex);
++		mutex_unlock(&card->mutex);
+ 		return -EADDRINUSE;
  	}
- 	file->f_pos = offset;
--	up(&con_buf_sem);
-+	mutex_unlock(&con_buf_mtx);
- 	return file->f_pos;
+ 
+ 	if (vcc->qos.txtp.traffic_class != ATM_NONE) {
+ 		error = idt77252_init_tx(card, vc, vcc, &vcc->qos);
+ 		if (error) {
+-			up(&card->mutex);
++			mutex_unlock(&card->mutex);
+ 			return error;
+ 		}
+ 	}
+@@ -2499,14 +2499,14 @@ idt77252_open(struct atm_vcc *vcc)
+ 	if (vcc->qos.rxtp.traffic_class != ATM_NONE) {
+ 		error = idt77252_init_rx(card, vc, vcc, &vcc->qos);
+ 		if (error) {
+-			up(&card->mutex);
++			mutex_unlock(&card->mutex);
+ 			return error;
+ 		}
+ 	}
+ 
+ 	set_bit(ATM_VF_READY, &vcc->flags);
+ 
+-	up(&card->mutex);
++	mutex_unlock(&card->mutex);
+ 	return 0;
  }
  
-@@ -105,7 +105,7 @@ vcs_read(struct file *file, char __user 
- 	unsigned short *org = NULL;
- 	ssize_t ret;
+@@ -2520,7 +2520,7 @@ idt77252_close(struct atm_vcc *vcc)
+ 	unsigned long addr;
+ 	unsigned long timeout;
  
--	down(&con_buf_sem);
-+	mutex_lock(&con_buf_mtx);
+-	down(&card->mutex);
++	mutex_lock(&card->mutex);
  
- 	pos = *ppos;
+ 	IPRINTK("%s: idt77252_close: vc = %d (%d.%d)\n",
+ 		card->name, vc->index, vcc->vpi, vcc->vci);
+@@ -2591,7 +2591,7 @@ done:
+ 		free_scq(card, vc->scq);
+ 	}
  
-@@ -262,7 +262,7 @@ vcs_read(struct file *file, char __user 
- 		ret = read;
- unlock_out:
- 	release_console_sem();
--	up(&con_buf_sem);
-+	mutex_unlock(&con_buf_mtx);
- 	return ret;
+-	up(&card->mutex);
++	mutex_unlock(&card->mutex);
  }
  
-@@ -279,7 +279,7 @@ vcs_write(struct file *file, const char 
- 	u16 *org0 = NULL, *org = NULL;
- 	size_t ret;
+ static int
+@@ -2602,7 +2602,7 @@ idt77252_change_qos(struct atm_vcc *vcc,
+ 	struct vc_map *vc = vcc->dev_data;
+ 	int error = 0;
  
--	down(&con_buf_sem);
-+	mutex_lock(&con_buf_mtx);
+-	down(&card->mutex);
++	mutex_lock(&card->mutex);
  
- 	pos = *ppos;
+ 	if (qos->txtp.traffic_class != ATM_NONE) {
+ 	    	if (!test_bit(VCF_TX, &vc->flags)) {
+@@ -2648,7 +2648,7 @@ idt77252_change_qos(struct atm_vcc *vcc,
+ 	set_bit(ATM_VF_HASQOS, &vcc->flags);
  
-@@ -449,7 +449,7 @@ vcs_write(struct file *file, const char 
- unlock_out:
- 	release_console_sem();
- 
--	up(&con_buf_sem);
-+	mutex_unlock(&con_buf_mtx);
- 
- 	return ret;
+ out:
+-	up(&card->mutex);
++	mutex_unlock(&card->mutex);
+ 	return error;
  }
-diff -puN drivers/char/vt.c~use-mutex-instead-of-semaphore-in-virtual-console-driver drivers/char/vt.c
---- a/drivers/char/vt.c~use-mutex-instead-of-semaphore-in-virtual-console-driver
-+++ a/drivers/char/vt.c
-@@ -1952,7 +1952,7 @@ static void do_con_trol(struct tty_struc
-  * kernel memory allocation is available.
-  */
- char con_buf[CON_BUF_SIZE];
--DECLARE_MUTEX(con_buf_sem);
-+DEFINE_MUTEX(con_buf_mtx);
  
- /* is_double_width() is based on the wcwidth() implementation by
-  * Markus Kuhn -- 2003-05-20 (Unicode 4.0)
-@@ -2049,7 +2049,7 @@ static int do_con_write(struct tty_struc
+@@ -3709,7 +3709,7 @@ idt77252_init_one(struct pci_dev *pcidev
+ 	membase = pci_resource_start(pcidev, 1);
+ 	srambase = pci_resource_start(pcidev, 2);
  
- 	/* At this point 'buf' is guaranteed to be a kernel buffer
- 	 * and therefore no access to userspace (and therefore sleeping)
--	 * will be needed.  The con_buf_sem serializes all tty based
-+	 * will be needed.  The con_buf_mtx serializes all tty based
- 	 * console rendering and vcs write/read operations.  We hold
- 	 * the console spinlock during the entire write.
- 	 */
-diff -puN include/linux/vt_kern.h~use-mutex-instead-of-semaphore-in-virtual-console-driver include/linux/vt_kern.h
---- a/include/linux/vt_kern.h~use-mutex-instead-of-semaphore-in-virtual-console-driver
-+++ a/include/linux/vt_kern.h
-@@ -82,7 +82,7 @@ void reset_vc(struct vc_data *vc);
+-	init_MUTEX(&card->mutex);
++	mutex_init(&card->mutex);
+ 	spin_lock_init(&card->cmd_lock);
+ 	spin_lock_init(&card->tst_lock);
  
- #define CON_BUF_SIZE (CONFIG_BASE_SMALL ? 256 : PAGE_SIZE)
- extern char con_buf[CON_BUF_SIZE];
--extern struct semaphore con_buf_sem;
-+extern struct mutex con_buf_mtx;
- extern char vt_dont_switch;
+diff -puN drivers/atm/idt77252.h~use-mutex-instead-of-binary-semaphore-in-idt77252-driver drivers/atm/idt77252.h
+--- a/drivers/atm/idt77252.h~use-mutex-instead-of-binary-semaphore-in-idt77252-driver
++++ a/drivers/atm/idt77252.h
+@@ -359,7 +359,7 @@ struct idt77252_dev
+ 	unsigned long		srambase;	/* SAR's sram  base address */
+ 	void __iomem		*fbq[4];	/* FBQ fill addresses */
  
- struct vt_spawn_console {
+-	struct semaphore	mutex;
++	struct mutex		mutex;
+ 	spinlock_t		cmd_lock;	/* for r/w utility/sram */
+ 
+ 	unsigned long		softstat;
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
