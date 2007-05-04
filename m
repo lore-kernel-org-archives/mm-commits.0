@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-spinlock-initializer-cleanup.patch added to -mm tree
-Date: Thu, 03 May 2007 23:36:11 -0700
-Message-ID: <200705040636.l446aBAA030713@shell0.pdx.osdl.net>
+Subject: + drm-spinlock-initializer-cleanup.patch added to -mm tree
+Date: Thu, 03 May 2007 23:36:09 -0700
+Message-ID: <200705040636.l446a93T030710@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45132 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161868AbXEDGgT (ORCPT
+	by vger.kernel.org with ESMTP id S1161877AbXEDGgT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:36:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, kkeil@suse.de
+Cc: tglx@linutronix.de, airlied@linux.ie
 
 
 The patch titled
-     ISDN: Spinlock initializer cleanup
+     DRM: Spinlock initializer cleanup
 has been added to the -mm tree.  Its filename is
-     isdn-spinlock-initializer-cleanup.patch
+     drm-spinlock-initializer-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ISDN: Spinlock initializer cleanup
+Subject: DRM: Spinlock initializer cleanup
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Karsten Keil <kkeil@suse.de>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/boardergo.c   |    2 +-
- drivers/isdn/isdnloop/isdnloop.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/drm/i915_irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hysdn/boardergo.c~isdn-spinlock-initializer-cleanup drivers/isdn/hysdn/boardergo.c
---- a/drivers/isdn/hysdn/boardergo.c~isdn-spinlock-initializer-cleanup
-+++ a/drivers/isdn/hysdn/boardergo.c
-@@ -443,7 +443,7 @@ ergo_inithardware(hysdn_card * card)
- 	card->waitpofready = ergo_waitpofready;
- 	card->set_errlog_state = ergo_set_errlog_state;
- 	INIT_WORK(&card->irq_queue, ergo_irq_bh);
--	card->hysdn_lock = SPIN_LOCK_UNLOCKED;
-+	spin_lock_init(&card->hysdn_lock);
+diff -puN drivers/char/drm/i915_irq.c~drm-spinlock-initializer-cleanup drivers/char/drm/i915_irq.c
+--- a/drivers/char/drm/i915_irq.c~drm-spinlock-initializer-cleanup
++++ a/drivers/char/drm/i915_irq.c
+@@ -582,7 +582,7 @@ void i915_driver_irq_postinstall(drm_dev
+ {
+ 	drm_i915_private_t *dev_priv = (drm_i915_private_t *) dev->dev_private;
  
- 	return (0);
- }				/* ergo_inithardware */
-diff -puN drivers/isdn/isdnloop/isdnloop.c~isdn-spinlock-initializer-cleanup drivers/isdn/isdnloop/isdnloop.c
---- a/drivers/isdn/isdnloop/isdnloop.c~isdn-spinlock-initializer-cleanup
-+++ a/drivers/isdn/isdnloop/isdnloop.c
-@@ -1462,7 +1462,7 @@ isdnloop_initcard(char *id)
- 		skb_queue_head_init(&card->bqueue[i]);
- 	}
- 	skb_queue_head_init(&card->dqueue);
--	card->isdnloop_lock = SPIN_LOCK_UNLOCKED;
-+	spin_lock_init(&card->isdnloop_lock);
- 	card->next = cards;
- 	cards = card;
- 	if (!register_isdn(&card->interface)) {
+-	dev_priv->swaps_lock = SPIN_LOCK_UNLOCKED;
++	spin_lock_init(&dev_priv->swaps_lock);
+ 	INIT_LIST_HEAD(&dev_priv->vbl_swaps.head);
+ 	dev_priv->swaps_pending = 0;
+ 
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
