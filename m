@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-introduce-__used-and-__maybe_unused.patch added to -mm tree
-Date: Fri, 04 May 2007 14:55:27 -0700
-Message-ID: <200705042155.l44LtR0k018515@shell0.pdx.osdl.net>
+Subject: + i386-pci-type-may-be-unused.patch added to -mm tree
+Date: Fri, 04 May 2007 15:00:25 -0700
+Message-ID: <200705042200.l44M0PDL019472@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59426 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161560AbXEDVzt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 17:55:49 -0400
+	by vger.kernel.org with ESMTP id S1031562AbXEDWAg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:00:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, bunk@stusta.de, rusty@rustcorp.com.au
+Cc: rientjes@google.com, ak@suse.de
 
 
 The patch titled
-     compiler: introduce __used and __maybe_unused
+     i386 pci: type may be unused
 has been added to the -mm tree.  Its filename is
-     compiler-introduce-__used-and-__maybe_unused.patch
+     i386-pci-type-may-be-unused.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,115 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: compiler: introduce __used and __maybe_unused
+Subject: i386 pci: type may be unused
 From: David Rientjes <rientjes@google.com>
 
-__used is defined to be __attribute__((unused)) for all pre-3.3 gcc
-compilers to suppress warnings for unused functions because perhaps they
-are referenced only in inline assembly.  It is defined to be
-__attribute__((used)) for gcc 3.3 and later so that the code is still
-emitted for such functions.
+In the case of !CONFIG_PCI_DIRECT && !CONFIG_PCI_MMCONFIG, type is
+unreferened.
 
-__maybe_unused is defined to be __attribute__((unused)) for both function
-and variable use if it could possibly be unreferenced due to the evaluation
-of preprocessor macros.  Function prototypes shall be marked with
-__maybe_unused if the actual definition of the function is dependant on
-preprocessor macros.
-
-No update to compiler-intel.h is necessary because ICC supports both
-__attribute__((used)) and __attribute__((unused)) as specified by the gcc
-manual.
-
-__attribute_used__ is deprecated and will be removed once all current
-code is converted to using __used.
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h  |    1 +
- include/linux/compiler-gcc3.h |    6 ++++--
- include/linux/compiler-gcc4.h |    3 ++-
- include/linux/compiler.h      |   21 ++++++++++++++++++---
- 4 files changed, 25 insertions(+), 6 deletions(-)
+ arch/i386/pci/init.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-introduce-__used-and-__maybe_unused include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-introduce-__used-and-__maybe_unused
-+++ a/include/linux/compiler-gcc.h
-@@ -40,3 +40,4 @@
- #define  noinline			__attribute__((noinline))
- #define __attribute_pure__		__attribute__((pure))
- #define __attribute_const__		__attribute__((__const__))
-+#define __maybe_unused			__attribute__((unused))
-diff -puN include/linux/compiler-gcc3.h~compiler-introduce-__used-and-__maybe_unused include/linux/compiler-gcc3.h
---- a/include/linux/compiler-gcc3.h~compiler-introduce-__used-and-__maybe_unused
-+++ a/include/linux/compiler-gcc3.h
-@@ -4,9 +4,11 @@
- #include <linux/compiler-gcc.h>
+diff -puN arch/i386/pci/init.c~i386-pci-type-may-be-unused arch/i386/pci/init.c
+--- a/arch/i386/pci/init.c~i386-pci-type-may-be-unused
++++ a/arch/i386/pci/init.c
+@@ -6,7 +6,7 @@
+    in the right sequence from here. */
+ static __init int pci_access_init(void)
+ {
+-	int type = 0;
++	int type __maybe_unused = 0;
  
- #if __GNUC_MINOR__ >= 3
--# define __attribute_used__	__attribute__((__used__))
-+# define __used			__attribute__((__used__))
-+# define __attribute_used__	__used				/* deprecated */
- #else
--# define __attribute_used__	__attribute__((__unused__))
-+# define __used			__attribute__((__unused__))
-+# define __attribute_used__	__used				/* deprecated */
- #endif
- 
- #if __GNUC_MINOR__ >= 4
-diff -puN include/linux/compiler-gcc4.h~compiler-introduce-__used-and-__maybe_unused include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~compiler-introduce-__used-and-__maybe_unused
-+++ a/include/linux/compiler-gcc4.h
-@@ -12,7 +12,8 @@
- # define __inline		__inline	__attribute__((always_inline))
- #endif
- 
--#define __attribute_used__	__attribute__((__used__))
-+#define __used			__attribute__((__used__))
-+#define __attribute_used__	__used			/* deprecated */
- #define __must_check 		__attribute__((warn_unused_result))
- #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
- #define __always_inline		inline __attribute__((always_inline))
-diff -puN include/linux/compiler.h~compiler-introduce-__used-and-__maybe_unused include/linux/compiler.h
---- a/include/linux/compiler.h~compiler-introduce-__used-and-__maybe_unused
-+++ a/include/linux/compiler.h
-@@ -108,15 +108,30 @@ extern void __chk_io_ptr(const void __io
-  * Allow us to avoid 'defined but not used' warnings on functions and data,
-  * as well as force them to be emitted to the assembly file.
-  *
-- * As of gcc 3.3, static functions that are not marked with attribute((used))
-- * may be elided from the assembly file.  As of gcc 3.3, static data not so
-+ * As of gcc 3.4, static functions that are not marked with attribute((used))
-+ * may be elided from the assembly file.  As of gcc 3.4, static data not so
-  * marked will not be elided, but this may change in a future gcc version.
-  *
-+ * NOTE: Because distributions shipped with a backported unit-at-a-time
-+ * compiler in gcc 3.3, we must define __used to be __attribute__((used))
-+ * for gcc >=3.3 instead of 3.4.
-+ *
-  * In prior versions of gcc, such functions and data would be emitted, but
-  * would be warned about except with attribute((unused)).
-+ *
-+ * Mark functions that are referenced only in inline assembly as __used so
-+ * the code is emitted even though it appears to be unreferenced.
-  */
- #ifndef __attribute_used__
--# define __attribute_used__	/* unimplemented */
-+# define __attribute_used__	/* deprecated */
-+#endif
-+
-+#ifndef __used
-+# define __used			/* unimplemented */
-+#endif
-+
-+#ifndef __maybe_unused
-+# define __maybe_unused		/* unimplemented */
- #endif
- 
- /*
+ #ifdef CONFIG_PCI_DIRECT
+ 	type = pci_direct_probe();
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -166,11 +83,11 @@ cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
 cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
 compiler-introduce-__used-and-__maybe_unused.patch
 i386-pci-type-may-be-unused.patch
-sh-dma-use-__attribute_unused__.patch
+sh-dma-use-__maybe_unused.patch
 scsi-fix-ambiguous-gdthtable-definition.patch
-frv-gdb-use-__attribute_unused__.patch
-i386-voyager-use-__attribute_unused__.patch
-mips-excite-use-__attribute_unused__.patch
-mips-tlbex-use-__attribute_unused__.patch
-powerpc-ps3-use-__attribute_unused__.patch
-i386-mmzone-use-__attribute_unused__.patch
+frv-gdb-use-__maybe_unused.patch
+i386-voyager-use-__maybe_unused.patch
+mips-excite-use-__maybe_unused.patch
+mips-tlbex-use-__maybe_unused.patch
+powerpc-ps3-use-__maybe_unused.patch
+i386-mmzone-use-__maybe_unused.patch
