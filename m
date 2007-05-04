@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + unprivileged-mounts-propagate-error-values-from-clone_mnt.patch added to -mm tree
-Date: Thu, 03 May 2007 23:07:52 -0700
-Message-ID: <200705040607.l4467qOU030294@shell0.pdx.osdl.net>
+Subject: + unprivileged-mounts-account-user-mounts.patch added to -mm tree
+Date: Thu, 03 May 2007 23:07:50 -0700
+Message-ID: <200705040607.l4467ohr030291@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41828 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754581AbXEDGNP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:13:15 -0400
+	by vger.kernel.org with ESMTP id S1754502AbXEDGNO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:13:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com
 
 
 The patch titled
-     unprivileged mounts: propagate error values from clone_mnt
+     unprivileged mounts: account user mounts
 has been added to the -mm tree.  Its filename is
-     unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+     unprivileged-mounts-account-user-mounts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,17 +25,18 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unprivileged mounts: propagate error values from clone_mnt
+Subject: unprivileged mounts: account user mounts
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Allow clone_mnt() to return errors other than ENOMEM.  This will be used for
-returning a different error value when the number of user mounts goes over the
-limit.
+Add sysctl variables for accounting and limiting the number of user
+mounts.
 
-Fix copy_tree() to return EPERM for unbindable mounts.
+The maximum number of user mounts is set to 1024 by default.  This
+won't in itself enable user mounts, setting a mount to be owned by a
+user is first needed
 
-Don't propagate further from dup_mnt_ns() as that copy_tree() can only fail
-with -ENOMEM.
+[akpm]
+ - don't use enumerated sysctls
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Ram Pai <linuxram@us.ibm.com>
@@ -43,174 +44,130 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |   89 +++++++++++++++++++++++------------------------
- fs/pnode.c     |    5 +-
- 2 files changed, 48 insertions(+), 46 deletions(-)
+ Documentation/filesystems/proc.txt |    9 +++++++++
+ fs/namespace.c                     |   24 ++++++++++++++++++++++++
+ include/linux/fs.h                 |    3 +++
+ kernel/sysctl.c                    |   16 ++++++++++++++++
+ 4 files changed, 52 insertions(+)
 
-diff -puN fs/namespace.c~unprivileged-mounts-propagate-error-values-from-clone_mnt fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-propagate-error-values-from-clone_mnt
+diff -puN Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~unprivileged-mounts-account-user-mounts
++++ a/Documentation/filesystems/proc.txt
+@@ -923,6 +923,15 @@ reaches aio-max-nr then io_setup will fa
+ raising aio-max-nr does not result in the pre-allocation or re-sizing
+ of any kernel data structures.
+ 
++nr_user_mounts and max_user_mounts
++----------------------------------
++
++These represent the number of "user" mounts and the maximum number of
++"user" mounts respectively.  User mounts may be created by
++unprivileged users.  User mounts may also be created with sysadmin
++privileges on behalf of a user, in which case nr_user_mounts may
++exceed max_user_mounts.
++
+ 2.2 /proc/sys/fs/binfmt_misc - Miscellaneous binary formats
+ -----------------------------------------------------------
+ 
+diff -puN fs/namespace.c~unprivileged-mounts-account-user-mounts fs/namespace.c
+--- a/fs/namespace.c~unprivileged-mounts-account-user-mounts
 +++ a/fs/namespace.c
-@@ -262,41 +262,42 @@ static struct vfsmount *clone_mnt(struct
- 	struct super_block *sb = old->mnt_sb;
- 	struct vfsmount *mnt = alloc_vfsmnt(old->mnt_devname);
+@@ -39,6 +39,9 @@ static int hash_mask __read_mostly, hash
+ static struct kmem_cache *mnt_cache __read_mostly;
+ static struct rw_semaphore namespace_sem;
  
--	if (mnt) {
--		mnt->mnt_flags = old->mnt_flags;
--		atomic_inc(&sb->s_active);
--		mnt->mnt_sb = sb;
--		mnt->mnt_root = dget(root);
--		mnt->mnt_mountpoint = mnt->mnt_root;
--		mnt->mnt_parent = mnt;
--
--		/* don't copy the MNT_USER flag */
--		mnt->mnt_flags &= ~MNT_USER;
--		if (flag & CL_SETUSER)
--			set_mnt_user(mnt);
--
--		if (flag & CL_SLAVE) {
--			list_add(&mnt->mnt_slave, &old->mnt_slave_list);
--			mnt->mnt_master = old;
--			CLEAR_MNT_SHARED(mnt);
--		} else {
--			if ((flag & CL_PROPAGATION) || IS_MNT_SHARED(old))
--				list_add(&mnt->mnt_share, &old->mnt_share);
--			if (IS_MNT_SLAVE(old))
--				list_add(&mnt->mnt_slave, &old->mnt_slave);
--			mnt->mnt_master = old->mnt_master;
--		}
--		if (flag & CL_MAKE_SHARED)
--			set_mnt_shared(mnt);
-+	if (!mnt)
-+		return ERR_PTR(-ENOMEM);
++int nr_user_mounts;
++int max_user_mounts = 1024;
++
+ /* /sys/fs */
+ decl_subsys(fs, NULL, NULL);
+ EXPORT_SYMBOL_GPL(fs_subsys);
+@@ -227,11 +230,30 @@ static struct vfsmount *skip_mnt_tree(st
+ 	return p;
+ }
  
--		/* stick the duplicate mount on the same expiry list
--		 * as the original if that was on one */
--		if (flag & CL_EXPIRE) {
--			spin_lock(&vfsmount_lock);
--			if (!list_empty(&old->mnt_expire))
--				list_add(&mnt->mnt_expire, &old->mnt_expire);
--			spin_unlock(&vfsmount_lock);
--		}
-+	mnt->mnt_flags = old->mnt_flags;
-+	atomic_inc(&sb->s_active);
-+	mnt->mnt_sb = sb;
-+	mnt->mnt_root = dget(root);
-+	mnt->mnt_mountpoint = mnt->mnt_root;
-+	mnt->mnt_parent = mnt;
++static void dec_nr_user_mounts(void)
++{
++	spin_lock(&vfsmount_lock);
++	nr_user_mounts--;
++	spin_unlock(&vfsmount_lock);
++}
 +
-+	/* don't copy the MNT_USER flag */
-+	mnt->mnt_flags &= ~MNT_USER;
-+	if (flag & CL_SETUSER)
-+		set_mnt_user(mnt);
+ static void set_mnt_user(struct vfsmount *mnt)
+ {
+ 	BUG_ON(mnt->mnt_flags & MNT_USER);
+ 	mnt->mnt_uid = current->fsuid;
+ 	mnt->mnt_flags |= MNT_USER;
++	spin_lock(&vfsmount_lock);
++	nr_user_mounts++;
++	spin_unlock(&vfsmount_lock);
++}
 +
-+	if (flag & CL_SLAVE) {
-+		list_add(&mnt->mnt_slave, &old->mnt_slave_list);
-+		mnt->mnt_master = old;
-+		CLEAR_MNT_SHARED(mnt);
-+	} else {
-+		if ((flag & CL_PROPAGATION) || IS_MNT_SHARED(old))
-+			list_add(&mnt->mnt_share, &old->mnt_share);
-+		if (IS_MNT_SLAVE(old))
-+			list_add(&mnt->mnt_slave, &old->mnt_slave);
-+		mnt->mnt_master = old->mnt_master;
++static void clear_mnt_user(struct vfsmount *mnt)
++{
++	if (mnt->mnt_flags & MNT_USER) {
++		mnt->mnt_uid = 0;
++		mnt->mnt_flags &= ~MNT_USER;
++		dec_nr_user_mounts();
 +	}
-+	if (flag & CL_MAKE_SHARED)
-+		set_mnt_shared(mnt);
+ }
+ 
+ static struct vfsmount *clone_mnt(struct vfsmount *old, struct dentry *root,
+@@ -283,6 +305,7 @@ static inline void __mntput(struct vfsmo
+ {
+ 	struct super_block *sb = mnt->mnt_sb;
+ 	dput(mnt->mnt_root);
++	clear_mnt_user(mnt);
+ 	free_vfsmnt(mnt);
+ 	deactivate_super(sb);
+ }
+@@ -1009,6 +1032,7 @@ static int do_remount(struct nameidata *
+ 	down_write(&sb->s_umount);
+ 	err = do_remount_sb(sb, flags, data, 0);
+ 	if (!err) {
++		clear_mnt_user(nd->mnt);
+ 		nd->mnt->mnt_flags = mnt_flags;
+ 		if (flags & MS_SETUSER)
+ 			set_mnt_user(nd->mnt);
+diff -puN include/linux/fs.h~unprivileged-mounts-account-user-mounts include/linux/fs.h
+--- a/include/linux/fs.h~unprivileged-mounts-account-user-mounts
++++ a/include/linux/fs.h
+@@ -50,6 +50,9 @@ extern struct inodes_stat_t inodes_stat;
+ 
+ extern int leases_enable, lease_break_time;
+ 
++extern int nr_user_mounts;
++extern int max_user_mounts;
 +
-+	/* stick the duplicate mount on the same expiry list
-+	 * as the original if that was on one */
-+	if (flag & CL_EXPIRE) {
-+		spin_lock(&vfsmount_lock);
-+		if (!list_empty(&old->mnt_expire))
-+			list_add(&mnt->mnt_expire, &old->mnt_expire);
-+		spin_unlock(&vfsmount_lock);
- 	}
- 	return mnt;
- }
-@@ -764,11 +765,11 @@ struct vfsmount *copy_tree(struct vfsmou
- 	struct nameidata nd;
- 
- 	if (!(flag & CL_COPY_ALL) && IS_MNT_UNBINDABLE(mnt))
--		return NULL;
-+		return ERR_PTR(-EPERM);
- 
- 	res = q = clone_mnt(mnt, dentry, flag);
--	if (!q)
--		goto Enomem;
-+	if (IS_ERR(q))
-+		goto error;
- 	q->mnt_mountpoint = mnt->mnt_mountpoint;
- 
- 	p = mnt;
-@@ -789,8 +790,8 @@ struct vfsmount *copy_tree(struct vfsmou
- 			nd.mnt = q;
- 			nd.dentry = p->mnt_mountpoint;
- 			q = clone_mnt(p, p->mnt_root, flag);
--			if (!q)
--				goto Enomem;
-+			if (IS_ERR(q))
-+				goto error;
- 			spin_lock(&vfsmount_lock);
- 			list_add_tail(&q->mnt_list, &res->mnt_list);
- 			attach_mnt(q, &nd);
-@@ -798,7 +799,7 @@ struct vfsmount *copy_tree(struct vfsmou
- 		}
- 	}
- 	return res;
--Enomem:
-+ error:
- 	if (res) {
- 		LIST_HEAD(umount_list);
- 		spin_lock(&vfsmount_lock);
-@@ -806,7 +807,7 @@ Enomem:
- 		spin_unlock(&vfsmount_lock);
- 		release_mounts(&umount_list);
- 	}
--	return NULL;
-+	return q;
- }
- 
- /*
-@@ -985,13 +986,13 @@ static int do_loopback(struct nameidata 
- 		goto out;
- 
- 	clone_flags = (flags & MS_SETUSER) ? CL_SETUSER : 0;
--	err = -ENOMEM;
- 	if (flags & MS_REC)
- 		mnt = copy_tree(old_nd.mnt, old_nd.dentry, clone_flags);
- 	else
- 		mnt = clone_mnt(old_nd.mnt, old_nd.dentry, clone_flags);
- 
--	if (!mnt)
-+	err = PTR_ERR(mnt);
-+	if (IS_ERR(mnt))
- 		goto out;
- 
- 	err = graft_tree(mnt, nd);
-@@ -1536,7 +1537,7 @@ static struct mnt_namespace *dup_mnt_ns(
- 	/* First pass: copy the tree topology */
- 	new_ns->root = copy_tree(mnt_ns->root, mnt_ns->root->mnt_root,
- 					CL_COPY_ALL | CL_EXPIRE);
--	if (!new_ns->root) {
-+	if (IS_ERR(new_ns->root)) {
- 		up_write(&namespace_sem);
- 		kfree(new_ns);
- 		return NULL;
-diff -puN fs/pnode.c~unprivileged-mounts-propagate-error-values-from-clone_mnt fs/pnode.c
---- a/fs/pnode.c~unprivileged-mounts-propagate-error-values-from-clone_mnt
-+++ a/fs/pnode.c
-@@ -187,8 +187,9 @@ int propagate_mnt(struct vfsmount *dest_
- 
- 		source =  get_source(m, prev_dest_mnt, prev_src_mnt, &type);
- 
--		if (!(child = copy_tree(source, source->mnt_root, type))) {
--			ret = -ENOMEM;
-+		child = copy_tree(source, source->mnt_root, type);
-+		if (IS_ERR(child)) {
-+			ret = PTR_ERR(child);
- 			list_splice(tree_list, tmp_list.prev);
- 			goto out;
- 		}
+ #ifdef CONFIG_DNOTIFY
+ extern int dir_notify_enable;
+ #endif
+diff -puN kernel/sysctl.c~unprivileged-mounts-account-user-mounts kernel/sysctl.c
+--- a/kernel/sysctl.c~unprivileged-mounts-account-user-mounts
++++ a/kernel/sysctl.c
+@@ -1026,6 +1026,22 @@ static ctl_table fs_table[] = {
+ #endif	
+ #endif
+ 	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "nr_user_mounts",
++		.data		= &nr_user_mounts,
++		.maxlen		= sizeof(int),
++		.mode		= 0444,
++		.proc_handler	= &proc_dointvec,
++	},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "max_user_mounts",
++		.data		= &max_user_mounts,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
++	{
+ 		.ctl_name	= KERN_SETUID_DUMPABLE,
+ 		.procname	= "suid_dumpable",
+ 		.data		= &suid_dumpable,
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
