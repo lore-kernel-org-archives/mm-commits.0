@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drm-spinlock-initializer-cleanup.patch added to -mm tree
-Date: Thu, 03 May 2007 23:36:09 -0700
-Message-ID: <200705040636.l446a93T030710@shell0.pdx.osdl.net>
+Subject: + arm-spinlock-initializer-cleanup.patch added to -mm tree
+Date: Thu, 03 May 2007 23:36:07 -0700
+Message-ID: <200705040636.l446a7gb030707@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60965 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34606 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161877AbXEDGgT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:36:19 -0400
+	by vger.kernel.org with ESMTP id S1161865AbXEDGgS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:36:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, airlied@linux.ie
+Cc: tglx@linutronix.de, rmk@arm.linux.org.uk
 
 
 The patch titled
-     DRM: Spinlock initializer cleanup
+     ARM: Spinlock initializer cleanup
 has been added to the -mm tree.  Its filename is
-     drm-spinlock-initializer-cleanup.patch
+     arm-spinlock-initializer-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: DRM: Spinlock initializer cleanup
+Subject: ARM: Spinlock initializer cleanup
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i915_irq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/kernel/time.c      |    2 +-
+ arch/arm/mach-omap2/gpmc.c  |    2 +-
+ arch/arm/mach-pnx4008/dma.c |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/drm/i915_irq.c~drm-spinlock-initializer-cleanup drivers/char/drm/i915_irq.c
---- a/drivers/char/drm/i915_irq.c~drm-spinlock-initializer-cleanup
-+++ a/drivers/char/drm/i915_irq.c
-@@ -582,7 +582,7 @@ void i915_driver_irq_postinstall(drm_dev
+diff -puN arch/arm/kernel/time.c~arm-spinlock-initializer-cleanup arch/arm/kernel/time.c
+--- a/arch/arm/kernel/time.c~arm-spinlock-initializer-cleanup
++++ a/arch/arm/kernel/time.c
+@@ -512,7 +512,7 @@ void __init time_init(void)
+ 
+ #ifdef CONFIG_NO_IDLE_HZ
+ 	if (system_timer->dyn_tick)
+-		system_timer->dyn_tick->lock = SPIN_LOCK_UNLOCKED;
++		spin_lock_init(&system_timer->dyn_tick->lock);
+ #endif
+ }
+ 
+diff -puN arch/arm/mach-omap2/gpmc.c~arm-spinlock-initializer-cleanup arch/arm/mach-omap2/gpmc.c
+--- a/arch/arm/mach-omap2/gpmc.c~arm-spinlock-initializer-cleanup
++++ a/arch/arm/mach-omap2/gpmc.c
+@@ -54,7 +54,7 @@
+ 
+ static struct resource	gpmc_mem_root;
+ static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
+-static spinlock_t	gpmc_mem_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(gpmc_mem_lock);
+ static unsigned		gpmc_cs_map;
+ 
+ static void __iomem *gpmc_base =
+diff -puN arch/arm/mach-pnx4008/dma.c~arm-spinlock-initializer-cleanup arch/arm/mach-pnx4008/dma.c
+--- a/arch/arm/mach-pnx4008/dma.c~arm-spinlock-initializer-cleanup
++++ a/arch/arm/mach-pnx4008/dma.c
+@@ -47,7 +47,7 @@ static struct ll_pool {
+ 	int count;
+ } ll_pool;
+ 
+-static spinlock_t ll_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(ll_lock);
+ 
+ struct pnx4008_dma_ll *pnx4008_alloc_ll_entry(dma_addr_t * ll_dma)
  {
- 	drm_i915_private_t *dev_priv = (drm_i915_private_t *) dev->dev_private;
+@@ -135,7 +135,7 @@ static inline void dma_decrement_usage(v
+ 	}
+ }
  
--	dev_priv->swaps_lock = SPIN_LOCK_UNLOCKED;
-+	spin_lock_init(&dev_priv->swaps_lock);
- 	INIT_LIST_HEAD(&dev_priv->vbl_swaps.head);
- 	dev_priv->swaps_pending = 0;
+-static spinlock_t dma_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(dma_lock);
  
+ static inline void pnx4008_dma_lock(void)
+ {
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
