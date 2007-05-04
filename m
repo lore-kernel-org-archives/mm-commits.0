@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mips-excite-use-__attribute_unused__.patch added to -mm tree
-Date: Fri, 04 May 2007 02:09:28 -0700
-Message-ID: <200705040909.l4499SpX000554@shell0.pdx.osdl.net>
+Subject: + powerpc-ps3-use-__attribute_unused__.patch added to -mm tree
+Date: Fri, 04 May 2007 02:09:33 -0700
+Message-ID: <200705040909.l4499Xxa000560@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45704 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42585 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933045AbXEDJK1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:27 -0400
+	by vger.kernel.org with ESMTP id S1423609AbXEDJKZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, ralf@linux-mips.org, thomas.koeller@baslerweb.com
+Cc: rientjes@google.com, geoffrey.levand@am.sony.com, paulus@samba.org
 
 
 The patch titled
-     mips: excite: use __attribute_unused__
+     powerpc: ps3: use __attribute_unused__
 has been added to the -mm tree.  Its filename is
-     mips-excite-use-__attribute_unused__.patch
+     powerpc-ps3-use-__attribute_unused__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mips: excite: use __attribute_unused__
+Subject: powerpc: ps3: use __attribute_unused__
 From: David Rientjes <rientjes@google.com>
 
-Replace variable instances of __attribute__((unused)) with
+Replace function instances of __attribute__ ((unused)) with
 __attribute_unused__.
 
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Thomas Koeller <thomas.koeller@baslerweb.com>
+Cc: Geoff Levand <geoffrey.levand@am.sony.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/basler/excite/excite_device.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ arch/powerpc/platforms/ps3/interrupt.c |    4 ++--
+ arch/powerpc/platforms/ps3/time.c      |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/mips/basler/excite/excite_device.c~mips-excite-use-__attribute_unused__ arch/mips/basler/excite/excite_device.c
---- a/arch/mips/basler/excite/excite_device.c~mips-excite-use-__attribute_unused__
-+++ a/arch/mips/basler/excite/excite_device.c
-@@ -68,7 +68,7 @@ enum {
+diff -puN arch/powerpc/platforms/ps3/interrupt.c~powerpc-ps3-use-__attribute_unused__ arch/powerpc/platforms/ps3/interrupt.c
+--- a/arch/powerpc/platforms/ps3/interrupt.c~powerpc-ps3-use-__attribute_unused__
++++ a/arch/powerpc/platforms/ps3/interrupt.c
+@@ -532,7 +532,7 @@ static void _dump_64_bmp(const char *hea
+ 		*p & 0xffff);
+ }
  
+-static void __attribute__ ((unused)) _dump_256_bmp(const char *header,
++static void __attribute_unused__ _dump_256_bmp(const char *header,
+ 	const u64 *p, unsigned cpu, const char* func, int line)
+ {
+ 	pr_debug("%s:%d: %s %u {%016lx:%016lx:%016lx:%016lx}\n",
+@@ -551,7 +551,7 @@ static void _dump_bmp(struct ps3_private
+ }
  
- static struct resource
--	excite_ctr_resource __attribute__((unused)) = {
-+	excite_ctr_resource __attribute_unused__ = {
- 		.name		= "GPI counters",
- 		.start		= 0,
- 		.end		= 5,
-@@ -77,7 +77,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_gpislice_resource __attribute__((unused)) = {
-+	excite_gpislice_resource __attribute_unused__ = {
- 		.name		= "GPI slices",
- 		.start		= 0,
- 		.end		= 1,
-@@ -86,7 +86,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_mdio_channel_resource __attribute__((unused)) = {
-+	excite_mdio_channel_resource __attribute_unused__ = {
- 		.name		= "MDIO channels",
- 		.start		= 0,
- 		.end		= 1,
-@@ -95,7 +95,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_fifomem_resource __attribute__((unused)) = {
-+	excite_fifomem_resource __attribute_unused__ = {
- 		.name		= "FIFO memory",
- 		.start		= 0,
- 		.end		= 767,
-@@ -104,7 +104,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_scram_resource __attribute__((unused)) = {
-+	excite_scram_resource __attribute_unused__ = {
- 		.name		= "Scratch RAM",
- 		.start		= EXCITE_PHYS_SCRAM,
- 		.end		= EXCITE_PHYS_SCRAM + EXCITE_SIZE_SCRAM - 1,
-@@ -113,7 +113,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_fpga_resource __attribute__((unused)) = {
-+	excite_fpga_resource __attribute_unused__ = {
- 		.name		= "System FPGA",
- 		.start		= EXCITE_PHYS_FPGA,
- 		.end		= EXCITE_PHYS_FPGA + EXCITE_SIZE_FPGA - 1,
-@@ -122,7 +122,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_nand_resource __attribute__((unused)) = {
-+	excite_nand_resource __attribute_unused__ = {
- 		.name		= "NAND flash control",
- 		.start		= EXCITE_PHYS_NAND,
- 		.end		= EXCITE_PHYS_NAND + EXCITE_SIZE_NAND - 1,
-@@ -131,7 +131,7 @@ static struct resource
- 		.sibling	= NULL,
- 		.child		= NULL
- 	},
--	excite_titan_resource __attribute__((unused)) = {
-+	excite_titan_resource __attribute_unused__ = {
- 		.name		= "TITAN registers",
- 		.start		= EXCITE_PHYS_TITAN,
- 		.end		= EXCITE_PHYS_TITAN + EXCITE_SIZE_TITAN - 1,
+ #define dump_mask(_x) _dump_mask(_x, __func__, __LINE__)
+-static void __attribute__ ((unused)) _dump_mask(struct ps3_private* pd,
++static void __attribute_unused__ _dump_mask(struct ps3_private* pd,
+ 	const char* func, int line)
+ {
+ 	unsigned long flags;
+diff -puN arch/powerpc/platforms/ps3/time.c~powerpc-ps3-use-__attribute_unused__ arch/powerpc/platforms/ps3/time.c
+--- a/arch/powerpc/platforms/ps3/time.c~powerpc-ps3-use-__attribute_unused__
++++ a/arch/powerpc/platforms/ps3/time.c
+@@ -39,7 +39,7 @@ static void _dump_tm(const struct rtc_ti
+ }
+ 
+ #define dump_time(_a) _dump_time(_a, __func__, __LINE__)
+-static void __attribute__ ((unused)) _dump_time(int time, const char* func,
++static void __attribute_unused__ _dump_time(int time, const char* func,
+ 	int line)
+ {
+ 	struct rtc_time tm;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
