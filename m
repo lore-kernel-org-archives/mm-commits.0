@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-ps3-use-__attribute_unused__.patch added to -mm tree
-Date: Fri, 04 May 2007 02:09:33 -0700
-Message-ID: <200705040909.l4499Xxa000560@shell0.pdx.osdl.net>
+Subject: + i386-mmzone-use-__attribute_unused__.patch added to -mm tree
+Date: Fri, 04 May 2007 02:09:37 -0700
+Message-ID: <200705040909.l4499bma000563@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42585 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423609AbXEDJKZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:25 -0400
+	by vger.kernel.org with ESMTP id S1767772AbXEDJOK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:14:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, geoffrey.levand@am.sony.com, paulus@samba.org
+Cc: rientjes@google.com, apw@shadowen.org
 
 
 The patch titled
-     powerpc: ps3: use __attribute_unused__
+     i386 mmzone: use __attribute_unused__
 has been added to the -mm tree.  Its filename is
-     powerpc-ps3-use-__attribute_unused__.patch
+     i386-mmzone-use-__attribute_unused__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: ps3: use __attribute_unused__
+Subject: i386 mmzone: use __attribute_unused__
 From: David Rientjes <rientjes@google.com>
 
-Replace function instances of __attribute__ ((unused)) with
+Replace automatic variable instances of __attribute__ ((unused)) with
 __attribute_unused__.
 
-Cc: Geoff Levand <geoffrey.levand@am.sony.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/ps3/interrupt.c |    4 ++--
- arch/powerpc/platforms/ps3/time.c      |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/asm-i386/mmzone.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/platforms/ps3/interrupt.c~powerpc-ps3-use-__attribute_unused__ arch/powerpc/platforms/ps3/interrupt.c
---- a/arch/powerpc/platforms/ps3/interrupt.c~powerpc-ps3-use-__attribute_unused__
-+++ a/arch/powerpc/platforms/ps3/interrupt.c
-@@ -532,7 +532,7 @@ static void _dump_64_bmp(const char *hea
- 		*p & 0xffff);
- }
- 
--static void __attribute__ ((unused)) _dump_256_bmp(const char *header,
-+static void __attribute_unused__ _dump_256_bmp(const char *header,
- 	const u64 *p, unsigned cpu, const char* func, int line)
- {
- 	pr_debug("%s:%d: %s %u {%016lx:%016lx:%016lx:%016lx}\n",
-@@ -551,7 +551,7 @@ static void _dump_bmp(struct ps3_private
- }
- 
- #define dump_mask(_x) _dump_mask(_x, __func__, __LINE__)
--static void __attribute__ ((unused)) _dump_mask(struct ps3_private* pd,
-+static void __attribute_unused__ _dump_mask(struct ps3_private* pd,
- 	const char* func, int line)
- {
- 	unsigned long flags;
-diff -puN arch/powerpc/platforms/ps3/time.c~powerpc-ps3-use-__attribute_unused__ arch/powerpc/platforms/ps3/time.c
---- a/arch/powerpc/platforms/ps3/time.c~powerpc-ps3-use-__attribute_unused__
-+++ a/arch/powerpc/platforms/ps3/time.c
-@@ -39,7 +39,7 @@ static void _dump_tm(const struct rtc_ti
- }
- 
- #define dump_time(_a) _dump_time(_a, __func__, __LINE__)
--static void __attribute__ ((unused)) _dump_time(int time, const char* func,
-+static void __attribute_unused__ _dump_time(int time, const char* func,
- 	int line)
- {
- 	struct rtc_time tm;
+diff -puN include/asm-i386/mmzone.h~i386-mmzone-use-__attribute_unused__ include/asm-i386/mmzone.h
+--- a/include/asm-i386/mmzone.h~i386-mmzone-use-__attribute_unused__
++++ a/include/asm-i386/mmzone.h
+@@ -122,21 +122,21 @@ static inline int pfn_valid(int pfn)
+ 	__alloc_bootmem_node(NODE_DATA(0), (x), PAGE_SIZE, 0)
+ #define alloc_bootmem_node(pgdat, x)					\
+ ({									\
+-	struct pglist_data  __attribute__ ((unused))			\
++	struct pglist_data  __attribute_unused__			\
+ 				*__alloc_bootmem_node__pgdat = (pgdat);	\
+ 	__alloc_bootmem_node(NODE_DATA(0), (x), SMP_CACHE_BYTES,	\
+ 						__pa(MAX_DMA_ADDRESS));	\
+ })
+ #define alloc_bootmem_pages_node(pgdat, x)				\
+ ({									\
+-	struct pglist_data  __attribute__ ((unused))			\
++	struct pglist_data  __attribute_unused__			\
+ 				*__alloc_bootmem_node__pgdat = (pgdat);	\
+ 	__alloc_bootmem_node(NODE_DATA(0), (x), PAGE_SIZE,		\
+ 						__pa(MAX_DMA_ADDRESS))	\
+ })
+ #define alloc_bootmem_low_pages_node(pgdat, x)				\
+ ({									\
+-	struct pglist_data  __attribute__ ((unused))			\
++	struct pglist_data  __attribute_unused__			\
+ 				*__alloc_bootmem_node__pgdat = (pgdat);	\
+ 	__alloc_bootmem_node(NODE_DATA(0), (x), PAGE_SIZE, 0);		\
+ })
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
