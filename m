@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + frv-gdb-use-__maybe_unused.patch added to -mm tree
-Date: Fri, 04 May 2007 15:00:44 -0700
-Message-ID: <200705042200.l44M0ieW019536@shell0.pdx.osdl.net>
+Subject: + powerpc-ps3-use-__maybe_unused.patch added to -mm tree
+Date: Fri, 04 May 2007 15:00:52 -0700
+Message-ID: <200705042200.l44M0q83019569@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45766 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161560AbXEDWA4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:00:56 -0400
+	by vger.kernel.org with ESMTP id S1161558AbXEDWBE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:01:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, dhowells@redhat.com
+Cc: rientjes@google.com, geoffrey.levand@am.sony.com, paulus@samba.org
 
 
 The patch titled
-     frv: gdb: use __maybe_unused
+     powerpc: ps3: use __maybe_unused
 has been added to the -mm tree.  Its filename is
-     frv-gdb-use-__maybe_unused.patch
+     powerpc-ps3-use-__maybe_unused.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,71 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: frv: gdb: use __maybe_unused
+Subject: powerpc: ps3: use __maybe_unused
 From: David Rientjes <rientjes@google.com>
 
-Replace function instances of __attribute__((unused)) with
-__maybe_unused to suppress warnings.
+Replace function instances of __attribute__ ((unused)) with
+__maybe_unused.
 
-Cc: David Howells <dhowells@redhat.com>
+Cc: Geoff Levand <geoffrey.levand@am.sony.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/gdb-stub.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ arch/powerpc/platforms/ps3/interrupt.c |    4 ++--
+ arch/powerpc/platforms/ps3/time.c      |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/frv/kernel/gdb-stub.c~frv-gdb-use-__maybe_unused arch/frv/kernel/gdb-stub.c
---- a/arch/frv/kernel/gdb-stub.c~frv-gdb-use-__maybe_unused
-+++ a/arch/frv/kernel/gdb-stub.c
-@@ -1195,7 +1195,7 @@ static void gdbstub_check_breakpoint(voi
- /*
-  *
-  */
--static void __attribute__((unused)) gdbstub_show_regs(void)
-+static void __maybe_unused gdbstub_show_regs(void)
- {
- 	unsigned long *reg;
- 	int loop;
-@@ -1223,7 +1223,7 @@ static void __attribute__((unused)) gdbs
- /*
-  * dump debugging regs
-  */
--static void __attribute__((unused)) gdbstub_dump_debugregs(void)
-+static void __maybe_unused gdbstub_dump_debugregs(void)
- {
- 	gdbstub_printk("DCR    %08lx  ", __debug_status.dcr);
- 	gdbstub_printk("BRR    %08lx\n", __debug_status.brr);
-@@ -2079,25 +2079,25 @@ void gdbstub_exit(int status)
-  * GDB wants to call malloc() and free() to allocate memory for calling kernel
-  * functions directly from its command line
-  */
--static void *malloc(size_t size) __attribute__((unused));
-+static void *malloc(size_t size) __maybe_unused;
- static void *malloc(size_t size)
- {
- 	return kmalloc(size, GFP_ATOMIC);
+diff -puN arch/powerpc/platforms/ps3/interrupt.c~powerpc-ps3-use-__maybe_unused arch/powerpc/platforms/ps3/interrupt.c
+--- a/arch/powerpc/platforms/ps3/interrupt.c~powerpc-ps3-use-__maybe_unused
++++ a/arch/powerpc/platforms/ps3/interrupt.c
+@@ -532,7 +532,7 @@ static void _dump_64_bmp(const char *hea
+ 		*p & 0xffff);
  }
  
--static void free(void *p) __attribute__((unused));
-+static void free(void *p) __maybe_unused;
- static void free(void *p)
+-static void __attribute__ ((unused)) _dump_256_bmp(const char *header,
++static void __maybe_unused _dump_256_bmp(const char *header,
+ 	const u64 *p, unsigned cpu, const char* func, int line)
  {
- 	kfree(p);
+ 	pr_debug("%s:%d: %s %u {%016lx:%016lx:%016lx:%016lx}\n",
+@@ -551,7 +551,7 @@ static void _dump_bmp(struct ps3_private
  }
  
--static uint32_t ___get_HSR0(void) __attribute__((unused));
-+static uint32_t ___get_HSR0(void) __maybe_unused;
- static uint32_t ___get_HSR0(void)
+ #define dump_mask(_x) _dump_mask(_x, __func__, __LINE__)
+-static void __attribute__ ((unused)) _dump_mask(struct ps3_private* pd,
++static void __maybe_unused _dump_mask(struct ps3_private* pd,
+ 	const char* func, int line)
  {
- 	return __get_HSR(0);
+ 	unsigned long flags;
+diff -puN arch/powerpc/platforms/ps3/time.c~powerpc-ps3-use-__maybe_unused arch/powerpc/platforms/ps3/time.c
+--- a/arch/powerpc/platforms/ps3/time.c~powerpc-ps3-use-__maybe_unused
++++ a/arch/powerpc/platforms/ps3/time.c
+@@ -39,7 +39,7 @@ static void _dump_tm(const struct rtc_ti
  }
  
--static uint32_t ___set_HSR0(uint32_t x) __attribute__((unused));
-+static uint32_t ___set_HSR0(uint32_t x) __maybe_unused;
- static uint32_t ___set_HSR0(uint32_t x)
+ #define dump_time(_a) _dump_time(_a, __func__, __LINE__)
+-static void __attribute__ ((unused)) _dump_time(int time, const char* func,
++static void __maybe_unused _dump_time(int time, const char* func,
+ 	int line)
  {
- 	__set_HSR(0, x);
+ 	struct rtc_time tm;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
