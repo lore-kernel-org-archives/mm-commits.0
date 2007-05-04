@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-depends-on-pci-or-isa.patch added to -mm tree
-Date: Thu, 03 May 2007 23:45:21 -0700
-Message-ID: <200705040645.l446jLcM030862@shell0.pdx.osdl.net>
+Subject: + char-cyclades-switch-to-pci-probing.patch added to -mm tree
+Date: Thu, 03 May 2007 23:45:19 -0700
+Message-ID: <200705040645.l446jJ31030859@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55824 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964792AbXEDGpY (ORCPT
+	by vger.kernel.org with ESMTP id S965692AbXEDGpY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:45:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: cyclades, depends on PCI or ISA
+     Char: cyclades, switch to pci probing
 has been added to the -mm tree.  Its filename is
-     char-cyclades-depends-on-pci-or-isa.patch
+     char-cyclades-switch-to-pci-probing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: cyclades, depends on PCI or ISA
+Subject: Char: cyclades, switch to pci probing
 From: Jiri Slaby <jirislaby@gmail.com>
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/cyclades.c |   65 +++++++++-----------------------------
+ 1 file changed, 17 insertions(+), 48 deletions(-)
 
-diff -puN drivers/char/Kconfig~char-cyclades-depends-on-pci-or-isa drivers/char/Kconfig
---- a/drivers/char/Kconfig~char-cyclades-depends-on-pci-or-isa
-+++ a/drivers/char/Kconfig
-@@ -127,7 +127,7 @@ config ROCKETPORT
+diff -puN drivers/char/cyclades.c~char-cyclades-switch-to-pci-probing drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-switch-to-pci-probing
++++ a/drivers/char/cyclades.c
+@@ -5297,46 +5297,9 @@ static int __devinit cy_pci_probe(struct
  
- config CYCLADES
- 	tristate "Cyclades async mux support"
--	depends on SERIAL_NONSTANDARD
-+	depends on SERIAL_NONSTANDARD && (PCI || ISA)
- 	---help---
- 	  This driver supports Cyclades Z and Y multiserial boards.
- 	  You would need something like this to connect more than two modems to
+ 	return 0;
+ }
+-#endif
+-
+-/*
+- * ---------------------------------------------------------------------
+- * cy_detect_pci() - Test PCI bus presence and Cyclom-Ye/PCI.
+- * sets global variables and return the number of PCI boards found.
+- * ---------------------------------------------------------------------
+- */
+-static int __init cy_detect_pci(void)
+-{
+-#ifdef CONFIG_PCI
+-	struct pci_dev *pdev = NULL;
+-	unsigned int i, device_id, dev_index = 0;
+-
+-	for (i = 0; i < NR_CARDS; i++) {
+-		/* look for a Cyclades card by vendor and device id */
+-		while ((device_id = cy_pci_dev_id[dev_index].device) != 0) {
+-			if ((pdev = pci_get_device(PCI_VENDOR_ID_CYCLADES,
+-						   device_id, pdev)) == NULL) {
+-				dev_index++;	/* try next device id */
+-			} else {
+-				break;	/* found a board */
+-			}
+-		}
+-
+-		if (device_id == 0)
+-			break;
+-
+-		i -= !!cy_pci_probe(pdev, &cy_pci_dev_id[dev_index]);
+-	}
+-
+-	return i;
+-#else
+-	return 0;
+-#endif				/* ifdef CONFIG_PCI */
+-}				/* cy_detect_pci */
+ 
+-static void __devexit cy_pci_release(struct pci_dev *pdev)
++static void __devexit cy_pci_remove(struct pci_dev *pdev)
+ {
+-#ifdef CONFIG_PCI
+ 	struct cyclades_card *cinfo = pci_get_drvdata(pdev);
+ 	unsigned int i;
+ 
+@@ -5370,9 +5333,16 @@ static void __devexit cy_pci_release(str
+ 	for (i = cinfo->first_line; i < cinfo->first_line +
+ 			cinfo->nports; i++)
+ 		tty_unregister_device(cy_serial_driver, i);
+-#endif
+ }
+ 
++static struct pci_driver cy_pci_driver = {
++	.name = "cyclades",
++	.id_table = cy_pci_dev_id,
++	.probe = cy_pci_probe,
++	.remove = __devexit_p(cy_pci_remove)
++};
++#endif
++
+ /*
+  * This routine prints out the appropriate serial driver version number
+  * and identifies which options were configured into this driver.
+@@ -5533,13 +5503,12 @@ static int __init cy_init(void)
+ 	/* look for isa boards */
+ 	nboards = cy_detect_isa();
+ 
++#ifdef CONFIG_PCI
+ 	/* look for pci boards */
+-	nboards += cy_detect_pci();
+-
+-	if (nboards == 0) {
+-		retval = -ENODEV;
++	retval = pci_register_driver(&cy_pci_driver);
++	if (retval && !nboards)
+ 		goto err_unr;
+-	}
++#endif
+ 
+ 	return 0;
+ err_unr:
+@@ -5564,12 +5533,12 @@ static void __exit cy_cleanup_module(voi
+ 
+ 	put_tty_driver(cy_serial_driver);
+ 
++#ifdef CONFIG_PCI
++	pci_unregister_driver(&cy_pci_driver);
++#endif
++
+ 	for (i = 0; i < NR_CARDS; i++) {
+ 		if (cy_card[i].base_addr) {
+-			if (cy_card[i].pdev) {
+-				cy_pci_release(cy_card[i].pdev);
+-				continue;
+-			}
+ 			/* clear interrupt */
+ 			cy_writeb(cy_card[i].base_addr + Cy_ClrIntr, 0);
+ 			iounmap(cy_card[i].base_addr);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
