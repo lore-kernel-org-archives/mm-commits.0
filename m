@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-pci-type-may-be-unused.patch added to -mm tree
-Date: Fri, 04 May 2007 02:09:15 -0700
-Message-ID: <200705040909.l4499FqC000539@shell0.pdx.osdl.net>
+Subject: + mips-tlbex-use-__attribute_unused__.patch added to -mm tree
+Date: Fri, 04 May 2007 02:09:31 -0700
+Message-ID: <200705040909.l4499V5G000557@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33660 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422909AbXEDJJ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:09:56 -0400
+	by vger.kernel.org with ESMTP id S1422881AbXEDJKX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:10:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, ak@suse.de
+Cc: rientjes@google.com, ralf@linux-mips.org
 
 
 The patch titled
-     i386 pci: type may be unused
+     mips: tlbex: use __attribute_unused__
 has been added to the -mm tree.  Its filename is
-     i386-pci-type-may-be-unused.patch
+     mips-tlbex-use-__attribute_unused__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,151 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 pci: type may be unused
+Subject: mips: tlbex: use __attribute_unused__
 From: David Rientjes <rientjes@google.com>
 
-In the case of !CONFIG_PCI_DIRECT && !CONFIG_PCI_MMCONFIG, type is
-unreferened.
+Replace function instances of __attribute__((unused)) with
+__attribute_unused__.
 
-Cc: Andi Kleen <ak@suse.de>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/mm/tlbex.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN arch/i386/pci/init.c~i386-pci-type-may-be-unused arch/i386/pci/init.c
---- a/arch/i386/pci/init.c~i386-pci-type-may-be-unused
-+++ a/arch/i386/pci/init.c
-@@ -6,7 +6,7 @@
-    in the right sequence from here. */
- static __init int pci_access_init(void)
- {
--	int type = 0;
-+	int type __attribute_unused__ = 0;
+diff -puN arch/mips/mm/tlbex.c~mips-tlbex-use-__attribute_unused__ arch/mips/mm/tlbex.c
+--- a/arch/mips/mm/tlbex.c~mips-tlbex-use-__attribute_unused__
++++ a/arch/mips/mm/tlbex.c
+@@ -35,24 +35,24 @@
+ #include <asm/smp.h>
+ #include <asm/war.h>
  
- #ifdef CONFIG_PCI_DIRECT
- 	type = pci_direct_probe();
+-static __init int __attribute__((unused)) r45k_bvahwbug(void)
++static __init int __attribute_unused__ r45k_bvahwbug(void)
+ {
+ 	/* XXX: We should probe for the presence of this bug, but we don't. */
+ 	return 0;
+ }
+ 
+-static __init int __attribute__((unused)) r4k_250MHZhwbug(void)
++static __init int __attribute_unused__ r4k_250MHZhwbug(void)
+ {
+ 	/* XXX: We should probe for the presence of this bug, but we don't. */
+ 	return 0;
+ }
+ 
+-static __init int __attribute__((unused)) bcm1250_m3_war(void)
++static __init int __attribute_unused__ bcm1250_m3_war(void)
+ {
+ 	return BCM1250_M3_WAR;
+ }
+ 
+-static __init int __attribute__((unused)) r10000_llsc_war(void)
++static __init int __attribute_unused__ r10000_llsc_war(void)
+ {
+ 	return R10000_LLSC_WAR;
+ }
+@@ -511,18 +511,18 @@ L_LA(_r3000_write_probe_fail)
+ #define i_ehb(buf) i_sll(buf, 0, 0, 3)
+ 
+ #ifdef CONFIG_64BIT
+-static __init int __attribute__((unused)) in_compat_space_p(long addr)
++static __init int __attribute_unused__ in_compat_space_p(long addr)
+ {
+ 	/* Is this address in 32bit compat space? */
+ 	return (((addr) & 0xffffffff00000000L) == 0xffffffff00000000L);
+ }
+ 
+-static __init int __attribute__((unused)) rel_highest(long val)
++static __init int __attribute_unused__ rel_highest(long val)
+ {
+ 	return ((((val + 0x800080008000L) >> 48) & 0xffff) ^ 0x8000) - 0x8000;
+ }
+ 
+-static __init int __attribute__((unused)) rel_higher(long val)
++static __init int __attribute_unused__ rel_higher(long val)
+ {
+ 	return ((((val + 0x80008000L) >> 32) & 0xffff) ^ 0x8000) - 0x8000;
+ }
+@@ -556,8 +556,8 @@ static __init void i_LA_mostly(u32 **buf
+ 		i_lui(buf, rs, rel_hi(addr));
+ }
+ 
+-static __init void __attribute__((unused)) i_LA(u32 **buf, unsigned int rs,
+-						long addr)
++static __init void __attribute_unused__ i_LA(u32 **buf, unsigned int rs,
++					     long addr)
+ {
+ 	i_LA_mostly(buf, rs, addr);
+ 	if (rel_lo(addr))
+@@ -636,8 +636,8 @@ static __init void copy_handler(struct r
+ 	move_labels(lab, first, end, off);
+ }
+ 
+-static __init int __attribute__((unused)) insn_has_bdelay(struct reloc *rel,
+-							  u32 *addr)
++static __init int __attribute_unused__ insn_has_bdelay(struct reloc *rel,
++						       u32 *addr)
+ {
+ 	for (; rel->lab != label_invalid; rel++) {
+ 		if (rel->addr == addr
+@@ -650,15 +650,15 @@ static __init int __attribute__((unused)
+ }
+ 
+ /* convenience functions for labeled branches */
+-static void __init __attribute__((unused))
++static void __init __attribute_unused__
+ 	il_bltz(u32 **p, struct reloc **r, unsigned int reg, enum label_id l)
+ {
+ 	r_mips_pc16(r, *p, l);
+ 	i_bltz(p, reg, 0);
+ }
+ 
+-static void __init __attribute__((unused)) il_b(u32 **p, struct reloc **r,
+-					 enum label_id l)
++static void __init __attribute_unused__ il_b(u32 **p, struct reloc **r,
++					     enum label_id l)
+ {
+ 	r_mips_pc16(r, *p, l);
+ 	i_b(p, 0);
+@@ -671,7 +671,7 @@ static void __init il_beqz(u32 **p, stru
+ 	i_beqz(p, reg, 0);
+ }
+ 
+-static void __init __attribute__((unused))
++static void __init __attribute_unused__
+ il_beqzl(u32 **p, struct reloc **r, unsigned int reg, enum label_id l)
+ {
+ 	r_mips_pc16(r, *p, l);
+@@ -692,7 +692,7 @@ static void __init il_bgezl(u32 **p, str
+ 	i_bgezl(p, reg, 0);
+ }
+ 
+-static void __init __attribute__((unused))
++static void __init __attribute_unused__
+ il_bgez(u32 **p, struct reloc **r, unsigned int reg, enum label_id l)
+ {
+ 	r_mips_pc16(r, *p, l);
+@@ -810,7 +810,7 @@ static __initdata u32 final_handler[64];
+  *
+  * As if we MIPS hackers wouldn't know how to nop pipelines happy ...
+  */
+-static __init void __attribute__((unused)) build_tlb_probe_entry(u32 **p)
++static __init void __attribute_unused__ build_tlb_probe_entry(u32 **p)
+ {
+ 	switch (current_cpu_data.cputype) {
+ 	/* Found by experiment: R4600 v2.0 needs this, too.  */
+@@ -1098,7 +1098,7 @@ build_get_pgd_vmalloc64(u32 **p, struct 
+  * TMP and PTR are scratch.
+  * TMP will be clobbered, PTR will hold the pgd entry.
+  */
+-static __init void __attribute__((unused))
++static __init void __attribute_unused__
+ build_get_pgde32(u32 **p, unsigned int tmp, unsigned int ptr)
+ {
+ 	long pgdc = (long)pgd_current;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
