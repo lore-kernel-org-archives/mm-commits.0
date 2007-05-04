@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + ehci-ps3-ohci-ps3-fix-compilation.patch added to -mm tree
-Date: Thu, 03 May 2007 18:07:29 -0700
-Message-ID: <200705040107.l4417TrR026361@shell0.pdx.osdl.net>
+Date: Thu, 03 May 2007 18:08:08 -0700
+Message-ID: <200705040108.l44188kJ026371@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43388 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53566 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767562AbXEDBHn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 21:07:43 -0400
+	by vger.kernel.org with ESMTP id S1754443AbXEDBIV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 21:08:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, geert@linux-m68k.org, geoffrey.levand@am.sony.com, greg@kroah.com, paulus@samba.org
+Cc: geoffrey.levand@am.sony.com, adobriyan@gmail.com, geert@linux-m68k.org, greg@kroah.com, paulus@samba.org
 
 
 The patch titled
@@ -26,7 +26,7 @@ out what to do about this
 
 ------------------------------------------------------
 Subject: ehci-ps3, ohci-ps3: fix compilation
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Geoff Levand <geoffrey.levand@am.sony.com>
 
 As seen on powerpc-cell et al:
 
@@ -47,7 +47,7 @@ Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Greg KH <greg@kroah.com>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: <geoffrey.levand@am.sony.com>
+Cc: Geoff Levand <geoffrey.levand@am.sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -92,14 +92,9 @@ diff -puN drivers/usb/host/ohci-ps3.c~ehci-ps3-ohci-ps3-fix-compilation drivers/
  	int result;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from geoffrey.levand@am.sony.com are
 
-origin.patch
 ehci-ps3-ohci-ps3-fix-compilation.patch
-git-dvb.patch
-pata_scc-fix-compilation.patch
-git-parisc.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-git-watchdog.patch
-reiserfs-shrink-superblock-if-no-xattrs.patch
-i386-schedh-inclusion-from-moduleh-is-baack.patch
+git-powerpc.patch
+fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
+fbdev-fb_do_show_logo-updates.patch
