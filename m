@@ -1,32 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + revert-fusion-move-spi-api-over-to-mptspic.patch added to -mm tree
-Date: Thu, 03 May 2007 17:16:25 -0700
-Message-ID: <200705040016.l440GPg1025646@shell0.pdx.osdl.net>
+Subject: - revert-fusion-move-spi-api-over-to-mptspic.patch removed from -mm tree
+Date: Thu, 03 May 2007 17:21:54 -0700
+Message-ID: <200705040021.l440Ls0k025719@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48782 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766895AbXEDAQ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 20:16:28 -0400
+	by vger.kernel.org with ESMTP id S1423559AbXEDAV5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 20:21:57 -0400
 Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l440GPeS010714
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l440LtEE010930
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 3 May 2007 17:16:26 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 3 May 2007 17:21:56 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      revert "[SCSI] fusion - move SPI API over to mptspi.c"
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      revert-fusion-move-spi-api-over-to-mptspic.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: revert "[SCSI] fusion - move SPI API over to mptspi.c"
@@ -686,6 +682,7 @@ fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
 git-pciseg.patch
 git-sh-fixup.patch
 git-scsi-misc.patch
+revert-fusion-move-spi-api-over-to-mptspic.patch
 scsi-fix-config_scsi_wait_scan=m.patch
 git-block-fixup.patch
 git-unionfs.patch
@@ -768,4 +765,3 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 w1-build-fix.patch
-revert-fusion-move-spi-api-over-to-mptspic.patch
