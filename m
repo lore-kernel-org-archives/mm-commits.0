@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + arch-i386-kernel-i8253c-should-include-asm-timerh.patch added to -mm tree
-Date: Thu, 03 May 2007 22:25:47 -0700
-Message-ID: <200705040525.l445Pl6E029751@shell0.pdx.osdl.net>
+Subject: + drivers-mtd-maps-nettelc-possible-cleanups.patch added to -mm tree
+Date: Thu, 03 May 2007 22:26:24 -0700
+Message-ID: <200705040526.l445QOLF029766@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54415 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161804AbXEDFZ5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:25:57 -0400
+	by vger.kernel.org with ESMTP id S1767672AbXEDF0e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:26:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     arch/i386/kernel/i8253.c should #include <asm/timer.h>
+     drivers/mtd/maps/nettel.c: possible cleanups
 has been added to the -mm tree.  Its filename is
-     arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+     drivers-mtd-maps-nettelc-possible-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/i386/kernel/i8253.c should #include <asm/timer.h>
+Subject: drivers/mtd/maps/nettel.c: possible cleanups
 From: Adrian Bunk <bunk@stusta.de>
 
-Every file should include the headers containing the prototypes for its
-global functions.
+- make 2 needlessly global functions static
+- #if 0 the unused nettel_eraseconfig()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/i8253.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mtd/maps/nettel.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/i8253.c~arch-i386-kernel-i8253c-should-include-asm-timerh arch/i386/kernel/i8253.c
---- a/arch/i386/kernel/i8253.c~arch-i386-kernel-i8253c-should-include-asm-timerh
-+++ a/arch/i386/kernel/i8253.c
-@@ -13,6 +13,7 @@
- #include <asm/delay.h>
- #include <asm/i8253.h>
- #include <asm/io.h>
-+#include <asm/timer.h>
+diff -puN drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-possible-cleanups drivers/mtd/maps/nettel.c
+--- a/drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-possible-cleanups
++++ a/drivers/mtd/maps/nettel.c
+@@ -158,6 +158,8 @@ static struct notifier_block nettel_noti
+ 	nettel_reboot_notifier, NULL, 0
+ };
  
- #include "io_ports.h"
++#if 0
++
+ /*
+  *	Erase the configuration file system.
+  *	Used to support the software reset button.
+@@ -208,18 +210,22 @@ int nettel_eraseconfig(void)
+ 	return(0);
+ }
  
++#endif  /*  0  */
++
+ #else
+ 
++#if 0
+ int nettel_eraseconfig(void)
+ {
+ 	return(0);
+ }
++#endif  /*  0  */
+ 
+ #endif
+ 
+ /****************************************************************************/
+ 
+-int __init nettel_init(void)
++static int __init nettel_init(void)
+ {
+ 	volatile unsigned long *amdpar;
+ 	unsigned long amdaddr, maxsize;
+@@ -477,7 +483,7 @@ out_unmap2:
+ 
+ /****************************************************************************/
+ 
+-void __exit nettel_cleanup(void)
++static void __exit nettel_cleanup(void)
+ {
+ #ifdef CONFIG_MTD_CFI_INTELEXT
+ 	unregister_reboot_notifier(&nettel_notifier_block);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -69,6 +103,7 @@ testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
 git-mmc.patch
 git-mtd.patch
 nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
 ibmtr_cs-fix-hang-on-eject.patch
 git-ocfs2.patch
 git-scsi-misc.patch
