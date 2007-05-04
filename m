@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch added to -mm tree
-Date: Thu, 03 May 2007 22:25:14 -0700
-Message-ID: <200705040525.l445PEZW029748@shell0.pdx.osdl.net>
+Subject: + arch-i386-kernel-i8253c-should-include-asm-timerh.patch added to -mm tree
+Date: Thu, 03 May 2007 22:25:47 -0700
+Message-ID: <200705040525.l445Pl6E029751@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52669 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161485AbXEDFZ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:25:27 -0400
+	by vger.kernel.org with ESMTP id S1161804AbXEDFZ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:25:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@stusta.de, ak@suse.de
+Cc: bunk@stusta.de
 
 
 The patch titled
-     make arch/i386/kernel/setup.c:remapped_pgdat_init() static
+     arch/i386/kernel/i8253.c should #include <asm/timer.h>
 has been added to the -mm tree.  Its filename is
-     make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+     arch-i386-kernel-i8253c-should-include-asm-timerh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make arch/i386/kernel/setup.c:remapped_pgdat_init() static
+Subject: arch/i386/kernel/i8253.c should #include <asm/timer.h>
 From: Adrian Bunk <bunk@stusta.de>
 
+Every file should include the headers containing the prototypes for its
+global functions.
+
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/i8253.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/setup.c~make-arch-i386-kernel-setupcremapped_pgdat_init-static arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~make-arch-i386-kernel-setupcremapped_pgdat_init-static
-+++ a/arch/i386/kernel/setup.c
-@@ -475,7 +475,7 @@ void __init setup_bootmem_allocator(void
-  *
-  * This should all compile down to nothing when NUMA is off.
-  */
--void __init remapped_pgdat_init(void)
-+static void __init remapped_pgdat_init(void)
- {
- 	int nid;
+diff -puN arch/i386/kernel/i8253.c~arch-i386-kernel-i8253c-should-include-asm-timerh arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~arch-i386-kernel-i8253c-should-include-asm-timerh
++++ a/arch/i386/kernel/i8253.c
+@@ -13,6 +13,7 @@
+ #include <asm/delay.h>
+ #include <asm/i8253.h>
+ #include <asm/io.h>
++#include <asm/timer.h>
+ 
+ #include "io_ports.h"
  
 _
 
@@ -87,6 +88,7 @@ git-watchdog.patch
 git-wireless.patch
 git-ipwireless_cs.patch
 make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
 maps2-add-proc-kpagemap-interface.patch
 lumpy-reclaim-v4.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe.patch
