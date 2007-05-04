@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-voyager-use-__maybe_unused.patch added to -mm tree
-Date: Fri, 04 May 2007 15:00:46 -0700
-Message-ID: <200705042200.l44M0krJ019544@shell0.pdx.osdl.net>
+Subject: + frv-gdb-use-__maybe_unused.patch added to -mm tree
+Date: Fri, 04 May 2007 15:00:44 -0700
+Message-ID: <200705042200.l44M0ieW019536@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54822 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031509AbXEDWAx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:00:53 -0400
+	by vger.kernel.org with ESMTP id S1161560AbXEDWA4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 18:00:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, James.Bottomley@HansenPartnership.com
+Cc: rientjes@google.com, dhowells@redhat.com
 
 
 The patch titled
-     i386: voyager: use __maybe_unused
+     frv: gdb: use __maybe_unused
 has been added to the -mm tree.  Its filename is
-     i386-voyager-use-__maybe_unused.patch
+     frv-gdb-use-__maybe_unused.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: voyager: use __maybe_unused
+Subject: frv: gdb: use __maybe_unused
 From: David Rientjes <rientjes@google.com>
 
-Replace automatic variable instances of __attribute__((unused)) with
-__maybe_unused in mca_nmi_hook().
+Replace function instances of __attribute__((unused)) with
+__maybe_unused to suppress warnings.
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mach-voyager/voyager_basic.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/frv/kernel/gdb-stub.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/i386/mach-voyager/voyager_basic.c~i386-voyager-use-__maybe_unused arch/i386/mach-voyager/voyager_basic.c
---- a/arch/i386/mach-voyager/voyager_basic.c~i386-voyager-use-__maybe_unused
-+++ a/arch/i386/mach-voyager/voyager_basic.c
-@@ -292,8 +292,8 @@ machine_emergency_restart(void)
- void
- mca_nmi_hook(void)
+diff -puN arch/frv/kernel/gdb-stub.c~frv-gdb-use-__maybe_unused arch/frv/kernel/gdb-stub.c
+--- a/arch/frv/kernel/gdb-stub.c~frv-gdb-use-__maybe_unused
++++ a/arch/frv/kernel/gdb-stub.c
+@@ -1195,7 +1195,7 @@ static void gdbstub_check_breakpoint(voi
+ /*
+  *
+  */
+-static void __attribute__((unused)) gdbstub_show_regs(void)
++static void __maybe_unused gdbstub_show_regs(void)
  {
--	__u8 dumpval __attribute__((unused)) = inb(0xf823);
--	__u8 swnmi __attribute__((unused)) = inb(0xf813);
-+	__u8 dumpval __maybe_unused = inb(0xf823);
-+	__u8 swnmi __maybe_unused = inb(0xf813);
+ 	unsigned long *reg;
+ 	int loop;
+@@ -1223,7 +1223,7 @@ static void __attribute__((unused)) gdbs
+ /*
+  * dump debugging regs
+  */
+-static void __attribute__((unused)) gdbstub_dump_debugregs(void)
++static void __maybe_unused gdbstub_dump_debugregs(void)
+ {
+ 	gdbstub_printk("DCR    %08lx  ", __debug_status.dcr);
+ 	gdbstub_printk("BRR    %08lx\n", __debug_status.brr);
+@@ -2079,25 +2079,25 @@ void gdbstub_exit(int status)
+  * GDB wants to call malloc() and free() to allocate memory for calling kernel
+  * functions directly from its command line
+  */
+-static void *malloc(size_t size) __attribute__((unused));
++static void *malloc(size_t size) __maybe_unused;
+ static void *malloc(size_t size)
+ {
+ 	return kmalloc(size, GFP_ATOMIC);
+ }
  
- 	/* FIXME: assume dump switch pressed */
- 	/* check to see if the dump switch was pressed */
+-static void free(void *p) __attribute__((unused));
++static void free(void *p) __maybe_unused;
+ static void free(void *p)
+ {
+ 	kfree(p);
+ }
+ 
+-static uint32_t ___get_HSR0(void) __attribute__((unused));
++static uint32_t ___get_HSR0(void) __maybe_unused;
+ static uint32_t ___get_HSR0(void)
+ {
+ 	return __get_HSR(0);
+ }
+ 
+-static uint32_t ___set_HSR0(uint32_t x) __attribute__((unused));
++static uint32_t ___set_HSR0(uint32_t x) __maybe_unused;
+ static uint32_t ___set_HSR0(uint32_t x)
+ {
+ 	__set_HSR(0, x);
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
