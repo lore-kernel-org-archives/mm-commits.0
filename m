@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + unprivileged-mounts-add-no-submounts-flag.patch added to -mm tree
-Date: Thu, 03 May 2007 23:08:04 -0700
-Message-ID: <200705040608.l44684Y4030317@shell0.pdx.osdl.net>
+Subject: + unprivileged-mounts-allow-unprivileged-fuse-mounts.patch added to -mm tree
+Date: Thu, 03 May 2007 23:08:00 -0700
+Message-ID: <200705040608.l44680Bf030311@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53333 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41221 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754502AbXEDGNY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:13:24 -0400
+	by vger.kernel.org with ESMTP id S1754581AbXEDGNZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 02:13:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com
 
 
 The patch titled
-     unprivileged mounts: add "no submounts" flag
+     unprivileged mounts: allow unprivileged fuse mounts
 has been added to the -mm tree.  Its filename is
-     unprivileged-mounts-add-no-submounts-flag.patch
+     unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,17 +25,23 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unprivileged mounts: add "no submounts" flag
+Subject: unprivileged mounts: allow unprivileged fuse mounts
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a new mount flag "nomnt", which denies submounts for the owner.
-This would be useful, if we want to support traditional /etc/fstab
-based user mounts.
+Use FS_SAFE for "fuse" fs type, but not for "fuseblk".
 
-In this case mount(8) would still have to be suid-root, to check the
-mountpoint against the user/users flag in /etc/fstab, but /etc/mtab
-would no longer be mandatory for storing the actual owner of the
-mount.
+FUSE was designed from the beginning to be safe for unprivileged users.  This
+has also been verified in practice over many years.  In addition unprivileged
+mounts require the parent mount to be owned by the user, which is more strict
+than the current userspace policy.
+
+This will enable future installations to remove the suid-root fusermount
+utility.
+
+Don't require the "user_id=" and "group_id=" options for unprivileged mounts,
+but if they are present, verify them for sanity.
+
+Disallow the "allow_other" option for unprivileged mounts.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Ram Pai <linuxram@us.ibm.com>
@@ -43,67 +49,69 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |    8 +++++++-
- include/linux/fs.h    |    1 +
- include/linux/mount.h |    1 +
- 3 files changed, 9 insertions(+), 1 deletion(-)
+ fs/fuse/inode.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN fs/namespace.c~unprivileged-mounts-add-no-submounts-flag fs/namespace.c
---- a/fs/namespace.c~unprivileged-mounts-add-no-submounts-flag
-+++ a/fs/namespace.c
-@@ -441,6 +441,7 @@ static int show_vfsmnt(struct seq_file *
- 		{ MNT_NOATIME, ",noatime" },
- 		{ MNT_NODIRATIME, ",nodiratime" },
- 		{ MNT_RELATIME, ",relatime" },
-+		{ MNT_NOMNT, ",nomnt" },
- 		{ 0, NULL }
- 	};
- 	struct proc_fs_info *fs_infop;
-@@ -787,6 +788,9 @@ static bool permit_mount(struct nameidat
- 	if (S_ISLNK(inode->i_mode))
- 		return false;
+diff -puN fs/fuse/inode.c~unprivileged-mounts-allow-unprivileged-fuse-mounts fs/fuse/inode.c
+--- a/fs/fuse/inode.c~unprivileged-mounts-allow-unprivileged-fuse-mounts
++++ a/fs/fuse/inode.c
+@@ -311,6 +311,19 @@ static int parse_fuse_opt(char *opt, str
+ 	d->max_read = ~0;
+ 	d->blksize = 512;
  
-+	if (nd->mnt->mnt_flags & MNT_NOMNT)
-+		return false;
++	/*
++	 * For unprivileged mounts use current uid/gid.  Still allow
++	 * "user_id" and "group_id" options for compatibility, but
++	 * only if they match these values.
++	 */
++	if (!capable(CAP_SYS_ADMIN)) {
++		d->user_id = current->uid;
++		d->user_id_present = 1;
++		d->group_id = current->gid;
++		d->group_id_present = 1;
 +
- 	if (!is_mount_owner(nd->mnt, current->fsuid))
- 		return false;
++	}
++
+ 	while ((p = strsep(&opt, ",")) != NULL) {
+ 		int token;
+ 		int value;
+@@ -339,6 +352,8 @@ static int parse_fuse_opt(char *opt, str
+ 		case OPT_USER_ID:
+ 			if (match_int(&args[0], &value))
+ 				return 0;
++			if (d->user_id_present && d->user_id != value)
++				return 0;
+ 			d->user_id = value;
+ 			d->user_id_present = 1;
+ 			break;
+@@ -346,6 +361,8 @@ static int parse_fuse_opt(char *opt, str
+ 		case OPT_GROUP_ID:
+ 			if (match_int(&args[0], &value))
+ 				return 0;
++			if (d->group_id_present && d->group_id != value)
++				return 0;
+ 			d->group_id = value;
+ 			d->group_id_present = 1;
+ 			break;
+@@ -536,6 +553,10 @@ static int fuse_fill_super(struct super_
+ 	if (!parse_fuse_opt((char *) data, &d, is_bdev))
+ 		return -EINVAL;
  
-@@ -1556,9 +1560,11 @@ long do_mount(char *dev_name, char *dir_
- 		mnt_flags |= MNT_NODIRATIME;
- 	if (flags & MS_RELATIME)
- 		mnt_flags |= MNT_RELATIME;
-+	if (flags & MS_NOMNT)
-+		mnt_flags |= MNT_NOMNT;
++	/* This is a privileged option */
++	if ((d.flags & FUSE_ALLOW_OTHER) && !capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
+ 	if (is_bdev) {
+ #ifdef CONFIG_BLOCK
+ 		if (!sb_set_blocksize(sb, d.blksize))
+@@ -639,6 +660,7 @@ static struct file_system_type fuse_fs_t
+ 	.fs_flags	= FS_HAS_SUBTYPE,
+ 	.get_sb		= fuse_get_sb,
+ 	.kill_sb	= kill_anon_super,
++	.fs_flags	= FS_SAFE,
+ };
  
- 	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE |
--		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME);
-+		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME | MS_NOMNT);
- 
- 	/* ... and get the mountpoint */
- 	retval = path_lookup(dir_name, LOOKUP_FOLLOW, &nd);
-diff -puN include/linux/fs.h~unprivileged-mounts-add-no-submounts-flag include/linux/fs.h
---- a/include/linux/fs.h~unprivileged-mounts-add-no-submounts-flag
-+++ a/include/linux/fs.h
-@@ -128,6 +128,7 @@ extern int dir_notify_enable;
- #define MS_SHARED	(1<<20)	/* change to shared */
- #define MS_RELATIME	(1<<21)	/* Update atime relative to mtime/ctime. */
- #define MS_SETUSER	(1<<22) /* set mnt_uid to current user */
-+#define MS_NOMNT	(1<<23) /* don't allow unprivileged submounts */
- #define MS_ACTIVE	(1<<30)
- #define MS_NOUSER	(1<<31)
- 
-diff -puN include/linux/mount.h~unprivileged-mounts-add-no-submounts-flag include/linux/mount.h
---- a/include/linux/mount.h~unprivileged-mounts-add-no-submounts-flag
-+++ a/include/linux/mount.h
-@@ -28,6 +28,7 @@ struct mnt_namespace;
- #define MNT_NOATIME	0x08
- #define MNT_NODIRATIME	0x10
- #define MNT_RELATIME	0x20
-+#define MNT_NOMNT	0x40
- 
- #define MNT_SHRINKABLE	0x100
- #define MNT_USER	0x200
+ #ifdef CONFIG_BLOCK
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
