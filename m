@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-define-__attribute_unused__.patch added to -mm tree
-Date: Fri, 04 May 2007 02:09:12 -0700
-Message-ID: <200705040909.l4499Cmd000536@shell0.pdx.osdl.net>
+Subject: + sh-dma-use-__attribute_unused__.patch added to -mm tree
+Date: Fri, 04 May 2007 02:09:18 -0700
+Message-ID: <200705040909.l4499IcC000542@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57382 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422906AbXEDJJv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:09:51 -0400
+	by vger.kernel.org with ESMTP id S1767753AbXEDJJ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 05:09:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com
+Cc: rientjes@google.com, lethal@linux-sh.org
 
 
 The patch titled
-     compiler: define __attribute_unused__
+     sh: dma: use __attribute_unused__
 has been added to the -mm tree.  Its filename is
-     compiler-define-__attribute_unused__.patch
+     sh-dma-use-__attribute_unused__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,55 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: compiler: define __attribute_unused__
+Subject: sh: dma: use __attribute_unused__
 From: David Rientjes <rientjes@google.com>
 
-For all supported versions of gcc (major version 3 and above), functions and
-variables may be declared with __attribute__((unused)) to suppress warnings if
-they are declared but unused.
+There is no such thing as labeling a variable as __attribute__((used)).  Since
+ts_shift is not referenced in inline assembly, we assume that we're simply
+suppressing a warning here if the variable is declared but unreferenced.
 
-This shouldn't be confused with functions being declared with
-__attribute__((used)).  This specifies that the function code shall still be
-emitted even if it appears to be unreferenced, normally used if embedded in
-inline assembly.  For gcc 3.4 and later, unreferenced static variables and
-functions are not emitted so this attribute is necessary to force variables
-and functions to be output.  Earlier versions of gcc can simply use
-__attribute__((unused)) to suppress warnings about such variables: we do not
-require any special classification to ensure they are emitted.
-
-We introduce __attribute_unused__ for variables that should not produce a
-compile warning if they can, due to preprocessor macros, go unreferenced.
-
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ include/asm-sh/cpu-sh3/dma.h        |    2 +-
+ include/asm-sh/cpu-sh4/dma-sh7780.h |    2 +-
+ include/asm-sh/cpu-sh4/dma.h        |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-define-__attribute_unused__ include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-define-__attribute_unused__
-+++ a/include/linux/compiler-gcc.h
-@@ -40,3 +40,19 @@
- #define  noinline			__attribute__((noinline))
- #define __attribute_pure__		__attribute__((pure))
- #define __attribute_const__		__attribute__((__const__))
-+
-+/*
-+ * __attribute_unused__ shall be used for functions or variables to suppress
-+ * warnings when they may be declared but, due to preprocessor macros,
-+ * commenting, etc., go unreferenced.
-+ *
-+ * In contrast, __attribute_used__ shall be used only for functions.  gcc <3.4
-+ * emits code for static functions that are unreferenced and outputs a warning.
-+ * __attribute_used__ will correctly suppress this warning.  gcc >=3.4 does not
-+ * emit code for static functions that are unreferenced (and thus there is no
-+ * warning), but __attribute_used__ forces the function code to be output.  Use
-+ * __attribute_unused__ to suppress warnings about functions being unused or
-+ * __attribute_used__ to ensure code is emitted when it is referenced only in
-+ * inline assembly.
-+ */
-+#define __attribute_unused__		__attribute__((unused))
+diff -puN include/asm-sh/cpu-sh3/dma.h~sh-dma-use-__attribute_unused__ include/asm-sh/cpu-sh3/dma.h
+--- a/include/asm-sh/cpu-sh3/dma.h~sh-dma-use-__attribute_unused__
++++ a/include/asm-sh/cpu-sh3/dma.h
+@@ -26,7 +26,7 @@ enum {
+ 	XMIT_SZ_128BIT,
+ };
+ 
+-static unsigned int ts_shift[] __attribute__ ((used)) = {
++static unsigned int ts_shift[] __attribute_unused__ = {
+ 	[XMIT_SZ_8BIT]		= 0,
+ 	[XMIT_SZ_16BIT]		= 1,
+ 	[XMIT_SZ_32BIT]		= 2,
+diff -puN include/asm-sh/cpu-sh4/dma-sh7780.h~sh-dma-use-__attribute_unused__ include/asm-sh/cpu-sh4/dma-sh7780.h
+--- a/include/asm-sh/cpu-sh4/dma-sh7780.h~sh-dma-use-__attribute_unused__
++++ a/include/asm-sh/cpu-sh4/dma-sh7780.h
+@@ -28,7 +28,7 @@ enum {
+ /*
+  * The DMA count is defined as the number of bytes to transfer.
+  */
+-static unsigned int __attribute__ ((used)) ts_shift[] = {
++static unsigned int ts_shift[] __attribute_unused__ = {
+ 	[XMIT_SZ_8BIT]		= 0,
+ 	[XMIT_SZ_16BIT]		= 1,
+ 	[XMIT_SZ_32BIT]		= 2,
+diff -puN include/asm-sh/cpu-sh4/dma.h~sh-dma-use-__attribute_unused__ include/asm-sh/cpu-sh4/dma.h
+--- a/include/asm-sh/cpu-sh4/dma.h~sh-dma-use-__attribute_unused__
++++ a/include/asm-sh/cpu-sh4/dma.h
+@@ -53,7 +53,7 @@ enum {
+ /*
+  * The DMA count is defined as the number of bytes to transfer.
+  */
+-static unsigned int ts_shift[] __attribute__ ((used)) = {
++static unsigned int ts_shift[] __attribute_unused__ = {
+ 	[XMIT_SZ_64BIT]		= 3,
+ 	[XMIT_SZ_8BIT]		= 0,
+ 	[XMIT_SZ_16BIT]		= 1,
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
