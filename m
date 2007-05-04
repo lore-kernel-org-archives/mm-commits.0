@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-maps-nettelc-possible-cleanups.patch added to -mm tree
-Date: Thu, 03 May 2007 22:26:24 -0700
-Message-ID: <200705040526.l445QOLF029766@shell0.pdx.osdl.net>
+Subject: + make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch added to -mm tree
+Date: Thu, 03 May 2007 22:27:08 -0700
+Message-ID: <200705040527.l445R88B029769@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44290 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767672AbXEDF0e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:26:34 -0400
+	by vger.kernel.org with ESMTP id S1161835AbXEDF1S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 01:27:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@stusta.de
 
 
 The patch titled
-     drivers/mtd/maps/nettel.c: possible cleanups
+     make arch/i386/kernel/io_apic.c:timer_irq_works() static again
 has been added to the -mm tree.  Its filename is
-     drivers-mtd-maps-nettelc-possible-cleanups.patch
+     make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/mtd/maps/nettel.c: possible cleanups
+Subject: make arch/i386/kernel/io_apic.c:timer_irq_works() static again
 From: Adrian Bunk <bunk@stusta.de>
 
-- make 2 needlessly global functions static
-- #if 0 the unused nettel_eraseconfig()
+timer_irq_works() needlessly became global.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/nettel.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/i386/kernel/io_apic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-possible-cleanups drivers/mtd/maps/nettel.c
---- a/drivers/mtd/maps/nettel.c~drivers-mtd-maps-nettelc-possible-cleanups
-+++ a/drivers/mtd/maps/nettel.c
-@@ -158,6 +158,8 @@ static struct notifier_block nettel_noti
- 	nettel_reboot_notifier, NULL, 0
- };
- 
-+#if 0
-+
- /*
-  *	Erase the configuration file system.
-  *	Used to support the software reset button.
-@@ -208,18 +210,22 @@ int nettel_eraseconfig(void)
- 	return(0);
- }
- 
-+#endif  /*  0  */
-+
- #else
- 
-+#if 0
- int nettel_eraseconfig(void)
+diff -puN arch/i386/kernel/io_apic.c~make-arch-i386-kernel-io_apicctimer_irq_works-static-again arch/i386/kernel/io_apic.c
+--- a/arch/i386/kernel/io_apic.c~make-arch-i386-kernel-io_apicctimer_irq_works-static-again
++++ a/arch/i386/kernel/io_apic.c
+@@ -1902,7 +1902,7 @@ __setup("no_timer_check", notimercheck);
+  *	- if this function detects that timer IRQs are defunct, then we fall
+  *	  back to ISA timer IRQs
+  */
+-int __init timer_irq_works(void)
++static int __init timer_irq_works(void)
  {
- 	return(0);
- }
-+#endif  /*  0  */
+ 	unsigned long t1 = jiffies;
  
- #endif
- 
- /****************************************************************************/
- 
--int __init nettel_init(void)
-+static int __init nettel_init(void)
- {
- 	volatile unsigned long *amdpar;
- 	unsigned long amdaddr, maxsize;
-@@ -477,7 +483,7 @@ out_unmap2:
- 
- /****************************************************************************/
- 
--void __exit nettel_cleanup(void)
-+static void __exit nettel_cleanup(void)
- {
- #ifdef CONFIG_MTD_CFI_INTELEXT
- 	unregister_reboot_notifier(&nettel_notifier_block);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
@@ -124,6 +90,7 @@ git-wireless.patch
 git-ipwireless_cs.patch
 make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
 arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
 maps2-add-proc-kpagemap-interface.patch
 lumpy-reclaim-v4.patch
 filesystem-disk-errors-at-boot-time-caused-by-probe.patch
