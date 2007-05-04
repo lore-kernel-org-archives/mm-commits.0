@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-info-about-whitespace-to-submitchecklist.patch added to -mm tree
-Date: Thu, 03 May 2007 18:08:41 -0700
-Message-ID: <200705040108.l4418fci026377@shell0.pdx.osdl.net>
+Subject: + make-cancel_rearming_delayed_work-reliable-spelling.patch added to -mm tree
+Date: Thu, 03 May 2007 18:13:43 -0700
+Message-ID: <200705040113.l441Dh0v026436@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58164 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754447AbXEDBIq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 21:08:46 -0400
+	by vger.kernel.org with ESMTP id S1754500AbXEDBOS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2007 21:14:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdreier@cisco.com, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, dgc@sgi.com, dhowells@redhat.com, ego@in.ibm.com, jarkao2@o2.pl, oleg@tv-sign.ru, vatsa@in.ibm.com
 
 
 The patch titled
-     Add info about whitespace to SubmitChecklist
+     make-cancel_rearming_delayed_work-reliable-spelling
 has been added to the -mm tree.  Its filename is
-     add-info-about-whitespace-to-submitchecklist.patch
+     make-cancel_rearming_delayed_work-reliable-spelling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,181 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add info about whitespace to SubmitChecklist
-From: Roland Dreier <rdreier@cisco.com>
+Subject: make-cancel_rearming_delayed_work-reliable-spelling
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Roland Dreier <rolandd@cisco.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Gautham Shenoy <ego@in.ibm.com>
+Cc: Jarek Poplawski <jarkao2@o2.pl>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmitChecklist |    4 ++++
- 1 files changed, 4 insertions(+)
+ kernel/workqueue.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/SubmitChecklist~add-info-about-whitespace-to-submitchecklist Documentation/SubmitChecklist
---- a/Documentation/SubmitChecklist~add-info-about-whitespace-to-submitchecklist
-+++ a/Documentation/SubmitChecklist
-@@ -80,3 +80,7 @@ kernel patches.
- 23: Tested after it has been merged into the -mm patchset to make sure
-     that it still works with all of the other queued patches and various
-     changes in the VM, VFS, and other subsystems.
-+
-+24: Avoid whitespace damage such as indenting with spaces or whitespace
-+    at the end of lines.  You can test this by feeding the patch to
-+    "git apply --check --whitespace=error-all"
+diff -puN kernel/workqueue.c~make-cancel_rearming_delayed_work-reliable-spelling kernel/workqueue.c
+--- a/kernel/workqueue.c~make-cancel_rearming_delayed_work-reliable-spelling
++++ a/kernel/workqueue.c
+@@ -389,7 +389,7 @@ void fastcall flush_workqueue(struct wor
+ EXPORT_SYMBOL_GPL(flush_workqueue);
+ 
+ /*
+- * Upon a successfull return, the caller "owns" WORK_STRUCT_PENDING bit,
++ * Upon a successful return, the caller "owns" WORK_STRUCT_PENDING bit,
+  * so this work can't be re-armed in any way.
+  */
+ static int try_to_grab_pending(struct work_struct *work)
+@@ -474,7 +474,7 @@ static void wait_on_work(struct work_str
+  *
+  * It is possible to use this function if the work re-queues itself. It can
+  * cancel the work even if it migrates to another workqueue, however in that
+- * case it only garantees that work->func() has completed on the last queued
++ * case it only guarantees that work->func() has completed on the last queued
+  * workqueue.
+  *
+  * The caller must ensure that workqueue_struct on which this work was last
+@@ -493,7 +493,7 @@ EXPORT_SYMBOL_GPL(cancel_work_sync);
+  * cancel_rearming_delayed_work - reliably kill off a delayed work.
+  * @dwork: the delayed work struct
+  *
+- * It is possible to use this function if dwork rearms itself via queue_work()
++ * It is possible to use this function if @dwork rearms itself via queue_work()
+  * or queue_delayed_work(). See also the comment for cancel_work_sync().
+  */
+ void cancel_rearming_delayed_work(struct delayed_work *dwork)
 _
 
-Patches currently in -mm which might be from rdreier@cisco.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-add-info-about-whitespace-to-submitchecklist.patch
+origin.patch
+slab-introduce-krealloc.patch
+rm9000-serial-driver.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+cx88-video-build-fix.patch
+git-acpi.patch
+git-alsa.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-arm.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
+git-drm.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-input.patch
+git-jfs.patch
+git-kbuild.patch
+git-kvm.patch
+git-mmc.patch
+git-mtd.patch
+natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-nfs.patch
+git-ocfs2.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-wireless.patch
+fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+upper-32-bits.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+do_tty_write-can-block-even-with-o_nonblock-tidy.patch
+tty-add-compat_ioctl-fix.patch
+synclink_gt-add-compat_ioctl-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
