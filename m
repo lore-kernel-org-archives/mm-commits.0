@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-export-acpi_set_cstate_limit.patch added to -mm tree
-Date: Fri, 04 May 2007 22:01:59 -0700
-Message-ID: <200705050504.l4554qi5025242@shell0.pdx.osdl.net>
+Subject: + gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch added to -mm tree
+Date: Fri, 04 May 2007 23:14:45 -0600
+Message-ID: <200705050514.l455EkH3025835@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34240 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1767992AbXEEFGQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 May 2007 01:06:16 -0400
+	by vger.kernel.org with ESMTP id S1423102AbXEEFO6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 May 2007 01:14:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org
 
 
 The patch titled
-     git-acpi: export acpi_set_cstate_limit
+     gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed powerpc fixes
 has been added to the -mm tree.  Its filename is
-     git-acpi-export-acpi_set_cstate_limit.patch
+     gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi: export acpi_set_cstate_limit
+Subject: gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed powerpc fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ipw2100 uses this.
+Might be wrong.
 
-Cc: Len Brown <lenb@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/platforms/pseries/power.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/osl.c~git-acpi-export-acpi_set_cstate_limit drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~git-acpi-export-acpi_set_cstate_limit
-+++ a/drivers/acpi/osl.c
-@@ -1005,6 +1005,7 @@ void acpi_set_cstate_limit(unsigned int 
- 	if (acpi_do_set_cstate_limit)
- 		acpi_do_set_cstate_limit();
- }
-+EXPORT_SYMBOL(acpi_set_cstate_limit);
+diff -puN arch/powerpc/platforms/pseries/power.c~gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes arch/powerpc/platforms/pseries/power.c
+--- a/arch/powerpc/platforms/pseries/power.c~gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes
++++ a/arch/powerpc/platforms/pseries/power.c
+@@ -28,13 +28,13 @@
  
- /*
-  * Acquire a spinlock.
+ unsigned long rtas_poweron_auto; /* default and normal state is 0 */
+ 
+-static ssize_t auto_poweron_show(struct kset *kset, char *buf)
++static ssize_t auto_poweron_show(struct subsystem *subsys, char *buf)
+ {
+         return sprintf(buf, "%lu\n", rtas_poweron_auto);
+ }
+ 
+ static ssize_t
+-auto_poweron_store(struct kset *kset, const char *buf, size_t n)
++auto_poweron_store(struct subsystem *subsys, const char *buf, size_t n)
+ {
+ 	int ret;
+ 	unsigned long ups_restart;
+@@ -72,7 +72,8 @@ static int __init pm_init(void)
+ {
+         int error = subsystem_register(&power_subsys);
+         if (!error)
+-                error = sysfs_create_group(&power_subsys.kobj, &attr_group);
++                error = sysfs_create_group(&power_subsys.kset.kobj,
++					&attr_group);
+         return error;
+ }
+ core_initcall(pm_init);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +86,6 @@ srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
 uml-driver-formatting-fixes-fix.patch
 cx88-video-build-fix.patch
 git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa.patch
 wm8750-typo-fix.patch
 git-agpgart.patch
@@ -195,3 +214,4 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 w1-build-fix.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
