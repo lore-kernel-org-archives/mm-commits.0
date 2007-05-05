@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atl1-use-dev_printk-macros-fix.patch added to -mm tree
-Date: Fri, 04 May 2007 17:22:27 -0700
-Message-ID: <200705050025.l450PJiO003179@shell0.pdx.osdl.net>
+Subject: + git-wireless-build-fix.patch added to -mm tree
+Date: Fri, 04 May 2007 17:22:25 -0700
+Message-ID: <200705050025.l450PHiQ003174@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54076 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423187AbXEEAZe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:25:34 -0400
+	by vger.kernel.org with ESMTP id S1423607AbXEEAZ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:25:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, csnook@redhat.com, jacliburn@bellsouth.net
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com
 
 
 The patch titled
-     atl1-use-dev_printk-macros-fix
+     git-wireless build fix
 has been added to the -mm tree.  Its filename is
-     atl1-use-dev_printk-macros-fix.patch
+     git-wireless-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: atl1-use-dev_printk-macros-fix
+Subject: git-wireless build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/atl1/atl1_param.c: In function 'atl1_validate_option':
-drivers/net/atl1/atl1_param.c:107: error: dereferencing pointer to incomplete type
-
-Cc: Jay Cliburn <jacliburn@bellsouth.net>
-Cc: Chris Snook <csnook@redhat.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1/atl1_param.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/mac80211/ieee80211.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros-fix drivers/net/atl1/atl1_param.c
---- a/drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros-fix
-+++ a/drivers/net/atl1/atl1_param.c
-@@ -23,6 +23,8 @@
+diff -puN net/mac80211/ieee80211.c~git-wireless-build-fix net/mac80211/ieee80211.c
+--- a/net/mac80211/ieee80211.c~git-wireless-build-fix
++++ a/net/mac80211/ieee80211.c
+@@ -2170,7 +2170,7 @@ static int ieee80211_change_mtu_apdev(st
+ enum netif_tx_lock_class {
+ 	TX_LOCK_NORMAL,
+ 	TX_LOCK_MASTER,
+-}
++};
  
- #include <linux/types.h>
- #include <linux/moduleparam.h>
-+#include <linux/pci.h>
-+
- #include "atl1.h"
- 
- /*
-@@ -93,7 +95,8 @@ struct atl1_option {
- 	} arg;
- };
- 
--static int __devinit atl1_validate_option(int *value, struct atl1_option *opt, struct pci_dev *pdev)
-+static int __devinit atl1_validate_option(int *value, struct atl1_option *opt,
-+					struct pci_dev *pdev)
+ static inline void netif_tx_lock_nested(struct net_device *dev, int subclass)
  {
- 	if (*value == OPTION_UNSET) {
- 		*value = opt->def;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
