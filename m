@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch added to -mm tree
-Date: Fri, 04 May 2007 23:14:45 -0600
-Message-ID: <200705050514.l455EkH3025835@shell0.pdx.osdl.net>
+Subject: + consolidate-asm-consth-to-linux-consth-fix.patch added to -mm tree
+Date: Fri, 04 May 2007 22:31:49 -0700
+Message-ID: <200705050534.l455Yf0B027076@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60205 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40017 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423102AbXEEFO6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 May 2007 01:14:58 -0400
+	by vger.kernel.org with ESMTP id S1755448AbXEEFex (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 5 May 2007 01:34:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org
+Cc: akpm@linux-foundation.org, ak@suse.de, davem@davemloft.net, randy.dunlap@oracle.com
 
 
 The patch titled
-     gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed powerpc fixes
+     consolidate-asm-consth-to-linux-consth-fix
 has been added to the -mm tree.  Its filename is
-     gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+     consolidate-asm-consth-to-linux-consth-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,26 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed powerpc fixes
+Subject: consolidate-asm-consth-to-linux-consth-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Might be wrong.
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/power.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ include/asm-x86_64/Kbuild |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/pseries/power.c~gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes arch/powerpc/platforms/pseries/power.c
---- a/arch/powerpc/platforms/pseries/power.c~gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes
-+++ a/arch/powerpc/platforms/pseries/power.c
-@@ -28,13 +28,13 @@
- 
- unsigned long rtas_poweron_auto; /* default and normal state is 0 */
- 
--static ssize_t auto_poweron_show(struct kset *kset, char *buf)
-+static ssize_t auto_poweron_show(struct subsystem *subsys, char *buf)
- {
-         return sprintf(buf, "%lu\n", rtas_poweron_auto);
- }
- 
- static ssize_t
--auto_poweron_store(struct kset *kset, const char *buf, size_t n)
-+auto_poweron_store(struct subsystem *subsys, const char *buf, size_t n)
- {
- 	int ret;
- 	unsigned long ups_restart;
-@@ -72,7 +72,8 @@ static int __init pm_init(void)
- {
-         int error = subsystem_register(&power_subsys);
-         if (!error)
--                error = sysfs_create_group(&power_subsys.kobj, &attr_group);
-+                error = sysfs_create_group(&power_subsys.kset.kobj,
-+					&attr_group);
-         return error;
- }
- core_initcall(pm_init);
+diff -puN include/asm-x86_64/Kbuild~consolidate-asm-consth-to-linux-consth-fix include/asm-x86_64/Kbuild
+--- a/include/asm-x86_64/Kbuild~consolidate-asm-consth-to-linux-consth-fix
++++ a/include/asm-x86_64/Kbuild
+@@ -19,4 +19,3 @@ unifdef-y += mce.h
+ unifdef-y += msr.h
+ unifdef-y += mtrr.h
+ unifdef-y += vsyscall.h
+-unifdef-y += const.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +63,7 @@ srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
 uml-driver-formatting-fixes-fix.patch
 cx88-video-build-fix.patch
 git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa.patch
 wm8750-typo-fix.patch
 git-agpgart.patch
@@ -93,6 +71,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 git-arm.patch
 git-avr32.patch
 fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
 revert-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed.patch
 git-drm.patch
 cinergyt2-fix-file-release-handler.patch
@@ -162,6 +141,7 @@ enhance-initcall_debug-measure-latency.patch
 dtlk-fix-error-checks-in-module_init.patch
 document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
 upper-32-bits.patch
+consolidate-asm-consth-to-linux-consth-fix.patch
 driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
 do_tty_write-can-block-even-with-o_nonblock-tidy.patch
 lib-hexdump-fix.patch
@@ -214,4 +194,3 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 w1-build-fix.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
