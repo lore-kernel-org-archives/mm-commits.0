@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + libata-clean-up-sff-init-mess-fix.patch added to -mm tree
-Date: Fri, 04 May 2007 17:22:18 -0700
-Message-ID: <200705050025.l450PBJG003163@shell0.pdx.osdl.net>
+Subject: + git-nfs-printk-warning-fixes.patch added to -mm tree
+Date: Fri, 04 May 2007 17:22:29 -0700
+Message-ID: <200705050025.l450PLZ7003187@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38184 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423143AbXEEAZY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:25:24 -0400
+	by vger.kernel.org with ESMTP id S1423573AbXEEAZk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:25:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com
+Cc: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     libata-clean-up-sff-init-mess-fix
+     git-nfs-printk-warning-fixes
 has been added to the -mm tree.  Its filename is
-     libata-clean-up-sff-init-mess-fix.patch
+     git-nfs-printk-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-clean-up-sff-init-mess-fix
+Subject: git-nfs-printk-warning-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+net/sunrpc/sched.c: In function 'rpc_malloc':
+net/sunrpc/sched.c:766: warning: format '%u' expects type 'unsigned int', but argument 3 has type 'size_t'
+net/sunrpc/sched.c: In function 'rpc_free':
+net/sunrpc/sched.c:785: warning: format '%u' expects type 'unsigned int', but argument 2 has type 'size_t'
+
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_acpi.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/sunrpc/sched.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_acpi.c~libata-clean-up-sff-init-mess-fix drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~libata-clean-up-sff-init-mess-fix
-+++ a/drivers/ata/pata_acpi.c
-@@ -373,7 +373,7 @@ static const struct ata_port_operations 
- 
- static int pacpi_init_one (struct pci_dev *pdev, const struct pci_device_id *id)
- {
--	static struct ata_port_info info = {
-+	static const struct ata_port_info info = {
- 		.sht		= &pacpi_sht,
- 		.flags		= ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
- 
-@@ -383,11 +383,11 @@ static int pacpi_init_one (struct pci_de
- 
- 		.port_ops	= &pacpi_ops,
- 	};
--	struct ata_port_info *port_info[1] = { &info };
-+	const struct ata_port_info *ppi[] = { &info, NULL };
- 
- 	if (!ata_pata_acpi_present(pdev))
- 		return -ENODEV;
--	return ata_pci_init_one(pdev, port_info, 1);
-+	return ata_pci_init_one(pdev, ppi);
+diff -puN net/sunrpc/sched.c~git-nfs-printk-warning-fixes net/sunrpc/sched.c
+--- a/net/sunrpc/sched.c~git-nfs-printk-warning-fixes
++++ a/net/sunrpc/sched.c
+@@ -763,7 +763,7 @@ void *rpc_malloc(struct rpc_task *task, 
+ 	else
+ 		buf = kmalloc(size, gfp);
+ 	*buf = size;
+-	dprintk("RPC: %5u allocated buffer of size %u at %p\n",
++	dprintk("RPC: %5u allocated buffer of size %zu at %p\n",
+ 			task->tk_pid, size, buf);
+ 	return (void *) ++buf;
  }
+@@ -782,7 +782,7 @@ void rpc_free(void *buffer)
+ 	size = *buf;
+ 	buf--;
  
- static const struct pci_device_id pacpi_pci_tbl[] = {
+-	dprintk("RPC:       freeing buffer of size %u at %p\n",
++	dprintk("RPC:       freeing buffer of size %zu at %p\n",
+ 			size, buf);
+ 	if (size <= RPC_BUFFER_MAXSIZE)
+ 		mempool_free(buf, rpc_buffer_mempool);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
