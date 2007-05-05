@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch added to -mm tree
-Date: Fri, 04 May 2007 17:26:26 -0700
-Message-ID: <200705050029.l450TI3x003544@shell0.pdx.osdl.net>
+Subject: + mutex_lock_interruptible-add-__must_check.patch added to -mm tree
+Date: Fri, 04 May 2007 17:41:43 -0700
+Message-ID: <200705050044.l450iZ9V004996@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50654 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423346AbXEEA3W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:29:22 -0400
+	by vger.kernel.org with ESMTP id S1161615AbXEEAoq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:44:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     libata-clean-up-sff-init-mess-fix
+     mutex_lock_interruptible(): add __must_check
 has been added to the -mm tree.  Its filename is
-     pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+     mutex_lock_interruptible-add-__must_check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-clean-up-sff-init-mess-fix
+Subject: mutex_lock_interruptible(): add __must_check
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+It's not sane to use mutex_lock_interruptible() and to then ignore the result.
+
+Ditto down_interruptible(), but I'm lazy.
+
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_acpi.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mutex.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix
-+++ a/drivers/ata/pata_acpi.c
-@@ -373,7 +373,7 @@ static const struct ata_port_operations 
+diff -puN include/linux/mutex.h~mutex_lock_interruptible-add-__must_check include/linux/mutex.h
+--- a/include/linux/mutex.h~mutex_lock_interruptible-add-__must_check
++++ a/include/linux/mutex.h
+@@ -124,8 +124,10 @@ extern void fastcall mutex_lock(struct m
+ extern int fastcall mutex_lock_interruptible(struct mutex *lock);
  
- static int pacpi_init_one (struct pci_dev *pdev, const struct pci_device_id *id)
- {
--	static struct ata_port_info info = {
-+	static const struct ata_port_info info = {
- 		.sht		= &pacpi_sht,
- 		.flags		= ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
- 
-@@ -383,11 +383,11 @@ static int pacpi_init_one (struct pci_de
- 
- 		.port_ops	= &pacpi_ops,
- 	};
--	struct ata_port_info *port_info[1] = { &info };
-+	const struct ata_port_info *ppi[] = { &info, NULL };
- 
- 	if (!ata_pata_acpi_present(pdev))
- 		return -ENODEV;
--	return ata_pci_init_one(pdev, port_info, 1);
-+	return ata_pci_init_one(pdev, ppi);
- }
- 
- static const struct pci_device_id pacpi_pci_tbl[] = {
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+-extern void mutex_lock_nested(struct mutex *lock, unsigned int subclass);
+-extern int mutex_lock_interruptible_nested(struct mutex *lock, unsigned int subclass);
++extern void __must_check mutex_lock_nested(struct mutex *lock,
++					unsigned int subclass);
++extern int __must_check mutex_lock_interruptible_nested(struct mutex *lock,
++					unsigned int subclass);
+ #else
+ # define mutex_lock_nested(lock, subclass) mutex_lock(lock)
+ # define mutex_lock_interruptible_nested(lock, subclass) mutex_lock_interruptible(lock)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -161,9 +154,10 @@ do_tty_write-can-block-even-with-o_nonblock-tidy.patch
 lib-hexdump-fix.patch
 pasemi-hardware-rng-driver-tidy.patch
 nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
 tty-add-compat_ioctl-fix.patch
 synclink_gt-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 kthread-dont-depend-on-work-queues-take-2.patch
