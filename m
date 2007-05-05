@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-build-fix.patch added to -mm tree
-Date: Fri, 04 May 2007 17:22:25 -0700
-Message-ID: <200705050025.l450PHiQ003174@shell0.pdx.osdl.net>
+Subject: + pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch added to -mm tree
+Date: Fri, 04 May 2007 17:26:26 -0700
+Message-ID: <200705050029.l450TI3x003544@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40712 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423607AbXEEAZ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:25:59 -0400
+	by vger.kernel.org with ESMTP id S1423346AbXEEA3W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:29:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, htejun@gmail.com
 
 
 The patch titled
-     git-wireless build fix
+     libata-clean-up-sff-init-mess-fix
 has been added to the -mm tree.  Its filename is
-     git-wireless-build-fix.patch
+     pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-wireless build fix
+Subject: libata-clean-up-sff-init-mess-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/ieee80211.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/pata_acpi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN net/mac80211/ieee80211.c~git-wireless-build-fix net/mac80211/ieee80211.c
---- a/net/mac80211/ieee80211.c~git-wireless-build-fix
-+++ a/net/mac80211/ieee80211.c
-@@ -2170,7 +2170,7 @@ static int ieee80211_change_mtu_apdev(st
- enum netif_tx_lock_class {
- 	TX_LOCK_NORMAL,
- 	TX_LOCK_MASTER,
--}
-+};
+diff -puN drivers/ata/pata_acpi.c~pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix drivers/ata/pata_acpi.c
+--- a/drivers/ata/pata_acpi.c~pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix
++++ a/drivers/ata/pata_acpi.c
+@@ -373,7 +373,7 @@ static const struct ata_port_operations 
  
- static inline void netif_tx_lock_nested(struct net_device *dev, int subclass)
+ static int pacpi_init_one (struct pci_dev *pdev, const struct pci_device_id *id)
  {
+-	static struct ata_port_info info = {
++	static const struct ata_port_info info = {
+ 		.sht		= &pacpi_sht,
+ 		.flags		= ATA_FLAG_SLAVE_POSS | ATA_FLAG_SRST,
+ 
+@@ -383,11 +383,11 @@ static int pacpi_init_one (struct pci_de
+ 
+ 		.port_ops	= &pacpi_ops,
+ 	};
+-	struct ata_port_info *port_info[1] = { &info };
++	const struct ata_port_info *ppi[] = { &info, NULL };
+ 
+ 	if (!ata_pata_acpi_present(pdev))
+ 		return -ENODEV;
+-	return ata_pci_init_one(pdev, port_info, 1);
++	return ata_pci_init_one(pdev, ppi);
+ }
+ 
+ static const struct pci_device_id pacpi_pci_tbl[] = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,13 +100,16 @@ input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
 git-jfs.patch
 git-kbuild.patch
 git-kvm.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 git-mmc.patch
 git-mtd.patch
 natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
+atl1-use-dev_printk-macros-fix.patch
 git-e1000.patch
 git-e1000-fixup-2.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
 git-nfs.patch
+git-nfs-printk-warning-fixes.patch
 git-ocfs2.patch
 git-parisc.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
@@ -103,6 +121,7 @@ git-block-fixup.patch
 git-unionfs.patch
 auerswald-fix-file-release-handler.patch
 git-wireless.patch
+git-wireless-build-fix.patch
 fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
 i386-add-support-for-picopower-irq-router-fix.patch
@@ -189,7 +208,3 @@ integrity-ima-integrity_measure-support-fix.patch
 integrity-ima-integrity_measure-support-fix-2.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 w1-build-fix.patch
-libata-clean-up-sff-init-mess-fix.patch
-git-wireless-build-fix.patch
-atl1-use-dev_printk-macros-fix.patch
-git-nfs-printk-warning-fixes.patch
