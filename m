@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfs-printk-warning-fixes.patch added to -mm tree
-Date: Fri, 04 May 2007 17:22:29 -0700
-Message-ID: <200705050025.l450PLZ7003187@shell0.pdx.osdl.net>
+Subject: + atl1-use-dev_printk-macros-fix.patch added to -mm tree
+Date: Fri, 04 May 2007 17:22:27 -0700
+Message-ID: <200705050025.l450PJiO003179@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40950 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54076 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423573AbXEEAZk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:25:40 -0400
+	by vger.kernel.org with ESMTP id S1423187AbXEEAZe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: akpm@linux-foundation.org, csnook@redhat.com, jacliburn@bellsouth.net
 
 
 The patch titled
-     git-nfs-printk-warning-fixes
+     atl1-use-dev_printk-macros-fix
 has been added to the -mm tree.  Its filename is
-     git-nfs-printk-warning-fixes.patch
+     atl1-use-dev_printk-macros-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfs-printk-warning-fixes
+Subject: atl1-use-dev_printk-macros-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/sunrpc/sched.c: In function 'rpc_malloc':
-net/sunrpc/sched.c:766: warning: format '%u' expects type 'unsigned int', but argument 3 has type 'size_t'
-net/sunrpc/sched.c: In function 'rpc_free':
-net/sunrpc/sched.c:785: warning: format '%u' expects type 'unsigned int', but argument 2 has type 'size_t'
+drivers/net/atl1/atl1_param.c: In function 'atl1_validate_option':
+drivers/net/atl1/atl1_param.c:107: error: dereferencing pointer to incomplete type
 
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Jay Cliburn <jacliburn@bellsouth.net>
+Cc: Chris Snook <csnook@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/sched.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/atl1/atl1_param.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN net/sunrpc/sched.c~git-nfs-printk-warning-fixes net/sunrpc/sched.c
---- a/net/sunrpc/sched.c~git-nfs-printk-warning-fixes
-+++ a/net/sunrpc/sched.c
-@@ -763,7 +763,7 @@ void *rpc_malloc(struct rpc_task *task, 
- 	else
- 		buf = kmalloc(size, gfp);
- 	*buf = size;
--	dprintk("RPC: %5u allocated buffer of size %u at %p\n",
-+	dprintk("RPC: %5u allocated buffer of size %zu at %p\n",
- 			task->tk_pid, size, buf);
- 	return (void *) ++buf;
- }
-@@ -782,7 +782,7 @@ void rpc_free(void *buffer)
- 	size = *buf;
- 	buf--;
+diff -puN drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros-fix drivers/net/atl1/atl1_param.c
+--- a/drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros-fix
++++ a/drivers/net/atl1/atl1_param.c
+@@ -23,6 +23,8 @@
  
--	dprintk("RPC:       freeing buffer of size %u at %p\n",
-+	dprintk("RPC:       freeing buffer of size %zu at %p\n",
- 			size, buf);
- 	if (size <= RPC_BUFFER_MAXSIZE)
- 		mempool_free(buf, rpc_buffer_mempool);
+ #include <linux/types.h>
+ #include <linux/moduleparam.h>
++#include <linux/pci.h>
++
+ #include "atl1.h"
+ 
+ /*
+@@ -93,7 +95,8 @@ struct atl1_option {
+ 	} arg;
+ };
+ 
+-static int __devinit atl1_validate_option(int *value, struct atl1_option *opt, struct pci_dev *pdev)
++static int __devinit atl1_validate_option(int *value, struct atl1_option *opt,
++					struct pci_dev *pdev)
+ {
+ 	if (*value == OPTION_UNSET) {
+ 		*value = opt->def;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
