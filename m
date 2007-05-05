@@ -1,60 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: + mutex_lock_interruptible-add-__must_check.patch added to -mm tree
-Date: Fri, 04 May 2007 17:41:43 -0700
-Message-ID: <200705050044.l450iZ9V004996@shell0.pdx.osdl.net>
+Subject: - synclink_gt-add-compat_ioctl-fix.patch removed from -mm tree
+Date: Fri, 04 May 2007 17:44:00 -0700
+Message-ID: <200705050046.l450kqu8005233@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57544 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161615AbXEEAoq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:44:46 -0400
+	by vger.kernel.org with ESMTP id S1423353AbXEEArE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2007 20:47:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mutex_lock_interruptible(): add __must_check
-has been added to the -mm tree.  Its filename is
-     mutex_lock_interruptible-add-__must_check.patch
+     synclink_gt-add-compat_ioctl-fix
+has been removed from the -mm tree.  Its filename was
+     synclink_gt-add-compat_ioctl-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into synclink_gt-add-compat_ioctl.patch
 
 ------------------------------------------------------
-Subject: mutex_lock_interruptible(): add __must_check
+Subject: synclink_gt-add-compat_ioctl-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It's not sane to use mutex_lock_interruptible() and to then ignore the result.
+- Fix i386 build:
 
-Ditto down_interruptible(), but I'm lazy.
+In file included from drivers/char/synclink_gt.c:85:
+include/linux/synclink.h:175: error: expected specifier-qualifier-list before 'compat_ulong_t'
 
-Cc: Ingo Molnar <mingo@elte.hu>
+- We might as well do the same ifdef-avoidery trick around compat_ioctl()
+  too.  That required that it be renamed.
+
+- It is fishy that apart from out outlier in kexec.h, synclink.h is the
+  only header file which uses compat_ulong_t.  Are we doing this right?
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mutex.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/char/synclink_gt.c |   16 +++++++++-------
+ include/linux/synclink.h   |    5 +++--
+ 2 files changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mutex.h~mutex_lock_interruptible-add-__must_check include/linux/mutex.h
---- a/include/linux/mutex.h~mutex_lock_interruptible-add-__must_check
-+++ a/include/linux/mutex.h
-@@ -124,8 +124,10 @@ extern void fastcall mutex_lock(struct m
- extern int fastcall mutex_lock_interruptible(struct mutex *lock);
+diff -puN drivers/char/synclink_gt.c~synclink_gt-add-compat_ioctl-fix drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink_gt-add-compat_ioctl-fix
++++ a/drivers/char/synclink_gt.c
+@@ -1176,15 +1176,16 @@ static int ioctl(struct tty_struct *tty,
+ }
  
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
--extern void mutex_lock_nested(struct mutex *lock, unsigned int subclass);
--extern int mutex_lock_interruptible_nested(struct mutex *lock, unsigned int subclass);
-+extern void __must_check mutex_lock_nested(struct mutex *lock,
-+					unsigned int subclass);
-+extern int __must_check mutex_lock_interruptible_nested(struct mutex *lock,
-+					unsigned int subclass);
- #else
- # define mutex_lock_nested(lock, subclass) mutex_lock(lock)
- # define mutex_lock_interruptible_nested(lock, subclass) mutex_lock_interruptible(lock)
+ #ifdef CONFIG_COMPAT
+-static long compat_ioctl(struct tty_struct *tty, struct file *file,
++static long synclink_compat_ioctl(struct tty_struct *tty, struct file *file,
+ 			 unsigned int cmd, unsigned long arg)
+ {
+ 	struct slgt_info *info = tty->driver_data;
+ 	int rc = -ENOIOCTLCMD;
+ 
+-	if (sanity_check(info, tty->name, "compat_ioctl"))
++	if (sanity_check(info, tty->name, "synclink_compat_ioctl"))
+ 		return -ENODEV;
+-	DBGINFO(("%s compat_ioctl() cmd=%08X\n", info->device_name, cmd));
++	DBGINFO(("%s synclink_compat_ioctl() cmd=%08X\n",
++		info->device_name, cmd));
+ 
+ 	switch (cmd) {
+ 
+@@ -1219,9 +1220,12 @@ static long compat_ioctl(struct tty_stru
+ 		break;
+ 	}
+ 
+-	DBGINFO(("%s compat_ioctl() cmd=%08X rc=%d\n", info->device_name, cmd, rc));
++	DBGINFO(("%s synclink_compat_ioctl() cmd=%08X rc=%d\n",
++		info->device_name, cmd, rc));
+ 	return rc;
+ }
++#else
++#define synclink_compat_ioctl NULL
+ #endif
+ 
+ /*
+@@ -3554,9 +3558,7 @@ static const struct tty_operations ops =
+ 	.chars_in_buffer = chars_in_buffer,
+ 	.flush_buffer = flush_buffer,
+ 	.ioctl = ioctl,
+-#ifdef CONFIG_COMPAT
+-	.compat_ioctl = compat_ioctl,
+-#endif
++	.compat_ioctl = synclink_compat_ioctl,
+ 	.throttle = throttle,
+ 	.unthrottle = unthrottle,
+ 	.send_xchar = send_xchar,
+diff -puN include/linux/synclink.h~synclink_gt-add-compat_ioctl-fix include/linux/synclink.h
+--- a/include/linux/synclink.h~synclink_gt-add-compat_ioctl-fix
++++ a/include/linux/synclink.h
+@@ -169,9 +169,9 @@ typedef struct _MGSL_PARAMS
+ 
+ } MGSL_PARAMS, *PMGSL_PARAMS;
+ 
++#ifdef CONFIG_COMPAT
+ /* provide 32 bit ioctl compatibility on 64 bit systems */
+-struct MGSL_PARAMS32
+-{
++struct MGSL_PARAMS32 {
+ 	compat_ulong_t	mode;
+ 	unsigned char	loopback;
+ 	unsigned short	flags;
+@@ -186,6 +186,7 @@ struct MGSL_PARAMS32
+ 	unsigned char	stop_bits;
+ 	unsigned char	parity;
+ };
++#endif
+ 
+ #define MICROGATE_VENDOR_ID 0x13c0
+ #define SYNCLINK_DEVICE_ID 0x0010
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -156,6 +217,7 @@ pasemi-hardware-rng-driver-tidy.patch
 nbd-check-the-return-value-of-sysfs_create_file-fix.patch
 mutex_lock_interruptible-add-__must_check.patch
 tty-add-compat_ioctl-fix.patch
+synclink_gt-add-compat_ioctl.patch
 synclink_gt-add-compat_ioctl-fix.patch
 blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
 define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
