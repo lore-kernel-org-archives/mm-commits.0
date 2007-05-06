@@ -1,50 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes-fix.patch removed from -mm tree
-Date: Sun, 06 May 2007 14:36:59 -0700
-Message-ID: <200705062136.l46LaxlN023450@shell0.pdx.osdl.net>
+Subject: - get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch removed from -mm tree
+Date: Sun, 06 May 2007 14:37:55 -0700
+Message-ID: <200705062137.l46LbtbJ023513@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58479 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57047 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751060AbXEFVhJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 May 2007 17:37:09 -0400
+	by vger.kernel.org with ESMTP id S1751220AbXEFViG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 May 2007 17:38:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes-fix
+     get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix
 has been removed from the -mm tree.  Its filename was
-     slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes-fix.patch
+     get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
 
-This patch was dropped because it was folded into slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes.patch
+This patch was dropped because it was folded into get_unmapped_area-handles-map_fixed-in-hugetlbfs.patch
 
 ------------------------------------------------------
-Subject: slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes-fix
+Subject: get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-That could make the machine unusable.
+fs/hugetlbfs/inode.c: In function 'hugetlb_get_unmapped_area':
+fs/hugetlbfs/inode.c:115: error: 'MAP_FIXED' undeclared (first use in this function)
+fs/hugetlbfs/inode.c:115: error: (Each undeclared identifier is reported only once
+fs/hugetlbfs/inode.c:115: error: for each function it appears in.)
 
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/slub_def.h~slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes-fix include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes-fix
-+++ a/include/linux/slub_def.h
-@@ -84,7 +84,7 @@ static inline int kmalloc_index(int size
- 	 * We should return 0 if size == 0 but we use the smallest object
- 	 * here for SLAB legacy reasons.
- 	 */
--	WARN_ON(size == 0);
-+	WARN_ON_ONCE(size == 0);
- 
- 	if (size > 64 && size <= 96)
- 		return 1;
+diff -puN fs/hugetlbfs/inode.c~get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix
++++ a/fs/hugetlbfs/inode.c
+@@ -22,6 +22,7 @@
+ #include <linux/backing-dev.h>
+ #include <linux/hugetlb.h>
+ #include <linux/pagevec.h>
++#include <linux/mman.h>
+ #include <linux/quotaops.h>
+ #include <linux/slab.h>
+ #include <linux/dnotify.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -56,9 +58,8 @@ add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
 smaps-add-clear_refs-file-to-clear-reference.patch
 slab-mark-set_up_list3s-__init.patch
 slub-core.patch
-slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes.patch
-slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes-fix.patch
 mm-optimize-kill_bdev.patch
+get_unmapped_area-handles-map_fixed-in-hugetlbfs.patch
 get_unmapped_area-handles-map_fixed-in-hugetlbfs-fix.patch
 srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
 uml-driver-formatting-fixes-fix.patch
