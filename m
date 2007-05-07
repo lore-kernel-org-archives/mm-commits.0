@@ -1,85 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch removed from -mm tree
-Date: Sun, 06 May 2007 23:47:37 -0700
-Message-ID: <200705070647.l476lc5O020401@shell0.pdx.osdl.net>
+Subject: - wavefront-only-declare-isapnp-on-config_pnp.patch removed from -mm tree
+Date: Sun, 06 May 2007 23:47:24 -0700
+Message-ID: <200705070647.l476lOtb020390@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55657 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754076AbXEGGrl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 02:47:41 -0400
+	by vger.kernel.org with ESMTP id S1754078AbXEGGrp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 02:47:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbarnes@virtuousgeek.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, ambx1@neo.rr.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix sysfs rom file creation for BIOS ROM shadows
+     wavefront: only declare isapnp on CONFIG_PNP
 has been removed from the -mm tree.  Its filename was
-     fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch
+     wavefront-only-declare-isapnp-on-config_pnp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix sysfs rom file creation for BIOS ROM shadows
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: wavefront: only declare isapnp on CONFIG_PNP
+From: David Rientjes <rientjes@google.com>
 
-At one time, if a BIOS ROM shadow was detected for the boot video device
-(stored at offset 0xc0000), we'd set a special resource flag,
-IORESOURCE_ROM_SHADOW, so that the sysfs ROM file code could handle it
-properly.  That broke along the way somewhere though, so current kernels
-will be missing 'rom' files in sysfs if the video device doesn't have an
-explicit ROM BAR.
+isapnp[] is only used for CONFIG_PNP.  If this configuration option is
+not set, do not declare the array.
 
-This patch fixes the regression by moving the video fixup quirk to a little
-later in the boot cycle (to avoid having its work undone by PCI resource
-allocation) and checking in the PCI sysfs code whether a rom file should be
-created due to a shadow resource, which is also moved to a little later in
-the boot cycle so it will occur after the video fixup.  Tested and works on
-my i386 test box.
-
-Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/fixup.c   |    2 +-
- drivers/pci/pci-sysfs.c |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ sound/isa/wavefront/wavefront.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN arch/i386/pci/fixup.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows arch/i386/pci/fixup.c
---- a/arch/i386/pci/fixup.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows
-+++ a/arch/i386/pci/fixup.c
-@@ -354,7 +354,7 @@ static void __devinit pci_fixup_video(st
- 		printk(KERN_DEBUG "Boot video device is %s\n", pci_name(pdev));
- 	}
- }
--DECLARE_PCI_FIXUP_HEADER(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
-+DECLARE_PCI_FIXUP_FINAL(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
- 
- /*
-  * Some Toshiba laptops need extra code to enable their TI TSB43AB22/A.
-diff -puN drivers/pci/pci-sysfs.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows drivers/pci/pci-sysfs.c
---- a/drivers/pci/pci-sysfs.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows
-+++ a/drivers/pci/pci-sysfs.c
-@@ -620,7 +620,8 @@ int __must_check pci_create_sysfs_dev_fi
- 		goto err_bin_file;
- 
- 	/* If the device has a ROM, try to expose it in sysfs. */
--	if (pci_resource_len(pdev, PCI_ROM_RESOURCE)) {
-+	if (pci_resource_len(pdev, PCI_ROM_RESOURCE) ||
-+	    (pdev->resource[PCI_ROM_RESOURCE].flags & IORESOURCE_ROM_SHADOW)) {
- 		rom_attr = kzalloc(sizeof(*rom_attr), GFP_ATOMIC);
- 		if (rom_attr) {
- 			pdev->rom_attr = rom_attr;
-@@ -695,4 +696,4 @@ static int __init pci_sysfs_init(void)
- 	return 0;
- }
- 
--__initcall(pci_sysfs_init);
-+late_initcall(pci_sysfs_init);
+diff -puN sound/isa/wavefront/wavefront.c~wavefront-only-declare-isapnp-on-config_pnp sound/isa/wavefront/wavefront.c
+--- a/sound/isa/wavefront/wavefront.c~wavefront-only-declare-isapnp-on-config_pnp
++++ a/sound/isa/wavefront/wavefront.c
+@@ -40,7 +40,9 @@ MODULE_SUPPORTED_DEVICE("{{Turtle Beach,
+ static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	    /* Index 0-MAX */
+ static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	    /* ID for this card */
+ static int enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE;	    /* Enable this card */
++#ifdef CONFIG_PNP
+ static int isapnp[SNDRV_CARDS] = {[0 ... (SNDRV_CARDS - 1)] = 1};
++#endif
+ static long cs4232_pcm_port[SNDRV_CARDS] = SNDRV_DEFAULT_PORT;	/* PnP setup */
+ static int cs4232_pcm_irq[SNDRV_CARDS] = SNDRV_DEFAULT_IRQ; /* 5,7,9,11,12,15 */
+ static long cs4232_mpu_port[SNDRV_CARDS] = SNDRV_DEFAULT_PORT; /* PnP setup */
 _
 
-Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
+i386-add-ptep_test_and_clear_dirtyyoung.patch
+i386-use-pte_update_defer-in-ptep_test_and_clear_dirtyyoung.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
+mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
+oom-fix-constraint-deadlock.patch
+git-alsa.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
+compiler-introduce-__used-and-__maybe_unused.patch
+i386-pci-type-may-be-unused.patch
+sh-dma-use-__maybe_unused.patch
+scsi-fix-ambiguous-gdthtable-definition.patch
+frv-gdb-use-__maybe_unused.patch
+i386-voyager-use-__maybe_unused.patch
+mips-excite-use-__maybe_unused.patch
+mips-tlbex-use-__maybe_unused.patch
+powerpc-ps3-use-__maybe_unused.patch
+i386-mmzone-use-__maybe_unused.patch
