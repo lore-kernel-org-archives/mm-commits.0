@@ -1,223 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - ps3fb-use-__func__-instead-of-__function__.patch removed from -mm tree
-Date: Mon, 07 May 2007 00:00:29 -0700
-Message-ID: <200705070700.l4770TSC021020@shell0.pdx.osdl.net>
+Subject: - ps3-make-ps3videomode-v-0-auto-mode-work-again.patch removed from -mm tree
+Date: Mon, 07 May 2007 00:00:23 -0700
+Message-ID: <200705070700.l4770Ncr021013@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35015 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754114AbXEGHBH (ORCPT
+	by vger.kernel.org with ESMTP id S1754118AbXEGHBH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 03:01:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: Masashi_Kimoto@hq.scei.sony.co.jp, Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3fb: Use __func__ instead of __FUNCTION__
+     ps3: Make `ps3videomode -v 0 (auto mode) work again
 has been removed from the -mm tree.  Its filename was
-     ps3fb-use-__func__-instead-of-__function__.patch
+     ps3-make-ps3videomode-v-0-auto-mode-work-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ps3fb: Use __func__ instead of __FUNCTION__
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: ps3: Make `ps3videomode -v 0 (auto mode) work again
+From: Masashi Kimoto <Masashi_Kimoto@hq.scei.sony.co.jp>
 
-ps3fb: Replace GNU extension `__FUNCTION__' by C99 `__func__'
+ps3: Make `ps3videomode -v 0' (auto mode) work again
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |   54 ++++++++++++++++++++++------------------
- 1 file changed, 30 insertions(+), 24 deletions(-)
+ drivers/ps3/ps3av.c         |    7 +++++++
+ drivers/video/ps3fb.c       |    5 +++++
+ include/asm-powerpc/ps3av.h |    1 +
+ 3 files changed, 13 insertions(+)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-use-__func__-instead-of-__function__ drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-use-__func__-instead-of-__function__
-+++ a/drivers/video/ps3fb.c
-@@ -47,7 +47,7 @@
- #include <asm/ps3.h>
+diff -puN drivers/ps3/ps3av.c~ps3-make-ps3videomode-v-0-auto-mode-work-again drivers/ps3/ps3av.c
+--- a/drivers/ps3/ps3av.c~ps3-make-ps3videomode-v-0-auto-mode-work-again
++++ a/drivers/ps3/ps3av.c
+@@ -744,6 +744,13 @@ int ps3av_set_video_mode(u32 id, int boo
  
- #ifdef PS3FB_DEBUG
--#define DPRINTK(fmt, args...) printk("%s: " fmt, __FUNCTION__ , ##args)
-+#define DPRINTK(fmt, args...) printk("%s: " fmt, __func__ , ##args)
- #else
- #define DPRINTK(fmt, args...)
- #endif
-@@ -396,7 +396,7 @@ static int ps3fb_sync(u32 frame)
+ EXPORT_SYMBOL_GPL(ps3av_set_video_mode);
  
- 	if (frame > ps3fb.num_frames - 1) {
- 		printk(KERN_WARNING "%s: invalid frame number (%u)\n",
--		       __FUNCTION__, frame);
-+		       __func__, frame);
- 		return -EINVAL;
- 	}
- 	offset = xres * yres * BPP * frame;
-@@ -409,23 +409,26 @@ static int ps3fb_sync(u32 frame)
- 					   (xres << 16) | yres,
- 					   xres * BPP);	/* line_length */
- 	if (status)
--		printk(KERN_ERR "%s: lv1_gpu_context_attribute FB_BLIT failed: %d\n",
--		       __FUNCTION__, status);
-+		printk(KERN_ERR
-+		       "%s: lv1_gpu_context_attribute FB_BLIT failed: %d\n",
-+		       __func__, status);
- #ifdef HEAD_A
- 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
- 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
- 					   0, offset, 0, 0);
- 	if (status)
--		printk(KERN_ERR "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
--		       __FUNCTION__, status);
-+		printk(KERN_ERR
-+		       "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
-+		       __func__, status);
- #endif
- #ifdef HEAD_B
- 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
- 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
- 					   1, offset, 0, 0);
- 	if (status)
--		printk(KERN_ERR "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
--		       __FUNCTION__, status);
-+		printk(KERN_ERR
-+		       "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
-+		       __func__, status);
- #endif
- 	return 0;
- }
-@@ -634,7 +637,7 @@ static int ps3fb_blank(int blank, struct
++int ps3av_get_auto_mode(int boot)
++{
++	return ps3av_auto_videomode(&ps3av.av_hw_conf, boot);
++}
++
++EXPORT_SYMBOL_GPL(ps3av_get_auto_mode);
++
+ int ps3av_set_mode(u32 id, int boot)
  {
- 	int retval;
+ 	int res;
+diff -puN drivers/video/ps3fb.c~ps3-make-ps3videomode-v-0-auto-mode-work-again drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3-make-ps3videomode-v-0-auto-mode-work-again
++++ a/drivers/video/ps3fb.c
+@@ -732,6 +732,11 @@ static int ps3fb_ioctl(struct fb_info *i
+ 			if (copy_from_user(&val, argp, sizeof(val)))
+ 				break;
  
--	DPRINTK("%s: blank:%d\n", __FUNCTION__, blank);
-+	DPRINTK("%s: blank:%d\n", __func__, blank);
- 	switch (blank) {
- 	case FB_BLANK_POWERDOWN:
- 	case FB_BLANK_HSYNC_SUSPEND:
-@@ -830,7 +833,7 @@ static irqreturn_t ps3fb_vsync_interrupt
- 	status = lv1_gpu_context_intr(ps3fb.context_handle, &v1);
- 	if (status) {
- 		printk(KERN_ERR "%s: lv1_gpu_context_intr failed: %d\n",
--		       __FUNCTION__, status);
-+		       __func__, status);
- 		return IRQ_NONE;
- 	}
++			if (!(val & PS3AV_MODE_MASK)) {
++				u32 id = ps3av_get_auto_mode(0);
++				if (id > 0)
++					val = (val & ~PS3AV_MODE_MASK) | id;
++			}
+ 			DPRINTK("PS3FB_IOCTL_SETMODE:%x\n", val);
+ 			retval = -EINVAL;
+ 			old_mode = ps3fb_mode;
+diff -puN include/asm-powerpc/ps3av.h~ps3-make-ps3videomode-v-0-auto-mode-work-again include/asm-powerpc/ps3av.h
+--- a/include/asm-powerpc/ps3av.h~ps3-make-ps3videomode-v-0-auto-mode-work-again
++++ a/include/asm-powerpc/ps3av.h
+@@ -706,6 +706,7 @@ extern int ps3av_vuart_read(struct ps3_v
  
-@@ -889,7 +892,7 @@ static int ps3fb_vsync_settings(struct g
- 		dinfo->nvcore_frequency/1000000, dinfo->memory_frequency/1000000);
- 
- 	if (dinfo->version_driver != GPU_DRIVER_INFO_VERSION) {
--		printk(KERN_ERR "%s: version_driver err:%x\n", __FUNCTION__,
-+		printk(KERN_ERR "%s: version_driver err:%x\n", __func__,
- 		       dinfo->version_driver);
- 		return -EINVAL;
- 	}
-@@ -898,7 +901,7 @@ static int ps3fb_vsync_settings(struct g
- 	error = ps3_alloc_irq(PS3_BINDING_CPU_ANY, dinfo->irq.irq_outlet,
- 			      &ps3fb.irq_no);
- 	if (error) {
--		printk(KERN_ERR "%s: ps3_alloc_irq failed %d\n", __FUNCTION__,
-+		printk(KERN_ERR "%s: ps3_alloc_irq failed %d\n", __func__,
- 		       error);
- 		return error;
- 	}
-@@ -906,7 +909,7 @@ static int ps3fb_vsync_settings(struct g
- 	error = request_irq(ps3fb.irq_no, ps3fb_vsync_interrupt, IRQF_DISABLED,
- 			    "ps3fb vsync", ps3fb.dev);
- 	if (error) {
--		printk(KERN_ERR "%s: request_irq failed %d\n", __FUNCTION__,
-+		printk(KERN_ERR "%s: request_irq failed %d\n", __func__,
- 		       error);
- 		ps3_free_irq(ps3fb.irq_no);
- 		return error;
-@@ -925,7 +928,7 @@ static int ps3fb_xdr_settings(u64 xdr_lp
- 				       xdr_lpar, ps3fb_videomemory.size, 0);
- 	if (status) {
- 		printk(KERN_ERR "%s: lv1_gpu_context_iomap failed: %d\n",
--		       __FUNCTION__, status);
-+		       __func__, status);
- 		return -ENXIO;
- 	}
- 	DPRINTK("video:%p xdr_ea:%p ioif:%lx lpar:%lx phys:%lx size:%lx\n",
-@@ -937,8 +940,9 @@ static int ps3fb_xdr_settings(u64 xdr_lp
- 					   xdr_lpar, ps3fb_videomemory.size,
- 					   GPU_IOIF, 0);
- 	if (status) {
--		printk(KERN_ERR "%s: lv1_gpu_context_attribute FB_SETUP failed: %d\n",
--		       __FUNCTION__, status);
-+		printk(KERN_ERR
-+		       "%s: lv1_gpu_context_attribute FB_SETUP failed: %d\n",
-+		       __func__, status);
- 		return -ENXIO;
- 	}
- 	return 0;
-@@ -985,7 +989,7 @@ static int __init ps3fb_probe(struct pla
- 					 &ps3fb.memory_handle, &ddr_lpar);
- 	if (status) {
- 		printk(KERN_ERR "%s: lv1_gpu_memory_allocate failed: %d\n",
--		       __FUNCTION__, status);
-+		       __func__, status);
- 		goto err;
- 	}
- 	DPRINTK("ddr:lpar:0x%lx\n", ddr_lpar);
-@@ -996,14 +1000,14 @@ static int __init ps3fb_probe(struct pla
- 					  &lpar_reports, &lpar_reports_size);
- 	if (status) {
- 		printk(KERN_ERR "%s: lv1_gpu_context_attribute failed: %d\n",
--		       __FUNCTION__, status);
-+		       __func__, status);
- 		goto err_gpu_memory_free;
- 	}
- 
- 	/* vsync interrupt */
- 	ps3fb.dinfo = ioremap(lpar_driver_info, 128 * 1024);
- 	if (!ps3fb.dinfo) {
--		printk(KERN_ERR "%s: ioremap failed\n", __FUNCTION__);
-+		printk(KERN_ERR "%s: ioremap failed\n", __func__);
- 		goto err_gpu_context_free;
- 	}
- 
-@@ -1162,8 +1166,9 @@ int ps3fb_set_sync(void)
- 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_SYNC,
- 					   0, L1GPU_DISPLAY_SYNC_VSYNC, 0, 0);
- 	if (status) {
--		printk(KERN_ERR "%s: lv1_gpu_context_attribute DISPLAY_SYNC failed: %d\n",
--		       __FUNCTION__, status);
-+		printk(KERN_ERR
-+		       "%s: lv1_gpu_context_attribute DISPLAY_SYNC failed: %d\n",
-+		       __func__, status);
- 		return -1;
- 	}
- #endif
-@@ -1173,8 +1178,9 @@ int ps3fb_set_sync(void)
- 					   1, L1GPU_DISPLAY_SYNC_VSYNC, 0, 0);
- 
- 	if (status) {
--		printk(KERN_ERR "%s: lv1_gpu_context_attribute DISPLAY_MODE failed: %d\n",
--		       __FUNCTION__, status);
-+		printk(KERN_ERR
-+		       "%s: lv1_gpu_context_attribute DISPLAY_MODE failed: %d\n",
-+		       __func__, status);
- 		return -1;
- 	}
- #endif
-@@ -1199,7 +1205,7 @@ static int __init ps3fb_init(void)
- 
- 	error = ps3av_dev_open();
- 	if (error) {
--		printk(KERN_ERR "%s: ps3av_dev_open failed\n", __FUNCTION__);
-+		printk(KERN_ERR "%s: ps3av_dev_open failed\n", __func__);
- 		goto err;
- 	}
- 
+ extern int ps3av_set_video_mode(u32, int);
+ extern int ps3av_set_audio_mode(u32, u32, u32, u32, u32);
++extern int ps3av_get_auto_mode(int);
+ extern int ps3av_set_mode(u32, int);
+ extern int ps3av_get_mode(void);
+ extern int ps3av_get_scanmode(int);
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from Masashi_Kimoto@hq.scei.sony.co.jp are
 
 origin.patch
-fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
-fbdev-fb_do_show_logo-updates.patch
-fbdev-correct-image-offsets-when-rotating-logo.patch
