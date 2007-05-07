@@ -1,56 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - ide-cs-recognize-2gb-compactflash-from-transcend.patch removed from -mm tree
-Date: Sun, 06 May 2007 23:47:05 -0700
-Message-ID: <200705070647.l476l5RW020368@shell0.pdx.osdl.net>
+Subject: - fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch removed from -mm tree
+Date: Sun, 06 May 2007 23:47:37 -0700
+Message-ID: <200705070647.l476lc5O020401@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59110 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754077AbXEGGrg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 02:47:36 -0400
+	by vger.kernel.org with ESMTP id S1754076AbXEGGrl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 02:47:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Fabrice.Aeschbacher@siemens.com, bzolnier@gmail.com, fabrice.aeschbacher@siemens.com, linux@dominikbrodowski.net, peter@stuge.se, mm-commits@vger.kernel.org
+To: jbarnes@virtuousgeek.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide-cs: recognize 2GB CompactFlash from Transcend
+     fix sysfs rom file creation for BIOS ROM shadows
 has been removed from the -mm tree.  Its filename was
-     ide-cs-recognize-2gb-compactflash-from-transcend.patch
+     fix-sysfs-rom-file-creation-for-bios-rom-shadows.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ide-cs: recognize 2GB CompactFlash from Transcend
-From: "Aeschbacher, Fabrice" <Fabrice.Aeschbacher@siemens.com>
+Subject: fix sysfs rom file creation for BIOS ROM shadows
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
 
-Without the following patch, the kernel does not automatically detect
-2GB CompactFlash cards from Transcend.
+At one time, if a BIOS ROM shadow was detected for the boot video device
+(stored at offset 0xc0000), we'd set a special resource flag,
+IORESOURCE_ROM_SHADOW, so that the sysfs ROM file code could handle it
+properly.  That broke along the way somewhere though, so current kernels
+will be missing 'rom' files in sysfs if the video device doesn't have an
+explicit ROM BAR.
 
-Signed-off-by: Fabrice Aeschbacher <fabrice.aeschbacher@siemens.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Acked-by: Peter Stuge <peter@stuge.se>
+This patch fixes the regression by moving the video fixup quirk to a little
+later in the boot cycle (to avoid having its work undone by PCI resource
+allocation) and checking in the PCI sysfs code whether a rom file should be
+created due to a shadow resource, which is also moved to a little later in
+the boot cycle so it will occur after the video fixup.  Tested and works on
+my i386 test box.
+
+Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/legacy/ide-cs.c |    1 +
- 1 files changed, 1 insertion(+)
+ arch/i386/pci/fixup.c   |    2 +-
+ drivers/pci/pci-sysfs.c |    5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ide/legacy/ide-cs.c~ide-cs-recognize-2gb-compactflash-from-transcend drivers/ide/legacy/ide-cs.c
---- a/drivers/ide/legacy/ide-cs.c~ide-cs-recognize-2gb-compactflash-from-transcend
-+++ a/drivers/ide/legacy/ide-cs.c
-@@ -401,6 +401,7 @@ static struct pcmcia_device_id ide_ids[]
- 	PCMCIA_DEVICE_PROD_ID12("TOSHIBA", "MK2001MPL", 0xb4585a1a, 0x3489e003),
- 	PCMCIA_DEVICE_PROD_ID1("TRANSCEND    512M   ", 0xd0909443),
- 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS1GCF80", 0x709b1bf1, 0x2a54d4b1),
-+	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS2GCF120", 0x709b1bf1, 0x969aa4f2),
- 	PCMCIA_DEVICE_PROD_ID12("TRANSCEND", "TS4GCF120", 0x709b1bf1, 0xf54a91c8),
- 	PCMCIA_DEVICE_PROD_ID12("WIT", "IDE16", 0x244e5994, 0x3e232852),
- 	PCMCIA_DEVICE_PROD_ID12("WEIDA", "TWTTI", 0xcc7cf69c, 0x212bb918),
+diff -puN arch/i386/pci/fixup.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows arch/i386/pci/fixup.c
+--- a/arch/i386/pci/fixup.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows
++++ a/arch/i386/pci/fixup.c
+@@ -354,7 +354,7 @@ static void __devinit pci_fixup_video(st
+ 		printk(KERN_DEBUG "Boot video device is %s\n", pci_name(pdev));
+ 	}
+ }
+-DECLARE_PCI_FIXUP_HEADER(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
++DECLARE_PCI_FIXUP_FINAL(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_video);
+ 
+ /*
+  * Some Toshiba laptops need extra code to enable their TI TSB43AB22/A.
+diff -puN drivers/pci/pci-sysfs.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~fix-sysfs-rom-file-creation-for-bios-rom-shadows
++++ a/drivers/pci/pci-sysfs.c
+@@ -620,7 +620,8 @@ int __must_check pci_create_sysfs_dev_fi
+ 		goto err_bin_file;
+ 
+ 	/* If the device has a ROM, try to expose it in sysfs. */
+-	if (pci_resource_len(pdev, PCI_ROM_RESOURCE)) {
++	if (pci_resource_len(pdev, PCI_ROM_RESOURCE) ||
++	    (pdev->resource[PCI_ROM_RESOURCE].flags & IORESOURCE_ROM_SHADOW)) {
+ 		rom_attr = kzalloc(sizeof(*rom_attr), GFP_ATOMIC);
+ 		if (rom_attr) {
+ 			pdev->rom_attr = rom_attr;
+@@ -695,4 +696,4 @@ static int __init pci_sysfs_init(void)
+ 	return 0;
+ }
+ 
+-__initcall(pci_sysfs_init);
++late_initcall(pci_sysfs_init);
 _
 
-Patches currently in -mm which might be from Fabrice.Aeschbacher@siemens.com are
+Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
 
 origin.patch
-pata_pcmcia-recognize-2gb-compactflash-from-transcend.patch
