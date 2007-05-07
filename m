@@ -1,32 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set.patch removed from -mm tree
-Date: Sun, 06 May 2007 23:44:43 -0700
-Message-ID: <200705070644.l476ihQD020232@shell0.pdx.osdl.net>
+Subject: - acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch removed from -mm tree
+Date: Sun, 06 May 2007 23:45:19 -0700
+Message-ID: <200705070645.l476jJZF020287@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57681 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754060AbXEGGqT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 02:46:19 -0400
+	by vger.kernel.org with ESMTP id S1754060AbXEGGqu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 02:46:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, johnstul@us.ibm.com, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: keep TSC stable, when lapic_timer_c2_ok is set
+     acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable
 has been removed from the -mm tree.  Its filename was
-     acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set.patch
+     acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
 
-This patch was dropped because I'm not acpi maintainer
+This patch was dropped because I'm still not acpi maintainer
 
 ------------------------------------------------------
-Subject: ACPI: keep TSC stable, when lapic_timer_c2_ok is set
-From: Thomas Gleixner <tglx@linutronix.de>
-
-The local apic timer stop in C2 resp.  C3 states is coupled with the stop of
-the TSC.  When the local apic timer is marked stable in C2 on the kernel
-commandline, then keep the TSC marked stable in C2 as well.
+Subject: acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable
+From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: john stultz <johnstul@us.ibm.com>
@@ -36,103 +32,158 @@ Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   21 ++++++++-------------
- 1 files changed, 8 insertions(+), 13 deletions(-)
+ drivers/acpi/processor_idle.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set
+diff -puN drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable
 +++ a/drivers/acpi/processor_idle.c
-@@ -225,18 +225,23 @@ static void acpi_state_timer_broadcast(s
- 				       struct acpi_processor_cx *cx,
- 				       int broadcast)
- {
--#ifdef CONFIG_GENERIC_CLOCKEVENTS
--
- 	int state = cx - pr->power.states;
+@@ -239,7 +239,7 @@ static void acpi_state_timer_broadcast(s
  
- 	if (state >= pr->power.timer_broadcast_on_state) {
-+
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
- 		unsigned long reason;
- 
- 		reason = broadcast ?  CLOCK_EVT_NOTIFY_BROADCAST_ENTER :
- 			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
- 		clockevents_notify(reason, &pr->id);
--	}
+ #ifdef CONFIG_GENERIC_TIME
+ 		/* TSC halts in C2/3, so notify users */
+-		mark_tsc_unstable();
++		mark_tsc_unstable("TSC halts in C2/3");
  #endif
-+
-+#ifdef CONFIG_GENERIC_TIME
-+		/* TSC halts in C2/3, so notify users */
-+		mark_tsc_unstable();
-+#endif
-+	}
- }
- 
- #else
-@@ -925,11 +930,6 @@ static int acpi_idle_enter_c2(struct cpu
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
- 
--#ifdef CONFIG_GENERIC_TIME
--	/* TSC halts in C2, so notify users */
--		mark_tsc_unstable("possible TSC halt in C2");
--#endif
--
- 	local_irq_enable();
- 	current_thread_info()->status |= TS_POLLING;
- 
-@@ -1009,11 +1009,6 @@ static int acpi_idle_enter_c3(struct cpu
- 		spin_unlock(&c3_lock);
  	}
- 
--#ifdef CONFIG_GENERIC_TIME
--	/* TSC halts in C3, so notify users */
--		mark_tsc_unstable("TSC halts in C3");
--#endif
--
- 	local_irq_enable();
- 	current_thread_info()->status |= TS_POLLING;
- 
+ }
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-h8300-generic-irq.patch
-arm-spinlock-initializer-cleanup.patch
+slab-introduce-krealloc.patch
+rm9000-serial-driver.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+slab-mark-set_up_list3s-__init.patch
+slub-core.patch
+mm-optimize-kill_bdev.patch
+srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
+uml-driver-formatting-fixes-fix.patch
+cx88-video-build-fix.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
 git-avr32.patch
-drm-spinlock-initializer-cleanup.patch
-git-dvb.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+git-drm.patch
+cinergyt2-fix-file-release-handler.patch
+git-gfs2-nmw.patch
+git-hid-fixup.patch
 git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
+git-jfs.patch
+git-kvm.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 git-mtd.patch
-s390-spinlock-initializer-cleanup.patch
-optimize-timespec_trunc.patch
-kernel-irq-procc-unprotected-iteration-over-the-irq-action-list-in-name_unique.patch
+natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
+atl1-use-dev_printk-macros-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
+git-nfs-printk-warning-fixes.patch
+git-parisc.patch
+git-r8169.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
 add-support-for-deferrable-timers-respun.patch
-irq-check-for-percpu-flag-only-when-adding-first-irqaction.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc.patch
-ignore-stolen-time-in-the-softlockup-watchdog.patch
-replace-deprecated-sa_xxx-interrupt-flags.patch
-deprecate-sa_xxx-interrupt-flags-v2.patch
-pad-irq_desc-to-internode-cacheline-size.patch
-highres-dyntick-prevent-xtime-lock-contention.patch
-introduce-a-handy-list_first_entry-macro-v2.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-clockchipsh-kernel-doc-fix.patch
-export-hrtimer_forward.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+upper-32-bits.patch
+consolidate-asm-consth-to-linux-consth-fix.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+do_tty_write-can-block-even-with-o_nonblock-tidy.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
 blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-isdn-spinlock-initializer-cleanup.patch
-sched-fix-idle-load-balancing-in-softirqd-context.patch
-sched-dynticks-idle-load-balancing-v3.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
 declare-struct-ktime.patch
-add-irqf_irqpoll-flag-common-code.patch
-add-irqf_irqpoll-flag-on-x86_64.patch
-add-irqf_irqpoll-flag-on-i386.patch
-add-irqf_irqpoll-flag-on-ia64.patch
-add-irqf_irqpoll-flag-on-sh.patch
-add-irqf_irqpoll-flag-on-arm.patch
-clocksource-fix-resume-logic.patch
-acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
 acpi-keep-tsc-stable-when-lapic_timer_c2_ok-is-set-vs-x86_64-mm-log-reason-why-tsc-was-marked-unstable.patch
-timer_stats-slimmed-down-using-statistics-infrastucture.patch
+rename-thread_info-to-stack-fix.patch
+char-cyclades-conditions-cleanup-fix.patch
+char-cyclades-probe-cleanup-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
