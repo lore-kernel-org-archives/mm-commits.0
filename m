@@ -1,69 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - ps3fb-atomic-fixes.patch removed from -mm tree
-Date: Mon, 07 May 2007 00:00:14 -0700
-Message-ID: <200705070700.l4770Ewa021002@shell0.pdx.osdl.net>
+Subject: - ps3fb-kill-superfluous-zero-initializations.patch removed from -mm tree
+Date: Mon, 07 May 2007 00:00:12 -0700
+Message-ID: <200705070700.l4770C0e020997@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34491 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754072AbXEGHAl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 03:00:41 -0400
+	by vger.kernel.org with ESMTP id S1754089AbXEGHAt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 03:00:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, hch@lst.de, jsimmons@infradead.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3fb: atomic fixes
+     ps3fb: kill superfluous zero initializations
 has been removed from the -mm tree.  Its filename was
-     ps3fb-atomic-fixes.patch
+     ps3fb-kill-superfluous-zero-initializations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ps3fb: atomic fixes
+Subject: ps3fb: kill superfluous zero initializations
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-ps3fb: Use atomic_dec_if_positive() instead of bogus
-atomic_read()/atomic_dec() combinations
+ps3fb: kill superfluous zero initializations
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Acked-by: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |   12 ++++--------
- 1 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/video/ps3fb.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-atomic-fixes drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-atomic-fixes
+diff -puN drivers/video/ps3fb.c~ps3fb-kill-superfluous-zero-initializations drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-kill-superfluous-zero-initializations
 +++ a/drivers/video/ps3fb.c
-@@ -680,13 +680,10 @@ EXPORT_SYMBOL_GPL(ps3fb_wait_for_vsync);
+@@ -297,10 +297,10 @@ static const struct fb_videomode ps3fb_m
+ #define VP_OFF(i)	(WIDTH(i) * Y_OFF(i) * BPP + X_OFF(i) * BPP)
+ #define FB_OFF(i)	(GPU_OFFSET - VP_OFF(i) % GPU_OFFSET)
  
- void ps3fb_flip_ctl(int on)
- {
--	if (on) {
--		if (atomic_read(&ps3fb.ext_flip) > 0) {
--			atomic_dec(&ps3fb.ext_flip);
--		}
--	} else {
-+	if (on)
-+		atomic_dec_if_positive(&ps3fb.ext_flip);
-+	else
- 		atomic_inc(&ps3fb.ext_flip);
--	}
- }
+-static int ps3fb_mode = 0;
++static int ps3fb_mode;
+ module_param(ps3fb_mode, bool, 0);
  
- EXPORT_SYMBOL_GPL(ps3fb_flip_ctl);
-@@ -786,8 +783,7 @@ static int ps3fb_ioctl(struct fb_info *i
+-static char *mode_option __initdata = NULL;
++static char *mode_option __initdata;
  
- 	case PS3FB_IOCTL_OFF:
- 		DPRINTK("PS3FB_IOCTL_OFF:\n");
--		if (atomic_read(&ps3fb.ext_flip) > 0)
--			atomic_dec(&ps3fb.ext_flip);
-+		atomic_dec_if_positive(&ps3fb.ext_flip);
- 		retval = 0;
- 		break;
  
+ static int ps3fb_get_res_table(u32 xres, u32 yres)
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
