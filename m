@@ -1,205 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-use-standard-bootloader-format-fix-badly-sized-doc.patch added to -mm tree
-Date: Mon, 07 May 2007 16:18:40 -0700
-Message-ID: <200705072318.l47NIe9M008039@shell0.pdx.osdl.net>
+Subject: - git-sh-fixup.patch removed from -mm tree
+Date: Mon, 07 May 2007 16:57:59 -0700
+Message-ID: <200705072358.l47Nvx2o008689@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55094 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50638 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967196AbXEGXSq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 19:18:46 -0400
+	by vger.kernel.org with ESMTP id S967014AbXEGX6C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 19:58:02 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l47Nw0hK013403
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 7 May 2007 16:58:01 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: use standard bootloader format, fix badly-sized initrds
-has been added to the -mm tree.  Its filename is
-     lguest-use-standard-bootloader-format-fix-badly-sized-doc.patch
+     git-sh-fixup
+has been removed from the -mm tree.  Its filename was
+     git-sh-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: lguest: use standard bootloader format, fix badly-sized initrds
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: git-sh-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Eric Biederman complained that lguest doesn't use the Linux standard boot
-header format.  He's got a good point.
-
-This also simplifies the code: the example launcher writes the header
-directly, rather than lguest writing into it during boot.
-
-While we're touching this code, we also fix the problem of initrd's which
-don't have a page-aligned size.
-
-This anticipates changing the paravirt-finding routines to use a "platform
-type" field from %esi, rather than a "probe all until one succeeds"
-routine, but doesn't actually change that code.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/lguest/lguest.c |   48 ++++++++++++++++++++------------
- 1 files changed, 31 insertions(+), 17 deletions(-)
+ arch/sh/lib/Makefile |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN Documentation/lguest/lguest.c~lguest-use-standard-bootloader-format-fix-badly-sized-doc Documentation/lguest/lguest.c
---- a/Documentation/lguest/lguest.c~lguest-use-standard-bootloader-format-fix-badly-sized-doc
-+++ a/Documentation/lguest/lguest.c
-@@ -30,10 +30,12 @@
- #include <termios.h>
- #include <getopt.h>
- #include <zlib.h>
-+typedef unsigned long long u64;
- typedef uint32_t u32;
- typedef uint16_t u16;
- typedef uint8_t u8;
- #include "../../include/linux/lguest_launcher.h"
-+#include "../../include/asm-i386/e820.h"
+diff -puN arch/sh/lib/Makefile~git-sh-fixup arch/sh/lib/Makefile
+--- a/arch/sh/lib/Makefile~git-sh-fixup
++++ a/arch/sh/lib/Makefile
+@@ -3,11 +3,7 @@
+ #
  
- #define PAGE_PRESENT 0x7 	/* Present, RW, Execute */
- #define NET_PEERNUM 1
-@@ -241,31 +243,33 @@ static unsigned long load_kernel(int fd,
- 	return load_bzimage(fd, page_offset);
- }
+ lib-y  = delay.o memset.o memmove.o memchr.o \
+-<<<<<<< HEAD/arch/sh/lib/Makefile
+-	 checksum.o strlen.o div64.o udivdi3.o \
+-=======
+ 	 checksum.o strcasecmp.o strlen.o div64.o \
+->>>>>>> /arch/sh/lib/Makefile
+ 	 div64-generic.o
  
-+static inline unsigned long page_align(unsigned long addr)
-+{
-+	return ((addr + getpagesize()-1) & ~(getpagesize()-1));
-+}
-+
- /* initrd gets loaded at top of memory: return length. */
- static unsigned long load_initrd(const char *name, unsigned long mem)
- {
- 	int ifd;
- 	struct stat st;
-+	unsigned long len;
- 	void *iaddr;
- 
- 	ifd = open_or_die(name, O_RDONLY);
- 	if (fstat(ifd, &st) < 0)
- 		err(1, "fstat() on initrd '%s'", name);
- 
--	iaddr = mmap((void *)mem - st.st_size, st.st_size,
-+	len = page_align(st.st_size);
-+	iaddr = mmap((void *)mem - len, st.st_size,
- 		     PROT_READ|PROT_EXEC|PROT_WRITE,
- 		     MAP_FIXED|MAP_PRIVATE, ifd, 0);
--	if (iaddr != (void *)mem - st.st_size)
-+	if (iaddr != (void *)mem - len)
- 		err(1, "Mmaping initrd '%s' returned %p not %p",
--		    name, iaddr, (void *)mem - st.st_size);
-+		    name, iaddr, (void *)mem - len);
- 	close(ifd);
- 	verbose("mapped initrd %s size=%lu @ %p\n", name, st.st_size, iaddr);
--	return st.st_size;
--}
--
--static inline unsigned long page_align(unsigned long addr)
--{
--	return ((addr + getpagesize()-1) & ~(getpagesize()-1));
-+	return len;
- }
- 
- static unsigned long setup_pagetables(unsigned long mem,
-@@ -933,10 +937,10 @@ static void usage(void)
- 
- int main(int argc, char *argv[])
- {
--	unsigned long mem, pgdir, start, page_offset;
-+	unsigned long mem, pgdir, start, page_offset, initrd_size = 0;
- 	int c, lguest_fd, waker_fd;
- 	struct device_list device_list;
--	struct lguest_boot_info *boot = (void *)0;
-+	void *boot = (void *)0;
- 	const char *initrd_name = NULL;
- 
- 	device_list.max_infd = -1;
-@@ -984,15 +988,25 @@ int main(int argc, char *argv[])
- 	map_device_descriptors(&device_list, mem);
- 
- 	/* Map the initrd image if requested */
--	if (initrd_name)
--		boot->initrd_size = load_initrd(initrd_name, mem);
-+	if (initrd_name) {
-+		initrd_size = load_initrd(initrd_name, mem);
-+		*(unsigned long *)(boot+0x218) = mem - initrd_size;
-+		*(unsigned long *)(boot+0x21c) = initrd_size;
-+		*(unsigned char *)(boot+0x210) = 0xFF;
-+	}
- 
- 	/* Set up the initial linar pagetables. */
--	pgdir = setup_pagetables(mem, boot->initrd_size, page_offset);
-+	pgdir = setup_pagetables(mem, initrd_size, page_offset);
- 
--	/* Give the guest the boot information it needs. */
--	concat(boot->cmdline, argv+optind+2);
--	boot->max_pfn = mem/getpagesize();
-+	/* E820 memory map: ours is a simple, single region. */
-+	*(char*)(boot+E820NR) = 1;
-+	*((struct e820entry *)(boot+E820MAP))
-+		= ((struct e820entry) { 0, mem, E820_RAM });
-+	/* Command line pointer and command line (at 4096) */
-+	*(void **)(boot + 0x228) = boot + 4096;
-+	concat(boot + 4096, argv+optind+2);
-+	/* Paravirt type: 1 == lguest */
-+	*(int *)(boot + 0x23c) = 1;
- 
- 	lguest_fd = tell_kernel(pgdir, start, page_offset);
- 	waker_fd = setup_waker(&device_list);
+ memcpy-y			:= memcpy.o
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-array_size-check-for-type.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
+git-jfs.patch
+git-kvm.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
+atl1-use-dev_printk-macros-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-nfs-printk-warning-fixes.patch
+git-parisc.patch
+git-r8169.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-sh-fixup.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
 xfs-clean-up-shrinker-games.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-module-use-krealloc.patch
-get_futex_key-get_key_refs-and-drop_key_refs.patch
-futex-restartable-futex_wait.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-simplify-module_get_kallsym-by-dropping-length-arg.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-simplify-kallsyms_lookup.patch
-fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
-fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
-____call_usermodehelper-dont-flush_signals.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-futex-new-private-futexes.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
+lazy-freeing-of-memory-through-madv_free.patch
+slub-core.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+upper-32-bits.patch
+consolidate-asm-consth-to-linux-consth-fix.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+do_tty_write-can-block-even-with-o_nonblock-tidy.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
 lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda-lguest-2621-mm1-update.patch
-lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
-lguest-the-guest-code-handle-new-paravirt-lazy-mode-fix-userspace.patch
-lguest-the-guest-code-dont-use-paravirt_probe-its-dying.patch
-lguest-the-host-code.patch
 lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch
-lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
-lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem.patch
-lguest-the-host-code-remove-put_user-etc-warnings-add-bloat.patch
-lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch
-lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-net-driver-lguest-2621-mm1-update-lguest-net-stats-inlinepatch.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
-lguest-documentation-and-example-updates.patch
-lguest-the-documentation-example-launcher-dont-use-paravirt_probe-its-dying-doc.patch
-lguest-use-standard-bootloader-format-fix-badly-sized-doc.patch
 lguest-the-host-code-vs-futex-new-private-futexes.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+char-cyclades-conditions-cleanup-fix.patch
+char-cyclades-probe-cleanup-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
