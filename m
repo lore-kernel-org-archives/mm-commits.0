@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-accelerated-fillrect-and-copyarea.patch added to -mm tree
-Date: Mon, 07 May 2007 15:27:13 -0700
-Message-ID: <200705072227.l47MRDnE006976@shell0.pdx.osdl.net>
+Subject: + xilinxfb-xilinx-framebuffer-device-driver.patch added to -mm tree
+Date: Mon, 07 May 2007 15:27:29 -0700
+Message-ID: <200705072227.l47MRT4W007004@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57313 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966707AbXEGWlP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:41:15 -0400
+	by vger.kernel.org with ESMTP id S966836AbXEGWl4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:41:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
+Cc: akonovalov@ru.mvista.com, adaplas@gmail.com
 
 
 The patch titled
-     pm2fb: accelerated fillrect and copyarea
+     xilinxfb: xilinx framebuffer device driver
 has been added to the -mm tree.  Its filename is
-     pm2fb-accelerated-fillrect-and-copyarea.patch
+     xilinxfb-xilinx-framebuffer-device-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,205 +25,459 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm2fb: accelerated fillrect and copyarea
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: xilinxfb: xilinx framebuffer device driver
+From: Andrei Konovalov <akonovalov@ru.mvista.com>
 
-This is a port of accelerated functions from 2.4 kernel.  Only fillrect and
-copyarea are accelerated.  Fillrect is not accelerated in 24-bit mode.
+Add support for the video controller IP block included into Xilinx ML300 and
+ML403 reference designs.
 
-[adaplas]
-Add appropriate flags
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Andrei Konovalov <akonovalov@ru.mvista.com>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |  132 ++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 128 insertions(+), 4 deletions(-)
+ arch/ppc/syslib/virtex_devices.h |    7 
+ drivers/video/Kconfig            |   11 
+ drivers/video/Makefile           |    1 
+ drivers/video/xilinxfb.c         |  381 +++++++++++++++++++++++++++++
+ 4 files changed, 400 insertions(+)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-accelerated-fillrect-and-copyarea drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-accelerated-fillrect-and-copyarea
-+++ a/drivers/video/pm2fb.c
-@@ -103,7 +103,7 @@ static struct fb_fix_screeninfo pm2fb_fi
- 	.xpanstep =	1,
- 	.ypanstep =	1,
- 	.ywrapstep =	0, 
--	.accel =	FB_ACCEL_NONE,
-+	.accel =	FB_ACCEL_3DLABS_PERMEDIA2,
- };
+diff -puN arch/ppc/syslib/virtex_devices.h~xilinxfb-xilinx-framebuffer-device-driver arch/ppc/syslib/virtex_devices.h
+--- a/arch/ppc/syslib/virtex_devices.h~xilinxfb-xilinx-framebuffer-device-driver
++++ a/arch/ppc/syslib/virtex_devices.h
+@@ -13,6 +13,13 @@
  
- /*
-@@ -206,6 +206,17 @@ static inline void WAIT_FIFO(struct pm2f
- }
- #endif
+ #include <linux/platform_device.h>
  
-+static void wait_pm2(struct pm2fb_par* par) {
++/* ML300/403 reference design framebuffer driver platform data struct */
++struct xilinxfb_platform_data {
++	u32 rotate_screen;
++	u32 screen_height_mm;
++	u32 screen_width_mm;
++};
 +
-+	WAIT_FIFO(par, 1);
-+	pm2_WR(par, PM2R_SYNC, 0);
-+	mb();
-+	do {
-+		while (pm2_RD(par, PM2R_OUT_FIFO_WORDS) == 0);
-+		rmb();
-+	} while (pm2_RD(par, PM2R_OUT_FIFO) != PM2TAG(PM2R_SYNC));
-+}
-+
- /*
-  * partial products for the supported horizontal resolutions.
-  */
-@@ -1041,6 +1052,117 @@ static int pm2fb_blank(int blank_mode, s
- 	return 0;
- }
+ void __init virtex_early_serial_map(void);
  
+ /* Prototype for device fixup routine.  Implement this routine in the
+diff -puN drivers/video/Kconfig~xilinxfb-xilinx-framebuffer-device-driver drivers/video/Kconfig
+--- a/drivers/video/Kconfig~xilinxfb-xilinx-framebuffer-device-driver
++++ a/drivers/video/Kconfig
+@@ -1757,6 +1757,17 @@ config FB_PS3_DEFAULT_SIZE_M
+ 	  The default value can be overridden on the kernel command line
+ 	  using the "ps3fb" option (e.g. "ps3fb=9M");
+ 
++config FB_XILINX
++	tristate "Xilinx frame buffer support"
++	depends on FB && XILINX_VIRTEX
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	---help---
++	  Include support for the Xilinx ML300/ML403 reference design
++	  framebuffer. ML300 carries a 640*480 LCD display on the board,
++	  ML403 uses a standard DB15 VGA connector.
++
+ config FB_VIRTUAL
+ 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
+ 	depends on FB
+diff -puN drivers/video/Makefile~xilinxfb-xilinx-framebuffer-device-driver drivers/video/Makefile
+--- a/drivers/video/Makefile~xilinxfb-xilinx-framebuffer-device-driver
++++ a/drivers/video/Makefile
+@@ -109,6 +109,7 @@ obj-$(CONFIG_FB_PNX4008_DUM_RGB)  += pnx
+ obj-$(CONFIG_FB_IBM_GXT4500)	  += gxt4500.o
+ obj-$(CONFIG_FB_PS3)		  += ps3fb.o
+ obj-$(CONFIG_FB_SM501)            += sm501fb.o
++obj-$(CONFIG_FB_XILINX)           += xilinxfb.o
+ 
+ # Platform or fallback drivers go here
+ obj-$(CONFIG_FB_VESA)             += vesafb.o
+diff -puN /dev/null drivers/video/xilinxfb.c
+--- /dev/null
++++ a/drivers/video/xilinxfb.c
+@@ -0,0 +1,381 @@
 +/*
-+ * block operation. copy=0: rectangle fill, copy=1: rectangle copy.
++ * xilinxfb.c
++ *
++ * Xilinx TFT LCD frame buffer driver
++ *
++ * Author: MontaVista Software, Inc.
++ *         source@mvista.com
++ *
++ * 2002-2007 (c) MontaVista Software, Inc.  This file is licensed under the
++ * terms of the GNU General Public License version 2.  This program is licensed
++ * "as is" without any warranty of any kind, whether express or implied.
 + */
-+static void pm2fb_block_op(struct pm2fb_par* par, int copy,
-+				s32 xsrc, s32 ysrc,
-+				s32 x, s32 y, s32 w, s32 h,
-+				u32 color) {
 +
-+	if (!w || !h)
-+		return;
-+	WAIT_FIFO(par, 6);
-+	pm2_WR(par, PM2R_CONFIG, PM2F_CONFIG_FB_WRITE_ENABLE |
-+		PM2F_CONFIG_FB_READ_SOURCE_ENABLE);
-+	pm2_WR(par, PM2R_FB_PIXEL_OFFSET, 0);
-+	if (copy)
-+		pm2_WR(par, PM2R_FB_SOURCE_DELTA,
-+			((ysrc-y) & 0xfff) << 16 | ((xsrc-x) & 0xfff));
-+	else
-+		pm2_WR(par, PM2R_FB_BLOCK_COLOR, color);
-+	pm2_WR(par, PM2R_RECTANGLE_ORIGIN, (y << 16) | x);
-+	pm2_WR(par, PM2R_RECTANGLE_SIZE, (h << 16) | w);
-+	wmb();
-+	pm2_WR(par, PM2R_RENDER,PM2F_RENDER_RECTANGLE |
-+				(x<xsrc ? PM2F_INCREASE_X : 0) |
-+				(y<ysrc ? PM2F_INCREASE_Y : 0) |
-+				(copy ? 0 : PM2F_RENDER_FASTFILL));
-+	wait_pm2(par);
-+}
++/*
++ * This driver was based on au1100fb.c by MontaVista rewritten for 2.6
++ * by Embedded Alley Solutions <source@embeddedalley.com>, which in turn
++ * was based on skeletonfb.c, Skeleton for a frame buffer device by
++ * Geert Uytterhoeven.
++ */
 +
-+static void pm2fb_fillrect (struct fb_info *info,
-+				const struct fb_fillrect *region)
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/version.h>
++#include <linux/errno.h>
++#include <linux/string.h>
++#include <linux/mm.h>
++#include <linux/fb.h>
++#include <linux/init.h>
++#include <linux/dma-mapping.h>
++#include <linux/platform_device.h>
++
++#include <asm/io.h>
++#include <syslib/virtex_devices.h>
++
++#define DRIVER_NAME		"xilinxfb"
++#define DRIVER_DESCRIPTION	"Xilinx TFT LCD frame buffer driver"
++
++/*
++ * Xilinx calls it "PLB TFT LCD Controller" though it can also be used for
++ * the VGA port on the Xilinx ML40x board. This is a hardware display controller
++ * for a 640x480 resolution TFT or VGA screen.
++ *
++ * The interface to the framebuffer is nice and simple.  There are two
++ * control registers.  The first tells the LCD interface where in memory
++ * the frame buffer is (only the 11 most significant bits are used, so
++ * don't start thinking about scrolling).  The second allows the LCD to
++ * be turned on or off as well as rotated 180 degrees.
++ */
++#define NUM_REGS	2
++#define REG_FB_ADDR	0
++#define REG_CTRL	1
++#define REG_CTRL_ENABLE	 0x0001
++#define REG_CTRL_ROTATE	 0x0002
++
++/*
++ * The hardware only handles a single mode: 640x480 24 bit true
++ * color. Each pixel gets a word (32 bits) of memory.  Within each word,
++ * the 8 most significant bits are ignored, the next 8 bits are the red
++ * level, the next 8 bits are the green level and the 8 least
++ * significant bits are the blue level.  Each row of the LCD uses 1024
++ * words, but only the first 640 pixels are displayed with the other 384
++ * words being ignored.  There are 480 rows.
++ */
++#define BYTES_PER_PIXEL	4
++#define BITS_PER_PIXEL	(BYTES_PER_PIXEL * 8)
++#define XRES		640
++#define YRES		480
++#define XRES_VIRTUAL	1024
++#define YRES_VIRTUAL	YRES
++#define LINE_LENGTH	(XRES_VIRTUAL * BYTES_PER_PIXEL)
++#define FB_SIZE		(YRES_VIRTUAL * LINE_LENGTH)
++
++#define RED_SHIFT	16
++#define GREEN_SHIFT	8
++#define BLUE_SHIFT	0
++
++#define PALETTE_ENTRIES_NO	16	/* passed to fb_alloc_cmap() */
++
++/*
++ * Here are the default fb_fix_screeninfo and fb_var_screeninfo structures
++ */
++static struct fb_fix_screeninfo xilinx_fb_fix __initdata = {
++	.id =		"Xilinx",
++	.type =		FB_TYPE_PACKED_PIXELS,
++	.visual =	FB_VISUAL_TRUECOLOR,
++	.smem_len =	FB_SIZE,
++	.line_length =	LINE_LENGTH,
++	.accel =	FB_ACCEL_NONE
++};
++
++static struct fb_var_screeninfo xilinx_fb_var __initdata = {
++	.xres =			XRES,
++	.yres =			YRES,
++	.xres_virtual =		XRES_VIRTUAL,
++	.yres_virtual =		YRES_VIRTUAL,
++
++	.bits_per_pixel =	BITS_PER_PIXEL,
++
++	.red =		{ RED_SHIFT, 8, 0 },
++	.green =	{ GREEN_SHIFT, 8, 0 },
++	.blue =		{ BLUE_SHIFT, 8, 0 },
++	.transp =	{ 0, 0, 0 },
++
++	.activate =	FB_ACTIVATE_NOW
++};
++
++struct xilinxfb_drvdata {
++
++	struct fb_info	info;		/* FB driver info record */
++
++	u32		regs_phys;	/* phys. address of the control registers */
++	u32 __iomem	*regs;		/* virt. address of the control registers */
++
++	unsigned char __iomem	*fb_virt;	/* virt. address of the frame buffer */
++	dma_addr_t	fb_phys;	/* phys. address of the frame buffer */
++
++	u32		reg_ctrl_default;
++
++	u32		pseudo_palette[PALETTE_ENTRIES_NO];
++					/* Fake palette of 16 colors */
++};
++
++#define to_xilinxfb_drvdata(_info) \
++	container_of(_info, struct xilinxfb_drvdata, info)
++
++/*
++ * The LCD controller has DCR interface to its registers, but all
++ * the boards and configurations the driver has been tested with
++ * use opb2dcr bridge. So the registers are seen as memory mapped.
++ * This macro is to make it simple to add the direct DCR access
++ * when it's needed.
++ */
++#define xilinx_fb_out_be32(driverdata, offset, val) \
++	out_be32(driverdata->regs + offset, val)
++
++static int
++xilinx_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned blue,
++	unsigned transp, struct fb_info *fbi)
 +{
-+	struct pm2fb_par *par = info->par;
-+	struct fb_fillrect modded;
-+	int vxres, vyres;
-+	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
-+		((u32*)info->pseudo_palette)[region->color] : region->color;
++	u32 *palette = fbi->pseudo_palette;
 +
-+	if (info->state != FBINFO_STATE_RUNNING)
-+		return;
-+	if ((info->flags & FBINFO_HWACCEL_DISABLED) ||
-+		region->rop != ROP_COPY ) {
-+		cfb_fillrect(info, region);
-+		return;
++	if (regno >= PALETTE_ENTRIES_NO)
++		return -EINVAL;
++
++	if (fbi->var.grayscale) {
++		/* Convert color to grayscale.
++		 * grayscale = 0.30*R + 0.59*G + 0.11*B */
++		red = green = blue =
++			(red * 77 + green * 151 + blue * 28 + 127) >> 8;
 +	}
 +
-+	vxres = info->var.xres_virtual;
-+	vyres = info->var.yres_virtual;
++	/* fbi->fix.visual is always FB_VISUAL_TRUECOLOR */
 +
-+	memcpy(&modded, region, sizeof(struct fb_fillrect));
++	/* We only handle 8 bits of each color. */
++	red >>= 8;
++	green >>= 8;
++	blue >>= 8;
++	palette[regno] = (red << RED_SHIFT) | (green << GREEN_SHIFT) |
++			 (blue << BLUE_SHIFT);
 +
-+	if(!modded.width || !modded.height ||
-+	   modded.dx >= vxres || modded.dy >= vyres)
-+		return;
-+
-+	if(modded.dx + modded.width  > vxres)
-+		modded.width  = vxres - modded.dx;
-+	if(modded.dy + modded.height > vyres)
-+		modded.height = vyres - modded.dy;
-+
-+	if(info->var.bits_per_pixel == 8)
-+		color |= color << 8;
-+	if(info->var.bits_per_pixel <= 16)
-+		color |= color << 16;
-+
-+	if(info->var.bits_per_pixel != 24)
-+		pm2fb_block_op(par, 0, 0, 0,
-+				modded.dx, modded.dy,
-+				modded.width, modded.height, color);
-+	else
-+		cfb_fillrect(info, region);
++	return 0;
 +}
 +
-+static void pm2fb_copyarea(struct fb_info *info,
-+				const struct fb_copyarea *area)
++static int
++xilinx_fb_blank(int blank_mode, struct fb_info *fbi)
 +{
-+	struct pm2fb_par *par = info->par;
-+	struct fb_copyarea modded;
-+	u32 vxres, vyres;
++	struct xilinxfb_drvdata *drvdata = to_xilinxfb_drvdata(fbi);
 +
-+	if (info->state != FBINFO_STATE_RUNNING)
-+		return;
-+	if (info->flags & FBINFO_HWACCEL_DISABLED) {
-+		cfb_copyarea(info, area);
-+		return;
++	switch (blank_mode) {
++	case FB_BLANK_UNBLANK:
++		/* turn on panel */
++		xilinx_fb_out_be32(drvdata, REG_CTRL, drvdata->reg_ctrl_default);
++		break;
++
++	case FB_BLANK_NORMAL:
++	case FB_BLANK_VSYNC_SUSPEND:
++	case FB_BLANK_HSYNC_SUSPEND:
++	case FB_BLANK_POWERDOWN:
++		/* turn off panel */
++		xilinx_fb_out_be32(drvdata, REG_CTRL, 0);
++	default:
++		break;
++
++	}
++	return 0; /* success */
++}
++
++static struct fb_ops xilinxfb_ops =
++{
++	.owner			= THIS_MODULE,
++	.fb_setcolreg		= xilinx_fb_setcolreg,
++	.fb_blank		= xilinx_fb_blank,
++	.fb_fillrect		= cfb_fillrect,
++	.fb_copyarea		= cfb_copyarea,
++	.fb_imageblit		= cfb_imageblit,
++};
++
++/* === The device driver === */
++
++static int
++xilinxfb_drv_probe(struct device *dev)
++{
++	struct platform_device *pdev;
++	struct xilinxfb_platform_data *pdata;
++	struct xilinxfb_drvdata *drvdata;
++	struct resource *regs_res;
++	int retval;
++
++	if (!dev)
++		return -EINVAL;
++
++	pdev = to_platform_device(dev);
++	pdata = pdev->dev.platform_data;
++
++	if (pdata == NULL) {
++		printk(KERN_ERR "Couldn't find platform data.\n");
++		return -EFAULT;
 +	}
 +
-+	memcpy(&modded, area, sizeof(struct fb_copyarea));
++	drvdata = kzalloc(sizeof(*drvdata), GFP_KERNEL);
++	if (!drvdata) {
++		printk(KERN_ERR "Couldn't allocate device private record\n");
++		return -ENOMEM;
++	}
++	dev_set_drvdata(dev, drvdata);
 +
-+	vxres = info->var.xres_virtual;
-+	vyres = info->var.yres_virtual;
++	/* Map the control registers in */
++	regs_res = platform_get_resource(pdev, IORESOURCE_IO, 0);
++	if (!regs_res || (regs_res->end - regs_res->start + 1 < 8)) {
++		printk(KERN_ERR "Couldn't get registers resource\n");
++		retval = -EFAULT;
++		goto failed1;
++	}
 +
-+	if(!modded.width || !modded.height ||
-+	   modded.sx >= vxres || modded.sy >= vyres ||
-+	   modded.dx >= vxres || modded.dy >= vyres)
-+		return;
++	if (!request_mem_region(regs_res->start, 8, DRIVER_NAME)) {
++		printk(KERN_ERR
++		       "Couldn't lock memory region at 0x%08X\n",
++		       regs_res->start);
++		retval = -EBUSY;
++		goto failed1;
++	}
++	drvdata->regs = (u32 __iomem*) ioremap(regs_res->start, 8);
++	drvdata->regs_phys = regs_res->start;
 +
-+	if(modded.sx + modded.width > vxres)
-+		modded.width = vxres - modded.sx;
-+	if(modded.dx + modded.width > vxres)
-+		modded.width = vxres - modded.dx;
-+	if(modded.sy + modded.height > vyres)
-+		modded.height = vyres - modded.sy;
-+	if(modded.dy + modded.height > vyres)
-+		modded.height = vyres - modded.dy;
++	/* Allocate the framebuffer memory */
++	drvdata->fb_virt = dma_alloc_coherent(dev, PAGE_ALIGN(FB_SIZE),
++				&drvdata->fb_phys, GFP_KERNEL);
++	if (!drvdata->fb_virt) {
++		printk(KERN_ERR "Could not allocate frame buffer memory\n");
++		retval = -ENOMEM;
++		goto failed2;
++	}
 +
-+	pm2fb_block_op(par, 1, modded.sx, modded.sy,
-+			modded.dx, modded.dy,
-+			modded.width, modded.height, 0);
++	/* Clear (turn to black) the framebuffer */
++	memset_io((void *) drvdata->fb_virt, 0, FB_SIZE);
++
++	/* Tell the hardware where the frame buffer is */
++	xilinx_fb_out_be32(drvdata, REG_FB_ADDR, drvdata->fb_phys);
++
++	/* Turn on the display */
++	if (pdata->rotate_screen) {
++		drvdata->reg_ctrl_default = REG_CTRL_ENABLE | REG_CTRL_ROTATE;
++	} else {
++		drvdata->reg_ctrl_default = REG_CTRL_ENABLE;
++	}
++	xilinx_fb_out_be32(drvdata, REG_CTRL, drvdata->reg_ctrl_default);
++
++	/* Fill struct fb_info */
++	drvdata->info.device = dev;
++	drvdata->info.screen_base = drvdata->fb_virt;
++	drvdata->info.fbops = &xilinxfb_ops;
++	drvdata->info.fix = xilinx_fb_fix;
++	drvdata->info.fix.smem_start = drvdata->fb_phys;
++	drvdata->info.pseudo_palette = drvdata->pseudo_palette;
++
++	if (fb_alloc_cmap(&drvdata->info.cmap, PALETTE_ENTRIES_NO, 0) < 0) {
++		printk(KERN_ERR "Fail to allocate colormap (%d entries)\n",
++			PALETTE_ENTRIES_NO);
++		retval = -EFAULT;
++		goto failed3;
++	}
++
++	drvdata->info.flags = FBINFO_DEFAULT;
++	xilinx_fb_var.height = pdata->screen_height_mm;
++	xilinx_fb_var.width = pdata->screen_width_mm;
++	drvdata->info.var = xilinx_fb_var;
++
++	/* Register new frame buffer */
++	if (register_framebuffer(&drvdata->info) < 0) {
++		printk(KERN_ERR "Could not register frame buffer\n");
++		retval = -EINVAL;
++		goto failed4;
++	}
++
++	return 0;	/* success */
++
++failed4:
++	fb_dealloc_cmap(&drvdata->info.cmap);
++
++failed3:
++	dma_free_coherent(dev, PAGE_ALIGN(FB_SIZE), drvdata->fb_virt,
++		drvdata->fb_phys);
++
++	/* Turn off the display */
++	xilinx_fb_out_be32(drvdata, REG_CTRL, 0);
++	iounmap(drvdata->regs);
++
++failed2:
++	release_mem_region(regs_res->start, 8);
++
++failed1:
++	kfree(drvdata);
++	dev_set_drvdata(dev, NULL);
++
++	return retval;
 +}
 +
- /* ------------ Hardware Independent Functions ------------ */
- 
- /*
-@@ -1054,8 +1176,8 @@ static struct fb_ops pm2fb_ops = {
- 	.fb_setcolreg	= pm2fb_setcolreg,
- 	.fb_blank	= pm2fb_blank,
- 	.fb_pan_display	= pm2fb_pan_display,
--	.fb_fillrect	= cfb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
-+	.fb_fillrect	= pm2fb_fillrect,
-+	.fb_copyarea	= pm2fb_copyarea,
- 	.fb_imageblit	= cfb_imageblit,
- };
- 
-@@ -1204,7 +1326,9 @@ static int __devinit pm2fb_probe(struct 
- 	info->fix		= pm2fb_fix; 	
- 	info->pseudo_palette	= default_par->palette;
- 	info->flags		= FBINFO_DEFAULT |
--                                  FBINFO_HWACCEL_YPAN;
-+                                  FBINFO_HWACCEL_YPAN |
-+	                          FBINFO_HWACCEL_COPYAREA |
-+	                          FBINFO_HWACCEL_FILLRECT;
- 
- 	if (!mode)
- 		mode = "640x480@60";
++static int
++xilinxfb_drv_remove(struct device *dev)
++{
++	struct xilinxfb_drvdata *drvdata;
++
++	if (!dev)
++		return -ENODEV;
++
++	drvdata = (struct xilinxfb_drvdata *) dev_get_drvdata(dev);
++
++#if !defined(CONFIG_FRAMEBUFFER_CONSOLE) && defined(CONFIG_LOGO)
++	xilinx_fb_blank(VESA_POWERDOWN, &drvdata->info);
++#endif
++
++	unregister_framebuffer(&drvdata->info);
++
++	fb_dealloc_cmap(&drvdata->info.cmap);
++
++	dma_free_coherent(dev, PAGE_ALIGN(FB_SIZE), drvdata->fb_virt,
++		drvdata->fb_phys);
++
++	/* Turn off the display */
++	xilinx_fb_out_be32(drvdata, REG_CTRL, 0);
++	iounmap(drvdata->regs);
++
++	release_mem_region(drvdata->regs_phys, 8);
++
++	kfree(drvdata);
++	dev_set_drvdata(dev, NULL);
++
++	return 0;
++}
++
++
++static struct device_driver xilinxfb_driver = {
++	.name		= DRIVER_NAME,
++	.bus		= &platform_bus_type,
++
++	.probe		= xilinxfb_drv_probe,
++	.remove		= xilinxfb_drv_remove
++};
++
++static int __init
++xilinxfb_init(void)
++{
++	/*
++	 * No kernel boot options used,
++	 * so we just need to register the driver
++	 */
++	return driver_register(&xilinxfb_driver);
++}
++
++static void __exit
++xilinxfb_cleanup(void)
++{
++	driver_unregister(&xilinxfb_driver);
++}
++
++module_init(xilinxfb_init);
++module_exit(xilinxfb_cleanup);
++
++MODULE_AUTHOR("MontaVista Software, Inc. <source@mvista.com>");
++MODULE_DESCRIPTION(DRIVER_DESCRIPTION);
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akonovalov@ru.mvista.com are
 
-skeletonfb-various-corrections.patch
-pm2fb-3dlabs-permedia-2v-reference-board-added.patch
-pm2fb-permedia-2v-memory-clock-setting.patch
-pm2fb-pixclock-setting-restriction.patch
-pm2fb-reset-transparency-settings.patch
-pm2fb-memclock-setting-corrections.patch
-pm2fb-accelerated-fillrect-and-copyarea.patch
-skeletonfb-more-corrections.patch
-pm2fb-removal-of-pm2fb_par-fields.patch
-skeletonfb-improvements.patch
-pm2fb-fix-of-jumps-in-pm2fb_probe.patch
+xilinxfb-xilinx-framebuffer-device-driver.patch
