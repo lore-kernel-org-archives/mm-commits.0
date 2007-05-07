@@ -1,86 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - ps3-make-ps3videomode-v-0-auto-mode-work-again.patch removed from -mm tree
-Date: Mon, 07 May 2007 00:00:23 -0700
-Message-ID: <200705070700.l4770Ncr021013@shell0.pdx.osdl.net>
+Subject: + slub-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch added to -mm tree
+Date: Mon, 07 May 2007 11:45:47 -0700
+Message-ID: <200705071845.l47IjlfU002116@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34913 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754118AbXEGHBH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 03:01:07 -0400
+	by vger.kernel.org with ESMTP id S1754757AbXEGSpx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 14:45:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Masashi_Kimoto@hq.scei.sony.co.jp, Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     ps3: Make `ps3videomode -v 0 (auto mode) work again
-has been removed from the -mm tree.  Its filename was
-     ps3-make-ps3videomode-v-0-auto-mode-work-again.patch
+     Add virt_to_head_page and consolidate code in slab and slub
+has been added to the -mm tree.  Its filename is
+     slub-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ps3: Make `ps3videomode -v 0 (auto mode) work again
-From: Masashi Kimoto <Masashi_Kimoto@hq.scei.sony.co.jp>
+Subject: Add virt_to_head_page and consolidate code in slab and slub
+From: Christoph Lameter <clameter@sgi.com>
 
-ps3: Make `ps3videomode -v 0' (auto mode) work again
-
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ps3/ps3av.c         |    7 +++++++
- drivers/video/ps3fb.c       |    5 +++++
- include/asm-powerpc/ps3av.h |    1 +
- 3 files changed, 13 insertions(+)
+ mm/slub.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/ps3/ps3av.c~ps3-make-ps3videomode-v-0-auto-mode-work-again drivers/ps3/ps3av.c
---- a/drivers/ps3/ps3av.c~ps3-make-ps3videomode-v-0-auto-mode-work-again
-+++ a/drivers/ps3/ps3av.c
-@@ -744,6 +744,13 @@ int ps3av_set_video_mode(u32 id, int boo
- 
- EXPORT_SYMBOL_GPL(ps3av_set_video_mode);
- 
-+int ps3av_get_auto_mode(int boot)
-+{
-+	return ps3av_auto_videomode(&ps3av.av_hw_conf, boot);
-+}
-+
-+EXPORT_SYMBOL_GPL(ps3av_get_auto_mode);
-+
- int ps3av_set_mode(u32 id, int boot)
+diff -puN mm/slub.c~slub-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub mm/slub.c
+--- a/mm/slub.c~slub-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub
++++ a/mm/slub.c
+@@ -1323,9 +1323,7 @@ void kmem_cache_free(struct kmem_cache *
  {
- 	int res;
-diff -puN drivers/video/ps3fb.c~ps3-make-ps3videomode-v-0-auto-mode-work-again drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3-make-ps3videomode-v-0-auto-mode-work-again
-+++ a/drivers/video/ps3fb.c
-@@ -732,6 +732,11 @@ static int ps3fb_ioctl(struct fb_info *i
- 			if (copy_from_user(&val, argp, sizeof(val)))
- 				break;
+ 	struct page * page;
  
-+			if (!(val & PS3AV_MODE_MASK)) {
-+				u32 id = ps3av_get_auto_mode(0);
-+				if (id > 0)
-+					val = (val & ~PS3AV_MODE_MASK) | id;
-+			}
- 			DPRINTK("PS3FB_IOCTL_SETMODE:%x\n", val);
- 			retval = -EINVAL;
- 			old_mode = ps3fb_mode;
-diff -puN include/asm-powerpc/ps3av.h~ps3-make-ps3videomode-v-0-auto-mode-work-again include/asm-powerpc/ps3av.h
---- a/include/asm-powerpc/ps3av.h~ps3-make-ps3videomode-v-0-auto-mode-work-again
-+++ a/include/asm-powerpc/ps3av.h
-@@ -706,6 +706,7 @@ extern int ps3av_vuart_read(struct ps3_v
+-	page = virt_to_page(x);
+-
+-	page = compound_head(page);
++	page = virt_to_head_page(x);
  
- extern int ps3av_set_video_mode(u32, int);
- extern int ps3av_set_audio_mode(u32, u32, u32, u32, u32);
-+extern int ps3av_get_auto_mode(int);
- extern int ps3av_set_mode(u32, int);
- extern int ps3av_get_mode(void);
- extern int ps3av_get_scanmode(int);
+ 	if (unlikely(PageError(page) && (s->flags & SLAB_STORE_USER)))
+ 		set_tracking(s, x, TRACK_FREE);
+@@ -1336,7 +1334,7 @@ EXPORT_SYMBOL(kmem_cache_free);
+ /* Figure out on which slab object the object resides */
+ static struct page *get_object_page(const void *x)
+ {
+-	struct page *page = compound_head(virt_to_page(x));
++	struct page *page = virt_to_head_page(x);
+ 
+ 	if (!PageSlab(page))
+ 		return NULL;
+@@ -2076,7 +2074,7 @@ void kfree(const void *x)
+ 	if (!x)
+ 		return;
+ 
+-	page = compound_head(virt_to_page(x));
++	page = virt_to_head_page(x);
+ 
+ 	s = page->slab;
+ 
+@@ -2112,7 +2110,7 @@ void *krealloc(const void *p, size_t new
+ 		return NULL;
+ 	}
+ 
+-	page = compound_head(virt_to_page(p));
++	page = virt_to_head_page(p);
+ 
+ 	new_cache = get_slab(new_size, flags);
+ 
 _
 
-Patches currently in -mm which might be from Masashi_Kimoto@hq.scei.sony.co.jp are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+slab-introduce-krealloc.patch
+add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
+safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
+slab-ensure-cache_alloc_refill-terminates.patch
+smaps-extract-pmd-walker-from-smaps-code.patch
+smaps-add-pages-referenced-count-to-smaps.patch
+smaps-add-clear_refs-file-to-clear-reference.patch
+slab-use-num_possible_cpus-in-enable_cpucache.patch
+i386-use-page-allocator-to-allocate-thread_info-structure.patch
+make-page-private-usable-in-compound-pages-v1.patch
+optimize-compound_head-by-avoiding-a-shared-page.patch
+add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+quicklists-for-page-table-pages.patch
+quicklist-support-for-sparc64.patch
+slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+kmem_cache-simplify-slab-cache-creation.patch
+slab-allocators-remove-multiple-alignment-specifications.patch
+fault-injection-fix-failslab-with-config_numa.patch
+mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
+slab-allocators-remove-slab_debug_initial-flag.patch
+slab-allocators-remove-slab_ctor_atomic.patch
+slab-allocators-remove-useless-__gfp_no_grow-flag.patch
+page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible.patch
+slub-core.patch
+slub-change-default-alignments.patch
+slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes.patch
+powerpc-disable-slub-for-configurations-in-which-slab-page-structs-are-modified.patch
+slub-make-page-private-usable-in-compound-pages-v1.patch
+slub-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
+slub-fix-object-tracking.patch
+slub-enable-tracking-of-full-slabs.patch
+slub-validation-of-slabs-metadata-and-guard-zones.patch
+slub-add-min_partial.patch
+slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
+slub-remove-object-activities-out-of-checking-functions.patch
+slub-user-documentation.patch
+slub-add-slabinfo-tool.patch
+slub-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+slub-slab-allocators-remove-slab_debug_initial-flag.patch
+slub-slab-allocators-remove-slab_ctor_atomic.patch
+slub-slab-allocators-remove-useless-__gfp_no_grow-flag.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-i386-support.patch
+remove-constructor-from-buffer_head.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+vmstat-use-our-own-timer-events.patch
+make-vm-statistics-update-interval-configurable.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+readahead-state-based-method-aging-accounting.patch
