@@ -1,192 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch removed from -mm tree
-Date: Sun, 06 May 2007 23:59:57 -0700
-Message-ID: <200705070659.l476xvkt020940@shell0.pdx.osdl.net>
+Subject: - ps3fb-atomic-fixes.patch removed from -mm tree
+Date: Mon, 07 May 2007 00:00:14 -0700
+Message-ID: <200705070700.l4770Ewa021002@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38327 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754069AbXEGHAO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 03:00:14 -0400
+	by vger.kernel.org with ESMTP id S1754072AbXEGHAl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 03:00:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
+     ps3fb: atomic fixes
 has been removed from the -mm tree.  Its filename was
-     fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap.patch
+     ps3fb-atomic-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ps3fb: atomic fixes
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-arch/x86_64/kernel/suspend.c: In function '__save_processor_state':
-arch/x86_64/kernel/suspend.c:51: warning: implicit declaration of function 'mtrr_save_fixed_ranges'
-arch/x86_64/kernel/suspend.c: In function '__restore_processor_state':
-arch/x86_64/kernel/suspend.c:112: warning: implicit declaration of function 'mtrr_ap_init'
+ps3fb: Use atomic_dec_if_positive() instead of bogus
+atomic_read()/atomic_dec() combinations
 
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/suspend.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/ps3fb.c |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/kernel/suspend.c~fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap arch/x86_64/kernel/suspend.c
---- a/arch/x86_64/kernel/suspend.c~fix-x86_64-mm-mtrr-save-the-mtrrs-of-the-bsp-before-booting-an-ap
-+++ a/arch/x86_64/kernel/suspend.c
-@@ -9,9 +9,11 @@
+diff -puN drivers/video/ps3fb.c~ps3fb-atomic-fixes drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-atomic-fixes
++++ a/drivers/video/ps3fb.c
+@@ -680,13 +680,10 @@ EXPORT_SYMBOL_GPL(ps3fb_wait_for_vsync);
  
- #include <linux/smp.h>
- #include <linux/suspend.h>
-+
- #include <asm/proto.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
-+#include <asm/mtrr.h>
+ void ps3fb_flip_ctl(int on)
+ {
+-	if (on) {
+-		if (atomic_read(&ps3fb.ext_flip) > 0) {
+-			atomic_dec(&ps3fb.ext_flip);
+-		}
+-	} else {
++	if (on)
++		atomic_dec_if_positive(&ps3fb.ext_flip);
++	else
+ 		atomic_inc(&ps3fb.ext_flip);
+-	}
+ }
  
- /* References to section boundaries */
- extern const void __nosave_begin, __nosave_end;
+ EXPORT_SYMBOL_GPL(ps3fb_flip_ctl);
+@@ -786,8 +783,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 
+ 	case PS3FB_IOCTL_OFF:
+ 		DPRINTK("PS3FB_IOCTL_OFF:\n");
+-		if (atomic_read(&ps3fb.ext_flip) > 0)
+-			atomic_dec(&ps3fb.ext_flip);
++		atomic_dec_if_positive(&ps3fb.ext_flip);
+ 		retval = 0;
+ 		break;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-slab-introduce-krealloc.patch
-rm9000-serial-driver.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-mark-set_up_list3s-__init.patch
-slub-core.patch
-mm-optimize-kill_bdev.patch
-srmcons-fix-kmallocgfp_kernel-inside-spinlock.patch
-uml-driver-formatting-fixes-fix.patch
-cx88-video-build-fix.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
-git-drm.patch
-cinergyt2-fix-file-release-handler.patch
-git-gfs2-nmw.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
-git-jfs.patch
-git-kvm.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
-atl1-use-dev_printk-macros-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
-git-nfs-printk-warning-fixes.patch
-git-parisc.patch
-git-r8169.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-swsusp-clean-up-print.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-consolidate-asm-consth-to-linux-consth-fix.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
-lib-hexdump-fix.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-mutex_lock_interruptible-add-__must_check.patch
-mutex_lock_interruptible-add-__must_check-must-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-rename-thread_info-to-stack-fix.patch
-char-cyclades-conditions-cleanup-fix.patch
-char-cyclades-probe-cleanup-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
+fbdev-fb_do_show_logo-updates.patch
+fbdev-correct-image-offsets-when-rotating-logo.patch
