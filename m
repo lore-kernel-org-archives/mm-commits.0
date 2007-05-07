@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vt8623fb-fix-compile-warnings.patch added to -mm tree
-Date: Mon, 07 May 2007 15:27:11 -0700
-Message-ID: <200705072227.l47MRB1k006973@shell0.pdx.osdl.net>
+Subject: + vgacon-disallow-console-operations-when-in-kd_graphics.patch added to -mm tree
+Date: Mon, 07 May 2007 15:27:17 -0700
+Message-ID: <200705072227.l47MRHUD006983@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34758 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967140AbXEGWjq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:39:46 -0400
+	by vger.kernel.org with ESMTP id S967166AbXEGWkO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:40:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     vt8623fb: fix compile warnings
+     vgacon: disallow console operations when in KD_GRAPHICS  mode
 has been added to the -mm tree.  Its filename is
-     vt8623fb-fix-compile-warnings.patch
+     vgacon-disallow-console-operations-when-in-kd_graphics.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vt8623fb: fix compile warnings
+Subject: vgacon: disallow console operations when in KD_GRAPHICS  mode
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-- use memset_io()
-- check for return value of pci_enable_device()
-- fix for CONFIG_PM=n
+Reported by James Pearson as:
+
+	 boot to run level 3
+
+	 if not root, then make sure /dev/console is writeable
+
+	 login and type:
+
+	 setterm -blank 0
+
+	 start X
+
+	 type into an xterm:
+
+	 while true; do echo "" > /dev/console; usleep 100000; done
+
+	 while the above loop is running switch to the text console and back
+	 again (Ctrl-Alt-F1 then Ctrl-Alt-F7)
+
+	 ... and the screen will be shifting (and wrapping) to the left.
+
+This problem stems from continuously writing text to the system console (which
+is in KD_TEXT mode) while the foreground console is in KD_GRAPHICS
+mode. Somewhere along the way, console printing got confused and omitted the
+KD_GRAPHICS/KD_TEXT test.  Thus, vgacon attempted to scroll the screen of X,
+which causes X to shift.
+
+Fix by disallowing vgacon to touch the hardware when the vc is in KD_GRAPHICS
+mode. A definitive fix entails a full audit of the console code.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vt8623fb.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/video/console/vgacon.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/vt8623fb.c~vt8623fb-fix-compile-warnings drivers/video/vt8623fb.c
---- a/drivers/video/vt8623fb.c~vt8623fb-fix-compile-warnings
-+++ a/drivers/video/vt8623fb.c
-@@ -497,7 +497,7 @@ static int vt8623fb_set_par(struct fb_in
- 			 (info->var.vmode & FB_VMODE_DOUBLE) ? 2 : 1, 1,
- 			 1, info->node);
+diff -puN drivers/video/console/vgacon.c~vgacon-disallow-console-operations-when-in-kd_graphics drivers/video/console/vgacon.c
+--- a/drivers/video/console/vgacon.c~vgacon-disallow-console-operations-when-in-kd_graphics
++++ a/drivers/video/console/vgacon.c
+@@ -660,6 +660,9 @@ static void vgacon_set_cursor_size(int x
  
--	memset((u8*)info->screen_base, 0x00, screen_size);
-+	memset_io(info->screen_base, 0x00, screen_size);
- 
- 	/* Device and screen back on */
- 	svga_wcrt_mask(0x17, 0x80, 0x80);
-@@ -804,6 +804,7 @@ static void __devexit vt8623_pci_remove(
- }
- 
- 
-+#ifdef CONFIG_PM
- /* PCI suspend */
- 
- static int vt8623_pci_suspend(struct pci_dev* dev, pm_message_t state)
-@@ -855,18 +856,25 @@ static int vt8623_pci_resume(struct pci_
- 
- 	pci_set_power_state(dev, PCI_D0);
- 	pci_restore_state(dev);
--	pci_enable_device(dev);
+ static void vgacon_cursor(struct vc_data *c, int mode)
+ {
++	if (c->vc_mode != KD_TEXT)
++		return;
 +
-+	if (pci_enable_device(dev))
-+		goto fail;
-+
- 	pci_set_master(dev);
+ 	vgacon_restore_screen(c);
  
- 	vt8623fb_set_par(info);
- 	fb_set_suspend(info, 0);
+ 	switch (mode) {
+@@ -1318,7 +1321,7 @@ static int vgacon_scroll(struct vc_data 
+ 	unsigned long oldo;
+ 	unsigned int delta;
  
- 	mutex_unlock(&(par->open_lock));
-+fail:
- 	release_console_sem();
+-	if (t || b != c->vc_rows || vga_is_gfx)
++	if (t || b != c->vc_rows || vga_is_gfx || c->vc_mode != KD_TEXT)
+ 		return 0;
  
- 	return 0;
- }
--
-+#else
-+#define vt8623_pci_suspend NULL
-+#define vt8623_pci_resume NULL
-+#endif /* CONFIG_PM */
- 
- /* List of boards that we are trying to support */
- 
+ 	if (!vga_hardscroll_enabled || lines >= c->vc_rows / 2)
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
