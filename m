@@ -1,65 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - mousedev-fix.patch removed from -mm tree
-Date: Sun, 06 May 2007 23:23:06 -0700
-Message-ID: <200705070623.l476N6wf019393@shell0.pdx.osdl.net>
+Subject: - mousedev-fix-2.patch removed from -mm tree
+Date: Sun, 06 May 2007 23:23:14 -0700
+Message-ID: <200705070623.l476NEc4019399@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33510 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41825 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754048AbXEGGXO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 02:23:14 -0400
+	by vger.kernel.org with ESMTP id S1754046AbXEGGXT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 02:23:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dtor@insightbb.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mosuedev fix
+     mousedev fix 2
 has been removed from the -mm tree.  Its filename was
-     mousedev-fix.patch
+     mousedev-fix-2.patch
 
 This patch was dropped because the struct subsystem removal patch got applied
 
 ------------------------------------------------------
-Subject: mosuedev fix
+Subject: mousedev fix 2
 From: Dmitry Torokhov <dtor@insightbb.com>
+
+I was relying on implicit pinning of parent device via kobjectb/sysfs but
+your tree may not pin it anymore.
 
 Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mousedev.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/input/mousedev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/mousedev.c~mousedev-fix drivers/input/mousedev.c
---- a/drivers/input/mousedev.c~mousedev-fix
+diff -puN drivers/input/mousedev.c~mousedev-fix-2 drivers/input/mousedev.c
+--- a/drivers/input/mousedev.c~mousedev-fix-2
 +++ a/drivers/input/mousedev.c
-@@ -406,12 +406,14 @@ static void mixdev_open_devices(void)
- 	struct mousedev *mousedev;
+@@ -368,6 +368,7 @@ static void mousedev_free(struct device 
+ {
+ 	struct mousedev *mousedev = container_of(dev, struct mousedev, dev);
  
- 	list_for_each_entry(mousedev, &mousedev_mix_list, mixdev_node) {
--		if (mousedev->exist && !mousedev->open) {
--			if (input_open_device(&mousedev->handle))
--				continue;
-+		if (mousedev->exist && !mousedev->mixdev_open) {
-+			if (!mousedev->open) {
-+				if (input_open_device(&mousedev->handle))
-+					continue;
- 
--			get_device(&mousedev->dev);
--			mousedev->open++;
-+				get_device(&mousedev->dev);
-+				mousedev->open++;
-+			}
- 			mousedev->mixdev_open++;
- 		}
- 	}
++	put_device(mousedev->dev.parent);
+ 	mousedev_table[mousedev->minor] = NULL;
+ 	kfree(mousedev);
+ }
+@@ -729,7 +730,7 @@ static struct mousedev *mousedev_create(
+ 		sizeof(mousedev->dev.bus_id));
+ 	mousedev->dev.class = &input_class;
+ 	if (dev)
+-		mousedev->dev.parent = &dev->dev;
++		mousedev->dev.parent = get_device(&dev->dev);
+ 	mousedev->dev.devt = MKDEV(INPUT_MAJOR, MOUSEDEV_MINOR_BASE + minor);
+ 	mousedev->dev.release = mousedev_free;
+ 	device_initialize(&mousedev->dev);
 _
 
 Patches currently in -mm which might be from dtor@insightbb.com are
 
 origin.patch
 git-input.patch
-mousedev-fix.patch
 mousedev-fix-2.patch
 input-rfkill-add-support-for-input-key-to-control-wireless-radio.patch
