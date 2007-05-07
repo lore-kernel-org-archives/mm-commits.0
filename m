@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arkfb-fix-compiler-warnings.patch added to -mm tree
-Date: Mon, 07 May 2007 15:27:09 -0700
-Message-ID: <200705072227.l47MR9B7006970@shell0.pdx.osdl.net>
+Subject: + vt8623fb-new-framebuffer-driver-for-via-vt8623.patch added to -mm tree
+Date: Mon, 07 May 2007 15:27:03 -0700
+Message-ID: <200705072227.l47MR3Y8006961@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37673 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51280 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967036AbXEGW1n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:27:43 -0400
+	by vger.kernel.org with ESMTP id S967041AbXEGW1l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:27:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com
+Cc: santiago@crfreenet.org, adaplas@gmail.com
 
 
 The patch titled
-     arkfb: fix compiler warnings
+     vt8623fb: new framebuffer driver for VIA VT8623
 has been added to the -mm tree.  Its filename is
-     arkfb-fix-compiler-warnings.patch
+     vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,176 +25,1055 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arkfb: fix compiler warnings
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: vt8623fb: new framebuffer driver for VIA VT8623
+From: Ondrej Zajicek <santiago@crfreenet.org>
 
-- add sparse annotations
-- check return value of pci_enable_device()
-- fix if CONFIG_PM=n
+This patch adds fbdev driver for graphics core in VIA VT8623
 
+Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/arkfb.c |   23 ++++++++++++++++-------
- 1 files changed, 16 insertions(+), 7 deletions(-)
+ Documentation/fb/vt8623fb.txt |   64 ++
+ drivers/video/Kconfig         |   14 
+ drivers/video/Makefile        |    1 
+ drivers/video/vt8623fb.c      |  920 ++++++++++++++++++++++++++++++++
+ 4 files changed, 999 insertions(+)
 
-diff -puN drivers/video/arkfb.c~arkfb-fix-compiler-warnings drivers/video/arkfb.c
---- a/drivers/video/arkfb.c~arkfb-fix-compiler-warnings
-+++ a/drivers/video/arkfb.c
-@@ -131,21 +131,22 @@ MODULE_PARM_DESC(mtrr, "FIFO threshold")
- static void arkfb_settile(struct fb_info *info, struct fb_tilemap *map)
- {
- 	const u8 *font = map->data;
--	u8* fb = (u8 *) info->screen_base;
-+	u8 __iomem *fb = (u8 __iomem *)info->screen_base;
- 	int i, c;
- 
- 	if ((map->width != 8) || (map->height != 16) ||
- 	    (map->depth != 1) || (map->length != 256)) {
--	    	printk(KERN_ERR "fb%d: unsupported font parameters: width %d, height %d, depth %d, length %d\n",
--			info->node, map->width, map->height, map->depth, map->length);
-+	    	printk(KERN_ERR "fb%d: unsupported font parameters: width %d, "
-+		       "height %d, depth %d, length %d\n", info->node,
-+		       map->width, map->height, map->depth, map->length);
- 		return;
- 	}
- 
- 	fb += 2;
- 	for (c = 0; c < map->length; c++) {
- 		for (i = 0; i < map->height; i++) {
--			fb[i * 4] = font[i];
--			fb[i * 4 + (128*8)] = font[i];
-+			fb_writeb(font[i], &fb[i * 4]);
-+			fb_writeb(font[i], &fb[i * 4 + (128 * 8)]);
- 		}
- 		fb += 128;
- 
-@@ -1080,6 +1081,7 @@ static void __devexit ark_pci_remove(str
- }
- 
- 
-+#ifdef CONFIG_PM
- /* PCI suspend */
- 
- static int ark_pci_suspend (struct pci_dev* dev, pm_message_t state)
-@@ -1131,17 +1133,24 @@ static int ark_pci_resume (struct pci_de
- 
- 	pci_set_power_state(dev, PCI_D0);
- 	pci_restore_state(dev);
--	pci_enable_device(dev);
+diff -puN /dev/null Documentation/fb/vt8623fb.txt
+--- /dev/null
++++ a/Documentation/fb/vt8623fb.txt
+@@ -0,0 +1,64 @@
 +
-+	if (pci_enable_device(dev))
-+		goto fail;
++	vt8623fb - fbdev driver for graphics core in VIA VT8623 chipset
++	===============================================================
 +
- 	pci_set_master(dev);
++
++Supported Hardware
++==================
++
++	VIA VT8623 [CLE266] chipset and	its graphics core
++		(known as CastleRock or Unichrome)
++
++I tested vt8623fb on VIA EPIA ML-6000
++
++
++Supported Features
++==================
++
++	*  4 bpp pseudocolor modes (with 18bit palette, two variants)
++	*  8 bpp pseudocolor mode (with 18bit palette)
++	* 16 bpp truecolor mode (RGB 565)
++	* 32 bpp truecolor mode (RGB 888)
++	* text mode (activated by bpp = 0)
++	* doublescan mode variant (not available in text mode)
++	* panning in both directions
++	* suspend/resume support
++	* DPMS support
++
++Text mode is supported even in higher resolutions, but there is limitation to
++lower pixclocks (maximum about 100 MHz). This limitation is not enforced by
++driver. Text mode supports 8bit wide fonts only (hardware limitation) and
++16bit tall fonts (driver limitation).
++
++There are two 4 bpp modes. First mode (selected if nonstd == 0) is mode with
++packed pixels, high nibble first. Second mode (selected if nonstd == 1) is mode
++with interleaved planes (1 byte interleave), MSB first. Both modes support
++8bit wide fonts only (driver limitation).
++
++Suspend/resume works on systems that initialize video card during resume and
++if device is active (for example used by fbcon).
++
++
++Missing Features
++================
++(alias TODO list)
++
++	* secondary (not initialized by BIOS) device support
++	* MMIO support
++	* interlaced mode variant
++	* support for fontwidths != 8 in 4 bpp modes
++	* support for fontheight != 16 in text mode
++	* hardware cursor
++	* video overlay support
++	* vsync synchronization
++	* acceleration support (8514-like 2D, busmaster transfers)
++
++
++Known bugs
++==========
++
++	* cursor disable in text mode doesn't work
++
++
++--
++Ondrej Zajicek <santiago@crfreenet.org>
+diff -puN drivers/video/Kconfig~vt8623fb-new-framebuffer-driver-for-via-vt8623 drivers/video/Kconfig
+--- a/drivers/video/Kconfig~vt8623fb-new-framebuffer-driver-for-via-vt8623
++++ a/drivers/video/Kconfig
+@@ -1348,6 +1348,20 @@ config FB_VOODOO1
+ 	  Please read the <file:Documentation/fb/README-sstfb.txt> for supported
+ 	  options and other important info  support.
  
- 	arkfb_set_par(info);
- 	fb_set_suspend(info, 0);
- 
- 	mutex_unlock(&(par->open_lock));
-+fail:
- 	release_console_sem();
- 	return 0;
- }
--
-+#else
-+#define ark_pci_suspend NULL
-+#define ark_pci_resume NULL
-+#endif /* CONFIG_PM */
- 
- /* List of boards that we are trying to support */
- 
++config FB_VT8623
++	tristate "VIA VT8623 support"
++	depends on FB && PCI
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	select FB_TILEBLITTING
++	select FB_SVGALIB
++	select VGASTATE
++	select FONT_8x16 if FRAMEBUFFER_CONSOLE
++	---help---
++	  Driver for CastleRock integrated graphics core in the
++	  VIA VT8623 [Apollo CLE266] chipset.
++
+ config FB_CYBLA
+ 	tristate "Cyberblade/i1 support"
+ 	depends on FB && PCI && X86_32 && !64BIT
+diff -puN drivers/video/Makefile~vt8623fb-new-framebuffer-driver-for-via-vt8623 drivers/video/Makefile
+--- a/drivers/video/Makefile~vt8623fb-new-framebuffer-driver-for-via-vt8623
++++ a/drivers/video/Makefile
+@@ -54,6 +54,7 @@ obj-$(CONFIG_FB_VALKYRIE)         += val
+ obj-$(CONFIG_FB_CT65550)          += chipsfb.o
+ obj-$(CONFIG_FB_IMSTT)            += imsttfb.o
+ obj-$(CONFIG_FB_FM2)              += fm2fb.o
++obj-$(CONFIG_FB_VT8623)           += vt8623fb.o
+ obj-$(CONFIG_FB_CYBLA)            += cyblafb.o
+ obj-$(CONFIG_FB_TRIDENT)          += tridentfb.o
+ obj-$(CONFIG_FB_LE80578)          += vermilion/
+diff -puN /dev/null drivers/video/vt8623fb.c
+--- /dev/null
++++ a/drivers/video/vt8623fb.c
+@@ -0,0 +1,920 @@
++/*
++ * linux/drivers/video/vt8623fb.c - fbdev driver for
++ * integrated graphic core in VIA VT8623 [CLE266] chipset
++ *
++ * Copyright (c) 2006-2007 Ondrej Zajicek <santiago@crfreenet.org>
++ *
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file COPYING in the main directory of this archive for
++ * more details.
++ *
++ * Code is based on s3fb, some parts are from David Boucher's viafb
++ * (http://davesdomain.org.uk/viafb/)
++ */
++
++#include <linux/version.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/string.h>
++#include <linux/mm.h>
++#include <linux/tty.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
++#include <linux/fb.h>
++#include <linux/svga.h>
++#include <linux/init.h>
++#include <linux/pci.h>
++#include <linux/console.h> /* Why should fb driver call console functions? because acquire_console_sem() */
++#include <video/vga.h>
++
++#ifdef CONFIG_MTRR
++#include <asm/mtrr.h>
++#endif
++
++struct vt8623fb_info {
++	char __iomem *mmio_base;
++	int mtrr_reg;
++	struct vgastate state;
++	struct mutex open_lock;
++	unsigned int ref_count;
++	u32 pseudo_palette[16];
++};
++
++
++
++/* ------------------------------------------------------------------------- */
++
++static const struct svga_fb_format vt8623fb_formats[] = {
++	{ 0,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
++		FB_TYPE_TEXT, FB_AUX_TEXT_SVGA_STEP8,	FB_VISUAL_PSEUDOCOLOR, 16, 16},
++	{ 4,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
++		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_PSEUDOCOLOR, 16, 16},
++	{ 4,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 1,
++		FB_TYPE_INTERLEAVED_PLANES, 1,		FB_VISUAL_PSEUDOCOLOR, 16, 16},
++	{ 8,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
++		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_PSEUDOCOLOR, 8, 8},
++/*	{16,  {10, 5, 0}, {5, 5, 0},  {0, 5, 0}, {0, 0, 0}, 0,
++		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 4, 4},	*/
++	{16,  {11, 5, 0}, {5, 6, 0},  {0, 5, 0}, {0, 0, 0}, 0,
++		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 4, 4},
++	{32,  {16, 8, 0}, {8, 8, 0},  {0, 8, 0}, {0, 0, 0}, 0,
++		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 2, 2},
++	SVGA_FORMAT_END
++};
++
++static const struct svga_pll vt8623_pll = {2, 127, 2, 7, 0, 3,
++	60000, 300000, 14318};
++
++/* CRT timing register sets */
++
++struct vga_regset vt8623_h_total_regs[]       = {{0x00, 0, 7}, {0x36, 3, 3}, VGA_REGSET_END};
++struct vga_regset vt8623_h_display_regs[]     = {{0x01, 0, 7}, VGA_REGSET_END};
++struct vga_regset vt8623_h_blank_start_regs[] = {{0x02, 0, 7}, VGA_REGSET_END};
++struct vga_regset vt8623_h_blank_end_regs[]   = {{0x03, 0, 4}, {0x05, 7, 7}, {0x33, 5, 5}, VGA_REGSET_END};
++struct vga_regset vt8623_h_sync_start_regs[]  = {{0x04, 0, 7}, {0x33, 4, 4}, VGA_REGSET_END};
++struct vga_regset vt8623_h_sync_end_regs[]    = {{0x05, 0, 4}, VGA_REGSET_END};
++
++struct vga_regset vt8623_v_total_regs[]       = {{0x06, 0, 7}, {0x07, 0, 0}, {0x07, 5, 5}, {0x35, 0, 0}, VGA_REGSET_END};
++struct vga_regset vt8623_v_display_regs[]     = {{0x12, 0, 7}, {0x07, 1, 1}, {0x07, 6, 6}, {0x35, 2, 2}, VGA_REGSET_END};
++struct vga_regset vt8623_v_blank_start_regs[] = {{0x15, 0, 7}, {0x07, 3, 3}, {0x09, 5, 5}, {0x35, 3, 3}, VGA_REGSET_END};
++struct vga_regset vt8623_v_blank_end_regs[]   = {{0x16, 0, 7}, VGA_REGSET_END};
++struct vga_regset vt8623_v_sync_start_regs[]  = {{0x10, 0, 7}, {0x07, 2, 2}, {0x07, 7, 7}, {0x35, 1, 1}, VGA_REGSET_END};
++struct vga_regset vt8623_v_sync_end_regs[]    = {{0x11, 0, 3}, VGA_REGSET_END};
++
++struct vga_regset vt8623_offset_regs[]        = {{0x13, 0, 7}, {0x35, 5, 7}, VGA_REGSET_END};
++struct vga_regset vt8623_line_compare_regs[]  = {{0x18, 0, 7}, {0x07, 4, 4}, {0x09, 6, 6}, {0x33, 0, 2}, {0x35, 4, 4}, VGA_REGSET_END};
++struct vga_regset vt8623_fetch_count_regs[]   = {{0x1C, 0, 7}, {0x1D, 0, 1}, VGA_REGSET_END};
++struct vga_regset vt8623_start_address_regs[] = {{0x0d, 0, 7}, {0x0c, 0, 7}, {0x34, 0, 7}, {0x48, 0, 1}, VGA_REGSET_END};
++
++struct svga_timing_regs vt8623_timing_regs     = {
++	vt8623_h_total_regs, vt8623_h_display_regs, vt8623_h_blank_start_regs,
++	vt8623_h_blank_end_regs, vt8623_h_sync_start_regs, vt8623_h_sync_end_regs,
++	vt8623_v_total_regs, vt8623_v_display_regs, vt8623_v_blank_start_regs,
++	vt8623_v_blank_end_regs, vt8623_v_sync_start_regs, vt8623_v_sync_end_regs,
++};
++
++
++/* ------------------------------------------------------------------------- */
++
++
++/* Module parameters */
++
++static char *mode = "640x480-8@60";
++
++#ifdef CONFIG_MTRR
++static int mtrr = 1;
++#endif
++
++MODULE_AUTHOR("(c) 2006 Ondrej Zajicek <santiago@crfreenet.org>");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("fbdev driver for integrated graphics core in VIA VT8623 [CLE266]");
++
++module_param(mode, charp, 0644);
++MODULE_PARM_DESC(mode, "Default video mode ('640x480-8@60', etc)");
++
++#ifdef CONFIG_MTRR
++module_param(mtrr, int, 0444);
++MODULE_PARM_DESC(mtrr, "Enable write-combining with MTRR (1=enable, 0=disable, default=1)");
++#endif
++
++
++/* ------------------------------------------------------------------------- */
++
++
++static struct fb_tile_ops vt8623fb_tile_ops = {
++	.fb_settile	= svga_settile,
++	.fb_tilecopy	= svga_tilecopy,
++	.fb_tilefill    = svga_tilefill,
++	.fb_tileblit    = svga_tileblit,
++	.fb_tilecursor  = svga_tilecursor,
++	.fb_get_tilemax = svga_get_tilemax,
++};
++
++
++/* ------------------------------------------------------------------------- */
++
++
++/* image data is MSB-first, fb structure is MSB-first too */
++static inline u32 expand_color(u32 c)
++{
++	return ((c & 1) | ((c & 2) << 7) | ((c & 4) << 14) | ((c & 8) << 21)) * 0xFF;
++}
++
++/* vt8623fb_iplan_imageblit silently assumes that almost everything is 8-pixel aligned */
++static void vt8623fb_iplan_imageblit(struct fb_info *info, const struct fb_image *image)
++{
++	u32 fg = expand_color(image->fg_color);
++	u32 bg = expand_color(image->bg_color);
++	const u8 *src1, *src;
++	u8 __iomem *dst1;
++	u32 __iomem *dst;
++	u32 val;
++	int x, y;
++
++	src1 = image->data;
++	dst1 = info->screen_base + (image->dy * info->fix.line_length)
++		 + ((image->dx / 8) * 4);
++
++	for (y = 0; y < image->height; y++) {
++		src = src1;
++		dst = (u32 __iomem *) dst1;
++		for (x = 0; x < image->width; x += 8) {
++			val = *(src++) * 0x01010101;
++			val = (val & fg) | (~val & bg);
++			fb_writel(val, dst++);
++		}
++		src1 += image->width / 8;
++		dst1 += info->fix.line_length;
++	}
++}
++
++/* vt8623fb_iplan_fillrect silently assumes that almost everything is 8-pixel aligned */
++static void vt8623fb_iplan_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
++{
++	u32 fg = expand_color(rect->color);
++	u8 __iomem *dst1;
++	u32 __iomem *dst;
++	int x, y;
++
++	dst1 = info->screen_base + (rect->dy * info->fix.line_length)
++		 + ((rect->dx / 8) * 4);
++
++	for (y = 0; y < rect->height; y++) {
++		dst = (u32 __iomem *) dst1;
++		for (x = 0; x < rect->width; x += 8) {
++			fb_writel(fg, dst++);
++		}
++		dst1 += info->fix.line_length;
++	}
++}
++
++
++/* image data is MSB-first, fb structure is high-nibble-in-low-byte-first */
++static inline u32 expand_pixel(u32 c)
++{
++	return (((c &  1) << 24) | ((c &  2) << 27) | ((c &  4) << 14) | ((c &   8) << 17) |
++		((c & 16) <<  4) | ((c & 32) <<  7) | ((c & 64) >>  6) | ((c & 128) >>  3)) * 0xF;
++}
++
++/* vt8623fb_cfb4_imageblit silently assumes that almost everything is 8-pixel aligned */
++static void vt8623fb_cfb4_imageblit(struct fb_info *info, const struct fb_image *image)
++{
++	u32 fg = image->fg_color * 0x11111111;
++	u32 bg = image->bg_color * 0x11111111;
++	const u8 *src1, *src;
++	u8 __iomem *dst1;
++	u32 __iomem *dst;
++	u32 val;
++	int x, y;
++
++	src1 = image->data;
++	dst1 = info->screen_base + (image->dy * info->fix.line_length)
++		 + ((image->dx / 8) * 4);
++
++	for (y = 0; y < image->height; y++) {
++		src = src1;
++		dst = (u32 __iomem *) dst1;
++		for (x = 0; x < image->width; x += 8) {
++			val = expand_pixel(*(src++));
++			val = (val & fg) | (~val & bg);
++			fb_writel(val, dst++);
++		}
++		src1 += image->width / 8;
++		dst1 += info->fix.line_length;
++	}
++}
++
++static void vt8623fb_imageblit(struct fb_info *info, const struct fb_image *image)
++{
++	if ((info->var.bits_per_pixel == 4) && (image->depth == 1)
++	    && ((image->width % 8) == 0) && ((image->dx % 8) == 0)) {
++		if (info->fix.type == FB_TYPE_INTERLEAVED_PLANES)
++			vt8623fb_iplan_imageblit(info, image);
++		else
++			vt8623fb_cfb4_imageblit(info, image);
++	} else
++		cfb_imageblit(info, image);
++}
++
++static void vt8623fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
++{
++	if ((info->var.bits_per_pixel == 4)
++	    && ((rect->width % 8) == 0) && ((rect->dx % 8) == 0)
++	    && (info->fix.type == FB_TYPE_INTERLEAVED_PLANES))
++		vt8623fb_iplan_fillrect(info, rect);
++	 else
++		cfb_fillrect(info, rect);
++}
++
++
++/* ------------------------------------------------------------------------- */
++
++
++static void vt8623_set_pixclock(struct fb_info *info, u32 pixclock)
++{
++	u16 m, n, r;
++	u8 regval;
++	int rv;
++
++	rv = svga_compute_pll(&vt8623_pll, 1000000000 / pixclock, &m, &n, &r, info->node);
++	if (rv < 0) {
++		printk(KERN_ERR "fb%d: cannot set requested pixclock, keeping old value\n", info->node);
++		return;
++	}
++
++	/* Set VGA misc register  */
++	regval = vga_r(NULL, VGA_MIS_R);
++	vga_w(NULL, VGA_MIS_W, regval | VGA_MIS_ENB_PLL_LOAD);
++
++	/* Set clock registers */
++	vga_wseq(NULL, 0x46, (n  | (r << 6)));
++	vga_wseq(NULL, 0x47, m);
++
++	udelay(1000);
++
++	/* PLL reset */
++	svga_wseq_mask(0x40, 0x02, 0x02);
++	svga_wseq_mask(0x40, 0x00, 0x02);
++}
++
++
++static int vt8623fb_open(struct fb_info *info, int user)
++{
++	struct vt8623fb_info *par = info->par;
++
++	mutex_lock(&(par->open_lock));
++	if (par->ref_count == 0) {
++		memset(&(par->state), 0, sizeof(struct vgastate));
++		par->state.flags = VGA_SAVE_MODE | VGA_SAVE_FONTS | VGA_SAVE_CMAP;
++		par->state.num_crtc = 0xA2;
++		par->state.num_seq = 0x50;
++		save_vga(&(par->state));
++	}
++
++	par->ref_count++;
++	mutex_unlock(&(par->open_lock));
++
++	return 0;
++}
++
++static int vt8623fb_release(struct fb_info *info, int user)
++{
++	struct vt8623fb_info *par = info->par;
++
++	mutex_lock(&(par->open_lock));
++	if (par->ref_count == 0) {
++		mutex_unlock(&(par->open_lock));
++		return -EINVAL;
++	}
++
++	if (par->ref_count == 1)
++		restore_vga(&(par->state));
++
++	par->ref_count--;
++	mutex_unlock(&(par->open_lock));
++
++	return 0;
++}
++
++static int vt8623fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
++{
++	int rv, mem, step;
++
++	/* Find appropriate format */
++	rv = svga_match_format (vt8623fb_formats, var, NULL);
++	if (rv < 0)
++	{
++		printk(KERN_ERR "fb%d: unsupported mode requested\n", info->node);
++		return rv;
++	}
++
++	/* Do not allow to have real resoulution larger than virtual */
++	if (var->xres > var->xres_virtual)
++		var->xres_virtual = var->xres;
++
++	if (var->yres > var->yres_virtual)
++		var->yres_virtual = var->yres;
++
++	/* Round up xres_virtual to have proper alignment of lines */
++	step = vt8623fb_formats[rv].xresstep - 1;
++	var->xres_virtual = (var->xres_virtual+step) & ~step;
++
++	/* Check whether have enough memory */
++	mem = ((var->bits_per_pixel * var->xres_virtual) >> 3) * var->yres_virtual;
++	if (mem > info->screen_size)
++	{
++		printk(KERN_ERR "fb%d: not enough framebuffer memory (%d kB requested , %d kB available)\n", info->node, mem >> 10, (unsigned int) (info->screen_size >> 10));
++		return -EINVAL;
++	}
++
++	/* Text mode is limited to 256 kB of memory */
++	if ((var->bits_per_pixel == 0) && (mem > (256*1024)))
++	{
++		printk(KERN_ERR "fb%d: text framebuffer size too large (%d kB requested, 256 kB possible)\n", info->node, mem >> 10);
++		return -EINVAL;
++	}
++
++	rv = svga_check_timings (&vt8623_timing_regs, var, info->node);
++	if (rv < 0)
++	{
++		printk(KERN_ERR "fb%d: invalid timings requested\n", info->node);
++		return rv;
++	}
++
++	/* Interlaced mode not supported */
++	if (var->vmode & FB_VMODE_INTERLACED)
++		return -EINVAL;
++
++	return 0;
++}
++
++
++static int vt8623fb_set_par(struct fb_info *info)
++{
++	u32 mode, offset_value, fetch_value, screen_size;
++	u32 bpp = info->var.bits_per_pixel;
++
++	if (bpp != 0) {
++		info->fix.ypanstep = 1;
++		info->fix.line_length = (info->var.xres_virtual * bpp) / 8;
++
++		info->flags &= ~FBINFO_MISC_TILEBLITTING;
++		info->tileops = NULL;
++
++		/* in 4bpp supports 8p wide tiles only, any tiles otherwise */
++		info->pixmap.blit_x = (bpp == 4) ? (1 << (8 - 1)) : (~(u32)0);
++		info->pixmap.blit_y = ~(u32)0;
++
++		offset_value = (info->var.xres_virtual * bpp) / 64;
++		fetch_value  = ((info->var.xres * bpp) / 128) + 4;
++
++		if (bpp == 4)
++			fetch_value  = (info->var.xres / 8) + 8; /* + 0 is OK */
++
++		screen_size  = info->var.yres_virtual * info->fix.line_length;
++	} else {
++		info->fix.ypanstep = 16;
++		info->fix.line_length = 0;
++
++		info->flags |= FBINFO_MISC_TILEBLITTING;
++		info->tileops = &vt8623fb_tile_ops;
++
++		/* supports 8x16 tiles only */
++		info->pixmap.blit_x = 1 << (8 - 1);
++		info->pixmap.blit_y = 1 << (16 - 1);
++
++		offset_value = info->var.xres_virtual / 16;
++		fetch_value  = (info->var.xres / 8) + 8;
++		screen_size  = (info->var.xres_virtual * info->var.yres_virtual) / 64;
++	}
++
++	info->var.xoffset = 0;
++	info->var.yoffset = 0;
++	info->var.activate = FB_ACTIVATE_NOW;
++
++	/* Unlock registers */
++	svga_wseq_mask(0x10, 0x01, 0x01);
++	svga_wcrt_mask(0x11, 0x00, 0x80);
++	svga_wcrt_mask(0x47, 0x00, 0x01);
++
++	/* Device, screen and sync off */
++	svga_wseq_mask(0x01, 0x20, 0x20);
++	svga_wcrt_mask(0x36, 0x30, 0x30);
++	svga_wcrt_mask(0x17, 0x00, 0x80);
++
++	/* Set default values */
++	svga_set_default_gfx_regs();
++	svga_set_default_atc_regs();
++	svga_set_default_seq_regs();
++	svga_set_default_crt_regs();
++	svga_wcrt_multi(vt8623_line_compare_regs, 0xFFFFFFFF);
++	svga_wcrt_multi(vt8623_start_address_regs, 0);
++
++	svga_wcrt_multi(vt8623_offset_regs, offset_value);
++	svga_wseq_multi(vt8623_fetch_count_regs, fetch_value);
++
++	if (info->var.vmode & FB_VMODE_DOUBLE)
++		svga_wcrt_mask(0x09, 0x80, 0x80);
++	else
++		svga_wcrt_mask(0x09, 0x00, 0x80);
++
++	svga_wseq_mask(0x1E, 0xF0, 0xF0); // DI/DVP bus
++	svga_wseq_mask(0x2A, 0x0F, 0x0F); // DI/DVP bus
++	svga_wseq_mask(0x16, 0x08, 0xBF); // FIFO read treshold
++	vga_wseq(NULL, 0x17, 0x1F);       // FIFO depth
++	vga_wseq(NULL, 0x18, 0x4E);
++	svga_wseq_mask(0x1A, 0x08, 0x08); // enable MMIO ?
++
++	vga_wcrt(NULL, 0x32, 0x00);
++	vga_wcrt(NULL, 0x34, 0x00);
++	vga_wcrt(NULL, 0x6A, 0x80);
++	vga_wcrt(NULL, 0x6A, 0xC0);
++
++	vga_wgfx(NULL, 0x20, 0x00);
++	vga_wgfx(NULL, 0x21, 0x00);
++	vga_wgfx(NULL, 0x22, 0x00);
++
++	/* Set SR15 according to number of bits per pixel */
++	mode = svga_match_format(vt8623fb_formats, &(info->var), &(info->fix));
++	switch (mode) {
++	case 0:
++		pr_debug("fb%d: text mode\n", info->node);
++		svga_set_textmode_vga_regs();
++		svga_wseq_mask(0x15, 0x00, 0xFE);
++		svga_wcrt_mask(0x11, 0x60, 0x70);
++		break;
++	case 1:
++		pr_debug("fb%d: 4 bit pseudocolor\n", info->node);
++		vga_wgfx(NULL, VGA_GFX_MODE, 0x40);
++		svga_wseq_mask(0x15, 0x20, 0xFE);
++		svga_wcrt_mask(0x11, 0x00, 0x70);
++		break;
++	case 2:
++		pr_debug("fb%d: 4 bit pseudocolor, planar\n", info->node);
++		svga_wseq_mask(0x15, 0x00, 0xFE);
++		svga_wcrt_mask(0x11, 0x00, 0x70);
++		break;
++	case 3:
++		pr_debug("fb%d: 8 bit pseudocolor\n", info->node);
++		svga_wseq_mask(0x15, 0x22, 0xFE);
++		break;
++	case 4:
++		pr_debug("fb%d: 5/6/5 truecolor\n", info->node);
++		svga_wseq_mask(0x15, 0xB6, 0xFE);
++		break;
++	case 5:
++		pr_debug("fb%d: 8/8/8 truecolor\n", info->node);
++		svga_wseq_mask(0x15, 0xAE, 0xFE);
++		break;
++	default:
++		printk(KERN_ERR "vt8623fb: unsupported mode - bug\n");
++		return (-EINVAL);
++	}
++
++	vt8623_set_pixclock(info, info->var.pixclock);
++	svga_set_timings(&vt8623_timing_regs, &(info->var), 1, 1,
++			 (info->var.vmode & FB_VMODE_DOUBLE) ? 2 : 1, 1,
++			 1, info->node);
++
++	memset((u8*)info->screen_base, 0x00, screen_size);
++
++	/* Device and screen back on */
++	svga_wcrt_mask(0x17, 0x80, 0x80);
++	svga_wcrt_mask(0x36, 0x00, 0x30);
++	svga_wseq_mask(0x01, 0x00, 0x20);
++
++	return 0;
++}
++
++
++static int vt8623fb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
++				u_int transp, struct fb_info *fb)
++{
++	switch (fb->var.bits_per_pixel) {
++	case 0:
++	case 4:
++		if (regno >= 16)
++			return -EINVAL;
++
++		outb(0x0F, VGA_PEL_MSK);
++		outb(regno, VGA_PEL_IW);
++		outb(red >> 10, VGA_PEL_D);
++		outb(green >> 10, VGA_PEL_D);
++		outb(blue >> 10, VGA_PEL_D);
++		break;
++	case 8:
++		if (regno >= 256)
++			return -EINVAL;
++
++		outb(0xFF, VGA_PEL_MSK);
++		outb(regno, VGA_PEL_IW);
++		outb(red >> 10, VGA_PEL_D);
++		outb(green >> 10, VGA_PEL_D);
++		outb(blue >> 10, VGA_PEL_D);
++		break;
++	case 16:
++		if (regno >= 16)
++			return 0;
++
++		if (fb->var.green.length == 5)
++			((u32*)fb->pseudo_palette)[regno] = ((red & 0xF800) >> 1) |
++				((green & 0xF800) >> 6) | ((blue & 0xF800) >> 11);
++		else if (fb->var.green.length == 6)
++			((u32*)fb->pseudo_palette)[regno] = (red & 0xF800) |
++				((green & 0xFC00) >> 5) | ((blue & 0xF800) >> 11);
++		else
++			return -EINVAL;
++		break;
++	case 24:
++	case 32:
++		if (regno >= 16)
++			return 0;
++
++		/* ((transp & 0xFF00) << 16) */
++		((u32*)fb->pseudo_palette)[regno] = ((red & 0xFF00) << 8) |
++			(green & 0xFF00) | ((blue & 0xFF00) >> 8);
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++
++static int vt8623fb_blank(int blank_mode, struct fb_info *info)
++{
++	switch (blank_mode) {
++	case FB_BLANK_UNBLANK:
++		pr_debug("fb%d: unblank\n", info->node);
++		svga_wcrt_mask(0x36, 0x00, 0x30);
++		svga_wseq_mask(0x01, 0x00, 0x20);
++		break;
++	case FB_BLANK_NORMAL:
++		pr_debug("fb%d: blank\n", info->node);
++		svga_wcrt_mask(0x36, 0x00, 0x30);
++		svga_wseq_mask(0x01, 0x20, 0x20);
++		break;
++	case FB_BLANK_HSYNC_SUSPEND:
++		pr_debug("fb%d: DPMS standby (hsync off)\n", info->node);
++		svga_wcrt_mask(0x36, 0x10, 0x30);
++		svga_wseq_mask(0x01, 0x20, 0x20);
++		break;
++	case FB_BLANK_VSYNC_SUSPEND:
++		pr_debug("fb%d: DPMS suspend (vsync off)\n", info->node);
++		svga_wcrt_mask(0x36, 0x20, 0x30);
++		svga_wseq_mask(0x01, 0x20, 0x20);
++		break;
++	case FB_BLANK_POWERDOWN:
++		pr_debug("fb%d: DPMS off (no sync)\n", info->node);
++		svga_wcrt_mask(0x36, 0x30, 0x30);
++		svga_wseq_mask(0x01, 0x20, 0x20);
++		break;
++	}
++
++	return 0;
++}
++
++
++static int vt8623fb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
++{
++	unsigned int offset;
++
++	/* Calculate the offset */
++	if (var->bits_per_pixel == 0) {
++		offset = (var->yoffset / 16) * var->xres_virtual + var->xoffset;
++		offset = offset >> 3;
++	} else {
++		offset = (var->yoffset * info->fix.line_length) +
++			 (var->xoffset * var->bits_per_pixel / 8);
++		offset = offset >> ((var->bits_per_pixel == 4) ? 2 : 1);
++	}
++
++	/* Set the offset */
++	svga_wcrt_multi(vt8623_start_address_regs, offset);
++
++	return 0;
++}
++
++
++/* ------------------------------------------------------------------------- */
++
++
++/* Frame buffer operations */
++
++static struct fb_ops vt8623fb_ops = {
++	.owner		= THIS_MODULE,
++	.fb_open	= vt8623fb_open,
++	.fb_release	= vt8623fb_release,
++	.fb_check_var	= vt8623fb_check_var,
++	.fb_set_par	= vt8623fb_set_par,
++	.fb_setcolreg	= vt8623fb_setcolreg,
++	.fb_blank	= vt8623fb_blank,
++	.fb_pan_display	= vt8623fb_pan_display,
++	.fb_fillrect	= vt8623fb_fillrect,
++	.fb_copyarea	= cfb_copyarea,
++	.fb_imageblit	= vt8623fb_imageblit,
++};
++
++
++/* PCI probe */
++
++static int __devinit vt8623_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
++{
++	struct fb_info *info;
++	struct vt8623fb_info *par;
++	unsigned int memsize1, memsize2;
++	int rc;
++
++	/* Ignore secondary VGA device because there is no VGA arbitration */
++	if (! svga_primary_device(dev)) {
++		dev_info(&(dev->dev), "ignoring secondary device\n");
++		return -ENODEV;
++	}
++
++	/* Allocate and fill driver data structure */
++	info = framebuffer_alloc(sizeof(struct vt8623fb_info), NULL);
++	if (! info) {
++		dev_err(&(dev->dev), "cannot allocate memory\n");
++		return -ENOMEM;
++	}
++
++	par = info->par;
++	mutex_init(&par->open_lock);
++
++	info->flags = FBINFO_PARTIAL_PAN_OK | FBINFO_HWACCEL_YPAN;
++	info->fbops = &vt8623fb_ops;
++
++	/* Prepare PCI device */
++
++	rc = pci_enable_device(dev);
++	if (rc < 0) {
++		dev_err(&(dev->dev), "cannot enable PCI device\n");
++		goto err_enable_device;
++	}
++
++	rc = pci_request_regions(dev, "vt8623fb");
++	if (rc < 0) {
++		dev_err(&(dev->dev), "cannot reserve framebuffer region\n");
++		goto err_request_regions;
++	}
++
++	info->fix.smem_start = pci_resource_start(dev, 0);
++	info->fix.smem_len = pci_resource_len(dev, 0);
++	info->fix.mmio_start = pci_resource_start(dev, 1);
++	info->fix.mmio_len = pci_resource_len(dev, 1);
++
++	/* Map physical IO memory address into kernel space */
++	info->screen_base = pci_iomap(dev, 0, 0);
++	if (! info->screen_base) {
++		rc = -ENOMEM;
++		dev_err(&(dev->dev), "iomap for framebuffer failed\n");
++		goto err_iomap_1;
++	}
++
++	par->mmio_base = pci_iomap(dev, 1, 0);
++	if (! par->mmio_base) {
++		rc = -ENOMEM;
++		dev_err(&(dev->dev), "iomap for MMIO failed\n");
++		goto err_iomap_2;
++	}
++
++	/* Find how many physical memory there is on card */
++	memsize1 = (vga_rseq(NULL, 0x34) + 1) >> 1;
++	memsize2 = vga_rseq(NULL, 0x39) << 2;
++
++	if ((16 <= memsize1) && (memsize1 <= 64) && (memsize1 == memsize2))
++		info->screen_size = memsize1 << 20;
++	else {
++		dev_err(&(dev->dev), "memory size detection failed (%x %x), suppose 16 MB\n", memsize1, memsize2);
++		info->screen_size = 16 << 20;
++	}
++
++	info->fix.smem_len = info->screen_size;
++	strcpy(info->fix.id, "VIA VT8623");
++	info->fix.type = FB_TYPE_PACKED_PIXELS;
++	info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
++	info->fix.ypanstep = 0;
++	info->fix.accel = FB_ACCEL_NONE;
++	info->pseudo_palette = (void*)par->pseudo_palette;
++
++	/* Prepare startup mode */
++
++	rc = fb_find_mode(&(info->var), info, mode, NULL, 0, NULL, 8);
++	if (! ((rc == 1) || (rc == 2))) {
++		rc = -EINVAL;
++		dev_err(&(dev->dev), "mode %s not found\n", mode);
++		goto err_find_mode;
++	}
++
++	rc = fb_alloc_cmap(&info->cmap, 256, 0);
++	if (rc < 0) {
++		dev_err(&(dev->dev), "cannot allocate colormap\n");
++		goto err_alloc_cmap;
++	}
++
++	rc = register_framebuffer(info);
++	if (rc < 0) {
++		dev_err(&(dev->dev), "cannot register framebugger\n");
++		goto err_reg_fb;
++	}
++
++	printk(KERN_INFO "fb%d: %s on %s, %d MB RAM\n", info->node, info->fix.id,
++		 pci_name(dev), info->fix.smem_len >> 20);
++
++	/* Record a reference to the driver data */
++	pci_set_drvdata(dev, info);
++
++#ifdef CONFIG_MTRR
++	if (mtrr) {
++		par->mtrr_reg = -1;
++		par->mtrr_reg = mtrr_add(info->fix.smem_start, info->fix.smem_len, MTRR_TYPE_WRCOMB, 1);
++	}
++#endif
++
++	return 0;
++
++	/* Error handling */
++err_reg_fb:
++	fb_dealloc_cmap(&info->cmap);
++err_alloc_cmap:
++err_find_mode:
++	pci_iounmap(dev, par->mmio_base);
++err_iomap_2:
++	pci_iounmap(dev, info->screen_base);
++err_iomap_1:
++	pci_release_regions(dev);
++err_request_regions:
++/*	pci_disable_device(dev); */
++err_enable_device:
++	framebuffer_release(info);
++	return rc;
++}
++
++/* PCI remove */
++
++static void __devexit vt8623_pci_remove(struct pci_dev *dev)
++{
++	struct fb_info *info = pci_get_drvdata(dev);
++
++	if (info) {
++
++#ifdef CONFIG_MTRR
++		struct vt8623fb_info *par = info->par;
++
++		if (par->mtrr_reg >= 0) {
++			mtrr_del(par->mtrr_reg, 0, 0);
++			par->mtrr_reg = -1;
++		}
++#endif
++
++		unregister_framebuffer(info);
++		fb_dealloc_cmap(&info->cmap);
++
++		pci_iounmap(dev, info->screen_base);
++		pci_iounmap(dev, par->mmio_base);
++		pci_release_regions(dev);
++/*		pci_disable_device(dev); */
++
++		pci_set_drvdata(dev, NULL);
++		framebuffer_release(info);
++	}
++}
++
++
++/* PCI suspend */
++
++static int vt8623_pci_suspend(struct pci_dev* dev, pm_message_t state)
++{
++	struct fb_info *info = pci_get_drvdata(dev);
++	struct vt8623fb_info *par = info->par;
++
++	dev_info(&(dev->dev), "suspend\n");
++
++	acquire_console_sem();
++	mutex_lock(&(par->open_lock));
++
++	if ((state.event == PM_EVENT_FREEZE) || (par->ref_count == 0)) {
++		mutex_unlock(&(par->open_lock));
++		release_console_sem();
++		return 0;
++	}
++
++	fb_set_suspend(info, 1);
++
++	pci_save_state(dev);
++	pci_disable_device(dev);
++	pci_set_power_state(dev, pci_choose_state(dev, state));
++
++	mutex_unlock(&(par->open_lock));
++	release_console_sem();
++
++	return 0;
++}
++
++
++/* PCI resume */
++
++static int vt8623_pci_resume(struct pci_dev* dev)
++{
++	struct fb_info *info = pci_get_drvdata(dev);
++	struct vt8623fb_info *par = info->par;
++
++	dev_info(&(dev->dev), "resume\n");
++
++	acquire_console_sem();
++	mutex_lock(&(par->open_lock));
++
++	if (par->ref_count == 0) {
++		mutex_unlock(&(par->open_lock));
++		release_console_sem();
++		return 0;
++	}
++
++	pci_set_power_state(dev, PCI_D0);
++	pci_restore_state(dev);
++	pci_enable_device(dev);
++	pci_set_master(dev);
++
++	vt8623fb_set_par(info);
++	fb_set_suspend(info, 0);
++
++	mutex_unlock(&(par->open_lock));
++	release_console_sem();
++
++	return 0;
++}
++
++
++/* List of boards that we are trying to support */
++
++static struct pci_device_id vt8623_devices[] __devinitdata = {
++	{PCI_DEVICE(PCI_VENDOR_ID_VIA, 0x3122)},
++	{0, 0, 0, 0, 0, 0, 0}
++};
++
++MODULE_DEVICE_TABLE(pci, vt8623_devices);
++
++static struct pci_driver vt8623fb_pci_driver = {
++	.name		= "vt8623fb",
++	.id_table	= vt8623_devices,
++	.probe		= vt8623_pci_probe,
++	.remove		= __devexit_p(vt8623_pci_remove),
++	.suspend	= vt8623_pci_suspend,
++	.resume		= vt8623_pci_resume,
++};
++
++/* Cleanup */
++
++static void __exit vt8623fb_cleanup(void)
++{
++	pr_debug("vt8623fb: cleaning up\n");
++	pci_unregister_driver(&vt8623fb_pci_driver);
++}
++
++/* Driver Initialisation */
++
++int __init vt8623fb_init(void)
++{
++
++#ifndef MODULE
++	char *option = NULL;
++
++	if (fb_get_options("vt8623fb", &option))
++		return -ENODEV;
++
++	if (option && *option)
++		mode = option;
++#endif
++
++	pr_debug("vt8623fb: initializing\n");
++	return pci_register_driver(&vt8623fb_pci_driver);
++}
++
++/* ------------------------------------------------------------------------- */
++
++/* Modularization */
++
++module_init(vt8623fb_init);
++module_exit(vt8623fb_cleanup);
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from santiago@crfreenet.org are
 
-fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
-intelfb-fix-ring-space-calculation.patch
-nvidiafb-bring-back-generic-ddc-reading.patch
-fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
-fbdev-fix-obvious-bug-in-show_pan.patch
-neofb-fill-transp-msb_right-with-the-correct.patch
-atyfb-kill-dead-code.patch
-fbdev-mm-deferred-io-support.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-mm-deferred-io-support-fix-2.patch
-fbdev-hecuba-framebuffer-driver.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-nvidiafb-fix-reversed-ddc-port.patch
-vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
-fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
-rivafb-nvidiafb-enable-hardware-monitoring.patch
-rivafb-handle-i2c-bus-creation-failure.patch
-rivafb-nvidiafb-various-cleanups.patch
-rivafb-fixed-reversed-ddc-ports.patch
-nvidiafb-ensure-that-crtc-registers-are-accessible.patch
-nvidiafb-access-crt-registers-safely.patch
-skeletonfb-various-corrections.patch
-epson1355fbc-fix-error-handling-code.patch
-nvidiafb-vga-state-save-and-restore.patch
-savagefb-rework-i2c-bit-access.patch
-savagefb-vga-state-save-and-restore.patch
-fbdev-link-vgastateo-using-kconfig.patch
-fbcon-delay-screen-update-when-setting-the-mode-of.patch
-nvidiafb-fix-sparse-warning.patch
-rivafb-fix-io-access.patch
-fbdev-kill-sparse-warning-in-deferred-io.patch
-fbdev-add-sparse-annotations-in-svgalibc.patch
-arcfb-kill-sparse-warning.patch
-s3fb-add-sparse-annotations.patch
-hecubafb-kill-sparse-warnings.patch
-i810fb-fix-incorrect-frequency-mask.patch
-vt-add-documentation-for-new-boot-sysfs-options.patch
-skeletonfb-documentation-error-fixes.patch
-fbdev-add-drawing-functions-for-framebuffers-in-system.patch
-arcfb-use-sys-instead-of-cfb-drawing-functions.patch
-hecubafb-use-sys-instead-of-cfb-drawing-functions.patch
-vfb-use-sys-instead-of-cfb-drawing-functions.patch
-fbdev-pass-struct-fb_info-to-fb_read-and-fb_write.patch
-fbdev-add-fb_read-fb_write-functions-for-framebuffers.patch
-arcfb-us-fb_sys_read.patch
-hecubafb-us-fb_sys_read.patch
-vfb-us-fb_sys_read-and-fb_sys_write.patch
-fbdev-consolidate-common-drawing-functions-into-a.patch
-fbdev-advertise-limitation-of-drawing-engine.patch
-fbcon-font-setting-should-check-limitation-of-driver.patch
-vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
-s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch
-fbdev-add-tile-operation-to-get-the-maximum-length.patch
-s3fb-implement-fb_get_tilemax.patch
-fbcon-check-if-the-character-count-can-be-handled.patch
-fbdev-save-the-activate-field-before-calling-fb_check_var.patch
 s3fb-driver-fixes.patch
-vmlfb-framebuffer-driver-for-intel-vermilion-range.patch
-nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
-pm2fb-3dlabs-permedia-2v-reference-board-added.patch
-pm2fb-permedia-2v-memory-clock-setting.patch
-pm2fb-pixclock-setting-restriction.patch
-nvidiafb-prevent-triggering-of-softlockup.patch
-fbdev-fbcon-check-if-mode-can-handle-new-screen.patch
-s3fb-implement-fb_get_caps.patch
 vga-vgastate-fix.patch
-nvidiafb-fix-return-value-of-nvidiafb_open.patch
-atyfb-increase-spll-delay.patch
-atyfb-reorganize-clock-init.patch
-atyfb-halve-xclk-with-mobility-and-32bit-memory.patch
-fbdev-clean-up-exit-patch-of-fb_set_var.patch
-fbcon-check-console-fb-mapping-in-fbcon_get_requirement.patch
-pm2fb-reset-transparency-settings.patch
-pm2fb-memclock-setting-corrections.patch
 s3fb-updates.patch
 vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
 arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
-svgalib-move-fb_get_caps-to-svgalib.patch
-arkfb-fix-compiler-warnings.patch
-vt8623fb-fix-compile-warnings.patch
-pm2fb-accelerated-fillrect-and-copyarea.patch
-use-menuconfig-objects-ii-video-logo.patch
-vgacon-disallow-console-operations-when-in-kd_graphics.patch
-vga16fb-actually-support-widths-in-multiples-of-8.patch
-skeletonfb-more-corrections.patch
-pm2fb-removal-of-pm2fb_par-fields.patch
-skeletonfb-improvements.patch
-pm2fb-fix-of-jumps-in-pm2fb_probe.patch
-xilinxfb-xilinx-framebuffer-device-driver.patch
