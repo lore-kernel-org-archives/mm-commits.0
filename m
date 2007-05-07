@@ -1,271 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch removed from -mm tree
-Date: Mon, 07 May 2007 15:29:04 -0700
-Message-ID: <200705072229.l47MT4XS007029@shell0.pdx.osdl.net>
+Subject: + vga16fb-actually-support-widths-in-multiples-of-8.patch added to -mm tree
+Date: Mon, 07 May 2007 15:27:19 -0700
+Message-ID: <200705072227.l47MRJ61006986@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44486 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966572AbXEGW33 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:29:29 -0400
+	by vger.kernel.org with ESMTP id S966661AbXEGWjQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:39:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     slub: support concurrent local and remote frees and allocs on a slab
-has been removed from the -mm tree.  Its filename was
-     support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch
+     vga16fb: actually support widths in multiples of 8
+has been added to the -mm tree.  Its filename is
+     vga16fb-actually-support-widths-in-multiples-of-8.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: slub: support concurrent local and remote frees and allocs on a slab
-From: Christoph Lameter <clameter@sgi.com>
+Subject: vga16fb: actually support widths in multiples of 8
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-About 5-10% performance gain on netperf.
+vga16fb does not just support 8-pixel wide rectangles, but rectangles with
+widths in multiples of 8.
 
-What we do is use the last free field in the page struct (the private field
-that was freed up through the compound page flag rework) to setup a
-separate per cpu freelist.  From that one we can allocate without taking
-the slab lock because we checkout the complete list of free objects when we
-first touch the slab and then mark the slab as completely allocated.  If we
-have a cpu_freelist then we can also free to that list if we run on that
-processor without taking the slab lock.
-
-This allows even concurrent allocations and frees on the same slab using
-two mutually exclusive freelists.  Allocs and frees from the processor
-owning the per cpu slab will bypass the slab lock using the cpu_freelist. 
-Remove frees will use the slab lock to synchronize and use the freelist for
-marking items as free.  So local allocs and frees may run concurrently with
-remote frees without synchronization.
-
-If the allocator is running out of its per cpu freelist then it will
-consult the per slab freelist (which requires the slab lock) and reload the
-cpu_freelist if there are objects that were remotely freed.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    5 ++
- mm/slub.c                |   67 ++++++++++++++++++++++++++++++-------
- 2 files changed, 59 insertions(+), 13 deletions(-)
+ drivers/video/vga16fb.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm_types.h~support-concurrent-local-and-remote-frees-and-allocs-on-a-slab include/linux/mm_types.h
---- a/include/linux/mm_types.h~support-concurrent-local-and-remote-frees-and-allocs-on-a-slab
-+++ a/include/linux/mm_types.h
-@@ -50,9 +50,12 @@ struct page {
- 	    spinlock_t ptl;
- #endif
- 	    struct {			/* SLUB uses */
--		struct page *first_page;	/* Compound pages */
-+	    	void **cpu_freelist;		/* Per cpu freelist */
- 		struct kmem_cache *slab;	/* Pointer to slab */
- 	    };
-+	    struct {
-+		struct page *first_page;	/* Compound pages */
-+	    };
- 	};
- 	union {
- 		pgoff_t index;		/* Our offset within mapping. */
-diff -puN mm/slub.c~support-concurrent-local-and-remote-frees-and-allocs-on-a-slab mm/slub.c
---- a/mm/slub.c~support-concurrent-local-and-remote-frees-and-allocs-on-a-slab
-+++ a/mm/slub.c
-@@ -81,10 +81,13 @@
-  * PageActive 		The slab is used as a cpu cache. Allocations
-  * 			may be performed from the slab. The slab is not
-  * 			on any slab list and cannot be moved onto one.
-+ * 			The cpu slab may have a cpu_freelist in order
-+ * 			to optimize allocations and frees on a particular
-+ * 			cpu.
-  *
-  * PageError		Slab requires special handling due to debug
-  * 			options set. This moves	slab handling out of
-- * 			the fast path.
-+ * 			the fast path and disables cpu_freelists.
-  */
+diff -puN drivers/video/vga16fb.c~vga16fb-actually-support-widths-in-multiples-of-8 drivers/video/vga16fb.c
+--- a/drivers/video/vga16fb.c~vga16fb-actually-support-widths-in-multiples-of-8
++++ a/drivers/video/vga16fb.c
+@@ -1378,8 +1378,8 @@ static int __init vga16fb_probe(struct p
+ 	info->fbops = &vga16fb_ops;
+ 	info->var = vga16fb_defined;
+ 	info->fix = vga16fb_fix;
+-	/* supports 8-pixel wide blit rectangles only */
+-	info->pixmap.blit_x = 1 << (8 - 1);
++	/* supports rectangles with widths of multiples of 8 */
++	info->pixmap.blit_x = 1 << 7 | 1 << 15 | 1 << 23 | 1 << 31;
+ 	info->flags = FBINFO_FLAG_DEFAULT |
+ 		FBINFO_HWACCEL_YPAN;
  
- /*
-@@ -850,6 +853,7 @@ static struct page *new_slab(struct kmem
- 	set_freepointer(s, last, NULL);
- 
- 	page->freelist = start;
-+	page->cpu_freelist = NULL;
- 	page->inuse = 0;
- out:
- 	if (flags & __GFP_WAIT)
-@@ -1114,6 +1118,23 @@ static void putback_slab(struct kmem_cac
-  */
- static void deactivate_slab(struct kmem_cache *s, struct page *page, int cpu)
- {
-+	/*
-+	 * Merge cpu freelist into freelist. Typically we get here
-+	 * because both freelists are empty. So this is unlikely
-+	 * to occur.
-+	 */
-+	while (unlikely(page->cpu_freelist)) {
-+		void **object;
-+
-+		/* Retrieve object from cpu_freelist */
-+		object = page->cpu_freelist;
-+		page->cpu_freelist = page->cpu_freelist[page->offset];
-+
-+		/* And put onto the regular freelist */
-+		object[page->offset] = page->freelist;
-+		page->freelist = object;
-+		page->inuse--;
-+	}
- 	s->cpu_slab[cpu] = NULL;
- 	ClearPageActive(page);
- 
-@@ -1183,22 +1204,33 @@ static void *slab_alloc(struct kmem_cach
- 	local_irq_save(flags);
- 	cpu = smp_processor_id();
- 	page = s->cpu_slab[cpu];
--	if (!page)
-+	if (unlikely(!page))
- 		goto new_slab;
- 
--	slab_lock(page);
--	if (unlikely(node != -1 && page_to_nid(page) != node))
-+	if (unlikely(node != -1 && page_to_nid(page) != node)) {
-+		slab_lock(page);
- 		goto another_slab;
-+	}
-+
-+	if (likely(page->cpu_freelist)) {
-+		object = page->cpu_freelist;
-+		page->cpu_freelist = object[page->offset];
-+		local_irq_restore(flags);
-+		return object;
-+	}
-+
-+	slab_lock(page);
- redo:
--	object = page->freelist;
--	if (unlikely(!object))
-+	if (!page->freelist)
- 		goto another_slab;
--	if (unlikely(PageError(page)))
-+	if (PageError(page))
- 		goto debug;
- 
--have_object:
--	page->inuse++;
--	page->freelist = object[page->offset];
-+	/* Reload the cpu freelist while allocating the next object */
-+	object = page->freelist;
-+	page->cpu_freelist = object[page->offset];
-+	page->freelist = NULL;
-+	page->inuse = s->objects;
- 	slab_unlock(page);
- 	local_irq_restore(flags);
- 	return object;
-@@ -1208,7 +1240,7 @@ another_slab:
- 
- new_slab:
- 	page = get_partial(s, gfpflags, node);
--	if (likely(page)) {
-+	if (page) {
- have_slab:
- 		s->cpu_slab[cpu] = page;
- 		SetPageActive(page);
-@@ -1244,6 +1276,7 @@ have_slab:
- 	local_irq_restore(flags);
- 	return NULL;
- debug:
-+	object = page->freelist;
- 	if (!alloc_object_checks(s, page, object))
- 		goto another_slab;
- 	if (s->flags & SLAB_STORE_USER)
-@@ -1254,8 +1287,12 @@ debug:
- 			page->freelist);
- 		dump_stack();
- 	}
-+	page->freelist = object[page->offset];
-+	page->inuse++;
- 	init_object(s, object, 1);
--	goto have_object;
-+	slab_unlock(page);
-+	local_irq_restore(flags);
-+	return object;
- }
- 
- void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
-@@ -1286,6 +1323,12 @@ static void slab_free(struct kmem_cache 
- 	unsigned long flags;
- 
- 	local_irq_save(flags);
-+	if (page == s->cpu_slab[smp_processor_id()] && !PageError(page)) {
-+		object[page->offset] = page->cpu_freelist;
-+		page->cpu_freelist = object;
-+		local_irq_restore(flags);
-+		return;
-+	}
- 	slab_lock(page);
- 
- 	if (unlikely(PageError(page)))
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
-origin.patch
-slab-introduce-krealloc.patch
-add-apply_to_page_range-which-applies-a-function-to-a-pte-range.patch
-safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
-use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
-slab-ensure-cache_alloc_refill-terminates.patch
-smaps-extract-pmd-walker-from-smaps-code.patch
-smaps-add-pages-referenced-count-to-smaps.patch
-smaps-add-clear_refs-file-to-clear-reference.patch
-slab-use-num_possible_cpus-in-enable_cpucache.patch
-i386-use-page-allocator-to-allocate-thread_info-structure.patch
-make-page-private-usable-in-compound-pages-v1.patch
-optimize-compound_head-by-avoiding-a-shared-page.patch
-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-quicklists-for-page-table-pages.patch
-quicklist-support-for-sparc64.patch
-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-kmem_cache-simplify-slab-cache-creation.patch
-slab-allocators-remove-multiple-alignment-specifications.patch
-fault-injection-fix-failslab-with-config_numa.patch
-mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
-slab-allocators-remove-slab_debug_initial-flag.patch
-slab-allocators-remove-slab_ctor_atomic.patch
-slab-allocators-remove-useless-__gfp_no_grow-flag.patch
-page-migration-only-migrate-pages-if-allocation-in-the-highest-zone-is-possible.patch
-slub-core.patch
-slub-change-default-alignments.patch
-slub-allocate-smallest-object-size-if-the-user-asks-for-0-bytes.patch
-slub-make-page-private-usable-in-compound-pages-v1.patch
-slub-add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
-slub-fix-object-tracking.patch
-slub-enable-tracking-of-full-slabs.patch
-slub-validation-of-slabs-metadata-and-guard-zones.patch
-slub-add-min_partial.patch
-slub-add-ability-to-list-alloc--free-callers-per-slab.patch
-slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
-slub-remove-object-activities-out-of-checking-functions.patch
-slub-user-documentation.patch
-slub-add-slabinfo-tool.patch
-slub-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
-slub-slab-allocators-remove-slab_debug_initial-flag.patch
-slub-slab-allocators-remove-slab_ctor_atomic.patch
-slub-slab-allocators-remove-useless-__gfp_no_grow-flag.patch
-support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch
-powerpc-disable-slub-for-configurations-in-which-slab-page-structs-are-modified.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-i386-support.patch
-remove-constructor-from-buffer_head.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-vmstat-use-our-own-timer-events.patch
-make-vm-statistics-update-interval-configurable.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-readahead-state-based-method-aging-accounting.patch
+fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
+intelfb-fix-ring-space-calculation.patch
+nvidiafb-bring-back-generic-ddc-reading.patch
+fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
+fbdev-fix-obvious-bug-in-show_pan.patch
+neofb-fill-transp-msb_right-with-the-correct.patch
+atyfb-kill-dead-code.patch
+fbdev-mm-deferred-io-support.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-mm-deferred-io-support-fix-2.patch
+fbdev-hecuba-framebuffer-driver.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+nvidiafb-fix-reversed-ddc-port.patch
+vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
+fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
+rivafb-nvidiafb-enable-hardware-monitoring.patch
+rivafb-handle-i2c-bus-creation-failure.patch
+rivafb-nvidiafb-various-cleanups.patch
+rivafb-fixed-reversed-ddc-ports.patch
+nvidiafb-ensure-that-crtc-registers-are-accessible.patch
+nvidiafb-access-crt-registers-safely.patch
+skeletonfb-various-corrections.patch
+epson1355fbc-fix-error-handling-code.patch
+nvidiafb-vga-state-save-and-restore.patch
+savagefb-rework-i2c-bit-access.patch
+savagefb-vga-state-save-and-restore.patch
+fbdev-link-vgastateo-using-kconfig.patch
+fbcon-delay-screen-update-when-setting-the-mode-of.patch
+nvidiafb-fix-sparse-warning.patch
+rivafb-fix-io-access.patch
+fbdev-kill-sparse-warning-in-deferred-io.patch
+fbdev-add-sparse-annotations-in-svgalibc.patch
+arcfb-kill-sparse-warning.patch
+s3fb-add-sparse-annotations.patch
+hecubafb-kill-sparse-warnings.patch
+i810fb-fix-incorrect-frequency-mask.patch
+vt-add-documentation-for-new-boot-sysfs-options.patch
+skeletonfb-documentation-error-fixes.patch
+fbdev-add-drawing-functions-for-framebuffers-in-system.patch
+arcfb-use-sys-instead-of-cfb-drawing-functions.patch
+hecubafb-use-sys-instead-of-cfb-drawing-functions.patch
+vfb-use-sys-instead-of-cfb-drawing-functions.patch
+fbdev-pass-struct-fb_info-to-fb_read-and-fb_write.patch
+fbdev-add-fb_read-fb_write-functions-for-framebuffers.patch
+arcfb-us-fb_sys_read.patch
+hecubafb-us-fb_sys_read.patch
+vfb-us-fb_sys_read-and-fb_sys_write.patch
+fbdev-consolidate-common-drawing-functions-into-a.patch
+fbdev-advertise-limitation-of-drawing-engine.patch
+fbcon-font-setting-should-check-limitation-of-driver.patch
+vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
+s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch
+fbdev-add-tile-operation-to-get-the-maximum-length.patch
+s3fb-implement-fb_get_tilemax.patch
+fbcon-check-if-the-character-count-can-be-handled.patch
+fbdev-save-the-activate-field-before-calling-fb_check_var.patch
+s3fb-driver-fixes.patch
+vmlfb-framebuffer-driver-for-intel-vermilion-range.patch
+nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
+pm2fb-3dlabs-permedia-2v-reference-board-added.patch
+pm2fb-permedia-2v-memory-clock-setting.patch
+pm2fb-pixclock-setting-restriction.patch
+nvidiafb-prevent-triggering-of-softlockup.patch
+fbdev-fbcon-check-if-mode-can-handle-new-screen.patch
+s3fb-implement-fb_get_caps.patch
+vga-vgastate-fix.patch
+nvidiafb-fix-return-value-of-nvidiafb_open.patch
+atyfb-increase-spll-delay.patch
+atyfb-reorganize-clock-init.patch
+atyfb-halve-xclk-with-mobility-and-32bit-memory.patch
+fbdev-clean-up-exit-patch-of-fb_set_var.patch
+fbcon-check-console-fb-mapping-in-fbcon_get_requirement.patch
+pm2fb-reset-transparency-settings.patch
+pm2fb-memclock-setting-corrections.patch
+s3fb-updates.patch
+vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
+svgalib-move-fb_get_caps-to-svgalib.patch
+arkfb-fix-compiler-warnings.patch
+vt8623fb-fix-compile-warnings.patch
+pm2fb-accelerated-fillrect-and-copyarea.patch
+use-menuconfig-objects-ii-video-logo.patch
+vgacon-disallow-console-operations-when-in-kd_graphics.patch
+vga16fb-actually-support-widths-in-multiples-of-8.patch
+skeletonfb-more-corrections.patch
+pm2fb-removal-of-pm2fb_par-fields.patch
+skeletonfb-improvements.patch
+pm2fb-fix-of-jumps-in-pm2fb_probe.patch
+xilinxfb-xilinx-framebuffer-device-driver.patch
