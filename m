@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch added to -mm tree
-Date: Mon, 07 May 2007 11:45:54 -0700
-Message-ID: <200705071845.l47Ijsil002119@shell0.pdx.osdl.net>
+Subject: + slub-slab-allocators-remove-slab_ctor_atomic.patch added to -mm tree
+Date: Mon, 07 May 2007 11:46:03 -0700
+Message-ID: <200705071846.l47Ik3Iw002125@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59022 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56149 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754758AbXEGSqF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 14:46:05 -0400
+	by vger.kernel.org with ESMTP id S934439AbXEGSqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 14:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: clameter@sgi.com
 
 
 The patch titled
-     slab allocators: Remove obsolete SLAB_MUST_HWCACHE_ALIGN
+     slab allocators: Remove SLAB_CTOR_ATOMIC
 has been added to the -mm tree.  Its filename is
-     slub-slab-allocators-remove-obsolete-slab_must_hwcache_align.patch
+     slub-slab-allocators-remove-slab_ctor_atomic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab allocators: Remove obsolete SLAB_MUST_HWCACHE_ALIGN
+Subject: slab allocators: Remove SLAB_CTOR_ATOMIC
 From: Christoph Lameter <clameter@sgi.com>
 
-This patch was recently posted to lkml and acked by Pekka.
+SLAB_CTOR atomic is never used which is no surprise since I cannot imagine
+that one would want to do something serious in a constructor or destructor.
+ In particular given that the slab allocators run with interrupts disabled.
+ Actions in constructors and destructors are by their nature very limited
+and usually do not go beyond initializing variables and list operations.
 
-The flag SLAB_MUST_HWCACHE_ALIGN is
+(The i386 pgd ctor and dtors do take a spinlock in constructor and
+destructor.....  I think that is the furthest we go at this point.)
 
-1. Never checked by SLAB at all.
+There is no flag passed to the destructor so removing SLAB_CTOR_ATOMIC also
+establishes a certain symmetry.
 
-2. A duplicate of SLAB_HWCACHE_ALIGN for SLUB
-
-3. Fulfills the role of SLAB_HWCACHE_ALIGN for SLOB.
-
-The only remaining use is in sparc64 and ppc64 and their use there
-reflects some earlier role that the slab flag once may have had. If
-its specified then SLAB_HWCACHE_ALIGN is also specified.
-
-The flag is confusing, inconsistent and has no purpose.
-
-Remove it.
-
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ mm/slub.c |   10 ++--------
+ 1 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN mm/slub.c~slub-slab-allocators-remove-obsolete-slab_must_hwcache_align mm/slub.c
---- a/mm/slub.c~slub-slab-allocators-remove-obsolete-slab_must_hwcache_align
+diff -puN mm/slub.c~slub-slab-allocators-remove-slab_ctor_atomic mm/slub.c
+--- a/mm/slub.c~slub-slab-allocators-remove-slab_ctor_atomic
 +++ a/mm/slub.c
-@@ -1496,7 +1496,7 @@ static unsigned long calculate_alignment
- 	 * specified alignment though. If that is greater
- 	 * then use it.
- 	 */
--	if ((flags & (SLAB_MUST_HWCACHE_ALIGN | SLAB_HWCACHE_ALIGN)) &&
-+	if ((flags & SLAB_HWCACHE_ALIGN) &&
- 			size > L1_CACHE_BYTES / 2)
- 		return max_t(unsigned long, align, L1_CACHE_BYTES);
+@@ -802,14 +802,8 @@ static void setup_object(struct kmem_cac
+ 		init_tracking(s, object);
+ 	}
  
-@@ -3142,8 +3142,7 @@ SLAB_ATTR(reclaim_account);
- 
- static ssize_t hwcache_align_show(struct kmem_cache *s, char *buf)
- {
--	return sprintf(buf, "%d\n", !!(s->flags &
--		(SLAB_HWCACHE_ALIGN|SLAB_MUST_HWCACHE_ALIGN)));
-+	return sprintf(buf, "%d\n", !!(s->flags & SLAB_HWCACHE_ALIGN));
+-	if (unlikely(s->ctor)) {
+-		int mode = SLAB_CTOR_CONSTRUCTOR;
+-
+-		if (!(s->flags & __GFP_WAIT))
+-			mode |= SLAB_CTOR_ATOMIC;
+-
+-		s->ctor(object, s, mode);
+-	}
++	if (unlikely(s->ctor))
++		s->ctor(object, s, SLAB_CTOR_CONSTRUCTOR);
  }
- SLAB_ATTR_RO(hwcache_align);
  
+ static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
