@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vgacon-disallow-console-operations-when-in-kd_graphics.patch added to -mm tree
-Date: Mon, 07 May 2007 15:27:17 -0700
-Message-ID: <200705072227.l47MRHUD006983@shell0.pdx.osdl.net>
+Subject: + pm2fb-accelerated-fillrect-and-copyarea.patch added to -mm tree
+Date: Mon, 07 May 2007 15:27:13 -0700
+Message-ID: <200705072227.l47MRDnE006976@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37330 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967166AbXEGWkO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:40:14 -0400
+	by vger.kernel.org with ESMTP id S966707AbXEGWlP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:41:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adaplas@gmail.com
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     vgacon: disallow console operations when in KD_GRAPHICS  mode
+     pm2fb: accelerated fillrect and copyarea
 has been added to the -mm tree.  Its filename is
-     vgacon-disallow-console-operations-when-in-kd_graphics.patch
+     pm2fb-accelerated-fillrect-and-copyarea.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,158 +25,205 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vgacon: disallow console operations when in KD_GRAPHICS  mode
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: pm2fb: accelerated fillrect and copyarea
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Reported by James Pearson as:
+This is a port of accelerated functions from 2.4 kernel.  Only fillrect and
+copyarea are accelerated.  Fillrect is not accelerated in 24-bit mode.
 
-	 boot to run level 3
+[adaplas]
+Add appropriate flags
 
-	 if not root, then make sure /dev/console is writeable
-
-	 login and type:
-
-	 setterm -blank 0
-
-	 start X
-
-	 type into an xterm:
-
-	 while true; do echo "" > /dev/console; usleep 100000; done
-
-	 while the above loop is running switch to the text console and back
-	 again (Ctrl-Alt-F1 then Ctrl-Alt-F7)
-
-	 ... and the screen will be shifting (and wrapping) to the left.
-
-This problem stems from continuously writing text to the system console (which
-is in KD_TEXT mode) while the foreground console is in KD_GRAPHICS
-mode. Somewhere along the way, console printing got confused and omitted the
-KD_GRAPHICS/KD_TEXT test.  Thus, vgacon attempted to scroll the screen of X,
-which causes X to shift.
-
-Fix by disallowing vgacon to touch the hardware when the vc is in KD_GRAPHICS
-mode. A definitive fix entails a full audit of the console code.
-
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/vgacon.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/video/pm2fb.c |  132 ++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 128 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/console/vgacon.c~vgacon-disallow-console-operations-when-in-kd_graphics drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~vgacon-disallow-console-operations-when-in-kd_graphics
-+++ a/drivers/video/console/vgacon.c
-@@ -660,6 +660,9 @@ static void vgacon_set_cursor_size(int x
+diff -puN drivers/video/pm2fb.c~pm2fb-accelerated-fillrect-and-copyarea drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-accelerated-fillrect-and-copyarea
++++ a/drivers/video/pm2fb.c
+@@ -103,7 +103,7 @@ static struct fb_fix_screeninfo pm2fb_fi
+ 	.xpanstep =	1,
+ 	.ypanstep =	1,
+ 	.ywrapstep =	0, 
+-	.accel =	FB_ACCEL_NONE,
++	.accel =	FB_ACCEL_3DLABS_PERMEDIA2,
+ };
  
- static void vgacon_cursor(struct vc_data *c, int mode)
- {
-+	if (c->vc_mode != KD_TEXT)
+ /*
+@@ -206,6 +206,17 @@ static inline void WAIT_FIFO(struct pm2f
+ }
+ #endif
+ 
++static void wait_pm2(struct pm2fb_par* par) {
++
++	WAIT_FIFO(par, 1);
++	pm2_WR(par, PM2R_SYNC, 0);
++	mb();
++	do {
++		while (pm2_RD(par, PM2R_OUT_FIFO_WORDS) == 0);
++		rmb();
++	} while (pm2_RD(par, PM2R_OUT_FIFO) != PM2TAG(PM2R_SYNC));
++}
++
+ /*
+  * partial products for the supported horizontal resolutions.
+  */
+@@ -1041,6 +1052,117 @@ static int pm2fb_blank(int blank_mode, s
+ 	return 0;
+ }
+ 
++/*
++ * block operation. copy=0: rectangle fill, copy=1: rectangle copy.
++ */
++static void pm2fb_block_op(struct pm2fb_par* par, int copy,
++				s32 xsrc, s32 ysrc,
++				s32 x, s32 y, s32 w, s32 h,
++				u32 color) {
++
++	if (!w || !h)
++		return;
++	WAIT_FIFO(par, 6);
++	pm2_WR(par, PM2R_CONFIG, PM2F_CONFIG_FB_WRITE_ENABLE |
++		PM2F_CONFIG_FB_READ_SOURCE_ENABLE);
++	pm2_WR(par, PM2R_FB_PIXEL_OFFSET, 0);
++	if (copy)
++		pm2_WR(par, PM2R_FB_SOURCE_DELTA,
++			((ysrc-y) & 0xfff) << 16 | ((xsrc-x) & 0xfff));
++	else
++		pm2_WR(par, PM2R_FB_BLOCK_COLOR, color);
++	pm2_WR(par, PM2R_RECTANGLE_ORIGIN, (y << 16) | x);
++	pm2_WR(par, PM2R_RECTANGLE_SIZE, (h << 16) | w);
++	wmb();
++	pm2_WR(par, PM2R_RENDER,PM2F_RENDER_RECTANGLE |
++				(x<xsrc ? PM2F_INCREASE_X : 0) |
++				(y<ysrc ? PM2F_INCREASE_Y : 0) |
++				(copy ? 0 : PM2F_RENDER_FASTFILL));
++	wait_pm2(par);
++}
++
++static void pm2fb_fillrect (struct fb_info *info,
++				const struct fb_fillrect *region)
++{
++	struct pm2fb_par *par = info->par;
++	struct fb_fillrect modded;
++	int vxres, vyres;
++	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
++		((u32*)info->pseudo_palette)[region->color] : region->color;
++
++	if (info->state != FBINFO_STATE_RUNNING)
++		return;
++	if ((info->flags & FBINFO_HWACCEL_DISABLED) ||
++		region->rop != ROP_COPY ) {
++		cfb_fillrect(info, region);
++		return;
++	}
++
++	vxres = info->var.xres_virtual;
++	vyres = info->var.yres_virtual;
++
++	memcpy(&modded, region, sizeof(struct fb_fillrect));
++
++	if(!modded.width || !modded.height ||
++	   modded.dx >= vxres || modded.dy >= vyres)
 +		return;
 +
- 	vgacon_restore_screen(c);
++	if(modded.dx + modded.width  > vxres)
++		modded.width  = vxres - modded.dx;
++	if(modded.dy + modded.height > vyres)
++		modded.height = vyres - modded.dy;
++
++	if(info->var.bits_per_pixel == 8)
++		color |= color << 8;
++	if(info->var.bits_per_pixel <= 16)
++		color |= color << 16;
++
++	if(info->var.bits_per_pixel != 24)
++		pm2fb_block_op(par, 0, 0, 0,
++				modded.dx, modded.dy,
++				modded.width, modded.height, color);
++	else
++		cfb_fillrect(info, region);
++}
++
++static void pm2fb_copyarea(struct fb_info *info,
++				const struct fb_copyarea *area)
++{
++	struct pm2fb_par *par = info->par;
++	struct fb_copyarea modded;
++	u32 vxres, vyres;
++
++	if (info->state != FBINFO_STATE_RUNNING)
++		return;
++	if (info->flags & FBINFO_HWACCEL_DISABLED) {
++		cfb_copyarea(info, area);
++		return;
++	}
++
++	memcpy(&modded, area, sizeof(struct fb_copyarea));
++
++	vxres = info->var.xres_virtual;
++	vyres = info->var.yres_virtual;
++
++	if(!modded.width || !modded.height ||
++	   modded.sx >= vxres || modded.sy >= vyres ||
++	   modded.dx >= vxres || modded.dy >= vyres)
++		return;
++
++	if(modded.sx + modded.width > vxres)
++		modded.width = vxres - modded.sx;
++	if(modded.dx + modded.width > vxres)
++		modded.width = vxres - modded.dx;
++	if(modded.sy + modded.height > vyres)
++		modded.height = vyres - modded.sy;
++	if(modded.dy + modded.height > vyres)
++		modded.height = vyres - modded.dy;
++
++	pm2fb_block_op(par, 1, modded.sx, modded.sy,
++			modded.dx, modded.dy,
++			modded.width, modded.height, 0);
++}
++
+ /* ------------ Hardware Independent Functions ------------ */
  
- 	switch (mode) {
-@@ -1318,7 +1321,7 @@ static int vgacon_scroll(struct vc_data 
- 	unsigned long oldo;
- 	unsigned int delta;
+ /*
+@@ -1054,8 +1176,8 @@ static struct fb_ops pm2fb_ops = {
+ 	.fb_setcolreg	= pm2fb_setcolreg,
+ 	.fb_blank	= pm2fb_blank,
+ 	.fb_pan_display	= pm2fb_pan_display,
+-	.fb_fillrect	= cfb_fillrect,
+-	.fb_copyarea	= cfb_copyarea,
++	.fb_fillrect	= pm2fb_fillrect,
++	.fb_copyarea	= pm2fb_copyarea,
+ 	.fb_imageblit	= cfb_imageblit,
+ };
  
--	if (t || b != c->vc_rows || vga_is_gfx)
-+	if (t || b != c->vc_rows || vga_is_gfx || c->vc_mode != KD_TEXT)
- 		return 0;
+@@ -1204,7 +1326,9 @@ static int __devinit pm2fb_probe(struct 
+ 	info->fix		= pm2fb_fix; 	
+ 	info->pseudo_palette	= default_par->palette;
+ 	info->flags		= FBINFO_DEFAULT |
+-                                  FBINFO_HWACCEL_YPAN;
++                                  FBINFO_HWACCEL_YPAN |
++	                          FBINFO_HWACCEL_COPYAREA |
++	                          FBINFO_HWACCEL_FILLRECT;
  
- 	if (!vga_hardscroll_enabled || lines >= c->vc_rows / 2)
+ 	if (!mode)
+ 		mode = "640x480@60";
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
-intelfb-fix-ring-space-calculation.patch
-nvidiafb-bring-back-generic-ddc-reading.patch
-fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
-fbdev-fix-obvious-bug-in-show_pan.patch
-neofb-fill-transp-msb_right-with-the-correct.patch
-atyfb-kill-dead-code.patch
-fbdev-mm-deferred-io-support.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-mm-deferred-io-support-fix-2.patch
-fbdev-hecuba-framebuffer-driver.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-nvidiafb-fix-reversed-ddc-port.patch
-vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
-fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
-rivafb-nvidiafb-enable-hardware-monitoring.patch
-rivafb-handle-i2c-bus-creation-failure.patch
-rivafb-nvidiafb-various-cleanups.patch
-rivafb-fixed-reversed-ddc-ports.patch
-nvidiafb-ensure-that-crtc-registers-are-accessible.patch
-nvidiafb-access-crt-registers-safely.patch
 skeletonfb-various-corrections.patch
-epson1355fbc-fix-error-handling-code.patch
-nvidiafb-vga-state-save-and-restore.patch
-savagefb-rework-i2c-bit-access.patch
-savagefb-vga-state-save-and-restore.patch
-fbdev-link-vgastateo-using-kconfig.patch
-fbcon-delay-screen-update-when-setting-the-mode-of.patch
-nvidiafb-fix-sparse-warning.patch
-rivafb-fix-io-access.patch
-fbdev-kill-sparse-warning-in-deferred-io.patch
-fbdev-add-sparse-annotations-in-svgalibc.patch
-arcfb-kill-sparse-warning.patch
-s3fb-add-sparse-annotations.patch
-hecubafb-kill-sparse-warnings.patch
-i810fb-fix-incorrect-frequency-mask.patch
-vt-add-documentation-for-new-boot-sysfs-options.patch
-skeletonfb-documentation-error-fixes.patch
-fbdev-add-drawing-functions-for-framebuffers-in-system.patch
-arcfb-use-sys-instead-of-cfb-drawing-functions.patch
-hecubafb-use-sys-instead-of-cfb-drawing-functions.patch
-vfb-use-sys-instead-of-cfb-drawing-functions.patch
-fbdev-pass-struct-fb_info-to-fb_read-and-fb_write.patch
-fbdev-add-fb_read-fb_write-functions-for-framebuffers.patch
-arcfb-us-fb_sys_read.patch
-hecubafb-us-fb_sys_read.patch
-vfb-us-fb_sys_read-and-fb_sys_write.patch
-fbdev-consolidate-common-drawing-functions-into-a.patch
-fbdev-advertise-limitation-of-drawing-engine.patch
-fbcon-font-setting-should-check-limitation-of-driver.patch
-vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
-s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch
-fbdev-add-tile-operation-to-get-the-maximum-length.patch
-s3fb-implement-fb_get_tilemax.patch
-fbcon-check-if-the-character-count-can-be-handled.patch
-fbdev-save-the-activate-field-before-calling-fb_check_var.patch
-s3fb-driver-fixes.patch
-vmlfb-framebuffer-driver-for-intel-vermilion-range.patch
-nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
 pm2fb-3dlabs-permedia-2v-reference-board-added.patch
 pm2fb-permedia-2v-memory-clock-setting.patch
 pm2fb-pixclock-setting-restriction.patch
-nvidiafb-prevent-triggering-of-softlockup.patch
-fbdev-fbcon-check-if-mode-can-handle-new-screen.patch
-s3fb-implement-fb_get_caps.patch
-vga-vgastate-fix.patch
-nvidiafb-fix-return-value-of-nvidiafb_open.patch
-atyfb-increase-spll-delay.patch
-atyfb-reorganize-clock-init.patch
-atyfb-halve-xclk-with-mobility-and-32bit-memory.patch
-fbdev-clean-up-exit-patch-of-fb_set_var.patch
-fbcon-check-console-fb-mapping-in-fbcon_get_requirement.patch
 pm2fb-reset-transparency-settings.patch
 pm2fb-memclock-setting-corrections.patch
-s3fb-updates.patch
-vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
-arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
-svgalib-move-fb_get_caps-to-svgalib.patch
-arkfb-fix-compiler-warnings.patch
-vt8623fb-fix-compile-warnings.patch
 pm2fb-accelerated-fillrect-and-copyarea.patch
-use-menuconfig-objects-ii-video-logo.patch
-vgacon-disallow-console-operations-when-in-kd_graphics.patch
-vga16fb-actually-support-widths-in-multiples-of-8.patch
 skeletonfb-more-corrections.patch
 pm2fb-removal-of-pm2fb_par-fields.patch
 skeletonfb-improvements.patch
 pm2fb-fix-of-jumps-in-pm2fb_probe.patch
-xilinxfb-xilinx-framebuffer-device-driver.patch
