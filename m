@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vga16fb-actually-support-widths-in-multiples-of-8.patch added to -mm tree
-Date: Mon, 07 May 2007 15:27:19 -0700
-Message-ID: <200705072227.l47MRJ61006986@shell0.pdx.osdl.net>
+Subject: + vt8623fb-fix-compile-warnings.patch added to -mm tree
+Date: Mon, 07 May 2007 15:27:11 -0700
+Message-ID: <200705072227.l47MRB1k006973@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58269 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966661AbXEGWjQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:39:16 -0400
+	by vger.kernel.org with ESMTP id S967140AbXEGWjq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:39:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     vga16fb: actually support widths in multiples of 8
+     vt8623fb: fix compile warnings
 has been added to the -mm tree.  Its filename is
-     vga16fb-actually-support-widths-in-multiples-of-8.patch
+     vt8623fb-fix-compile-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vga16fb: actually support widths in multiples of 8
+Subject: vt8623fb: fix compile warnings
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-vga16fb does not just support 8-pixel wide rectangles, but rectangles with
-widths in multiples of 8.
+- use memset_io()
+- check for return value of pci_enable_device()
+- fix for CONFIG_PM=n
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vga16fb.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/vt8623fb.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/vga16fb.c~vga16fb-actually-support-widths-in-multiples-of-8 drivers/video/vga16fb.c
---- a/drivers/video/vga16fb.c~vga16fb-actually-support-widths-in-multiples-of-8
-+++ a/drivers/video/vga16fb.c
-@@ -1378,8 +1378,8 @@ static int __init vga16fb_probe(struct p
- 	info->fbops = &vga16fb_ops;
- 	info->var = vga16fb_defined;
- 	info->fix = vga16fb_fix;
--	/* supports 8-pixel wide blit rectangles only */
--	info->pixmap.blit_x = 1 << (8 - 1);
-+	/* supports rectangles with widths of multiples of 8 */
-+	info->pixmap.blit_x = 1 << 7 | 1 << 15 | 1 << 23 | 1 << 31;
- 	info->flags = FBINFO_FLAG_DEFAULT |
- 		FBINFO_HWACCEL_YPAN;
+diff -puN drivers/video/vt8623fb.c~vt8623fb-fix-compile-warnings drivers/video/vt8623fb.c
+--- a/drivers/video/vt8623fb.c~vt8623fb-fix-compile-warnings
++++ a/drivers/video/vt8623fb.c
+@@ -497,7 +497,7 @@ static int vt8623fb_set_par(struct fb_in
+ 			 (info->var.vmode & FB_VMODE_DOUBLE) ? 2 : 1, 1,
+ 			 1, info->node);
+ 
+-	memset((u8*)info->screen_base, 0x00, screen_size);
++	memset_io(info->screen_base, 0x00, screen_size);
+ 
+ 	/* Device and screen back on */
+ 	svga_wcrt_mask(0x17, 0x80, 0x80);
+@@ -804,6 +804,7 @@ static void __devexit vt8623_pci_remove(
+ }
+ 
+ 
++#ifdef CONFIG_PM
+ /* PCI suspend */
+ 
+ static int vt8623_pci_suspend(struct pci_dev* dev, pm_message_t state)
+@@ -855,18 +856,25 @@ static int vt8623_pci_resume(struct pci_
+ 
+ 	pci_set_power_state(dev, PCI_D0);
+ 	pci_restore_state(dev);
+-	pci_enable_device(dev);
++
++	if (pci_enable_device(dev))
++		goto fail;
++
+ 	pci_set_master(dev);
+ 
+ 	vt8623fb_set_par(info);
+ 	fb_set_suspend(info, 0);
+ 
+ 	mutex_unlock(&(par->open_lock));
++fail:
+ 	release_console_sem();
+ 
+ 	return 0;
+ }
+-
++#else
++#define vt8623_pci_suspend NULL
++#define vt8623_pci_resume NULL
++#endif /* CONFIG_PM */
+ 
+ /* List of boards that we are trying to support */
  
 _
 
