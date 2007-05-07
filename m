@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + knfsd-avoid-use-of-unitialised-variables-on-error-path-when-nfs-exports.patch added to -mm tree
-Date: Mon, 07 May 2007 16:08:24 -0700
-Message-ID: <200705072308.l47N8OPZ007822@shell0.pdx.osdl.net>
+Subject: + knfsd-rpc-fix-server-side-wrapping-of-krb5i-replies.patch added to -mm tree
+Date: Mon, 07 May 2007 16:08:26 -0700
+Message-ID: <200705072308.l47N8QwA007825@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37718 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59403 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754904AbXEGXJn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 19:09:43 -0400
+	by vger.kernel.org with ESMTP id S1754907AbXEGXJo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 19:09:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, stable@kernel.org
+Cc: neilb@suse.de, bfields@citi.umich.edu, stable@kernel.org
 
 
 The patch titled
-     knfsd: avoid use of unitialised variables on error path when nfs exports
+     knfsd: rpc: fix server-side wrapping of krb5i replies
 has been added to the -mm tree.  Its filename is
-     knfsd-avoid-use-of-unitialised-variables-on-error-path-when-nfs-exports.patch
+     knfsd-rpc-fix-server-side-wrapping-of-krb5i-replies.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: knfsd: avoid use of unitialised variables on error path when nfs exports
+Subject: knfsd: rpc: fix server-side wrapping of krb5i replies
 From: NeilBrown <neilb@suse.de>
 
-We need to zero various parts of 'exp' before any 'goto out', otherwise when
-we go to free the contents...  we die.
+It's not necessarily correct to assume that the xdr_buf used to hold the
+server's reply must have page data whenever it has tail data.
 
+And there's no need for us to deal with that case separately anyway.
+
+Acked-by: "J. Bruce Fields" <bfields@citi.umich.edu>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ net/sunrpc/auth_gss/svcauth_gss.c |    8 +-------
+ 1 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN fs/nfsd/export.c~knfsd-avoid-use-of-unitialised-variables-on-error-path-when-nfs-exports fs/nfsd/export.c
---- a/fs/nfsd/export.c~knfsd-avoid-use-of-unitialised-variables-on-error-path-when-nfs-exports
-+++ a/fs/nfsd/export.c
-@@ -469,6 +469,13 @@ static int svc_export_parse(struct cache
- 	nd.dentry = NULL;
- 	exp.ex_path = NULL;
- 
-+	/* fs locations */
-+	exp.ex_fslocs.locations = NULL;
-+	exp.ex_fslocs.locations_count = 0;
-+	exp.ex_fslocs.migrated = 0;
-+
-+	exp.ex_uuid = NULL;
-+
- 	if (mesg[mlen-1] != '\n')
- 		return -EINVAL;
- 	mesg[mlen-1] = 0;
-@@ -509,13 +516,6 @@ static int svc_export_parse(struct cache
- 	if (exp.h.expiry_time == 0)
- 		goto out;
- 
--	/* fs locations */
--	exp.ex_fslocs.locations = NULL;
--	exp.ex_fslocs.locations_count = 0;
--	exp.ex_fslocs.migrated = 0;
--
--	exp.ex_uuid = NULL;
--
- 	/* flags */
- 	err = get_int(&mesg, &an_int);
- 	if (err == -ENOENT)
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-rpc-fix-server-side-wrapping-of-krb5i-replies net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-rpc-fix-server-side-wrapping-of-krb5i-replies
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -1210,13 +1210,7 @@ svcauth_gss_wrap_resp_integ(struct svc_r
+ 	if (xdr_buf_subsegment(resbuf, &integ_buf, integ_offset,
+ 				integ_len))
+ 		BUG();
+-	if (resbuf->page_len == 0
+-			&& resbuf->head[0].iov_len + RPC_MAX_AUTH_SIZE
+-			< PAGE_SIZE) {
+-		BUG_ON(resbuf->tail[0].iov_len);
+-		/* Use head for everything */
+-		resv = &resbuf->head[0];
+-	} else if (resbuf->tail[0].iov_base == NULL) {
++	if (resbuf->tail[0].iov_base == NULL) {
+ 		if (resbuf->head[0].iov_len + RPC_MAX_AUTH_SIZE > PAGE_SIZE)
+ 			goto out_err;
+ 		resbuf->tail[0].iov_base = resbuf->head[0].iov_base
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
