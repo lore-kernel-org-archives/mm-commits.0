@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + s3fb-updates.patch added to -mm tree
-Date: Mon, 07 May 2007 15:26:58 -0700
-Message-ID: <200705072227.l47MQwqV006958@shell0.pdx.osdl.net>
+Subject: + arkfb-fix-compiler-warnings.patch added to -mm tree
+Date: Mon, 07 May 2007 15:27:09 -0700
+Message-ID: <200705072227.l47MR9B7006970@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45132 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967024AbXEGW1j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:27:39 -0400
+	by vger.kernel.org with ESMTP id S967036AbXEGW1n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:27:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: santiago@crfreenet.org, adaplas@gmail.com
+Cc: adaplas@gmail.com
 
 
 The patch titled
-     s3fb: updates
+     arkfb: fix compiler warnings
 has been added to the -mm tree.  Its filename is
-     s3fb-updates.patch
+     arkfb-fix-compiler-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,117 +25,176 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s3fb: updates
-From: Ondrej Zajicek <santiago@crfreenet.org>
+Subject: arkfb: fix compiler warnings
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Move s3fb_get_tilemax to svgalib.c as svga_get_tilemax, because it reports
-limitation of other code from svgalib (svga_settile, svga_tilecopy, ...)
+- add sparse annotations
+- check return value of pci_enable_device()
+- fix if CONFIG_PM=n
 
-Limit font width to 8 pixels in 4 bpp mode.
-
-Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3fb.c    |   15 ++++++---------
- drivers/video/svgalib.c |    6 ++++++
- include/linux/svga.h    |    1 +
- 3 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/video/arkfb.c |   23 ++++++++++++++++-------
+ 1 files changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/s3fb.c~s3fb-updates drivers/video/s3fb.c
---- a/drivers/video/s3fb.c~s3fb-updates
-+++ a/drivers/video/s3fb.c
-@@ -183,18 +183,13 @@ static void s3fb_settile_fast(struct fb_
+diff -puN drivers/video/arkfb.c~arkfb-fix-compiler-warnings drivers/video/arkfb.c
+--- a/drivers/video/arkfb.c~arkfb-fix-compiler-warnings
++++ a/drivers/video/arkfb.c
+@@ -131,21 +131,22 @@ MODULE_PARM_DESC(mtrr, "FIFO threshold")
+ static void arkfb_settile(struct fb_info *info, struct fb_tilemap *map)
+ {
+ 	const u8 *font = map->data;
+-	u8* fb = (u8 *) info->screen_base;
++	u8 __iomem *fb = (u8 __iomem *)info->screen_base;
+ 	int i, c;
+ 
+ 	if ((map->width != 8) || (map->height != 16) ||
+ 	    (map->depth != 1) || (map->length != 256)) {
+-	    	printk(KERN_ERR "fb%d: unsupported font parameters: width %d, height %d, depth %d, length %d\n",
+-			info->node, map->width, map->height, map->depth, map->length);
++	    	printk(KERN_ERR "fb%d: unsupported font parameters: width %d, "
++		       "height %d, depth %d, length %d\n", info->node,
++		       map->width, map->height, map->depth, map->length);
+ 		return;
  	}
+ 
+ 	fb += 2;
+ 	for (c = 0; c < map->length; c++) {
+ 		for (i = 0; i < map->height; i++) {
+-			fb[i * 4] = font[i];
+-			fb[i * 4 + (128*8)] = font[i];
++			fb_writeb(font[i], &fb[i * 4]);
++			fb_writeb(font[i], &fb[i * 4 + (128 * 8)]);
+ 		}
+ 		fb += 128;
+ 
+@@ -1080,6 +1081,7 @@ static void __devexit ark_pci_remove(str
  }
  
--static int s3fb_get_tilemax(struct fb_info *info)
--{
--	return 256;
--}
+ 
++#ifdef CONFIG_PM
+ /* PCI suspend */
+ 
+ static int ark_pci_suspend (struct pci_dev* dev, pm_message_t state)
+@@ -1131,17 +1133,24 @@ static int ark_pci_resume (struct pci_de
+ 
+ 	pci_set_power_state(dev, PCI_D0);
+ 	pci_restore_state(dev);
+-	pci_enable_device(dev);
++
++	if (pci_enable_device(dev))
++		goto fail;
++
+ 	pci_set_master(dev);
+ 
+ 	arkfb_set_par(info);
+ 	fb_set_suspend(info, 0);
+ 
+ 	mutex_unlock(&(par->open_lock));
++fail:
+ 	release_console_sem();
+ 	return 0;
+ }
 -
- static struct fb_tile_ops s3fb_tile_ops = {
- 	.fb_settile	= svga_settile,
- 	.fb_tilecopy	= svga_tilecopy,
- 	.fb_tilefill    = svga_tilefill,
- 	.fb_tileblit    = svga_tileblit,
- 	.fb_tilecursor  = svga_tilecursor,
--	.fb_get_tilemax = s3fb_get_tilemax,
-+	.fb_get_tilemax = svga_get_tilemax,
- };
++#else
++#define ark_pci_suspend NULL
++#define ark_pci_resume NULL
++#endif /* CONFIG_PM */
  
- static struct fb_tile_ops s3fb_fast_tile_ops = {
-@@ -203,7 +198,7 @@ static struct fb_tile_ops s3fb_fast_tile
- 	.fb_tilefill    = svga_tilefill,
- 	.fb_tileblit    = svga_tileblit,
- 	.fb_tilecursor  = svga_tilecursor,
--	.fb_get_tilemax = s3fb_get_tilemax,
-+	.fb_get_tilemax = svga_get_tilemax,
- };
+ /* List of boards that we are trying to support */
  
- 
-@@ -459,9 +454,10 @@ static int s3fb_set_par(struct fb_info *
- 		info->flags &= ~FBINFO_MISC_TILEBLITTING;
- 		info->tileops = NULL;
- 
--		/* supports blit rectangles of any dimension */
--		info->pixmap.blit_x = ~(u32)0;
-+		/* in 4bpp supports 8p wide tiles only, any tiles otherwise */
-+		info->pixmap.blit_x = (bpp == 4) ? (1 << (8 - 1)) : (~(u32)0);
- 		info->pixmap.blit_y = ~(u32)0;
-+
- 		offset_value = (info->var.xres_virtual * bpp) / 64;
- 		screen_size = info->var.yres_virtual * info->fix.line_length;
- 	} else {
-@@ -470,6 +466,7 @@ static int s3fb_set_par(struct fb_info *
- 
- 		info->flags |= FBINFO_MISC_TILEBLITTING;
- 		info->tileops = fasttext ? &s3fb_fast_tile_ops : &s3fb_tile_ops;
-+
- 		/* supports 8x16 tiles only */
- 		info->pixmap.blit_x = 1 << (8 - 1);
- 		info->pixmap.blit_y = 1 << (16 - 1);
-diff -puN drivers/video/svgalib.c~s3fb-updates drivers/video/svgalib.c
---- a/drivers/video/svgalib.c~s3fb-updates
-+++ a/drivers/video/svgalib.c
-@@ -342,6 +342,11 @@ void svga_tilecursor(struct fb_info *inf
- 	vga_wcrt(NULL, 0x0A, cs); /* set cursor start and enable it */
- }
- 
-+int svga_get_tilemax(struct fb_info *info)
-+{
-+	return 256;
-+}
-+
- 
- /* ------------------------------------------------------------------------- */
- 
-@@ -623,6 +628,7 @@ EXPORT_SYMBOL(svga_tilecopy);
- EXPORT_SYMBOL(svga_tilefill);
- EXPORT_SYMBOL(svga_tileblit);
- EXPORT_SYMBOL(svga_tilecursor);
-+EXPORT_SYMBOL(svga_get_tilemax);
- 
- EXPORT_SYMBOL(svga_compute_pll);
- EXPORT_SYMBOL(svga_check_timings);
-diff -puN include/linux/svga.h~s3fb-updates include/linux/svga.h
---- a/include/linux/svga.h~s3fb-updates
-+++ a/include/linux/svga.h
-@@ -112,6 +112,7 @@ void svga_tilecopy(struct fb_info *info,
- void svga_tilefill(struct fb_info *info, struct fb_tilerect *rect);
- void svga_tileblit(struct fb_info *info, struct fb_tileblit *blit);
- void svga_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor);
-+int svga_get_tilemax(struct fb_info *info);
- 
- int svga_compute_pll(const struct svga_pll *pll, u32 f_wanted, u16 *m, u16 *n, u16 *r, int node);
- int svga_check_timings(const struct svga_timing_regs *tm, struct fb_var_screeninfo *var, int node);
 _
 
-Patches currently in -mm which might be from santiago@crfreenet.org are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
+fbdev-add-ultrasharp-uxga-to-broken-monitor-database.patch
+intelfb-fix-ring-space-calculation.patch
+nvidiafb-bring-back-generic-ddc-reading.patch
+fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
+fbdev-fix-obvious-bug-in-show_pan.patch
+neofb-fill-transp-msb_right-with-the-correct.patch
+atyfb-kill-dead-code.patch
+fbdev-mm-deferred-io-support.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-mm-deferred-io-support-fix-2.patch
+fbdev-hecuba-framebuffer-driver.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+nvidiafb-fix-reversed-ddc-port.patch
+vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
+fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
+rivafb-nvidiafb-enable-hardware-monitoring.patch
+rivafb-handle-i2c-bus-creation-failure.patch
+rivafb-nvidiafb-various-cleanups.patch
+rivafb-fixed-reversed-ddc-ports.patch
+nvidiafb-ensure-that-crtc-registers-are-accessible.patch
+nvidiafb-access-crt-registers-safely.patch
+skeletonfb-various-corrections.patch
+epson1355fbc-fix-error-handling-code.patch
+nvidiafb-vga-state-save-and-restore.patch
+savagefb-rework-i2c-bit-access.patch
+savagefb-vga-state-save-and-restore.patch
+fbdev-link-vgastateo-using-kconfig.patch
+fbcon-delay-screen-update-when-setting-the-mode-of.patch
+nvidiafb-fix-sparse-warning.patch
+rivafb-fix-io-access.patch
+fbdev-kill-sparse-warning-in-deferred-io.patch
+fbdev-add-sparse-annotations-in-svgalibc.patch
+arcfb-kill-sparse-warning.patch
+s3fb-add-sparse-annotations.patch
+hecubafb-kill-sparse-warnings.patch
+i810fb-fix-incorrect-frequency-mask.patch
+vt-add-documentation-for-new-boot-sysfs-options.patch
+skeletonfb-documentation-error-fixes.patch
+fbdev-add-drawing-functions-for-framebuffers-in-system.patch
+arcfb-use-sys-instead-of-cfb-drawing-functions.patch
+hecubafb-use-sys-instead-of-cfb-drawing-functions.patch
+vfb-use-sys-instead-of-cfb-drawing-functions.patch
+fbdev-pass-struct-fb_info-to-fb_read-and-fb_write.patch
+fbdev-add-fb_read-fb_write-functions-for-framebuffers.patch
+arcfb-us-fb_sys_read.patch
+hecubafb-us-fb_sys_read.patch
+vfb-us-fb_sys_read-and-fb_sys_write.patch
+fbdev-consolidate-common-drawing-functions-into-a.patch
+fbdev-advertise-limitation-of-drawing-engine.patch
+fbcon-font-setting-should-check-limitation-of-driver.patch
+vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
+s3fb-limit-8x16-rectangles-when-tileblitting-is-enabled.patch
+fbdev-add-tile-operation-to-get-the-maximum-length.patch
+s3fb-implement-fb_get_tilemax.patch
+fbcon-check-if-the-character-count-can-be-handled.patch
+fbdev-save-the-activate-field-before-calling-fb_check_var.patch
 s3fb-driver-fixes.patch
+vmlfb-framebuffer-driver-for-intel-vermilion-range.patch
+nvidiafb-rivafb-switch-to-pci_get-refcounting.patch
+pm2fb-3dlabs-permedia-2v-reference-board-added.patch
+pm2fb-permedia-2v-memory-clock-setting.patch
+pm2fb-pixclock-setting-restriction.patch
+nvidiafb-prevent-triggering-of-softlockup.patch
+fbdev-fbcon-check-if-mode-can-handle-new-screen.patch
+s3fb-implement-fb_get_caps.patch
 vga-vgastate-fix.patch
+nvidiafb-fix-return-value-of-nvidiafb_open.patch
+atyfb-increase-spll-delay.patch
+atyfb-reorganize-clock-init.patch
+atyfb-halve-xclk-with-mobility-and-32bit-memory.patch
+fbdev-clean-up-exit-patch-of-fb_set_var.patch
+fbcon-check-console-fb-mapping-in-fbcon_get_requirement.patch
+pm2fb-reset-transparency-settings.patch
+pm2fb-memclock-setting-corrections.patch
 s3fb-updates.patch
 vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
 arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
+svgalib-move-fb_get_caps-to-svgalib.patch
+arkfb-fix-compiler-warnings.patch
+vt8623fb-fix-compile-warnings.patch
+pm2fb-accelerated-fillrect-and-copyarea.patch
+use-menuconfig-objects-ii-video-logo.patch
+vgacon-disallow-console-operations-when-in-kd_graphics.patch
+vga16fb-actually-support-widths-in-multiples-of-8.patch
+skeletonfb-more-corrections.patch
+pm2fb-removal-of-pm2fb_par-fields.patch
+skeletonfb-improvements.patch
+pm2fb-fix-of-jumps-in-pm2fb_probe.patch
+xilinxfb-xilinx-framebuffer-device-driver.patch
