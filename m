@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-clean-up-exit-patch-of-fb_set_var.patch added to -mm tree
-Date: Mon, 07 May 2007 15:26:50 -0700
-Message-ID: <200705072226.l47MQor4006943@shell0.pdx.osdl.net>
+Subject: + fbcon-check-console-fb-mapping-in-fbcon_get_requirement.patch added to -mm tree
+Date: Mon, 07 May 2007 15:26:52 -0700
+Message-ID: <200705072226.l47MQqmA006946@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38217 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49437 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966682AbXEGW1W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:27:22 -0400
+	by vger.kernel.org with ESMTP id S966925AbXEGW1X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 18:27:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adaplas@gmail.com
 
 
 The patch titled
-     fbdev: clean up exit patch of fb_set_var
+     fbcon: check console-fb mapping in fbcon_get_requirement
 has been added to the -mm tree.  Its filename is
-     fbdev-clean-up-exit-patch-of-fb_set_var.patch
+     fbcon-check-console-fb-mapping-in-fbcon_get_requirement.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,106 +25,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: clean up exit patch of fb_set_var
+Subject: fbcon: check console-fb mapping in fbcon_get_requirement
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Clean up exit patch of fb_set_var():
+- Check the console-to-fb mapping in fbcon_get_requirement(), otherwise the
+  value returned may not be valid for the driver.
 
-- consolidate all return values into a single local variable
-- ensure that return values are valid error codes
-- fix fb_set_var() returning success when fb_check_caps() failed
+- Minor cleanup
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |   29 +++++++++++++++--------------
- 1 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/video/console/fbcon.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fbdev-clean-up-exit-patch-of-fb_set_var drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-clean-up-exit-patch-of-fb_set_var
-+++ a/drivers/video/fbmem.c
-@@ -799,11 +799,11 @@ static int fb_check_caps(struct fb_info 
- int
- fb_set_var(struct fb_info *info, struct fb_var_screeninfo *var)
+diff -puN drivers/video/console/fbcon.c~fbcon-check-console-fb-mapping-in-fbcon_get_requirement drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-check-console-fb-mapping-in-fbcon_get_requirement
++++ a/drivers/video/console/fbcon.c
+@@ -3048,14 +3048,14 @@ static void fbcon_get_requirement(struct
  {
--	int err, flags = info->flags;
-+	int flags = info->flags;
-+	int ret = 0;
+ 	struct vc_data *vc;
+ 	struct display *p;
+-	int charcnt;
  
- 	if (var->activate & FB_ACTIVATE_INV_MODE) {
- 		struct fb_videomode mode1, mode2;
--		int ret = 0;
+ 	if (caps->flags) {
+-		int i;
++		int i, charcnt;
  
- 		fb_var_to_videomode(&mode1, var);
- 		fb_var_to_videomode(&mode2, &info->var);
-@@ -821,7 +821,9 @@ fb_set_var(struct fb_info *info, struct 
- 		if (!ret)
- 		    fb_delete_videomode(&mode1, &info->modelist);
+ 		for (i = first_fb_vc; i <= last_fb_vc; i++) {
+ 			vc = vc_cons[i].d;
+-			if (vc && vc->vc_mode == KD_TEXT) {
++			if (vc && vc->vc_mode == KD_TEXT &&
++			    info->node == con2fb_map[i]) {
+ 				p = &fb_display[i];
+ 				caps->x |= 1 << (vc->vc_font.width - 1);
+ 				caps->y |= 1 << (vc->vc_font.height - 1);
+@@ -3068,14 +3068,13 @@ static void fbcon_get_requirement(struct
+ 	} else {
+ 		vc = vc_cons[fg_console].d;
  
--		return ret;
-+
-+		ret = (ret) ? -EINVAL : 0;
-+		goto done;
- 	}
- 
- 	if ((var->activate & FB_ACTIVATE_FORCE) ||
-@@ -830,20 +832,21 @@ fb_set_var(struct fb_info *info, struct 
- 
- 		if (!info->fbops->fb_check_var) {
- 			*var = info->var;
--			return 0;
-+			goto done;
+-		if (vc && vc->vc_mode == KD_TEXT) {
++		if (vc && vc->vc_mode == KD_TEXT &&
++		    info->node == con2fb_map[fg_console]) {
+ 			p = &fb_display[fg_console];
+-			caps->x |= 1 << (vc->vc_font.width - 1);
+-			caps->y |= 1 << (vc->vc_font.height - 1);
+-			charcnt = (p->userfont) ?
++			caps->x = 1 << (vc->vc_font.width - 1);
++			caps->y = 1 << (vc->vc_font.height - 1);
++			caps->len = (p->userfont) ?
+ 				FNTCHARCNT(p->fontdata) : 256;
+-			if (caps->len < charcnt)
+-				caps->len = charcnt;
  		}
- 
--		if ((err = info->fbops->fb_check_var(var, info)))
--			return err;
-+		ret = info->fbops->fb_check_var(var, info);
-+
-+		if (ret)
-+			goto done;
- 
- 		if ((var->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW) {
- 			struct fb_videomode mode;
--			int err = 0;
- 
- 			if (info->fbops->fb_get_caps) {
--				err = fb_check_caps(info, var, activate);
-+				ret = fb_check_caps(info, var, activate);
- 
--				if (err)
-+				if (ret)
- 					goto done;
- 			}
- 
-@@ -853,16 +856,14 @@ fb_set_var(struct fb_info *info, struct 
- 				info->fbops->fb_set_par(info);
- 
- 			fb_pan_display(info, &info->var);
--
- 			fb_set_cmap(&info->cmap, info);
--
- 			fb_var_to_videomode(&mode, &info->var);
- 
- 			if (info->modelist.prev && info->modelist.next &&
- 			    !list_empty(&info->modelist))
--				err = fb_add_videomode(&mode, &info->modelist);
-+				ret = fb_add_videomode(&mode, &info->modelist);
- 
--			if (!err && (flags & FBINFO_MISC_USEREVENT)) {
-+			if (!ret && (flags & FBINFO_MISC_USEREVENT)) {
- 				struct fb_event event;
- 				int evnt = (activate & FB_ACTIVATE_ALL) ?
- 					FB_EVENT_MODE_CHANGE_ALL :
-@@ -876,7 +877,7 @@ fb_set_var(struct fb_info *info, struct 
  	}
- 
-  done:
--	return 0;
-+	return ret;
  }
- 
- int
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
