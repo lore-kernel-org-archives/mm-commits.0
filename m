@@ -1,106 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - uml-replace-one-element-array-with-zero-element-array.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:06:33 -0700
-Message-ID: <200705080006.l4806XG5009200@shell0.pdx.osdl.net>
+Subject: - remove-software_suspend.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:05:31 -0700
+Message-ID: <200705080005.l4805VXv009102@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56248 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967387AbXEHAGv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:51 -0400
+	by vger.kernel.org with ESMTP id S967382AbXEHAGh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: johannes@sipsolutions.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: Replace one-element array with zero-element array
+     remove software_suspend()
 has been removed from the -mm tree.  Its filename was
-     uml-replace-one-element-array-with-zero-element-array.patch
+     remove-software_suspend.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: Replace one-element array with zero-element array
-From: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Subject: remove software_suspend()
+From: Johannes Berg <johannes@sipsolutions.net>
 
-To look at users I did:
-$ find arch/um/ include/asm-um -name '*.[ch]'|xargs grep -r 'net_kern\.h'
-+-l|xargs grep '\<user\>'
+Remove software_suspend() and all its users since
+pm_suspend(PM_SUSPEND_DISK) should be equivalent and there's no point in
+having two interfaces for the same thing.
 
-Most users just cast user to the appropriate pointer, the remaining ones are
-fixed here.  In net_kern.c, I'm almost sure that save trick is not needed
-anymore, but I've not verified it.
+The patch also changes the valid_state function to return 0 (false) for
+PM_SUSPEND_DISK when SOFTWARE_SUSPEND is not configured instead of
+accepting it and having the whole thing fail later.
 
-Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/net_kern.c |   14 +++-----------
- arch/um/include/net_kern.h |    2 +-
- 2 files changed, 4 insertions(+), 12 deletions(-)
+ drivers/acpi/sleep/proc.c    |    2 +-
+ drivers/i2c/chips/tps65010.c |    4 +++-
+ include/linux/init.h         |    2 +-
+ include/linux/suspend.h      |    8 --------
+ kernel/power/main.c          |   21 +++++++--------------
+ kernel/sys.c                 |    2 +-
+ 6 files changed, 13 insertions(+), 26 deletions(-)
 
-diff -puN arch/um/drivers/net_kern.c~uml-replace-one-element-array-with-zero-element-array arch/um/drivers/net_kern.c
---- a/arch/um/drivers/net_kern.c~uml-replace-one-element-array-with-zero-element-array
-+++ a/arch/um/drivers/net_kern.c
-@@ -347,10 +347,9 @@ static void eth_configure(int n, void *i
- 	struct uml_net *device;
- 	struct net_device *dev;
- 	struct uml_net_private *lp;
--	int save, err, size;
-+	int err, size;
+diff -puN drivers/acpi/sleep/proc.c~remove-software_suspend drivers/acpi/sleep/proc.c
+--- a/drivers/acpi/sleep/proc.c~remove-software_suspend
++++ a/drivers/acpi/sleep/proc.c
+@@ -60,7 +60,7 @@ acpi_system_write_sleep(struct file *fil
+ 	state = simple_strtoul(str, NULL, 0);
+ #ifdef CONFIG_SOFTWARE_SUSPEND
+ 	if (state == 4) {
+-		error = software_suspend();
++		error = pm_suspend(PM_SUSPEND_DISK);
+ 		goto Done;
+ 	}
+ #endif
+diff -puN drivers/i2c/chips/tps65010.c~remove-software_suspend drivers/i2c/chips/tps65010.c
+--- a/drivers/i2c/chips/tps65010.c~remove-software_suspend
++++ a/drivers/i2c/chips/tps65010.c
+@@ -351,8 +351,10 @@ static void tps65010_interrupt(struct tp
+ #if 0
+ 			/* REVISIT:  this might need its own workqueue
+ 			 * plus tweaks including deadlock avoidance ...
++			 * also needs to get error handling and probably
++			 * an #ifdef CONFIG_SOFTWARE_SUSPEND
+ 			 */
+-			software_suspend();
++			pm_suspend(PM_SUSPEND_DISK);
+ #endif
+ 			poll = 1;
+ 		}
+diff -puN include/linux/init.h~remove-software_suspend include/linux/init.h
+--- a/include/linux/init.h~remove-software_suspend
++++ a/include/linux/init.h
+@@ -233,7 +233,7 @@ void __init parse_early_param(void);
+ #define __obsolete_setup(str) 			/* nothing */
+ #endif
  
--	size = transport->private_size + sizeof(struct uml_net_private) +
--		sizeof(((struct uml_net_private *) 0)->user);
-+	size = transport->private_size + sizeof(struct uml_net_private);
+-/* Data marked not to be saved by software_suspend() */
++/* Data marked not to be saved by software suspend */
+ #define __nosavedata __attribute__ ((__section__ (".data.nosave")))
  
- 	device = kzalloc(sizeof(*device), GFP_KERNEL);
- 	if (device == NULL) {
-@@ -409,12 +408,6 @@ static void eth_configure(int n, void *i
- 	 */
- 	(*transport->kern->init)(dev, init);
+ /* This means "can be init if no module support, otherwise module load
+diff -puN include/linux/suspend.h~remove-software_suspend include/linux/suspend.h
+--- a/include/linux/suspend.h~remove-software_suspend
++++ a/include/linux/suspend.h
+@@ -33,8 +33,6 @@ static inline void pm_restore_console(vo
+ #endif
  
--	/* lp.user is the first four bytes of the transport data, which
--	 * has already been initialized.  This structure assignment will
--	 * overwrite that, so we make sure that .user gets overwritten with
--	 * what it already has.
--	 */
--	save = lp->user[0];
- 	*lp = ((struct uml_net_private)
- 		{ .list  		= LIST_HEAD_INIT(lp->list),
- 		  .dev 			= dev,
-@@ -428,8 +421,7 @@ static void eth_configure(int n, void *i
- 		  .write 		= transport->kern->write,
- 		  .add_address 		= transport->user->add_address,
- 		  .delete_address  	= transport->user->delete_address,
--		  .set_mtu 		= transport->user->set_mtu,
--		  .user  		= { save } });
-+		  .set_mtu 		= transport->user->set_mtu });
- 
- 	init_timer(&lp->tl);
- 	spin_lock_init(&lp->lock);
-diff -puN arch/um/include/net_kern.h~uml-replace-one-element-array-with-zero-element-array arch/um/include/net_kern.h
---- a/arch/um/include/net_kern.h~uml-replace-one-element-array-with-zero-element-array
-+++ a/arch/um/include/net_kern.h
-@@ -40,7 +40,7 @@ struct uml_net_private {
- 	void (*add_address)(unsigned char *, unsigned char *, void *);
- 	void (*delete_address)(unsigned char *, unsigned char *, void *);
- 	int (*set_mtu)(int mtu, void *);
--	int user[1];
-+	char user[0];
+ #if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
+-/* kernel/power/swsusp.c */
+-extern int software_suspend(void);
+ /* kernel/power/snapshot.c */
+ extern void __init register_nosave_region(unsigned long, unsigned long);
+ extern int swsusp_page_is_forbidden(struct page *);
+@@ -42,12 +40,6 @@ extern void swsusp_set_page_free(struct 
+ extern void swsusp_unset_page_free(struct page *);
+ extern unsigned long get_safe_page(gfp_t gfp_mask);
+ #else
+-static inline int software_suspend(void)
+-{
+-	printk("Warning: fake suspend called\n");
+-	return -ENOSYS;
+-}
+-
+ static inline void register_nosave_region(unsigned long b, unsigned long e) {}
+ static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
+ static inline void swsusp_set_page_free(struct page *p) {}
+diff -puN kernel/power/main.c~remove-software_suspend kernel/power/main.c
+--- a/kernel/power/main.c~remove-software_suspend
++++ a/kernel/power/main.c
+@@ -184,17 +184,21 @@ static void suspend_finish(suspend_state
+ static const char * const pm_states[PM_SUSPEND_MAX] = {
+ 	[PM_SUSPEND_STANDBY]	= "standby",
+ 	[PM_SUSPEND_MEM]	= "mem",
+-#ifdef CONFIG_SOFTWARE_SUSPEND
+ 	[PM_SUSPEND_DISK]	= "disk",
+-#endif
  };
  
- struct net_kern_info {
+ static inline int valid_state(suspend_state_t state)
+ {
+ 	/* Suspend-to-disk does not really need low-level support.
+-	 * It can work with reboot if needed. */
++	 * It can work with shutdown/reboot if needed. If it isn't
++	 * configured, then it cannot be supported.
++	 */
+ 	if (state == PM_SUSPEND_DISK)
++#ifdef CONFIG_SOFTWARE_SUSPEND
+ 		return 1;
++#else
++		return 0;
++#endif
+ 
+ 	/* all other states need lowlevel support and need to be
+ 	 * valid to the lowlevel implementation, no valid callback
+@@ -244,17 +248,6 @@ static int enter_state(suspend_state_t s
+ 	return error;
+ }
+ 
+-#ifdef CONFIG_SOFTWARE_SUSPEND
+-/*
+- * This is main interface to the outside world. It needs to be
+- * called from process context.
+- */
+-int software_suspend(void)
+-{
+-	return enter_state(PM_SUSPEND_DISK);
+-}
+-#endif
+-
+ 
+ /**
+  *	pm_suspend - Externally visible function for suspending system.
+diff -puN kernel/sys.c~remove-software_suspend kernel/sys.c
+--- a/kernel/sys.c~remove-software_suspend
++++ a/kernel/sys.c
+@@ -881,7 +881,7 @@ asmlinkage long sys_reboot(int magic1, i
+ #ifdef CONFIG_SOFTWARE_SUSPEND
+ 	case LINUX_REBOOT_CMD_SW_SUSPEND:
+ 		{
+-			int ret = software_suspend();
++			int ret = pm_suspend(PM_SUSPEND_DISK);
+ 			unlock_kernel();
+ 			return ret;
+ 		}
 _
 
-Patches currently in -mm which might be from blaisorblade@yahoo.it are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
 origin.patch
-uml-make-hostfs_setattr-support-operations-on-unlinked-open-files.patch
-uml-hostfs-style-fixes.patch
-uml-an-idle-system-should-have-zero-load-average.patch
-remove-tas.patch
-x86-create-asm-cmpxchgh.patch
-uml-network-and-pcap-cleanup.patch
-uml-pcap-devices-should-get-macs-from-command-line.patch
+git-alsa.patch
+git-powerpc.patch
+power-management-remove-some-useless-code-from-arm.patch
+git-wireless.patch
+pm-separate-hibernation-code-from-suspend-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+kernel-doc-html-mode-struct-highlights.patch
