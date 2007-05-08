@@ -1,104 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-insert-cond_resched-calls.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:13:36 -0700
-Message-ID: <200705080813.l488DaFv018924@shell0.pdx.osdl.net>
+Subject: - readahead-minmax_ra_pages.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:13:40 -0700
+Message-ID: <200705080813.l488DeKj018927@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49676 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934568AbXEHIOU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:14:20 -0400
+	by vger.kernel.org with ESMTP id S934570AbXEHIOW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:14:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: insert cond_resched() calls
+     readahead: {MIN,MAX}_RA_PAGES
 has been removed from the -mm tree.  Its filename was
-     readahead-insert-cond_resched-calls.patch
+     readahead-minmax_ra_pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: readahead: insert cond_resched() calls
+Subject: readahead: {MIN,MAX}_RA_PAGES
 From: Wu Fengguang <wfg@mail.ustc.edu.cn>
 
-Since the VM_MAX_READAHEAD is greatly enlarged and the algorithm more
-complex, it becomes necessary to insert some cond_resched() calls in
-the read-ahead path.
+Define two convenient macros for read-ahead:
+	- MAX_RA_PAGES: rounded down counterpart of VM_MAX_READAHEAD
+	- MIN_RA_PAGES: rounded _up_ counterpart of VM_MIN_READAHEAD
 
-If desktop users still feel audio jitters with the new read-ahead code,
-please try one of the following ways to get rid of it:
-
-1) compile kernel with CONFIG_PREEMPT_VOLUNTARY/CONFIG_PREEMPT
-2) reduce the read-ahead request size by running
-	blockdev --setra 256 /dev/hda # or whatever device you are using
+Note that the rounded up MIN_RA_PAGES will work flawlessly with _large_
+page sizes like 64k.
 
 Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c     |    4 +++-
- mm/readahead.c |    9 +++++++--
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ mm/readahead.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN fs/mpage.c~readahead-insert-cond_resched-calls fs/mpage.c
---- a/fs/mpage.c~readahead-insert-cond_resched-calls
-+++ a/fs/mpage.c
-@@ -405,8 +405,10 @@ mpage_readpages(struct address_space *ma
- 					&last_block_in_bio, &map_bh,
- 					&first_logical_block,
- 					get_block);
--			if (!pagevec_add(&lru_pvec, page))
-+			if (!pagevec_add(&lru_pvec, page)) {
-+				cond_resched();
- 				__pagevec_lru_add(&lru_pvec);
-+			}
- 		} else {
- 			page_cache_release(page);
- 		}
-diff -puN mm/readahead.c~readahead-insert-cond_resched-calls mm/readahead.c
---- a/mm/readahead.c~readahead-insert-cond_resched-calls
+diff -puN mm/readahead.c~readahead-minmax_ra_pages mm/readahead.c
+--- a/mm/readahead.c~readahead-minmax_ra_pages
 +++ a/mm/readahead.c
-@@ -148,8 +148,10 @@ int read_cache_pages(struct address_spac
- 			continue;
- 		}
- 		ret = filler(data, page);
--		if (!pagevec_add(&lru_pvec, page))
-+		if (!pagevec_add(&lru_pvec, page)) {
-+			cond_resched();
- 			__pagevec_lru_add(&lru_pvec);
-+		}
- 		if (ret) {
- 			put_pages_list(pages);
- 			break;
-@@ -183,8 +185,10 @@ static int read_pages(struct address_spa
- 		if (!add_to_page_cache(page, mapping,
- 					page->index, GFP_KERNEL)) {
- 			mapping->a_ops->readpage(filp, page);
--			if (!pagevec_add(&lru_pvec, page))
-+			if (!pagevec_add(&lru_pvec, page)) {
-+				cond_resched();
- 				__pagevec_lru_add(&lru_pvec);
-+			}
- 		} else
- 			page_cache_release(page);
- 	}
-@@ -299,6 +303,7 @@ __do_page_cache_readahead(struct address
+@@ -23,8 +23,16 @@ void default_unplug_io_fn(struct backing
+ }
+ EXPORT_SYMBOL(default_unplug_io_fn);
  
- 		read_unlock_irq(&mapping->tree_lock);
- 		page = page_cache_alloc_cold(mapping);
-+		cond_resched();
- 		read_lock_irq(&mapping->tree_lock);
- 		if (!page)
- 			break;
++/*
++ * Convienent macros for min/max read-ahead pages.
++ * Note that MAX_RA_PAGES is rounded down, while MIN_RA_PAGES is rounded up.
++ * The latter is necessary for systems with large page size(i.e. 64k).
++ */
++#define MAX_RA_PAGES	(VM_MAX_READAHEAD*1024 / PAGE_CACHE_SIZE)
++#define MIN_RA_PAGES	DIV_ROUND_UP(VM_MIN_READAHEAD*1024, PAGE_CACHE_SIZE)
++
+ struct backing_dev_info default_backing_dev_info = {
+-	.ra_pages	= (VM_MAX_READAHEAD * 1024) / PAGE_CACHE_SIZE,
++	.ra_pages	= MAX_RA_PAGES,
+ 	.state		= 0,
+ 	.capabilities	= BDI_CAP_MAP_COPY,
+ 	.unplug_io_fn	= default_unplug_io_fn,
+@@ -53,7 +61,7 @@ static inline unsigned long get_max_read
+ 
+ static inline unsigned long get_min_readahead(struct file_ra_state *ra)
+ {
+-	return (VM_MIN_READAHEAD * 1024) / PAGE_CACHE_SIZE;
++	return MIN_RA_PAGES;
+ }
+ 
+ static inline void reset_ahead_window(struct file_ra_state *ra)
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-readahead-insert-cond_resched-calls.patch
 readahead-minmax_ra_pages.patch
 readahead-events-accounting.patch
 readahead-rescue_pages.patch
