@@ -1,219 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - slub-validation-of-slabs-metadata-and-guard-zones.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:08:36 -0700
-Message-ID: <200705080008.l4808aWH009393@shell0.pdx.osdl.net>
+Subject: - slub-make-page-private-usable-in-compound-pages-v1.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:08:26 -0700
+Message-ID: <200705080008.l4808QBv009380@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44540 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967439AbXEHAI4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:08:56 -0400
+	by vger.kernel.org with ESMTP id S967441AbXEHAI6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:08:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, nacc@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: validation of slabs (metadata and guard zones)
+     Make page->private usable in compound pages
 has been removed from the -mm tree.  Its filename was
-     slub-validation-of-slabs-metadata-and-guard-zones.patch
+     slub-make-page-private-usable-in-compound-pages-v1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slub: validation of slabs (metadata and guard zones)
+Subject: Make page->private usable in compound pages
 From: Christoph Lameter <clameter@sgi.com>
 
-This enables validation of slab.  Validation means that all objects are
-checked to see if there are redzone violations, if padding has been
-overwritten or any pointers have been corrupted.  Also checks the consistency
-of slab counters.
+If we add a new flag so that we can distinguish between the first page and the
+tail pages then we can avoid to use page->private in the first page. 
+page->private == page for the first page, so there is no real information in
+there.
 
-Validation enables the detection of metadata corruption without the kernel
-having to execute code that actually uses (allocs/frees) and object.  It
-allows one to make sure that the slab metainformation and the guard values
-around an object have not been compromised.
+Freeing up page->private makes the use of compound pages more transparent. 
+They become more usable like real pages.  Right now we have to be careful f.e.
+ if we are going beyond PAGE_SIZE allocations in the slab on i386 because we
+can then no longer use the private field.  This is one of the issues that
+cause us not to support debugging for page size slabs in SLAB.
 
-A single slabcache can be checked by writing a 1 to the "validate" file.
+Having page->private available for SLUB would allow more meta information in
+the page struct.  I can probably avoid the 16 bit ints that I have in there
+right now.
 
-i.e.
+Also if page->private is available then a compound page may be equipped with
+buffer heads.  This may free up the way for filesystems to support larger
+blocks than page size.
 
-echo 1 >/sys/slab/kmalloc-128/validate
+We add PageTail as an alias of PageReclaim.  Compound pages cannot currently
+be reclaimed.  Because of the alias one needs to check PageCompound first.
 
-or use the slabinfo tool to check all slabs
+The RFC for the this approach was discussed at
+http://marc.info/?t=117574302800001&r=1&w=2
 
-slabinfo -v
-
-Error messages will show up in the syslog.
-
-Note that validation can only reach slabs that are on a list.  This means that
-we are usually restricted to partial slabs and active slabs unless
-SLAB_STORE_USER is active which will build a full slab list and allows
-validation of slabs that are fully in use.  Booting with "slub_debug" set will
-enable SLAB_STORE_USER and then full diagnostic are available.
-
-Note that we attempt to push cpu slabs back to the lists when we start the
-check.  If the cpu slab is reactivated before we get to it (another processor
-grabs it before we get to it) then it cannot be checked.
-
+[nacc@us.ibm.com: fix hugetlbfs]
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |  113 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 110 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |   14 ++++++++++++++
+ mm/slub.c                  |   19 ++++---------------
+ 2 files changed, 18 insertions(+), 15 deletions(-)
 
-diff -puN mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones mm/slub.c
---- a/mm/slub.c~slub-validation-of-slabs-metadata-and-guard-zones
+diff -puN include/linux/page-flags.h~slub-make-page-private-usable-in-compound-pages-v1 include/linux/page-flags.h
+--- a/include/linux/page-flags.h~slub-make-page-private-usable-in-compound-pages-v1
++++ a/include/linux/page-flags.h
+@@ -95,6 +95,12 @@
+ /* PG_owner_priv_1 users should have descriptive aliases */
+ #define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
+ 
++/*
++ * Marks tail portion of a compound page. We currently do not reclaim
++ * compound pages so we can reuse a flag only used for reclaim here.
++ */
++#define PG_tail			PG_reclaim
++
+ #if (BITS_PER_LONG > 32)
+ /*
+  * 64-bit-only flags build down from bit 31
+@@ -265,6 +271,14 @@ static inline void __ClearPageTail(struc
+ #define __SetPageHead(page)	__SetPageCompound(page)
+ #define __ClearPageHead(page)	__ClearPageCompound(page)
+ 
++/*
++ * Note: PG_tail is an alias of another page flag. The result of PageTail()
++ * is only valid if PageCompound(page) is true.
++ */
++#define PageTail(page)	test_bit(PG_tail, &(page)->flags)
++#define __SetPageTail(page)	__set_bit(PG_tail, &(page)->flags)
++#define __ClearPageTail(page)	__clear_bit(PG_tail, &(page)->flags)
++
+ #ifdef CONFIG_SWAP
+ #define PageSwapCache(page)	test_bit(PG_swapcache, &(page)->flags)
+ #define SetPageSwapCache(page)	set_bit(PG_swapcache, &(page)->flags)
+diff -puN mm/slub.c~slub-make-page-private-usable-in-compound-pages-v1 mm/slub.c
+--- a/mm/slub.c~slub-make-page-private-usable-in-compound-pages-v1
 +++ a/mm/slub.c
-@@ -670,8 +670,6 @@ static void add_full(struct kmem_cache *
+@@ -1325,9 +1325,7 @@ void kmem_cache_free(struct kmem_cache *
  
- 	VM_BUG_ON(!irqs_disabled());
+ 	page = virt_to_page(x);
  
--	VM_BUG_ON(!irqs_disabled());
+-	if (unlikely(PageCompound(page)))
+-		page = page->first_page;
 -
- 	if (!(s->flags & SLAB_STORE_USER))
++	page = compound_head(page);
+ 
+ 	if (unlikely(PageError(page) && (s->flags & SLAB_STORE_USER)))
+ 		set_tracking(s, x, TRACK_FREE);
+@@ -1338,10 +1336,7 @@ EXPORT_SYMBOL(kmem_cache_free);
+ /* Figure out on which slab object the object resides */
+ static struct page *get_object_page(const void *x)
+ {
+-	struct page *page = virt_to_page(x);
+-
+-	if (unlikely(PageCompound(page)))
+-		page = page->first_page;
++	struct page *page = compound_head(virt_to_page(x));
+ 
+ 	if (!PageSlab(page))
+ 		return NULL;
+@@ -2081,10 +2076,7 @@ void kfree(const void *x)
+ 	if (!x)
  		return;
  
-@@ -2551,6 +2549,99 @@ void *__kmalloc_node_track_caller(size_t
- 
- #ifdef CONFIG_SYSFS
- 
-+static int validate_slab(struct kmem_cache *s, struct page *page)
-+{
-+	void *p;
-+	void *addr = page_address(page);
-+	unsigned long map[BITS_TO_LONGS(s->objects)];
-+
-+	if (!check_slab(s, page) ||
-+			!on_freelist(s, page, NULL))
-+		return 0;
-+
-+	/* Now we know that a valid freelist exists */
-+	bitmap_zero(map, s->objects);
-+
-+	for(p = page->freelist; p; p = get_freepointer(s, p)) {
-+		set_bit((p - addr) / s->size, map);
-+		if (!check_object(s, page, p, 0))
-+			return 0;
-+	}
-+
-+	for(p = addr; p < addr + s->objects * s->size; p += s->size)
-+		if (!test_bit((p - addr) / s->size, map))
-+			if (!check_object(s, page, p, 1))
-+				return 0;
-+	return 1;
-+}
-+
-+static void validate_slab_slab(struct kmem_cache *s, struct page *page)
-+{
-+	if (slab_trylock(page)) {
-+		validate_slab(s, page);
-+		slab_unlock(page);
-+	} else
-+		printk(KERN_INFO "SLUB %s: Skipped busy slab 0x%p\n",
-+			s->name, page);
-+
-+	if (s->flags & DEBUG_DEFAULT_FLAGS) {
-+		if (!PageError(page))
-+			printk(KERN_ERR "SLUB %s: PageError not set "
-+				"on slab 0x%p\n", s->name, page);
-+	} else {
-+		if (PageError(page))
-+			printk(KERN_ERR "SLUB %s: PageError set on "
-+				"slab 0x%p\n", s->name, page);
-+	}
-+}
-+
-+static int validate_slab_node(struct kmem_cache *s, struct kmem_cache_node *n)
-+{
-+	unsigned long count = 0;
-+	struct page *page;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&n->list_lock, flags);
-+
-+	list_for_each_entry(page, &n->partial, lru) {
-+		validate_slab_slab(s, page);
-+		count++;
-+	}
-+	if (count != n->nr_partial)
-+		printk(KERN_ERR "SLUB %s: %ld partial slabs counted but "
-+			"counter=%ld\n", s->name, count, n->nr_partial);
-+
-+	if (!(s->flags & SLAB_STORE_USER))
-+		goto out;
-+
-+	list_for_each_entry(page, &n->full, lru) {
-+		validate_slab_slab(s, page);
-+		count++;
-+	}
-+	if (count != atomic_long_read(&n->nr_slabs))
-+		printk(KERN_ERR "SLUB: %s %ld slabs counted but "
-+			"counter=%ld\n", s->name, count,
-+			atomic_long_read(&n->nr_slabs));
-+
-+out:
-+	spin_unlock_irqrestore(&n->list_lock, flags);
-+	return count;
-+}
-+
-+static unsigned long validate_slab_cache(struct kmem_cache *s)
-+{
-+	int node;
-+	unsigned long count = 0;
-+
-+	flush_all(s);
-+	for_each_online_node(node) {
-+		struct kmem_cache_node *n = get_node(s, node);
-+
-+		count += validate_slab_node(s, n);
-+	}
-+	return count;
-+}
-+
- static unsigned long count_partial(struct kmem_cache_node *n)
- {
- 	unsigned long flags;
-@@ -2680,7 +2771,6 @@ struct slab_attribute {
- 	static struct slab_attribute _name##_attr =  \
- 	__ATTR(_name, 0644, _name##_show, _name##_store)
- 
+-	page = virt_to_page(x);
 -
- static ssize_t slab_size_show(struct kmem_cache *s, char *buf)
- {
- 	return sprintf(buf, "%d\n", s->size);
-@@ -2886,6 +2976,22 @@ static ssize_t store_user_store(struct k
- }
- SLAB_ATTR(store_user);
+-	if (unlikely(PageCompound(page)))
+-		page = page->first_page;
++	page = compound_head(virt_to_page(x));
  
-+static ssize_t validate_show(struct kmem_cache *s, char *buf)
-+{
-+	return 0;
-+}
-+
-+static ssize_t validate_store(struct kmem_cache *s,
-+			const char *buf, size_t length)
-+{
-+	if (buf[0] == '1')
-+		validate_slab_cache(s);
-+	else
-+		return -EINVAL;
-+	return length;
-+}
-+SLAB_ATTR(validate);
-+
- #ifdef CONFIG_NUMA
- static ssize_t defrag_ratio_show(struct kmem_cache *s, char *buf)
- {
-@@ -2925,6 +3031,7 @@ static struct attribute * slab_attrs[] =
- 	&red_zone_attr.attr,
- 	&poison_attr.attr,
- 	&store_user_attr.attr,
-+	&validate_attr.attr,
- #ifdef CONFIG_ZONE_DMA
- 	&cache_dma_attr.attr,
- #endif
+ 	s = page->slab;
+ 
+@@ -2120,10 +2112,7 @@ void *krealloc(const void *p, size_t new
+ 		return NULL;
+ 	}
+ 
+-	page = virt_to_page(p);
+-
+-	if (unlikely(PageCompound(page)))
+-		page = page->first_page;
++	page = compound_head(virt_to_page(p));
+ 
+ 	new_cache = get_slab(new_size, flags);
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
