@@ -1,178 +1,273 @@
 From: akpm@linux-foundation.org
-Subject: - git-sh-fixup.patch removed from -mm tree
-Date: Mon, 07 May 2007 16:57:59 -0700
-Message-ID: <200705072358.l47Nvx2o008689@shell0.pdx.osdl.net>
+Subject: - add-new_id-to-pcmcia-drivers.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:01:26 -0700
+Message-ID: <200705080001.l4801QVS008769@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50638 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967014AbXEGX6C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 19:58:02 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l47Nw0hK013403
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 7 May 2007 16:58:01 -0700
+	by vger.kernel.org with ESMTP id S967293AbXEHABg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:01:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: bwalle@suse.de, greg@kroah.com, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sh-fixup
+     add new_id to PCMCIA drivers
 has been removed from the -mm tree.  Its filename was
-     git-sh-fixup.patch
+     add-new_id-to-pcmcia-drivers.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-sh-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: add new_id to PCMCIA drivers
+From: Bernhard Walle <bwalle@suse.de>
 
+PCI drivers have the new_id file in sysfs which allows new IDs to be added
+at runtime.  The advantage is to avoid re-compilation of a driver that
+works for a new device, but it's ID table doesn't contain the new device. 
+This mechanism is only meant for testing, after the driver has been tested
+successfully, the ID should be added in source code so that new revisions
+of the kernel automatically detect the device.
+
+The implementation follows the PCI implementation. The interface is documented
+in Documentation/pcmcia/driver.txt. Computations should be done in userspace,
+so the sysfs string contains the raw structure members for matching.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/lib/Makefile |    4 ----
- 1 file changed, 4 deletions(-)
+ Documentation/pcmcia/driver.txt |   30 +++++++
+ drivers/pcmcia/ds.c             |  113 +++++++++++++++++++++++++++++-
+ include/pcmcia/ds.h             |    6 +
+ 3 files changed, 148 insertions(+), 1 deletion(-)
 
-diff -puN arch/sh/lib/Makefile~git-sh-fixup arch/sh/lib/Makefile
---- a/arch/sh/lib/Makefile~git-sh-fixup
-+++ a/arch/sh/lib/Makefile
-@@ -3,11 +3,7 @@
- #
+diff -puN /dev/null Documentation/pcmcia/driver.txt
+--- /dev/null
++++ a/Documentation/pcmcia/driver.txt
+@@ -0,0 +1,30 @@
++PCMCIA Driver
++-------------
++
++
++sysfs
++-----
++
++New PCMCIA IDs may be added to a device driver pcmcia_device_id table at
++runtime as shown below:
++
++echo "match_flags manf_id card_id func_id function device_no \
++prod_id_hash[0] prod_id_hash[1] prod_id_hash[2] prod_id_hash[3]" > \
++/sys/bus/pcmcia/drivers/{driver}/new_id
++
++All fields are passed in as hexadecimal values (no leading 0x).
++The meaning is described in the PCMCIA specification, the match_flags is
++a bitwise or-ed combination from PCMCIA_DEV_ID_MATCH_* constants
++defined in include/linux/mod_devicetable.h.
++
++Once added, the driver probe routine will be invoked for any unclaimed
++PCMCIA device listed in its (newly updated) pcmcia_device_id list.
++
++A common use-case is to add a new device according to the manufacturer ID
++and the card ID (form the manf_id and card_id file in the device tree).
++For this, just use:
++
++echo "0x3 manf_id card_id 0 0 0 0 0 0 0" > \
++        /sys/bus/pcmcia/drivers/{driver}/new_id
++
++after loading the driver.
+diff -puN drivers/pcmcia/ds.c~add-new_id-to-pcmcia-drivers drivers/pcmcia/ds.c
+--- a/drivers/pcmcia/ds.c~add-new_id-to-pcmcia-drivers
++++ a/drivers/pcmcia/ds.c
+@@ -234,6 +234,89 @@ static void pcmcia_check_driver(struct p
+ /*======================================================================*/
  
- lib-y  = delay.o memset.o memmove.o memchr.o \
--<<<<<<< HEAD/arch/sh/lib/Makefile
--	 checksum.o strlen.o div64.o udivdi3.o \
--=======
- 	 checksum.o strcasecmp.o strlen.o div64.o \
-->>>>>>> /arch/sh/lib/Makefile
- 	 div64-generic.o
  
- memcpy-y			:= memcpy.o
++struct pcmcia_dynid {
++	struct list_head 		node;
++	struct pcmcia_device_id 	id;
++};
++
++/**
++ * pcmcia_store_new_id - add a new PCMCIA device ID to this driver and re-probe devices
++ * @driver: target device driver
++ * @buf: buffer for scanning device ID data
++ * @count: input size
++ *
++ * Adds a new dynamic PCMCIA device ID to this driver,
++ * and causes the driver to probe for all devices again.
++ */
++static ssize_t
++pcmcia_store_new_id(struct device_driver *driver, const char *buf, size_t count)
++{
++	struct pcmcia_dynid *dynid;
++	struct pcmcia_driver *pdrv = to_pcmcia_drv(driver);
++	__u16 match_flags, manf_id, card_id;
++	__u8 func_id, function, device_no;
++	__u32 prod_id_hash[4] = {0, 0, 0, 0};
++	int fields=0;
++	int retval = 0;
++
++	fields = sscanf(buf, "%hx %hx %hx %hhx %hhx %hhx %x %x %x %x",
++			&match_flags, &manf_id, &card_id, &func_id, &function, &device_no,
++			&prod_id_hash[0], &prod_id_hash[1], &prod_id_hash[2], &prod_id_hash[3]);
++	if (fields < 6)
++		return -EINVAL;
++
++	dynid = kzalloc(sizeof(struct pcmcia_dynid), GFP_KERNEL);
++	if (!dynid)
++		return -ENOMEM;
++
++	INIT_LIST_HEAD(&dynid->node);
++	dynid->id.match_flags = match_flags;
++	dynid->id.manf_id = manf_id;
++	dynid->id.card_id = card_id;
++	dynid->id.func_id = func_id;
++	dynid->id.function = function;
++	dynid->id.device_no = device_no;
++	memcpy(dynid->id.prod_id_hash, prod_id_hash, sizeof(__u32) * 4);
++
++	spin_lock(&pdrv->dynids.lock);
++	list_add_tail(&pdrv->dynids.list, &dynid->node);
++	spin_unlock(&pdrv->dynids.lock);
++
++	if (get_driver(&pdrv->drv)) {
++		retval = driver_attach(&pdrv->drv);
++		put_driver(&pdrv->drv);
++	}
++
++	if (retval)
++		return retval;
++	return count;
++}
++static DRIVER_ATTR(new_id, S_IWUSR, NULL, pcmcia_store_new_id);
++
++static void
++pcmcia_free_dynids(struct pcmcia_driver *drv)
++{
++	struct pcmcia_dynid *dynid, *n;
++
++	spin_lock(&drv->dynids.lock);
++	list_for_each_entry_safe(dynid, n, &drv->dynids.list, node) {
++		list_del(&dynid->node);
++		kfree(dynid);
++	}
++	spin_unlock(&drv->dynids.lock);
++}
++
++static int
++pcmcia_create_newid_file(struct pcmcia_driver *drv)
++{
++	int error = 0;
++	if (drv->probe != NULL)
++		error = sysfs_create_file(&drv->drv.kobj,
++					  &driver_attr_new_id.attr);
++	return error;
++}
++
++
+ /**
+  * pcmcia_register_driver - register a PCMCIA driver with the bus core
+  *
+@@ -241,6 +324,8 @@ static void pcmcia_check_driver(struct p
+  */
+ int pcmcia_register_driver(struct pcmcia_driver *driver)
+ {
++	int error;
++
+ 	if (!driver)
+ 		return -EINVAL;
+ 
+@@ -249,10 +334,20 @@ int pcmcia_register_driver(struct pcmcia
+ 	/* initialize common fields */
+ 	driver->drv.bus = &pcmcia_bus_type;
+ 	driver->drv.owner = driver->owner;
++	spin_lock_init(&driver->dynids.lock);
++	INIT_LIST_HEAD(&driver->dynids.list);
+ 
+ 	ds_dbg(3, "registering driver %s\n", driver->drv.name);
+ 
+-	return driver_register(&driver->drv);
++	error = driver_register(&driver->drv);
++	if (error < 0)
++		return error;
++
++	error = pcmcia_create_newid_file(driver);
++	if (error)
++		driver_unregister(&driver->drv);
++
++	return error;
+ }
+ EXPORT_SYMBOL(pcmcia_register_driver);
+ 
+@@ -263,6 +358,7 @@ void pcmcia_unregister_driver(struct pcm
+ {
+ 	ds_dbg(3, "unregistering driver %s\n", driver->drv.name);
+ 	driver_unregister(&driver->drv);
++	pcmcia_free_dynids(driver);
+ }
+ EXPORT_SYMBOL(pcmcia_unregister_driver);
+ 
+@@ -927,6 +1023,21 @@ static int pcmcia_bus_match(struct devic
+ 	struct pcmcia_device * p_dev = to_pcmcia_dev(dev);
+ 	struct pcmcia_driver * p_drv = to_pcmcia_drv(drv);
+ 	struct pcmcia_device_id *did = p_drv->id_table;
++	struct pcmcia_dynid *dynid;
++
++	/* match dynamic devices first */
++	spin_lock(&p_drv->dynids.lock);
++	list_for_each_entry(dynid, &p_drv->dynids.list, node) {
++		ds_dbg(3, "trying to match %s to %s\n", dev->bus_id,
++		       drv->name);
++		if (pcmcia_devmatch(p_dev, &dynid->id)) {
++			ds_dbg(0, "matched %s to %s\n", dev->bus_id,
++			       drv->name);
++			spin_unlock(&p_drv->dynids.lock);
++			return 1;
++		}
++	}
++	spin_unlock(&p_drv->dynids.lock);
+ 
+ #ifdef CONFIG_PCMCIA_IOCTL
+ 	/* matching by cardmgr */
+diff -puN include/pcmcia/ds.h~add-new_id-to-pcmcia-drivers include/pcmcia/ds.h
+--- a/include/pcmcia/ds.h~add-new_id-to-pcmcia-drivers
++++ a/include/pcmcia/ds.h
+@@ -108,6 +108,11 @@ typedef struct dev_node_t {
+ struct pcmcia_socket;
+ struct config_t;
+ 
++struct pcmcia_dynids {
++	spinlock_t		lock;
++	struct list_head	list;
++};
++
+ struct pcmcia_driver {
+ 	int (*probe)		(struct pcmcia_device *dev);
+ 	void (*remove)		(struct pcmcia_device *dev);
+@@ -118,6 +123,7 @@ struct pcmcia_driver {
+ 	struct module		*owner;
+ 	struct pcmcia_device_id	*id_table;
+ 	struct device_driver	drv;
++	struct pcmcia_dynids	dynids;
+ };
+ 
+ /* driver registration */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
-git-jfs.patch
-git-kvm.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
-atl1-use-dev_printk-macros-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-nfs-printk-warning-fixes.patch
-git-parisc.patch
 git-r8169.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-sh-fixup.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-slub-core.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-swsusp-clean-up-print.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-consolidate-asm-consth-to-linux-consth-fix.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
-lib-hexdump-fix.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-mutex_lock_interruptible-add-__must_check.patch
-mutex_lock_interruptible-add-__must_check-must-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-rename-thread_info-to-stack-fix.patch
-char-cyclades-conditions-cleanup-fix.patch
-char-cyclades-probe-cleanup-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+use-unchecked_isa_dma-in-sd_revalidate_disk.patch
+add-irqf_irqpoll-flag-common-code.patch
+add-irqf_irqpoll-flag-on-x86_64.patch
+add-irqf_irqpoll-flag-on-i386.patch
+add-irqf_irqpoll-flag-on-ia64.patch
+add-irqf_irqpoll-flag-on-sh.patch
+add-irqf_irqpoll-flag-on-parisc.patch
+add-irqf_irqpoll-flag-on-arm.patch
