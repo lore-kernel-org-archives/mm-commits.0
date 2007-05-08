@@ -1,84 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-remove-sys-class-rtc-dev-fix.patch removed from -mm tree
-Date: Mon, 07 May 2007 22:18:18 -0700
-Message-ID: <200705080518.l485IIHB014265@shell0.pdx.osdl.net>
+Subject: - char-cyclades-conditions-cleanup-fix.patch removed from -mm tree
+Date: Mon, 07 May 2007 23:04:08 -0700
+Message-ID: <200705080604.l486488A015033@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53301 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967873AbXEHFSl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 01:18:41 -0400
+	by vger.kernel.org with ESMTP id S1754090AbXEHGEM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 02:04:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, a.zummo@towertech.it, dbrownell@users.sourceforge.net, gregkh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/rtc/rtc-dev.c should #include "rtc-core.h"
+     char-cyclades-conditions-cleanup-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-remove-sys-class-rtc-dev-fix.patch
+     char-cyclades-conditions-cleanup-fix.patch
 
-This patch was dropped because it was folded into rtc-remove-sys-class-rtc-dev.patch
+This patch was dropped because it was folded into char-cyclades-conditions-cleanup.patch
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-dev.c should #include "rtc-core.h"
-From: Adrian Bunk <bunk@stusta.de>
+Subject: char-cyclades-conditions-cleanup-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Every file should include the headers containing the prototypes for
-its global functions.
+wtf?
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/char/cyclades.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-dev.c~rtc-remove-sys-class-rtc-dev-fix drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-remove-sys-class-rtc-dev-fix
-+++ a/drivers/rtc/rtc-dev.c
-@@ -13,6 +13,7 @@
+diff -puN drivers/char/cyclades.c~char-cyclades-conditions-cleanup-fix drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-conditions-cleanup-fix
++++ a/drivers/char/cyclades.c
+@@ -1820,7 +1820,7 @@ static irqreturn_t cyz_interrupt(int irq
+ {
+ 	struct cyclades_card *cinfo = dev_id;
  
- #include <linux/module.h>
- #include <linux/rtc.h>
-+#include "rtc-core.h"
- 
- static dev_t rtc_devt;
- 
+-	if (unlikely(cinfo == NULL))
++	if (unlikely(cinfo == NULL)) {
+ #ifdef CY_DEBUG_INTERRUPTS
+ 		printk(KERN_DEBUG "cyz_interrupt: spurious interrupt %d\n",irq);
+ #endif
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-apple-smc-driver-hardware-monitoring-and-control.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-add-file-position-info-to-proc.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-remove-sys-class-rtc-dev-fix.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-drivers-video-sis-remove-more-kernel-24-code.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+consolidate-asm-consth-to-linux-consth.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+char-cyclades-conditions-cleanup.patch
+char-cyclades-conditions-cleanup-fix.patch
+char-cyclades-probe-cleanup-fix.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
