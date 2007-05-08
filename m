@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-use-path_walk-in-do_path_lookup.patch added to -mm tree
-Date: Tue, 08 May 2007 13:55:30 -0700
-Message-ID: <200705082056.l48KtU96001378@shell0.pdx.osdl.net>
+Subject: + mac80211-include-linux-delayh-instead-of-asm-delayh.patch added to -mm tree
+Date: Tue, 08 May 2007 13:58:26 -0700
+Message-ID: <200705082058.l48KwQT2001455@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49885 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032122AbXEHU6b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 16:58:31 -0400
+	by vger.kernel.org with ESMTP id S967754AbXEHU7W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 16:59:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jsipek@cs.sunysb.edu, hch@infradead.org
+Cc: geert@linux-m68k.org, davem@davemloft.net, jeff@garzik.org, linville@tuxdriver.com
 
 
 The patch titled
-     fs: use path_walk in do_path_lookup
+     mac80211: include <linux/delay.h> instead of <asm/delay.h>
 has been added to the -mm tree.  Its filename is
-     fs-use-path_walk-in-do_path_lookup.patch
+     mac80211-include-linux-delayh-instead-of-asm-delayh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs: use path_walk in do_path_lookup
-From: "Josef 'Jeff' Sipek" <jsipek@cs.sunysb.edu>
+Subject: mac80211: include <linux/delay.h> instead of <asm/delay.h>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Since path_walk sets the total_link_count to 0 and calls link_path_walk, we
-can just call path_walk directly.
+|   CC      net/mac80211/ieee80211_sta.o
+| In file included from linux/net/mac80211/ieee80211_sta.c:31:
+| include2/asm/delay.h: In function '__const_udelay':
+| include2/asm/delay.h:33: error: 'loops_per_jiffy' undeclared (first use in this function)
+| include2/asm/delay.h:33: error: (Each undeclared identifier is reported only once
+| include2/asm/delay.h:33: error: for each function it appears in.)
 
-Signed-off-by: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+mac80211: include <linux/delay.h> instead of <asm/delay.h>
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ net/mac80211/ieee80211_sta.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namei.c~fs-use-path_walk-in-do_path_lookup fs/namei.c
---- a/fs/namei.c~fs-use-path_walk-in-do_path_lookup
-+++ a/fs/namei.c
-@@ -1152,8 +1152,8 @@ static int fastcall do_path_lookup(int d
+diff -puN net/mac80211/ieee80211_sta.c~mac80211-include-linux-delayh-instead-of-asm-delayh net/mac80211/ieee80211_sta.c
+--- a/net/mac80211/ieee80211_sta.c~mac80211-include-linux-delayh-instead-of-asm-delayh
++++ a/net/mac80211/ieee80211_sta.c
+@@ -17,6 +17,7 @@
+  * scan result table filtering (by capability (privacy, IBSS/BSS, WPA/RSN IE,
+  *    SSID)
+  */
++#include <linux/delay.h>
+ #include <linux/if_ether.h>
+ #include <linux/skbuff.h>
+ #include <linux/netdevice.h>
+@@ -27,7 +28,6 @@
+ #include <linux/rtnetlink.h>
+ #include <net/iw_handler.h>
+ #include <asm/types.h>
+-#include <asm/delay.h>
  
- 		fput_light(file, fput_needed);
- 	}
--	current->total_link_count = 0;
--	retval = link_path_walk(name, nd);
-+
-+	retval = path_walk(name, nd);
- out:
- 	if (unlikely(!retval && !audit_dummy_context() && nd->dentry &&
- 				nd->dentry->d_inode))
+ #include <net/mac80211.h>
+ #include "ieee80211_i.h"
 _
 
-Patches currently in -mm which might be from jsipek@cs.sunysb.edu are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-git-unionfs.patch
-fs-fix-indentation-in-do_path_lookup.patch
-fs-use-path_walk-in-do_path_lookup.patch
+mac80211-include-linux-delayh-instead-of-asm-delayh.patch
+allow-arch-to-initialize-arch-field-of-the-module-structure.patch
