@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + md-improve-partition-detection-in-md-array.patch added to -mm tree
-Date: Tue, 08 May 2007 16:09:15 -0700
-Message-ID: <200705082309.l48N9Fv6004358@shell0.pdx.osdl.net>
+Subject: + fix-gregkh-pci-pci-reduce-aer-init-error-information.patch added to -mm tree
+Date: Tue, 08 May 2007 16:10:44 -0700
+Message-ID: <200705082310.l48NAiq1004397@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57524 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969343AbXEHXJT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 19:09:19 -0400
+	by vger.kernel.org with ESMTP id S968609AbXEHXKr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 19:10:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+Cc: yanmin_zhang@linux.intel.com, greg@kroah.com, yanmin.zhang@intel.com
 
 
 The patch titled
-     md: improve partition detection in md array
+     fix gregkh-pci-pci-reduce-aer-init-error-information
 has been added to the -mm tree.  Its filename is
-     md-improve-partition-detection-in-md-array.patch
+     fix-gregkh-pci-pci-reduce-aer-init-error-information.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,165 +25,185 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: improve partition detection in md array
-From: NeilBrown <neilb@suse.de>
+Subject: fix gregkh-pci-pci-reduce-aer-init-error-information
+From: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
 
-md currently uses ->media_changed to make sure rescan_partitions
-is call on md array after they are assembled.
+On Sat, 2007-05-05 at 22:29 +0200, Olaf Hering wrote:
+> On Sat, May 05, Andrew Morton wrote:
+>
+> > +gregkh-pci-pci-reduce-aer-init-error-information.patch
+>
+> include/linux/pci-acpi.h:57: error: expected ')' before 'handle'
+> make[4]: *** [drivers/pci/pcie/portdrv_pci.o] Error 1
+>
+> acpi_handle is intel only.
+Sorry. I didn't check CONFIG_ACPI=n. The acpi header file inclusion
+is too complicated.
 
-However that doesn't happen until the array is opened, which is later
-than some people would like.
+Below patch against 2.6.21+gregkh-pci-pci-reduce-aer-init-error-information.patch
+fixes the compiling issue. I delete the acpi header file inclusion in aerdrv.h,
+and move function aer_osc_setup to another file.
 
-So use blkdev_ioctl to do the rescan immediately that the
-array has been assembled.
+I tested it with both CONFIG_ACPI=y and CONFIG_ACPI=n.
 
-This means we can remove all the ->change infrastructure as it was only used
-to trigger a partition rescan.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Zhang Yanmin <yanmin.zhang@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c           |   26 ++++++++------------------
- drivers/md/raid1.c        |    1 -
- drivers/md/raid5.c        |    2 --
- include/linux/raid/md_k.h |    1 -
- 4 files changed, 8 insertions(+), 22 deletions(-)
+ drivers/pci/pcie/aer/Makefile      |    2 
+ drivers/pci/pcie/aer/aerdrv.h      |    3 -
+ drivers/pci/pcie/aer/aerdrv_acpi.c |   61 ---------------------------
+ drivers/pci/pcie/aer/aerdrv_core.c |   41 ++++++++++++++++++
+ 4 files changed, 42 insertions(+), 65 deletions(-)
 
-diff -puN drivers/md/md.c~md-improve-partition-detection-in-md-array drivers/md/md.c
---- a/drivers/md/md.c~md-improve-partition-detection-in-md-array
-+++ a/drivers/md/md.c
-@@ -3104,6 +3104,7 @@ static int do_md_run(mddev_t * mddev)
- 	struct gendisk *disk;
- 	struct mdk_personality *pers;
- 	char b[BDEVNAME_SIZE];
-+	struct block_device *bdev;
+diff -puN drivers/pci/pcie/aer/Makefile~fix-gregkh-pci-pci-reduce-aer-init-error-information drivers/pci/pcie/aer/Makefile
+--- a/drivers/pci/pcie/aer/Makefile~fix-gregkh-pci-pci-reduce-aer-init-error-information
++++ a/drivers/pci/pcie/aer/Makefile
+@@ -4,5 +4,5 @@
  
- 	if (list_empty(&mddev->disks))
- 		/* cannot run an array with no devices.. */
-@@ -3331,7 +3332,13 @@ static int do_md_run(mddev_t * mddev)
- 	md_wakeup_thread(mddev->thread);
- 	md_wakeup_thread(mddev->sync_thread); /* possibly kick off a reshape */
+ obj-$(CONFIG_PCIEAER) += aerdriver.o
  
--	mddev->changed = 1;
-+	bdev = bdget_disk(mddev->gendisk, 0);
-+	if (bdev) {
-+		bd_set_size(bdev, mddev->array_size << 1);
-+		blkdev_ioctl(bdev->bd_inode, NULL, BLKRRPART, 0);
-+		bdput(bdev);
-+	}
-+
- 	md_new_event(mddev);
- 	kobject_uevent(&mddev->gendisk->kobj, KOBJ_CHANGE);
- 	return 0;
-@@ -3453,7 +3460,6 @@ static int do_md_stop(mddev_t * mddev, i
- 			mddev->pers = NULL;
+-aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o aerdrv_acpi.o
++aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o
  
- 			set_capacity(disk, 0);
--			mddev->changed = 1;
+diff -puN drivers/pci/pcie/aer/aerdrv.h~fix-gregkh-pci-pci-reduce-aer-init-error-information drivers/pci/pcie/aer/aerdrv.h
+--- a/drivers/pci/pcie/aer/aerdrv.h~fix-gregkh-pci-pci-reduce-aer-init-error-information
++++ a/drivers/pci/pcie/aer/aerdrv.h
+@@ -9,8 +9,6 @@
+ #define _AERDRV_H_
  
- 			if (mddev->ro)
- 				mddev->ro = 0;
-@@ -4593,20 +4599,6 @@ static int md_release(struct inode *inod
- 	return 0;
+ #include <linux/pcieport_if.h>
+-#include <linux/acpi.h>
+-#include <linux/pci-acpi.h>
+ #include <linux/aer.h>
+ 
+ #define AER_NONFATAL			0
+@@ -118,6 +116,5 @@ extern void aer_delete_rootport(struct a
+ extern int aer_init(struct pcie_device *dev);
+ extern void aer_isr(struct work_struct *work);
+ extern void aer_print_error(struct pci_dev *dev, struct aer_err_info *info);
+-extern acpi_status aer_osc_setup(struct pci_dev *dev);
+ 
+ #endif //_AERDRV_H_
+diff -puN drivers/pci/pcie/aer/aerdrv_acpi.c~fix-gregkh-pci-pci-reduce-aer-init-error-information /dev/null
+--- a/drivers/pci/pcie/aer/aerdrv_acpi.c
++++ /dev/null
+@@ -1,61 +0,0 @@
+-/*
+- * Access ACPI _OSC method
+- *
+- * Copyright (C) 2006 Intel Corp.
+- *	Tom Long Nguyen (tom.l.nguyen@intel.com)
+- *	Zhang Yanmin (yanmin.zhang@intel.com)
+- *
+- */
+-
+-#include <linux/module.h>
+-#include <linux/pci.h>
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/pm.h>
+-#include <linux/suspend.h>
+-#include <linux/acpi.h>
+-#include <linux/pci-acpi.h>
+-#include <linux/delay.h>
+-#include "aerdrv.h"
+-
+-/**
+- * aer_osc_setup - run ACPI _OSC method
+- *
+- * Return:
+- *	Zero if success. Nonzero for otherwise.
+- *
+- * Invoked when PCIE bus loads AER service driver. To avoid conflict with
+- * BIOS AER support requires BIOS to yield AER control to OS native driver.
+- **/
+-acpi_status aer_osc_setup(struct pci_dev *dev)
+-{
+-	acpi_status status = AE_NOT_FOUND;
+-	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
+-	struct pci_dev *pdev = dev;
+-	struct pci_bus *parent;
+-
+-	while (!handle) {
+-		if (!pdev || !pdev->bus->parent)
+-			break;
+-		parent = pdev->bus->parent;
+-		if (!parent->self)
+-			/* Parent must be a host bridge */
+-			handle = acpi_get_pci_rootbridge_handle(
+-					pci_domain_nr(parent),
+-					parent->number);
+-		else
+-			handle = DEVICE_ACPI_HANDLE(
+-					&(parent->self->dev));
+-		pdev = parent->self;
+-	}
+-
+-	if (!handle)
+-		return status;
+-
+-	pci_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
+-	status = pci_osc_control_set(handle, OSC_PCI_EXPRESS_AER_CONTROL |
+-		OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
+-
+-	return status;
+-}
+-
+diff -puN drivers/pci/pcie/aer/aerdrv_core.c~fix-gregkh-pci-pci-reduce-aer-init-error-information drivers/pci/pcie/aer/aerdrv_core.c
+--- a/drivers/pci/pcie/aer/aerdrv_core.c~fix-gregkh-pci-pci-reduce-aer-init-error-information
++++ a/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -726,6 +726,47 @@ void aer_delete_rootport(struct aer_rpc 
  }
  
--static int md_media_changed(struct gendisk *disk)
--{
--	mddev_t *mddev = disk->private_data;
--
--	return mddev->changed;
--}
--
--static int md_revalidate(struct gendisk *disk)
--{
--	mddev_t *mddev = disk->private_data;
--
--	mddev->changed = 0;
--	return 0;
--}
- static struct block_device_operations md_fops =
- {
- 	.owner		= THIS_MODULE,
-@@ -4614,8 +4606,6 @@ static struct block_device_operations md
- 	.release	= md_release,
- 	.ioctl		= md_ioctl,
- 	.getgeo		= md_getgeo,
--	.media_changed	= md_media_changed,
--	.revalidate_disk= md_revalidate,
- };
- 
- static int md_thread(void * arg)
-diff -puN drivers/md/raid1.c~md-improve-partition-detection-in-md-array drivers/md/raid1.c
---- a/drivers/md/raid1.c~md-improve-partition-detection-in-md-array
-+++ a/drivers/md/raid1.c
-@@ -2063,7 +2063,6 @@ static int raid1_resize(mddev_t *mddev, 
- 	 */
- 	mddev->array_size = sectors>>1;
- 	set_capacity(mddev->gendisk, mddev->array_size << 1);
--	mddev->changed = 1;
- 	if (mddev->array_size > mddev->size && mddev->recovery_cp == MaxSector) {
- 		mddev->recovery_cp = mddev->size << 1;
- 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
-diff -puN drivers/md/raid5.c~md-improve-partition-detection-in-md-array drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-improve-partition-detection-in-md-array
-+++ a/drivers/md/raid5.c
-@@ -4514,7 +4514,6 @@ static int raid5_resize(mddev_t *mddev, 
- 	sectors &= ~((sector_t)mddev->chunk_size/512 - 1);
- 	mddev->array_size = (sectors * (mddev->raid_disks-conf->max_degraded))>>1;
- 	set_capacity(mddev->gendisk, mddev->array_size << 1);
--	mddev->changed = 1;
- 	if (sectors/2  > mddev->size && mddev->recovery_cp == MaxSector) {
- 		mddev->recovery_cp = mddev->size << 1;
- 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
-@@ -4649,7 +4648,6 @@ static void end_reshape(raid5_conf_t *co
- 		conf->mddev->array_size = conf->mddev->size *
- 			(conf->raid_disks - conf->max_degraded);
- 		set_capacity(conf->mddev->gendisk, conf->mddev->array_size << 1);
--		conf->mddev->changed = 1;
- 
- 		bdev = bdget_disk(conf->mddev->gendisk, 0);
- 		if (bdev) {
-diff -puN include/linux/raid/md_k.h~md-improve-partition-detection-in-md-array include/linux/raid/md_k.h
---- a/include/linux/raid/md_k.h~md-improve-partition-detection-in-md-array
-+++ a/include/linux/raid/md_k.h
-@@ -201,7 +201,6 @@ struct mddev_s
- 	struct mutex			reconfig_mutex;
- 	atomic_t			active;
- 
--	int				changed;	/* true if we might need to reread partition info */
- 	int				degraded;	/* whether md should consider
- 							 * adding a spare
- 							 */
+ /**
++ * aer_osc_setup - run ACPI _OSC method
++ *
++ * Return:
++ *	Zero if success. Nonzero for otherwise.
++ *
++ * Invoked when PCIE bus loads AER service driver. To avoid conflict with
++ * BIOS AER support requires BIOS to yield AER control to OS native driver.
++ **/
++acpi_status aer_osc_setup(struct pci_dev *dev)
++{
++	acpi_status status = AE_NOT_FOUND;
++	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
++	struct pci_dev *pdev = dev;
++	struct pci_bus *parent;
++
++	while (!handle) {
++		if (!pdev || !pdev->bus->parent)
++			break;
++		parent = pdev->bus->parent;
++		if (!parent->self)
++			/* Parent must be a host bridge */
++			handle = acpi_get_pci_rootbridge_handle(
++					pci_domain_nr(parent),
++					parent->number);
++		else
++			handle = DEVICE_ACPI_HANDLE(
++					&(parent->self->dev));
++		pdev = parent->self;
++	}
++
++	if (!handle)
++		return status;
++
++	pci_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
++	status = pci_osc_control_set(handle, OSC_PCI_EXPRESS_AER_CONTROL |
++		OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
++
++	return status;
++}
++
++/**
+  * aer_init - provide AER initialization
+  * @dev: pointer to AER pcie device
+  *
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from yanmin_zhang@linux.intel.com are
 
-origin.patch
-fix-quadratic-behavior-of-shrink_dcache_parent.patch
-git-md-accel.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-introduce-freezer-flags-rev-2.patch
-the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
-knfsd-rename-sk_defer_lock-to-sk_lock.patch
-nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
-rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch
-rpc-add-wrapper-for-svc_reserve-to-account-for-checksum-fix.patch
-sunrpc-fix-error-path-in-module_init.patch
-knfsd-avoid-use-of-unitialised-variables-on-error-path-when-nfs-exports.patch
-knfsd-rpc-fix-server-side-wrapping-of-krb5i-replies.patch
-knfsd-fix-resource-leak-resulting-in-module-refcount-leak-for-rpcsec_gss_krb5ko.patch
-knfsd-rpcgss-rpc_gss_proc_-destroy-request-will-get-a-bad-rpc.patch
-knfsd-simplify-a-while-condition-in-svcsockc.patch
-knfsd-trivial-makefile-cleanup.patch
-knfsd-various-nfsd-xdr-cleanups.patch
-knfsd-avoid-oops-if-buggy-userspace-performs-confusing-filehandle-dentry-mapping.patch
-drivers-mdc-use-array_size-macro-when-appropriate.patch
-md-cleanup-use-seq_release_private-where-appropriate.patch
-md-move-test-for-whether-level-supports-bitmap-to-correct-place.patch
-md-stop-using-csum_partial-for-checksum-calculation-in-md.patch
-md-remove-the-slash-from-the-name-of-a-kmem_cache-used-by-raid5.patch
-md-allow-reshape_position-for-md-arrays-to-be-set-via-sysfs.patch
-md-improve-partition-detection-in-md-array.patch
-md-dm-reduce-stack-usage-with-stacked-block-devices.patch
+fix-gregkh-pci-pci-reduce-aer-init-error-information.patch
