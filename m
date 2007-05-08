@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-remove-pf_nofreeze-from-handle_initrd.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:23 -0700
-Message-ID: <200705080005.l4805N2h009093@shell0.pdx.osdl.net>
+Subject: - swsusp-fix-snapshot_release.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:05:38 -0700
+Message-ID: <200705080005.l4805csk009111@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41556 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56662 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755271AbXEHAGK (ORCPT
+	by vger.kernel.org with ESMTP id S1755274AbXEHAGK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,46 +14,38 @@ To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.
 
 
 The patch titled
-     freezer: remove PF_NOFREEZE from handle_initrd
+     swsusp: fix snapshot_release
 has been removed from the -mm tree.  Its filename was
-     freezer-remove-pf_nofreeze-from-handle_initrd.patch
+     swsusp-fix-snapshot_release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: freezer: remove PF_NOFREEZE from handle_initrd
+Subject: swsusp: fix snapshot_release
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make handle_initrd() call try_to_freeze() in a suitable place instead of setting
-PF_NOFREEZE for the current task.
+Remove the leftover enable_nonboot_cpus() from snapshot_release().
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts_initrd.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/power/user.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN init/do_mounts_initrd.c~freezer-remove-pf_nofreeze-from-handle_initrd init/do_mounts_initrd.c
---- a/init/do_mounts_initrd.c~freezer-remove-pf_nofreeze-from-handle_initrd
-+++ a/init/do_mounts_initrd.c
-@@ -55,11 +55,12 @@ static void __init handle_initrd(void)
- 	sys_mount(".", "/", NULL, MS_MOVE, NULL);
- 	sys_chroot(".");
- 
--	current->flags |= PF_NOFREEZE;
- 	pid = kernel_thread(do_linuxrc, "/linuxrc", SIGCHLD);
- 	if (pid > 0) {
--		while (pid != sys_wait4(-1, NULL, 0, NULL))
-+		while (pid != sys_wait4(-1, NULL, 0, NULL)) {
-+			try_to_freeze();
- 			yield();
-+		}
+diff -puN kernel/power/user.c~swsusp-fix-snapshot_release kernel/power/user.c
+--- a/kernel/power/user.c~swsusp-fix-snapshot_release
++++ a/kernel/power/user.c
+@@ -86,7 +86,6 @@ static int snapshot_release(struct inode
+ 	if (data->frozen) {
+ 		mutex_lock(&pm_mutex);
+ 		thaw_processes();
+-		enable_nonboot_cpus();
+ 		mutex_unlock(&pm_mutex);
  	}
- 
- 	/* move initrd to rootfs' /old */
+ 	atomic_inc(&snapshot_device_available);
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
