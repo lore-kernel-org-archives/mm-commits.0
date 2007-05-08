@@ -1,31 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + bt-hack-hack.patch added to -mm tree
-Date: Mon, 07 May 2007 23:36:02 -0700
-Message-ID: <200705080636.l486a2wv015580@shell0.pdx.osdl.net>
+Subject: - bt-hack-hack.patch removed from -mm tree
+Date: Tue, 08 May 2007 00:10:06 -0700
+Message-ID: <200705080710.l487A6O0016127@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34257 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754475AbXEHGgI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 02:36:08 -0400
+	by vger.kernel.org with ESMTP id S1755574AbXEHHKP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 03:10:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, marcel@holtmann.org
+To: akpm@linux-foundation.org, greg@kroah.com, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bt-hack-hack
-has been added to the -mm tree.  Its filename is
+     bluetooth build fix
+has been removed from the -mm tree.  Its filename was
      bt-hack-hack.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bt-hack-hack
+Subject: bluetooth build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 I wonder if this works.
