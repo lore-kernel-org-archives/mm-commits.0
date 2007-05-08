@@ -1,237 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - uml-kernel-segfaults-should-dump-proper-registers.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:06:49 -0700
-Message-ID: <200705080006.l4806nEq009227@shell0.pdx.osdl.net>
+Subject: - uml-send-pointers-instead-of-structures-to-i-o-thread.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:07:15 -0700
+Message-ID: <200705080007.l4807FRo009264@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51554 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38637 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967406AbXEHAHW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:07:22 -0400
+	by vger.kernel.org with ESMTP id S967410AbXEHAHh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:07:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: kernel segfaults should dump proper registers
+     uml: send pointers instead of structures to I/O thread
 has been removed from the -mm tree.  Its filename was
-     uml-kernel-segfaults-should-dump-proper-registers.patch
+     uml-send-pointers-instead-of-structures-to-i-o-thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: kernel segfaults should dump proper registers
+Subject: uml: send pointers instead of structures to I/O thread
 From: Jeff Dike <jdike@addtoit.com>
 
-If there's a segfault inside the kernel, we want a dump of the registers at
-the point of the segfault, not the registers at the point of calling panic or
-the last userspace registers.
+Instead of writing entire structures between UML and the I/O thread, we send
+pointers.  This cuts down on the amount of data being copied and possibly
+allows more requests to be pending between the two.
 
-sig_handler_common_skas now uses a static register set in the case of a
-SIGSEGV to avoid messing up the process registers if the segfault turns out to
-be non-fatal.
-
-The architecture sigcontext-to-pt_regs copying code was repurposed to copy
-data out of the SEGV stack frame.
+This requires that the requests be kmalloced and freed instead of living on
+the stack.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/common-offsets.h |    2 +
- arch/um/include/kern_util.h      |    2 +
- arch/um/kernel/trap.c            |   10 ++++---
- arch/um/os-Linux/skas/trap.c     |   15 +++++++++-
- arch/um/sys-i386/signal.c        |   41 ++++++++++++++++-------------
- arch/um/sys-x86_64/signal.c      |   30 +++++++++++++++++++++
- 6 files changed, 78 insertions(+), 22 deletions(-)
+ arch/um/drivers/ubd_kern.c |   41 ++++++++++++++++++++++-------------
+ 1 file changed, 26 insertions(+), 15 deletions(-)
 
-diff -puN arch/um/include/common-offsets.h~uml-kernel-segfaults-should-dump-proper-registers arch/um/include/common-offsets.h
---- a/arch/um/include/common-offsets.h~uml-kernel-segfaults-should-dump-proper-registers
-+++ a/arch/um/include/common-offsets.h
-@@ -24,5 +24,7 @@ DEFINE(UM_ELF_CLASS, ELF_CLASS);
- DEFINE(UM_ELFCLASS32, ELFCLASS32);
- DEFINE(UM_ELFCLASS64, ELFCLASS64);
+diff -puN arch/um/drivers/ubd_kern.c~uml-send-pointers-instead-of-structures-to-i-o-thread arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~uml-send-pointers-instead-of-structures-to-i-o-thread
++++ a/arch/um/drivers/ubd_kern.c
+@@ -503,7 +503,7 @@ static LIST_HEAD(restart);
+ /* Called without dev->lock held, and only in interrupt context. */
+ static void ubd_handler(void)
+ {
+-	struct io_thread_req req;
++	struct io_thread_req *req;
+ 	struct request *rq;
+ 	struct ubd *ubd;
+ 	struct list_head *list, *next_ele;
+@@ -511,7 +511,8 @@ static void ubd_handler(void)
+ 	int n;
  
-+DEFINE(UM_NR_CPUS, NR_CPUS);
-+
- /* For crypto assembler code. */
- DEFINE(crypto_tfm_ctx_offset, offsetof(struct crypto_tfm, __crt_ctx));
-diff -puN arch/um/include/kern_util.h~uml-kernel-segfaults-should-dump-proper-registers arch/um/include/kern_util.h
---- a/arch/um/include/kern_util.h~uml-kernel-segfaults-should-dump-proper-registers
-+++ a/arch/um/include/kern_util.h
-@@ -115,4 +115,6 @@ extern void time_init_kern(void);
- extern int __cant_sleep(void);
- extern void sigio_handler(int sig, union uml_pt_regs *regs);
+ 	while(1){
+-		n = os_read_file_k(thread_fd, &req, sizeof(req));
++		n = os_read_file_k(thread_fd, &req,
++				   sizeof(struct io_thread_req *));
+ 		if(n != sizeof(req)){
+ 			if(n == -EAGAIN)
+ 				break;
+@@ -520,10 +521,11 @@ static void ubd_handler(void)
+ 			return;
+ 		}
  
-+extern void copy_sc(union uml_pt_regs *regs, void *from);
-+
- #endif
-diff -puN arch/um/kernel/trap.c~uml-kernel-segfaults-should-dump-proper-registers arch/um/kernel/trap.c
---- a/arch/um/kernel/trap.c~uml-kernel-segfaults-should-dump-proper-registers
-+++ a/arch/um/kernel/trap.c
-@@ -170,8 +170,10 @@ unsigned long segv(struct faultinfo fi, 
- 		flush_tlb_kernel_vm();
- 		return 0;
+-		rq = req.req;
+-		rq->nr_sectors -= req.length >> 9;
++		rq = req->req;
++		rq->nr_sectors -= req->length >> 9;
+ 		if(rq->nr_sectors == 0)
+ 			ubd_finish(rq, rq->hard_nr_sectors << 9);
++		kfree(req);
  	}
--	else if(current->mm == NULL)
--		panic("Segfault with no mm");
-+	else if(current->mm == NULL) {
-+		show_regs(container_of(regs, struct pt_regs, regs));
-+  		panic("Segfault with no mm");
-+	}
+ 	reactivate_fd(thread_fd, UBD_IRQ);
  
- 	if (SEGV_IS_FIXABLE(&fi) || SEGV_MAYBE_FIXABLE(&fi))
- 		err = handle_page_fault(address, ip, is_write, is_user, &si.si_code);
-@@ -194,9 +196,11 @@ unsigned long segv(struct faultinfo fi, 
- 	else if(!is_user && arch_fixup(ip, regs))
- 		return 0;
- 
--	if(!is_user)
-+	if(!is_user) {
-+		show_regs(container_of(regs, struct pt_regs, regs));
- 		panic("Kernel mode fault at addr 0x%lx, ip 0x%lx",
- 		      address, ip);
-+	}
- 
- 	if (err == -EACCES) {
- 		si.si_signo = SIGBUS;
-diff -puN arch/um/os-Linux/skas/trap.c~uml-kernel-segfaults-should-dump-proper-registers arch/um/os-Linux/skas/trap.c
---- a/arch/um/os-Linux/skas/trap.c~uml-kernel-segfaults-should-dump-proper-registers
-+++ a/arch/um/os-Linux/skas/trap.c
-@@ -15,6 +15,8 @@
- #include "sysdep/ptrace_user.h"
- #include "os.h"
- 
-+static union uml_pt_regs ksig_regs[UM_NR_CPUS];
-+
- void sig_handler_common_skas(int sig, void *sc_ptr)
+@@ -1078,7 +1080,7 @@ static void prepare_request(struct reque
+ /* Called with dev->lock held */
+ static void do_ubd_request(request_queue_t *q)
  {
- 	struct sigcontext *sc = sc_ptr;
-@@ -27,10 +29,19 @@ void sig_handler_common_skas(int sig, vo
- 	 * the process will die.
- 	 * XXX Figure out why this is better than SA_NODEFER
- 	 */
--	if(sig == SIGSEGV)
-+	if(sig == SIGSEGV) {
- 		change_sig(SIGSEGV, 1);
-+		/* For segfaults, we want the data from the
-+		 * sigcontext.  In this case, we don't want to mangle
-+		 * the process registers, so use a static set of
-+		 * registers.  For other signals, the process
-+		 * registers are OK.
-+		 */
-+		r = &ksig_regs[cpu()];
-+		copy_sc(r, sc_ptr);
-+	}
-+	else r = TASK_REGS(get_current());
+-	struct io_thread_req io_req;
++	struct io_thread_req *io_req;
+ 	struct request *req;
+ 	int n;
  
--	r = TASK_REGS(get_current());
- 	save_user = r->skas.is_user;
- 	r->skas.is_user = 0;
- 	if ( sig == SIGFPE || sig == SIGSEGV ||
-diff -puN arch/um/sys-i386/signal.c~uml-kernel-segfaults-should-dump-proper-registers arch/um/sys-i386/signal.c
---- a/arch/um/sys-i386/signal.c~uml-kernel-segfaults-should-dump-proper-registers
-+++ a/arch/um/sys-i386/signal.c
-@@ -18,6 +18,28 @@
+@@ -1099,13 +1101,20 @@ static void do_ubd_request(request_queue
+ 		while(dev->start_sg < dev->end_sg){
+ 			struct scatterlist *sg = &dev->sg[dev->start_sg];
  
- #include "skas.h"
+-			prepare_request(req, &io_req,
++			io_req = kmalloc(sizeof(struct io_thread_req),
++					 GFP_KERNEL | GFP_ATOMIC);
++			if(io_req == NULL){
++				if(list_empty(&dev->restart))
++					list_add(&dev->restart, &restart);
++				return;
++			}
++			prepare_request(req, io_req,
+ 					(unsigned long long) req->sector << 9,
+ 					sg->offset, sg->length, sg->page);
  
-+void copy_sc(union uml_pt_regs *regs, void *from)
-+{
-+	struct sigcontext *sc = from;
-+
-+	REGS_GS(regs->skas.regs) = sc->gs;
-+	REGS_FS(regs->skas.regs) = sc->fs;
-+	REGS_ES(regs->skas.regs) = sc->es;
-+	REGS_DS(regs->skas.regs) = sc->ds;
-+	REGS_EDI(regs->skas.regs) = sc->edi;
-+	REGS_ESI(regs->skas.regs) = sc->esi;
-+	REGS_EBP(regs->skas.regs) = sc->ebp;
-+	REGS_SP(regs->skas.regs) = sc->esp;
-+	REGS_EBX(regs->skas.regs) = sc->ebx;
-+	REGS_EDX(regs->skas.regs) = sc->edx;
-+	REGS_ECX(regs->skas.regs) = sc->ecx;
-+	REGS_EAX(regs->skas.regs) = sc->eax;
-+	REGS_IP(regs->skas.regs) = sc->eip;
-+	REGS_CS(regs->skas.regs) = sc->cs;
-+	REGS_EFLAGS(regs->skas.regs) = sc->eflags;
-+	REGS_SS(regs->skas.regs) = sc->ss;
-+}
-+
- static int copy_sc_from_user_skas(struct pt_regs *regs,
- 				  struct sigcontext __user *from)
+-			n = os_write_file_k(thread_fd, (char *) &io_req,
+-					    sizeof(io_req));
+-			if(n != sizeof(io_req)){
++			n = os_write_file_k(thread_fd, &io_req,
++					    sizeof(struct io_thread_req *));
++			if(n != sizeof(struct io_thread_req *)){
+ 				if(n != -EAGAIN)
+ 					printk("write to io thread failed, "
+ 					       "errno = %d\n", -n);
+@@ -1437,13 +1446,14 @@ static int io_count = 0;
+ 
+ int io_thread(void *arg)
  {
-@@ -30,25 +52,10 @@ static int copy_sc_from_user_skas(struct
- 	if(err)
- 		return err;
+-	struct io_thread_req req;
++	struct io_thread_req *req;
+ 	int n;
  
--	REGS_GS(regs->regs.skas.regs) = sc.gs;
--	REGS_FS(regs->regs.skas.regs) = sc.fs;
--	REGS_ES(regs->regs.skas.regs) = sc.es;
--	REGS_DS(regs->regs.skas.regs) = sc.ds;
--	REGS_EDI(regs->regs.skas.regs) = sc.edi;
--	REGS_ESI(regs->regs.skas.regs) = sc.esi;
--	REGS_EBP(regs->regs.skas.regs) = sc.ebp;
--	REGS_SP(regs->regs.skas.regs) = sc.esp;
--	REGS_EBX(regs->regs.skas.regs) = sc.ebx;
--	REGS_EDX(regs->regs.skas.regs) = sc.edx;
--	REGS_ECX(regs->regs.skas.regs) = sc.ecx;
--	REGS_EAX(regs->regs.skas.regs) = sc.eax;
--	REGS_IP(regs->regs.skas.regs) = sc.eip;
--	REGS_CS(regs->regs.skas.regs) = sc.cs;
--	REGS_EFLAGS(regs->regs.skas.regs) = sc.eflags;
--	REGS_SS(regs->regs.skas.regs) = sc.ss;
-+	copy_sc(&regs->regs, &sc);
- 
- 	err = restore_fp_registers(userspace_pid[0], fpregs);
--	if(err < 0){
-+	if(err < 0) {
- 	  	printk("copy_sc_from_user_skas - PTRACE_SETFPREGS failed, "
- 		       "errno = %d\n", -err);
- 		return err;
-diff -puN arch/um/sys-x86_64/signal.c~uml-kernel-segfaults-should-dump-proper-registers arch/um/sys-x86_64/signal.c
---- a/arch/um/sys-x86_64/signal.c~uml-kernel-segfaults-should-dump-proper-registers
-+++ a/arch/um/sys-x86_64/signal.c
-@@ -20,6 +20,36 @@
- 
- #include "skas.h"
- 
-+void copy_sc(union uml_pt_regs *regs, void *from)
-+{
-+	struct sigcontext *sc = from;
-+
-+#define GETREG(regs, regno, sc, regname) \
-+       (regs)->skas.regs[(regno) / sizeof(unsigned long)] = (sc)->regname
-+
-+       GETREG(regs, R8, sc, r8);
-+       GETREG(regs, R9, sc, r9);
-+       GETREG(regs, R10, sc, r10);
-+       GETREG(regs, R11, sc, r11);
-+       GETREG(regs, R12, sc, r12);
-+       GETREG(regs, R13, sc, r13);
-+       GETREG(regs, R14, sc, r14);
-+       GETREG(regs, R15, sc, r15);
-+       GETREG(regs, RDI, sc, rdi);
-+       GETREG(regs, RSI, sc, rsi);
-+       GETREG(regs, RBP, sc, rbp);
-+       GETREG(regs, RBX, sc, rbx);
-+       GETREG(regs, RDX, sc, rdx);
-+       GETREG(regs, RAX, sc, rax);
-+       GETREG(regs, RCX, sc, rcx);
-+       GETREG(regs, RSP, sc, rsp);
-+       GETREG(regs, RIP, sc, rip);
-+       GETREG(regs, EFLAGS, sc, eflags);
-+       GETREG(regs, CS, sc, cs);
-+
-+#undef GETREG
-+}
-+
- static int copy_sc_from_user_skas(struct pt_regs *regs,
-                                  struct sigcontext __user *from)
- {
+ 	ignore_sigwinch_sig();
+ 	while(1){
+-		n = os_read_file_k(kernel_fd, &req, sizeof(req));
+-		if(n != sizeof(req)){
++		n = os_read_file_k(kernel_fd, &req,
++				 sizeof(struct io_thread_req *));
++		if(n != sizeof(struct io_thread_req *)){
+ 			if(n < 0)
+ 				printk("io_thread - read failed, fd = %d, "
+ 				       "err = %d\n", kernel_fd, -n);
+@@ -1454,9 +1464,10 @@ int io_thread(void *arg)
+ 			continue;
+ 		}
+ 		io_count++;
+-		do_io(&req);
+-		n = os_write_file_k(kernel_fd, &req, sizeof(req));
+-		if(n != sizeof(req))
++		do_io(req);
++		n = os_write_file_k(kernel_fd, &req,
++				  sizeof(struct io_thread_req *));
++		if(n != sizeof(struct io_thread_req *))
+ 			printk("io_thread - write failed, fd = %d, err = %d\n",
+ 			       kernel_fd, -n);
+ 	}
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
