@@ -1,119 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - uml-host_info-tidying.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:58 -0700
-Message-ID: <200705080005.l4805wFA009135@shell0.pdx.osdl.net>
+Subject: - uml-mark-tt-mode-code-for-future-removal.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:06:00 -0700
+Message-ID: <200705080006.l48060o4009138@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54397 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967373AbXEHAG2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:28 -0400
+	by vger.kernel.org with ESMTP id S967376AbXEHAGc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: host_info tidying
+     uml: mark tt-mode code for future removal
 has been removed from the -mm tree.  Its filename was
-     uml-host_info-tidying.patch
+     uml-mark-tt-mode-code-for-future-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: host_info tidying
+Subject: uml: mark tt-mode code for future removal
 From: Jeff Dike <jdike@addtoit.com>
 
-Move the host_info string from util.c to um_arch.c, where it is
-actually initialized and used.  Also document its lack of locking.
+Mark some tt-mode-only code as such.
 
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Also cleaned up some formatting.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/os.h        |    2 +-
- arch/um/include/user_util.h |    2 --
- arch/um/kernel/um_arch.c    |    6 +++++-
- arch/um/os-Linux/util.c     |    8 +++-----
- 4 files changed, 9 insertions(+), 9 deletions(-)
+ arch/um/sys-i386/ptrace_user.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN arch/um/include/os.h~uml-host_info-tidying arch/um/include/os.h
---- a/arch/um/include/os.h~uml-host_info-tidying
-+++ a/arch/um/include/os.h
-@@ -273,7 +273,7 @@ extern void stack_protections(unsigned l
- extern void task_protections(unsigned long address);
- extern int raw(int fd);
- extern void setup_machinename(char *machine_out);
--extern void setup_hostinfo(void);
-+extern void setup_hostinfo(char *buf, int len);
- extern int setjmp_wrapper(void (*proc)(void *, void *), ...);
- 
- /* time.c */
-diff -puN arch/um/include/user_util.h~uml-host_info-tidying arch/um/include/user_util.h
---- a/arch/um/include/user_util.h~uml-host_info-tidying
-+++ a/arch/um/include/user_util.h
-@@ -36,8 +36,6 @@ extern unsigned long end_vm;
- extern unsigned long start_vm;
- extern unsigned long long highmem;
- 
--extern char host_info[];
--
- extern unsigned long _stext, _etext, _sdata, _edata, __bss_start, _end;
- extern unsigned long _unprotected_end;
- extern unsigned long brk_start;
-diff -puN arch/um/kernel/um_arch.c~uml-host_info-tidying arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-host_info-tidying
-+++ a/arch/um/kernel/um_arch.c
-@@ -17,6 +17,7 @@
- #include "linux/seq_file.h"
- #include "linux/delay.h"
- #include "linux/module.h"
-+#include "linux/utsname.h"
- #include "asm/page.h"
- #include "asm/pgtable.h"
- #include "asm/ptrace.h"
-@@ -67,6 +68,9 @@ unsigned long thread_saved_pc(struct tas
- 					      task));
+diff -puN arch/um/sys-i386/ptrace_user.c~uml-mark-tt-mode-code-for-future-removal arch/um/sys-i386/ptrace_user.c
+--- a/arch/um/sys-i386/ptrace_user.c~uml-mark-tt-mode-code-for-future-removal
++++ a/arch/um/sys-i386/ptrace_user.c
+@@ -1,4 +1,4 @@
+-/* 
++/*
+  * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
+  * Licensed under the GPL
+  */
+@@ -45,7 +45,8 @@ int ptrace_setfpregs(long pid, unsigned 
+ 	return 0;
  }
  
-+/* Changed in setup_arch, which is called in early boot */
-+static char host_info[(__NEW_UTS_LEN + 1) * 5];
+-/* All the below stuff is of interest for TT mode only */
++#ifdef UML_CONFIG_MODE_TT
 +
- static int show_cpuinfo(struct seq_file *m, void *v)
+ static void write_debugregs(int pid, unsigned long *regs)
  {
- 	int index = 0;
-@@ -482,7 +486,7 @@ void __init setup_arch(char **cmdline_p)
- 	paging_init();
- 	strlcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
- 	*cmdline_p = command_line;
--	setup_hostinfo();
-+	setup_hostinfo(host_info, sizeof host_info);
+ 	struct user *dummy;
+@@ -128,13 +129,4 @@ void update_debugregs(int seq)
  }
+ #endif
  
- void __init check_bugs(void)
-diff -puN arch/um/os-Linux/util.c~uml-host_info-tidying arch/um/os-Linux/util.c
---- a/arch/um/os-Linux/util.c~uml-host_info-tidying
-+++ a/arch/um/os-Linux/util.c
-@@ -96,15 +96,13 @@ void setup_machinename(char *machine_out
- 	strcpy(machine_out, host.machine);
- }
- 
--char host_info[(_UTSNAME_LENGTH + 1) * 4 + _UTSNAME_NODENAME_LENGTH + 1];
--
--void setup_hostinfo(void)
-+void setup_hostinfo(char *buf, int len)
- {
- 	struct utsname host;
- 
- 	uname(&host);
--	sprintf(host_info, "%s %s %s %s %s", host.sysname, host.nodename,
--		host.release, host.version, host.machine);
-+	snprintf(buf, len, "%s %s %s %s %s", host.sysname, host.nodename,
-+		 host.release, host.version, host.machine);
- }
- 
- int setjmp_wrapper(void (*proc)(void *, void *), ...)
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
++#endif
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
