@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-add-support-for-dynamic-cacheline-size-determination-fix.patch added to -mm tree
-Date: Tue, 08 May 2007 14:48:37 -0700
-Message-ID: <200705082148.l48LmbtL002596@shell0.pdx.osdl.net>
+Subject: + slub-get-rid-of-finish_bootstrap.patch added to -mm tree
+Date: Tue, 08 May 2007 14:48:49 -0700
+Message-ID: <200705082148.l48LmnTw002617@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60342 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968350AbXEHVsk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:48:40 -0400
+	by vger.kernel.org with ESMTP id S968354AbXEHVsw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:48:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: Add support for dynamic cacheline size determination (fix)
+     SLUB: get rid of finish_bootstrap
 has been added to the -mm tree.  Its filename is
-     slub-add-support-for-dynamic-cacheline-size-determination-fix.patch
+     slub-get-rid-of-finish_bootstrap.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Add support for dynamic cacheline size determination (fix)
+Subject: SLUB: get rid of finish_bootstrap
 From: Christoph Lameter <clameter@sgi.com>
 
-cache_line_size is not available on all arches. So we need the following
-fix in addition to this patch:
-
-SLUB: Fix *86ism: cache_line_size is not defined on all arches.
-
-Define cache_line_size if it is not provided by the arch.
-
-This should be done more elegantly someday.
+Its only purpose was to bring some sort of symmetry to sysfs usage when
+dealing with bootstrapping per cpu flushing.  Since we do not time out slabs
+anymore we have no need to run finish_bootstrap even without sysfs.  Fold it
+back into slab_sysfs_init and drop the initcall for the !SYFS case.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 +++++
- 1 files changed, 5 insertions(+)
+ mm/slub.c |   30 ++++++++++--------------------
+ 1 files changed, 10 insertions(+), 20 deletions(-)
 
-diff -puN mm/slub.c~slub-add-support-for-dynamic-cacheline-size-determination-fix mm/slub.c
---- a/mm/slub.c~slub-add-support-for-dynamic-cacheline-size-determination-fix
+diff -puN mm/slub.c~slub-get-rid-of-finish_bootstrap mm/slub.c
+--- a/mm/slub.c~slub-get-rid-of-finish_bootstrap
 +++ a/mm/slub.c
-@@ -1777,6 +1777,11 @@ error:
- }
- EXPORT_SYMBOL(kmem_cache_open);
+@@ -1699,23 +1699,6 @@ static int calculate_sizes(struct kmem_c
  
-+/* Not all arches define cache_line_size */
-+#ifndef cache_line_size
-+#define cache_line_size()	L1_CACHE_BYTES
-+#endif
+ }
+ 
+-static int __init finish_bootstrap(void)
+-{
+-	struct list_head *h;
+-	int err;
+-
+-	slab_state = SYSFS;
+-
+-	list_for_each(h, &slab_caches) {
+-		struct kmem_cache *s =
+-			container_of(h, struct kmem_cache, list);
+-
+-		err = sysfs_slab_add(s);
+-		BUG_ON(err);
+-	}
+-	return 0;
+-}
+-
+ static int kmem_cache_open(struct kmem_cache *s, gfp_t gfpflags,
+ 		const char *name, size_t size,
+ 		size_t align, unsigned long flags,
+@@ -3482,6 +3465,7 @@ static int sysfs_slab_alias(struct kmem_
+ 
+ static int __init slab_sysfs_init(void)
+ {
++	struct list_head *h;
+ 	int err;
+ 
+ 	err = subsystem_register(&slab_subsys);
+@@ -3490,7 +3474,15 @@ static int __init slab_sysfs_init(void)
+ 		return -ENOSYS;
+ 	}
+ 
+-	finish_bootstrap();
++	slab_state = SYSFS;
 +
- /*
-  * Check if a given pointer is valid
-  */
++	list_for_each(h, &slab_caches) {
++		struct kmem_cache *s =
++			container_of(h, struct kmem_cache, list);
++
++		err = sysfs_slab_add(s);
++		BUG_ON(err);
++	}
+ 
+ 	while (alias_list) {
+ 		struct saved_alias *al = alias_list;
+@@ -3506,6 +3498,4 @@ static int __init slab_sysfs_init(void)
+ }
+ 
+ __initcall(slab_sysfs_init);
+-#else
+-__initcall(finish_bootstrap);
+ #endif
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
