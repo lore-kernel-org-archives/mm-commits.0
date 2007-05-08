@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-rework-slab-order-determination.patch added to -mm tree
-Date: Tue, 08 May 2007 14:49:09 -0700
-Message-ID: <200705082149.l48Ln9lM002653@shell0.pdx.osdl.net>
+Subject: + slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix.patch added to -mm tree
+Date: Tue, 08 May 2007 14:49:07 -0700
+Message-ID: <200705082149.l48Ln7fF002650@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49971 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968372AbXEHVtM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:49:12 -0400
+	by vger.kernel.org with ESMTP id S968384AbXEHVtK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: rework slab order determination
+     SLUB: include lifetime stats and sets of cpus / nodes in tracking output (fix)
 has been added to the -mm tree.  Its filename is
-     slub-rework-slab-order-determination.patch
+     slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,114 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: rework slab order determination
+Subject: SLUB: include lifetime stats and sets of cpus / nodes in tracking output (fix)
 From: Christoph Lameter <clameter@sgi.com>
 
-In some cases SLUB is creating uselessly slabs that are larger than
-slub_max_order. Also the layout of some of the slabs was not satisfactory.
+32 bit cannot perform 64 bit division.
 
-Go to an iterarive approach.
+Replace division by div_long_long.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   66 ++++++++++++++++++++++++++++++++++++++++------------
- 1 files changed, 52 insertions(+), 14 deletions(-)
+ mm/slub.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-rework-slab-order-determination mm/slub.c
---- a/mm/slub.c~slub-rework-slab-order-determination
+diff -puN mm/slub.c~slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix mm/slub.c
+--- a/mm/slub.c~slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix
 +++ a/mm/slub.c
-@@ -1572,37 +1572,75 @@ static int slub_nomerge;
-  * requested a higher mininum order then we start with that one instead of
-  * the smallest order which will fit the object.
-  */
--static int calculate_order(int size)
-+static inline int slab_order(int size, int min_objects,
-+				int max_order, int fract_leftover)
- {
- 	int order;
- 	int rem;
+@@ -2933,12 +2933,14 @@ static int list_locations(struct kmem_ca
+ 		else
+ 			n += sprintf(buf + n, "<not-available>");
  
--	for (order = max(slub_min_order, fls(size - 1) - PAGE_SHIFT);
--			order < MAX_ORDER; order++) {
--		unsigned long slab_size = PAGE_SIZE << order;
-+	for (order = max(slub_min_order,
-+				fls(min_objects * size - 1) - PAGE_SHIFT);
-+			order <= max_order; order++) {
- 
--		if (order < slub_max_order &&
--				slab_size < slub_min_objects * size)
--			continue;
-+		unsigned long slab_size = PAGE_SIZE << order;
- 
--		if (slab_size < size)
-+		if (slab_size < min_objects * size)
- 			continue;
- 
--		if (order >= slub_max_order)
--			break;
--
- 		rem = slab_size % size;
- 
--		if (rem <= slab_size / 8)
-+		if (rem <= slab_size / fract_leftover)
- 			break;
- 
- 	}
--	if (order >= MAX_ORDER)
--		return -E2BIG;
- 
- 	return order;
- }
- 
-+static inline int calculate_order(int size)
-+{
-+	int order;
-+	int min_objects;
-+	int fraction;
+-		if (l->sum_time != l->min_time)
++		if (l->sum_time != l->min_time) {
++			unsigned long remainder;
 +
-+	/*
-+	 * Attempt to find best configuration for a slab. This
-+	 * works by first attempting to generate a layout with
-+	 * the best configuration and backing off gradually.
-+	 *
-+	 * First we reduce the acceptable waste in a slab. Then
-+	 * we reduce the minimum objects required in a slab.
-+	 */
-+	min_objects = slub_min_objects;
-+	while (min_objects > 1) {
-+		fraction = 8;
-+		while (fraction >= 4) {
-+			order = slab_order(size, min_objects,
-+						slub_max_order, fraction);
-+			if (order <= slub_max_order)
-+				return order;
-+			fraction /= 2;
-+		}
-+		min_objects /= 2;
-+	}
-+
-+	/*
-+	 * We were unable to place multiple objects in a slab. Now
-+	 * lets see if we can place a single object there.
-+	 */
-+	order = slab_order(size, 1, slub_max_order, 1);
-+	if (order <= slub_max_order)
-+		return order;
-+
-+	/*
-+	 * Doh this slab cannot be placed using slub_max_order.
-+	 */
-+	order = slab_order(size, 1, MAX_ORDER, 1);
-+	if (order <= MAX_ORDER)
-+		return order;
-+	return -ENOSYS;
-+}
-+
- /*
-  * Figure out what the alignment of the objects will be.
-  */
+ 			n += sprintf(buf + n, " age=%ld/%ld/%ld",
+ 			l->min_time,
+-			(unsigned long)(l->sum_time / l->count),
++			div_long_long_rem(l->sum_time, l->count, &remainder),
+ 			l->max_time);
+-		else
++		} else
+ 			n += sprintf(buf + n, " age=%ld",
+ 				l->min_time);
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
