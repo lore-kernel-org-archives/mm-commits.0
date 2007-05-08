@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - uml-dump-registers-on-ptrace-or-wait-failure.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:06:59 -0700
-Message-ID: <200705080006.l4806x37009242@shell0.pdx.osdl.net>
+Subject: - uml-comment-early-boot-locking.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:06:51 -0700
+Message-ID: <200705080006.l4806p6P009230@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45513 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967258AbXEHAHV (ORCPT
+	by vger.kernel.org with ESMTP id S967408AbXEHAHV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:07:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,91 +14,98 @@ To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@
 
 
 The patch titled
-     uml: dump registers on ptrace or wait failure
+     uml: comment early boot locking
 has been removed from the -mm tree.  Its filename was
-     uml-dump-registers-on-ptrace-or-wait-failure.patch
+     uml-comment-early-boot-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: dump registers on ptrace or wait failure
+Subject: uml: comment early boot locking
 From: Jeff Dike <jdike@addtoit.com>
 
-Provide a register dump if handle_trap fails.  Abstract out ptrace_dump_regs
-since it now has two callers.
+Commentary about missing locking.
+
+Also got rid of uml_start because it was pointless.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/skas/process.c |   37 ++++++++++++++++++++----------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+ arch/um/kernel/um_arch.c |   22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-diff -puN arch/um/os-Linux/skas/process.c~uml-dump-registers-on-ptrace-or-wait-failure arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-dump-registers-on-ptrace-or-wait-failure
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -44,6 +44,22 @@ int is_skas_winch(int pid, int fd, void 
- 	return(1);
+diff -puN arch/um/kernel/um_arch.c~uml-comment-early-boot-locking arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-comment-early-boot-locking
++++ a/arch/um/kernel/um_arch.c
+@@ -44,7 +44,7 @@
+ 
+ #define DEFAULT_COMMAND_LINE "root=98:0"
+ 
+-/* Changed in linux_main and setup_arch, which run before SMP is started */
++/* Changed in add_arg and setup_arch, which run before SMP is started */
+ static char __initdata command_line[COMMAND_LINE_SIZE] = { 0 };
+ 
+ static void __init add_arg(char *arg)
+@@ -58,7 +58,12 @@ static void __init add_arg(char *arg)
+ 	strcat(command_line, arg);
  }
  
-+static int ptrace_dump_regs(int pid)
-+{
-+        unsigned long regs[MAX_REG_NR];
-+        int i;
-+
-+        if(ptrace(PTRACE_GETREGS, pid, 0, regs) < 0)
-+                return -errno;
-+        else {
-+                printk("Stub registers -\n");
-+                for(i = 0; i < ARRAY_SIZE(regs); i++)
-+                        printk("\t%d - %lx\n", i, regs[i]);
-+        }
-+
-+        return 0;
-+}
-+
- void wait_stub_done(int pid, int sig, char * fname)
- {
- 	int n, status, err;
-@@ -67,18 +83,10 @@ void wait_stub_done(int pid, int sig, ch
- 
- 	if((n < 0) || !WIFSTOPPED(status) ||
- 	   (WSTOPSIG(status) != SIGUSR1 && WSTOPSIG(status) != SIGTRAP)){
--		unsigned long regs[MAX_REG_NR];
+-struct cpuinfo_um boot_cpu_data = { 
++/*
++ * These fields are initialized at boot time and not changed.
++ * XXX This structure is used only in the non-SMP case.  Maybe this
++ * should be moved to smp.c.
++ */
++struct cpuinfo_um boot_cpu_data = {
+ 	.loops_per_jiffy	= 0,
+ 	.ipi_pipe		= { -1, -1 }
+ };
+@@ -119,14 +124,12 @@ const struct seq_operations cpuinfo_op =
+ /* Set in linux_main */
+ unsigned long host_task_size;
+ unsigned long task_size;
 -
--		if(ptrace(PTRACE_GETREGS, pid, 0, regs) < 0)
-+		err = ptrace_dump_regs(pid);
-+		if(err)
- 			printk("Failed to get registers from stub, "
--			       "errno = %d\n", errno);
--		else {
--			int i;
+-unsigned long uml_start;
 -
--			printk("Stub registers -\n");
--			for(i = 0; i < ARRAY_SIZE(regs); i++)
--				printk("\t%d - %lx\n", i, regs[i]);
--		}
-+			       "errno = %d\n", -err);
- 		panic("%s : failed to wait for SIGUSR1/SIGTRAP, "
- 		      "pid = %d, n = %d, errno = %d, status = 0x%x\n",
- 		      fname, pid, n, errno, status);
-@@ -142,9 +150,14 @@ static void handle_trap(int pid, union u
+-/* Set in early boot */
+ unsigned long uml_physmem;
+-unsigned long uml_reserved;
++unsigned long uml_reserved; /* Also modified in mem_init */
+ unsigned long start_vm;
+ unsigned long end_vm;
++
++/* Set in uml_ncpus_setup */
+ int ncpus = 1;
  
- 		CATCH_EINTR(err = waitpid(pid, &status, WUNTRACED));
- 		if((err < 0) || !WIFSTOPPED(status) ||
--		   (WSTOPSIG(status) != SIGTRAP + 0x80))
-+		   (WSTOPSIG(status) != SIGTRAP + 0x80)){
-+                        err = ptrace_dump_regs(pid);
-+                        if(err)
-+                                printk("Failed to get registers from process, "
-+                                       "errno = %d\n", -err);
- 			panic("handle_trap - failed to wait at end of syscall, "
- 			      "errno = %d, status = %d\n", errno, status);
-+                }
+ #ifdef CONFIG_CMDLINE_ON_HOST
+@@ -140,6 +143,8 @@ static char *argv1_end = NULL;
+ 
+ /* Set in early boot */
+ static int have_root __initdata = 0;
++
++/* Set in uml_mem_setup and modified in linux_main */
+ long long physmem_size = 32 * 1024 * 1024;
+ 
+ void set_cmdline(char *cmd)
+@@ -378,7 +383,6 @@ int __init linux_main(int argc, char **a
+ 
+ 	printf("UML running in %s mode\n", mode);
+ 
+-	uml_start = (unsigned long) &__binary_start;
+ 	host_task_size = CHOOSE_MODE_PROC(set_task_sizes_tt,
+ 					  set_task_sizes_skas, &task_size);
+ 
+@@ -400,7 +404,7 @@ int __init linux_main(int argc, char **a
+ 		physmem_size += UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
  	}
  
- 	handle_syscall(regs);
+-	uml_physmem = uml_start & PAGE_MASK;
++	uml_physmem = (unsigned long) &__binary_start & PAGE_MASK;
+ 
+ 	/* Reserve up to 4M after the current brk */
+ 	uml_reserved = ROUND_4M(brk_start) + (1 << 22);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
