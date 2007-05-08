@@ -1,137 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - proper-prototype-for-hugetlb_get_unmapped_area.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:01:49 -0700
-Message-ID: <200705080001.l4801nwU008797@shell0.pdx.osdl.net>
+Subject: - mpsc-serial-driver-tx-locking.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:01:36 -0700
+Message-ID: <200705080001.l4801aNl008781@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51242 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967316AbXEHACB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:02:01 -0400
+	by vger.kernel.org with ESMTP id S967305AbXEHABo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:01:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: djiang@mvista.com, mgreer@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proper prototype for hugetlb_get_unmapped_area()
+     MPSC serial driver tx locking
 has been removed from the -mm tree.  Its filename was
-     proper-prototype-for-hugetlb_get_unmapped_area.patch
+     mpsc-serial-driver-tx-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: proper prototype for hugetlb_get_unmapped_area()
-From: Adrian Bunk <bunk@stusta.de>
+Subject: MPSC serial driver tx locking
+From: Dave Jiang <djiang@mvista.com>
 
-Add a proper prototype for hugetlb_get_unmapped_area() in
-include/linux/hugetlb.h.
+The MPSC serial driver assumes that interrupt is always on to pick up the
+DMA transmit ops that aren't submitted while the DMA engine is active. 
+However when irqs are off for a period of time such as operations under
+kernel crash dump console messages do not show up due to additional DMA ops
+are being dropped.  This makes console writes to process through all the tx
+DMAs queued up before submitting a new request.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: William Irwin <wli@holomorphy.com>
+Also, the current locking mechanism does not protect the hardware registers
+and ring buffer when a printk is done during the serial write operations. 
+The additional per port transmit lock provides a finer granular locking and
+protects registers being clobbered while printks are nested within UART
+writes.
+
+Signed-off-by: Dave Jiang <djiang@mvista.com>
+Signed-off-by: Mark A. Greer <mgreer@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |    5 +----
- include/linux/hugetlb.h |    6 ++++++
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/serial/mpsc.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~proper-prototype-for-hugetlb_get_unmapped_area fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~proper-prototype-for-hugetlb_get_unmapped_area
-+++ a/fs/hugetlbfs/inode.c
-@@ -98,10 +98,7 @@ out:
-  * Called under down_write(mmap_sem).
-  */
+diff -puN drivers/serial/mpsc.c~mpsc-serial-driver-tx-locking drivers/serial/mpsc.c
+--- a/drivers/serial/mpsc.c~mpsc-serial-driver-tx-locking
++++ a/drivers/serial/mpsc.c
+@@ -183,6 +183,7 @@ struct mpsc_port_info {
+ 	u8 *txb_p;		/* Phys addr of txb */
+ 	int txr_head;		/* Where new data goes */
+ 	int txr_tail;		/* Where sent data comes off */
++	spinlock_t tx_lock;	/* transmit lock */
  
--#ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
--unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
--		unsigned long len, unsigned long pgoff, unsigned long flags);
--#else
-+#ifndef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
- static unsigned long
- hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
- 		unsigned long len, unsigned long pgoff, unsigned long flags)
-diff -puN include/linux/hugetlb.h~proper-prototype-for-hugetlb_get_unmapped_area include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~proper-prototype-for-hugetlb_get_unmapped_area
-+++ a/include/linux/hugetlb.h
-@@ -189,4 +189,10 @@ static inline void set_file_hugepages(st
- 
- #endif /* !CONFIG_HUGETLBFS */
- 
-+#ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
-+unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
-+					unsigned long len, unsigned long pgoff,
-+					unsigned long flags);
-+#endif /* HAVE_ARCH_HUGETLB_UNMAPPED_AREA */
+ 	/* Mirrored values of regs we can't read (if 'mirror_regs' set) */
+ 	u32 MPSC_MPCR_m;
+@@ -1212,6 +1213,9 @@ mpsc_tx_intr(struct mpsc_port_info *pi)
+ {
+ 	struct mpsc_tx_desc *txre;
+ 	int rc = 0;
++	unsigned long iflags;
 +
- #endif /* _LINUX_HUGETLB_H */
++	spin_lock_irqsave(&pi->tx_lock, iflags);
+ 
+ 	if (!mpsc_sdma_tx_active(pi)) {
+ 		txre = (struct mpsc_tx_desc *)(pi->txr +
+@@ -1248,6 +1252,7 @@ mpsc_tx_intr(struct mpsc_port_info *pi)
+ 		mpsc_sdma_start_tx(pi);	/* start next desc if ready */
+ 	}
+ 
++	spin_unlock_irqrestore(&pi->tx_lock, iflags);
+ 	return rc;
+ }
+ 
+@@ -1338,11 +1343,16 @@ static void
+ mpsc_start_tx(struct uart_port *port)
+ {
+ 	struct mpsc_port_info *pi = (struct mpsc_port_info *)port;
++	unsigned long iflags;
++
++	spin_lock_irqsave(&pi->tx_lock, iflags);
+ 
+ 	mpsc_unfreeze(pi);
+ 	mpsc_copy_tx_data(pi);
+ 	mpsc_sdma_start_tx(pi);
+ 
++	spin_unlock_irqrestore(&pi->tx_lock, iflags);
++
+ 	pr_debug("mpsc_start_tx[%d]\n", port->line);
+ 	return;
+ }
+@@ -1625,6 +1635,16 @@ mpsc_console_write(struct console *co, c
+ 	struct mpsc_port_info *pi = &mpsc_ports[co->index];
+ 	u8 *bp, *dp, add_cr = 0;
+ 	int i;
++	unsigned long iflags;
++
++	spin_lock_irqsave(&pi->tx_lock, iflags);
++
++	while (pi->txr_head != pi->txr_tail) {
++		while (mpsc_sdma_tx_active(pi))
++			udelay(100);
++		mpsc_sdma_intr_ack(pi);
++		mpsc_tx_intr(pi);
++	}
+ 
+ 	while (mpsc_sdma_tx_active(pi))
+ 		udelay(100);
+@@ -1668,6 +1688,7 @@ mpsc_console_write(struct console *co, c
+ 		pi->txr_tail = (pi->txr_tail + 1) & (MPSC_TXR_ENTRIES - 1);
+ 	}
+ 
++	spin_unlock_irqrestore(&pi->tx_lock, iflags);
+ 	return;
+ }
+ 
+@@ -2005,7 +2026,8 @@ mpsc_drv_probe(struct platform_device *d
+ 		if (!(rc = mpsc_drv_map_regs(pi, dev))) {
+ 			mpsc_drv_get_platform_data(pi, dev, dev->id);
+ 
+-			if (!(rc = mpsc_make_ready(pi)))
++			if (!(rc = mpsc_make_ready(pi))) {
++				spin_lock_init(&pi->tx_lock);
+ 				if (!(rc = uart_add_one_port(&mpsc_reg,
+ 					&pi->port)))
+ 					rc = 0;
+@@ -2014,6 +2036,7 @@ mpsc_drv_probe(struct platform_device *d
+ 						(struct uart_port *)pi);
+ 					mpsc_drv_unmap_regs(pi);
+ 				}
++			}
+ 			else
+ 				mpsc_drv_unmap_regs(pi);
+ 		}
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from djiang@mvista.com are
 
 origin.patch
-git-acpi.patch
-git-alsa.patch
-git-powerpc.patch
-git-dvb.patch
-git-ieee1394.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-ibmtr_cs-fix-hang-on-eject.patch
-git-battery.patch
-git-r8169.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-drivers-scsi-ipsc-remove-kernel-24-code.patch
-drivers-scsi-nsp32c-remove-kernel-24-code.patch
-git-unionfs.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-filesystem-disk-errors-at-boot-time-caused-by-probe.patch
-drivers-char-hvc_consolec-cleanups.patch
-init-do_mountsc-proper-prepare_namespace-prototype.patch
-apple-smc-driver-hardware-monitoring-and-control-cleanup.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-add-file-position-info-to-proc.patch
-more-scheduled-oss-driver-removal.patch
-schedule-obsolete-oss-drivers-for-removal-4th-round.patch
-make-remove_inode_dquot_ref-static.patch
-unexport-pci_proc_attach_device.patch
-fix-race-between-rmmod-and-cat-proc-kallsyms.patch
-the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
-ext2-reservations.patch
-make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
-remove-nfs4_acl_add_ace.patch
-rtc-remove-sys-class-rtc-dev-fix.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-no-longer-include-asm-kdebugh.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-readahead-events-accounting.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-fbdev-display-class-fix.patch
-fbdev-mm-deferred-io-support-fix.patch
-fbdev-hecuba-framebuffer-driver-fix.patch
-drivers-video-sis-remove-more-kernel-24-code.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
