@@ -1,98 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - bt-hack-hack.patch removed from -mm tree
-Date: Tue, 08 May 2007 00:10:06 -0700
-Message-ID: <200705080710.l487A6O0016127@shell0.pdx.osdl.net>
+Subject: - mm-introduce-pg_readahead.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:13:29 -0700
+Message-ID: <200705080813.l488DTGU018918@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50066 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47777 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755574AbXEHHKP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 03:10:15 -0400
+	by vger.kernel.org with ESMTP id S934546AbXEHIOI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:14:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth build fix
+     mm: introduce PG_readahead
 has been removed from the -mm tree.  Its filename was
-     bt-hack-hack.patch
+     mm-introduce-pg_readahead.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: bluetooth build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: introduce PG_readahead
+From: Wu Fengguang <wfg@mail.ustc.edu.cn>
 
-I wonder if this works.
+Introduce a new page flag: PG_readahead.
 
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Greg KH <greg@kroah.com>
+It acts as a look-ahead mark, which tells the page reader:
+	Hey, it's time to invoke the adaptive read-ahead logic!
+	For the sake of I/O pipelining, don't wait until it runs out of
+	cached pages.  ;-)
+
+Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hci_sysfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/page-flags.h |    6 ++++++
+ mm/page_alloc.c            |    2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN net/bluetooth/hci_sysfs.c~bt-hack-hack net/bluetooth/hci_sysfs.c
---- a/net/bluetooth/hci_sysfs.c~bt-hack-hack
-+++ a/net/bluetooth/hci_sysfs.c
-@@ -322,7 +322,7 @@ int hci_register_sysfs(struct hci_dev *h
- 		if (device_create_file(dev, bt_attrs[i]) < 0)
- 			BT_ERR("Failed to create device attribute");
+diff -puN include/linux/page-flags.h~mm-introduce-pg_readahead include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-introduce-pg_readahead
++++ a/include/linux/page-flags.h
+@@ -93,6 +93,8 @@
  
--	if (sysfs_create_link(&bt_class->subsys.kset.kobj,
-+	if (sysfs_create_link(&bt_class->subsys.kobj,
- 				&dev->kobj, kobject_name(&dev->kobj)) < 0)
- 		BT_ERR("Failed to create class symlink");
+ #define PG_lazyfree		20	/* MADV_FREE potential throwaway */
  
-@@ -333,7 +333,7 @@ void hci_unregister_sysfs(struct hci_dev
- {
- 	BT_DBG("%p name %s type %d", hdev, hdev->name, hdev->type);
++#define PG_readahead		21	/* Reminder to do read-ahead */
++
+ /* PG_owner_priv_1 users should have descriptive aliases */
+ #define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
  
--	sysfs_remove_link(&bt_class->subsys.kset.kobj,
-+	sysfs_remove_link(&bt_class->subsys.kobj,
- 					kobject_name(&hdev->dev.kobj));
+@@ -260,6 +262,10 @@ static inline void __ClearPageTail(struc
+ #define SetPageUncached(page)	set_bit(PG_uncached, &(page)->flags)
+ #define ClearPageUncached(page)	clear_bit(PG_uncached, &(page)->flags)
  
- 	device_del(&hdev->dev);
++#define PageReadahead(page)	test_bit(PG_readahead, &(page)->flags)
++#define SetPageReadahead(page)	set_bit(PG_readahead, &(page)->flags)
++#define ClearPageReadahead(page) clear_bit(PG_readahead, &(page)->flags)
++
+ struct page;	/* forward declaration */
+ 
+ extern void cancel_dirty_page(struct page *page, unsigned int account_size);
+diff -puN mm/page_alloc.c~mm-introduce-pg_readahead mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-pg_readahead
++++ a/mm/page_alloc.c
+@@ -644,7 +644,7 @@ static int prep_new_page(struct page *pa
+ 	if (PageReserved(page))
+ 		return 1;
+ 
+-	page->flags &= ~(1 << PG_uptodate | 1 << PG_error |
++	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
+ 			1 << PG_referenced | 1 << PG_arch_1 |
+ 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
+ 	set_page_private(page, 0);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-consolidate-asm-consth-to-linux-consth.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-char-cyclades-conditions-cleanup.patch
-char-cyclades-probe-cleanup.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-cirrusfb-convert-to-generic-boolean.patch
-sm501fb-printk-warning-fixes.patch
-bt-hack-hack.patch
+mm-introduce-pg_readahead.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-insert-cond_resched-calls.patch
+readahead-minmax_ra_pages.patch
+readahead-events-accounting.patch
+readahead-rescue_pages.patch
+readahead-sysctl-parameters.patch
+readahead-min-max-sizes.patch
+readahead-state-based-method-aging-accounting.patch
+readahead-state-based-method-routines.patch
+readahead-state-based-method.patch
+readahead-state-based-method-check-node-id.patch
+readahead-state-based-method-decouple-readahead_ratio-from-growth_limit.patch
+readahead-state-based-method-cancel-lookahead-gracefully.patch
+readahead-context-based-method.patch
+readahead-initial-method-guiding-sizes.patch
+readahead-initial-method-thrashing-guard-size.patch
+readahead-initial-method-user-recommended-size.patch
+readahead-initial-method.patch
+readahead-backward-prefetching-method.patch
+readahead-thrashing-recovery-method.patch
+readahead-thrashing-recovery-method-check-unbalanced-aging.patch
+readahead-thrashing-recovery-method-refill-holes.patch
+readahead-call-scheme.patch
+readahead-call-scheme-cleanup.patch
+readahead-call-scheme-catch-thrashing-on-lookahead-time.patch
+readahead-call-scheme-doc-fixes-for-readahead.patch
+readahead-laptop-mode.patch
+readahead-loop-case.patch
+readahead-nfsd-case.patch
+readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead.patch
+readahead-remove-parameter-ra_max-from-adjust_rala.patch
+readahead-state-based-method-protect-against-tiny-size.patch
+readahead-rename-state_based_readahead-to-clock_based_readahead.patch
+readahead-account-i-o-block-times-for-stock-readahead.patch
+readahead-rescue_pages-updates.patch
+readahead-remove-noaction-shrink-events.patch
+readahead-remove-size-limit-on-read_ahead_kb.patch
+readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
+readahead-partial-sendfile-fix.patch
+readahead-turn-on-by-default.patch
