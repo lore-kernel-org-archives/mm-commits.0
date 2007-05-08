@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - sm501fb-printk-warning-fixes.patch removed from -mm tree
-Date: Mon, 07 May 2007 23:05:33 -0700
-Message-ID: <200705080605.l4865XeT015053@shell0.pdx.osdl.net>
+Subject: + sm501fb-printk-warning-fixes.patch added to -mm tree
+Date: Mon, 07 May 2007 23:06:30 -0700
+Message-ID: <200705080606.l4866Upq015067@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46424 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754012AbXEHGFk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 02:05:40 -0400
+	by vger.kernel.org with ESMTP id S1754068AbXEHGGe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 02:06:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, adaplas@pol.net
 
 
 The patch titled
      sm501fb-printk-warning-fixes
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      sm501fb-printk-warning-fixes.patch
 
-This patch was dropped because it was folded into cirrusfb-convert-to-generic-boolean.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: sm501fb-printk-warning-fixes
