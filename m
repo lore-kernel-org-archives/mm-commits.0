@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-the-net-driver-two-net-bugfixes.patch added to -mm tree
-Date: Tue, 08 May 2007 10:49:19 -0700
-Message-ID: <200705081749.l48HnJqr029716@shell0.pdx.osdl.net>
+Subject: + lguest-two-net-bugfixes-doc.patch added to -mm tree
+Date: Tue, 08 May 2007 10:49:44 -0700
+Message-ID: <200705081749.l48HniZ4029724@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56183 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965995AbXEHRtZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 13:49:25 -0400
+	by vger.kernel.org with ESMTP id S966014AbXEHRtt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 13:49:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: rusty@rustcorp.com.au
 The patch titled
      lguest: two net bugfixes
 has been added to the -mm tree.  Its filename is
-     lguest-the-net-driver-two-net-bugfixes.patch
+     lguest-two-net-bugfixes-doc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -40,21 +40,25 @@ Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/lguest_net.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/lguest/lguest.c |    4 ++++
+ net/lguest_net.c              |    0 
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/net/lguest_net.c~lguest-the-net-driver-two-net-bugfixes drivers/net/lguest_net.c
---- a/drivers/net/lguest_net.c~lguest-the-net-driver-two-net-bugfixes
-+++ a/drivers/net/lguest_net.c
-@@ -249,7 +249,7 @@ static int lguestnet_close(struct net_de
- 	struct lguestnet_info *info = dev->priv;
+diff -puN Documentation/lguest/lguest.c~lguest-two-net-bugfixes-doc Documentation/lguest/lguest.c
+--- a/Documentation/lguest/lguest.c~lguest-two-net-bugfixes-doc
++++ a/Documentation/lguest/lguest.c
+@@ -860,6 +860,10 @@ static void setup_tun_net(const char *ar
  
- 	/* Clear all trace: others might deliver packets, we'll ignore it. */
--	memset(&info->peer[info->me], 0xFF, sizeof(info->peer[info->me]));
-+	memset(&info->peer[info->me], 0, sizeof(info->peer[info->me]));
+ 	/* We are peer 0, ie. first slot. */
+ 	configure_device(ipfd, ifr.ifr_name, ip, dev->mem);
++
++	/* Set "promisc" bit: we want every single packet. */
++	*((u8 *)dev->mem) |= 0x1;
++
+ 	close(ipfd);
  
- 	/* Deregister sg lists. */
- 	hcall(LHCALL_BIND_DMA, peer_key(info, info->me), __pa(info->dma), 0);
+ 	verbose("device %p: tun net %u.%u.%u.%u\n",
+diff -puN drivers/net/lguest_net.c~lguest-two-net-bugfixes-doc drivers/net/lguest_net.c
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -103,7 +107,7 @@ lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
 lguest-documentation-and-example-updates.patch
 lguest-the-documentation-example-launcher-dont-use-paravirt_probe-its-dying-doc.patch
 lguest-use-standard-bootloader-format-fix-badly-sized-doc.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
 lguest-two-net-bugfixes-doc.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
 compiler-introduce-__used-and-__maybe_unused.patch
 mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
