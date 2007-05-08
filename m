@@ -1,70 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - xtensa-strlcpy-is-smart-enough.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:07:50 -0700
-Message-ID: <200705080007.l4807ovp009323@shell0.pdx.osdl.net>
+Subject: - rename-tanbac-tb0219-config.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:08:01 -0700
+Message-ID: <200705080008.l48081Nm009348@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52681 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59604 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967391AbXEHAI0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:08:26 -0400
+	by vger.kernel.org with ESMTP id S967428AbXEHAId (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:08:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, chris@zankel.net, mm-commits@vger.kernel.org
+To: yoichi_yuasa@tripeaks.co.jp, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: strlcpy is smart enough
+     rename TANBAC TB0219 config
 has been removed from the -mm tree.  Its filename was
-     xtensa-strlcpy-is-smart-enough.patch
+     rename-tanbac-tb0219-config.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: xtensa: strlcpy is smart enough
-From: Jean Delvare <khali@linux-fr.org>
+Subject: rename TANBAC TB0219 config
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-strlcpy already accounts for the trailing zero in its length
-computation, so there is no need to substract one to the buffer size.
+Rename config for TANBAC TB0219 GPIO support to something more appropriate.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Chris Zankel <chris@zankel.net>
+Fixes this:
+
+drivers/char/Kconfig:906:warning: type of 'TANBAC_TB0219' redefined from 'boolean' to 'tristate'
+drivers/char/Kconfig:907:warning: choice values currently only support a single
+prompt
+
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/platform-iss/network.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/Kconfig  |    4 ++--
+ drivers/char/Makefile |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/xtensa/platform-iss/network.c~xtensa-strlcpy-is-smart-enough arch/xtensa/platform-iss/network.c
---- a/arch/xtensa/platform-iss/network.c~xtensa-strlcpy-is-smart-enough
-+++ a/arch/xtensa/platform-iss/network.c
-@@ -251,7 +251,7 @@ static int tuntap_open(struct iss_net_pr
+diff -puN drivers/char/Kconfig~rename-tanbac-tb0219-config drivers/char/Kconfig
+--- a/drivers/char/Kconfig~rename-tanbac-tb0219-config
++++ a/drivers/char/Kconfig
+@@ -905,8 +905,8 @@ config SONYPI
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called sonypi.
  
- 	memset(&ifr, 0, sizeof ifr);
- 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
--	strlcpy(ifr.ifr_name, dev_name, sizeof ifr.ifr_name - 1);
-+	strlcpy(ifr.ifr_name, dev_name, sizeof ifr.ifr_name);
+-config TANBAC_TB0219
+-	tristate "TANBAC TB0219 base board support"
++config GPIO_TB0219
++	tristate "TANBAC TB0219 GPIO support"
+ 	depends on TANBAC_TB022X
+ 	select GPIO_VR41XX
  
- 	if ((err = simc_ioctl(fd, TUNSETIFF, (void*) &ifr)) < 0) {
- 		printk("Failed to set interface, returned %d "
+diff -puN drivers/char/Makefile~rename-tanbac-tb0219-config drivers/char/Makefile
+--- a/drivers/char/Makefile~rename-tanbac-tb0219-config
++++ a/drivers/char/Makefile
+@@ -91,7 +91,7 @@ obj-$(CONFIG_PC8736x_GPIO)	+= pc8736x_gp
+ obj-$(CONFIG_NSC_GPIO)		+= nsc_gpio.o
+ obj-$(CONFIG_CS5535_GPIO)	+= cs5535_gpio.o
+ obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.o
+-obj-$(CONFIG_TANBAC_TB0219)	+= tb0219.o
++obj-$(CONFIG_GPIO_TB0219)	+= tb0219.o
+ obj-$(CONFIG_TELCLOCK)		+= tlclk.o
+ 
+ obj-$(CONFIG_WATCHDOG)		+= watchdog/
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
 origin.patch
-git-alsa.patch
-scx200-use-mutex-instead-of-semaphore.patch
-git-r8169.patch
-x86-msr-add-support-for-safe-variants.patch
-apple-smc-driver-hardware-monitoring-and-control.patch
-apple-smc-driver-hardware-monitoring-and-control-fix-names.patch
-oss-strlcpy-is-smart-enough.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900-update.patch
-legacy-pc-parports-support-parport-dev.patch
-layered-parport-code-uses-parport-dev.patch
-clean-up-mutex_trylock-noise.patch
-fbdev-dont-show-logo-if-driver-or-fbcon-are-modular.patch
-rivafb-handle-i2c-bus-creation-failure.patch
-rivafb-nvidiafb-various-cleanups.patch
-rivafb-fixed-reversed-ddc-ports.patch
+git-mips.patch
+rtc-update-vr41xx-alarm-handling.patch
