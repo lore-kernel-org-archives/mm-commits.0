@@ -1,177 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - slab-mark-set_up_list3s-__init.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:02:47 -0700
-Message-ID: <200705080002.l4802l5d008875@shell0.pdx.osdl.net>
+Subject: - i386-use-page-allocator-to-allocate-thread_info-structure.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:02:52 -0700
+Message-ID: <200705080002.l4802qVG008884@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57995 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967327AbXEHADL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:11 -0400
+	by vger.kernel.org with ESMTP id S967325AbXEHADN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@engr.sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: clameter@sgi.com, ak@suse.de, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: mark set_up_list3s() __init
+     i386: use page allocator to allocate thread_info structure
 has been removed from the -mm tree.  Its filename was
-     slab-mark-set_up_list3s-__init.patch
+     i386-use-page-allocator-to-allocate-thread_info-structure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slab: mark set_up_list3s() __init
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i386: use page allocator to allocate thread_info structure
+From: Christoph Lameter <clameter@sgi.com>
 
-It is only ever used prior to free_initmem().
+i386 uses kmalloc to allocate the threadinfo structure assuming that the
+allocations result in a page sized aligned allocation.  That has worked so
+far because SLAB exempts page sized slabs from debugging and aligns them in
+special ways that goes beyond the restrictions imposed by
+KMALLOC_ARCH_MINALIGN valid for other slabs in the kmalloc array.
 
-(It will cause a warning when we run the section checking, but that's a
-false-positive and it simply changes the source of an existing warning, which
-is also a false-positive)
+SLUB also works fine without debugging since page sized allocations neatly
+align at page boundaries.  However, if debugging is switched on then SLUB
+will extend the slab with debug information.  The resulting slab is not
+longer of page size.  It will only be aligned following the requirements
+imposed by KMALLOC_ARCH_MINALIGN.  As a result the threadinfo structure may
+not be page aligned which makes i386 fail to boot with SLUB debug on.
 
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Replace the calls to kmalloc with calls into the page allocator.
+
+An alternate solution may be to create a custom slab cache where the
+alignment is set to PAGE_SIZE.  That would allow slub debugging to be
+applied to the threadinfo structure.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-i386/thread_info.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~slab-mark-set_up_list3s-__init mm/slab.c
---- a/mm/slab.c~slab-mark-set_up_list3s-__init
-+++ a/mm/slab.c
-@@ -1949,7 +1949,7 @@ static void slab_destroy(struct kmem_cac
-  * For setting up all the kmem_list3s for cache whose buffer_size is same as
-  * size of kmem_list3.
-  */
--static void set_up_list3s(struct kmem_cache *cachep, int index)
-+static void __init set_up_list3s(struct kmem_cache *cachep, int index)
- {
- 	int node;
+diff -puN include/asm-i386/thread_info.h~i386-use-page-allocator-to-allocate-thread_info-structure include/asm-i386/thread_info.h
+--- a/include/asm-i386/thread_info.h~i386-use-page-allocator-to-allocate-thread_info-structure
++++ a/include/asm-i386/thread_info.h
+@@ -95,12 +95,14 @@ static inline struct thread_info *curren
+ 
+ /* thread information allocation */
+ #ifdef CONFIG_DEBUG_STACK_USAGE
+-#define alloc_thread_info(tsk) kzalloc(THREAD_SIZE, GFP_KERNEL)
++#define alloc_thread_info(tsk) ((struct thread_info *) \
++	__get_free_pages(GFP_KERNEL| __GFP_ZERO, get_order(THREAD_SIZE)))
+ #else
+-#define alloc_thread_info(tsk) kmalloc(THREAD_SIZE, GFP_KERNEL)
++#define alloc_thread_info(tsk) ((struct thread_info *) \
++	__get_free_pages(GFP_KERNEL, get_order(THREAD_SIZE)))
+ #endif
+ 
+-#define free_thread_info(info)	kfree(info)
++#define free_thread_info(info)	free_pages((unsigned long)(info), get_order(THREAD_SIZE))
+ 
+ #else /* !__ASSEMBLY__ */
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
-git-jfs.patch
-git-kvm.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
-atl1-use-dev_printk-macros-fix.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-nfs-printk-warning-fixes.patch
-git-parisc.patch
-git-r8169.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-swsusp-clean-up-print.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-upper-32-bits.patch
-consolidate-asm-consth-to-linux-consth-fix.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-do_tty_write-can-block-even-with-o_nonblock-tidy.patch
-lib-hexdump-fix.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-mutex_lock_interruptible-add-__must_check.patch
-mutex_lock_interruptible-add-__must_check-must-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-i386-support.patch
+remove-constructor-from-buffer_head.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+vmstat-use-our-own-timer-events.patch
+make-vm-statistics-update-interval-configurable.patch
 make-vm-statistics-update-interval-configurable-fix.patch
-rename-thread_info-to-stack-fix.patch
-char-cyclades-conditions-cleanup-fix.patch
-char-cyclades-probe-cleanup-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-sm501fb-printk-warning-fixes.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+readahead-state-based-method-aging-accounting.patch
