@@ -1,138 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:01:44 -0700
-Message-ID: <200705080001.l4801iXh008790@shell0.pdx.osdl.net>
+Subject: - at91_cf-minor-fix.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:01:23 -0700
+Message-ID: <200705080001.l4801NAw008766@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41656 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51040 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967306AbXEHABs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:01:48 -0400
+	by vger.kernel.org with ESMTP id S967302AbXEHABm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:01:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@engr.sgi.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Safer nr_node_ids and nr_node_ids determination and initial values
+     at91_cf, minor fix
 has been removed from the -mm tree.  Its filename was
-     safer-nr_node_ids-and-nr_node_ids-determination-and-initial.patch
+     at91_cf-minor-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Safer nr_node_ids and nr_node_ids determination and initial values
-From: Christoph Lameter <clameter@engr.sgi.com>
+Subject: at91_cf, minor fix
+From: David Brownell <david-b@pacbell.net>
 
-The nr_cpu_ids value is currently only calculated in smp_init.  However, it
-may be needed before (SLUB needs it on kmem_cache_init!) and other kernel
-components may also want to allocate dynamically sized per cpu array before
-smp_init.  So move the determination of possible cpus into sched_init()
-where we already loop over all possible cpus early in boot.
+This is a minor correctness fix: since the at91_cf driver probe() routine
+is in the init section, it should use platform_driver_probe() instead of
+leaving that pointer around in the driver struct after init section
+removal.
 
-Also initialize both nr_node_ids and nr_cpu_ids with the highest value they
-could take.  If we have accidental users before these values are determined
-then the current valud of 0 may cause too small per cpu and per node arrays
-to be allocated.  If it is set to the maximum possible then we only waste
-some memory for early boot users.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c     |    5 -----
- kernel/sched.c  |    8 ++++++++
- lib/cpumask.c   |    3 ---
- mm/page_alloc.c |    2 +-
- 4 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/pcmcia/at91_cf.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN init/main.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial init/main.c
---- a/init/main.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial
-+++ a/init/main.c
-@@ -384,11 +384,6 @@ static void __init setup_per_cpu_areas(v
- static void __init smp_init(void)
+diff -puN drivers/pcmcia/at91_cf.c~at91_cf-minor-fix drivers/pcmcia/at91_cf.c
+--- a/drivers/pcmcia/at91_cf.c~at91_cf-minor-fix
++++ a/drivers/pcmcia/at91_cf.c
+@@ -360,7 +360,6 @@ static struct platform_driver at91_cf_dr
+ 		.name		= (char *) driver_name,
+ 		.owner		= THIS_MODULE,
+ 	},
+-	.probe		= at91_cf_probe,
+ 	.remove		= __exit_p(at91_cf_remove),
+ 	.suspend	= at91_cf_suspend,
+ 	.resume		= at91_cf_resume,
+@@ -370,7 +369,7 @@ static struct platform_driver at91_cf_dr
+ 
+ static int __init at91_cf_init(void)
  {
- 	unsigned int cpu;
--	unsigned highest = 0;
--
--	for_each_cpu_mask(cpu, cpu_possible_map)
--		highest = cpu;
--	nr_cpu_ids = highest + 1;
- 
- 	/* FIXME: This should be done in userspace --RR */
- 	for_each_present_cpu(cpu) {
-diff -puN kernel/sched.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial kernel/sched.c
---- a/kernel/sched.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial
-+++ a/kernel/sched.c
-@@ -5244,6 +5244,11 @@ int __init migration_init(void)
- #endif
- 
- #ifdef CONFIG_SMP
-+
-+/* Number of possible processor ids */
-+int nr_cpu_ids __read_mostly = NR_CPUS;
-+EXPORT_SYMBOL(nr_cpu_ids);
-+
- #undef SCHED_DOMAIN_DEBUG
- #ifdef SCHED_DOMAIN_DEBUG
- static void sched_domain_debug(struct sched_domain *sd, int cpu)
-@@ -6726,6 +6731,7 @@ int in_sched_functions(unsigned long add
- void __init sched_init(void)
- {
- 	int i, j, k;
-+	int highest_cpu = 0;
- 
- 	for_each_possible_cpu(i) {
- 		struct prio_array *array;
-@@ -6760,11 +6766,13 @@ void __init sched_init(void)
- 			// delimiter for bitsearch
- 			__set_bit(MAX_PRIO, array->bitmap);
- 		}
-+		highest_cpu = i;
- 	}
- 
- 	set_load_weight(&init_task);
- 
- #ifdef CONFIG_SMP
-+	nr_cpu_ids = highest_cpu + 1;
- 	open_softirq(SCHED_SOFTIRQ, run_rebalance_domains, NULL);
- #endif
- 
-diff -puN lib/cpumask.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial lib/cpumask.c
---- a/lib/cpumask.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial
-+++ a/lib/cpumask.c
-@@ -15,9 +15,6 @@ int __next_cpu(int n, const cpumask_t *s
+-	return platform_driver_register(&at91_cf_driver);
++	return platform_driver_probe(&at91_cf_driver, at91_cf_probe);
  }
- EXPORT_SYMBOL(__next_cpu);
+ module_init(at91_cf_init);
  
--int nr_cpu_ids;
--EXPORT_SYMBOL(nr_cpu_ids);
--
- int __any_online_cpu(const cpumask_t *mask)
- {
- 	int cpu;
-diff -puN mm/page_alloc.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial mm/page_alloc.c
---- a/mm/page_alloc.c~safer-nr_node_ids-and-nr_node_ids-determination-and-initial
-+++ a/mm/page_alloc.c
-@@ -665,7 +665,7 @@ static int rmqueue_bulk(struct zone *zon
- }
- 
- #if MAX_NUMNODES > 1
--int nr_node_ids __read_mostly;
-+int nr_node_ids __read_mostly = MAX_NUMNODES;
- EXPORT_SYMBOL(nr_node_ids);
- 
- /*
 _
 
-Patches currently in -mm which might be from clameter@engr.sgi.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-increase-slab-redzone-to-64bits.patch
-move-free-pages-between-lists-on-steal.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
-cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
-pretend-cpuset-has-some-form-of-hugetlb-page-reservation.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-slab-leaks3-default-y.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+init-dma-masks-in-pnp_dev.patch
+rtc-add-rtc-rs5c313-driver.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+rtc-add-rtc-class-driver-for-the-maxim-max6900-update.patch
+char-cs5535_gpio-add-module_device_table.patch
+parport-dev-driver-model-support.patch
+layered-parport-code-uses-parport-dev.patch
+pnpacpi-sets-pnpdev-devarchdata.patch
+fix-hotplug-for-legacy-platform-drivers.patch
+minor-spi_butterfly-cleanup.patch
+spi-kerneldoc.patch
+spi-kerneldoc-fix.patch
+rtc-remove-sys-class-rtc-dev.patch
+rtc-rtc-interfaces-dont-use-class_device.patch
+rtc-simplified-rtc-sysfs-attribute-handling.patch
+rtc-simplified-proc-driver-rtc-handling.patch
+rtc-remove-rest-of-class_device.patch
+rtc-suspend-resume-restores-system-clock.patch
+rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
+rtc-update-to-class-device-removal-patches.patch
+rtc-kconfig-cleanup.patch
+rtc-cmos-wakeup-interface.patch
+acpi-wakeup-hooks-for-rtc-cmos.patch
+workaround-rtc-related-acpi-table-bugs.patch
+revert-rtc-add-rtc_merge_alarm.patch
+remove-rtc_alm_set-mode-bugs.patch
