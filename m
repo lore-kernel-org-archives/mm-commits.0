@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + smaps-only-define-clear_refs-for-config_mmu.patch added to -mm tree
-Date: Tue, 08 May 2007 13:25:18 -0700
-Message-ID: <200705082025.l48KPILg000523@shell0.pdx.osdl.net>
+Subject: + frv-miscellaneous-fixes.patch added to -mm tree
+Date: Tue, 08 May 2007 13:25:45 -0700
+Message-ID: <200705082025.l48KPjvG000530@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46842 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752784AbXEHUZi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 16:25:38 -0400
+	by vger.kernel.org with ESMTP id S1752694AbXEHUZz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 16:25:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, dhowells@redhat.com
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     smaps: only define clear_refs for CONFIG_MMU
+     FRV: Miscellaneous fixes
 has been added to the -mm tree.  Its filename is
-     smaps-only-define-clear_refs-for-config_mmu.patch
+     frv-miscellaneous-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,67 +25,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: smaps: only define clear_refs for CONFIG_MMU
-From: David Rientjes <rientjes@google.com>
+Subject: FRV: Miscellaneous fixes
+From: David Howells <dhowells@redhat.com>
 
-/proc/pid/clear_refs is only defined in the CONFIG_MMU case, so make sure we
-don't have any references to clear_refs_smap() in generic procfs code.
+Miscellaneous fixes to bring FRV up to date:
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+ (1) Copy the new syscall numbers from i386 to asm-frv/unistd.h and fill out
+     the syscall table in entry.S too.
+
+ (2) Mark __frv_uart0 and __frv_uart1 __pminitdata rather than __initdata so
+     that determine_clocks() can access them when CONFIG_PM=y.
+
+ (3) Make arch/frv/mm/elf-fdpic.c include asm/mman.h so that MAP_FIXED is
+     available (fixes commit 2fd3bebaad9da3b3b99c46a3389099424bf7ee35).
+
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 ++
- 1 files changed, 2 insertions(+)
+ arch/frv/kernel/entry.S  |   10 ++++++++++
+ arch/frv/kernel/setup.c  |    4 ++--
+ arch/frv/mm/elf-fdpic.c  |    1 +
+ include/asm-frv/unistd.h |   16 +++++++++++++---
+ 4 files changed, 26 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/base.c~smaps-only-define-clear_refs-for-config_mmu fs/proc/base.c
---- a/fs/proc/base.c~smaps-only-define-clear_refs-for-config_mmu
-+++ a/fs/proc/base.c
-@@ -708,6 +708,7 @@ static const struct file_operations proc
- 	.write		= oom_adjust_write,
+diff -puN arch/frv/kernel/entry.S~frv-miscellaneous-fixes arch/frv/kernel/entry.S
+--- a/arch/frv/kernel/entry.S~frv-miscellaneous-fixes
++++ a/arch/frv/kernel/entry.S
+@@ -1482,6 +1482,16 @@ sys_call_table:
+ 	.long sys_faccessat
+ 	.long sys_pselect6
+ 	.long sys_ppoll
++	.long sys_unshare		/* 310 */
++	.long sys_set_robust_list
++	.long sys_get_robust_list
++	.long sys_splice
++	.long sys_sync_file_range
++	.long sys_tee			/* 315 */
++	.long sys_vmsplice
++	.long sys_move_pages
++	.long sys_getcpu
++	.long sys_epoll_pwait
+ 
+ 
+ syscall_table_size = (. - sys_call_table)
+diff -puN arch/frv/kernel/setup.c~frv-miscellaneous-fixes arch/frv/kernel/setup.c
+--- a/arch/frv/kernel/setup.c~frv-miscellaneous-fixes
++++ a/arch/frv/kernel/setup.c
+@@ -191,7 +191,7 @@ static struct clock_cmode __pminitdata c
+ static const struct clock_cmode __pminitdata *clock_cmodes;
+ static int __pminitdata clock_doubled;
+ 
+-static struct uart_port __initdata __frv_uart0 = {
++static struct uart_port __pminitdata __frv_uart0 = {
+ 	.uartclk		= 0,
+ 	.membase		= (char *) UART0_BASE,
+ 	.irq			= IRQ_CPU_UART0,
+@@ -200,7 +200,7 @@ static struct uart_port __initdata __frv
+ 	.flags			= UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,
  };
  
-+#ifdef CONFIG_MMU
- static ssize_t clear_refs_write(struct file *file, const char __user *buf,
- 				size_t count, loff_t *ppos)
- {
-@@ -741,6 +742,7 @@ static ssize_t clear_refs_write(struct f
- static struct file_operations proc_clear_refs_operations = {
- 	.write		= clear_refs_write,
- };
-+#endif
+-static struct uart_port __initdata __frv_uart1 = {
++static struct uart_port __pminitdata __frv_uart1 = {
+ 	.uartclk		= 0,
+ 	.membase		= (char *) UART1_BASE,
+ 	.irq			= IRQ_CPU_UART1,
+diff -puN arch/frv/mm/elf-fdpic.c~frv-miscellaneous-fixes arch/frv/mm/elf-fdpic.c
+--- a/arch/frv/mm/elf-fdpic.c~frv-miscellaneous-fixes
++++ a/arch/frv/mm/elf-fdpic.c
+@@ -13,6 +13,7 @@
+ #include <linux/mm.h>
+ #include <linux/fs.h>
+ #include <linux/elf-fdpic.h>
++#include <asm/mman.h>
  
- #ifdef CONFIG_AUDITSYSCALL
- #define TMPBUFLEN 21
+ /*****************************************************************************/
+ /*
+diff -puN include/asm-frv/unistd.h~frv-miscellaneous-fixes include/asm-frv/unistd.h
+--- a/include/asm-frv/unistd.h~frv-miscellaneous-fixes
++++ a/include/asm-frv/unistd.h
+@@ -186,8 +186,8 @@
+ #define __NR_rt_sigtimedwait	177
+ #define __NR_rt_sigqueueinfo	178
+ #define __NR_rt_sigsuspend	179
+-#define __NR_pread		180
+-#define __NR_pwrite		181
++#define __NR_pread64		180
++#define __NR_pwrite64		181
+ #define __NR_chown		182
+ #define __NR_getcwd		183
+ #define __NR_capget		184
+@@ -316,10 +316,20 @@
+ #define __NR_faccessat		307
+ #define __NR_pselect6		308
+ #define __NR_ppoll		309
++#define __NR_unshare		310
++#define __NR_set_robust_list	311
++#define __NR_get_robust_list	312
++#define __NR_splice		313
++#define __NR_sync_file_range	314
++#define __NR_tee		315
++#define __NR_vmsplice		316
++#define __NR_move_pages		317
++#define __NR_getcpu		318
++#define __NR_epoll_pwait	319
+ 
+ #ifdef __KERNEL__
+ 
+-#define NR_syscalls 310
++#define NR_syscalls 320
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ /* #define __ARCH_WANT_OLD_READDIR */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
+use-slab_panic-flag-cleanup.patch
+use-symbolic-constants-in-generic-lseek-code.patch
+use-use-seek_max-to-validate-user-lseek-arguments.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
 smaps-only-define-clear_refs-for-config_mmu.patch
-git-alsa.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-i386-pci-type-may-be-unused.patch
-sh-dma-use-__maybe_unused.patch
-scsi-fix-ambiguous-gdthtable-definition.patch
+frv-miscellaneous-fixes.patch
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+nommu-generalise-the-handling-of-mtd-specific-superblocks.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+romfs-printk-format-warnings.patch
+aio-use-flush_work.patch
+kblockd-use-flush_work.patch
+relayfs-use-flush_keventd_work.patch
+tg3-use-flush_keventd_work.patch
+e1000-use-flush_keventd_work.patch
+libata-use-flush_work.patch
+phy-use-flush_work.patch
+workqueue-kill-noautorel-works.patch
+introduce-freezer-flags-rev-2.patch
+make-cancel_rearming_delayed_work-reliable.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+revoke-core-code-revoke-no-revoke-for-nommu.patch
 frv-gdb-use-__maybe_unused.patch
-i386-voyager-use-__maybe_unused.patch
-mips-excite-use-__maybe_unused.patch
-mips-tlbex-use-__maybe_unused.patch
-powerpc-ps3-use-__maybe_unused.patch
-i386-mmzone-use-__maybe_unused.patch
+mutex-subsystem-synchro-test-module.patch
