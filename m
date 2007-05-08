@@ -1,77 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-state-based-method-decouple-readahead_ratio-from-growth_limit.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:14:21 -0700
-Message-ID: <200705080814.l488ELHm018960@shell0.pdx.osdl.net>
+Subject: - readahead-backward-prefetching-method.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:14:48 -0700
+Message-ID: <200705080814.l488Enjf018993@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60186 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54165 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934636AbXEHIPF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:15:05 -0400
+	by vger.kernel.org with ESMTP id S934638AbXEHIPS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:15:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: state based method: decouple readahead_ratio from growth_limit
+     readahead: backward prefetching method
 has been removed from the -mm tree.  Its filename was
-     readahead-state-based-method-decouple-readahead_ratio-from-growth_limit.patch
+     readahead-backward-prefetching-method.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: readahead: state based method: decouple readahead_ratio from growth_limit
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: readahead: backward prefetching method
+From: Wu Fengguang <wfg@mail.ustc.edu.cn>
 
-Remove readahead_ratio from the growth_limit computing in state based method.
+Readahead policy for reading backward.
 
-It simplifies the size ramp up rules to:
-
-        ahead_window_size = request_size +
-                            current_window_size * 2 +
-                            readahead_max / 16;
-
-The first two sizes are apparent. The last one has two effects:
-
-1) Ensure that we get acceptable readahead size in early start up phase.
-   It is an analog to the old 'first x4 then x2' trick.
-
-2) Ensure that we reach readahead_max within 8 steps.
-   It is good for the laptop mode. A user may set a huge readahead_max, and
-   expect the kernel to do large I/Os right away.
-
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/readahead.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-diff -puN mm/readahead.c~readahead-state-based-method-decouple-readahead_ratio-from-growth_limit mm/readahead.c
---- a/mm/readahead.c~readahead-state-based-method-decouple-readahead_ratio-from-growth_limit
+diff -puN mm/readahead.c~readahead-backward-prefetching-method mm/readahead.c
+--- a/mm/readahead.c~readahead-backward-prefetching-method
 +++ a/mm/readahead.c
-@@ -1102,7 +1102,7 @@ state_based_readahead(struct address_spa
+@@ -1494,6 +1494,52 @@ initial_readahead(struct address_space *
+ 	return ra_submit(ra, mapping, filp);
+ }
  
- 	growth_limit = req_size;
- 	growth_limit += ra_max / 16;
--	growth_limit += (2 + readahead_ratio / 64) * ra_old;
-+	growth_limit += 2 * ra_old;
- 	if (growth_limit > ra_max)
- 	    growth_limit = ra_max;
++/*
++ * Backward prefetching.
++ *
++ * No look-ahead and thrashing safety guard: should be unnecessary.
++ *
++ * Important for certain scientific arenas(i.e. structural analysis).
++ */
++static int
++try_backward_prefetching(struct file_ra_state *ra, pgoff_t offset,
++			 unsigned long size, unsigned long ra_max)
++{
++	pgoff_t prev = ra->prev_index;
++
++	/* Reading backward? */
++	if (offset >= prev)
++		return 0;
++
++	/* Close enough? */
++	size += readahead_hit_rate;
++	if (offset + 2 * size <= prev)
++		return 0;
++
++	if (ra_class_new(ra) == RA_CLASS_BACKWARD && ra_has_index(ra, prev)) {
++		prev = ra->la_index;
++		size += 2 * ra_readahead_size(ra);
++	} else
++		size *= 2;
++
++	if (size > ra_max)
++		size = ra_max;
++	if (size > prev)
++		size = prev;
++
++	/* The readahead-request covers the read-request? */
++	if (offset < prev - size)
++		return 0;
++
++	offset = prev - size;
++
++	ra_set_class(ra, RA_CLASS_BACKWARD);
++	ra_set_index(ra, offset, offset);
++	ra_set_size(ra, size, 0);
++
++	return 1;
++}
++
+ #endif /* CONFIG_ADAPTIVE_READAHEAD */
  
+ /*
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-readahead-state-based-method-decouple-readahead_ratio-from-growth_limit.patch
-readahead-state-based-method-cancel-lookahead-gracefully.patch
-readahead-context-based-method.patch
-readahead-initial-method-guiding-sizes.patch
-readahead-initial-method-thrashing-guard-size.patch
-readahead-initial-method-user-recommended-size.patch
-readahead-initial-method.patch
 readahead-backward-prefetching-method.patch
 readahead-thrashing-recovery-method.patch
 readahead-thrashing-recovery-method-check-unbalanced-aging.patch
