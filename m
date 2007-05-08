@@ -1,93 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - i386-use-page-allocator-to-allocate-thread_info-structure.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:02:52 -0700
-Message-ID: <200705080002.l4802qVG008884@shell0.pdx.osdl.net>
+Subject: - cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:02:49 -0700
+Message-ID: <200705080002.l4802niv008879@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33430 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967325AbXEHADN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:13 -0400
+	by vger.kernel.org with ESMTP id S967325AbXEHADU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, ak@suse.de, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, ak@suse.de, clameter@engr.sgi.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: use page allocator to allocate thread_info structure
+     cpusets: allow TIF_MEMDIE threads to allocate anywhere
 has been removed from the -mm tree.  Its filename was
-     i386-use-page-allocator-to-allocate-thread_info-structure.patch
+     cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: use page allocator to allocate thread_info structure
-From: Christoph Lameter <clameter@sgi.com>
+Subject: cpusets: allow TIF_MEMDIE threads to allocate anywhere
+From: David Rientjes <rientjes@google.com>
 
-i386 uses kmalloc to allocate the threadinfo structure assuming that the
-allocations result in a page sized aligned allocation.  That has worked so
-far because SLAB exempts page sized slabs from debugging and aligns them in
-special ways that goes beyond the restrictions imposed by
-KMALLOC_ARCH_MINALIGN valid for other slabs in the kmalloc array.
+OOM killed tasks have access to memory reserves as specified by the
+TIF_MEMDIE flag in the hopes that it will quickly exit.  If such a task has
+memory allocations constrained by cpusets, we may encounter a deadlock if a
+blocking task cannot exit because it cannot allocate the necessary memory.
 
-SLUB also works fine without debugging since page sized allocations neatly
-align at page boundaries.  However, if debugging is switched on then SLUB
-will extend the slab with debug information.  The resulting slab is not
-longer of page size.  It will only be aligned following the requirements
-imposed by KMALLOC_ARCH_MINALIGN.  As a result the threadinfo structure may
-not be page aligned which makes i386 fail to boot with SLUB debug on.
+We allow tasks that have the TIF_MEMDIE flag to allocate memory anywhere,
+including outside its cpuset restriction, so that it can quickly die
+regardless of whether it is __GFP_HARDWALL.
 
-Replace the calls to kmalloc with calls into the page allocator.
-
-An alternate solution may be to create a custom slab cache where the
-alignment is set to PAGE_SIZE.  That would allow slub debugging to be
-applied to the threadinfo structure.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/thread_info.h |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ kernel/cpuset.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-i386/thread_info.h~i386-use-page-allocator-to-allocate-thread_info-structure include/asm-i386/thread_info.h
---- a/include/asm-i386/thread_info.h~i386-use-page-allocator-to-allocate-thread_info-structure
-+++ a/include/asm-i386/thread_info.h
-@@ -95,12 +95,14 @@ static inline struct thread_info *curren
+diff -puN kernel/cpuset.c~cpusets-allow-tif_memdie-threads-to-allocate-anywhere kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-allow-tif_memdie-threads-to-allocate-anywhere
++++ a/kernel/cpuset.c
+@@ -2351,6 +2351,8 @@ static const struct cpuset *nearest_excl
+  * z's node is in our tasks mems_allowed, yes.  If it's not a
+  * __GFP_HARDWALL request and this zone's nodes is in the nearest
+  * mem_exclusive cpuset ancestor to this tasks cpuset, yes.
++ * If the task has been OOM killed and has access to memory reserves
++ * as specified by the TIF_MEMDIE flag, yes.
+  * Otherwise, no.
+  *
+  * If __GFP_HARDWALL is set, cpuset_zone_allowed_softwall()
+@@ -2368,7 +2370,8 @@ static const struct cpuset *nearest_excl
+  * calls get to this routine, we should just shut up and say 'yes'.
+  *
+  * GFP_USER allocations are marked with the __GFP_HARDWALL bit,
+- * and do not allow allocations outside the current tasks cpuset.
++ * and do not allow allocations outside the current tasks cpuset
++ * unless the task has been OOM killed as is marked TIF_MEMDIE.
+  * GFP_KERNEL allocations are not so marked, so can escape to the
+  * nearest enclosing mem_exclusive ancestor cpuset.
+  *
+@@ -2392,6 +2395,7 @@ static const struct cpuset *nearest_excl
+  * affect that:
+  *	in_interrupt - any node ok (current task context irrelevant)
+  *	GFP_ATOMIC   - any node ok
++ *	TIF_MEMDIE   - any node ok
+  *	GFP_KERNEL   - any node in enclosing mem_exclusive cpuset ok
+  *	GFP_USER     - only nodes in current tasks mems allowed ok.
+  *
+@@ -2413,6 +2417,12 @@ int __cpuset_zone_allowed_softwall(struc
+ 	might_sleep_if(!(gfp_mask & __GFP_HARDWALL));
+ 	if (node_isset(node, current->mems_allowed))
+ 		return 1;
++	/*
++	 * Allow tasks that have access to memory reserves because they have
++	 * been OOM killed to get memory anywhere.
++	 */
++	if (unlikely(test_thread_flag(TIF_MEMDIE)))
++		return 1;
+ 	if (gfp_mask & __GFP_HARDWALL)	/* If hardwall request, stop here */
+ 		return 0;
  
- /* thread information allocation */
- #ifdef CONFIG_DEBUG_STACK_USAGE
--#define alloc_thread_info(tsk) kzalloc(THREAD_SIZE, GFP_KERNEL)
-+#define alloc_thread_info(tsk) ((struct thread_info *) \
-+	__get_free_pages(GFP_KERNEL| __GFP_ZERO, get_order(THREAD_SIZE)))
- #else
--#define alloc_thread_info(tsk) kmalloc(THREAD_SIZE, GFP_KERNEL)
-+#define alloc_thread_info(tsk) ((struct thread_info *) \
-+	__get_free_pages(GFP_KERNEL, get_order(THREAD_SIZE)))
- #endif
- 
--#define free_thread_info(info)	kfree(info)
-+#define free_thread_info(info)	free_pages((unsigned long)(info), get_order(THREAD_SIZE))
- 
- #else /* !__ASSEMBLY__ */
+@@ -2438,7 +2448,9 @@ int __cpuset_zone_allowed_softwall(struc
+  *
+  * If we're in interrupt, yes, we can always allocate.
+  * If __GFP_THISNODE is set, yes, we can always allocate.  If zone
+- * z's node is in our tasks mems_allowed, yes.   Otherwise, no.
++ * z's node is in our tasks mems_allowed, yes.   If the task has been
++ * OOM killed and has access to memory reserves as specified by the
++ * TIF_MEMDIE flag, yes.  Otherwise, no.
+  *
+  * The __GFP_THISNODE placement logic is really handled elsewhere,
+  * by forcibly using a zonelist starting at a specified node, and by
+@@ -2462,6 +2474,12 @@ int __cpuset_zone_allowed_hardwall(struc
+ 	node = zone_to_nid(z);
+ 	if (node_isset(node, current->mems_allowed))
+ 		return 1;
++        /*
++         * Allow tasks that have access to memory reserves because they have
++         * been OOM killed to get memory anywhere.
++         */
++        if (unlikely(test_thread_flag(TIF_MEMDIE)))
++                return 1;
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-i386-support.patch
-remove-constructor-from-buffer_head.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
-vmstat-use-our-own-timer-events.patch
-make-vm-statistics-update-interval-configurable.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-readahead-state-based-method-aging-accounting.patch
+git-alsa.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
+compiler-introduce-__used-and-__maybe_unused.patch
+i386-pci-type-may-be-unused.patch
+sh-dma-use-__maybe_unused.patch
+scsi-fix-ambiguous-gdthtable-definition.patch
+frv-gdb-use-__maybe_unused.patch
+i386-voyager-use-__maybe_unused.patch
+mips-excite-use-__maybe_unused.patch
+mips-tlbex-use-__maybe_unused.patch
+powerpc-ps3-use-__maybe_unused.patch
+i386-mmzone-use-__maybe_unused.patch
