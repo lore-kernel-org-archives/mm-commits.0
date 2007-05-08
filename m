@@ -1,79 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-call-scheme-catch-thrashing-on-lookahead-time.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:15:10 -0700
-Message-ID: <200705080815.l488FAfx019034@shell0.pdx.osdl.net>
+Subject: - readahead-thrashing-recovery-method.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:14:52 -0700
+Message-ID: <200705080814.l488EqnW018996@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55997 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934642AbXEHIPn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:15:43 -0400
+	by vger.kernel.org with ESMTP id S934643AbXEHIPq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:15:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: call scheme: catch thrashing on lookahead time
+     readahead: thrashing recovery method
 has been removed from the -mm tree.  Its filename was
-     readahead-call-scheme-catch-thrashing-on-lookahead-time.patch
+     readahead-thrashing-recovery-method.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: readahead: call scheme: catch thrashing on lookahead time
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: readahead: thrashing recovery method
+From: Wu Fengguang <wfg@mail.ustc.edu.cn>
 
-Move the call to thrashing_recovery_readahead() before
-state_based_readahead().
+Readahead policy after thrashing.
 
-That catches the rare case where thrashing happened on the time we are to read
-the page at ra->lookahead_index.  Obviously this case should be handled by
-thrashing_recovery_readahead() instead of state_based_readahead().
+It tries to recover gracefully from the thrashing.
 
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/readahead.c |   42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-diff -puN mm/readahead.c~readahead-call-scheme-catch-thrashing-on-lookahead-time mm/readahead.c
---- a/mm/readahead.c~readahead-call-scheme-catch-thrashing-on-lookahead-time
+diff -puN mm/readahead.c~readahead-thrashing-recovery-method mm/readahead.c
+--- a/mm/readahead.c~readahead-thrashing-recovery-method
 +++ a/mm/readahead.c
-@@ -1641,6 +1641,13 @@ page_cache_readahead_adaptive(struct add
- 		return initial_readahead(mapping, filp, ra, req_size);
+@@ -1540,6 +1540,48 @@ try_backward_prefetching(struct file_ra_
+ 	return 1;
+ }
  
- 	/*
-+	 * Recover from possible thrashing.
-+	 */
-+	if (!page && offset - ra->prev_index <= 1 && ra_has_index(ra, offset))
-+		return thrashing_recovery_readahead(mapping, filp, ra,
-+								offset, ra_max);
++/*
++ * Readahead thrashing recovery.
++ */
++static unsigned long
++thrashing_recovery_readahead(struct address_space *mapping,
++				struct file *filp, struct file_ra_state *ra,
++				pgoff_t offset, unsigned long ra_max)
++{
++	unsigned long ra_size;
 +
-+	/*
- 	 * State based sequential read-ahead.
- 	 */
- 	if (offset == ra->prev_index + 1 &&
-@@ -1650,13 +1657,6 @@ page_cache_readahead_adaptive(struct add
- 						offset, req_size, ra_max);
++#ifdef CONFIG_DEBUG_READAHEAD
++	if (probe_page(mapping, offset - 1))
++		ra_account(ra, RA_EVENT_READAHEAD_MUTILATE,
++						ra->readahead_index - offset);
++	ra_account(ra, RA_EVENT_READAHEAD_THRASHING,
++						ra->readahead_index - offset);
++#endif
++
++	if (offset < ra->ra_index) {
++		/*
++		 * Thrashed when we are in [la_index, ra_index), i.e.
++		 * the old chunk is lost soon after the new one is allocated.
++		 * Ensure that we recover all needed pages in the old chunk.
++		 * And futher keep the lookahead_index untouched.
++		 */
++		ra_size = ra->lookahead_index - offset;
++	} else {
++		/* After thrashing, we know the exact thrashing-threshold. */
++		ra_size = offset - ra->la_index;
++		update_ra_thrash_bytes(mapping->backing_dev_info, ra_size);
++
++		/* And be cooperative: the system may be hunting for memory. */
++		ra_size = MIN_RA_PAGES + ra_size / 2;
++	}
++
++	ra_set_class(ra, RA_CLASS_THRASHING);
++	ra_set_index(ra, offset, offset);
++	ra_set_size(ra, ra_size, 0);
++
++	return ra_submit(ra, mapping, filp);
++}
++
+ #endif /* CONFIG_ADAPTIVE_READAHEAD */
  
- 	/*
--	 * Recover from possible thrashing.
--	 */
--	if (!page && offset - ra->prev_index <= 1 && ra_has_index(ra, offset))
--		return thrashing_recovery_readahead(mapping, filp, ra,
--								offset, ra_max);
--
--	/*
- 	 * Backward read-ahead.
- 	 */
- 	if (!page && try_backward_prefetching(ra, offset, req_size, ra_max))
+ /*
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
+readahead-thrashing-recovery-method.patch
+readahead-thrashing-recovery-method-check-unbalanced-aging.patch
+readahead-thrashing-recovery-method-refill-holes.patch
+readahead-call-scheme.patch
+readahead-call-scheme-cleanup.patch
 readahead-call-scheme-catch-thrashing-on-lookahead-time.patch
 readahead-call-scheme-doc-fixes-for-readahead.patch
 readahead-laptop-mode.patch
