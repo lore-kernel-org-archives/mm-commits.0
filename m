@@ -1,105 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-thrashing-recovery-method.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:14:52 -0700
-Message-ID: <200705080814.l488EqnW018996@shell0.pdx.osdl.net>
+Subject: - readahead-loop-case.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:15:20 -0700
+Message-ID: <200705080815.l488FK19019046@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34979 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934643AbXEHIPq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:15:46 -0400
+	by vger.kernel.org with ESMTP id S934644AbXEHIPv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:15:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: thrashing recovery method
+     readahead: loop case
 has been removed from the -mm tree.  Its filename was
-     readahead-thrashing-recovery-method.patch
+     readahead-loop-case.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: readahead: thrashing recovery method
+Subject: readahead: loop case
 From: Wu Fengguang <wfg@mail.ustc.edu.cn>
 
-Readahead policy after thrashing.
+Disable look-ahead for loop file.
 
-It tries to recover gracefully from the thrashing.
+Loopback files normally contain filesystems, in which case there are already
+proper look-aheads in the upper layer, more look-aheads on the loopback file
+only ruins the read-ahead hit rate.
 
 Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ drivers/block/loop.c |    6 ++++++
+ include/linux/fs.h   |    1 +
+ mm/readahead.c       |    4 ++++
+ 3 files changed, 11 insertions(+)
 
-diff -puN mm/readahead.c~readahead-thrashing-recovery-method mm/readahead.c
---- a/mm/readahead.c~readahead-thrashing-recovery-method
+diff -puN drivers/block/loop.c~readahead-loop-case drivers/block/loop.c
+--- a/drivers/block/loop.c~readahead-loop-case
++++ a/drivers/block/loop.c
+@@ -752,6 +752,12 @@ static int loop_set_fd(struct loop_devic
+ 	mapping = file->f_mapping;
+ 	inode = mapping->host;
+ 
++	/* Instruct the readahead code to skip look-ahead on loop file.
++	 * The upper layer should already do proper look-ahead,
++	 * one more look-ahead here only ruins the cache hit rate.
++	 */
++	file->f_ra.flags |= RA_FLAG_LOOP;
++
+ 	if (!(file->f_mode & FMODE_WRITE))
+ 		lo_flags |= LO_FLAGS_READ_ONLY;
+ 
+diff -puN include/linux/fs.h~readahead-loop-case include/linux/fs.h
+--- a/include/linux/fs.h~readahead-loop-case
++++ a/include/linux/fs.h
+@@ -745,6 +745,7 @@ struct file_ra_state {
+ #define RA_FLAG_MISS	(1UL<<31) /* a cache miss occured against this file */
+ #define RA_FLAG_INCACHE	(1UL<<30) /* file is already in cache */
+ #define RA_FLAG_MMAP	(1UL<<29) /* mmap page access */
++#define RA_FLAG_LOOP	(1UL<<28) /* loopback file */
+ 
+ struct file {
+ 	/*
+diff -puN mm/readahead.c~readahead-loop-case mm/readahead.c
+--- a/mm/readahead.c~readahead-loop-case
 +++ a/mm/readahead.c
-@@ -1540,6 +1540,48 @@ try_backward_prefetching(struct file_ra_
- 	return 1;
- }
+@@ -964,6 +964,10 @@ static unsigned long ra_submit(struct fi
+ 		    ra->lookahead_index = eof;
+ 	}
  
-+/*
-+ * Readahead thrashing recovery.
-+ */
-+static unsigned long
-+thrashing_recovery_readahead(struct address_space *mapping,
-+				struct file *filp, struct file_ra_state *ra,
-+				pgoff_t offset, unsigned long ra_max)
-+{
-+	unsigned long ra_size;
++	/* Disable look-ahead for loopback file. */
++	if (ra->flags & RA_FLAG_LOOP)
++		ra->lookahead_index = ra->readahead_index;
 +
-+#ifdef CONFIG_DEBUG_READAHEAD
-+	if (probe_page(mapping, offset - 1))
-+		ra_account(ra, RA_EVENT_READAHEAD_MUTILATE,
-+						ra->readahead_index - offset);
-+	ra_account(ra, RA_EVENT_READAHEAD_THRASHING,
-+						ra->readahead_index - offset);
-+#endif
-+
-+	if (offset < ra->ra_index) {
-+		/*
-+		 * Thrashed when we are in [la_index, ra_index), i.e.
-+		 * the old chunk is lost soon after the new one is allocated.
-+		 * Ensure that we recover all needed pages in the old chunk.
-+		 * And futher keep the lookahead_index untouched.
-+		 */
-+		ra_size = ra->lookahead_index - offset;
-+	} else {
-+		/* After thrashing, we know the exact thrashing-threshold. */
-+		ra_size = offset - ra->la_index;
-+		update_ra_thrash_bytes(mapping->backing_dev_info, ra_size);
-+
-+		/* And be cooperative: the system may be hunting for memory. */
-+		ra_size = MIN_RA_PAGES + ra_size / 2;
-+	}
-+
-+	ra_set_class(ra, RA_CLASS_THRASHING);
-+	ra_set_index(ra, offset, offset);
-+	ra_set_size(ra, ra_size, 0);
-+
-+	return ra_submit(ra, mapping, filp);
-+}
-+
- #endif /* CONFIG_ADAPTIVE_READAHEAD */
+ 	/* Take down the current read-ahead aging value. */
+ 	ra_save_node_age(ra);
  
- /*
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-readahead-thrashing-recovery-method.patch
-readahead-thrashing-recovery-method-check-unbalanced-aging.patch
-readahead-thrashing-recovery-method-refill-holes.patch
-readahead-call-scheme.patch
-readahead-call-scheme-cleanup.patch
-readahead-call-scheme-catch-thrashing-on-lookahead-time.patch
-readahead-call-scheme-doc-fixes-for-readahead.patch
-readahead-laptop-mode.patch
 readahead-loop-case.patch
 readahead-nfsd-case.patch
 readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead.patch
