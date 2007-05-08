@@ -1,111 +1,237 @@
 From: akpm@linux-foundation.org
-Subject: - uml-comment-early-boot-locking.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:06:51 -0700
-Message-ID: <200705080006.l4806p6P009230@shell0.pdx.osdl.net>
+Subject: - uml-kernel-segfaults-should-dump-proper-registers.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:06:49 -0700
+Message-ID: <200705080006.l4806nEq009227@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58979 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51554 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967408AbXEHAHV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:07:21 -0400
+	by vger.kernel.org with ESMTP id S967406AbXEHAHW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:07:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: comment early boot locking
+     uml: kernel segfaults should dump proper registers
 has been removed from the -mm tree.  Its filename was
-     uml-comment-early-boot-locking.patch
+     uml-kernel-segfaults-should-dump-proper-registers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: comment early boot locking
+Subject: uml: kernel segfaults should dump proper registers
 From: Jeff Dike <jdike@addtoit.com>
 
-Commentary about missing locking.
+If there's a segfault inside the kernel, we want a dump of the registers at
+the point of the segfault, not the registers at the point of calling panic or
+the last userspace registers.
 
-Also got rid of uml_start because it was pointless.
+sig_handler_common_skas now uses a static register set in the case of a
+SIGSEGV to avoid messing up the process registers if the segfault turns out to
+be non-fatal.
+
+The architecture sigcontext-to-pt_regs copying code was repurposed to copy
+data out of the SEGV stack frame.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/um_arch.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ arch/um/include/common-offsets.h |    2 +
+ arch/um/include/kern_util.h      |    2 +
+ arch/um/kernel/trap.c            |   10 ++++---
+ arch/um/os-Linux/skas/trap.c     |   15 +++++++++-
+ arch/um/sys-i386/signal.c        |   41 ++++++++++++++++-------------
+ arch/um/sys-x86_64/signal.c      |   30 +++++++++++++++++++++
+ 6 files changed, 78 insertions(+), 22 deletions(-)
 
-diff -puN arch/um/kernel/um_arch.c~uml-comment-early-boot-locking arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-comment-early-boot-locking
-+++ a/arch/um/kernel/um_arch.c
-@@ -44,7 +44,7 @@
+diff -puN arch/um/include/common-offsets.h~uml-kernel-segfaults-should-dump-proper-registers arch/um/include/common-offsets.h
+--- a/arch/um/include/common-offsets.h~uml-kernel-segfaults-should-dump-proper-registers
++++ a/arch/um/include/common-offsets.h
+@@ -24,5 +24,7 @@ DEFINE(UM_ELF_CLASS, ELF_CLASS);
+ DEFINE(UM_ELFCLASS32, ELFCLASS32);
+ DEFINE(UM_ELFCLASS64, ELFCLASS64);
  
- #define DEFAULT_COMMAND_LINE "root=98:0"
- 
--/* Changed in linux_main and setup_arch, which run before SMP is started */
-+/* Changed in add_arg and setup_arch, which run before SMP is started */
- static char __initdata command_line[COMMAND_LINE_SIZE] = { 0 };
- 
- static void __init add_arg(char *arg)
-@@ -58,7 +58,12 @@ static void __init add_arg(char *arg)
- 	strcat(command_line, arg);
- }
- 
--struct cpuinfo_um boot_cpu_data = { 
-+/*
-+ * These fields are initialized at boot time and not changed.
-+ * XXX This structure is used only in the non-SMP case.  Maybe this
-+ * should be moved to smp.c.
-+ */
-+struct cpuinfo_um boot_cpu_data = {
- 	.loops_per_jiffy	= 0,
- 	.ipi_pipe		= { -1, -1 }
- };
-@@ -119,14 +124,12 @@ const struct seq_operations cpuinfo_op =
- /* Set in linux_main */
- unsigned long host_task_size;
- unsigned long task_size;
--
--unsigned long uml_start;
--
--/* Set in early boot */
- unsigned long uml_physmem;
--unsigned long uml_reserved;
-+unsigned long uml_reserved; /* Also modified in mem_init */
- unsigned long start_vm;
- unsigned long end_vm;
++DEFINE(UM_NR_CPUS, NR_CPUS);
 +
-+/* Set in uml_ncpus_setup */
- int ncpus = 1;
+ /* For crypto assembler code. */
+ DEFINE(crypto_tfm_ctx_offset, offsetof(struct crypto_tfm, __crt_ctx));
+diff -puN arch/um/include/kern_util.h~uml-kernel-segfaults-should-dump-proper-registers arch/um/include/kern_util.h
+--- a/arch/um/include/kern_util.h~uml-kernel-segfaults-should-dump-proper-registers
++++ a/arch/um/include/kern_util.h
+@@ -115,4 +115,6 @@ extern void time_init_kern(void);
+ extern int __cant_sleep(void);
+ extern void sigio_handler(int sig, union uml_pt_regs *regs);
  
- #ifdef CONFIG_CMDLINE_ON_HOST
-@@ -140,6 +143,8 @@ static char *argv1_end = NULL;
- 
- /* Set in early boot */
- static int have_root __initdata = 0;
++extern void copy_sc(union uml_pt_regs *regs, void *from);
 +
-+/* Set in uml_mem_setup and modified in linux_main */
- long long physmem_size = 32 * 1024 * 1024;
- 
- void set_cmdline(char *cmd)
-@@ -378,7 +383,6 @@ int __init linux_main(int argc, char **a
- 
- 	printf("UML running in %s mode\n", mode);
- 
--	uml_start = (unsigned long) &__binary_start;
- 	host_task_size = CHOOSE_MODE_PROC(set_task_sizes_tt,
- 					  set_task_sizes_skas, &task_size);
- 
-@@ -400,7 +404,7 @@ int __init linux_main(int argc, char **a
- 		physmem_size += UML_ROUND_UP(brk_start) - UML_ROUND_UP(&_end);
+ #endif
+diff -puN arch/um/kernel/trap.c~uml-kernel-segfaults-should-dump-proper-registers arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~uml-kernel-segfaults-should-dump-proper-registers
++++ a/arch/um/kernel/trap.c
+@@ -170,8 +170,10 @@ unsigned long segv(struct faultinfo fi, 
+ 		flush_tlb_kernel_vm();
+ 		return 0;
  	}
+-	else if(current->mm == NULL)
+-		panic("Segfault with no mm");
++	else if(current->mm == NULL) {
++		show_regs(container_of(regs, struct pt_regs, regs));
++  		panic("Segfault with no mm");
++	}
  
--	uml_physmem = uml_start & PAGE_MASK;
-+	uml_physmem = (unsigned long) &__binary_start & PAGE_MASK;
+ 	if (SEGV_IS_FIXABLE(&fi) || SEGV_MAYBE_FIXABLE(&fi))
+ 		err = handle_page_fault(address, ip, is_write, is_user, &si.si_code);
+@@ -194,9 +196,11 @@ unsigned long segv(struct faultinfo fi, 
+ 	else if(!is_user && arch_fixup(ip, regs))
+ 		return 0;
  
- 	/* Reserve up to 4M after the current brk */
- 	uml_reserved = ROUND_4M(brk_start) + (1 << 22);
+-	if(!is_user)
++	if(!is_user) {
++		show_regs(container_of(regs, struct pt_regs, regs));
+ 		panic("Kernel mode fault at addr 0x%lx, ip 0x%lx",
+ 		      address, ip);
++	}
+ 
+ 	if (err == -EACCES) {
+ 		si.si_signo = SIGBUS;
+diff -puN arch/um/os-Linux/skas/trap.c~uml-kernel-segfaults-should-dump-proper-registers arch/um/os-Linux/skas/trap.c
+--- a/arch/um/os-Linux/skas/trap.c~uml-kernel-segfaults-should-dump-proper-registers
++++ a/arch/um/os-Linux/skas/trap.c
+@@ -15,6 +15,8 @@
+ #include "sysdep/ptrace_user.h"
+ #include "os.h"
+ 
++static union uml_pt_regs ksig_regs[UM_NR_CPUS];
++
+ void sig_handler_common_skas(int sig, void *sc_ptr)
+ {
+ 	struct sigcontext *sc = sc_ptr;
+@@ -27,10 +29,19 @@ void sig_handler_common_skas(int sig, vo
+ 	 * the process will die.
+ 	 * XXX Figure out why this is better than SA_NODEFER
+ 	 */
+-	if(sig == SIGSEGV)
++	if(sig == SIGSEGV) {
+ 		change_sig(SIGSEGV, 1);
++		/* For segfaults, we want the data from the
++		 * sigcontext.  In this case, we don't want to mangle
++		 * the process registers, so use a static set of
++		 * registers.  For other signals, the process
++		 * registers are OK.
++		 */
++		r = &ksig_regs[cpu()];
++		copy_sc(r, sc_ptr);
++	}
++	else r = TASK_REGS(get_current());
+ 
+-	r = TASK_REGS(get_current());
+ 	save_user = r->skas.is_user;
+ 	r->skas.is_user = 0;
+ 	if ( sig == SIGFPE || sig == SIGSEGV ||
+diff -puN arch/um/sys-i386/signal.c~uml-kernel-segfaults-should-dump-proper-registers arch/um/sys-i386/signal.c
+--- a/arch/um/sys-i386/signal.c~uml-kernel-segfaults-should-dump-proper-registers
++++ a/arch/um/sys-i386/signal.c
+@@ -18,6 +18,28 @@
+ 
+ #include "skas.h"
+ 
++void copy_sc(union uml_pt_regs *regs, void *from)
++{
++	struct sigcontext *sc = from;
++
++	REGS_GS(regs->skas.regs) = sc->gs;
++	REGS_FS(regs->skas.regs) = sc->fs;
++	REGS_ES(regs->skas.regs) = sc->es;
++	REGS_DS(regs->skas.regs) = sc->ds;
++	REGS_EDI(regs->skas.regs) = sc->edi;
++	REGS_ESI(regs->skas.regs) = sc->esi;
++	REGS_EBP(regs->skas.regs) = sc->ebp;
++	REGS_SP(regs->skas.regs) = sc->esp;
++	REGS_EBX(regs->skas.regs) = sc->ebx;
++	REGS_EDX(regs->skas.regs) = sc->edx;
++	REGS_ECX(regs->skas.regs) = sc->ecx;
++	REGS_EAX(regs->skas.regs) = sc->eax;
++	REGS_IP(regs->skas.regs) = sc->eip;
++	REGS_CS(regs->skas.regs) = sc->cs;
++	REGS_EFLAGS(regs->skas.regs) = sc->eflags;
++	REGS_SS(regs->skas.regs) = sc->ss;
++}
++
+ static int copy_sc_from_user_skas(struct pt_regs *regs,
+ 				  struct sigcontext __user *from)
+ {
+@@ -30,25 +52,10 @@ static int copy_sc_from_user_skas(struct
+ 	if(err)
+ 		return err;
+ 
+-	REGS_GS(regs->regs.skas.regs) = sc.gs;
+-	REGS_FS(regs->regs.skas.regs) = sc.fs;
+-	REGS_ES(regs->regs.skas.regs) = sc.es;
+-	REGS_DS(regs->regs.skas.regs) = sc.ds;
+-	REGS_EDI(regs->regs.skas.regs) = sc.edi;
+-	REGS_ESI(regs->regs.skas.regs) = sc.esi;
+-	REGS_EBP(regs->regs.skas.regs) = sc.ebp;
+-	REGS_SP(regs->regs.skas.regs) = sc.esp;
+-	REGS_EBX(regs->regs.skas.regs) = sc.ebx;
+-	REGS_EDX(regs->regs.skas.regs) = sc.edx;
+-	REGS_ECX(regs->regs.skas.regs) = sc.ecx;
+-	REGS_EAX(regs->regs.skas.regs) = sc.eax;
+-	REGS_IP(regs->regs.skas.regs) = sc.eip;
+-	REGS_CS(regs->regs.skas.regs) = sc.cs;
+-	REGS_EFLAGS(regs->regs.skas.regs) = sc.eflags;
+-	REGS_SS(regs->regs.skas.regs) = sc.ss;
++	copy_sc(&regs->regs, &sc);
+ 
+ 	err = restore_fp_registers(userspace_pid[0], fpregs);
+-	if(err < 0){
++	if(err < 0) {
+ 	  	printk("copy_sc_from_user_skas - PTRACE_SETFPREGS failed, "
+ 		       "errno = %d\n", -err);
+ 		return err;
+diff -puN arch/um/sys-x86_64/signal.c~uml-kernel-segfaults-should-dump-proper-registers arch/um/sys-x86_64/signal.c
+--- a/arch/um/sys-x86_64/signal.c~uml-kernel-segfaults-should-dump-proper-registers
++++ a/arch/um/sys-x86_64/signal.c
+@@ -20,6 +20,36 @@
+ 
+ #include "skas.h"
+ 
++void copy_sc(union uml_pt_regs *regs, void *from)
++{
++	struct sigcontext *sc = from;
++
++#define GETREG(regs, regno, sc, regname) \
++       (regs)->skas.regs[(regno) / sizeof(unsigned long)] = (sc)->regname
++
++       GETREG(regs, R8, sc, r8);
++       GETREG(regs, R9, sc, r9);
++       GETREG(regs, R10, sc, r10);
++       GETREG(regs, R11, sc, r11);
++       GETREG(regs, R12, sc, r12);
++       GETREG(regs, R13, sc, r13);
++       GETREG(regs, R14, sc, r14);
++       GETREG(regs, R15, sc, r15);
++       GETREG(regs, RDI, sc, rdi);
++       GETREG(regs, RSI, sc, rsi);
++       GETREG(regs, RBP, sc, rbp);
++       GETREG(regs, RBX, sc, rbx);
++       GETREG(regs, RDX, sc, rdx);
++       GETREG(regs, RAX, sc, rax);
++       GETREG(regs, RCX, sc, rcx);
++       GETREG(regs, RSP, sc, rsp);
++       GETREG(regs, RIP, sc, rip);
++       GETREG(regs, EFLAGS, sc, eflags);
++       GETREG(regs, CS, sc, cs);
++
++#undef GETREG
++}
++
+ static int copy_sc_from_user_skas(struct pt_regs *regs,
+                                  struct sigcontext __user *from)
+ {
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
