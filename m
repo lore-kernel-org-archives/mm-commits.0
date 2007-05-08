@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-introduce-debugslabpage.patch added to -mm tree
-Date: Tue, 08 May 2007 14:48:57 -0700
-Message-ID: <200705082148.l48Lmvnj002630@shell0.pdx.osdl.net>
+Subject: + slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code.patch added to -mm tree
+Date: Tue, 08 May 2007 14:49:01 -0700
+Message-ID: <200705082149.l48Ln1SX002641@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50593 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031546AbXEHVtA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:49:00 -0400
+	by vger.kernel.org with ESMTP id S968372AbXEHVtE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: introduce DebugSlab(page)
+     SLUB: move tracking definitions and check_valid_pointer() away from debug code
 has been added to the -mm tree.  Its filename is
-     slub-introduce-debugslabpage.patch
+     slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,135 +25,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: introduce DebugSlab(page)
+Subject: SLUB: move tracking definitions and check_valid_pointer() away from debug code
 From: Christoph Lameter <clameter@sgi.com>
 
-This replaces the PageError() checking.  DebugSlab is clearer and allows for
-future changes to the page bit used.  We also need it to support
-CONFIG_SLUB_DEBUG.
+Move the tracking definitions and the check_valid_pointer() function away from
+the debugging related functions.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   40 ++++++++++++++++++++++++++++------------
- 1 files changed, 28 insertions(+), 12 deletions(-)
+ mm/slub.c |   58 ++++++++++++++++++++++++++--------------------------
+ 1 files changed, 29 insertions(+), 29 deletions(-)
 
-diff -puN mm/slub.c~slub-introduce-debugslabpage mm/slub.c
---- a/mm/slub.c~slub-introduce-debugslabpage
+diff -puN mm/slub.c~slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code mm/slub.c
+--- a/mm/slub.c~slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code
 +++ a/mm/slub.c
-@@ -87,6 +87,21 @@
-  * 			the fast path.
-  */
+@@ -190,6 +190,18 @@ static enum {
+ static DECLARE_RWSEM(slub_lock);
+ LIST_HEAD(slab_caches);
  
-+static inline int SlabDebug(struct page *page)
-+{
-+	return PageError(page);
-+}
++/*
++ * Tracking user of a slab.
++ */
++struct track {
++	void *addr;		/* Called from address */
++	int cpu;		/* Was running on cpu */
++	int pid;		/* Pid context */
++	unsigned long when;	/* When did the operation occur */
++};
 +
-+static inline void SetSlabDebug(struct page *page)
-+{
-+	SetPageError(page);
-+}
++enum track_item { TRACK_ALLOC, TRACK_FREE };
 +
-+static inline void ClearSlabDebug(struct page *page)
+ #ifdef CONFIG_SYSFS
+ static int sysfs_slab_add(struct kmem_cache *);
+ static int sysfs_slab_alias(struct kmem_cache *, const char *);
+@@ -218,6 +230,23 @@ static inline struct kmem_cache_node *ge
+ #endif
+ }
+ 
++static inline int check_valid_pointer(struct kmem_cache *s,
++				struct page *page, const void *object)
 +{
-+	ClearPageError(page);
++	void *base;
++
++	if (!object)
++		return 1;
++
++	base = page_address(page);
++	if (object < base || object >= base + s->objects * s->size ||
++		(object - base) % s->size) {
++		return 0;
++	}
++
++	return 1;
 +}
 +
  /*
-  * Issues still to be resolved:
+  * Slow version of get and set free pointer.
   *
-@@ -818,7 +833,7 @@ static struct page *allocate_slab(struct
- static void setup_object(struct kmem_cache *s, struct page *page,
- 				void *object)
- {
--	if (PageError(page)) {
-+	if (SlabDebug(page)) {
- 		init_object(s, object, 0);
- 		init_tracking(s, object);
- 	}
-@@ -853,7 +868,7 @@ static struct page *new_slab(struct kmem
- 	page->flags |= 1 << PG_slab;
- 	if (s->flags & (SLAB_DEBUG_FREE | SLAB_RED_ZONE | SLAB_POISON |
- 			SLAB_STORE_USER | SLAB_TRACE))
--		page->flags |= 1 << PG_error;
-+		SetSlabDebug(page);
- 
- 	start = page_address(page);
- 	end = start + s->objects * s->size;
-@@ -882,7 +897,7 @@ static void __free_slab(struct kmem_cach
- {
- 	int pages = 1 << s->order;
- 
--	if (unlikely(PageError(page) || s->dtor)) {
-+	if (unlikely(SlabDebug(page) || s->dtor)) {
- 		void *p;
- 
- 		slab_pad_check(s, page);
-@@ -929,7 +944,8 @@ static void discard_slab(struct kmem_cac
- 
- 	atomic_long_dec(&n->nr_slabs);
- 	reset_page_mapcount(page);
--	page->flags &= ~(1 << PG_slab | 1 << PG_error);
-+	ClearSlabDebug(page);
-+	__ClearPageSlab(page);
- 	free_slab(s, page);
- }
- 
-@@ -1104,7 +1120,7 @@ static void putback_slab(struct kmem_cac
- 
- 		if (page->freelist)
- 			add_partial(n, page);
--		else if (PageError(page) && (s->flags & SLAB_STORE_USER))
-+		else if (SlabDebug(page) && (s->flags & SLAB_STORE_USER))
- 			add_full(n, page);
- 		slab_unlock(page);
- 
-@@ -1188,7 +1204,7 @@ static void flush_all(struct kmem_cache 
-  * per cpu array in the kmem_cache struct.
-  *
-  * Fastpath is not possible if we need to get a new slab or have
-- * debugging enabled (which means all slabs are marked with PageError)
-+ * debugging enabled (which means all slabs are marked with SlabDebug)
-  */
- static void *slab_alloc(struct kmem_cache *s,
- 				gfp_t gfpflags, int node, void *addr)
-@@ -1211,7 +1227,7 @@ redo:
- 	object = page->freelist;
- 	if (unlikely(!object))
- 		goto another_slab;
--	if (unlikely(PageError(page)))
-+	if (unlikely(SlabDebug(page)))
- 		goto debug;
- 
- have_object:
-@@ -1309,7 +1325,7 @@ static void slab_free(struct kmem_cache 
- 	local_irq_save(flags);
- 	slab_lock(page);
- 
--	if (unlikely(PageError(page)))
-+	if (unlikely(SlabDebug(page)))
- 		goto debug;
- checks_ok:
- 	prior = object[page->offset] = page->freelist;
-@@ -2571,12 +2587,12 @@ static void validate_slab_slab(struct km
- 			s->name, page);
- 
- 	if (s->flags & DEBUG_DEFAULT_FLAGS) {
--		if (!PageError(page))
--			printk(KERN_ERR "SLUB %s: PageError not set "
-+		if (!SlabDebug(page))
-+			printk(KERN_ERR "SLUB %s: SlabDebug not set "
- 				"on slab 0x%p\n", s->name, page);
- 	} else {
--		if (PageError(page))
--			printk(KERN_ERR "SLUB %s: PageError set on "
-+		if (SlabDebug(page))
-+			printk(KERN_ERR "SLUB %s: SlabDebug set on "
- 				"slab 0x%p\n", s->name, page);
+@@ -285,18 +314,6 @@ static void print_section(char *text, u8
  	}
  }
+ 
+-/*
+- * Tracking user of a slab.
+- */
+-struct track {
+-	void *addr;		/* Called from address */
+-	int cpu;		/* Was running on cpu */
+-	int pid;		/* Pid context */
+-	unsigned long when;	/* When did the operation occur */
+-};
+-
+-enum track_item { TRACK_ALLOC, TRACK_FREE };
+-
+ static struct track *get_track(struct kmem_cache *s, void *object,
+ 	enum track_item alloc)
+ {
+@@ -431,23 +448,6 @@ static int check_bytes(u8 *start, unsign
+ 	return 1;
+ }
+ 
+-static inline int check_valid_pointer(struct kmem_cache *s,
+-				struct page *page, const void *object)
+-{
+-	void *base;
+-
+-	if (!object)
+-		return 1;
+-
+-	base = page_address(page);
+-	if (object < base || object >= base + s->objects * s->size ||
+-		(object - base) % s->size) {
+-		return 0;
+-	}
+-
+-	return 1;
+-}
+-
+ /*
+  * Object layout:
+  *
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
