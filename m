@@ -1,410 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: - uml-tidy-processc.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:06:41 -0700
-Message-ID: <200705080006.l4806fe3009215@shell0.pdx.osdl.net>
+Subject: - uml-create-as-layouth.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:06:19 -0700
+Message-ID: <200705080006.l4806Jq2009179@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58334 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967485AbXEHALv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:11:51 -0400
+	by vger.kernel.org with ESMTP id S967479AbXEHALu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:11:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: tidy process.c
+     uml: create as-layout.h
 has been removed from the -mm tree.  Its filename was
-     uml-tidy-processc.patch
+     uml-create-as-layouth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: tidy process.c
+Subject: uml: create as-layout.h
 From: Jeff Dike <jdike@addtoit.com>
 
-Clean up arch/um/kernel/process.c:
-
-- lots of return(x); -> return x; conversions
-
-- a number of the small functions are either unused, in which case they are
-  gone, along any declarations in a header, or could be made static. 
-
-- current_pid is ifdefed on CONFIG_MODE_TT and its declaration is ifdefed on
-  both CONFIG_MODE_TT and UML_CONFIG_MODE_TT because we don't know whether
-  it's being used in a userspace or kernel file.
+This patch moves all the the symbols defined in um_arch.c, which are mostly
+boundaries between different parts of the UML kernel address space, to a new
+header, as-layout.h.  There are also a few things here which aren't really
+related to address space layout, but which don't really have a better place to
+go.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/kern_util.h     |    7 -
- arch/um/include/tt/uaccess-tt.h |    2 
- arch/um/include/um_malloc.h     |    1 
- arch/um/kernel/process.c        |  118 ++++++++----------------------
- 4 files changed, 38 insertions(+), 90 deletions(-)
+ arch/um/include/as-layout.h   |   35 ++++++++++++++++++++++++++++++++
+ arch/um/include/user_util.h   |   23 ---------------------
+ arch/um/kernel/exec.c         |    1 
+ arch/um/kernel/ksyms.c        |    1 
+ arch/um/kernel/mem.c          |    1 
+ arch/um/kernel/physmem.c      |    1 
+ arch/um/kernel/process.c      |    1 
+ arch/um/kernel/skas/process.c |    1 
+ arch/um/kernel/tlb.c          |    1 
+ arch/um/kernel/trap.c         |    1 
+ arch/um/kernel/um_arch.c      |    1 
+ arch/um/os-Linux/main.c       |    1 
+ arch/um/os-Linux/skas/trap.c  |    1 
+ 13 files changed, 46 insertions(+), 23 deletions(-)
 
-diff -puN arch/um/include/kern_util.h~uml-tidy-processc arch/um/include/kern_util.h
---- a/arch/um/include/kern_util.h~uml-tidy-processc
-+++ a/arch/um/include/kern_util.h
-@@ -8,6 +8,7 @@
- 
- #include "sysdep/ptrace.h"
- #include "sysdep/faultinfo.h"
-+#include "uml-config.h"
- 
- typedef void (*kern_hndl)(int, union uml_pt_regs *);
- 
-@@ -33,7 +34,9 @@ extern int nsyscalls;
- 	UML_ROUND_DOWN(((unsigned long) addr) + PAGE_SIZE - 1)
- 
- extern int kernel_fork(unsigned long flags, int (*fn)(void *), void * arg);
-+#ifdef UML_CONFIG_MODE_TT
- extern unsigned long stack_sp(unsigned long page);
+diff -puN /dev/null arch/um/include/as-layout.h
+--- /dev/null
++++ a/arch/um/include/as-layout.h
+@@ -0,0 +1,35 @@
++/*
++ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
++ * Licensed under the GPL
++ */
++
++#ifndef __START_H__
++#define __START_H__
++
++#include "sysdep/ptrace.h"
++
++struct cpu_task {
++	int pid;
++	void *task;
++};
++
++extern struct cpu_task cpu_tasks[];
++
++extern unsigned long low_physmem;
++extern unsigned long high_physmem;
++extern unsigned long uml_physmem;
++extern unsigned long uml_reserved;
++extern unsigned long end_vm;
++extern unsigned long start_vm;
++extern unsigned long long highmem;
++
++extern unsigned long _stext, _etext, _sdata, _edata, __bss_start, _end;
++extern unsigned long _unprotected_end;
++extern unsigned long brk_start;
++
++extern int linux_main(int argc, char **argv);
++extern void set_cmdline(char *cmd);
++
++extern void (*sig_info[])(int, union uml_pt_regs *);
++
 +#endif
- extern int kernel_thread_proc(void *data);
- extern void syscall_segv(int sig);
- extern int current_pid(void);
-@@ -57,7 +60,6 @@ extern void add_input_request(int op, vo
- extern char *current_cmd(void);
- extern void timer_handler(int sig, union uml_pt_regs *regs);
- extern int set_signals(int enable);
--extern void force_sigbus(void);
- extern int pid_to_processor_id(int pid);
- extern void deliver_signals(void *t);
- extern int next_trap_index(int max);
-@@ -69,7 +71,6 @@ extern void *syscall_sp(void *t);
- extern void syscall_trace(union uml_pt_regs *regs, int entryexit);
- extern int hz(void);
- extern unsigned int do_IRQ(int irq, union uml_pt_regs *regs);
--extern int external_pid(void *t);
- extern void interrupt_end(void);
- extern void initial_thread_cb(void (*proc)(void *), void *arg);
- extern int debugger_signal(int status, int pid);
-@@ -80,7 +81,6 @@ extern int init_parent_proxy(int pid);
- extern int singlestepping(void *t);
- extern void check_stack_overflow(void *ptr);
- extern void relay_signal(int sig, union uml_pt_regs *regs);
--extern void not_implemented(void);
- extern int user_context(unsigned long sp);
- extern void timer_irq(union uml_pt_regs *regs);
- extern void unprotect_stack(unsigned long stack);
-@@ -92,7 +92,6 @@ extern char *uml_strdup(char *string);
- extern void unprotect_kernel_mem(void);
- extern void protect_kernel_mem(void);
- extern void uml_cleanup(void);
--extern void set_current(void *t);
- extern void lock_signalled_task(void *t);
- extern void IPI_handler(int cpu);
- extern int jail_setup(char *line, int *add);
-diff -puN arch/um/include/tt/uaccess-tt.h~uml-tidy-processc arch/um/include/tt/uaccess-tt.h
---- a/arch/um/include/tt/uaccess-tt.h~uml-tidy-processc
-+++ a/arch/um/include/tt/uaccess-tt.h
-@@ -27,8 +27,6 @@ extern unsigned long uml_physmem;
- #define access_ok_tt(type, addr, size) \
- 	(is_stack(addr, size))
+diff -puN arch/um/include/user_util.h~uml-create-as-layouth arch/um/include/user_util.h
+--- a/arch/um/include/user_util.h~uml-create-as-layouth
++++ a/arch/um/include/user_util.h
+@@ -30,30 +30,7 @@ extern int grantpt(int __fd);
+ extern int unlockpt(int __fd);
+ extern char *ptsname(int __fd);
  
--extern unsigned long get_fault_addr(void);
+-struct cpu_task {
+-	int pid;
+-	void *task;
+-};
 -
- extern int __do_copy_from_user(void *to, const void *from, int n,
- 			       void **fault_addr, void **fault_catcher);
- extern int __do_strncpy_from_user(char *dst, const char *src, size_t n,
-diff -puN arch/um/include/um_malloc.h~uml-tidy-processc arch/um/include/um_malloc.h
---- a/arch/um/include/um_malloc.h~uml-tidy-processc
-+++ a/arch/um/include/um_malloc.h
-@@ -11,7 +11,6 @@ extern void *um_kmalloc_atomic(int size)
- extern void kfree(const void *ptr);
- 
- extern void *um_vmalloc(int size);
--extern void *um_vmalloc_atomic(int size);
- extern void vfree(void *ptr);
- 
- #endif /* __UM_MALLOC_H__ */
-diff -puN arch/um/kernel/process.c~uml-tidy-processc arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~uml-tidy-processc
+-extern struct cpu_task cpu_tasks[];
+-
+-extern void (*sig_info[])(int, union uml_pt_regs *);
+-
+-extern unsigned long low_physmem;
+-extern unsigned long high_physmem;
+-extern unsigned long uml_physmem;
+-extern unsigned long uml_reserved;
+-extern unsigned long end_vm;
+-extern unsigned long start_vm;
+-extern unsigned long long highmem;
+-
+-extern unsigned long _stext, _etext, _sdata, _edata, __bss_start, _end;
+-extern unsigned long _unprotected_end;
+-extern unsigned long brk_start;
+-
+ extern void *add_signal_handler(int sig, void (*handler)(int));
+-extern int linux_main(int argc, char **argv);
+-extern void set_cmdline(char *cmd);
+ extern void input_cb(void (*proc)(void *), void *arg, int arg_len);
+ extern int get_pty(void);
+ extern int switcheroo(int fd, int prot, void *from, void *to, int size);
+diff -puN arch/um/kernel/exec.c~uml-create-as-layouth arch/um/kernel/exec.c
+--- a/arch/um/kernel/exec.c~uml-create-as-layouth
++++ a/arch/um/kernel/exec.c
+@@ -12,6 +12,7 @@
+ #include "asm/uaccess.h"
+ #include "user_util.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "mem_user.h"
+ #include "kern.h"
+ #include "irq_user.h"
+diff -puN arch/um/kernel/ksyms.c~uml-create-as-layouth arch/um/kernel/ksyms.c
+--- a/arch/um/kernel/ksyms.c~uml-create-as-layouth
++++ a/arch/um/kernel/ksyms.c
+@@ -16,6 +16,7 @@
+ #include "asm/page.h"
+ #include "asm/tlbflush.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "user_util.h"
+ #include "mem_user.h"
+ #include "os.h"
+diff -puN arch/um/kernel/mem.c~uml-create-as-layouth arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~uml-create-as-layouth
++++ a/arch/um/kernel/mem.c
+@@ -15,6 +15,7 @@
+ #include "asm/pgalloc.h"
+ #include "user_util.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "kern.h"
+ #include "mem_user.h"
+ #include "uml_uaccess.h"
+diff -puN arch/um/kernel/physmem.c~uml-create-as-layouth arch/um/kernel/physmem.c
+--- a/arch/um/kernel/physmem.c~uml-create-as-layouth
++++ a/arch/um/kernel/physmem.c
+@@ -13,6 +13,7 @@
+ #include "asm/types.h"
+ #include "asm/pgtable.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "user_util.h"
+ #include "mode_kern.h"
+ #include "mem.h"
+diff -puN arch/um/kernel/process.c~uml-create-as-layouth arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-create-as-layouth
 +++ a/arch/um/kernel/process.c
-@@ -54,11 +54,9 @@
-  */
- struct cpu_task cpu_tasks[NR_CPUS] = { [0 ... NR_CPUS - 1] = { -1, NULL } };
- 
--int external_pid(void *t)
-+static inline int external_pid(struct task_struct *task)
- {
--	struct task_struct *task = t ? t : current;
--
--	return(CHOOSE_MODE_PROC(external_pid_tt, external_pid_skas, task));
-+	return CHOOSE_MODE_PROC(external_pid_tt, external_pid_skas, task);
- }
- 
- int pid_to_processor_id(int pid)
-@@ -66,9 +64,10 @@ int pid_to_processor_id(int pid)
- 	int i;
- 
- 	for(i = 0; i < ncpus; i++){
--		if(cpu_tasks[i].pid == pid) return(i);
-+		if(cpu_tasks[i].pid == pid)
-+			return i;
- 	}
--	return(-1);
-+	return -1;
- }
- 
- void free_stack(unsigned long stack, int order)
-@@ -85,9 +84,9 @@ unsigned long alloc_stack(int order, int
- 		flags = GFP_ATOMIC;
- 	page = __get_free_pages(flags, order);
- 	if(page == 0)
--		return(0);
-+		return 0;
- 	stack_protections(page);
--	return(page);
-+	return page;
- }
- 
- int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags)
-@@ -100,13 +99,11 @@ int kernel_thread(int (*fn)(void *), voi
- 		      &current->thread.regs, 0, NULL, NULL);
- 	if(pid < 0)
- 		panic("do_fork failed in kernel_thread, errno = %d", pid);
--	return(pid);
-+	return pid;
- }
- 
--void set_current(void *t)
-+static inline void set_current(struct task_struct *task)
- {
--	struct task_struct *task = t;
--
- 	cpu_tasks[task_thread_info(task)->cpu] = ((struct cpu_task)
- 		{ external_pid(task), task });
- }
-@@ -128,14 +125,16 @@ void *_switch_to(void *prev, void *next,
- 		prev= current;
- 	} while(current->thread.saved_task);
- 
--	return(current->thread.prev_sched);
-+	return current->thread.prev_sched;
- 
- }
- 
- void interrupt_end(void)
- {
--	if(need_resched()) schedule();
--	if(test_tsk_thread_flag(current, TIF_SIGPENDING)) do_signal();
-+	if(need_resched())
-+		schedule();
-+	if(test_tsk_thread_flag(current, TIF_SIGPENDING))
-+		do_signal();
- }
- 
- void release_thread(struct task_struct *task)
-@@ -150,7 +149,7 @@ void exit_thread(void)
- 
- void *get_current(void)
- {
--	return(current);
-+	return current;
- }
- 
- int copy_thread(int nr, unsigned long clone_flags, unsigned long sp,
-@@ -188,15 +187,12 @@ void initial_thread_cb(void (*proc)(void
- 	kmalloc_ok = save_kmalloc_ok;
- }
- 
-+#ifdef CONFIG_MODE_TT
- unsigned long stack_sp(unsigned long page)
- {
--	return(page + PAGE_SIZE - sizeof(void *));
--}
--
--int current_pid(void)
--{
--	return(current->pid);
-+	return page + PAGE_SIZE - sizeof(void *);
- }
-+#endif
- 
- void default_idle(void)
- {
-@@ -223,7 +219,7 @@ void cpu_idle(void)
- 
- int page_size(void)
- {
--	return(PAGE_SIZE);
-+	return PAGE_SIZE;
- }
- 
- void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
-@@ -236,68 +232,43 @@ void *um_virt_to_phys(struct task_struct
- 	pte_t ptent;
- 
- 	if(task->mm == NULL)
--		return(ERR_PTR(-EINVAL));
-+		return ERR_PTR(-EINVAL);
- 	pgd = pgd_offset(task->mm, addr);
- 	if(!pgd_present(*pgd))
--		return(ERR_PTR(-EINVAL));
-+		return ERR_PTR(-EINVAL);
- 
- 	pud = pud_offset(pgd, addr);
- 	if(!pud_present(*pud))
--		return(ERR_PTR(-EINVAL));
-+		return ERR_PTR(-EINVAL);
- 
- 	pmd = pmd_offset(pud, addr);
- 	if(!pmd_present(*pmd))
--		return(ERR_PTR(-EINVAL));
-+		return ERR_PTR(-EINVAL);
- 
- 	pte = pte_offset_kernel(pmd, addr);
- 	ptent = *pte;
- 	if(!pte_present(ptent))
--		return(ERR_PTR(-EINVAL));
-+		return ERR_PTR(-EINVAL);
- 
- 	if(pte_out != NULL)
- 		*pte_out = ptent;
--	return((void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK));
-+	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
- }
- 
- char *current_cmd(void)
- {
- #if defined(CONFIG_SMP) || defined(CONFIG_HIGHMEM)
--	return("(Unknown)");
-+	return "(Unknown)";
- #else
- 	void *addr = um_virt_to_phys(current, current->mm->arg_start, NULL);
- 	return IS_ERR(addr) ? "(Unknown)": __va((unsigned long) addr);
- #endif
- }
- 
--void force_sigbus(void)
--{
--	printk(KERN_ERR "Killing pid %d because of a lack of memory\n",
--	       current->pid);
--	lock_kernel();
--	sigaddset(&current->pending.signal, SIGBUS);
--	recalc_sigpending();
--	current->flags |= PF_SIGNALED;
--	do_exit(SIGBUS | 0x80);
--}
--
- void dump_thread(struct pt_regs *regs, struct user *u)
- {
- }
- 
--void enable_hlt(void)
--{
--	panic("enable_hlt");
--}
--
--EXPORT_SYMBOL(enable_hlt);
--
--void disable_hlt(void)
--{
--	panic("disable_hlt");
--}
--
--EXPORT_SYMBOL(disable_hlt);
--
- void *um_kmalloc(int size)
- {
- 	return kmalloc(size, GFP_KERNEL);
-@@ -313,36 +284,17 @@ void *um_vmalloc(int size)
- 	return vmalloc(size);
- }
- 
--void *um_vmalloc_atomic(int size)
--{
--	return __vmalloc(size, GFP_ATOMIC | __GFP_HIGHMEM, PAGE_KERNEL);
--}
--
- int __cant_sleep(void) {
- 	return in_atomic() || irqs_disabled() || in_interrupt();
- 	/* Is in_interrupt() really needed? */
- }
- 
--unsigned long get_fault_addr(void)
--{
--	return((unsigned long) current->thread.fault_addr);
--}
--
--EXPORT_SYMBOL(get_fault_addr);
--
--void not_implemented(void)
--{
--	printk(KERN_DEBUG "Something isn't implemented in here\n");
--}
--
--EXPORT_SYMBOL(not_implemented);
--
- int user_context(unsigned long sp)
- {
- 	unsigned long stack;
- 
- 	stack = sp & (PAGE_MASK << CONFIG_KERNEL_STACK_ORDER);
--	return(stack != (unsigned long) current_thread);
-+	return stack != (unsigned long) current_thread;
- }
- 
- extern exitcall_t __uml_exitcall_begin, __uml_exitcall_end;
-@@ -363,22 +315,22 @@ char *uml_strdup(char *string)
- 
- int copy_to_user_proc(void __user *to, void *from, int size)
- {
--	return(copy_to_user(to, from, size));
-+	return copy_to_user(to, from, size);
- }
- 
- int copy_from_user_proc(void *to, void __user *from, int size)
- {
--	return(copy_from_user(to, from, size));
-+	return copy_from_user(to, from, size);
- }
- 
- int clear_user_proc(void __user *buf, int size)
- {
--	return(clear_user(buf, size));
-+	return clear_user(buf, size);
- }
- 
- int strlen_user_proc(char __user *str)
- {
--	return(strlen_user(str));
-+	return strlen_user(str);
- }
- 
- int smp_sigio_handler(void)
-@@ -387,14 +339,14 @@ int smp_sigio_handler(void)
- 	int cpu = current_thread->cpu;
- 	IPI_handler(cpu);
- 	if(cpu != 0)
--		return(1);
-+		return 1;
- #endif
--	return(0);
-+	return 0;
- }
- 
- int cpu(void)
- {
--	return(current_thread->cpu);
-+	return current_thread->cpu;
- }
- 
- static atomic_t using_sysemu = ATOMIC_INIT(0);
-@@ -443,7 +395,7 @@ int __init make_proc_sysemu(void)
- 	if (ent == NULL)
- 	{
- 		printk(KERN_WARNING "Failed to register /proc/sysemu\n");
--		return(0);
-+		return 0;
- 	}
- 
- 	ent->read_proc  = proc_read_sysemu;
+@@ -34,6 +34,7 @@
+ #include "asm/user.h"
+ #include "user_util.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "kern.h"
+ #include "signal_kern.h"
+ #include "init.h"
+diff -puN arch/um/kernel/skas/process.c~uml-create-as-layouth arch/um/kernel/skas/process.c
+--- a/arch/um/kernel/skas/process.c~uml-create-as-layouth
++++ a/arch/um/kernel/skas/process.c
+@@ -13,6 +13,7 @@
+ #include "asm/uaccess.h"
+ #include "asm/atomic.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "skas.h"
+ #include "os.h"
+ #include "user_util.h"
+diff -puN arch/um/kernel/tlb.c~uml-create-as-layouth arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-create-as-layouth
++++ a/arch/um/kernel/tlb.c
+@@ -9,6 +9,7 @@
+ #include "asm/tlbflush.h"
+ #include "choose-mode.h"
+ #include "mode_kern.h"
++#include "as-layout.h"
+ #include "user_util.h"
+ #include "tlb.h"
+ #include "mem.h"
+diff -puN arch/um/kernel/trap.c~uml-create-as-layouth arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~uml-create-as-layouth
++++ a/arch/um/kernel/trap.c
+@@ -20,6 +20,7 @@
+ #include "sysdep/sigcontext.h"
+ #include "user_util.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "arch.h"
+ #include "kern.h"
+ #include "chan_kern.h"
+diff -puN arch/um/kernel/um_arch.c~uml-create-as-layouth arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-create-as-layouth
++++ a/arch/um/kernel/um_arch.c
+@@ -28,6 +28,7 @@
+ #include "asm/current.h"
+ #include "user_util.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "arch.h"
+ #include "kern.h"
+ #include "mem_user.h"
+diff -puN arch/um/os-Linux/main.c~uml-create-as-layouth arch/um/os-Linux/main.c
+--- a/arch/um/os-Linux/main.c~uml-create-as-layouth
++++ a/arch/um/os-Linux/main.c
+@@ -15,6 +15,7 @@
+ #include <asm/page.h>
+ #include "user_util.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "mem_user.h"
+ #include "irq_user.h"
+ #include "user.h"
+diff -puN arch/um/os-Linux/skas/trap.c~uml-create-as-layouth arch/um/os-Linux/skas/trap.c
+--- a/arch/um/os-Linux/skas/trap.c~uml-create-as-layouth
++++ a/arch/um/os-Linux/skas/trap.c
+@@ -7,6 +7,7 @@
+ #include <errno.h>
+ #include "user_util.h"
+ #include "kern_util.h"
++#include "as-layout.h"
+ #include "task.h"
+ #include "sigcontext.h"
+ #include "skas.h"
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
