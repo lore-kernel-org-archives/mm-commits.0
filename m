@@ -1,69 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-account-i-o-block-times-for-stock-readahead.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:15:44 -0700
-Message-ID: <200705080815.l488FiEH019070@shell0.pdx.osdl.net>
+Subject: - readahead-remove-size-limit-on-read_ahead_kb.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:15:58 -0700
+Message-ID: <200705080815.l488Fwos019079@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40165 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43791 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934651AbXEHIQ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:16:26 -0400
+	by vger.kernel.org with ESMTP id S934650AbXEHIQa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:16:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: account I/O block times for stock readahead
+     readahead: remove size limit on read_ahead_kb
 has been removed from the -mm tree.  Its filename was
-     readahead-account-i-o-block-times-for-stock-readahead.patch
+     readahead-remove-size-limit-on-read_ahead_kb.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: readahead: account I/O block times for stock readahead
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: readahead: remove size limit on read_ahead_kb
+From: Wu Fengguang <wfg@mail.ustc.edu.cn>
 
-Account I/O block times for the stock readahead, too.
+Make possible large readahead values harmless.  The stock readahead is
+protected by always consulting the avaiable memory before applying this
+number.  Other readahead paths have already did so.
 
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-
+Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/readahead.c~readahead-account-i-o-block-times-for-stock-readahead mm/readahead.c
---- a/mm/readahead.c~readahead-account-i-o-block-times-for-stock-readahead
+diff -puN mm/readahead.c~readahead-remove-size-limit-on-read_ahead_kb mm/readahead.c
+--- a/mm/readahead.c~readahead-remove-size-limit-on-read_ahead_kb
 +++ a/mm/readahead.c
-@@ -1759,15 +1759,15 @@ EXPORT_SYMBOL_GPL(page_cache_readahead_a
+@@ -143,7 +143,7 @@ EXPORT_SYMBOL_GPL(file_ra_state_init);
   */
- void readahead_cache_hit(struct file_ra_state *ra, struct page *page)
+ static inline unsigned long get_max_readahead(struct file_ra_state *ra)
  {
--	if (!prefer_adaptive_readahead())
--		return;
--
- 	if (PageActive(page) || PageReferenced(page))
- 		return;
+-	return ra->ra_pages;
++	return max_sane_readahead(ra->ra_pages);
+ }
  
- 	if (!PageUptodate(page))
- 		ra_account(ra, RA_EVENT_IO_BLOCK, 1);
- 
-+	if (!prefer_adaptive_readahead())
-+		return;
-+
- 	if (!ra_has_index(ra, page->index))
- 		return;
- 
+ static inline unsigned long get_min_readahead(struct file_ra_state *ra)
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-readahead-account-i-o-block-times-for-stock-readahead.patch
-readahead-rescue_pages-updates.patch
-readahead-remove-noaction-shrink-events.patch
 readahead-remove-size-limit-on-read_ahead_kb.patch
 readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
 readahead-partial-sendfile-fix.patch
