@@ -1,79 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-minmax_ra_pages.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:13:40 -0700
-Message-ID: <200705080813.l488DeKj018927@shell0.pdx.osdl.net>
+Subject: - readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:13:32 -0700
+Message-ID: <200705080813.l488DWsi018921@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42942 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934570AbXEHIOW (ORCPT
+	by vger.kernel.org with ESMTP id S934616AbXEHIOW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:14:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: {MIN,MAX}_RA_PAGES
+     readahead: add look-ahead support to __do_page_cache_readahead()
 has been removed from the -mm tree.  Its filename was
-     readahead-minmax_ra_pages.patch
+     readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: readahead: {MIN,MAX}_RA_PAGES
+Subject: readahead: add look-ahead support to __do_page_cache_readahead()
 From: Wu Fengguang <wfg@mail.ustc.edu.cn>
 
-Define two convenient macros for read-ahead:
-	- MAX_RA_PAGES: rounded down counterpart of VM_MAX_READAHEAD
-	- MIN_RA_PAGES: rounded _up_ counterpart of VM_MIN_READAHEAD
+Add look-ahead support to __do_page_cache_readahead().
 
-Note that the rounded up MIN_RA_PAGES will work flawlessly with _large_
-page sizes like 64k.
+It works by
+	- mark the Nth backwards page with PG_readahead,
+	(which instructs the page's first reader to invoke readahead)
+	- and only do the marking for newly allocated pages.
+	(to prevent blindly doing readahead on already cached pages)
+
+Look-ahead is a technique to achieve I/O pipelining:
+	While the application is working through a chunk of cached pages,
+	the kernel reads-ahead the next chunk of pages _before_ time of need.
+	It effectively hides low level I/O latencies to high level
+	applications.
 
 Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
+ mm/readahead.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN mm/readahead.c~readahead-minmax_ra_pages mm/readahead.c
---- a/mm/readahead.c~readahead-minmax_ra_pages
+diff -puN mm/readahead.c~readahead-add-look-ahead-support-to-__do_page_cache_readahead mm/readahead.c
+--- a/mm/readahead.c~readahead-add-look-ahead-support-to-__do_page_cache_readahead
 +++ a/mm/readahead.c
-@@ -23,8 +23,16 @@ void default_unplug_io_fn(struct backing
- }
- EXPORT_SYMBOL(default_unplug_io_fn);
- 
-+/*
-+ * Convienent macros for min/max read-ahead pages.
-+ * Note that MAX_RA_PAGES is rounded down, while MIN_RA_PAGES is rounded up.
-+ * The latter is necessary for systems with large page size(i.e. 64k).
-+ */
-+#define MAX_RA_PAGES	(VM_MAX_READAHEAD*1024 / PAGE_CACHE_SIZE)
-+#define MIN_RA_PAGES	DIV_ROUND_UP(VM_MIN_READAHEAD*1024, PAGE_CACHE_SIZE)
-+
- struct backing_dev_info default_backing_dev_info = {
--	.ra_pages	= (VM_MAX_READAHEAD * 1024) / PAGE_CACHE_SIZE,
-+	.ra_pages	= MAX_RA_PAGES,
- 	.state		= 0,
- 	.capabilities	= BDI_CAP_MAP_COPY,
- 	.unplug_io_fn	= default_unplug_io_fn,
-@@ -53,7 +61,7 @@ static inline unsigned long get_max_read
- 
- static inline unsigned long get_min_readahead(struct file_ra_state *ra)
+@@ -267,7 +267,8 @@ out:
+  */
+ static int
+ __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
+-			pgoff_t offset, unsigned long nr_to_read)
++			pgoff_t offset, unsigned long nr_to_read,
++			unsigned long lookahead_size)
  {
--	return (VM_MIN_READAHEAD * 1024) / PAGE_CACHE_SIZE;
-+	return MIN_RA_PAGES;
+ 	struct inode *inode = mapping->host;
+ 	struct page *page;
+@@ -280,7 +281,7 @@ __do_page_cache_readahead(struct address
+ 	if (isize == 0)
+ 		goto out;
+ 
+- 	end_index = ((isize - 1) >> PAGE_CACHE_SHIFT);
++	end_index = ((isize - 1) >> PAGE_CACHE_SHIFT);
+ 
+ 	/*
+ 	 * Preallocate as many pages as we will need.
+@@ -303,6 +304,8 @@ __do_page_cache_readahead(struct address
+ 			break;
+ 		page->index = page_offset;
+ 		list_add(&page->lru, &page_pool);
++		if (page_idx == nr_to_read - lookahead_size)
++			SetPageReadahead(page);
+ 		ret++;
+ 	}
+ 	read_unlock_irq(&mapping->tree_lock);
+@@ -339,7 +342,7 @@ int force_page_cache_readahead(struct ad
+ 		if (this_chunk > nr_to_read)
+ 			this_chunk = nr_to_read;
+ 		err = __do_page_cache_readahead(mapping, filp,
+-						offset, this_chunk);
++						offset, this_chunk, 0);
+ 		if (err < 0) {
+ 			ret = err;
+ 			break;
+@@ -386,7 +389,7 @@ int do_page_cache_readahead(struct addre
+ 	if (bdi_read_congested(mapping->backing_dev_info))
+ 		return -1;
+ 
+-	return __do_page_cache_readahead(mapping, filp, offset, nr_to_read);
++	return __do_page_cache_readahead(mapping, filp, offset, nr_to_read, 0);
  }
  
- static inline void reset_ahead_window(struct file_ra_state *ra)
+ /*
+@@ -406,7 +409,7 @@ blockable_page_cache_readahead(struct ad
+ 	if (!block && bdi_read_congested(mapping->backing_dev_info))
+ 		return 0;
+ 
+-	actual = __do_page_cache_readahead(mapping, filp, offset, nr_to_read);
++	actual = __do_page_cache_readahead(mapping, filp, offset, nr_to_read, 0);
+ 
+ 	return check_ra_success(ra, nr_to_read, actual);
+ }
+@@ -451,7 +454,7 @@ static int make_ahead_window(struct addr
+  * @req_size: hint: total size of the read which the caller is performing in
+  *            PAGE_CACHE_SIZE units
+  *
+- * page_cache_readahead() is the main function.  If performs the adaptive
++ * page_cache_readahead() is the main function.  It performs the adaptive
+  * readahead window size management and submits the readahead I/O.
+  *
+  * Note that @filp is purely used for passing on to the ->readpage[s]()
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
+readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
+readahead-insert-cond_resched-calls.patch
 readahead-minmax_ra_pages.patch
 readahead-events-accounting.patch
 readahead-rescue_pages.patch
