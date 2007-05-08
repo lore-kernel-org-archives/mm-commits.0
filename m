@@ -1,208 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - slab-introduce-krealloc.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:01:18 -0700
-Message-ID: <200705080001.l4801IXa008763@shell0.pdx.osdl.net>
+Subject: - serial-serial_core-use-pr_debug.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:01:38 -0700
+Message-ID: <200705080001.l4801c46008784@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60908 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33751 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967304AbXEHABp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:01:45 -0400
+	by vger.kernel.org with ESMTP id S967313AbXEHABz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:01:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, clameter@sgi.com, jsipek@fsl.cs.sunysb.edu, mpm@selenic.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: introduce krealloc
+     Serial: serial_core, use pr_debug
 has been removed from the -mm tree.  Its filename was
-     slab-introduce-krealloc.patch
+     serial-serial_core-use-pr_debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slab: introduce krealloc
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: Serial: serial_core, use pr_debug
+From: Jiri Slaby <jirislaby@gmail.com>
 
-This introduce krealloc() that reallocates memory while keeping the contents
-unchanged.  The allocator avoids reallocation if the new size fits the
-currently used cache.  I also added a simple non-optimized version for
-mm/slob.c for compatibility.
+serial_core, use pr_debug
 
-[akpm@linux-foundation.org: fix warnings]
-Acked-by: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
-Acked-by: Matt Mackall <mpm@selenic.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    3 +-
- mm/slab.c            |   49 ++++++++++++++++++++++++++++++++++++++++-
- mm/slob.c            |   35 ++++++++++++++++++++++++++++-
- 3 files changed, 84 insertions(+), 3 deletions(-)
+ drivers/serial/serial_core.c |   17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/slab.h~slab-introduce-krealloc include/linux/slab.h
---- a/include/linux/slab.h~slab-introduce-krealloc
-+++ a/include/linux/slab.h
-@@ -72,8 +72,9 @@ static inline void *kmem_cache_alloc_nod
+diff -puN drivers/serial/serial_core.c~serial-serial_core-use-pr_debug drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-serial_core-use-pr_debug
++++ a/drivers/serial/serial_core.c
+@@ -37,13 +37,6 @@
+ #include <asm/irq.h>
+ #include <asm/uaccess.h>
+ 
+-#undef	DEBUG
+-#ifdef DEBUG
+-#define DPRINTK(x...)	printk(x)
+-#else
+-#define DPRINTK(x...)	do { } while (0)
+-#endif
+-
+ /*
+  * This is used to lock changes in serial line configuration.
   */
- void *__kmalloc(size_t, gfp_t);
- void *__kzalloc(size_t, gfp_t);
-+void * __must_check krealloc(const void *, size_t, gfp_t);
- void kfree(const void *);
--unsigned int ksize(const void *);
-+size_t ksize(const void *);
+@@ -552,7 +545,7 @@ static void uart_flush_buffer(struct tty
+ 		return;
+ 	}
  
- /**
-  * kcalloc - allocate memory for an array. The memory is set to zero.
-diff -puN mm/slab.c~slab-introduce-krealloc mm/slab.c
---- a/mm/slab.c~slab-introduce-krealloc
-+++ a/mm/slab.c
-@@ -3740,6 +3740,53 @@ EXPORT_SYMBOL(__kmalloc);
- #endif
+-	DPRINTK("uart_flush_buffer(%d) called\n", tty->index);
++	pr_debug("uart_flush_buffer(%d) called\n", tty->index);
  
- /**
-+ * krealloc - reallocate memory. The contents will remain unchanged.
-+ *
-+ * @p: object to reallocate memory for.
-+ * @new_size: how many bytes of memory are required.
-+ * @flags: the type of memory to allocate.
-+ *
-+ * The contents of the object pointed to are preserved up to the
-+ * lesser of the new and old sizes.  If @p is %NULL, krealloc()
-+ * behaves exactly like kmalloc().  If @size is 0 and @p is not a
-+ * %NULL pointer, the object pointed to is freed.
-+ */
-+void *krealloc(const void *p, size_t new_size, gfp_t flags)
-+{
-+	struct kmem_cache *cache, *new_cache;
-+	void *ret;
-+
-+	if (unlikely(!p))
-+		return kmalloc_track_caller(new_size, flags);
-+
-+	if (unlikely(!new_size)) {
-+		kfree(p);
-+		return NULL;
-+	}
-+
-+	cache = virt_to_cache(p);
-+	new_cache = __find_general_cachep(new_size, flags);
-+
-+	/*
-+ 	 * If new size fits in the current cache, bail out.
-+ 	 */
-+	if (likely(cache == new_cache))
-+		return (void *)p;
-+
-+	/*
-+ 	 * We are on the slow-path here so do not use __cache_alloc
-+ 	 * because it bloats kernel text.
-+ 	 */
-+	ret = kmalloc_track_caller(new_size, flags);
-+	if (ret) {
-+		memcpy(ret, p, min(new_size, ksize(p)));
-+		kfree(p);
-+	}
-+	return ret;
-+}
-+EXPORT_SYMBOL(krealloc);
-+
-+/**
-  * kmem_cache_free - Deallocate an object
-  * @cachep: The cache the allocation was from.
-  * @objp: The previously allocated object.
-@@ -4481,7 +4528,7 @@ const struct seq_operations slabstats_op
-  * allocated with either kmalloc() or kmem_cache_alloc(). The object
-  * must not be freed during the duration of the call.
-  */
--unsigned int ksize(const void *objp)
-+size_t ksize(const void *objp)
- {
- 	if (unlikely(objp == NULL))
- 		return 0;
-diff -puN mm/slob.c~slab-introduce-krealloc mm/slob.c
---- a/mm/slob.c~slab-introduce-krealloc
-+++ a/mm/slob.c
-@@ -190,6 +190,39 @@ void *__kmalloc(size_t size, gfp_t gfp)
- }
- EXPORT_SYMBOL(__kmalloc);
+ 	spin_lock_irqsave(&port->lock, flags);
+ 	uart_circ_clear(&state->info->xmit);
+@@ -1224,7 +1217,7 @@ static void uart_close(struct tty_struct
  
-+/**
-+ * krealloc - reallocate memory. The contents will remain unchanged.
-+ *
-+ * @p: object to reallocate memory for.
-+ * @new_size: how many bytes of memory are required.
-+ * @flags: the type of memory to allocate.
-+ *
-+ * The contents of the object pointed to are preserved up to the
-+ * lesser of the new and old sizes.  If @p is %NULL, krealloc()
-+ * behaves exactly like kmalloc().  If @size is 0 and @p is not a
-+ * %NULL pointer, the object pointed to is freed.
-+ */
-+void *krealloc(const void *p, size_t new_size, gfp_t flags)
-+{
-+	void *ret;
-+
-+	if (unlikely(!p))
-+		return kmalloc_track_caller(new_size, flags);
-+
-+	if (unlikely(!new_size)) {
-+		kfree(p);
-+		return NULL;
-+	}
-+
-+	ret = kmalloc_track_caller(new_size, flags);
-+	if (ret) {
-+		memcpy(ret, p, min(new_size, ksize(p)));
-+		kfree(p);
-+	}
-+	return ret;
-+}
-+EXPORT_SYMBOL(krealloc);
-+
- void kfree(const void *block)
- {
- 	bigblock_t *bb, **last = &bigblocks;
-@@ -219,7 +252,7 @@ void kfree(const void *block)
+ 	port = state->port;
  
- EXPORT_SYMBOL(kfree);
+-	DPRINTK("uart_close(%d) called\n", port->line);
++	pr_debug("uart_close(%d) called\n", port->line);
  
--unsigned int ksize(const void *block)
-+size_t ksize(const void *block)
- {
- 	bigblock_t *bb;
- 	unsigned long flags;
+ 	mutex_lock(&state->mutex);
+ 
+@@ -1343,7 +1336,7 @@ static void uart_wait_until_sent(struct 
+ 
+ 	expire = jiffies + timeout;
+ 
+-	DPRINTK("uart_wait_until_sent(%d), jiffies=%lu, expire=%lu...\n",
++	pr_debug("uart_wait_until_sent(%d), jiffies=%lu, expire=%lu...\n",
+ 	        port->line, jiffies, expire);
+ 
+ 	/*
+@@ -1372,7 +1365,7 @@ static void uart_hangup(struct tty_struc
+ 	struct uart_state *state = tty->driver_data;
+ 
+ 	BUG_ON(!kernel_locked());
+-	DPRINTK("uart_hangup(%d)\n", state->port->line);
++	pr_debug("uart_hangup(%d)\n", state->port->line);
+ 
+ 	mutex_lock(&state->mutex);
+ 	if (state->info && state->info->flags & UIF_NORMAL_ACTIVE) {
+@@ -1570,7 +1563,7 @@ static int uart_open(struct tty_struct *
+ 	int retval, line = tty->index;
+ 
+ 	BUG_ON(!kernel_locked());
+-	DPRINTK("uart_open(%d) called\n", line);
++	pr_debug("uart_open(%d) called\n", line);
+ 
+ 	/*
+ 	 * tty->driver->num won't change, so we won't fail here with
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-unionfs-fix-slab-abuses-with-krealloc.patch
-increase-slab-redzone-to-64bits.patch
-module-use-krealloc.patch
-slab-use-cpu_lock_.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-revoke-special-mmap-handling.patch
-revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
-revoke-core-code.patch
-revoke-core-code-misc-fixes.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-core-code-move-magic.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
-revoke-core-code-break-cow-for-private-mappings.patch
-revoke-core-code-generic_file_revoke-stub-for-nommu.patch
-revoke-core-code-break-cow-fixes.patch
-revoke-core-code-mapping-revocation.patch
-revoke-core-code-only-fput-unused-files.patch
-revoke-core-code-rename-to-can_revoke_filevma.patch
-revoke-core-code-change-revoke_table-to-fileset-and-revoke_details.patch
-revoke-core-code-do_revoke-error-handling.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-slab-leaks3-default-y.patch
+cinergyt2-fix-file-release-handler.patch
+auerswald-fix-file-release-handler.patch
+char-rocket-add-module_device_table.patch
+char-cs5535_gpio-add-module_device_table.patch
+drivers-char-use-__set_current_state.patch
+misc-add-sensable-phantom-driver.patch
+misc-add-sensable-phantom-driver-v3.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+char-cyclades-remove-pause.patch
+char-cyclades-cy_readx-writex-cleanup.patch
+char-cyclades-timer-cleanup.patch
+char-cyclades-remove-volatiles.patch
+char-cyclades-remove-useless-casts.patch
+char-cyclades-create-cy_init_ze.patch
+char-cyclades-use-pci_iomap-unmap.patch
+char-cyclades-init-ze-immediately.patch
+char-cyclades-create-cy_pci_probe.patch
+char-cyclades-move-card-entries-init-into-function.patch
+char-cyclades-init-card-struct-immediately.patch
+char-cyclades-remove-some-global-vars.patch
+char-cyclades-cy_init-error-handling.patch
+char-cyclades-tty_register_device-separately-for-each-device.patch
+char-cyclades-clear-interrupts-before-releasing.patch
+char-cyclades-allow-debug_shirq.patch
+char-mxser-schedule-for-removal.patch
+char-isicom-use-pr_debug.patch
+char-cyclades-use-is_cyc_z-macro.patch
+char-cyclades-switch-to-pci-probing.patch
+char-cyclades-depends-on-pci-or-isa.patch
+char-cyclades-unexport-struct-cyclades_card.patch
+char-cyclades-remove-useless-fileds-from-cyclades_card.patch
+char-cyclades-irq-is-int.patch
+char-cyclades-printk-cleanups.patch
+char-cyclades-mark-cyy_init_card-as-__devinit-not-__init.patch
+char-cyclades-simplify-variables-initialization.patch
+char-cyclades-get-rid-of-phys-addresses.patch
+char-cyclades-make-info-card-a-pointer.patch
+char-cyclades-remove-sleep_on.patch
+char-cyclades-fix-blockmove.patch
+char-cyclades-timers-cleanup.patch
+char-cyclades-remove-unused-timestamps.patch
+char-cyclades-remove-locking-macros.patch
+char-cyclades-conditions-cleanup.patch
+char-cyclades-conditions-cleanup-fix.patch
+char-cyclades-fix-tty-device-unregister.patch
+char-cyclades-dynamic-ports.patch
+char-cyclades-probe-cleanup.patch
+char-cyclades-probe-cleanup-fix.patch
+char-cyclades-copyright-and-version-changes.patch
+shrink_slab-handle-bad-shrinkers.patch
