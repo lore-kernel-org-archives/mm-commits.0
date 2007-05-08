@@ -1,178 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - spin_lock_unlocked-cleanup-in-arch-m68k.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:46 -0700
-Message-ID: <200705080005.l4805kip009120@shell0.pdx.osdl.net>
+Subject: - remove-unused-header-file-arch-m68k-atari-atasoundh.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:05:43 -0700
+Message-ID: <200705080005.l4805hBC009117@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42909 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967363AbXEHAGP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:15 -0400
+	by vger.kernel.org with ESMTP id S967368AbXEHAGS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: milindchoudhary@gmail.com, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SPIN_LOCK_UNLOCKED cleanup in arch/m68k
+     remove unused header file: arch/m68k/atari/atasound.h
 has been removed from the -mm tree.  Its filename was
-     spin_lock_unlocked-cleanup-in-arch-m68k.patch
+     remove-unused-header-file-arch-m68k-atari-atasoundh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SPIN_LOCK_UNLOCKED cleanup in arch/m68k
-From: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Subject: remove unused header file: arch/m68k/atari/atasound.h
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-SPIN_LOCK_UNLOCKED cleanup,use __SPIN_LOCK_UNLOCKED instead
-
-Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/amiga/amiints.c  |    2 +-
- arch/m68k/amiga/cia.c      |    4 ++--
- arch/m68k/apollo/dn_ints.c |    2 +-
- arch/m68k/atari/ataints.c  |    2 +-
- arch/m68k/kernel/ints.c    |    4 ++--
- arch/m68k/mac/macints.c    |    2 +-
- arch/m68k/q40/q40ints.c    |    2 +-
- arch/m68k/sun3/sun3ints.c  |    2 +-
- 8 files changed, 10 insertions(+), 10 deletions(-)
+ arch/m68k/atari/atasound.h |   33 ---------------------------------
+ 1 file changed, 33 deletions(-)
 
-diff -puN arch/m68k/amiga/amiints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/amiga/amiints.c
---- a/arch/m68k/amiga/amiints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/amiga/amiints.c
-@@ -54,7 +54,7 @@ static irqreturn_t ami_int5(int irq, voi
- 
- static struct irq_controller amiga_irq_controller = {
- 	.name		= "amiga",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(amiga_irq_controller.lock),
- 	.enable		= amiga_enable_irq,
- 	.disable	= amiga_disable_irq,
- };
-diff -puN arch/m68k/amiga/cia.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/amiga/cia.c
---- a/arch/m68k/amiga/cia.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/amiga/cia.c
-@@ -123,7 +123,7 @@ static void cia_disable_irq(unsigned int
- 
- static struct irq_controller cia_irq_controller = {
- 	.name		= "cia",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(cia_irq_controller.lock),
- 	.enable		= cia_enable_irq,
- 	.disable	= cia_disable_irq,
- };
-@@ -160,7 +160,7 @@ static void auto_disable_irq(unsigned in
- 
- static struct irq_controller auto_irq_controller = {
- 	.name		= "auto",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(auto_irq_controller.lock),
- 	.enable		= auto_enable_irq,
- 	.disable	= auto_disable_irq,
- };
-diff -puN arch/m68k/apollo/dn_ints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/apollo/dn_ints.c
---- a/arch/m68k/apollo/dn_ints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/apollo/dn_ints.c
-@@ -31,7 +31,7 @@ void apollo_irq_shutdown(unsigned int ir
- 
- static struct irq_controller apollo_irq_controller = {
- 	.name           = "apollo",
--	.lock           = SPIN_LOCK_UNLOCKED,
-+	.lock           = __SPIN_LOCK_UNLOCKED(apollo_irq_controller.lock),
- 	.startup        = apollo_irq_startup,
- 	.shutdown       = apollo_irq_shutdown,
- };
-diff -puN arch/m68k/atari/ataints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/atari/ataints.c
---- a/arch/m68k/atari/ataints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/atari/ataints.c
-@@ -339,7 +339,7 @@ static void atari_shutdown_irq(unsigned 
- 
- static struct irq_controller atari_irq_controller = {
- 	.name		= "atari",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(atari_irq_controller.lock),
- 	.startup	= atari_startup_irq,
- 	.shutdown	= atari_shutdown_irq,
- 	.enable		= atari_enable_irq,
-diff -puN arch/m68k/kernel/ints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/kernel/ints.c
---- a/arch/m68k/kernel/ints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/kernel/ints.c
-@@ -59,14 +59,14 @@ static int m68k_first_user_vec;
- 
- static struct irq_controller auto_irq_controller = {
- 	.name		= "auto",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(auto_irq_controller.lock),
- 	.startup	= m68k_irq_startup,
- 	.shutdown	= m68k_irq_shutdown,
- };
- 
- static struct irq_controller user_irq_controller = {
- 	.name		= "user",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(user_irq_controller.lock),
- 	.startup	= m68k_irq_startup,
- 	.shutdown	= m68k_irq_shutdown,
- };
-diff -puN arch/m68k/mac/macints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/mac/macints.c
---- a/arch/m68k/mac/macints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/mac/macints.c
-@@ -219,7 +219,7 @@ static void mac_disable_irq(unsigned int
- 
- static struct irq_controller mac_irq_controller = {
- 	.name		= "mac",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(mac_irq_controller.lock),
- 	.enable		= mac_enable_irq,
- 	.disable	= mac_disable_irq,
- };
-diff -puN arch/m68k/q40/q40ints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/q40/q40ints.c
---- a/arch/m68k/q40/q40ints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/q40/q40ints.c
-@@ -59,7 +59,7 @@ static void q40_irq_shutdown(unsigned in
- 
- static struct irq_controller q40_irq_controller = {
- 	.name		= "q40",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(q40_irq_controller.lock),
- 	.startup	= q40_irq_startup,
- 	.shutdown	= q40_irq_shutdown,
- 	.enable		= q40_enable_irq,
-diff -puN arch/m68k/sun3/sun3ints.c~spin_lock_unlocked-cleanup-in-arch-m68k arch/m68k/sun3/sun3ints.c
---- a/arch/m68k/sun3/sun3ints.c~spin_lock_unlocked-cleanup-in-arch-m68k
-+++ a/arch/m68k/sun3/sun3ints.c
-@@ -90,7 +90,7 @@ static void sun3_inthandle(unsigned int 
- 
- static struct irq_controller sun3_irq_controller = {
- 	.name		= "sun3",
--	.lock		= SPIN_LOCK_UNLOCKED,
-+	.lock		= __SPIN_LOCK_UNLOCKED(sun3_irq_controller.lock),
- 	.startup	= m68k_irq_startup,
- 	.shutdown	= m68k_irq_shutdown,
- 	.enable		= sun3_enable_irq,
+diff -puN arch/m68k/atari/atasound.h~remove-unused-header-file-arch-m68k-atari-atasoundh /dev/null
+--- a/arch/m68k/atari/atasound.h
++++ /dev/null
+@@ -1,33 +0,0 @@
+-/*
+- * Minor numbers for the sound driver.
+- *
+- * Unfortunately Creative called the codec chip of SB as a DSP. For this
+- * reason the /dev/dsp is reserved for digitized audio use. There is a
+- * device for true DSP processors but it will be called something else.
+- * In v3.0 it's /dev/sndproc but this could be a temporary solution.
+- */
+-
+-#define SND_NDEVS	256	/* Number of supported devices */
+-#define SND_DEV_CTL	0	/* Control port /dev/mixer */
+-#define SND_DEV_SEQ	1	/* Sequencer output /dev/sequencer (FM
+-				   synthesizer and MIDI output) */
+-#define SND_DEV_MIDIN	2	/* Raw midi access */
+-#define SND_DEV_DSP	3	/* Digitized voice /dev/dsp */
+-#define SND_DEV_AUDIO	4	/* Sparc compatible /dev/audio */
+-#define SND_DEV_DSP16	5	/* Like /dev/dsp but 16 bits/sample */
+-#define SND_DEV_STATUS	6	/* /dev/sndstat */
+-/* #7 not in use now. Was in 2.4. Free for use after v3.0. */
+-#define SND_DEV_SEQ2	8	/* /dev/sequencer, level 2 interface */
+-#define SND_DEV_SNDPROC 9	/* /dev/sndproc for programmable devices */
+-#define SND_DEV_PSS	SND_DEV_SNDPROC
+-
+-#define DSP_DEFAULT_SPEED	8000
+-
+-#define ON		1
+-#define OFF		0
+-
+-#define MAX_AUDIO_DEV	5
+-#define MAX_MIXER_DEV	2
+-#define MAX_SYNTH_DEV	3
+-#define MAX_MIDI_DEV	6
+-#define MAX_TIMER_DEV	3
 _
 
-Patches currently in -mm which might be from milindchoudhary@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
 git-alsa.patch
-spin_lock_unlocked-macro-cleanup-in-arch-ia64.patch
-git-jfs.patch
-nfs-use-__set_current_state.patch
-round_up-macro-cleanup-in-drivers-parisc.patch
-round_up-macro-cleanup-in-drivers-pci.patch
-pcie-remove-spin_lock_unlocked.patch
-round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
-round_up-macro-cleanup-in-drivers-char-lpc.patch
-round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
-round_up-macro-cleanup-in-fs-smbfs-requestc.patch
-spin_lock_unlocked-cleanup-in-init_taskh.patch
-spin_lock_unlocked-cleanup-in-drivers-char-keyboard.patch
-spin_lock_unlocked-cleanup-in-drivers-serial.patch
-reiserfs-use-__set_current_state.patch
-drivers-char-use-__set_current_state.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+arm-remove-useless-config-option-generic_bust_spinlock.patch
+git-avr32.patch
+git-dvb.patch
+git-ieee1394.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-r8169.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
+kconfig-centralize-the-selection-of-semaphore-debugging.patch
+rocket-remove-modversions-include.patch
+remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+remove-unused-header-file-drivers-char-digih.patch
+delete-unused-header-file-math-emu-extendedh.patch
+delete-unused-header-file-linux-awe_voiceh.patch
+add-spaces-on-either-side-of-case-operator.patch
+some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
+remove-unused-header-file-drivers-video-riva-nv4refh.patch
+video-add-spaces-on-either-side-of-the-case-operator.patch
