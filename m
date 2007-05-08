@@ -1,50 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - char-cyclades-probe-cleanup-fix.patch removed from -mm tree
-Date: Mon, 07 May 2007 23:04:42 -0700
-Message-ID: <200705080604.l4864gqx015045@shell0.pdx.osdl.net>
+Subject: - sm501fb-printk-warning-fixes.patch removed from -mm tree
+Date: Mon, 07 May 2007 23:05:33 -0700
+Message-ID: <200705080605.l4865XeT015053@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40468 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752817AbXEHGEr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 02:04:47 -0400
+	by vger.kernel.org with ESMTP id S1754012AbXEHGFk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 02:05:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char-cyclades-probe-cleanup-fix
+     sm501fb-printk-warning-fixes
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-probe-cleanup-fix.patch
+     sm501fb-printk-warning-fixes.patch
 
-This patch was dropped because it was folded into char-cyclades-probe-cleanup.patch
+This patch was dropped because it was folded into cirrusfb-convert-to-generic-boolean.patch
 
 ------------------------------------------------------
-Subject: char-cyclades-probe-cleanup-fix
+Subject: sm501fb-printk-warning-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-wtf2?
+drivers/video/sm501fb.c: In function 'sm501fb_cursor':
+drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
+drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
 
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    2 +-
+ drivers/video/sm501fb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-probe-cleanup-fix drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-probe-cleanup-fix
-+++ a/drivers/char/cyclades.c
-@@ -4922,7 +4922,7 @@ static int __devinit cy_pci_probe(struct
- 		if (irq != 0 && irq != 255) {
- 			retval = request_irq(irq, cyz_interrupt,
- 					IRQF_SHARED, "Cyclades-Z",
--					&cy_card[j]);
-+					&cy_card[card_no]);
- 			if (retval) {
- 				dev_err(&pdev->dev, "could not allocate IRQ\n");
- 				goto err_unmap;
+diff -puN drivers/video/sm501fb.c~sm501fb-printk-warning-fixes drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501fb-printk-warning-fixes
++++ a/drivers/video/sm501fb.c
+@@ -989,7 +989,7 @@ static int sm501fb_cursor(struct fb_info
+ 			((info->cmap.green[fg_col] & 0xFC) << 3) |
+ 			((info->cmap.blue[fg_col] & 0xF8) >> 3);
+ 
+-		dev_dbg(fbi->dev, "fgcol %08x, bgcol %08x\n", fg, bg);
++		dev_dbg(fbi->dev, "fgcol %08lx, bgcol %08lx\n", fg, bg);
+ 
+ 		writel(bg, base + SM501_OFF_HWC_COLOR_1_2);
+ 		writel(fg, base + SM501_OFF_HWC_COLOR_3);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +84,7 @@ local_t-powerpc-extension.patch
 x86-serial-convert-legacy-com-ports-to-platform-devices.patch
 char-cyclades-conditions-cleanup.patch
 char-cyclades-probe-cleanup.patch
-char-cyclades-probe-cleanup-fix.patch
 fbdev-hecuba-framebuffer-driver.patch
 vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+cirrusfb-convert-to-generic-boolean.patch
 sm501fb-printk-warning-fixes.patch
