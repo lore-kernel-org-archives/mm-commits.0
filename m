@@ -1,143 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:02:49 -0700
-Message-ID: <200705080002.l4802niv008879@shell0.pdx.osdl.net>
+Subject: - add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:03:02 -0700
+Message-ID: <200705080003.l480323h008913@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33740 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967325AbXEHADU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:20 -0400
+	by vger.kernel.org with ESMTP id S967329AbXEHADW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, ak@suse.de, clameter@engr.sgi.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpusets: allow TIF_MEMDIE threads to allocate anywhere
+     Add virt_to_head_page and consolidate code in slab and slub
 has been removed from the -mm tree.  Its filename was
-     cpusets-allow-tif_memdie-threads-to-allocate-anywhere.patch
+     add-virt_to_head_page-and-consolidate-code-in-slab-and-slub.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpusets: allow TIF_MEMDIE threads to allocate anywhere
-From: David Rientjes <rientjes@google.com>
+Subject: Add virt_to_head_page and consolidate code in slab and slub
+From: Christoph Lameter <clameter@sgi.com>
 
-OOM killed tasks have access to memory reserves as specified by the
-TIF_MEMDIE flag in the hopes that it will quickly exit.  If such a task has
-memory allocations constrained by cpusets, we may encounter a deadlock if a
-blocking task cannot exit because it cannot allocate the necessary memory.
-
-We allow tasks that have the TIF_MEMDIE flag to allocate memory anywhere,
-including outside its cpuset restriction, so that it can quickly die
-regardless of whether it is __GFP_HARDWALL.
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    6 ++++++
+ mm/slab.c          |    9 ++++-----
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN kernel/cpuset.c~cpusets-allow-tif_memdie-threads-to-allocate-anywhere kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-allow-tif_memdie-threads-to-allocate-anywhere
-+++ a/kernel/cpuset.c
-@@ -2351,6 +2351,8 @@ static const struct cpuset *nearest_excl
-  * z's node is in our tasks mems_allowed, yes.  If it's not a
-  * __GFP_HARDWALL request and this zone's nodes is in the nearest
-  * mem_exclusive cpuset ancestor to this tasks cpuset, yes.
-+ * If the task has been OOM killed and has access to memory reserves
-+ * as specified by the TIF_MEMDIE flag, yes.
-  * Otherwise, no.
-  *
-  * If __GFP_HARDWALL is set, cpuset_zone_allowed_softwall()
-@@ -2368,7 +2370,8 @@ static const struct cpuset *nearest_excl
-  * calls get to this routine, we should just shut up and say 'yes'.
-  *
-  * GFP_USER allocations are marked with the __GFP_HARDWALL bit,
-- * and do not allow allocations outside the current tasks cpuset.
-+ * and do not allow allocations outside the current tasks cpuset
-+ * unless the task has been OOM killed as is marked TIF_MEMDIE.
-  * GFP_KERNEL allocations are not so marked, so can escape to the
-  * nearest enclosing mem_exclusive ancestor cpuset.
-  *
-@@ -2392,6 +2395,7 @@ static const struct cpuset *nearest_excl
-  * affect that:
-  *	in_interrupt - any node ok (current task context irrelevant)
-  *	GFP_ATOMIC   - any node ok
-+ *	TIF_MEMDIE   - any node ok
-  *	GFP_KERNEL   - any node in enclosing mem_exclusive cpuset ok
-  *	GFP_USER     - only nodes in current tasks mems allowed ok.
-  *
-@@ -2413,6 +2417,12 @@ int __cpuset_zone_allowed_softwall(struc
- 	might_sleep_if(!(gfp_mask & __GFP_HARDWALL));
- 	if (node_isset(node, current->mems_allowed))
- 		return 1;
-+	/*
-+	 * Allow tasks that have access to memory reserves because they have
-+	 * been OOM killed to get memory anywhere.
-+	 */
-+	if (unlikely(test_thread_flag(TIF_MEMDIE)))
-+		return 1;
- 	if (gfp_mask & __GFP_HARDWALL)	/* If hardwall request, stop here */
- 		return 0;
- 
-@@ -2438,7 +2448,9 @@ int __cpuset_zone_allowed_softwall(struc
-  *
-  * If we're in interrupt, yes, we can always allocate.
-  * If __GFP_THISNODE is set, yes, we can always allocate.  If zone
-- * z's node is in our tasks mems_allowed, yes.   Otherwise, no.
-+ * z's node is in our tasks mems_allowed, yes.   If the task has been
-+ * OOM killed and has access to memory reserves as specified by the
-+ * TIF_MEMDIE flag, yes.  Otherwise, no.
-  *
-  * The __GFP_THISNODE placement logic is really handled elsewhere,
-  * by forcibly using a zonelist starting at a specified node, and by
-@@ -2462,6 +2474,12 @@ int __cpuset_zone_allowed_hardwall(struc
- 	node = zone_to_nid(z);
- 	if (node_isset(node, current->mems_allowed))
- 		return 1;
-+        /*
-+         * Allow tasks that have access to memory reserves because they have
-+         * been OOM killed to get memory anywhere.
-+         */
-+        if (unlikely(test_thread_flag(TIF_MEMDIE)))
-+                return 1;
- 	return 0;
+diff -puN include/linux/mm.h~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub include/linux/mm.h
+--- a/include/linux/mm.h~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub
++++ a/include/linux/mm.h
+@@ -286,6 +286,12 @@ static inline void get_page(struct page 
+ 	atomic_inc(&page->_count);
  }
  
++static inline struct page *virt_to_head_page(const void *x)
++{
++	struct page *page = virt_to_page(x);
++	return compound_head(page);
++}
++
+ /*
+  * Setup the page count before being freed into the page allocator for
+  * the first time (boot or memory hotplug)
+diff -puN mm/slab.c~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub mm/slab.c
+--- a/mm/slab.c~add-virt_to_head_page-and-consolidate-code-in-slab-and-slub
++++ a/mm/slab.c
+@@ -614,20 +614,19 @@ static inline void page_set_slab(struct 
+ 
+ static inline struct slab *page_get_slab(struct page *page)
+ {
+-	page = compound_head(page);
+ 	BUG_ON(!PageSlab(page));
+ 	return (struct slab *)page->lru.prev;
+ }
+ 
+ static inline struct kmem_cache *virt_to_cache(const void *obj)
+ {
+-	struct page *page = virt_to_page(obj);
++	struct page *page = virt_to_head_page(obj);
+ 	return page_get_cache(page);
+ }
+ 
+ static inline struct slab *virt_to_slab(const void *obj)
+ {
+-	struct page *page = virt_to_page(obj);
++	struct page *page = virt_to_head_page(obj);
+ 	return page_get_slab(page);
+ }
+ 
+@@ -2876,7 +2875,7 @@ static void *cache_free_debugcheck(struc
+ 
+ 	objp -= obj_offset(cachep);
+ 	kfree_debugcheck(objp);
+-	page = virt_to_page(objp);
++	page = virt_to_head_page(objp);
+ 
+ 	slabp = page_get_slab(page);
+ 
+@@ -3100,7 +3099,7 @@ static void *cache_alloc_debugcheck_afte
+ 		struct slab *slabp;
+ 		unsigned objnr;
+ 
+-		slabp = page_get_slab(virt_to_page(objp));
++		slabp = page_get_slab(virt_to_head_page(objp));
+ 		objnr = (unsigned)(objp - slabp->s_mem) / cachep->buffer_size;
+ 		slab_bufctl(slabp)[objnr] = BUFCTL_ACTIVE;
+ 	}
+diff -puN /dev/null /dev/null
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-git-alsa.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
-cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-i386-pci-type-may-be-unused.patch
-sh-dma-use-__maybe_unused.patch
-scsi-fix-ambiguous-gdthtable-definition.patch
-frv-gdb-use-__maybe_unused.patch
-i386-voyager-use-__maybe_unused.patch
-mips-excite-use-__maybe_unused.patch
-mips-tlbex-use-__maybe_unused.patch
-powerpc-ps3-use-__maybe_unused.patch
-i386-mmzone-use-__maybe_unused.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-i386-support.patch
+remove-constructor-from-buffer_head.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+vmstat-use-our-own-timer-events.patch
+make-vm-statistics-update-interval-configurable.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+readahead-state-based-method-aging-accounting.patch
