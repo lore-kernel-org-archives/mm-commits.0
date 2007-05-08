@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-fixup.patch added to -mm tree
-Date: Tue, 08 May 2007 01:42:40 -0700
-Message-ID: <200705080842.l488genj019494@shell0.pdx.osdl.net>
+Subject: + git-battery-fix.patch added to -mm tree
+Date: Tue, 08 May 2007 03:01:20 -0700
+Message-ID: <200705081001.l48A1KUK020833@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48858 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44854 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934755AbXEHImp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:42:45 -0400
-Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
-	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l488gg3T003962
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 8 May 2007 01:42:43 -0700
+	by vger.kernel.org with ESMTP id S934752AbXEHKBf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 06:01:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, cbou@mail.ru
 
 
 The patch titled
-     git-dvb-fixup
+     git-battery-fix
 has been added to the -mm tree.  Its filename is
-     git-dvb-fixup.patch
+     git-battery-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -29,31 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: git-battery-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Anton Vorontsov <cbou@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx88/cx88-alsa.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/base/bus.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/cx88/cx88-alsa.c~git-dvb-fixup drivers/media/video/cx88/cx88-alsa.c
---- a/drivers/media/video/cx88/cx88-alsa.c~git-dvb-fixup
-+++ a/drivers/media/video/cx88/cx88-alsa.c
-@@ -27,12 +27,8 @@
- #include <linux/init.h>
- #include <linux/device.h>
- #include <linux/interrupt.h>
--<<<<<<< HEAD/drivers/media/video/cx88/cx88-alsa.c
- #include <linux/dma-mapping.h>
+diff -puN drivers/base/bus.c~git-battery-fix drivers/base/bus.c
+--- a/drivers/base/bus.c~git-battery-fix
++++ a/drivers/base/bus.c
+@@ -740,7 +740,7 @@ void put_bus(struct bus_type * bus)
  
--=======
--#include <linux/dma-mapping.h>
-->>>>>>> /drivers/media/video/cx88/cx88-alsa.c
- #include <asm/delay.h>
- #include <sound/driver.h>
- #include <sound/core.h>
+ struct bus_type * find_bus(char * name)
+ {
+-	struct kobject * k = kset_find_obj(&bus_subsys.kset, name);
++	struct kobject * k = kset_find_obj(&bus_subsys, name);
+ 	return k ? to_bus(k) : NULL;
+ }
+ EXPORT_SYMBOL_GPL(find_bus);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +104,7 @@ pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 git-mtd.patch
 git-e1000.patch
 git-e1000-fixup-2.patch
+git-battery-fix.patch
 git-nfs-printk-warning-fixes.patch
 git-parisc.patch
 fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
