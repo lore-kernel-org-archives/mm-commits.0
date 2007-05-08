@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-add-support-for-dynamic-cacheline-size-determination.patch added to -mm tree
-Date: Tue, 08 May 2007 14:48:35 -0700
-Message-ID: <200705082148.l48LmZ1A002591@shell0.pdx.osdl.net>
+Subject: + slub-clean-up-krealloc.patch added to -mm tree
+Date: Tue, 08 May 2007 14:48:45 -0700
+Message-ID: <200705082148.l48Lmjqp002611@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37377 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47531 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968348AbXEHVsj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:48:39 -0400
+	by vger.kernel.org with ESMTP id S1031546AbXEHVss (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: add support for dynamic cacheline size determination
+     SLUB: clean up krealloc
 has been added to the -mm tree.  Its filename is
-     slub-add-support-for-dynamic-cacheline-size-determination.patch
+     slub-clean-up-krealloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: add support for dynamic cacheline size determination
+Subject: SLUB: clean up krealloc
 From: Christoph Lameter <clameter@sgi.com>
 
-SLUB currently assumes that the cacheline size is static.  However, i386 f.e. 
-supports dynamic cache line size determination.
+We really do not need all this gaga there.
 
-Use cache_line_size() instead of L1_CACHE_BYTES in the allocator.
-
-That also explains the purpose of SLAB_HWCACHE_ALIGN.  So we will need to keep
-that one around to allow dynamic aligning of objects depending on boot
-determination of the cache line size.
+ksize gives us all the information we need to figure out if the object can
+cope with the new size.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ mm/slub.c |   15 ++++-----------
+ 1 files changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN mm/slub.c~slub-add-support-for-dynamic-cacheline-size-determination mm/slub.c
---- a/mm/slub.c~slub-add-support-for-dynamic-cacheline-size-determination
+diff -puN mm/slub.c~slub-clean-up-krealloc mm/slub.c
+--- a/mm/slub.c~slub-clean-up-krealloc
 +++ a/mm/slub.c
-@@ -1480,8 +1480,8 @@ static unsigned long calculate_alignment
- 	 * then use it.
- 	 */
- 	if ((flags & SLAB_HWCACHE_ALIGN) &&
--			size > L1_CACHE_BYTES / 2)
--		return max_t(unsigned long, align, L1_CACHE_BYTES);
-+			size > cache_line_size() / 2)
-+		return max_t(unsigned long, align, cache_line_size());
+@@ -2199,9 +2199,8 @@ EXPORT_SYMBOL(kmem_cache_shrink);
+  */
+ void *krealloc(const void *p, size_t new_size, gfp_t flags)
+ {
+-	struct kmem_cache *new_cache;
+ 	void *ret;
+-	struct page *page;
++	unsigned long ks;
  
- 	if (align < ARCH_SLAB_MINALIGN)
- 		return ARCH_SLAB_MINALIGN;
-@@ -1667,8 +1667,8 @@ static int calculate_sizes(struct kmem_c
- 		size += sizeof(void *);
- 	/*
- 	 * Determine the alignment based on various parameters that the
--	 * user specified (this is unecessarily complex due to the attempt
--	 * to be compatible with SLAB. Should be cleaned up some day).
-+	 * user specified and the dynamic determination of cache line size
-+	 * on bootup.
- 	 */
- 	align = calculate_alignment(flags, align, s->objsize);
+ 	if (unlikely(!p))
+ 		return kmalloc(new_size, flags);
+@@ -2211,19 +2210,13 @@ void *krealloc(const void *p, size_t new
+ 		return NULL;
+ 	}
  
-@@ -2280,7 +2280,7 @@ void __init kmem_cache_init(void)
+-	page = virt_to_head_page(p);
+-
+-	new_cache = get_slab(new_size, flags);
+-
+-	/*
+- 	 * If new size fits in the current cache, bail out.
+- 	 */
+-	if (likely(page->slab == new_cache))
++	ks = ksize(p);
++	if (ks >= new_size)
+ 		return (void *)p;
  
- 	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
- 		" Processors=%d, Nodes=%d\n",
--		KMALLOC_SHIFT_HIGH, L1_CACHE_BYTES,
-+		KMALLOC_SHIFT_HIGH, cache_line_size(),
- 		slub_min_order, slub_max_order, slub_min_objects,
- 		nr_cpu_ids, nr_node_ids);
- }
+ 	ret = kmalloc(new_size, flags);
+ 	if (ret) {
+-		memcpy(ret, p, min(new_size, ksize(p)));
++		memcpy(ret, p, min(new_size, ks));
+ 		kfree(p);
+ 	}
+ 	return ret;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
