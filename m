@@ -1,147 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - uml-improve-checking-and-diagnostics-of-ethernet-macs.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:06:29 -0700
-Message-ID: <200705080006.l4806TPS009194@shell0.pdx.osdl.net>
+Subject: - uml-eliminate-temporary-buffer-in-eth_configure.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:06:31 -0700
+Message-ID: <200705080006.l4806Vqg009197@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44681 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967383AbXEHAGu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:50 -0400
+	by vger.kernel.org with ESMTP id S967386AbXEHAGw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: improve checking and diagnostics of ethernet MACs
+     uml: Eliminate temporary buffer in eth_configure
 has been removed from the -mm tree.  Its filename was
-     uml-improve-checking-and-diagnostics-of-ethernet-macs.patch
+     uml-eliminate-temporary-buffer-in-eth_configure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: improve checking and diagnostics of ethernet MACs
+Subject: uml: Eliminate temporary buffer in eth_configure
 From: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 
-Improve checking and diagnostics for broadcast and multicast Ethernet MAC
-addresses, and distinguish between those cases in output; also make sure the
-device is assigned a MAC address valid only locally to avoid collisions.
+Avoid using the temporary buffer introduced by previous patch to hold the
+device name.
+
+Btw, avoid leaking device on an error path.  Other error paths may need
+cleanup.
 
 Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/net_kern.c  |   38 +++++++++++++++++++++++++---------
- include/linux/etherdevice.h |   12 ++++++++++
- 2 files changed, 41 insertions(+), 9 deletions(-)
+ arch/um/drivers/net_kern.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN arch/um/drivers/net_kern.c~uml-improve-checking-and-diagnostics-of-ethernet-macs arch/um/drivers/net_kern.c
---- a/arch/um/drivers/net_kern.c~uml-improve-checking-and-diagnostics-of-ethernet-macs
+diff -puN arch/um/drivers/net_kern.c~uml-eliminate-temporary-buffer-in-eth_configure arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-eliminate-temporary-buffer-in-eth_configure
 +++ a/arch/um/drivers/net_kern.c
-@@ -283,7 +283,7 @@ void uml_net_user_timer_expire(unsigned 
- #endif
- }
- 
--static void setup_etheraddr(char *str, unsigned char *addr)
-+static void setup_etheraddr(char *str, unsigned char *addr, char *name)
- {
- 	char *end;
- 	int i;
-@@ -302,15 +302,32 @@ static void setup_etheraddr(char *str, u
- 		}
- 		str = end + 1;
- 	}
--	if(addr[0] & 1){
-+	if (is_multicast_ether_addr(addr)) {
- 		printk(KERN_ERR
--		       "Attempt to assign a broadcast ethernet address to a "
-+		       "Attempt to assign a multicast ethernet address to a "
- 		       "device disallowed\n");
- 		goto random;
- 	}
-+	if (!is_valid_ether_addr(addr)) {
-+		printk(KERN_ERR
-+		       "Attempt to assign an invalid ethernet address to a "
-+		       "device disallowed\n");
-+		goto random;
-+	}
-+	if (!is_local_ether_addr(addr)) {
-+		printk(KERN_WARNING
-+		       "Warning: attempt to assign a globally valid ethernet address to a "
-+		       "device\n");
-+		printk(KERN_WARNING "You should better enable the 2nd rightmost bit "
-+		      "in the first byte of the MAC, i.e. "
-+		      "%02x:%02x:%02x:%02x:%02x:%02x\n",
-+		      addr[0] | 0x02, addr[1], addr[2], addr[3], addr[4], addr[5]);
-+	}
- 	return;
- 
- random:
-+	printk(KERN_INFO
-+	       "Choosing a random ethernet address for device %s\n", name);
- 	random_ether_addr(addr);
- }
- 
-@@ -331,6 +348,7 @@ static void eth_configure(int n, void *i
+@@ -348,17 +348,24 @@ static void eth_configure(int n, void *i
  	struct net_device *dev;
  	struct uml_net_private *lp;
  	int save, err, size;
-+	char name[sizeof(dev->name)];
+-	char name[sizeof(dev->name)];
  
  	size = transport->private_size + sizeof(struct uml_net_private) +
  		sizeof(((struct uml_net_private *) 0)->user);
-@@ -344,7 +362,13 @@ static void eth_configure(int n, void *i
+ 
+ 	device = kzalloc(sizeof(*device), GFP_KERNEL);
+ 	if (device == NULL) {
+-		printk(KERN_ERR "eth_configure failed to allocate uml_net\n");
++		printk(KERN_ERR "eth_configure failed to allocate struct "
++		       "uml_net\n");
+ 		return;
+ 	}
+ 
++	dev = alloc_etherdev(size);
++	if (dev == NULL) {
++		printk(KERN_ERR "eth_configure: failed to allocate struct "
++		       "net_device for eth%d\n", n);
++		goto out_free_device;
++	}
++
  	INIT_LIST_HEAD(&device->list);
  	device->index = n;
  
--	setup_etheraddr(mac, device->mac);
-+	/* If this name ends up conflicting with an existing registered
-+	 * netdevice, that is OK, register_netdev{,ice}() will notice this
-+	 * and fail.
-+	 */
-+	snprintf(name, sizeof(name), "eth%d", n);
-+
-+	setup_etheraddr(mac, device->mac, name);
+@@ -366,9 +373,9 @@ static void eth_configure(int n, void *i
+ 	 * netdevice, that is OK, register_netdev{,ice}() will notice this
+ 	 * and fail.
+ 	 */
+-	snprintf(name, sizeof(name), "eth%d", n);
++	snprintf(dev->name, sizeof(dev->name), "eth%d", n);
+ 
+-	setup_etheraddr(mac, device->mac, name);
++	setup_etheraddr(mac, device->mac, dev->name);
  
  	printk(KERN_INFO "Netdevice %d ", n);
  	printk("(%02x:%02x:%02x:%02x:%02x:%02x) ",
-@@ -375,11 +399,7 @@ static void eth_configure(int n, void *i
+@@ -376,11 +383,6 @@ static void eth_configure(int n, void *i
+ 	       device->mac[2], device->mac[3],
+ 	       device->mac[4], device->mac[5]);
+ 	printk(": ");
+-	dev = alloc_etherdev(size);
+-	if (dev == NULL) {
+-		printk(KERN_ERR "eth_configure: failed to allocate device\n");
+-		goto out_free_device;
+-	}
+ 
+ 	lp = dev->priv;
+ 	/* This points to the transport private data. It's still clear, but we
+@@ -399,7 +401,6 @@ static void eth_configure(int n, void *i
  		goto out_free_netdev;
  	SET_NETDEV_DEV(dev,&device->pdev.dev);
  
--	/* If this name ends up conflicting with an existing registered
--	 * netdevice, that is OK, register_netdev{,ice}() will notice this
--	 * and fail.
--	 */
--	snprintf(dev->name, sizeof(dev->name), "eth%d", n);
-+	strcpy(dev->name, name);
+-	strcpy(dev->name, name);
  	device->dev = dev;
  
  	/*
-diff -puN include/linux/etherdevice.h~uml-improve-checking-and-diagnostics-of-ethernet-macs include/linux/etherdevice.h
---- a/include/linux/etherdevice.h~uml-improve-checking-and-diagnostics-of-ethernet-macs
-+++ a/include/linux/etherdevice.h
-@@ -71,6 +71,18 @@ static inline int is_multicast_ether_add
+@@ -466,13 +467,13 @@ static void eth_configure(int n, void *i
+ 	return;
+ 
+ out_undo_user_init:
+-	if (transport->user->init != NULL)
++	if (transport->user->remove != NULL)
+ 		(*transport->user->remove)(&lp->user);
+ out_unregister:
+ 	platform_device_unregister(&device->pdev);
+ out_free_netdev:
+ 	free_netdev(dev);
+-out_free_device: ;
++out_free_device:
+ 	kfree(device);
  }
  
- /**
-+ * is_local_ether_addr - Determine if the Ethernet address is locally-assigned
-+ * one (IEEE 802).
-+ * @addr: Pointer to a six-byte array containing the Ethernet address
-+ *
-+ * Return true if the address is a local address.
-+ */
-+static inline int is_local_ether_addr(const u8 *addr)
-+{
-+	return (0x02 & addr[0]);
-+}
-+
-+/**
-  * is_broadcast_ether_addr - Determine if the Ethernet address is broadcast
-  * @addr: Pointer to a six-byte array containing the Ethernet address
-  *
 _
 
 Patches currently in -mm which might be from blaisorblade@yahoo.it are
