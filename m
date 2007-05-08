@@ -1,92 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-call-scheme-cleanup.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:15:07 -0700
-Message-ID: <200705080815.l488F7Ib019031@shell0.pdx.osdl.net>
+Subject: - readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:15:27 -0700
+Message-ID: <200705080815.l488FR7l019055@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54475 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934653AbXEHIRY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:17:24 -0400
+	by vger.kernel.org with ESMTP id S934655AbXEHIR7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:17:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: call scheme: cleanup
+     readahead: remove parameter ra_max from thrashing_recovery_readahead()
 has been removed from the -mm tree.  Its filename was
-     readahead-call-scheme-cleanup.patch
+     readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: readahead: call scheme: cleanup
+Subject: readahead: remove parameter ra_max from thrashing_recovery_readahead()
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Merge two similar page_cache_readahead_adaptive() calls into one.
-
-No behavior change.
+Remove the unused @ra_max from thrashing_recovery_readahead().
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ mm/readahead.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/filemap.c~readahead-call-scheme-cleanup mm/filemap.c
---- a/mm/filemap.c~readahead-call-scheme-cleanup
-+++ a/mm/filemap.c
-@@ -936,17 +936,13 @@ void do_generic_mapping_read(struct addr
- find_page:
- 		page = find_get_page(mapping, index);
- 		if (prefer_adaptive_readahead()) {
--			if (unlikely(page == NULL)) {
--				ra.prev_index = prev_index;
--				page_cache_readahead_adaptive(mapping,
--						&ra, filp, NULL,
--						index, last_index - index);
--				page = find_get_page(mapping, index);
--			} else if (PageReadahead(page)) {
-+			if (!page || PageReadahead(page)) {
- 				ra.prev_index = prev_index;
- 				page_cache_readahead_adaptive(mapping,
- 						&ra, filp, page,
- 						index, last_index - index);
-+				if (!page)
-+					page = find_get_page(mapping, index);
- 			}
- 		}
- 		if (unlikely(page == NULL)) {
-@@ -1422,13 +1418,11 @@ struct page *filemap_fault(struct vm_are
- retry_find:
- 	page = find_lock_page(mapping, fdata->pgoff);
- 	if (prefer_adaptive_readahead() && VM_SequentialReadHint(vma)) {
--		if (!page) {
--			page_cache_readahead_adaptive(mapping, ra, file, NULL,
--							fdata->pgoff, 1);
--			page = find_lock_page(mapping, fdata->pgoff);
--		} else if (PageReadahead(page)) {
-+		if (!page || PageReadahead(page)) {
- 			page_cache_readahead_adaptive(mapping, ra, file, page,
- 							fdata->pgoff, 1);
-+			if (!page)
-+				page = find_lock_page(mapping, fdata->pgoff);
- 		}
- 	}
- 	if (!page) {
+diff -puN mm/readahead.c~readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead mm/readahead.c
+--- a/mm/readahead.c~readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead
++++ a/mm/readahead.c
+@@ -1570,9 +1570,8 @@ try_backward_prefetching(struct file_ra_
+  * Readahead thrashing recovery.
+  */
+ static unsigned long
+-thrashing_recovery_readahead(struct address_space *mapping,
+-				struct file *filp, struct file_ra_state *ra,
+-				pgoff_t offset, unsigned long ra_max)
++thrashing_recovery_readahead(struct address_space *mapping, struct file *filp,
++			     struct file_ra_state *ra, pgoff_t offset)
+ {
+ 	unsigned long ra_size;
+ 	int unbalanced_aging = probe_page(mapping, offset - 1);
+@@ -1685,8 +1684,7 @@ page_cache_readahead_adaptive(struct add
+ 	 * Recover from possible thrashing.
+ 	 */
+ 	if (!page && offset - ra->prev_index <= 1 && ra_has_index(ra, offset))
+-		return thrashing_recovery_readahead(mapping, filp, ra,
+-								offset, ra_max);
++		return thrashing_recovery_readahead(mapping, filp, ra, offset);
+ 
+ 	/*
+ 	 * State based sequential read-ahead.
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-readahead-call-scheme-cleanup.patch
-readahead-call-scheme-catch-thrashing-on-lookahead-time.patch
-readahead-call-scheme-doc-fixes-for-readahead.patch
-readahead-laptop-mode.patch
-readahead-loop-case.patch
-readahead-nfsd-case.patch
 readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead.patch
 readahead-remove-parameter-ra_max-from-adjust_rala.patch
 readahead-state-based-method-protect-against-tiny-size.patch
