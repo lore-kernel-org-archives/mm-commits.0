@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch added to -mm tree
-Date: Tue, 08 May 2007 14:25:20 -0700
-Message-ID: <200705082125.l48LPKjH002106@shell0.pdx.osdl.net>
+Subject: + usb_gigaset-dont-kmalloc0.patch added to -mm tree
+Date: Tue, 08 May 2007 14:26:08 -0700
+Message-ID: <200705082126.l48LQ85v002126@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45942 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58455 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966321AbXEHVZc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:25:32 -0400
+	by vger.kernel.org with ESMTP id S1031961AbXEHV0R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:26:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andy@greyhouse.net, ebiederm@xmission.com, greg@kroah.com
+Cc: tilman@imap.cc, greg@kroah.com, hjlipp@web.de
 
 
 The patch titled
-     PCI: disable MSI by default on systems with Serverworks HT1000 chips
+     usb_gigaset: don't kmalloc(0)
 has been added to the -mm tree.  Its filename is
-     pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
+     usb_gigaset-dont-kmalloc0.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PCI: disable MSI by default on systems with Serverworks HT1000 chips
-From: Andy Gospodarek <andy@greyhouse.net>
+Subject: usb_gigaset: don't kmalloc(0)
+From: Tilman Schmidt <tilman@imap.cc>
 
-I've been seeing lots of messages like these:
+Zero-sized allocations are pointless anyway, and the SLUB allocator
+complains about them, so stop doing that.
 
-eth0: No interrupt was generated using MSI, switching to INTx mode.  Please
-report this failure to the PCI maintainer and include system chipset
-information.
-
-On several systems that use the following Severworks HT1000 (also sometimes
-labeled as a Broadcom chipset as well) bridge chips.  It doesn't appear MSI
-works well (if at all) on these systems.
-
-Signed-off-by: Andy Gospodarek <andy@greyhouse.net>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
+Signed-off-by: Hansjoerg Lipp <hjlipp@web.de>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c    |    1 +
- include/linux/pci_ids.h |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/isdn/gigaset/usb-gigaset.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN drivers/pci/quirks.c~pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips
-+++ a/drivers/pci/quirks.c
-@@ -1637,6 +1637,7 @@ static void __init quirk_svw_msi(struct 
- 	printk(KERN_WARNING "PCI: MSI quirk detected. MSI deactivated.\n");
- }
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_GCNB_LE, quirk_svw_msi);
-+DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_HT1000_PCIX, quirk_svw_msi );
+diff -puN drivers/isdn/gigaset/usb-gigaset.c~usb_gigaset-dont-kmalloc0 drivers/isdn/gigaset/usb-gigaset.c
+--- a/drivers/isdn/gigaset/usb-gigaset.c~usb_gigaset-dont-kmalloc0
++++ a/drivers/isdn/gigaset/usb-gigaset.c
+@@ -138,8 +138,6 @@ struct usb_cardstate {
+ 	char			bchars[6];		/* for request 0x19 */
+ };
  
- /* Disable MSI on chipsets that are known to not support it */
- static void __devinit quirk_disable_msi(struct pci_dev *dev)
-diff -puN include/linux/pci_ids.h~pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips
-+++ a/include/linux/pci_ids.h
-@@ -1437,6 +1437,7 @@
- #define PCI_DEVICE_ID_SERVERWORKS_LE	  0x0009
- #define PCI_DEVICE_ID_SERVERWORKS_GCNB_LE 0x0017
- #define PCI_DEVICE_ID_SERVERWORKS_EPB	  0x0103
-+#define PCI_DEVICE_ID_SERVERWORKS_HT1000_PCIX	0x0104
- #define PCI_DEVICE_ID_SERVERWORKS_HT2000_PCIE	0x0132
- #define PCI_DEVICE_ID_SERVERWORKS_OSB4	  0x0200
- #define PCI_DEVICE_ID_SERVERWORKS_CSB5	  0x0201
+-struct usb_bc_state {};
+-
+ static inline unsigned tiocm_to_gigaset(unsigned state)
+ {
+ 	return ((state & TIOCM_DTR) ? 1 : 0) | ((state & TIOCM_RTS) ? 2 : 0);
+@@ -579,25 +577,21 @@ static int gigaset_brkchars(struct cards
+ 
+ static int gigaset_freebcshw(struct bc_state *bcs)
+ {
+-	if (!bcs->hw.usb)
+-		return 0;
+-	//FIXME
+-	kfree(bcs->hw.usb);
++	/* unused */
+ 	return 1;
+ }
+ 
+ /* Initialize the b-channel structure */
+ static int gigaset_initbcshw(struct bc_state *bcs)
+ {
+-	bcs->hw.usb = kmalloc(sizeof(struct usb_bc_state), GFP_KERNEL);
+-	if (!bcs->hw.usb)
+-		return 0;
+-
++	/* unused */
++	bcs->hw.usb = NULL;
+ 	return 1;
+ }
+ 
+ static void gigaset_reinitbcshw(struct bc_state *bcs)
+ {
++	/* nothing to do for M10x */
+ }
+ 
+ static void gigaset_freecshw(struct cardstate *cs)
 _
 
-Patches currently in -mm which might be from andy@greyhouse.net are
+Patches currently in -mm which might be from tilman@imap.cc are
 
-pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
+origin.patch
+codingstyle-start-flamewar-about-use-of-braces.patch
+usb_gigaset-dont-kmalloc0.patch
+remove-obsolete-label-from-isdn4linux-v3.patch
