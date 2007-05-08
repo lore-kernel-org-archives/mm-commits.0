@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-pci-pci-reduce-aer-init-error-information.patch added to -mm tree
-Date: Tue, 08 May 2007 16:10:44 -0700
-Message-ID: <200705082310.l48NAiq1004397@shell0.pdx.osdl.net>
+Subject: + mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch added to -mm tree
+Date: Tue, 08 May 2007 16:24:21 -0700
+Message-ID: <200705082324.l48NOLc4004649@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55031 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968609AbXEHXKr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 19:10:47 -0400
+	by vger.kernel.org with ESMTP id S967345AbXEHXZA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 19:25:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yanmin_zhang@linux.intel.com, greg@kroah.com, yanmin.zhang@intel.com
+Cc: nickpiggin@yahoo.com.au, npiggin@suse.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     fix gregkh-pci-pci-reduce-aer-init-error-information
+     get_user_pages vs mmap MAP_FIXED bug
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-pci-pci-reduce-aer-init-error-information.patch
+     mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,185 +25,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix gregkh-pci-pci-reduce-aer-init-error-information
-From: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Subject: get_user_pages vs mmap MAP_FIXED bug
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-On Sat, 2007-05-05 at 22:29 +0200, Olaf Hering wrote:
-> On Sat, May 05, Andrew Morton wrote:
->
-> > +gregkh-pci-pci-reduce-aer-init-error-information.patch
->
-> include/linux/pci-acpi.h:57: error: expected ')' before 'handle'
-> make[4]: *** [drivers/pci/pcie/portdrv_pci.o] Error 1
->
-> acpi_handle is intel only.
-Sorry. I didn't check CONFIG_ACPI=n. The acpi header file inclusion
-is too complicated.
+Fix a couple of places that should be testing fault as well as nopage.
 
-Below patch against 2.6.21+gregkh-pci-pci-reduce-aer-init-error-information.patch
-fixes the compiling issue. I delete the acpi header file inclusion in aerdrv.h,
-and move function aer_osc_setup to another file.
-
-I tested it with both CONFIG_ACPI=y and CONFIG_ACPI=n.
-
-Signed-off-by: Zhang Yanmin <yanmin.zhang@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/aer/Makefile      |    2 
- drivers/pci/pcie/aer/aerdrv.h      |    3 -
- drivers/pci/pcie/aer/aerdrv_acpi.c |   61 ---------------------------
- drivers/pci/pcie/aer/aerdrv_core.c |   41 ++++++++++++++++++
- 4 files changed, 42 insertions(+), 65 deletions(-)
+ mm/memory.c |    3 ++-
+ mm/rmap.c   |    4 +++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/pcie/aer/Makefile~fix-gregkh-pci-pci-reduce-aer-init-error-information drivers/pci/pcie/aer/Makefile
---- a/drivers/pci/pcie/aer/Makefile~fix-gregkh-pci-pci-reduce-aer-init-error-information
-+++ a/drivers/pci/pcie/aer/Makefile
-@@ -4,5 +4,5 @@
+diff -puN mm/memory.c~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix mm/memory.c
+--- a/mm/memory.c~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix
++++ a/mm/memory.c
+@@ -1077,7 +1077,8 @@ int get_user_pages(struct task_struct *t
+ 		if (pages)
+ 			foll_flags |= FOLL_GET;
+ 		if (!write && !(vma->vm_flags & VM_LOCKED) &&
+-		    (!vma->vm_ops || !vma->vm_ops->nopage))
++		    (!vma->vm_ops || (!vma->vm_ops->nopage &&
++					!vma->vm_ops->fault)))
+ 			foll_flags |= FOLL_ANON;
  
- obj-$(CONFIG_PCIEAER) += aerdriver.o
- 
--aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o aerdrv_acpi.o
-+aerdriver-objs := aerdrv_errprint.o aerdrv_core.o aerdrv.o
- 
-diff -puN drivers/pci/pcie/aer/aerdrv.h~fix-gregkh-pci-pci-reduce-aer-init-error-information drivers/pci/pcie/aer/aerdrv.h
---- a/drivers/pci/pcie/aer/aerdrv.h~fix-gregkh-pci-pci-reduce-aer-init-error-information
-+++ a/drivers/pci/pcie/aer/aerdrv.h
-@@ -9,8 +9,6 @@
- #define _AERDRV_H_
- 
- #include <linux/pcieport_if.h>
--#include <linux/acpi.h>
--#include <linux/pci-acpi.h>
- #include <linux/aer.h>
- 
- #define AER_NONFATAL			0
-@@ -118,6 +116,5 @@ extern void aer_delete_rootport(struct a
- extern int aer_init(struct pcie_device *dev);
- extern void aer_isr(struct work_struct *work);
- extern void aer_print_error(struct pci_dev *dev, struct aer_err_info *info);
--extern acpi_status aer_osc_setup(struct pci_dev *dev);
- 
- #endif //_AERDRV_H_
-diff -puN drivers/pci/pcie/aer/aerdrv_acpi.c~fix-gregkh-pci-pci-reduce-aer-init-error-information /dev/null
---- a/drivers/pci/pcie/aer/aerdrv_acpi.c
-+++ /dev/null
-@@ -1,61 +0,0 @@
--/*
-- * Access ACPI _OSC method
-- *
-- * Copyright (C) 2006 Intel Corp.
-- *	Tom Long Nguyen (tom.l.nguyen@intel.com)
-- *	Zhang Yanmin (yanmin.zhang@intel.com)
-- *
-- */
--
--#include <linux/module.h>
--#include <linux/pci.h>
--#include <linux/kernel.h>
--#include <linux/errno.h>
--#include <linux/pm.h>
--#include <linux/suspend.h>
--#include <linux/acpi.h>
--#include <linux/pci-acpi.h>
--#include <linux/delay.h>
--#include "aerdrv.h"
--
--/**
-- * aer_osc_setup - run ACPI _OSC method
-- *
-- * Return:
-- *	Zero if success. Nonzero for otherwise.
-- *
-- * Invoked when PCIE bus loads AER service driver. To avoid conflict with
-- * BIOS AER support requires BIOS to yield AER control to OS native driver.
-- **/
--acpi_status aer_osc_setup(struct pci_dev *dev)
--{
--	acpi_status status = AE_NOT_FOUND;
--	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
--	struct pci_dev *pdev = dev;
--	struct pci_bus *parent;
--
--	while (!handle) {
--		if (!pdev || !pdev->bus->parent)
--			break;
--		parent = pdev->bus->parent;
--		if (!parent->self)
--			/* Parent must be a host bridge */
--			handle = acpi_get_pci_rootbridge_handle(
--					pci_domain_nr(parent),
--					parent->number);
--		else
--			handle = DEVICE_ACPI_HANDLE(
--					&(parent->self->dev));
--		pdev = parent->self;
--	}
--
--	if (!handle)
--		return status;
--
--	pci_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
--	status = pci_osc_control_set(handle, OSC_PCI_EXPRESS_AER_CONTROL |
--		OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
--
--	return status;
--}
--
-diff -puN drivers/pci/pcie/aer/aerdrv_core.c~fix-gregkh-pci-pci-reduce-aer-init-error-information drivers/pci/pcie/aer/aerdrv_core.c
---- a/drivers/pci/pcie/aer/aerdrv_core.c~fix-gregkh-pci-pci-reduce-aer-init-error-information
-+++ a/drivers/pci/pcie/aer/aerdrv_core.c
-@@ -726,6 +726,47 @@ void aer_delete_rootport(struct aer_rpc 
- }
- 
- /**
-+ * aer_osc_setup - run ACPI _OSC method
-+ *
-+ * Return:
-+ *	Zero if success. Nonzero for otherwise.
-+ *
-+ * Invoked when PCIE bus loads AER service driver. To avoid conflict with
-+ * BIOS AER support requires BIOS to yield AER control to OS native driver.
-+ **/
-+acpi_status aer_osc_setup(struct pci_dev *dev)
-+{
-+	acpi_status status = AE_NOT_FOUND;
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
-+	struct pci_dev *pdev = dev;
-+	struct pci_bus *parent;
-+
-+	while (!handle) {
-+		if (!pdev || !pdev->bus->parent)
-+			break;
-+		parent = pdev->bus->parent;
-+		if (!parent->self)
-+			/* Parent must be a host bridge */
-+			handle = acpi_get_pci_rootbridge_handle(
-+					pci_domain_nr(parent),
-+					parent->number);
-+		else
-+			handle = DEVICE_ACPI_HANDLE(
-+					&(parent->self->dev));
-+		pdev = parent->self;
-+	}
-+
-+	if (!handle)
-+		return status;
-+
-+	pci_osc_support_set(OSC_EXT_PCI_CONFIG_SUPPORT);
-+	status = pci_osc_control_set(handle, OSC_PCI_EXPRESS_AER_CONTROL |
-+		OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL);
-+
-+	return status;
-+}
-+
-+/**
-  * aer_init - provide AER initialization
-  * @dev: pointer to AER pcie device
-  *
+ 		do {
+diff -puN mm/rmap.c~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix mm/rmap.c
+--- a/mm/rmap.c~mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix
++++ a/mm/rmap.c
+@@ -641,8 +641,10 @@ void page_remove_rmap(struct page *page,
+ 			printk (KERN_EMERG "  page->count = %x\n", page_count(page));
+ 			printk (KERN_EMERG "  page->mapping = %p\n", page->mapping);
+ 			print_symbol (KERN_EMERG "  vma->vm_ops = %s\n", (unsigned long)vma->vm_ops);
+-			if (vma->vm_ops)
++			if (vma->vm_ops) {
+ 				print_symbol (KERN_EMERG "  vma->vm_ops->nopage = %s\n", (unsigned long)vma->vm_ops->nopage);
++				print_symbol (KERN_EMERG "  vma->vm_ops->fault = %s\n", (unsigned long)vma->vm_ops->fault);
++			}
+ 			if (vma->vm_file && vma->vm_file->f_op)
+ 				print_symbol (KERN_EMERG "  vma->vm_file->f_op->mmap = %s\n", (unsigned long)vma->vm_file->f_op->mmap);
+ 			BUG();
 _
 
-Patches currently in -mm which might be from yanmin_zhang@linux.intel.com are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
-fix-gregkh-pci-pci-reduce-aer-init-error-information.patch
+origin.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+as-fix-antic_expire-check.patch
+sched-fix-idle-load-balancing-in-softirqd-context.patch
+sched-dynticks-idle-load-balancing-v3.patch
+sched-optimize-siblings-status-check-logic-in-wake_idle.patch
+sched-align-rq-to-cacheline-boundary.patch
+ia64-race-flushing-icache-in-do_no_page-path.patch
+lazy-freeing-of-memory-through-madv_free.patch
+restore-madv_dontneed-to-its-original-linux-behaviour.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
+convert-hugetlbfs-to-use-vm_ops-fault.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+kblockd-use-flush_work.patch
+sched2-sched-domain-sysctl.patch
+futex-new-private-futexes.patch
+revoke-core-code-break-cow-fixes.patch
