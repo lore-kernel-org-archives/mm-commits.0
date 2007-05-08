@@ -1,116 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:02:12 -0700
-Message-ID: <200705080002.l4802Che008826@shell0.pdx.osdl.net>
+Subject: - optimize-compound_head-by-avoiding-a-shared-page.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:03:00 -0700
+Message-ID: <200705080003.l48030Hr008906@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50443 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50234 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967328AbXEHAD2 (ORCPT
+	by vger.kernel.org with ESMTP id S967330AbXEHAD2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, bob.picco@hp.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add pfn_valid_within helper for sub-MAX_ORDER hole detection
+     mm: optimize compound_head() by avoiding a shared page flag
 has been removed from the -mm tree.  Its filename was
-     add-pfn_valid_within-helper-for-sub-max_order-hole-detection.patch
+     optimize-compound_head-by-avoiding-a-shared-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add pfn_valid_within helper for sub-MAX_ORDER hole detection
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: mm: optimize compound_head() by avoiding a shared page flag
+From: Christoph Lameter <clameter@sgi.com>
 
-Generally we work under the assumption that memory the mem_map array is
-contigious and valid out to MAX_ORDER_NR_PAGES block of pages, ie.  that if we
-have validated any page within this MAX_ORDER_NR_PAGES block we need not check
-any other.  This is not true when CONFIG_HOLES_IN_ZONE is set and we must
-check each and every reference we make from a pfn.
+The patch adds PageTail(page) and PageHead(page) to check if a page is the
+head or the tail of a compound page.  This is done by masking the two bits
+describing the state of a compound page and then comparing them.  So one
+comparision and a branch instead of two bit checks and two branches.
 
-Add a pfn_valid_within() helper which should be used when scanning pages
-within a MAX_ORDER_NR_PAGES block when we have already checked the validility
-of the block normally with pfn_valid().  This can then be optimised away when
-we do not have holes within a MAX_ORDER_NR_PAGES block of pages.
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Bob Picco <bob.picco@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   12 ++++++++++++
- mm/page_alloc.c        |    8 ++------
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ include/linux/mm.h         |   11 +---------
+ include/linux/page-flags.h |   37 ++++++++++++++++++++++++-----------
+ mm/page_alloc.c            |   10 +++------
+ 3 files changed, 32 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/mmzone.h~add-pfn_valid_within-helper-for-sub-max_order-hole-detection include/linux/mmzone.h
---- a/include/linux/mmzone.h~add-pfn_valid_within-helper-for-sub-max_order-hole-detection
-+++ a/include/linux/mmzone.h
-@@ -784,6 +784,18 @@ void sparse_init(void);
- void memory_present(int nid, unsigned long start, unsigned long end);
- unsigned long __init node_memmap_size_bytes(int, unsigned long, unsigned long);
+diff -puN include/linux/mm.h~optimize-compound_head-by-avoiding-a-shared-page include/linux/mm.h
+--- a/include/linux/mm.h~optimize-compound_head-by-avoiding-a-shared-page
++++ a/include/linux/mm.h
+@@ -269,14 +269,7 @@ static inline int get_page_unless_zero(s
  
-+/*
-+ * If it is possible to have holes within a MAX_ORDER_NR_PAGES, then we
-+ * need to check pfn validility within that MAX_ORDER_NR_PAGES block.
-+ * pfn_valid_within() should be used in this case; we optimise this away
-+ * when we have no holes within a MAX_ORDER_NR_PAGES block.
-+ */
-+#ifdef CONFIG_HOLES_IN_ZONE
-+#define pfn_valid_within(pfn) pfn_valid(pfn)
-+#else
-+#define pfn_valid_within(pfn) (1)
-+#endif
+ static inline struct page *compound_head(struct page *page)
+ {
+-	/*
+-	 * We could avoid the PageCompound(page) check if
+-	 * we would not overload PageTail().
+-	 *
+-	 * This check has to be done in several performance critical
+-	 * paths of the slab etc. IMHO PageTail deserves its own flag.
+-	 */
+-	if (unlikely(PageCompound(page) && PageTail(page)))
++	if (unlikely(PageTail(page)))
+ 		return page->first_page;
+ 	return page;
+ }
+@@ -327,7 +320,7 @@ static inline compound_page_dtor *get_co
+ 
+ static inline int compound_order(struct page *page)
+ {
+-	if (!PageCompound(page) || PageTail(page))
++	if (!PageHead(page))
+ 		return 0;
+ 	return (unsigned long)page[1].lru.prev;
+ }
+diff -puN include/linux/page-flags.h~optimize-compound_head-by-avoiding-a-shared-page include/linux/page-flags.h
+--- a/include/linux/page-flags.h~optimize-compound_head-by-avoiding-a-shared-page
++++ a/include/linux/page-flags.h
+@@ -6,6 +6,7 @@
+ #define PAGE_FLAGS_H
+ 
+ #include <linux/types.h>
++#include <linux/mm_types.h>
+ 
+ /*
+  * Various page->flags bits:
+@@ -94,12 +95,6 @@
+ /* PG_owner_priv_1 users should have descriptive aliases */
+ #define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
+ 
+-/*
+- * Marks tail portion of a compound page. We currently do not reclaim
+- * compound pages so we can reuse a flag only used for reclaim here.
+- */
+-#define PG_tail			PG_reclaim
+-
+ #if (BITS_PER_LONG > 32)
+ /*
+  * 64-bit-only flags build down from bit 31
+@@ -248,12 +243,32 @@ static inline void SetPageUptodate(struc
+ #define __ClearPageCompound(page) __clear_bit(PG_compound, &(page)->flags)
+ 
+ /*
+- * Note: PG_tail is an alias of another page flag. The result of PageTail()
+- * is only valid if PageCompound(page) is true.
++ * PG_reclaim is used in combination with PG_compound to mark the
++ * head and tail of a compound page
++ *
++ * PG_compound & PG_reclaim	=> Tail page
++ * PG_compound & ~PG_reclaim	=> Head page
+  */
+-#define PageTail(page)	test_bit(PG_tail, &(page)->flags)
+-#define __SetPageTail(page)	__set_bit(PG_tail, &(page)->flags)
+-#define __ClearPageTail(page)	__clear_bit(PG_tail, &(page)->flags)
 +
- #endif /* !__ASSEMBLY__ */
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MMZONE_H */
-diff -puN mm/page_alloc.c~add-pfn_valid_within-helper-for-sub-max_order-hole-detection mm/page_alloc.c
---- a/mm/page_alloc.c~add-pfn_valid_within-helper-for-sub-max_order-hole-detection
++#define PG_head_tail_mask ((1L << PG_compound) | (1L << PG_reclaim))
++
++#define PageTail(page)	((page->flags & PG_head_tail_mask) \
++				== PG_head_tail_mask)
++
++static inline void __SetPageTail(struct page *page)
++{
++	page->flags |= PG_head_tail_mask;
++}
++
++static inline void __ClearPageTail(struct page *page)
++{
++	page->flags &= ~PG_head_tail_mask;
++}
++
++#define PageHead(page)	((page->flags & PG_head_tail_mask) \
++				== (1L << PG_compound))
++#define __SetPageHead(page)	__SetPageCompound(page)
++#define __ClearPageHead(page)	__ClearPageCompound(page)
+ 
+ #ifdef CONFIG_SWAP
+ #define PageSwapCache(page)	test_bit(PG_swapcache, &(page)->flags)
+diff -puN mm/page_alloc.c~optimize-compound_head-by-avoiding-a-shared-page mm/page_alloc.c
+--- a/mm/page_alloc.c~optimize-compound_head-by-avoiding-a-shared-page
 +++ a/mm/page_alloc.c
-@@ -156,10 +156,8 @@ static int page_outside_zone_boundaries(
+@@ -235,12 +235,11 @@ static void prep_compound_page(struct pa
  
- static int page_is_consistent(struct zone *zone, struct page *page)
- {
--#ifdef CONFIG_HOLES_IN_ZONE
--	if (!pfn_valid(page_to_pfn(page)))
-+	if (!pfn_valid_within(page_to_pfn(page)))
- 		return 0;
--#endif
- 	if (zone != page_zone(page))
- 		return 0;
+ 	set_compound_page_dtor(page, free_compound_page);
+ 	set_compound_order(page, order);
+-	__SetPageCompound(page);
++	__SetPageHead(page);
+ 	for (i = 1; i < nr_pages; i++) {
+ 		struct page *p = page + i;
  
-@@ -346,10 +344,8 @@ __find_combined_index(unsigned long page
- static inline int page_is_buddy(struct page *page, struct page *buddy,
- 								int order)
- {
--#ifdef CONFIG_HOLES_IN_ZONE
--	if (!pfn_valid(page_to_pfn(buddy)))
-+	if (!pfn_valid_within(page_to_pfn(buddy)))
- 		return 0;
--#endif
+ 		__SetPageTail(p);
+-		__SetPageCompound(p);
+ 		p->first_page = page;
+ 	}
+ }
+@@ -253,17 +252,16 @@ static void destroy_compound_page(struct
+ 	if (unlikely(compound_order(page) != order))
+ 		bad_page(page);
  
- 	if (page_zone_id(page) != page_zone_id(buddy))
- 		return 0;
+-	if (unlikely(!PageCompound(page)))
++	if (unlikely(!PageHead(page)))
+ 			bad_page(page);
+-	__ClearPageCompound(page);
++	__ClearPageHead(page);
+ 	for (i = 1; i < nr_pages; i++) {
+ 		struct page *p = page + i;
+ 
+-		if (unlikely(!PageCompound(p) | !PageTail(p) |
++		if (unlikely(!PageTail(p) |
+ 				(p->first_page != page)))
+ 			bad_page(page);
+ 		__ClearPageTail(p);
+-		__ClearPageCompound(p);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-pci-device-ensure-sysdata-initialised-v2.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-move-free-pages-between-lists-on-steal.patch
-move-free-pages-between-lists-on-steal-anti-fragmentation-switch-over-to-pfn_valid_within.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-create-the-zone_movable-zone.patch
-handle-kernelcore=-generic.patch
-lumpy-reclaim-v4.patch
-lumpy-move-to-using-pfn_valid_within.patch
-i386-mmzone-use-__maybe_unused.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-i386-support.patch
+remove-constructor-from-buffer_head.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+vmstat-use-our-own-timer-events.patch
+make-vm-statistics-update-interval-configurable.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+readahead-state-based-method-aging-accounting.patch
