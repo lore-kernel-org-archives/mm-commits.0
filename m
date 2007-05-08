@@ -1,125 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - cris-remove-code-related-to-pre-22-kernel.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:51 -0700
-Message-ID: <200705080005.l4805pnc009126@shell0.pdx.osdl.net>
+Subject: - swsusp-free-more-memory.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:05:40 -0700
+Message-ID: <200705080005.l4805eNA009114@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54139 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755278AbXEHAGK (ORCPT
+	by vger.kernel.org with ESMTP id S1755273AbXEHAGK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRIS: remove code related to pre-2.2 kernel
+     swsusp: free more memory
 has been removed from the -mm tree.  Its filename was
-     cris-remove-code-related-to-pre-22-kernel.patch
+     swsusp-free-more-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRIS: remove code related to pre-2.2 kernel
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: swsusp: free more memory
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Remove conditionals and code related to checking for a pre-2.2 kernel.
+Move the definition of PAGES_FOR_IO to kernel/power/power.h and introduce
+SPARE_PAGES representing the number of pages that should be freed by the
+swsusp's memory shrinker in addition to PAGES_FOR_IO so that device drivers
+can allocate some memory (up to 1 MB total) in their .suspend() routines
+without causing the suspend to fail.
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/kernel/fasttimer.c |   30 +-----------------------
- 1 file changed, 2 insertions(+), 28 deletions(-)
+ include/linux/suspend.h |    6 ------
+ kernel/power/power.h    |   12 +++++++++++-
+ kernel/power/swsusp.c   |    2 +-
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN arch/cris/arch-v32/kernel/fasttimer.c~cris-remove-code-related-to-pre-22-kernel arch/cris/arch-v32/kernel/fasttimer.c
---- a/arch/cris/arch-v32/kernel/fasttimer.c~cris-remove-code-related-to-pre-22-kernel
-+++ a/arch/cris/arch-v32/kernel/fasttimer.c
-@@ -603,23 +603,8 @@ void schedule_usleep(unsigned long us)
+diff -puN include/linux/suspend.h~swsusp-free-more-memory include/linux/suspend.h
+--- a/include/linux/suspend.h~swsusp-free-more-memory
++++ a/include/linux/suspend.h
+@@ -52,10 +52,4 @@ struct saved_context;
+ void __save_processor_state(struct saved_context *ctxt);
+ void __restore_processor_state(struct saved_context *ctxt);
  
- #ifdef CONFIG_PROC_FS
- static int proc_fasttimer_read(char *buf, char **start, off_t offset, int len
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,0)
--                       ,int *eof, void *data_unused
--#else
--                        ,int unused
--#endif
--                               );
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,0)
-+                       ,int *eof, void *data_unused);
- static struct proc_dir_entry *fasttimer_proc_entry;
--#else
--static struct proc_dir_entry fasttimer_proc_entry =
--{
--  0, 9, "fasttimer",
--  S_IFREG | S_IRUGO, 1, 0, 0,
--  0, NULL /* ops -- default to array */,
--  &proc_fasttimer_read /* get_info */,
--};
--#endif
- #endif /* CONFIG_PROC_FS */
+-/*
+- * XXX: We try to keep some more pages free so that I/O operations succeed
+- * without paging. Might this be more?
+- */
+-#define PAGES_FOR_IO	1024
+-
+ #endif /* _LINUX_SWSUSP_H */
+diff -puN kernel/power/power.h~swsusp-free-more-memory kernel/power/power.h
+--- a/kernel/power/power.h~swsusp-free-more-memory
++++ a/kernel/power/power.h
+@@ -14,8 +14,18 @@ struct swsusp_info {
  
- #ifdef CONFIG_PROC_FS
-@@ -628,12 +613,7 @@ static struct proc_dir_entry fasttimer_p
- #define BIG_BUF_SIZE (500 + NUM_TIMER_STATS * 300)
  
- static int proc_fasttimer_read(char *buf, char **start, off_t offset, int len
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,0)
--                       ,int *eof, void *data_unused
--#else
--                        ,int unused
--#endif
--                               )
-+                       ,int *eof, void *data_unused)
+ #ifdef CONFIG_SOFTWARE_SUSPEND
+-extern int pm_suspend_disk(void);
++/*
++ * Keep some memory free so that I/O operations can succeed without paging
++ * [Might this be more than 4 MB?]
++ */
++#define PAGES_FOR_IO	((4096 * 1024) >> PAGE_SHIFT)
++/*
++ * Keep 1 MB of memory free so that device drivers can allocate some pages in
++ * their .suspend() routines without breaking the suspend to disk.
++ */
++#define SPARE_PAGES	((1024 * 1024) >> PAGE_SHIFT)
+ 
++extern int pm_suspend_disk(void);
+ #else
+ static inline int pm_suspend_disk(void)
  {
-   unsigned long flags;
-   int i = 0;
-@@ -808,9 +788,7 @@ static int proc_fasttimer_read(char *buf
+diff -puN kernel/power/swsusp.c~swsusp-free-more-memory kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~swsusp-free-more-memory
++++ a/kernel/power/swsusp.c
+@@ -233,7 +233,7 @@ int swsusp_shrink_memory(void)
+ 		long size, highmem_size;
  
-   memcpy(buf, bigbuf + offset, len);
-   *start = buf;
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,0)
-   *eof = 1;
--#endif
- 
-   return len;
- }
-@@ -974,12 +952,8 @@ void fast_timer_init(void)
-     printk("fast_timer_init()\n");
- 
- #ifdef CONFIG_PROC_FS
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,2,0)
-    if ((fasttimer_proc_entry = create_proc_entry( "fasttimer", 0, 0 )))
-      fasttimer_proc_entry->read_proc = proc_fasttimer_read;
--#else
--    proc_register_dynamic(&proc_root, &fasttimer_proc_entry);
--#endif
- #endif /* PROC_FS */
-     if(request_irq(TIMER_INTR_VECT, timer_trig_interrupt, IRQF_DISABLED,
-                    "fast timer int", NULL))
+ 		highmem_size = count_highmem_pages();
+-		size = count_data_pages() + PAGES_FOR_IO;
++		size = count_data_pages() + PAGES_FOR_IO + SPARE_PAGES;
+ 		tmp = size;
+ 		size += highmem_size;
+ 		for_each_zone (zone)
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-arm-remove-useless-config-option-generic_bust_spinlock.patch
-git-avr32.patch
-git-dvb.patch
-git-ieee1394.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-r8169.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-math-emu-extendedh.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-add-spaces-on-either-side-of-case-operator.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
-video-add-spaces-on-either-side-of-the-case-operator.patch
+swsusp-clean-up-print.patch
+pm-separate-hibernation-code-from-suspend-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-frozen_process-to-kernel-power-processc.patch
+remvoe-kthread_bind-call-from-_cpu_down.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+add-suspend-related-notifications-for-cpu-hotplug.patch
+add-suspend-related-notifications-for-cpu-hotplug-cleanup.patch
+microcode-use-suspend-related-cpu-hotplug-notifications.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+shrink_slab-handle-bad-shrinkers.patch
