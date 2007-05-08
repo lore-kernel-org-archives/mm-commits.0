@@ -1,57 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - i386-make-bootsector-stub-16-bit-only.patch removed from -mm tree
-Date: Tue, 08 May 2007 11:13:10 -0700
-Message-ID: <200705081813.l48IDAQV030186@shell0.pdx.osdl.net>
+Subject: + fix-unnecesary-meminit.patch added to -mm tree
+Date: Tue, 08 May 2007 11:16:26 -0700
+Message-ID: <200705081816.l48IGQFT030256@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38652 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966632AbXEHSNO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 14:13:14 -0400
+	by vger.kernel.org with ESMTP id S966741AbXEHSQd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 14:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heukelum@mailshack.com, hpa@zytor.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: y-goto@jp.fujitsu.com
 
 
 The patch titled
-     i386: make bootsector stub 16-bit-only
-has been removed from the -mm tree.  Its filename was
-     i386-make-bootsector-stub-16-bit-only.patch
+     Fix unnecesary meminit
+has been added to the -mm tree.  Its filename is
+     fix-unnecesary-meminit.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: i386: make bootsector stub 16-bit-only
-From: Alexander van Heukelum <heukelum@mailshack.com>
+Subject: Fix unnecesary meminit
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-The x86 bzImage contains a stub to inform people that it is not possible
-any more to run a Linux kernel by catting it to a floppy and then booting
-from it.  This was meant to be all 16-bit code.  The first instruction,
-however, ended up as being coded as a 16:32-bit far jump.  I assume the
-intention was a 16:16-bit far jump.
+This is to fix unnecessary __meminit definition.  These are exported for
+kernel modules.
 
-Signed-off-by: Alexander van Heukelum <heukelum@mailshack.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+I compiled on ia64/x86-64 with memory hotplug on/off.
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/boot/bootsect.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/numa.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/boot/bootsect.S~i386-make-bootsector-stub-16-bit-only arch/i386/boot/bootsect.S
---- a/arch/i386/boot/bootsect.S~i386-make-bootsector-stub-16-bit-only
-+++ a/arch/i386/boot/bootsect.S
-@@ -44,7 +44,7 @@ SWAP_DEV	= 0			/* SWAP_DEV is now writte
- _start:
+diff -puN drivers/acpi/numa.c~fix-unnecesary-meminit drivers/acpi/numa.c
+--- a/drivers/acpi/numa.c~fix-unnecesary-meminit
++++ a/drivers/acpi/numa.c
+@@ -228,7 +228,7 @@ int __init acpi_numa_init(void)
+ 	return 0;
+ }
  
- 	# Normalize the start address
--	jmpl	$BOOTSEG, $start2
-+	jmpw	$BOOTSEG, $start2
+-int __meminit acpi_get_pxm(acpi_handle h)
++int acpi_get_pxm(acpi_handle h)
+ {
+ 	unsigned long pxm;
+ 	acpi_status status;
+@@ -246,7 +246,7 @@ int __meminit acpi_get_pxm(acpi_handle h
+ }
+ EXPORT_SYMBOL(acpi_get_pxm);
  
- start2:
- 	movw	%cs, %ax
+-int __meminit acpi_get_node(acpi_handle *handle)
++int acpi_get_node(acpi_handle *handle)
+ {
+ 	int pxm, node = -1;
+ 
 _
 
-Patches currently in -mm which might be from heukelum@mailshack.com are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-i386-make-bootsector-stub-16-bit-only.patch
+origin.patch
+fix-section-mismatch-of-memory-hotplug-related-code.patch
+add-white-list-into-modpostc-for-memory-hotplug-code-and-ia64s-machvec-section.patch
+fix-unnecesary-meminit.patch
+move-free-pages-between-lists-on-steal.patch
+create-the-zone_movable-zone-fix-section-mismatch-of-memory-hotplug-related-code-2.patch
+handle-kernelcore=-generic.patch
