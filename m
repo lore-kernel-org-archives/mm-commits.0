@@ -1,48 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: - get_unmapped_area-handles-map_fixed-on-i386.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:04:02 -0700
-Message-ID: <200705080004.l48042lg008982@shell0.pdx.osdl.net>
+Subject: - get_unmapped_area-handles-map_fixed-on-sparc64.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:04:08 -0700
+Message-ID: <200705080004.l48048lT008991@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44861 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50760 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967353AbXEHAEd (ORCPT
+	by vger.kernel.org with ESMTP id S967345AbXEHAEd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:04:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, agl@us.ibm.com, ak@suse.de, bill.irwin@oracle.com, david@gibson.dropbear.id.au, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, bill.irwin@oracle.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     get_unmapped_area handles MAP_FIXED on i386
+     get_unmapped_area handles MAP_FIXED on sparc64
 has been removed from the -mm tree.  Its filename was
-     get_unmapped_area-handles-map_fixed-on-i386.patch
+     get_unmapped_area-handles-map_fixed-on-sparc64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: get_unmapped_area handles MAP_FIXED on i386
+Subject: get_unmapped_area handles MAP_FIXED on sparc64
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Handle MAP_FIXED in i386 hugetlb_get_unmapped_area(), just call
-prepare_hugepage_range.
+Handle MAP_FIXED in hugetlb_get_unmapped_area on sparc64 by just using
+prepare_hugepage_range()
 
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Acked-by: William Irwin <bill.irwin@oracle.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/hugetlbpage.c |    6 ++++++
+ arch/sparc64/mm/hugetlbpage.c |    6 ++++++
  1 file changed, 6 insertions(+)
 
-diff -puN arch/i386/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-i386 arch/i386/mm/hugetlbpage.c
---- a/arch/i386/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-i386
-+++ a/arch/i386/mm/hugetlbpage.c
-@@ -367,6 +367,12 @@ hugetlb_get_unmapped_area(struct file *f
- 	if (len > TASK_SIZE)
+diff -puN arch/sparc64/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-sparc64 arch/sparc64/mm/hugetlbpage.c
+--- a/arch/sparc64/mm/hugetlbpage.c~get_unmapped_area-handles-map_fixed-on-sparc64
++++ a/arch/sparc64/mm/hugetlbpage.c
+@@ -175,6 +175,12 @@ hugetlb_get_unmapped_area(struct file *f
+ 	if (len > task_size)
  		return -ENOMEM;
  
 +	if (flags & MAP_FIXED) {
