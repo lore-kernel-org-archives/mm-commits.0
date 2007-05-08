@@ -1,182 +1,393 @@
 From: akpm@linux-foundation.org
-Subject: - remove-software_suspend.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:31 -0700
-Message-ID: <200705080005.l4805VXv009102@shell0.pdx.osdl.net>
+Subject: - uml-move-sigio-testing-to-sigioc.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:06:15 -0700
+Message-ID: <200705080006.l4806FRh009166@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46414 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967382AbXEHAGh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:37 -0400
+	by vger.kernel.org with ESMTP id S1754757AbXEHAGr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johannes@sipsolutions.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove software_suspend()
+     uml: move SIGIO testing to sigio.c
 has been removed from the -mm tree.  Its filename was
-     remove-software_suspend.patch
+     uml-move-sigio-testing-to-sigioc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove software_suspend()
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: uml: move SIGIO testing to sigio.c
+From: Jeff Dike <jdike@addtoit.com>
 
-Remove software_suspend() and all its users since
-pm_suspend(PM_SUSPEND_DISK) should be equivalent and there's no point in
-having two interfaces for the same thing.
+This patch narrows the sigio interface.  The boot-time SIGIO testing used to
+be in start_up.c, which meant that pty_output_sigio and pty_close_sigio needed
+to be global.  By moving that code here, those can become static and the
+declarations moved from user_util.h.
 
-The patch also changes the valid_state function to return 0 (false) for
-PM_SUSPEND_DISK when SOFTWARE_SUSPEND is not configured instead of
-accepting it and having the whole thing fail later.
+os_check_bugs is also here because it only does the SIGIO checking.  If it
+does more, it'll probably move back to start_up.c.
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/proc.c    |    2 +-
- drivers/i2c/chips/tps65010.c |    4 +++-
- include/linux/init.h         |    2 +-
- include/linux/suspend.h      |    8 --------
- kernel/power/main.c          |   21 +++++++--------------
- kernel/sys.c                 |    2 +-
- 6 files changed, 13 insertions(+), 26 deletions(-)
+ arch/um/include/user_util.h |    3 
+ arch/um/os-Linux/sigio.c    |  145 ++++++++++++++++++++++++++++++++++
+ arch/um/os-Linux/start_up.c |  145 ----------------------------------
+ 3 files changed, 145 insertions(+), 148 deletions(-)
 
-diff -puN drivers/acpi/sleep/proc.c~remove-software_suspend drivers/acpi/sleep/proc.c
---- a/drivers/acpi/sleep/proc.c~remove-software_suspend
-+++ a/drivers/acpi/sleep/proc.c
-@@ -60,7 +60,7 @@ acpi_system_write_sleep(struct file *fil
- 	state = simple_strtoul(str, NULL, 0);
- #ifdef CONFIG_SOFTWARE_SUSPEND
- 	if (state == 4) {
--		error = software_suspend();
-+		error = pm_suspend(PM_SUSPEND_DISK);
- 		goto Done;
- 	}
- #endif
-diff -puN drivers/i2c/chips/tps65010.c~remove-software_suspend drivers/i2c/chips/tps65010.c
---- a/drivers/i2c/chips/tps65010.c~remove-software_suspend
-+++ a/drivers/i2c/chips/tps65010.c
-@@ -351,8 +351,10 @@ static void tps65010_interrupt(struct tp
- #if 0
- 			/* REVISIT:  this might need its own workqueue
- 			 * plus tweaks including deadlock avoidance ...
-+			 * also needs to get error handling and probably
-+			 * an #ifdef CONFIG_SOFTWARE_SUSPEND
- 			 */
--			software_suspend();
-+			pm_suspend(PM_SUSPEND_DISK);
- #endif
- 			poll = 1;
- 		}
-diff -puN include/linux/init.h~remove-software_suspend include/linux/init.h
---- a/include/linux/init.h~remove-software_suspend
-+++ a/include/linux/init.h
-@@ -233,7 +233,7 @@ void __init parse_early_param(void);
- #define __obsolete_setup(str) 			/* nothing */
- #endif
+diff -puN arch/um/include/user_util.h~uml-move-sigio-testing-to-sigioc arch/um/include/user_util.h
+--- a/arch/um/include/user_util.h~uml-move-sigio-testing-to-sigioc
++++ a/arch/um/include/user_util.h
+@@ -51,9 +51,6 @@ extern unsigned long _stext, _etext, _sd
+ extern unsigned long _unprotected_end;
+ extern unsigned long brk_start;
  
--/* Data marked not to be saved by software_suspend() */
-+/* Data marked not to be saved by software suspend */
- #define __nosavedata __attribute__ ((__section__ (".data.nosave")))
- 
- /* This means "can be init if no module support, otherwise module load
-diff -puN include/linux/suspend.h~remove-software_suspend include/linux/suspend.h
---- a/include/linux/suspend.h~remove-software_suspend
-+++ a/include/linux/suspend.h
-@@ -33,8 +33,6 @@ static inline void pm_restore_console(vo
- #endif
- 
- #if defined(CONFIG_PM) && defined(CONFIG_SOFTWARE_SUSPEND)
--/* kernel/power/swsusp.c */
--extern int software_suspend(void);
- /* kernel/power/snapshot.c */
- extern void __init register_nosave_region(unsigned long, unsigned long);
- extern int swsusp_page_is_forbidden(struct page *);
-@@ -42,12 +40,6 @@ extern void swsusp_set_page_free(struct 
- extern void swsusp_unset_page_free(struct page *);
- extern unsigned long get_safe_page(gfp_t gfp_mask);
- #else
--static inline int software_suspend(void)
--{
--	printk("Warning: fake suspend called\n");
--	return -ENOSYS;
--}
+-extern int pty_output_sigio;
+-extern int pty_close_sigio;
 -
- static inline void register_nosave_region(unsigned long b, unsigned long e) {}
- static inline int swsusp_page_is_forbidden(struct page *p) { return 0; }
- static inline void swsusp_set_page_free(struct page *p) {}
-diff -puN kernel/power/main.c~remove-software_suspend kernel/power/main.c
---- a/kernel/power/main.c~remove-software_suspend
-+++ a/kernel/power/main.c
-@@ -184,17 +184,21 @@ static void suspend_finish(suspend_state
- static const char * const pm_states[PM_SUSPEND_MAX] = {
- 	[PM_SUSPEND_STANDBY]	= "standby",
- 	[PM_SUSPEND_MEM]	= "mem",
--#ifdef CONFIG_SOFTWARE_SUSPEND
- 	[PM_SUSPEND_DISK]	= "disk",
--#endif
- };
+ extern void *add_signal_handler(int sig, void (*handler)(int));
+ extern int linux_main(int argc, char **argv);
+ extern void set_cmdline(char *cmd);
+diff -puN arch/um/os-Linux/sigio.c~uml-move-sigio-testing-to-sigioc arch/um/os-Linux/sigio.c
+--- a/arch/um/os-Linux/sigio.c~uml-move-sigio-testing-to-sigioc
++++ a/arch/um/os-Linux/sigio.c
+@@ -8,6 +8,7 @@
+ #include <termios.h>
+ #include <pty.h>
+ #include <signal.h>
++#include <fcntl.h>
+ #include <errno.h>
+ #include <string.h>
+ #include <sched.h>
+@@ -20,6 +21,7 @@
+ #include "sigio.h"
+ #include "os.h"
+ #include "um_malloc.h"
++#include "init.h"
  
- static inline int valid_state(suspend_state_t state)
- {
- 	/* Suspend-to-disk does not really need low-level support.
--	 * It can work with reboot if needed. */
-+	 * It can work with shutdown/reboot if needed. If it isn't
-+	 * configured, then it cannot be supported.
-+	 */
- 	if (state == PM_SUSPEND_DISK)
-+#ifdef CONFIG_SOFTWARE_SUSPEND
- 		return 1;
-+#else
-+		return 0;
-+#endif
- 
- 	/* all other states need lowlevel support and need to be
- 	 * valid to the lowlevel implementation, no valid callback
-@@ -244,17 +248,6 @@ static int enter_state(suspend_state_t s
- 	return error;
+ /* Protected by sigio_lock(), also used by sigio_cleanup, which is an
+  * exitcall.
+@@ -320,6 +322,10 @@ out_close1:
+ 	close(l_write_sigio_fds[1]);
  }
  
--#ifdef CONFIG_SOFTWARE_SUSPEND
--/*
-- * This is main interface to the outside world. It needs to be
-- * called from process context.
-- */
--int software_suspend(void)
--{
--	return enter_state(PM_SUSPEND_DISK);
--}
--#endif
--
++/* Changed during early boot */
++static int pty_output_sigio = 0;
++static int pty_close_sigio = 0;
++
+ void maybe_sigio_broken(int fd, int read)
+ {
+ 	int err;
+@@ -357,3 +363,142 @@ static void sigio_cleanup(void)
+ }
  
- /**
-  *	pm_suspend - Externally visible function for suspending system.
-diff -puN kernel/sys.c~remove-software_suspend kernel/sys.c
---- a/kernel/sys.c~remove-software_suspend
-+++ a/kernel/sys.c
-@@ -881,7 +881,7 @@ asmlinkage long sys_reboot(int magic1, i
- #ifdef CONFIG_SOFTWARE_SUSPEND
- 	case LINUX_REBOOT_CMD_SW_SUSPEND:
- 		{
--			int ret = software_suspend();
-+			int ret = pm_suspend(PM_SUSPEND_DISK);
- 			unlock_kernel();
- 			return ret;
- 		}
+ __uml_exitcall(sigio_cleanup);
++
++/* Used as a flag during SIGIO testing early in boot */
++static volatile int got_sigio = 0;
++
++static void __init handler(int sig)
++{
++	got_sigio = 1;
++}
++
++struct openpty_arg {
++	int master;
++	int slave;
++	int err;
++};
++
++static void openpty_cb(void *arg)
++{
++	struct openpty_arg *info = arg;
++
++	info->err = 0;
++	if(openpty(&info->master, &info->slave, NULL, NULL, NULL))
++		info->err = -errno;
++}
++
++static int async_pty(int master, int slave)
++{
++	int flags;
++
++	flags = fcntl(master, F_GETFL);
++	if(flags < 0)
++		return -errno;
++
++	if((fcntl(master, F_SETFL, flags | O_NONBLOCK | O_ASYNC) < 0) ||
++	   (fcntl(master, F_SETOWN, os_getpid()) < 0))
++		return -errno;
++
++	if((fcntl(slave, F_SETFL, flags | O_NONBLOCK) < 0))
++		return -errno;
++
++	return(0);
++}
++
++static void __init check_one_sigio(void (*proc)(int, int))
++{
++	struct sigaction old, new;
++	struct openpty_arg pty = { .master = -1, .slave = -1 };
++	int master, slave, err;
++
++	initial_thread_cb(openpty_cb, &pty);
++	if(pty.err){
++		printk("openpty failed, errno = %d\n", -pty.err);
++		return;
++	}
++
++	master = pty.master;
++	slave = pty.slave;
++
++	if((master == -1) || (slave == -1)){
++		printk("openpty failed to allocate a pty\n");
++		return;
++	}
++
++	/* Not now, but complain so we now where we failed. */
++	err = raw(master);
++	if (err < 0)
++		panic("check_sigio : __raw failed, errno = %d\n", -err);
++
++	err = async_pty(master, slave);
++	if(err < 0)
++		panic("tty_fds : sigio_async failed, err = %d\n", -err);
++
++	if(sigaction(SIGIO, NULL, &old) < 0)
++		panic("check_sigio : sigaction 1 failed, errno = %d\n", errno);
++	new = old;
++	new.sa_handler = handler;
++	if(sigaction(SIGIO, &new, NULL) < 0)
++		panic("check_sigio : sigaction 2 failed, errno = %d\n", errno);
++
++	got_sigio = 0;
++	(*proc)(master, slave);
++
++	close(master);
++	close(slave);
++
++	if(sigaction(SIGIO, &old, NULL) < 0)
++		panic("check_sigio : sigaction 3 failed, errno = %d\n", errno);
++}
++
++static void tty_output(int master, int slave)
++{
++	int n;
++	char buf[512];
++
++	printk("Checking that host ptys support output SIGIO...");
++
++	memset(buf, 0, sizeof(buf));
++
++	while(os_write_file(master, buf, sizeof(buf)) > 0) ;
++	if(errno != EAGAIN)
++		panic("check_sigio : write failed, errno = %d\n", errno);
++	while(((n = os_read_file(slave, buf, sizeof(buf))) > 0) && !got_sigio) ;
++
++	if(got_sigio){
++		printk("Yes\n");
++		pty_output_sigio = 1;
++	}
++	else if(n == -EAGAIN) printk("No, enabling workaround\n");
++	else panic("check_sigio : read failed, err = %d\n", n);
++}
++
++static void tty_close(int master, int slave)
++{
++	printk("Checking that host ptys support SIGIO on close...");
++
++	close(slave);
++	if(got_sigio){
++		printk("Yes\n");
++		pty_close_sigio = 1;
++	}
++	else printk("No, enabling workaround\n");
++}
++
++void __init check_sigio(void)
++{
++	if((os_access("/dev/ptmx", OS_ACC_R_OK) < 0) &&
++	   (os_access("/dev/ptyp0", OS_ACC_R_OK) < 0)){
++		printk("No pseudo-terminals available - skipping pty SIGIO "
++		       "check\n");
++		return;
++	}
++	check_one_sigio(tty_output);
++	check_one_sigio(tty_close);
++}
++
++/* Here because it only does the SIGIO testing for now */
++void __init os_check_bugs(void)
++{
++	check_sigio();
++}
+diff -puN arch/um/os-Linux/start_up.c~uml-move-sigio-testing-to-sigioc arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-move-sigio-testing-to-sigioc
++++ a/arch/um/os-Linux/start_up.c
+@@ -553,148 +553,3 @@ int __init parse_iomem(char *str, int *a
+  out:
+ 	return 1;
+ }
+-
+-
+-/* Changed during early boot */
+-int pty_output_sigio = 0;
+-int pty_close_sigio = 0;
+-
+-/* Used as a flag during SIGIO testing early in boot */
+-static volatile int got_sigio = 0;
+-
+-static void __init handler(int sig)
+-{
+-	got_sigio = 1;
+-}
+-
+-struct openpty_arg {
+-	int master;
+-	int slave;
+-	int err;
+-};
+-
+-static void openpty_cb(void *arg)
+-{
+-	struct openpty_arg *info = arg;
+-
+-	info->err = 0;
+-	if(openpty(&info->master, &info->slave, NULL, NULL, NULL))
+-		info->err = -errno;
+-}
+-
+-static int async_pty(int master, int slave)
+-{
+-	int flags;
+-
+-	flags = fcntl(master, F_GETFL);
+-	if(flags < 0)
+-		return -errno;
+-
+-	if((fcntl(master, F_SETFL, flags | O_NONBLOCK | O_ASYNC) < 0) ||
+-	   (fcntl(master, F_SETOWN, os_getpid()) < 0))
+-		return -errno;
+-
+-	if((fcntl(slave, F_SETFL, flags | O_NONBLOCK) < 0))
+-		return -errno;
+-
+-	return(0);
+-}
+-
+-static void __init check_one_sigio(void (*proc)(int, int))
+-{
+-	struct sigaction old, new;
+-	struct openpty_arg pty = { .master = -1, .slave = -1 };
+-	int master, slave, err;
+-
+-	initial_thread_cb(openpty_cb, &pty);
+-	if(pty.err){
+-		printk("openpty failed, errno = %d\n", -pty.err);
+-		return;
+-	}
+-
+-	master = pty.master;
+-	slave = pty.slave;
+-
+-	if((master == -1) || (slave == -1)){
+-		printk("openpty failed to allocate a pty\n");
+-		return;
+-	}
+-
+-	/* Not now, but complain so we now where we failed. */
+-	err = raw(master);
+-	if (err < 0)
+-		panic("check_sigio : __raw failed, errno = %d\n", -err);
+-
+-	err = async_pty(master, slave);
+-	if(err < 0)
+-		panic("tty_fds : sigio_async failed, err = %d\n", -err);
+-
+-	if(sigaction(SIGIO, NULL, &old) < 0)
+-		panic("check_sigio : sigaction 1 failed, errno = %d\n", errno);
+-	new = old;
+-	new.sa_handler = handler;
+-	if(sigaction(SIGIO, &new, NULL) < 0)
+-		panic("check_sigio : sigaction 2 failed, errno = %d\n", errno);
+-
+-	got_sigio = 0;
+-	(*proc)(master, slave);
+-
+-	close(master);
+-	close(slave);
+-
+-	if(sigaction(SIGIO, &old, NULL) < 0)
+-		panic("check_sigio : sigaction 3 failed, errno = %d\n", errno);
+-}
+-
+-static void tty_output(int master, int slave)
+-{
+-	int n;
+-	char buf[512];
+-
+-	printk("Checking that host ptys support output SIGIO...");
+-
+-	memset(buf, 0, sizeof(buf));
+-
+-	while(os_write_file(master, buf, sizeof(buf)) > 0) ;
+-	if(errno != EAGAIN)
+-		panic("check_sigio : write failed, errno = %d\n", errno);
+-	while(((n = os_read_file(slave, buf, sizeof(buf))) > 0) && !got_sigio) ;
+-
+-	if(got_sigio){
+-		printk("Yes\n");
+-		pty_output_sigio = 1;
+-	}
+-	else if(n == -EAGAIN) printk("No, enabling workaround\n");
+-	else panic("check_sigio : read failed, err = %d\n", n);
+-}
+-
+-static void tty_close(int master, int slave)
+-{
+-	printk("Checking that host ptys support SIGIO on close...");
+-
+-	close(slave);
+-	if(got_sigio){
+-		printk("Yes\n");
+-		pty_close_sigio = 1;
+-	}
+-	else printk("No, enabling workaround\n");
+-}
+-
+-void __init check_sigio(void)
+-{
+-	if((os_access("/dev/ptmx", OS_ACC_R_OK) < 0) &&
+-	   (os_access("/dev/ptyp0", OS_ACC_R_OK) < 0)){
+-		printk("No pseudo-terminals available - skipping pty SIGIO "
+-		       "check\n");
+-		return;
+-	}
+-	check_one_sigio(tty_output);
+-	check_one_sigio(tty_close);
+-}
+-
+-void os_check_bugs(void)
+-{
+-	check_ptrace();
+-	check_sigio();
+-}
+-
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-alsa.patch
-git-powerpc.patch
-power-management-remove-some-useless-code-from-arm.patch
-git-wireless.patch
-pm-separate-hibernation-code-from-suspend-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-kernel-doc-html-mode-struct-highlights.patch
+uml-hostfs-style-fixes.patch
+uml-an-idle-system-should-have-zero-load-average.patch
+remove-tas.patch
+x86-create-asm-cmpxchgh.patch
+uml-network-and-pcap-cleanup.patch
+uml-pcap-devices-should-get-macs-from-command-line.patch
