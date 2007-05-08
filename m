@@ -1,93 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - at91_cf-minor-fix.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:01:23 -0700
-Message-ID: <200705080001.l4801NAw008766@shell0.pdx.osdl.net>
+Subject: - proper-prototype-for-hugetlb_get_unmapped_area.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:01:49 -0700
+Message-ID: <200705080001.l4801nwU008797@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51040 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51242 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967302AbXEHABm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:01:42 -0400
+	by vger.kernel.org with ESMTP id S967316AbXEHACB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:02:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
+To: bunk@stusta.de, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     at91_cf, minor fix
+     proper prototype for hugetlb_get_unmapped_area()
 has been removed from the -mm tree.  Its filename was
-     at91_cf-minor-fix.patch
+     proper-prototype-for-hugetlb_get_unmapped_area.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: at91_cf, minor fix
-From: David Brownell <david-b@pacbell.net>
+Subject: proper prototype for hugetlb_get_unmapped_area()
+From: Adrian Bunk <bunk@stusta.de>
 
-This is a minor correctness fix: since the at91_cf driver probe() routine
-is in the init section, it should use platform_driver_probe() instead of
-leaving that pointer around in the driver struct after init section
-removal.
+Add a proper prototype for hugetlb_get_unmapped_area() in
+include/linux/hugetlb.h.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: William Irwin <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/at91_cf.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c    |    5 +----
+ include/linux/hugetlb.h |    6 ++++++
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pcmcia/at91_cf.c~at91_cf-minor-fix drivers/pcmcia/at91_cf.c
---- a/drivers/pcmcia/at91_cf.c~at91_cf-minor-fix
-+++ a/drivers/pcmcia/at91_cf.c
-@@ -360,7 +360,6 @@ static struct platform_driver at91_cf_dr
- 		.name		= (char *) driver_name,
- 		.owner		= THIS_MODULE,
- 	},
--	.probe		= at91_cf_probe,
- 	.remove		= __exit_p(at91_cf_remove),
- 	.suspend	= at91_cf_suspend,
- 	.resume		= at91_cf_resume,
-@@ -370,7 +369,7 @@ static struct platform_driver at91_cf_dr
+diff -puN fs/hugetlbfs/inode.c~proper-prototype-for-hugetlb_get_unmapped_area fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~proper-prototype-for-hugetlb_get_unmapped_area
++++ a/fs/hugetlbfs/inode.c
+@@ -98,10 +98,7 @@ out:
+  * Called under down_write(mmap_sem).
+  */
  
- static int __init at91_cf_init(void)
- {
--	return platform_driver_register(&at91_cf_driver);
-+	return platform_driver_probe(&at91_cf_driver, at91_cf_probe);
- }
- module_init(at91_cf_init);
+-#ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+-unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+-		unsigned long len, unsigned long pgoff, unsigned long flags);
+-#else
++#ifndef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ static unsigned long
+ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 		unsigned long len, unsigned long pgoff, unsigned long flags)
+diff -puN include/linux/hugetlb.h~proper-prototype-for-hugetlb_get_unmapped_area include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~proper-prototype-for-hugetlb_get_unmapped_area
++++ a/include/linux/hugetlb.h
+@@ -189,4 +189,10 @@ static inline void set_file_hugepages(st
  
+ #endif /* !CONFIG_HUGETLBFS */
+ 
++#ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
++unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
++					unsigned long len, unsigned long pgoff,
++					unsigned long flags);
++#endif /* HAVE_ARCH_HUGETLB_UNMAPPED_AREA */
++
+ #endif /* _LINUX_HUGETLB_H */
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-init-dma-masks-in-pnp_dev.patch
-rtc-add-rtc-rs5c313-driver.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
-rtc-add-rtc-class-driver-for-the-maxim-max6900-update.patch
-char-cs5535_gpio-add-module_device_table.patch
-parport-dev-driver-model-support.patch
-layered-parport-code-uses-parport-dev.patch
-pnpacpi-sets-pnpdev-devarchdata.patch
-fix-hotplug-for-legacy-platform-drivers.patch
-minor-spi_butterfly-cleanup.patch
-spi-kerneldoc.patch
-spi-kerneldoc-fix.patch
-rtc-remove-sys-class-rtc-dev.patch
-rtc-rtc-interfaces-dont-use-class_device.patch
-rtc-simplified-rtc-sysfs-attribute-handling.patch
-rtc-simplified-proc-driver-rtc-handling.patch
-rtc-remove-rest-of-class_device.patch
-rtc-suspend-resume-restores-system-clock.patch
-rtc-simplified-rtc-sysfs-attribute-handling-tidy.patch
-rtc-update-to-class-device-removal-patches.patch
-rtc-kconfig-cleanup.patch
-rtc-cmos-wakeup-interface.patch
-acpi-wakeup-hooks-for-rtc-cmos.patch
-workaround-rtc-related-acpi-table-bugs.patch
-revert-rtc-add-rtc_merge_alarm.patch
-remove-rtc_alm_set-mode-bugs.patch
+git-acpi.patch
+git-alsa.patch
+git-powerpc.patch
+git-dvb.patch
+git-ieee1394.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+ibmtr_cs-fix-hang-on-eject.patch
+git-battery.patch
+git-r8169.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+drivers-scsi-ipsc-remove-kernel-24-code.patch
+drivers-scsi-nsp32c-remove-kernel-24-code.patch
+git-unionfs.patch
+git-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+filesystem-disk-errors-at-boot-time-caused-by-probe.patch
+drivers-char-hvc_consolec-cleanups.patch
+init-do_mountsc-proper-prepare_namespace-prototype.patch
+apple-smc-driver-hardware-monitoring-and-control-cleanup.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+add-file-position-info-to-proc.patch
+more-scheduled-oss-driver-removal.patch
+schedule-obsolete-oss-drivers-for-removal-4th-round.patch
+make-remove_inode_dquot_ref-static.patch
+unexport-pci_proc_attach_device.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms.patch
+the-scheduled-einval-for-invalid-timevals-in-setitimer.patch
+ext2-reservations.patch
+make-drivers-isdn-capi-capiutilccdebbuf_alloc-static.patch
+remove-nfs4_acl_add_ace.patch
+rtc-remove-sys-class-rtc-dev-fix.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+no-longer-include-asm-kdebugh.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+compiler-introduce-__used-and-__maybe_unused.patch
+readahead-events-accounting.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+fbdev-display-class-fix.patch
+fbdev-mm-deferred-io-support-fix.patch
+fbdev-hecuba-framebuffer-driver-fix.patch
+drivers-video-sis-remove-more-kernel-24-code.patch
+slim-main-patch.patch
+slim-debug-output.patch
+mutex-subsystem-synchro-test-module.patch
