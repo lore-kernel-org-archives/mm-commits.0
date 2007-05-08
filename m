@@ -1,153 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - serial-serial_core-use-pr_debug.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:01:38 -0700
-Message-ID: <200705080001.l4801c46008784@shell0.pdx.osdl.net>
+Subject: - use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:01:47 -0700
+Message-ID: <200705080001.l4801lKp008793@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33751 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967313AbXEHABz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:01:55 -0400
+	by vger.kernel.org with ESMTP id S967310AbXEHABu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:01:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Serial: serial_core, use pr_debug
+     Use ZVC counters to establish exact size of dirtyable pages
 has been removed from the -mm tree.  Its filename was
-     serial-serial_core-use-pr_debug.patch
+     use-zvc-counters-to-establish-exact-size-of-dirtyable-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Serial: serial_core, use pr_debug
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Use ZVC counters to establish exact size of dirtyable pages
+From: Christoph Lameter <clameter@sgi.com>
 
-serial_core, use pr_debug
+We can use the global ZVC counters to establish the exact size of the LRU
+and the free pages.  This allows a more accurate determination of the dirty
+ratio.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+This patch will fix the broken ratio calculations if large amounts of
+memory are allocated to huge pags or other consumers that do not put the
+pages on to the LRU.
+
+Notes:
+- I did not add NR_SLAB_RECLAIMABLE to the calculation of the
+  dirtyable pages. Those may be reclaimable but they are at this
+  point not dirtyable. If NR_SLAB_RECLAIMABLE would be considered
+  then a huge number of reclaimable pages would stop writeback
+  from occurring.
+
+- This patch used to be in mm as the last one in a series of patches.
+  It was removed when Linus updated the treatment of highmem because
+  there was a conflict. I updated the patch to follow Linus' approach.
+  This patch is neede to fulfill the claims made in the beginning of the
+  patchset that is now in Linus' tree.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |   17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
+ mm/page-writeback.c |   50 +++++++++++++++++++++++++++++++++---------
+ 1 file changed, 40 insertions(+), 10 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~serial-serial_core-use-pr_debug drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-serial_core-use-pr_debug
-+++ a/drivers/serial/serial_core.c
-@@ -37,13 +37,6 @@
- #include <asm/irq.h>
- #include <asm/uaccess.h>
+diff -puN mm/page-writeback.c~use-zvc-counters-to-establish-exact-size-of-dirtyable-pages mm/page-writeback.c
+--- a/mm/page-writeback.c~use-zvc-counters-to-establish-exact-size-of-dirtyable-pages
++++ a/mm/page-writeback.c
+@@ -119,6 +119,44 @@ static void background_writeout(unsigned
+  * We make sure that the background writeout level is below the adjusted
+  * clamping level.
+  */
++
++static unsigned long highmem_dirtyable_memory(unsigned long total)
++{
++#ifdef CONFIG_HIGHMEM
++	int node;
++	unsigned long x = 0;
++
++	for_each_online_node(node) {
++		struct zone *z =
++			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
++
++		x += zone_page_state(z, NR_FREE_PAGES)
++			+ zone_page_state(z, NR_INACTIVE)
++			+ zone_page_state(z, NR_ACTIVE);
++	}
++	/*
++	 * Make sure that the number of highmem pages is never larger
++	 * than the number of the total dirtyable memory. This can only
++	 * occur in very strange VM situations but we want to make sure
++	 * that this does not occur.
++	 */
++	return min(x, total);
++#else
++	return 0;
++#endif
++}
++
++static unsigned long determine_dirtyable_memory(void)
++{
++	unsigned long x;
++
++	x = global_page_state(NR_FREE_PAGES)
++		+ global_page_state(NR_INACTIVE)
++		+ global_page_state(NR_ACTIVE);
++	x -= highmem_dirtyable_memory(x);
++	return x + 1;	/* Ensure that we never return 0 */
++}
++
+ static void
+ get_dirty_limits(long *pbackground, long *pdirty,
+ 					struct address_space *mapping)
+@@ -128,20 +166,12 @@ get_dirty_limits(long *pbackground, long
+ 	int unmapped_ratio;
+ 	long background;
+ 	long dirty;
+-	unsigned long available_memory = vm_total_pages;
++	unsigned long available_memory = determine_dirtyable_memory();
+ 	struct task_struct *tsk;
  
--#undef	DEBUG
--#ifdef DEBUG
--#define DPRINTK(x...)	printk(x)
--#else
--#define DPRINTK(x...)	do { } while (0)
+-#ifdef CONFIG_HIGHMEM
+-	/*
+-	 * We always exclude high memory from our count.
+-	 */
+-	available_memory -= totalhigh_pages;
 -#endif
 -
- /*
-  * This is used to lock changes in serial line configuration.
-  */
-@@ -552,7 +545,7 @@ static void uart_flush_buffer(struct tty
- 		return;
- 	}
+-
+ 	unmapped_ratio = 100 - ((global_page_state(NR_FILE_MAPPED) +
+ 				global_page_state(NR_ANON_PAGES)) * 100) /
+-					vm_total_pages;
++					available_memory;
  
--	DPRINTK("uart_flush_buffer(%d) called\n", tty->index);
-+	pr_debug("uart_flush_buffer(%d) called\n", tty->index);
- 
- 	spin_lock_irqsave(&port->lock, flags);
- 	uart_circ_clear(&state->info->xmit);
-@@ -1224,7 +1217,7 @@ static void uart_close(struct tty_struct
- 
- 	port = state->port;
- 
--	DPRINTK("uart_close(%d) called\n", port->line);
-+	pr_debug("uart_close(%d) called\n", port->line);
- 
- 	mutex_lock(&state->mutex);
- 
-@@ -1343,7 +1336,7 @@ static void uart_wait_until_sent(struct 
- 
- 	expire = jiffies + timeout;
- 
--	DPRINTK("uart_wait_until_sent(%d), jiffies=%lu, expire=%lu...\n",
-+	pr_debug("uart_wait_until_sent(%d), jiffies=%lu, expire=%lu...\n",
- 	        port->line, jiffies, expire);
- 
- 	/*
-@@ -1372,7 +1365,7 @@ static void uart_hangup(struct tty_struc
- 	struct uart_state *state = tty->driver_data;
- 
- 	BUG_ON(!kernel_locked());
--	DPRINTK("uart_hangup(%d)\n", state->port->line);
-+	pr_debug("uart_hangup(%d)\n", state->port->line);
- 
- 	mutex_lock(&state->mutex);
- 	if (state->info && state->info->flags & UIF_NORMAL_ACTIVE) {
-@@ -1570,7 +1563,7 @@ static int uart_open(struct tty_struct *
- 	int retval, line = tty->index;
- 
- 	BUG_ON(!kernel_locked());
--	DPRINTK("uart_open(%d) called\n", line);
-+	pr_debug("uart_open(%d) called\n", line);
- 
- 	/*
- 	 * tty->driver->num won't change, so we won't fail here with
+ 	dirty_ratio = vm_dirty_ratio;
+ 	if (dirty_ratio > unmapped_ratio / 2)
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-cinergyt2-fix-file-release-handler.patch
-auerswald-fix-file-release-handler.patch
-char-rocket-add-module_device_table.patch
-char-cs5535_gpio-add-module_device_table.patch
-drivers-char-use-__set_current_state.patch
-misc-add-sensable-phantom-driver.patch
-misc-add-sensable-phantom-driver-v3.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-char-cyclades-remove-pause.patch
-char-cyclades-cy_readx-writex-cleanup.patch
-char-cyclades-timer-cleanup.patch
-char-cyclades-remove-volatiles.patch
-char-cyclades-remove-useless-casts.patch
-char-cyclades-create-cy_init_ze.patch
-char-cyclades-use-pci_iomap-unmap.patch
-char-cyclades-init-ze-immediately.patch
-char-cyclades-create-cy_pci_probe.patch
-char-cyclades-move-card-entries-init-into-function.patch
-char-cyclades-init-card-struct-immediately.patch
-char-cyclades-remove-some-global-vars.patch
-char-cyclades-cy_init-error-handling.patch
-char-cyclades-tty_register_device-separately-for-each-device.patch
-char-cyclades-clear-interrupts-before-releasing.patch
-char-cyclades-allow-debug_shirq.patch
-char-mxser-schedule-for-removal.patch
-char-isicom-use-pr_debug.patch
-char-cyclades-use-is_cyc_z-macro.patch
-char-cyclades-switch-to-pci-probing.patch
-char-cyclades-depends-on-pci-or-isa.patch
-char-cyclades-unexport-struct-cyclades_card.patch
-char-cyclades-remove-useless-fileds-from-cyclades_card.patch
-char-cyclades-irq-is-int.patch
-char-cyclades-printk-cleanups.patch
-char-cyclades-mark-cyy_init_card-as-__devinit-not-__init.patch
-char-cyclades-simplify-variables-initialization.patch
-char-cyclades-get-rid-of-phys-addresses.patch
-char-cyclades-make-info-card-a-pointer.patch
-char-cyclades-remove-sleep_on.patch
-char-cyclades-fix-blockmove.patch
-char-cyclades-timers-cleanup.patch
-char-cyclades-remove-unused-timestamps.patch
-char-cyclades-remove-locking-macros.patch
-char-cyclades-conditions-cleanup.patch
-char-cyclades-conditions-cleanup-fix.patch
-char-cyclades-fix-tty-device-unregister.patch
-char-cyclades-dynamic-ports.patch
-char-cyclades-probe-cleanup.patch
-char-cyclades-probe-cleanup-fix.patch
-char-cyclades-copyright-and-version-changes.patch
-shrink_slab-handle-bad-shrinkers.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-i386-support.patch
+remove-constructor-from-buffer_head.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+vmstat-use-our-own-timer-events.patch
+make-vm-statistics-update-interval-configurable.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+readahead-state-based-method-aging-accounting.patch
