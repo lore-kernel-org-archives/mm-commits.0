@@ -1,153 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - slub-user-documentation.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:08:55 -0700
-Message-ID: <200705080008.l4808toB009410@shell0.pdx.osdl.net>
+Subject: - powerpc-disable-slub-for-configurations-in-which-slab-page-structs-are-modified.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:09:10 -0700
+Message-ID: <200705080009.l4809AiJ009428@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41137 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967448AbXEHAJY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:09:24 -0400
+	by vger.kernel.org with ESMTP id S967455AbXEHAJg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:09:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, benh@kernel.crashing.org, hugh@veritas.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: user documentation
+     PowerPC: Disable SLUB for configurations in which slab page structs are modified
 has been removed from the -mm tree.  Its filename was
-     slub-user-documentation.patch
+     powerpc-disable-slub-for-configurations-in-which-slab-page-structs-are-modified.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slub: user documentation
+Subject: PowerPC: Disable SLUB for configurations in which slab page structs are modified
 From: Christoph Lameter <clameter@sgi.com>
 
+PowerPC uses the slab allocator to manage the lowest level of the page
+table.  In high cpu configurations we also use the page struct to split the
+page table lock.  Disallow the selection of SLUB for that case.
+
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.txt |  113 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 113 insertions(+)
+ arch/powerpc/Kconfig |   13 +++++++++++++
+ 1 files changed, 13 insertions(+)
 
-diff -puN /dev/null Documentation/vm/slub.txt
---- /dev/null
-+++ a/Documentation/vm/slub.txt
-@@ -0,0 +1,113 @@
-+Short users guide for SLUB
-+--------------------------
+diff -puN arch/powerpc/Kconfig~powerpc-disable-slub-for-configurations-in-which-slab-page-structs-are-modified arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~powerpc-disable-slub-for-configurations-in-which-slab-page-structs-are-modified
++++ a/arch/powerpc/Kconfig
+@@ -120,6 +120,19 @@ config GENERIC_BUG
+ config SYS_SUPPORTS_APM_EMULATION
+ 	bool
+ 
++#
++# Powerpc uses the slab allocator to manage its ptes and the
++# page structs of ptes are used for splitting the page table
++# lock for configurations supporting more than SPLIT_PTLOCK_CPUS.
++#
++# In that special configuration the page structs of slabs are modified.
++# This setting disables the selection of SLUB as a slab allocator.
++#
++config ARCH_USES_SLAB_PAGE_STRUCT
++	bool
++	default y
++	depends on SPLIT_PTLOCK_CPUS <= NR_CPUS
 +
-+First of all slub should transparently replace SLAB. If you enable
-+SLUB then everything should work the same (Note the word "should".
-+There is likely not much value in that word at this point).
-+
-+The basic philosophy of SLUB is very different from SLAB. SLAB
-+requires rebuilding the kernel to activate debug options for all
-+SLABS. SLUB always includes full debugging but its off by default.
-+SLUB can enable debugging only for selected slabs in order to avoid
-+an impact on overall system performance which may make a bug more
-+difficult to find.
-+
-+In order to switch debugging on one can add a option "slub_debug"
-+to the kernel command line. That will enable full debugging for
-+all slabs.
-+
-+Typically one would then use the "slabinfo" command to get statistical
-+data and perform operation on the slabs. By default slabinfo only lists
-+slabs that have data in them. See "slabinfo -h" for more options when
-+running the command. slabinfo can be compiled with
-+
-+gcc -o slabinfo Documentation/vm/slabinfo.c
-+
-+Some of the modes of operation of slabinfo require that slub debugging
-+be enabled on the command line. F.e. no tracking information will be
-+available without debugging on and validation can only partially
-+be performed if debugging was not switched on.
-+
-+Some more sophisticated uses of slub_debug:
-+-------------------------------------------
-+
-+Parameters may be given to slub_debug. If none is specified then full
-+debugging is enabled. Format:
-+
-+slub_debug=<Debug-Options>       Enable options for all slabs
-+slub_debug=<Debug-Options>,<slab name>
-+				Enable options only for select slabs
-+
-+Possible debug options are
-+	F		Sanity checks on (enables SLAB_DEBUG_FREE. Sorry
-+			SLAB legacy issues)
-+	Z		Red zoning
-+	P		Poisoning (object and padding)
-+	U		User tracking (free and alloc)
-+	T		Trace (please only use on single slabs)
-+
-+F.e. in order to boot just with sanity checks and red zoning one would specify:
-+
-+	slub_debug=FZ
-+
-+Trying to find an issue in the dentry cache? Try
-+
-+	slub_debug=,dentry_cache
-+
-+to only enable debugging on the dentry cache.
-+
-+Red zoning and tracking may realign the slab.  We can just apply sanity checks
-+to the dentry cache with
-+
-+	slub_debug=F,dentry_cache
-+
-+In case you forgot to enable debugging on the kernel command line: It is
-+possible to enable debugging manually when the kernel is up. Look at the
-+contents of:
-+
-+/sys/slab/<slab name>/
-+
-+Look at the writable files. Writing 1 to them will enable the
-+corresponding debug option. All options can be set on a slab that does
-+not contain objects. If the slab already contains objects then sanity checks
-+and tracing may only be enabled. The other options may cause the realignment
-+of objects.
-+
-+Careful with tracing: It may spew out lots of information and never stop if
-+used on the wrong slab.
-+
-+SLAB Merging
-+------------
-+
-+If no debugging is specified then SLUB may merge similar slabs together
-+in order to reduce overhead and increase cache hotness of objects.
-+slabinfo -a displays which slabs were merged together.
-+
-+Getting more performance
-+------------------------
-+
-+To some degree SLUB's performance is limited by the need to take the
-+list_lock once in a while to deal with partial slabs. That overhead is
-+governed by the order of the allocation for each slab. The allocations
-+can be influenced by kernel parameters:
-+
-+slub_min_objects=x		(default 8)
-+slub_min_order=x		(default 0)
-+slub_max_order=x		(default 4)
-+
-+slub_min_objects allows to specify how many objects must at least fit
-+into one slab in order for the allocation order to be acceptable.
-+In general slub will be able to perform this number of allocations
-+on a slab without consulting centralized resources (list_lock) where
-+contention may occur.
-+
-+slub_min_order specifies a minim order of slabs. A similar effect like
-+slub_min_objects.
-+
-+slub_max_order specified the order at which slub_min_objects should no
-+longer be checked. This is useful to avoid SLUB trying to generate
-+super large order pages to fit slub_min_objects of a slab cache with
-+large object sizes into one high order page.
-+
-+
-+Christoph Lameter, <clameter@sgi.com>, April 10, 2007
+ config DEFAULT_UIMAGE
+ 	bool
+ 	help
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
