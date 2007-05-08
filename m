@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sn-validate-smp_affinity-mask-on-intr-redirect.patch added to -mm tree
-Date: Tue, 08 May 2007 12:20:52 -0700
-Message-ID: <200705081920.l48JKr0A031503@shell0.pdx.osdl.net>
+Subject: + sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch added to -mm tree
+Date: Tue, 08 May 2007 12:21:01 -0700
+Message-ID: <200705081921.l48JL1PN031506@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44452 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031535AbXEHTVD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 15:21:03 -0400
+	by vger.kernel.org with ESMTP id S1031543AbXEHTVG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 15:21:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jpk@sgi.com, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, jpk@sgi.com, tony.luck@intel.com
 
 
 The patch titled
-     SN: validate smp_affinity mask on intr redirect
+     sn-validate-smp_affinity-mask-on-intr-redirect-fix
 has been added to the -mm tree.  Its filename is
-     sn-validate-smp_affinity-mask-on-intr-redirect.patch
+     sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,147 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SN: validate smp_affinity mask on intr redirect
-From: John Keller <jpk@sgi.com>
+Subject: sn-validate-smp_affinity-mask-on-intr-redirect-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On SN, only allow one bit to be set in the smp_affinty mask when
-redirecting an interrupt.  Currently setting multiple bits is allowed, but
-only the first bit is used in determining the CPU to redirect to.  This has
-caused confusion among some customers.
-
-Signed-off-by: John Keller <jpk@sgi.com>
+Cc: John Keller <jpk@sgi.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/irq.c |   11 +++++++++++
- include/asm-ia64/irq.h |    2 ++
- kernel/irq/proc.c      |    7 +++++++
- 3 files changed, 20 insertions(+)
+ kernel/irq/proc.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/irq.c~sn-validate-smp_affinity-mask-on-intr-redirect arch/ia64/kernel/irq.c
---- a/arch/ia64/kernel/irq.c~sn-validate-smp_affinity-mask-on-intr-redirect
-+++ a/arch/ia64/kernel/irq.c
-@@ -104,6 +104,17 @@ void set_irq_affinity_info (unsigned int
- 		irq_redir[irq] = (char) (redir & 0xff);
- 	}
- }
-+
-+bool is_affinity_mask_valid(cpumask_t cpumask)
-+{
-+	if (ia64_platform_is("sn2")) {
-+		/* Only allow one CPU to be specified in the smp_affinity mask */
-+		if (cpus_weight(cpumask) != 1)
-+			return false;
-+	}
-+	return true;
-+}
-+
- #endif /* CONFIG_SMP */
- 
- #ifdef CONFIG_HOTPLUG_CPU
-diff -puN include/asm-ia64/irq.h~sn-validate-smp_affinity-mask-on-intr-redirect include/asm-ia64/irq.h
---- a/include/asm-ia64/irq.h~sn-validate-smp_affinity-mask-on-intr-redirect
-+++ a/include/asm-ia64/irq.h
-@@ -30,4 +30,6 @@ extern void disable_irq_nosync (unsigned
- extern void enable_irq (unsigned int);
- extern void set_irq_affinity_info (unsigned int irq, int dest, int redir);
- 
-+#define is_affinity_mask_valid is_affinity_mask_valid
-+
- #endif /* _ASM_IA64_IRQ_H */
-diff -puN kernel/irq/proc.c~sn-validate-smp_affinity-mask-on-intr-redirect kernel/irq/proc.c
---- a/kernel/irq/proc.c~sn-validate-smp_affinity-mask-on-intr-redirect
+diff -puN kernel/irq/proc.c~sn-validate-smp_affinity-mask-on-intr-redirect-fix kernel/irq/proc.c
+--- a/kernel/irq/proc.c~sn-validate-smp_affinity-mask-on-intr-redirect-fix
 +++ a/kernel/irq/proc.c
-@@ -27,6 +27,10 @@ static int irq_affinity_read_proc(char *
- 	return len;
+@@ -28,7 +28,7 @@ static int irq_affinity_read_proc(char *
  }
  
-+#ifndef is_affinity_mask_valid
-+#define is_affinity_mask_valid() 1
-+#endif
-+
- int no_irq_affinity;
- static int irq_affinity_write_proc(struct file *file, const char __user *buffer,
- 				   unsigned long count, void *data)
-@@ -42,6 +46,9 @@ static int irq_affinity_write_proc(struc
- 	if (err)
- 		return err;
+ #ifndef is_affinity_mask_valid
+-#define is_affinity_mask_valid() 1
++#define is_affinity_mask_valid(val) 1
+ #endif
  
-+	if (!is_affinity_mask_valid(new_value))
-+		return -EINVAL;
-+
- 	/*
- 	 * Do not allow disabling IRQs completely - it's a too easy
- 	 * way to make the system unusable accidentally :-) At least
+ int no_irq_affinity;
 _
 
-Patches currently in -mm which might be from jpk@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sn-validate-smp_affinity-mask-on-intr-redirect.patch
+origin.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+consolidate-asm-consth-to-linux-consth.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+char-cyclades-conditions-cleanup.patch
+char-cyclades-probe-cleanup.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
 sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-jfs.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-battery-fix.patch
+git-nfs-printk-warning-fixes.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
