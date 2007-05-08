@@ -1,111 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - power-management-change-sys-power-disk-display.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:33 -0700
-Message-ID: <200705080005.l4805XHl009105@shell0.pdx.osdl.net>
+Subject: - get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:04:18 -0700
+Message-ID: <200705080004.l4804IVD009003@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41154 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967381AbXEHAGh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:37 -0400
+	by vger.kernel.org with ESMTP id S967379AbXEHAGd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johannes@sipsolutions.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, agl@us.ibm.com, ak@suse.de, bill.irwin@oracle.com, davem@davemloft.net, david@gibson.dropbear.id.au, dhowells@redhat.com, grundler@parisc-linux.org, ink@jurassic.park.msu.ru, kyle@mcmartin.ca, paulus@samba.org, rmk+kernel@arm.linux.org.uk, rth@twiddle.net, tony.luck@intel.com, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     power management: change /sys/power/disk display
+     get_unmapped_area doesn't need hugetlbfs hacks anymore
 has been removed from the -mm tree.  Its filename was
-     power-management-change-sys-power-disk-display.patch
+     get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: power management: change /sys/power/disk display
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: get_unmapped_area doesn't need hugetlbfs hacks anymore
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Change /sys/power/disk to display all valid modes as well as the currently
-selected one in a fashion known from the LED subsystem.
+Remove the hugetlbfs specific hacks in toplevel get_unmapped_area() now that
+all archs and hugetlbfs itself do the right thing for both cases.
 
-This changes userspace API, but it is apparently not used much (we asked
-some userspace developers)
-
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: William Irwin <bill.irwin@oracle.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Matthew Wilcox <willy@debian.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/interface.txt |    8 +++++--
- kernel/power/disk.c               |   29 +++++++++++++++++++++++++++-
- 2 files changed, 34 insertions(+), 3 deletions(-)
+ mm/mmap.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff -puN Documentation/power/interface.txt~power-management-change-sys-power-disk-display Documentation/power/interface.txt
---- a/Documentation/power/interface.txt~power-management-change-sys-power-disk-display
-+++ a/Documentation/power/interface.txt
-@@ -34,8 +34,12 @@ for 5 seconds, resume devices, unfreeze 
- we are able to look in the log messages and work out, for example, which code
- is being slow and which device drivers are misbehaving.
+diff -puN mm/mmap.c~get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore mm/mmap.c
+--- a/mm/mmap.c~get_unmapped_area-doesnt-need-hugetlbfs-hacks-anymore
++++ a/mm/mmap.c
+@@ -1382,22 +1382,6 @@ get_unmapped_area(struct file *file, uns
+ 	if (addr & ~PAGE_MASK)
+ 		return -EINVAL;
  
--Reading from this file will display what the mode is currently set
--to. Writing to this file will accept one of
-+Reading from this file will display all supported modes and the currently
-+selected one in brackets, for example
-+
-+	[shutdown] reboot test testproc
-+
-+Writing to this file will accept one of
- 
-        'platform' (only if the platform supports it)
-        'shutdown'
-diff -puN kernel/power/disk.c~power-management-change-sys-power-disk-display kernel/power/disk.c
---- a/kernel/power/disk.c~power-management-change-sys-power-disk-display
-+++ a/kernel/power/disk.c
-@@ -350,7 +350,34 @@ static const char * const pm_disk_modes[
- 
- static ssize_t disk_show(struct kset *kset, char *buf)
- {
--	return sprintf(buf, "%s\n", pm_disk_modes[pm_disk_mode]);
-+	int i;
-+	char *start = buf;
-+
-+	for (i = PM_DISK_PLATFORM; i < PM_DISK_MAX; i++) {
-+		if (!pm_disk_modes[i])
-+			continue;
-+		switch (i) {
-+		case PM_DISK_SHUTDOWN:
-+		case PM_DISK_REBOOT:
-+		case PM_DISK_TEST:
-+		case PM_DISK_TESTPROC:
-+			break;
-+		default:
-+			if (pm_ops && pm_ops->enter &&
-+			    (i == pm_ops->pm_disk_mode))
-+				break;
-+			/* not a valid mode, continue with loop */
-+			continue;
-+		}
-+		if (i == pm_disk_mode)
-+			buf += sprintf(buf, "[%s]", pm_disk_modes[i]);
-+		else
-+			buf += sprintf(buf, "%s", pm_disk_modes[i]);
-+		if (i+1 != PM_DISK_MAX)
-+			buf += sprintf(buf, " ");
-+	}
-+	buf += sprintf(buf, "\n");
-+	return buf-start;
+-	if (file && is_file_hugepages(file))  {
+-		/*
+-		 * Check if the given range is hugepage aligned, and
+-		 * can be made suitable for hugepages.
+-		 */
+-		ret = prepare_hugepage_range(addr, len, pgoff);
+-	} else {
+-		/*
+-		 * Ensure that a normal request is not falling in a
+-		 * reserved hugepage range.  For some archs like IA-64,
+-		 * there is a separate region for hugepages.
+-		 */
+-		ret = is_hugepage_only_range(current->mm, addr, len);
+-	}
+-	if (ret)
+-		return -EINVAL;
+ 	return addr;
  }
- 
  
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
-git-alsa.patch
 git-powerpc.patch
-power-management-remove-some-useless-code-from-arm.patch
-git-wireless.patch
-pm-separate-hibernation-code-from-suspend-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-kernel-doc-html-mode-struct-highlights.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+use-slab_panic-flag-cleanup.patch
+the-scheduled-removal-of-obsolete_oss-options.patch
+fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+parport-dev-driver-model-support.patch
+introduce-freezer-flags-rev-2.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-powerpc-optimization.patch
+aty128fb-fix-blanking.patch
+radeonfb-add-support-for-radeon-xpress-200m.patch
