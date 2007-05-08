@@ -1,97 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-header-file-arch-m68k-atari-atasoundh.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:43 -0700
-Message-ID: <200705080005.l4805hBC009117@shell0.pdx.osdl.net>
+Subject: - slob-fix-page-order-calculation-on-not-4kb-page.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:04:30 -0700
+Message-ID: <200705080004.l4804U7Z009018@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50254 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967368AbXEHAGS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:18 -0400
+	by vger.kernel.org with ESMTP id S967371AbXEHAGU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mpm@selenic.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused header file: arch/m68k/atari/atasound.h
+     slob: fix page order calculation on not 4KB page
 has been removed from the -mm tree.  Its filename was
-     remove-unused-header-file-arch-m68k-atari-atasoundh.patch
+     slob-fix-page-order-calculation-on-not-4kb-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove unused header file: arch/m68k/atari/atasound.h
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: slob: fix page order calculation on not 4KB page
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+SLOB doesn't calculate correct page order when page size is not 4KB.  This
+patch fixes it with using get_order() instead of find_order() which is SLOB
+version of get_order().
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/atari/atasound.h |   33 ---------------------------------
- 1 file changed, 33 deletions(-)
+ mm/slob.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN arch/m68k/atari/atasound.h~remove-unused-header-file-arch-m68k-atari-atasoundh /dev/null
---- a/arch/m68k/atari/atasound.h
-+++ /dev/null
-@@ -1,33 +0,0 @@
--/*
-- * Minor numbers for the sound driver.
-- *
-- * Unfortunately Creative called the codec chip of SB as a DSP. For this
-- * reason the /dev/dsp is reserved for digitized audio use. There is a
-- * device for true DSP processors but it will be called something else.
-- * In v3.0 it's /dev/sndproc but this could be a temporary solution.
-- */
+diff -puN mm/slob.c~slob-fix-page-order-calculation-on-not-4kb-page mm/slob.c
+--- a/mm/slob.c~slob-fix-page-order-calculation-on-not-4kb-page
++++ a/mm/slob.c
+@@ -150,15 +150,6 @@ static void slob_free(void *block, int s
+ 	spin_unlock_irqrestore(&slob_lock, flags);
+ }
+ 
+-static int FASTCALL(find_order(int size));
+-static int fastcall find_order(int size)
+-{
+-	int order = 0;
+-	for ( ; size > 4096 ; size >>=1)
+-		order++;
+-	return order;
+-}
 -
--#define SND_NDEVS	256	/* Number of supported devices */
--#define SND_DEV_CTL	0	/* Control port /dev/mixer */
--#define SND_DEV_SEQ	1	/* Sequencer output /dev/sequencer (FM
--				   synthesizer and MIDI output) */
--#define SND_DEV_MIDIN	2	/* Raw midi access */
--#define SND_DEV_DSP	3	/* Digitized voice /dev/dsp */
--#define SND_DEV_AUDIO	4	/* Sparc compatible /dev/audio */
--#define SND_DEV_DSP16	5	/* Like /dev/dsp but 16 bits/sample */
--#define SND_DEV_STATUS	6	/* /dev/sndstat */
--/* #7 not in use now. Was in 2.4. Free for use after v3.0. */
--#define SND_DEV_SEQ2	8	/* /dev/sequencer, level 2 interface */
--#define SND_DEV_SNDPROC 9	/* /dev/sndproc for programmable devices */
--#define SND_DEV_PSS	SND_DEV_SNDPROC
--
--#define DSP_DEFAULT_SPEED	8000
--
--#define ON		1
--#define OFF		0
--
--#define MAX_AUDIO_DEV	5
--#define MAX_MIXER_DEV	2
--#define MAX_SYNTH_DEV	3
--#define MAX_MIDI_DEV	6
--#define MAX_TIMER_DEV	3
+ void *__kmalloc(size_t size, gfp_t gfp)
+ {
+ 	slob_t *m;
+@@ -174,7 +165,7 @@ void *__kmalloc(size_t size, gfp_t gfp)
+ 	if (!bb)
+ 		return 0;
+ 
+-	bb->order = find_order(size);
++	bb->order = get_order(size);
+ 	bb->pages = (void *)__get_free_pages(gfp, bb->order);
+ 
+ 	if (bb->pages) {
+@@ -318,7 +309,7 @@ void *kmem_cache_alloc(struct kmem_cache
+ 	if (c->size < PAGE_SIZE)
+ 		b = slob_alloc(c->size, flags, c->align);
+ 	else
+-		b = (void *)__get_free_pages(flags, find_order(c->size));
++		b = (void *)__get_free_pages(flags, get_order(c->size));
+ 
+ 	if (c->ctor)
+ 		c->ctor(b, c, SLAB_CTOR_CONSTRUCTOR);
+@@ -345,7 +336,7 @@ void kmem_cache_free(struct kmem_cache *
+ 	if (c->size < PAGE_SIZE)
+ 		slob_free(b, c->size);
+ 	else
+-		free_pages((unsigned long)b, find_order(c->size));
++		free_pages((unsigned long)b, get_order(c->size));
+ }
+ EXPORT_SYMBOL(kmem_cache_free);
+ 
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-arm-remove-useless-config-option-generic_bust_spinlock.patch
-git-avr32.patch
-git-dvb.patch
-git-ieee1394.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-r8169.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
-reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
-kconfig-centralize-the-selection-of-semaphore-debugging.patch
-rocket-remove-modversions-include.patch
-remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
-remove-unused-header-file-drivers-char-digih.patch
-delete-unused-header-file-math-emu-extendedh.patch
-delete-unused-header-file-linux-awe_voiceh.patch
-add-spaces-on-either-side-of-case-operator.patch
-some-grammatical-fixups-and-additions-to-atomich-kernel-doc.patch
-remove-unused-header-file-drivers-video-riva-nv4refh.patch
-video-add-spaces-on-either-side-of-the-case-operator.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+fault-injection-disable-stacktrace-filter-for-x86-64.patch
+use-slab_panic-flag-cleanup.patch
+simplify-the-stacktrace-code.patch
+dtlk-fix-error-checks-in-module_init.patch
+procfs-use-simple_read_from_buffer.patch
+cm4000_cs-fix-error-paths.patch
+cm4000_cs-use-bitrev.patch
+use-simple_read_from_buffer-in-fs.patch
+use-simple_read_from_buffer-in-kernel.patch
+sunrpc-fix-error-path-in-module_init.patch
