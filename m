@@ -1,68 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - get_unmapped_area-handles-map_fixed-on-alpha.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:03:56 -0700
-Message-ID: <200705080003.l4803uBg008973@shell0.pdx.osdl.net>
+Subject: - convert-h8-300-to-generic-timekeeping.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:04:56 -0700
+Message-ID: <200705080004.l4804uO6009051@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54983 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967354AbXEHAE6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:04:58 -0400
+	by vger.kernel.org with ESMTP id S967364AbXEHAFU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:05:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     get_unmapped_area handles MAP_FIXED on alpha
+     Convert h8/300 to generic timekeeping
 has been removed from the -mm tree.  Its filename was
-     get_unmapped_area-handles-map_fixed-on-alpha.patch
+     convert-h8-300-to-generic-timekeeping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: get_unmapped_area handles MAP_FIXED on alpha
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Convert h8/300 to generic timekeeping
+From: john stultz <johnstul@us.ibm.com>
 
-Handle MAP_FIXED in alpha's arch_get_unmapped_area(), simple case, just return
-the address as passed in
+Currently h8/300 does not implement sub-jiffy timekeeping, so there is no
+benefit to having arch specific timekeeping code.
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+This patch simply removes those functions and enables the generic
+timekeeping code.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/osf_sys.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/h8300/Kconfig       |    4 ++
+ arch/h8300/kernel/time.c |   52 -------------------------------------
+ 2 files changed, 4 insertions(+), 52 deletions(-)
 
-diff -puN arch/alpha/kernel/osf_sys.c~get_unmapped_area-handles-map_fixed-on-alpha arch/alpha/kernel/osf_sys.c
---- a/arch/alpha/kernel/osf_sys.c~get_unmapped_area-handles-map_fixed-on-alpha
-+++ a/arch/alpha/kernel/osf_sys.c
-@@ -1267,6 +1267,9 @@ arch_get_unmapped_area(struct file *filp
- 	if (len > limit)
- 		return -ENOMEM;
+diff -puN arch/h8300/Kconfig~convert-h8-300-to-generic-timekeeping arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~convert-h8-300-to-generic-timekeeping
++++ a/arch/h8300/Kconfig
+@@ -53,6 +53,10 @@ config GENERIC_CALIBRATE_DELAY
+ 	bool
+ 	default y
  
-+	if (flags & MAP_FIXED)
-+		return addr;
++config GENERIC_TIME
++	bool
++	default y
 +
- 	/* First, see if the given suggestion fits.
+ config TIME_LOW_RES
+ 	bool
+ 	default y
+diff -puN arch/h8300/kernel/time.c~convert-h8-300-to-generic-timekeeping arch/h8300/kernel/time.c
+--- a/arch/h8300/kernel/time.c~convert-h8-300-to-generic-timekeeping
++++ a/arch/h8300/kernel/time.c
+@@ -66,55 +66,3 @@ void time_init(void)
  
- 	   The OSF/1 loader (/sbin/loader) relies on us returning an
+ 	platform_timer_setup(timer_interrupt);
+ }
+-
+-/*
+- * This version of gettimeofday has near microsecond resolution.
+- */
+-void do_gettimeofday(struct timeval *tv)
+-{
+-	unsigned long flags;
+-	unsigned long usec, sec;
+-
+-	read_lock_irqsave(&xtime_lock, flags);
+-	usec = 0;
+-	sec = xtime.tv_sec;
+-	usec += (xtime.tv_nsec / 1000);
+-	read_unlock_irqrestore(&xtime_lock, flags);
+-
+-	while (usec >= 1000000) {
+-		usec -= 1000000;
+-		sec++;
+-	}
+-
+-	tv->tv_sec = sec;
+-	tv->tv_usec = usec;
+-}
+-
+-EXPORT_SYMBOL(do_gettimeofday);
+-
+-int do_settimeofday(struct timespec *tv)
+-{
+-	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
+-		return -EINVAL;
+-
+-	write_lock_irq(&xtime_lock);
+-	/* This is revolting. We need to set the xtime.tv_usec
+-	 * correctly. However, the value in this location is
+-	 * is value at the last tick.
+-	 * Discover what correction gettimeofday
+-	 * would have done, and then undo it!
+-	 */
+-	while (tv->tv_nsec < 0) {
+-		tv->tv_nsec += NSEC_PER_SEC;
+-		tv->tv_sec--;
+-	}
+-
+-	xtime.tv_sec = tv->tv_sec;
+-	xtime.tv_nsec = tv->tv_nsec;
+-	ntp_clear();
+-	write_sequnlock_irq(&xtime_lock);
+-	clock_was_set();
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(do_settimeofday);
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
 origin.patch
-git-powerpc.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
-use-slab_panic-flag-cleanup.patch
-the-scheduled-removal-of-obsolete_oss-options.patch
-fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
-parport-dev-driver-model-support.patch
-introduce-freezer-flags-rev-2.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-linux-kernel-markers-powerpc-optimization.patch
-aty128fb-fix-blanking.patch
-radeonfb-add-support-for-radeon-xpress-200m.patch
+optimize-timespec_trunc.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+ignore-stolen-time-in-the-softlockup-watchdog.patch
+introduce-a-handy-list_first_entry-macro-v2.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+declare-struct-ktime.patch
+clocksource-fix-resume-logic.patch
+clockevents-fix-resume-logic-updated-version.patch
