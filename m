@@ -1,370 +1,305 @@
 From: akpm@linux-foundation.org
-Subject: - serial-driver-pmc-msp71xx.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:01:28 -0700
-Message-ID: <200705080001.l4801SR6008772@shell0.pdx.osdl.net>
+Subject: - rm9000-serial-driver.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:01:33 -0700
+Message-ID: <200705080001.l4801XTm008778@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34514 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967303AbXEHACH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:02:07 -0400
+	by vger.kernel.org with ESMTP id S967301AbXEHACI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:02:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stjeanma@pmc-sierra.com, Marc_St-Jean@pmc-sierra.com, ralf@linux-mips.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: thomas.koeller@baslerweb.com, ralf@linux-mips.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial driver PMC MSP71xx
+     RM9000 serial driver
 has been removed from the -mm tree.  Its filename was
-     serial-driver-pmc-msp71xx.patch
+     rm9000-serial-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: serial driver PMC MSP71xx
-From: Marc St-Jean <stjeanma@pmc-sierra.com>
+Subject: RM9000 serial driver
+From: Thomas Koeller <thomas.koeller@baslerweb.com>
 
-Serial driver patch for the PMC-Sierra MSP71xx devices.
+Add support for the integrated serial ports of the MIPS RM9122 processor
+and its relatives.
 
-There are three different fixes:
+The patch also does some whitespace cleanup.
 
-1 Fix for DesignWare APB THRE errata: In brief, this is a non-standard
-  16550 in that the THRE interrupt will not re-assert itself simply by
-  disabling and re-enabling the THRI bit in the IER, it is only re-enabled
-  if a character is actually sent out.
-
-  It appears that the "8250-uart-backup-timer.patch" in the "mm" tree
-  also fixes it so we have dropped our initial workaround.  This patch now
-  needs to be applied on top of that "mm" patch.
-
-2 Fix for Busy Detect on LCR write: The DesignWare APB UART has a feature
-  which causes a new Busy Detect interrupt to be generated if it's busy
-  when the LCR is written.  This fix saves the value of the LCR and
-  rewrites it after clearing the interrupt.
-
-3 Workaround for interrupt/data concurrency issue: The SoC needs to
-  ensure that writes that can cause interrupts to be cleared reach the UART
-  before returning from the ISR.  This fix reads a non-destructive register
-  on the UART so the read transaction completion ensures the previously
-  queued write transaction has also completed.
-
-Signed-off-by: Marc St-Jean <Marc_St-Jean@pmc-sierra.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Thomas Koeller <thomas.koeller@baslerweb.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/pmc-sierra/msp71xx/msp_serial.c |  165 ++++++++++++++++++++
- drivers/serial/8250.c                     |   31 +++
- drivers/serial/serial_core.c              |    2 
- include/linux/serial_core.h               |    2 
- include/linux/serial_reg.h                |    2 
- 5 files changed, 202 insertions(+)
+ arch/mips/Kconfig           |    3 +
+ drivers/serial/8250.c       |   92 +++++++++++++++++++++++++++++-----
+ drivers/serial/Kconfig      |    9 +++
+ include/linux/serial_core.h |    4 +
+ 4 files changed, 95 insertions(+), 13 deletions(-)
 
-diff -puN /dev/null arch/mips/pmc-sierra/msp71xx/msp_serial.c
---- /dev/null
-+++ a/arch/mips/pmc-sierra/msp71xx/msp_serial.c
-@@ -0,0 +1,165 @@
-+/*
-+ * The setup file for serial related hardware on PMC-Sierra MSP processors.
-+ *
-+ * Copyright 2005 PMC-Sierra, Inc.
-+ *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
-+ *
-+ *  THIS  SOFTWARE  IS PROVIDED   ``AS  IS'' AND   ANY  EXPRESS OR IMPLIED
-+ *  WARRANTIES,   INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
-+ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
-+ *  NO  EVENT  SHALL   THE AUTHOR  BE    LIABLE FOR ANY   DIRECT, INDIRECT,
-+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ *  NOT LIMITED   TO, PROCUREMENT OF  SUBSTITUTE GOODS  OR SERVICES; LOSS OF
-+ *  USE, DATA,  OR PROFITS; OR  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ *  ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY, OR TORT
-+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ *  You should have received a copy of the  GNU General Public License along
-+ *  with this program; if not, write  to the Free Software Foundation, Inc.,
-+ *  675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/serial.h>
-+#include <linux/serial_core.h>
-+#include <linux/serial_reg.h>
-+
-+#include <asm/bootinfo.h>
-+#include <asm/io.h>
-+#include <asm/processor.h>
-+#include <asm/serial.h>
-+
-+#include <msp_prom.h>
-+#include <msp_int.h>
-+#include <msp_regs.h>
-+
-+#ifdef CONFIG_KGDB
-+/*
-+ * kgdb uses serial port 1 so the console can remain on port 0.
-+ * To use port 0 change the definition to read as follows:
-+ * #define DEBUG_PORT_BASE KSEG1ADDR(MSP_UART0_BASE)
-+ */
-+#define DEBUG_PORT_BASE KSEG1ADDR(MSP_UART1_BASE)
-+
-+int putDebugChar(char c)
-+{
-+	volatile uint32_t *uart = (volatile uint32_t *)DEBUG_PORT_BASE;
-+	uint32_t val = (uint32_t)c;
-+
-+	local_irq_disable();
-+	while( !(uart[5] & 0x20) ); /* Wait for TXRDY */
-+	uart[0] = val;
-+	while( !(uart[5] & 0x20) ); /* Wait for TXRDY */
-+	local_irq_enable();
-+
-+	return 1;
-+}
-+
-+char getDebugChar(void)
-+{
-+	volatile uint32_t *uart = (volatile uint32_t *)DEBUG_PORT_BASE;
-+	uint32_t val;
-+
-+	while( !(uart[5] & 0x01) ); /* Wait for RXRDY */
-+	val = uart[0];
-+
-+	return (char)val;
-+}
-+
-+void initDebugPort(unsigned int uartclk, unsigned int baudrate)
-+{
-+	unsigned int baud_divisor = (uartclk + 8 * baudrate)/(16 * baudrate);
-+
-+	/* Enable FIFOs */
-+	writeb(UART_FCR_ENABLE_FIFO | UART_FCR_CLEAR_RCVR |
-+			UART_FCR_CLEAR_XMIT | UART_FCR_TRIGGER_4,
-+		(char *)DEBUG_PORT_BASE + (UART_FCR * 4));
-+
-+	/* Select brtc divisor */
-+	writeb(UART_LCR_DLAB, (char *)DEBUG_PORT_BASE + (UART_LCR * 4));
-+
-+	/* Store divisor lsb */
-+	writeb(baud_divisor, (char *)DEBUG_PORT_BASE + (UART_TX * 4));
-+
-+	/* Store divisor msb */
-+	writeb(baud_divisor >> 8, (char *)DEBUG_PORT_BASE + (UART_IER * 4));
-+
-+	/* Set 8N1 mode */
-+	writeb(UART_LCR_WLEN8, (char *)DEBUG_PORT_BASE + (UART_LCR * 4));
-+
-+	/* Disable flow control */
-+	writeb(0, (char *)DEBUG_PORT_BASE + (UART_MCR * 4));
-+
-+	/* Disable receive interrupt(!) */
-+	writeb(0, (char *)DEBUG_PORT_BASE + (UART_IER * 4));
-+}
-+#endif
-+
-+void __init msp_serial_setup(void)
-+{
-+	char    *s;
-+	char    *endp;
-+	struct uart_port up;
-+	unsigned int uartclk;
-+
-+	memset(&up, 0, sizeof(up));
-+
-+	/* Check if clock was specified in environment */
-+	s = prom_getenv("uartfreqhz");
-+	if(!(s && *s && (uartclk = simple_strtoul(s, &endp, 10)) && *endp == 0))
-+		uartclk = MSP_BASE_BAUD;
-+	ppfinit("UART clock set to %d\n", uartclk);
-+
-+	/* Initialize first serial port */
-+	up.mapbase      = MSP_UART0_BASE;
-+	up.membase      = ioremap_nocache(up.mapbase,MSP_UART_REG_LEN);
-+	up.irq          = MSP_INT_UART0;
-+	up.uartclk      = uartclk;
-+	up.regshift     = 2;
-+	up.iotype       = UPIO_DWAPB; /* UPIO_MEM like */
-+	up.flags        = STD_COM_FLAGS;
-+	up.type         = PORT_16550A;
-+	up.line         = 0;
-+	up.private_data		= (void*)UART0_STATUS_REG;
-+	if (early_serial_setup(&up))
-+		printk(KERN_ERR "Early serial init of port 0 failed\n");
-+
-+	/* Initialize the second serial port, if one exists */
-+	switch (mips_machtype) {
-+		case MACH_MSP4200_EVAL:
-+		case MACH_MSP4200_GW:
-+		case MACH_MSP4200_FPGA:
-+		case MACH_MSP7120_EVAL:
-+		case MACH_MSP7120_GW:
-+		case MACH_MSP7120_FPGA:
-+			/* Enable UART1 on MSP4200 and MSP7120 */
-+			*GPIO_CFG2_REG = 0x00002299;
-+
-+#ifdef CONFIG_KGDB
-+			/* Initialize UART1 for kgdb since PMON doesn't */
-+			if( DEBUG_PORT_BASE == KSEG1ADDR(MSP_UART1_BASE) ) {
-+				if( mips_machtype == MACH_MSP4200_FPGA
-+				 || mips_machtype == MACH_MSP7120_FPGA )
-+					initDebugPort(uartclk,19200);
-+				else
-+					initDebugPort(uartclk,57600);
-+			}
-+#endif
-+			break;
-+
-+		default:
-+			return; /* No second serial port, good-bye. */
-+	}
-+
-+	up.mapbase      = MSP_UART1_BASE;
-+	up.membase      = ioremap_nocache(up.mapbase,MSP_UART_REG_LEN);
-+	up.irq          = MSP_INT_UART1;
-+	up.line         = 1;
-+	up.private_data		= (void*)UART1_STATUS_REG;
-+	if (early_serial_setup(&up))
-+		printk(KERN_ERR "Early serial init of port 1 failed\n");
-+}
-diff -puN drivers/serial/8250.c~serial-driver-pmc-msp71xx drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-driver-pmc-msp71xx
-+++ a/drivers/serial/8250.c
-@@ -308,6 +308,7 @@ static unsigned int serial_in(struct uar
- 		return inb(up->port.iobase + 1);
+diff -puN arch/mips/Kconfig~rm9000-serial-driver arch/mips/Kconfig
+--- a/arch/mips/Kconfig~rm9000-serial-driver
++++ a/arch/mips/Kconfig
+@@ -1042,6 +1042,9 @@ config SOC_AU1X00
+ 	select SYS_SUPPORTS_APM_EMULATION
+ 	select SYS_SUPPORTS_KGDB
  
- 	case UPIO_MEM:
-+	case UPIO_DWAPB:
++config SERIAL_RM9000
++	bool
++
+ config PNX8550
+ 	bool
+ 	select SOC_PNX8550
+diff -puN drivers/serial/8250.c~rm9000-serial-driver drivers/serial/8250.c
+--- a/drivers/serial/8250.c~rm9000-serial-driver
++++ a/drivers/serial/8250.c
+@@ -251,9 +251,16 @@ static const struct serial8250_config ua
+ 		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
+ 		.flags		= UART_CAP_FIFO | UART_CAP_UUE,
+ 	},
++	[PORT_RM9000] = {
++		.name		= "RM9000",
++		.fifo_size	= 16,
++		.tx_loadsz	= 16,
++		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
++		.flags		= UART_CAP_FIFO,
++	},
+ };
+ 
+-#ifdef CONFIG_SERIAL_8250_AU1X00
++#if defined (CONFIG_SERIAL_8250_AU1X00)
+ 
+ /* Au1x00 UART hardware has a weird register layout */
+ static const u8 au_io_in_map[] = {
+@@ -289,6 +296,44 @@ static inline int map_8250_out_reg(struc
+ 	return au_io_out_map[offset];
+ }
+ 
++#elif defined (CONFIG_SERIAL_8250_RM9K)
++
++static const u8
++	regmap_in[8] = {
++		[UART_RX]	= 0x00,
++		[UART_IER]	= 0x0c,
++		[UART_IIR]	= 0x14,
++		[UART_LCR]	= 0x1c,
++		[UART_MCR]	= 0x20,
++		[UART_LSR]	= 0x24,
++		[UART_MSR]	= 0x28,
++		[UART_SCR]	= 0x2c
++	},
++	regmap_out[8] = {
++		[UART_TX] 	= 0x04,
++		[UART_IER]	= 0x0c,
++		[UART_FCR]	= 0x18,
++		[UART_LCR]	= 0x1c,
++		[UART_MCR]	= 0x20,
++		[UART_LSR]	= 0x24,
++		[UART_MSR]	= 0x28,
++		[UART_SCR]	= 0x2c
++	};
++
++static inline int map_8250_in_reg(struct uart_8250_port *up, int offset)
++{
++	if (up->port.iotype != UPIO_RM9000)
++		return offset;
++	return regmap_in[offset];
++}
++
++static inline int map_8250_out_reg(struct uart_8250_port *up, int offset)
++{
++	if (up->port.iotype != UPIO_RM9000)
++		return offset;
++	return regmap_out[offset];
++}
++
+ #else
+ 
+ /* sane hardware needs no mapping */
+@@ -311,6 +356,7 @@ static unsigned int serial_in(struct uar
+ 	case UPIO_DWAPB:
  		return readb(up->port.membase + offset);
  
++	case UPIO_RM9000:
  	case UPIO_MEM32:
-@@ -333,6 +334,8 @@ static unsigned int serial_in(struct uar
- static void
- serial_out(struct uart_8250_port *up, int offset, int value)
+ 		return readl(up->port.membase + offset);
+ 
+@@ -348,6 +394,7 @@ serial_out(struct uart_8250_port *up, in
+ 		writeb(value, up->port.membase + offset);
+ 		break;
+ 
++	case UPIO_RM9000:
+ 	case UPIO_MEM32:
+ 		writel(value, up->port.membase + offset);
+ 		break;
+@@ -419,7 +466,7 @@ static inline void _serial_dl_write(stru
+ 	serial_outp(up, UART_DLM, value >> 8 & 0xff);
+ }
+ 
+-#ifdef CONFIG_SERIAL_8250_AU1X00
++#if defined (CONFIG_SERIAL_8250_AU1X00)
+ /* Au1x00 haven't got a standard divisor latch */
+ static int serial_dl_read(struct uart_8250_port *up)
  {
-+	/* Save the offset before it's remapped */
-+	int save_offset = offset;
- 	offset = map_8250_out_reg(up, offset) << up->port.regshift;
- 
- 	switch (up->port.iotype) {
-@@ -359,6 +362,18 @@ serial_out(struct uart_8250_port *up, in
- 			writeb(value, up->port.membase + offset);
- 		break;
- 
-+	case UPIO_DWAPB:
-+		/* Save the LCR value so it can be re-written when a
-+		 * Busy Detect interrupt occurs. */
-+		if (save_offset == UART_LCR)
-+			up->lcr = value;
-+		writeb(value, up->port.membase + offset);
-+		/* Read the IER to ensure any interrupt is cleared before
-+		 * returning from ISR. */
-+		if (save_offset == UART_TX || save_offset == UART_IER)
-+			value = serial_in(up, UART_IER);
-+		break;
+@@ -436,6 +483,24 @@ static void serial_dl_write(struct uart_
+ 	else
+ 		_serial_dl_write(up, value);
+ }
++#elif defined (CONFIG_SERIAL_8250_RM9K)
++static int serial_dl_read(struct uart_8250_port *up)
++{
++	return	(up->port.iotype == UPIO_RM9000) ?
++		(((__raw_readl(up->port.membase + 0x10) << 8) |
++		(__raw_readl(up->port.membase + 0x08) & 0xff)) & 0xffff) :
++		_serial_dl_read(up);
++}
 +
- 	default:
- 		outb(value, up->port.iobase + offset);
++static void serial_dl_write(struct uart_8250_port *up, int value)
++{
++	if (up->port.iotype == UPIO_RM9000) {
++		__raw_writel(value, up->port.membase + 0x08);
++		__raw_writel(value >> 8, up->port.membase + 0x10);
++	} else {
++		_serial_dl_write(up, value);
++	}
++}
+ #else
+ #define serial_dl_read(up) _serial_dl_read(up)
+ #define serial_dl_write(up, value) _serial_dl_write(up, value)
+@@ -637,7 +702,7 @@ static unsigned int autoconfig_read_divi
+  * its clones.  (We treat the broken original StarTech 16650 V1 as a
+  * 16550, and why not?  Startech doesn't seem to even acknowledge its
+  * existence.)
+- * 
++ *
+  * What evil have men's minds wrought...
+  */
+ static void autoconfig_has_efr(struct uart_8250_port *up)
+@@ -690,7 +755,7 @@ static void autoconfig_has_efr(struct ua
+ 			up->bugs |= UART_BUG_QUOT;
+ 		return;
  	}
-@@ -373,6 +388,7 @@ serial_out_sync(struct uart_8250_port *u
- #ifdef CONFIG_SERIAL_8250_AU1X00
- 	case UPIO_AU:
- #endif
-+	case UPIO_DWAPB:
- 		serial_out(up, offset, value);
- 		serial_in(up, UART_LCR);	/* safe, no side-effects */
- 		break;
-@@ -1389,6 +1405,19 @@ static irqreturn_t serial8250_interrupt(
- 			handled = 1;
- 
- 			end = NULL;
-+		} else if (up->port.iotype == UPIO_DWAPB &&
-+			  (iir & UART_IIR_BUSY) == UART_IIR_BUSY) {
-+			/* The DesignWare APB UART has an Busy Detect (0x07)
-+			 * interrupt meaning an LCR write attempt occured while the
-+			 * UART was busy. The interrupt must be cleared by reading
-+			 * the UART status register (USR) and the LCR re-written. */
-+			unsigned int status;
-+			status = *(volatile u32 *)up->port.private_data;
-+			serial_out(up, UART_LCR, up->lcr);
+-	
 +
-+			handled = 1;
+ 	/*
+ 	 * We check for a XR16C850 by setting DLL and DLM to 0, and then
+ 	 * reading back DLL and DLM.  The chip type depends on the DLM
+@@ -833,7 +898,7 @@ static void autoconfig_16550a(struct uar
+ 			status1 &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
+ 			status1 |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
+ 			serial_outp(up, 0x04, status1);
+-			
 +
-+			end = NULL;
- 		} else if (end == NULL)
- 			end = l;
+ 			serial_dl_write(up, quot);
  
-@@ -2090,6 +2119,7 @@ static int serial8250_request_std_resour
- 	case UPIO_TSI:
- 	case UPIO_MEM32:
- 	case UPIO_MEM:
-+	case UPIO_DWAPB:
- 		if (!up->port.mapbase)
- 			break;
+ 			serial_outp(up, UART_LCR, 0);
+@@ -938,7 +1003,7 @@ static void autoconfig(struct uart_8250_
+ 		/*
+ 		 * Do a simple existence test first; if we fail this,
+ 		 * there's no point trying anything else.
+-		 * 
++		 *
+ 		 * 0x80 is used as a nonsense port to prevent against
+ 		 * false positives due to ISA bus float.  The
+ 		 * assumption is that 0x80 is a non-existent port;
+@@ -977,7 +1042,7 @@ static void autoconfig(struct uart_8250_
+ 	save_mcr = serial_in(up, UART_MCR);
+ 	save_lcr = serial_in(up, UART_LCR);
  
-@@ -2127,6 +2157,7 @@ static void serial8250_release_std_resou
- 	case UPIO_TSI:
- 	case UPIO_MEM32:
- 	case UPIO_MEM:
-+	case UPIO_DWAPB:
- 		if (!up->port.mapbase)
- 			break;
+-	/* 
++	/*
+ 	 * Check to see if a UART is really there.  Certain broken
+ 	 * internal modems based on the Rockwell chipset fail this
+ 	 * test, because they apparently don't implement the loopback
+@@ -1084,7 +1149,7 @@ static void autoconfig(struct uart_8250_
+ 	else
+ 		serial_outp(up, UART_IER, 0);
  
-diff -puN drivers/serial/serial_core.c~serial-driver-pmc-msp71xx drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-driver-pmc-msp71xx
-+++ a/drivers/serial/serial_core.c
-@@ -2064,6 +2064,7 @@ uart_report_port(struct uart_driver *drv
- 	case UPIO_MEM32:
- 	case UPIO_AU:
- 	case UPIO_TSI:
-+	case UPIO_DWAPB:
- 		snprintf(address, sizeof(address),
- 			 "MMIO 0x%lx", port->mapbase);
- 		break;
-@@ -2409,6 +2410,7 @@ int uart_match_port(struct uart_port *po
- 	case UPIO_MEM32:
- 	case UPIO_AU:
- 	case UPIO_TSI:
-+	case UPIO_DWAPB:
- 		return (port1->mapbase == port2->mapbase);
+- out:	
++ out:
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+ //	restore_flags(flags);
+ 	DEBUG_AUTOCONF("type=%s\n", uart_config[up->port.type].name);
+@@ -1110,7 +1175,7 @@ static void autoconfig_irq(struct uart_8
+ 	save_mcr = serial_inp(up, UART_MCR);
+ 	save_ier = serial_inp(up, UART_IER);
+ 	serial_outp(up, UART_MCR, UART_MCR_OUT1 | UART_MCR_OUT2);
+-	
++
+ 	irqs = probe_irq_on();
+ 	serial_outp(up, UART_MCR, 0);
+ 	udelay (10);
+@@ -1175,8 +1240,11 @@ static void serial8250_start_tx(struct u
+ 		if (up->bugs & UART_BUG_TXEN) {
+ 			unsigned char lsr, iir;
+ 			lsr = serial_in(up, UART_LSR);
+-			iir = serial_in(up, UART_IIR);
+-			if (lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT)
++			iir = serial_in(up, UART_IIR) & 0x0f;
++			if ((up->port.type == PORT_RM9000) ?
++				(lsr & UART_LSR_THRE &&
++				(iir == UART_IIR_NO_INT || iir == UART_IIR_THRI)) :
++				(lsr & UART_LSR_TEMT && iir & UART_IIR_NO_INT))
+ 				transmit_chars(up);
+ 		}
  	}
- 	return 0;
-diff -puN include/linux/serial_core.h~serial-driver-pmc-msp71xx include/linux/serial_core.h
---- a/include/linux/serial_core.h~serial-driver-pmc-msp71xx
+@@ -1957,7 +2025,7 @@ serial8250_set_termios(struct uart_port 
+ 	/*
+ 	 * Ask the core to calculate the divisor for us.
+ 	 */
+-	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16); 
++	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16);
+ 	quot = serial8250_get_divisor(port, baud);
+ 
+ 	/*
+diff -puN drivers/serial/Kconfig~rm9000-serial-driver drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~rm9000-serial-driver
++++ a/drivers/serial/Kconfig
+@@ -254,6 +254,15 @@ config SERIAL_8250_AU1X00
+ 	  to this option.  The driver can handle 1 or 2 serial ports.
+ 	  If unsure, say N.
+ 
++config SERIAL_8250_RM9K
++	bool "Support for MIPS RM9xxx integrated serial port"
++	depends on SERIAL_8250 != n && SERIAL_RM9000
++	select SERIAL_8250_SHARE_IRQ
++	help
++	  Selecting this option will add support for the integrated serial
++	  port hardware found on MIPS RM9122 and similar processors.
++	  If unsure, say N.
++
+ comment "Non-8250 serial port support"
+ 
+ config SERIAL_AMBA_PL010
+diff -puN include/linux/serial_core.h~rm9000-serial-driver include/linux/serial_core.h
+--- a/include/linux/serial_core.h~rm9000-serial-driver
 +++ a/include/linux/serial_core.h
-@@ -230,6 +230,7 @@ struct uart_port {
- #define UPIO_MEM32		(3)
+@@ -39,7 +39,8 @@
+ #define PORT_RSA	13
+ #define PORT_NS16550A	14
+ #define PORT_XSCALE	15
+-#define PORT_MAX_8250	15	/* max port ID */
++#define PORT_RM9000	16	/* PMC-Sierra RM9xxx internal UART */
++#define PORT_MAX_8250	16	/* max port ID */
+ 
+ /*
+  * ARM specific type numbers.  These are not currently guaranteed
+@@ -231,6 +232,7 @@ struct uart_port {
  #define UPIO_AU			(4)			/* Au1x00 type IO */
  #define UPIO_TSI		(5)			/* Tsi108/109 type IO */
-+#define UPIO_DWAPB		(6)			/* DesignWare APB UART */
+ #define UPIO_DWAPB		(6)			/* DesignWare APB UART */
++#define UPIO_RM9000		(7)			/* RM9000 type IO */
  
  	unsigned int		read_status_mask;	/* driver specific */
  	unsigned int		ignore_status_mask;	/* driver specific */
-@@ -276,6 +277,7 @@ struct uart_port {
- 	struct device		*dev;			/* parent device */
- 	unsigned char		hub6;			/* this should be in the 8250 driver */
- 	unsigned char		unused[3];
-+	void			*private_data;		/* generic platform data pointer */
- };
- 
- /*
-diff -puN include/linux/serial_reg.h~serial-driver-pmc-msp71xx include/linux/serial_reg.h
---- a/include/linux/serial_reg.h~serial-driver-pmc-msp71xx
-+++ a/include/linux/serial_reg.h
-@@ -38,6 +38,8 @@
- #define UART_IIR_RDI		0x04 /* Receiver data interrupt */
- #define UART_IIR_RLSI		0x06 /* Receiver line status interrupt */
- 
-+#define UART_IIR_BUSY		0x07 /* DesignWare APB Busy Detect */
-+
- #define UART_FCR	2	/* Out: FIFO Control Register */
- #define UART_FCR_ENABLE_FIFO	0x01 /* Enable the FIFO */
- #define UART_FCR_CLEAR_RCVR	0x02 /* Clear the RCVR FIFO */
 _
 
-Patches currently in -mm which might be from stjeanma@pmc-sierra.com are
+Patches currently in -mm which might be from thomas.koeller@baslerweb.com are
 
 origin.patch
+mips-excite-use-__maybe_unused.patch
