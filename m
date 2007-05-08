@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-clean-up-krealloc.patch added to -mm tree
-Date: Tue, 08 May 2007 14:48:45 -0700
-Message-ID: <200705082148.l48Lmjqp002611@shell0.pdx.osdl.net>
+Subject: + slub-use-check_valid_pointer-in-kmem_ptr_validate.patch added to -mm tree
+Date: Tue, 08 May 2007 14:48:43 -0700
+Message-ID: <200705082148.l48LmhKp002606@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47531 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55772 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031546AbXEHVss (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:48:48 -0400
+	by vger.kernel.org with ESMTP id S967397AbXEHVsq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:48:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: clean up krealloc
+     SLUB: use check_valid_pointer in kmem_ptr_validate
 has been added to the -mm tree.  Its filename is
-     slub-clean-up-krealloc.patch
+     slub-use-check_valid_pointer-in-kmem_ptr_validate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: clean up krealloc
+Subject: SLUB: use check_valid_pointer in kmem_ptr_validate
 From: Christoph Lameter <clameter@sgi.com>
 
-We really do not need all this gaga there.
+We needlessly duplicate code. Also make check_valid_pointer inline.
 
-ksize gives us all the information we need to figure out if the object can
-cope with the new size.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Christoph LAemter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   15 ++++-----------
- 1 files changed, 4 insertions(+), 11 deletions(-)
+ mm/slub.c |   13 +++----------
+ 1 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN mm/slub.c~slub-clean-up-krealloc mm/slub.c
---- a/mm/slub.c~slub-clean-up-krealloc
+diff -puN mm/slub.c~slub-use-check_valid_pointer-in-kmem_ptr_validate mm/slub.c
+--- a/mm/slub.c~slub-use-check_valid_pointer-in-kmem_ptr_validate
 +++ a/mm/slub.c
-@@ -2199,9 +2199,8 @@ EXPORT_SYMBOL(kmem_cache_shrink);
-  */
- void *krealloc(const void *p, size_t new_size, gfp_t flags)
+@@ -400,9 +400,8 @@ static int check_bytes(u8 *start, unsign
+ 	return 1;
+ }
+ 
+-
+-static int check_valid_pointer(struct kmem_cache *s, struct page *page,
+-					 void *object)
++static inline int check_valid_pointer(struct kmem_cache *s,
++				struct page *page, const void *object)
  {
--	struct kmem_cache *new_cache;
- 	void *ret;
--	struct page *page;
-+	unsigned long ks;
+ 	void *base;
  
- 	if (unlikely(!p))
- 		return kmalloc(new_size, flags);
-@@ -2211,19 +2210,13 @@ void *krealloc(const void *p, size_t new
- 		return NULL;
- 	}
+@@ -1796,13 +1795,7 @@ int kmem_ptr_validate(struct kmem_cache 
+ 		/* No slab or wrong slab */
+ 		return 0;
  
--	page = virt_to_head_page(p);
+-	addr = page_address(page);
+-	if (object < addr || object >= addr + s->objects * s->size)
+-		/* Out of bounds */
+-		return 0;
 -
--	new_cache = get_slab(new_size, flags);
--
--	/*
-- 	 * If new size fits in the current cache, bail out.
-- 	 */
--	if (likely(page->slab == new_cache))
-+	ks = ksize(p);
-+	if (ks >= new_size)
- 		return (void *)p;
+-	if ((object - addr) % s->size)
+-		/* Improperly aligned */
++	if (!check_valid_pointer(s, page, object))
+ 		return 0;
  
- 	ret = kmalloc(new_size, flags);
- 	if (ret) {
--		memcpy(ret, p, min(new_size, ksize(p)));
-+		memcpy(ret, p, min(new_size, ks));
- 		kfree(p);
- 	}
- 	return ret;
+ 	/*
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
