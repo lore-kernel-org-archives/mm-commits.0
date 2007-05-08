@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + slub-move-resiliency-check-into-sysfs-section.patch added to -mm tree
-Date: Tue, 08 May 2007 14:48:55 -0700
-Message-ID: <200705082148.l48Lmtfa002627@shell0.pdx.osdl.net>
+Subject: + slub-add-config_slub_debug.patch added to -mm tree
+Date: Tue, 08 May 2007 14:49:03 -0700
+Message-ID: <200705082149.l48Ln34r002644@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49085 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968375AbXEHVs6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:48:58 -0400
+	by vger.kernel.org with ESMTP id S968380AbXEHVtG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:49:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: move resiliency check into SYSFS section
+     SLUB: add CONFIG_SLUB_DEBUG
 has been added to the -mm tree.  Its filename is
-     slub-move-resiliency-check-into-sysfs-section.patch
+     slub-add-config_slub_debug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,148 +25,334 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: move resiliency check into SYSFS section
+Subject: SLUB: add CONFIG_SLUB_DEBUG
 From: Christoph Lameter <clameter@sgi.com>
 
-Move the resiliency check into the SYSFS section after validate_slab that is
-used by the resiliency check.  This will avoid a forward declaration.
+CONFIG_SLUB_DEBUG can be used to switch off the debugging and sysfs components
+of SLUB.  Thus SLUB will be able to replace SLOB.  SLUB can arrange objects in
+a denser way than SLOB and the code size should be minimal without debugging
+and sysfs support.
+
+Note that CONFIG_SLUB_DEBUG is materially different from CONFIG_SLAB_DEBUG. 
+CONFIG_SLAB_DEBUG is used to enable slab debugging in SLAB.  SLUB enables
+debugging via a boot parameter.  SLUB debug code should always be present.
+
+CONFIG_SLUB_DEBUG can be modified in the embedded config section.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |  112 +++++++++++++++++++++++++---------------------------
- 1 files changed, 55 insertions(+), 57 deletions(-)
+ init/Kconfig |    9 ++
+ mm/slub.c    |  189 +++++++++++++++++++++++++++++--------------------
+ 2 files changed, 123 insertions(+), 75 deletions(-)
 
-diff -puN mm/slub.c~slub-move-resiliency-check-into-sysfs-section mm/slub.c
---- a/mm/slub.c~slub-move-resiliency-check-into-sysfs-section
-+++ a/mm/slub.c
-@@ -2512,63 +2512,6 @@ static int __init cpucache_init(void)
- __initcall(cpucache_init);
- #endif
+diff -puN init/Kconfig~slub-add-config_slub_debug init/Kconfig
+--- a/init/Kconfig~slub-add-config_slub_debug
++++ a/init/Kconfig
+@@ -504,6 +504,15 @@ config VM_EVENT_COUNTERS
+ 	  on EMBEDDED systems.  /proc/vmstat will only show page counts
+ 	  if VM event counters are disabled.
  
--#ifdef SLUB_RESILIENCY_TEST
--static unsigned long validate_slab_cache(struct kmem_cache *s);
--
--static void resiliency_test(void)
--{
--	u8 *p;
--
--	printk(KERN_ERR "SLUB resiliency testing\n");
--	printk(KERN_ERR "-----------------------\n");
--	printk(KERN_ERR "A. Corruption after allocation\n");
--
--	p = kzalloc(16, GFP_KERNEL);
--	p[16] = 0x12;
--	printk(KERN_ERR "\n1. kmalloc-16: Clobber Redzone/next pointer"
--			" 0x12->0x%p\n\n", p + 16);
--
--	validate_slab_cache(kmalloc_caches + 4);
--
--	/* Hmmm... The next two are dangerous */
--	p = kzalloc(32, GFP_KERNEL);
--	p[32 + sizeof(void *)] = 0x34;
--	printk(KERN_ERR "\n2. kmalloc-32: Clobber next pointer/next slab"
--		 	" 0x34 -> -0x%p\n", p);
--	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
--
--	validate_slab_cache(kmalloc_caches + 5);
--	p = kzalloc(64, GFP_KERNEL);
--	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
--	*p = 0x56;
--	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
--									p);
--	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
--	validate_slab_cache(kmalloc_caches + 6);
--
--	printk(KERN_ERR "\nB. Corruption after free\n");
--	p = kzalloc(128, GFP_KERNEL);
--	kfree(p);
--	*p = 0x78;
--	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
--	validate_slab_cache(kmalloc_caches + 7);
--
--	p = kzalloc(256, GFP_KERNEL);
--	kfree(p);
--	p[50] = 0x9a;
--	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
--	validate_slab_cache(kmalloc_caches + 8);
--
--	p = kzalloc(512, GFP_KERNEL);
--	kfree(p);
--	p[512] = 0xab;
--	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
--	validate_slab_cache(kmalloc_caches + 9);
--}
--#else
--static void resiliency_test(void) {};
--#endif
--
- void *__kmalloc_track_caller(size_t size, gfp_t gfpflags, void *caller)
++config SLUB_DEBUG
++	default y
++	bool "Enable SLUB debugging support" if EMBEDDED
++	help
++	  SLUB has extensive debug support features. Disabling these can
++	  result in significant savings in code size. This also disables
++	  SLUB sysfs support. /sys/slab will not exist and there will be
++	  no support for cache validation etc.
++
+ choice
+ 	prompt "Choose SLAB allocator"
+ 	default SLAB
+diff -puN mm/slub.c~slub-add-config_slub_debug mm/slub.c
+--- a/mm/slub.c~slub-add-config_slub_debug
++++ a/mm/slub.c
+@@ -89,17 +89,25 @@
+ 
+ static inline int SlabDebug(struct page *page)
  {
- 	struct kmem_cache *s = get_slab(size, gfpflags);
-@@ -2685,6 +2628,61 @@ static unsigned long validate_slab_cache
- 	return count;
++#ifdef CONFIG_SLUB_DEBUG
+ 	return PageError(page);
++#else
++	return 0;
++#endif
  }
  
-+#ifdef SLUB_RESILIENCY_TEST
-+static void resiliency_test(void)
-+{
-+	u8 *p;
-+
-+	printk(KERN_ERR "SLUB resiliency testing\n");
-+	printk(KERN_ERR "-----------------------\n");
-+	printk(KERN_ERR "A. Corruption after allocation\n");
-+
-+	p = kzalloc(16, GFP_KERNEL);
-+	p[16] = 0x12;
-+	printk(KERN_ERR "\n1. kmalloc-16: Clobber Redzone/next pointer"
-+			" 0x12->0x%p\n\n", p + 16);
-+
-+	validate_slab_cache(kmalloc_caches + 4);
-+
-+	/* Hmmm... The next two are dangerous */
-+	p = kzalloc(32, GFP_KERNEL);
-+	p[32 + sizeof(void *)] = 0x34;
-+	printk(KERN_ERR "\n2. kmalloc-32: Clobber next pointer/next slab"
-+		 	" 0x34 -> -0x%p\n", p);
-+	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
-+
-+	validate_slab_cache(kmalloc_caches + 5);
-+	p = kzalloc(64, GFP_KERNEL);
-+	p += 64 + (get_cycles() & 0xff) * sizeof(void *);
-+	*p = 0x56;
-+	printk(KERN_ERR "\n3. kmalloc-64: corrupting random byte 0x56->0x%p\n",
-+									p);
-+	printk(KERN_ERR "If allocated object is overwritten then not detectable\n\n");
-+	validate_slab_cache(kmalloc_caches + 6);
-+
-+	printk(KERN_ERR "\nB. Corruption after free\n");
-+	p = kzalloc(128, GFP_KERNEL);
-+	kfree(p);
-+	*p = 0x78;
-+	printk(KERN_ERR "1. kmalloc-128: Clobber first word 0x78->0x%p\n\n", p);
-+	validate_slab_cache(kmalloc_caches + 7);
-+
-+	p = kzalloc(256, GFP_KERNEL);
-+	kfree(p);
-+	p[50] = 0x9a;
-+	printk(KERN_ERR "\n2. kmalloc-256: Clobber 50th byte 0x9a->0x%p\n\n", p);
-+	validate_slab_cache(kmalloc_caches + 8);
-+
-+	p = kzalloc(512, GFP_KERNEL);
-+	kfree(p);
-+	p[512] = 0xab;
-+	printk(KERN_ERR "\n3. kmalloc-512: Clobber redzone 0xab->0x%p\n\n", p);
-+	validate_slab_cache(kmalloc_caches + 9);
-+}
-+#else
-+static void resiliency_test(void) {};
+ static inline void SetSlabDebug(struct page *page)
+ {
++#ifdef CONFIG_SLUB_DEBUG
+ 	SetPageError(page);
 +#endif
+ }
+ 
+ static inline void ClearSlabDebug(struct page *page)
+ {
++#ifdef CONFIG_SLUB_DEBUG
+ 	ClearPageError(page);
++#endif
+ }
+ 
+ /*
+@@ -202,7 +210,7 @@ struct track {
+ 
+ enum track_item { TRACK_ALLOC, TRACK_FREE };
+ 
+-#ifdef CONFIG_SYSFS
++#if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
+ static int sysfs_slab_add(struct kmem_cache *);
+ static int sysfs_slab_alias(struct kmem_cache *, const char *);
+ static void sysfs_slab_remove(struct kmem_cache *);
+@@ -279,6 +287,14 @@ static inline int slab_index(void *p, st
+ 	return (p - addr) / s->size;
+ }
+ 
++#ifdef CONFIG_SLUB_DEBUG
++/*
++ * Debug settings:
++ */
++static int slub_debug;
++
++static char *slub_debug_slabs;
 +
  /*
-  * Generate lists of code addresses where slabcache objects are allocated
-  * and freed.
+  * Object debugging
+  */
+@@ -816,6 +832,97 @@ static void trace(struct kmem_cache *s, 
+ 	}
+ }
+ 
++static int __init setup_slub_debug(char *str)
++{
++	if (!str || *str != '=')
++		slub_debug = DEBUG_DEFAULT_FLAGS;
++	else {
++		str++;
++		if (*str == 0 || *str == ',')
++			slub_debug = DEBUG_DEFAULT_FLAGS;
++		else
++		for( ;*str && *str != ','; str++)
++			switch (*str) {
++			case 'f' : case 'F' :
++				slub_debug |= SLAB_DEBUG_FREE;
++				break;
++			case 'z' : case 'Z' :
++				slub_debug |= SLAB_RED_ZONE;
++				break;
++			case 'p' : case 'P' :
++				slub_debug |= SLAB_POISON;
++				break;
++			case 'u' : case 'U' :
++				slub_debug |= SLAB_STORE_USER;
++				break;
++			case 't' : case 'T' :
++				slub_debug |= SLAB_TRACE;
++				break;
++			default:
++				printk(KERN_ERR "slub_debug option '%c' "
++					"unknown. skipped\n",*str);
++			}
++	}
++
++	if (*str == ',')
++		slub_debug_slabs = str + 1;
++	return 1;
++}
++
++__setup("slub_debug", setup_slub_debug);
++
++static void kmem_cache_open_debug_check(struct kmem_cache *s)
++{
++	/*
++	 * The page->offset field is only 16 bit wide. This is an offset
++	 * in units of words from the beginning of an object. If the slab
++	 * size is bigger then we cannot move the free pointer behind the
++	 * object anymore.
++	 *
++	 * On 32 bit platforms the limit is 256k. On 64bit platforms
++	 * the limit is 512k.
++	 *
++	 * Debugging or ctor/dtors may create a need to move the free
++	 * pointer. Fail if this happens.
++	 */
++	if (s->size >= 65535 * sizeof(void *)) {
++		BUG_ON(s->flags & (SLAB_RED_ZONE | SLAB_POISON |
++				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
++		BUG_ON(s->ctor || s->dtor);
++	}
++	else
++		/*
++		 * Enable debugging if selected on the kernel commandline.
++		 */
++		if (slub_debug && (!slub_debug_slabs ||
++		    strncmp(slub_debug_slabs, s->name,
++		    	strlen(slub_debug_slabs)) == 0))
++				s->flags |= slub_debug;
++}
++#else
++
++static inline int alloc_object_checks(struct kmem_cache *s,
++		struct page *page, void *object) { return 0; }
++
++static inline int free_object_checks(struct kmem_cache *s,
++		struct page *page, void *object) { return 0; }
++
++static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
++static inline void remove_full(struct kmem_cache *s, struct page *page) {}
++static inline void trace(struct kmem_cache *s, struct page *page,
++			void *object, int alloc) {}
++static inline void init_object(struct kmem_cache *s,
++			void *object, int active) {}
++static inline void init_tracking(struct kmem_cache *s, void *object) {}
++static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
++			{ return 1; }
++static inline int check_object(struct kmem_cache *s, struct page *page,
++			void *object, int active) { return 1; }
++static inline void set_track(struct kmem_cache *s, void *object,
++			enum track_item alloc, void *addr) {}
++static inline void kmem_cache_open_debug_check(struct kmem_cache *s) {}
++#define slub_debug 0
++#endif
+ /*
+  * Slab allocation and freeing
+  */
+@@ -1441,13 +1548,6 @@ static int slub_min_objects = DEFAULT_MI
+ static int slub_nomerge;
+ 
+ /*
+- * Debug settings:
+- */
+-static int slub_debug;
+-
+-static char *slub_debug_slabs;
+-
+-/*
+  * Calculate the order of allocation given an slab object size.
+  *
+  * The order of allocation has significant impact on performance and other
+@@ -1655,6 +1755,7 @@ static int calculate_sizes(struct kmem_c
+ 	 */
+ 	size = ALIGN(size, sizeof(void *));
+ 
++#ifdef CONFIG_SLUB_DEBUG
+ 	/*
+ 	 * If we are Redzoning then check if there is some space between the
+ 	 * end of the object and the free pointer. If not then add an
+@@ -1662,6 +1763,7 @@ static int calculate_sizes(struct kmem_c
+ 	 */
+ 	if ((flags & SLAB_RED_ZONE) && size == s->objsize)
+ 		size += sizeof(void *);
++#endif
+ 
+ 	/*
+ 	 * With that we have determined the number of bytes in actual use
+@@ -1669,6 +1771,7 @@ static int calculate_sizes(struct kmem_c
+ 	 */
+ 	s->inuse = size;
+ 
++#ifdef CONFIG_SLUB_DEBUG
+ 	if (((flags & (SLAB_DESTROY_BY_RCU | SLAB_POISON)) ||
+ 		s->ctor || s->dtor)) {
+ 		/*
+@@ -1699,6 +1802,7 @@ static int calculate_sizes(struct kmem_c
+ 		 * of the object.
+ 		 */
+ 		size += sizeof(void *);
++#endif
+ 
+ 	/*
+ 	 * Determine the alignment based on various parameters that the
+@@ -1748,32 +1852,7 @@ static int kmem_cache_open(struct kmem_c
+ 	s->objsize = size;
+ 	s->flags = flags;
+ 	s->align = align;
+-
+-	/*
+-	 * The page->offset field is only 16 bit wide. This is an offset
+-	 * in units of words from the beginning of an object. If the slab
+-	 * size is bigger then we cannot move the free pointer behind the
+-	 * object anymore.
+-	 *
+-	 * On 32 bit platforms the limit is 256k. On 64bit platforms
+-	 * the limit is 512k.
+-	 *
+-	 * Debugging or ctor/dtors may create a need to move the free
+-	 * pointer. Fail if this happens.
+-	 */
+-	if (s->size >= 65535 * sizeof(void *)) {
+-		BUG_ON(flags & (SLAB_RED_ZONE | SLAB_POISON |
+-				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
+-		BUG_ON(ctor || dtor);
+-	}
+-	else
+-		/*
+-		 * Enable debugging if selected on the kernel commandline.
+-		 */
+-		if (slub_debug && (!slub_debug_slabs ||
+-		    strncmp(slub_debug_slabs, name,
+-		    	strlen(slub_debug_slabs)) == 0))
+-				s->flags |= slub_debug;
++	kmem_cache_open_debug_check(s);
+ 
+ 	if (!calculate_sizes(s))
+ 		goto error;
+@@ -1949,45 +2028,6 @@ static int __init setup_slub_nomerge(cha
+ 
+ __setup("slub_nomerge", setup_slub_nomerge);
+ 
+-static int __init setup_slub_debug(char *str)
+-{
+-	if (!str || *str != '=')
+-		slub_debug = DEBUG_DEFAULT_FLAGS;
+-	else {
+-		str++;
+-		if (*str == 0 || *str == ',')
+-			slub_debug = DEBUG_DEFAULT_FLAGS;
+-		else
+-		for( ;*str && *str != ','; str++)
+-			switch (*str) {
+-			case 'f' : case 'F' :
+-				slub_debug |= SLAB_DEBUG_FREE;
+-				break;
+-			case 'z' : case 'Z' :
+-				slub_debug |= SLAB_RED_ZONE;
+-				break;
+-			case 'p' : case 'P' :
+-				slub_debug |= SLAB_POISON;
+-				break;
+-			case 'u' : case 'U' :
+-				slub_debug |= SLAB_STORE_USER;
+-				break;
+-			case 't' : case 'T' :
+-				slub_debug |= SLAB_TRACE;
+-				break;
+-			default:
+-				printk(KERN_ERR "slub_debug option '%c' "
+-					"unknown. skipped\n",*str);
+-			}
+-	}
+-
+-	if (*str == ',')
+-		slub_debug_slabs = str + 1;
+-	return 1;
+-}
+-
+-__setup("slub_debug", setup_slub_debug);
+-
+ static struct kmem_cache *create_kmalloc_cache(struct kmem_cache *s,
+ 		const char *name, int size, gfp_t gfp_flags)
+ {
+@@ -2554,8 +2594,7 @@ void *__kmalloc_node_track_caller(size_t
+ 	return slab_alloc(s, gfpflags, node, caller);
+ }
+ 
+-#ifdef CONFIG_SYSFS
+-
++#if defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)
+ static int validate_slab(struct kmem_cache *s, struct page *page)
+ {
+ 	void *p;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
