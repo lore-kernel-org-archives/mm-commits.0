@@ -1,116 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-rename-state_based_readahead-to-clock_based_readahead.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:15:40 -0700
-Message-ID: <200705080815.l488Fecq019067@shell0.pdx.osdl.net>
+Subject: - readahead-rescue_pages-updates.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:15:48 -0700
+Message-ID: <200705080815.l488FmcR019073@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45163 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934649AbXEHIQI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:16:08 -0400
+	by vger.kernel.org with ESMTP id S934648AbXEHIQU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:16:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: rename state_based_readahead() to clock_based_readahead()
+     readahead: rescue_pages() updates
 has been removed from the -mm tree.  Its filename was
-     readahead-rename-state_based_readahead-to-clock_based_readahead.patch
+     readahead-rescue_pages-updates.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: readahead: rename state_based_readahead() to clock_based_readahead()
+Subject: readahead: rescue_pages() updates
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Rename state_based_readahead() to clock_based_readahead().  It better reflects
-the property of that readahead method.
+- Replace @page with @mapping and @index,
+  which is a more usable interface.
+
+- Add a new parameter @ra to rescue_pages(),
+  which enables detailed accounting for individual readahead methods.
+
+- Scan all pages in the range, instead of bailing out on first uncached page.
+
+- ClearPageReadahead() on each page.
+  It's harmful to have any lookahead marks when thrashing is pending.
+
+- Add a call to rescue_pages() in thrashing_recovery_readahead().
+
+Stress tested in qemu.
 
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/readahead.c |   67 +++++++++++++++++++++++------------------------
+ 1 file changed, 34 insertions(+), 33 deletions(-)
 
-diff -puN mm/readahead.c~readahead-rename-state_based_readahead-to-clock_based_readahead mm/readahead.c
---- a/mm/readahead.c~readahead-rename-state_based_readahead-to-clock_based_readahead
+diff -puN mm/readahead.c~readahead-rescue_pages-updates mm/readahead.c
+--- a/mm/readahead.c~readahead-rescue_pages-updates
 +++ a/mm/readahead.c
-@@ -66,7 +66,7 @@ int readahead_hit_rate = 1;
- enum ra_class {
- 	RA_CLASS_ALL,
- 	RA_CLASS_INITIAL,
--	RA_CLASS_STATE,
-+	RA_CLASS_CLOCK,
- 	RA_CLASS_CONTEXT,
- 	RA_CLASS_CONTEXT_AGGRESSIVE,
- 	RA_CLASS_BACKWARD,
-@@ -101,7 +101,7 @@ enum ra_event {
- 
- #ifdef CONFIG_DEBUG_READAHEAD
- static u32 readahead_debug_level = 1;
--static u32 disable_stateful_method;
-+static u32 disable_clock_readahead;
- static const char * const ra_class_name[];
- static void ra_account(struct file_ra_state *ra, enum ra_event e, int pages);
- #  define debug_inc(var)		do { var++; } while (0)
-@@ -1118,7 +1118,7 @@ static unsigned long compute_thrashing_t
-  * Main function for file_ra_state based read-ahead.
+@@ -734,60 +734,60 @@ unsigned long max_sane_readahead(unsigne
+ /*
+  * Move pages in danger (of thrashing) to the head of inactive_list.
+  * Not expected to happen frequently.
+- *
+- * @page will be skipped: it's grabbed and won't die away.
+- * The following @nr_pages-1 pages will be protected.
   */
- static unsigned long
--state_based_readahead(struct address_space *mapping, struct file *filp,
-+clock_based_readahead(struct address_space *mapping, struct file *filp,
- 			struct file_ra_state *ra,
- 			struct page *page, pgoff_t offset,
- 			unsigned long req_size, unsigned long ra_max)
-@@ -1160,7 +1160,7 @@ state_based_readahead(struct address_spa
- 	if (page && ra_old + ra_old / 8 >= ra_size)
- 		update_ra_thrash_bytes(mapping->backing_dev_info, ra_size);
+-static unsigned long rescue_pages(struct page *page, unsigned long nr_pages)
++static unsigned long rescue_pages(struct address_space *mapping,
++				  struct file_ra_state *ra,
++				  pgoff_t index, unsigned long nr_pages)
+ {
+-	int pgrescue = 0;
+-	pgoff_t index = page_index(page);
+-	struct address_space *mapping = page_mapping(page);
+-	struct page *grabbed_page = NULL;
++	struct page *grabbed_page;
++	struct page *page;
+ 	struct zone *zone;
++	int pgrescue = 0;
  
--	ra_set_class(ra, RA_CLASS_STATE);
-+	ra_set_class(ra, RA_CLASS_CLOCK);
- 	ra_set_index(ra, offset, ra->readahead_index);
- 	ra_set_size(ra, ra_size, la_size);
+-	dprintk("rescue_pages(ino=%lu, index=%lu nr=%lu)\n",
++	dprintk("rescue_pages(ino=%lu, index=%lu, nr=%lu)\n",
+ 			mapping->host->i_ino, index, nr_pages);
  
-@@ -1690,8 +1690,8 @@ page_cache_readahead_adaptive(struct add
- 	 */
- 	if (offset == ra->prev_index + 1 &&
- 	    offset == ra->lookahead_index &&
--					!debug_option(disable_stateful_method))
--		return state_based_readahead(mapping, filp, ra, page,
-+					!debug_option(disable_clock_readahead))
-+		return clock_based_readahead(mapping, filp, ra, page,
- 						offset, req_size, ra_max);
+-	for(;;) {
++	for(; nr_pages;) {
++		grabbed_page = page = find_get_page(mapping, index);
++		if (!page) {
++			index++;
++			nr_pages--;
++			continue;
++		}
++
+ 		zone = page_zone(page);
+ 		spin_lock_irq(&zone->lru_lock);
  
- 	/*
-@@ -1791,7 +1791,7 @@ void readahead_cache_hit(struct file_ra_
- static const char * const ra_class_name[] = {
- 	"total",
- 	"initial",
--	"state",
-+	"clock",
- 	"context",
- 	"contexta",
- 	"backward",
-@@ -1973,8 +1973,8 @@ static int __init readahead_init(void)
- 	debugfs_create_file("events", 0644, root, NULL, &ra_events_fops);
+-		if (!PageLRU(page))
+-			goto out_unlock;
++		if (!PageLRU(page)) {
++			index++;
++			nr_pages--;
++			goto next_unlock;
++		}
  
- 	debugfs_create_u32("debug_level", 0644, root, &readahead_debug_level);
--	debugfs_create_bool("disable_stateful_method", 0644, root,
--			    &disable_stateful_method);
-+	debugfs_create_bool("disable_clock_readahead", 0644, root,
-+			    &disable_clock_readahead);
+-		while (page_mapping(page) == mapping &&
+-				page_index(page) == index) {
++		do {
+ 			struct page *the_page = page;
+ 			page = list_entry((page)->lru.prev, struct page, lru);
++			index++;
++			nr_pages--;
++			ClearPageReadahead(the_page);
+ 			if (!PageActive(the_page) &&
+ 					!PageLocked(the_page) &&
+ 					page_count(the_page) == 1) {
+ 				list_move(&the_page->lru, &zone->inactive_list);
+ 				pgrescue++;
+ 			}
+-			index++;
+-			if (!--nr_pages)
+-				goto out_unlock;
+-		}
++		} while (nr_pages &&
++				page_mapping(page) == mapping &&
++				page_index(page) == index);
  
- 	return 0;
++next_unlock:
+ 		spin_unlock_irq(&zone->lru_lock);
++		page_cache_release(grabbed_page);
+ 		cond_resched();
+-
+-		if (grabbed_page)
+-			page_cache_release(grabbed_page);
+-		grabbed_page = page = find_get_page(mapping, index);
+-		if (!page)
+-			goto out;
+ 	}
+ 
+-out_unlock:
+-	spin_unlock_irq(&zone->lru_lock);
+-out:
+-	if (grabbed_page)
+-		page_cache_release(grabbed_page);
+-	ra_account(NULL, RA_EVENT_READAHEAD_RESCUE, pgrescue);
+-	return nr_pages;
++	ra_account(ra, RA_EVENT_READAHEAD_RESCUE, pgrescue);
++	return pgrescue;
  }
+ 
+ /*
+@@ -1134,7 +1134,7 @@ clock_based_readahead(struct address_spa
+ 	ra_size = ra_size * readahead_ratio / 100;
+ 
+ 	if (page && remain_space <= la_size) {
+-		rescue_pages(page, la_size);
++		rescue_pages(mapping, ra, offset, la_size);
+ 		goto cancel_lookahead;
+ 	}
+ 
+@@ -1459,7 +1459,7 @@ has_history_pages:
+ 	la_size = start - offset;
+ 	if (page && ra_size < la_size) {
+ 		if (ra_size < offset)
+-			rescue_pages(page, la_size);
++			rescue_pages(mapping, ra, offset, la_size);
+ 		return -1;
+ 	}
+ 
+@@ -1587,6 +1587,7 @@ thrashing_recovery_readahead(struct addr
+ 		 * Further thrashings will bring us back to case (3) below.
+ 		 */
+ 		ra_size = ra->readahead_index - offset;
++		rescue_pages(mapping, ra, offset, ra_size);
+ 	} else {
+ 		/*
+ 		 * 3) The new chunk is lost.
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-readahead-rename-state_based_readahead-to-clock_based_readahead.patch
-readahead-account-i-o-block-times-for-stock-readahead.patch
 readahead-rescue_pages-updates.patch
 readahead-remove-noaction-shrink-events.patch
 readahead-remove-size-limit-on-read_ahead_kb.patch
