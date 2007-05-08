@@ -1,176 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-rescue_pages.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:13:48 -0700
-Message-ID: <200705080813.l488Dmmx018933@shell0.pdx.osdl.net>
+Subject: + git-dvb-fixup.patch added to -mm tree
+Date: Tue, 08 May 2007 01:42:40 -0700
+Message-ID: <200705080842.l488genj019494@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57098 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934675AbXEHIjy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:39:54 -0400
+	by vger.kernel.org with ESMTP id S934755AbXEHImp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:42:45 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l488gg3T003962
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 8 May 2007 01:42:43 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     readahead: rescue_pages()
-has been removed from the -mm tree.  Its filename was
-     readahead-rescue_pages.patch
+     git-dvb-fixup
+has been added to the -mm tree.  Its filename is
+     git-dvb-fixup.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: readahead: rescue_pages()
-From: Wu Fengguang <wfg@mail.ustc.edu.cn>
+Subject: git-dvb-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Introduce function rescue_pages() to protect pages in danger of thrashing.
-
-Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   90 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 90 insertions(+)
+ drivers/media/video/cx88/cx88-alsa.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/readahead.c~readahead-rescue_pages mm/readahead.c
---- a/mm/readahead.c~readahead-rescue_pages
-+++ a/mm/readahead.c
-@@ -674,6 +674,96 @@ unsigned long max_sane_readahead(unsigne
- }
+diff -puN drivers/media/video/cx88/cx88-alsa.c~git-dvb-fixup drivers/media/video/cx88/cx88-alsa.c
+--- a/drivers/media/video/cx88/cx88-alsa.c~git-dvb-fixup
++++ a/drivers/media/video/cx88/cx88-alsa.c
+@@ -27,12 +27,8 @@
+ #include <linux/init.h>
+ #include <linux/device.h>
+ #include <linux/interrupt.h>
+-<<<<<<< HEAD/drivers/media/video/cx88/cx88-alsa.c
+ #include <linux/dma-mapping.h>
  
- /*
-+ * Adaptive read-ahead.
-+ *
-+ * Good read patterns are compact both in space and time. The read-ahead logic
-+ * tries to grant larger read-ahead size to better readers under the constraint
-+ * of system memory and load pressure.
-+ *
-+ * It employs two methods to estimate the max thrashing safe read-ahead size:
-+ *   1. state based   - the default one
-+ *   2. context based - the failsafe one
-+ * The integration of the dual methods has the merit of being agile and robust.
-+ * It makes the overall design clean: special cases are handled in general by
-+ * the stateless method, leaving the stateful one simple and fast.
-+ *
-+ * To improve throughput and decrease read delay, the logic 'looks ahead'.
-+ * In most read-ahead chunks, one page will be selected and tagged with
-+ * PG_readahead. Later when the page with PG_readahead is read, the logic
-+ * will be notified to submit the next read-ahead chunk in advance.
-+ *
-+ *                 a read-ahead chunk
-+ *    +-----------------------------------------+
-+ *    |       # PG_readahead                    |
-+ *    +-----------------------------------------+
-+ *            ^ When this page is read, notify me for the next read-ahead.
-+ *
-+ */
-+
-+#ifdef CONFIG_ADAPTIVE_READAHEAD
-+
-+/*
-+ * Move pages in danger (of thrashing) to the head of inactive_list.
-+ * Not expected to happen frequently.
-+ *
-+ * @page will be skipped: it's grabbed and won't die away.
-+ * The following @nr_pages-1 pages will be protected.
-+ */
-+static unsigned long rescue_pages(struct page *page, unsigned long nr_pages)
-+{
-+	int pgrescue = 0;
-+	pgoff_t index = page_index(page);
-+	struct address_space *mapping = page_mapping(page);
-+	struct page *grabbed_page = NULL;
-+	struct zone *zone;
-+
-+	dprintk("rescue_pages(ino=%lu, index=%lu nr=%lu)\n",
-+			mapping->host->i_ino, index, nr_pages);
-+
-+	for(;;) {
-+		zone = page_zone(page);
-+		spin_lock_irq(&zone->lru_lock);
-+
-+		if (!PageLRU(page))
-+			goto out_unlock;
-+
-+		while (page_mapping(page) == mapping &&
-+				page_index(page) == index) {
-+			struct page *the_page = page;
-+			page = list_entry((page)->lru.prev, struct page, lru);
-+			if (!PageActive(the_page) &&
-+					!PageLocked(the_page) &&
-+					page_count(the_page) == 1) {
-+				list_move(&the_page->lru, &zone->inactive_list);
-+				pgrescue++;
-+			}
-+			index++;
-+			if (!--nr_pages)
-+				goto out_unlock;
-+		}
-+
-+		spin_unlock_irq(&zone->lru_lock);
-+		cond_resched();
-+
-+		if (grabbed_page)
-+			page_cache_release(grabbed_page);
-+		grabbed_page = page = find_get_page(mapping, index);
-+		if (!page)
-+			goto out;
-+	}
-+
-+out_unlock:
-+	spin_unlock_irq(&zone->lru_lock);
-+out:
-+	if (grabbed_page)
-+		page_cache_release(grabbed_page);
-+	ra_account(NULL, RA_EVENT_READAHEAD_RESCUE, pgrescue);
-+	return nr_pages;
-+}
-+
-+#endif /* CONFIG_ADAPTIVE_READAHEAD */
-+
-+/*
-  * Read-ahead events accounting.
-  */
- #ifdef CONFIG_DEBUG_READAHEAD
+-=======
+-#include <linux/dma-mapping.h>
+->>>>>>> /drivers/media/video/cx88/cx88-alsa.c
+ #include <asm/delay.h>
+ #include <sound/driver.h>
+ #include <sound/core.h>
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-readahead-rescue_pages.patch
-readahead-sysctl-parameters.patch
-readahead-min-max-sizes.patch
-readahead-state-based-method-aging-accounting.patch
-readahead-state-based-method-routines.patch
-readahead-state-based-method.patch
-readahead-state-based-method-check-node-id.patch
-readahead-state-based-method-decouple-readahead_ratio-from-growth_limit.patch
-readahead-state-based-method-cancel-lookahead-gracefully.patch
-readahead-context-based-method.patch
-readahead-initial-method-guiding-sizes.patch
-readahead-initial-method-thrashing-guard-size.patch
-readahead-initial-method-user-recommended-size.patch
-readahead-initial-method.patch
-readahead-backward-prefetching-method.patch
-readahead-thrashing-recovery-method.patch
-readahead-thrashing-recovery-method-check-unbalanced-aging.patch
-readahead-thrashing-recovery-method-refill-holes.patch
-readahead-call-scheme.patch
-readahead-call-scheme-cleanup.patch
-readahead-call-scheme-catch-thrashing-on-lookahead-time.patch
-readahead-call-scheme-doc-fixes-for-readahead.patch
-readahead-laptop-mode.patch
-readahead-loop-case.patch
-readahead-nfsd-case.patch
-readahead-remove-parameter-ra_max-from-thrashing_recovery_readahead.patch
-readahead-remove-parameter-ra_max-from-adjust_rala.patch
-readahead-state-based-method-protect-against-tiny-size.patch
-readahead-rename-state_based_readahead-to-clock_based_readahead.patch
-readahead-account-i-o-block-times-for-stock-readahead.patch
-readahead-rescue_pages-updates.patch
-readahead-remove-noaction-shrink-events.patch
-readahead-remove-size-limit-on-read_ahead_kb.patch
-readahead-remove-size-limit-of-max_sectors_kb-on-read_ahead_kb.patch
-readahead-partial-sendfile-fix.patch
-readahead-turn-on-by-default.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+consolidate-asm-consth-to-linux-consth.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+char-cyclades-conditions-cleanup.patch
+char-cyclades-probe-cleanup.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+cirrusfb-convert-to-generic-boolean.patch
+sm501fb-printk-warning-fixes.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-jfs.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-nfs-printk-warning-fixes.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
