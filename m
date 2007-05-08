@@ -1,518 +1,1397 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-on-chip-rtc-controller-driver.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:04:51 -0700
-Message-ID: <200705080004.l4804pXe009045@shell0.pdx.osdl.net>
+Subject: - blackfin-blackfin-on-chip-spi-controller-driver.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:04:54 -0700
+Message-ID: <200705080004.l4804sNJ009048@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59009 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59159 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967369AbXEHAF2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:05:28 -0400
+	by vger.kernel.org with ESMTP id S967361AbXEHAF0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:05:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@analog.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: bryan.wu@analog.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin: on-chip RTC controller driver
+     Blackfin: blackfin on-chip SPI controller driver
 has been removed from the -mm tree.  Its filename was
-     blackfin-on-chip-rtc-controller-driver.patch
+     blackfin-blackfin-on-chip-spi-controller-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Blackfin: on-chip RTC controller driver
+Subject: Blackfin: blackfin on-chip SPI controller driver
 From: "Wu, Bryan" <bryan.wu@analog.com>
 
 This patch implements the driver necessary use the Analog Devices Blackfin
-processor's on-chip RTC controller.
+processor's SPI Port.
 
 Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig    |   10 
- drivers/rtc/Makefile   |    1 
- drivers/rtc/rtc-bfin.c |  445 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 456 insertions(+)
+ drivers/spi/Kconfig       |    7 
+ drivers/spi/Makefile      |    3 
+ drivers/spi/spi_bfin5xx.c | 1313 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1321 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~blackfin-on-chip-rtc-controller-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~blackfin-on-chip-rtc-controller-driver
-+++ a/drivers/rtc/Kconfig
-@@ -354,4 +354,14 @@ config RTC_DRV_V3020
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-v3020.
+diff -puN drivers/spi/Kconfig~blackfin-blackfin-on-chip-spi-controller-driver drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~blackfin-blackfin-on-chip-spi-controller-driver
++++ a/drivers/spi/Kconfig
+@@ -58,6 +58,12 @@ config SPI_ATMEL
+ 	  This selects a driver for the Atmel SPI Controller, present on
+ 	  many AT32 (AVR32) and AT91 (ARM) chips.
  
-+config RTC_DRV_BFIN
-+	tristate "Blackfin On-Chip RTC"
-+	depends on RTC_CLASS && BFIN
++config SPI_BFIN
++	tristate "SPI controller driver for ADI Blackfin5xx"
++	depends on SPI_MASTER && BFIN
 +	help
-+	  If you say yes here you will get support for the
-+	  Blackfin On-Chip Real Time Clock.
++	  This is the SPI controller master driver for Blackfin 5xx processor.
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-bfin.
-+
- endmenu
-diff -puN drivers/rtc/Makefile~blackfin-on-chip-rtc-controller-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~blackfin-on-chip-rtc-controller-driver
-+++ a/drivers/rtc/Makefile
-@@ -38,3 +38,4 @@ obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max
- obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-at91rm9200.o
- obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
-+obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
-diff -puN /dev/null drivers/rtc/rtc-bfin.c
+ config SPI_BITBANG
+ 	tristate "Bitbanging SPI master"
+ 	depends on SPI_MASTER && EXPERIMENTAL
+@@ -157,7 +163,6 @@ config SPI_AT25
+ # Add new SPI protocol masters in alphabetical order above this line
+ #
+ 
+-
+ # (slave support would go here)
+ 
+ endmenu # "SPI support"
+diff -puN drivers/spi/Makefile~blackfin-blackfin-on-chip-spi-controller-driver drivers/spi/Makefile
+--- a/drivers/spi/Makefile~blackfin-blackfin-on-chip-spi-controller-driver
++++ a/drivers/spi/Makefile
+@@ -11,8 +11,9 @@ endif
+ obj-$(CONFIG_SPI_MASTER)		+= spi.o
+ 
+ # SPI master controller drivers (bus)
+-obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
+ obj-$(CONFIG_SPI_ATMEL)			+= atmel_spi.o
++obj-$(CONFIG_SPI_BFIN)			+= spi_bfin5xx.o
++obj-$(CONFIG_SPI_BITBANG)		+= spi_bitbang.o
+ obj-$(CONFIG_SPI_BUTTERFLY)		+= spi_butterfly.o
+ obj-$(CONFIG_SPI_IMX)			+= spi_imx.o
+ obj-$(CONFIG_SPI_PXA2XX)		+= pxa2xx_spi.o
+diff -puN /dev/null drivers/spi/spi_bfin5xx.c
 --- /dev/null
-+++ a/drivers/rtc/rtc-bfin.c
-@@ -0,0 +1,445 @@
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -0,0 +1,1313 @@
 +/*
-+ * Blackfin On-Chip Real Time Clock Driver
-+ *  Supports BF531/BF532/BF533/BF534/BF536/BF537
++ * File:         drivers/spi/bfin5xx_spi.c
++ * Based on:     N/A
++ * Author:       Luke Yang (Analog Devices Inc.)
 + *
-+ * Copyright 2004-2007 Analog Devices Inc.
++ * Created:      March. 10th 2006
++ * Description:  SPI controller driver for Blackfin 5xx
++ * Bugs:         Enter bugs at http://blackfin.uclinux.org/
 + *
-+ * Enter bugs at http://blackfin.uclinux.org/
++ * Modified:
++ *	March 10, 2006  bfin5xx_spi.c Created. (Luke Yang)
++ *      August 7, 2006  added full duplex mode (Axel Weiss & Luke Yang)
 + *
-+ * Licensed under the GPL-2 or later.
++ * Copyright 2004-2006 Analog Devices Inc.
++ *
++ * This program is free software ;  you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation ;  either version 2, or (at your option)
++ * any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY ;  without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program ;  see the file COPYING.
++ * If not, write to the Free Software Foundation,
++ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 + */
 +
-+/* The biggest issue we deal with in this driver is that register writes are
-+ * synced to the RTC frequency of 1Hz.  So if you write to a register and
-+ * attempt to write again before the first write has completed, the new write
-+ * is simply discarded.  This can easily be troublesome if userspace disables
-+ * one event (say periodic) and then right after enables an event (say alarm).
-+ * Since all events are maintained in the same interrupt mask register, if
-+ * we wrote to it to disable the first event and then wrote to it again to
-+ * enable the second event, that second event would not be enabled as the
-+ * write would be discarded and things quickly fall apart.
-+ *
-+ * To keep this delay from significantly degrading performance (we, in theory,
-+ * would have to sleep for up to 1 second everytime we wanted to write a
-+ * register), we only check the write pending status before we start to issue
-+ * a new write.  We bank on the idea that it doesnt matter when the sync
-+ * happens so long as we don't attempt another write before it does.  The only
-+ * time userspace would take this penalty is when they try and do multiple
-+ * operations right after another ... but in this case, they need to take the
-+ * sync penalty, so we should be OK.
-+ *
-+ * Also note that the RTC_ISTAT register does not suffer this penalty; its
-+ * writes to clear status registers complete immediately.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/bcd.h>
-+#include <linux/rtc.h>
 +#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/seq_file.h>
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/ioport.h>
++#include <linux/errno.h>
 +#include <linux/interrupt.h>
-+#include <linux/spinlock.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/spi/spi.h>
++#include <linux/workqueue.h>
++#include <linux/errno.h>
 +#include <linux/delay.h>
 +
-+#include <asm/blackfin.h>
++#include <asm/io.h>
++#include <asm/irq.h>
++#include <asm/delay.h>
++#include <asm/dma.h>
 +
-+#define stamp(fmt, args...) pr_debug("%s:%i: " fmt "\n", __FUNCTION__, __LINE__, ## args)
-+#define stampit() stamp("here i am")
++#include <asm/bfin5xx_spi.h>
 +
-+struct bfin_rtc {
-+	struct rtc_device *rtc_dev;
-+	struct rtc_time rtc_alarm;
++MODULE_AUTHOR("Luke Yang");
++MODULE_DESCRIPTION("Blackfin 5xx SPI Contoller");
++MODULE_LICENSE("GPL");
++
++#define IS_DMA_ALIGNED(x) (((u32)(x)&0x07)==0)
++
++#define DEFINE_SPI_REG(reg, off) \
++static inline u16 read_##reg(void) \
++            { return *(volatile unsigned short*)(SPI0_REGBASE + off); } \
++static inline void write_##reg(u16 v) \
++            {*(volatile unsigned short*)(SPI0_REGBASE + off) = v;\
++             SSYNC();}
++
++DEFINE_SPI_REG(CTRL, 0x00)
++DEFINE_SPI_REG(FLAG, 0x04)
++DEFINE_SPI_REG(STAT, 0x08)
++DEFINE_SPI_REG(TDBR, 0x0C)
++DEFINE_SPI_REG(RDBR, 0x10)
++DEFINE_SPI_REG(BAUD, 0x14)
++DEFINE_SPI_REG(SHAW, 0x18)
++#define START_STATE ((void*)0)
++#define RUNNING_STATE ((void*)1)
++#define DONE_STATE ((void*)2)
++#define ERROR_STATE ((void*)-1)
++#define QUEUE_RUNNING 0
++#define QUEUE_STOPPED 1
++int dma_requested;
++
++struct driver_data {
++	/* Driver model hookup */
++	struct platform_device *pdev;
++
++	/* SPI framework hookup */
++	struct spi_master *master;
++
++	/* BFIN hookup */
++	struct bfin5xx_spi_master *master_info;
++
++	/* Driver message queue */
++	struct workqueue_struct *workqueue;
++	struct work_struct pump_messages;
 +	spinlock_t lock;
++	struct list_head queue;
++	int busy;
++	int run;
++
++	/* Message Transfer pump */
++	struct tasklet_struct pump_transfers;
++
++	/* Current message transfer state info */
++	struct spi_message *cur_msg;
++	struct spi_transfer *cur_transfer;
++	struct chip_data *cur_chip;
++	size_t len_in_bytes;
++	size_t len;
++	void *tx;
++	void *tx_end;
++	void *rx;
++	void *rx_end;
++	int dma_mapped;
++	dma_addr_t rx_dma;
++	dma_addr_t tx_dma;
++	size_t rx_map_len;
++	size_t tx_map_len;
++	u8 n_bytes;
++	void (*write) (struct driver_data *);
++	void (*read) (struct driver_data *);
++	void (*duplex) (struct driver_data *);
 +};
 +
-+/* Bit values for the ISTAT / ICTL registers */
-+#define RTC_ISTAT_WRITE_COMPLETE  0x8000
-+#define RTC_ISTAT_WRITE_PENDING   0x4000
-+#define RTC_ISTAT_ALARM_DAY       0x0040
-+#define RTC_ISTAT_24HR            0x0020
-+#define RTC_ISTAT_HOUR            0x0010
-+#define RTC_ISTAT_MIN             0x0008
-+#define RTC_ISTAT_SEC             0x0004
-+#define RTC_ISTAT_ALARM           0x0002
-+#define RTC_ISTAT_STOPWATCH       0x0001
++struct chip_data {
++	u16 ctl_reg;
++	u16 baud;
++	u16 flag;
 +
-+/* Shift values for RTC_STAT register */
-+#define DAY_BITS_OFF    17
-+#define HOUR_BITS_OFF   12
-+#define MIN_BITS_OFF    6
-+#define SEC_BITS_OFF    0
++	u8 chip_select_num;
++	u8 n_bytes;
++	u32 width;		/* 0 or 1 */
++	u8 enable_dma;
++	u8 bits_per_word;	/* 8 or 16 */
++	u8 cs_change_per_word;
++	u8 cs_chg_udelay;
++	void (*write) (struct driver_data *);
++	void (*read) (struct driver_data *);
++	void (*duplex) (struct driver_data *);
++};
 +
-+/* Some helper functions to convert between the common RTC notion of time
-+ * and the internal Blackfin notion that is stored in 32bits.
++void bfin_spi_enable(struct driver_data *drv_data)
++{
++	u16 cr;
++
++	cr = read_CTRL();
++	write_CTRL(cr | BIT_CTL_ENABLE);
++	SSYNC();
++}
++
++void bfin_spi_disable(struct driver_data *drv_data)
++{
++	u16 cr;
++
++	cr = read_CTRL();
++	write_CTRL(cr & (~BIT_CTL_ENABLE));
++	SSYNC();
++}
++
++/* Caculate the SPI_BAUD register value based on input HZ */
++static u16 hz_to_spi_baud(u32 speed_hz)
++{
++	u_long sclk = get_sclk();
++	u16 spi_baud = (sclk / (2 * speed_hz));
++
++	if ((sclk % (2 * speed_hz)) > 0)
++		spi_baud++;
++
++	pr_debug("sclk = %ld, speed_hz = %d, spi_baud = %d\n", sclk, speed_hz,
++		 spi_baud);
++
++	return spi_baud;
++}
++
++static int flush(struct driver_data *drv_data)
++{
++	unsigned long limit = loops_per_jiffy << 1;
++
++	/* wait for stop and clear stat */
++	while (!(read_STAT() & BIT_STAT_SPIF) && limit--)
++		continue;
++
++	write_STAT(BIT_STAT_CLR);
++
++	return limit;
++}
++
++/* stop controller and re-config current chip*/
++static void restore_state(struct driver_data *drv_data)
++{
++	struct chip_data *chip = drv_data->cur_chip;
++
++	/* Clear status and disable clock */
++	write_STAT(BIT_STAT_CLR);
++	bfin_spi_disable(drv_data);
++	pr_debug("restoring spi ctl state\n");
++
++#if defined(CONFIG_BF534) || defined(CONFIG_BF536) || defined(CONFIG_BF537)
++	pr_debug("chip select number is %d\n", chip->chip_select_num);
++
++	switch (chip->chip_select_num) {
++	case 1:
++		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3c00);
++		SSYNC();
++		break;
++
++	case 2:
++	case 3:
++		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PJSE_SPI);
++		SSYNC();
++		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3800);
++		SSYNC();
++		break;
++
++	case 4:
++		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PFS4E_SPI);
++		SSYNC();
++		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3840);
++		SSYNC();
++		break;
++
++	case 5:
++		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PFS5E_SPI);
++		SSYNC();
++		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3820);
++		SSYNC();
++		break;
++
++	case 6:
++		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PFS6E_SPI);
++		SSYNC();
++		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3810);
++		SSYNC();
++		break;
++
++	case 7:
++		bfin_write_PORT_MUX(bfin_read_PORT_MUX() | PJCE_SPI);
++		SSYNC();
++		bfin_write_PORTF_FER(bfin_read_PORTF_FER() | 0x3800);
++		SSYNC();
++		break;
++	}
++#endif
++
++	/* Load the registers */
++	write_CTRL(chip->ctl_reg);
++	write_BAUD(chip->baud);
++	write_FLAG(chip->flag);
++}
++
++/* used to kick off transfer in rx mode */
++static unsigned short dummy_read(void)
++{
++	unsigned short tmp;
++	tmp = read_RDBR();
++	return tmp;
++}
++
++static void null_writer(struct driver_data *drv_data)
++{
++	u8 n_bytes = drv_data->n_bytes;
++
++	while (drv_data->tx < drv_data->tx_end) {
++		write_TDBR(0);
++		while ((read_STAT() & BIT_STAT_TXS))
++			continue;
++		drv_data->tx += n_bytes;
++	}
++}
++
++static void null_reader(struct driver_data *drv_data)
++{
++	u8 n_bytes = drv_data->n_bytes;
++	dummy_read();
++
++	while (drv_data->rx < drv_data->rx_end) {
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		dummy_read();
++		drv_data->rx += n_bytes;
++	}
++}
++
++static void u8_writer(struct driver_data *drv_data)
++{
++	pr_debug("cr8-s is 0x%x\n", read_STAT());
++	while (drv_data->tx < drv_data->tx_end) {
++		write_TDBR(*(u8 *) (drv_data->tx));
++		while (read_STAT() & BIT_STAT_TXS)
++			continue;
++		++drv_data->tx;
++	}
++
++	/* poll for SPI completion before returning */
++	while (!(read_STAT() & BIT_STAT_SPIF))
++		continue;
++}
++
++static void u8_cs_chg_writer(struct driver_data *drv_data)
++{
++	struct chip_data *chip = drv_data->cur_chip;
++
++	while (drv_data->tx < drv_data->tx_end) {
++		write_FLAG(chip->flag);
++		SSYNC();
++
++		write_TDBR(*(u8 *) (drv_data->tx));
++		while (read_STAT() & BIT_STAT_TXS)
++			continue;
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		write_FLAG(0xFF00 | chip->flag);
++		SSYNC();
++		if (chip->cs_chg_udelay)
++			udelay(chip->cs_chg_udelay);
++		++drv_data->tx;
++	}
++	write_FLAG(0xFF00);
++	SSYNC();
++}
++
++static void u8_reader(struct driver_data *drv_data)
++{
++	pr_debug("cr-8 is 0x%x\n", read_STAT());
++
++	/* clear TDBR buffer before read(else it will be shifted out) */
++	write_TDBR(0xFFFF);
++
++	dummy_read();
++
++	while (drv_data->rx < drv_data->rx_end - 1) {
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		*(u8 *) (drv_data->rx) = read_RDBR();
++		++drv_data->rx;
++	}
++
++	while (!(read_STAT() & BIT_STAT_RXS))
++		continue;
++	*(u8 *) (drv_data->rx) = read_SHAW();
++	++drv_data->rx;
++}
++
++static void u8_cs_chg_reader(struct driver_data *drv_data)
++{
++	struct chip_data *chip = drv_data->cur_chip;
++
++	while (drv_data->rx < drv_data->rx_end) {
++		write_FLAG(chip->flag);
++		SSYNC();
++
++		read_RDBR();	/* kick off */
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		*(u8 *) (drv_data->rx) = read_SHAW();
++		write_FLAG(0xFF00 | chip->flag);
++		SSYNC();
++		if (chip->cs_chg_udelay)
++			udelay(chip->cs_chg_udelay);
++		++drv_data->rx;
++	}
++	write_FLAG(0xFF00);
++	SSYNC();
++}
++
++static void u8_duplex(struct driver_data *drv_data)
++{
++	/* in duplex mode, clk is triggered by writing of TDBR */
++	while (drv_data->rx < drv_data->rx_end) {
++		write_TDBR(*(u8 *) (drv_data->tx));
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		*(u8 *) (drv_data->rx) = read_RDBR();
++		++drv_data->rx;
++		++drv_data->tx;
++	}
++}
++
++static void u8_cs_chg_duplex(struct driver_data *drv_data)
++{
++	struct chip_data *chip = drv_data->cur_chip;
++
++	while (drv_data->rx < drv_data->rx_end) {
++		write_FLAG(chip->flag);
++		SSYNC();
++
++		write_TDBR(*(u8 *) (drv_data->tx));
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		*(u8 *) (drv_data->rx) = read_RDBR();
++		write_FLAG(0xFF00 | chip->flag);
++		SSYNC();
++		if (chip->cs_chg_udelay)
++			udelay(chip->cs_chg_udelay);
++		++drv_data->rx;
++		++drv_data->tx;
++	}
++	write_FLAG(0xFF00);
++	SSYNC();
++}
++
++static void u16_writer(struct driver_data *drv_data)
++{
++	pr_debug("cr16 is 0x%x\n", read_STAT());
++	while (drv_data->tx < drv_data->tx_end) {
++		write_TDBR(*(u16 *) (drv_data->tx));
++		while ((read_STAT() & BIT_STAT_TXS))
++			continue;
++		drv_data->tx += 2;
++	}
++
++	/* poll for SPI completion before returning */
++	while (!(read_STAT() & BIT_STAT_SPIF))
++		continue;
++}
++
++static void u16_cs_chg_writer(struct driver_data *drv_data)
++{
++	struct chip_data *chip = drv_data->cur_chip;
++
++	while (drv_data->tx < drv_data->tx_end) {
++		write_FLAG(chip->flag);
++		SSYNC();
++
++		write_TDBR(*(u16 *) (drv_data->tx));
++		while ((read_STAT() & BIT_STAT_TXS))
++			continue;
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		write_FLAG(0xFF00 | chip->flag);
++		SSYNC();
++		if (chip->cs_chg_udelay)
++			udelay(chip->cs_chg_udelay);
++		drv_data->tx += 2;
++	}
++	write_FLAG(0xFF00);
++	SSYNC();
++}
++
++static void u16_reader(struct driver_data *drv_data)
++{
++	pr_debug("cr-16 is 0x%x\n", read_STAT());
++	dummy_read();
++
++	while (drv_data->rx < (drv_data->rx_end - 2)) {
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		*(u16 *) (drv_data->rx) = read_RDBR();
++		drv_data->rx += 2;
++	}
++
++	while (!(read_STAT() & BIT_STAT_RXS))
++		continue;
++	*(u16 *) (drv_data->rx) = read_SHAW();
++	drv_data->rx += 2;
++}
++
++static void u16_cs_chg_reader(struct driver_data *drv_data)
++{
++	struct chip_data *chip = drv_data->cur_chip;
++
++	while (drv_data->rx < drv_data->rx_end) {
++		write_FLAG(chip->flag);
++		SSYNC();
++
++		read_RDBR();	/* kick off */
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		*(u16 *) (drv_data->rx) = read_SHAW();
++		write_FLAG(0xFF00 | chip->flag);
++		SSYNC();
++		if (chip->cs_chg_udelay)
++			udelay(chip->cs_chg_udelay);
++		drv_data->rx += 2;
++	}
++	write_FLAG(0xFF00);
++	SSYNC();
++}
++
++static void u16_duplex(struct driver_data *drv_data)
++{
++	/* in duplex mode, clk is triggered by writing of TDBR */
++	while (drv_data->tx < drv_data->tx_end) {
++		write_TDBR(*(u16 *) (drv_data->tx));
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		*(u16 *) (drv_data->rx) = read_RDBR();
++		drv_data->rx += 2;
++		drv_data->tx += 2;
++	}
++}
++
++static void u16_cs_chg_duplex(struct driver_data *drv_data)
++{
++	struct chip_data *chip = drv_data->cur_chip;
++
++	while (drv_data->tx < drv_data->tx_end) {
++		write_FLAG(chip->flag);
++		SSYNC();
++
++		write_TDBR(*(u16 *) (drv_data->tx));
++		while (!(read_STAT() & BIT_STAT_SPIF))
++			continue;
++		while (!(read_STAT() & BIT_STAT_RXS))
++			continue;
++		*(u16 *) (drv_data->rx) = read_RDBR();
++		write_FLAG(0xFF00 | chip->flag);
++		SSYNC();
++		if (chip->cs_chg_udelay)
++			udelay(chip->cs_chg_udelay);
++		drv_data->rx += 2;
++		drv_data->tx += 2;
++	}
++	write_FLAG(0xFF00);
++	SSYNC();
++}
++
++/* test if ther is more transfer to be done */
++static void *next_transfer(struct driver_data *drv_data)
++{
++	struct spi_message *msg = drv_data->cur_msg;
++	struct spi_transfer *trans = drv_data->cur_transfer;
++
++	/* Move to next transfer */
++	if (trans->transfer_list.next != &msg->transfers) {
++		drv_data->cur_transfer =
++		    list_entry(trans->transfer_list.next,
++			       struct spi_transfer, transfer_list);
++		return RUNNING_STATE;
++	} else
++		return DONE_STATE;
++}
++
++/*
++ * caller already set message->status;
++ * dma and pio irqs are blocked give finished message back
 + */
-+static inline u32 rtc_time_to_bfin(unsigned long now)
++static void giveback(struct driver_data *drv_data)
 +{
-+	u32 sec  = (now % 60);
-+	u32 min  = (now % (60 * 60)) / 60;
-+	u32 hour = (now % (60 * 60 * 24)) / (60 * 60);
-+	u32 days = (now / (60 * 60 * 24));
-+	return (sec  << SEC_BITS_OFF) +
-+	       (min  << MIN_BITS_OFF) +
-+	       (hour << HOUR_BITS_OFF) +
-+	       (days << DAY_BITS_OFF);
-+}
-+static inline unsigned long rtc_bfin_to_time(u32 rtc_bfin)
-+{
-+	return (((rtc_bfin >> SEC_BITS_OFF)  & 0x003F)) +
-+	       (((rtc_bfin >> MIN_BITS_OFF)  & 0x003F) * 60) +
-+	       (((rtc_bfin >> HOUR_BITS_OFF) & 0x001F) * 60 * 60) +
-+	       (((rtc_bfin >> DAY_BITS_OFF)  & 0x7FFF) * 60 * 60 * 24);
-+}
-+static inline void rtc_bfin_to_tm(u32 rtc_bfin, struct rtc_time *tm)
-+{
-+	rtc_time_to_tm(rtc_bfin_to_time(rtc_bfin), tm);
-+}
++	struct spi_transfer *last_transfer;
++	unsigned long flags;
++	struct spi_message *msg;
 +
-+/* Wait for the previous write to a RTC register to complete.
-+ * Unfortunately, we can't sleep here as that introduces a race condition when
-+ * turning on interrupt events.  Consider this:
-+ *  - process sets alarm
-+ *  - process enables alarm
-+ *  - process sleeps while waiting for rtc write to sync
-+ *  - interrupt fires while process is sleeping
-+ *  - interrupt acks the event by writing to ISTAT
-+ *  - interrupt sets the WRITE PENDING bit
-+ *  - interrupt handler finishes
-+ *  - process wakes up, sees WRITE PENDING bit set, goes to sleep
-+ *  - interrupt fires while process is sleeping
-+ * If anyone can point out the obvious solution here, i'm listening :).  This
-+ * shouldn't be an issue on an SMP or preempt system as this function should
-+ * only be called with the rtc lock held.
-+ */
-+static void rtc_bfin_sync_pending(void)
-+{
-+	stampit();
-+	while (!(bfin_read_RTC_ISTAT() & RTC_ISTAT_WRITE_COMPLETE)) {
-+		if (!(bfin_read_RTC_ISTAT() & RTC_ISTAT_WRITE_PENDING))
-+			break;
-+	}
-+	bfin_write_RTC_ISTAT(RTC_ISTAT_WRITE_COMPLETE);
-+}
++	spin_lock_irqsave(&drv_data->lock, flags);
++	msg = drv_data->cur_msg;
++	drv_data->cur_msg = NULL;
++	drv_data->cur_transfer = NULL;
++	drv_data->cur_chip = NULL;
++	queue_work(drv_data->workqueue, &drv_data->pump_messages);
++	spin_unlock_irqrestore(&drv_data->lock, flags);
 +
-+static void rtc_bfin_reset(struct bfin_rtc *rtc)
-+{
-+	/* Initialize the RTC. Enable pre-scaler to scale RTC clock
-+	 * to 1Hz and clear interrupt/status registers. */
-+	spin_lock_irq(&rtc->lock);
-+	rtc_bfin_sync_pending();
-+	bfin_write_RTC_PREN(0x1);
-+	bfin_write_RTC_ICTL(0);
-+	bfin_write_RTC_SWCNT(0);
-+	bfin_write_RTC_ALARM(0);
-+	bfin_write_RTC_ISTAT(0xFFFF);
-+	spin_unlock_irq(&rtc->lock);
-+}
++	last_transfer = list_entry(msg->transfers.prev,
++				   struct spi_transfer, transfer_list);
 +
-+static irqreturn_t bfin_rtc_interrupt(int irq, void *dev_id)
-+{
-+	struct platform_device *pdev = to_platform_device(dev_id);
-+	struct bfin_rtc *rtc = platform_get_drvdata(pdev);
-+	unsigned long events = 0;
-+	u16 rtc_istat;
++	msg->state = NULL;
 +
-+	stampit();
-+
-+	spin_lock_irq(&rtc->lock);
-+
-+	rtc_istat = bfin_read_RTC_ISTAT();
-+
-+	if (rtc_istat & (RTC_ISTAT_ALARM | RTC_ISTAT_ALARM_DAY)) {
-+		bfin_write_RTC_ISTAT(RTC_ISTAT_ALARM | RTC_ISTAT_ALARM_DAY);
-+		events |= RTC_AF | RTC_IRQF;
++	/* disable chip select signal. And not stop spi in autobuffer mode */
++	if (drv_data->tx_dma != 0xFFFF) {
++		write_FLAG(0xFF00);
++		bfin_spi_disable(drv_data);
 +	}
 +
-+	if (rtc_istat & RTC_ISTAT_STOPWATCH) {
-+		bfin_write_RTC_ISTAT(RTC_ISTAT_STOPWATCH);
-+		events |= RTC_PF | RTC_IRQF;
-+		bfin_write_RTC_SWCNT(rtc->rtc_dev->irq_freq);
++	if (msg->complete)
++		msg->complete(msg->context);
++}
++
++static irqreturn_t dma_irq_handler(int irq, void *dev_id, struct pt_regs *regs)
++{
++	struct driver_data *drv_data = (struct driver_data *)dev_id;
++	struct spi_message *msg = drv_data->cur_msg;
++
++	pr_debug("in dma_irq_handler\n");
++	clear_dma_irqstat(CH_SPI);
++
++	/*
++	 * wait for the last transaction shifted out.  yes, these two
++	 * while loops are supposed to be the same (see the HRM).
++	 */
++	if (drv_data->tx != NULL) {
++		while (bfin_read_SPI_STAT() & TXS)
++			continue;
++		while (bfin_read_SPI_STAT() & TXS)
++			continue;
 +	}
 +
-+	if (rtc_istat & RTC_ISTAT_SEC) {
-+		bfin_write_RTC_ISTAT(RTC_ISTAT_SEC);
-+		events |= RTC_UF | RTC_IRQF;
-+	}
++	while (!(bfin_read_SPI_STAT() & SPIF))
++		continue;
 +
-+	rtc_update_irq(rtc->rtc_dev, 1, events);
++	bfin_spi_disable(drv_data);
 +
-+	spin_unlock_irq(&rtc->lock);
++	msg->actual_length += drv_data->len_in_bytes;
++
++	/* Move to next transfer */
++	msg->state = next_transfer(drv_data);
++
++	/* Schedule transfer tasklet */
++	tasklet_schedule(&drv_data->pump_transfers);
++
++	/* free the irq handler before next transfer */
++	pr_debug("disable dma channel irq%d\n", CH_SPI);
++	dma_disable_irq(CH_SPI);
 +
 +	return IRQ_HANDLED;
 +}
 +
-+static int bfin_rtc_open(struct device *dev)
++static void pump_transfers(unsigned long data)
 +{
-+	struct bfin_rtc *rtc = dev_get_drvdata(dev);
-+	int ret;
++	struct driver_data *drv_data = (struct driver_data *)data;
++	struct spi_message *message = NULL;
++	struct spi_transfer *transfer = NULL;
++	struct spi_transfer *previous = NULL;
++	struct chip_data *chip = NULL;
++	u16 cr, width, dma_width, dma_config;
++	u32 tranf_success = 1;
 +
-+	stampit();
++	/* Get current state information */
++	message = drv_data->cur_msg;
++	transfer = drv_data->cur_transfer;
++	chip = drv_data->cur_chip;
 +
-+	ret = request_irq(IRQ_RTC, bfin_rtc_interrupt, IRQF_DISABLED, "rtc-bfin", dev);
-+	if (unlikely(ret)) {
-+		dev_err(dev, "request RTC IRQ failed with %d\n", ret);
-+		return ret;
++	/*
++	 * if msg is error or done, report it back using complete() callback
++	 */
++
++	 /* Handle for abort */
++	if (message->state == ERROR_STATE) {
++		message->status = -EIO;
++		giveback(drv_data);
++		return;
 +	}
 +
-+	rtc_bfin_reset(rtc);
++	/* Handle end of message */
++	if (message->state == DONE_STATE) {
++		message->status = 0;
++		giveback(drv_data);
++		return;
++	}
 +
-+	return ret;
-+}
++	/* Delay if requested at end of transfer */
++	if (message->state == RUNNING_STATE) {
++		previous = list_entry(transfer->transfer_list.prev,
++				      struct spi_transfer, transfer_list);
++		if (previous->delay_usecs)
++			udelay(previous->delay_usecs);
++	}
 +
-+static void bfin_rtc_release(struct device *dev)
-+{
-+	struct bfin_rtc *rtc = dev_get_drvdata(dev);
-+	stampit();
-+	rtc_bfin_reset(rtc);
-+	free_irq(IRQ_RTC, dev);
-+}
++	/* Setup the transfer state based on the type of transfer */
++	if (flush(drv_data) == 0) {
++		dev_err(&drv_data->pdev->dev, "pump_transfers: flush failed\n");
++		message->status = -EIO;
++		giveback(drv_data);
++		return;
++	}
 +
-+static int bfin_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
-+{
-+	struct bfin_rtc *rtc = dev_get_drvdata(dev);
++	if (transfer->tx_buf != NULL) {
++		drv_data->tx = (void *)transfer->tx_buf;
++		drv_data->tx_end = drv_data->tx + transfer->len;
++		pr_debug("tx_buf is %p, tx_end is %p\n", transfer->tx_buf,
++			 drv_data->tx_end);
++	} else {
++		drv_data->tx = NULL;
++	}
 +
-+	stampit();
++	if (transfer->rx_buf != NULL) {
++		drv_data->rx = transfer->rx_buf;
++		drv_data->rx_end = drv_data->rx + transfer->len;
++		pr_debug("rx_buf is %p, rx_end is %p\n", transfer->rx_buf,
++			 drv_data->rx_end);
++	} else {
++		drv_data->rx = NULL;
++	}
 +
-+	switch (cmd) {
-+	case RTC_PIE_ON:
-+		stampit();
-+		spin_lock_irq(&rtc->lock);
-+		rtc_bfin_sync_pending();
-+		bfin_write_RTC_ISTAT(RTC_ISTAT_STOPWATCH);
-+		bfin_write_RTC_SWCNT(rtc->rtc_dev->irq_freq);
-+		bfin_write_RTC_ICTL(bfin_read_RTC_ICTL() | RTC_ISTAT_STOPWATCH);
-+		spin_unlock_irq(&rtc->lock);
-+		return 0;
-+	case RTC_PIE_OFF:
-+		stampit();
-+		spin_lock_irq(&rtc->lock);
-+		rtc_bfin_sync_pending();
-+		bfin_write_RTC_SWCNT(0);
-+		bfin_write_RTC_ICTL(bfin_read_RTC_ICTL() & ~RTC_ISTAT_STOPWATCH);
-+		spin_unlock_irq(&rtc->lock);
-+		return 0;
++	drv_data->rx_dma = transfer->rx_dma;
++	drv_data->tx_dma = transfer->tx_dma;
++	drv_data->len_in_bytes = transfer->len;
 +
-+	case RTC_UIE_ON:
-+		stampit();
-+		spin_lock_irq(&rtc->lock);
-+		rtc_bfin_sync_pending();
-+		bfin_write_RTC_ISTAT(RTC_ISTAT_SEC);
-+		bfin_write_RTC_ICTL(bfin_read_RTC_ICTL() | RTC_ISTAT_SEC);
-+		spin_unlock_irq(&rtc->lock);
-+		return 0;
-+	case RTC_UIE_OFF:
-+		stampit();
-+		spin_lock_irq(&rtc->lock);
-+		rtc_bfin_sync_pending();
-+		bfin_write_RTC_ICTL(bfin_read_RTC_ICTL() & ~RTC_ISTAT_SEC);
-+		spin_unlock_irq(&rtc->lock);
-+		return 0;
++	width = chip->width;
++	if (width == CFG_SPI_WORDSIZE16) {
++		drv_data->len = (transfer->len) >> 1;
++	} else {
++		drv_data->len = transfer->len;
++	}
++	drv_data->write = drv_data->tx ? chip->write : null_writer;
++	drv_data->read = drv_data->rx ? chip->read : null_reader;
++	drv_data->duplex = chip->duplex ? chip->duplex : null_writer;
++	pr_debug
++	    ("transfer: drv_data->write is %p, chip->write is %p, null_wr is %p\n",
++	     drv_data->write, chip->write, null_writer);
 +
-+	case RTC_AIE_ON: {
-+		unsigned long rtc_alarm;
-+		u16 which_alarm;
-+		int ret = 0;
++	/* speed and width has been set on per message */
++	message->state = RUNNING_STATE;
++	dma_config = 0;
 +
-+		stampit();
++	/* restore spi status for each spi transfer */
++	if (transfer->speed_hz) {
++		write_BAUD(hz_to_spi_baud(transfer->speed_hz));
++	} else {
++		write_BAUD(chip->baud);
++	}
++	write_FLAG(chip->flag);
 +
-+		spin_lock_irq(&rtc->lock);
++	pr_debug("now pumping a transfer: width is %d, len is %d\n", width,
++		 transfer->len);
 +
-+		rtc_bfin_sync_pending();
-+		if (rtc->rtc_alarm.tm_yday == -1) {
-+			struct rtc_time now;
-+			rtc_bfin_to_tm(bfin_read_RTC_STAT(), &now);
-+			now.tm_sec = rtc->rtc_alarm.tm_sec;
-+			now.tm_min = rtc->rtc_alarm.tm_min;
-+			now.tm_hour = rtc->rtc_alarm.tm_hour;
-+			ret = rtc_tm_to_time(&now, &rtc_alarm);
-+			which_alarm = RTC_ISTAT_ALARM;
++	/*
++	 * Try to map dma buffer and do a dma transfer if
++	 * successful use different way to r/w according to
++	 * drv_data->cur_chip->enable_dma
++	 */
++	if (drv_data->cur_chip->enable_dma && drv_data->len > 6) {
++
++		write_STAT(BIT_STAT_CLR);
++		disable_dma(CH_SPI);
++		clear_dma_irqstat(CH_SPI);
++		bfin_spi_disable(drv_data);
++
++		/* config dma channel */
++		pr_debug("doing dma transfer\n");
++		if (width == CFG_SPI_WORDSIZE16) {
++			set_dma_x_count(CH_SPI, drv_data->len);
++			set_dma_x_modify(CH_SPI, 2);
++			dma_width = WDSIZE_16;
 +		} else {
-+			ret = rtc_tm_to_time(&rtc->rtc_alarm, &rtc_alarm);
-+			which_alarm = RTC_ISTAT_ALARM_DAY;
-+		}
-+		if (ret == 0) {
-+			bfin_write_RTC_ISTAT(which_alarm);
-+			bfin_write_RTC_ALARM(rtc_time_to_bfin(rtc_alarm));
-+			bfin_write_RTC_ICTL(bfin_read_RTC_ICTL() | which_alarm);
++			set_dma_x_count(CH_SPI, drv_data->len);
++			set_dma_x_modify(CH_SPI, 1);
++			dma_width = WDSIZE_8;
 +		}
 +
-+		spin_unlock_irq(&rtc->lock);
++		/* set transfer width,direction. And enable spi */
++		cr = (read_CTRL() & (~BIT_CTL_TIMOD));
 +
-+		return ret;
++		/* dirty hack for autobuffer DMA mode */
++		if (drv_data->tx_dma == 0xFFFF) {
++			pr_debug("doing autobuffer DMA out.\n");
++
++			/* no irq in autobuffer mode */
++			dma_config =
++			    (DMAFLOW_AUTO | RESTART | dma_width | DI_EN);
++			set_dma_config(CH_SPI, dma_config);
++			set_dma_start_addr(CH_SPI, (unsigned long)drv_data->tx);
++			enable_dma(CH_SPI);
++			write_CTRL(cr | CFG_SPI_DMAWRITE | (width << 8) |
++				   (CFG_SPI_ENABLE << 14));
++
++			/* just return here, there can only be one transfer in this mode */
++			message->status = 0;
++			giveback(drv_data);
++			return;
++		}
++
++		/* In dma mode, rx or tx must be NULL in one transfer */
++		if (drv_data->rx != NULL) {
++			/* set transfer mode, and enable SPI */
++			pr_debug("doing DMA in.\n");
++
++			/* disable SPI before write to TDBR */
++			write_CTRL(cr & ~BIT_CTL_ENABLE);
++
++			/* clear tx reg soformer data is not shifted out */
++			write_TDBR(0xFF);
++
++			set_dma_x_count(CH_SPI, drv_data->len);
++
++			/* start dma */
++			dma_enable_irq(CH_SPI);
++			dma_config = (WNR | RESTART | dma_width | DI_EN);
++			set_dma_config(CH_SPI, dma_config);
++			set_dma_start_addr(CH_SPI, (unsigned long)drv_data->rx);
++			enable_dma(CH_SPI);
++
++			cr |=
++			    CFG_SPI_DMAREAD | (width << 8) | (CFG_SPI_ENABLE <<
++							      14);
++			/* set transfer mode, and enable SPI */
++			write_CTRL(cr);
++		} else if (drv_data->tx != NULL) {
++			pr_debug("doing DMA out.\n");
++
++			/* start dma */
++			dma_enable_irq(CH_SPI);
++			dma_config = (RESTART | dma_width | DI_EN);
++			set_dma_config(CH_SPI, dma_config);
++			set_dma_start_addr(CH_SPI, (unsigned long)drv_data->tx);
++			enable_dma(CH_SPI);
++
++			write_CTRL(cr | CFG_SPI_DMAWRITE | (width << 8) |
++				   (CFG_SPI_ENABLE << 14));
++
++		}
++	} else {
++		/* IO mode write then read */
++		pr_debug("doing IO transfer\n");
++
++		write_STAT(BIT_STAT_CLR);
++
++		if (drv_data->tx != NULL && drv_data->rx != NULL) {
++			/* full duplex mode */
++			BUG_ON((drv_data->tx_end - drv_data->tx) !=
++			       (drv_data->rx_end - drv_data->rx));
++			cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* clear the TIMOD bits */
++			cr |=
++			    CFG_SPI_WRITE | (width << 8) | (CFG_SPI_ENABLE <<
++							    14);
++			pr_debug("IO duplex: cr is 0x%x\n", cr);
++
++			write_CTRL(cr);
++			SSYNC();
++
++			drv_data->duplex(drv_data);
++
++			if (drv_data->tx != drv_data->tx_end)
++				tranf_success = 0;
++		} else if (drv_data->tx != NULL) {
++			/* write only half duplex */
++			cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* clear the TIMOD bits */
++			cr |=
++			    CFG_SPI_WRITE | (width << 8) | (CFG_SPI_ENABLE <<
++							    14);
++			pr_debug("IO write: cr is 0x%x\n", cr);
++
++			write_CTRL(cr);
++			SSYNC();
++
++			drv_data->write(drv_data);
++
++			if (drv_data->tx != drv_data->tx_end)
++				tranf_success = 0;
++		} else if (drv_data->rx != NULL) {
++			/* read only half duplex */
++			cr = (read_CTRL() & (~BIT_CTL_TIMOD));	/* cleare the TIMOD bits */
++			cr |=
++			    CFG_SPI_READ | (width << 8) | (CFG_SPI_ENABLE <<
++							   14);
++			pr_debug("IO read: cr is 0x%x\n", cr);
++
++			write_CTRL(cr);
++			SSYNC();
++
++			drv_data->read(drv_data);
++			if (drv_data->rx != drv_data->rx_end)
++				tranf_success = 0;
++		}
++
++		if (!tranf_success) {
++			pr_debug("IO write error!\n");
++			message->state = ERROR_STATE;
++		} else {
++			/* Update total byte transfered */
++			message->actual_length += drv_data->len;
++
++			/* Move to next transfer of this msg */
++			message->state = next_transfer(drv_data);
++		}
++
++		/* Schedule next transfer tasklet */
++		tasklet_schedule(&drv_data->pump_transfers);
++
 +	}
-+	case RTC_AIE_OFF:
-+		stampit();
-+		spin_lock_irq(&rtc->lock);
-+		rtc_bfin_sync_pending();
-+		bfin_write_RTC_ICTL(bfin_read_RTC_ICTL() & ~(RTC_ISTAT_ALARM | RTC_ISTAT_ALARM_DAY));
-+		spin_unlock_irq(&rtc->lock);
-+		return 0;
++}
++
++/* pop a msg from queue and kick off real transfer */
++static void pump_messages(struct work_struct *work)
++{
++	struct driver_data *drv_data = container_of(work, struct driver_data, pump_messages);
++	unsigned long flags;
++
++	/* Lock queue and check for queue work */
++	spin_lock_irqsave(&drv_data->lock, flags);
++	if (list_empty(&drv_data->queue) || drv_data->run == QUEUE_STOPPED) {
++		/* pumper kicked off but no work to do */
++		drv_data->busy = 0;
++		spin_unlock_irqrestore(&drv_data->lock, flags);
++		return;
 +	}
 +
-+	return -ENOIOCTLCMD;
-+}
-+
-+static int bfin_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct bfin_rtc *rtc = dev_get_drvdata(dev);
-+
-+	stampit();
-+
-+	spin_lock_irq(&rtc->lock);
-+	rtc_bfin_sync_pending();
-+	rtc_bfin_to_tm(bfin_read_RTC_STAT(), tm);
-+	spin_unlock_irq(&rtc->lock);
-+
-+	return 0;
-+}
-+
-+static int bfin_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct bfin_rtc *rtc = dev_get_drvdata(dev);
-+	int ret;
-+	unsigned long now;
-+
-+	stampit();
-+
-+	spin_lock_irq(&rtc->lock);
-+
-+	ret = rtc_tm_to_time(tm, &now);
-+	if (ret == 0) {
-+		rtc_bfin_sync_pending();
-+		bfin_write_RTC_STAT(rtc_time_to_bfin(now));
++	/* Make sure we are not already running a message */
++	if (drv_data->cur_msg) {
++		spin_unlock_irqrestore(&drv_data->lock, flags);
++		return;
 +	}
 +
-+	spin_unlock_irq(&rtc->lock);
++	/* Extract head of queue */
++	drv_data->cur_msg = list_entry(drv_data->queue.next,
++				       struct spi_message, queue);
++	list_del_init(&drv_data->cur_msg->queue);
 +
-+	return ret;
++	/* Initial message state */
++	drv_data->cur_msg->state = START_STATE;
++	drv_data->cur_transfer = list_entry(drv_data->cur_msg->transfers.next,
++					    struct spi_transfer, transfer_list);
++
++	/* Setup the SSP using the per chip configuration */
++	drv_data->cur_chip = spi_get_ctldata(drv_data->cur_msg->spi);
++	restore_state(drv_data);
++	pr_debug
++	    ("got a message to pump, state is set to: baud %d, flag 0x%x, ctl 0x%x\n",
++	     drv_data->cur_chip->baud, drv_data->cur_chip->flag,
++	     drv_data->cur_chip->ctl_reg);
++	pr_debug("the first transfer len is %d\n", drv_data->cur_transfer->len);
++
++	/* Mark as busy and launch transfers */
++	tasklet_schedule(&drv_data->pump_transfers);
++
++	drv_data->busy = 1;
++	spin_unlock_irqrestore(&drv_data->lock, flags);
 +}
 +
-+static int bfin_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++/*
++ * got a msg to transfer, queue it in drv_data->queue.
++ * And kick off message pumper
++ */
++static int transfer(struct spi_device *spi, struct spi_message *msg)
 +{
-+	struct bfin_rtc *rtc = dev_get_drvdata(dev);
-+	stampit();
-+	memcpy(&alrm->time, &rtc->rtc_alarm, sizeof(struct rtc_time));
-+	alrm->pending = !!(bfin_read_RTC_ICTL() & (RTC_ISTAT_ALARM | RTC_ISTAT_ALARM_DAY));
++	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
++	unsigned long flags;
++
++	spin_lock_irqsave(&drv_data->lock, flags);
++
++	if (drv_data->run == QUEUE_STOPPED) {
++		spin_unlock_irqrestore(&drv_data->lock, flags);
++		return -ESHUTDOWN;
++	}
++
++	msg->actual_length = 0;
++	msg->status = -EINPROGRESS;
++	msg->state = START_STATE;
++
++	pr_debug("adding an msg in transfer() \n");
++	list_add_tail(&msg->queue, &drv_data->queue);
++
++	if (drv_data->run == QUEUE_RUNNING && !drv_data->busy)
++		queue_work(drv_data->workqueue, &drv_data->pump_messages);
++
++	spin_unlock_irqrestore(&drv_data->lock, flags);
++
 +	return 0;
 +}
 +
-+static int bfin_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++/* first setup for new devices */
++static int setup(struct spi_device *spi)
 +{
-+	struct bfin_rtc *rtc = dev_get_drvdata(dev);
-+	stampit();
-+	memcpy(&rtc->rtc_alarm, &alrm->time, sizeof(struct rtc_time));
++	struct bfin5xx_spi_chip *chip_info = NULL;
++	struct chip_data *chip;
++	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
++	u8 spi_flg;
++
++	/* Abort device setup if requested features are not supported */
++	if (spi->mode & ~(SPI_CPOL | SPI_CPHA | SPI_LSB_FIRST)) {
++		dev_err(&spi->dev, "requested mode not fully supported\n");
++		return -EINVAL;
++	}
++
++	/* Zero (the default) here means 8 bits */
++	if (!spi->bits_per_word)
++		spi->bits_per_word = 8;
++
++	if (spi->bits_per_word != 8 && spi->bits_per_word != 16)
++		return -EINVAL;
++
++	/* Only alloc (or use chip_info) on first setup */
++	chip = spi_get_ctldata(spi);
++	if (chip == NULL) {
++		chip = kzalloc(sizeof(struct chip_data), GFP_KERNEL);
++		if (!chip)
++			return -ENOMEM;
++
++		chip->enable_dma = 0;
++		chip_info = spi->controller_data;
++	}
++
++	/* chip_info isn't always needed */
++	if (chip_info) {
++		chip->enable_dma = chip_info->enable_dma != 0
++		    && drv_data->master_info->enable_dma;
++		chip->ctl_reg = chip_info->ctl_reg;
++		chip->bits_per_word = chip_info->bits_per_word;
++		chip->cs_change_per_word = chip_info->cs_change_per_word;
++		chip->cs_chg_udelay = chip_info->cs_chg_udelay;
++	}
++
++	/* translate common spi framework into our register */
++	if (spi->mode & SPI_CPOL)
++		chip->ctl_reg |= CPOL;
++	if (spi->mode & SPI_CPHA)
++		chip->ctl_reg |= CPHA;
++	if (spi->mode & SPI_LSB_FIRST)
++		chip->ctl_reg |= LSBF;
++	/* we dont support running in slave mode (yet?) */
++	chip->ctl_reg |= MSTR;
++
++	/*
++	 * if any one SPI chip is registered and wants DMA, request the
++	 * DMA channel for it
++	 */
++	if (chip->enable_dma && !dma_requested) {
++		/* register dma irq handler */
++		if (request_dma(CH_SPI, "BF53x_SPI_DMA") < 0) {
++			pr_debug
++			    ("Unable to request BlackFin SPI DMA channel\n");
++			return -ENODEV;
++		}
++		if (set_dma_callback(CH_SPI, (void *)dma_irq_handler, drv_data)
++		    < 0) {
++			pr_debug("Unable to set dma callback\n");
++			return -EPERM;
++		}
++		dma_disable_irq(CH_SPI);
++		dma_requested = 1;
++	}
++
++	/*
++	 * Notice: for blackfin, the speed_hz is the value of register
++	 * SPI_BAUD, not the real baudrate
++	 */
++	chip->baud = hz_to_spi_baud(spi->max_speed_hz);
++	spi_flg = ~(1 << (spi->chip_select));
++	chip->flag = ((u16) spi_flg << 8) | (1 << (spi->chip_select));
++	chip->chip_select_num = spi->chip_select;
++
++	switch (chip->bits_per_word) {
++	case 8:
++		chip->n_bytes = 1;
++		chip->width = CFG_SPI_WORDSIZE8;
++		chip->read = chip->cs_change_per_word ?
++			u8_cs_chg_reader : u8_reader;
++		chip->write = chip->cs_change_per_word ?
++			u8_cs_chg_writer : u8_writer;
++		chip->duplex = chip->cs_change_per_word ?
++			u8_cs_chg_duplex : u8_duplex;
++		break;
++
++	case 16:
++		chip->n_bytes = 2;
++		chip->width = CFG_SPI_WORDSIZE16;
++		chip->read = chip->cs_change_per_word ?
++			u16_cs_chg_reader : u16_reader;
++		chip->write = chip->cs_change_per_word ?
++			u16_cs_chg_writer : u16_writer;
++		chip->duplex = chip->cs_change_per_word ?
++			u16_cs_chg_duplex : u16_duplex;
++		break;
++
++	default:
++		dev_err(&spi->dev, "%d bits_per_word is not supported\n",
++				chip->bits_per_word);
++		kfree(chip);
++		return -ENODEV;
++	}
++
++	pr_debug("setup spi chip %s, width is %d, dma is %d,",
++			spi->modalias, chip->width, chip->enable_dma);
++	pr_debug("ctl_reg is 0x%x, flag_reg is 0x%x\n",
++			chip->ctl_reg, chip->flag);
++
++	spi_set_ctldata(spi, chip);
++
 +	return 0;
 +}
 +
-+static int bfin_rtc_proc(struct device *dev, struct seq_file *seq)
++/*
++ * callback for spi framework.
++ * clean driver specific data
++ */
++static void cleanup(const struct spi_device *spi)
 +{
-+#define yesno(x) (x ? "yes" : "no")
-+	u16 ictl = bfin_read_RTC_ICTL();
-+	stampit();
-+	seq_printf(seq, "alarm_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_ALARM));
-+	seq_printf(seq, "wkalarm_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_ALARM_DAY));
-+	seq_printf(seq, "seconds_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_SEC));
-+	seq_printf(seq, "periodic_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_STOPWATCH));
-+#ifdef DEBUG
-+	seq_printf(seq, "RTC_STAT\t: 0x%08X\n", bfin_read_RTC_STAT());
-+	seq_printf(seq, "RTC_ICTL\t: 0x%04X\n", bfin_read_RTC_ICTL());
-+	seq_printf(seq, "RTC_ISTAT\t: 0x%04X\n", bfin_read_RTC_ISTAT());
-+	seq_printf(seq, "RTC_SWCNT\t: 0x%04X\n", bfin_read_RTC_SWCNT());
-+	seq_printf(seq, "RTC_ALARM\t: 0x%08X\n", bfin_read_RTC_ALARM());
-+	seq_printf(seq, "RTC_PREN\t: 0x%04X\n", bfin_read_RTC_PREN());
-+#endif
++	struct chip_data *chip = spi_get_ctldata((struct spi_device *)spi);
++
++	kfree(chip);
++}
++
++static inline int init_queue(struct driver_data *drv_data)
++{
++	INIT_LIST_HEAD(&drv_data->queue);
++	spin_lock_init(&drv_data->lock);
++
++	drv_data->run = QUEUE_STOPPED;
++	drv_data->busy = 0;
++
++	/* init transfer tasklet */
++	tasklet_init(&drv_data->pump_transfers,
++		     pump_transfers, (unsigned long)drv_data);
++
++	/* init messages workqueue */
++	INIT_WORK(&drv_data->pump_messages, pump_messages);
++	drv_data->workqueue =
++	    create_singlethread_workqueue(drv_data->master->cdev.dev->bus_id);
++	if (drv_data->workqueue == NULL)
++		return -EBUSY;
++
 +	return 0;
 +}
 +
-+static int bfin_irq_set_freq(struct device *dev, int freq)
++static inline int start_queue(struct driver_data *drv_data)
 +{
-+	struct bfin_rtc *rtc = dev_get_drvdata(dev);
-+	stampit();
-+	rtc->rtc_dev->irq_freq = freq;
++	unsigned long flags;
++
++	spin_lock_irqsave(&drv_data->lock, flags);
++
++	if (drv_data->run == QUEUE_RUNNING || drv_data->busy) {
++		spin_unlock_irqrestore(&drv_data->lock, flags);
++		return -EBUSY;
++	}
++
++	drv_data->run = QUEUE_RUNNING;
++	drv_data->cur_msg = NULL;
++	drv_data->cur_transfer = NULL;
++	drv_data->cur_chip = NULL;
++	spin_unlock_irqrestore(&drv_data->lock, flags);
++
++	queue_work(drv_data->workqueue, &drv_data->pump_messages);
++
 +	return 0;
 +}
 +
-+static struct rtc_class_ops bfin_rtc_ops = {
-+	.open          = bfin_rtc_open,
-+	.release       = bfin_rtc_release,
-+	.ioctl         = bfin_rtc_ioctl,
-+	.read_time     = bfin_rtc_read_time,
-+	.set_time      = bfin_rtc_set_time,
-+	.read_alarm    = bfin_rtc_read_alarm,
-+	.set_alarm     = bfin_rtc_set_alarm,
-+	.proc          = bfin_rtc_proc,
-+	.irq_set_freq  = bfin_irq_set_freq,
-+};
-+
-+static int __devinit bfin_rtc_probe(struct platform_device *pdev)
++static inline int stop_queue(struct driver_data *drv_data)
 +{
-+	struct bfin_rtc *rtc;
-+	int ret = 0;
++	unsigned long flags;
++	unsigned limit = 500;
++	int status = 0;
 +
-+	stampit();
++	spin_lock_irqsave(&drv_data->lock, flags);
 +
-+	rtc = kzalloc(sizeof(*rtc), GFP_KERNEL);
-+	if (unlikely(!rtc))
++	/*
++	 * This is a bit lame, but is optimized for the common execution path.
++	 * A wait_queue on the drv_data->busy could be used, but then the common
++	 * execution path (pump_messages) would be required to call wake_up or
++	 * friends on every SPI message. Do this instead
++	 */
++	drv_data->run = QUEUE_STOPPED;
++	while (!list_empty(&drv_data->queue) && drv_data->busy && limit--) {
++		spin_unlock_irqrestore(&drv_data->lock, flags);
++		msleep(10);
++		spin_lock_irqsave(&drv_data->lock, flags);
++	}
++
++	if (!list_empty(&drv_data->queue) || drv_data->busy)
++		status = -EBUSY;
++
++	spin_unlock_irqrestore(&drv_data->lock, flags);
++
++	return status;
++}
++
++static inline int destroy_queue(struct driver_data *drv_data)
++{
++	int status;
++
++	status = stop_queue(drv_data);
++	if (status != 0)
++		return status;
++
++	destroy_workqueue(drv_data->workqueue);
++
++	return 0;
++}
++
++static int __init bfin5xx_spi_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct bfin5xx_spi_master *platform_info;
++	struct spi_master *master;
++	struct driver_data *drv_data = 0;
++	int status = 0;
++
++	platform_info = dev->platform_data;
++
++	/* Allocate master with space for drv_data */
++	master = spi_alloc_master(dev, sizeof(struct driver_data) + 16);
++	if (!master) {
++		dev_err(&pdev->dev, "can not alloc spi_master\n");
 +		return -ENOMEM;
-+
-+	spin_lock_init(&rtc->lock);
-+
-+	rtc->rtc_dev = rtc_device_register(pdev->name, &pdev->dev, &bfin_rtc_ops, THIS_MODULE);
-+	if (unlikely(IS_ERR(rtc))) {
-+		ret = PTR_ERR(rtc->rtc_dev);
-+		goto err;
 +	}
-+	rtc->rtc_dev->irq_freq = 0;
-+	rtc->rtc_dev->max_user_freq = (2 << 16); /* stopwatch is an unsigned 16 bit reg */
++	drv_data = spi_master_get_devdata(master);
++	drv_data->master = master;
++	drv_data->master_info = platform_info;
++	drv_data->pdev = pdev;
 +
-+	platform_set_drvdata(pdev, rtc);
++	master->bus_num = pdev->id;
++	master->num_chipselect = platform_info->num_chipselect;
++	master->cleanup = cleanup;
++	master->setup = setup;
++	master->transfer = transfer;
 +
-+	return 0;
++	/* Initial and start queue */
++	status = init_queue(drv_data);
++	if (status != 0) {
++		dev_err(&pdev->dev, "problem initializing queue\n");
++		goto out_error_queue_alloc;
++	}
++	status = start_queue(drv_data);
++	if (status != 0) {
++		dev_err(&pdev->dev, "problem starting queue\n");
++		goto out_error_queue_alloc;
++	}
 +
-+err:
-+	kfree(rtc);
-+	return ret;
++	/* Register with the SPI framework */
++	platform_set_drvdata(pdev, drv_data);
++	status = spi_register_master(master);
++	if (status != 0) {
++		dev_err(&pdev->dev, "problem registering spi master\n");
++		goto out_error_queue_alloc;
++	}
++	pr_debug("controller probe successfully\n");
++	return status;
++
++      out_error_queue_alloc:
++	destroy_queue(drv_data);
++	spi_master_put(master);
++	return status;
 +}
 +
-+static int __devexit bfin_rtc_remove(struct platform_device *pdev)
++/* stop hardware and remove the driver */
++static int __devexit bfin5xx_spi_remove(struct platform_device *pdev)
 +{
-+	struct bfin_rtc *rtc = platform_get_drvdata(pdev);
++	struct driver_data *drv_data = platform_get_drvdata(pdev);
++	int status = 0;
 +
-+	rtc_device_unregister(rtc->rtc_dev);
++	if (!drv_data)
++		return 0;
++
++	/* Remove the queue */
++	status = destroy_queue(drv_data);
++	if (status != 0)
++		return status;
++
++	/* Disable the SSP at the peripheral and SOC level */
++	bfin_spi_disable(drv_data);
++
++	/* Release DMA */
++	if (drv_data->master_info->enable_dma) {
++		if (dma_channel_active(CH_SPI))
++			free_dma(CH_SPI);
++	}
++
++	/* Disconnect from the SPI framework */
++	spi_unregister_master(drv_data->master);
++
++	/* Prevent double remove */
 +	platform_set_drvdata(pdev, NULL);
-+	kfree(rtc);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver bfin_rtc_driver = {
-+	.driver		= {
-+		.name	= "rtc-bfin",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= bfin_rtc_probe,
-+	.remove		= __devexit_p(bfin_rtc_remove),
++#ifdef CONFIG_PM
++static int bfin5xx_spi_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct driver_data *drv_data = platform_get_drvdata(pdev);
++	int status = 0;
++
++	status = stop_queue(drv_data);
++	if (status != 0)
++		return status;
++
++	/* stop hardware */
++	bfin_spi_disable(drv_data);
++
++	return 0;
++}
++
++static int bfin5xx_spi_resume(struct platform_device *pdev)
++{
++	struct driver_data *drv_data = platform_get_drvdata(pdev);
++	int status = 0;
++
++	/* Enable the SPI interface */
++	bfin_spi_enable(drv_data);
++
++	/* Start the queue running */
++	status = start_queue(drv_data);
++	if (status != 0) {
++		dev_err(&pdev->dev, "problem starting queue (%d)\n", status);
++		return status;
++	}
++
++	return 0;
++}
++#else
++#define bfin5xx_spi_suspend NULL
++#define bfin5xx_spi_resume NULL
++#endif				/* CONFIG_PM */
++
++static struct platform_driver bfin5xx_spi_driver = {
++	.driver = {
++		   .name = "bfin-spi-master",
++		   .bus = &platform_bus_type,
++		   .owner = THIS_MODULE,
++		   },
++	.probe = bfin5xx_spi_probe,
++	.remove = __devexit_p(bfin5xx_spi_remove),
++	.suspend = bfin5xx_spi_suspend,
++	.resume = bfin5xx_spi_resume,
 +};
 +
-+static int __init bfin_rtc_init(void)
++static int __init bfin5xx_spi_init(void)
 +{
-+	stampit();
-+	return platform_driver_register(&bfin_rtc_driver);
++	return platform_driver_register(&bfin5xx_spi_driver);
 +}
 +
-+static void __exit bfin_rtc_exit(void)
++module_init(bfin5xx_spi_init);
++
++static void __exit bfin5xx_spi_exit(void)
 +{
-+	platform_driver_unregister(&bfin_rtc_driver);
++	platform_driver_unregister(&bfin5xx_spi_driver);
 +}
 +
-+module_init(bfin_rtc_init);
-+module_exit(bfin_rtc_exit);
-+
-+MODULE_DESCRIPTION("Blackfin On-Chip Real Time Clock Driver");
-+MODULE_AUTHOR("Mike Frysinger <vapier@gentoo.org>");
-+MODULE_LICENSE("GPL");
++module_exit(bfin5xx_spi_exit);
 _
 
 Patches currently in -mm which might be from bryan.wu@analog.com are
