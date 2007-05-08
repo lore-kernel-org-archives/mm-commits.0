@@ -1,66 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - slob-handle-slab_panic-flag.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:03:11 -0700
-Message-ID: <200705080003.l4803BTG008924@shell0.pdx.osdl.net>
+Subject: - tty_register_driver-only-allocate-tty-instances-when-defined.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:02:55 -0700
+Message-ID: <200705080002.l4802tJN008890@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50984 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967333AbXEHADk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:40 -0400
+	by vger.kernel.org with ESMTP id S967336AbXEHADo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slob: handle SLAB_PANIC flag
+     tty_register_driver: only allocate tty instances when defined
 has been removed from the -mm tree.  Its filename was
-     slob-handle-slab_panic-flag.patch
+     tty_register_driver-only-allocate-tty-instances-when-defined.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slob: handle SLAB_PANIC flag
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: tty_register_driver: only allocate tty instances when defined
+From: Andy Whitcroft <apw@shadowen.org>
 
-kmem_cache_create() for slob doesn't handle SLAB_PANIC.
+If device->num is zero we attempt to kmalloc() zero bytes.  When SLUB is
+enabled this returns a null pointer and take that as an allocation failure
+and fail the device register.  Check for no devices and avoid the
+allocation.
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+[akpm: opportunistic kzalloc() conversion]
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slob.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/tty_io.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/slob.c~slob-handle-slab_panic-flag mm/slob.c
---- a/mm/slob.c~slob-handle-slab_panic-flag
-+++ a/mm/slob.c
-@@ -298,7 +298,8 @@ struct kmem_cache *kmem_cache_create(con
- 		c->align = (flags & SLAB_MUST_HWCACHE_ALIGN) ? SLOB_ALIGN : 0;
- 		if (c->align < align)
- 			c->align = align;
--	}
-+	} else if (flags & SLAB_PANIC)
-+		panic("Cannot create slab cache %s\n", name);
+diff -puN drivers/char/tty_io.c~tty_register_driver-only-allocate-tty-instances-when-defined drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty_register_driver-only-allocate-tty-instances-when-defined
++++ a/drivers/char/tty_io.c
+@@ -3720,11 +3720,10 @@ int tty_register_driver(struct tty_drive
+ 	if (driver->flags & TTY_DRIVER_INSTALLED)
+ 		return 0;
  
- 	return c;
- }
+-	if (!(driver->flags & TTY_DRIVER_DEVPTS_MEM)) {
+-		p = kmalloc(driver->num * 3 * sizeof(void *), GFP_KERNEL);
++	if (!(driver->flags & TTY_DRIVER_DEVPTS_MEM) && driver->num) {
++		p = kzalloc(driver->num * 3 * sizeof(void *), GFP_KERNEL);
+ 		if (!p)
+ 			return -ENOMEM;
+-		memset(p, 0, driver->num * 3 * sizeof(void *));
+ 	}
+ 
+ 	if (!driver->major) {
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
-git-alsa.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-disable-stacktrace-filter-for-x86-64.patch
-use-slab_panic-flag-cleanup.patch
-simplify-the-stacktrace-code.patch
-dtlk-fix-error-checks-in-module_init.patch
-procfs-use-simple_read_from_buffer.patch
-cm4000_cs-fix-error-paths.patch
-cm4000_cs-use-bitrev.patch
-use-simple_read_from_buffer-in-fs.patch
-use-simple_read_from_buffer-in-kernel.patch
-sunrpc-fix-error-path-in-module_init.patch
+pci-device-ensure-sysdata-initialised-v2.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+move-free-pages-between-lists-on-steal-anti-fragmentation-switch-over-to-pfn_valid_within.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+create-the-zone_movable-zone.patch
+handle-kernelcore=-generic.patch
+lumpy-reclaim-v4.patch
+lumpy-move-to-using-pfn_valid_within.patch
+i386-mmzone-use-__maybe_unused.patch
