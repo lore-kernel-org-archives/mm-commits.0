@@ -1,117 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - mm-madvise-avoid-exclusive-mmap_sem.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:03:16 -0700
-Message-ID: <200705080003.l4803Gta008931@shell0.pdx.osdl.net>
+Subject: - mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:03:33 -0700
+Message-ID: <200705080003.l4803XL5008961@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57106 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967343AbXEHAD5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:57 -0400
+	by vger.kernel.org with ESMTP id S967347AbXEHAEJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:04:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, hugh@veritas.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, bcrl@kvack.org, clameter@sgi.com, pj@sgi.com, rientjes@google.com, solo@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: madvise avoid exclusive mmap_sem
+     mm: fix handling of panic_on_oom when cpusets are in use
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-avoid-exclusive-mmap_sem.patch
+     mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: madvise avoid exclusive mmap_sem
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm: fix handling of panic_on_oom when cpusets are in use
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Avoid down_write of the mmap_sem in madvise when we can help it.
+The current panic_on_oom may not work if there is a process using
+cpusets/mempolicy, because other nodes' memory may remain.  But some people
+want failover by panic ASAP even if they are used.  This patch makes new
+setting for its request.
 
-Acked-by: Hugh Dickins <hugh@veritas.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+This is tested on my ia64 box which has 3 nodes.
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Ethan Solomita <solo@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   33 +++++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
+ Documentation/sysctl/vm.txt |   23 +++++++++++++++++------
+ mm/oom_kill.c               |    3 +++
+ 2 files changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN mm/madvise.c~mm-madvise-avoid-exclusive-mmap_sem mm/madvise.c
---- a/mm/madvise.c~mm-madvise-avoid-exclusive-mmap_sem
-+++ a/mm/madvise.c
-@@ -12,6 +12,24 @@
- #include <linux/hugetlb.h>
+diff -puN Documentation/sysctl/vm.txt~mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use
++++ a/Documentation/sysctl/vm.txt
+@@ -197,11 +197,22 @@ and may not be fast.
  
- /*
-+ * Any behaviour which results in changes to the vma->vm_flags needs to
-+ * take mmap_sem for writing. Others, which simply traverse vmas, need
-+ * to only take it for reading.
-+ */
-+static int madvise_need_mmap_write(int behavior)
-+{
-+	switch (behavior) {
-+	case MADV_REMOVE:
-+	case MADV_WILLNEED:
-+	case MADV_DONTNEED:
-+		return 0;
-+	default:
-+		/* be safe, default to 1. list exceptions explicitly */
-+		return 1;
-+	}
-+}
+ panic_on_oom
+ 
+-This enables or disables panic on out-of-memory feature.  If this is set to 1,
+-the kernel panics when out-of-memory happens.  If this is set to 0, the kernel
+-will kill some rogue process, called oom_killer.  Usually, oom_killer can kill
+-rogue processes and system will survive.  If you want to panic the system
+-rather than killing rogue processes, set this to 1.
++This enables or disables panic on out-of-memory feature.
+ 
+-The default value is 0.
++If this is set to 0, the kernel will kill some rogue process,
++called oom_killer.  Usually, oom_killer can kill rogue processes and
++system will survive.
 +
-+/*
-  * We can potentially split a vm area into separate
-  * areas, each area with its own behavior.
-  */
-@@ -183,9 +201,9 @@ static long madvise_remove(struct vm_are
- 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
++If this is set to 1, the kernel panics when out-of-memory happens.
++However, if a process limits using nodes by mempolicy/cpusets,
++and those nodes become memory exhaustion status, one process
++may be killed by oom-killer. No panic occurs in this case.
++Because other nodes' memory may be free. This means system total status
++may be not fatal yet.
  
- 	/* vmtruncate_range needs to take i_mutex and i_alloc_sem */
--	up_write(&current->mm->mmap_sem);
-+	up_read(&current->mm->mmap_sem);
- 	error = vmtruncate_range(mapping->host, offset, endoff);
--	down_write(&current->mm->mmap_sem);
-+	down_read(&current->mm->mmap_sem);
- 	return error;
- }
- 
-@@ -270,7 +288,10 @@ asmlinkage long sys_madvise(unsigned lon
- 	int error = -EINVAL;
- 	size_t len;
- 
--	down_write(&current->mm->mmap_sem);
-+	if (madvise_need_mmap_write(behavior))
-+		down_write(&current->mm->mmap_sem);
-+	else
-+		down_read(&current->mm->mmap_sem);
- 
- 	if (start & ~PAGE_MASK)
- 		goto out;
-@@ -332,6 +353,10 @@ asmlinkage long sys_madvise(unsigned lon
- 			vma = find_vma(current->mm, start);
++If this is set to 2, the kernel panics compulsorily even on the
++above-mentioned.
++
++The default value is 0.
++1 and 2 are for failover of clustering. Please select either
++according to your policy of failover.
+diff -puN mm/oom_kill.c~mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use
++++ a/mm/oom_kill.c
+@@ -413,6 +413,9 @@ void out_of_memory(struct zonelist *zone
+ 		show_mem();
  	}
- out:
--	up_write(&current->mm->mmap_sem);
-+	if (madvise_need_mmap_write(behavior))
-+		up_write(&current->mm->mmap_sem);
-+	else
-+		up_read(&current->mm->mmap_sem);
+ 
++	if (sysctl_panic_on_oom == 2)
++		panic("out of memory. Compulsory panic_on_oom is selected.\n");
 +
- 	return error;
- }
+ 	cpuset_lock();
+ 	read_lock(&tasklist_lock);
+ 
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
-mm-more-rmap-checking.patch
-mm-fix-fault-vs-invalidate-race-for-linear-mappings.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-mm-remove-legacy-cruft.patch
-mm-debug-check-for-the-fault-vs-invalidate-race.patch
-mm-fix-clear_page_dirty_for_io-vs-fault-race.patch
-mm-document-fault_data-and-flags.patch
-exec-fix-remove_arg_zero.patch
-as-fix-antic_expire-check.patch
-futex-restartable-futex_wait.patch
+move-free-pages-between-lists-on-steal.patch
+handle-kernelcore=-generic.patch
+fix-section-mismatch-of-memory-hotplug-related-code.patch
+add-white-list-into-modpostc-for-memory-hotplug-code-and-ia64s-machvec-section.patch
