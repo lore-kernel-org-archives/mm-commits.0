@@ -1,87 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - do-not-disable-interrupts-when-reading-min_free_kbytes.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:02:45 -0700
-Message-ID: <200705080002.l4802jep008869@shell0.pdx.osdl.net>
+Subject: - slab-mark-set_up_list3s-__init.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:02:47 -0700
+Message-ID: <200705080002.l4802l5d008875@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53978 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967324AbXEHADJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:09 -0400
+	by vger.kernel.org with ESMTP id S967327AbXEHADL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:03:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, clameter@engr.sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@engr.sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Do not disable interrupts when reading min_free_kbytes
+     slab: mark set_up_list3s() __init
 has been removed from the -mm tree.  Its filename was
-     do-not-disable-interrupts-when-reading-min_free_kbytes.patch
+     slab-mark-set_up_list3s-__init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Do not disable interrupts when reading min_free_kbytes
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: slab: mark set_up_list3s() __init
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The sysctl handler for min_free_kbytes calls setup_per_zone_pages_min() on
-read or write.  This function iterates through every zone and calls
-spin_lock_irqsave() on the zone LRU lock.  When reading min_free_kbytes,
-this is a total waste of time that disables interrupts on the local
-processor.  It might even be noticable machines with large numbers of zones
-if a process started constantly reading min_free_kbytes.
+It is only ever used prior to free_initmem().
 
-This patch only calls setup_per_zone_pages_min() only on write. Tested on
-an x86 laptop and it did the right thing.
+(It will cause a warning when we run the section checking, but that's a
+false-positive and it simply changes the source of an existing warning, which
+is also a false-positive)
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~do-not-disable-interrupts-when-reading-min_free_kbytes mm/page_alloc.c
---- a/mm/page_alloc.c~do-not-disable-interrupts-when-reading-min_free_kbytes
-+++ a/mm/page_alloc.c
-@@ -3199,7 +3199,8 @@ int min_free_kbytes_sysctl_handler(ctl_t
- 	struct file *file, void __user *buffer, size_t *length, loff_t *ppos)
+diff -puN mm/slab.c~slab-mark-set_up_list3s-__init mm/slab.c
+--- a/mm/slab.c~slab-mark-set_up_list3s-__init
++++ a/mm/slab.c
+@@ -1949,7 +1949,7 @@ static void slab_destroy(struct kmem_cac
+  * For setting up all the kmem_list3s for cache whose buffer_size is same as
+  * size of kmem_list3.
+  */
+-static void set_up_list3s(struct kmem_cache *cachep, int index)
++static void __init set_up_list3s(struct kmem_cache *cachep, int index)
  {
- 	proc_dointvec(table, write, file, buffer, length, ppos);
--	setup_per_zone_pages_min();
-+	if (write)
-+		setup_per_zone_pages_min();
- 	return 0;
- }
+ 	int node;
  
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
+git-jfs.patch
+git-kvm.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
+atl1-use-dev_printk-macros-fix.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-nfs-printk-warning-fixes.patch
+git-parisc.patch
+git-r8169.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
 add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-split-the-free-lists-for-movable-and-unmovable-allocations.patch
-choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-drain-per-cpu-lists-when-high-order-allocations-fail.patch
-move-free-pages-between-lists-on-steal.patch
-move-free-pages-between-lists-on-steal-anti-fragmentation-switch-over-to-pfn_valid_within.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-group-high-order-atomic-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-bias-the-placement-of-kernel-pages-at-lower-pfns.patch
-be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-create-the-zone_movable-zone.patch
-allow-huge-page-allocations-to-use-gfp_high_movable.patch
-handle-kernelcore=-generic.patch
-lumpy-reclaim-v4.patch
-lumpy-move-to-using-pfn_valid_within.patch
-ext2-reservations.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+mm-move-common-segment-checks-to-separate-helper-function-v7.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+reduce-size-of-task_struct-on-64-bit-machines.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
+virtual_eisa_root_init-should-be-__init.patch
+proc-maps-protection.patch
+fix-cycladesh-for-x86_64-and-probably-others.patch
+rtc-add-rtc-rs5c313-driver.patch
+enlarge-console-name.patch
+move-die-notifier-handling-to-common-code.patch
+fix-sscanf-%n-match-at-end-of-input-string.patch
+parport-dev-driver-model-support.patch
+add-support-for-deferrable-timers-respun.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+time-smp-friendly-alignment-of-struct-clocksource.patch
+move-timekeeping-code-to-timekeepingc.patch
+fix-kevents-childs-priority-greediness.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+enhance-initcall_debug-measure-latency.patch
+dtlk-fix-error-checks-in-module_init.patch
+document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+upper-32-bits.patch
+consolidate-asm-consth-to-linux-consth-fix.patch
+driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+do_tty_write-can-block-even-with-o_nonblock-tidy.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+speedup-divides-by-cpu_power-in-scheduler.patch
+utimensat-implementation.patch
+revert-rtc-add-rtc_merge_alarm.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+kprobes-the-on-off-knob-thru-debugfs-updated.patch
+atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
+local_t-powerpc-extension.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+x86-serial-convert-legacy-com-ports-to-platform-devices.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+char-cyclades-conditions-cleanup-fix.patch
+char-cyclades-probe-cleanup-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+fbdev-hecuba-framebuffer-driver.patch
+vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
+sm501fb-printk-warning-fixes.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
