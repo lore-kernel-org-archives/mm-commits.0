@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sm501fb-printk-warning-fixes.patch added to -mm tree
-Date: Mon, 07 May 2007 23:06:30 -0700
-Message-ID: <200705080606.l4866Upq015067@shell0.pdx.osdl.net>
+Subject: + bt-hack-hack.patch added to -mm tree
+Date: Mon, 07 May 2007 23:36:02 -0700
+Message-ID: <200705080636.l486a2wv015580@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60575 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754068AbXEHGGe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 02:06:34 -0400
+	by vger.kernel.org with ESMTP id S1754475AbXEHGgI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 02:36:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net
+Cc: akpm@linux-foundation.org, greg@kroah.com, marcel@holtmann.org
 
 
 The patch titled
-     sm501fb-printk-warning-fixes
+     bt-hack-hack
 has been added to the -mm tree.  Its filename is
-     sm501fb-printk-warning-fixes.patch
+     bt-hack-hack.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sm501fb-printk-warning-fixes
+Subject: bt-hack-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/sm501fb.c: In function 'sm501fb_cursor':
-drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
-drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
+I wonder if this works.
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sm501fb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/bluetooth/hci_sysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/sm501fb.c~sm501fb-printk-warning-fixes drivers/video/sm501fb.c
---- a/drivers/video/sm501fb.c~sm501fb-printk-warning-fixes
-+++ a/drivers/video/sm501fb.c
-@@ -989,7 +989,7 @@ static int sm501fb_cursor(struct fb_info
- 			((info->cmap.green[fg_col] & 0xFC) << 3) |
- 			((info->cmap.blue[fg_col] & 0xF8) >> 3);
+diff -puN net/bluetooth/hci_sysfs.c~bt-hack-hack net/bluetooth/hci_sysfs.c
+--- a/net/bluetooth/hci_sysfs.c~bt-hack-hack
++++ a/net/bluetooth/hci_sysfs.c
+@@ -322,7 +322,7 @@ int hci_register_sysfs(struct hci_dev *h
+ 		if (device_create_file(dev, bt_attrs[i]) < 0)
+ 			BT_ERR("Failed to create device attribute");
  
--		dev_dbg(fbi->dev, "fgcol %08x, bgcol %08x\n", fg, bg);
-+		dev_dbg(fbi->dev, "fgcol %08lx, bgcol %08lx\n", fg, bg);
+-	if (sysfs_create_link(&bt_class->subsys.kset.kobj,
++	if (sysfs_create_link(&bt_class->subsys.kobj,
+ 				&dev->kobj, kobject_name(&dev->kobj)) < 0)
+ 		BT_ERR("Failed to create class symlink");
  
- 		writel(bg, base + SM501_OFF_HWC_COLOR_1_2);
- 		writel(fg, base + SM501_OFF_HWC_COLOR_3);
+@@ -333,7 +333,7 @@ void hci_unregister_sysfs(struct hci_dev
+ {
+ 	BT_DBG("%p name %s type %d", hdev, hdev->name, hdev->type);
+ 
+-	sysfs_remove_link(&bt_class->subsys.kset.kobj,
++	sysfs_remove_link(&bt_class->subsys.kobj,
+ 					kobject_name(&hdev->dev.kobj));
+ 
+ 	device_del(&hdev->dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,7 +81,6 @@ linux-sysdevh-needs-to-include-linux-moduleh.patch
 time-smp-friendly-alignment-of-struct-clocksource.patch
 move-timekeeping-code-to-timekeepingc.patch
 fix-kevents-childs-priority-greediness.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
 enhance-initcall_debug-measure-latency.patch
 dtlk-fix-error-checks-in-module_init.patch
 document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
@@ -92,3 +99,4 @@ fbdev-hecuba-framebuffer-driver.patch
 vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
 cirrusfb-convert-to-generic-boolean.patch
 sm501fb-printk-warning-fixes.patch
+bt-hack-hack.patch
