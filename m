@@ -1,84 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - mm-introduce-pg_readahead.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:13:29 -0700
-Message-ID: <200705080813.l488DTGU018918@shell0.pdx.osdl.net>
+Subject: - radixtree-introduce-scan-hole-data-functions.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:13:21 -0700
+Message-ID: <200705080813.l488DLV6018908@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47777 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934546AbXEHIOI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:14:08 -0400
+	by vger.kernel.org with ESMTP id S934565AbXEHIOO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:14:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: introduce PG_readahead
+     radixtree: introduce scan hole/data functions
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-pg_readahead.patch
+     radixtree-introduce-scan-hole-data-functions.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm: introduce PG_readahead
+Subject: radixtree: introduce scan hole/data functions
 From: Wu Fengguang <wfg@mail.ustc.edu.cn>
 
-Introduce a new page flag: PG_readahead.
+Introduce a set of functions to scan radix tree for hole/data item.
+	- radix_tree_scan_hole(root, index, max_scan)
+	- radix_tree_scan_hole_backward(root, index, max_scan)
+	- radix_tree_scan_data_backward(root, index, max_scan)
 
-It acts as a look-ahead mark, which tells the page reader:
-	Hey, it's time to invoke the adaptive read-ahead logic!
-	For the sake of I/O pipelining, don't wait until it runs out of
-	cached pages.  ;-)
+The implementation is dumb and obviously correct.
+It will help to debug the smart ones to be introduced in future.
 
 Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 ++++++
- mm/page_alloc.c            |    2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ include/linux/radix-tree.h |    6 ++
+ lib/radix-tree.c           |   93 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 99 insertions(+)
 
-diff -puN include/linux/page-flags.h~mm-introduce-pg_readahead include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-introduce-pg_readahead
-+++ a/include/linux/page-flags.h
-@@ -93,6 +93,8 @@
+diff -puN include/linux/radix-tree.h~radixtree-introduce-scan-hole-data-functions include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radixtree-introduce-scan-hole-data-functions
++++ a/include/linux/radix-tree.h
+@@ -155,6 +155,12 @@ void *radix_tree_delete(struct radix_tre
+ unsigned int
+ radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
+ 			unsigned long first_index, unsigned int max_items);
++unsigned long radix_tree_scan_hole(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan);
++unsigned long radix_tree_scan_hole_backward(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan);
++unsigned long radix_tree_scan_data_backward(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan);
+ int radix_tree_preload(gfp_t gfp_mask);
+ void radix_tree_init(void);
+ void *radix_tree_tag_set(struct radix_tree_root *root,
+diff -puN lib/radix-tree.c~radixtree-introduce-scan-hole-data-functions lib/radix-tree.c
+--- a/lib/radix-tree.c~radixtree-introduce-scan-hole-data-functions
++++ a/lib/radix-tree.c
+@@ -600,6 +600,99 @@ int radix_tree_tag_get(struct radix_tree
+ EXPORT_SYMBOL(radix_tree_tag_get);
+ #endif
  
- #define PG_lazyfree		20	/* MADV_FREE potential throwaway */
- 
-+#define PG_readahead		21	/* Reminder to do read-ahead */
++static unsigned long
++radix_tree_scan_hole_dumb(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan)
++{
++	unsigned long i;
 +
- /* PG_owner_priv_1 users should have descriptive aliases */
- #define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
- 
-@@ -260,6 +262,10 @@ static inline void __ClearPageTail(struc
- #define SetPageUncached(page)	set_bit(PG_uncached, &(page)->flags)
- #define ClearPageUncached(page)	clear_bit(PG_uncached, &(page)->flags)
- 
-+#define PageReadahead(page)	test_bit(PG_readahead, &(page)->flags)
-+#define SetPageReadahead(page)	set_bit(PG_readahead, &(page)->flags)
-+#define ClearPageReadahead(page) clear_bit(PG_readahead, &(page)->flags)
++	for (i = 0; i < max_scan; i++)
++		if (!radix_tree_lookup(root, index) || ++index == 0)
++			break;
 +
- struct page;	/* forward declaration */
- 
- extern void cancel_dirty_page(struct page *page, unsigned int account_size);
-diff -puN mm/page_alloc.c~mm-introduce-pg_readahead mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-pg_readahead
-+++ a/mm/page_alloc.c
-@@ -644,7 +644,7 @@ static int prep_new_page(struct page *pa
- 	if (PageReserved(page))
- 		return 1;
- 
--	page->flags &= ~(1 << PG_uptodate | 1 << PG_error |
-+	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
- 			1 << PG_referenced | 1 << PG_arch_1 |
- 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
- 	set_page_private(page, 0);
++	return index;
++}
++
++static unsigned long
++radix_tree_scan_hole_backward_dumb(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan)
++{
++	unsigned long i;
++
++	for (i = 0; i < max_scan; i++)
++		if (!radix_tree_lookup(root, index) || --index == ULONG_MAX)
++			break;
++
++	return index;
++}
++
++static unsigned long
++radix_tree_scan_data_backward_dumb(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan)
++{
++	unsigned long i;
++
++	for (i = 0; i < max_scan; i++)
++		if (radix_tree_lookup(root, index) || --index == ULONG_MAX)
++			break;
++
++	return index;
++}
++
++/**
++ *	radix_tree_scan_hole    -    scan for hole
++ *	@root:		radix tree root
++ *	@index:		index key
++ *	@max_scan:      advice on max items to scan (it may scan a little more)
++ *
++ *      Scan forward from @index for a hole/empty item, stop when
++ *      - hit hole
++ *      - wrap-around to index 0
++ *      - @max_scan or more items scanned
++ */
++unsigned long radix_tree_scan_hole(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan)
++{
++	return radix_tree_scan_hole_dumb(root, index, max_scan);
++}
++EXPORT_SYMBOL(radix_tree_scan_hole);
++
++/**
++ *	radix_tree_scan_hole_backward    -    scan backward for hole
++ *	@root:		radix tree root
++ *	@index:		index key
++ *	@max_scan:      advice on max items to scan (it may scan a little more)
++ *
++ *      Scan backward from @index for a hole/empty item, stop when
++ *      - hit hole
++ *      - wrap-around to index ULONG_MAX
++ *      - @max_scan or more items scanned
++ */
++unsigned long radix_tree_scan_hole_backward(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan)
++{
++	return radix_tree_scan_hole_backward_dumb(root, index, max_scan);
++}
++EXPORT_SYMBOL(radix_tree_scan_hole_backward);
++
++/**
++ *	radix_tree_scan_data_backward    -    scan backward for data
++ *	@root:		radix tree root
++ *	@index:		index key
++ *	@max_scan:      advice on max items to scan (it may scan a little more)
++ *
++ *      Scan backward from @index for a data item, stop when
++ *      - hit data
++ *      - wrap-around to index ULONG_MAX
++ *      - @max_scan or more items scanned
++ */
++unsigned long radix_tree_scan_data_backward(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan)
++{
++	return radix_tree_scan_data_backward_dumb(root, index, max_scan);
++}
++EXPORT_SYMBOL(radix_tree_scan_data_backward);
++
+ static unsigned int
+ __lookup(struct radix_tree_node *slot, void **results, unsigned long index,
+ 	unsigned int max_items, unsigned long *next_index)
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
+radixtree-introduce-scan-hole-data-functions.patch
+mm-introduce-probe_page.patch
 mm-introduce-pg_readahead.patch
 readahead-add-look-ahead-support-to-__do_page_cache_readahead.patch
 readahead-insert-cond_resched-calls.patch
