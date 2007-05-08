@@ -1,76 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - rename-tanbac-tb0219-config.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:08:01 -0700
-Message-ID: <200705080008.l48081Nm009348@shell0.pdx.osdl.net>
+Subject: - ehci-ps3-ohci-ps3-fix-compilation.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:07:58 -0700
+Message-ID: <200705080007.l4807wAs009336@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59604 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967428AbXEHAId (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:08:33 -0400
+	by vger.kernel.org with ESMTP id S967423AbXEHAIb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:08:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yoichi_yuasa@tripeaks.co.jp, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: geoffrey.levand@am.sony.com, adobriyan@gmail.com, geert@linux-m68k.org, greg@kroah.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rename TANBAC TB0219 config
+     ehci-ps3, ohci-ps3: fix compilation
 has been removed from the -mm tree.  Its filename was
-     rename-tanbac-tb0219-config.patch
+     ehci-ps3-ohci-ps3-fix-compilation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rename TANBAC TB0219 config
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: ehci-ps3, ohci-ps3: fix compilation
+From: Geoff Levand <geoffrey.levand@am.sony.com>
 
-Rename config for TANBAC TB0219 GPIO support to something more appropriate.
+As seen on powerpc-cell et al:
 
-Fixes this:
+  CC [M]  drivers/usb/host/ehci-hcd.o
+In file included from drivers/usb/host/ehci-hcd.c:941:
+drivers/usb/host/ehci-ps3.c:79: error: conflicting types for 'dev_dbg'
+include/linux/device.h:576: error: previous definition of 'dev_dbg' was here
+make[4]: *** [drivers/usb/host/ehci-hcd.o] Error 1
+  CC [M]  drivers/usb/host/ohci-hcd.o
+In file included from drivers/usb/host/ohci-hcd.c:921:
+drivers/usb/host/ohci-ps3.c:83: error: conflicting types for 'dev_dbg'
+include/linux/device.h:576: error: previous definition of 'dev_dbg' was here
 
-drivers/char/Kconfig:906:warning: type of 'TANBAC_TB0219' redefined from 'boolean' to 'tristate'
-drivers/char/Kconfig:907:warning: choice values currently only support a single
-prompt
+dev_dbg() will check format string for you in dummy case also, so remove
+buggers.
 
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Geoff Levand <geoffrey.levand@am.sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig  |    4 ++--
- drivers/char/Makefile |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/host/ehci-ps3.c |    7 -------
+ drivers/usb/host/ohci-ps3.c |    8 --------
+ 2 files changed, 15 deletions(-)
 
-diff -puN drivers/char/Kconfig~rename-tanbac-tb0219-config drivers/char/Kconfig
---- a/drivers/char/Kconfig~rename-tanbac-tb0219-config
-+++ a/drivers/char/Kconfig
-@@ -905,8 +905,8 @@ config SONYPI
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called sonypi.
+diff -puN drivers/usb/host/ehci-ps3.c~ehci-ps3-ohci-ps3-fix-compilation drivers/usb/host/ehci-ps3.c
+--- a/drivers/usb/host/ehci-ps3.c~ehci-ps3-ohci-ps3-fix-compilation
++++ a/drivers/usb/host/ehci-ps3.c
+@@ -73,13 +73,6 @@ static const struct hc_driver ps3_ehci_h
+ #endif
+ };
  
--config TANBAC_TB0219
--	tristate "TANBAC TB0219 base board support"
-+config GPIO_TB0219
-+	tristate "TANBAC TB0219 GPIO support"
- 	depends on TANBAC_TB022X
- 	select GPIO_VR41XX
+-#if !defined(DEBUG)
+-#undef dev_dbg
+-static inline int __attribute__ ((format (printf, 2, 3))) dev_dbg(
+-	const struct device *_dev, const char *fmt, ...) {return 0;}
+-#endif
+-
+-
+ static int ps3_ehci_sb_probe(struct ps3_system_bus_device *dev)
+ {
+ 	int result;
+diff -puN drivers/usb/host/ohci-ps3.c~ehci-ps3-ohci-ps3-fix-compilation drivers/usb/host/ohci-ps3.c
+--- a/drivers/usb/host/ohci-ps3.c~ehci-ps3-ohci-ps3-fix-compilation
++++ a/drivers/usb/host/ohci-ps3.c
+@@ -75,14 +75,6 @@ static const struct hc_driver ps3_ohci_h
+ #endif
+ };
  
-diff -puN drivers/char/Makefile~rename-tanbac-tb0219-config drivers/char/Makefile
---- a/drivers/char/Makefile~rename-tanbac-tb0219-config
-+++ a/drivers/char/Makefile
-@@ -91,7 +91,7 @@ obj-$(CONFIG_PC8736x_GPIO)	+= pc8736x_gp
- obj-$(CONFIG_NSC_GPIO)		+= nsc_gpio.o
- obj-$(CONFIG_CS5535_GPIO)	+= cs5535_gpio.o
- obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.o
--obj-$(CONFIG_TANBAC_TB0219)	+= tb0219.o
-+obj-$(CONFIG_GPIO_TB0219)	+= tb0219.o
- obj-$(CONFIG_TELCLOCK)		+= tlclk.o
- 
- obj-$(CONFIG_WATCHDOG)		+= watchdog/
+-/* redefine dev_dbg to do a syntax check */
+-
+-#if !defined(DEBUG)
+-#undef dev_dbg
+-static inline int __attribute__ ((format (printf, 2, 3))) dev_dbg(
+-	const struct device *_dev, const char *fmt, ...) {return 0;}
+-#endif
+-
+ static int ps3_ohci_sb_probe(struct ps3_system_bus_device *dev)
+ {
+ 	int result;
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from geoffrey.levand@am.sony.com are
 
 origin.patch
-git-mips.patch
-rtc-update-vr41xx-alarm-handling.patch
+git-powerpc.patch
+powerpc-ps3-use-__maybe_unused.patch
+fbdev-avoid-vertical-overflow-when-making-space-for-the-logo.patch
+fbdev-fb_do_show_logo-updates.patch
