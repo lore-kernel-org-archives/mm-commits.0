@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-turn-on-scsi-support.patch added to -mm tree
-Date: Tue, 08 May 2007 14:36:35 -0700
-Message-ID: <200705082136.l48LaZWJ002369@shell0.pdx.osdl.net>
+Subject: + uml-turn-build-warnings-into-comments.patch added to -mm tree
+Date: Tue, 08 May 2007 14:36:41 -0700
+Message-ID: <200705082136.l48Laf59002378@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38575 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032400AbXEHVgl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:36:41 -0400
+	by vger.kernel.org with ESMTP id S1032402AbXEHVgu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 17:36:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, blaisorblade@yahoo.it, jdike@linux.intel.com
+Cc: mszeredi@suse.cz, blaisorblade@yahoo.it, jdike@linux.intel.com
 
 
 The patch titled
-     uml: turn on SCSI support
+     uml: turn build warnings into comments
 has been added to the -mm tree.  Its filename is
-     uml-turn-on-scsi-support.patch
+     uml-turn-build-warnings-into-comments.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,121 +25,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: turn on SCSI support
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: uml: turn build warnings into comments
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Enable (i)SCSI on UML, dunno why SCSI was deemed broken, it works like a
-charm.
+These haven't been fixed for ages.  Just make comments out of them.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+arch/um/kernel/skas/process.c:181:2: warning: #warning Need to look up
++userspace_pid by cpu
+arch/um/kernel/skas/process.c:187:2: warning: #warning Need to look up
++userspace_pid by cpu
+arch/um/kernel/skas/process.c:194:2: warning: #warning need to loop over
++userspace_pids in kill_off_processes_skas
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig      |   16 -----------
- arch/um/Kconfig.scsi |   58 -----------------------------------------
- 2 files changed, 1 insertion(+), 73 deletions(-)
+ arch/um/kernel/skas/process.c   |    9 ++++++---
+ arch/um/os-Linux/skas/mem.c     |    2 +-
+ arch/um/os-Linux/skas/process.c |    2 +-
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/Kconfig~uml-turn-on-scsi-support arch/um/Kconfig
---- a/arch/um/Kconfig~uml-turn-on-scsi-support
-+++ a/arch/um/Kconfig
-@@ -320,21 +320,7 @@ source "crypto/Kconfig"
+diff -puN arch/um/kernel/skas/process.c~uml-turn-build-warnings-into-comments arch/um/kernel/skas/process.c
+--- a/arch/um/kernel/skas/process.c~uml-turn-build-warnings-into-comments
++++ a/arch/um/kernel/skas/process.c
+@@ -178,20 +178,23 @@ int start_uml_skas(void)
  
- source "lib/Kconfig"
+ int external_pid_skas(struct task_struct *task)
+ {
+-#warning Need to look up userspace_pid by cpu
++	/* FIXME: Need to look up userspace_pid by cpu */
+ 	return(userspace_pid[0]);
+ }
  
--menu "SCSI support"
--depends on BROKEN
--
--config SCSI
--	tristate "SCSI support"
--
--# This gives us free_dma, which scsi.c wants.
--config GENERIC_ISA_DMA
--	bool
--	depends on SCSI
--	default y
--
--source "arch/um/Kconfig.scsi"
--
--endmenu
-+source "drivers/scsi/Kconfig"
+ int thread_pid_skas(struct task_struct *task)
+ {
+-#warning Need to look up userspace_pid by cpu
++	/* FIXME: Need to look up userspace_pid by cpu */
+ 	return(userspace_pid[0]);
+ }
  
- source "drivers/md/Kconfig"
+ void kill_off_processes_skas(void)
+ {
+ 	if(proc_mm)
+-#warning need to loop over userspace_pids in kill_off_processes_skas
++		/*
++		 * FIXME: need to loop over userspace_pids in
++		 * kill_off_processes_skas
++		 */
+ 		os_kill_ptraced_process(userspace_pid[0], 1);
+ 	else {
+ 		struct task_struct *p;
+diff -puN arch/um/os-Linux/skas/mem.c~uml-turn-build-warnings-into-comments arch/um/os-Linux/skas/mem.c
+--- a/arch/um/os-Linux/skas/mem.c~uml-turn-build-warnings-into-comments
++++ a/arch/um/os-Linux/skas/mem.c
+@@ -68,7 +68,7 @@ static inline long do_syscall_stub(struc
+ 	int err, pid = mm_idp->u.pid;
  
-diff -puN arch/um/Kconfig.scsi~uml-turn-on-scsi-support /dev/null
---- a/arch/um/Kconfig.scsi
-+++ /dev/null
-@@ -1,58 +0,0 @@
--comment "SCSI support type (disk, tape, CD-ROM)"
--	depends on SCSI
--
--config BLK_DEV_SD
--	tristate "SCSI disk support"
--	depends on SCSI
--
--config SD_EXTRA_DEVS
--	int "Maximum number of SCSI disks that can be loaded as modules"
--	depends on BLK_DEV_SD
--	default "40"
--
--config CHR_DEV_ST
--	tristate "SCSI tape support"
--	depends on SCSI
--
--config BLK_DEV_SR
--	tristate "SCSI CD-ROM support"
--	depends on SCSI
--
--config BLK_DEV_SR_VENDOR
--	bool "Enable vendor-specific extensions (for SCSI CDROM)"
--	depends on BLK_DEV_SR
--
--config SR_EXTRA_DEVS
--	int "Maximum number of CDROM devices that can be loaded as modules"
--	depends on BLK_DEV_SR
--	default "2"
--
--config CHR_DEV_SG
--	tristate "SCSI generic support"
--	depends on SCSI
--
--comment "Some SCSI devices (e.g. CD jukebox) support multiple LUNs"
--	depends on SCSI
--
--#if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
--config SCSI_DEBUG_QUEUES
--	bool "Enable extra checks in new queueing code"
--	depends on SCSI
--
--#fi
--config SCSI_MULTI_LUN
--	bool "Probe all LUNs on each SCSI device"
--	depends on SCSI
--
--config SCSI_CONSTANTS
--	bool "Verbose SCSI error reporting (kernel size +=12K)"
--	depends on SCSI
--
--config SCSI_LOGGING
--	bool "SCSI logging facility"
--	depends on SCSI
--
--config SCSI_DEBUG
--	tristate "SCSI debugging host simulator (EXPERIMENTAL)"
--	depends on SCSI
--
+ 	if(proc_mm)
+-#warning Need to look up userspace_pid by cpu
++		/* FIXME: Need to look up userspace_pid by cpu */
+ 		pid = userspace_pid[0];
+ 
+ 	multi_count++;
+diff -puN arch/um/os-Linux/skas/process.c~uml-turn-build-warnings-into-comments arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-turn-build-warnings-into-comments
++++ a/arch/um/os-Linux/skas/process.c
+@@ -586,7 +586,7 @@ void switch_mm_skas(struct mm_id *mm_idp
+ {
+ 	int err;
+ 
+-#warning need cpu pid in switch_mm_skas
++	/* FIXME: need cpu pid in switch_mm_skas */
+ 	if(proc_mm){
+ 		err = ptrace(PTRACE_SWITCH_MM, userspace_pid[0], 0,
+ 			     mm_idp->u.mm_fd);
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-origin.patch
-exec-fix-remove_arg_zero.patch
-lockdep-treats-down_write_trylock-like-regular-down_write.patch
-nfs-fix-congestion-control-use-atomic_longs.patch
-lazy-freeing-of-memory-through-madv_free.patch
-restore-madv_dontneed-to-its-original-linux-behaviour.patch
-lumpy-reclaim-v4.patch
+fix-quadratic-behavior-of-shrink_dcache_parent.patch
+mm-shrink-parent-dentries-when-shrinking-slab.patch
+add-filesystem-subtype-support.patch
+add-file-position-info-to-proc.patch
+check-privileges-before-setting-mount-propagation.patch
 split-mmap.patch
 only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
-uml-turn-on-scsi-support.patch
+uml-turn-build-warnings-into-comments.patch
+consolidate-generic_writepages-and-mpage_writepages.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
