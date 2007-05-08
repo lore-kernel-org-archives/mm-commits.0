@@ -1,170 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: + git-battery-fix.patch added to -mm tree
-Date: Tue, 08 May 2007 03:01:20 -0700
-Message-ID: <200705081001.l48A1KUK020833@shell0.pdx.osdl.net>
+Subject: - x86_64-make-bootsector-stub-16-bit-only.patch removed from -mm tree
+Date: Tue, 08 May 2007 03:28:34 -0700
+Message-ID: <200705081028.l48ASZXV021199@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44854 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934752AbXEHKBf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 06:01:35 -0400
+	by vger.kernel.org with ESMTP id S966459AbXEHK3M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 06:29:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cbou@mail.ru
+To: heukelum@mailshack.com, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-battery-fix
-has been added to the -mm tree.  Its filename is
-     git-battery-fix.patch
+     x86_64: make bootsector stub 16-bit-only
+has been removed from the -mm tree.  Its filename was
+     x86_64-make-bootsector-stub-16-bit-only.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: git-battery-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86_64: make bootsector stub 16-bit-only
+From: Alexander van Heukelum <heukelum@mailshack.com>
 
-Cc: Anton Vorontsov <cbou@mail.ru>
+The x86 bzImage contains a stub to inform people that it is not possible
+any more to run a Linux kernel by catting it to a floppy and then booting
+from it.  This was meant to be all 16-bit code.  The first instruction,
+however, ended up as being coded as a 16:32-bit far jump.  I assume the
+intention was a 16:16-bit far jump.
+
+Signed-off-by: Alexander van Heukelum <heukelum@mailshack.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/bus.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/boot/bootsect.S |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/bus.c~git-battery-fix drivers/base/bus.c
---- a/drivers/base/bus.c~git-battery-fix
-+++ a/drivers/base/bus.c
-@@ -740,7 +740,7 @@ void put_bus(struct bus_type * bus)
+diff -puN arch/x86_64/boot/bootsect.S~x86_64-make-bootsector-stub-16-bit-only arch/x86_64/boot/bootsect.S
+--- a/arch/x86_64/boot/bootsect.S~x86_64-make-bootsector-stub-16-bit-only
++++ a/arch/x86_64/boot/bootsect.S
+@@ -44,7 +44,7 @@ SWAP_DEV	= 0			/* SWAP_DEV is now writte
+ _start:
  
- struct bus_type * find_bus(char * name)
- {
--	struct kobject * k = kset_find_obj(&bus_subsys.kset, name);
-+	struct kobject * k = kset_find_obj(&bus_subsys, name);
- 	return k ? to_bus(k) : NULL;
- }
- EXPORT_SYMBOL_GPL(find_bus);
+ 	# Normalize the start address
+-	jmpl	$BOOTSEG, $start2
++	jmpw	$BOOTSEG, $start2
+ 
+ start2:
+ 	movw	%cs, %ax
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from heukelum@mailshack.com are
 
-origin.patch
-mm-move-common-segment-checks-to-separate-helper-function-v7.patch
-reduce-size-of-task_struct-on-64-bit-machines.patch
-mm-shrink-parent-dentries-when-shrinking-slab.patch
-merge-sys_clone-sys_unshare-nsproxy-and-namespace.patch
-virtual_eisa_root_init-should-be-__init.patch
-proc-maps-protection.patch
-fix-cycladesh-for-x86_64-and-probably-others.patch
-rtc-add-rtc-rs5c313-driver.patch
-enlarge-console-name.patch
-move-die-notifier-handling-to-common-code.patch
-fix-sscanf-%n-match-at-end-of-input-string.patch
-parport-dev-driver-model-support.patch
-add-support-for-deferrable-timers-respun.patch
-linux-sysdevh-needs-to-include-linux-moduleh.patch
-time-smp-friendly-alignment-of-struct-clocksource.patch
-move-timekeeping-code-to-timekeepingc.patch
-fix-kevents-childs-priority-greediness.patch
-enhance-initcall_debug-measure-latency.patch
-dtlk-fix-error-checks-in-module_init.patch
-document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
-consolidate-asm-consth-to-linux-consth.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-speedup-divides-by-cpu_power-in-scheduler.patch
-utimensat-implementation.patch
-revert-rtc-add-rtc_merge_alarm.patch
-kprobes-the-on-off-knob-thru-debugfs-updated.patch
-atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
-local_t-powerpc-extension.patch
-x86-serial-convert-legacy-com-ports-to-platform-devices.patch
-char-cyclades-conditions-cleanup.patch
-char-cyclades-probe-cleanup.patch
-fbdev-hecuba-framebuffer-driver.patch
-vt-add-color-support-to-the-underline-and-italic-attributes-fix.patch
-cirrusfb-convert-to-generic-boolean.patch
-sm501fb-printk-warning-fixes.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-jfs.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-battery-fix.patch
-git-nfs-printk-warning-fixes.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-swsusp-clean-up-print.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-upper-32-bits.patch
-lib-hexdump-fix.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-mutex_lock_interruptible-add-__must_check.patch
-mutex_lock_interruptible-add-__must_check-must-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-rename-thread_info-to-stack-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+x86_64-make-bootsector-stub-16-bit-only.patch
