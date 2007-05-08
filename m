@@ -1,100 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:03:33 -0700
-Message-ID: <200705080003.l4803XL5008961@shell0.pdx.osdl.net>
+Subject: - introduce-config_has_dma.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:02:05 -0700
+Message-ID: <200705080002.l48025m0008820@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58678 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967347AbXEHAEJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:04:09 -0400
+	by vger.kernel.org with ESMTP id S967350AbXEHAER (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:04:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: y-goto@jp.fujitsu.com, bcrl@kvack.org, clameter@sgi.com, pj@sgi.com, rientjes@google.com, solo@google.com, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, James.Bottomley@SteelEye.com, geert@linux-m68k.org, htejun@gmail.com, jeff@garzik.org, kyle@parisc-linux.org, linville@tuxdriver.com, schwidefsky@de.ibm.com, spyro@f2s.com, uclinux-v850@lsi.nec.co.jp, ysato@users.sourceforge.jp, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix handling of panic_on_oom when cpusets are in use
+     Introduce CONFIG_HAS_DMA
 has been removed from the -mm tree.  Its filename was
-     mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use.patch
+     introduce-config_has_dma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: fix handling of panic_on_oom when cpusets are in use
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Introduce CONFIG_HAS_DMA
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-The current panic_on_oom may not work if there is a process using
-cpusets/mempolicy, because other nodes' memory may remain.  But some people
-want failover by panic ASAP even if they are used.  This patch makes new
-setting for its request.
+Architectures that don't support DMA can say so by adding a config NO_DMA
+to their Kconfig file.  This will prevent compilation of some dma specific
+driver code.  Also dma-mapping-broken.h isn't needed anymore on at least
+s390.  This avoids compilation and linking of otherwise dead/broken code.
 
-This is tested on my ia64 box which has 3 nodes.
+Other architectures that include dma-mapping-broken.h are arm26, h8300,
+m68k, m68knommu and v850.  If these could be converted as well we could get
+rid of the header file.
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Signed-off-by: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Ethan Solomita <solo@google.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+"John W. Linville" <linville@tuxdriver.com>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: <James.Bottomley@SteelEye.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: <geert@linux-m68k.org>
+Cc: <zippel@linux-m68k.org>
+Cc: <spyro@f2s.com>
+Cc: <uclinux-v850@lsi.nec.co.jp>
+Cc: <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   23 +++++++++++++++++------
- mm/oom_kill.c               |    3 +++
- 2 files changed, 20 insertions(+), 6 deletions(-)
+ arch/s390/Kconfig              |    3 +++
+ drivers/base/Makefile          |    4 ++--
+ include/asm-s390/dma-mapping.h |    2 --
+ lib/Kconfig                    |    5 +++++
+ 4 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use
-+++ a/Documentation/sysctl/vm.txt
-@@ -197,11 +197,22 @@ and may not be fast.
+diff -puN arch/s390/Kconfig~introduce-config_has_dma arch/s390/Kconfig
+--- a/arch/s390/Kconfig~introduce-config_has_dma
++++ a/arch/s390/Kconfig
+@@ -49,6 +49,9 @@ config GENERIC_BUG
+ config NO_IOMEM
+ 	def_bool y
  
- panic_on_oom
- 
--This enables or disables panic on out-of-memory feature.  If this is set to 1,
--the kernel panics when out-of-memory happens.  If this is set to 0, the kernel
--will kill some rogue process, called oom_killer.  Usually, oom_killer can kill
--rogue processes and system will survive.  If you want to panic the system
--rather than killing rogue processes, set this to 1.
-+This enables or disables panic on out-of-memory feature.
- 
--The default value is 0.
-+If this is set to 0, the kernel will kill some rogue process,
-+called oom_killer.  Usually, oom_killer can kill rogue processes and
-+system will survive.
++config NO_DMA
++	def_bool y
 +
-+If this is set to 1, the kernel panics when out-of-memory happens.
-+However, if a process limits using nodes by mempolicy/cpusets,
-+and those nodes become memory exhaustion status, one process
-+may be killed by oom-killer. No panic occurs in this case.
-+Because other nodes' memory may be free. This means system total status
-+may be not fatal yet.
+ mainmenu "Linux Kernel Configuration"
  
-+If this is set to 2, the kernel panics compulsorily even on the
-+above-mentioned.
+ config S390
+diff -puN drivers/base/Makefile~introduce-config_has_dma drivers/base/Makefile
+--- a/drivers/base/Makefile~introduce-config_has_dma
++++ a/drivers/base/Makefile
+@@ -2,10 +2,10 @@
+ 
+ obj-y			:= core.o sys.o bus.o dd.o \
+ 			   driver.o class.o platform.o \
+-			   cpu.o firmware.o init.o map.o dmapool.o \
+-			   dma-mapping.o devres.o \
++			   cpu.o firmware.o init.o map.o devres.o \
+ 			   attribute_container.o transport_class.o
+ obj-y			+= power/
++obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o dmapool.o
+ obj-$(CONFIG_ISA)	+= isa.o
+ obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
+ obj-$(CONFIG_NUMA)	+= node.o
+diff -puN include/asm-s390/dma-mapping.h~introduce-config_has_dma include/asm-s390/dma-mapping.h
+--- a/include/asm-s390/dma-mapping.h~introduce-config_has_dma
++++ a/include/asm-s390/dma-mapping.h
+@@ -9,6 +9,4 @@
+ #ifndef _ASM_DMA_MAPPING_H
+ #define _ASM_DMA_MAPPING_H
+ 
+-#include <asm-generic/dma-mapping-broken.h>
+-
+ #endif /* _ASM_DMA_MAPPING_H */
+diff -puN lib/Kconfig~introduce-config_has_dma lib/Kconfig
+--- a/lib/Kconfig~introduce-config_has_dma
++++ a/lib/Kconfig
+@@ -111,4 +111,9 @@ config HAS_IOPORT
+ 	depends on HAS_IOMEM && !NO_IOPORT
+ 	default y
+ 
++config HAS_DMA
++	boolean
++	depends on !NO_DMA
++	default y
 +
-+The default value is 0.
-+1 and 2 are for failover of clustering. Please select either
-+according to your policy of failover.
-diff -puN mm/oom_kill.c~mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use mm/oom_kill.c
---- a/mm/oom_kill.c~mm-fix-handling-of-panic_on_oom-when-cpusets-are-in-use
-+++ a/mm/oom_kill.c
-@@ -413,6 +413,9 @@ void out_of_memory(struct zonelist *zone
- 		show_mem();
- 	}
- 
-+	if (sysctl_panic_on_oom == 2)
-+		panic("out of memory. Compulsory panic_on_oom is selected.\n");
-+
- 	cpuset_lock();
- 	read_lock(&tasklist_lock);
- 
+ endmenu
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
-move-free-pages-between-lists-on-steal.patch
-handle-kernelcore=-generic.patch
-fix-section-mismatch-of-memory-hotplug-related-code.patch
-add-white-list-into-modpostc-for-memory-hotplug-code-and-ia64s-machvec-section.patch
+s390-spinlock-initializer-cleanup.patch
+linux-sysdevh-needs-to-include-linux-moduleh.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+slab-use-cpu_lock_.patch
