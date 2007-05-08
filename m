@@ -1,201 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - uml-delete-unused-code.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:53 -0700
-Message-ID: <200705080005.l4805rUW009129@shell0.pdx.osdl.net>
+Subject: - uml-handle-block-device-hotplug-errors.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:06:04 -0700
+Message-ID: <200705080006.l48064ql009148@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49621 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56458 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967375AbXEHAG0 (ORCPT
+	by vger.kernel.org with ESMTP id S967374AbXEHAG0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: delete unused code
+     uml: handle block device hotplug errors
 has been removed from the -mm tree.  Its filename was
-     uml-delete-unused-code.patch
+     uml-handle-block-device-hotplug-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: delete unused code
+Subject: uml: handle block device hotplug errors
 From: Jeff Dike <jdike@addtoit.com>
 
-Get rid of a bunch of unused stuff -
-	cpu_feature had no users
-	linux_prog is little-used, so its declaration is moved to the
-user for easy deletion when the whole file goes away
-	a long-unused debugging aid in helper.c is gone
+If a disk fails to open, i.e.  its host file doesn't exist, it won't be
+removable because the hot-unplug code checks the existence of its gendisk. 
+This won't exist because it is only allocated for successfully opened disks. 
+Thus, a typo on the command line can result in a unusable and unfixable disk.
 
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
+This is fixed by freeing the gendisk if it's there, but not letting that
+affect the removal.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/kern_util.h |    1 -
- arch/um/include/user_util.h |    1 -
- arch/um/kernel/tt/gdb.c     |    2 ++
- arch/um/os-Linux/helper.c   |   11 -----------
- arch/um/os-Linux/main.c     |    8 +-------
- arch/um/sys-i386/bugs.c     |   23 -----------------------
- arch/um/sys-x86_64/bugs.c   |   23 -----------------------
- 7 files changed, 3 insertions(+), 66 deletions(-)
+ arch/um/drivers/ubd_kern.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN arch/um/include/kern_util.h~uml-delete-unused-code arch/um/include/kern_util.h
---- a/arch/um/include/kern_util.h~uml-delete-unused-code
-+++ a/arch/um/include/kern_util.h
-@@ -23,7 +23,6 @@ struct kern_handlers {
- extern const struct kern_handlers handlinfo_kern;
+diff -puN arch/um/drivers/ubd_kern.c~uml-handle-block-device-hotplug-errors arch/um/drivers/ubd_kern.c
+--- a/arch/um/drivers/ubd_kern.c~uml-handle-block-device-hotplug-errors
++++ a/arch/um/drivers/ubd_kern.c
+@@ -788,14 +788,12 @@ static int ubd_id(char **str, int *start
  
- extern int ncpus;
--extern char *linux_prog;
- extern char *gdb_init;
- extern int kmalloc_ok;
- extern int jail;
-diff -puN arch/um/include/user_util.h~uml-delete-unused-code arch/um/include/user_util.h
---- a/arch/um/include/user_util.h~uml-delete-unused-code
-+++ a/arch/um/include/user_util.h
-@@ -60,7 +60,6 @@ extern void kill_child_dead(int pid);
- extern int cont(int pid);
- extern void check_sigio(void);
- extern void arch_check_bugs(void);
--extern int cpu_feature(char *what, char *buf, int len);
- extern int arch_handle_signal(int sig, union uml_pt_regs *regs);
- extern int arch_fixup(unsigned long address, void *sc_ptr);
- extern void arch_init_thread(void);
-diff -puN arch/um/kernel/tt/gdb.c~uml-delete-unused-code arch/um/kernel/tt/gdb.c
---- a/arch/um/kernel/tt/gdb.c~uml-delete-unused-code
-+++ a/arch/um/kernel/tt/gdb.c
-@@ -115,6 +115,8 @@ struct gdb_data {
- 	int err;
- };
- 
-+extern char *linux_prog;
-+
- static void config_gdb_cb(void *arg)
+ static int ubd_remove(int n, char **error_out)
  {
- 	struct gdb_data *data = arg;
-diff -puN arch/um/os-Linux/helper.c~uml-delete-unused-code arch/um/os-Linux/helper.c
---- a/arch/um/os-Linux/helper.c~uml-delete-unused-code
-+++ a/arch/um/os-Linux/helper.c
-@@ -25,23 +25,12 @@ struct helper_data {
- 	char *buf;
- };
++	struct gendisk *disk;
+ 	struct ubd *ubd_dev;
+ 	int err = -ENODEV;
  
--/* Debugging aid, changed only from gdb */
--int helper_pause = 0;
--
--static void helper_hup(int sig)
--{
--}
--
- static int helper_child(void *arg)
- {
- 	struct helper_data *data = arg;
- 	char **argv = data->argv;
- 	int errval;
+ 	mutex_lock(&ubd_lock);
  
--	if (helper_pause){
--		signal(SIGHUP, helper_hup);
--		pause();
--	}
- 	if (data->pre_exec != NULL)
- 		(*data->pre_exec)(data->pre_data);
- 	errval = execvp_noalloc(data->buf, argv[0], argv);
-diff -puN arch/um/os-Linux/main.c~uml-delete-unused-code arch/um/os-Linux/main.c
---- a/arch/um/os-Linux/main.c~uml-delete-unused-code
-+++ a/arch/um/os-Linux/main.c
-@@ -25,12 +25,7 @@
- #include "os.h"
- #include "um_malloc.h"
+-	if(ubd_gendisk[n] == NULL)
+-		goto out;
+-
+ 	ubd_dev = &ubd_devs[n];
  
--/* Set in set_stklim, which is called from main and __wrap_malloc.
-- * __wrap_malloc only calls it if main hasn't started.
-- */
--unsigned long stacksizelim;
--
--/* Set in main */
-+/* Set in main, unchanged thereafter */
- char *linux_prog;
+ 	if(ubd_dev->file == NULL)
+@@ -806,9 +804,12 @@ static int ubd_remove(int n, char **erro
+ 	if(ubd_dev->count > 0)
+ 		goto out;
  
- #define PGD_BOUND (4 * 1024 * 1024)
-@@ -52,7 +47,6 @@ static void set_stklim(void)
- 			exit(1);
- 		}
- 	}
--	stacksizelim = (lim.rlim_cur + PGD_BOUND - 1) & ~(PGD_BOUND - 1);
- }
+-	del_gendisk(ubd_gendisk[n]);
+-	put_disk(ubd_gendisk[n]);
+-	ubd_gendisk[n] = NULL;
++ 	disk = ubd_gendisk[n];
++ 	ubd_gendisk[n] = NULL;
++	if(disk != NULL){
++		del_gendisk(disk);
++		put_disk(disk);
++	}
  
- static __init void do_uml_initcalls(void)
-diff -puN arch/um/sys-i386/bugs.c~uml-delete-unused-code arch/um/sys-i386/bugs.c
---- a/arch/um/sys-i386/bugs.c~uml-delete-unused-code
-+++ a/arch/um/sys-i386/bugs.c
-@@ -79,29 +79,6 @@ static int find_cpuinfo_line(int fd, cha
- 	return(0);
- }
- 
--int cpu_feature(char *what, char *buf, int len)
--{
--	int fd, ret = 0;
--
--	fd = os_open_file("/proc/cpuinfo", of_read(OPENFLAGS()), 0);
--	if(fd < 0){
--		printk("Couldn't open /proc/cpuinfo, err = %d\n", -fd);
--		return(0);
--	}
--
--	if(!find_cpuinfo_line(fd, what, buf, len)){
--		printk("Couldn't find '%s' line in /proc/cpuinfo\n", what);
--		goto out_close;
--	}
--
--	token(fd, buf, len, '\n');
--	ret = 1;
--
-- out_close:
--	os_close_file(fd);
--	return(ret);
--}
--
- static int check_cpu_flag(char *feature, int *have_it)
- {
- 	char buf[MAXTOKEN], c;
-diff -puN arch/um/sys-x86_64/bugs.c~uml-delete-unused-code arch/um/sys-x86_64/bugs.c
---- a/arch/um/sys-x86_64/bugs.c~uml-delete-unused-code
-+++ a/arch/um/sys-x86_64/bugs.c
-@@ -88,29 +88,6 @@ static int find_cpuinfo_line(int fd, cha
- 	return(0);
- }
- 
--int cpu_feature(char *what, char *buf, int len)
--{
--	int fd, ret = 0;
--
--	fd = os_open_file("/proc/cpuinfo", of_read(OPENFLAGS()), 0);
--	if(fd < 0){
--		printk("Couldn't open /proc/cpuinfo, err = %d\n", -fd);
--		return(0);
--	}
--
--	if(!find_cpuinfo_line(fd, what, buf, len)){
--		printk("Couldn't find '%s' line in /proc/cpuinfo\n", what);
--		goto out_close;
--	}
--
--	token(fd, buf, len, '\n');
--	ret = 1;
--
-- out_close:
--	os_close_file(fd);
--	return(ret);
--}
--
- /* Overrides for Emacs so that we follow Linus's tabbing style.
-  * Emacs will notice this stuff at the end of the file and automatically
-  * adjust the settings for this buffer only.  This must remain at the end
+ 	if(fake_gendisk[n] != NULL){
+ 		del_gendisk(fake_gendisk[n]);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
