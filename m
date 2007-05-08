@@ -1,76 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - swsusp-fix-snapshot_release.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:38 -0700
-Message-ID: <200705080005.l4805csk009111@shell0.pdx.osdl.net>
+Subject: - cris-check-for-memory-allocation.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:05:49 -0700
+Message-ID: <200705080005.l4805ntK009123@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56662 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57169 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755274AbXEHAGK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:10 -0400
+	by vger.kernel.org with ESMTP id S967362AbXEHAGO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swsusp: fix snapshot_release
+     CRIS: check for memory allocation
 has been removed from the -mm tree.  Its filename was
-     swsusp-fix-snapshot_release.patch
+     cris-check-for-memory-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: swsusp: fix snapshot_release
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: CRIS: check for memory allocation
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Remove the leftover enable_nonboot_cpus() from snapshot_release().
+Add checking for allocated memory.  Indents and spaces are added to be
+familiar with the kernel coding style.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Acked-by: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/user.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/cris/kernel/profile.c |   81 ++++++++++++++++++++---------------
+ 1 file changed, 48 insertions(+), 33 deletions(-)
 
-diff -puN kernel/power/user.c~swsusp-fix-snapshot_release kernel/power/user.c
---- a/kernel/power/user.c~swsusp-fix-snapshot_release
-+++ a/kernel/power/user.c
-@@ -86,7 +86,6 @@ static int snapshot_release(struct inode
- 	if (data->frozen) {
- 		mutex_lock(&pm_mutex);
- 		thaw_processes();
--		enable_nonboot_cpus();
- 		mutex_unlock(&pm_mutex);
- 	}
- 	atomic_inc(&snapshot_device_available);
+diff -puN arch/cris/kernel/profile.c~cris-check-for-memory-allocation arch/cris/kernel/profile.c
+--- a/arch/cris/kernel/profile.c~cris-check-for-memory-allocation
++++ a/arch/cris/kernel/profile.c
+@@ -15,39 +15,47 @@ static int prof_running = 0;
+ void
+ cris_profile_sample(struct pt_regs* regs)
+ {
+-  if (!prof_running)
+-    return;
+-  if (user_mode(regs))
+-    *(unsigned int*)sample_buffer_pos = current->pid;
+-  else
+-    *(unsigned int*)sample_buffer_pos = 0;
+-  *(unsigned int*)(sample_buffer_pos + 4) = instruction_pointer(regs);
+-  sample_buffer_pos += 8;
+-  if (sample_buffer_pos == sample_buffer + SAMPLE_BUFFER_SIZE)
+-    sample_buffer_pos = sample_buffer;
++	if (!prof_running)
++		return;
++
++	if (user_mode(regs))
++		*(unsigned int*)sample_buffer_pos = current->pid;
++	else
++		*(unsigned int*)sample_buffer_pos = 0;
++
++	*(unsigned int*)(sample_buffer_pos + 4) = instruction_pointer(regs);
++	sample_buffer_pos += 8;
++
++	if (sample_buffer_pos == sample_buffer + SAMPLE_BUFFER_SIZE)
++		sample_buffer_pos = sample_buffer;
+ }
+ 
+ static ssize_t
+-read_cris_profile(struct file *file, char __user *buf, size_t count, loff_t *ppos)
++read_cris_profile(struct file *file, char __user *buf,
++		  size_t count, loff_t *ppos)
+ {
+-  unsigned long p = *ppos;
+-  if (p > SAMPLE_BUFFER_SIZE)
+-    return 0;
+-  if (p + count > SAMPLE_BUFFER_SIZE)
+-    count = SAMPLE_BUFFER_SIZE - p;
+-  if (copy_to_user(buf, sample_buffer + p,count))
++	unsigned long p = *ppos;
++
++	if (p > SAMPLE_BUFFER_SIZE)
++		return 0;
++
++	if (p + count > SAMPLE_BUFFER_SIZE)
++		count = SAMPLE_BUFFER_SIZE - p;
++	if (copy_to_user(buf, sample_buffer + p,count))
+ 		return -EFAULT;
+-  memset(sample_buffer + p, 0, count);
+-  *ppos += count;
+-  return count;
++
++	memset(sample_buffer + p, 0, count);
++	*ppos += count;
++
++	return count;
+ }
+ 
+ static ssize_t
+ write_cris_profile(struct file *file, const char __user *buf,
+-              size_t count, loff_t *ppos)
++		   size_t count, loff_t *ppos)
+ {
+-  sample_buffer_pos = sample_buffer;
+-  memset(sample_buffer, 0, SAMPLE_BUFFER_SIZE);
++	sample_buffer_pos = sample_buffer;
++	memset(sample_buffer, 0, SAMPLE_BUFFER_SIZE);
+ }
+ 
+ static const struct file_operations cris_proc_profile_operations = {
+@@ -58,16 +66,23 @@ static const struct file_operations cris
+ static int
+ __init init_cris_profile(void)
+ {
+-  struct proc_dir_entry *entry;
+-  sample_buffer = kmalloc(SAMPLE_BUFFER_SIZE, GFP_KERNEL);
+-  sample_buffer_pos = sample_buffer;
+-  entry = create_proc_entry("system_profile", S_IWUSR | S_IRUGO, NULL);
+-  if (entry) {
+-    entry->proc_fops = &cris_proc_profile_operations;
+-    entry->size = SAMPLE_BUFFER_SIZE;
+-  }
+-  prof_running = 1;
+-  return 0;
++	struct proc_dir_entry *entry;
++
++	sample_buffer = kmalloc(SAMPLE_BUFFER_SIZE, GFP_KERNEL);
++	if (!sample_buffer) {
++		return -ENOMEM;
++	}
++
++	sample_buffer_pos = sample_buffer;
++
++	entry = create_proc_entry("system_profile", S_IWUSR | S_IRUGO, NULL);
++	if (entry) {
++		entry->proc_fops = &cris_proc_profile_operations;
++		entry->size = SAMPLE_BUFFER_SIZE;
++	}
++	prof_running = 1;
++
++	return 0;
+ }
+ 
+ __initcall(init_cris_profile);
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-swsusp-clean-up-print.patch
-pm-separate-hibernation-code-from-suspend-code.patch
-freezer-task-exit_state-should-be-treated-as-bolean.patch
-documentation-ask-driver-writers-to-provide-pm-support.patch
-workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-remvoe-kthread_bind-call-from-_cpu_down.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-add-suspend-related-notifications-for-cpu-hotplug.patch
-add-suspend-related-notifications-for-cpu-hotplug-cleanup.patch
-microcode-use-suspend-related-cpu-hotplug-notifications.patch
-add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
-shrink_slab-handle-bad-shrinkers.patch
