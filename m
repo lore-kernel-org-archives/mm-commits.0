@@ -1,92 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-thrashing-recovery-method-refill-holes.patch removed from -mm tree
-Date: Tue, 08 May 2007 01:14:59 -0700
-Message-ID: <200705080814.l488ExeB019002@shell0.pdx.osdl.net>
+Subject: - readahead-initial-method-user-recommended-size.patch removed from -mm tree
+Date: Tue, 08 May 2007 01:14:41 -0700
+Message-ID: <200705080814.l488Efa3018981@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34275 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934638AbXEHIPZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:15:25 -0400
+	by vger.kernel.org with ESMTP id S934638AbXEHIPW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 04:15:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: thrashing recovery method: refill holes
+     readahead: initial method - user recommended size
 has been removed from the -mm tree.  Its filename was
-     readahead-thrashing-recovery-method-refill-holes.patch
+     readahead-initial-method-user-recommended-size.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: readahead: thrashing recovery method: refill holes
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: readahead: initial method - user recommended size
+From: Wu Fengguang <wfg@mail.ustc.edu.cn>
 
-When thrashing happened in the following abnormal cases:
-	1) the old chunk is lost;
-	2) random pages are lost due to unbalanced aging.
-There will be hole(s) in the otherwise continuous readahead pages.
+backing_dev_info.ra_pages0 is a user configurable parameter that controls
+the readahead size on start-of-file.
 
-We recover from it by simply refilling all possible holes and
-turning off lookahead.
-
-These kind of abnormal situations are not expected to repeatable for the same
-stream.  They happen in a random fashion and do not tell much about the system
-load.  So the best thing we can do is to do nothing more than refilling the
-holes.  If thrashing persists, it will quickly fail into the 3) case where we
-get the exact thrashing threshold:
-
-	3) the new chunk is thrashed.
-
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: Wu Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ block/ll_rw_blk.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN mm/readahead.c~readahead-thrashing-recovery-method-refill-holes mm/readahead.c
---- a/mm/readahead.c~readahead-thrashing-recovery-method-refill-holes
-+++ a/mm/readahead.c
-@@ -1555,20 +1555,23 @@ thrashing_recovery_readahead(struct addr
- 					  RA_EVENT_READAHEAD_THRASHING,
- 					  ra->readahead_index - offset);
+diff -puN block/ll_rw_blk.c~readahead-initial-method-user-recommended-size block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~readahead-initial-method-user-recommended-size
++++ a/block/ll_rw_blk.c
+@@ -3881,6 +3881,24 @@ queue_ra_store(struct request_queue *q, 
+ 	return ret;
+ }
  
--	if (offset < ra->ra_index) {
-+	if (offset < ra->ra_index || unbalanced_aging) {
- 		/*
--		 * Thrashed when we are in [la_index, ra_index), i.e.
--		 * the old chunk is lost soon after the new one is allocated.
--		 * Ensure that we recover all needed pages in the old chunk.
--		 * And futher keep the lookahead_index untouched.
-+		 * 1) The old chunk is lost.
-+		 * 2) Some random pages are lost due to unbalanced zone/node aging.
-+		 * Refill the hole(s).
-+		 * Further thrashings will bring us back to case (3) below.
- 		 */
--		ra_size = ra->lookahead_index - offset;
-+		ra_size = ra->readahead_index - offset;
- 	} else {
--		/* After thrashing, we know the exact thrashing-threshold. */
-+		/*
-+		 * 3) The new chunk is lost.
-+		 * It tells us about the thrashing-threshold.
-+		 */
- 		ra_size = offset - ra->la_index;
- 		update_ra_thrash_bytes(mapping->backing_dev_info, ra_size);
++static ssize_t queue_initial_ra_show(struct request_queue *q, char *page)
++{
++	int kb = q->backing_dev_info.ra_pages0 << (PAGE_CACHE_SHIFT - 10);
++
++	return queue_var_show(kb, (page));
++}
++
++static ssize_t
++queue_initial_ra_store(struct request_queue *q, const char *page, size_t count)
++{
++	unsigned long kb;
++	ssize_t ret = queue_var_store(&kb, page, count);
++
++	q->backing_dev_info.ra_pages0 = kb >> (PAGE_CACHE_SHIFT - 10);
++
++	return ret;
++}
++
+ static ssize_t queue_max_sectors_show(struct request_queue *q, char *page)
+ {
+ 	int max_sectors_kb = q->max_sectors >> 1;
+@@ -3938,6 +3956,12 @@ static struct queue_sysfs_entry queue_ra
+ 	.store = queue_ra_store,
+ };
  
--		/* And be cooperative: the system may be hunting for memory. */
-+		/* Be cooperative: the system may be hunting for memory. */
- 		ra_size = MIN_RA_PAGES + ra_size / 2;
- 	}
- 
++static struct queue_sysfs_entry queue_initial_ra_entry = {
++	.attr = {.name = "read_ahead_initial_kb", .mode = S_IRUGO | S_IWUSR },
++	.show = queue_initial_ra_show,
++	.store = queue_initial_ra_store,
++};
++
+ static struct queue_sysfs_entry queue_max_sectors_entry = {
+ 	.attr = {.name = "max_sectors_kb", .mode = S_IRUGO | S_IWUSR },
+ 	.show = queue_max_sectors_show,
+@@ -3958,6 +3982,7 @@ static struct queue_sysfs_entry queue_io
+ static struct attribute *default_attrs[] = {
+ 	&queue_requests_entry.attr,
+ 	&queue_ra_entry.attr,
++	&queue_initial_ra_entry.attr,
+ 	&queue_max_hw_sectors_entry.attr,
+ 	&queue_max_sectors_entry.attr,
+ 	&queue_iosched_entry.attr,
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
+readahead-initial-method-user-recommended-size.patch
+readahead-initial-method.patch
+readahead-backward-prefetching-method.patch
+readahead-thrashing-recovery-method.patch
+readahead-thrashing-recovery-method-check-unbalanced-aging.patch
 readahead-thrashing-recovery-method-refill-holes.patch
 readahead-call-scheme.patch
 readahead-call-scheme-cleanup.patch
