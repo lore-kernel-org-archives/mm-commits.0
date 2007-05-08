@@ -1,228 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:08:50 -0700
-Message-ID: <200705080008.l4808oMD009404@shell0.pdx.osdl.net>
+Subject: - slub-slab-allocators-remove-slab_ctor_atomic.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:09:04 -0700
+Message-ID: <200705080009.l48094Th009422@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39570 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967450AbXEHAJZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:09:25 -0400
+	by vger.kernel.org with ESMTP id S967447AbXEHAJY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:09:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mel@skynet.ie, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Free slabs and sort partial slab lists in kmem_cache_shrink
+     slab allocators: Remove SLAB_CTOR_ATOMIC
 has been removed from the -mm tree.  Its filename was
-     slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink.patch
+     slub-slab-allocators-remove-slab_ctor_atomic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: Free slabs and sort partial slab lists in kmem_cache_shrink
+Subject: slab allocators: Remove SLAB_CTOR_ATOMIC
 From: Christoph Lameter <clameter@sgi.com>
 
-At kmem_cache_shrink check if we have any empty slabs on the partial
-if so then remove them.
+SLAB_CTOR atomic is never used which is no surprise since I cannot imagine
+that one would want to do something serious in a constructor or destructor.
+ In particular given that the slab allocators run with interrupts disabled.
+ Actions in constructors and destructors are by their nature very limited
+and usually do not go beyond initializing variables and list operations.
 
-Also--as an anti-fragmentation measure--sort the partial slabs so that
-the most fully allocated ones come first and the least allocated last.
+(The i386 pgd ctor and dtors do take a spinlock in constructor and
+destructor.....  I think that is the furthest we go at this point.)
 
-The next allocations may fill up the nearly full slabs. Having the
-least allocated slabs last gives them the maximum chance that their
-remaining objects may be freed. Thus we can hopefully minimize the
-partial slabs.
+There is no flag passed to the destructor so removing SLAB_CTOR_ATOMIC also
+establishes a certain symmetry.
 
-I think this is the best one can do in terms antifragmentation
-measures. Real defragmentation (meaning moving objects out of slabs with
-the least free objects to those that are almost full) can be implemted
-by reverse scanning through the list produced here but that would mean
-that we need to provide a callback at slab cache creation that allows
-the deletion or moving of an object. This will involve slab API
-changes, so defer for now.
-
-Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |  125 ++++++++++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 112 insertions(+), 13 deletions(-)
+ mm/slub.c |   10 ++--------
+ 1 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN mm/slub.c~slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink mm/slub.c
---- a/mm/slub.c~slub-free-slabs-and-sort-partial-slab-lists-in-kmem_cache_shrink
+diff -puN mm/slub.c~slub-slab-allocators-remove-slab_ctor_atomic mm/slub.c
+--- a/mm/slub.c~slub-slab-allocators-remove-slab_ctor_atomic
 +++ a/mm/slub.c
-@@ -130,9 +130,19 @@
-  */
- #define SLUB_UNIMPLEMENTED (SLAB_DEBUG_INITIAL)
- 
--/* Mininum number of partial slabs */
-+/*
-+ * Mininum number of partial slabs. These will be left on the partial
-+ * lists even if they are empty. kmem_cache_shrink may reclaim them.
-+ */
- #define MIN_PARTIAL 2
- 
-+/*
-+ * Maximum number of desirable partial slabs.
-+ * The existence of more partial slabs makes kmem_cache_shrink
-+ * sort the partial list by the number of objects in the.
-+ */
-+#define MAX_PARTIAL 10
-+
- #define DEBUG_DEFAULT_FLAGS (SLAB_DEBUG_FREE | SLAB_RED_ZONE | \
- 				SLAB_POISON | SLAB_STORE_USER)
- /*
-@@ -1882,7 +1892,7 @@ static int kmem_cache_close(struct kmem_
- 	for_each_online_node(node) {
- 		struct kmem_cache_node *n = get_node(s, node);
- 
--		free_list(s, n, &n->partial);
-+		n->nr_partial -= free_list(s, n, &n->partial);
- 		if (atomic_long_read(&n->nr_slabs))
- 			return 1;
+@@ -802,14 +802,8 @@ static void setup_object(struct kmem_cac
+ 		init_tracking(s, object);
  	}
-@@ -2130,6 +2140,86 @@ void kfree(const void *x)
- }
- EXPORT_SYMBOL(kfree);
  
-+/*
-+ *  kmem_cache_shrink removes empty slabs from the partial lists
-+ *  and then sorts the partially allocated slabs by the number
-+ *  of items in use. The slabs with the most items in use
-+ *  come first. New allocations will remove these from the
-+ *  partial list because they are full. The slabs with the
-+ *  least items are placed last. If it happens that the objects
-+ *  are freed then the page can be returned to the page allocator.
-+ */
-+int kmem_cache_shrink(struct kmem_cache *s)
-+{
-+	int node;
-+	int i;
-+	struct kmem_cache_node *n;
-+	struct page *page;
-+	struct page *t;
-+	struct list_head *slabs_by_inuse =
-+		kmalloc(sizeof(struct list_head) * s->objects, GFP_KERNEL);
-+	unsigned long flags;
-+
-+	if (!slabs_by_inuse)
-+		return -ENOMEM;
-+
-+	flush_all(s);
-+	for_each_online_node(node) {
-+		n = get_node(s, node);
-+
-+		if (!n->nr_partial)
-+			continue;
-+
-+		for (i = 0; i < s->objects; i++)
-+			INIT_LIST_HEAD(slabs_by_inuse + i);
-+
-+		spin_lock_irqsave(&n->list_lock, flags);
-+
-+		/*
-+		 * Build lists indexed by the items in use in
-+		 * each slab or free slabs if empty.
-+		 *
-+		 * Note that concurrent frees may occur while
-+		 * we hold the list_lock. page->inuse here is
-+		 * the upper limit.
-+		 */
-+		list_for_each_entry_safe(page, t, &n->partial, lru) {
-+			if (!page->inuse && slab_trylock(page)) {
-+				/*
-+				 * Must hold slab lock here because slab_free
-+				 * may have freed the last object and be
-+				 * waiting to release the slab.
-+				 */
-+				list_del(&page->lru);
-+				n->nr_partial--;
-+				slab_unlock(page);
-+				discard_slab(s, page);
-+			} else {
-+				if (n->nr_partial > MAX_PARTIAL)
-+					list_move(&page->lru,
-+					slabs_by_inuse + page->inuse);
-+			}
-+		}
-+
-+		if (n->nr_partial <= MAX_PARTIAL)
-+			goto out;
-+
-+		/*
-+		 * Rebuild the partial list with the slabs filled up
-+		 * most first and the least used slabs at the end.
-+		 */
-+		for (i = s->objects - 1; i >= 0; i--)
-+			list_splice(slabs_by_inuse + i, n->partial.prev);
-+
-+	out:
-+		spin_unlock_irqrestore(&n->list_lock, flags);
-+	}
-+
-+	kfree(slabs_by_inuse);
-+	return 0;
-+}
-+EXPORT_SYMBOL(kmem_cache_shrink);
-+
- /**
-  * krealloc - reallocate memory. The contents will remain unchanged.
-  *
-@@ -2382,17 +2472,6 @@ static struct notifier_block __cpuinitda
- 
- #endif
- 
--/***************************************************************
-- *	Compatiblility definitions
-- **************************************************************/
+-	if (unlikely(s->ctor)) {
+-		int mode = SLAB_CTOR_CONSTRUCTOR;
 -
--int kmem_cache_shrink(struct kmem_cache *s)
--{
--	flush_all(s);
--	return 0;
--}
--EXPORT_SYMBOL(kmem_cache_shrink);
+-		if (!(s->flags & __GFP_WAIT))
+-			mode |= SLAB_CTOR_ATOMIC;
 -
- #ifdef CONFIG_NUMA
- 
- /*****************************************************************
-@@ -3169,6 +3248,25 @@ static ssize_t validate_store(struct kme
+-		s->ctor(object, s, mode);
+-	}
++	if (unlikely(s->ctor))
++		s->ctor(object, s, SLAB_CTOR_CONSTRUCTOR);
  }
- SLAB_ATTR(validate);
  
-+static ssize_t shrink_show(struct kmem_cache *s, char *buf)
-+{
-+	return 0;
-+}
-+
-+static ssize_t shrink_store(struct kmem_cache *s,
-+			const char *buf, size_t length)
-+{
-+	if (buf[0] == '1') {
-+		int rc = kmem_cache_shrink(s);
-+
-+		if (rc)
-+			return rc;
-+	} else
-+		return -EINVAL;
-+	return length;
-+}
-+SLAB_ATTR(shrink);
-+
- static ssize_t alloc_calls_show(struct kmem_cache *s, char *buf)
- {
- 	if (!(s->flags & SLAB_STORE_USER))
-@@ -3225,6 +3323,7 @@ static struct attribute * slab_attrs[] =
- 	&poison_attr.attr,
- 	&store_user_attr.attr,
- 	&validate_attr.attr,
-+	&shrink_attr.attr,
- 	&alloc_calls_attr.attr,
- 	&free_calls_attr.attr,
- #ifdef CONFIG_ZONE_DMA
+ static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
