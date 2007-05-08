@@ -1,184 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - uml-speed-page-fault-path.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:07:33 -0700
-Message-ID: <200705080007.l4807Xgc009296@shell0.pdx.osdl.net>
+Subject: - uml-move-remaining-useful-contents-of-user_utilh.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:06:21 -0700
+Message-ID: <200705080006.l4806L8i009182@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52209 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967478AbXEHALs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:11:48 -0400
+	by vger.kernel.org with ESMTP id S967481AbXEHALt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:11:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: speed page fault path
+     uml: move remaining useful contents of user_util.h
 has been removed from the -mm tree.  Its filename was
-     uml-speed-page-fault-path.patch
+     uml-move-remaining-useful-contents-of-user_utilh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: speed page fault path
+Subject: uml: move remaining useful contents of user_util.h
 From: Jeff Dike <jdike@addtoit.com>
 
-Give the page fault code a specialized path.  There is only one page to look
-at, so there's no point in going into the general page table walking code. 
-There's only going to be one host operation, so there are no opportunities for
-merging.  So, we go straight to the pte we want, figure out what needs doing,
-and do it.
+Rescue the useful contents of the soon-to-be-gone user-util.h.
 
-While I was in here, I fixed the wart where the address passed to unmap was a
-void *, but an unsigned long to map and protect.
+pty.c now gets ptsname from stdlib.h like it should have always done.
 
-This gives me just under 10% on a kernel build.
+CATCH_EINTR is now in os.h, although perhaps all usage should be under
+os-Linux at some point.
+
+get_pty is also in os.h.
+
+This patch restores the old definition of ARRAY_SIZE in user.h.  This file is
+included only in userspace files, so there will be no conflict with the
+kernel's new ARRAY_SIZE.  The copy of the kernel's ARRAY_SIZE and associated
+infrastructure is now gone.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/os.h                  |    2 
- arch/um/include/skas/mode_kern_skas.h |    2 
- arch/um/kernel/skas/tlb.c             |   66 +++++++++++++++++++++++-
- arch/um/kernel/tlb.c                  |    4 +
- arch/um/os-Linux/skas/mem.c           |    4 -
- 5 files changed, 72 insertions(+), 6 deletions(-)
+ arch/um/drivers/pty.c           |    1 +
+ arch/um/include/os.h            |    6 ++++++
+ arch/um/include/user.h          |   19 ++++++++-----------
+ arch/um/include/user_util.h     |   18 ------------------
+ arch/um/os-Linux/sys-i386/tls.c |    1 +
+ 5 files changed, 16 insertions(+), 29 deletions(-)
 
-diff -puN arch/um/include/os.h~uml-speed-page-fault-path arch/um/include/os.h
---- a/arch/um/include/os.h~uml-speed-page-fault-path
+diff -puN arch/um/drivers/pty.c~uml-move-remaining-useful-contents-of-user_utilh arch/um/drivers/pty.c
+--- a/arch/um/drivers/pty.c~uml-move-remaining-useful-contents-of-user_utilh
++++ a/arch/um/drivers/pty.c
+@@ -4,6 +4,7 @@
+  */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <unistd.h>
+ #include <string.h>
+ #include <errno.h>
+diff -puN arch/um/include/os.h~uml-move-remaining-useful-contents-of-user_utilh arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-move-remaining-useful-contents-of-user_utilh
 +++ a/arch/um/include/os.h
-@@ -302,7 +302,7 @@ extern long syscall_stub_data(struct mm_
- extern int map(struct mm_id * mm_idp, unsigned long virt,
- 	       unsigned long len, int r, int w, int x, int phys_fd,
- 	       unsigned long long offset, int done, void **data);
--extern int unmap(struct mm_id * mm_idp, void *addr, unsigned long len,
-+extern int unmap(struct mm_id * mm_idp, unsigned long addr, unsigned long len,
- 		 int done, void **data);
- extern int protect(struct mm_id * mm_idp, unsigned long addr,
- 		   unsigned long len, int r, int w, int x, int done,
-diff -puN arch/um/include/skas/mode_kern_skas.h~uml-speed-page-fault-path arch/um/include/skas/mode_kern_skas.h
---- a/arch/um/include/skas/mode_kern_skas.h~uml-speed-page-fault-path
-+++ a/arch/um/include/skas/mode_kern_skas.h
-@@ -33,6 +33,8 @@ extern unsigned long set_task_sizes_skas
- extern int start_uml_skas(void);
- extern int external_pid_skas(struct task_struct *task);
- extern int thread_pid_skas(struct task_struct *task);
-+extern void flush_tlb_page_skas(struct vm_area_struct *vma,
-+				unsigned long address);
+@@ -16,6 +16,8 @@
+ #include "sysdep/tls.h"
+ #include "sysdep/archsetjmp.h"
  
- #define kmem_end_skas (host_task_size - 1024 * 1024)
++#define CATCH_EINTR(expr) while ((errno = 0, ((expr) < 0)) && (errno == EINTR))
++
+ #define OS_TYPE_FILE 1
+ #define OS_TYPE_DIR 2
+ #define OS_TYPE_SYMLINK 3
+@@ -341,6 +343,10 @@ extern void maybe_sigio_broken(int fd, i
+ extern void sig_handler_common_skas(int sig, void *sc_ptr);
+ extern void user_signal(int sig, union uml_pt_regs *regs, int pid);
  
-diff -puN arch/um/kernel/skas/tlb.c~uml-speed-page-fault-path arch/um/kernel/skas/tlb.c
---- a/arch/um/kernel/skas/tlb.c~uml-speed-page-fault-path
-+++ a/arch/um/kernel/skas/tlb.c
-@@ -32,8 +32,7 @@ static int do_ops(union mm_context *mmu,
- 				  op->u.mmap.offset, finished, flush);
- 			break;
- 		case MUNMAP:
--			ret = unmap(&mmu->skas.id,
--				    (void *) op->u.munmap.addr,
-+			ret = unmap(&mmu->skas.id, op->u.munmap.addr,
- 				    op->u.munmap.len, finished, flush);
- 			break;
- 		case MPROTECT:
-@@ -94,3 +93,66 @@ void force_flush_all_skas(void)
- 	unsigned long end = proc_mm ? task_size : CONFIG_STUB_START;
-         fix_range(current->mm, 0, end, 1);
- }
-+
-+void flush_tlb_page_skas(struct vm_area_struct *vma, unsigned long address)
-+{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	struct mm_struct *mm = vma->vm_mm;
-+	void *flush = NULL;
-+	int r, w, x, err = 0;
-+	struct mm_id *mm_id;
-+
-+	pgd = pgd_offset(vma->vm_mm, address);
-+	if(!pgd_present(*pgd))
-+		goto kill;
-+
-+	pud = pud_offset(pgd, address);
-+	if(!pud_present(*pud))
-+		goto kill;
-+
-+	pmd = pmd_offset(pud, address);
-+	if(!pmd_present(*pmd))
-+		goto kill;
-+
-+	pte = pte_offset_kernel(pmd, address);
-+
-+	r = pte_read(*pte);
-+	w = pte_write(*pte);
-+	x = pte_exec(*pte);
-+	if (!pte_young(*pte)) {
-+		r = 0;
-+		w = 0;
-+	} else if (!pte_dirty(*pte)) {
-+		w = 0;
-+	}
-+
-+	mm_id = &mm->context.skas.id;
-+	if(pte_newpage(*pte)){
-+		if(pte_present(*pte)){
-+			unsigned long long offset;
-+			int fd;
-+
-+			fd = phys_mapping(pte_val(*pte) & PAGE_MASK, &offset);
-+			err = map(mm_id, address, PAGE_SIZE, r, w, x, fd,
-+				  offset, 1, &flush);
-+		}
-+		else err = unmap(mm_id, address, PAGE_SIZE, 1, &flush);
-+	}
-+	else if(pte_newprot(*pte))
-+		err = protect(mm_id, address, PAGE_SIZE, r, w, x, 1, &flush);
-+
-+	if(err)
-+		goto kill;
-+
-+	*pte = pte_mkuptodate(*pte);
-+
-+	return;
-+
-+kill:
-+	printk("Failed to flush page for address 0x%lx\n", address);
-+	force_sig(SIGKILL, current);
-+}
-+
-diff -puN arch/um/kernel/tlb.c~uml-speed-page-fault-path arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-speed-page-fault-path
-+++ a/arch/um/kernel/tlb.c
-@@ -381,7 +381,9 @@ pte_t *addr_pte(struct task_struct *task
- void flush_tlb_page(struct vm_area_struct *vma, unsigned long address)
- {
- 	address &= PAGE_MASK;
--	flush_tlb_range(vma, address, address + PAGE_SIZE);
-+
-+	CHOOSE_MODE(flush_tlb_range(vma, address, address + PAGE_SIZE),
-+		    flush_tlb_page_skas(vma, address));
- }
++/* sys-x86_64/prctl.c */
+ extern int os_arch_prctl(int pid, int code, unsigned long *addr);
  
- void flush_tlb_all(void)
-diff -puN arch/um/os-Linux/skas/mem.c~uml-speed-page-fault-path arch/um/os-Linux/skas/mem.c
---- a/arch/um/os-Linux/skas/mem.c~uml-speed-page-fault-path
-+++ a/arch/um/os-Linux/skas/mem.c
-@@ -219,8 +219,8 @@ int map(struct mm_id * mm_idp, unsigned 
- 	return ret;
- }
++/* tty.c */
++int get_pty(void);
++
+ #endif
+diff -puN arch/um/include/user.h~uml-move-remaining-useful-contents-of-user_utilh arch/um/include/user.h
+--- a/arch/um/include/user.h~uml-move-remaining-useful-contents-of-user_utilh
++++ a/arch/um/include/user.h
+@@ -6,6 +6,14 @@
+ #ifndef __USER_H__
+ #define __USER_H__
  
--int unmap(struct mm_id * mm_idp, void *addr, unsigned long len, int done,
--	  void **data)
-+int unmap(struct mm_id * mm_idp, unsigned long addr, unsigned long len,
-+	  int done, void **data)
- {
- 	int ret;
++/*
++ * The usual definition - copied here because the kernel provides its own,
++ * fancier, type-safe, definition.  Using that one would require
++ * copying too much infrastructure for my taste, so userspace files
++ * get less checking than kernel files.
++ */
++#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
++
+ extern void panic(const char *fmt, ...)
+ 	__attribute__ ((format (printf, 1, 2)));
+ extern int printk(const char *fmt, ...)
+@@ -18,14 +26,3 @@ extern unsigned long strlcpy(char *, con
+ extern unsigned long strlcat(char *, const char *, unsigned long);
  
+ #endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/include/user_util.h~uml-move-remaining-useful-contents-of-user_utilh arch/um/include/user_util.h
+--- a/arch/um/include/user_util.h~uml-move-remaining-useful-contents-of-user_utilh
++++ a/arch/um/include/user_util.h
+@@ -8,31 +8,13 @@
+ 
+ #include "sysdep/ptrace.h"
+ 
+-/* Copied from kernel.h and compiler-gcc.h */
+-
+-/* Force a compilation error if condition is true, but also produce a
+-   result (of value 0 and type size_t), so the expression can be used
+-   e.g. in a structure initializer (or where-ever else comma expressions
+-   aren't permitted). */
+-#define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
+-
+-/* &a[0] degrades to a pointer: a different type from an array */
+-#define __must_be_array(a) \
+-  BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
+-
+-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+-
+-#define CATCH_EINTR(expr) while ((errno = 0, ((expr) < 0)) && (errno == EINTR))
+-
+ extern int mode_tt;
+ 
+ extern int grantpt(int __fd);
+ extern int unlockpt(int __fd);
+-extern char *ptsname(int __fd);
+ 
+ extern void *add_signal_handler(int sig, void (*handler)(int));
+ extern void input_cb(void (*proc)(void *), void *arg, int arg_len);
+-extern int get_pty(void);
+ extern int switcheroo(int fd, int prot, void *from, void *to, int size);
+ extern void do_exec(int old_pid, int new_pid);
+ extern void tracer_panic(char *msg, ...)
+diff -puN arch/um/os-Linux/sys-i386/tls.c~uml-move-remaining-useful-contents-of-user_utilh arch/um/os-Linux/sys-i386/tls.c
+--- a/arch/um/os-Linux/sys-i386/tls.c~uml-move-remaining-useful-contents-of-user_utilh
++++ a/arch/um/os-Linux/sys-i386/tls.c
+@@ -5,6 +5,7 @@
+ #include <unistd.h>
+ 
+ #include "sysdep/tls.h"
++#include "user.h"
+ #include "user_util.h"
+ 
+ /* Checks whether host supports TLS, and sets *tls_min according to the value
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
