@@ -1,57 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm.patch removed from -mm tree
-Date: Mon, 07 May 2007 22:10:13 -0700
-Message-ID: <200705080510.l485ADU2014107@shell0.pdx.osdl.net>
+Subject: - cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch removed from -mm tree
+Date: Mon, 07 May 2007 22:11:22 -0700
+Message-ID: <200705080511.l485BMRi014123@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46530 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967869AbXEHFKX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 01:10:23 -0400
+	by vger.kernel.org with ESMTP id S967865AbXEHFLd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 01:11:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mreimer@vpop.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: rientjes@google.com, clameter@engr.sgi.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ds1wm: disable interrupts when turning off ds1wm
+     cpusets-allow-empty-cpusmems_allowed-to-be-set-for fix
 has been removed from the -mm tree.  Its filename was
-     driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm.patch
+     cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
 
-This patch was dropped because it was folded into driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
+This patch was dropped because it was folded into cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
 
 ------------------------------------------------------
-Subject: ds1wm: disable interrupts when turning off ds1wm
-From: Matt Reimer <mreimer@vpop.net>
+Subject: cpusets-allow-empty-cpusmems_allowed-to-be-set-for fix
+From: David Rientjes <rientjes@google.com>
 
-Disable interrupts when turning off ds1wm.
-
-Signed-off-by: Matt Reimer <mreimer@vpop.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Paul Menage <menage@google.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds1wm.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/cpuset.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/masters/ds1wm.c~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm drivers/w1/masters/ds1wm.c
---- a/drivers/w1/masters/ds1wm.c~driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm
-+++ a/drivers/w1/masters/ds1wm.c
-@@ -237,6 +237,10 @@ static void ds1wm_down(struct ds1wm_data
- {
- 	ds1wm_reset(ds1wm_data);
- 
-+	/* Disable interrupts. */
-+	ds1wm_write_register(ds1wm_data, DS1WM_INT_EN,
-+			     ds1wm_data->active_high ? DS1WM_INTEN_IAS : 0);
-+
- 	if (ds1wm_data->pdata->disable)
- 		ds1wm_data->pdata->disable(ds1wm_data->pdev);
- 
+diff -puN kernel/cpuset.c~cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix
++++ a/kernel/cpuset.c
+@@ -772,7 +772,7 @@ static int update_cpumask(struct cpuset 
+ 	 * tasks, we'll catch it later when we validate the change and return
+ 	 * -ENOSPC.
+ 	 */
+-	if (!*buf) {
++	if (!buf[0] || (buf[0] == '\n' && !buf[1])) {
+ 		cpus_clear(trialcs.cpus_allowed);
+ 	} else {
+ 		retval = cpulist_parse(buf, trialcs.cpus_allowed);
+@@ -877,7 +877,7 @@ static int update_nodemask(struct cpuset
+ 	 * tasks, we'll catch it later when we validate the change and return
+ 	 * -ENOSPC.
+ 	 */
+-	if (!*buf) {
++	if (!buf[0] || (buf[0] == '\n' && !buf[1])) {
+ 		nodes_clear(trialcs.mems_allowed);
+ 	} else {
+ 		retval = nodelist_parse(buf, trialcs.mems_allowed);
 _
 
-Patches currently in -mm which might be from mreimer@vpop.net are
+Patches currently in -mm which might be from rientjes@google.com are
 
-w1-allow-bus-master-to-have-reset-and-byte-ops.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core.patch
-driver-for-the-maxim-ds1wm-a-1-wire-bus-master-asic-core-ds1wm-disable-interrupts-when-turning-off-ds1wm.patch
+origin.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for.patch
+cpusets-allow-empty-cpusmems_allowed-to-be-set-for-fix.patch
+compiler-introduce-__used-and-__maybe_unused.patch
+i386-pci-type-may-be-unused.patch
+sh-dma-use-__maybe_unused.patch
+scsi-fix-ambiguous-gdthtable-definition.patch
+frv-gdb-use-__maybe_unused.patch
+i386-voyager-use-__maybe_unused.patch
+mips-excite-use-__maybe_unused.patch
+mips-tlbex-use-__maybe_unused.patch
+powerpc-ps3-use-__maybe_unused.patch
+i386-mmzone-use-__maybe_unused.patch
