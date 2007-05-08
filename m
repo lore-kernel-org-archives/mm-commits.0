@@ -1,298 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - slub-add-ability-to-list-alloc--free-callers-per-slab.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:08:46 -0700
-Message-ID: <200705080008.l4808kEH009401@shell0.pdx.osdl.net>
+Subject: - slub-add-min_partial.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:08:39 -0700
+Message-ID: <200705080008.l4808dYJ009396@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49702 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967444AbXEHAJS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:09:18 -0400
+	by vger.kernel.org with ESMTP id S967440AbXEHAJJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:09:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: add ability to list alloc / free callers per slab
+     SLUB: Add MIN_PARTIAL
 has been removed from the -mm tree.  Its filename was
-     slub-add-ability-to-list-alloc--free-callers-per-slab.patch
+     slub-add-min_partial.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slub: add ability to list alloc / free callers per slab
+Subject: SLUB: Add MIN_PARTIAL
 From: Christoph Lameter <clameter@sgi.com>
 
-This patch enables listing the callers who allocated or freed objects in a
-cache.
+We leave a mininum of partial slabs on nodes when we search for
+partial slabs on other node. Define a constant for that value.
 
-For example to list the allocators for kmalloc-128 do
+Then modify slub to keep MIN_PARTIAL slabs around.
 
-cat /sys/slab/kmalloc-128/alloc_calls
-      7 sn_io_slot_fixup+0x40/0x700
-      7 sn_io_slot_fixup+0x80/0x700
-      9 sn_bus_fixup+0xe0/0x380
-      6 param_sysfs_setup+0xf0/0x280
-    276 percpu_populate+0xf0/0x1a0
-     19 __register_chrdev_region+0x30/0x360
-      8 expand_files+0x2e0/0x6e0
-      1 sys_epoll_create+0x60/0x200
-      1 __mounts_open+0x140/0x2c0
-     65 kmem_alloc+0x110/0x280
-      3 alloc_disk_node+0xe0/0x200
-     33 as_get_io_context+0x90/0x280
-     74 kobject_kset_add_dir+0x40/0x140
-     12 pci_create_bus+0x2a0/0x5c0
-      1 acpi_ev_create_gpe_block+0x120/0x9e0
-     41 con_insert_unipair+0x100/0x1c0
-      1 uart_open+0x1c0/0xba0
-      1 dma_pool_create+0xe0/0x340
-      2 neigh_table_init_no_netlink+0x260/0x4c0
-      6 neigh_parms_alloc+0x30/0x200
-      1 netlink_kernel_create+0x130/0x320
-      5 fz_hash_alloc+0x50/0xe0
-      2 sn_common_hubdev_init+0xd0/0x6e0
-     28 kernel_param_sysfs_setup+0x30/0x180
-     72 process_zones+0x70/0x2e0
+This avoids bad situations where a function frees the last object
+in a slab (which results in the page being returned to the page
+allocator) only to then allocate one again (which requires getting
+a page back from the page allocator if the partial list was empty).
+Keeping a couple of slabs on the partial list reduces overhead.
 
-cat /sys/slab/kmalloc-128/free_calls
-    558 <not-available>
-      3 sn_io_slot_fixup+0x600/0x700
-     84 free_fdtable_rcu+0x120/0x260
-      2 seq_release+0x40/0x60
-      6 kmem_free+0x70/0xc0
-     24 free_as_io_context+0x20/0x200
-      1 acpi_get_object_info+0x3a0/0x3e0
-      1 acpi_add_single_object+0xcf0/0x1e40
-      2 con_release_unimap+0x80/0x140
-      1 free+0x20/0x40
-
-SLAB_STORE_USER must be enabled for a slab cache by either booting with
-"slab_debug" or enabling user tracking specifically for the slab of interest.
+Empty slabs are added to the end of the partial list to insure that
+partially allocated slabs are consumed first (defragmentation).
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |  184 +++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 181 insertions(+), 3 deletions(-)
+ mm/slub.c |   55 ++++++++++++++++++++++++++++++++++------------------
+ 1 files changed, 36 insertions(+), 19 deletions(-)
 
-diff -puN mm/slub.c~slub-add-ability-to-list-alloc--free-callers-per-slab mm/slub.c
---- a/mm/slub.c~slub-add-ability-to-list-alloc--free-callers-per-slab
+diff -puN mm/slub.c~slub-add-min_partial mm/slub.c
+--- a/mm/slub.c~slub-add-min_partial
 +++ a/mm/slub.c
-@@ -97,9 +97,6 @@
-  *
-  * - Support PAGE_ALLOC_DEBUG. Should be easy to do.
-  *
-- * - Support DEBUG_SLAB_LEAK. Trouble is we do not know where the full
-- *   slabs are in SLUB.
-- *
-  * - SLAB_DEBUG_INITIAL is not supported but I have never seen a use of
-  *   it.
-  *
-@@ -2659,6 +2656,169 @@ static unsigned long validate_slab_cache
- 	return count;
+@@ -133,6 +133,9 @@
+  */
+ #define SLUB_UNIMPLEMENTED (SLAB_DEBUG_INITIAL)
+ 
++/* Mininum number of partial slabs */
++#define MIN_PARTIAL 2
++
+ #define DEBUG_DEFAULT_FLAGS (SLAB_DEBUG_FREE | SLAB_RED_ZONE | \
+ 				SLAB_POISON | SLAB_STORE_USER)
+ /*
+@@ -664,16 +667,8 @@ static int on_freelist(struct kmem_cache
+ /*
+  * Tracking of fully allocated slabs for debugging
+  */
+-static void add_full(struct kmem_cache *s, struct page *page)
++static void add_full(struct kmem_cache_node *n, struct page *page)
+ {
+-	struct kmem_cache_node *n;
+-
+-	VM_BUG_ON(!irqs_disabled());
+-
+-	if (!(s->flags & SLAB_STORE_USER))
+-		return;
+-
+-	n = get_node(s, page_to_nid(page));
+ 	spin_lock(&n->list_lock);
+ 	list_add(&page->lru, &n->full);
+ 	spin_unlock(&n->list_lock);
+@@ -982,10 +977,16 @@ static __always_inline int slab_trylock(
+ /*
+  * Management of partially allocated slabs
+  */
+-static void add_partial(struct kmem_cache *s, struct page *page)
++static void add_partial_tail(struct kmem_cache_node *n, struct page *page)
+ {
+-	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
++	spin_lock(&n->list_lock);
++	n->nr_partial++;
++	list_add_tail(&page->lru, &n->partial);
++	spin_unlock(&n->list_lock);
++}
+ 
++static void add_partial(struct kmem_cache_node *n, struct page *page)
++{
+ 	spin_lock(&n->list_lock);
+ 	n->nr_partial++;
+ 	list_add(&page->lru, &n->partial);
+@@ -1085,7 +1086,7 @@ static struct page *get_any_partial(stru
+ 		n = get_node(s, zone_to_nid(*z));
+ 
+ 		if (n && cpuset_zone_allowed_hardwall(*z, flags) &&
+-				n->nr_partial > 2) {
++				n->nr_partial > MIN_PARTIAL) {
+ 			page = get_partial_node(n);
+ 			if (page)
+ 				return page;
+@@ -1119,15 +1120,31 @@ static struct page *get_partial(struct k
+  */
+ static void putback_slab(struct kmem_cache *s, struct page *page)
+ {
++	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
++
+ 	if (page->inuse) {
++
+ 		if (page->freelist)
+-			add_partial(s, page);
+-		else if (PageError(page))
+-			add_full(s, page);
++			add_partial(n, page);
++		else if (PageError(page) && (s->flags & SLAB_STORE_USER))
++			add_full(n, page);
+ 		slab_unlock(page);
++
+ 	} else {
+-		slab_unlock(page);
+-		discard_slab(s, page);
++		if (n->nr_partial < MIN_PARTIAL) {
++			/*
++			 * Adding an empty page to the partial slabs in order
++			 * to avoid page allocator overhead. This page needs to
++			 * come after all the others that are not fully empty
++			 * in order to make sure that we do maximum
++			 * defragmentation.
++			 */
++			add_partial_tail(n, page);
++			slab_unlock(page);
++		} else {
++			slab_unlock(page);
++			discard_slab(s, page);
++		}
+ 	}
  }
  
-+/*
-+ * Generate lists of locations where slabcache objects are allocated
-+ * and freed.
-+ */
-+
-+struct location {
-+	unsigned long count;
-+	void *addr;
-+};
-+
-+struct loc_track {
-+	unsigned long max;
-+	unsigned long count;
-+	struct location *loc;
-+};
-+
-+static void free_loc_track(struct loc_track *t)
-+{
-+	if (t->max)
-+		free_pages((unsigned long)t->loc,
-+			get_order(sizeof(struct location) * t->max));
-+}
-+
-+static int alloc_loc_track(struct loc_track *t, unsigned long max)
-+{
-+	struct location *l;
-+	int order;
-+
-+	if (!max)
-+		max = PAGE_SIZE / sizeof(struct location);
-+
-+	order = get_order(sizeof(struct location) * max);
-+
-+	l = (void *)__get_free_pages(GFP_KERNEL, order);
-+
-+	if (!l)
-+		return 0;
-+
-+	if (t->count) {
-+		memcpy(l, t->loc, sizeof(struct location) * t->count);
-+		free_loc_track(t);
-+	}
-+	t->max = max;
-+	t->loc = l;
-+	return 1;
-+}
-+
-+static int add_location(struct loc_track *t, struct kmem_cache *s,
-+						void *addr)
-+{
-+	long start, end, pos;
-+	struct location *l;
-+	void *caddr;
-+
-+	start = -1;
-+	end = t->count;
-+
-+	for ( ; ; ) {
-+		pos = start + (end - start + 1) / 2;
-+
-+		/*
-+		 * There is nothing at "end". If we end up there
-+		 * we need to add something to before end.
-+		 */
-+		if (pos == end)
-+			break;
-+
-+		caddr = t->loc[pos].addr;
-+		if (addr == caddr) {
-+			t->loc[pos].count++;
-+			return 1;
-+		}
-+
-+		if (addr < caddr)
-+			end = pos;
-+		else
-+			start = pos;
-+	}
-+
-+	/*
-+	 * Not found. Insert new tracking element
-+	 */
-+	if (t->count >= t->max && !alloc_loc_track(t, 2 * t->max))
-+		return 0;
-+
-+	l = t->loc + pos;
-+	if (pos < t->count)
-+		memmove(l + 1, l,
-+			(t->count - pos) * sizeof(struct location));
-+	t->count++;
-+	l->count = 1;
-+	l->addr = addr;
-+	return 1;
-+}
-+
-+static void process_slab(struct loc_track *t, struct kmem_cache *s,
-+		struct page *page, enum track_item alloc)
-+{
-+	void *addr = page_address(page);
-+	unsigned long map[BITS_TO_LONGS(s->objects)];
-+	void *p;
-+
-+	bitmap_zero(map, s->objects);
-+	for (p = page->freelist; p; p = get_freepointer(s, p))
-+		set_bit((p - addr) / s->size, map);
-+
-+	for (p = addr; p < addr + s->objects * s->size; p += s->size)
-+		if (!test_bit((p - addr) / s->size, map)) {
-+			void *addr = get_track(s, p, alloc)->addr;
-+
-+			add_location(t, s, addr);
-+		}
-+}
-+
-+static int list_locations(struct kmem_cache *s, char *buf,
-+					enum track_item alloc)
-+{
-+	int n = 0;
-+	unsigned long i;
-+	struct loc_track t;
-+	int node;
-+
-+	t.count = 0;
-+	t.max = 0;
-+
-+	/* Push back cpu slabs */
-+	flush_all(s);
-+
-+	for_each_online_node(node) {
-+		struct kmem_cache_node *n = get_node(s, node);
-+		unsigned long flags;
-+		struct page *page;
-+
-+		if (!atomic_read(&n->nr_slabs))
-+			continue;
-+
-+		spin_lock_irqsave(&n->list_lock, flags);
-+		list_for_each_entry(page, &n->partial, lru)
-+			process_slab(&t, s, page, alloc);
-+		list_for_each_entry(page, &n->full, lru)
-+			process_slab(&t, s, page, alloc);
-+		spin_unlock_irqrestore(&n->list_lock, flags);
-+	}
-+
-+	for (i = 0; i < t.count; i++) {
-+		void *addr = t.loc[i].addr;
-+
-+		if (n > PAGE_SIZE - 100)
-+			break;
-+		n += sprintf(buf + n, "%7ld ", t.loc[i].count);
-+		if (addr)
-+			n += sprint_symbol(buf + n, (unsigned long)t.loc[i].addr);
-+		else
-+			n += sprintf(buf + n, "<not-available>");
-+		n += sprintf(buf + n, "\n");
-+	}
-+
-+	free_loc_track(&t);
-+	if (!t.count)
-+		n += sprintf(buf, "No data\n");
-+	return n;
-+}
-+
- static unsigned long count_partial(struct kmem_cache_node *n)
- {
- 	unsigned long flags;
-@@ -3009,6 +3169,22 @@ static ssize_t validate_store(struct kme
- }
- SLAB_ATTR(validate);
+@@ -1326,7 +1343,7 @@ checks_ok:
+ 	 * then add it.
+ 	 */
+ 	if (unlikely(!prior))
+-		add_partial(s, page);
++		add_partial(get_node(s, page_to_nid(page)), page);
  
-+static ssize_t alloc_calls_show(struct kmem_cache *s, char *buf)
-+{
-+	if (!(s->flags & SLAB_STORE_USER))
-+		return -ENOSYS;
-+	return list_locations(s, buf, TRACK_ALLOC);
-+}
-+SLAB_ATTR_RO(alloc_calls);
-+
-+static ssize_t free_calls_show(struct kmem_cache *s, char *buf)
-+{
-+	if (!(s->flags & SLAB_STORE_USER))
-+		return -ENOSYS;
-+	return list_locations(s, buf, TRACK_FREE);
-+}
-+SLAB_ATTR_RO(free_calls);
-+
- #ifdef CONFIG_NUMA
- static ssize_t defrag_ratio_show(struct kmem_cache *s, char *buf)
- {
-@@ -3049,6 +3225,8 @@ static struct attribute * slab_attrs[] =
- 	&poison_attr.attr,
- 	&store_user_attr.attr,
- 	&validate_attr.attr,
-+	&alloc_calls_attr.attr,
-+	&free_calls_attr.attr,
- #ifdef CONFIG_ZONE_DMA
- 	&cache_dma_attr.attr,
- #endif
+ out_unlock:
+ 	slab_unlock(page);
+@@ -1535,7 +1552,7 @@ static struct kmem_cache_node * __init e
+ 	init_object(kmalloc_caches, n, 1);
+ 	init_kmem_cache_node(n);
+ 	atomic_long_inc(&n->nr_slabs);
+-	add_partial(kmalloc_caches, page);
++	add_partial(n, page);
+ 	return n;
+ }
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
