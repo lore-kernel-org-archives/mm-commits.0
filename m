@@ -1,86 +1,292 @@
 From: akpm@linux-foundation.org
-Subject: - round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch removed from -mm tree
-Date: Mon, 07 May 2007 17:05:02 -0700
-Message-ID: <200705080005.l48052jB009060@shell0.pdx.osdl.net>
+Subject: - swsusp-use-inline-functions-for-changing-page-flags.patch removed from -mm tree
+Date: Mon, 07 May 2007 17:05:15 -0700
+Message-ID: <200705080005.l4805Fco009078@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55667 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754787AbXEHAGA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:00 -0400
+	by vger.kernel.org with ESMTP id S1755124AbXEHAGG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2007 20:06:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: milindchoudhary@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ROUND_UP macro cleanup in arch/alpha/kernel/osf_sys.c
+     swsusp: use inline functions for changing page flags
 has been removed from the -mm tree.  Its filename was
-     round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc.patch
+     swsusp-use-inline-functions-for-changing-page-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ROUND_UP macro cleanup in arch/alpha/kernel/osf_sys.c
-From: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Subject: swsusp: use inline functions for changing page flags
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-ROUND_UP macro cleanup use ALIGN
+Replace direct invocations of SetPageNosave(), SetPageNosaveFree() etc.  with
+calls to inline functions that can be changed in subsequent patches without
+modifying the code calling them.
 
-Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/osf_sys.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/suspend.h |   33 ++++++++++++++++++++++++++
+ kernel/power/snapshot.c |   48 +++++++++++++++++++-------------------
+ mm/page_alloc.c         |    6 ++--
+ 3 files changed, 61 insertions(+), 26 deletions(-)
 
-diff -puN arch/alpha/kernel/osf_sys.c~round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc arch/alpha/kernel/osf_sys.c
---- a/arch/alpha/kernel/osf_sys.c~round_up-macro-cleanup-in-arch-alpha-kernel-osf_sysc
-+++ a/arch/alpha/kernel/osf_sys.c
-@@ -93,7 +93,6 @@ osf_set_program_attributes(unsigned long
-  * offset differences aren't the same as "d_reclen").
-  */
- #define NAME_OFFSET	offsetof (struct osf_dirent, d_name)
--#define ROUND_UP(x)	(((x)+3) & ~3)
+diff -puN include/linux/suspend.h~swsusp-use-inline-functions-for-changing-page-flags include/linux/suspend.h
+--- a/include/linux/suspend.h~swsusp-use-inline-functions-for-changing-page-flags
++++ a/include/linux/suspend.h
+@@ -8,6 +8,7 @@
+ #include <linux/notifier.h>
+ #include <linux/init.h>
+ #include <linux/pm.h>
++#include <linux/mm.h>
  
- struct osf_dirent {
- 	unsigned int d_ino;
-@@ -115,7 +114,7 @@ osf_filldir(void *__buf, const char *nam
- {
- 	struct osf_dirent __user *dirent;
- 	struct osf_dirent_callback *buf = (struct osf_dirent_callback *) __buf;
--	unsigned int reclen = ROUND_UP(NAME_OFFSET + namlen + 1);
-+	unsigned int reclen = ALIGN(NAME_OFFSET + namlen + 1, sizeof(u32));
- 	unsigned int d_ino;
+ /* struct pbe is used for creating lists of pages that should be restored
+  * atomically during the resume from disk, because the page frames they have
+@@ -49,6 +50,38 @@ void __save_processor_state(struct saved
+ void __restore_processor_state(struct saved_context *ctxt);
+ unsigned long get_safe_page(gfp_t gfp_mask);
  
- 	buf->error = -EINVAL;	/* only used if we fail */
-@@ -174,7 +173,6 @@ osf_getdirentries(unsigned int fd, struc
- 	return error;
++/* Page management functions for the software suspend (swsusp) */
++
++static inline void swsusp_set_page_forbidden(struct page *page)
++{
++	SetPageNosave(page);
++}
++
++static inline int swsusp_page_is_forbidden(struct page *page)
++{
++	return PageNosave(page);
++}
++
++static inline void swsusp_unset_page_forbidden(struct page *page)
++{
++	ClearPageNosave(page);
++}
++
++static inline void swsusp_set_page_free(struct page *page)
++{
++	SetPageNosaveFree(page);
++}
++
++static inline int swsusp_page_is_free(struct page *page)
++{
++	return PageNosaveFree(page);
++}
++
++static inline void swsusp_unset_page_free(struct page *page)
++{
++	ClearPageNosaveFree(page);
++}
++
+ /*
+  * XXX: We try to keep some more pages free so that I/O operations succeed
+  * without paging. Might this be more?
+diff -puN kernel/power/snapshot.c~swsusp-use-inline-functions-for-changing-page-flags kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~swsusp-use-inline-functions-for-changing-page-flags
++++ a/kernel/power/snapshot.c
+@@ -67,15 +67,15 @@ static void *get_image_page(gfp_t gfp_ma
+ 
+ 	res = (void *)get_zeroed_page(gfp_mask);
+ 	if (safe_needed)
+-		while (res && PageNosaveFree(virt_to_page(res))) {
++		while (res && swsusp_page_is_free(virt_to_page(res))) {
+ 			/* The page is unsafe, mark it for swsusp_free() */
+-			SetPageNosave(virt_to_page(res));
++			swsusp_set_page_forbidden(virt_to_page(res));
+ 			allocated_unsafe_pages++;
+ 			res = (void *)get_zeroed_page(gfp_mask);
+ 		}
+ 	if (res) {
+-		SetPageNosave(virt_to_page(res));
+-		SetPageNosaveFree(virt_to_page(res));
++		swsusp_set_page_forbidden(virt_to_page(res));
++		swsusp_set_page_free(virt_to_page(res));
+ 	}
+ 	return res;
  }
+@@ -91,8 +91,8 @@ static struct page *alloc_image_page(gfp
  
--#undef ROUND_UP
- #undef NAME_OFFSET
+ 	page = alloc_page(gfp_mask);
+ 	if (page) {
+-		SetPageNosave(page);
+-		SetPageNosaveFree(page);
++		swsusp_set_page_forbidden(page);
++		swsusp_set_page_free(page);
+ 	}
+ 	return page;
+ }
+@@ -110,9 +110,9 @@ static inline void free_image_page(void 
  
- asmlinkage unsigned long
+ 	page = virt_to_page(addr);
+ 
+-	ClearPageNosave(page);
++	swsusp_unset_page_forbidden(page);
+ 	if (clear_nosave_free)
+-		ClearPageNosaveFree(page);
++		swsusp_unset_page_free(page);
+ 
+ 	__free_page(page);
+ }
+@@ -615,7 +615,8 @@ static struct page *saveable_highmem_pag
+ 
+ 	BUG_ON(!PageHighMem(page));
+ 
+-	if (PageNosave(page) || PageReserved(page) || PageNosaveFree(page))
++	if (swsusp_page_is_forbidden(page) ||  swsusp_page_is_free(page) ||
++	    PageReserved(page))
+ 		return NULL;
+ 
+ 	return page;
+@@ -670,7 +671,7 @@ static struct page *saveable_page(unsign
+ 
+ 	BUG_ON(PageHighMem(page));
+ 
+-	if (PageNosave(page) || PageNosaveFree(page))
++	if (swsusp_page_is_forbidden(page) || swsusp_page_is_free(page))
+ 		return NULL;
+ 
+ 	if (PageReserved(page) && pfn_is_nosave(pfn))
+@@ -810,9 +811,10 @@ void swsusp_free(void)
+ 			if (pfn_valid(pfn)) {
+ 				struct page *page = pfn_to_page(pfn);
+ 
+-				if (PageNosave(page) && PageNosaveFree(page)) {
+-					ClearPageNosave(page);
+-					ClearPageNosaveFree(page);
++				if (swsusp_page_is_forbidden(page) &&
++				    swsusp_page_is_free(page)) {
++					swsusp_unset_page_forbidden(page);
++					swsusp_unset_page_free(page);
+ 					__free_page(page);
+ 				}
+ 			}
+@@ -1135,7 +1137,7 @@ static int mark_unsafe_pages(struct memo
+ 		max_zone_pfn = zone->zone_start_pfn + zone->spanned_pages;
+ 		for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++)
+ 			if (pfn_valid(pfn))
+-				ClearPageNosaveFree(pfn_to_page(pfn));
++				swsusp_unset_page_free(pfn_to_page(pfn));
+ 	}
+ 
+ 	/* Mark pages that correspond to the "original" pfns as "unsafe" */
+@@ -1144,7 +1146,7 @@ static int mark_unsafe_pages(struct memo
+ 		pfn = memory_bm_next_pfn(bm);
+ 		if (likely(pfn != BM_END_OF_MAP)) {
+ 			if (likely(pfn_valid(pfn)))
+-				SetPageNosaveFree(pfn_to_page(pfn));
++				swsusp_set_page_free(pfn_to_page(pfn));
+ 			else
+ 				return -EFAULT;
+ 		}
+@@ -1310,14 +1312,14 @@ prepare_highmem_image(struct memory_bitm
+ 		struct page *page;
+ 
+ 		page = alloc_page(__GFP_HIGHMEM);
+-		if (!PageNosaveFree(page)) {
++		if (!swsusp_page_is_free(page)) {
+ 			/* The page is "safe", set its bit the bitmap */
+ 			memory_bm_set_bit(bm, page_to_pfn(page));
+ 			safe_highmem_pages++;
+ 		}
+ 		/* Mark the page as allocated */
+-		SetPageNosave(page);
+-		SetPageNosaveFree(page);
++		swsusp_set_page_forbidden(page);
++		swsusp_set_page_free(page);
+ 	}
+ 	memory_bm_position_reset(bm);
+ 	safe_highmem_bm = bm;
+@@ -1349,7 +1351,7 @@ get_highmem_page_buffer(struct page *pag
+ 	struct highmem_pbe *pbe;
+ 	void *kaddr;
+ 
+-	if (PageNosave(page) && PageNosaveFree(page)) {
++	if (swsusp_page_is_forbidden(page) && swsusp_page_is_free(page)) {
+ 		/* We have allocated the "original" page frame and we can
+ 		 * use it directly to store the loaded page.
+ 		 */
+@@ -1511,14 +1513,14 @@ prepare_image(struct memory_bitmap *new_
+ 			error = -ENOMEM;
+ 			goto Free;
+ 		}
+-		if (!PageNosaveFree(virt_to_page(lp))) {
++		if (!swsusp_page_is_free(virt_to_page(lp))) {
+ 			/* The page is "safe", add it to the list */
+ 			lp->next = safe_pages_list;
+ 			safe_pages_list = lp;
+ 		}
+ 		/* Mark the page as allocated */
+-		SetPageNosave(virt_to_page(lp));
+-		SetPageNosaveFree(virt_to_page(lp));
++		swsusp_set_page_forbidden(virt_to_page(lp));
++		swsusp_set_page_free(virt_to_page(lp));
+ 		nr_pages--;
+ 	}
+ 	/* Free the reserved safe pages so that chain_alloc() can use them */
+@@ -1547,7 +1549,7 @@ static void *get_buffer(struct memory_bi
+ 	if (PageHighMem(page))
+ 		return get_highmem_page_buffer(page, ca);
+ 
+-	if (PageNosave(page) && PageNosaveFree(page))
++	if (swsusp_page_is_forbidden(page) && swsusp_page_is_free(page))
+ 		/* We have allocated the "original" page frame and we can
+ 		 * use it directly to store the loaded page.
+ 		 */
+diff -puN mm/page_alloc.c~swsusp-use-inline-functions-for-changing-page-flags mm/page_alloc.c
+--- a/mm/page_alloc.c~swsusp-use-inline-functions-for-changing-page-flags
++++ a/mm/page_alloc.c
+@@ -775,8 +775,8 @@ void mark_free_pages(struct zone *zone)
+ 		if (pfn_valid(pfn)) {
+ 			struct page *page = pfn_to_page(pfn);
+ 
+-			if (!PageNosave(page))
+-				ClearPageNosaveFree(page);
++			if (!swsusp_page_is_forbidden(page))
++				swsusp_unset_page_free(page);
+ 		}
+ 
+ 	for (order = MAX_ORDER - 1; order >= 0; --order)
+@@ -785,7 +785,7 @@ void mark_free_pages(struct zone *zone)
+ 
+ 			pfn = page_to_pfn(list_entry(curr, struct page, lru));
+ 			for (i = 0; i < (1UL << order); i++)
+-				SetPageNosaveFree(pfn_to_page(pfn + i));
++				swsusp_set_page_free(pfn_to_page(pfn + i));
+ 		}
+ 
+ 	spin_unlock_irqrestore(&zone->lock, flags);
 _
 
-Patches currently in -mm which might be from milindchoudhary@gmail.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-git-alsa.patch
-spin_lock_unlocked-macro-cleanup-in-arch-ia64.patch
-git-jfs.patch
-nfs-use-__set_current_state.patch
-round_up-macro-cleanup-in-drivers-parisc.patch
-round_up-macro-cleanup-in-drivers-pci.patch
-pcie-remove-spin_lock_unlocked.patch
-round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
-round_up-macro-cleanup-in-drivers-char-lpc.patch
-round_up-macro-cleanup-in-fs-selectcompatreaddirc.patch
-round_up-macro-cleanup-in-fs-smbfs-requestc.patch
-spin_lock_unlocked-cleanup-in-init_taskh.patch
-spin_lock_unlocked-cleanup-in-drivers-char-keyboard.patch
-spin_lock_unlocked-cleanup-in-drivers-serial.patch
-reiserfs-use-__set_current_state.patch
-drivers-char-use-__set_current_state.patch
+swsusp-clean-up-print.patch
+pm-separate-hibernation-code-from-suspend-code.patch
+freezer-task-exit_state-should-be-treated-as-bolean.patch
+documentation-ask-driver-writers-to-provide-pm-support.patch
+workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-frozen_process-to-kernel-power-processc.patch
+remvoe-kthread_bind-call-from-_cpu_down.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+add-suspend-related-notifications-for-cpu-hotplug.patch
+add-suspend-related-notifications-for-cpu-hotplug-cleanup.patch
+microcode-use-suspend-related-cpu-hotplug-notifications.patch
+add-suspend-related-notifications-for-cpu-hotplug-statistics.patch
+shrink_slab-handle-bad-shrinkers.patch
