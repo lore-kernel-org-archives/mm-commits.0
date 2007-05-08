@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-use-our-own-timer-events-fix.patch added to -mm tree
-Date: Tue, 08 May 2007 10:47:03 -0700
-Message-ID: <200705081747.l48Hl3D2029672@shell0.pdx.osdl.net>
+Subject: + lguest-the-net-driver-two-net-bugfixes.patch added to -mm tree
+Date: Tue, 08 May 2007 10:49:19 -0700
+Message-ID: <200705081749.l48HnJqr029716@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41269 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56183 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966885AbXEHRrY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 13:47:24 -0400
+	by vger.kernel.org with ESMTP id S965995AbXEHRtZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 13:49:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, arjan@linux.intel.com, clameter@sgi.com, oleg@tv-sign.ru
+Cc: rusty@rustcorp.com.au
 
 
 The patch titled
-     vmstat-use-our-own-timer-events-fix
+     lguest: two net bugfixes
 has been added to the -mm tree.  Its filename is
-     vmstat-use-our-own-timer-events-fix.patch
+     lguest-the-net-driver-two-net-bugfixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vmstat-use-our-own-timer-events-fix
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: lguest: two net bugfixes
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-add missing break
+1) Bridging via host is broken: we need to set "promisc" bit in MAC
+   address published by the host so the guest sends us everything.
+   Thanks James Morris for the report (I don't use bridging).
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+2) Lguest network device uses 0 to mean "noone at this slot".  It used to
+   use 0xFF, and one spot was missed.  Minor: it just means we'll have a
+   useless extra transmit for broadcast packets.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/lguest_net.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~vmstat-use-our-own-timer-events-fix mm/vmstat.c
---- a/mm/vmstat.c~vmstat-use-our-own-timer-events-fix
-+++ a/mm/vmstat.c
-@@ -675,6 +675,7 @@ static int __cpuinit vmstat_cpuup_callba
- 	case CPU_DOWN_PREPARE_FROZEN:
- 		cancel_rearming_delayed_work(&per_cpu(vmstat_work, cpu));
- 		per_cpu(vmstat_work, cpu).work.func = NULL;
-+		break;
- 	case CPU_DOWN_FAILED:
- 	case CPU_DOWN_FAILED_FROZEN:
- 		start_cpu_timer(cpu);
+diff -puN drivers/net/lguest_net.c~lguest-the-net-driver-two-net-bugfixes drivers/net/lguest_net.c
+--- a/drivers/net/lguest_net.c~lguest-the-net-driver-two-net-bugfixes
++++ a/drivers/net/lguest_net.c
+@@ -249,7 +249,7 @@ static int lguestnet_close(struct net_de
+ 	struct lguestnet_info *info = dev->priv;
+ 
+ 	/* Clear all trace: others might deliver packets, we'll ignore it. */
+-	memset(&info->peer[info->me], 0xFF, sizeof(info->peer[info->me]));
++	memset(&info->peer[info->me], 0, sizeof(info->peer[info->me]));
+ 
+ 	/* Deregister sg lists. */
+ 	hcall(LHCALL_BIND_DMA, peer_key(info, info->me), __pa(info->dma), 0);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-char-rocket-add-module_device_table.patch
-char-cs5535_gpio-add-module_device_table.patch
-drivers-char-use-__set_current_state.patch
-misc-add-sensable-phantom-driver.patch
-char-cyclades-remove-pause.patch
-char-cyclades-cy_readx-writex-cleanup.patch
-char-cyclades-timer-cleanup.patch
-char-cyclades-remove-volatiles.patch
-char-cyclades-remove-useless-casts.patch
-char-cyclades-create-cy_init_ze.patch
-char-cyclades-use-pci_iomap-unmap.patch
-char-cyclades-init-ze-immediately.patch
-char-cyclades-create-cy_pci_probe.patch
-char-cyclades-move-card-entries-init-into-function.patch
-char-cyclades-init-card-struct-immediately.patch
-char-cyclades-remove-some-global-vars.patch
-char-cyclades-cy_init-error-handling.patch
-char-cyclades-tty_register_device-separately-for-each-device.patch
-char-cyclades-clear-interrupts-before-releasing.patch
-char-cyclades-allow-debug_shirq.patch
-char-mxser-schedule-for-removal.patch
-char-isicom-use-pr_debug.patch
-char-cyclades-use-is_cyc_z-macro.patch
-char-cyclades-switch-to-pci-probing.patch
-char-cyclades-depends-on-pci-or-isa.patch
-char-cyclades-unexport-struct-cyclades_card.patch
-char-cyclades-remove-useless-fileds-from-cyclades_card.patch
-char-cyclades-irq-is-int.patch
-char-cyclades-printk-cleanups.patch
-char-cyclades-mark-cyy_init_card-as-__devinit-not-__init.patch
-char-cyclades-simplify-variables-initialization.patch
-char-cyclades-get-rid-of-phys-addresses.patch
-char-cyclades-make-info-card-a-pointer.patch
-char-cyclades-remove-sleep_on.patch
-char-cyclades-fix-blockmove.patch
-char-cyclades-timers-cleanup.patch
-char-cyclades-remove-unused-timestamps.patch
-char-cyclades-remove-locking-macros.patch
-char-cyclades-conditions-cleanup.patch
-char-cyclades-fix-tty-device-unregister.patch
-char-cyclades-dynamic-ports.patch
-char-cyclades-probe-cleanup.patch
-char-cyclades-copyright-and-version-changes.patch
-cinergyt2-fix-file-release-handler.patch
-auerswald-fix-file-release-handler.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-vmstat-use-our-own-timer-events-fix.patch
-shrink_slab-handle-bad-shrinkers.patch
+module-use-krealloc.patch
+get_futex_key-get_key_refs-and-drop_key_refs.patch
+futex-restartable-futex_wait.patch
+simplify-module_get_kallsym-by-dropping-length-arg.patch
+fix-race-between-rmmod-and-cat-proc-kallsyms.patch
+simplify-kallsyms_lookup.patch
+fix-race-between-cat-proc-wchan-and-rmmod-et-al.patch
+fix-race-between-cat-proc-slab_allocators-and-rmmod.patch
+xfs-clean-up-shrinker-games.patch
+mm-clean-up-and-kernelify-shrinker-registration.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+____call_usermodehelper-dont-flush_signals.patch
+wait_for_helper-remove-unneeded-do_sigaction.patch
+futex-new-private-futexes.patch
+lguest-export-symbols-for-lguest-as-a-module.patch
+lguest-the-guest-code.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda-lguest-2621-mm1-update.patch
+lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
+lguest-the-guest-code-handle-new-paravirt-lazy-mode-fix-userspace.patch
+lguest-the-guest-code-dont-use-paravirt_probe-its-dying.patch
+lguest-the-host-code.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch
+lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
+lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem.patch
+lguest-the-host-code-remove-put_user-etc-warnings-add-bloat.patch
+lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch
+lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized.patch
+lguest-the-asm-offsets.patch
+lguest-the-makefile-and-kconfig.patch
+lguest-the-console-driver.patch
+lguest-the-net-driver.patch
+lguest-the-net-driver-lguest-2621-mm1-update-lguest-net-stats-inlinepatch.patch
+lguest-the-net-driver-two-net-bugfixes.patch
+lguest-the-block-driver.patch
+lguest-the-documentation-example-launcher.patch
+lguest-the-documentation-example-launcher-fix-lguest-documentation-error.patch
+lguest-documentation-and-example-updates.patch
+lguest-the-documentation-example-launcher-dont-use-paravirt_probe-its-dying-doc.patch
+lguest-use-standard-bootloader-format-fix-badly-sized-doc.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+lguest-two-net-bugfixes-doc.patch
+compiler-introduce-__used-and-__maybe_unused.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
