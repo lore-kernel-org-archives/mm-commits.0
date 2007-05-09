@@ -1,92 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - atyfb-reorganize-clock-init.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:02:19 -0700
-Message-ID: <200705090302.l4932J63010820@shell0.pdx.osdl.net>
+Subject: - fbcon-check-console-fb-mapping-in-fbcon_get_requirement.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:02:31 -0700
+Message-ID: <200705090302.l4932VU2010844@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37785 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032987AbXEIDC0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:26 -0400
+	by vger.kernel.org with ESMTP id S1033287AbXEIDCe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: syrjala@sci.fi, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atyfb: reorganize clock init
+     fbcon: check console-fb mapping in fbcon_get_requirement
 has been removed from the -mm tree.  Its filename was
-     atyfb-reorganize-clock-init.patch
+     fbcon-check-console-fb-mapping-in-fbcon_get_requirement.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atyfb: reorganize clock init
-From: Ville Syrjala <syrjala@sci.fi>
+Subject: fbcon: check console-fb mapping in fbcon_get_requirement
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Reorganize atyfb clock init code so command line clock overrides are effective
-for all chips.  The old code would silently ignore some of the command line
-clock overrides with some chips.
+- Check the console-to-fb mapping in fbcon_get_requirement(), otherwise the
+  value returned may not be valid for the driver.
+
+- Minor cleanup
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |   32 +++++++++++++++++--------------
- 1 file changed, 18 insertions(+), 14 deletions(-)
+ drivers/video/console/fbcon.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb-reorganize-clock-init drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb-reorganize-clock-init
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -2297,20 +2297,6 @@ static int __devinit aty_init(struct fb_
- 		par->pll_limits.xclk = 53;
+diff -puN drivers/video/console/fbcon.c~fbcon-check-console-fb-mapping-in-fbcon_get_requirement drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-check-console-fb-mapping-in-fbcon_get_requirement
++++ a/drivers/video/console/fbcon.c
+@@ -3048,14 +3048,14 @@ static void fbcon_get_requirement(struct
+ {
+ 	struct vc_data *vc;
+ 	struct display *p;
+-	int charcnt;
+ 
+ 	if (caps->flags) {
+-		int i;
++		int i, charcnt;
+ 
+ 		for (i = first_fb_vc; i <= last_fb_vc; i++) {
+ 			vc = vc_cons[i].d;
+-			if (vc && vc->vc_mode == KD_TEXT) {
++			if (vc && vc->vc_mode == KD_TEXT &&
++			    info->node == con2fb_map[i]) {
+ 				p = &fb_display[i];
+ 				caps->x |= 1 << (vc->vc_font.width - 1);
+ 				caps->y |= 1 << (vc->vc_font.height - 1);
+@@ -3068,14 +3068,13 @@ static void fbcon_get_requirement(struct
+ 	} else {
+ 		vc = vc_cons[fg_console].d;
+ 
+-		if (vc && vc->vc_mode == KD_TEXT) {
++		if (vc && vc->vc_mode == KD_TEXT &&
++		    info->node == con2fb_map[fg_console]) {
+ 			p = &fb_display[fg_console];
+-			caps->x |= 1 << (vc->vc_font.width - 1);
+-			caps->y |= 1 << (vc->vc_font.height - 1);
+-			charcnt = (p->userfont) ?
++			caps->x = 1 << (vc->vc_font.width - 1);
++			caps->y = 1 << (vc->vc_font.height - 1);
++			caps->len = (p->userfont) ?
+ 				FNTCHARCNT(p->fontdata) : 256;
+-			if (caps->len < charcnt)
+-				caps->len = charcnt;
+ 		}
  	}
- #endif
--	if (pll)
--		par->pll_limits.pll_max = pll;
--	if (mclk)
--		par->pll_limits.mclk = mclk;
--	if (xclk)
--		par->pll_limits.xclk = xclk;
--
--	aty_calc_mem_refresh(par, par->pll_limits.xclk);
--	par->pll_per = 1000000/par->pll_limits.pll_max;
--	par->mclk_per = 1000000/par->pll_limits.mclk;
--	par->xclk_per = 1000000/par->pll_limits.xclk;
--
--	par->ref_clk_per = 1000000000000ULL / 14318180;
--	xtal = "14.31818";
- 
- #ifdef CONFIG_FB_ATY_GX
- 	if (!M64_HAS(INTEGRATED)) {
-@@ -2392,7 +2378,25 @@ static int __devinit aty_init(struct fb_
- 		if (par->pll_limits.mclk == 67 && par->ram_type < SDRAM)
- 			par->pll_limits.mclk = 63;
- 	}
-+#endif
- 
-+	/* Allow command line to override clocks. */
-+	if (pll)
-+		par->pll_limits.pll_max = pll;
-+	if (mclk)
-+		par->pll_limits.mclk = mclk;
-+	if (xclk)
-+		par->pll_limits.xclk = xclk;
-+
-+	aty_calc_mem_refresh(par, par->pll_limits.xclk);
-+	par->pll_per = 1000000/par->pll_limits.pll_max;
-+	par->mclk_per = 1000000/par->pll_limits.mclk;
-+	par->xclk_per = 1000000/par->pll_limits.xclk;
-+
-+	par->ref_clk_per = 1000000000000ULL / 14318180;
-+	xtal = "14.31818";
-+
-+#ifdef CONFIG_FB_ATY_CT
- 	if (M64_HAS(GTB_DSP)) {
- 		u8 pll_ref_div = aty_ld_pll_ct(PLL_REF_DIV, par);
- 
+ }
 _
 
-Patches currently in -mm which might be from syrjala@sci.fi are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
+vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
+vt8623fb-fix-compile-warnings.patch
+vt8623fb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
+arkfb-fix-compiler-warnings.patch
+arkfb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
+svgalib-move-fb_get_caps-to-svgalib.patch
