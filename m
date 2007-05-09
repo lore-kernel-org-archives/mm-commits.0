@@ -1,360 +1,324 @@
 From: akpm@linux-foundation.org
-Subject: - move-remote-node-draining-out-of-slab-allocators.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:54:10 -0700
-Message-ID: <200705092154.l49LsAJq003149@shell0.pdx.osdl.net>
+Subject: - make-futex_wait-use-an-hrtimer-for-timeout.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:53:36 -0700
+Message-ID: <200705092153.l49Lra4V003093@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32912 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57215 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759000AbXEIVyc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:54:32 -0400
+	by vger.kernel.org with ESMTP id S1758998AbXEIVya (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:54:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: pierre.peiffer@bull.net, drepper@redhat.com, mingo@elte.hu, sebastien.dugue@bull.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Move remote node draining out of slab allocators
+     Make futex_wait() use an hrtimer for timeout
 has been removed from the -mm tree.  Its filename was
-     move-remote-node-draining-out-of-slab-allocators.patch
+     make-futex_wait-use-an-hrtimer-for-timeout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Move remote node draining out of slab allocators
-From: Christoph Lameter <clameter@sgi.com>
+Subject: Make futex_wait() use an hrtimer for timeout
+From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-Currently the slab allocators contain callbacks into the page allocator to
-perform the draining of pagesets on remote nodes.  This requires SLUB to have
-a whole subsystem in order to be compatible with SLAB.  Moving node draining
-out of the slab allocators avoids a section of code in SLUB.
+This patch modifies futex_wait() to use an hrtimer + schedule() in place of
+schedule_timeout().
 
-Move the node draining so that is is done when the vm statistics are updated. 
-At that point we are already touching all the cachelines with the pagesets of
-a processor.
+schedule_timeout() is tick based, therefore the timeout granularity is the
+tick (1 ms, 4 ms or 10 ms depending on HZ).  By using a high resolution timer
+for timeout wakeup, we can attain a much finer timeout granularity (in the
+microsecond range).  This parallels what is already done for futex_lock_pi().
 
-Add a expire counter there.  If we have to update per zone or global vm
-statistics then assume that the pageset will require subsequent draining.
+The timeout passed to the syscall is no longer converted to jiffies and is
+therefore passed to do_futex() and futex_wait() as an absolute ktime_t
+therefore keeping nanosecond resolution.
 
-The expire counter will be decremented on each vm stats update pass until it
-reaches zero.  Then we will drain one batch from the pageset.  The draining
-will cause vm counter updates which will then cause another expiration until
-the pcp is empty.  So we will drain a batch every 3 seconds.
+Also this removes the need to pass the nanoseconds timeout part to
+futex_lock_pi() in val2.
 
-Note that remote node draining is a somewhat esoteric feature that is required
-on large NUMA systems because otherwise significant portions of system memory
-can become trapped in pcp queues.  The number of pcp is determined by the
-number of processors and nodes in a system.  A system with 4 processors and 2
-nodes has 8 pcps which is okay.  But a system with 1024 processors and 512
-nodes has 512k pcps with a high potential for large amount of memory being
-caught in them.
+In futex_wait(), if there is no timeout then a regular schedule() is
+performed.  Otherwise, an hrtimer is fired before schedule() is called.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+[akpm@linux-foundation.org: fix `make headers_check']
+Signed-off-by: Sebastien Dugue <sebastien.dugue@bull.net>
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |    6 --
- include/linux/mmzone.h |    3 +
- mm/page_alloc.c        |   45 ++++++--------------
- mm/slab.c              |    6 --
- mm/slub.c              |   84 ---------------------------------------
- mm/vmstat.c            |   54 ++++++++++++++++++++++---
- 6 files changed, 67 insertions(+), 131 deletions(-)
+ include/linux/futex.h |    4 +
+ kernel/futex.c        |   87 ++++++++++++++++++++--------------------
+ kernel/futex_compat.c |   19 ++++----
+ 3 files changed, 56 insertions(+), 54 deletions(-)
 
-diff -puN include/linux/gfp.h~move-remote-node-draining-out-of-slab-allocators include/linux/gfp.h
---- a/include/linux/gfp.h~move-remote-node-draining-out-of-slab-allocators
-+++ a/include/linux/gfp.h
-@@ -176,10 +176,6 @@ extern void FASTCALL(free_cold_page(stru
- #define free_page(addr) free_pages((addr),0)
+diff -puN include/linux/futex.h~make-futex_wait-use-an-hrtimer-for-timeout include/linux/futex.h
+--- a/include/linux/futex.h~make-futex_wait-use-an-hrtimer-for-timeout
++++ a/include/linux/futex.h
+@@ -3,6 +3,8 @@
  
- void page_alloc_init(void);
--#ifdef CONFIG_NUMA
--void drain_node_pages(int node);
--#else
--static inline void drain_node_pages(int node) { };
--#endif
-+void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
+ #include <linux/sched.h>
  
- #endif /* __LINUX_GFP_H */
-diff -puN include/linux/mmzone.h~move-remote-node-draining-out-of-slab-allocators include/linux/mmzone.h
---- a/include/linux/mmzone.h~move-remote-node-draining-out-of-slab-allocators
-+++ a/include/linux/mmzone.h
-@@ -83,6 +83,9 @@ struct per_cpu_pages {
++union ktime;
++
+ /* Second argument to futex syscall */
  
- struct per_cpu_pageset {
- 	struct per_cpu_pages pcp[2];	/* 0: hot.  1: cold */
-+#ifdef CONFIG_NUMA
-+	s8 expire;
-+#endif
- #ifdef CONFIG_SMP
- 	s8 stat_threshold;
- 	s8 vm_stat_diff[NR_VM_ZONE_STAT_ITEMS];
-diff -puN mm/page_alloc.c~move-remote-node-draining-out-of-slab-allocators mm/page_alloc.c
---- a/mm/page_alloc.c~move-remote-node-draining-out-of-slab-allocators
-+++ a/mm/page_alloc.c
-@@ -691,43 +691,26 @@ static void __init setup_nr_node_ids(voi
  
- #ifdef CONFIG_NUMA
- /*
-- * Called from the slab reaper to drain pagesets on a particular node that
-- * belongs to the currently executing processor.
-+ * Called from the vmstat counter updater to drain pagesets of this
-+ * currently executing processor on remote nodes after they have
-+ * expired.
-+ *
-  * Note that this function must be called with the thread pinned to
-  * a single processor.
-  */
--void drain_node_pages(int nodeid)
-+void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp)
- {
--	int i;
--	enum zone_type z;
- 	unsigned long flags;
-+	int to_drain;
+@@ -94,7 +96,7 @@ struct robust_list_head {
+ #define ROBUST_LIST_LIMIT	2048
  
--	for (z = 0; z < MAX_NR_ZONES; z++) {
--		struct zone *zone = NODE_DATA(nodeid)->node_zones + z;
--		struct per_cpu_pageset *pset;
--
--		if (!populated_zone(zone))
--			continue;
--
--		pset = zone_pcp(zone, smp_processor_id());
--		for (i = 0; i < ARRAY_SIZE(pset->pcp); i++) {
--			struct per_cpu_pages *pcp;
--
--			pcp = &pset->pcp[i];
--			if (pcp->count) {
--				int to_drain;
--
--				local_irq_save(flags);
--				if (pcp->count >= pcp->batch)
--					to_drain = pcp->batch;
--				else
--					to_drain = pcp->count;
--				free_pages_bulk(zone, to_drain, &pcp->list, 0);
--				pcp->count -= to_drain;
--				local_irq_restore(flags);
--			}
--		}
--	}
-+	local_irq_save(flags);
-+	if (pcp->count >= pcp->batch)
-+		to_drain = pcp->batch;
-+	else
-+		to_drain = pcp->count;
-+	free_pages_bulk(zone, to_drain, &pcp->list, 0);
-+	pcp->count -= to_drain;
-+	local_irq_restore(flags);
+ #ifdef __KERNEL__
+-long do_futex(u32 __user *uaddr, int op, u32 val, unsigned long timeout,
++long do_futex(u32 __user *uaddr, int op, u32 val, union ktime *timeout,
+ 	      u32 __user *uaddr2, u32 val2, u32 val3);
+ 
+ extern int
+diff -puN kernel/futex.c~make-futex_wait-use-an-hrtimer-for-timeout kernel/futex.c
+--- a/kernel/futex.c~make-futex_wait-use-an-hrtimer-for-timeout
++++ a/kernel/futex.c
+@@ -1001,16 +1001,16 @@ static void unqueue_me_pi(struct futex_q
  }
- #endif
  
-diff -puN mm/slab.c~move-remote-node-draining-out-of-slab-allocators mm/slab.c
---- a/mm/slab.c~move-remote-node-draining-out-of-slab-allocators
-+++ a/mm/slab.c
-@@ -928,12 +928,6 @@ static void next_reap_node(void)
+ static long futex_wait_restart(struct restart_block *restart);
+-static int futex_wait_abstime(u32 __user *uaddr, u32 val,
+-			int timed, unsigned long abs_time)
++static int futex_wait(u32 __user *uaddr, u32 val, ktime_t *abs_time)
  {
- 	int node = __get_cpu_var(reap_node);
+ 	struct task_struct *curr = current;
+ 	DECLARE_WAITQUEUE(wait, curr);
+ 	struct futex_hash_bucket *hb;
+ 	struct futex_q q;
+-	unsigned long time_left = 0;
+ 	u32 uval;
+ 	int ret;
++	struct hrtimer_sleeper t;
++	int rem = 0;
  
--	/*
--	 * Also drain per cpu pages on remote zones
--	 */
--	if (node != numa_node_id())
--		drain_node_pages(node);
--
- 	node = next_node(node, node_online_map);
- 	if (unlikely(node >= MAX_NUMNODES))
- 		node = first_node(node_online_map);
-diff -puN mm/slub.c~move-remote-node-draining-out-of-slab-allocators mm/slub.c
---- a/mm/slub.c~move-remote-node-draining-out-of-slab-allocators
-+++ a/mm/slub.c
-@@ -2530,90 +2530,6 @@ static struct notifier_block __cpuinitda
- 
- #endif
- 
--#ifdef CONFIG_NUMA
--
--/*****************************************************************
-- * Generic reaper used to support the page allocator
-- * (the cpu slabs are reaped by a per slab workqueue).
-- *
-- * Maybe move this to the page allocator?
-- ****************************************************************/
--
--static DEFINE_PER_CPU(unsigned long, reap_node);
--
--static void init_reap_node(int cpu)
--{
--	int node;
--
--	node = next_node(cpu_to_node(cpu), node_online_map);
--	if (node == MAX_NUMNODES)
--		node = first_node(node_online_map);
--
--	__get_cpu_var(reap_node) = node;
--}
--
--static void next_reap_node(void)
--{
--	int node = __get_cpu_var(reap_node);
--
--	/*
--	 * Also drain per cpu pages on remote zones
--	 */
--	if (node != numa_node_id())
--		drain_node_pages(node);
--
--	node = next_node(node, node_online_map);
--	if (unlikely(node >= MAX_NUMNODES))
--		node = first_node(node_online_map);
--	__get_cpu_var(reap_node) = node;
--}
--#else
--#define init_reap_node(cpu) do { } while (0)
--#define next_reap_node(void) do { } while (0)
--#endif
--
--#define REAPTIMEOUT_CPUC	(2*HZ)
--
--#ifdef CONFIG_SMP
--static DEFINE_PER_CPU(struct delayed_work, reap_work);
--
--static void cache_reap(struct work_struct *unused)
--{
--	next_reap_node();
--	schedule_delayed_work(&__get_cpu_var(reap_work),
--				      REAPTIMEOUT_CPUC);
--}
--
--static void __devinit start_cpu_timer(int cpu)
--{
--	struct delayed_work *reap_work = &per_cpu(reap_work, cpu);
--
--	/*
--	 * When this gets called from do_initcalls via cpucache_init(),
--	 * init_workqueues() has already run, so keventd will be setup
--	 * at that time.
--	 */
--	if (keventd_up() && reap_work->work.func == NULL) {
--		init_reap_node(cpu);
--		INIT_DELAYED_WORK(reap_work, cache_reap);
--		schedule_delayed_work_on(cpu, reap_work, HZ + 3 * cpu);
--	}
--}
--
--static int __init cpucache_init(void)
--{
--	int cpu;
--
--	/*
--	 * Register the timers that drain pcp pages and update vm statistics
--	 */
--	for_each_online_cpu(cpu)
--		start_cpu_timer(cpu);
--	return 0;
--}
--__initcall(cpucache_init);
--#endif
--
- void *__kmalloc_track_caller(size_t size, gfp_t gfpflags, void *caller)
- {
- 	struct kmem_cache *s = get_slab(size, gfpflags);
-diff -puN mm/vmstat.c~move-remote-node-draining-out-of-slab-allocators mm/vmstat.c
---- a/mm/vmstat.c~move-remote-node-draining-out-of-slab-allocators
-+++ a/mm/vmstat.c
-@@ -281,6 +281,17 @@ EXPORT_SYMBOL(dec_zone_page_state);
- 
- /*
-  * Update the zone counters for one cpu.
-+ *
-+ * Note that refresh_cpu_vm_stats strives to only access
-+ * node local memory. The per cpu pagesets on remote zones are placed
-+ * in the memory local to the processor using that pageset. So the
-+ * loop over all zones will access a series of cachelines local to
-+ * the processor.
-+ *
-+ * The call to zone_page_state_add updates the cachelines with the
-+ * statistics in the remote zone struct as well as the global cachelines
-+ * with the global counters. These could cause remote node cache line
-+ * bouncing and will have to be only done when necessary.
-  */
- void refresh_cpu_vm_stats(int cpu)
- {
-@@ -289,21 +300,54 @@ void refresh_cpu_vm_stats(int cpu)
- 	unsigned long flags;
- 
- 	for_each_zone(zone) {
--		struct per_cpu_pageset *pcp;
-+		struct per_cpu_pageset *p;
- 
- 		if (!populated_zone(zone))
- 			continue;
- 
--		pcp = zone_pcp(zone, cpu);
-+		p = zone_pcp(zone, cpu);
- 
- 		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
--			if (pcp->vm_stat_diff[i]) {
-+			if (p->vm_stat_diff[i]) {
- 				local_irq_save(flags);
--				zone_page_state_add(pcp->vm_stat_diff[i],
-+				zone_page_state_add(p->vm_stat_diff[i],
- 					zone, i);
--				pcp->vm_stat_diff[i] = 0;
-+				p->vm_stat_diff[i] = 0;
-+#ifdef CONFIG_NUMA
-+				/* 3 seconds idle till flush */
-+				p->expire = 3;
-+#endif
- 				local_irq_restore(flags);
- 			}
-+#ifdef CONFIG_NUMA
-+		/*
-+		 * Deal with draining the remote pageset of this
-+		 * processor
-+		 *
-+		 * Check if there are pages remaining in this pageset
-+		 * if not then there is nothing to expire.
-+		 */
-+		if (!p->expire || (!p->pcp[0].count && !p->pcp[1].count))
-+			continue;
+ 	q.pi_state = NULL;
+  retry:
+@@ -1088,20 +1088,29 @@ static int futex_wait_abstime(u32 __user
+ 	 * !plist_node_empty() is safe here without any lock.
+ 	 * q.lock_ptr != 0 is not safe, because of ordering against wakeup.
+ 	 */
+-	time_left = 0;
+ 	if (likely(!plist_node_empty(&q.list))) {
+-		unsigned long rel_time;
++		if (!abs_time)
++			schedule();
++		else {
++			hrtimer_init(&t.timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
++			hrtimer_init_sleeper(&t, current);
++			t.timer.expires = *abs_time;
 +
-+		/*
-+		 * We never drain zones local to this processor.
-+		 */
-+		if (zone_to_nid(zone) == numa_node_id()) {
-+			p->expire = 0;
-+			continue;
++			hrtimer_start(&t.timer, t.timer.expires, HRTIMER_MODE_ABS);
++
++			/*
++			 * the timer could have already expired, in which
++			 * case current would be flagged for rescheduling.
++			 * Don't bother calling schedule.
++			 */
++			if (likely(t.task))
++				schedule();
+ 
+-		if (timed) {
+-			unsigned long now = jiffies;
+-			if (time_after(now, abs_time))
+-				rel_time = 0;
+-			else
+-				rel_time = abs_time - now;
+-		} else
+-			rel_time = MAX_SCHEDULE_TIMEOUT;
++			hrtimer_cancel(&t.timer);
+ 
+-		time_left = schedule_timeout(rel_time);
++			/* Flag if a timeout occured */
++			rem = (t.task == NULL);
 +		}
-+
-+		p->expire--;
-+		if (p->expire)
-+			continue;
-+
-+		if (p->pcp[0].count)
-+			drain_zone_pages(zone, p->pcp + 0);
-+
-+		if (p->pcp[1].count)
-+			drain_zone_pages(zone, p->pcp + 1);
-+#endif
+ 	}
+ 	__set_current_state(TASK_RUNNING);
+ 
+@@ -1113,14 +1122,14 @@ static int futex_wait_abstime(u32 __user
+ 	/* If we were woken (and unqueued), we succeeded, whatever. */
+ 	if (!unqueue_me(&q))
+ 		return 0;
+-	if (time_left == 0)
++	if (rem)
+ 		return -ETIMEDOUT;
+ 
+ 	/*
+ 	 * We expect signal_pending(current), but another thread may
+ 	 * have handled it for us already.
+ 	 */
+-	if (time_left == MAX_SCHEDULE_TIMEOUT)
++	if (!abs_time)
+ 		return -ERESTARTSYS;
+ 	else {
+ 		struct restart_block *restart;
+@@ -1128,8 +1137,7 @@ static int futex_wait_abstime(u32 __user
+ 		restart->fn = futex_wait_restart;
+ 		restart->arg0 = (unsigned long)uaddr;
+ 		restart->arg1 = (unsigned long)val;
+-		restart->arg2 = (unsigned long)timed;
+-		restart->arg3 = abs_time;
++		restart->arg2 = (unsigned long)abs_time;
+ 		return -ERESTART_RESTARTBLOCK;
+ 	}
+ 
+@@ -1141,21 +1149,15 @@ static int futex_wait_abstime(u32 __user
+ 	return ret;
+ }
+ 
+-static int futex_wait(u32 __user *uaddr, u32 val, unsigned long rel_time)
+-{
+-	int timed = (rel_time != MAX_SCHEDULE_TIMEOUT);
+-	return futex_wait_abstime(uaddr, val, timed, jiffies+rel_time);
+-}
+ 
+ static long futex_wait_restart(struct restart_block *restart)
+ {
+ 	u32 __user *uaddr = (u32 __user *)restart->arg0;
+ 	u32 val = (u32)restart->arg1;
+-	int timed = (int)restart->arg2;
+-	unsigned long abs_time = restart->arg3;
++	ktime_t *abs_time = (ktime_t *)restart->arg2;
+ 
+ 	restart->fn = do_no_restart_syscall;
+-	return (long)futex_wait_abstime(uaddr, val, timed, abs_time);
++	return (long)futex_wait(uaddr, val, abs_time);
+ }
+ 
+ 
+@@ -1165,8 +1167,8 @@ static long futex_wait_restart(struct re
+  * if there are waiters then it will block, it does PI, etc. (Due to
+  * races the kernel might see a 0 value of the futex too.)
+  */
+-static int futex_lock_pi(u32 __user *uaddr, int detect, unsigned long sec,
+-			 long nsec, int trylock)
++static int futex_lock_pi(u32 __user *uaddr, int detect, ktime_t *time,
++			 int trylock)
+ {
+ 	struct hrtimer_sleeper timeout, *to = NULL;
+ 	struct task_struct *curr = current;
+@@ -1178,11 +1180,11 @@ static int futex_lock_pi(u32 __user *uad
+ 	if (refill_pi_state_cache())
+ 		return -ENOMEM;
+ 
+-	if (sec != MAX_SCHEDULE_TIMEOUT) {
++	if (time) {
+ 		to = &timeout;
+ 		hrtimer_init(&to->timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
+ 		hrtimer_init_sleeper(to, current);
+-		to->timer.expires = ktime_set(sec, nsec);
++		to->timer.expires = *time;
+ 	}
+ 
+ 	q.pi_state = NULL;
+@@ -1818,7 +1820,7 @@ void exit_robust_list(struct task_struct
  	}
  }
  
+-long do_futex(u32 __user *uaddr, int op, u32 val, unsigned long timeout,
++long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
+ 		u32 __user *uaddr2, u32 val2, u32 val3)
+ {
+ 	int ret;
+@@ -1844,13 +1846,13 @@ long do_futex(u32 __user *uaddr, int op,
+ 		ret = futex_wake_op(uaddr, uaddr2, val, val2, val3);
+ 		break;
+ 	case FUTEX_LOCK_PI:
+-		ret = futex_lock_pi(uaddr, val, timeout, val2, 0);
++		ret = futex_lock_pi(uaddr, val, timeout, 0);
+ 		break;
+ 	case FUTEX_UNLOCK_PI:
+ 		ret = futex_unlock_pi(uaddr);
+ 		break;
+ 	case FUTEX_TRYLOCK_PI:
+-		ret = futex_lock_pi(uaddr, 0, timeout, val2, 1);
++		ret = futex_lock_pi(uaddr, 0, timeout, 1);
+ 		break;
+ 	default:
+ 		ret = -ENOSYS;
+@@ -1863,21 +1865,20 @@ asmlinkage long sys_futex(u32 __user *ua
+ 			  struct timespec __user *utime, u32 __user *uaddr2,
+ 			  u32 val3)
+ {
+-	struct timespec t;
+-	unsigned long timeout = MAX_SCHEDULE_TIMEOUT;
++	struct timespec ts;
++	ktime_t t, *tp = NULL;
+ 	u32 val2 = 0;
+ 
+ 	if (utime && (op == FUTEX_WAIT || op == FUTEX_LOCK_PI)) {
+-		if (copy_from_user(&t, utime, sizeof(t)) != 0)
++		if (copy_from_user(&ts, utime, sizeof(ts)) != 0)
+ 			return -EFAULT;
+-		if (!timespec_valid(&t))
++		if (!timespec_valid(&ts))
+ 			return -EINVAL;
++
++		t = timespec_to_ktime(ts);
+ 		if (op == FUTEX_WAIT)
+-			timeout = timespec_to_jiffies(&t) + 1;
+-		else {
+-			timeout = t.tv_sec;
+-			val2 = t.tv_nsec;
+-		}
++			t = ktime_add(ktime_get(), t);
++		tp = &t;
+ 	}
+ 	/*
+ 	 * requeue parameter in 'utime' if op == FUTEX_REQUEUE.
+@@ -1885,7 +1886,7 @@ asmlinkage long sys_futex(u32 __user *ua
+ 	if (op == FUTEX_REQUEUE || op == FUTEX_CMP_REQUEUE)
+ 		val2 = (u32) (unsigned long) utime;
+ 
+-	return do_futex(uaddr, op, val, timeout, uaddr2, val2, val3);
++	return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
+ }
+ 
+ static int futexfs_get_sb(struct file_system_type *fs_type,
+diff -puN kernel/futex_compat.c~make-futex_wait-use-an-hrtimer-for-timeout kernel/futex_compat.c
+--- a/kernel/futex_compat.c~make-futex_wait-use-an-hrtimer-for-timeout
++++ a/kernel/futex_compat.c
+@@ -141,24 +141,23 @@ asmlinkage long compat_sys_futex(u32 __u
+ 		struct compat_timespec __user *utime, u32 __user *uaddr2,
+ 		u32 val3)
+ {
+-	struct timespec t;
+-	unsigned long timeout = MAX_SCHEDULE_TIMEOUT;
++	struct timespec ts;
++	ktime_t t, *tp = NULL;
+ 	int val2 = 0;
+ 
+ 	if (utime && (op == FUTEX_WAIT || op == FUTEX_LOCK_PI)) {
+-		if (get_compat_timespec(&t, utime))
++		if (get_compat_timespec(&ts, utime))
+ 			return -EFAULT;
+-		if (!timespec_valid(&t))
++		if (!timespec_valid(&ts))
+ 			return -EINVAL;
++
++		t = timespec_to_ktime(ts);
+ 		if (op == FUTEX_WAIT)
+-			timeout = timespec_to_jiffies(&t) + 1;
+-		else {
+-			timeout = t.tv_sec;
+-			val2 = t.tv_nsec;
+-		}
++			t = ktime_add(ktime_get(), t);
++		tp = &t;
+ 	}
+ 	if (op == FUTEX_REQUEUE || op == FUTEX_CMP_REQUEUE)
+ 		val2 = (int) (unsigned long) utime;
+ 
+-	return do_futex(uaddr, op, val, timeout, uaddr2, val2, val3);
++	return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
+ }
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from pierre.peiffer@bull.net are
 
 origin.patch
-slub-support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-reduce-antifrag-max-order.patch
-slub-i386-support.patch
-define-percpu-smp-cacheline-align-interface.patch
-call-percpu-smp-cacheline-algin-interface.patch
-remove-constructor-from-buffer_head.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
