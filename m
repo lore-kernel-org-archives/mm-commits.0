@@ -1,104 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - kill-warnings-when-building-mandocs.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:51:17 -0700
-Message-ID: <200705090251.l492pHiY009440@shell0.pdx.osdl.net>
+Subject: - reiserfs-use-__set_current_state.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:51:11 -0700
+Message-ID: <200705090251.l492pBlD009432@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55204 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43440 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032148AbXEICvT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:19 -0400
+	by vger.kernel.org with ESMTP id S1032149AbXEICvX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bbpetkov@yahoo.de, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: milindchoudhary@gmail.com, reiserfs-dev@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kill warnings when building mandocs
+     reiserfs: use __set_current_state()
 has been removed from the -mm tree.  Its filename was
-     kill-warnings-when-building-mandocs.patch
+     reiserfs-use-__set_current_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kill warnings when building mandocs
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: reiserfs: use __set_current_state()
+From: Milind Arun Choudhary <milindchoudhary@gmail.com>
 
-This patch shuts warnings of the sort:
+use __set_current_state(TASK_*) instead of current->state = TASK_*, in
+fs/reiserfs
 
-make -C /mnt/samsung_200/sam/kernel/trees/21-rc6/build \
-	KBUILD_SRC=/mnt/samsung_200/sam/kernel/trees/21-rc6 \
-	KBUILD_EXTMOD="" -f /mnt/samsung_200/sam/kernel/trees/21-rc6/Makefile mandocs
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=scripts/basic
-make -f /mnt/samsung_200/sam/kernel/trees/21-rc6/scripts/Makefile.build obj=Documentation/DocBook mandocs
-  SRCTREE=/mnt/samsung_200/sam/kernel/trees/21-rc6/ /mnt/samsung_200/sam/kernel/trees/21-rc6/build/scripts/basic/docproc doc /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/wanbook.tmpl >Documentation/DocBook/wanbook.xml
-  if grep -q refentry Documentation/DocBook/wanbook.xml; then xmlto man -m /mnt/samsung_200/sam/kernel/trees/21-rc6/Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/man Documentation/DocBook/wanbook.xml ; gzip -f Documentation/DocBook/man/*.9; fi
-Note: meta version: No productnumber or alternative     sppp_close
-Note: meta version: No refmiscinfo@class=version        sppp_close
-Note: Writing sppp_close.9
-Note: meta version: No productnumber or alternative     sppp_open
-Note: meta version: No refmiscinfo@class=version        sppp_open
-
-by adding a RefMiscInfo xml tag in the form of the current kernel version
-to the function, struct and enum definitions in files included by
-kernel-doc when building 'mandocs'.  However, the version string appears
-truncated on the manpage due to some constraints in the xml DTD for the man
-header, I believe, for the troff output is truncated too.
-
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Cc: <reiserfs-dev@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/reiserfs/journal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/kernel-doc~kill-warnings-when-building-mandocs scripts/kernel-doc
---- a/scripts/kernel-doc~kill-warnings-when-building-mandocs
-+++ a/scripts/kernel-doc
-@@ -328,6 +328,15 @@ while ($ARGV[0] =~ m/^-(.*)/) {
-     }
+diff -puN fs/reiserfs/journal.c~reiserfs-use-__set_current_state fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-use-__set_current_state
++++ a/fs/reiserfs/journal.c
+@@ -2918,7 +2918,7 @@ static void queue_log_writer(struct supe
+ 	set_current_state(TASK_UNINTERRUPTIBLE);
+ 	if (test_bit(J_WRITERS_QUEUED, &journal->j_state))
+ 		schedule();
+-	current->state = TASK_RUNNING;
++	__set_current_state(TASK_RUNNING);
+ 	remove_wait_queue(&journal->j_join_wait, &wait);
  }
  
-+# get kernel version from env
-+sub get_kernel_version() {
-+    my $version;
-+
-+    if (defined($ENV{'KERNELVERSION'})) {
-+	$version = $ENV{'KERNELVERSION'};
-+    }
-+    return $version;
-+}
- 
- # generate a sequence of code that will splice in highlighting information
- # using the s// operator.
-@@ -601,6 +610,7 @@ sub output_function_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'function'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'function'}."</refname>\n";
-@@ -677,6 +687,7 @@ sub output_struct_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>".$args{'type'}." ".$args{'struct'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>".$args{'type'}." ".$args{'struct'}."</refname>\n";
-@@ -761,6 +772,7 @@ sub output_enum_xml(%) {
-     print "<refmeta>\n";
-     print " <refentrytitle><phrase>enum ".$args{'enum'}."</phrase></refentrytitle>\n";
-     print " <manvolnum>9</manvolnum>\n";
-+    print " <refmiscinfo class=\"version\">" . get_kernel_version() . "</refmiscinfo>\n";
-     print "</refmeta>\n";
-     print "<refnamediv>\n";
-     print " <refname>enum ".$args{'enum'}."</refname>\n";
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from milindchoudhary@gmail.com are
 
 origin.patch
-kernel-doc-small-kernel-doc-optimization.patch
+git-alsa.patch
+git-ia64.patch
+spin_lock_unlocked-macro-cleanup-in-arch-ia64.patch
+nfs-use-__set_current_state.patch
+round_up-macro-cleanup-in-drivers-parisc.patch
+round_up-macro-cleanup-in-drivers-pci.patch
+pcie-remove-spin_lock_unlocked.patch
+round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
