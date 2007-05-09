@@ -1,368 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-add-new-ipmi-nmi-watchdog-handling.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:44:18 -0700
-Message-ID: <200705090244.l492iInN008574@shell0.pdx.osdl.net>
+Subject: - ipmi-add-powerpc-openfirmware-sensing.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:44:12 -0700
+Message-ID: <200705090244.l492iCIZ008559@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45312 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030628AbXEICoW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:44:22 -0400
+	by vger.kernel.org with ESMTP id S970092AbXEICoT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:44:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minyard@acm.org, mm-commits@vger.kernel.org
+To: minyard@acm.org, arnd.bergmann@de.ibm.com, krafft@de.ibm.com, schihei@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipmi: add new IPMI nmi watchdog handling
+     ipmi: add powerpc openfirmware sensing
 has been removed from the -mm tree.  Its filename was
-     ipmi-add-new-ipmi-nmi-watchdog-handling.patch
+     ipmi-add-powerpc-openfirmware-sensing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipmi: add new IPMI nmi watchdog handling
+Subject: ipmi: add powerpc openfirmware sensing
 From: Corey Minyard <minyard@acm.org>
 
-Convert over to the new NMI handling for getting IPMI watchdog timeouts via an
-NMI.  This add config options to know if there is the ability to receive NMIs
-and if it has an NMI post processing call.  Then it modifies the IPMI watchdog
-to take advantage of this so that it can know if an NMI comes in.
+Add support for of_platform_driver to the ipmi_si module.  When loading the
+module, the driver will be registered to of_platform.  The driver will be
+probed for all devices with the type ipmi.  It's supporting devices with
+compatible settings ipmi-kcs, ipmi-smic and ipmi-bt.  Only ipmi-kcs could be
+tested.
 
-It also adds testing that the IPMI NMI watchdog works.
-
+Signed-off-by: Christian Krafft <krafft@de.ibm.com>
+Acked-by: Heiko J Schick <schihei@de.ibm.com>
 Signed-off-by: Corey Minyard <minyard@acm.org>
+Acked-by: Arnd Bergmann <arnd.bergmann@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/traps.c          |    5 +
- arch/x86_64/kernel/traps.c        |    2 
- drivers/char/ipmi/ipmi_watchdog.c |  136 +++++++++++++++++++---------
- include/asm-i386/kdebug.h         |    1 
- include/asm-x86_64/kdebug.h       |    1 
- 5 files changed, 103 insertions(+), 42 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |  108 +++++++++++++++++++++++++++++
+ 1 file changed, 108 insertions(+)
 
-diff -puN arch/i386/kernel/traps.c~ipmi-add-new-ipmi-nmi-watchdog-handling arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~ipmi-add-new-ipmi-nmi-watchdog-handling
-+++ a/arch/i386/kernel/traps.c
-@@ -747,6 +747,11 @@ static __kprobes void default_do_nmi(str
- 		 */
- 		if (nmi_watchdog_tick(regs, reason))
- 			return;
-+#endif
-+		if (notify_die(DIE_NMI_POST, "nmi_post", regs, reason, 2, 0)
-+							== NOTIFY_STOP)
-+			return;
-+#ifdef CONFIG_X86_LOCAL_APIC
- 		if (!do_nmi_callback(regs, smp_processor_id()))
- #endif
- 			unknown_nmi_error(reason, regs);
-diff -puN arch/x86_64/kernel/traps.c~ipmi-add-new-ipmi-nmi-watchdog-handling arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~ipmi-add-new-ipmi-nmi-watchdog-handling
-+++ a/arch/x86_64/kernel/traps.c
-@@ -792,6 +792,8 @@ asmlinkage __kprobes void default_do_nmi
- 		 */
- 		if (nmi_watchdog_tick(regs,reason))
- 			return;
-+		if (notify_die(DIE_NMI_POST, "nmi_post", regs, reason, 2, 0)
-+								== NOTIFY_STOP)
- 		if (!do_nmi_callback(regs,cpu))
- 			unknown_nmi_error(reason, regs);
- 
-diff -puN drivers/char/ipmi/ipmi_watchdog.c~ipmi-add-new-ipmi-nmi-watchdog-handling drivers/char/ipmi/ipmi_watchdog.c
---- a/drivers/char/ipmi/ipmi_watchdog.c~ipmi-add-new-ipmi-nmi-watchdog-handling
-+++ a/drivers/char/ipmi/ipmi_watchdog.c
-@@ -49,9 +49,19 @@
- #include <linux/poll.h>
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-powerpc-openfirmware-sensing drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-powerpc-openfirmware-sensing
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -9,6 +9,7 @@
+  *         source@mvista.com
+  *
+  * Copyright 2002 MontaVista Software Inc.
++ * Copyright 2006 IBM Corp., Christian Krafft <krafft@de.ibm.com>
+  *
+  *  This program is free software; you can redistribute it and/or modify it
+  *  under the terms of the GNU General Public License as published by the
+@@ -64,6 +65,11 @@
  #include <linux/string.h>
  #include <linux/ctype.h>
-+#include <linux/delay.h>
- #include <asm/atomic.h>
--#ifdef CONFIG_X86_LOCAL_APIC
--#include <asm/apic.h>
-+
-+#ifdef CONFIG_X86
-+/* This is ugly, but I've determined that x86 is the only architecture
-+   that can reasonably support the IPMI NMI watchdog timeout at this
-+   time.  If another architecture adds this capability somehow, it
-+   will have to be a somewhat different mechanism and I have no idea
-+   how it will work.  So in the unlikely event that another
-+   architecture supports this, we can figure out a good generic
-+   mechanism for it at that time. */
-+#include <asm/kdebug.h>
-+#define HAVE_DIE_NMI_POST
- #endif
  
- #define	PFX "IPMI Watchdog: "
-@@ -317,6 +327,11 @@ static unsigned char ipmi_version_minor;
- /* If a pretimeout occurs, this is used to allow only one panic to happen. */
- static atomic_t preop_panic_excl = ATOMIC_INIT(-1);
- 
-+#ifdef HAVE_DIE_NMI_POST
-+static int testing_nmi;
-+static int nmi_handler_registered;
++#ifdef CONFIG_PPC_OF
++#include <asm/of_device.h>
++#include <asm/of_platform.h>
 +#endif
 +
- static int ipmi_heartbeat(void);
- static void panic_halt_ipmi_heartbeat(void);
+ #define PFX "ipmi_si: "
  
-@@ -358,6 +373,10 @@ static int i_ipmi_set_timeout(struct ipm
- 	int                               hbnow = 0;
+ /* Measure times between events in the driver. */
+@@ -1006,6 +1012,7 @@ static DEFINE_MUTEX(smi_infos_lock);
+ static int smi_num; /* Used to sequence the SMIs */
+ 
+ #define DEFAULT_REGSPACING	1
++#define DEFAULT_REGSIZE		1
+ 
+ static int           si_trydefaults = 1;
+ static char          *si_type[SI_MAX_PARMS];
+@@ -2172,6 +2179,99 @@ static struct pci_driver ipmi_pci_driver
+ #endif /* CONFIG_PCI */
  
  
-+	/* These can be cleared as we are setting the timeout. */
-+	ipmi_start_timer_on_heartbeat = 0;
-+	pretimeout_since_last_heartbeat = 0;
++#ifdef CONFIG_PPC_OF
++static int __devinit ipmi_of_probe(struct of_device *dev,
++			 const struct of_device_id *match)
++{
++	struct smi_info *info;
++	struct resource resource;
++	const int *regsize, *regspacing, *regshift;
++	struct device_node *np = dev->node;
++	int ret;
++	int proplen;
 +
- 	data[0] = 0;
- 	WDOG_SET_TIMER_USE(data[0], WDOG_TIMER_USE_SMS_OS);
- 
-@@ -432,13 +451,12 @@ static int ipmi_set_timeout(int do_heart
- 
- 	wait_for_completion(&set_timeout_wait);
- 
-+	mutex_unlock(&set_timeout_lock);
++	dev_info(&dev->dev, PFX "probing via device tree\n");
 +
- 	if ((do_heartbeat == IPMI_SET_TIMEOUT_FORCE_HB)
- 	    || ((send_heartbeat_now)
- 		&& (do_heartbeat == IPMI_SET_TIMEOUT_HB_IF_NECESSARY)))
--	{
- 		rv = ipmi_heartbeat();
--	}
--	mutex_unlock(&set_timeout_lock);
- 
- out:
- 	return rv;
-@@ -518,12 +536,10 @@ static int ipmi_heartbeat(void)
- 	int                               rv;
- 	struct ipmi_system_interface_addr addr;
- 
--	if (ipmi_ignore_heartbeat) {
-+	if (ipmi_ignore_heartbeat)
- 		return 0;
--	}
- 
- 	if (ipmi_start_timer_on_heartbeat) {
--		ipmi_start_timer_on_heartbeat = 0;
- 		ipmi_watchdog_state = action_val;
- 		return ipmi_set_timeout(IPMI_SET_TIMEOUT_FORCE_HB);
- 	} else if (pretimeout_since_last_heartbeat) {
-@@ -531,7 +547,6 @@ static int ipmi_heartbeat(void)
- 		   We don't want to set the action, though, we want to
- 		   leave that alone (thus it can't be combined with the
- 		   above operation. */
--		pretimeout_since_last_heartbeat = 0;
- 		return ipmi_set_timeout(IPMI_SET_TIMEOUT_HB_IF_NECESSARY);
- 	}
- 
-@@ -919,6 +934,45 @@ static void ipmi_register_watchdog(int i
- 		printk(KERN_CRIT PFX "Unable to register misc device\n");
- 	}
- 
-+#ifdef HAVE_DIE_NMI_POST
-+	if (nmi_handler_registered) {
-+		int old_pretimeout = pretimeout;
-+		int old_timeout = timeout;
-+		int old_preop_val = preop_val;
-+
-+		/* Set the pretimeout to go off in a second and give
-+		   ourselves plenty of time to stop the timer. */
-+		ipmi_watchdog_state = WDOG_TIMEOUT_RESET;
-+		preop_val = WDOG_PREOP_NONE; /* Make sure nothing happens */
-+		pretimeout = 99;
-+		timeout = 100;
-+
-+		testing_nmi = 1;
-+
-+		rv = ipmi_set_timeout(IPMI_SET_TIMEOUT_FORCE_HB);
-+		if (rv) {
-+			printk(KERN_WARNING PFX "Error starting timer to"
-+			       " test NMI: 0x%x.  The NMI pretimeout will"
-+			       " likely not work\n", rv);
-+			rv = 0;
-+			goto out_restore;
-+		}
-+
-+		msleep(1500);
-+
-+		if (testing_nmi != 2) {
-+			printk(KERN_WARNING PFX "IPMI NMI didn't seem to"
-+			       " occur.  The NMI pretimeout will"
-+			       " likely not work\n");
-+		}
-+	out_restore:
-+		testing_nmi = 0;
-+		preop_val = old_preop_val;
-+		pretimeout = old_pretimeout;
-+		timeout = old_timeout;
++	ret = of_address_to_resource(np, 0, &resource);
++	if (ret) {
++		dev_warn(&dev->dev, PFX "invalid address from OF\n");
++		return ret;
 +	}
++
++	regsize = get_property(np, "reg-size", &proplen);
++	if (regsize && proplen != 4) {
++		dev_warn(&dev->dev, PFX "invalid regsize from OF\n");
++		return -EINVAL;
++	}
++
++	regspacing = get_property(np, "reg-spacing", &proplen);
++	if (regspacing && proplen != 4) {
++		dev_warn(&dev->dev, PFX "invalid regspacing from OF\n");
++		return -EINVAL;
++	}
++
++	regshift = get_property(np, "reg-shift", &proplen);
++	if (regshift && proplen != 4) {
++		dev_warn(&dev->dev, PFX "invalid regshift from OF\n");
++		return -EINVAL;
++	}
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++
++	if (!info) {
++		dev_err(&dev->dev,
++			PFX "could not allocate memory for OF probe\n");
++		return -ENOMEM;
++	}
++
++	info->si_type		= (enum si_type) match->data;
++	info->addr_source	= "device-tree";
++	info->io_setup		= mem_setup;
++	info->irq_setup		= std_irq_setup;
++
++	info->io.addr_type	= IPMI_MEM_ADDR_SPACE;
++	info->io.addr_data	= resource.start;
++
++	info->io.regsize	= regsize ? *regsize : DEFAULT_REGSIZE;
++	info->io.regspacing	= regspacing ? *regspacing : DEFAULT_REGSPACING;
++	info->io.regshift	= regshift ? *regshift : 0;
++
++	info->irq		= irq_of_parse_and_map(dev->node, 0);
++	info->dev		= &dev->dev;
++
++	dev_dbg(&dev->dev, "addr 0x%lx regsize %ld spacing %ld irq %x\n",
++		info->io.addr_data, info->io.regsize, info->io.regspacing,
++		info->irq);
++
++	dev->dev.driver_data = (void*) info;
++
++	return try_smi_init(info);
++}
++
++static int __devexit ipmi_of_remove(struct of_device *dev)
++{
++	cleanup_one_si(dev->dev.driver_data);
++	return 0;
++}
++
++static struct of_device_id ipmi_match[] =
++{
++	{ .type = "ipmi", .compatible = "ipmi-kcs",  .data = (void *)(unsigned long) SI_KCS },
++	{ .type = "ipmi", .compatible = "ipmi-smic", .data = (void *)(unsigned long) SI_SMIC },
++	{ .type = "ipmi", .compatible = "ipmi-bt",   .data = (void *)(unsigned long) SI_BT },
++	{},
++};
++
++static struct of_platform_driver ipmi_of_platform_driver =
++{
++	.name		= "ipmi",
++	.match_table	= ipmi_match,
++	.probe		= ipmi_of_probe,
++	.remove		= __devexit_p(ipmi_of_remove),
++};
++#endif /* CONFIG_PPC_OF */
++
++
+ static int try_get_dev_id(struct smi_info *smi_info)
+ {
+ 	unsigned char         msg[2];
+@@ -2801,6 +2901,10 @@ static __devinit int init_ipmi_si(void)
+ 	}
+ #endif
+ 
++#ifdef CONFIG_PPC_OF
++	of_register_platform_driver(&ipmi_of_platform_driver);
 +#endif
 +
-  out:
- 	up_write(&register_sem);
+ 	if (si_trydefaults) {
+ 		mutex_lock(&smi_infos_lock);
+ 		if (list_empty(&smi_infos)) {
+@@ -2898,6 +3002,10 @@ static __exit void cleanup_ipmi_si(void)
+ 	pci_unregister_driver(&ipmi_pci_driver);
+ #endif
  
-@@ -928,6 +982,10 @@ static void ipmi_register_watchdog(int i
- 		ipmi_watchdog_state = action_val;
- 		ipmi_set_timeout(IPMI_SET_TIMEOUT_FORCE_HB);
- 		printk(KERN_INFO PFX "Starting now!\n");
-+	} else {
-+		/* Stop the timer now. */
-+		ipmi_watchdog_state = WDOG_TIMEOUT_NONE;
-+		ipmi_set_timeout(IPMI_SET_TIMEOUT_NO_HB);
- 	}
- }
- 
-@@ -964,17 +1022,28 @@ static void ipmi_unregister_watchdog(int
- 	up_write(&register_sem);
- }
- 
--#ifdef HAVE_NMI_HANDLER
-+#ifdef HAVE_DIE_NMI_POST
- static int
--ipmi_nmi(void *dev_id, int cpu, int handled)
-+ipmi_nmi(struct notifier_block *self, unsigned long val, void *data)
- {
-+	if (val != DIE_NMI_POST)
-+		return NOTIFY_OK;
++#ifdef CONFIG_PPC_OF
++	of_unregister_platform_driver(&ipmi_of_platform_driver);
++#endif
 +
-+	if (testing_nmi) {
-+		testing_nmi = 2;
-+		return NOTIFY_STOP;
-+	}
-+
-         /* If we are not expecting a timeout, ignore it. */
- 	if (ipmi_watchdog_state == WDOG_TIMEOUT_NONE)
--		return NOTIFY_DONE;
-+		return NOTIFY_OK;
-+
-+	if (preaction_val != WDOG_PRETIMEOUT_NMI)
-+		return NOTIFY_OK;
- 
- 	/* If no one else handled the NMI, we assume it was the IPMI
-            watchdog. */
--	if ((!handled) && (preop_val == WDOG_PREOP_PANIC)) {
-+	if (preop_val == WDOG_PREOP_PANIC) {
- 		/* On some machines, the heartbeat will give
- 		   an error and not work unless we re-enable
- 		   the timer.   So do so. */
-@@ -983,18 +1052,12 @@ ipmi_nmi(void *dev_id, int cpu, int hand
- 			panic(PFX "pre-timeout");
- 	}
- 
--	return NOTIFY_DONE;
-+	return NOTIFY_STOP;
- }
- 
--static struct nmi_handler ipmi_nmi_handler =
--{
--	.link     = LIST_HEAD_INIT(ipmi_nmi_handler.link),
--	.dev_name = "ipmi_watchdog",
--	.dev_id   = NULL,
--	.handler  = ipmi_nmi,
--	.priority = 0, /* Call us last. */
-+static struct notifier_block ipmi_nmi_handler = {
-+	.notifier_call = ipmi_nmi
- };
--int nmi_handler_registered;
- #endif
- 
- static int wdog_reboot_handler(struct notifier_block *this,
-@@ -1111,7 +1174,7 @@ static int preaction_op(const char *inva
- 		preaction_val = WDOG_PRETIMEOUT_NONE;
- 	else if (strcmp(inval, "pre_smi") == 0)
- 		preaction_val = WDOG_PRETIMEOUT_SMI;
--#ifdef HAVE_NMI_HANDLER
-+#ifdef HAVE_DIE_NMI_POST
- 	else if (strcmp(inval, "pre_nmi") == 0)
- 		preaction_val = WDOG_PRETIMEOUT_NMI;
- #endif
-@@ -1145,7 +1208,7 @@ static int preop_op(const char *inval, c
- 
- static void check_parms(void)
- {
--#ifdef HAVE_NMI_HANDLER
-+#ifdef HAVE_DIE_NMI_POST
- 	int do_nmi = 0;
- 	int rv;
- 
-@@ -1158,20 +1221,9 @@ static void check_parms(void)
- 			preop_op("preop_none", NULL);
- 			do_nmi = 0;
- 		}
--#ifdef CONFIG_X86_LOCAL_APIC
--		if (nmi_watchdog == NMI_IO_APIC) {
--			printk(KERN_WARNING PFX "nmi_watchdog is set to IO APIC"
--			       " mode (value is %d), that is incompatible"
--			       " with using NMI in the IPMI watchdog."
--			       " Disabling IPMI nmi pretimeout.\n",
--			       nmi_watchdog);
--			preaction_val = WDOG_PRETIMEOUT_NONE;
--			do_nmi = 0;
--		}
--#endif
- 	}
- 	if (do_nmi && !nmi_handler_registered) {
--		rv = request_nmi(&ipmi_nmi_handler);
-+		rv = register_die_notifier(&ipmi_nmi_handler);
- 		if (rv) {
- 			printk(KERN_WARNING PFX
- 			       "Can't register nmi handler\n");
-@@ -1179,7 +1231,7 @@ static void check_parms(void)
- 		} else
- 			nmi_handler_registered = 1;
- 	} else if (!do_nmi && nmi_handler_registered) {
--		release_nmi(&ipmi_nmi_handler);
-+		unregister_die_notifier(&ipmi_nmi_handler);
- 		nmi_handler_registered = 0;
- 	}
- #endif
-@@ -1215,9 +1267,9 @@ static int __init ipmi_wdog_init(void)
- 
- 	rv = ipmi_smi_watcher_register(&smi_watcher);
- 	if (rv) {
--#ifdef HAVE_NMI_HANDLER
--		if (preaction_val == WDOG_PRETIMEOUT_NMI)
--			release_nmi(&ipmi_nmi_handler);
-+#ifdef HAVE_DIE_NMI_POST
-+		if (nmi_handler_registered)
-+			unregister_die_notifier(&ipmi_nmi_handler);
- #endif
- 		atomic_notifier_chain_unregister(&panic_notifier_list,
- 						 &wdog_panic_notifier);
-@@ -1236,9 +1288,9 @@ static void __exit ipmi_wdog_exit(void)
- 	ipmi_smi_watcher_unregister(&smi_watcher);
- 	ipmi_unregister_watchdog(watchdog_ifnum);
- 
--#ifdef HAVE_NMI_HANDLER
-+#ifdef HAVE_DIE_NMI_POST
- 	if (nmi_handler_registered)
--		release_nmi(&ipmi_nmi_handler);
-+		unregister_die_notifier(&ipmi_nmi_handler);
- #endif
- 
- 	atomic_notifier_chain_unregister(&panic_notifier_list,
-diff -puN include/asm-i386/kdebug.h~ipmi-add-new-ipmi-nmi-watchdog-handling include/asm-i386/kdebug.h
---- a/include/asm-i386/kdebug.h~ipmi-add-new-ipmi-nmi-watchdog-handling
-+++ a/include/asm-i386/kdebug.h
-@@ -38,6 +38,7 @@ enum die_val {
- 	DIE_GPF,
- 	DIE_CALL,
- 	DIE_NMI_IPI,
-+	DIE_NMI_POST,
- 	DIE_PAGE_FAULT,
- };
- 
-diff -puN include/asm-x86_64/kdebug.h~ipmi-add-new-ipmi-nmi-watchdog-handling include/asm-x86_64/kdebug.h
---- a/include/asm-x86_64/kdebug.h~ipmi-add-new-ipmi-nmi-watchdog-handling
-+++ a/include/asm-x86_64/kdebug.h
-@@ -33,6 +33,7 @@ enum die_val {
- 	DIE_GPF,
- 	DIE_CALL,
- 	DIE_NMI_IPI,
-+	DIE_NMI_POST,
- 	DIE_PAGE_FAULT,
- };
- 
+ 	mutex_lock(&smi_infos_lock);
+ 	list_for_each_entry_safe(e, tmp_e, &smi_infos, link)
+ 		cleanup_one_si(e);
 _
 
 Patches currently in -mm which might be from minyard@acm.org are
