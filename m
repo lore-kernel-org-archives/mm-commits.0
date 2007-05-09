@@ -1,133 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:42:52 -0700
-Message-ID: <200705090942.l499gqaf020187@shell0.pdx.osdl.net>
+Subject: - lguest-the-host-code-remove-put_user-etc-warnings-add-bloat.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:42:56 -0700
+Message-ID: <200705090942.l499guEs020193@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60534 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33252 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755887AbXEIJnU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:43:20 -0400
+	by vger.kernel.org with ESMTP id S1755898AbXEIJnW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest simplification: don't pin guest trap handlers
+     lguest: remove put_user etc warnings, add bloat
 has been removed from the -mm tree.  Its filename was
-     lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
+     lguest-the-host-code-remove-put_user-etc-warnings-add-bloat.patch
 
 This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: lguest simplification: don't pin guest trap handlers
+Subject: lguest: remove put_user etc warnings, add bloat
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-We don't actually need the Guest handlers mapped to avoid double
-fault, just the stack pages.  Thanks to Zach for confirming.
+I've long disliked Linux's user access functions.  Nonetheless, let's
+stop the warnings.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/interrupts_and_traps.c |   26 ------------------------
- drivers/lguest/lg.h                   |    2 -
- drivers/lguest/page_tables.c          |    6 ++---
- 3 files changed, 5 insertions(+), 29 deletions(-)
+ drivers/lguest/core.c                 |    8 +++--
+ drivers/lguest/hypercalls.c           |   33 ++++++++++++++++--------
+ drivers/lguest/interrupts_and_traps.c |   17 ++++++++----
+ 3 files changed, 39 insertions(+), 19 deletions(-)
 
-diff -puN drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers drivers/lguest/interrupts_and_traps.c
---- a/drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers
-+++ a/drivers/lguest/interrupts_and_traps.c
-@@ -138,7 +138,7 @@ static int direct_trap(const struct lgue
- 	return idt_type(trap->a, trap->b) == 0xF;
- }
+diff -puN drivers/lguest/core.c~lguest-the-host-code-remove-put_user-etc-warnings-add-bloat drivers/lguest/core.c
+--- a/drivers/lguest/core.c~lguest-the-host-code-remove-put_user-etc-warnings-add-bloat
++++ a/drivers/lguest/core.c
+@@ -302,8 +302,9 @@ int run_guest(struct lguest *lg, char *_
+ 		/* Hypercalls first: we might have been out to userspace */
+ 		do_hypercalls(lg);
+ 		if (lg->dma_is_pending) {
+-			put_user(lg->pending_dma, (unsigned long *)user);
+-			put_user(lg->pending_key, (unsigned long *)user+1);
++			if (put_user(lg->pending_dma, (unsigned long *)user) ||
++			    put_user(lg->pending_key, (unsigned long *)user+1))
++				return -EFAULT;
+ 			return sizeof(unsigned long)*2;
+ 		}
  
--static void pin_stack_pages(struct lguest *lg)
-+void pin_stack_pages(struct lguest *lg)
- {
+@@ -349,7 +350,8 @@ int run_guest(struct lguest *lg, char *_
+ 				continue;
+ 
+ 			/* If lguest_data is NULL, this won't hurt. */
+-			put_user(cr2, &lg->lguest_data->cr2);
++			if (put_user(cr2, &lg->lguest_data->cr2))
++				kill_guest(lg, "Writing cr2");
+ 			break;
+ 		case 7: /* We've intercepted a Device Not Available fault. */
+ 			/* If they don't want to know, just absorb it. */
+diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-remove-put_user-etc-warnings-add-bloat drivers/lguest/hypercalls.c
+--- a/drivers/lguest/hypercalls.c~lguest-the-host-code-remove-put_user-etc-warnings-add-bloat
++++ a/drivers/lguest/hypercalls.c
+@@ -102,7 +102,9 @@ static void do_async_hcalls(struct lgues
  	unsigned int i;
+ 	u8 st[LHCALL_RING_SIZE];
  
-@@ -146,25 +146,6 @@ static void pin_stack_pages(struct lgues
- 		pin_page(lg, lg->esp1 - i * PAGE_SIZE);
+-	copy_from_user(&st, &lg->lguest_data->hcall_status, sizeof(st));
++	if (copy_from_user(&st, &lg->lguest_data->hcall_status, sizeof(st)))
++		return;
++
+ 	for (i = 0; i < ARRAY_SIZE(st); i++) {
+ 		struct lguest_regs regs;
+ 		unsigned int n = lg->next_hcall;
+@@ -113,12 +115,20 @@ static void do_async_hcalls(struct lgues
+ 		if (++lg->next_hcall == LHCALL_RING_SIZE)
+ 			lg->next_hcall = 0;
+ 
+-		get_user(regs.eax, &lg->lguest_data->hcalls[n].eax);
+-		get_user(regs.edx, &lg->lguest_data->hcalls[n].edx);
+-		get_user(regs.ecx, &lg->lguest_data->hcalls[n].ecx);
+-		get_user(regs.ebx, &lg->lguest_data->hcalls[n].ebx);
++		if (get_user(regs.eax, &lg->lguest_data->hcalls[n].eax)
++		    || get_user(regs.edx, &lg->lguest_data->hcalls[n].edx)
++		    || get_user(regs.ecx, &lg->lguest_data->hcalls[n].ecx)
++		    || get_user(regs.ebx, &lg->lguest_data->hcalls[n].ebx)) {
++			kill_guest(lg, "Fetching async hypercalls");
++			break;
++		}
++
+ 		do_hcall(lg, &regs);
+-		put_user(0xFF, &lg->lguest_data->hcall_status[n]);
++		if (put_user(0xFF, &lg->lguest_data->hcall_status[n])) {
++			kill_guest(lg, "Writing result for async hypercall");
++			break;
++		}
++
+ 		if (lg->dma_is_pending)
+ 			break;
+ 	}
+@@ -139,11 +149,12 @@ static void initialize(struct lguest *lg
+ 		kill_guest(lg, "bad guest page %p", lg->lguest_data);
+ 		return;
+ 	}
+-	get_user(lg->noirq_start, &lg->lguest_data->noirq_start);
+-	get_user(lg->noirq_end, &lg->lguest_data->noirq_end);
+-	/* We reserve the top pgd entry. */
+-	put_user(4U*1024*1024, &lg->lguest_data->reserve_mem);
+-	put_user(lg->guestid, &lg->lguest_data->guestid);
++	if (get_user(lg->noirq_start, &lg->lguest_data->noirq_start)
++	    || get_user(lg->noirq_end, &lg->lguest_data->noirq_end)
++	    /* We reserve the top pgd entry. */
++	    || put_user(4U*1024*1024, &lg->lguest_data->reserve_mem)
++	    || put_user(lg->guestid, &lg->lguest_data->guestid))
++		kill_guest(lg, "bad guest page %p", lg->lguest_data);
  }
  
--/* We need to ensure all the direct trap pages are mapped after we
-- * clear shadow mappings. */
--void pin_trap_pages(struct lguest *lg)
--{
--	unsigned int i;
--	struct desc_struct *trap;
--
--	for (i = 0; i < FIRST_EXTERNAL_VECTOR; i++) {
--		trap = &lg->idt[i];
--		if (direct_trap(lg, trap, i))
--			pin_page(lg, idt_address(trap->a, trap->b));
--	}
--
--	trap = &lg->syscall_idt;
--	if (direct_trap(lg, trap, SYSCALL_VECTOR))
--		pin_page(lg, idt_address(trap->a, trap->b));
--	pin_stack_pages(lg);
--}
--
- void guest_set_stack(struct lguest *lg, u32 seg, u32 esp, unsigned int pages)
- {
- 	/* You cannot have a stack segment with priv level 0. */
-@@ -194,11 +175,6 @@ static void set_trap(struct lguest *lg, 
+ /* Even if we go out to userspace and come back, we don't want to do
+diff -puN drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-remove-put_user-etc-warnings-add-bloat drivers/lguest/interrupts_and_traps.c
+--- a/drivers/lguest/interrupts_and_traps.c~lguest-the-host-code-remove-put_user-etc-warnings-add-bloat
++++ a/drivers/lguest/interrupts_and_traps.c
+@@ -40,7 +40,8 @@ static void set_guest_interrupt(struct l
+ 	/* We use IF bit in eflags to indicate whether irqs were disabled
+ 	   (it's always 0, since irqs are enabled when guest is running). */
+ 	eflags = lg->regs->eflags;
+-	get_user(irq_enable, &lg->lguest_data->irq_enabled);
++	if (get_user(irq_enable, &lg->lguest_data->irq_enabled))
++		irq_enable = 0;
+ 	eflags |= (irq_enable & X86_EFLAGS_IF);
  
- 	trap->a = ((__KERNEL_CS|GUEST_PL)<<16) | (lo&0x0000FFFF);
- 	trap->b = (hi&0xFFFFEF00);
--
--	/* Make sure trap address is available so we don't fault.  In
--	 * theory, it could overlap two pages, in practice it's aligned. */
--	if (direct_trap(lg, trap, num))
--		pin_page(lg, idt_address(lo, hi));
+ 	push_guest_stack(lg, &gstack, eflags);
+@@ -58,7 +59,8 @@ static void set_guest_interrupt(struct l
+ 
+ 	/* Disable interrupts for an interrupt gate. */
+ 	if (idt_type(lo, hi) == 0xE)
+-		put_user(0, &lg->lguest_data->irq_enabled);
++		if (put_user(0, &lg->lguest_data->irq_enabled))
++			kill_guest(lg, "Disabling interrupts");
  }
  
- void load_guest_idt_entry(struct lguest *lg, unsigned int num, u32 lo, u32 hi)
-diff -puN drivers/lguest/lg.h~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers drivers/lguest/lg.h
---- a/drivers/lguest/lg.h~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers
-+++ a/drivers/lguest/lg.h
-@@ -190,7 +190,7 @@ void maybe_do_interrupt(struct lguest *l
- int deliver_trap(struct lguest *lg, unsigned int num);
- void load_guest_idt_entry(struct lguest *lg, unsigned int i, u32 low, u32 hi);
- void guest_set_stack(struct lguest *lg, u32 seg, u32 esp, unsigned int pages);
--void pin_trap_pages(struct lguest *lg);
-+void pin_stack_pages(struct lguest *lg);
- void setup_default_idt_entries(struct lguest_ro_state *state,
- 			       const unsigned long *def);
- void copy_traps(const struct lguest *lg, struct desc_struct *idt,
-diff -puN drivers/lguest/page_tables.c~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers drivers/lguest/page_tables.c
---- a/drivers/lguest/page_tables.c~lguest-the-host-code-simplification-dont-pin-guest-trap-handlers
-+++ a/drivers/lguest/page_tables.c
-@@ -186,7 +186,7 @@ static int page_writable(struct lguest *
- void pin_page(struct lguest *lg, unsigned long vaddr)
- {
- 	if (!page_writable(lg, vaddr) && !demand_page(lg, vaddr, 0))
--		kill_guest(lg, "bad trap page %#lx", vaddr);
-+		kill_guest(lg, "bad stack page %#lx", vaddr);
- }
+ void maybe_do_interrupt(struct lguest *lg)
+@@ -75,7 +77,10 @@ void maybe_do_interrupt(struct lguest *l
+ 		set_bit(0, lg->irqs_pending);
  
- static void release_pgd(struct lguest *lg, spgd_t *spgd)
-@@ -253,7 +253,7 @@ void guest_new_pagetable(struct lguest *
- 		newpgdir = new_pgdir(lg, pgtable, &repin);
- 	lg->pgdidx = newpgdir;
- 	if (repin)
--		pin_trap_pages(lg);
-+		pin_stack_pages(lg);
- }
+ 	/* Mask out any interrupts they have blocked. */
+-	copy_from_user(&blk, lg->lguest_data->blocked_interrupts, sizeof(blk));
++	if (copy_from_user(&blk, lg->lguest_data->blocked_interrupts,
++			   sizeof(blk)))
++		return;
++
+ 	bitmap_andnot(blk, lg->irqs_pending, blk, LGUEST_IRQS);
  
- static void release_all_pagetables(struct lguest *lg)
-@@ -269,7 +269,7 @@ static void release_all_pagetables(struc
- void guest_pagetable_clear_all(struct lguest *lg)
- {
- 	release_all_pagetables(lg);
--	pin_trap_pages(lg);
-+	pin_stack_pages(lg);
- }
- 
- static void do_set_pte(struct lguest *lg, int idx,
+ 	irq = find_first_bit(blk, LGUEST_IRQS);
+@@ -88,12 +93,14 @@ void maybe_do_interrupt(struct lguest *l
+ 	/* If they're halted, we re-enable interrupts. */
+ 	if (lg->halted) {
+ 		/* Re-enable interrupts. */
+-		put_user(X86_EFLAGS_IF, &lg->lguest_data->irq_enabled);
++		if (put_user(X86_EFLAGS_IF, &lg->lguest_data->irq_enabled))
++			kill_guest(lg, "Re-enabling interrupts");
+ 		lg->halted = 0;
+ 	} else {
+ 		/* Maybe they have interrupts disabled? */
+ 		u32 irq_enabled;
+-		get_user(irq_enabled, &lg->lguest_data->irq_enabled);
++		if (get_user(irq_enabled, &lg->lguest_data->irq_enabled))
++			irq_enabled = 0;
+ 		if (!irq_enabled)
+ 			return;
+ 	}
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -146,8 +189,6 @@ update-dvb-use-of-symbol_getput.patch
 lguest-export-symbols-for-lguest-as-a-module.patch
 lguest-the-guest-code.patch
 lguest-the-host-code.patch
-lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
-lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem.patch
 lguest-the-host-code-remove-put_user-etc-warnings-add-bloat.patch
 lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch
 lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized.patch
