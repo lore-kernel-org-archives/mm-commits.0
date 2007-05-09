@@ -1,82 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - add-spaces-on-either-side-of-case-operator.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:49:28 -0700
-Message-ID: <200705090249.l492nSe2009225@shell0.pdx.osdl.net>
+Subject: - dtlk-fix-error-checks-in-module_init.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:49:25 -0700
+Message-ID: <200705090249.l492nPgY009220@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43649 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40771 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967076AbXEICtc (ORCPT
+	by vger.kernel.org with ESMTP id S967369AbXEICtc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, chris@allmedia.com, jrv@vanzandt.mv.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     audit: add spaces on either side of case "..." operator.
+     dtlk: fix error checks in module_init()
 has been removed from the -mm tree.  Its filename was
-     add-spaces-on-either-side-of-case-operator.patch
+     dtlk-fix-error-checks-in-module_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: audit: add spaces on either side of case "..." operator.
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: dtlk: fix error checks in module_init()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Following the programming advice laid down in the gcc manual, make
-sure the case "..." operator has spaces on either side.
+This patch fixes two things in module_init.
 
-According to:
+- fix register_chrdev() error check
 
-http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Case-Ranges.html#Case-Ranges:
+  Currently dtlk doesn't check register_chrdev() failure correctly.
+  register_chrdev() returns a errno on failure.
 
-  "Be careful: Write spaces around the ..., for otherwise it may be
-parsed wrong when you use it with integer values."
+- check probe failure
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+  dtlk ignores probe failure and allows the module loading without
+  such device. I got "Trying to free nonexistent resource" message
+  by release_region() when unloading module without device.
+
+[akpm@linux-foundation.org: fix error code return]
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Chris Pallotta <chris@allmedia.com>
+Cc: Jim Van Zandt <jrv@vanzandt.mv.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/dtlk.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN kernel/audit.c~add-spaces-on-either-side-of-case-operator kernel/audit.c
---- a/kernel/audit.c~add-spaces-on-either-side-of-case-operator
-+++ a/kernel/audit.c
-@@ -515,8 +515,8 @@ static int audit_netlink_ok(struct sk_bu
- 			err = -EPERM;
- 		break;
- 	case AUDIT_USER:
--	case AUDIT_FIRST_USER_MSG...AUDIT_LAST_USER_MSG:
--	case AUDIT_FIRST_USER_MSG2...AUDIT_LAST_USER_MSG2:
-+	case AUDIT_FIRST_USER_MSG ... AUDIT_LAST_USER_MSG:
-+	case AUDIT_FIRST_USER_MSG2 ... AUDIT_LAST_USER_MSG2:
- 		if (security_netlink_recv(skb, CAP_AUDIT_WRITE))
- 			err = -EPERM;
- 		break;
-@@ -614,8 +614,8 @@ static int audit_receive_msg(struct sk_b
- 							loginuid, sid);
- 		break;
- 	case AUDIT_USER:
--	case AUDIT_FIRST_USER_MSG...AUDIT_LAST_USER_MSG:
--	case AUDIT_FIRST_USER_MSG2...AUDIT_LAST_USER_MSG2:
-+	case AUDIT_FIRST_USER_MSG ... AUDIT_LAST_USER_MSG:
-+	case AUDIT_FIRST_USER_MSG2 ... AUDIT_LAST_USER_MSG2:
- 		if (!audit_enabled && msg_type != AUDIT_USER_AVC)
- 			return 0;
+diff -puN drivers/char/dtlk.c~dtlk-fix-error-checks-in-module_init drivers/char/dtlk.c
+--- a/drivers/char/dtlk.c~dtlk-fix-error-checks-in-module_init
++++ a/drivers/char/dtlk.c
+@@ -324,16 +324,22 @@ static int dtlk_release(struct inode *in
+ 
+ static int __init dtlk_init(void)
+ {
++	int err;
++
+ 	dtlk_port_lpc = 0;
+ 	dtlk_port_tts = 0;
+ 	dtlk_busy = 0;
+ 	dtlk_major = register_chrdev(0, "dtlk", &dtlk_fops);
+-	if (dtlk_major == 0) {
++	if (dtlk_major < 0) {
+ 		printk(KERN_ERR "DoubleTalk PC - cannot register device\n");
+-		return 0;
++		return dtlk_major;
++	}
++	err = dtlk_dev_probe();
++	if (err) {
++		unregister_chrdev(dtlk_major, "dtlk");
++		return err;
+ 	}
+-	if (dtlk_dev_probe() == 0)
+-		printk(", MAJOR %d\n", dtlk_major);
++	printk(", MAJOR %d\n", dtlk_major);
+ 
+ 	init_waitqueue_head(&dtlk_process_list);
  
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-arm-remove-useless-config-option-generic_bust_spinlock.patch
-git-avr32.patch
-git-dvb.patch
-git-ieee1394.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+fault-injection-disable-stacktrace-filter-for-x86-64.patch
+cm4000_cs-fix-error-paths.patch
+cm4000_cs-use-bitrev.patch
+use-simple_read_from_buffer-in-fs.patch
+use-simple_read_from_buffer-in-kernel.patch
+sunrpc-fix-error-path-in-module_init.patch
