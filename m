@@ -1,78 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - remove-redundant-check-from-proc_sys_setattr.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:49:53 -0700
-Message-ID: <200705090249.l492nrdV009277@shell0.pdx.osdl.net>
+Subject: - ext3-copy-i_flags-to-inode-flags-on-write.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:50:50 -0700
+Message-ID: <200705090250.l492ooMj009394__25022.6004668095$1178679063$gmane$org@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36068 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970022AbXEICux (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:50:53 -0400
+	by vger.kernel.org with ESMTP id S970031AbXEICuz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:50:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jjohansen@suse.de, agruen@suse.de, alan@lxorguk.ukuu.org.uk, chrisw@sous-sol.org, hch@lst.de, jmorris@namei.org, sbeattie@suse.de, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove redundant check from proc_sys_setattr()
+     ext3: copy i_flags to inode flags on write
 has been removed from the -mm tree.  Its filename was
-     remove-redundant-check-from-proc_sys_setattr.patch
+     ext3-copy-i_flags-to-inode-flags-on-write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove redundant check from proc_sys_setattr()
-From: John Johansen <jjohansen@suse.de>
+Subject: ext3: copy i_flags to inode flags on write
+From: Jan Kara <jack@suse.cz>
 
-notify_change() already calls security_inode_setattr() before
-calling iop->setattr.
+A patch that stores inode flags such as S_IMMUTABLE, S_APPEND, etc.  from
+i_flags to EXT3_I(inode)->i_flags when inode is written to disk.  The same
+thing is done on GETFLAGS ioctl.
 
-Alan sayeth
+Quota code changes these flags on quota files (to make it harder for
+sysadmin to screw himself) and these changes were not correctly propagated
+into the filesystem (especially, lsattr did not show them and users were
+wondering...).
 
-  This is a behaviour change on all of these and limits some behaviour of
-  existing established security modules
 
-  When inode_change_ok is called it has side effects.  This includes
-  clearing the SGID bit on attribute changes caused by chmod.  If you make
-  this change the results of some rulesets may be different before or after
-  the change is made.
+Propagate flags such as S_APPEND, S_IMMUTABLE, etc.  from i_flags into
+ext3-specific i_flags.  Hence, when someone sets these flags via a
+different interface than ioctl, they are stored correctly.
 
-  I'm not saying the change is wrong but it does change behaviour so that
-  needs looking at closely (ditto all other attribute twiddles)
-
-Signed-off-by: Steve Beattie <sbeattie@suse.de>
-Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
-Signed-off-by: John Johansen <jjohansen@suse.de>
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ fs/ext3/inode.c         |   20 ++++++++++++++++++++
+ fs/ext3/ioctl.c         |    1 +
+ include/linux/ext3_fs.h |    1 +
+ 3 files changed, 22 insertions(+)
 
-diff -puN fs/proc/proc_sysctl.c~remove-redundant-check-from-proc_sys_setattr fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~remove-redundant-check-from-proc_sys_setattr
-+++ a/fs/proc/proc_sysctl.c
-@@ -429,11 +429,8 @@ static int proc_sys_setattr(struct dentr
- 		return -EPERM;
- 
- 	error = inode_change_ok(inode, attr);
--	if (!error) {
--		error = security_inode_setattr(dentry, attr);
--		if (!error)
--			error = inode_setattr(inode, attr);
--	}
-+	if (!error)
-+		error = inode_setattr(inode, attr);
- 
- 	return error;
+diff -puN fs/ext3/inode.c~ext3-copy-i_flags-to-inode-flags-on-write fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-copy-i_flags-to-inode-flags-on-write
++++ a/fs/ext3/inode.c
+@@ -2580,6 +2580,25 @@ void ext3_set_inode_flags(struct inode *
+ 		inode->i_flags |= S_DIRSYNC;
  }
+ 
++/* Propagate flags from i_flags to EXT3_I(inode)->i_flags */
++void ext3_get_inode_flags(struct ext3_inode_info *ei)
++{
++	unsigned int flags = ei->vfs_inode.i_flags;
++
++	ei->i_flags &= ~(EXT3_SYNC_FL|EXT3_APPEND_FL|
++			EXT3_IMMUTABLE_FL|EXT3_NOATIME_FL|EXT3_DIRSYNC_FL);
++	if (flags & S_SYNC)
++		ei->i_flags |= EXT3_SYNC_FL;
++	if (flags & S_APPEND)
++		ei->i_flags |= EXT3_APPEND_FL;
++	if (flags & S_IMMUTABLE)
++		ei->i_flags |= EXT3_IMMUTABLE_FL;
++	if (flags & S_NOATIME)
++		ei->i_flags |= EXT3_NOATIME_FL;
++	if (flags & S_DIRSYNC)
++		ei->i_flags |= EXT3_DIRSYNC_FL;
++}
++
+ void ext3_read_inode(struct inode * inode)
+ {
+ 	struct ext3_iloc iloc;
+@@ -2735,6 +2754,7 @@ static int ext3_do_update_inode(handle_t
+ 	if (ei->i_state & EXT3_STATE_NEW)
+ 		memset(raw_inode, 0, EXT3_SB(inode->i_sb)->s_inode_size);
+ 
++	ext3_get_inode_flags(ei);
+ 	raw_inode->i_mode = cpu_to_le16(inode->i_mode);
+ 	if(!(test_opt(inode->i_sb, NO_UID32))) {
+ 		raw_inode->i_uid_low = cpu_to_le16(low_16_bits(inode->i_uid));
+diff -puN fs/ext3/ioctl.c~ext3-copy-i_flags-to-inode-flags-on-write fs/ext3/ioctl.c
+--- a/fs/ext3/ioctl.c~ext3-copy-i_flags-to-inode-flags-on-write
++++ a/fs/ext3/ioctl.c
+@@ -28,6 +28,7 @@ int ext3_ioctl (struct inode * inode, st
+ 
+ 	switch (cmd) {
+ 	case EXT3_IOC_GETFLAGS:
++		ext3_get_inode_flags(ei);
+ 		flags = ei->i_flags & EXT3_FL_USER_VISIBLE;
+ 		return put_user(flags, (int __user *) arg);
+ 	case EXT3_IOC_SETFLAGS: {
+diff -puN include/linux/ext3_fs.h~ext3-copy-i_flags-to-inode-flags-on-write include/linux/ext3_fs.h
+--- a/include/linux/ext3_fs.h~ext3-copy-i_flags-to-inode-flags-on-write
++++ a/include/linux/ext3_fs.h
+@@ -824,6 +824,7 @@ extern int ext3_change_inode_journal_fla
+ extern int ext3_get_inode_loc(struct inode *, struct ext3_iloc *);
+ extern void ext3_truncate (struct inode *);
+ extern void ext3_set_inode_flags(struct inode *);
++extern void ext3_get_inode_flags(struct ext3_inode_info *);
+ extern void ext3_set_aops(struct inode *inode);
+ 
+ /* ioctl.c */
 _
 
-Patches currently in -mm which might be from jjohansen@suse.de are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
+ext4-copy-i_flags-to-inode-flags-on-write.patch
