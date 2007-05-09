@@ -1,155 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:52:37 -0700
-Message-ID: <200705092152.l49Lqb79003017@shell0.pdx.osdl.net>
+Subject: - the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:52:48 -0700
+Message-ID: <200705092152.l49Lqme5003029@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46093 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44696 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758957AbXEIVxD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:03 -0400
+	by vger.kernel.org with ESMTP id S1759441AbXEIVxT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: staubach@redhat.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     change kernel threads to ignore signals instead of blocking them
+     The NFSv2/NFSv3 server does not handle zero length WRITE requests correctly
 has been removed from the -mm tree.  Its filename was
-     change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
+     the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: change kernel threads to ignore signals instead of blocking them
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: The NFSv2/NFSv3 server does not handle zero length WRITE requests correctly
+From: Peter Staubach <staubach@redhat.com>
 
-Currently kernel threads use sigprocmask(SIG_BLOCK) to protect against
-signals.  This doesn't prevent the signal delivery, this only blocks
-signal_wake_up().  Every "killall -33 kthreadd" means a "struct siginfo"
-leak.
+The NFSv2 and NFSv3 servers do not handle WRITE requests for 0 bytes
+correctly.  The specifications indicate that the server should accept the
+request, but it should mostly turn into a no-op.  Currently, the server
+will return an XDR decode error, which it should not.
 
-Change kthreadd_setup() to set all handlers to SIG_IGN instead of blocking
-them (make a new helper ignore_signals() for that).  If the kernel thread
-needs some signal, it should use allow_signal() anyway, and in that case it
-should not use CLONE_SIGHAND.
+Attached is a patch which addresses this issue.  It also adds some boundary
+checking to ensure that the request contains as much data as was requested
+to be written.  It also correctly handles an NFSv3 request which requests
+to write more data than the server has stated that it is prepared to
+handle.  Previously, there was some support which looked like it should
+work, but wasn't quite right.
 
-Note that we can't change daemonize() (should die!) in the same way,
-because it can be used along with CLONE_SIGHAND.  This means that
-allow_signal() still should unblock the signal to work correctly with
-daemonize()ed threads.
-
-However, disallow_signal() doesn't block the signal any longer but ignores
-it.
-
-NOTE: with or without this patch the kernel threads are not protected from
-handle_stop_signal(), this seems harmless, but not good.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Peter Staubach <staubach@redhat.com>
+Acked-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 +
- kernel/exit.c         |    2 +-
- kernel/kthread.c      |   17 +++--------------
- kernel/signal.c       |   10 ++++++++++
- 4 files changed, 15 insertions(+), 15 deletions(-)
+ fs/nfsd/nfs3xdr.c |   48 ++++++++++++++++++++++++++++++++++----------
+ fs/nfsd/nfsxdr.c  |   46 +++++++++++++++++++++++++++++++++++-------
+ 2 files changed, 77 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/sched.h~change-kernel-threads-to-ignore-signals-instead-of-blocking-them include/linux/sched.h
---- a/include/linux/sched.h~change-kernel-threads-to-ignore-signals-instead-of-blocking-them
-+++ a/include/linux/sched.h
-@@ -1318,6 +1318,7 @@ extern int in_egroup_p(gid_t);
- 
- extern void proc_caches_init(void);
- extern void flush_signals(struct task_struct *);
-+extern void ignore_signals(struct task_struct *);
- extern void flush_signal_handlers(struct task_struct *, int force_default);
- extern int dequeue_signal(struct task_struct *tsk, sigset_t *mask, siginfo_t *info);
- 
-diff -puN kernel/exit.c~change-kernel-threads-to-ignore-signals-instead-of-blocking-them kernel/exit.c
---- a/kernel/exit.c~change-kernel-threads-to-ignore-signals-instead-of-blocking-them
-+++ a/kernel/exit.c
-@@ -347,7 +347,7 @@ int disallow_signal(int sig)
- 		return -EINVAL;
- 
- 	spin_lock_irq(&current->sighand->siglock);
--	sigaddset(&current->blocked, sig);
-+	current->sighand->action[(sig)-1].sa.sa_handler = SIG_IGN;
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
- 	return 0;
-diff -puN kernel/kthread.c~change-kernel-threads-to-ignore-signals-instead-of-blocking-them kernel/kthread.c
---- a/kernel/kthread.c~change-kernel-threads-to-ignore-signals-instead-of-blocking-them
-+++ a/kernel/kthread.c
-@@ -215,24 +215,13 @@ EXPORT_SYMBOL(kthread_stop);
- static __init void kthreadd_setup(void)
+diff -puN fs/nfsd/nfs3xdr.c~the-nfsv2-nfsv3-server-does-not-handle-zero-length-write fs/nfsd/nfs3xdr.c
+--- a/fs/nfsd/nfs3xdr.c~the-nfsv2-nfsv3-server-does-not-handle-zero-length-write
++++ a/fs/nfsd/nfs3xdr.c
+@@ -369,7 +369,7 @@ int
+ nfs3svc_decode_writeargs(struct svc_rqst *rqstp, __be32 *p,
+ 					struct nfsd3_writeargs *args)
  {
- 	struct task_struct *tsk = current;
--	struct k_sigaction sa;
--	sigset_t blocked;
+-	unsigned int len, v, hdr;
++	unsigned int len, v, hdr, dlen;
+ 	u32 max_blocksize = svc_max_payload(rqstp);
  
- 	set_task_comm(tsk, "kthreadd");
+ 	if (!(p = decode_fh(p, &args->fh))
+@@ -379,18 +379,47 @@ nfs3svc_decode_writeargs(struct svc_rqst
+ 	args->count = ntohl(*p++);
+ 	args->stable = ntohl(*p++);
+ 	len = args->len = ntohl(*p++);
++	/*
++	 * The count must equal the amount of data passed.
++	 */
++	if (args->count != args->len)
++		return 0;
  
--	/* Block and flush all signals */
--	sigfillset(&blocked);
--	sigprocmask(SIG_BLOCK, &blocked, NULL);
--	flush_signals(tsk);
++	/*
++	 * Check to make sure that we got the right number of
++	 * bytes.
++	 *
++	 * If more than one page was used, then compute the length
++	 * of the data in the request as the total size of the
++	 * request minus the transport protocol headers minus the
++	 * RPC protocol headers minus the NFS protocol fields
++	 * already consumed.  If the request fits into a single
++	 * page, then compete the length of the data as the size
++	 * of the NFS portion of the request minus the NFS
++	 * protocol fields already consumed.
++	 */
+ 	hdr = (void*)p - rqstp->rq_arg.head[0].iov_base;
+-	if (rqstp->rq_arg.len < hdr ||
+-	    rqstp->rq_arg.len - hdr < len)
++	if (rqstp->rq_respages != rqstp->rq_pages + 1) {
++		dlen = rqstp->rq_arg.len -
++			(PAGE_SIZE - rqstp->rq_arg.head[0].iov_len) - hdr;
++	} else {
++		dlen = rqstp->rq_arg.head[0].iov_len - hdr;
++	}
++	/*
++	 * Round the length of the data which was specified up to
++	 * the next multiple of XDR units and then compare that
++	 * against the length which was actually received.
++	 */
++	if (dlen != ((len + 3) & ~0x3))
+ 		return 0;
+ 
++	if (args->count > max_blocksize) {
++		args->count = max_blocksize;
++		len = args->len = max_blocksize;
++	}
+ 	rqstp->rq_vec[0].iov_base = (void*)p;
+ 	rqstp->rq_vec[0].iov_len = rqstp->rq_arg.head[0].iov_len - hdr;
 -
--	/* SIG_IGN makes children autoreap: see do_notify_parent(). */
--	sa.sa.sa_handler = SIG_IGN;
--	sa.sa.sa_flags = 0;
--	siginitset(&sa.sa.sa_mask, sigmask(SIGCHLD));
--	do_sigaction(SIGCHLD, &sa, (struct k_sigaction *)0);
-+	ignore_signals(tsk);
- 
--	set_user_nice(current, -5);
--	set_cpus_allowed(current, CPU_MASK_ALL);
-+	set_user_nice(tsk, -5);
-+	set_cpus_allowed(tsk, CPU_MASK_ALL);
+-	if (len > max_blocksize)
+-		len = max_blocksize;
+-	v=  0;
++	v = 0;
+ 	while (len > rqstp->rq_vec[v].iov_len) {
+ 		len -= rqstp->rq_vec[v].iov_len;
+ 		v++;
+@@ -398,9 +427,8 @@ nfs3svc_decode_writeargs(struct svc_rqst
+ 		rqstp->rq_vec[v].iov_len = PAGE_SIZE;
+ 	}
+ 	rqstp->rq_vec[v].iov_len = len;
+-	args->vlen = v+1;
+-
+-	return args->count == args->len && rqstp->rq_vec[0].iov_len > 0;
++	args->vlen = v + 1;
++	return 1;
  }
  
- int kthreadd(void *unused)
-diff -puN kernel/signal.c~change-kernel-threads-to-ignore-signals-instead-of-blocking-them kernel/signal.c
---- a/kernel/signal.c~change-kernel-threads-to-ignore-signals-instead-of-blocking-them
-+++ a/kernel/signal.c
-@@ -209,6 +209,16 @@ void flush_signals(struct task_struct *t
- 	spin_unlock_irqrestore(&t->sighand->siglock, flags);
+ int
+diff -puN fs/nfsd/nfsxdr.c~the-nfsv2-nfsv3-server-does-not-handle-zero-length-write fs/nfsd/nfsxdr.c
+--- a/fs/nfsd/nfsxdr.c~the-nfsv2-nfsv3-server-does-not-handle-zero-length-write
++++ a/fs/nfsd/nfsxdr.c
+@@ -284,8 +284,9 @@ int
+ nfssvc_decode_writeargs(struct svc_rqst *rqstp, __be32 *p,
+ 					struct nfsd_writeargs *args)
+ {
+-	unsigned int len;
++	unsigned int len, hdr, dlen;
+ 	int v;
++
+ 	if (!(p = decode_fh(p, &args->fh)))
+ 		return 0;
+ 
+@@ -293,11 +294,42 @@ nfssvc_decode_writeargs(struct svc_rqst 
+ 	args->offset = ntohl(*p++);	/* offset */
+ 	p++;				/* totalcount */
+ 	len = args->len = ntohl(*p++);
+-	rqstp->rq_vec[0].iov_base = (void*)p;
+-	rqstp->rq_vec[0].iov_len = rqstp->rq_arg.head[0].iov_len -
+-				(((void*)p) - rqstp->rq_arg.head[0].iov_base);
++	/*
++	 * The protocol specifies a maximum of 8192 bytes.
++	 */
+ 	if (len > NFSSVC_MAXBLKSIZE_V2)
+-		len = NFSSVC_MAXBLKSIZE_V2;
++		return 0;
++
++	/*
++	 * Check to make sure that we got the right number of
++	 * bytes.
++	 *
++	 * If more than one page was used, then compute the length
++	 * of the data in the request as the total size of the
++	 * request minus the transport protocol headers minus the
++	 * RPC protocol headers minus the NFS protocol fields
++	 * already consumed.  If the request fits into a single
++	 * page, then compete the length of the data as the size
++	 * of the NFS portion of the request minus the NFS
++	 * protocol fields already consumed.
++	 */
++	hdr = (void*)p - rqstp->rq_arg.head[0].iov_base;
++	if (rqstp->rq_respages != rqstp->rq_pages + 1) {
++		dlen = rqstp->rq_arg.len -
++			(PAGE_SIZE - rqstp->rq_arg.head[0].iov_len) - hdr;
++	} else {
++		dlen = rqstp->rq_arg.head[0].iov_len - hdr;
++	}
++	/*
++	 * Round the length of the data which was specified up to
++	 * the next multiple of XDR units and then compare that
++	 * against the length which was actually received.
++	 */
++	if (dlen != ((len + 3) & ~0x3))
++		return 0;
++
++	rqstp->rq_vec[0].iov_base = (void*)p;
++	rqstp->rq_vec[0].iov_len = rqstp->rq_arg.head[0].iov_len - hdr;
+ 	v = 0;
+ 	while (len > rqstp->rq_vec[v].iov_len) {
+ 		len -= rqstp->rq_vec[v].iov_len;
+@@ -306,8 +338,8 @@ nfssvc_decode_writeargs(struct svc_rqst 
+ 		rqstp->rq_vec[v].iov_len = PAGE_SIZE;
+ 	}
+ 	rqstp->rq_vec[v].iov_len = len;
+-	args->vlen = v+1;
+-	return rqstp->rq_vec[0].iov_len > 0;
++	args->vlen = v + 1;
++	return 1;
  }
  
-+void ignore_signals(struct task_struct *t)
-+{
-+	int i;
-+
-+	for (i = 0; i < _NSIG; ++i)
-+		t->sighand->action[i].sa.sa_handler = SIG_IGN;
-+
-+	flush_signals(t);
-+}
-+
- /*
-  * Flush all handlers for a task.
-  */
+ int
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from staubach@redhat.com are
 
 origin.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
