@@ -1,94 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - fix-access_ok-checks.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:05:01 -0700
-Message-ID: <200705091005.l49A5124020809@shell0.pdx.osdl.net>
+Subject: - reiser4-slab-allocators-remove-slab_debug_initial-flag.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:07:43 -0700
+Message-ID: <200705091007.l49A7hJf020880@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34898 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754900AbXEIKHg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:07:36 -0400
+	by vger.kernel.org with ESMTP id S1755012AbXEIKIQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:08:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sebastien.dugue@bull.net, bcrl@linux.intel.com, bharata@in.ibm.com, hch@infradead.org, jean-pierre.dion@bull.net, oleg@tv-sign.ru, pbadari@us.ibm.com, suparna@in.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@engr.sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aio: fix access_ok() checks
+     reiser4-slab-allocators-remove-slab_debug_initial-flag
 has been removed from the -mm tree.  Its filename was
-     fix-access_ok-checks.patch
+     reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: aio: fix access_ok() checks
-=46rom: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
+Subject: reiser4-slab-allocators-remove-slab_debug_initial-flag
+From: Andrew Morton <akpm@linux-foundation.org>
 
-sys_io_submit() and compat_sys_io_submit() check for the number of requ=
-ests
-(nr) being positive, but the following access_ok() call uses nr * sizeo=
-f(ptr)
-which can overlow to a negative number.
-
-Just make sure that nr * sizeof(ptr) is positive in the first place.
-
-Signed-off-by: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
-Cc: Bharata B Rao <bharata@in.ibm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Suparna Bhattacharya <suparna@in.ibm.com>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Benjamin LaHaise <bcrl@linux.intel.com>
-Cc: Jean Pierre Dion <jean-pierre.dion@bull.net>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c    |    2 +-
- fs/compat.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/reiser4/super_ops.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/aio.c~fix-access_ok-checks fs/aio.c
---- a/fs/aio.c~fix-access_ok-checks
-+++ a/fs/aio.c
-@@ -1630,7 +1630,7 @@ asmlinkage long sys_io_submit(aio_contex
- 	long ret =3D 0;
- 	int i;
-=20
--	if (unlikely(nr < 0))
-+	if (unlikely((nr*sizeof(*iocbpp)) < 0))
- 		return -EINVAL;
-=20
- 	if (unlikely(!access_ok(VERIFY_READ, iocbpp, (nr*sizeof(*iocbpp)))))
-diff -puN fs/compat.c~fix-access_ok-checks fs/compat.c
---- a/fs/compat.c~fix-access_ok-checks
-+++ a/fs/compat.c
-@@ -651,7 +651,7 @@ compat_sys_io_submit(aio_context_t ctx_i
- 	long ret =3D 0;
- 	int i;
-=20
--	if (unlikely(nr < 0))
-+	if (unlikely((nr * sizeof(u32)) < 0))
- 		return -EINVAL;
-=20
- 	if (unlikely(!access_ok(VERIFY_READ, iocb, (nr * sizeof(u32)))))
+diff -puN fs/reiser4/super_ops.c~reiser4-slab-allocators-remove-slab_debug_initial-flag fs/reiser4/super_ops.c
+--- a/fs/reiser4/super_ops.c~reiser4-slab-allocators-remove-slab_debug_initial-flag
++++ a/fs/reiser4/super_ops.c
+@@ -33,8 +33,7 @@ static void init_once(void *obj, struct 
+ 
+ 	info = obj;
+ 
+-	if ((flags & (SLAB_CTOR_VERIFY | SLAB_CTOR_CONSTRUCTOR)) ==
+-	    SLAB_CTOR_CONSTRUCTOR) {
++	if ((flags & SLAB_CTOR_CONSTRUCTOR) == SLAB_CTOR_CONSTRUCTOR) {
+ 		/* initialize vfs inode */
+ 		inode_init_once(&info->vfs_inode);
+ 
 _
 
-Patches currently in -mm which might be from sebastien.dugue@bull.net a=
-re
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-futex-priority-based-wakeup.patch
+mmc-build-fix.patch
+slub-add-support-for-dynamic-cacheline-size-determination.patch
+swsusp-clean-up-print.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+nbd-check-the-return-value-of-sysfs_create_file.patch
+mutex_lock_interruptible-add-__must_check.patch
+afs-implement-basic-file-write-support.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable.patch
+declare-struct-ktime.patch
 make-futex_wait-use-an-hrtimer-for-timeout.patch
-fix-access_ok-checks.patch
-make-good_sigevent-non-static.patch
-make-good_sigevent-non-static-fix.patch
-make-__sigqueue_free-and.patch
-aio-completion-signal-notification.patch
-aio-completion-signal-notification-fix.patch
-aio-completion-signal-notification-fixes-and-cleanups.patch
-aio-completion-signal-notification-small-cleanup.patch
-add-listio-syscall-support.patch
+fs-convert-core-functions-to-zero_user_page.patch
+rename-thread_info-to-stack.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+reiser4.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
