@@ -1,73 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - vt-add-documentation-for-new-boot-sysfs-options.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:01:10 -0700
-Message-ID: <200705090301.l4931ALb010658@shell0.pdx.osdl.net>
+Subject: - skeletonfb-documentation-error-fixes.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:12 -0700
+Message-ID: <200705090301.l4931ChX010663@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56129 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1033025AbXEIDBN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:13 -0400
+	by vger.kernel.org with ESMTP id S1033055AbXEIDBO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt: add documentation for new boot/sysfs options
+     skeletonfb: documentation error fixes
 has been removed from the -mm tree.  Its filename was
-     vt-add-documentation-for-new-boot-sysfs-options.patch
+     skeletonfb-documentation-error-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vt: add documentation for new boot/sysfs options
+Subject: skeletonfb: documentation error fixes
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Add description to Documentation/kernel-parameters.txt on new options
-default_blue, default_grn, default_red, and default_utf8.
+Documentation error fixes.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/video/skeletonfb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~vt-add-documentation-for-new-boot-sysfs-options Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~vt-add-documentation-for-new-boot-sysfs-options
-+++ a/Documentation/kernel-parameters.txt
-@@ -496,6 +496,30 @@ and is between 256 and 4096 characters. 
- 			Format: <area>[,<node>]
- 			See also Documentation/networking/decnet.txt.
+diff -puN drivers/video/skeletonfb.c~skeletonfb-documentation-error-fixes drivers/video/skeletonfb.c
+--- a/drivers/video/skeletonfb.c~skeletonfb-documentation-error-fixes
++++ a/drivers/video/skeletonfb.c
+@@ -959,11 +959,11 @@ static int xxxfb_suspend(struct platform
  
-+	default_blu=	[VT]
-+			Format: <blue0>,<blue1>,<blue2>,...,<blue15>
-+			Change the default blue palette of the console.
-+			This is a 16-member array composed of values
-+			ranging from 0-255.
-+
-+	default_grn=	[VT]
-+			Format: <green0>,<green1>,<green2>,...,<green15>
-+			Change the default green palette of the console.
-+			This is a 16-member array composed of values
-+			ranging from 0-255.
-+
-+	default_red=	[VT]
-+			Format: <red0>,<red1>,<red2>,...,<red15>
-+			Change the default red palette of the console.
-+			This is a 16-member array composed of values
-+			ranging from 0-255.
-+
-+	default_utf8=   [VT]
-+			Format=<0|1>
-+			Set system-wide default UTF-8 mode for all tty's.
-+			Default is 0 and by setting to 1, it enables UTF-8
-+			mode for all newly opened or allocated terminals.
-+
- 	dhash_entries=	[KNL]
- 			Set number of hash buckets for dentry cache.
- 
+ /**
+  *	xxxfb_resume - Optional but recommended function. Resume the device.
+- *	@dev: PCI device
++ *	@dev: platform device
+  *
+  *      See Documentation/power/devices.txt for more information
+  */
+-static int xxxfb_suspend(struct platform_dev *dev)
++static int xxxfb_resume(struct platform_dev *dev)
+ {
+ 	struct fb_info *info = platform_get_drvdata(dev);
+ 	struct xxxfb_par *par = info->par;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
