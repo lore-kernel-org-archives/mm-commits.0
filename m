@@ -1,190 +1,406 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-fix-resume-logic.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:54:13 -0700
-Message-ID: <200705092154.l49LsDZ0003154@shell0.pdx.osdl.net>
+Subject: - rename-thread_info-to-stack.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:54:20 -0700
+Message-ID: <200705092154.l49LsKXX003163@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56718 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58321 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759502AbXEIV4D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:56:03 -0400
+	by vger.kernel.org with ESMTP id S1759411AbXEIV6Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:58:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: zippel@linux-m68k.org, ak@muc.de, benh@kernel.crashing.org, blaisorblade@yahoo.it, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, jdike@addtoit.com, kkojima@rr.iij4u.or.jp, lethal@linux-sh.org, paulus@samba.org, ralf@linux-mips.org, rc@rc0.org.uk, rmk@arm.linux.org.uk, rth@twiddle.net, schwidefsky@de.ibm.com, spyro@f2s.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, uclinux-v850@lsi.nec.co.jp, wli@holomorphy.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clocksource: fix resume logic
+     rename thread_info to stack
 has been removed from the -mm tree.  Its filename was
-     clocksource-fix-resume-logic.patch
+     rename-thread_info-to-stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clocksource: fix resume logic
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: rename thread_info to stack
+From: Roman Zippel <zippel@linux-m68k.org>
 
-We need to make sure that the clocksources are resumed, when timekeeping is
-resumed.  The current resume logic does not guarantee this.
+This finally renames the thread_info field in task structure to stack, so that
+the assumptions about this field are gone and archs have more freedom about
+placing the thread_info structure.
 
-Add a resume function pointer to the clocksource struct, so clocksource
-drivers which need to reinitialize the clocksource can provide a resume
-function.
+Nonbroken archs which have a proper thread pointer can do the access to both
+current thread and task structure via a single pointer.
 
-Add a resume function, which calls the maybe available clocksource resume
-functions and resets the watchdog function, so a stable TSC can be used
-accross suspend/resume.
+It'll allow for a few more cleanups of the fork code, from which e.g.  ia64
+could benefit.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+[akpm@linux-foundation.org: build fix]
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ian Molton <spyro@f2s.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
+Cc: Richard Curnow <rc@rc0.org.uk>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
+Cc: Andi Kleen <ak@muc.de>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |    3 ++
- kernel/time/clocksource.c   |   45 ++++++++++++++++++++++++++++++++++
- kernel/timer.c              |    2 +
- 3 files changed, 50 insertions(+)
+ arch/blackfin/kernel/ptrace.c     |    6 +++---
+ arch/h8300/kernel/asm-offsets.c   |    2 +-
+ arch/ia64/kernel/mca.c            |    2 +-
+ arch/mips/kernel/asm-offsets.c    |    2 +-
+ arch/parisc/kernel/asm-offsets.c  |    2 +-
+ arch/powerpc/kernel/asm-offsets.c |    2 +-
+ arch/ppc/kernel/asm-offsets.c     |    2 +-
+ arch/s390/kernel/asm-offsets.c    |    2 +-
+ arch/sparc/kernel/asm-offsets.c   |    2 +-
+ arch/v850/kernel/asm-offsets.c    |    2 +-
+ arch/xtensa/kernel/asm-offsets.c  |    2 +-
+ include/asm-alpha/thread_info.h   |    8 ++++----
+ include/asm-blackfin/processor.h  |    6 +++---
+ include/asm-blackfin/system.h     |    4 ++--
+ include/asm-m68k/thread_info.h    |    6 +++---
+ include/asm-x86_64/system.h       |    2 +-
+ include/linux/init_task.h         |    2 +-
+ include/linux/sched.h             |    8 ++++----
+ kernel/fork.c                     |    4 ++--
+ 19 files changed, 33 insertions(+), 33 deletions(-)
 
-diff -puN include/linux/clocksource.h~clocksource-fix-resume-logic include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-fix-resume-logic
-+++ a/include/linux/clocksource.h
-@@ -49,6 +49,7 @@ struct clocksource;
-  * @shift:		cycle to nanosecond divisor (power of two)
-  * @flags:		flags describing special properties
-  * @vread:		vsyscall based read
-+ * @resume:		resume function for the clocksource, if necessary
-  * @cycle_interval:	Used internally by timekeeping core, please ignore.
-  * @xtime_interval:	Used internally by timekeeping core, please ignore.
-  */
-@@ -65,6 +66,7 @@ struct clocksource {
- 	u32 shift;
- 	unsigned long flags;
- 	cycle_t (*vread)(void);
-+	void (*resume)(void);
- 
- 	/* timekeeping specific data, ignore */
- 	cycle_t cycle_interval;
-@@ -209,6 +211,7 @@ static inline void clocksource_calculate
- extern int clocksource_register(struct clocksource*);
- extern struct clocksource* clocksource_get_next(void);
- extern void clocksource_change_rating(struct clocksource *cs, int rating);
-+extern void clocksource_resume(void);
- 
- #ifdef CONFIG_GENERIC_TIME_VSYSCALL
- extern void update_vsyscall(struct timespec *ts, struct clocksource *c);
-diff -puN kernel/time/clocksource.c~clocksource-fix-resume-logic kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-fix-resume-logic
-+++ a/kernel/time/clocksource.c
-@@ -74,6 +74,8 @@ static struct clocksource *watchdog;
- static struct timer_list watchdog_timer;
- static DEFINE_SPINLOCK(watchdog_lock);
- static cycle_t watchdog_last;
-+static int watchdog_resumed;
-+
- /*
-  * Interval: 0.5sec Threshold: 0.0625s
-  */
-@@ -98,15 +100,26 @@ static void clocksource_watchdog(unsigne
- 	struct clocksource *cs, *tmp;
- 	cycle_t csnow, wdnow;
- 	int64_t wd_nsec, cs_nsec;
-+	int resumed;
- 
- 	spin_lock(&watchdog_lock);
- 
-+	resumed = watchdog_resumed;
-+	if (unlikely(resumed))
-+		watchdog_resumed = 0;
-+
- 	wdnow = watchdog->read();
- 	wd_nsec = cyc2ns(watchdog, (wdnow - watchdog_last) & watchdog->mask);
- 	watchdog_last = wdnow;
- 
- 	list_for_each_entry_safe(cs, tmp, &watchdog_list, wd_list) {
- 		csnow = cs->read();
-+
-+		if (unlikely(resumed)) {
-+			cs->wd_last = csnow;
-+			continue;
-+		}
-+
- 		/* Initialized ? */
- 		if (!(cs->flags & CLOCK_SOURCE_WATCHDOG)) {
- 			if ((cs->flags & CLOCK_SOURCE_IS_CONTINUOUS) &&
-@@ -136,6 +149,13 @@ static void clocksource_watchdog(unsigne
- 	}
- 	spin_unlock(&watchdog_lock);
- }
-+static void clocksource_resume_watchdog(void)
-+{
-+	spin_lock(&watchdog_lock);
-+	watchdog_resumed = 1;
-+	spin_unlock(&watchdog_lock);
-+}
-+
- static void clocksource_check_watchdog(struct clocksource *cs)
+diff -puN arch/blackfin/kernel/ptrace.c~rename-thread_info-to-stack arch/blackfin/kernel/ptrace.c
+--- a/arch/blackfin/kernel/ptrace.c~rename-thread_info-to-stack
++++ a/arch/blackfin/kernel/ptrace.c
+@@ -73,7 +73,7 @@
+ static inline struct pt_regs *get_user_regs(struct task_struct *task)
  {
- 	struct clocksource *cse;
-@@ -182,9 +202,34 @@ static void clocksource_check_watchdog(s
- 	if (cs->flags & CLOCK_SOURCE_IS_CONTINUOUS)
- 		cs->flags |= CLOCK_SOURCE_VALID_FOR_HRES;
+ 	return (struct pt_regs *)
+-	    ((unsigned long)task->thread_info +
++	    ((unsigned long)task_stack_page(task) +
+ 	     (THREAD_SIZE - sizeof(struct pt_regs)));
  }
-+
-+static inline void clocksource_resume_watchdog(void) { }
- #endif
  
- /**
-+ * clocksource_resume - resume the clocksource(s)
-+ */
-+void clocksource_resume(void)
-+{
-+	struct list_head *tmp;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&clocksource_lock, flags);
-+
-+	list_for_each(tmp, &clocksource_list) {
-+		struct clocksource *cs;
-+
-+		cs = list_entry(tmp, struct clocksource, list);
-+		if (cs->resume)
-+			cs->resume();
-+	}
-+
-+	clocksource_resume_watchdog();
-+
-+	spin_unlock_irqrestore(&clocksource_lock, flags);
-+}
-+
-+/**
-  * clocksource_get_next - Returns the selected clocksource
-  *
-  */
-diff -puN kernel/timer.c~clocksource-fix-resume-logic kernel/timer.c
---- a/kernel/timer.c~clocksource-fix-resume-logic
-+++ a/kernel/timer.c
-@@ -1499,6 +1499,8 @@ unregister_time_interpolator(struct time
- 		prev = &curr->next;
+@@ -99,7 +99,7 @@ static inline long get_reg(struct task_s
+ 	unsigned char *reg_ptr;
+ 
+ 	struct pt_regs *regs =
+-	    (struct pt_regs *)((unsigned long)task->thread_info +
++	    (struct pt_regs *)((unsigned long)task_stack_page(task) +
+ 			       (THREAD_SIZE - sizeof(struct pt_regs)));
+ 	reg_ptr = (char *)regs;
+ 
+@@ -125,7 +125,7 @@ put_reg(struct task_struct *task, int re
+ 	char * reg_ptr;
+ 
+ 	struct pt_regs *regs =
+-	    (struct pt_regs *)((unsigned long)task->thread_info +
++	    (struct pt_regs *)((unsigned long)task_stack_page(task) +
+ 			       (THREAD_SIZE - sizeof(struct pt_regs)));
+ 	reg_ptr = (char *)regs;
+ 
+diff -puN arch/h8300/kernel/asm-offsets.c~rename-thread_info-to-stack arch/h8300/kernel/asm-offsets.c
+--- a/arch/h8300/kernel/asm-offsets.c~rename-thread_info-to-stack
++++ a/arch/h8300/kernel/asm-offsets.c
+@@ -30,7 +30,7 @@ int main(void)
+ 	DEFINE(TASK_PTRACE, offsetof(struct task_struct, ptrace));
+ 	DEFINE(TASK_BLOCKED, offsetof(struct task_struct, blocked));
+ 	DEFINE(TASK_THREAD, offsetof(struct task_struct, thread));
+-	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, thread_info));
++	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, stack));
+ 	DEFINE(TASK_MM, offsetof(struct task_struct, mm));
+ 	DEFINE(TASK_ACTIVE_MM, offsetof(struct task_struct, active_mm));
+ 
+diff -puN arch/ia64/kernel/mca.c~rename-thread_info-to-stack arch/ia64/kernel/mca.c
+--- a/arch/ia64/kernel/mca.c~rename-thread_info-to-stack
++++ a/arch/ia64/kernel/mca.c
+@@ -1689,7 +1689,7 @@ format_mca_init_stack(void *mca_data, un
+ 	ti->preempt_count = 1;
+ 	ti->task = p;
+ 	ti->cpu = cpu;
+-	p->thread_info = ti;
++	p->stack = ti;
+ 	p->state = TASK_UNINTERRUPTIBLE;
+ 	cpu_set(cpu, p->cpus_allowed);
+ 	INIT_LIST_HEAD(&p->tasks);
+diff -puN arch/mips/kernel/asm-offsets.c~rename-thread_info-to-stack arch/mips/kernel/asm-offsets.c
+--- a/arch/mips/kernel/asm-offsets.c~rename-thread_info-to-stack
++++ a/arch/mips/kernel/asm-offsets.c
+@@ -82,7 +82,7 @@ void output_task_defines(void)
+ {
+ 	text("/* MIPS task_struct offsets. */");
+ 	offset("#define TASK_STATE         ", struct task_struct, state);
+-	offset("#define TASK_THREAD_INFO   ", struct task_struct, thread_info);
++	offset("#define TASK_THREAD_INFO   ", struct task_struct, stack);
+ 	offset("#define TASK_FLAGS         ", struct task_struct, flags);
+ 	offset("#define TASK_MM            ", struct task_struct, mm);
+ 	offset("#define TASK_PID           ", struct task_struct, pid);
+diff -puN arch/parisc/kernel/asm-offsets.c~rename-thread_info-to-stack arch/parisc/kernel/asm-offsets.c
+--- a/arch/parisc/kernel/asm-offsets.c~rename-thread_info-to-stack
++++ a/arch/parisc/kernel/asm-offsets.c
+@@ -54,7 +54,7 @@
+ 
+ int main(void)
+ {
+-	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, thread_info));
++	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, stack));
+ 	DEFINE(TASK_STATE, offsetof(struct task_struct, state));
+ 	DEFINE(TASK_FLAGS, offsetof(struct task_struct, flags));
+ 	DEFINE(TASK_SIGPENDING, offsetof(struct task_struct, pending));
+diff -puN arch/powerpc/kernel/asm-offsets.c~rename-thread_info-to-stack arch/powerpc/kernel/asm-offsets.c
+--- a/arch/powerpc/kernel/asm-offsets.c~rename-thread_info-to-stack
++++ a/arch/powerpc/kernel/asm-offsets.c
+@@ -58,7 +58,7 @@ int main(void)
+ #ifdef CONFIG_PPC64
+ 	DEFINE(AUDITCONTEXT, offsetof(struct task_struct, audit_context));
+ #else
+-	DEFINE(THREAD_INFO, offsetof(struct task_struct, thread_info));
++	DEFINE(THREAD_INFO, offsetof(struct task_struct, stack));
+ 	DEFINE(PTRACE, offsetof(struct task_struct, ptrace));
+ #endif /* CONFIG_PPC64 */
+ 
+diff -puN arch/ppc/kernel/asm-offsets.c~rename-thread_info-to-stack arch/ppc/kernel/asm-offsets.c
+--- a/arch/ppc/kernel/asm-offsets.c~rename-thread_info-to-stack
++++ a/arch/ppc/kernel/asm-offsets.c
+@@ -35,7 +35,7 @@ int
+ main(void)
+ {
+ 	DEFINE(THREAD, offsetof(struct task_struct, thread));
+-	DEFINE(THREAD_INFO, offsetof(struct task_struct, thread_info));
++	DEFINE(THREAD_INFO, offsetof(struct task_struct, stack));
+ 	DEFINE(MM, offsetof(struct task_struct, mm));
+ 	DEFINE(PTRACE, offsetof(struct task_struct, ptrace));
+ 	DEFINE(KSP, offsetof(struct thread_struct, ksp));
+diff -puN arch/s390/kernel/asm-offsets.c~rename-thread_info-to-stack arch/s390/kernel/asm-offsets.c
+--- a/arch/s390/kernel/asm-offsets.c~rename-thread_info-to-stack
++++ a/arch/s390/kernel/asm-offsets.c
+@@ -15,7 +15,7 @@
+ 
+ int main(void)
+ {
+-	DEFINE(__THREAD_info, offsetof(struct task_struct, thread_info),);
++	DEFINE(__THREAD_info, offsetof(struct task_struct, stack),);
+ 	DEFINE(__THREAD_ksp, offsetof(struct task_struct, thread.ksp),);
+ 	DEFINE(__THREAD_per, offsetof(struct task_struct, thread.per_info),);
+ 	DEFINE(__THREAD_mm_segment,
+diff -puN arch/sparc/kernel/asm-offsets.c~rename-thread_info-to-stack arch/sparc/kernel/asm-offsets.c
+--- a/arch/sparc/kernel/asm-offsets.c~rename-thread_info-to-stack
++++ a/arch/sparc/kernel/asm-offsets.c
+@@ -28,7 +28,7 @@ int foo(void)
+ 	DEFINE(AOFF_task_gid, offsetof(struct task_struct, gid));
+ 	DEFINE(AOFF_task_euid, offsetof(struct task_struct, euid));
+ 	DEFINE(AOFF_task_egid, offsetof(struct task_struct, egid));
+-	/* DEFINE(THREAD_INFO, offsetof(struct task_struct, thread_info)); */
++	/* DEFINE(THREAD_INFO, offsetof(struct task_struct, stack)); */
+ 	DEFINE(ASIZ_task_uid,	sizeof(current->uid));
+ 	DEFINE(ASIZ_task_gid,	sizeof(current->gid));
+ 	DEFINE(ASIZ_task_euid,	sizeof(current->euid));
+diff -puN arch/v850/kernel/asm-offsets.c~rename-thread_info-to-stack arch/v850/kernel/asm-offsets.c
+--- a/arch/v850/kernel/asm-offsets.c~rename-thread_info-to-stack
++++ a/arch/v850/kernel/asm-offsets.c
+@@ -29,7 +29,7 @@ int main (void)
+ 	DEFINE (TASK_PTRACE, offsetof (struct task_struct, ptrace));
+ 	DEFINE (TASK_BLOCKED, offsetof (struct task_struct, blocked));
+ 	DEFINE (TASK_THREAD, offsetof (struct task_struct, thread));
+-	DEFINE (TASK_THREAD_INFO, offsetof (struct task_struct, thread_info));
++	DEFINE (TASK_THREAD_INFO, offsetof (struct task_struct, stack));
+ 	DEFINE (TASK_MM, offsetof (struct task_struct, mm));
+ 	DEFINE (TASK_ACTIVE_MM, offsetof (struct task_struct, active_mm));
+ 	DEFINE (TASK_PID, offsetof (struct task_struct, pid));
+diff -puN arch/xtensa/kernel/asm-offsets.c~rename-thread_info-to-stack arch/xtensa/kernel/asm-offsets.c
+--- a/arch/xtensa/kernel/asm-offsets.c~rename-thread_info-to-stack
++++ a/arch/xtensa/kernel/asm-offsets.c
+@@ -70,7 +70,7 @@ int main(void)
+ 	DEFINE(TASK_ACTIVE_MM, offsetof (struct task_struct, active_mm));
+ 	DEFINE(TASK_PID, offsetof (struct task_struct, pid));
+ 	DEFINE(TASK_THREAD, offsetof (struct task_struct, thread));
+-	DEFINE(TASK_THREAD_INFO, offsetof (struct task_struct, thread_info));
++	DEFINE(TASK_THREAD_INFO, offsetof (struct task_struct, stack));
+ 	DEFINE(TASK_STRUCT_SIZE, sizeof (struct task_struct));
+ 	BLANK();
+ 
+diff -puN include/asm-alpha/thread_info.h~rename-thread_info-to-stack include/asm-alpha/thread_info.h
+--- a/include/asm-alpha/thread_info.h~rename-thread_info-to-stack
++++ a/include/asm-alpha/thread_info.h
+@@ -97,7 +97,7 @@ register struct thread_info *__current_t
+ 				 1 << TIF_UAC_SIGBUS)
+ 
+ #define SET_UNALIGN_CTL(task,value)	({				     \
+-	(task)->thread_info->flags = (((task)->thread_info->flags &	     \
++	task_thread_info(task)->flags = ((task_thread_info(task)->flags &    \
+ 		~ALPHA_UAC_MASK)					     \
+ 		| (((value) << ALPHA_UAC_SHIFT)       & (1<<TIF_UAC_NOPRINT))\
+ 		| (((value) << (ALPHA_UAC_SHIFT + 1)) & (1<<TIF_UAC_SIGBUS)) \
+@@ -105,11 +105,11 @@ register struct thread_info *__current_t
+ 	0; })
+ 
+ #define GET_UNALIGN_CTL(task,value)	({				\
+-	put_user(((task)->thread_info->flags & (1 << TIF_UAC_NOPRINT))	\
++	put_user((task_thread_info(task)->flags & (1 << TIF_UAC_NOPRINT))\
+ 		  >> ALPHA_UAC_SHIFT					\
+-		 | ((task)->thread_info->flags & (1 << TIF_UAC_SIGBUS))	\
++		 | (task_thread_info(task)->flags & (1 << TIF_UAC_SIGBUS))\
+ 		 >> (ALPHA_UAC_SHIFT + 1)				\
+-		 | ((task)->thread_info->flags & (1 << TIF_UAC_NOFIX))	\
++		 | (task_thread_info(task)->flags & (1 << TIF_UAC_NOFIX))\
+ 		 >> (ALPHA_UAC_SHIFT - 1),				\
+ 		 (int __user *)(value));				\
+ 	})
+diff -puN include/asm-blackfin/processor.h~rename-thread_info-to-stack include/asm-blackfin/processor.h
+--- a/include/asm-blackfin/processor.h~rename-thread_info-to-stack
++++ a/include/asm-blackfin/processor.h
+@@ -58,10 +58,10 @@ do {									\
+ 	(_regs)->pc = (_pc);						\
+ 	if (current->mm)						\
+ 		(_regs)->p5 = current->mm->start_data;			\
+-	current->thread_info->l1_task_info.stack_start			\
++	task_thread_info(current)->l1_task_info.stack_start		\
+ 		= (void *)current->mm->context.stack_start;		\
+-	current->thread_info->l1_task_info.lowest_sp = (void *)(_usp);	       	\
+-	memcpy(L1_SCRATCH_TASK_INFO, &current->thread_info->l1_task_info,	\
++	task_thread_info(current)->l1_task_info.lowest_sp = (void *)(_usp); \
++	memcpy(L1_SCRATCH_TASK_INFO, &task_thread_info(current)->l1_task_info, \
+ 		sizeof(*L1_SCRATCH_TASK_INFO));				\
+ 	wrusp(_usp);							\
+ } while(0)
+diff -puN include/asm-blackfin/system.h~rename-thread_info-to-stack include/asm-blackfin/system.h
+--- a/include/asm-blackfin/system.h~rename-thread_info-to-stack
++++ a/include/asm-blackfin/system.h
+@@ -239,9 +239,9 @@ asmlinkage struct task_struct *resume(st
+ 
+ #define switch_to(prev,next,last) \
+ do {    \
+-	memcpy (&prev->thread_info->l1_task_info, L1_SCRATCH_TASK_INFO, \
++	memcpy (&task_thread_info(prev)->l1_task_info, L1_SCRATCH_TASK_INFO, \
+ 		sizeof *L1_SCRATCH_TASK_INFO); \
+-	memcpy (L1_SCRATCH_TASK_INFO, &next->thread_info->l1_task_info, \
++	memcpy (L1_SCRATCH_TASK_INFO, &task_thread_info(next)->l1_task_info, \
+ 		sizeof *L1_SCRATCH_TASK_INFO); \
+ 	(last) = resume (prev, next);   \
+ } while (0)
+diff -puN include/asm-m68k/thread_info.h~rename-thread_info-to-stack include/asm-m68k/thread_info.h
+--- a/include/asm-m68k/thread_info.h~rename-thread_info-to-stack
++++ a/include/asm-m68k/thread_info.h
+@@ -37,17 +37,17 @@ struct thread_info {
+ #define init_stack		(init_thread_union.stack)
+ 
+ #define task_thread_info(tsk)	(&(tsk)->thread.info)
+-#define task_stack_page(tsk)	((void *)(tsk)->thread_info)
++#define task_stack_page(tsk)	((tsk)->stack)
+ #define current_thread_info()	task_thread_info(current)
+ 
+ #define __HAVE_THREAD_FUNCTIONS
+ 
+ #define setup_thread_stack(p, org) ({			\
+-	*(struct task_struct **)(p)->thread_info = (p);	\
++	*(struct task_struct **)(p)->stack = (p);	\
+ 	task_thread_info(p)->task = (p);		\
+ })
+ 
+-#define end_of_stack(p) ((unsigned long *)(p)->thread_info + 1)
++#define end_of_stack(p) ((unsigned long *)(p)->stack + 1)
+ 
+ /* entry.S relies on these definitions!
+  * bits 0-7 are tested at every exception exit
+diff -puN include/asm-x86_64/system.h~rename-thread_info-to-stack include/asm-x86_64/system.h
+--- a/include/asm-x86_64/system.h~rename-thread_info-to-stack
++++ a/include/asm-x86_64/system.h
+@@ -39,7 +39,7 @@
+ 		       [threadrsp] "i" (offsetof(struct task_struct, thread.rsp)), \
+ 		       [ti_flags] "i" (offsetof(struct thread_info, flags)),\
+ 		       [tif_fork] "i" (TIF_FORK),			  \
+-		       [thread_info] "i" (offsetof(struct task_struct, thread_info)), \
++		       [thread_info] "i" (offsetof(struct task_struct, stack)), \
+ 		       [pda_pcurrent] "i" (offsetof(struct x8664_pda, pcurrent))   \
+ 		     : "memory", "cc" __EXTRA_CLOBBER)
+     
+diff -puN include/linux/init_task.h~rename-thread_info-to-stack include/linux/init_task.h
+--- a/include/linux/init_task.h~rename-thread_info-to-stack
++++ a/include/linux/init_task.h
+@@ -95,7 +95,7 @@ extern struct group_info init_groups;
+ #define INIT_TASK(tsk)	\
+ {									\
+ 	.state		= 0,						\
+-	.thread_info	= &init_thread_info,				\
++	.stack		= &init_thread_info,				\
+ 	.usage		= ATOMIC_INIT(2),				\
+ 	.flags		= 0,						\
+ 	.lock_depth	= -1,						\
+diff -puN include/linux/sched.h~rename-thread_info-to-stack include/linux/sched.h
+--- a/include/linux/sched.h~rename-thread_info-to-stack
++++ a/include/linux/sched.h
+@@ -817,7 +817,7 @@ struct prio_array;
+ 
+ struct task_struct {
+ 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
+-	struct thread_info *thread_info;
++	void *stack;
+ 	atomic_t usage;
+ 	unsigned int flags;	/* per process flags, defined below */
+ 	unsigned int ptrace;
+@@ -1514,8 +1514,8 @@ static inline void unlock_task_sighand(s
+ 
+ #ifndef __HAVE_THREAD_FUNCTIONS
+ 
+-#define task_thread_info(task) (task)->thread_info
+-#define task_stack_page(task) ((void*)((task)->thread_info))
++#define task_thread_info(task)	((struct thread_info *)(task)->stack)
++#define task_stack_page(task)	((task)->stack)
+ 
+ static inline void setup_thread_stack(struct task_struct *p, struct task_struct *org)
+ {
+@@ -1525,7 +1525,7 @@ static inline void setup_thread_stack(st
+ 
+ static inline unsigned long *end_of_stack(struct task_struct *p)
+ {
+-	return (unsigned long *)(p->thread_info + 1);
++	return (unsigned long *)(task_thread_info(p) + 1);
+ }
+ 
+ #endif
+diff -puN kernel/fork.c~rename-thread_info-to-stack kernel/fork.c
+--- a/kernel/fork.c~rename-thread_info-to-stack
++++ a/kernel/fork.c
+@@ -106,7 +106,7 @@ static struct kmem_cache *mm_cachep;
+ 
+ void free_task(struct task_struct *tsk)
+ {
+-	free_thread_info(tsk->thread_info);
++	free_thread_info(tsk->stack);
+ 	rt_mutex_debug_task_free(tsk);
+ 	free_task_struct(tsk);
+ }
+@@ -176,7 +176,7 @@ static struct task_struct *dup_task_stru
  	}
  
-+	clocksource_resume();
-+
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 	if (ti == time_interpolator) {
- 		/* we lost the best time-interpolator: */
+ 	*tsk = *orig;
+-	tsk->thread_info = ti;
++	tsk->stack = ti;
+ 	setup_thread_stack(tsk, orig);
+ 
+ #ifdef CONFIG_CC_STACKPROTECTOR
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
 origin.patch
-arm-spinlock-initializer-cleanup.patch
-git-avr32.patch
-drm-spinlock-initializer-cleanup.patch
-git-dvb.patch
-git-ieee1394.patch
-s390-spinlock-initializer-cleanup.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
-timer_stats-slimmed-down-using-statistics-infrastucture.patch
