@@ -1,63 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - vga16fb-restrict-to-blit-rectangles-with-widths-of.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:01:39 -0700
-Message-ID: <200705090301.l4931dcO010731@shell0.pdx.osdl.net>
+Subject: - fbdev-save-the-activate-field-before-calling-fb_check_var.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:50 -0700
+Message-ID: <200705090301.l4931oFY010760@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49038 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56236 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1033223AbXEIDBl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:41 -0400
+	by vger.kernel.org with ESMTP id S1033046AbXEIDBw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vga16fb: restrict to blit rectangles with widths of multiples of 8 pixels
+     fbdev: save the activate field before calling fb_check_var()
 has been removed from the -mm tree.  Its filename was
-     vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
+     fbdev-save-the-activate-field-before-calling-fb_check_var.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vga16fb: restrict to blit rectangles with widths of multiples of 8 pixels
+Subject: fbdev: save the activate field before calling fb_check_var()
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Advertise that vga16fb can only handle widths that are 8-pixel-multiple only
-(software limitation). To ensure that a legal font is available, SELECT an
-8x16 font in Kconfig.
+Some drivers may reset the var->activate field on fb_check_var(). This can
+lead to undefined behavior. For example, doing fbset -a <option> with vga16fb
+will only modify the active console instead of modifying all.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig   |    1 +
- drivers/video/vga16fb.c |    2 ++
- 2 files changed, 3 insertions(+)
+ drivers/video/fbmem.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/Kconfig~vga16fb-restrict-to-blit-rectangles-with-widths-of drivers/video/Kconfig
---- a/drivers/video/Kconfig~vga16fb-restrict-to-blit-rectangles-with-widths-of
-+++ a/drivers/video/Kconfig
-@@ -519,6 +519,7 @@ config FB_VGA16
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
- 	select VGASTATE
-+	select FONT_8x16 if FRAMEBUFFER_CONSOLE
- 	help
- 	  This is the frame buffer device driver for VGA 16 color graphic
- 	  cards. Say Y if you have such a card.
-diff -puN drivers/video/vga16fb.c~vga16fb-restrict-to-blit-rectangles-with-widths-of drivers/video/vga16fb.c
---- a/drivers/video/vga16fb.c~vga16fb-restrict-to-blit-rectangles-with-widths-of
-+++ a/drivers/video/vga16fb.c
-@@ -1378,6 +1378,8 @@ static int __init vga16fb_probe(struct p
- 	info->fbops = &vga16fb_ops;
- 	info->var = vga16fb_defined;
- 	info->fix = vga16fb_fix;
-+	/* supports 8-pixel wide blit rectangles only */
-+	info->pixmap.blit_x = 1 << (8 - 1);
- 	info->flags = FBINFO_FLAG_DEFAULT |
- 		FBINFO_HWACCEL_YPAN;
+diff -puN drivers/video/fbmem.c~fbdev-save-the-activate-field-before-calling-fb_check_var drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-save-the-activate-field-before-calling-fb_check_var
++++ a/drivers/video/fbmem.c
+@@ -803,6 +803,8 @@ fb_set_var(struct fb_info *info, struct 
+ 
+ 	if ((var->activate & FB_ACTIVATE_FORCE) ||
+ 	    memcmp(&info->var, var, sizeof(struct fb_var_screeninfo))) {
++		u32 activate = var->activate;
++
+ 		if (!info->fbops->fb_check_var) {
+ 			*var = info->var;
+ 			return 0;
+@@ -831,7 +833,7 @@ fb_set_var(struct fb_info *info, struct 
+ 
+ 			if (!err && (flags & FBINFO_MISC_USEREVENT)) {
+ 				struct fb_event event;
+-				int evnt = (var->activate & FB_ACTIVATE_ALL) ?
++				int evnt = (activate & FB_ACTIVATE_ALL) ?
+ 					FB_EVENT_MODE_CHANGE_ALL :
+ 					FB_EVENT_MODE_CHANGE;
  
 _
 
