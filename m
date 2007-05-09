@@ -1,148 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - ne-mips-use-platform_driver-for-ne-on-rbtx49xx.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:43:12 -0700
-Message-ID: <200705090243.l492hCHE008438@shell0.pdx.osdl.net>
+Subject: - input-fix-aux-port-detection-with-some-i8042-chips-fix.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:43:00 -0700
+Message-ID: <200705090243.l492h0kQ008402@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43240 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46731 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968116AbXEICnX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:43:23 -0400
+	by vger.kernel.org with ESMTP id S969543AbXEICnZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:43:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dtor@mail.ru, sroland@tungstengraphics.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ne: MIPS: Use platform_driver for ne on RBTX49XX
+     input-fix-aux-port-detection-with-some-i8042-chips-fix
 has been removed from the -mm tree.  Its filename was
-     ne-mips-use-platform_driver-for-ne-on-rbtx49xx.patch
+     input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ne: MIPS: Use platform_driver for ne on RBTX49XX
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: input-fix-aux-port-detection-with-some-i8042-chips-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch lets RBTX49XX boards use generic platform_driver interface
-for the ne driver.
+- no need to initialise `i'.
 
-* Use platform_device to pass ioaddr and irq to the ne driver.
-* Remove unnecessary ifdefs for RBTX49XX from the ne driver.
-* Make the ne driver selectable on these boards regardless of CONFIG_ISA
+- 80-col fix
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+- other accidental cleanups
+
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Roland Scheidegger <sroland@tungstengraphics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |   19 +++++++++
- arch/mips/tx4938/toshiba_rbtx4938/setup.c                  |   20 ++++++++++
- drivers/net/Kconfig                                        |    2 -
- drivers/net/ne.c                                           |    8 ----
- 4 files changed, 40 insertions(+), 9 deletions(-)
+ drivers/input/serio/i8042.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
---- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx
-+++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
-@@ -1049,3 +1049,22 @@ static int __init toshiba_rbtx4927_rtc_i
- 	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
- }
- device_initcall(toshiba_rbtx4927_rtc_init);
+diff -puN drivers/input/serio/i8042.c~input-fix-aux-port-detection-with-some-i8042-chips-fix drivers/input/serio/i8042.c
+--- a/drivers/input/serio/i8042.c~input-fix-aux-port-detection-with-some-i8042-chips-fix
++++ a/drivers/input/serio/i8042.c
+@@ -537,7 +537,7 @@ static int __devinit i8042_check_aux(voi
+ 	int retval = -1;
+ 	int irq_registered = 0;
+ 	int aux_loop_broken = 0;
+-	int i = 0;
++	int i;
+ 	unsigned long flags;
+ 	unsigned char param;
+ 
+@@ -577,21 +577,25 @@ static int __devinit i8042_check_aux(voi
+ 			aux_loop_broken = 1;
+ 	}
+ 
+-/*
+- * Bit assignment test - filters out PS/2 i8042's in AT mode
+- */
++	/*
++	 * Bit assignment test - filters out PS/2 i8042's in AT mode
++	 */
+ 
+ 	if (i8042_command(&param, I8042_CMD_AUX_DISABLE))
+ 		return -1;
 +
-+static int __init rbtx4927_ne_init(void)
-+{
-+	static struct resource __initdata res[] = {
-+		{
-+			.start	= RBTX4927_RTL_8019_BASE,
-+			.end	= RBTX4927_RTL_8019_BASE + 0x20 - 1,
-+			.flags	= IORESOURCE_IO,
-+		}, {
-+			.start	= RBTX4927_RTL_8019_IRQ,
-+			.flags	= IORESOURCE_IRQ,
-+		}
-+	};
-+	struct platform_device *dev =
-+		platform_device_register_simple("ne", -1,
-+						res, ARRAY_SIZE(res));
-+	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
-+}
-+device_initcall(rbtx4927_ne_init);
-diff -puN arch/mips/tx4938/toshiba_rbtx4938/setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx arch/mips/tx4938/toshiba_rbtx4938/setup.c
---- a/arch/mips/tx4938/toshiba_rbtx4938/setup.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx
-+++ a/arch/mips/tx4938/toshiba_rbtx4938/setup.c
-@@ -20,6 +20,7 @@
- #include <linux/console.h>
- #include <linux/pci.h>
- #include <linux/pm.h>
-+#include <linux/platform_device.h>
+ 	/* some chips need some time to set the I8042_CTR_AUXDIS bit */
+ 	for (i = 0; i < 100; i++) {
+-		if (!i8042_command(&param, I8042_CMD_CTL_RCTR) && (param & I8042_CTR_AUXDIS))
++		if (!i8042_command(&param, I8042_CMD_CTL_RCTR) &&
++				(param & I8042_CTR_AUXDIS))
+ 			break;
+ 		udelay(50);
+ 	}
+ 	if (i == 100) {
+-		printk(KERN_WARNING "Failed to disable AUX port, but continuing anyway... Is this a SiS?\n");
+-		printk(KERN_WARNING "If AUX port is really absent please use the 'i8042.noaux' option.\n");
++		printk(KERN_WARNING "Failed to disable AUX port, but continuing"
++				" anyway... Is this a SiS?\n");
++		printk(KERN_WARNING "If AUX port is really absent please use "
++				"the 'i8042.noaux' option.\n");
+ 	}
  
- #include <asm/wbflush.h>
- #include <asm/reboot.h>
-@@ -1037,3 +1038,22 @@ static int __init tx4938_spi_proc_setup(
- 
- __initcall(tx4938_spi_proc_setup);
- #endif
-+
-+static int __init rbtx4938_ne_init(void)
-+{
-+	struct resource res[] = {
-+		{
-+			.start	= RBTX4938_RTL_8019_BASE,
-+			.end	= RBTX4938_RTL_8019_BASE + 0x20 - 1,
-+			.flags	= IORESOURCE_IO,
-+		}, {
-+			.start	= RBTX4938_RTL_8019_IRQ,
-+			.flags	= IORESOURCE_IRQ,
-+		}
-+	};
-+	struct platform_device *dev =
-+		platform_device_register_simple("ne", -1,
-+						res, ARRAY_SIZE(res));
-+	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
-+}
-+device_initcall(rbtx4938_ne_init);
-diff -puN drivers/net/Kconfig~ne-mips-use-platform_driver-for-ne-on-rbtx49xx drivers/net/Kconfig
---- a/drivers/net/Kconfig~ne-mips-use-platform_driver-for-ne-on-rbtx49xx
-+++ a/drivers/net/Kconfig
-@@ -1148,7 +1148,7 @@ config ETH16I
- 
- config NE2000
- 	tristate "NE2000/NE1000 support"
--	depends on NET_ISA || (Q40 && m) || M32R
-+	depends on NET_ISA || (Q40 && m) || M32R || TOSHIBA_RBTX4927 || TOSHIBA_RBTX4938
- 	select CRC32
- 	---help---
- 	  If you have a network (Ethernet) card of this type, say Y and read
-diff -puN drivers/net/ne.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx drivers/net/ne.c
---- a/drivers/net/ne.c~ne-mips-use-platform_driver-for-ne-on-rbtx49xx
-+++ a/drivers/net/ne.c
-@@ -56,10 +56,6 @@ static const char version2[] =
- #include <asm/system.h>
- #include <asm/io.h>
- 
--#if defined(CONFIG_TOSHIBA_RBTX4927) || defined(CONFIG_TOSHIBA_RBTX4938)
--#include <asm/tx4938/rbtx4938.h>
--#endif
--
- #include "8390.h"
- 
- #define DRV_NAME "ne"
-@@ -232,10 +228,6 @@ struct net_device * __init ne_probe(int 
- 	sprintf(dev->name, "eth%d", unit);
- 	netdev_boot_setup_check(dev);
- 
--#ifdef CONFIG_TOSHIBA_RBTX4938
--	dev->base_addr = RBTX4938_RTL_8019_BASE;
--	dev->irq = RBTX4938_RTL_8019_IRQ;
--#endif
- 	err = do_ne_probe(dev);
- 	if (err)
- 		goto out;
+ 	if (i8042_command(&param, I8042_CMD_AUX_ENABLE))
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-mips.patch
-mips-make-resources-for-ds1742-static-__initdata.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-kvm.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
