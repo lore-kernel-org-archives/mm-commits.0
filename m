@@ -1,79 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - rename-thread_info-to-stack-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:05:10 -0700
-Message-ID: <200705090905.l4995Avu018733@shell0.pdx.osdl.net>
+Subject: - wrap-access-to-thread_info-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:04:55 -0700
+Message-ID: <200705090904.l4994t0A018721@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48951 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754640AbXEIJFZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:05:25 -0400
+	by vger.kernel.org with ESMTP id S1753643AbXEIJFF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rename-thread_info-to-stack-fix
+     rename-thread_info-to-stack-fix 2
 has been removed from the -mm tree.  Its filename was
-     rename-thread_info-to-stack-fix.patch
+     wrap-access-to-thread_info-fix.patch
 
-This patch was dropped because it was folded into rename-thread_info-to-stack.patch
+This patch was dropped because it was folded into wrap-access-to-thread_info.patch
 
 ------------------------------------------------------
-Subject: rename-thread_info-to-stack-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rename-thread_info-to-stack-fix 2
+From: Roman Zippel <zippel@linux-m68k.org>
 
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Andi Kleen <ak@suse.de>
+The two changes to asm-offsets.c belong to second rename patch and the
+rest is for the first wrapper patch.
+
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/system.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/blackfin/kernel/asm-offsets.c  |    2 +-
+ arch/m68knommu/kernel/asm-offsets.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-x86_64/system.h~rename-thread_info-to-stack-fix include/asm-x86_64/system.h
---- a/include/asm-x86_64/system.h~rename-thread_info-to-stack-fix
-+++ a/include/asm-x86_64/system.h
-@@ -39,7 +39,7 @@
- 		       [threadrsp] "i" (offsetof(struct task_struct, thread.rsp)), \
- 		       [ti_flags] "i" (offsetof(struct thread_info, flags)),\
- 		       [tif_fork] "i" (TIF_FORK),			  \
--		       [thread_info] "i" (offsetof(struct task_struct, thread_info)), \
-+		       [thread_info] "i" (offsetof(struct task_struct, stack)), \
- 		       [pda_pcurrent] "i" (offsetof(struct x8664_pda, pcurrent))   \
- 		     : "memory", "cc" __EXTRA_CLOBBER)
-     
+diff -puN arch/blackfin/kernel/asm-offsets.c~wrap-access-to-thread_info-fix arch/blackfin/kernel/asm-offsets.c
+--- a/arch/blackfin/kernel/asm-offsets.c~wrap-access-to-thread_info-fix
++++ a/arch/blackfin/kernel/asm-offsets.c
+@@ -46,7 +46,7 @@ int main(void)
+ 	DEFINE(TASK_PTRACE, offsetof(struct task_struct, ptrace));
+ 	DEFINE(TASK_BLOCKED, offsetof(struct task_struct, blocked));
+ 	DEFINE(TASK_THREAD, offsetof(struct task_struct, thread));
+-	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, thread_info));
++	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, stack));
+ 	DEFINE(TASK_MM, offsetof(struct task_struct, mm));
+ 	DEFINE(TASK_ACTIVE_MM, offsetof(struct task_struct, active_mm));
+ 	DEFINE(TASK_SIGPENDING, offsetof(struct task_struct, pending));
+diff -puN arch/m68knommu/kernel/asm-offsets.c~wrap-access-to-thread_info-fix arch/m68knommu/kernel/asm-offsets.c
+--- a/arch/m68knommu/kernel/asm-offsets.c~wrap-access-to-thread_info-fix
++++ a/arch/m68knommu/kernel/asm-offsets.c
+@@ -31,7 +31,7 @@ int main(void)
+ 	DEFINE(TASK_PTRACE, offsetof(struct task_struct, ptrace));
+ 	DEFINE(TASK_BLOCKED, offsetof(struct task_struct, blocked));
+ 	DEFINE(TASK_THREAD, offsetof(struct task_struct, thread));
+-	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, thread_info));
++	DEFINE(TASK_THREAD_INFO, offsetof(struct task_struct, stack));
+ 	DEFINE(TASK_MM, offsetof(struct task_struct, mm));
+ 	DEFINE(TASK_ACTIVE_MM, offsetof(struct task_struct, active_mm));
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
 origin.patch
-slub-add-support-for-dynamic-cacheline-size-determination.patch
-swsusp-clean-up-print.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-nbd-check-the-return-value-of-sysfs_create_file.patch
-mutex_lock_interruptible-add-__must_check.patch
-afs-implement-basic-file-write-support.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
+allow-arch-to-initialize-arch-field-of-the-module-structure.patch
+wrap-access-to-thread_info.patch
+wrap-access-to-thread_info-fix.patch
 rename-thread_info-to-stack.patch
 rename-thread_info-to-stack-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+rename-thread_info-to-stack-fix-2.patch
