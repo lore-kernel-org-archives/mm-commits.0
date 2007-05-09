@@ -1,389 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-add-rtc-class-driver-for-the-maxim-max6900.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:46:57 -0700
-Message-ID: <200705090246.l492kvNK008916@shell0.pdx.osdl.net>
+Subject: - natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:43:20 -0700
+Message-ID: <200705090243.l492hKHk008454@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38958 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031957AbXEICr0 (ORCPT
+	by vger.kernel.org with ESMTP id S1031793AbXEICr0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dale@farnsworth.org, a.zummo@towertech.it, david-b@pacbell.net, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, broonie@sirena.org.uk, jeff@garzik.org, thockin@hockin.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: add RTC class driver for the Maxim MAX6900
+     natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-add-rtc-class-driver-for-the-maxim-max6900.patch
+     natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc: add RTC class driver for the Maxim MAX6900
-From: Dale Farnsworth <dale@farnsworth.org>
+Subject: natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Dale Farnsworth.org <dale@farnsworth.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Jean Delvare <khali@linux-fr.org>
+whitespace bustage
+
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Mark Brown <broonie@sirena.org.uk>
+Cc: Tim Hockin <thockin@hockin.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig       |   10 +
- drivers/rtc/Makefile      |    1 
- drivers/rtc/rtc-max6900.c |  311 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 322 insertions(+)
+ drivers/net/natsemi.c |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-rtc-class-driver-for-the-maxim-max6900 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-rtc-class-driver-for-the-maxim-max6900
-+++ a/drivers/rtc/Kconfig
-@@ -334,6 +334,16 @@ config RTC_DRV_TEST
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-test.
+diff -puN drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix
++++ a/drivers/net/natsemi.c
+@@ -661,13 +661,13 @@ static int netdev_get_regs(struct net_de
+ static int netdev_get_eeprom(struct net_device *dev, u8 *buf);
+ static const struct ethtool_ops ethtool_ops;
  
-+config RTC_DRV_MAX6900
-+	tristate "Maxim 6900"
-+	depends on RTC_CLASS && I2C
-+	help
-+	  If you say yes here you will get support for the
-+	  Maxim MAX6900 I2C RTC chip.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-max6900.
-+
- config RTC_DRV_MAX6902
- 	tristate "Maxim 6902"
- 	depends on RTC_CLASS && SPI
-diff -puN drivers/rtc/Makefile~rtc-add-rtc-class-driver-for-the-maxim-max6900 drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-rtc-class-driver-for-the-maxim-max6900
-+++ a/drivers/rtc/Makefile
-@@ -35,6 +35,7 @@ obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93
- obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
- obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
-+obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
- obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
- obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-at91rm9200.o
-diff -puN /dev/null drivers/rtc/rtc-max6900.c
---- /dev/null
-+++ a/drivers/rtc/rtc-max6900.c
-@@ -0,0 +1,311 @@
-+/*
-+ * rtc class driver for the Maxim MAX6900 chip
-+ *
-+ * Author: Dale Farnsworth <dale@farnsworth.org>
-+ *
-+ * based on previously existing rtc class drivers
-+ *
-+ * 2007 (c) MontaVista, Software, Inc.  This file is licensed under
-+ * the terms of the GNU General Public License version 2.  This program
-+ * is licensed "as is" without any warranty of any kind, whether express
-+ * or implied.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/bcd.h>
-+#include <linux/rtc.h>
-+#include <linux/delay.h>
-+
-+#define DRV_NAME "max6900"
-+#define DRV_VERSION "0.1"
-+
-+/*
-+ * register indices
-+ */
-+#define MAX6900_REG_SC			0	/* seconds	00-59 */
-+#define MAX6900_REG_MN			1	/* minutes	00-59 */
-+#define MAX6900_REG_HR			2	/* hours	00-23 */
-+#define MAX6900_REG_DT			3	/* day of month	00-31 */
-+#define MAX6900_REG_MO			4	/* month	01-12 */
-+#define MAX6900_REG_DW			5	/* day of week	 1-7  */
-+#define MAX6900_REG_YR			6	/* year		00-99 */
-+#define MAX6900_REG_CT			7	/* control */
-+#define MAX6900_REG_LEN			8
-+
-+#define MAX6900_REG_CT_WP		(1 << 7)	/* Write Protect */
-+
-+/*
-+ * register read/write commands
-+ */
-+#define MAX6900_REG_CONTROL_WRITE	0x8e
-+#define MAX6900_REG_BURST_READ		0xbf
-+#define MAX6900_REG_BURST_WRITE		0xbe
-+#define MAX6900_REG_RESERVED_READ	0x96
-+
-+#define MAX6900_IDLE_TIME_AFTER_WRITE	3	/* specification says 2.5 mS */
-+
-+#define MAX6900_I2C_ADDR		0xa0
-+
-+static unsigned short normal_i2c[] = {
-+	MAX6900_I2C_ADDR >> 1,
-+	I2C_CLIENT_END
-+};
-+
-+I2C_CLIENT_INSMOD;			/* defines addr_data */
-+
-+static int max6900_probe(struct i2c_adapter *adapter, int addr, int kind);
-+
-+static int max6900_i2c_read_regs(struct i2c_client *client, u8 *buf)
-+{
-+	u8 reg_addr[1] = { MAX6900_REG_BURST_READ };
-+	struct i2c_msg msgs[2] = {
-+		{
-+			.addr	= client->addr,
-+			.flags	= 0, /* write */
-+			.len	= sizeof(reg_addr),
-+			.buf	= reg_addr
-+		},
-+		{
-+			.addr	= client->addr,
-+			.flags	= I2C_M_RD,
-+			.len	= MAX6900_REG_LEN,
-+			.buf	= buf
-+		}
-+	};
-+	int rc;
-+
-+	rc = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-+	if (rc != ARRAY_SIZE(msgs)) {
-+		dev_err(&client->dev, "%s: register read failed\n",
-+			__FUNCTION__);
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int max6900_i2c_write_regs(struct i2c_client *client, u8 const *buf)
-+{
-+	u8 i2c_buf[MAX6900_REG_LEN + 1] = { MAX6900_REG_BURST_WRITE };
-+	struct i2c_msg msgs[1] = {
-+		{
-+			.addr	= client->addr,
-+			.flags	= 0, /* write */
-+			.len	= MAX6900_REG_LEN + 1,
-+			.buf	= i2c_buf
-+		}
-+	};
-+	int rc;
-+
-+	memcpy(&i2c_buf[1], buf, MAX6900_REG_LEN);
-+
-+	rc = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-+	if (rc != ARRAY_SIZE(msgs)) {
-+		dev_err(&client->dev, "%s: register write failed\n",
-+			__FUNCTION__);
-+		return -EIO;
-+	}
-+	msleep(MAX6900_IDLE_TIME_AFTER_WRITE);
-+	return 0;
-+}
-+
-+static int max6900_i2c_validate_client(struct i2c_client *client)
-+{
-+	u8 regs[MAX6900_REG_LEN];
-+	u8 zero_mask[MAX6900_REG_LEN] = {
-+		0x80,	/* seconds */
-+		0x80,	/* minutes */
-+		0x40,	/* hours */
-+		0xc0,	/* day of month */
-+		0xe0,	/* month */
-+		0xf8,	/* day of week */
-+		0x00,	/* year */
-+		0x7f,	/* control */
-+	};
-+	int i;
-+	int rc;
-+	int reserved;
-+
-+	reserved = i2c_smbus_read_byte_data(client, MAX6900_REG_RESERVED_READ);
-+	if (reserved != 0x07)
-+		return -ENODEV;
-+
-+	rc = max6900_i2c_read_regs(client, regs);
-+	if (rc < 0)
-+		return rc;
-+
-+	for (i = 0; i < MAX6900_REG_LEN; ++i) {
-+		if (regs[i] & zero_mask[i])
-+			return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static int max6900_i2c_read_time(struct i2c_client *client, struct rtc_time *tm)
-+{
-+	int rc;
-+	u8 regs[MAX6900_REG_LEN];
-+
-+	rc = max6900_i2c_read_regs(client, regs);
-+	if (rc < 0)
-+		return rc;
-+
-+	tm->tm_sec = BCD2BIN(regs[MAX6900_REG_SC]);
-+	tm->tm_min = BCD2BIN(regs[MAX6900_REG_MN]);
-+	tm->tm_hour = BCD2BIN(regs[MAX6900_REG_HR] & 0x3f);
-+	tm->tm_mday = BCD2BIN(regs[MAX6900_REG_DT]);
-+	tm->tm_mon = BCD2BIN(regs[MAX6900_REG_MO]) - 1;
-+	tm->tm_year = BCD2BIN(regs[MAX6900_REG_YR]) + 100;
-+	tm->tm_wday = BCD2BIN(regs[MAX6900_REG_DW]);
-+
-+	return 0;
-+}
-+
-+static int max6900_i2c_clear_write_protect(struct i2c_client *client)
-+{
-+	int rc;
-+	rc = i2c_smbus_write_byte_data (client, MAX6900_REG_CONTROL_WRITE, 0);
-+	if (rc < 0) {
-+		dev_err(&client->dev, "%s: control register write failed\n",
-+			__FUNCTION__);
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int max6900_i2c_set_time(struct i2c_client *client,
-+				struct rtc_time const *tm)
-+{
-+	u8 regs[MAX6900_REG_LEN];
-+	int rc;
-+
-+	rc = max6900_i2c_clear_write_protect(client);
-+	if (rc < 0)
-+		return rc;
-+
-+	regs[MAX6900_REG_SC] = BIN2BCD(tm->tm_sec);
-+	regs[MAX6900_REG_MN] = BIN2BCD(tm->tm_min);
-+	regs[MAX6900_REG_HR] = BIN2BCD(tm->tm_hour);
-+	regs[MAX6900_REG_DT] = BIN2BCD(tm->tm_mday);
-+	regs[MAX6900_REG_MO] = BIN2BCD(tm->tm_mon + 1);
-+	regs[MAX6900_REG_YR] = BIN2BCD(tm->tm_year - 100);
-+	regs[MAX6900_REG_DW] = BIN2BCD(tm->tm_wday);
-+	regs[MAX6900_REG_CT] = MAX6900_REG_CT_WP;	/* set write protect */
-+
-+	rc = max6900_i2c_write_regs(client, regs);
-+	if (rc < 0)
-+		return rc;
-+
-+	return 0;
-+}
-+
-+static int max6900_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	return max6900_i2c_read_time(to_i2c_client(dev), tm);
-+}
-+
-+static int max6900_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	return max6900_i2c_set_time(to_i2c_client(dev), tm);
-+}
-+
-+static int max6900_attach_adapter(struct i2c_adapter *adapter)
-+{
-+	return i2c_probe(adapter, &addr_data, max6900_probe);
-+}
-+
-+static int max6900_detach_client(struct i2c_client *client)
-+{
-+	struct rtc_device *const rtc = i2c_get_clientdata(client);
-+
-+	if (rtc)
-+		rtc_device_unregister(rtc);
-+
-+	return i2c_detach_client(client);
-+}
-+
-+static struct i2c_driver max6900_driver = {
-+	.driver		= {
-+		.name	= DRV_NAME,
-+	},
-+	.id		= I2C_DRIVERID_MAX6900,
-+	.attach_adapter = max6900_attach_adapter,
-+	.detach_client	= max6900_detach_client,
-+};
-+
-+static const struct rtc_class_ops max6900_rtc_ops = {
-+	.read_time	= max6900_rtc_read_time,
-+	.set_time	= max6900_rtc_set_time,
-+};
-+
-+static int max6900_probe(struct i2c_adapter *adapter, int addr, int kind)
-+{
-+	int rc = 0;
-+	struct i2c_client *client = NULL;
-+	struct rtc_device *rtc = NULL;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
-+		rc = -ENODEV;
-+		goto failout;
-+	}
-+
-+	client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
-+	if (client == NULL) {
-+		rc = -ENOMEM;
-+		goto failout;
-+	}
-+
-+	client->addr = addr;
-+	client->adapter = adapter;
-+	client->driver = &max6900_driver;
-+	strlcpy(client->name, DRV_NAME, I2C_NAME_SIZE);
-+
-+	if (kind < 0) {
-+		rc = max6900_i2c_validate_client(client);
-+		if (rc < 0)
-+			goto failout;
-+	}
-+
-+	rc = i2c_attach_client(client);
-+	if (rc < 0)
-+		goto failout;
-+
-+	dev_info(&client->dev,
-+		 "chip found, driver version " DRV_VERSION "\n");
-+
-+	rtc = rtc_device_register(max6900_driver.driver.name,
-+				  &client->dev,
-+				  &max6900_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		rc = PTR_ERR(rtc);
-+		goto failout_detach;
-+	}
-+
-+	i2c_set_clientdata(client, rtc);
-+
-+	return 0;
-+
-+failout_detach:
-+	i2c_detach_client(client);
-+failout:
-+	kfree(client);
-+	return rc;
-+}
-+
-+static int __init max6900_init(void)
-+{
-+	return i2c_add_driver(&max6900_driver);
-+}
-+
-+static void __exit max6900_exit(void)
-+{
-+	i2c_del_driver(&max6900_driver);
-+}
-+
-+MODULE_DESCRIPTION("Maxim MAX6900 RTC driver");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(DRV_VERSION);
-+
-+module_init(max6900_init);
-+module_exit(max6900_exit);
+-#define NATSEMI_ATTR(_name) \
+-static ssize_t natsemi_show_##_name(struct device *dev, \
+-         struct device_attribute *attr, char *buf); \
+-	 static ssize_t natsemi_set_##_name(struct device *dev, \
+-		struct device_attribute *attr, \
+-	        const char *buf, size_t count); \
+-	 static DEVICE_ATTR(_name, 0644, natsemi_show_##_name, natsemi_set_##_name)
++#define NATSEMI_ATTR(_name)						\
++static ssize_t natsemi_show_##_name(struct device *dev,			\
++	struct device_attribute *attr, char *buf);			\
++	static ssize_t natsemi_set_##_name(struct device *dev,		\
++		struct device_attribute *attr,				\
++		const char *buf, size_t count);				\
++	static DEVICE_ATTR(_name, 0644, natsemi_show_##_name, natsemi_set_##_name)
+ 
+ #define NATSEMI_CREATE_FILE(_dev, _name) \
+          device_create_file(&_dev->dev, &dev_attr_##_name)
+@@ -693,14 +693,14 @@ static ssize_t natsemi_set_dspcfg_workar
+ 	int new_setting;
+ 	u32 flags;
+ 
+-        /* Find out the new setting */
+-        if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
+-                new_setting = 1;
+-        else if (!strncmp("off", buf, count - 1)
+-                 || !strncmp("0", buf, count - 1))
++	/* Find out the new setting */
++	if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
++		new_setting = 1;
++	else if (!strncmp("off", buf, count - 1) ||
++			!strncmp("0", buf, count - 1))
+ 		new_setting = 0;
+ 	else
+-                 return count;
++		return count;
+ 
+ 	spin_lock_irqsave(&np->lock, flags);
+ 
 _
 
-Patches currently in -mm which might be from dale@farnsworth.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-kvm.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
