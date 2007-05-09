@@ -1,66 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - doc-what-a-patch-series-is.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:50:26 -0700
-Message-ID: <200705092150.l49LoQAK002806@shell0.pdx.osdl.net>
+Subject: - clocksource-spelling-error-in-watchdog-code.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:50:20 -0700
+Message-ID: <200705092150.l49LoKlo002796@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60181 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42238 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757326AbXEIVuc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:32 -0400
+	by vger.kernel.org with ESMTP id S1758210AbXEIVu1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc: what a patch series is
+     clocksource: spelling error in watchdog code
 has been removed from the -mm tree.  Its filename was
-     doc-what-a-patch-series-is.patch
+     clocksource-spelling-error-in-watchdog-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: doc: what a patch series is
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: clocksource: spelling error in watchdog code
+From: Daniel Walker <dwalker@mvista.com>
 
-It seems that we need to clarify that a patch series is a series of related
-patches rather than "here are some of my patches as multiple (numbered)
-emails."
+There's more that need fixing, and fix my own subject spelling error too.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/time/clocksource.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/SubmittingPatches~doc-what-a-patch-series-is Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~doc-what-a-patch-series-is
-+++ a/Documentation/SubmittingPatches
-@@ -363,7 +363,8 @@ area or subsystem of the kernel is being
- The "summary phrase" in the email's Subject should concisely
- describe the patch which that email contains.  The "summary
- phrase" should not be a filename.  Do not use the same "summary
--phrase" for every patch in a whole patch series.
-+phrase" for every patch in a whole patch series (where a "patch
-+series" is an ordered sequence of multiple, related patches).
+diff -puN kernel/time/clocksource.c~clocksource-spelling-error-in-watchdog-code kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~clocksource-spelling-error-in-watchdog-code
++++ a/kernel/time/clocksource.c
+@@ -75,14 +75,14 @@ static struct timer_list watchdog_timer;
+ static DEFINE_SPINLOCK(watchdog_lock);
+ static cycle_t watchdog_last;
+ /*
+- * Interval: 0.5sec Treshold: 0.0625s
++ * Interval: 0.5sec Threshold: 0.0625s
+  */
+ #define WATCHDOG_INTERVAL (HZ >> 1)
+-#define WATCHDOG_TRESHOLD (NSEC_PER_SEC >> 4)
++#define WATCHDOG_THRESHOLD (NSEC_PER_SEC >> 4)
  
- Bear in mind that the "summary phrase" of your email becomes
- a globally-unique identifier for that patch.  It propagates
+ static void clocksource_ratewd(struct clocksource *cs, int64_t delta)
+ {
+-	if (delta > -WATCHDOG_TRESHOLD && delta < WATCHDOG_TRESHOLD)
++	if (delta > -WATCHDOG_THRESHOLD && delta < WATCHDOG_THRESHOLD)
+ 		return;
+ 
+ 	printk(KERN_WARNING "Clocksource %s unstable (delta = %Ld ns)\n",
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-ocfs2-kobject-kset-foobar.patch
-git-acpi.patch
-git-ieee1394.patch
-romfs-printk-format-warnings.patch
-add-pci_try_set_mwi.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch
-doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
-lib-hexdump.patch
+slim-make-and-config-stuff.patch
 profile-likely-unlikely-macros.patch
