@@ -1,249 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - dm-raid1-one-kmirrord-per-mirror.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:27 -0700
-Message-ID: <200705092148.l49LmRNW002590@shell0.pdx.osdl.net>
+Subject: - dm-crypt-fix-remove-first_clone.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:35 -0700
+Message-ID: <200705092148.l49LmZTX002605@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48052 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755191AbXEIVsp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:45 -0400
+	by vger.kernel.org with ESMTP id S1759301AbXEIVss (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: smolinski@de.ibm.com, agk@redhat.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: olaf.kirch@oracle.com, agk@redhat.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm raid1: one kmirrord per mirror
+     dm crypt: fix remove first_clone
 has been removed from the -mm tree.  Its filename was
-     dm-raid1-one-kmirrord-per-mirror.patch
+     dm-crypt-fix-remove-first_clone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm raid1: one kmirrord per mirror
-From: Holger Smolinski <smolinski@de.ibm.com>
+Subject: dm crypt: fix remove first_clone
+From: Olaf Kirch <olaf.kirch@oracle.com>
 
-This patch replaces the single instance of kmirrord by one instance per mirror
-set.  This change is required to avoid a deadlock in kmirrord when the
-persistent dirty log of a mirror itself resides on a mirror.  The single
-instance of kmirrord then issues a sync write to the dirty log in write_bits
-which gets deferred to kmirrord itself later in the call chain.  But kmirrord
-never does the deferred work because it is still waiting for the sync
-write_bits.
+Get rid of first_clone in dm-crypt
 
-_mirror_sets is removed as it no longer needed, and we always flush the
-workqueue before destroying it to ensure all work is complete before
-destroying it.
+This gets rid of first_clone, which is not really needed.  Apparently, cloned
+bios used to share their bvec some time way in the past - this is no longer
+the case.  Contrarily, this even hurts us if we try to create a clone off
+first_clone after it has completed, and crypt_endio has destroyed its bvec.
 
-Signed-off-by: Holger Smolinski <smolinski@de.ibm.com>
+Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-raid1.c |   81 +++++++++++++---------------------------
- 1 file changed, 27 insertions(+), 54 deletions(-)
+ drivers/md/dm-crypt.c |   34 ++++++----------------------------
+ 1 file changed, 6 insertions(+), 28 deletions(-)
 
-diff -puN drivers/md/dm-raid1.c~dm-raid1-one-kmirrord-per-mirror drivers/md/dm-raid1.c
---- a/drivers/md/dm-raid1.c~dm-raid1-one-kmirrord-per-mirror
-+++ a/drivers/md/dm-raid1.c
-@@ -22,15 +22,8 @@
- 
- #define DM_MSG_PREFIX "raid1"
- 
--static struct workqueue_struct *_kmirrord_wq;
--static struct work_struct _kmirrord_work;
- static DECLARE_WAIT_QUEUE_HEAD(_kmirrord_recovery_stopped);
- 
--static inline void wake(void)
--{
--	queue_work(_kmirrord_wq, &_kmirrord_work);
--}
--
- /*-----------------------------------------------------------------
-  * Region hash
-  *
-@@ -136,6 +129,9 @@ struct mirror_set {
- 
- 	struct mirror *default_mirror;	/* Default mirror */
- 
-+	struct workqueue_struct *kmirrord_wq;
-+	struct work_struct kmirrord_work;
-+
- 	unsigned int nr_mirrors;
- 	struct mirror mirror[0];
- };
-@@ -153,6 +149,11 @@ static inline sector_t region_to_sector(
- 	return region << rh->region_shift;
- }
- 
-+static void wake(struct mirror_set *ms)
-+{
-+	queue_work(ms->kmirrord_wq, &ms->kmirrord_work);
-+}
-+
- /* FIXME move this */
- static void queue_bio(struct mirror_set *ms, struct bio *bio, int rw);
- 
-@@ -471,7 +472,7 @@ static void rh_dec(struct region_hash *r
- 	spin_unlock_irqrestore(&rh->region_lock, flags);
- 
- 	if (should_wake)
--		wake();
-+		wake(rh->ms);
- }
- 
- /*
-@@ -558,7 +559,7 @@ static void rh_recovery_end(struct regio
- 	list_add(&reg->list, &reg->rh->recovered_regions);
- 	spin_unlock_irq(&rh->region_lock);
- 
--	wake();
-+	wake(rh->ms);
- }
- 
- static void rh_flush(struct region_hash *rh)
-@@ -592,7 +593,7 @@ static void rh_start_recovery(struct reg
- 	for (i = 0; i < MAX_RECOVERY; i++)
- 		up(&rh->recovery_count);
- 
--	wake();
-+	wake(rh->ms);
- }
- 
- /*
-@@ -870,11 +871,10 @@ static void do_writes(struct mirror_set 
- /*-----------------------------------------------------------------
-  * kmirrord
-  *---------------------------------------------------------------*/
--static LIST_HEAD(_mirror_sets);
--static DECLARE_RWSEM(_mirror_sets_lock);
--
--static void do_mirror(struct mirror_set *ms)
-+static void do_mirror(struct work_struct *work)
- {
-+	struct mirror_set *ms =container_of(work, struct mirror_set,
-+					    kmirrord_work);
- 	struct bio_list reads, writes;
- 
- 	spin_lock(&ms->lock);
-@@ -890,16 +890,6 @@ static void do_mirror(struct mirror_set 
- 	do_writes(ms, &writes);
- }
- 
--static void do_work(struct work_struct *ignored)
--{
--	struct mirror_set *ms;
--
--	down_read(&_mirror_sets_lock);
--	list_for_each_entry (ms, &_mirror_sets, list)
--		do_mirror(ms);
--	up_read(&_mirror_sets_lock);
--}
--
- /*-----------------------------------------------------------------
-  * Target functions
-  *---------------------------------------------------------------*/
-@@ -978,23 +968,6 @@ static int get_mirror(struct mirror_set 
- 	return 0;
- }
- 
--static int add_mirror_set(struct mirror_set *ms)
--{
--	down_write(&_mirror_sets_lock);
--	list_add_tail(&ms->list, &_mirror_sets);
--	up_write(&_mirror_sets_lock);
--	wake();
--
--	return 0;
--}
--
--static void del_mirror_set(struct mirror_set *ms)
--{
--	down_write(&_mirror_sets_lock);
--	list_del(&ms->list);
--	up_write(&_mirror_sets_lock);
--}
--
- /*
-  * Create dirty log: log_type #log_params <log_params>
+diff -puN drivers/md/dm-crypt.c~dm-crypt-fix-remove-first_clone drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~dm-crypt-fix-remove-first_clone
++++ a/drivers/md/dm-crypt.c
+@@ -33,7 +33,6 @@
+ struct crypt_io {
+ 	struct dm_target *target;
+ 	struct bio *base_bio;
+-	struct bio *first_clone;
+ 	struct work_struct work;
+ 	atomic_t pending;
+ 	int error;
+@@ -380,9 +379,8 @@ static int crypt_convert(struct crypt_co
+  * This should never violate the device limitations
+  * May return a smaller bio when running out of pages
   */
-@@ -1096,13 +1069,22 @@ static int mirror_ctr(struct dm_target *
- 	ti->private = ms;
-  	ti->split_io = ms->rh.region_size;
- 
-+	ms->kmirrord_wq = create_singlethread_workqueue("kmirrord");
-+	if (!ms->kmirrord_wq) {
-+		DMERR("couldn't start kmirrord");
-+		free_context(ms, ti, m);
-+		return -ENOMEM;
-+	}
-+	INIT_WORK(&ms->kmirrord_work, do_mirror);
-+
- 	r = kcopyd_client_create(DM_IO_PAGES, &ms->kcopyd_client);
- 	if (r) {
-+		destroy_workqueue(ms->kmirrord_wq);
- 		free_context(ms, ti, ms->nr_mirrors);
- 		return r;
- 	}
- 
--	add_mirror_set(ms);
-+	wake(ms);
- 	return 0;
- }
- 
-@@ -1110,8 +1092,9 @@ static void mirror_dtr(struct dm_target 
+-static struct bio *
+-crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
+-                   struct bio *base_bio, unsigned int *bio_vec_idx)
++static struct bio *crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
++				      unsigned int *bio_vec_idx)
  {
- 	struct mirror_set *ms = (struct mirror_set *) ti->private;
+ 	struct crypt_config *cc = io->target->private;
+ 	struct bio *clone;
+@@ -390,12 +388,7 @@ crypt_alloc_buffer(struct crypt_io *io, 
+ 	gfp_t gfp_mask = GFP_NOIO | __GFP_HIGHMEM;
+ 	unsigned int i;
  
--	del_mirror_set(ms);
-+	flush_workqueue(ms->kmirrord_wq);
- 	kcopyd_client_destroy(ms->kcopyd_client);
-+	destroy_workqueue(ms->kmirrord_wq);
- 	free_context(ms, ti, ms->nr_mirrors);
- }
- 
-@@ -1127,7 +1110,7 @@ static void queue_bio(struct mirror_set 
- 	spin_unlock(&ms->lock);
- 
- 	if (should_wake)
--		wake();
-+		wake(ms);
- }
- 
- /*
-@@ -1270,20 +1253,11 @@ static int __init dm_mirror_init(void)
- 	if (r)
- 		return r;
- 
--	_kmirrord_wq = create_singlethread_workqueue("kmirrord");
--	if (!_kmirrord_wq) {
--		DMERR("couldn't start kmirrord");
--		dm_dirty_log_exit();
--		return r;
--	}
--	INIT_WORK(&_kmirrord_work, do_work);
+-	if (base_bio) {
+-		clone = bio_alloc_bioset(GFP_NOIO, base_bio->bi_max_vecs, cc->bs);
+-		__bio_clone(clone, base_bio);
+-	} else
+-		clone = bio_alloc_bioset(GFP_NOIO, nr_iovecs, cc->bs);
 -
- 	r = dm_register_target(&mirror_target);
- 	if (r < 0) {
- 		DMERR("%s: Failed to register mirror target",
- 		      mirror_target.name);
- 		dm_dirty_log_exit();
--		destroy_workqueue(_kmirrord_wq);
- 	}
++	clone = bio_alloc_bioset(GFP_NOIO, nr_iovecs, cc->bs);
+ 	if (!clone)
+ 		return NULL;
  
- 	return r;
-@@ -1297,7 +1271,6 @@ static void __exit dm_mirror_exit(void)
- 	if (r < 0)
- 		DMERR("%s: unregister failed %d", mirror_target.name, r);
+@@ -498,9 +491,6 @@ static void dec_pending(struct crypt_io 
+ 	if (!atomic_dec_and_test(&io->pending))
+ 		return;
  
--	destroy_workqueue(_kmirrord_wq);
- 	dm_dirty_log_exit();
- }
+-	if (io->first_clone)
+-		bio_put(io->first_clone);
+-
+ 	bio_endio(io->base_bio, io->base_bio->bi_size, io->error);
  
+ 	mempool_free(io, cc->io_pool);
+@@ -618,8 +608,7 @@ static void process_write(struct crypt_i
+ 	 * so repeat the whole process until all the data can be handled.
+ 	 */
+ 	while (remaining) {
+-		clone = crypt_alloc_buffer(io, base_bio->bi_size,
+-					   io->first_clone, &bvec_idx);
++		clone = crypt_alloc_buffer(io, base_bio->bi_size, &bvec_idx);
+ 		if (unlikely(!clone)) {
+ 			dec_pending(io, -ENOMEM);
+ 			return;
+@@ -635,21 +624,11 @@ static void process_write(struct crypt_i
+ 		}
+ 
+ 		clone->bi_sector = cc->start + sector;
+-
+-		if (!io->first_clone) {
+-			/*
+-			 * hold a reference to the first clone, because it
+-			 * holds the bio_vec array and that can't be freed
+-			 * before all other clones are released
+-			 */
+-			bio_get(clone);
+-			io->first_clone = clone;
+-		}
+-
+ 		remaining -= clone->bi_size;
+ 		sector += bio_sectors(clone);
+ 
+-		/* prevent bio_put of first_clone */
++		/* Grab another reference to the io struct
++		 * before we kick off the request */
+ 		if (remaining)
+ 			atomic_inc(&io->pending);
+ 
+@@ -965,7 +944,6 @@ static int crypt_map(struct dm_target *t
+ 	io = mempool_alloc(cc->io_pool, GFP_NOIO);
+ 	io->target = ti;
+ 	io->base_bio = bio;
+-	io->first_clone = NULL;
+ 	io->error = io->post_process = 0;
+ 	atomic_set(&io->pending, 0);
+ 	kcryptd_queue_io(io);
 _
 
-Patches currently in -mm which might be from smolinski@de.ibm.com are
+Patches currently in -mm which might be from olaf.kirch@oracle.com are
 
 origin.patch
