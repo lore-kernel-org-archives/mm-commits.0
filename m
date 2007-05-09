@@ -1,215 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:46:24 -0700
-Message-ID: <200705090246.l492kOK7008847@shell0.pdx.osdl.net>
+Subject: - fix-race-between-proc_readdir-and-remove_proc_entry.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:46:01 -0700
+Message-ID: <200705090246.l492k1mn008803@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34272 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031797AbXEICqg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:36 -0400
+	by vger.kernel.org with ESMTP id S968823AbXEICqk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, Markus.Lidel@shadowconnect.com, mm-commits@vger.kernel.org
+To: djwong@us.ibm.com, adobriyan@sw.ru, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove unused header file: drivers/message/i2o/i2o_lan.h
+     Fix race between proc_readdir and remove_proc_entry
 has been removed from the -mm tree.  Its filename was
-     remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
+     fix-race-between-proc_readdir-and-remove_proc_entry.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove unused header file: drivers/message/i2o/i2o_lan.h
-=46rom: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: Fix race between proc_readdir and remove_proc_entry
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
+Fix the following race:
+
+proc_readdir				remove_proc_entry
+============				=================
+
+spin_lock(&proc_subdir_lock);
+[choose PDE to start filldir from]
+spin_unlock(&proc_subdir_lock);
+					spin_lock(&proc_subdir_lock);
+					[find PDE]
+					[free PDE, refcount is 0]
+					spin_unlock(&proc_subdir_lock);
+		    /* boom */
+if (filldir(dirent, de->name, ...
+
+[de_put on error path --adobriyan]
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/i2o_lan.h |  159 --------------------------------
- 1 file changed, 159 deletions(-)
+ fs/proc/generic.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN drivers/message/i2o/i2o_lan.h~remove-unused-header-file-drive=
-rs-message-i2o-i2o_lanh /dev/null
---- a/drivers/message/i2o/i2o_lan.h
-+++ /dev/null
-@@ -1,159 +0,0 @@
--/*
-- *   	i2o_lan.h			I2O LAN Class definitions
-- *
-- *      I2O LAN CLASS OSM       	May 26th 2000
-- *
-- *      (C) Copyright 1999, 2000	University of Helsinki,
-- *					Department of Computer Science
-- *
-- *      This code is still under development / test.
-- *
-- *	Author:		Auvo H=E4kkinen <Auvo.Hakkinen@cs.Helsinki.FI>
-- *			Juha Siev=E4nen <Juha.Sievanen@cs.Helsinki.FI>
-- *			Taneli V=E4h=E4kangas <Taneli.Vahakangas@cs.Helsinki.FI>
-- */
--
--#ifndef _I2O_LAN_H
--#define _I2O_LAN_H
--
--/* Default values for tunable parameters first */
--
--#define I2O_LAN_MAX_BUCKETS_OUT 96
--#define I2O_LAN_BUCKET_THRESH	18	/* 9 buckets in one message */
--#define I2O_LAN_RX_COPYBREAK	200
--#define I2O_LAN_TX_TIMEOUT 	(1*HZ)
--#define I2O_LAN_TX_BATCH_MODE	2	/* 2=3Dautomatic, 1=3Don, 0=3Doff */
--#define I2O_LAN_EVENT_MASK	0	/* 0=3DNone, 0xFFC00002=3DAll */
--
--/* LAN types */
--#define I2O_LAN_ETHERNET	0x0030
--#define I2O_LAN_100VG		0x0040
--#define I2O_LAN_TR		0x0050
--#define I2O_LAN_FDDI		0x0060
--#define I2O_LAN_FIBRE_CHANNEL	0x0070
--#define I2O_LAN_UNKNOWN		0x00000000
--
--/* Connector types */
--
--/* Ethernet */
--#define I2O_LAN_AUI		(I2O_LAN_ETHERNET << 4) + 0x00000001
--#define I2O_LAN_10BASE5		(I2O_LAN_ETHERNET << 4) + 0x00000002
--#define I2O_LAN_FIORL		(I2O_LAN_ETHERNET << 4) + 0x00000003
--#define I2O_LAN_10BASE2		(I2O_LAN_ETHERNET << 4) + 0x00000004
--#define I2O_LAN_10BROAD36	(I2O_LAN_ETHERNET << 4) + 0x00000005
--#define I2O_LAN_10BASE_T	(I2O_LAN_ETHERNET << 4) + 0x00000006
--#define I2O_LAN_10BASE_FP	(I2O_LAN_ETHERNET << 4) + 0x00000007
--#define I2O_LAN_10BASE_FB	(I2O_LAN_ETHERNET << 4) + 0x00000008
--#define I2O_LAN_10BASE_FL	(I2O_LAN_ETHERNET << 4) + 0x00000009
--#define I2O_LAN_100BASE_TX	(I2O_LAN_ETHERNET << 4) + 0x0000000A
--#define I2O_LAN_100BASE_FX	(I2O_LAN_ETHERNET << 4) + 0x0000000B
--#define I2O_LAN_100BASE_T4	(I2O_LAN_ETHERNET << 4) + 0x0000000C
--#define I2O_LAN_1000BASE_SX	(I2O_LAN_ETHERNET << 4) + 0x0000000D
--#define I2O_LAN_1000BASE_LX	(I2O_LAN_ETHERNET << 4) + 0x0000000E
--#define I2O_LAN_1000BASE_CX	(I2O_LAN_ETHERNET << 4) + 0x0000000F
--#define I2O_LAN_1000BASE_T	(I2O_LAN_ETHERNET << 4) + 0x00000010
--
--/* AnyLAN */
--#define I2O_LAN_100VG_ETHERNET	(I2O_LAN_100VG << 4) + 0x00000001
--#define I2O_LAN_100VG_TR	(I2O_LAN_100VG << 4) + 0x00000002
--
--/* Token Ring */
--#define I2O_LAN_4MBIT		(I2O_LAN_TR << 4) + 0x00000001
--#define I2O_LAN_16MBIT		(I2O_LAN_TR << 4) + 0x00000002
--
--/* FDDI */
--#define I2O_LAN_125MBAUD	(I2O_LAN_FDDI << 4) + 0x00000001
--
--/* Fibre Channel */
--#define I2O_LAN_POINT_POINT	(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000001
--#define I2O_LAN_ARB_LOOP	(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000002
--#define I2O_LAN_PUBLIC_LOOP	(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000003
--#define I2O_LAN_FABRIC		(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000004
--
--#define I2O_LAN_EMULATION	0x00000F00
--#define I2O_LAN_OTHER		0x00000F01
--#define I2O_LAN_DEFAULT		0xFFFFFFFF
--
--/* LAN class functions */
--
--#define LAN_PACKET_SEND		0x3B
--#define LAN_SDU_SEND		0x3D
--#define LAN_RECEIVE_POST	0x3E
--#define LAN_RESET		0x35
--#define LAN_SUSPEND		0x37
--
--/* LAN DetailedStatusCode defines */
--#define I2O_LAN_DSC_SUCCESS			0x00
--#define I2O_LAN_DSC_DEVICE_FAILURE		0x01
--#define I2O_LAN_DSC_DESTINATION_NOT_FOUND	0x02
--#define	I2O_LAN_DSC_TRANSMIT_ERROR		0x03
--#define I2O_LAN_DSC_TRANSMIT_ABORTED		0x04
--#define I2O_LAN_DSC_RECEIVE_ERROR		0x05
--#define I2O_LAN_DSC_RECEIVE_ABORTED		0x06
--#define I2O_LAN_DSC_DMA_ERROR			0x07
--#define I2O_LAN_DSC_BAD_PACKET_DETECTED		0x08
--#define I2O_LAN_DSC_OUT_OF_MEMORY		0x09
--#define I2O_LAN_DSC_BUCKET_OVERRUN		0x0A
--#define I2O_LAN_DSC_IOP_INTERNAL_ERROR		0x0B
--#define I2O_LAN_DSC_CANCELED			0x0C
--#define I2O_LAN_DSC_INVALID_TRANSACTION_CONTEXT	0x0D
--#define I2O_LAN_DSC_DEST_ADDRESS_DETECTED	0x0E
--#define I2O_LAN_DSC_DEST_ADDRESS_OMITTED	0x0F
--#define I2O_LAN_DSC_PARTIAL_PACKET_RETURNED	0x10
--#define I2O_LAN_DSC_SUSPENDED			0x11
--
--struct i2o_packet_info {
--	u32 offset:24;
--	u32 flags:8;
--	u32 len:24;
--	u32 status:8;
--};
--
--struct i2o_bucket_descriptor {
--	u32 context;		/* FIXME: 64bit support */
--	struct i2o_packet_info packet_info[1];
--};
--
--/* Event Indicator Mask Flags for LAN OSM */
--
--#define I2O_LAN_EVT_LINK_DOWN		0x01
--#define I2O_LAN_EVT_LINK_UP		0x02
--#define I2O_LAN_EVT_MEDIA_CHANGE 	0x04
--
--#include <linux/netdevice.h>
--#include <linux/fddidevice.h>
--
--struct i2o_lan_local {
--	u8 unit;
--	struct i2o_device *i2o_dev;
--
--	struct fddi_statistics stats;	/* see also struct net_device_stats */
--	unsigned short (*type_trans) (struct sk_buff *, struct net_device *);
--	atomic_t buckets_out;	/* nbr of unused buckets on DDM */
--	atomic_t tx_out;	/* outstanding TXes */
--	u8 tx_count;		/* packets in one TX message frame */
--	u16 tx_max_out;		/* DDM's Tx queue len */
--	u8 sgl_max;		/* max SGLs in one message frame */
--	u32 m;			/* IOP address of the batch msg frame */
--
--	struct work_struct i2o_batch_send_task;
--	int send_active;
--	struct sk_buff **i2o_fbl;	/* Free bucket list (to reuse skbs) */
--	int i2o_fbl_tail;
--	spinlock_t fbl_lock;
--
--	spinlock_t tx_lock;
--
--	u32 max_size_mc_table;	/* max number of multicast addresses */
--
--	/* LAN OSM configurable parameters are here: */
--
--	u16 max_buckets_out;	/* max nbr of buckets to send to DDM */
--	u16 bucket_thresh;	/* send more when this many used */
--	u16 rx_copybreak;
--
--	u8 tx_batch_mode;	/* Set when using batch mode sends */
--	u32 i2o_event_mask;	/* To turn on interesting event flags */
--};
--
--#endif				/* _I2O_LAN_H */
+diff -puN fs/proc/generic.c~fix-race-between-proc_readdir-and-remove_proc_entry fs/proc/generic.c
+--- a/fs/proc/generic.c~fix-race-between-proc_readdir-and-remove_proc_entry
++++ a/fs/proc/generic.c
+@@ -478,14 +478,21 @@ int proc_readdir(struct file * filp,
+ 			}
+ 
+ 			do {
++				struct proc_dir_entry *next;
++
+ 				/* filldir passes info to user space */
++				de_get(de);
+ 				spin_unlock(&proc_subdir_lock);
+ 				if (filldir(dirent, de->name, de->namelen, filp->f_pos,
+-					    de->low_ino, de->mode >> 12) < 0)
++					    de->low_ino, de->mode >> 12) < 0) {
++					de_put(de);
+ 					goto out;
++				}
+ 				spin_lock(&proc_subdir_lock);
+ 				filp->f_pos++;
+-				de = de->next;
++				next = de->next;
++				de_put(de);
++				de = next;
+ 			} while (de);
+ 			spin_unlock(&proc_subdir_lock);
+ 	}
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
 origin.patch
-git-alsa.patch
-remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
-arm-remove-useless-config-option-generic_bust_spinlock.patch
-git-avr32.patch
-git-dvb.patch
-git-ieee1394.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
