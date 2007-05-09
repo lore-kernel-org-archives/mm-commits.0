@@ -1,160 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-fix-for-drop-unused-semaphorespatch.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:07:39 -0700
-Message-ID: <200705091007.l49A7dV8020877@shell0.pdx.osdl.net>
+Subject: - reiser4-use-simple_prepare_write-to-zero-page-data.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:07:45 -0700
+Message-ID: <200705091007.l49A7j5u020883@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43062 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755155AbXEIKIW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:08:22 -0400
+	by vger.kernel.org with ESMTP id S1755156AbXEIKI1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edward@namesys.com, jbriggs@esoft.com, mm-commits@vger.kernel.org
+To: nate.diller@gmail.com, edward@namesys.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: fix for drop-unused-semaphores.patch
+     reiser4: use simple_prepare_write to zero page data
 has been removed from the -mm tree.  Its filename was
-     reiser4-fix-for-drop-unused-semaphorespatch.patch
+     reiser4-use-simple_prepare_write-to-zero-page-data.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: reiser4: fix for drop-unused-semaphores.patch
-From: Edward Shishkin <edward@namesys.com>
+Subject: reiser4: use simple_prepare_write to zero page data
+From: Nate Diller <nate.diller@gmail.com>
 
-Wait for tail conversion completion when acquiring exclusive access by
-. mmap_unix_file()
-. setattr_unix_file()
-. release_unix_file()
-Update comments.
+It's common for file systems to need to zero data on either side of a
+write, if a page is not Uptodate during prepare_write.  It just so happens
+that simple_prepare_write() in libfs.c does exactly that, so we can avoid
+duplication and just call that function to zero page data.
 
-Signed-off-by: Edward Shishkin <edward@namesys.com>
-Cc Jonathan Briggs <jbriggs@esoft.com>
+Signed-off-by: Nate Diller <nate.diller@gmail.com>
+Cc: Vladimir Saveliev <vs@namesys.com>
+Cc: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/file.c            |   37 +++++++++++----------
- fs/reiser4/plugin/file/tail_conversion.c |   21 ++++++-----
- 2 files changed, 32 insertions(+), 26 deletions(-)
+ fs/reiser4/plugin/item/extent_file_ops.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/file.c~reiser4-fix-for-drop-unused-semaphorespatch fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~reiser4-fix-for-drop-unused-semaphorespatch
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -28,6 +28,22 @@ static void drop_access(unix_file_info_t
- static int hint_validate(hint_t * hint, const reiser4_key * key, int check_key,
- 			 znode_lock_mode lock_mode);
+diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-use-simple_prepare_write-to-zero-page-data fs/reiser4/plugin/item/extent_file_ops.c
+--- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-use-simple_prepare_write-to-zero-page-data
++++ a/fs/reiser4/plugin/item/extent_file_ops.c
+@@ -1040,16 +1040,9 @@ ssize_t reiser4_write_extent(struct file
+ 		BUG_ON(get_current_context()->trans->atom != NULL);
  
-+/* Get exclusive access and make sure that file is not partially
-+ * converted (It may happen that another process is doing tail
-+ * conversion. If so, wait until it completes)
-+ */
-+static inline void get_exclusive_access_careful(unix_file_info_t * uf_info,
-+						struct inode *inode)
-+{
-+        do {
-+		get_exclusive_access(uf_info);
-+		if (!reiser4_inode_get_flag(inode, REISER4_PART_IN_CONV))
-+			break;
-+		drop_exclusive_access(uf_info);
-+		schedule();
-+	} while (1);
-+}
-+
- /* get unix file plugin specific portion of inode */
- unix_file_info_t *unix_file_inode_data(const struct inode *inode)
- {
-@@ -1933,7 +1949,7 @@ int mmap_unix_file(struct file *file, st
- 
- 	uf_info = unix_file_inode_data(inode);
- 
--	get_exclusive_access(uf_info);
-+	get_exclusive_access_careful(uf_info, inode);
- 
- 	if (!IS_RDONLY(inode) && (vma->vm_flags & (VM_MAYWRITE | VM_SHARED))) {
- 		/*
-@@ -2048,21 +2064,8 @@ int open_unix_file(struct inode *inode, 
- 		return PTR_ERR(ctx);
- 
- 	uf_info = unix_file_inode_data(inode);
--	get_exclusive_access(uf_info);
- 
--	/*
--	 * it may happen that another process is doing tail conversion. Wait
--	 * until it completes
--	 */
--	while (1) {
--		if (reiser4_inode_get_flag(inode, REISER4_PART_IN_CONV)) {
--			drop_exclusive_access(uf_info);
--			schedule();
--			get_exclusive_access(uf_info);
--			continue;
+ 		lock_page(page);
+-		if (!PageUptodate(page) && to_page != PAGE_CACHE_SIZE) {
+-			void *kaddr;
+-
+-			kaddr = kmap_atomic(page, KM_USER0);
+-			memset(kaddr, 0, page_off);
+-			memset(kaddr + page_off + to_page, 0,
+-			       PAGE_CACHE_SIZE - (page_off + to_page));
+-			flush_dcache_page(page);
+-			kunmap_atomic(kaddr, KM_USER0);
 -		}
--		break;
--	}
-+	get_exclusive_access_careful(uf_info, inode);
++		if (!PageUptodate(page) && to_page != PAGE_CACHE_SIZE)
++			simple_prepare_write(file, page, page_off,
++					     page_off + to_page);
  
- 	if (!reiser4_inode_get_flag(inode, REISER4_PART_MIXED)) {
- 		/*
-@@ -2365,7 +2368,7 @@ int release_unix_file(struct inode *inod
- 	if (in_reiser4 == 0) {
- 		uf_info = unix_file_inode_data(inode);
- 
--		get_exclusive_access(uf_info);
-+		get_exclusive_access_careful(uf_info, inode);
- 		if (atomic_read(&file->f_dentry->d_count) == 1 &&
- 		    uf_info->container == UF_CONTAINER_EXTENTS &&
- 		    !should_have_notail(uf_info, inode->i_size) &&
-@@ -2674,7 +2677,7 @@ int setattr_unix_file(struct dentry *den
- 			return PTR_ERR(ctx);
- 
- 		uf_info = unix_file_inode_data(dentry->d_inode);
--		get_exclusive_access(uf_info);
-+		get_exclusive_access_careful(uf_info, dentry->d_inode);
- 		result = setattr_truncate(dentry->d_inode, attr);
- 		drop_exclusive_access(uf_info);
- 		context_set_commit_async(ctx);
-diff -puN fs/reiser4/plugin/file/tail_conversion.c~reiser4-fix-for-drop-unused-semaphorespatch fs/reiser4/plugin/file/tail_conversion.c
---- a/fs/reiser4/plugin/file/tail_conversion.c~reiser4-fix-for-drop-unused-semaphorespatch
-+++ a/fs/reiser4/plugin/file/tail_conversion.c
-@@ -468,15 +468,18 @@ int tail2extent(unix_file_info_t *uf_inf
- 			if (result)
- 				goto error;
- 			/*
--			 * we have to drop exclusive access to avoid deadlock
--			 * which may happen because called by
--			 * reiser4_writepages capture_unix_file requires to get
--			 * non-exclusive access to a file. It is safe to drop
--			 * EA in the middle of tail2extent conversion because
--			 * write_unix_file/unix_setattr(truncate)/release_unix_file(extent2tail)
--			 * are serialized by reiser4_inode->mutex_write semaphore and
--			 * because read_unix_file works (should at least) on
--			 * partially converted files
-+			 * We have to drop exclusive access to avoid deadlock
-+			 * which may happen because called by reiser4_writepages
-+			 * capture_unix_file requires to get non-exclusive
-+			 * access to a file. It is safe to drop EA in the middle
-+			 * of tail2extent conversion because write_unix_file,
-+			 * setattr_unix_file(truncate), mmap_unix_file,
-+			 * release_unix_file(extent2tail) checks if conversion
-+			 * is not in progress (see comments before
-+			 * get_exclusive_access_careful().
-+			 * Other processes that acquire non-exclusive access
-+			 * (read_unix_file, reiser4_writepages, etc) should work
-+			 * on partially converted files.
- 			 */
- 			drop_exclusive_access(uf_info);
- 			/* throttle the conversion */
+ 		written = filemap_copy_from_user(page, page_off, buf, to_page);
+ 		flush_dcache_page(page);
 _
 
-Patches currently in -mm which might be from edward@namesys.com are
+Patches currently in -mm which might be from nate.diller@gmail.com are
 
+fs-convert-core-functions-to-zero_user_page.patch
+affs-use-zero_user_page.patch
+ext3-use-zero_user_page.patch
+reiserfs-use-zero_user_page.patch
+fs-deprecate-memclear_highpage_flush.patch
+cifs-use-simple_prepare_write-to-zero-page-data.patch
+ext4-use-simple_prepare_write-to-zero-page-data.patch
+ecryptfs-use-zero_user_page.patch
+ext4-use-zero_user_page.patch
+gfs2-use-zero_user_page.patch
+nfs-use-zero_user_page.patch
+ntfs-use-zero_user_page.patch
+ocfs2-use-zero_user_page.patch
+xfs-use-zero_user_page.patch
 reiser4.patch
-reiser4-fix-for-drop-unused-semaphorespatch.patch
 reiser4-use-simple_prepare_write-to-zero-page-data.patch
 reiser4-use-zero_user_page.patch
-reiser4-remove-typedefs.patch
-reiser4-fix-write_extent.patch
-reiser4-make-sync_inodes-non-void.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
