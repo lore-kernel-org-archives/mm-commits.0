@@ -1,66 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-trivial-makefile-cleanup.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:53:16 -0700
-Message-ID: <200705092153.l49LrGhA003073@shell0.pdx.osdl.net>
+Subject: - affs-use-zero_user_page.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:53:50 -0700
+Message-ID: <200705092153.l49LroSr003115@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34567 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759265AbXEIVxr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:47 -0400
+	by vger.kernel.org with ESMTP id S1758689AbXEIVyN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:54:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, neilb@suse.de, mm-commits@vger.kernel.org
+To: nate.diller@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: trivial makefile cleanup
+     affs: use zero_user_page
 has been removed from the -mm tree.  Its filename was
-     knfsd-trivial-makefile-cleanup.patch
+     affs-use-zero_user_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: trivial makefile cleanup
-From: Christoph Hellwig <hch@lst.de>
+Subject: affs: use zero_user_page
+From: Nate Diller <nate.diller@gmail.com>
 
-kbuild directly interprets <modulename>-y as objects to build into a module,
-no need to assign it to the old foo-objs variable.
+Use zero_user_page() instead of open-coding it.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Nate Diller <nate.diller@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/Makefile |    1 -
- 1 file changed, 1 deletion(-)
+ fs/affs/file.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN fs/nfsd/Makefile~knfsd-trivial-makefile-cleanup fs/nfsd/Makefile
---- a/fs/nfsd/Makefile~knfsd-trivial-makefile-cleanup
-+++ a/fs/nfsd/Makefile
-@@ -11,4 +11,3 @@ nfsd-$(CONFIG_NFSD_V3)	+= nfs3proc.o nfs
- nfsd-$(CONFIG_NFSD_V3_ACL) += nfs3acl.o
- nfsd-$(CONFIG_NFSD_V4)	+= nfs4proc.o nfs4xdr.o nfs4state.o nfs4idmap.o \
- 			   nfs4acl.o nfs4callback.o nfs4recover.o
--nfsd-objs		:= $(nfsd-y)
+diff -puN fs/affs/file.c~affs-use-zero_user_page fs/affs/file.c
+--- a/fs/affs/file.c~affs-use-zero_user_page
++++ a/fs/affs/file.c
+@@ -628,11 +628,7 @@ static int affs_prepare_write_ofs(struct
+ 			return err;
+ 	}
+ 	if (to < PAGE_CACHE_SIZE) {
+-		char *kaddr = kmap_atomic(page, KM_USER0);
+-
+-		memset(kaddr + to, 0, PAGE_CACHE_SIZE - to);
+-		flush_dcache_page(page);
+-		kunmap_atomic(kaddr, KM_USER0);
++		zero_user_page(page, to, PAGE_CACHE_SIZE - to, KM_USER0);
+ 		if (size > offset + to) {
+ 			if (size < offset + PAGE_CACHE_SIZE)
+ 				tmp = size & ~PAGE_CACHE_MASK;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from nate.diller@gmail.com are
 
 origin.patch
-dont-force-uclinux-mtd-map-to-be-root-dev.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
+cifs-use-simple_prepare_write-to-zero-page-data.patch
+ext4-use-simple_prepare_write-to-zero-page-data.patch
+ecryptfs-use-zero_user_page.patch
+ext4-use-zero_user_page.patch
+gfs2-use-zero_user_page.patch
+nfs-use-zero_user_page.patch
+ntfs-use-zero_user_page.patch
+ocfs2-use-zero_user_page.patch
+xfs-use-zero_user_page.patch
+reiser4.patch
+reiser4-use-zero_user_page.patch
