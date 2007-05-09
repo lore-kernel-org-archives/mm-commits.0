@@ -1,54 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - udf-fix-link-counts.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:06:08 -0700
-Message-ID: <200705091006.l49A69gr020837@shell0.pdx.osdl.net>
+Subject: - aio-completion-signal-notification-fixes-and-cleanups.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:05:19 -0700
+Message-ID: <200705091005.l49A5Jii020827@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33471 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49958 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755046AbXEIKGs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:06:48 -0400
+	by vger.kernel.org with ESMTP id S1754859AbXEIKHD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:07:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, hch@infradead.org, mm-commits@vger.kernel.org
+To: sebastien.dugue@bull.net, bcrl@linux.intel.com, bharata@in.ibm.com, hch@infradead.org, jean-pierre.dion@bull.net, laurent.vivier@bull.net, oleg@tv-sign.ru, pbadari@us.ibm.com, suparna@in.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     udf: fix link counts
+     AIO completion signal notification fixes and  cleanups
 has been removed from the -mm tree.  Its filename was
-     udf-fix-link-counts.patch
+     aio-completion-signal-notification-fixes-and-cleanups.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: udf: fix link counts
-From: Jan Kara <jack@suse.cz>
+Subject: AIO completion signal notification fixes and  cleanups
+=46rom: u=3DS=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
 
-We have to decrease link-count of the parent directory when removing a
-subdirectory.
+Clean up the notification path and fixes a possible release on a task r=
+ef that
+was not taken in aio_setup_sigevent().
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: S=E9bastien Dugu=E9 <sebastien.dugue@bull.net>
+Cc: Laurent Vivier <laurent.vivier@bull.net>
+Cc: Bharata B Rao <bharata@in.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Benjamin LaHaise <bcrl@linux.intel.com>
+Cc: Jean Pierre Dion <jean-pierre.dion@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/namei.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/aio.c |   15 ++++++++++-----
+ 1 files changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN fs/udf/namei.c~udf-fix-link-counts fs/udf/namei.c
---- a/fs/udf/namei.c~udf-fix-link-counts
-+++ a/fs/udf/namei.c
-@@ -878,7 +878,7 @@ static int udf_rmdir(struct inode * dir,
- 			inode->i_nlink);
- 	clear_nlink(inode);
- 	inode->i_size = 0;
--	inode_dec_link_count(inode);
-+	inode_dec_link_count(dir);
- 	inode->i_ctime = dir->i_ctime = dir->i_mtime = current_fs_time(dir->i_sb);
- 	mark_inode_dirty(dir);
- 
+diff -puN fs/aio.c~aio-completion-signal-notification-fixes-and-cleanup=
+s fs/aio.c
+--- a/fs/aio.c~aio-completion-signal-notification-fixes-and-cleanups
++++ a/fs/aio.c
+@@ -468,8 +468,7 @@ static inline void really_put_req(struct
+ 		kfree(req->ki_iovec);
+=20
+ 	/* Release task ref */
+-	if (req->ki_notify.notify =3D=3D SIGEV_THREAD_ID ||
+-	    req->ki_notify.notify =3D=3D SIGEV_SIGNAL)
++	if (req->ki_notify.notify !=3D SIGEV_NONE)
+ 		put_task_struct(req->ki_notify.target);
+=20
+ 	kmem_cache_free(kiocb_cachep, req);
+@@ -969,8 +968,14 @@ static long aio_setup_sigevent(struct ai
+ 	rcu_read_lock();
+ 	target =3D sigevent_find_task(&event);
+=20
+-	if (unlikely(!target))
++	if (unlikely(!target)) {
++		/*
++		 * Revert notify to SIGEV_NONE so that really_put_req()
++		 * knows that no ref has been taken on a task.
++		 */
++		notify->notify =3D SIGEV_NONE;
+ 		goto out_unlock;
++	}
+=20
+ 	/*
+ 	 * At this point, we know that notify is either SIGEV_SIGNAL or
+@@ -995,7 +1000,7 @@ static long aio_setup_sigevent(struct ai
+ 	return 0;
+=20
+ out_unlock:
+-	read_unlock(&tasklist_lock);
++	rcu_read_unlock();
+ 	return -EINVAL;
+ }
+=20
+@@ -1691,7 +1696,7 @@ int fastcall io_submit_one(struct kioctx
+ 					 (struct sigevent __user *)(unsigned long)
+ 					 iocb->aio_sigeventp);
+ 		if (ret)
+-			goto out_put_req;
++			goto out_sigqfree;
+ 	}
+=20
+ 	ret =3D aio_setup_iocb(req);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from sebastien.dugue@bull.net a=
+re
 
 origin.patch
-ext4-copy-i_flags-to-inode-flags-on-write.patch
+futex-priority-based-wakeup.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+aio-completion-signal-notification-fixes-and-cleanups.patch
+aio-completion-signal-notification-small-cleanup.patch
+add-listio-syscall-support.patch
