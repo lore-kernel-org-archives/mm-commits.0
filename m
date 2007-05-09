@@ -1,87 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:56:01 -0700
-Message-ID: <200705090956.l499u1u3020545@shell0.pdx.osdl.net>
+Subject: - revoke-core-code-rename-to-can_revoke_filevma.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:56:03 -0700
+Message-ID: <200705090956.l499u36Y020548@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53580 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757271AbXEIJ4Y (ORCPT
+	by vger.kernel.org with ESMTP id S1756029AbXEIJ4Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:56:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab allocators: Remove multiple alignment specifications (revoke)
+     revoke: rename to can_revoke_{file|vma}
 has been removed from the -mm tree.  Its filename was
-     revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+     revoke-core-code-rename-to-can_revoke_filevma.patch
 
 This patch was dropped because it was folded into revoke-core-code.patch
 
 ------------------------------------------------------
-Subject: slab allocators: Remove multiple alignment specifications (revoke)
-From: Christoph Lameter <clameter@sgi.com>
+Subject: revoke: rename to can_revoke_{file|vma}
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
+The inode_matches and need_revoke functions have confusing names so rename
+them to can_revoke_file and can_revoke_vma respectively.
 
-
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/revoke.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/revoke.c |   33 ++++++++++++++++-----------------
+ 1 files changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN fs/revoke.c~revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke fs/revoke.c
---- a/fs/revoke.c~revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke
+diff -puN fs/revoke.c~revoke-core-code-rename-to-can_revoke_filevma fs/revoke.c
+--- a/fs/revoke.c~revoke-core-code-rename-to-can_revoke_filevma
 +++ a/fs/revoke.c
-@@ -709,8 +709,7 @@ static void revokefs_init_inode(void *ob
- {
- 	struct revokefs_inode_info *info = obj;
+@@ -75,10 +75,13 @@ static struct file *get_revoked_file(voi
+ 	return NULL;
+ }
  
--	if ((flags & (SLAB_CTOR_VERIFY | SLAB_CTOR_CONSTRUCTOR)) ==
--	    SLAB_CTOR_CONSTRUCTOR) {
-+	if (flags & SLAB_CTOR_CONSTRUCTOR) {
- 		info->owner = NULL;
- 		inode_init_once(&info->vfs_inode);
- 	}
+-static inline int inode_matches(struct file *file, struct inode *inode,
+-				struct file *to_exclude)
++static inline bool can_revoke_file(struct file *file, struct inode *inode,
++				   struct file *to_exclude)
+ {
+-	return file && file != to_exclude && file->f_dentry->d_inode == inode;
++	if (!file || file == to_exclude)
++		return false;
++
++	return file->f_dentry->d_inode == inode;
+ }
+ 
+ static inline bool revoke_table_is_full(struct revoke_table *table)
+@@ -116,7 +119,7 @@ static int revoke_fds(struct task_struct
+ 		struct inode *new_inode;
+ 
+ 		filp = fcheck_files(files, fd);
+-		if (!inode_matches(filp, inode, to_exclude))
++		if (!can_revoke_file(filp, inode, to_exclude))
+ 			continue;
+ 
+ 		if (!filp->f_op->revoke) {
+@@ -159,22 +162,18 @@ static int revoke_fds(struct task_struct
+ 	return err;
+ }
+ 
+-static inline bool need_revoke(struct vm_area_struct *vma,
+-			       struct inode *inode,
+-			       struct file *to_exclude)
++static inline bool can_revoke_vma(struct vm_area_struct *vma,
++				  struct inode *inode, struct file *to_exclude)
+ {
+ 	struct file *file = vma->vm_file;
+ 
+ 	if (vma->vm_flags & VM_REVOKED)
+ 		return false;
+ 
+-	if (!file)
+-		return false;
+-
+-	if (file->f_path.dentry->d_inode != inode)
++	if (!file || file == to_exclude)
+ 		return false;
+ 
+-	return file != to_exclude;
++	return file->f_path.dentry->d_inode == inode;
+ }
+ 
+ static int __revoke_break_cow(struct task_struct *tsk, struct inode *inode,
+@@ -191,7 +190,7 @@ static int __revoke_break_cow(struct tas
+ 		if (vma->vm_flags & VM_SHARED)
+ 			continue;
+ 
+-		if (!need_revoke(vma, inode, to_exclude))
++		if (!can_revoke_vma(vma, inode, to_exclude))
+ 			continue;
+ 
+ 		ret = get_user_pages(tsk, tsk->mm, vma->vm_start,
+@@ -287,7 +286,7 @@ static int revoke_mm(struct mm_struct *m
+ 		if (!(vma->vm_flags & VM_SHARED))
+ 			continue;
+ 
+-		if (!need_revoke(vma, mapping->host, to_exclude))
++		if (!can_revoke_vma(vma, mapping->host, to_exclude))
+ 			continue;
+ 
+ 		err = revoke_vma(vma, &details);
+@@ -320,7 +319,7 @@ static void revoke_mapping_tree(struct a
+ 		if (!(vma->vm_flags & VM_SHARED))
+ 			continue;
+ 
+-		if (likely(!need_revoke(vma, mapping->host, to_exclude)))
++		if (likely(!can_revoke_vma(vma, mapping->host, to_exclude)))
+ 			continue;
+ 
+ 		err = revoke_mm(vma->vm_mm, mapping, to_exclude);
+@@ -348,7 +347,7 @@ static void revoke_mapping_list(struct a
+ 	list_for_each_entry(vma, &mapping->i_mmap_nonlinear, shared.vm_set.list) {
+ 		int err;
+ 
+-		if (likely(!need_revoke(vma, mapping->host, to_exclude)))
++		if (likely(!can_revoke_vma(vma, mapping->host, to_exclude)))
+ 			continue;
+ 
+ 		err = revoke_mm(vma->vm_mm, mapping, to_exclude);
+@@ -470,7 +469,7 @@ static unsigned long inode_fds(struct in
+ 			struct file *file;
+ 
+ 			file = fcheck_files(files, fd);
+-			if (inode_matches(file, inode, to_exclude)) {
++			if (can_revoke_file(file, inode, to_exclude)) {
+ 				nr_fds += fdt->max_fds;
+ 				break;
+ 			}
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
-slub-add-support-for-dynamic-cacheline-size-determination.patch
-slub-after-object-padding-only-needed-for-redzoning.patch
-slub-slabinfo-upgrade.patch
-slub-use-check_valid_pointer-in-kmem_ptr_validate.patch
-slub-clean-up-krealloc.patch
-slub-get-rid-of-finish_bootstrap.patch
-slub-update-comments.patch
-slub-add-macros-for-scanning-objects-in-a-slab.patch
-slub-move-resiliency-check-into-sysfs-section.patch
-slub-introduce-debugslabpage.patch
-slub-consolidate-trace-code.patch
-slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code.patch
-slub-add-config_slub_debug.patch
-slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output.patch
-slub-rework-slab-order-determination.patch
 krealloc-fix-kerneldoc-comments.patch
-fix-spellings-of-slab-allocator-section-in-init-kconfig.patch
-frv-replace-pgd-management-via-slabs-through-quicklists.patch
-disable-slub-on-powerpc.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-vmstat-use-our-own-timer-events.patch
-make-vm-statistics-update-interval-configurable.patch
-move-remote-node-draining-out-of-slab-allocators.patch
-md-remove-the-slash-from-the-name-of-a-kmem_cache-used-by-raid5.patch
-slub-support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-reduce-antifrag-max-order.patch
-slub-i386-support.patch
-remove-constructor-from-buffer_head.patch
-mm-implement-swap-prefetching.patch
+slab-use-cpu_lock_.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+unionfs-fix-slab-abuses-with-krealloc.patch
+revoke-special-mmap-handling.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
 revoke-core-code.patch
-revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+revoke-core-code-rename-to-can_revoke_filevma.patch
+revoke-core-code-change-revoke_table-to-fileset-and-revoke_details.patch
+revoke-core-code-do_revoke-error-handling.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+slab-leaks3-default-y.patch
