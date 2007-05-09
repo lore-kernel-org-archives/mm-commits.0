@@ -1,188 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: - frv-replace-pgd-management-via-slabs-through-quicklists.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:22 -0700
-Message-ID: <200705092148.l49LmMGA002583@shell0.pdx.osdl.net>
+Subject: - dm-raid1-one-kmirrord-per-mirror.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:27 -0700
+Message-ID: <200705092148.l49LmRNW002590@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36854 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759170AbXEIVsd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:33 -0400
+	by vger.kernel.org with ESMTP id S1755191AbXEIVsp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: smolinski@de.ibm.com, agk@redhat.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FRV: Replace pgd management via slabs through quicklists
+     dm raid1: one kmirrord per mirror
 has been removed from the -mm tree.  Its filename was
-     frv-replace-pgd-management-via-slabs-through-quicklists.patch
+     dm-raid1-one-kmirrord-per-mirror.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: FRV: Replace pgd management via slabs through quicklists
-From: Christoph Lameter <clameter@sgi.com>
+Subject: dm raid1: one kmirrord per mirror
+From: Holger Smolinski <smolinski@de.ibm.com>
 
-This is done in order to be able to run SLUB which expects no modifications
-to its page structs.
+This patch replaces the single instance of kmirrord by one instance per mirror
+set.  This change is required to avoid a deadlock in kmirrord when the
+persistent dirty log of a mirror itself resides on a mirror.  The single
+instance of kmirrord then issues a sync write to the dirty log in write_bits
+which gets deferred to kmirrord itself later in the call chain.  But kmirrord
+never does the deferred work because it is still waiting for the sync
+write_bits.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+_mirror_sets is removed as it no longer needed, and we always flush the
+workqueue before destroying it to ensure all work is complete before
+destroying it.
+
+Signed-off-by: Holger Smolinski <smolinski@de.ibm.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/Kconfig          |    6 +++---
- arch/frv/kernel/process.c |    4 ++++
- arch/frv/mm/pgalloc.c     |   22 +++++++++++-----------
- include/asm-frv/tlb.h     |    4 ++++
- 4 files changed, 22 insertions(+), 14 deletions(-)
+ drivers/md/dm-raid1.c |   81 +++++++++++++---------------------------
+ 1 file changed, 27 insertions(+), 54 deletions(-)
 
-diff -puN arch/frv/Kconfig~frv-replace-pgd-management-via-slabs-through-quicklists arch/frv/Kconfig
---- a/arch/frv/Kconfig~frv-replace-pgd-management-via-slabs-through-quicklists
-+++ a/arch/frv/Kconfig
-@@ -45,15 +45,15 @@ config TIME_LOW_RES
- 	bool
- 	default y
+diff -puN drivers/md/dm-raid1.c~dm-raid1-one-kmirrord-per-mirror drivers/md/dm-raid1.c
+--- a/drivers/md/dm-raid1.c~dm-raid1-one-kmirrord-per-mirror
++++ a/drivers/md/dm-raid1.c
+@@ -22,15 +22,8 @@
  
--config ARCH_HAS_ILOG2_U32
-+config QUICKLIST
- 	bool
- 	default y
+ #define DM_MSG_PREFIX "raid1"
  
--config ARCH_HAS_ILOG2_U64
-+config ARCH_HAS_ILOG2_U32
- 	bool
- 	default y
+-static struct workqueue_struct *_kmirrord_wq;
+-static struct work_struct _kmirrord_work;
+ static DECLARE_WAIT_QUEUE_HEAD(_kmirrord_recovery_stopped);
  
--config ARCH_USES_SLAB_PAGE_STRUCT
-+config ARCH_HAS_ILOG2_U64
- 	bool
- 	default y
+-static inline void wake(void)
+-{
+-	queue_work(_kmirrord_wq, &_kmirrord_work);
+-}
+-
+ /*-----------------------------------------------------------------
+  * Region hash
+  *
+@@ -136,6 +129,9 @@ struct mirror_set {
  
-diff -puN arch/frv/kernel/process.c~frv-replace-pgd-management-via-slabs-through-quicklists arch/frv/kernel/process.c
---- a/arch/frv/kernel/process.c~frv-replace-pgd-management-via-slabs-through-quicklists
-+++ a/arch/frv/kernel/process.c
-@@ -25,12 +25,14 @@
- #include <linux/elf.h>
- #include <linux/reboot.h>
- #include <linux/interrupt.h>
-+#include <linux/pagemap.h>
+ 	struct mirror *default_mirror;	/* Default mirror */
  
- #include <asm/asm-offsets.h>
- #include <asm/uaccess.h>
- #include <asm/system.h>
- #include <asm/setup.h>
- #include <asm/pgtable.h>
-+#include <asm/tlb.h>
- #include <asm/gdb-stub.h>
- #include <asm/mb-regs.h>
- 
-@@ -88,6 +90,8 @@ void cpu_idle(void)
- 		while (!need_resched()) {
- 			irq_stat[cpu].idle_timestamp = jiffies;
- 
-+			check_pgt_cache();
++	struct workqueue_struct *kmirrord_wq;
++	struct work_struct kmirrord_work;
 +
- 			if (!frv_dma_inprogress && idle)
- 				idle();
- 		}
-diff -puN arch/frv/mm/pgalloc.c~frv-replace-pgd-management-via-slabs-through-quicklists arch/frv/mm/pgalloc.c
---- a/arch/frv/mm/pgalloc.c~frv-replace-pgd-management-via-slabs-through-quicklists
-+++ a/arch/frv/mm/pgalloc.c
-@@ -13,12 +13,12 @@
- #include <linux/slab.h>
- #include <linux/mm.h>
- #include <linux/highmem.h>
-+#include <linux/quicklist.h>
- #include <asm/pgalloc.h>
- #include <asm/page.h>
- #include <asm/cacheflush.h>
- 
- pgd_t swapper_pg_dir[PTRS_PER_PGD] __attribute__((aligned(PAGE_SIZE)));
--struct kmem_cache *pgd_cache;
- 
- pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
- {
-@@ -100,7 +100,7 @@ static inline void pgd_list_del(pgd_t *p
- 		set_page_private(next, (unsigned long) pprev);
+ 	unsigned int nr_mirrors;
+ 	struct mirror mirror[0];
+ };
+@@ -153,6 +149,11 @@ static inline sector_t region_to_sector(
+ 	return region << rh->region_shift;
  }
  
--void pgd_ctor(void *pgd, struct kmem_cache *cache, unsigned long unused)
-+void pgd_ctor(void *pgd)
- {
- 	unsigned long flags;
- 
-@@ -120,7 +120,7 @@ void pgd_ctor(void *pgd, struct kmem_cac
- }
- 
- /* never called when PTRS_PER_PMD > 1 */
--void pgd_dtor(void *pgd, struct kmem_cache *cache, unsigned long unused)
-+void pgd_dtor(void *pgd)
- {
- 	unsigned long flags; /* can be called from interrupt context */
- 
-@@ -133,7 +133,7 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
- {
- 	pgd_t *pgd;
- 
--	pgd = kmem_cache_alloc(pgd_cache, GFP_KERNEL);
-+	pgd = quicklist_alloc(0, GFP_KERNEL, pgd_ctor);
- 	if (!pgd)
- 		return pgd;
- 
-@@ -143,15 +143,15 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
- void pgd_free(pgd_t *pgd)
- {
- 	/* in the non-PAE case, clear_page_tables() clears user pgd entries */
--	kmem_cache_free(pgd_cache, pgd);
-+ 	quicklist_free(0, pgd_dtor, pgd);
- }
- 
- void __init pgtable_cache_init(void)
- {
--	pgd_cache = kmem_cache_create("pgd",
--				      PTRS_PER_PGD * sizeof(pgd_t),
--				      PTRS_PER_PGD * sizeof(pgd_t),
--				      SLAB_PANIC,
--				      pgd_ctor,
--				      pgd_dtor);
- }
-+
-+void check_pgt_cache(void)
++static void wake(struct mirror_set *ms)
 +{
-+	quicklist_trim(0, pgd_dtor, 25, 16);
++	queue_work(ms->kmirrord_wq, &ms->kmirrord_work);
 +}
 +
-diff -puN include/asm-frv/tlb.h~frv-replace-pgd-management-via-slabs-through-quicklists include/asm-frv/tlb.h
---- a/include/asm-frv/tlb.h~frv-replace-pgd-management-via-slabs-through-quicklists
-+++ a/include/asm-frv/tlb.h
-@@ -3,7 +3,11 @@
+ /* FIXME move this */
+ static void queue_bio(struct mirror_set *ms, struct bio *bio, int rw);
  
- #include <asm/tlbflush.h>
+@@ -471,7 +472,7 @@ static void rh_dec(struct region_hash *r
+ 	spin_unlock_irqrestore(&rh->region_lock, flags);
  
-+#ifdef CONFIG_MMU
-+extern void check_pgt_cache(void);
-+#else
- #define check_pgt_cache() do {} while(0)
-+#endif
+ 	if (should_wake)
+-		wake();
++		wake(rh->ms);
+ }
  
  /*
-  * we don't need any special per-pte or per-vma handling...
+@@ -558,7 +559,7 @@ static void rh_recovery_end(struct regio
+ 	list_add(&reg->list, &reg->rh->recovered_regions);
+ 	spin_unlock_irq(&rh->region_lock);
+ 
+-	wake();
++	wake(rh->ms);
+ }
+ 
+ static void rh_flush(struct region_hash *rh)
+@@ -592,7 +593,7 @@ static void rh_start_recovery(struct reg
+ 	for (i = 0; i < MAX_RECOVERY; i++)
+ 		up(&rh->recovery_count);
+ 
+-	wake();
++	wake(rh->ms);
+ }
+ 
+ /*
+@@ -870,11 +871,10 @@ static void do_writes(struct mirror_set 
+ /*-----------------------------------------------------------------
+  * kmirrord
+  *---------------------------------------------------------------*/
+-static LIST_HEAD(_mirror_sets);
+-static DECLARE_RWSEM(_mirror_sets_lock);
+-
+-static void do_mirror(struct mirror_set *ms)
++static void do_mirror(struct work_struct *work)
+ {
++	struct mirror_set *ms =container_of(work, struct mirror_set,
++					    kmirrord_work);
+ 	struct bio_list reads, writes;
+ 
+ 	spin_lock(&ms->lock);
+@@ -890,16 +890,6 @@ static void do_mirror(struct mirror_set 
+ 	do_writes(ms, &writes);
+ }
+ 
+-static void do_work(struct work_struct *ignored)
+-{
+-	struct mirror_set *ms;
+-
+-	down_read(&_mirror_sets_lock);
+-	list_for_each_entry (ms, &_mirror_sets, list)
+-		do_mirror(ms);
+-	up_read(&_mirror_sets_lock);
+-}
+-
+ /*-----------------------------------------------------------------
+  * Target functions
+  *---------------------------------------------------------------*/
+@@ -978,23 +968,6 @@ static int get_mirror(struct mirror_set 
+ 	return 0;
+ }
+ 
+-static int add_mirror_set(struct mirror_set *ms)
+-{
+-	down_write(&_mirror_sets_lock);
+-	list_add_tail(&ms->list, &_mirror_sets);
+-	up_write(&_mirror_sets_lock);
+-	wake();
+-
+-	return 0;
+-}
+-
+-static void del_mirror_set(struct mirror_set *ms)
+-{
+-	down_write(&_mirror_sets_lock);
+-	list_del(&ms->list);
+-	up_write(&_mirror_sets_lock);
+-}
+-
+ /*
+  * Create dirty log: log_type #log_params <log_params>
+  */
+@@ -1096,13 +1069,22 @@ static int mirror_ctr(struct dm_target *
+ 	ti->private = ms;
+  	ti->split_io = ms->rh.region_size;
+ 
++	ms->kmirrord_wq = create_singlethread_workqueue("kmirrord");
++	if (!ms->kmirrord_wq) {
++		DMERR("couldn't start kmirrord");
++		free_context(ms, ti, m);
++		return -ENOMEM;
++	}
++	INIT_WORK(&ms->kmirrord_work, do_mirror);
++
+ 	r = kcopyd_client_create(DM_IO_PAGES, &ms->kcopyd_client);
+ 	if (r) {
++		destroy_workqueue(ms->kmirrord_wq);
+ 		free_context(ms, ti, ms->nr_mirrors);
+ 		return r;
+ 	}
+ 
+-	add_mirror_set(ms);
++	wake(ms);
+ 	return 0;
+ }
+ 
+@@ -1110,8 +1092,9 @@ static void mirror_dtr(struct dm_target 
+ {
+ 	struct mirror_set *ms = (struct mirror_set *) ti->private;
+ 
+-	del_mirror_set(ms);
++	flush_workqueue(ms->kmirrord_wq);
+ 	kcopyd_client_destroy(ms->kcopyd_client);
++	destroy_workqueue(ms->kmirrord_wq);
+ 	free_context(ms, ti, ms->nr_mirrors);
+ }
+ 
+@@ -1127,7 +1110,7 @@ static void queue_bio(struct mirror_set 
+ 	spin_unlock(&ms->lock);
+ 
+ 	if (should_wake)
+-		wake();
++		wake(ms);
+ }
+ 
+ /*
+@@ -1270,20 +1253,11 @@ static int __init dm_mirror_init(void)
+ 	if (r)
+ 		return r;
+ 
+-	_kmirrord_wq = create_singlethread_workqueue("kmirrord");
+-	if (!_kmirrord_wq) {
+-		DMERR("couldn't start kmirrord");
+-		dm_dirty_log_exit();
+-		return r;
+-	}
+-	INIT_WORK(&_kmirrord_work, do_work);
+-
+ 	r = dm_register_target(&mirror_target);
+ 	if (r < 0) {
+ 		DMERR("%s: Failed to register mirror target",
+ 		      mirror_target.name);
+ 		dm_dirty_log_exit();
+-		destroy_workqueue(_kmirrord_wq);
+ 	}
+ 
+ 	return r;
+@@ -1297,7 +1271,6 @@ static void __exit dm_mirror_exit(void)
+ 	if (r < 0)
+ 		DMERR("%s: unregister failed %d", mirror_target.name, r);
+ 
+-	destroy_workqueue(_kmirrord_wq);
+ 	dm_dirty_log_exit();
+ }
+ 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from smolinski@de.ibm.com are
 
 origin.patch
-slub-support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch
-quicklist-support-for-ia64.patch
-quicklist-support-for-x86_64.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-mm-only-make-slub-the-default-slab-allocator.patch
-slub-reduce-antifrag-max-order.patch
-slub-i386-support.patch
-define-percpu-smp-cacheline-align-interface.patch
-call-percpu-smp-cacheline-algin-interface.patch
-remove-constructor-from-buffer_head.patch
-mm-implement-swap-prefetching.patch
-revoke-core-code.patch
