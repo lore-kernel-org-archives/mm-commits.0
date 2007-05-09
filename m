@@ -1,85 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - s3fb-implement-fb_get_caps.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:02:11 -0700
-Message-ID: <200705090302.l4932BtP010801@shell0.pdx.osdl.net>
+Subject: - pm2fb-removal-of-pm2fb_par-fields.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:02:51 -0700
+Message-ID: <200705090302.l4932ppH010891@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53508 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53616 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1033225AbXEIDCO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:14 -0400
+	by vger.kernel.org with ESMTP id S1033329AbXEIDCx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3fb: implement fb_get_caps
+     pm2fb: removal of pm2fb_par fields
 has been removed from the -mm tree.  Its filename was
-     s3fb-implement-fb_get_caps.patch
+     pm2fb-removal-of-pm2fb_par-fields.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s3fb: implement fb_get_caps
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: pm2fb: removal of pm2fb_par fields
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Implement fb_get_caps().  This will allow the driver to tell upper layer that
-it can only support 256 8x16 bitmaps when in tileblitting mode
-(var->bits_per_pixel == 0);
+This patch removes two redundant fields in the pm2fb_par structure.
 
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3fb.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/video/pm2fb.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/s3fb.c~s3fb-implement-fb_get_caps drivers/video/s3fb.c
---- a/drivers/video/s3fb.c~s3fb-implement-fb_get_caps
-+++ a/drivers/video/s3fb.c
-@@ -799,6 +799,23 @@ static int s3fb_pan_display(struct fb_va
- 	return 0;
- }
+diff -puN drivers/video/pm2fb.c~pm2fb-removal-of-pm2fb_par-fields drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-removal-of-pm2fb_par-fields
++++ a/drivers/video/pm2fb.c
+@@ -81,8 +81,6 @@ static int lowvsync;
+ struct pm2fb_par
+ {
+ 	pm2type_t	type;		/* Board type */
+-	u32		fb_size;	/* framebuffer memory size */
+-	unsigned char	__iomem *v_fb;  /* virtual address of frame buffer */
+ 	unsigned char	__iomem *v_regs;/* virtual address of p_regs */
+ 	u32 	   	memclock;	/* memclock */
+ 	u32		video;		/* video flags before blanking */
+@@ -1293,20 +1291,19 @@ static int __devinit pm2fb_probe(struct 
+ 	/* Now work out how big lfb is going to be. */
+ 	switch(default_par->mem_config & PM2F_MEM_CONFIG_RAM_MASK) {
+ 	case PM2F_MEM_BANKS_1:
+-		default_par->fb_size=0x200000;
++		pm2fb_fix.smem_len=0x200000;
+ 		break;
+ 	case PM2F_MEM_BANKS_2:
+-		default_par->fb_size=0x400000;
++		pm2fb_fix.smem_len=0x400000;
+ 		break;
+ 	case PM2F_MEM_BANKS_3:
+-		default_par->fb_size=0x600000;
++		pm2fb_fix.smem_len=0x600000;
+ 		break;
+ 	case PM2F_MEM_BANKS_4:
+-		default_par->fb_size=0x800000;
++		pm2fb_fix.smem_len=0x800000;
+ 		break;
+ 	}
+ 	pm2fb_fix.smem_start = pci_resource_start(pdev, 1);
+-	pm2fb_fix.smem_len = default_par->fb_size;
  
-+/* Get capabilities of accelerator based on the mode */
-+
-+static void s3fb_get_caps(struct fb_info *info, struct fb_blit_caps *caps,
-+			  struct fb_var_screeninfo *var)
-+{
-+	if (var->bits_per_pixel == 0) {
-+		/* can only support 256 8x16 bitmap */
-+		caps->x = 1 << (8 - 1);
-+		caps->y = 1 << (16 - 1);
-+		caps->len = 256;
-+	} else {
-+		caps->x = ~(u32)0;
-+		caps->y = ~(u32)0;
-+		caps->len = ~(u32)0;
-+	}
-+}
-+
- /* ------------------------------------------------------------------------- */
+ 	/* Linear frame buffer - request region and map it. */
+ 	if ( !request_mem_region(pm2fb_fix.smem_start, pm2fb_fix.smem_len,
+@@ -1314,9 +1311,9 @@ static int __devinit pm2fb_probe(struct 
+ 		printk(KERN_WARNING "pm2fb: Can't reserve smem.\n");
+ 		goto err_exit_mmio;
+ 	}
+-	info->screen_base = default_par->v_fb =
++	info->screen_base =
+ 		ioremap_nocache(pm2fb_fix.smem_start, pm2fb_fix.smem_len);
+-	if ( !default_par->v_fb ) {
++	if ( !info->screen_base ) {
+ 		printk(KERN_WARNING "pm2fb: Can't ioremap smem area.\n");
+ 		release_mem_region(pm2fb_fix.smem_start, pm2fb_fix.smem_len);
+ 		goto err_exit_mmio;
+@@ -1344,7 +1341,7 @@ static int __devinit pm2fb_probe(struct 
+ 		goto err_exit_both;
  
- /* Frame buffer operations */
-@@ -815,6 +832,7 @@ static struct fb_ops s3fb_ops = {
- 	.fb_fillrect	= s3fb_fillrect,
- 	.fb_copyarea	= cfb_copyarea,
- 	.fb_imageblit	= s3fb_imageblit,
-+	.fb_get_caps    = s3fb_get_caps,
- };
+ 	printk(KERN_INFO "fb%d: %s frame buffer device, memory = %dK.\n",
+-	       info->node, info->fix.id, default_par->fb_size / 1024);
++	       info->node, info->fix.id, pm2fb_fix.smem_len / 1024);
  
- /* ------------------------------------------------------------------------- */
+ 	/*
+ 	 * Our driver data
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
-vt8623fb-fix-compile-warnings.patch
-vt8623fb-fix-compile-error-if-config_mtrr=n.patch
-arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
-arkfb-fix-compiler-warnings.patch
-arkfb-fix-compile-error-if-config_mtrr=n.patch
-arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
-svgalib-move-fb_get_caps-to-svgalib.patch
