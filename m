@@ -1,61 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - hecubafb-us-fb_sys_read.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:01:29 -0700
-Message-ID: <200705090301.l4931T1J010700@shell0.pdx.osdl.net>
+Subject: - vga16fb-restrict-to-blit-rectangles-with-widths-of.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:39 -0700
+Message-ID: <200705090301.l4931dcO010731@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35292 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49038 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1033204AbXEIDBd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:33 -0400
+	by vger.kernel.org with ESMTP id S1033223AbXEIDBl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hecubafb: use fb_sys_read()
+     vga16fb: restrict to blit rectangles with widths of multiples of 8 pixels
 has been removed from the -mm tree.  Its filename was
-     hecubafb-us-fb_sys_read.patch
+     vga16fb-restrict-to-blit-rectangles-with-widths-of.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hecubafb: use fb_sys_read()
+Subject: vga16fb: restrict to blit rectangles with widths of multiples of 8 pixels
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Since hecubafb's framebuffer is vmalloc'ed, use fb_sys_read().
+Advertise that vga16fb can only handle widths that are 8-pixel-multiple only
+(software limitation). To ensure that a legal font is available, SELECT an
+8x16 font in Kconfig.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig    |    1 +
- drivers/video/hecubafb.c |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/video/Kconfig   |    1 +
+ drivers/video/vga16fb.c |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN drivers/video/Kconfig~hecubafb-us-fb_sys_read drivers/video/Kconfig
---- a/drivers/video/Kconfig~hecubafb-us-fb_sys_read
+diff -puN drivers/video/Kconfig~vga16fb-restrict-to-blit-rectangles-with-widths-of drivers/video/Kconfig
+--- a/drivers/video/Kconfig~vga16fb-restrict-to-blit-rectangles-with-widths-of
 +++ a/drivers/video/Kconfig
-@@ -611,6 +611,7 @@ config FB_HECUBA
-        select FB_SYS_FILLRECT
-        select FB_SYS_COPYAREA
-        select FB_SYS_IMAGEBLIT
-+       select FB_SYS_FOPS
-        select FB_DEFERRED_IO
-        help
-          This enables support for the Hecuba board. This driver was tested
-diff -puN drivers/video/hecubafb.c~hecubafb-us-fb_sys_read drivers/video/hecubafb.c
---- a/drivers/video/hecubafb.c~hecubafb-us-fb_sys_read
-+++ a/drivers/video/hecubafb.c
-@@ -309,6 +309,7 @@ static ssize_t hecubafb_write(struct fb_
+@@ -519,6 +519,7 @@ config FB_VGA16
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+ 	select VGASTATE
++	select FONT_8x16 if FRAMEBUFFER_CONSOLE
+ 	help
+ 	  This is the frame buffer device driver for VGA 16 color graphic
+ 	  cards. Say Y if you have such a card.
+diff -puN drivers/video/vga16fb.c~vga16fb-restrict-to-blit-rectangles-with-widths-of drivers/video/vga16fb.c
+--- a/drivers/video/vga16fb.c~vga16fb-restrict-to-blit-rectangles-with-widths-of
++++ a/drivers/video/vga16fb.c
+@@ -1378,6 +1378,8 @@ static int __init vga16fb_probe(struct p
+ 	info->fbops = &vga16fb_ops;
+ 	info->var = vga16fb_defined;
+ 	info->fix = vga16fb_fix;
++	/* supports 8-pixel wide blit rectangles only */
++	info->pixmap.blit_x = 1 << (8 - 1);
+ 	info->flags = FBINFO_FLAG_DEFAULT |
+ 		FBINFO_HWACCEL_YPAN;
  
- static struct fb_ops hecubafb_ops = {
- 	.owner		= THIS_MODULE,
-+	.fb_read        = fb_sys_read,
- 	.fb_write	= hecubafb_write,
- 	.fb_fillrect	= hecubafb_fillrect,
- 	.fb_copyarea	= hecubafb_copyarea,
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
