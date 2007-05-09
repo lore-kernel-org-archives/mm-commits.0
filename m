@@ -1,135 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - procfs-use-simple_read_from_buffer.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:52:21 -0700
-Message-ID: <200705090252.l492qLIq009563@shell0.pdx.osdl.net>
+Subject: - synclink_gt-use-dynamic-tty-device-registration.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:52:29 -0700
+Message-ID: <200705090252.l492qT03009577@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49140 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968683AbXEICwZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:25 -0400
+	by vger.kernel.org with ESMTP id S968848AbXEICwd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs: use simple_read_from_buffer()
+     synclink_gt use dynamic tty device registration
 has been removed from the -mm tree.  Its filename was
-     procfs-use-simple_read_from_buffer.patch
+     synclink_gt-use-dynamic-tty-device-registration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: procfs: use simple_read_from_buffer()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: synclink_gt use dynamic tty device registration
+From: Paul Fulghum <paulkf@microgate.com>
 
-Cleanup using simple_read_from_buffer() in procfs.
+Change synclink_gt driver to use dynamic tty device registration.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   35 +++++++----------------------------
- 1 file changed, 7 insertions(+), 28 deletions(-)
+ drivers/char/synclink_gt.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN fs/proc/base.c~procfs-use-simple_read_from_buffer fs/proc/base.c
---- a/fs/proc/base.c~procfs-use-simple_read_from_buffer
-+++ a/fs/proc/base.c
-@@ -660,7 +660,6 @@ static ssize_t oom_adjust_read(struct fi
- 	char buffer[PROC_NUMBUF];
- 	size_t len;
- 	int oom_adjust;
--	loff_t __ppos = *ppos;
- 
- 	if (!task)
- 		return -ESRCH;
-@@ -668,14 +667,8 @@ static ssize_t oom_adjust_read(struct fi
- 	put_task_struct(task);
- 
- 	len = snprintf(buffer, sizeof(buffer), "%i\n", oom_adjust);
--	if (__ppos >= len)
--		return 0;
--	if (count > len-__ppos)
--		count = len-__ppos;
--	if (copy_to_user(buf, buffer + __ppos, count))
--		return -EFAULT;
--	*ppos = __ppos + count;
--	return count;
+diff -puN drivers/char/synclink_gt.c~synclink_gt-use-dynamic-tty-device-registration drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink_gt-use-dynamic-tty-device-registration
++++ a/drivers/char/synclink_gt.c
+@@ -3415,6 +3415,9 @@ static void device_init(int adapter_num,
+ 			}
+ 		}
+ 	}
 +
-+	return simple_read_from_buffer(buf, count, ppos, buffer, len);
++	for (i=0; i < port_count; ++i)
++		tty_register_device(serial_driver, port_array[i]->line, &(port_array[i]->pdev->dev));
  }
  
- static ssize_t oom_adjust_write(struct file *file, const char __user *buf,
-@@ -823,7 +816,6 @@ static ssize_t seccomp_read(struct file 
- {
- 	struct task_struct *tsk = get_proc_task(file->f_dentry->d_inode);
- 	char __buf[20];
--	loff_t __ppos = *ppos;
- 	size_t len;
+ static int __devinit init_one(struct pci_dev *dev,
+@@ -3466,6 +3469,8 @@ static void slgt_cleanup(void)
+ 	printk("unload %s %s\n", driver_name, driver_version);
  
- 	if (!tsk)
-@@ -831,14 +823,8 @@ static ssize_t seccomp_read(struct file 
- 	/* no need to print the trailing zero, so use only len */
- 	len = sprintf(__buf, "%u\n", tsk->seccomp.mode);
- 	put_task_struct(tsk);
--	if (__ppos >= len)
--		return 0;
--	if (count > len - __ppos)
--		count = len - __ppos;
--	if (copy_to_user(buf, __buf + __ppos, count))
--		return -EFAULT;
--	*ppos = __ppos + count;
--	return count;
+ 	if (serial_driver) {
++		for (info=slgt_device_list ; info != NULL ; info=info->next_device)
++			tty_unregister_device(serial_driver, info->line);
+ 		if ((rc = tty_unregister_driver(serial_driver)))
+ 			DBGERR(("tty_unregister_driver error=%d\n", rc));
+ 		put_tty_driver(serial_driver);
+@@ -3506,23 +3511,10 @@ static int __init slgt_init(void)
+ 
+  	printk("%s %s\n", driver_name, driver_version);
+ 
+-	slgt_device_count = 0;
+-	if ((rc = pci_register_driver(&pci_driver)) < 0) {
+-		printk("%s pci_register_driver error=%d\n", driver_name, rc);
+-		return rc;
+-	}
+-	pci_registered = 1;
+-
+-	if (!slgt_device_list) {
+-		printk("%s no devices found\n",driver_name);
+-		pci_unregister_driver(&pci_driver);
+-		return -ENODEV;
+-	}
+-
+ 	serial_driver = alloc_tty_driver(MAX_DEVICES);
+ 	if (!serial_driver) {
+-		rc = -ENOMEM;
+-		goto error;
++		printk("%s can't allocate tty driver\n", driver_name);
++		return -ENOMEM;
+ 	}
+ 
+ 	/* Initialize the tty_driver structure */
+@@ -3539,7 +3531,7 @@ static int __init slgt_init(void)
+ 		B9600 | CS8 | CREAD | HUPCL | CLOCAL;
+ 	serial_driver->init_termios.c_ispeed = 9600;
+ 	serial_driver->init_termios.c_ospeed = 9600;
+-	serial_driver->flags = TTY_DRIVER_REAL_RAW;
++	serial_driver->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+ 	tty_set_operations(serial_driver, &ops);
+ 	if ((rc = tty_register_driver(serial_driver)) < 0) {
+ 		DBGERR(("%s can't register serial driver\n", driver_name));
+@@ -3552,6 +3544,16 @@ static int __init slgt_init(void)
+ 		driver_name, driver_version,
+ 		serial_driver->major);
+ 
++	slgt_device_count = 0;
++	if ((rc = pci_register_driver(&pci_driver)) < 0) {
++		printk("%s pci_register_driver error=%d\n", driver_name, rc);
++		goto error;
++	}
++	pci_registered = 1;
 +
-+	return simple_read_from_buffer(buf, count, ppos, __buf, len);
- }
- 
- static ssize_t seccomp_write(struct file *file, const char __user *buf,
-@@ -897,7 +883,6 @@ static ssize_t proc_fault_inject_read(st
- 	char buffer[PROC_NUMBUF];
- 	size_t len;
- 	int make_it_fail;
--	loff_t __ppos = *ppos;
- 
- 	if (!task)
- 		return -ESRCH;
-@@ -905,14 +890,8 @@ static ssize_t proc_fault_inject_read(st
- 	put_task_struct(task);
- 
- 	len = snprintf(buffer, sizeof(buffer), "%i\n", make_it_fail);
--	if (__ppos >= len)
--		return 0;
--	if (count > len-__ppos)
--		count = len-__ppos;
--	if (copy_to_user(buf, buffer + __ppos, count))
--		return -EFAULT;
--	*ppos = __ppos + count;
--	return count;
++	if (!slgt_device_list)
++		printk("%s no devices found\n",driver_name);
 +
-+	return simple_read_from_buffer(buf, count, ppos, buffer, len);
- }
+ 	return 0;
  
- static ssize_t proc_fault_inject_write(struct file * file,
-@@ -975,7 +954,7 @@ static int do_proc_readlink(struct dentr
- 
- 	if (!tmp)
- 		return -ENOMEM;
--		
-+
- 	inode = dentry->d_inode;
- 	path = d_path(dentry, mnt, tmp, PAGE_SIZE);
- 	len = PTR_ERR(path);
+ error:
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from paulkf@microgate.com are
 
 origin.patch
-git-alsa.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-disable-stacktrace-filter-for-x86-64.patch
-cm4000_cs-fix-error-paths.patch
-cm4000_cs-use-bitrev.patch
-use-simple_read_from_buffer-in-fs.patch
-use-simple_read_from_buffer-in-kernel.patch
-sunrpc-fix-error-path-in-module_init.patch
+tty_set_ldisc-receive_room-fix.patch
+tty-flush-flip-buffer-on-ldisc-input-queue-flush.patch
+tty-add-compat_ioctl.patch
+tty-add-compat_ioctl-fix.patch
