@@ -1,83 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - init-dma-masks-in-pnp_dev.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:45:41 -0700
-Message-ID: <200705090245.l492jfnG008766@shell0.pdx.osdl.net>
+Subject: - fix-compilation-of-drivers-with-o0.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:45:05 -0700
+Message-ID: <200705090245.l492j5JY008702@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55525 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031125AbXEICp4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:56 -0400
+	by vger.kernel.org with ESMTP id S969574AbXEICp3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, abelay@novell.com, dbrownell@users.sourceforge.net, perex@suse.cz, mm-commits@vger.kernel.org
+To: xschmi00@stud.feec.vutbr.cz, mschmidt@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     init dma masks in pnp_dev
+     Fix compilation of drivers with -O0
 has been removed from the -mm tree.  Its filename was
-     init-dma-masks-in-pnp_dev.patch
+     fix-compilation-of-drivers-with-o0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: init dma masks in pnp_dev
-From: David Brownell <david-b@pacbell.net>
+Subject: Fix compilation of drivers with -O0
+From: Michal Schmidt <xschmi00@stud.feec.vutbr.cz>
 
-PNP now initializes device dma masks, which prevents oopses when generic
-dma calls are made using pnp device nodes.
+It is sometimes useful to compile individual drivers with optimization
+disabled for easier debugging.  Currently drivers which use htonl() and
+similar functions don't compile with -O0.  This patch fixes it.  It also
+removes obsolete and misleading comments.  This header is not for
+userspace, so we don't have to care about strange programs these comments
+mention.
 
-This assumes PNP only uses ISA DMA, with 24 bit addresses; and that it's
-safe to init those masks for all devices (rather than finding out which
-devices have been assigned DMA channels, and handling only those).
+(akpm: -O0 probably isn't a good idea, but this code looks pretty crufty and
+unuseful)
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Adam Belay <abelay@novell.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
+Signed-off-by: Michal Schmidt <mschmidt@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/core.c  |    3 +++
- include/linux/pnp.h |    1 +
- 2 files changed, 4 insertions(+)
+ include/linux/byteorder/generic.h |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-diff -puN drivers/pnp/core.c~init-dma-masks-in-pnp_dev drivers/pnp/core.c
---- a/drivers/pnp/core.c~init-dma-masks-in-pnp_dev
-+++ a/drivers/pnp/core.c
-@@ -14,6 +14,7 @@
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/errno.h>
-+#include <linux/dma-mapping.h>
+diff -puN include/linux/byteorder/generic.h~fix-compilation-of-drivers-with-o0 include/linux/byteorder/generic.h
+--- a/include/linux/byteorder/generic.h~fix-compilation-of-drivers-with-o0
++++ a/include/linux/byteorder/generic.h
+@@ -124,19 +124,8 @@
+ #define be32_to_cpus __be32_to_cpus
+ #define cpu_to_be16s __cpu_to_be16s
+ #define be16_to_cpus __be16_to_cpus
+-#endif
  
- #include "base.h"
+-
+-#if defined(__KERNEL__)
+ /*
+- * Handle ntohl and suches. These have various compatibility
+- * issues - like we want to give the prototype even though we
+- * also have a macro for them in case some strange program
+- * wants to take the address of the thing or something..
+- *
+- * Note that these used to return a "long" in libc5, even though
+- * long is often 64-bit these days.. Thus the casts.
+- *
+  * They have to be macros in order to do the constant folding
+  * correctly - if the argument passed into a inline function
+  * it is no longer constant according to gcc..
+@@ -147,17 +136,6 @@
+ #undef htonl
+ #undef htons
  
-@@ -114,6 +115,8 @@ int __pnp_add_device(struct pnp_dev *dev
- 	int ret;
- 	pnp_fixup_device(dev);
- 	dev->dev.bus = &pnp_bus_type;
-+	dev->dev.dma_mask = &dev->dma_mask;
-+	dev->dma_mask = dev->dev.coherent_dma_mask = DMA_24BIT_MASK;
- 	dev->dev.release = &pnp_release_device;
- 	dev->status = PNP_READY;
- 	spin_lock(&pnp_lock);
-diff -puN include/linux/pnp.h~init-dma-masks-in-pnp_dev include/linux/pnp.h
---- a/include/linux/pnp.h~init-dma-masks-in-pnp_dev
-+++ a/include/linux/pnp.h
-@@ -177,6 +177,7 @@ static inline void pnp_set_card_drvdata 
+-/*
+- * Do the prototypes. Somebody might want to take the
+- * address or some such sick thing..
+- */
+-extern __u32			ntohl(__be32);
+-extern __be32			htonl(__u32);
+-extern __u16			ntohs(__be16);
+-extern __be16			htons(__u16);
+-
+-#if defined(__GNUC__) && defined(__OPTIMIZE__)
+-
+ #define ___htonl(x) __cpu_to_be32(x)
+ #define ___htons(x) __cpu_to_be16(x)
+ #define ___ntohl(x) __be32_to_cpu(x)
+@@ -168,9 +146,6 @@ extern __be16			htons(__u16);
+ #define htons(x) ___htons(x)
+ #define ntohs(x) ___ntohs(x)
  
- struct pnp_dev {
- 	struct device dev;		/* Driver Model device interface */
-+	u64 dma_mask;
- 	unsigned char number;		/* used as an index, must be unique */
- 	int status;
+-#endif /* OPTIMIZE */
+-
+ #endif /* KERNEL */
  
+-
+ #endif /* _LINUX_BYTEORDER_GENERIC_H */
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from xschmi00@stud.feec.vutbr.cz are
 
 origin.patch
-acpi-driver-model-flags-and-platform_enable_wake.patch
-update-documentation-driver-model-platformtxt.patch
-use-common-cpu_is_xxx-macros-on-at91-and-avr32.patch
-atmel_spi-remove-unnecessary-and-wrong-ifdefs.patch
