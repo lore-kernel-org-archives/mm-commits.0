@@ -1,92 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: - dtlk-fix-error-checks-in-module_init.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:49:25 -0700
-Message-ID: <200705090249.l492nPgY009220@shell0.pdx.osdl.net>
+Subject: - simplify-kallsyms_lookup.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:48:47 -0700
+Message-ID: <200705090248.l492mlxN009150@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40771 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967369AbXEICtc (ORCPT
+	by vger.kernel.org with ESMTP id S967154AbXEICtc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, chris@allmedia.com, jrv@vanzandt.mv.com, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, mingo@elte.hu, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dtlk: fix error checks in module_init()
+     Simplify kallsyms_lookup()
 has been removed from the -mm tree.  Its filename was
-     dtlk-fix-error-checks-in-module_init.patch
+     simplify-kallsyms_lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dtlk: fix error checks in module_init()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Simplify kallsyms_lookup()
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-This patch fixes two things in module_init.
+Several kallsyms_lookup() pass dummy arguments but only need, say, module's
+name.  Make kallsyms_lookup() accept NULLs where possible.
 
-- fix register_chrdev() error check
+Also, makes picture clearer about what interfaces are needed for all symbol
+resolving business.
 
-  Currently dtlk doesn't check register_chrdev() failure correctly.
-  register_chrdev() returns a errno on failure.
-
-- check probe failure
-
-  dtlk ignores probe failure and allows the module loading without
-  such device. I got "Trying to free nonexistent resource" message
-  by release_region() when unloading module without device.
-
-[akpm@linux-foundation.org: fix error code return]
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Chris Pallotta <chris@allmedia.com>
-Cc: Jim Van Zandt <jrv@vanzandt.mv.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/dtlk.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ arch/parisc/kernel/unwind.c |    5 +----
+ arch/powerpc/xmon/xmon.c    |    3 +--
+ arch/sh64/kernel/unwind.c   |    6 +++---
+ fs/proc/base.c              |    5 ++---
+ kernel/kallsyms.c           |    6 ++++--
+ kernel/kprobes.c            |    4 ++--
+ kernel/lockdep.c            |    5 +----
+ kernel/module.c             |    6 ++++--
+ kernel/time/timer_list.c    |    4 +---
+ kernel/time/timer_stats.c   |    4 +---
+ 10 files changed, 20 insertions(+), 28 deletions(-)
 
-diff -puN drivers/char/dtlk.c~dtlk-fix-error-checks-in-module_init drivers/char/dtlk.c
---- a/drivers/char/dtlk.c~dtlk-fix-error-checks-in-module_init
-+++ a/drivers/char/dtlk.c
-@@ -324,16 +324,22 @@ static int dtlk_release(struct inode *in
+diff -puN arch/parisc/kernel/unwind.c~simplify-kallsyms_lookup arch/parisc/kernel/unwind.c
+--- a/arch/parisc/kernel/unwind.c~simplify-kallsyms_lookup
++++ a/arch/parisc/kernel/unwind.c
+@@ -216,11 +216,8 @@ static void unwind_frame_regs(struct unw
+ 		/* Handle some frequent special cases.... */
+ 		{
+ 			char symname[KSYM_NAME_LEN+1];
+-			char *modname;
+-			unsigned long symsize, offset;
  
- static int __init dtlk_init(void)
+-			kallsyms_lookup(info->ip, &symsize, &offset,
+-					&modname, symname);
++			kallsyms_lookup(info->ip, NULL, NULL, NULL, symname);
+ 
+ 			dbg("info->ip = 0x%lx, name = %s\n", info->ip, symname);
+ 
+diff -puN arch/powerpc/xmon/xmon.c~simplify-kallsyms_lookup arch/powerpc/xmon/xmon.c
+--- a/arch/powerpc/xmon/xmon.c~simplify-kallsyms_lookup
++++ a/arch/powerpc/xmon/xmon.c
+@@ -1217,7 +1217,6 @@ static void get_function_bounds(unsigned
  {
-+	int err;
-+
- 	dtlk_port_lpc = 0;
- 	dtlk_port_tts = 0;
- 	dtlk_busy = 0;
- 	dtlk_major = register_chrdev(0, "dtlk", &dtlk_fops);
--	if (dtlk_major == 0) {
-+	if (dtlk_major < 0) {
- 		printk(KERN_ERR "DoubleTalk PC - cannot register device\n");
--		return 0;
-+		return dtlk_major;
-+	}
-+	err = dtlk_dev_probe();
-+	if (err) {
-+		unregister_chrdev(dtlk_major, "dtlk");
-+		return err;
+ 	unsigned long size, offset;
+ 	const char *name;
+-	char *modname;
+ 
+ 	*startp = *endp = 0;
+ 	if (pc == 0)
+@@ -1225,7 +1224,7 @@ static void get_function_bounds(unsigned
+ 	if (setjmp(bus_error_jmp) == 0) {
+ 		catch_memory_errors = 1;
+ 		sync();
+-		name = kallsyms_lookup(pc, &size, &offset, &modname, tmpstr);
++		name = kallsyms_lookup(pc, &size, &offset, NULL, tmpstr);
+ 		if (name != NULL) {
+ 			*startp = pc - offset;
+ 			*endp = pc - offset + size;
+diff -puN arch/sh64/kernel/unwind.c~simplify-kallsyms_lookup arch/sh64/kernel/unwind.c
+--- a/arch/sh64/kernel/unwind.c~simplify-kallsyms_lookup
++++ a/arch/sh64/kernel/unwind.c
+@@ -46,15 +46,15 @@ static int lookup_prev_stack_frame(unsig
+ 		      struct pt_regs *regs)
+ {
+ 	const char *sym;
+-	char *modname, namebuf[128];
+-	unsigned long offset, size;
++	char namebuf[128];
++	unsigned long offset;
+ 	unsigned long prologue = 0;
+ 	unsigned long fp_displacement = 0;
+ 	unsigned long fp_prev = 0;
+ 	unsigned long offset_r14 = 0, offset_r18 = 0;
+ 	int i, found_prologue_end = 0;
+ 
+-	sym = kallsyms_lookup(pc, &size, &offset, &modname, namebuf);
++	sym = kallsyms_lookup(pc, NULL, &offset, NULL, namebuf);
+ 	if (!sym)
+ 		return -EINVAL;
+ 
+diff -puN fs/proc/base.c~simplify-kallsyms_lookup fs/proc/base.c
+--- a/fs/proc/base.c~simplify-kallsyms_lookup
++++ a/fs/proc/base.c
+@@ -278,14 +278,13 @@ static int proc_pid_auxv(struct task_str
+  */
+ static int proc_pid_wchan(struct task_struct *task, char *buffer)
+ {
+-	char *modname;
+ 	const char *sym_name;
+-	unsigned long wchan, size, offset;
++	unsigned long wchan;
+ 	char namebuf[KSYM_NAME_LEN+1];
+ 
+ 	wchan = get_wchan(task);
+ 
+-	sym_name = kallsyms_lookup(wchan, &size, &offset, &modname, namebuf);
++	sym_name = kallsyms_lookup(wchan, NULL, NULL, NULL, namebuf);
+ 	if (sym_name)
+ 		return sprintf(buffer, "%s", sym_name);
+ 	return sprintf(buffer, "%lu", wchan);
+diff -puN kernel/kallsyms.c~simplify-kallsyms_lookup kernel/kallsyms.c
+--- a/kernel/kallsyms.c~simplify-kallsyms_lookup
++++ a/kernel/kallsyms.c
+@@ -214,8 +214,10 @@ static unsigned long get_symbol_pos(unsi
+ 			symbol_end = (unsigned long)_etext;
  	}
--	if (dtlk_dev_probe() == 0)
--		printk(", MAJOR %d\n", dtlk_major);
-+	printk(", MAJOR %d\n", dtlk_major);
  
- 	init_waitqueue_head(&dtlk_process_list);
+-	*symbolsize = symbol_end - symbol_start;
+-	*offset = addr - symbol_start;
++	if (symbolsize)
++		*symbolsize = symbol_end - symbol_start;
++	if (offset)
++		*offset = addr - symbol_start;
  
+ 	return low;
+ }
+diff -puN kernel/kprobes.c~simplify-kallsyms_lookup kernel/kprobes.c
+--- a/kernel/kprobes.c~simplify-kallsyms_lookup
++++ a/kernel/kprobes.c
+@@ -868,13 +868,13 @@ static int __kprobes show_kprobe_addr(st
+ 	struct kprobe *p, *kp;
+ 	const char *sym = NULL;
+ 	unsigned int i = *(loff_t *) v;
+-	unsigned long size, offset = 0;
++	unsigned long offset = 0;
+ 	char *modname, namebuf[128];
+ 
+ 	head = &kprobe_table[i];
+ 	preempt_disable();
+ 	hlist_for_each_entry_rcu(p, node, head, hlist) {
+-		sym = kallsyms_lookup((unsigned long)p->addr, &size,
++		sym = kallsyms_lookup((unsigned long)p->addr, NULL,
+ 					&offset, &modname, namebuf);
+ 		if (p->pre_handler == aggr_pre_handler) {
+ 			list_for_each_entry_rcu(kp, &p->list, list)
+diff -puN kernel/lockdep.c~simplify-kallsyms_lookup kernel/lockdep.c
+--- a/kernel/lockdep.c~simplify-kallsyms_lookup
++++ a/kernel/lockdep.c
+@@ -340,10 +340,7 @@ static const char *usage_str[] =
+ 
+ const char * __get_key_name(struct lockdep_subclass_key *key, char *str)
+ {
+-	unsigned long offs, size;
+-	char *modname;
+-
+-	return kallsyms_lookup((unsigned long)key, &size, &offs, &modname, str);
++	return kallsyms_lookup((unsigned long)key, NULL, NULL, NULL, str);
+ }
+ 
+ void
+diff -puN kernel/module.c~simplify-kallsyms_lookup kernel/module.c
+--- a/kernel/module.c~simplify-kallsyms_lookup
++++ a/kernel/module.c
+@@ -2098,8 +2098,10 @@ static const char *get_ksymbol(struct mo
+ 	if (!best)
+ 		return NULL;
+ 
+-	*size = nextval - mod->symtab[best].st_value;
+-	*offset = addr - mod->symtab[best].st_value;
++	if (size)
++		*size = nextval - mod->symtab[best].st_value;
++	if (offset)
++		*offset = addr - mod->symtab[best].st_value;
+ 	return mod->strtab + mod->symtab[best].st_name;
+ }
+ 
+diff -puN kernel/time/timer_list.c~simplify-kallsyms_lookup kernel/time/timer_list.c
+--- a/kernel/time/timer_list.c~simplify-kallsyms_lookup
++++ a/kernel/time/timer_list.c
+@@ -40,11 +40,9 @@ static void print_name_offset(struct seq
+ {
+ 	unsigned long addr = (unsigned long)sym;
+ 	char namebuf[KSYM_NAME_LEN+1];
+-	unsigned long size, offset;
+ 	const char *sym_name;
+-	char *modname;
+ 
+-	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
++	sym_name = kallsyms_lookup(addr, NULL, NULL, NULL, namebuf);
+ 	if (sym_name)
+ 		SEQ_printf(m, "%s", sym_name);
+ 	else
+diff -puN kernel/time/timer_stats.c~simplify-kallsyms_lookup kernel/time/timer_stats.c
+--- a/kernel/time/timer_stats.c~simplify-kallsyms_lookup
++++ a/kernel/time/timer_stats.c
+@@ -258,11 +258,9 @@ void timer_stats_update_stats(void *time
+ static void print_name_offset(struct seq_file *m, unsigned long addr)
+ {
+ 	char namebuf[KSYM_NAME_LEN+1];
+-	unsigned long size, offset;
+ 	const char *sym_name;
+-	char *modname;
+ 
+-	sym_name = kallsyms_lookup(addr, &size, &offset, &modname, namebuf);
++	sym_name = kallsyms_lookup(addr, NULL, NULL, NULL, namebuf);
+ 	if (sym_name)
+ 		seq_printf(m, "%s", sym_name);
+ 	else
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-git-alsa.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-disable-stacktrace-filter-for-x86-64.patch
-cm4000_cs-fix-error-paths.patch
-cm4000_cs-use-bitrev.patch
-use-simple_read_from_buffer-in-fs.patch
-use-simple_read_from_buffer-in-kernel.patch
-sunrpc-fix-error-path-in-module_init.patch
+2621-rc5-mm3-fix-e1000-compilation.patch
+fix-rmmod-read-write-races-in-proc-entries.patch
