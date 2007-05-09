@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dm-crypt-fix-call-to-clone_init.patch added to -mm tree
-Date: Tue, 08 May 2007 17:54:36 -0700
-Message-ID: <200705090054.l490satq006358@shell0.pdx.osdl.net>
+Subject: + dm-crypt-disable-barriers.patch added to -mm tree
+Date: Tue, 08 May 2007 17:54:34 -0700
+Message-ID: <200705090054.l490sYVX006355@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56275 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935077AbXEIAyt (ORCPT
+	by vger.kernel.org with ESMTP id S934594AbXEIAyt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:54:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olaf.kirch@oracle.com, agk@redhat.com
+Cc: mbroz@redhat.com, agk@redhat.com, jens.axboe@oracle.com
 
 
 The patch titled
-     dm crypt: fix call to clone_init
+     dm crypt: disable barriers
 has been added to the -mm tree.  Its filename is
-     dm-crypt-fix-call-to-clone_init.patch
+     dm-crypt-disable-barriers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,95 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dm crypt: fix call to clone_init
-From: Olaf Kirch <olaf.kirch@oracle.com>
+Subject: dm crypt: disable barriers
+From: Milan Broz <mbroz@redhat.com>
 
-Call clone_init early
+Disable barriers in dm-crypt because of current workqueue processing can
+reorder requests.
 
-We need to call clone_init as early as possible - at least before call
-bio_put(clone) in any error path.  Otherwise, the destructor will try to
-dereference bi_private, which may still be NULL.
+This must be addresed later but for now disabling barriers is needed to
+prevent data corruption.
 
-Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
+Signed-off-by: Milan Broz <mbroz@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/md/dm-crypt.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/md/dm-crypt.c~dm-crypt-fix-call-to-clone_init drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~dm-crypt-fix-call-to-clone_init
+diff -puN drivers/md/dm-crypt.c~dm-crypt-disable-barriers drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~dm-crypt-disable-barriers
 +++ a/drivers/md/dm-crypt.c
-@@ -107,6 +107,8 @@ struct crypt_config {
+@@ -954,6 +954,9 @@ static int crypt_map(struct dm_target *t
+ 	struct crypt_config *cc = ti->private;
+ 	struct crypt_io *io;
  
- static struct kmem_cache *_crypt_io_pool;
- 
-+static void clone_init(struct crypt_io *, struct bio *);
++	if (bio_barrier(bio))
++		return -EOPNOTSUPP;
 +
- /*
-  * Different IV generation algorithms:
-  *
-@@ -379,9 +381,10 @@ static int crypt_convert(struct crypt_co
-  * May return a smaller bio when running out of pages
-  */
- static struct bio *
--crypt_alloc_buffer(struct crypt_config *cc, unsigned int size,
-+crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
-                    struct bio *base_bio, unsigned int *bio_vec_idx)
- {
-+	struct crypt_config *cc = io->target->private;
- 	struct bio *clone;
- 	unsigned int nr_iovecs = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	gfp_t gfp_mask = GFP_NOIO | __GFP_HIGHMEM;
-@@ -396,7 +399,7 @@ crypt_alloc_buffer(struct crypt_config *
- 	if (!clone)
- 		return NULL;
- 
--	clone->bi_destructor = dm_crypt_bio_destructor;
-+	clone_init(io, clone);
- 
- 	/* if the last bio was not complete, continue where that one ended */
- 	clone->bi_idx = *bio_vec_idx;
-@@ -562,6 +565,7 @@ static void clone_init(struct crypt_io *
- 	clone->bi_end_io  = crypt_endio;
- 	clone->bi_bdev    = cc->dev->bdev;
- 	clone->bi_rw      = io->base_bio->bi_rw;
-+	clone->bi_destructor = dm_crypt_bio_destructor;
- }
- 
- static void process_read(struct crypt_io *io)
-@@ -585,7 +589,6 @@ static void process_read(struct crypt_io
- 	}
- 
- 	clone_init(io, clone);
--	clone->bi_destructor = dm_crypt_bio_destructor;
- 	clone->bi_idx = 0;
- 	clone->bi_vcnt = bio_segments(base_bio);
- 	clone->bi_size = base_bio->bi_size;
-@@ -615,7 +618,7 @@ static void process_write(struct crypt_i
- 	 * so repeat the whole process until all the data can be handled.
- 	 */
- 	while (remaining) {
--		clone = crypt_alloc_buffer(cc, base_bio->bi_size,
-+		clone = crypt_alloc_buffer(io, base_bio->bi_size,
- 					   io->first_clone, &bvec_idx);
- 		if (unlikely(!clone)) {
- 			dec_pending(io, -ENOMEM);
-@@ -631,7 +634,6 @@ static void process_write(struct crypt_i
- 			return;
- 		}
- 
--		clone_init(io, clone);
- 		clone->bi_sector = cc->start + sector;
- 
- 		if (!io->first_clone) {
+ 	io = mempool_alloc(cc->io_pool, GFP_NOIO);
+ 	io->target = ti;
+ 	io->base_bio = bio;
 _
 
-Patches currently in -mm which might be from olaf.kirch@oracle.com are
+Patches currently in -mm which might be from mbroz@redhat.com are
 
-origin.patch
-dm-crypt-fix-call-to-clone_init.patch
-dm-crypt-fix-avoid-cloned-bio-ref-after-free.patch
-dm-crypt-fix-remove-first_clone.patch
-dm-crypt-use-smaller-bvecs-in-clones.patch
+dm-crypt-disable-barriers.patch
+dm-io-delay-dec_count.patch
+dm-io-prepare-for-new-interface.patch
+dm-io-new-interface.patch
+dm-kcopyd-update-dm-io-interface.patch
+dm-exception-store-update-dm-io-interface.patch
+dm-log-update-dm-io-interface.patch
+dm-raid1-update-dm-io-interface.patch
+dm-io-remove-old-interface.patch
+dm-bio-list-helpers.patch
+dm-delay-target.patch
