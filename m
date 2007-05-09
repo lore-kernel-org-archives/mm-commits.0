@@ -1,180 +1,277 @@
 From: akpm@linux-foundation.org
-Subject: - highres-dyntick-prevent-xtime-lock-contention.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:50:10 -0700
-Message-ID: <200705090250.l492oAqH009320@shell0.pdx.osdl.net>
+Subject: - introduce-a-handy-list_first_entry-macro-v2.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:50:31 -0700
+Message-ID: <200705090250.l492oVPN009364@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34624 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032160AbXEICvi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:38 -0400
+	by vger.kernel.org with ESMTP id S1032177AbXEICvk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, mingo@elte.hu, mlord@pobox.com, rostedt@goodmis.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: xemul@sw.ru, andi@firstfloor.org, davidel@xmailserver.org, dev@openvz.org, johnstul@us.ibm.com, linuxram@us.ibm.com, mingo@elte.hu, randy.dunlap@oracle.com, tglx@linutronix.de, ttb@tentacle.dhs.org, xemul@openvz.org, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     highres/dyntick: prevent xtime lock contention
+     Introduce a handy list_first_entry macro
 has been removed from the -mm tree.  Its filename was
-     highres-dyntick-prevent-xtime-lock-contention.patch
+     introduce-a-handy-list_first_entry-macro-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: highres/dyntick: prevent xtime lock contention
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Introduce a handy list_first_entry macro
+From: Pavel Emelianov <xemul@sw.ru>
 
-While the !highres/!dyntick code assigns the duty of the do_timer() call to
-one specific CPU, this was dropped in the highres/dyntick part during
-development.
+There are many places in the kernel where the construction like
 
-Steven Rostedt discovered the xtime lock contention on highres/dyntick due
-to several CPUs trying to update jiffies.
+   foo = list_entry(head->next, struct foo_struct, list);
 
-Add the single CPU assignement back.  In the dyntick case this needs to be
-handled carefully, as the CPU which has the do_timer() duty must drop the
-assignement and let it be grabbed by another CPU, which is active. 
-Otherwise the do_timer() calls would not happen during the long sleep.
+are used.
+The code might look more descriptive and neat if using the macro
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Mark Lord <mlord@pobox.com>
-Cc: <stable@kernel.org>
+   list_first_entry(head, type, member) \
+             list_entry((head)->next, type, member)
+
+Here is the macro itself and the examples of its usage in the generic code.
+ If it will turn out to be useful, I can prepare the set of patches to
+inject in into arch-specific code, drivers, networking, etc.
+
+Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Signed-off-by: Kirill Korotaev <dev@openvz.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: John McCutchan <ttb@tentacle.dhs.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-common.c   |    8 +++++-
- kernel/time/tick-internal.h |    1 
- kernel/time/tick-sched.c    |   42 ++++++++++++++++++++++++++++++++--
- 3 files changed, 48 insertions(+), 3 deletions(-)
+ fs/dquot.c                |    2 +-
+ fs/eventpoll.c            |    6 +++---
+ fs/inode.c                |    2 +-
+ fs/inotify.c              |    2 +-
+ fs/namespace.c            |    4 ++--
+ fs/pnode.c                |    2 +-
+ include/linux/list.h      |   11 +++++++++++
+ kernel/posix-cpu-timers.c |   14 +++++++-------
+ kernel/timer.c            |    4 ++--
+ 9 files changed, 29 insertions(+), 18 deletions(-)
 
-diff -puN kernel/time/tick-common.c~highres-dyntick-prevent-xtime-lock-contention kernel/time/tick-common.c
---- a/kernel/time/tick-common.c~highres-dyntick-prevent-xtime-lock-contention
-+++ a/kernel/time/tick-common.c
-@@ -31,7 +31,7 @@ DEFINE_PER_CPU(struct tick_device, tick_
-  */
- ktime_t tick_next_period;
- ktime_t tick_period;
--static int tick_do_timer_cpu = -1;
-+int tick_do_timer_cpu __read_mostly = -1;
- DEFINE_SPINLOCK(tick_device_lock);
+diff -puN fs/dquot.c~introduce-a-handy-list_first_entry-macro-v2 fs/dquot.c
+--- a/fs/dquot.c~introduce-a-handy-list_first_entry-macro-v2
++++ a/fs/dquot.c
+@@ -474,7 +474,7 @@ int vfs_quota_sync(struct super_block *s
+ 		spin_lock(&dq_list_lock);
+ 		dirty = &dqopt->info[cnt].dqi_dirty_list;
+ 		while (!list_empty(dirty)) {
+-			dquot = list_entry(dirty->next, struct dquot, dq_dirty);
++			dquot = list_first_entry(dirty, struct dquot, dq_dirty);
+ 			/* Dirty and inactive can be only bad dquot... */
+ 			if (!test_bit(DQ_ACTIVE_B, &dquot->dq_flags)) {
+ 				clear_dquot_dirty(dquot);
+diff -puN fs/eventpoll.c~introduce-a-handy-list_first_entry-macro-v2 fs/eventpoll.c
+--- a/fs/eventpoll.c~introduce-a-handy-list_first_entry-macro-v2
++++ a/fs/eventpoll.c
+@@ -453,7 +453,7 @@ void eventpoll_release_file(struct file 
+ 	mutex_lock(&epmutex);
  
- /*
-@@ -295,6 +295,12 @@ static void tick_shutdown(unsigned int *
- 		clockevents_exchange_device(dev, NULL);
- 		td->evtdev = NULL;
- 	}
-+	/* Transfer the do_timer job away from this cpu */
-+	if (*cpup == tick_do_timer_cpu) {
-+		int cpu = first_cpu(cpu_online_map);
-+
-+		tick_do_timer_cpu = (cpu != NR_CPUS) ? cpu : -1;
-+	}
- 	spin_unlock_irqrestore(&tick_device_lock, flags);
- }
+ 	while (!list_empty(lsthead)) {
+-		epi = list_entry(lsthead->next, struct epitem, fllink);
++		epi = list_first_entry(lsthead, struct epitem, fllink);
  
-diff -puN kernel/time/tick-internal.h~highres-dyntick-prevent-xtime-lock-contention kernel/time/tick-internal.h
---- a/kernel/time/tick-internal.h~highres-dyntick-prevent-xtime-lock-contention
-+++ a/kernel/time/tick-internal.h
-@@ -5,6 +5,7 @@ DECLARE_PER_CPU(struct tick_device, tick
- extern spinlock_t tick_device_lock;
- extern ktime_t tick_next_period;
- extern ktime_t tick_period;
-+extern int tick_do_timer_cpu __read_mostly;
+ 		ep = epi->ep;
+ 		list_del_init(&epi->fllink);
+@@ -1143,7 +1143,7 @@ static void ep_unregister_pollwait(struc
  
- extern void tick_setup_periodic(struct clock_event_device *dev, int broadcast);
- extern void tick_handle_periodic(struct clock_event_device *dev);
-diff -puN kernel/time/tick-sched.c~highres-dyntick-prevent-xtime-lock-contention kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~highres-dyntick-prevent-xtime-lock-contention
-+++ a/kernel/time/tick-sched.c
-@@ -221,6 +221,18 @@ void tick_nohz_stop_sched_tick(void)
- 			ts->tick_stopped = 1;
- 			ts->idle_jiffies = last_jiffies;
- 		}
-+
-+		/*
-+		 * If this cpu is the one which updates jiffies, then
-+		 * give up the assignment and let it be taken by the
-+		 * cpu which runs the tick timer next, which might be
-+		 * this cpu as well. If we don't drop this here the
-+		 * jiffies might be stale and do_timer() never
-+		 * invoked.
-+		 */
-+		if (cpu == tick_do_timer_cpu)
-+			tick_do_timer_cpu = -1;
-+
+ 	if (nwait) {
+ 		while (!list_empty(lsthead)) {
+-			pwq = list_entry(lsthead->next, struct eppoll_entry, llink);
++			pwq = list_first_entry(lsthead, struct eppoll_entry, llink);
+ 
+ 			list_del_init(&pwq->llink);
+ 			remove_wait_queue(pwq->whead, &pwq->wait);
+@@ -1359,7 +1359,7 @@ static int ep_send_events(struct eventpo
+ 	 * read.
+ 	 */
+ 	for (eventcnt = 0; !list_empty(txlist) && eventcnt < maxevents;) {
+-		epi = list_entry(txlist->next, struct epitem, rdllink);
++		epi = list_first_entry(txlist, struct epitem, rdllink);
+ 		prefetch(epi->rdllink.next);
+ 
  		/*
- 		 * calculate the expiry time for the next timer wheel
- 		 * timer
-@@ -338,12 +350,24 @@ static void tick_nohz_handler(struct clo
+diff -puN fs/inode.c~introduce-a-handy-list_first_entry-macro-v2 fs/inode.c
+--- a/fs/inode.c~introduce-a-handy-list_first_entry-macro-v2
++++ a/fs/inode.c
+@@ -275,7 +275,7 @@ static void dispose_list(struct list_hea
+ 	while (!list_empty(head)) {
+ 		struct inode *inode;
+ 
+-		inode = list_entry(head->next, struct inode, i_list);
++		inode = list_first_entry(head, struct inode, i_list);
+ 		list_del(&inode->i_list);
+ 
+ 		if (inode->i_data.nrpages)
+diff -puN fs/inotify.c~introduce-a-handy-list_first_entry-macro-v2 fs/inotify.c
+--- a/fs/inotify.c~introduce-a-handy-list_first_entry-macro-v2
++++ a/fs/inotify.c
+@@ -509,7 +509,7 @@ void inotify_destroy(struct inotify_hand
+ 			mutex_unlock(&ih->mutex);
+ 			break;
+ 		}
+-		watch = list_entry(watches->next, struct inotify_watch, h_list);
++		watch = list_first_entry(watches, struct inotify_watch, h_list);
+ 		get_inotify_watch(watch);
+ 		mutex_unlock(&ih->mutex);
+ 
+diff -puN fs/namespace.c~introduce-a-handy-list_first_entry-macro-v2 fs/namespace.c
+--- a/fs/namespace.c~introduce-a-handy-list_first_entry-macro-v2
++++ a/fs/namespace.c
+@@ -499,7 +499,7 @@ void release_mounts(struct list_head *he
  {
- 	struct tick_sched *ts = &__get_cpu_var(tick_cpu_sched);
- 	struct pt_regs *regs = get_irq_regs();
-+	int cpu = smp_processor_id();
- 	ktime_t now = ktime_get();
+ 	struct vfsmount *mnt;
+ 	while (!list_empty(head)) {
+-		mnt = list_entry(head->next, struct vfsmount, mnt_hash);
++		mnt = list_first_entry(head, struct vfsmount, mnt_hash);
+ 		list_del_init(&mnt->mnt_hash);
+ 		if (mnt->mnt_parent != mnt) {
+ 			struct dentry *dentry;
+@@ -1177,7 +1177,7 @@ static void expire_mount_list(struct lis
  
- 	dev->next_event.tv64 = KTIME_MAX;
+ 	while (!list_empty(graveyard)) {
+ 		LIST_HEAD(umounts);
+-		mnt = list_entry(graveyard->next, struct vfsmount, mnt_expire);
++		mnt = list_first_entry(graveyard, struct vfsmount, mnt_expire);
+ 		list_del_init(&mnt->mnt_expire);
  
-+	/*
-+	 * Check if the do_timer duty was dropped. We don't care about
-+	 * concurrency: This happens only when the cpu in charge went
-+	 * into a long sleep. If two cpus happen to assign themself to
-+	 * this duty, then the jiffies update is still serialized by
-+	 * xtime_lock.
-+	 */
-+	if (unlikely(tick_do_timer_cpu == -1))
-+		tick_do_timer_cpu = cpu;
+ 		/* don't do anything if the namespace is dead - all the
+diff -puN fs/pnode.c~introduce-a-handy-list_first_entry-macro-v2 fs/pnode.c
+--- a/fs/pnode.c~introduce-a-handy-list_first_entry-macro-v2
++++ a/fs/pnode.c
+@@ -59,7 +59,7 @@ static int do_make_slave(struct vfsmount
+ 	} else {
+ 		struct list_head *p = &mnt->mnt_slave_list;
+ 		while (!list_empty(p)) {
+-                        slave_mnt = list_entry(p->next,
++                        slave_mnt = list_first_entry(p,
+ 					struct vfsmount, mnt_slave);
+ 			list_del_init(&slave_mnt->mnt_slave);
+ 			slave_mnt->mnt_master = NULL;
+diff -puN include/linux/list.h~introduce-a-handy-list_first_entry-macro-v2 include/linux/list.h
+--- a/include/linux/list.h~introduce-a-handy-list_first_entry-macro-v2
++++ a/include/linux/list.h
+@@ -426,6 +426,17 @@ static inline void list_splice_init_rcu(
+ 	container_of(ptr, type, member)
+ 
+ /**
++ * list_first_entry - get the first element from a list
++ * @ptr:	the list head to take the element from.
++ * @type:	the type of the struct this is embedded in.
++ * @member:	the name of the list_struct within the struct.
++ *
++ * Note, that list is expected to be not empty.
++ */
++#define list_first_entry(ptr, type, member) \
++	list_entry((ptr)->next, type, member)
 +
- 	/* Check, if the jiffies need an update */
--	tick_do_update_jiffies64(now);
-+	if (tick_do_timer_cpu == cpu)
-+		tick_do_update_jiffies64(now);
++/**
+  * list_for_each	-	iterate over a list
+  * @pos:	the &struct list_head to use as a loop cursor.
+  * @head:	the head for your list.
+diff -puN kernel/posix-cpu-timers.c~introduce-a-handy-list_first_entry-macro-v2 kernel/posix-cpu-timers.c
+--- a/kernel/posix-cpu-timers.c~introduce-a-handy-list_first_entry-macro-v2
++++ a/kernel/posix-cpu-timers.c
+@@ -971,7 +971,7 @@ static void check_thread_timers(struct t
+ 	maxfire = 20;
+ 	tsk->it_prof_expires = cputime_zero;
+ 	while (!list_empty(timers)) {
+-		struct cpu_timer_list *t = list_entry(timers->next,
++		struct cpu_timer_list *t = list_first_entry(timers,
+ 						      struct cpu_timer_list,
+ 						      entry);
+ 		if (!--maxfire || cputime_lt(prof_ticks(tsk), t->expires.cpu)) {
+@@ -986,7 +986,7 @@ static void check_thread_timers(struct t
+ 	maxfire = 20;
+ 	tsk->it_virt_expires = cputime_zero;
+ 	while (!list_empty(timers)) {
+-		struct cpu_timer_list *t = list_entry(timers->next,
++		struct cpu_timer_list *t = list_first_entry(timers,
+ 						      struct cpu_timer_list,
+ 						      entry);
+ 		if (!--maxfire || cputime_lt(virt_ticks(tsk), t->expires.cpu)) {
+@@ -1001,7 +1001,7 @@ static void check_thread_timers(struct t
+ 	maxfire = 20;
+ 	tsk->it_sched_expires = 0;
+ 	while (!list_empty(timers)) {
+-		struct cpu_timer_list *t = list_entry(timers->next,
++		struct cpu_timer_list *t = list_first_entry(timers,
+ 						      struct cpu_timer_list,
+ 						      entry);
+ 		if (!--maxfire || tsk->sched_time < t->expires.sched) {
+@@ -1057,7 +1057,7 @@ static void check_process_timers(struct 
+ 	maxfire = 20;
+ 	prof_expires = cputime_zero;
+ 	while (!list_empty(timers)) {
+-		struct cpu_timer_list *t = list_entry(timers->next,
++		struct cpu_timer_list *t = list_first_entry(timers,
+ 						      struct cpu_timer_list,
+ 						      entry);
+ 		if (!--maxfire || cputime_lt(ptime, t->expires.cpu)) {
+@@ -1072,7 +1072,7 @@ static void check_process_timers(struct 
+ 	maxfire = 20;
+ 	virt_expires = cputime_zero;
+ 	while (!list_empty(timers)) {
+-		struct cpu_timer_list *t = list_entry(timers->next,
++		struct cpu_timer_list *t = list_first_entry(timers,
+ 						      struct cpu_timer_list,
+ 						      entry);
+ 		if (!--maxfire || cputime_lt(utime, t->expires.cpu)) {
+@@ -1087,7 +1087,7 @@ static void check_process_timers(struct 
+ 	maxfire = 20;
+ 	sched_expires = 0;
+ 	while (!list_empty(timers)) {
+-		struct cpu_timer_list *t = list_entry(timers->next,
++		struct cpu_timer_list *t = list_first_entry(timers,
+ 						      struct cpu_timer_list,
+ 						      entry);
+ 		if (!--maxfire || sched_time < t->expires.sched) {
+@@ -1400,7 +1400,7 @@ void set_process_cpu_timer(struct task_s
+ 	 */
+ 	head = &tsk->signal->cpu_timers[clock_idx];
+ 	if (list_empty(head) ||
+-	    cputime_ge(list_entry(head->next,
++	    cputime_ge(list_first_entry(head,
+ 				  struct cpu_timer_list, entry)->expires.cpu,
+ 		       *newval)) {
+ 		/*
+diff -puN kernel/timer.c~introduce-a-handy-list_first_entry-macro-v2 kernel/timer.c
+--- a/kernel/timer.c~introduce-a-handy-list_first_entry-macro-v2
++++ a/kernel/timer.c
+@@ -629,7 +629,7 @@ static inline void __run_timers(tvec_bas
+ 			void (*fn)(unsigned long);
+ 			unsigned long data;
  
- 	/*
- 	 * When we are idle and the tick is stopped, we have to touch
-@@ -431,9 +455,23 @@ static enum hrtimer_restart tick_sched_t
- 	struct hrtimer_cpu_base *base = timer->base->cpu_base;
- 	struct pt_regs *regs = get_irq_regs();
- 	ktime_t now = ktime_get();
-+	int cpu = smp_processor_id();
-+
-+#ifdef CONFIG_NO_HZ
-+	/*
-+	 * Check if the do_timer duty was dropped. We don't care about
-+	 * concurrency: This happens only when the cpu in charge went
-+	 * into a long sleep. If two cpus happen to assign themself to
-+	 * this duty, then the jiffies update is still serialized by
-+	 * xtime_lock.
-+	 */
-+	if (unlikely(tick_do_timer_cpu == -1))
-+		tick_do_timer_cpu = cpu;
-+#endif
+-			timer = list_entry(head->next,struct timer_list,entry);
++			timer = list_first_entry(head, struct timer_list,entry);
+  			fn = timer->function;
+  			data = timer->data;
  
- 	/* Check, if the jiffies need an update */
--	tick_do_update_jiffies64(now);
-+	if (tick_do_timer_cpu == cpu)
-+		tick_do_update_jiffies64(now);
+@@ -1248,7 +1248,7 @@ static void migrate_timer_list(tvec_base
+ 	struct timer_list *timer;
  
- 	/*
- 	 * Do not call, when we are not in irq context and have
+ 	while (!list_empty(head)) {
+-		timer = list_entry(head->next, struct timer_list, entry);
++		timer = list_first_entry(head, struct timer_list, entry);
+ 		detach_timer(timer, 0);
+ 		timer_set_base(timer, new_base);
+ 		internal_add_timer(new_base, timer);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from xemul@sw.ru are
 
 origin.patch
-arm-spinlock-initializer-cleanup.patch
-git-avr32.patch
-drm-spinlock-initializer-cleanup.patch
-git-dvb.patch
-git-ieee1394.patch
-git-mtd.patch
-s390-spinlock-initializer-cleanup.patch
-fix-printk-format-warnings-in-timer_listc.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-declare-struct-ktime.patch
-timer-parenthesis-fix-in-tbase_get_deferrable-etc.patch
-clocksource-fix-resume-logic.patch
-clockevents-fix-resume-logic-updated-version.patch
-timer_stats-slimmed-down-using-statistics-infrastucture.patch
