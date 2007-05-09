@@ -1,86 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - revoke-core-code-do_revoke-error-handling.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:56:15 -0700
-Message-ID: <200705090956.l499uGDx020557@shell0.pdx.osdl.net>
+Subject: - integrity-new-hooks-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:59:44 -0700
+Message-ID: <200705090959.l499xipC020621@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53575 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757318AbXEIJ4o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:56:44 -0400
+	by vger.kernel.org with ESMTP id S1754600AbXEIKAR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:00:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deweerdt@free.fr, frederik.deweerdt@gmail.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@linux.vnet.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_revoke error handling
+     integrity-new-hooks-fix
 has been removed from the -mm tree.  Its filename was
-     revoke-core-code-do_revoke-error-handling.patch
+     integrity-new-hooks-fix.patch
 
-This patch was dropped because it was folded into revoke-core-code.patch
+This patch was dropped because it was folded into integrity-new-hooks.patch
 
 ------------------------------------------------------
-Subject: do_revoke error handling
-From: Frederik Deweerdt <deweerdt@free.fr>
+Subject: integrity-new-hooks-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On Sun, May 06, 2007 at 12:23:15AM +0300, Pekka J Enberg wrote:
-> On Sat, May 05, 2007 at 01:49:55AM -0700, Andrew Morton wrote:
-> > >
-> > > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.21/2.6.21-mm1/
-> > >
-> > fs/revoke.c: In function 'do_revoke':
-> > fs/revoke.c:563: warning: 'details.fset' may be used uninitialized in this function
-> > fs/revoke.c:563: warning: 'details.restore_start' may be used uninitialized in this function
->
-> On Sat, 5 May 2007, Frederik Deweerdt wrote:
-> > It seems that we should goto 'out_free_table' if an error happens in
-> > the mainloop. Otherwise 'details' is passed to restore_files() without
-> > being initialized.
->
-> Good catch. The patch is wrong, though. Wwe must restore the file
-> descriptors in case revoke fails; otherwise we'll leave non-revoked files
-> hanging. The proper fix is to move initialization before the
-> do_each_thread() bit. Care to make a new patch, Frederik?
->
-OK, thanks for the explanation. Here it is.
-Frederik
-
-Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Kylene Hall <kjhall@us.ibm.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/revoke.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ security/integrity_dummy.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/revoke.c~revoke-core-code-do_revoke-error-handling fs/revoke.c
---- a/fs/revoke.c~revoke-core-code-do_revoke-error-handling
-+++ a/fs/revoke.c
-@@ -597,6 +597,9 @@ static int do_revoke(struct inode *inode
- 		goto retry;
- 	}
+diff -puN security/integrity_dummy.c~integrity-new-hooks-fix security/integrity_dummy.c
+--- a/security/integrity_dummy.c~integrity-new-hooks-fix
++++ a/security/integrity_dummy.c
+@@ -14,6 +14,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
++#include <linux/capability.h>
+ #include <linux/integrity.h>
+ #include <linux/xattr.h>
  
-+	details.fset = fset;
-+	details.restore_start = 0;
-+
- 	/*
- 	 * First revoke the descriptors. After we are done, no one can start
- 	 * new operations on them.
-@@ -625,9 +628,6 @@ static int do_revoke(struct inode *inode
- 	if (err)
- 		goto out_restore;
- 
--	details.fset = fset;
--	details.restore_start = 0;
--
- 	/*
- 	 * Now, revoke the files for good.
- 	 */
 _
 
-Patches currently in -mm which might be from deweerdt@free.fr are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-revoke-core-code.patch
-revoke-core-code-do_revoke-error-handling.patch
-reiser4-sb_sync_inodes.patch
+origin.patch
+mmc-build-fix.patch
+slub-add-support-for-dynamic-cacheline-size-determination.patch
+swsusp-clean-up-print.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+nbd-check-the-return-value-of-sysfs_create_file.patch
+mutex_lock_interruptible-add-__must_check.patch
+afs-implement-basic-file-write-support.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+fs-convert-core-functions-to-zero_user_page.patch
+rename-thread_info-to-stack.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
