@@ -1,95 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - vt8623fb-fix-compile-warnings.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:06:33 -0700
-Message-ID: <200705090906.l4996XDS018754@shell0.pdx.osdl.net>
+Subject: - vt8623fb-fix-compile-error-if-config_mtrr=n.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:06:36 -0700
+Message-ID: <200705090906.l4996aBB018762@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39052 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754560AbXEIJHG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:07:06 -0400
+	by vger.kernel.org with ESMTP id S1754561AbXEIJHP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:07:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, santiago@crfreenet.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt8623fb: fix compile warnings
+     vt8623fb: Fix compile error if CONFIG_MTRR=n
 has been removed from the -mm tree.  Its filename was
-     vt8623fb-fix-compile-warnings.patch
+     vt8623fb-fix-compile-error-if-config_mtrr=n.patch
 
 This patch was dropped because it was folded into vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
 
 ------------------------------------------------------
-Subject: vt8623fb: fix compile warnings
+Subject: vt8623fb: Fix compile error if CONFIG_MTRR=n
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-- use memset_io()
-- check for return value of pci_enable_device()
-- fix for CONFIG_PM=n
+Fix compile error if CONFIG_MTRR=n
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Cc: Ondrej Zajicek <santiago@crfreenet.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vt8623fb.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/video/vt8623fb.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/video/vt8623fb.c~vt8623fb-fix-compile-warnings drivers/video/vt8623fb.c
---- a/drivers/video/vt8623fb.c~vt8623fb-fix-compile-warnings
+diff -puN drivers/video/vt8623fb.c~vt8623fb-fix-compile-error-if-config_mtrr=n drivers/video/vt8623fb.c
+--- a/drivers/video/vt8623fb.c~vt8623fb-fix-compile-error-if-config_mtrr=n
 +++ a/drivers/video/vt8623fb.c
-@@ -497,7 +497,7 @@ static int vt8623fb_set_par(struct fb_in
- 			 (info->var.vmode & FB_VMODE_DOUBLE) ? 2 : 1, 1,
- 			 1, info->node);
+@@ -777,12 +777,10 @@ err_enable_device:
+ static void __devexit vt8623_pci_remove(struct pci_dev *dev)
+ {
+ 	struct fb_info *info = pci_get_drvdata(dev);
++	struct vt8623fb_info *par = info->par;
  
--	memset((u8*)info->screen_base, 0x00, screen_size);
-+	memset_io(info->screen_base, 0x00, screen_size);
- 
- 	/* Device and screen back on */
- 	svga_wcrt_mask(0x17, 0x80, 0x80);
-@@ -804,6 +804,7 @@ static void __devexit vt8623_pci_remove(
- }
- 
- 
-+#ifdef CONFIG_PM
- /* PCI suspend */
- 
- static int vt8623_pci_suspend(struct pci_dev* dev, pm_message_t state)
-@@ -855,18 +856,25 @@ static int vt8623_pci_resume(struct pci_
- 
- 	pci_set_power_state(dev, PCI_D0);
- 	pci_restore_state(dev);
--	pci_enable_device(dev);
-+
-+	if (pci_enable_device(dev))
-+		goto fail;
-+
- 	pci_set_master(dev);
- 
- 	vt8623fb_set_par(info);
- 	fb_set_suspend(info, 0);
- 
- 	mutex_unlock(&(par->open_lock));
-+fail:
- 	release_console_sem();
- 
- 	return 0;
- }
+ 	if (info) {
 -
-+#else
-+#define vt8623_pci_suspend NULL
-+#define vt8623_pci_resume NULL
-+#endif /* CONFIG_PM */
- 
- /* List of boards that we are trying to support */
- 
+ #ifdef CONFIG_MTRR
+-		struct vt8623fb_info *par = info->par;
+-
+ 		if (par->mtrr_reg >= 0) {
+ 			mtrr_del(par->mtrr_reg, 0, 0);
+ 			par->mtrr_reg = -1;
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
 vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
-vt8623fb-fix-compile-warnings.patch
 vt8623fb-fix-compile-error-if-config_mtrr=n.patch
 arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
 arkfb-fix-compiler-warnings.patch
