@@ -1,116 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - nvidiafb-bring-back-generic-ddc-reading.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:59:20 -0700
-Message-ID: <200705090259.l492xKm0010384@shell0.pdx.osdl.net>
+Subject: - fbdev-display-class-fix.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:59:13 -0700
+Message-ID: <200705090259.l492xDMB010371@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57475 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970199AbXEIC7Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:24 -0400
+	by vger.kernel.org with ESMTP id S970220AbXEIC71 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, adaplas@pol.net, greg@kroah.com, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nvidiafb: bring back generic ddc reading
+     make drivers/video/display/display-sysfs.c:display_class static
 has been removed from the -mm tree.  Its filename was
-     nvidiafb-bring-back-generic-ddc-reading.patch
+     fbdev-display-class-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nvidiafb: bring back generic ddc reading
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: make drivers/video/display/display-sysfs.c:display_class static
+From: Adrian Bunk <bunk@stusta.de>
 
-Make nvidiafb use fb_ddc_read().  This patch was submitted before but was
-reverted due to problems in a non-x86 platform.  This includes a fix for that
-where ddc reading is bypassed if there is no DDC bus (duh).
-
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: James Simmons <jsimmons@infradead.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nv_i2c.c |   44 +-------------------------------
- 1 file changed, 2 insertions(+), 42 deletions(-)
+ drivers/video/display/display-sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/nvidia/nv_i2c.c~nvidiafb-bring-back-generic-ddc-reading drivers/video/nvidia/nv_i2c.c
---- a/drivers/video/nvidia/nv_i2c.c~nvidiafb-bring-back-generic-ddc-reading
-+++ a/drivers/video/nvidia/nv_i2c.c
-@@ -70,8 +70,6 @@ static int nvidia_gpio_getscl(void *data
- 	if (VGA_RD08(par->PCIO, 0x3d5) & 0x04)
- 		val = 1;
+diff -puN drivers/video/display/display-sysfs.c~fbdev-display-class-fix drivers/video/display/display-sysfs.c
+--- a/drivers/video/display/display-sysfs.c~fbdev-display-class-fix
++++ a/drivers/video/display/display-sysfs.c
+@@ -127,7 +127,7 @@ static int display_resume(struct device 
  
--	val = VGA_RD08(par->PCIO, 0x3d5);
--
- 	return val;
- }
+ static struct mutex allocated_dsp_lock;
+ static DEFINE_IDR(allocated_dsp);
+-struct class *display_class;
++static struct class *display_class;
  
-@@ -159,51 +157,13 @@ void nvidia_delete_i2c_busses(struct nvi
- 
- }
- 
--static u8 *nvidia_do_probe_i2c_edid(struct nvidia_i2c_chan *chan)
--{
--	u8 start = 0x0;
--	struct i2c_msg msgs[] = {
--		{
--		 .addr = 0x50,
--		 .len = 1,
--		 .buf = &start,
--		 }, {
--		     .addr = 0x50,
--		     .flags = I2C_M_RD,
--		     .len = EDID_LENGTH,
--		     },
--	};
--	u8 *buf;
--
--	if (!chan->par)
--		return NULL;
--
--	buf = kmalloc(EDID_LENGTH, GFP_KERNEL);
--	if (!buf) {
--		dev_warn(&chan->par->pci_dev->dev, "Out of memory!\n");
--		return NULL;
--	}
--	msgs[1].buf = buf;
--
--	if (i2c_transfer(&chan->adapter, msgs, 2) == 2)
--		return buf;
--	dev_dbg(&chan->par->pci_dev->dev, "Unable to read EDID block.\n");
--	kfree(buf);
--	return NULL;
--}
--
- int nvidia_probe_i2c_connector(struct fb_info *info, int conn, u8 **out_edid)
- {
- 	struct nvidia_par *par = info->par;
- 	u8 *edid = NULL;
--	int i;
- 
--	for (i = 0; i < 3; i++) {
--		/* Do the real work */
--		edid = nvidia_do_probe_i2c_edid(&par->chan[conn - 1]);
--		if (edid)
--			break;
--	}
-+	if (par->chan[conn - 1].par)
-+		edid = fb_ddc_read(&par->chan[conn - 1].adapter);
- 
- 	if (!edid && conn == 1) {
- 		/* try to get from firmware */
+ struct display_device *display_device_register(struct display_driver *driver,
+ 						struct device *parent, void *devdata)
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
-vt8623fb-fix-compile-warnings.patch
-vt8623fb-fix-compile-error-if-config_mtrr=n.patch
-arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
-arkfb-fix-compiler-warnings.patch
-arkfb-fix-compile-error-if-config_mtrr=n.patch
-arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
-svgalib-move-fb_get_caps-to-svgalib.patch
+git-acpi.patch
+git-alsa.patch
+git-dvb.patch
+git-ieee1394.patch
+git-kvm.patch
+testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+git-mtd.patch
+nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
+drivers-mtd-maps-nettelc-possible-cleanups.patch
+ibmtr_cs-fix-hang-on-eject.patch
+git-battery.patch
+git-scsi-misc.patch
+drivers-scsi-small-cleanups.patch
+drivers-scsi-advansysc-cleanups.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+drivers-scsi-wd33c93c-cleanups.patch
+make-seagate_st0x_detect-static.patch
+remove-the-broken-scsi_acornscsi_3-driver.patch
+scsi-lpfc-lpfc_initc-remove-unused-variable.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+drivers-scsi-ipsc-remove-kernel-24-code.patch
+drivers-scsi-nsp32c-remove-kernel-24-code.patch
+git-unionfs.patch
+git-watchdog.patch
+git-wireless.patch
+git-ipwireless_cs.patch
+make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
+arch-i386-kernel-i8253c-should-include-asm-timerh.patch
+make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
+maps2-add-proc-kpagemap-interface.patch
+lumpy-reclaim-v4.patch
+more-scheduled-oss-driver-removal.patch
+unexport-pci_proc_attach_device.patch
+ext2-reservations.patch
+remove-nfs4_acl_add_ace.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-i386-optimization.patch
+revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+compiler-introduce-__used-and-__maybe_unused.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+slim-main-patch.patch
+slim-debug-output.patch
+mutex-subsystem-synchro-test-module.patch
