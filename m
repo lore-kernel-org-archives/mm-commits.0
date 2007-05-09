@@ -1,101 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + afs-implement-basic-file-write-support-fix.patch added to -mm tree
-Date: Tue, 08 May 2007 21:17:56 -0700
-Message-ID: <200705090420.l494KrM3014326@shell0.pdx.osdl.net>
+Subject: - gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch removed from -mm tree
+Date: Tue, 08 May 2007 22:40:09 -0600
+Message-ID: <200705090440.l494eBUT014564@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52020 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934593AbXEIEVI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 00:21:08 -0400
+	by vger.kernel.org with ESMTP id S1754410AbXEIEkm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 00:40:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     afs-implement-basic-file-write-support-fix
-has been added to the -mm tree.  Its filename is
-     afs-implement-basic-file-write-support-fix.patch
+     gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed powerpc fixes
+has been removed from the -mm tree.  Its filename was
+     gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: afs-implement-basic-file-write-support-fix
+Subject: gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed powerpc fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/afs/super.c: In function 'afs_parse_options':
-fs/afs/super.c:154: warning: passing argument 2 of 'match_token' discards qualifiers from pointer target type
-fs/afs/write.c: In function 'afs_writepages':
-fs/afs/write.c:626: warning: large integer implicitly truncated to unsigned type
-fs/afs/write.c: In function 'afs_file_write':
-fs/afs/write.c:729: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'size_t'
-fs/afs/write.c:743: warning: format '%ld' expects type 'long int', but argument 5 has type 'ssize_t'
-fs/afs/write.c:754: warning: format '%ld' expects type 'long int', but argument 5 has type 'ssize_t'
+Might be wrong.
 
-Cc: David Howells <dhowells@redhat.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/super.c |    2 +-
- fs/afs/write.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/powerpc/platforms/pseries/power.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/afs/super.c~afs-implement-basic-file-write-support-fix fs/afs/super.c
---- a/fs/afs/super.c~afs-implement-basic-file-write-support-fix
-+++ a/fs/afs/super.c
-@@ -67,7 +67,7 @@ enum {
- 	afs_opt_vol,
- };
+diff -puN arch/powerpc/platforms/pseries/power.c~gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes arch/powerpc/platforms/pseries/power.c
+--- a/arch/powerpc/platforms/pseries/power.c~gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes
++++ a/arch/powerpc/platforms/pseries/power.c
+@@ -28,13 +28,13 @@
  
--static const match_table_t afs_options_list = {
-+static match_table_t afs_options_list = {
- 	{ afs_opt_cell,		"cell=%s"	},
- 	{ afs_opt_rwpath,	"rwpath"	},
- 	{ afs_opt_vol,		"vol=%s"	},
-diff -puN fs/afs/write.c~afs-implement-basic-file-write-support-fix fs/afs/write.c
---- a/fs/afs/write.c~afs-implement-basic-file-write-support-fix
-+++ a/fs/afs/write.c
-@@ -623,7 +623,7 @@ int afs_writepages(struct address_space 
- 						    &next);
- 		mapping->writeback_index = next;
- 	} else if (wbc->range_start == 0 && wbc->range_end == LLONG_MAX) {
--		end = LLONG_MAX >> PAGE_CACHE_SHIFT;
-+		end = (pgoff_t)(LLONG_MAX >> PAGE_CACHE_SHIFT);
- 		ret = afs_writepages_region(mapping, wbc, 0, end, &next);
- 		if (wbc->nr_to_write > 0)
- 			mapping->writeback_index = next;
-@@ -726,7 +726,7 @@ ssize_t afs_file_write(struct kiocb *ioc
- 	size_t count = iov_length(iov, nr_segs);
- 	int ret;
+ unsigned long rtas_poweron_auto; /* default and normal state is 0 */
  
--	_enter("{%x.%u},{%lu},%lu,",
-+	_enter("{%x.%u},{%zu},%lu,",
- 	       vnode->fid.vid, vnode->fid.vnode, count, nr_segs);
- 
- 	if (IS_SWAPFILE(&vnode->vfs_inode)) {
-@@ -740,7 +740,7 @@ ssize_t afs_file_write(struct kiocb *ioc
- 
- 	result = generic_file_aio_write(iocb, iov, nr_segs, pos);
- 	if (IS_ERR_VALUE(result)) {
--		_leave(" = %ld", result);
-+		_leave(" = %zd", result);
- 		return result;
- 	}
- 
-@@ -751,7 +751,7 @@ ssize_t afs_file_write(struct kiocb *ioc
- 			result = ret;
- 	}
- 
--	_leave(" = %ld", result);
-+	_leave(" = %zd", result);
- 	return result;
+-static ssize_t auto_poweron_show(struct kset *kset, char *buf)
++static ssize_t auto_poweron_show(struct subsystem *subsys, char *buf)
+ {
+         return sprintf(buf, "%lu\n", rtas_poweron_auto);
  }
  
+ static ssize_t
+-auto_poweron_store(struct kset *kset, const char *buf, size_t n)
++auto_poweron_store(struct subsystem *subsys, const char *buf, size_t n)
+ {
+ 	int ret;
+ 	unsigned long ups_restart;
+@@ -72,7 +72,8 @@ static int __init pm_init(void)
+ {
+         int error = subsystem_register(&power_subsys);
+         if (!error)
+-                error = sysfs_create_group(&power_subsys.kobj, &attr_group);
++                error = sysfs_create_group(&power_subsys.kset.kobj,
++					&attr_group);
+         return error;
+ }
+ core_initcall(pm_init);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
