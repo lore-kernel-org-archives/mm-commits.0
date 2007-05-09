@@ -1,70 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - fix-spinlock-usage-in-hysdn_log_close.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:53:22 -0700
-Message-ID: <200705090253.l492rMLN009685@shell0.pdx.osdl.net>
+Subject: - use-mutex-instead-of-semaphore-in-capi-20-interface.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:53:27 -0700
+Message-ID: <200705090253.l492rRCa009700@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54214 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32904 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032062AbXEICx3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:29 -0400
+	by vger.kernel.org with ESMTP id S1032083AbXEICxc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthias.kaehlcke@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix spinlock usage in hysdn_log_close()
+     use mutex instead of semaphore in CAPI 2.0 interface
 has been removed from the -mm tree.  Its filename was
-     fix-spinlock-usage-in-hysdn_log_close.patch
+     use-mutex-instead-of-semaphore-in-capi-20-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix spinlock usage in hysdn_log_close()
+Subject: use mutex instead of semaphore in CAPI 2.0 interface
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Fix incorrect spinlock use in hysdn_log_close().  The function declared a
-spinlock on the stack and used it to 'protect' a shared driver structure. 
-
-The patch simply removes the useless code.
+The CAPI 2.0 interface uses a semaphore as mutex.  Use the mutex API instead
+of the (binary) semaphore.
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/hysdn_proclog.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/isdn/capi/capi.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
-diff -puN drivers/isdn/hysdn/hysdn_proclog.c~fix-spinlock-usage-in-hysdn_log_close drivers/isdn/hysdn/hysdn_proclog.c
---- a/drivers/isdn/hysdn/hysdn_proclog.c~fix-spinlock-usage-in-hysdn_log_close
-+++ a/drivers/isdn/hysdn/hysdn_proclog.c
-@@ -297,8 +297,6 @@ hysdn_log_close(struct inode *ino, struc
- 	struct procdata *pd;
- 	hysdn_card *card;
- 	int retval = 0;
--	unsigned long flags;
--	spinlock_t hysdn_lock = SPIN_LOCK_UNLOCKED;
+diff -puN drivers/isdn/capi/capi.c~use-mutex-instead-of-semaphore-in-capi-20-interface drivers/isdn/capi/capi.c
+--- a/drivers/isdn/capi/capi.c~use-mutex-instead-of-semaphore-in-capi-20-interface
++++ a/drivers/isdn/capi/capi.c
+@@ -18,6 +18,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/fs.h>
+ #include <linux/signal.h>
++#include <linux/mutex.h>
+ #include <linux/mm.h>
+ #include <linux/timer.h>
+ #include <linux/wait.h>
+@@ -146,7 +147,7 @@ struct capidev {
  
- 	lock_kernel();
- 	if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE) {
-@@ -308,7 +306,6 @@ hysdn_log_close(struct inode *ino, struc
- 		/* read access -> log/debug read, mark one further file as closed */
+ 	struct capincci *nccis;
  
- 		pd = NULL;
--		spin_lock_irqsave(&hysdn_lock, flags);
- 		inf = *((struct log_data **) filep->private_data);	/* get first log entry */
- 		if (inf)
- 			pd = (struct procdata *) inf->proc_ctrl;	/* still entries there */
-@@ -331,7 +328,6 @@ hysdn_log_close(struct inode *ino, struc
- 			inf->usage_cnt--;	/* decrement usage count for buffers */
- 			inf = inf->next;
+-	struct semaphore ncci_list_sem;
++	struct mutex ncci_list_mtx;
+ };
+ 
+ /* -------- global variables ---------------------------------------- */
+@@ -394,7 +395,7 @@ static struct capidev *capidev_alloc(voi
+ 	if (!cdev)
+ 		return NULL;
+ 
+-	init_MUTEX(&cdev->ncci_list_sem);
++	mutex_init(&cdev->ncci_list_mtx);
+ 	skb_queue_head_init(&cdev->recvqueue);
+ 	init_waitqueue_head(&cdev->recvwait);
+ 	write_lock_irqsave(&capidev_list_lock, flags);
+@@ -413,9 +414,9 @@ static void capidev_free(struct capidev 
+ 	}
+ 	skb_queue_purge(&cdev->recvqueue);
+ 
+-	down(&cdev->ncci_list_sem);
++	mutex_lock(&cdev->ncci_list_mtx);
+ 	capincci_free(cdev, 0xffffffff);
+-	up(&cdev->ncci_list_sem);
++	mutex_unlock(&cdev->ncci_list_mtx);
+ 
+ 	write_lock_irqsave(&capidev_list_lock, flags);
+ 	list_del(&cdev->list);
+@@ -602,15 +603,15 @@ static void capi_recv_message(struct cap
+ 	if (CAPIMSG_CMD(skb->data) == CAPI_CONNECT_B3_CONF) {
+ 		u16 info = CAPIMSG_U16(skb->data, 12); // Info field
+ 		if (info == 0) {
+-			down(&cdev->ncci_list_sem);
++			mutex_lock(&cdev->ncci_list_mtx);
+ 			capincci_alloc(cdev, CAPIMSG_NCCI(skb->data));
+-			up(&cdev->ncci_list_sem);
++			mutex_unlock(&cdev->ncci_list_mtx);
  		}
--		spin_unlock_irqrestore(&hysdn_lock, flags);
+ 	}
+ 	if (CAPIMSG_CMD(skb->data) == CAPI_CONNECT_B3_IND) {
+-		down(&cdev->ncci_list_sem);
++		mutex_lock(&cdev->ncci_list_mtx);
+ 		capincci_alloc(cdev, CAPIMSG_NCCI(skb->data));
+-		up(&cdev->ncci_list_sem);
++		mutex_unlock(&cdev->ncci_list_mtx);
+ 	}
+ 	spin_lock_irqsave(&workaround_lock, flags);
+ 	if (CAPIMSG_COMMAND(skb->data) != CAPI_DATA_B3) {
+@@ -751,9 +752,9 @@ capi_write(struct file *file, const char
+ 	CAPIMSG_SETAPPID(skb->data, cdev->ap.applid);
  
- 		if (pd)
- 			if (pd->if_used <= 0)	/* delete buffers if last file closed */
+ 	if (CAPIMSG_CMD(skb->data) == CAPI_DISCONNECT_B3_RESP) {
+-		down(&cdev->ncci_list_sem);
++		mutex_lock(&cdev->ncci_list_mtx);
+ 		capincci_free(cdev, CAPIMSG_NCCI(skb->data));
+-		up(&cdev->ncci_list_sem);
++		mutex_unlock(&cdev->ncci_list_mtx);
+ 	}
+ 
+ 	cdev->errcode = capi20_put_message(&cdev->ap, skb);
+@@ -938,9 +939,9 @@ capi_ioctl(struct inode *inode, struct f
+ 			if (copy_from_user(&ncci, argp, sizeof(ncci)))
+ 				return -EFAULT;
+ 
+-			down(&cdev->ncci_list_sem);
++			mutex_lock(&cdev->ncci_list_mtx);
+ 			if ((nccip = capincci_find(cdev, (u32) ncci)) == 0) {
+-				up(&cdev->ncci_list_sem);
++				mutex_unlock(&cdev->ncci_list_mtx);
+ 				return 0;
+ 			}
+ #ifdef CONFIG_ISDN_CAPI_MIDDLEWARE
+@@ -948,7 +949,7 @@ capi_ioctl(struct inode *inode, struct f
+ 				count += atomic_read(&mp->ttyopencount);
+ 			}
+ #endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
+-			up(&cdev->ncci_list_sem);
++			mutex_unlock(&cdev->ncci_list_mtx);
+ 			return count;
+ 		}
+ 		return 0;
+@@ -963,14 +964,14 @@ capi_ioctl(struct inode *inode, struct f
+ 			if (copy_from_user(&ncci, argp,
+ 					   sizeof(ncci)))
+ 				return -EFAULT;
+-			down(&cdev->ncci_list_sem);
++			mutex_lock(&cdev->ncci_list_mtx);
+ 			nccip = capincci_find(cdev, (u32) ncci);
+ 			if (!nccip || (mp = nccip->minorp) == 0) {
+-				up(&cdev->ncci_list_sem);
++				mutex_unlock(&cdev->ncci_list_mtx);
+ 				return -ESRCH;
+ 			}
+ 			unit = mp->minor;
+-			up(&cdev->ncci_list_sem);
++			mutex_unlock(&cdev->ncci_list_mtx);
+ 			return unit;
+ 		}
+ 		return 0;
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
