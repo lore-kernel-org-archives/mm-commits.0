@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-hwmon-switch-to-using-input_dev-devparent.patch added to -mm tree
-Date: Tue, 08 May 2007 20:54:42 -0700
-Message-ID: <200705090354.l493sg9D013802@shell0.pdx.osdl.net>
+Subject: + git-block-fixup.patch added to -mm tree
+Date: Tue, 08 May 2007 20:58:11 -0700
+Message-ID: <200705090358.l493wBTO013866@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43105 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753959AbXEIDyu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:54:50 -0400
+	by vger.kernel.org with ESMTP id S969611AbXEID6N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:58:13 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l493wBOC026493
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 8 May 2007 20:58:12 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dtor@insightbb.com, dtor@mail.ru
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     drivers/hwmon: switch to using input_dev->dev.parent
+     git-block-fixup
 has been added to the -mm tree.  Its filename is
-     drivers-hwmon-switch-to-using-input_dev-devparent.patch
+     git-block-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,61 +29,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/hwmon: switch to using input_dev->dev.parent
-From: Dmitry Torokhov <dtor@insightbb.com>
+Subject: git-block-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In preparation for struct class_device -> struct device input core
-conversion, switch to using input_dev->dev.parent when specifying device
-position in sysfs tree.
-
-Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/ams/ams-input.c |    2 +-
- drivers/hwmon/applesmc.c      |    2 +-
- drivers/hwmon/hdaps.c         |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ fs/bio.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/hwmon/ams/ams-input.c~drivers-hwmon-switch-to-using-input_dev-devparent drivers/hwmon/ams/ams-input.c
---- a/drivers/hwmon/ams/ams-input.c~drivers-hwmon-switch-to-using-input_dev-devparent
-+++ a/drivers/hwmon/ams/ams-input.c
-@@ -87,7 +87,7 @@ static void ams_input_enable(void)
- 	ams_info.idev->id.vendor = 0;
- 	ams_info.idev->open = ams_input_open;
- 	ams_info.idev->close = ams_input_close;
--	ams_info.idev->cdev.dev = &ams_info.of_dev->dev;
-+	ams_info.idev->dev.parent = &ams_info.of_dev->dev;
+diff -puN fs/bio.c~git-block-fixup fs/bio.c
+--- a/fs/bio.c~git-block-fixup
++++ a/fs/bio.c
+@@ -1193,12 +1193,7 @@ static void __init biovec_init_slabs(voi
  
- 	input_set_abs_params(ams_info.idev, ABS_X, -50, 50, 3, 0);
- 	input_set_abs_params(ams_info.idev, ABS_Y, -50, 50, 3, 0);
-diff -puN drivers/hwmon/applesmc.c~drivers-hwmon-switch-to-using-input_dev-devparent drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~drivers-hwmon-switch-to-using-input_dev-devparent
-+++ a/drivers/hwmon/applesmc.c
-@@ -1100,7 +1100,7 @@ static int applesmc_create_accelerometer
- 	/* initialize the input class */
- 	applesmc_idev->name = "applesmc";
- 	applesmc_idev->id.bustype = BUS_HOST;
--	applesmc_idev->cdev.dev = &pdev->dev;
-+	applesmc_idev->dev.parent = &pdev->dev;
- 	applesmc_idev->evbit[0] = BIT(EV_ABS);
- 	applesmc_idev->open = applesmc_idev_open;
- 	applesmc_idev->close = applesmc_idev_close;
-diff -puN drivers/hwmon/hdaps.c~drivers-hwmon-switch-to-using-input_dev-devparent drivers/hwmon/hdaps.c
---- a/drivers/hwmon/hdaps.c~drivers-hwmon-switch-to-using-input_dev-devparent
-+++ a/drivers/hwmon/hdaps.c
-@@ -574,7 +574,7 @@ static int __init hdaps_init(void)
+ static int __init init_bio(void)
+ {
+-<<<<<<< HEAD/fs/bio.c
+ 	bio_slab = KMEM_CACHE(bio, SLAB_HWCACHE_ALIGN|SLAB_PANIC);
+-=======
+-	bio_slab = kmem_cache_create("bio", sizeof(struct bio), 0,
+-				SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL, NULL);
+->>>>>>> /fs/bio.c
  
- 	/* initialize the input class */
- 	hdaps_idev->name = "hdaps";
--	hdaps_idev->cdev.dev = &pdev->dev;
-+	hdaps_idev->dev.parent = &pdev->dev;
- 	hdaps_idev->evbit[0] = BIT(EV_ABS);
- 	input_set_abs_params(hdaps_idev, ABS_X,
- 			-256, 256, HDAPS_INPUT_FUZZ, HDAPS_INPUT_FLAT);
+ 	biovec_init_slabs();
+ 
 _
 
-Patches currently in -mm which might be from dtor@insightbb.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-hwmon-switch-to-using-input_dev-devparent.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
