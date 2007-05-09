@@ -1,94 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - slub-consolidate-trace-code.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:07 -0700
-Message-ID: <200705092148.l49Lm7W3002545@shell0.pdx.osdl.net>
+Subject: - slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:09 -0700
+Message-ID: <200705092148.l49Lm9Hx002552@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57450 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757070AbXEIVsJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:09 -0400
+	by vger.kernel.org with ESMTP id S1757203AbXEIVsL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: consolidate trace code
+     SLUB: move tracking definitions and check_valid_pointer() away from debug code
 has been removed from the -mm tree.  Its filename was
-     slub-consolidate-trace-code.patch
+     slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: consolidate trace code
+Subject: SLUB: move tracking definitions and check_valid_pointer() away from debug code
 From: Christoph Lameter <clameter@sgi.com>
 
-Trace in both slab_alloc and slab_free has a lot of common code.  Use a single
-function for both.
+Move the tracking definitions and the check_valid_pointer() function away from
+the debugging related functions.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ mm/slub.c |   58 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 29 insertions(+), 29 deletions(-)
 
-diff -puN mm/slub.c~slub-consolidate-trace-code mm/slub.c
---- a/mm/slub.c~slub-consolidate-trace-code
+diff -puN mm/slub.c~slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code mm/slub.c
+--- a/mm/slub.c~slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code
 +++ a/mm/slub.c
-@@ -805,6 +805,22 @@ fail:
- 	return 0;
+@@ -195,6 +195,18 @@ static enum {
+ static DECLARE_RWSEM(slub_lock);
+ LIST_HEAD(slab_caches);
+ 
++/*
++ * Tracking user of a slab.
++ */
++struct track {
++	void *addr;		/* Called from address */
++	int cpu;		/* Was running on cpu */
++	int pid;		/* Pid context */
++	unsigned long when;	/* When did the operation occur */
++};
++
++enum track_item { TRACK_ALLOC, TRACK_FREE };
++
+ #ifdef CONFIG_SYSFS
+ static int sysfs_slab_add(struct kmem_cache *);
+ static int sysfs_slab_alias(struct kmem_cache *, const char *);
+@@ -223,6 +235,23 @@ static inline struct kmem_cache_node *ge
+ #endif
  }
  
-+static void trace(struct kmem_cache *s, struct page *page, void *object, int alloc)
++static inline int check_valid_pointer(struct kmem_cache *s,
++				struct page *page, const void *object)
 +{
-+	if (s->flags & SLAB_TRACE) {
-+		printk(KERN_INFO "TRACE %s %s 0x%p inuse=%d fp=0x%p\n",
-+			s->name,
-+			alloc ? "alloc" : "free",
-+			object, page->inuse,
-+			page->freelist);
++	void *base;
 +
-+		if (!alloc)
-+			print_section("Object", (void *)object, s->objsize);
++	if (!object)
++		return 1;
 +
-+		dump_stack();
++	base = page_address(page);
++	if (object < base || object >= base + s->objects * s->size ||
++		(object - base) % s->size) {
++		return 0;
 +	}
++
++	return 1;
 +}
 +
  /*
-  * Slab allocation and freeing
-  */
-@@ -1289,12 +1305,7 @@ debug:
- 		goto another_slab;
- 	if (s->flags & SLAB_STORE_USER)
- 		set_track(s, object, TRACK_ALLOC, addr);
--	if (s->flags & SLAB_TRACE) {
--		printk(KERN_INFO "TRACE %s alloc 0x%p inuse=%d fp=0x%p\n",
--			s->name, object, page->inuse,
--			page->freelist);
--		dump_stack();
--	}
-+	trace(s, page, object, 1);
- 	init_object(s, object, 1);
- 	goto have_object;
+  * Slow version of get and set free pointer.
+  *
+@@ -290,18 +319,6 @@ static void print_section(char *text, u8
+ 	}
  }
-@@ -1379,13 +1390,7 @@ debug:
- 		remove_full(s, page);
- 	if (s->flags & SLAB_STORE_USER)
- 		set_track(s, x, TRACK_FREE, addr);
--	if (s->flags & SLAB_TRACE) {
--		printk(KERN_INFO "TRACE %s free 0x%p inuse=%d fp=0x%p\n",
--			s->name, object, page->inuse,
--			page->freelist);
--		print_section("Object", (void *)object, s->objsize);
--		dump_stack();
--	}
-+	trace(s, page, object, 0);
- 	init_object(s, object, 0);
- 	goto checks_ok;
+ 
+-/*
+- * Tracking user of a slab.
+- */
+-struct track {
+-	void *addr;		/* Called from address */
+-	int cpu;		/* Was running on cpu */
+-	int pid;		/* Pid context */
+-	unsigned long when;	/* When did the operation occur */
+-};
+-
+-enum track_item { TRACK_ALLOC, TRACK_FREE };
+-
+ static struct track *get_track(struct kmem_cache *s, void *object,
+ 	enum track_item alloc)
+ {
+@@ -436,23 +453,6 @@ static int check_bytes(u8 *start, unsign
+ 	return 1;
  }
+ 
+-static inline int check_valid_pointer(struct kmem_cache *s,
+-				struct page *page, const void *object)
+-{
+-	void *base;
+-
+-	if (!object)
+-		return 1;
+-
+-	base = page_address(page);
+-	if (object < base || object >= base + s->objects * s->size ||
+-		(object - base) % s->size) {
+-		return 0;
+-	}
+-
+-	return 1;
+-}
+-
+ /*
+  * Object layout:
+  *
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
