@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dm-crypt-add-null-iv.patch added to -mm tree
-Date: Tue, 08 May 2007 17:54:44 -0700
-Message-ID: <200705090054.l490siK1006370@shell0.pdx.osdl.net>
+Subject: + dm-log-report-fault-status.patch added to -mm tree
+Date: Tue, 08 May 2007 17:54:52 -0700
+Message-ID: <200705090054.l490sqYu006388@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53574 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43243 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968414AbXEIAzK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:55:10 -0400
+	by vger.kernel.org with ESMTP id S968414AbXEIAzB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:55:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ludwig.nussel@suse.de, agk@redhat.com, christophe@saout.de
+Cc: jbrassow@redhat.com, agk@redhat.com
 
 
 The patch titled
-     dm crypt: add null iv
+     dm log: report fault status
 has been added to the -mm tree.  Its filename is
-     dm-crypt-add-null-iv.patch
+     dm-log-report-fault-status.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dm crypt: add null iv
-From: Ludwig Nussel <ludwig.nussel@suse.de>
+Subject: dm log: report fault status
+From: Jonathan E Brassow <jbrassow@redhat.com>
 
-Add a new IV generation method 'null' to read old filesystem images created
-with SuSE's loop_fish2 module.
+This patch reports the status of the log device so that userspace can detect
+the error and take appropriate action.
 
-Signed-off-by: Ludwig Nussel <ludwig.nussel@suse.de>
-Acked-By: Christophe Saout <christophe@saout.de>
+Signed-off-by: Jonathan E Brassow <jbrassow@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |   18 +++++++++++++++++-
- 1 files changed, 17 insertions(+), 1 deletion(-)
+ drivers/md/dm-log.c   |    7 ++++---
+ drivers/md/dm-raid1.c |   11 +++++++----
+ 2 files changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN drivers/md/dm-crypt.c~dm-crypt-add-null-iv drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~dm-crypt-add-null-iv
-+++ a/drivers/md/dm-crypt.c
-@@ -121,6 +121,9 @@ static void clone_init(struct crypt_io *
-  * benbi: the 64-bit "big-endian 'narrow block'-count", starting at 1
-  *        (needed for LRW-32-AES and possible other narrow block modes)
-  *
-+ * null: the initial vector is always zero.  Provides compatibility with
-+ *       obsolete loop_fish2 devices.  Do not use for new devices.
-+ *
-  * plumb: unimplemented, see:
-  * http://article.gmane.org/gmane.linux.kernel.device-mapper.dm-crypt/454
-  */
-@@ -257,6 +260,13 @@ static int crypt_iv_benbi_gen(struct cry
- 	return 0;
- }
+diff -puN drivers/md/dm-log.c~dm-log-report-fault-status drivers/md/dm-log.c
+--- a/drivers/md/dm-log.c~dm-log-report-fault-status
++++ a/drivers/md/dm-log.c
+@@ -615,6 +615,7 @@ static int core_status(struct dirty_log 
  
-+static int crypt_iv_null_gen(struct crypt_config *cc, u8 *iv, sector_t sector)
-+{
-+	memset(iv, 0, cc->iv_size);
-+
-+	return 0;
-+}
-+
- static struct crypt_iv_operations crypt_iv_plain_ops = {
- 	.generator = crypt_iv_plain_gen
- };
-@@ -273,6 +283,10 @@ static struct crypt_iv_operations crypt_
- 	.generator = crypt_iv_benbi_gen
- };
+ 	switch(status) {
+ 	case STATUSTYPE_INFO:
++		DMEMIT("1 %s", log->type->name);
+ 		break;
  
-+static struct crypt_iv_operations crypt_iv_null_ops = {
-+	.generator = crypt_iv_null_gen
-+};
-+
- static int
- crypt_convert_scatterlist(struct crypt_config *cc, struct scatterlist *out,
-                           struct scatterlist *in, unsigned int length,
-@@ -803,6 +817,8 @@ static int crypt_ctr(struct dm_target *t
- 		cc->iv_gen_ops = &crypt_iv_essiv_ops;
- 	else if (strcmp(ivmode, "benbi") == 0)
- 		cc->iv_gen_ops = &crypt_iv_benbi_ops;
-+	else if (strcmp(ivmode, "null") == 0)
-+		cc->iv_gen_ops = &crypt_iv_null_ops;
- 	else {
- 		ti->error = "Invalid IV mode";
- 		goto bad2;
-@@ -1030,7 +1046,7 @@ error:
+ 	case STATUSTYPE_TABLE:
+@@ -630,17 +631,17 @@ static int disk_status(struct dirty_log 
+ 		       char *result, unsigned int maxlen)
+ {
+ 	int sz = 0;
+-	char buffer[16];
+ 	struct log_c *lc = log->context;
  
- static struct target_type crypt_target = {
- 	.name   = "crypt",
--	.version= {1, 3, 0},
-+	.version= {1, 5, 0},
- 	.module = THIS_MODULE,
- 	.ctr    = crypt_ctr,
- 	.dtr    = crypt_dtr,
+ 	switch(status) {
+ 	case STATUSTYPE_INFO:
++		DMEMIT("3 %s %s %c", log->type->name, lc->log_dev->name,
++		       lc->log_dev_failed ? 'D' : 'A');
+ 		break;
+ 
+ 	case STATUSTYPE_TABLE:
+-		format_dev_t(buffer, lc->log_dev->bdev->bd_dev);
+ 		DMEMIT("%s %u %s %u ", log->type->name,
+-		       lc->sync == DEFAULTSYNC ? 2 : 3, buffer,
++		       lc->sync == DEFAULTSYNC ? 2 : 3, lc->log_dev->name,
+ 		       lc->region_size);
+ 		DMEMIT_SYNC;
+ 	}
+diff -puN drivers/md/dm-raid1.c~dm-log-report-fault-status drivers/md/dm-raid1.c
+--- a/drivers/md/dm-raid1.c~dm-log-report-fault-status
++++ a/drivers/md/dm-raid1.c
+@@ -1205,11 +1205,9 @@ static void mirror_resume(struct dm_targ
+ static int mirror_status(struct dm_target *ti, status_type_t type,
+ 			 char *result, unsigned int maxlen)
+ {
+-	unsigned int m, sz;
++	unsigned int m, sz = 0;
+ 	struct mirror_set *ms = (struct mirror_set *) ti->private;
+ 
+-	sz = ms->rh.log->type->status(ms->rh.log, type, result, maxlen);
+-
+ 	switch (type) {
+ 	case STATUSTYPE_INFO:
+ 		DMEMIT("%d ", ms->nr_mirrors);
+@@ -1220,9 +1218,14 @@ static int mirror_status(struct dm_targe
+ 			(unsigned long long)ms->rh.log->type->
+ 				get_sync_count(ms->rh.log),
+ 			(unsigned long long)ms->nr_regions);
++
++		sz = ms->rh.log->type->status(ms->rh.log, type, result, maxlen);
++
+ 		break;
+ 
+ 	case STATUSTYPE_TABLE:
++		sz = ms->rh.log->type->status(ms->rh.log, type, result, maxlen);
++
+ 		DMEMIT("%d", ms->nr_mirrors);
+ 		for (m = 0; m < ms->nr_mirrors; m++)
+ 			DMEMIT(" %s %llu", ms->mirror[m].dev->name,
+@@ -1234,7 +1237,7 @@ static int mirror_status(struct dm_targe
+ 
+ static struct target_type mirror_target = {
+ 	.name	 = "mirror",
+-	.version = {1, 0, 2},
++	.version = {1, 0, 3},
+ 	.module	 = THIS_MODULE,
+ 	.ctr	 = mirror_ctr,
+ 	.dtr	 = mirror_dtr,
 _
 
-Patches currently in -mm which might be from ludwig.nussel@suse.de are
+Patches currently in -mm which might be from jbrassow@redhat.com are
 
-dm-crypt-add-null-iv.patch
+dm-log-fault-detection.patch
+dm-log-report-fault-status.patch
+dm-raid1-add-handle_errors-feature-flag.patch
+dm-raid1-fix-to-commit-pending-clear-region-requests.patch
+dm-raid1-switch-rh_in_sync-to-blocking-in-do_reads.patch
+dm-log-fix-resume-failed-log-device.patch
