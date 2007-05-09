@@ -1,97 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - unify-queue_delayed_work-and-queue_delayed_work_on.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:51:59 -0700
-Message-ID: <200705092151.l49LpxPA002949@shell0.pdx.osdl.net>
+Subject: - worker_thread-dont-play-with-signals.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:52:10 -0700
+Message-ID: <200705092152.l49LqAav002975@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37984 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758876AbXEIVwa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:30 -0400
+	by vger.kernel.org with ESMTP id S1758815AbXEIVwe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unify queue_delayed_work() and queue_delayed_work_on()
+     worker_thread: don't play with signals
 has been removed from the -mm tree.  Its filename was
-     unify-queue_delayed_work-and-queue_delayed_work_on.patch
+     worker_thread-dont-play-with-signals.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: unify queue_delayed_work() and queue_delayed_work_on()
+Subject: worker_thread: don't play with signals
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Change queue_delayed_work() to use queue_delayed_work_on() to avoid the code
-duplication (saves 133 bytes).
+worker_thread() doesn't need to "Block and flush all signals", this was
+already done by its caller, kthread().
 
-Q: queue_delayed_work() enqueues &dwork->work directly when delay == 0, why?
-
-[jirislaby@gmail.com: oops fix]
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   32 ++++++++++----------------------
- 1 file changed, 10 insertions(+), 22 deletions(-)
+ kernel/workqueue.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN kernel/workqueue.c~unify-queue_delayed_work-and-queue_delayed_work_on kernel/workqueue.c
---- a/kernel/workqueue.c~unify-queue_delayed_work-and-queue_delayed_work_on
+diff -puN kernel/workqueue.c~worker_thread-dont-play-with-signals kernel/workqueue.c
+--- a/kernel/workqueue.c~worker_thread-dont-play-with-signals
 +++ a/kernel/workqueue.c
-@@ -180,28 +180,11 @@ void delayed_work_timer_fn(unsigned long
- int fastcall queue_delayed_work(struct workqueue_struct *wq,
- 			struct delayed_work *dwork, unsigned long delay)
- {
--	int ret = 0;
--	struct timer_list *timer = &dwork->timer;
--	struct work_struct *work = &dwork->work;
+@@ -290,18 +290,11 @@ static int worker_thread(void *__cwq)
+ 	struct cpu_workqueue_struct *cwq = __cwq;
+ 	DEFINE_WAIT(wait);
+ 	struct k_sigaction sa;
+-	sigset_t blocked;
+ 
+ 	if (!cwq->wq->freezeable)
+ 		current->flags |= PF_NOFREEZE;
+ 
+ 	set_user_nice(current, -5);
 -
--	timer_stats_timer_set_start_info(timer);
-+	timer_stats_timer_set_start_info(&dwork->timer);
- 	if (delay == 0)
--		return queue_work(wq, work);
+-	/* Block and flush all signals */
+-	sigfillset(&blocked);
+-	sigprocmask(SIG_BLOCK, &blocked, NULL);
+-	flush_signals(current);
 -
--	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
--		BUG_ON(timer_pending(timer));
--		BUG_ON(!list_empty(&work->entry));
-+		return queue_work(wq, &dwork->work);
- 
--		/* This stores cwq for the moment, for the timer_fn */
--		set_wq_data(work,
--			per_cpu_ptr(wq->cpu_wq, raw_smp_processor_id()));
--		timer->expires = jiffies + delay;
--		timer->data = (unsigned long)dwork;
--		timer->function = delayed_work_timer_fn;
--		add_timer(timer);
--		ret = 1;
--	}
--	return ret;
-+	return queue_delayed_work_on(-1, wq, dwork, delay);
- }
- EXPORT_SYMBOL_GPL(queue_delayed_work);
- 
-@@ -227,11 +210,16 @@ int queue_delayed_work_on(int cpu, struc
- 
- 		/* This stores cwq for the moment, for the timer_fn */
- 		set_wq_data(work,
--			per_cpu_ptr(wq->cpu_wq, raw_smp_processor_id()));
-+			per_cpu_ptr(wq->cpu_wq, wq->singlethread ?
-+				singlethread_cpu : raw_smp_processor_id()));
- 		timer->expires = jiffies + delay;
- 		timer->data = (unsigned long)dwork;
- 		timer->function = delayed_work_timer_fn;
--		add_timer_on(timer, cpu);
-+
-+		if (unlikely(cpu >= 0))
-+			add_timer_on(timer, cpu);
-+		else
-+			add_timer(timer);
- 		ret = 1;
- 	}
- 	return ret;
+ 	/*
+ 	 * We inherited MPOL_INTERLEAVE from the booting kernel.
+ 	 * Set MPOL_DEFAULT to insure node local allocations.
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
