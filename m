@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dm-crypt-use-smaller-bvecs-in-clones.patch added to -mm tree
-Date: Tue, 08 May 2007 17:54:42 -0700
-Message-ID: <200705090054.l490sgl1006367@shell0.pdx.osdl.net>
+Subject: + dm-raid1-add-handle_errors-feature-flag.patch added to -mm tree
+Date: Tue, 08 May 2007 17:54:54 -0700
+Message-ID: <200705090054.l490ssGY006394@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55882 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966826AbXEIAyy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:54:54 -0400
+	by vger.kernel.org with ESMTP id S968375AbXEIAzE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:55:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olaf.kirch@oracle.com, agk@redhat.com, jens.axboe@oracle.com
+Cc: jbrassow@redhat.com, agk@redhat.com
 
 
 The patch titled
-     dm crypt: use smaller bvecs in clones
+     dm raid1: add handle_errors feature flag
 has been added to the -mm tree.  Its filename is
-     dm-crypt-use-smaller-bvecs-in-clones.patch
+     dm-raid1-add-handle_errors-feature-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,119 +25,150 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dm crypt: use smaller bvecs in clones
-From: Olaf Kirch <olaf.kirch@oracle.com>
+Subject: dm raid1: add handle_errors feature flag
+From: Jonathan E Brassow <jbrassow@redhat.com>
 
-Allocate smaller clones
+This patch adds the ability to specify desired features in the mirror
+constructor/mapping table.
 
-With the previous dm-crypt fixes, there is no need for the clone bios to have
-the same bvec size as the original - we just need to make them big enough for
-the remaining number of pages.  The only requirement is that we clear the
-"out" index in convert_context, so that crypt_convert starts storing data at
-the right position within the clone bio.
+The first feature of interest is "handle_errors".  Currently, mirroring will
+ignore any I/O errors from the devices.  Subsequent patches will check for
+this flag and handle the errors.  If flag/feature is not present, mirror will
+do nothing - maintaining backwards compatibility.
 
-Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
+Signed-off-by: Jonathan E Brassow <jbrassow@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |   29 ++++++++---------------------
- 1 files changed, 8 insertions(+), 21 deletions(-)
+ drivers/md/dm-raid1.c |   65 ++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 63 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/dm-crypt.c~dm-crypt-use-smaller-bvecs-in-clones drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~dm-crypt-use-smaller-bvecs-in-clones
-+++ a/drivers/md/dm-crypt.c
-@@ -379,8 +379,7 @@ static int crypt_convert(struct crypt_co
-  * This should never violate the device limitations
-  * May return a smaller bio when running out of pages
-  */
--static struct bio *crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
--				      unsigned int *bio_vec_idx)
-+static struct bio *crypt_alloc_buffer(struct crypt_io *io, unsigned int size)
- {
- 	struct crypt_config *cc = io->target->private;
- 	struct bio *clone;
-@@ -394,16 +393,7 @@ static struct bio *crypt_alloc_buffer(st
+diff -puN drivers/md/dm-raid1.c~dm-raid1-add-handle_errors-feature-flag drivers/md/dm-raid1.c
+--- a/drivers/md/dm-raid1.c~dm-raid1-add-handle_errors-feature-flag
++++ a/drivers/md/dm-raid1.c
+@@ -22,6 +22,8 @@
  
- 	clone_init(io, clone);
+ #define DM_MSG_PREFIX "raid1"
  
--	/* if the last bio was not complete, continue where that one ended */
--	clone->bi_idx = *bio_vec_idx;
--	clone->bi_vcnt = *bio_vec_idx;
--	clone->bi_size = 0;
--	clone->bi_flags &= ~(1 << BIO_SEG_VALID);
--
--	/* clone->bi_idx pages have already been allocated */
--	size -= clone->bi_idx * PAGE_SIZE;
--
--	for (i = clone->bi_idx; i < nr_iovecs; i++) {
-+	for (i = 0; i < nr_iovecs; i++) {
- 		struct bio_vec *bv = bio_iovec_idx(clone, i);
++#define DM_RAID1_HANDLE_ERRORS 0x01
++
+ static DECLARE_WAIT_QUEUE_HEAD(_kmirrord_recovery_stopped);
  
- 		bv->bv_page = mempool_alloc(cc->page_pool, gfp_mask);
-@@ -415,7 +405,7 @@ static struct bio *crypt_alloc_buffer(st
- 		 * return a partially allocated bio, the caller will then try
- 		 * to allocate additional bios while submitting this partial bio
- 		 */
--		if ((i - clone->bi_idx) == (MIN_BIO_PAGES - 1))
-+		if (i == (MIN_BIO_PAGES - 1))
- 			gfp_mask = (gfp_mask | __GFP_NOWARN) & ~__GFP_WAIT;
+ /*-----------------------------------------------------------------
+@@ -118,6 +120,7 @@ struct mirror_set {
+ 	struct list_head list;
+ 	struct region_hash rh;
+ 	struct kcopyd_client *kcopyd_client;
++	uint64_t features;
  
- 		bv->bv_offset = 0;
-@@ -434,12 +424,6 @@ static struct bio *crypt_alloc_buffer(st
- 		return NULL;
- 	}
- 
--	/*
--	 * Remember the last bio_vec allocated to be able
--	 * to correctly continue after the splitting.
--	 */
--	*bio_vec_idx = clone->bi_vcnt;
--
- 	return clone;
+ 	spinlock_t lock;	/* protects the next two lists */
+ 	struct bio_list reads;
+@@ -1010,14 +1013,54 @@ static struct dirty_log *create_dirty_lo
+ 	return dl;
  }
  
-@@ -597,7 +581,6 @@ static void process_write(struct crypt_i
- 	struct convert_context ctx;
- 	unsigned remaining = base_bio->bi_size;
- 	sector_t sector = base_bio->bi_sector - io->target->begin;
--	unsigned bvec_idx = 0;
- 
- 	atomic_inc(&io->pending);
- 
-@@ -608,13 +591,14 @@ static void process_write(struct crypt_i
- 	 * so repeat the whole process until all the data can be handled.
- 	 */
- 	while (remaining) {
--		clone = crypt_alloc_buffer(io, base_bio->bi_size, &bvec_idx);
-+		clone = crypt_alloc_buffer(io, remaining);
- 		if (unlikely(!clone)) {
- 			dec_pending(io, -ENOMEM);
- 			return;
- 		}
- 
- 		ctx.bio_out = clone;
-+		ctx.idx_out = 0;
- 
- 		if (unlikely(crypt_convert(cc, &ctx) < 0)) {
- 			crypt_free_buffer_pages(cc, clone, clone->bi_size);
-@@ -623,6 +607,9 @@ static void process_write(struct crypt_i
- 			return;
- 		}
- 
-+		/* crypt_convert should have filled the clone bio */
-+		BUG_ON(ctx.idx_out < clone->bi_vcnt);
++static int parse_features(struct mirror_set *ms, unsigned argc, char **argv,
++			  unsigned *args_used)
++{
++	unsigned num_features;
++	struct dm_target *ti = ms->ti;
 +
- 		clone->bi_sector = cc->start + sector;
- 		remaining -= clone->bi_size;
- 		sector += bio_sectors(clone);
++	*args_used = 0;
++
++	if (!argc)
++		return 0;
++
++	if (sscanf(argv[0], "%u", &num_features) != 1) {
++		ti->error = "Invalid number of features";
++		return -EINVAL;
++	}
++
++	argc--;
++	argv++;
++	(*args_used)++;
++
++	if (num_features > argc) {
++		ti->error = "Not enough arguments to support feature count";
++		return -EINVAL;
++	}
++
++	if (!strcmp("handle_errors", argv[0]))
++		ms->features |= DM_RAID1_HANDLE_ERRORS;
++	else {
++		ti->error = "Unrecognised feature requested";
++		return -EINVAL;
++	}
++
++	(*args_used)++;
++
++	return 0;
++}
++
+ /*
+  * Construct a mirror mapping:
+  *
+  * log_type #log_params <log_params>
+  * #mirrors [mirror_path offset]{2,}
++ * [#features <features>]
+  *
+  * log_type is "core" or "disk"
+  * #log_params is between 1 and 3
++ *
++ * If present, features must be "handle_errors".
+  */
+ #define DM_IO_PAGES 64
+ static int mirror_ctr(struct dm_target *ti, unsigned int argc, char **argv)
+@@ -1043,8 +1086,8 @@ static int mirror_ctr(struct dm_target *
+ 
+ 	argv++, argc--;
+ 
+-	if (argc != nr_mirrors * 2) {
+-		ti->error = "Wrong number of mirror arguments";
++	if (argc < nr_mirrors * 2) {
++		ti->error = "Too few mirror arguments";
+ 		dm_destroy_dirty_log(dl);
+ 		return -EINVAL;
+ 	}
+@@ -1077,6 +1120,21 @@ static int mirror_ctr(struct dm_target *
+ 	}
+ 	INIT_WORK(&ms->kmirrord_work, do_mirror);
+ 
++	r = parse_features(ms, argc, argv, &args_used);
++	if (r) {
++		free_context(ms, ti, ms->nr_mirrors);
++		return r;
++	}
++
++	argv += args_used;
++	argc -= args_used;
++
++	if (argc) {
++		ti->error = "Too many mirror arguments";
++		free_context(ms, ti, ms->nr_mirrors);
++		return -EINVAL;
++	}
++
+ 	r = kcopyd_client_create(DM_IO_PAGES, &ms->kcopyd_client);
+ 	if (r) {
+ 		destroy_workqueue(ms->kmirrord_wq);
+@@ -1230,6 +1288,9 @@ static int mirror_status(struct dm_targe
+ 		for (m = 0; m < ms->nr_mirrors; m++)
+ 			DMEMIT(" %s %llu", ms->mirror[m].dev->name,
+ 				(unsigned long long)ms->mirror[m].offset);
++
++		if (ms->features & DM_RAID1_HANDLE_ERRORS)
++			DMEMIT(" 1 handle_errors");
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from olaf.kirch@oracle.com are
+Patches currently in -mm which might be from jbrassow@redhat.com are
 
-origin.patch
-dm-crypt-fix-call-to-clone_init.patch
-dm-crypt-fix-avoid-cloned-bio-ref-after-free.patch
-dm-crypt-fix-remove-first_clone.patch
-dm-crypt-use-smaller-bvecs-in-clones.patch
+dm-log-fault-detection.patch
+dm-log-report-fault-status.patch
+dm-raid1-add-handle_errors-feature-flag.patch
+dm-raid1-fix-to-commit-pending-clear-region-requests.patch
+dm-raid1-switch-rh_in_sync-to-blocking-in-do_reads.patch
+dm-log-fix-resume-failed-log-device.patch
