@@ -1,64 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - codingstyle-start-flamewar-about-use-of-braces.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:50:53 -0700
-Message-ID: <200705090250.l492orcw009399@shell0.pdx.osdl.net>
+Subject: - check-privileges-before-setting-mount-propagation.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:50:59 -0700
+Message-ID: <200705090250.l492oxLF009409@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48715 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970031AbXEICvE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:04 -0400
+	by vger.kernel.org with ESMTP id S1032120AbXEICvL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oliver@neukum.org, oneukum@suse.de, tilman@imap.cc, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CodingStyle: start flamewar about use of braces
+     check privileges before setting mount propagation
 has been removed from the -mm tree.  Its filename was
-     codingstyle-start-flamewar-about-use-of-braces.patch
+     check-privileges-before-setting-mount-propagation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CodingStyle: start flamewar about use of braces
-From: Oliver Neukum <oliver@neukum.org>
+Subject: check privileges before setting mount propagation
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Signed-off-by: Oliver Neukum <oneukum@suse.de>
-Cc: Tilman Schmidt <tilman@imap.cc>
+There's a missing check for CAP_SYS_ADMIN in do_change_type().
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/CodingStyle |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ fs/namespace.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN Documentation/CodingStyle~codingstyle-start-flamewar-about-use-of-braces Documentation/CodingStyle
---- a/Documentation/CodingStyle~codingstyle-start-flamewar-about-use-of-braces
-+++ a/Documentation/CodingStyle
-@@ -160,6 +160,21 @@ supply of new-lines on your screen is no
- 25-line terminal screens here), you have more empty lines to put
- comments on.
+diff -puN fs/namespace.c~check-privileges-before-setting-mount-propagation fs/namespace.c
+--- a/fs/namespace.c~check-privileges-before-setting-mount-propagation
++++ a/fs/namespace.c
+@@ -886,6 +886,9 @@ static int do_change_type(struct nameida
+ 	int recurse = flag & MS_REC;
+ 	int type = flag & ~MS_REC;
  
-+Do not unnecessarily use braces where a single statement will do.
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
 +
-+if (condition)
-+	action();
-+
-+This does not apply if one branch of a conditional statement is a single
-+statement. Use braces in both branches.
-+
-+if (condition) {
-+	do_this();
-+	do_that();
-+} else {
-+	otherwise();
-+}
-+
- 		3.1:  Spaces
+ 	if (nd->dentry != nd->mnt->mnt_root)
+ 		return -EINVAL;
  
- Linux kernel style for use of spaces depends (mostly) on
 _
 
-Patches currently in -mm which might be from oliver@neukum.org are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
+split-mmap.patch
+only-allow-nonlinear-vmas-for-ram-backed-filesystems.patch
+uml-turn-build-warnings-into-comments.patch
+consolidate-generic_writepages-and-mpage_writepages.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
