@@ -1,90 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - module-use-krealloc.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:45:14 -0700
-Message-ID: <200705090245.l492jEgH008718@shell0.pdx.osdl.net>
+Subject: - reiserfs-shrink-superblock-if-no-xattrs.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:45:11 -0700
+Message-ID: <200705090245.l492jBJJ008713@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49540 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968787AbXEICpW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:22 -0400
+	by vger.kernel.org with ESMTP id S969574AbXEICpX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, reiserfs-dev@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     module: use krealloc
+     reiserfs: shrink superblock if no xattrs
 has been removed from the -mm tree.  Its filename was
-     module-use-krealloc.patch
+     reiserfs-shrink-superblock-if-no-xattrs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: module: use krealloc
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: reiserfs: shrink superblock if no xattrs
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-This converts an open-coded krealloc() to use the shiny new API.
+This makes in-core superblock fit into one cacheline here.
 
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Before:
+    struct dentry *            xattr_root;           /*   124     4 */
+    /* --- cacheline 1 boundary (128 bytes) --- */
+    struct rw_semaphore        xattr_dir_sem;        /*   128    12 */
+    int                        j_errno;              /*   140     4 */
+    }; /* size: 144, cachelines: 2 */
+       /* sum members: 142, holes: 1, sum holes: 2 */
+       /* last cacheline: 16 bytes */
+
+After:
+    int                        j_errno;              /*   124     4 */
+    /* --- cacheline 1 boundary (128 bytes) --- */
+    }; /* size: 128, cachelines: 1 */
+       /* sum members: 126, holes: 1, sum holes: 2 */
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <reiserfs-dev@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/reiserfs/super.c            |    6 ++++--
+ include/linux/reiserfs_fs_sb.h |    3 ++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN kernel/module.c~module-use-krealloc kernel/module.c
---- a/kernel/module.c~module-use-krealloc
-+++ a/kernel/module.c
-@@ -310,14 +310,14 @@ static int split_block(unsigned int i, u
+diff -puN fs/reiserfs/super.c~reiserfs-shrink-superblock-if-no-xattrs fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~reiserfs-shrink-superblock-if-no-xattrs
++++ a/fs/reiserfs/super.c
+@@ -433,12 +433,13 @@ int remove_save_link(struct inode *inode
+ static void reiserfs_kill_sb(struct super_block *s)
  {
- 	/* Reallocation required? */
- 	if (pcpu_num_used + 1 > pcpu_num_allocated) {
--		int *new = kmalloc(sizeof(new[0]) * pcpu_num_allocated*2,
--				   GFP_KERNEL);
-+		int *new;
-+
-+		new = krealloc(pcpu_size, sizeof(new[0])*pcpu_num_allocated*2,
-+			       GFP_KERNEL);
- 		if (!new)
- 			return 0;
+ 	if (REISERFS_SB(s)) {
++#ifdef CONFIG_REISERFS_FS_XATTR
+ 		if (REISERFS_SB(s)->xattr_root) {
+ 			d_invalidate(REISERFS_SB(s)->xattr_root);
+ 			dput(REISERFS_SB(s)->xattr_root);
+ 			REISERFS_SB(s)->xattr_root = NULL;
+ 		}
+-
++#endif
+ 		if (REISERFS_SB(s)->priv_root) {
+ 			d_invalidate(REISERFS_SB(s)->priv_root);
+ 			dput(REISERFS_SB(s)->priv_root);
+@@ -1562,9 +1563,10 @@ static int reiserfs_fill_super(struct su
+ 	REISERFS_SB(s)->s_alloc_options.preallocmin = 0;
+ 	/* Preallocate by 16 blocks (17-1) at once */
+ 	REISERFS_SB(s)->s_alloc_options.preallocsize = 17;
++#ifdef CONFIG_REISERFS_FS_XATTR
+ 	/* Initialize the rwsem for xattr dir */
+ 	init_rwsem(&REISERFS_SB(s)->xattr_dir_sem);
+-
++#endif
+ 	/* setup default block allocator options */
+ 	reiserfs_init_alloc_options(s);
  
--		memcpy(new, pcpu_size, sizeof(new[0])*pcpu_num_allocated);
- 		pcpu_num_allocated *= 2;
--		kfree(pcpu_size);
- 		pcpu_size = new;
- 	}
- 
+diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-shrink-superblock-if-no-xattrs include/linux/reiserfs_fs_sb.h
+--- a/include/linux/reiserfs_fs_sb.h~reiserfs-shrink-superblock-if-no-xattrs
++++ a/include/linux/reiserfs_fs_sb.h
+@@ -401,9 +401,10 @@ struct reiserfs_sb_info {
+ 	int reserved_blocks;	/* amount of blocks reserved for further allocations */
+ 	spinlock_t bitmap_lock;	/* this lock on now only used to protect reserved_blocks variable */
+ 	struct dentry *priv_root;	/* root of /.reiserfs_priv */
++#ifdef CONFIG_REISERFS_FS_XATTR
+ 	struct dentry *xattr_root;	/* root of /.reiserfs_priv/.xa */
+ 	struct rw_semaphore xattr_dir_sem;
+-
++#endif
+ 	int j_errno;
+ #ifdef CONFIG_QUOTA
+ 	char *s_qf_names[MAXQUOTAS];
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-krealloc-fix-kerneldoc-comments.patch
-unionfs-fix-slab-abuses-with-krealloc.patch
-swsusp-use-reasonable-default-for-hibernation_mode.patch
-slab-use-cpu_lock_.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-revoke-special-mmap-handling.patch
-revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
-revoke-core-code.patch
-revoke-core-code-misc-fixes.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-core-code-move-magic.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-revoke-core-code-revoke-no-revoke-for-nommu.patch
-revoke-core-code-fix-shared-mapping-revoke-revoke-only-revoke-mappings-for-the-given-inode.patch
-revoke-core-code-break-cow-for-private-mappings.patch
-revoke-core-code-generic_file_revoke-stub-for-nommu.patch
-revoke-core-code-break-cow-fixes.patch
-revoke-core-code-mapping-revocation.patch
-revoke-core-code-only-fput-unused-files.patch
-revoke-core-code-rename-to-can_revoke_filevma.patch
-revoke-core-code-change-revoke_table-to-fileset-and-revoke_details.patch
-revoke-core-code-do_revoke-error-handling.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-slab-leaks3-default-y.patch
+git-dvb.patch
+pata_scc-fix-compilation.patch
+git-parisc.patch
+git-scsi-misc.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+git-watchdog.patch
