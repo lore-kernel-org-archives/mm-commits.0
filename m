@@ -1,81 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - nbd-check-the-return-value-of-sysfs_create_file-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 01:50:26 -0700
-Message-ID: <200705090850.l498oQEE018443@shell0.pdx.osdl.net>
+Subject: - pasemi-hardware-rng-driver-tidy.patch removed from -mm tree
+Date: Wed, 09 May 2007 01:50:07 -0700
+Message-ID: <200705090850.l498o7Av018432@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47587 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:32780 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754532AbXEIIud (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:50:33 -0400
+	by vger.kernel.org with ESMTP id S1754511AbXEIIux (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:50:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, paul.clements@steeleye.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, egor@pasemi.com, galak@gate.crashing.org, mb@bu3sch.de, olof@lixom.net, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nbd-check-the-return-value-of-sysfs_create_file-fix
+     pasemi-hardware-rng-driver-tidy
 has been removed from the -mm tree.  Its filename was
-     nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+     pasemi-hardware-rng-driver-tidy.patch
 
-This patch was dropped because it was folded into nbd-check-the-return-value-of-sysfs_create_file.patch
+This patch was dropped because it was folded into pasemi-hardware-rng-driver.patch
 
 ------------------------------------------------------
-Subject: nbd-check-the-return-value-of-sysfs_create_file-fix
+Subject: pasemi-hardware-rng-driver-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Paul Clements <paul.clements@steeleye.com>
+Cc: Egor Martovetsky <egor@pasemi.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/char/hw_random/pasemi-rng.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/nbd.c~nbd-check-the-return-value-of-sysfs_create_file-fix drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-check-the-return-value-of-sysfs_create_file-fix
-+++ a/drivers/block/nbd.c
-@@ -366,23 +366,25 @@ static struct disk_attribute pid_attr = 
- 	.show = pid_show,
- };
- 
--static void nbd_do_it(struct nbd_device *lo)
-+static int nbd_do_it(struct nbd_device *lo)
- {
- 	struct request *req;
-+	int ret;
- 
- 	BUG_ON(lo->magic != LO_MAGIC);
- 
- 	lo->pid = current->pid;
--	if (sysfs_create_file(&lo->disk->kobj, &pid_attr.attr)) {
-+	ret = sysfs_create_file(&lo->disk->kobj, &pid_attr.attr);
-+	if (ret) {
- 		printk(KERN_ERR "nbd: sysfs_create_file failed!");
--		return;
-+		return ret;
- 	}
- 
- 	while ((req = nbd_read_stat(lo)) != NULL)
- 		nbd_end_request(req);
- 
- 	sysfs_remove_file(&lo->disk->kobj, &pid_attr.attr);
--	return;
-+	return 0;
+diff -puN drivers/char/hw_random/pasemi-rng.c~pasemi-hardware-rng-driver-tidy drivers/char/hw_random/pasemi-rng.c
+--- a/drivers/char/hw_random/pasemi-rng.c~pasemi-hardware-rng-driver-tidy
++++ a/drivers/char/hw_random/pasemi-rng.c
+@@ -125,16 +125,14 @@ static int __devexit rng_remove(struct o
+ 	return 0;
  }
  
- static void nbd_clear_que(struct nbd_device *lo)
-@@ -572,7 +574,9 @@ static int nbd_ioctl(struct inode *inode
- 	case NBD_DO_IT:
- 		if (!lo->file)
- 			return -EINVAL;
--		nbd_do_it(lo);
-+		error = nbd_do_it(lo);
-+		if (error)
-+			return error;
- 		/* on return tidy up in case we have a signal */
- 		/* Forcibly shutdown the socket causing all listeners
- 		 * to error
+-static struct of_device_id rng_match[] =
+-{
++static struct of_device_id rng_match[] = {
+ 	{
+ 		.compatible      = "1682m-rng",
+ 	},
+ 	{},
+ };
+ 
+-static struct of_platform_driver rng_driver =
+-{
++static struct of_platform_driver rng_driver = {
+ 	.name		= "pasemi-rng",
+ 	.match_table	= rng_match,
+ 	.probe		= rng_probe,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +65,8 @@ origin.patch
 slub-add-support-for-dynamic-cacheline-size-determination.patch
 swsusp-clean-up-print.patch
 display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-nbd-check-the-return-value-of-sysfs_create_file.patch
+pasemi-hardware-rng-driver.patch
+pasemi-hardware-rng-driver-tidy.patch
 nbd-check-the-return-value-of-sysfs_create_file-fix.patch
 mutex_lock_interruptible-add-__must_check.patch
 mutex_lock_interruptible-add-__must_check-must-fix.patch
