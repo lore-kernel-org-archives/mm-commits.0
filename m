@@ -1,70 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - clockchipsh-kernel-doc-fix.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:52:38 -0700
-Message-ID: <200705090252.l492qch3009594@shell0.pdx.osdl.net>
+Subject: - old-buffer-overflow-in-moxa-driver.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:52:16 -0700
+Message-ID: <200705090252.l492qGQ2009553@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52999 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032213AbXEICwt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:49 -0400
+	by vger.kernel.org with ESMTP id S1031772AbXEICwv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sshtylyov@ru.mvista.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dannf@hp.com, dilinger@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clockchips.h: kernel-doc fix
+     old buffer overflow in moxa driver
 has been removed from the -mm tree.  Its filename was
-     clockchipsh-kernel-doc-fix.patch
+     old-buffer-overflow-in-moxa-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clockchips.h: kernel-doc fix
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: old buffer overflow in moxa driver
+From: dann frazier <dannf@hp.com>
 
-Fix misnamed fields of 'struct clock_event_device' in the kernel-doc
-comment.  Convert the acronyms to uppercase, while at it...
+I noticed that the moxa input checking security bug described by
+CVE-2005-0504 appears to remain unfixed upstream.
 
-Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+The issue is described here:
+  http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2005-0504
+
+Debian has been shipping the following patch from Andres Salomon.
+
+(akpm: it's a privileged operation)
+
+Signed-off-by: dann frazier <dannf@hp.com>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clockchips.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/char/moxa.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/clockchips.h~clockchipsh-kernel-doc-fix include/linux/clockchips.h
---- a/include/linux/clockchips.h~clockchipsh-kernel-doc-fix
-+++ a/include/linux/clockchips.h
-@@ -54,17 +54,17 @@ enum clock_event_nofitiers {
- /**
-  * struct clock_event_device - clock event device descriptor
-  * @name:		ptr to clock event name
-- * @hints:		usage hints
-+ * @features:		features
-  * @max_delta_ns:	maximum delta value in ns
-  * @min_delta_ns:	minimum delta value in ns
-  * @mult:		nanosecond to cycles multiplier
-  * @shift:		nanoseconds to cycles divisor (power of two)
-  * @rating:		variable to rate clock event devices
-- * @irq:		irq number (only for non cpu local devices)
-- * @cpumask:		cpumask to indicate for which cpus this device works
-- * @set_next_event:	set next event
-+ * @irq:		IRQ number (only for non CPU local devices)
-+ * @cpumask:		cpumask to indicate for which CPUs this device works
-+ * @set_next_event:	set next event function
-  * @set_mode:		set mode function
-- * @evthandler:		Assigned by the framework to be called by the low
-+ * @event_handler:	Assigned by the framework to be called by the low
-  *			level handler of the event source
-  * @broadcast:		function to broadcast events
-  * @list:		list head for the management code
+diff -puN drivers/char/moxa.c~old-buffer-overflow-in-moxa-driver drivers/char/moxa.c
+--- a/drivers/char/moxa.c~old-buffer-overflow-in-moxa-driver
++++ a/drivers/char/moxa.c
+@@ -1582,7 +1582,7 @@ copy:
+ 
+ 	if(copy_from_user(&dltmp, argp, sizeof(struct dl_str)))
+ 		return -EFAULT;
+-	if(dltmp.cardno < 0 || dltmp.cardno >= MAX_BOARDS)
++	if(dltmp.cardno < 0 || dltmp.cardno >= MAX_BOARDS || dltmp.len < 0)
+ 		return -EINVAL;
+ 
+ 	switch(cmd)
+@@ -2529,6 +2529,8 @@ static int moxaloadbios(int cardno, unsi
+ 	void __iomem *baseAddr;
+ 	int i;
+ 
++	if(len < 0 || len > sizeof(moxaBuff))
++		return -EINVAL;
+ 	if(copy_from_user(moxaBuff, tmp, len))
+ 		return -EFAULT;
+ 	baseAddr = moxa_boards[cardno].basemem;
+@@ -2576,7 +2578,7 @@ static int moxaload320b(int cardno, unsi
+ 	void __iomem *baseAddr;
+ 	int i;
+ 
+-	if(len > sizeof(moxaBuff))
++	if(len < 0 || len > sizeof(moxaBuff))
+ 		return -EINVAL;
+ 	if(copy_from_user(moxaBuff, tmp, len))
+ 		return -EFAULT;
+@@ -2596,6 +2598,8 @@ static int moxaloadcode(int cardno, unsi
+ 	void __iomem *baseAddr, *ofsAddr;
+ 	int retval, port, i;
+ 
++	if(len < 0 || len > sizeof(moxaBuff))
++		return -EINVAL;
+ 	if(copy_from_user(moxaBuff, tmp, len))
+ 		return -EFAULT;
+ 	baseAddr = moxa_boards[cardno].basemem;
 _
 
-Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
+Patches currently in -mm which might be from dannf@hp.com are
 
 origin.patch
-sl82c105-switch-to-ref-counting-api.patch
-3x59x-fix-pci-resource-management.patch
