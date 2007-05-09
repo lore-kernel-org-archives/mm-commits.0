@@ -1,147 +1,386 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-hvc_consolec-cleanups.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:44:43 -0700
-Message-ID: <200705090244.l492ihH6008619@shell0.pdx.osdl.net>
+Subject: - scripts-kernel-doc-whitespace-cleanup.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:44:59 -0700
+Message-ID: <200705090244.l492ixjX008665@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44446 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969725AbXEICpC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:02 -0400
+	by vger.kernel.org with ESMTP id S969211AbXEICpM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/hvc_console.c: cleanups
+     scripts: kernel-doc whitespace cleanup
 has been removed from the -mm tree.  Its filename was
-     drivers-char-hvc_consolec-cleanups.patch
+     scripts-kernel-doc-whitespace-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/char/hvc_console.c: cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: scripts: kernel-doc whitespace cleanup
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-- make needlessly global code static
-- remove the unused EXPORT_SYMBOL's
+Whitespace cleanup only:  convert some series of spaces to tabs.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hvc_console.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ scripts/kernel-doc |   96 +++++++++++++++++++++----------------------
+ 1 file changed, 48 insertions(+), 48 deletions(-)
 
-diff -puN drivers/char/hvc_console.c~drivers-char-hvc_consolec-cleanups drivers/char/hvc_console.c
---- a/drivers/char/hvc_console.c~drivers-char-hvc_consolec-cleanups
-+++ a/drivers/char/hvc_console.c
-@@ -111,7 +111,7 @@ static int last_hvc = -1;
-  * lock held.  If successful, this function increments the kobject reference
-  * count against the target hvc_struct so it should be released when finished.
-  */
--struct hvc_struct *hvc_get_by_index(int index)
-+static struct hvc_struct *hvc_get_by_index(int index)
- {
- 	struct hvc_struct *hp;
- 	unsigned long flags;
-@@ -150,7 +150,8 @@ static uint32_t vtermnos[MAX_NR_HVC_CONS
-  * hvc_console_setup() finds adapters.
-  */
+diff -puN scripts/kernel-doc~scripts-kernel-doc-whitespace-cleanup scripts/kernel-doc
+--- a/scripts/kernel-doc~scripts-kernel-doc-whitespace-cleanup
++++ a/scripts/kernel-doc
+@@ -381,10 +381,10 @@ sub output_highlight {
+     eval $dohighlight;
+     die $@ if $@;
+     foreach $line (split "\n", $contents) {
+-      if ($line eq ""){
++	if ($line eq ""){
+ 	    print $lineprefix, $blankline;
+ 	} else {
+-            $line =~ s/\\\\\\/\&/g;
++	    $line =~ s/\\\\\\/\&/g;
+ 	    print $lineprefix, $line;
+ 	}
+ 	print "\n";
+@@ -414,7 +414,7 @@ sub output_enum_html(%) {
+     print "<b>enum ".$args{'enum'}."</b> {<br>\n";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+-        print " <b>".$parameter."</b>";
++	print " <b>".$parameter."</b>";
+ 	if ($count != $#{$args{'parameterlist'}}) {
+ 	    $count++;
+ 	    print ",\n";
+@@ -462,7 +462,7 @@ sub output_struct_html(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
  
--void hvc_console_print(struct console *co, const char *b, unsigned count)
-+static void hvc_console_print(struct console *co, const char *b,
-+			      unsigned count)
- {
- 	char c[N_OUTBUF] __ALIGNED__;
- 	unsigned i = 0, n = 0;
-@@ -208,7 +209,7 @@ static int __init hvc_console_setup(stru
- 	return 0;
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+@@ -483,7 +483,7 @@ sub output_struct_html(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	print "<dt><b>".$parameter."</b>\n";
+ 	print "<dd>";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+@@ -525,7 +525,7 @@ sub output_function_html(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	print "<dt><b>".$parameter."</b>\n";
+ 	print "<dd>";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+@@ -691,7 +691,7 @@ sub output_struct_xml(%) {
+ 	$parameter_name =~ s/\[.*//;
+ 
+ 	defined($args{'parameterdescs'}{$parameter_name}) || next;
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+@@ -767,11 +767,11 @@ sub output_enum_xml(%) {
+     print "enum ".$args{'enum'}." {\n";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+-        print "  $parameter";
+-        if ($count != $#{$args{'parameterlist'}}) {
++	print "  $parameter";
++	if ($count != $#{$args{'parameterlist'}}) {
+ 	    $count++;
+ 	    print ",";
+-        }
++	}
+ 	print "\n";
+     }
+     print "};";
+@@ -1007,7 +1007,7 @@ sub output_enum_man(%) {
+     print "enum ".$args{'enum'}." {\n";
+     $count = 0;
+     foreach my $parameter (@{$args{'parameterlist'}}) {
+-        print ".br\n.BI \"    $parameter\"\n";
++	print ".br\n.BI \"    $parameter\"\n";
+ 	if ($count == $#{$args{'parameterlist'}}) {
+ 	    print "\n};\n";
+ 	    last;
+@@ -1054,7 +1054,7 @@ sub output_struct_man(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+@@ -1077,7 +1077,7 @@ sub output_struct_man(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	print ".IP \"".$parameter."\" 12\n";
+ 	output_highlight($args{'parameterdescs'}{$parameter_name});
+     }
+@@ -1187,7 +1187,7 @@ sub output_enum_text(%) {
+     print "enum ".$args{'enum'}." {\n";
+     $count = 0;
+     foreach $parameter (@{$args{'parameterlist'}}) {
+-        print "\t$parameter";
++	print "\t$parameter";
+ 	if ($count != $#{$args{'parameterlist'}}) {
+ 	    $count++;
+ 	    print ",";
+@@ -1232,7 +1232,7 @@ sub output_struct_text(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	$type = $args{'parametertypes'}{$parameter};
+ 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
+ 	    # pointer-to-function
+@@ -1252,7 +1252,7 @@ sub output_struct_text(%) {
+ 	my $parameter_name = $parameter;
+ 	$parameter_name =~ s/\[.*//;
+ 
+-        ($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
++	($args{'parameterdescs'}{$parameter_name} ne $undescribed) || next;
+ 	print "$parameter\n\t";
+ 	print $args{'parameterdescs'}{$parameter_name}."\n";
+     }
+@@ -1284,7 +1284,7 @@ sub output_declaration {
+ 	( $function_only == 1 && defined($function_table{$name})) ||
+ 	( $function_only == 2 && !defined($function_table{$name})))
+     {
+-        &$func(@_);
++	&$func(@_);
+ 	$section_counter++;
+     }
  }
+@@ -1317,8 +1317,8 @@ sub dump_struct($$) {
+     my $file = shift;
  
--struct console hvc_con_driver = {
-+static struct console hvc_con_driver = {
- 	.name		= "hvc",
- 	.write		= hvc_console_print,
- 	.device		= hvc_console_device,
-@@ -278,7 +279,6 @@ int hvc_instantiate(uint32_t vtermno, in
+     if ($x =~/(struct|union)\s+(\w+)\s*{(.*)}/) {
+-        $declaration_name = $2;
+-        my $members = $3;
++	$declaration_name = $2;
++	my $members = $3;
  
- 	return 0;
+ 	# ignore embedded structs or unions
+ 	$members =~ s/{.*?}//g;
+@@ -1345,7 +1345,7 @@ sub dump_struct($$) {
+ 			   });
+     }
+     else {
+-        print STDERR "Error(${file}:$.): Cannot parse struct or union!\n";
++	print STDERR "Error(${file}:$.): Cannot parse struct or union!\n";
+ 	++$errors;
+     }
  }
--EXPORT_SYMBOL(hvc_instantiate);
+@@ -1356,15 +1356,15 @@ sub dump_enum($$) {
  
- /* Wake the sleeping khvcd */
- static void hvc_kick(void)
-@@ -792,7 +792,6 @@ struct hvc_struct __devinit *hvc_alloc(u
+     $x =~ s@/\*.*?\*/@@gos;	# strip comments.
+     if ($x =~ /enum\s+(\w+)\s*{(.*)}/) {
+-        $declaration_name = $1;
+-        my $members = $2;
++	$declaration_name = $1;
++	my $members = $2;
  
- 	return hp;
+ 	foreach my $arg (split ',', $members) {
+ 	    $arg =~ s/^\s*(\w+).*/$1/;
+ 	    push @parameterlist, $arg;
+ 	    if (!$parameterdescs{$arg}) {
+-	        $parameterdescs{$arg} = $undescribed;
+-	        print STDERR "Warning(${file}:$.): Enum value '$arg' ".
++		$parameterdescs{$arg} = $undescribed;
++		print STDERR "Warning(${file}:$.): Enum value '$arg' ".
+ 		    "not described in enum '$declaration_name'\n";
+ 	    }
+ 
+@@ -1382,7 +1382,7 @@ sub dump_enum($$) {
+ 			   });
+     }
+     else {
+-        print STDERR "Error(${file}:$.): Cannot parse enum!\n";
++	print STDERR "Error(${file}:$.): Cannot parse enum!\n";
+ 	++$errors;
+     }
  }
--EXPORT_SYMBOL(hvc_alloc);
+@@ -1393,12 +1393,12 @@ sub dump_typedef($$) {
  
- int __devexit hvc_remove(struct hvc_struct *hp)
- {
-@@ -828,11 +827,10 @@ int __devexit hvc_remove(struct hvc_stru
- 		tty_hangup(tty);
- 	return 0;
+     $x =~ s@/\*.*?\*/@@gos;	# strip comments.
+     while (($x =~ /\(*.\)\s*;$/) || ($x =~ /\[*.\]\s*;$/)) {
+-        $x =~ s/\(*.\)\s*;$/;/;
++	$x =~ s/\(*.\)\s*;$/;/;
+ 	$x =~ s/\[*.\]\s*;$/;/;
+     }
+ 
+     if ($x =~ /typedef.*\s+(\w+)\s*;/) {
+-        $declaration_name = $1;
++	$declaration_name = $1;
+ 
+ 	output_declaration($declaration_name,
+ 			   'typedef',
+@@ -1410,7 +1410,7 @@ sub dump_typedef($$) {
+ 			   });
+     }
+     else {
+-        print STDERR "Error(${file}:$.): Cannot parse typedef!\n";
++	print STDERR "Error(${file}:$.): Cannot parse typedef!\n";
+ 	++$errors;
+     }
  }
--EXPORT_SYMBOL(hvc_remove);
+@@ -1424,14 +1424,14 @@ sub create_parameterlist($$$) {
  
- /* Driver initialization.  Follow console initialization.  This is where the TTY
-  * interfaces start to become available. */
--int __init hvc_init(void)
-+static int __init hvc_init(void)
- {
- 	struct tty_driver *drv;
+     # temporarily replace commas inside function pointer definition
+     while ($args =~ /(\([^\),]+),/) {
+-        $args =~ s/(\([^\),]+),/$1#/g;
++	$args =~ s/(\([^\),]+),/$1#/g;
+     }
  
+     foreach my $arg (split($splitter, $args)) {
+ 	# strip comments
+ 	$arg =~ s/\/\*.*\*\///;
+-        # strip leading/trailing spaces
+-        $arg =~ s/^\s*//;
++	# strip leading/trailing spaces
++	$arg =~ s/^\s*//;
+ 	$arg =~ s/\s*$//;
+ 	$arg =~ s/\s+/ /;
+ 
+@@ -1514,15 +1514,15 @@ sub push_parameter($$$) {
+ 	    $parameterdescs{$param_name} = $undescribed;
+ 
+ 	    if (($type eq 'function') || ($type eq 'enum')) {
+-	        print STDERR "Warning(${file}:$.): Function parameter ".
++		print STDERR "Warning(${file}:$.): Function parameter ".
+ 		    "or member '$param' not " .
+ 		    "described in '$declaration_name'\n";
+ 	    }
+ 	    print STDERR "Warning(${file}:$.):".
+-	                 " No description found for parameter '$param'\n";
++			 " No description found for parameter '$param'\n";
+ 	    ++$warnings;
+-        }
+-        }
++	}
++	}
+ 
+ 	push @parameterlist, $param;
+ 	$parametertypes{$param} = $type;
+@@ -1664,10 +1664,10 @@ sub process_state3_function($$) {
+ 	# do nothing
+     }
+     elsif ($x =~ /([^\{]*)/) {
+-        $prototype .= $1;
++	$prototype .= $1;
+     }
+     if (($x =~ /\{/) || ($x =~ /\#define/) || ($x =~ /;/)) {
+-        $prototype =~ s@/\*.*?\*/@@gos;	# strip comments.
++	$prototype =~ s@/\*.*?\*/@@gos;	# strip comments.
+ 	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/cr's.
+ 	$prototype =~ s@^\s+@@gos; # strip leading spaces
+ 	dump_function($prototype,$file);
+@@ -1688,17 +1688,17 @@ sub process_state3_type($$) {
+     }
+ 
+     while (1) {
+-        if ( $x =~ /([^{};]*)([{};])(.*)/ ) {
++	if ( $x =~ /([^{};]*)([{};])(.*)/ ) {
+ 	    $prototype .= $1 . $2;
+ 	    ($2 eq '{') && $brcount++;
+ 	    ($2 eq '}') && $brcount--;
+ 	    if (($2 eq ';') && ($brcount == 0)) {
+-	        dump_declaration($prototype,$file);
++		dump_declaration($prototype,$file);
+ 		reset_state();
+-	        last;
++		last;
+ 	    }
+ 	    $x = $3;
+-        } else {
++	} else {
+ 	    $prototype .= $x;
+ 	    last;
+ 	}
+@@ -1756,7 +1756,7 @@ sub process_file($) {
+ 		} else {
+ 			$section = $1;
+ 		}
+-            }
++	    }
+ 	    elsif (/$doc_decl/o) {
+ 		$identifier = $1;
+ 		if (/\s*([\w\s]+?)\s*-/) {
+@@ -1849,13 +1849,13 @@ sub process_file($) {
+ 	    }
+ 	} elsif ($state == 3) {	# scanning for function '{' (end of prototype)
+ 	    if ($decl_type eq 'function') {
+-	        process_state3_function($_, $file);
++		process_state3_function($_, $file);
+ 	    } else {
+-	        process_state3_type($_, $file);
++		process_state3_type($_, $file);
+ 	    }
+ 	} elsif ($state == 4) {
+ 		# Documentation block
+-	        if (/$doc_block/) {
++		if (/$doc_block/) {
+ 			dump_section($section, $contents);
+ 			output_intro({'sectionlist' => \@sectionlist,
+ 				      'sections' => \%sections });
+@@ -1873,7 +1873,7 @@ sub process_file($) {
+ 			} else {
+ 				$section = $1;
+ 			}
+-                }
++		}
+ 		elsif (/$doc_end/)
+ 		{
+ 			dump_section($section, $contents);
+@@ -1900,8 +1900,8 @@ sub process_file($) {
+ 			{
+ 				$contents .= $1 . "\n";
+ 			}
+-        	}
+-          }
++		}
++	}
+     }
+     if ($initial_section_counter == $section_counter) {
+ 	print STDERR "Warning(${file}): no structured comments found\n";
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+krealloc-fix-kerneldoc-comments.patch
 git-acpi.patch
-git-alsa.patch
-git-dvb.patch
 git-ieee1394.patch
-git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-ibmtr_cs-fix-hang-on-eject.patch
-git-battery.patch
-git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-drivers-scsi-ipsc-remove-kernel-24-code.patch
-drivers-scsi-nsp32c-remove-kernel-24-code.patch
+romfs-printk-format-warnings.patch
+add-pci_try_set_mwi.patch
 git-unionfs.patch
-git-watchdog.patch
-git-wireless.patch
 git-ipwireless_cs.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-more-scheduled-oss-driver-removal.patch
-unexport-pci_proc_attach_device.patch
-ext2-reservations.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-doc-fix.patch
+doc-kernel-parameters-use-x86-32-tag-instead-of-ia-32.patch
+lib-hexdump.patch
+lib-hexdump-fix.patch
+lib-hexdump-update-on-feedback.patch
+doc-what-a-patch-series-is.patch
+kernel-doc-small-kernel-doc-optimization.patch
+profile-likely-unlikely-macros.patch
