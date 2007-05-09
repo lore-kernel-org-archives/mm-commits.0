@@ -1,66 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - change-rivafb_remove-to-__devexit.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:59:07 -0700
-Message-ID: <200705090259.l492x79D010361@shell0.pdx.osdl.net>
+Subject: - fbdev-fix-obvious-bug-in-show_pan.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:59:24 -0700
+Message-ID: <200705090259.l492xO90010397@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57592 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032430AbXEIC7U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:20 -0400
+	by vger.kernel.org with ESMTP id S970204AbXEIC70 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: prarit@redhat.com, adaplas@pol.net, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     change rivafb_remove to __devexit
+     fbdev: fix obvious bug in show_pan()
 has been removed from the -mm tree.  Its filename was
-     change-rivafb_remove-to-__devexit.patch
+     fbdev-fix-obvious-bug-in-show_pan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: change rivafb_remove to __devexit
-From: Prarit Bhargava <prarit@redhat.com>
+Subject: fbdev: fix obvious bug in show_pan()
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Change rivafb_remove to __deviexit to fix MODPOST warnings:
+show_pan will display the value of the xoffset twice, instead of the xoffset
+and yoffset.  Fix.
 
-WARNING: drivers/video/riva/rivafb.o - Section mismatch: reference to
-.exit.text:rivafb_remove from .data.rel.local after 'rivafb_driver' (at offset 0x28)
-
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Acked-by: James Simmons <jsimmons@infradead.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/riva/fbdev.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/fbsysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/riva/fbdev.c~change-rivafb_remove-to-__devexit drivers/video/riva/fbdev.c
---- a/drivers/video/riva/fbdev.c~change-rivafb_remove-to-__devexit
-+++ a/drivers/video/riva/fbdev.c
-@@ -2104,7 +2104,7 @@ err_ret:
- 	return ret;
+diff -puN drivers/video/fbsysfs.c~fbdev-fix-obvious-bug-in-show_pan drivers/video/fbsysfs.c
+--- a/drivers/video/fbsysfs.c~fbdev-fix-obvious-bug-in-show_pan
++++ a/drivers/video/fbsysfs.c
+@@ -376,7 +376,7 @@ static ssize_t show_pan(struct device *d
+ {
+ 	struct fb_info *fb_info = dev_get_drvdata(device);
+ 	return snprintf(buf, PAGE_SIZE, "%d,%d\n", fb_info->var.xoffset,
+-			fb_info->var.xoffset);
++			fb_info->var.yoffset);
  }
  
--static void __exit rivafb_remove(struct pci_dev *pd)
-+static void __devexit rivafb_remove(struct pci_dev *pd)
- {
- 	struct fb_info *info = pci_get_drvdata(pd);
- 	struct riva_par *par = info->par;
-@@ -2185,7 +2185,7 @@ static struct pci_driver rivafb_driver =
- 	.name		= "rivafb",
- 	.id_table	= rivafb_pci_tbl,
- 	.probe		= rivafb_probe,
--	.remove		= __exit_p(rivafb_remove),
-+	.remove		= __devexit_p(rivafb_remove),
- };
- 
- 
+ static ssize_t show_name(struct device *device,
 _
 
-Patches currently in -mm which might be from prarit@redhat.com are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
+vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
+vt8623fb-fix-compile-warnings.patch
+vt8623fb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
+arkfb-fix-compiler-warnings.patch
+arkfb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
+svgalib-move-fb_get_caps-to-svgalib.patch
