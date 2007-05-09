@@ -1,242 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - fsaio-enable-asynchronous-wait-page-and-lock-page.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:04:47 -0700
-Message-ID: <200705091004.l49A4lUW020783@shell0.pdx.osdl.net>
+Subject: - fsaio-filesystem-aio-read.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:04:50 -0700
+Message-ID: <200705091004.l49A4ofI020788@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39320 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57207 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755829AbXEIKF2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:05:28 -0400
+	by vger.kernel.org with ESMTP id S1755075AbXEIKFa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:05:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: suparna@in.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsaio: enable asynchronous wait page and lock page
+     fsaio: filesystem aio read
 has been removed from the -mm tree.  Its filename was
-     fsaio-enable-asynchronous-wait-page-and-lock-page.patch
+     fsaio-filesystem-aio-read.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fsaio: enable asynchronous wait page and lock page
+Subject: fsaio: filesystem aio read
 From: Suparna Bhattacharya <suparna@in.ibm.com>
 
-Define low-level page wait and lock page routines which take a wait queue
-entry pointer as an additional parameter and return status (which may be
-non-zero when the wait queue parameter signifies an asynchronous wait,
-typically during AIO).
+Converts the wait for page to become uptodate (lock page)
+after readahead/readpage (in do_generic_mapping_read) to a retry
+exit, to make buffered filesystem AIO reads actually synchronous.
 
-Synchronous IO waits become a special case where the wait queue parameter is
-the running task's default io wait context.  Asynchronous IO waits happen when
-the wait queue parameter is the io wait context of a kiocb.  Code paths which
-choose to execute synchronous or asynchronous behaviour depending on the
-called context specify the current io wait context (which points to sync or
-async context as the case may be) as the wait parameter.  
+The patch avoids exclusive wakeups with AIO, a problem originally
+spotted by Chris Mason, though the reasoning for why it is an
+issue is now much clearer (see explanation in the comment below
+in aio.c), and the solution is perhaps slightly simpler.
 
 Signed-off-by: Suparna Bhattacharya <suparna@in.ibm.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   36 ++++++++++++++++++++++++++++--------
- include/linux/sched.h   |    1 +
- kernel/sched.c          |   14 ++++++++++++++
- mm/filemap.c            |   36 ++++++++++++++++++++++++------------
- 4 files changed, 67 insertions(+), 20 deletions(-)
+ fs/aio.c              |   11 ++++++++++-
+ include/linux/aio.h   |    5 +++++
+ include/linux/sched.h |   10 ++++++++++
+ mm/filemap.c          |   18 +++++++++++++++---
+ 4 files changed, 40 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/pagemap.h~fsaio-enable-asynchronous-wait-page-and-lock-page include/linux/pagemap.h
---- a/include/linux/pagemap.h~fsaio-enable-asynchronous-wait-page-and-lock-page
-+++ a/include/linux/pagemap.h
-@@ -153,24 +153,31 @@ static inline pgoff_t linear_page_index(
- 	return pgoff >> (PAGE_CACHE_SHIFT - PAGE_SHIFT);
- }
+diff -puN fs/aio.c~fsaio-filesystem-aio-read fs/aio.c
+--- a/fs/aio.c~fsaio-filesystem-aio-read
++++ a/fs/aio.c
+@@ -1525,7 +1525,16 @@ static int aio_wake_function(wait_queue_
  
--extern void FASTCALL(lock_page_blocking(struct page *page));
-+extern int FASTCALL(lock_page_blocking(struct page *page, wait_queue_t *wait));
- extern void FASTCALL(unlock_page(struct page *page));
- 
- /*
-  * lock_page may only be called if we have the page's inode pinned.
-  */
--static inline void lock_page(struct page *page)
-+static inline int lock_page_async(struct page *page, wait_queue_t *wait)
- {
- 	might_sleep();
- 	if (TestSetPageLocked(page))
--		lock_page_blocking(page);
-+		return lock_page_blocking(page, wait);
+ 	list_del_init(&wait->task_list);
+ 	kick_iocb(iocb);
+-	return 1;
++	/*
++	 * Avoid exclusive wakeups with retries since an exclusive wakeup
++	 * may involve implicit expectations of waking up the next waiter
++	 * and there is no guarantee that the retry will take a path that
++	 * would do so. For example if a page has become up-to-date, then
++	 * a retried read may end up straightaway performing a copyout
++	 * and not go through a lock_page - unlock_page that would have
++	 * passed the baton to the next waiter.
++	 */
 +	return 0;
-+}
-+
-+static inline void lock_page(struct page *page)
-+{
-+	lock_page_async(page, &current->__wait.wait);
  }
  
- /*
-  * This is exported only for wait_on_page_locked/wait_on_page_writeback.
-  * Never use this directly!
-  */
--extern void FASTCALL(wait_on_page_bit(struct page *page, int bit_nr));
-+extern int FASTCALL(wait_on_page_bit(struct page *page, int bit_nr,
-+			wait_queue_t *wait));
+ int fastcall io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
+diff -puN include/linux/aio.h~fsaio-filesystem-aio-read include/linux/aio.h
+--- a/include/linux/aio.h~fsaio-filesystem-aio-read
++++ a/include/linux/aio.h
+@@ -34,21 +34,26 @@ struct kioctx;
+ /* #define KIF_LOCKED		0 */
+ #define KIF_KICKED		1
+ #define KIF_CANCELLED		2
++#define KIF_RESTARTED		3
  
- /* 
-  * Wait for a page to be unlocked.
-@@ -179,19 +186,32 @@ extern void FASTCALL(wait_on_page_bit(st
-  * ie with increased "page->count" so that the page won't
-  * go away during the wait..
-  */
--static inline void wait_on_page_locked(struct page *page)
-+static inline int __wait_on_page_locked(struct page *page, wait_queue_t *wait)
- {
- 	if (PageLocked(page))
--		wait_on_page_bit(page, PG_locked);
-+		return wait_on_page_bit(page, PG_locked, wait);
-+	return 0;
-+}
-+
-+static inline void wait_on_page_locked(struct page *page)
-+{
-+	__wait_on_page_locked(page, &current->__wait.wait);
- }
+ #define kiocbTryLock(iocb)	test_and_set_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbTryKick(iocb)	test_and_set_bit(KIF_KICKED, &(iocb)->ki_flags)
++#define kiocbTryRestart(iocb)	test_and_set_bit(KIF_RESTARTED, &(iocb)->ki_flags)
  
- /* 
-  * Wait for a page to complete writeback
-  */
--static inline void wait_on_page_writeback(struct page *page)
-+static inline int __wait_on_page_writeback(struct page *page,
-+					wait_queue_t *wait)
- {
- 	if (PageWriteback(page))
--		wait_on_page_bit(page, PG_writeback);
-+		return wait_on_page_bit(page, PG_writeback, wait);
-+	return 0;
-+}
-+
-+static inline void wait_on_page_writeback(struct page *page)
-+{
-+	__wait_on_page_writeback(page, &current->__wait.wait);
- }
+ #define kiocbSetLocked(iocb)	set_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbSetKicked(iocb)	set_bit(KIF_KICKED, &(iocb)->ki_flags)
+ #define kiocbSetCancelled(iocb)	set_bit(KIF_CANCELLED, &(iocb)->ki_flags)
++#define kiocbSetRestarted(iocb)	set_bit(KIF_RESTARTED, &(iocb)->ki_flags)
  
- extern void end_page_writeback(struct page *page);
-diff -puN include/linux/sched.h~fsaio-enable-asynchronous-wait-page-and-lock-page include/linux/sched.h
---- a/include/linux/sched.h~fsaio-enable-asynchronous-wait-page-and-lock-page
+ #define kiocbClearLocked(iocb)	clear_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbClearKicked(iocb)	clear_bit(KIF_KICKED, &(iocb)->ki_flags)
+ #define kiocbClearCancelled(iocb)	clear_bit(KIF_CANCELLED, &(iocb)->ki_flags)
++#define kiocbClearRestarted(iocb)	clear_bit(KIF_RESTARTED, &(iocb)->ki_flags)
+ 
+ #define kiocbIsLocked(iocb)	test_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbIsKicked(iocb)	test_bit(KIF_KICKED, &(iocb)->ki_flags)
+ #define kiocbIsCancelled(iocb)	test_bit(KIF_CANCELLED, &(iocb)->ki_flags)
++#define kiocbIsRestarted(iocb)	test_bit(KIF_RESTARTED, &(iocb)->ki_flags)
+ 
+ /* is there a better place to document function pointer methods? */
+ /**
+diff -puN include/linux/sched.h~fsaio-filesystem-aio-read include/linux/sched.h
+--- a/include/linux/sched.h~fsaio-filesystem-aio-read
 +++ a/include/linux/sched.h
-@@ -216,6 +216,7 @@ extern void show_stack(struct task_struc
+@@ -1283,6 +1283,16 @@ extern void switch_uid(struct user_struc
  
- void io_schedule(void);
- long io_schedule_timeout(long timeout);
-+int io_wait_schedule(wait_queue_t *wait);
+ #include <asm/current.h>
  
- extern void cpu_init (void);
- extern void trap_init(void);
-diff -puN kernel/sched.c~fsaio-enable-asynchronous-wait-page-and-lock-page kernel/sched.c
---- a/kernel/sched.c~fsaio-enable-asynchronous-wait-page-and-lock-page
-+++ a/kernel/sched.c
-@@ -4603,6 +4603,20 @@ long __sched io_schedule_timeout(long ti
- 	return ret;
- }
- 
-+/*
-+ * Sleep only if the wait context passed is not async,
-+ * otherwise return so that a retry can be issued later.
-+ */
-+int __sched io_wait_schedule(wait_queue_t *wait)
++/* Are we in the context of a restarted AIO ? */
++static inline int aio_restarted(void)
 +{
-+	if (!is_sync_wait(wait))
-+		return -EIOCBRETRY;
-+	io_schedule();
++	wait_queue_t *wait = current->io_wait;
++
++	if (!is_sync_wait(wait) && kiocbTryRestart(io_wait_to_kiocb(wait)))
++		return 1;
 +	return 0;
 +}
 +
-+EXPORT_SYMBOL(io_wait_schedule);
-+
- /**
-  * sys_sched_get_priority_max - return maximum RT priority.
-  * @policy: scheduling class.
-diff -puN mm/filemap.c~fsaio-enable-asynchronous-wait-page-and-lock-page mm/filemap.c
---- a/mm/filemap.c~fsaio-enable-asynchronous-wait-page-and-lock-page
+ extern void do_timer(unsigned long ticks);
+ 
+ extern int FASTCALL(wake_up_state(struct task_struct * tsk, unsigned int state));
+diff -puN mm/filemap.c~fsaio-filesystem-aio-read mm/filemap.c
+--- a/mm/filemap.c~fsaio-filesystem-aio-read
 +++ a/mm/filemap.c
-@@ -135,8 +135,7 @@ void remove_from_page_cache(struct page 
+@@ -846,6 +846,9 @@ void do_generic_mapping_read(struct addr
+ 	if (!isize)
+ 		goto out;
  
- static int sleep_on_page(void *word, wait_queue_t *wait)
- {
--	io_schedule();
--	return 0;
-+	return io_wait_schedule(wait);
- }
++	if (unlikely(aio_restarted()))
++		next_index = last_index; /* Avoid repeat readahead */
++
+ 	end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
+ 	for (;;) {
+ 		struct page *page;
+@@ -915,7 +918,10 @@ page_ok:
  
- /**
-@@ -470,13 +469,17 @@ static inline void wake_up_page(struct p
- 	__wake_up_bit(page_waitqueue(page), &page->flags, bit);
- }
+ page_not_up_to_date:
+ 		/* Get exclusive access to the page ... */
+-		lock_page(page);
++
++		error = lock_page_async(page, current->io_wait);
++		if (error)
++			goto readpage_error;
  
--void fastcall wait_on_page_bit(struct page *page, int bit_nr)
-+int fastcall wait_on_page_bit(struct page *page, int bit_nr,
-+					wait_queue_t *wait)
- {
--	DEFINE_WAIT_BIT(wait, &page->flags, bit_nr);
--
--	if (test_bit(bit_nr, &page->flags))
--		__wait_on_bit(page_waitqueue(page), &wait, sleep_on_page,
-+	if (test_bit(bit_nr, &page->flags)) {
-+		struct wait_bit_queue *wait_bit
-+			= container_of(wait, struct wait_bit_queue, wait);
-+		init_wait_bit_key(wait_bit, &page->flags, bit_nr);
-+		return __wait_on_bit(page_waitqueue(page), wait_bit, sleep_on_page,
- 							TASK_UNINTERRUPTIBLE);
-+	}
-+	return 0;
- }
- EXPORT_SYMBOL(wait_on_page_bit);
+ 		/* Did it get truncated before we got the lock? */
+ 		if (!page->mapping) {
+@@ -943,7 +949,9 @@ readpage:
+ 		}
  
-@@ -520,14 +523,23 @@ void end_page_writeback(struct page *pag
- EXPORT_SYMBOL(end_page_writeback);
+ 		if (!PageUptodate(page)) {
+-			lock_page(page);
++			error = lock_page_async(page, current->io_wait);
++			if (error)
++				goto readpage_error;
+ 			if (!PageUptodate(page)) {
+ 				if (page->mapping == NULL) {
+ 					/*
+@@ -989,7 +997,11 @@ readpage:
+ 		goto page_ok;
  
- /**
-- * lock_page_blocking - get a lock on the page, assuming we need to sleep to get it
-+ * lock_page_blocking: get a lock on the page, assuming we need to wait to get it
-  * @page: the page to lock
-+ * @wait: wait queue entry to notify when lock is available; if this is a
-+ * synchronous wait queue entry then the routine blocks until the lock is
-+ * obtained.
-+ * The wait queue entry is expected to be embedded in a wait bit structure.
-+ *
-+ * Returns 0 if the lock has been acquired, -EIOCBRETRY if an async wakeup
-+ * has been queued for activation when the lock will be available.
-  */
--void fastcall lock_page_blocking(struct page *page)
-+int fastcall lock_page_blocking(struct page *page, wait_queue_t *wait)
- {
--	DEFINE_WAIT_BIT(wait, &page->flags, PG_locked);
-+	struct wait_bit_queue *wait_bit
-+		= container_of(wait, struct wait_bit_queue, wait);
- 
--	__wait_on_bit_lock(page_waitqueue(page), &wait, sleep_on_page,
-+	init_wait_bit_key(wait_bit, &page->flags, PG_locked);
-+	return __wait_on_bit_lock(page_waitqueue(page), wait_bit, sleep_on_page,
- 							TASK_UNINTERRUPTIBLE);
- }
- EXPORT_SYMBOL(lock_page_blocking);
-@@ -575,7 +587,7 @@ repeat:
- 		page_cache_get(page);
- 		if (TestSetPageLocked(page)) {
- 			read_unlock_irq(&mapping->tree_lock);
--			lock_page_blocking(page);
-+			lock_page_blocking(page, &current->__wait.wait);
- 			read_lock_irq(&mapping->tree_lock);
- 
- 			/* Has the page been truncated while we slept? */
+ readpage_error:
+-		/* UHHUH! A synchronous read error occurred. Report it */
++		/* We don't have uptodate data in the page yet */
++		/* Could be due to an error or because we need to
++		 * retry when we get an async i/o notification.
++		 * Report the reason.
++		 */
+ 		desc->error = error;
+ 		page_cache_release(page);
+ 		goto out;
 _
 
 Patches currently in -mm which might be from suparna@in.ibm.com are
 
 aio-is-unlikely.patch
-fsaio-enable-asynchronous-wait-page-and-lock-page.patch
 fsaio-filesystem-aio-read.patch
 fsaio-aio-o_sync-filesystem-write.patch
 rework-compat_sys_io_submit.patch
