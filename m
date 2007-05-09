@@ -1,150 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - slub-add-support-for-dynamic-cacheline-size-determination-fix-2.patch removed from -mm tree
-Date: Wed, 09 May 2007 01:45:29 -0700
-Message-ID: <200705090845.l498jTes018323@shell0.pdx.osdl.net>
+Subject: - slub-clean-up-krealloc-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 01:46:05 -0700
+Message-ID: <200705090846.l498k5V7018339@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34223 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755927AbXEIIpf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:45:35 -0400
+	by vger.kernel.org with ESMTP id S1755800AbXEIIqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-add-support-for-dynamic-cacheline-size-determination-fix-2
+     SLUB: clean up krealloc (fix)
 has been removed from the -mm tree.  Its filename was
-     slub-add-support-for-dynamic-cacheline-size-determination-fix-2.patch
+     slub-clean-up-krealloc-fix.patch
 
-This patch was dropped because it was folded into slub-add-support-for-dynamic-cacheline-size-determination.patch
+This patch was dropped because it was folded into slub-clean-up-krealloc.patch
 
 ------------------------------------------------------
-Subject: slub-add-support-for-dynamic-cacheline-size-determination-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: SLUB: clean up krealloc (fix)
+From: Christoph Lameter <clameter@sgi.com>
 
-Need to define it before we use it.
+Hmmmm... Compile failure on 32bit.
 
-Cc: Christoph Lameter <clameter@sgi.com>
+Use size_t in krealloc otherwise min() will complain.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/slub.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-add-support-for-dynamic-cacheline-size-determination-fix-2 mm/slub.c
---- a/mm/slub.c~slub-add-support-for-dynamic-cacheline-size-determination-fix-2
+diff -puN mm/slub.c~slub-clean-up-krealloc-fix mm/slub.c
+--- a/mm/slub.c~slub-clean-up-krealloc-fix
 +++ a/mm/slub.c
-@@ -157,6 +157,11 @@
- /* Internal SLUB flags */
- #define __OBJECT_POISON 0x80000000	/* Poison object */
+@@ -2200,7 +2200,7 @@ EXPORT_SYMBOL(kmem_cache_shrink);
+ void *krealloc(const void *p, size_t new_size, gfp_t flags)
+ {
+ 	void *ret;
+-	unsigned long ks;
++	size_t ks;
  
-+/* Not all arches define cache_line_size */
-+#ifndef cache_line_size
-+#define cache_line_size()	L1_CACHE_BYTES
-+#endif
-+
- static int kmem_size = sizeof(struct kmem_cache);
- 
- #ifdef CONFIG_SMP
-@@ -1777,11 +1782,6 @@ error:
- }
- EXPORT_SYMBOL(kmem_cache_open);
- 
--/* Not all arches define cache_line_size */
--#ifndef cache_line_size
--#define cache_line_size()	L1_CACHE_BYTES
--#endif
--
- /*
-  * Check if a given pointer is valid
-  */
+ 	if (unlikely(!p))
+ 		return kmalloc(new_size, flags);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
 slub-add-support-for-dynamic-cacheline-size-determination.patch
-slub-add-support-for-dynamic-cacheline-size-determination-fix-2.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-git-ia64-sa_interrupt-is-deprecated.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-battery-fix.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-swsusp-clean-up-print.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-upper-32-bits.patch
-lib-hexdump-fix.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-mutex_lock_interruptible-add-__must_check.patch
-mutex_lock_interruptible-add-__must_check-must-fix.patch
-afs-implement-basic-file-write-support-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
+slub-after-object-padding-only-needed-for-redzoning.patch
+slub-slabinfo-upgrade.patch
+slub-use-check_valid_pointer-in-kmem_ptr_validate.patch
+slub-clean-up-krealloc.patch
+slub-clean-up-krealloc-fix.patch
+slub-get-rid-of-finish_bootstrap.patch
+slub-update-comments.patch
+slub-add-macros-for-scanning-objects-in-a-slab.patch
+slub-move-resiliency-check-into-sysfs-section.patch
+slub-introduce-debugslabpage.patch
+slub-consolidate-trace-code.patch
+slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code.patch
+slub-add-config_slub_debug.patch
+slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output.patch
+slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix.patch
+slub-rework-slab-order-determination.patch
+krealloc-fix-kerneldoc-comments.patch
+fix-spellings-of-slab-allocator-section-in-init-kconfig.patch
+frv-replace-pgd-management-via-slabs-through-quicklists.patch
+disable-slub-on-powerpc.patch
+slub-support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-reduce-antifrag-max-order.patch
+slub-i386-support.patch
+remove-constructor-from-buffer_head.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+mm-implement-swap-prefetching.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
+vmstat-use-our-own-timer-events.patch
+vmstat-use-our-own-timer-events-fix.patch
+make-vm-statistics-update-interval-configurable.patch
 make-vm-statistics-update-interval-configurable-fix.patch
-rename-thread_info-to-stack-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+move-remote-node-draining-out-of-slab-allocators.patch
+md-remove-the-slash-from-the-name-of-a-kmem_cache-used-by-raid5.patch
