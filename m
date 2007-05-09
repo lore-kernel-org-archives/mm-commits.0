@@ -1,299 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-isdn-hardware-eicon-remove-unused-header-files.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:53:19 -0700
-Message-ID: <200705090253.l492rJPb009679@shell0.pdx.osdl.net>
+Subject: - change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:53:13 -0700
+Message-ID: <200705090253.l492rDGW009669@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50322 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032097AbXEICx2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:28 -0400
+	by vger.kernel.org with ESMTP id S1032223AbXEICx3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: armin@melware.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: jlayton@redhat.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/isdn/hardware/eicon/: remove unused header files
+     inode numbering: change libfs sb creation routines to avoid collisions with their root inodes
 has been removed from the -mm tree.  Its filename was
-     drivers-isdn-hardware-eicon-remove-unused-header-files.patch
+     change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/isdn/hardware/eicon/: remove unused header files
-From: Armin Schindler <armin@melware.de>
+Subject: inode numbering: change libfs sb creation routines to avoid collisions with their root inodes
+From: Jeff Layton <jlayton@redhat.com>
 
-As pointed out by Robert P.  J.  Day, here is a patch to remove unused
-header files from Eicon/Dialogic ISDN driver.
+This patch makes it so that simple_fill_super and get_sb_pseudo assign their
+root inodes to be number 1.  It also fixes up a couple of callers of
+simple_fill_super that were passing in files arrays that had an index at
+number 1, and adds a warning for any caller that sends in such an array.
 
-Signed-off-by: Armin Schindler <armin@melware.de>
-Acked-by: Karsten Keil <kkeil@suse.de>
+It would have been nice to have made it so that it wasn't possible to make
+such a collision, but some callers need to be able to control what inode
+number their entries get, so I think this is the best that can be done.
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/dbgioctl.h |  198 -----------------------
- drivers/isdn/hardware/eicon/main_if.h  |   50 -----
- 2 files changed, 248 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_fs.c |    2 +-
+ fs/binfmt_misc.c                       |    4 ++--
+ fs/libfs.c                             |   23 +++++++++++++++++++++++
+ 3 files changed, 26 insertions(+), 3 deletions(-)
 
-diff -puN drivers/isdn/hardware/eicon/dbgioctl.h~drivers-isdn-hardware-eicon-remove-unused-header-files /dev/null
---- a/drivers/isdn/hardware/eicon/dbgioctl.h
-+++ /dev/null
-@@ -1,198 +0,0 @@
--
--/*
-- *
--  Copyright (c) Eicon Technology Corporation, 2000.
-- *
--  This source file is supplied for the use with Eicon
--  Technology Corporation's range of DIVA Server Adapters.
-- *
--  This program is free software; you can redistribute it and/or modify
--  it under the terms of the GNU General Public License as published by
--  the Free Software Foundation; either version 2, or (at your option)
--  any later version.
-- *
--  This program is distributed in the hope that it will be useful,
--  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
--  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
--  See the GNU General Public License for more details.
-- *
--  You should have received a copy of the GNU General Public License
--  along with this program; if not, write to the Free Software
--  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- *
-- */
--/*------------------------------------------------------------------*/
--/* file: dbgioctl.h                                                 */
--/*------------------------------------------------------------------*/
--
--#if !defined(__DBGIOCTL_H__)
--
--#define __DBGIOCTL_H__
--
--#ifdef NOT_YET_NEEDED
--/*
-- * The requested operation is passed in arg0 of DbgIoctlArgs,
-- * additional arguments (if any) in arg1, arg2 and arg3.
-- */
--
--typedef struct
--{	ULONG	arg0 ;
--	ULONG	arg1 ;
--	ULONG	arg2 ;
--	ULONG	arg3 ;
--} DbgIoctlArgs ;
--
--#define	DBG_COPY_LOGS	0	/* copy debugs to user until buffer full	*/
--							/* arg1: size threshold						*/
--							/* arg2: timeout in milliseconds			*/
--
--#define DBG_FLUSH_LOGS	1	/* flush pending debugs to user buffer		*/
--							/* arg1: internal driver id					*/
--
--#define DBG_LIST_DRVS	2	/* return the list of registered drivers	*/
--
--#define	DBG_GET_MASK	3	/* get current debug mask of driver			*/
--							/* arg1: internal driver id					*/
--
--#define	DBG_SET_MASK	4	/* set/change debug mask of driver			*/
--							/* arg1: internal driver id					*/
--							/* arg2: new debug mask						*/
--
--#define	DBG_GET_BUFSIZE	5	/* get current buffer size of driver		*/
--							/* arg1: internal driver id					*/
--							/* arg2: new debug mask						*/
--
--#define	DBG_SET_BUFSIZE	6	/* set new buffer size of driver			*/
--							/* arg1: new buffer size					*/
--
--/*
-- *	common internal debug message structure
-- */
--
--typedef struct
--{	unsigned short id ;		/* virtual driver id                  */
--	unsigned short type ;	/* special message type               */
--	unsigned long  seq ;	/* sequence number of message         */
--	unsigned long  size ;	/* size of message in bytes           */
--	unsigned long  next ;	/* offset to next buffered message    */
--	LARGE_INTEGER  NTtime ;	/* 100 ns  since 1.1.1601             */
--	unsigned char  data[4] ;/* message data                       */
--} OldDbgMessage ;
--
--typedef struct
--{	LARGE_INTEGER  NTtime ;	/* 100 ns  since 1.1.1601             */
--	unsigned short size ;	/* size of message in bytes           */
--	unsigned short ffff ;	/* always 0xffff to indicate new msg  */
--	unsigned short id ;		/* virtual driver id                  */
--	unsigned short type ;	/* special message type               */
--	unsigned long  seq ;	/* sequence number of message         */
--	unsigned char  data[4] ;/* message data                       */
--} DbgMessage ;
--
--#endif
--
--#define DRV_ID_UNKNOWN		0x0C	/* for messages via prtComp() */
--
--#define	MSG_PROC_FLAG		0x80
--#define	MSG_PROC_NO_GET(x)	(((x) & MSG_PROC_FLAG) ? (((x) >> 4) & 7) : -1)
--#define	MSG_PROC_NO_SET(x)	(MSG_PROC_FLAG | (((x) & 7) << 4))
--
--#define MSG_TYPE_DRV_ID		0x0001
--#define MSG_TYPE_FLAGS		0x0002
--#define MSG_TYPE_STRING		0x0003
--#define MSG_TYPE_BINARY		0x0004
--
--#define MSG_HEAD_SIZE	((unsigned long)&(((DbgMessage *)0)->data[0]))
--#define MSG_ALIGN(len)	(((unsigned long)(len) + MSG_HEAD_SIZE + 3) & ~3)
--#define MSG_SIZE(pMsg)	MSG_ALIGN((pMsg)->size)
--#define MSG_NEXT(pMsg)	((DbgMessage *)( ((char *)(pMsg)) + MSG_SIZE(pMsg) ))
--
--#define OLD_MSG_HEAD_SIZE	((unsigned long)&(((OldDbgMessage *)0)->data[0]))
--#define OLD_MSG_ALIGN(len)	(((unsigned long)(len)+OLD_MSG_HEAD_SIZE+3) & ~3)
--
--/*
-- * manifest constants
-- */
--
--#define MSG_FRAME_MAX_SIZE	2150		/* maximum size of B1 frame	 */
--#define MSG_TEXT_MAX_SIZE	1024		/* maximum size of msg text	 */
--#define MSG_MAX_SIZE		MSG_ALIGN(MSG_FRAME_MAX_SIZE)
--#define DBG_MIN_BUFFER_SIZE	0x00008000	/* minimal total buffer size  32 KB */
--#define DBG_DEF_BUFFER_SIZE	0x00020000	/* default total buffer size 128 KB */
--#define DBG_MAX_BUFFER_SIZE	0x00400000	/* maximal total buffer size   4 MB */
--
--#define DBGDRV_NAME		"Diehl_DIMAINT"
--#define UNIDBG_DRIVER	L"\\Device\\Diehl_DIMAINT" /* UNICODE name for kernel */
--#define DEBUG_DRIVER	"\\\\.\\" DBGDRV_NAME  /* traditional string for apps */
--#define DBGVXD_NAME		"DIMAINT"
--#define DEBUG_VXD		"\\\\.\\" DBGVXD_NAME  /* traditional string for apps */
--
--/*
-- *	Special IDI interface debug construction
-- */
--
--#define	DBG_IDI_SIG_REQ		(unsigned long)0xF479C402
--#define	DBG_IDI_SIG_IND		(unsigned long)0xF479C403
--#define	DBG_IDI_NL_REQ		(unsigned long)0xF479C404
--#define	DBG_IDI_NL_IND		(unsigned long)0xF479C405
--
--typedef struct
--{	unsigned long  magic_type ;
--	unsigned short data_len ;
--	unsigned char  layer_ID ;
--	unsigned char  entity_ID ;
--	unsigned char  request ;
--	unsigned char  ret_code ;
--	unsigned char  indication ;
--	unsigned char  complete ;
--	unsigned char  data[4] ;
--} DbgIdiAct, *DbgIdiAction ;
--
--/*
-- * We want to use the same IOCTL codes in Win95 and WinNT.
-- * The official constructor for IOCTL codes is the CTL_CODE macro
-- * from <winoctl.h> (<devioctl.h> in WinNT DDK environment).
-- * The problem here is that we don't know how to get <winioctl.h>
-- * working in a Win95 DDK environment!
-- */
--
--# ifdef CTL_CODE	/*{*/
--
--/* Assert that we have the same idea of the CTL_CODE macro.	*/
--
--#define CTL_CODE( DeviceType, Function, Method, Access ) (                 \
--    ((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method) \
--)
--
--# else	/* !CTL_CODE */ /*}{*/
--
--/* Use the definitions stolen from <winioctl.h>.  */
--
--#define CTL_CODE( DeviceType, Function, Method, Access ) (                 \
--    ((DeviceType) << 16) | ((Access) << 14) | ((Function) << 2) | (Method) \
--)
--
--#define METHOD_BUFFERED                 0
--#define METHOD_IN_DIRECT                1
--#define METHOD_OUT_DIRECT               2
--#define METHOD_NEITHER                  3
--
--#define FILE_ANY_ACCESS                 0
--#define FILE_READ_ACCESS          ( 0x0001 )    // file & pipe
--#define FILE_WRITE_ACCESS         ( 0x0002 )    // file & pipe
--
--# endif	/* CTL_CODE */ /*}*/
--
--/*
-- * Now we can define WinNT/Win95 DeviceIoControl codes.
-- *
-- * These codes are defined in di_defs.h too, a possible mismatch will be
-- * detected when the dbgtool is compiled.
-- */
--
--#define IOCTL_DRIVER_LNK \
--	CTL_CODE(0x8001U,0x701,METHOD_OUT_DIRECT,FILE_ANY_ACCESS)
--#define IOCTL_DRIVER_DBG \
--	CTL_CODE(0x8001U,0x702,METHOD_OUT_DIRECT,FILE_ANY_ACCESS)
--
--#endif /* __DBGIOCTL_H__ */
-diff -puN drivers/isdn/hardware/eicon/main_if.h~drivers-isdn-hardware-eicon-remove-unused-header-files /dev/null
---- a/drivers/isdn/hardware/eicon/main_if.h
-+++ /dev/null
-@@ -1,50 +0,0 @@
--/*
-- *
--  Copyright (c) Eicon Technology Corporation, 2000.
-- *
--  This source file is supplied for the use with Eicon
--  Technology Corporation's range of DIVA Server Adapters.
-- *
--  This program is free software; you can redistribute it and/or modify
--  it under the terms of the GNU General Public License as published by
--  the Free Software Foundation; either version 2, or (at your option)
--  any later version.
-- *
--  This program is distributed in the hope that it will be useful,
--  but WITHOUT ANY WARRANTY OF ANY KIND WHATSOEVER INCLUDING ANY
--  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
--  See the GNU General Public License for more details.
-- *
--  You should have received a copy of the GNU General Public License
--  along with this program; if not, write to the Free Software
--  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- *
-- */
--/*------------------------------------------------------------------*/
--/* file: main_if.h                                                  */
--/*------------------------------------------------------------------*/
--# ifndef MAIN_IF___H
--# define MAIN_IF___H
--
--# include "debug_if.h"
--
--void  DI_lock (void) ;
--void  DI_unlock (void) ;
--
--#ifdef NOT_YET_NEEDED
--void  DI_nttime (LARGE_INTEGER *NTtime) ;
--void  DI_ntlcltime(LARGE_INTEGER *NTtime, LARGE_INTEGER *lclNTtime) ;
--void  DI_nttimefields(LARGE_INTEGER *NTtime, TIME_FIELDS *TimeFields);
--unsigned long  DI_wintime(LARGE_INTEGER *NTtime) ;
--
--unsigned short  DiInsertProcessorNumber (int type) ;
--void DiProcessEventLog (unsigned short id, unsigned long msgID, va_list ap);
--
--void  StartIoctlTimer (void (*Handler)(void), unsigned long msec) ;
--void  StopIoctlTimer (void) ;
--void  UnpendIoctl (DbgRequest *pDbgReq) ;
--#endif
--
--void add_to_q(int, char* , unsigned int);
--# endif /* MAIN_IF___H */
--
+diff -puN drivers/infiniband/hw/ipath/ipath_fs.c~change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes drivers/infiniband/hw/ipath/ipath_fs.c
+--- a/drivers/infiniband/hw/ipath/ipath_fs.c~change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes
++++ a/drivers/infiniband/hw/ipath/ipath_fs.c
+@@ -523,7 +523,7 @@ static int ipathfs_fill_super(struct sup
+ 	int ret;
+ 
+ 	static struct tree_descr files[] = {
+-		[1] = {"atomic_stats", &atomic_stats_ops, S_IRUGO},
++		[2] = {"atomic_stats", &atomic_stats_ops, S_IRUGO},
+ 		{""},
+ 	};
+ 
+diff -puN fs/binfmt_misc.c~change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes
++++ a/fs/binfmt_misc.c
+@@ -727,8 +727,8 @@ static const struct super_operations s_o
+ static int bm_fill_super(struct super_block * sb, void * data, int silent)
+ {
+ 	static struct tree_descr bm_files[] = {
+-		[1] = {"status", &bm_status_operations, S_IWUSR|S_IRUGO},
+-		[2] = {"register", &bm_register_operations, S_IWUSR},
++		[2] = {"status", &bm_status_operations, S_IWUSR|S_IRUGO},
++		[3] = {"register", &bm_register_operations, S_IWUSR},
+ 		/* last one */ {""}
+ 	};
+ 	int err = simple_fill_super(sb, 0x42494e4d, bm_files);
+diff -puN fs/libfs.c~change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes fs/libfs.c
+--- a/fs/libfs.c~change-libfs-sb-creation-routines-to-avoid-collisions-with-their-root-inodes
++++ a/fs/libfs.c
+@@ -220,6 +220,12 @@ int get_sb_pseudo(struct file_system_typ
+ 	root = new_inode(s);
+ 	if (!root)
+ 		goto Enomem;
++	/*
++	 * since this is the first inode, make it number 1. New inodes created
++	 * after this must take care not to collide with it (by passing
++	 * max_reserved of 1 to iunique).
++	 */
++	root->i_ino = 1;
+ 	root->i_mode = S_IFDIR | S_IRUSR | S_IWUSR;
+ 	root->i_uid = root->i_gid = 0;
+ 	root->i_atime = root->i_mtime = root->i_ctime = CURRENT_TIME;
+@@ -360,6 +366,11 @@ int simple_commit_write(struct file *fil
+ 	return 0;
+ }
+ 
++/*
++ * the inodes created here are not hashed. If you use iunique to generate
++ * unique inode values later for this filesystem, then you must take care
++ * to pass it an appropriate max_reserved value to avoid collisions.
++ */
+ int simple_fill_super(struct super_block *s, int magic, struct tree_descr *files)
+ {
+ 	struct inode *inode;
+@@ -376,6 +387,11 @@ int simple_fill_super(struct super_block
+ 	inode = new_inode(s);
+ 	if (!inode)
+ 		return -ENOMEM;
++	/*
++	 * because the root inode is 1, the files array must not contain an
++	 * entry at index 1
++	 */
++	inode->i_ino = 1;
+ 	inode->i_mode = S_IFDIR | 0755;
+ 	inode->i_uid = inode->i_gid = 0;
+ 	inode->i_blocks = 0;
+@@ -391,6 +407,13 @@ int simple_fill_super(struct super_block
+ 	for (i = 0; !files->name || files->name[0]; i++, files++) {
+ 		if (!files->name)
+ 			continue;
++
++		/* warn if it tries to conflict with the root inode */
++		if (unlikely(i == 1))
++			printk(KERN_WARNING "%s: %s passed in a files array"
++				"with an index of 1!\n", __func__,
++				s->s_type->name);
++
+ 		dentry = d_alloc_name(root, files->name);
+ 		if (!dentry)
+ 			goto out;
 _
 
-Patches currently in -mm which might be from armin@melware.de are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
 origin.patch
+rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch
+rpc-add-wrapper-for-svc_reserve-to-account-for-checksum-fix.patch
