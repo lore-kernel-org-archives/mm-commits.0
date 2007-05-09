@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - dm-crypt-fix-remove-first_clone.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:35 -0700
-Message-ID: <200705092148.l49LmZTX002605@shell0.pdx.osdl.net>
+Subject: - dm-crypt-use-smaller-bvecs-in-clones.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:37 -0700
+Message-ID: <200705092148.l49Lmbu9002608@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38253 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759301AbXEIVss (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:48 -0400
+	by vger.kernel.org with ESMTP id S1759341AbXEIVst (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: olaf.kirch@oracle.com, agk@redhat.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm crypt: fix remove first_clone
+     dm crypt: use smaller bvecs in clones
 has been removed from the -mm tree.  Its filename was
-     dm-crypt-fix-remove-first_clone.patch
+     dm-crypt-use-smaller-bvecs-in-clones.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm crypt: fix remove first_clone
+Subject: dm crypt: use smaller bvecs in clones
 From: Olaf Kirch <olaf.kirch@oracle.com>
 
-Get rid of first_clone in dm-crypt
+Allocate smaller clones
 
-This gets rid of first_clone, which is not really needed.  Apparently, cloned
-bios used to share their bvec some time way in the past - this is no longer
-the case.  Contrarily, this even hurts us if we try to create a clone off
-first_clone after it has completed, and crypt_endio has destroyed its bvec.
+With the previous dm-crypt fixes, there is no need for the clone bios to have
+the same bvec size as the original - we just need to make them big enough for
+the remaining number of pages.  The only requirement is that we clear the
+"out" index in convert_context, so that crypt_convert starts storing data at
+the right position within the clone bio.
 
 Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
@@ -37,98 +38,96 @@ Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |   34 ++++++----------------------------
- 1 file changed, 6 insertions(+), 28 deletions(-)
+ drivers/md/dm-crypt.c |   29 ++++++++---------------------
+ 1 file changed, 8 insertions(+), 21 deletions(-)
 
-diff -puN drivers/md/dm-crypt.c~dm-crypt-fix-remove-first_clone drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~dm-crypt-fix-remove-first_clone
+diff -puN drivers/md/dm-crypt.c~dm-crypt-use-smaller-bvecs-in-clones drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~dm-crypt-use-smaller-bvecs-in-clones
 +++ a/drivers/md/dm-crypt.c
-@@ -33,7 +33,6 @@
- struct crypt_io {
- 	struct dm_target *target;
- 	struct bio *base_bio;
--	struct bio *first_clone;
- 	struct work_struct work;
- 	atomic_t pending;
- 	int error;
-@@ -380,9 +379,8 @@ static int crypt_convert(struct crypt_co
+@@ -379,8 +379,7 @@ static int crypt_convert(struct crypt_co
   * This should never violate the device limitations
   * May return a smaller bio when running out of pages
   */
--static struct bio *
--crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
--                   struct bio *base_bio, unsigned int *bio_vec_idx)
-+static struct bio *crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
-+				      unsigned int *bio_vec_idx)
+-static struct bio *crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
+-				      unsigned int *bio_vec_idx)
++static struct bio *crypt_alloc_buffer(struct crypt_io *io, unsigned int size)
  {
  	struct crypt_config *cc = io->target->private;
  	struct bio *clone;
-@@ -390,12 +388,7 @@ crypt_alloc_buffer(struct crypt_io *io, 
- 	gfp_t gfp_mask = GFP_NOIO | __GFP_HIGHMEM;
- 	unsigned int i;
+@@ -394,16 +393,7 @@ static struct bio *crypt_alloc_buffer(st
  
--	if (base_bio) {
--		clone = bio_alloc_bioset(GFP_NOIO, base_bio->bi_max_vecs, cc->bs);
--		__bio_clone(clone, base_bio);
--	} else
--		clone = bio_alloc_bioset(GFP_NOIO, nr_iovecs, cc->bs);
+ 	clone_init(io, clone);
+ 
+-	/* if the last bio was not complete, continue where that one ended */
+-	clone->bi_idx = *bio_vec_idx;
+-	clone->bi_vcnt = *bio_vec_idx;
+-	clone->bi_size = 0;
+-	clone->bi_flags &= ~(1 << BIO_SEG_VALID);
 -
-+	clone = bio_alloc_bioset(GFP_NOIO, nr_iovecs, cc->bs);
- 	if (!clone)
+-	/* clone->bi_idx pages have already been allocated */
+-	size -= clone->bi_idx * PAGE_SIZE;
+-
+-	for (i = clone->bi_idx; i < nr_iovecs; i++) {
++	for (i = 0; i < nr_iovecs; i++) {
+ 		struct bio_vec *bv = bio_iovec_idx(clone, i);
+ 
+ 		bv->bv_page = mempool_alloc(cc->page_pool, gfp_mask);
+@@ -415,7 +405,7 @@ static struct bio *crypt_alloc_buffer(st
+ 		 * return a partially allocated bio, the caller will then try
+ 		 * to allocate additional bios while submitting this partial bio
+ 		 */
+-		if ((i - clone->bi_idx) == (MIN_BIO_PAGES - 1))
++		if (i == (MIN_BIO_PAGES - 1))
+ 			gfp_mask = (gfp_mask | __GFP_NOWARN) & ~__GFP_WAIT;
+ 
+ 		bv->bv_offset = 0;
+@@ -434,12 +424,6 @@ static struct bio *crypt_alloc_buffer(st
  		return NULL;
+ 	}
  
-@@ -498,9 +491,6 @@ static void dec_pending(struct crypt_io 
- 	if (!atomic_dec_and_test(&io->pending))
- 		return;
- 
--	if (io->first_clone)
--		bio_put(io->first_clone);
+-	/*
+-	 * Remember the last bio_vec allocated to be able
+-	 * to correctly continue after the splitting.
+-	 */
+-	*bio_vec_idx = clone->bi_vcnt;
 -
- 	bio_endio(io->base_bio, io->base_bio->bi_size, io->error);
+ 	return clone;
+ }
  
- 	mempool_free(io, cc->io_pool);
-@@ -618,8 +608,7 @@ static void process_write(struct crypt_i
+@@ -597,7 +581,6 @@ static void process_write(struct crypt_i
+ 	struct convert_context ctx;
+ 	unsigned remaining = base_bio->bi_size;
+ 	sector_t sector = base_bio->bi_sector - io->target->begin;
+-	unsigned bvec_idx = 0;
+ 
+ 	atomic_inc(&io->pending);
+ 
+@@ -608,13 +591,14 @@ static void process_write(struct crypt_i
  	 * so repeat the whole process until all the data can be handled.
  	 */
  	while (remaining) {
--		clone = crypt_alloc_buffer(io, base_bio->bi_size,
--					   io->first_clone, &bvec_idx);
-+		clone = crypt_alloc_buffer(io, base_bio->bi_size, &bvec_idx);
+-		clone = crypt_alloc_buffer(io, base_bio->bi_size, &bvec_idx);
++		clone = crypt_alloc_buffer(io, remaining);
  		if (unlikely(!clone)) {
  			dec_pending(io, -ENOMEM);
  			return;
-@@ -635,21 +624,11 @@ static void process_write(struct crypt_i
  		}
  
+ 		ctx.bio_out = clone;
++		ctx.idx_out = 0;
+ 
+ 		if (unlikely(crypt_convert(cc, &ctx) < 0)) {
+ 			crypt_free_buffer_pages(cc, clone, clone->bi_size);
+@@ -623,6 +607,9 @@ static void process_write(struct crypt_i
+ 			return;
+ 		}
+ 
++		/* crypt_convert should have filled the clone bio */
++		BUG_ON(ctx.idx_out < clone->bi_vcnt);
++
  		clone->bi_sector = cc->start + sector;
--
--		if (!io->first_clone) {
--			/*
--			 * hold a reference to the first clone, because it
--			 * holds the bio_vec array and that can't be freed
--			 * before all other clones are released
--			 */
--			bio_get(clone);
--			io->first_clone = clone;
--		}
--
  		remaining -= clone->bi_size;
  		sector += bio_sectors(clone);
- 
--		/* prevent bio_put of first_clone */
-+		/* Grab another reference to the io struct
-+		 * before we kick off the request */
- 		if (remaining)
- 			atomic_inc(&io->pending);
- 
-@@ -965,7 +944,6 @@ static int crypt_map(struct dm_target *t
- 	io = mempool_alloc(cc->io_pool, GFP_NOIO);
- 	io->target = ti;
- 	io->base_bio = bio;
--	io->first_clone = NULL;
- 	io->error = io->post_process = 0;
- 	atomic_set(&io->pending, 0);
- 	kcryptd_queue_io(io);
 _
 
 Patches currently in -mm which might be from olaf.kirch@oracle.com are
