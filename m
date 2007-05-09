@@ -1,146 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-documentation-and-example-updates.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:44:17 -0700
-Message-ID: <200705090944.l499iHmK020243@shell0.pdx.osdl.net>
+Subject: - lguest-the-host-code-vs-futex-new-private-futexes.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:45:26 -0700
+Message-ID: <200705090945.l499jQpx020290@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48886 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50674 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754763AbXEIJpC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:45:02 -0400
+	by vger.kernel.org with ESMTP id S1755674AbXEIJqO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:46:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, tony@bakeyournoodle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dada1@cosmosbay.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: documentation and example updates
+     lguest-the-host-code-vs-futex-new-private-futexes
 has been removed from the -mm tree.  Its filename was
-     lguest-documentation-and-example-updates.patch
+     lguest-the-host-code-vs-futex-new-private-futexes.patch
 
-This patch was dropped because it was folded into lguest-the-documentation-example-launcher.patch
+This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: lguest: documentation and example updates
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: lguest-the-host-code-vs-futex-new-private-futexes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-1) Example code: old libc headers don't have SIOCBRADDIF, and old zlibs
-   don't have gzdirect() -- it's a sanity check anyway.
-2) Some people don't build in their source directories, so .config
-   isn't there (thanks to Tony Breeds <tony@bakeyournoodle.com>).
-3) Point out that guest and host kernel are usually the same.
-4) Set the "no checksum" option on the tun device as a minor optimization.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/lguest/Makefile   |    9 ++++++++-
- Documentation/lguest/lguest.c   |    6 ++++--
- Documentation/lguest/lguest.txt |    8 ++++++--
- 3 files changed, 18 insertions(+), 5 deletions(-)
+ drivers/lguest/io.c |   21 ++++++++++++---------
+ 1 files changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/lguest/Makefile~lguest-documentation-and-example-updates Documentation/lguest/Makefile
---- a/Documentation/lguest/Makefile~lguest-documentation-and-example-updates
-+++ a/Documentation/lguest/Makefile
-@@ -1,7 +1,14 @@
- # This creates the demonstration utility "lguest" which runs a Linux guest.
+diff -puN drivers/lguest/io.c~lguest-the-host-code-vs-futex-new-private-futexes drivers/lguest/io.c
+--- a/drivers/lguest/io.c~lguest-the-host-code-vs-futex-new-private-futexes
++++ a/drivers/lguest/io.c
+@@ -102,13 +102,14 @@ int bind_dma(struct lguest *lg,
+ 	unsigned int i;
+ 	int ret = 0;
+ 	union futex_key key;
++	struct rw_semaphore *fshared = &current->mm->mmap_sem;
  
-+# For those people that have a separate object dir, look there for .config
-+KBUILD_OUTPUT := ../..
-+ifdef O
-+  ifeq ("$(origin O)", "command line")
-+    KBUILD_OUTPUT := $(O)
-+  endif
-+endif
- # We rely on CONFIG_PAGE_OFFSET to know where to put lguest binary.
--include ../../.config
-+include $(KBUILD_OUTPUT)/.config
- LGUEST_GUEST_TOP := ($(CONFIG_PAGE_OFFSET) - 0x08000000)
+ 	if (interrupt >= LGUEST_IRQS)
+ 		return 0;
  
- CFLAGS:=-Wall -Wmissing-declarations -Wmissing-prototypes -O3 \
-diff -puN Documentation/lguest/lguest.c~lguest-documentation-and-example-updates Documentation/lguest/lguest.c
---- a/Documentation/lguest/lguest.c~lguest-documentation-and-example-updates
-+++ a/Documentation/lguest/lguest.c
-@@ -38,6 +38,9 @@ typedef uint8_t u8;
- #define PAGE_PRESENT 0x7 	/* Present, RW, Execute */
- #define NET_PEERNUM 1
- #define BRIDGE_PFX "bridge:"
-+#ifndef SIOCBRADDIF
-+#define SIOCBRADDIF	0x89a2		/* add interface to bridge      */
-+#endif
+ 	mutex_lock(&lguest_lock);
+-	down_read(&current->mm->mmap_sem);
+-	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
++	down_read(fshared);
++	if (get_futex_key((u32 __user *)ukey, fshared, &key) != 0) {
+ 		kill_guest(lg, "bad dma key %#lx", ukey);
+ 		goto unlock;
+ 	}
+@@ -134,7 +135,7 @@ int bind_dma(struct lguest *lg,
+ 	}
+ 	drop_futex_key_refs(&key);
+ unlock:
+- 	up_read(&current->mm->mmap_sem);
++ 	up_read(fshared);
+ 	mutex_unlock(&lguest_lock);
+ 	return ret;
+ }
+@@ -307,11 +308,12 @@ void send_dma(struct lguest *lg, unsigne
+ {
+ 	union futex_key key;
+ 	int empty = 0;
++	struct rw_semaphore *fshared = &current->mm->mmap_sem;
  
- static bool verbose;
- #define verbose(args...) \
-@@ -164,8 +167,6 @@ static unsigned long unpack_bzimage(int 
- 	void *img = (void *)0x100000;
+ again:
+ 	mutex_lock(&lguest_lock);
+-	down_read(&current->mm->mmap_sem);
+-	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
++	down_read(fshared);
++	if (get_futex_key((u32 __user *)ukey, fshared, &key) != 0) {
+ 		kill_guest(lg, "bad sending DMA key");
+ 		goto unlock;
+ 	}
+@@ -342,7 +344,7 @@ again:
+ 		lg->pending_key = ukey;
+ 	}
+ unlock:
+-	up_read(&current->mm->mmap_sem);
++	up_read(fshared);
+ 	mutex_unlock(&lguest_lock);
+ }
  
- 	f = gzdopen(fd, "rb");
--	if (gzdirect(f))
--		errx(1, "did not find correct gzip header");
- 	while ((ret = gzread(f, img + len, 65536)) > 0)
- 		len += ret;
- 	if (ret < 0)
-@@ -816,6 +817,7 @@ static void setup_tun_net(const char *ar
- 	strcpy(ifr.ifr_name, "tap%d");
- 	if (ioctl(netfd, TUNSETIFF, &ifr) != 0)
- 		err(1, "configuring /dev/net/tun");
-+	ioctl(netfd, TUNSETNOCSUM, 1);
+@@ -382,10 +384,11 @@ unsigned long get_dma_buffer(struct lgue
+ 	unsigned long ret = 0;
+ 	union futex_key key;
+ 	struct lguest_dma_info *i;
++	struct rw_semaphore *fshared = &current->mm->mmap_sem;
  
- 	/* You will be peer 1: we should create enough jitter to randomize */
- 	dev = new_device(devices, LGUEST_DEVICE_T_NET, 1,
-diff -puN Documentation/lguest/lguest.txt~lguest-documentation-and-example-updates Documentation/lguest/lguest.txt
---- a/Documentation/lguest/lguest.txt~lguest-documentation-and-example-updates
-+++ a/Documentation/lguest/lguest.txt
-@@ -23,7 +23,10 @@ Developer features:
- 
- Running Lguest:
- 
--- You will need to configure your kernel with the following options:
-+- Lguest runs the same kernel as guest and host.  You can configure
-+  them differently, but usually it's easiest not to.
-+
-+  You will need to configure your kernel with the following options:
- 
-   CONFIG_HIGHMEM64G=n ("High Memory Support" "64GB")[1]
-   CONFIG_TUN=y/m ("Universal TUN/TAP device driver support")
-@@ -35,7 +38,8 @@ Running Lguest:
-   CONFIG_HZ=100 ("Timer frequency")[2]
- 
- - A tool called "lguest" is available in this directory: type "make"
--  to build it.
-+  to build it.  If you didn't build your kernel in-tree, use "make
-+  O=<builddir>".
- 
- - Create or find a root disk image.  There are several useful ones
-   around, such as the xm-test tiny root image at
+ 	mutex_lock(&lguest_lock);
+-	down_read(&current->mm->mmap_sem);
+-	if (get_futex_key((u32 __user *)ukey, &key) != 0) {
++	down_read(fshared);
++	if (get_futex_key((u32 __user *)ukey, fshared, &key) != 0) {
+ 		kill_guest(lg, "bad registered DMA buffer");
+ 		goto unlock;
+ 	}
+@@ -405,7 +408,7 @@ unsigned long get_dma_buffer(struct lgue
+ 		}
+ 	}
+ unlock:
+-	up_read(&current->mm->mmap_sem);
++	up_read(fshared);
+ 	mutex_unlock(&lguest_lock);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-____call_usermodehelper-dont-flush_signals.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-futex-new-private-futexes.patch
-compiler-introduce-__used-and-__maybe_unused.patch
+mmc-build-fix.patch
+slub-add-support-for-dynamic-cacheline-size-determination.patch
+swsusp-clean-up-print.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+nbd-check-the-return-value-of-sysfs_create_file.patch
+mutex_lock_interruptible-add-__must_check.patch
+afs-implement-basic-file-write-support.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+eliminate-lock_cpu_hotplug-in-kernel-schedc.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+fs-convert-core-functions-to-zero_user_page.patch
+rename-thread_info-to-stack.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
 xfs-clean-up-shrinker-games.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear-fix.patch
-mm-clean-up-and-kernelify-shrinker-registration.patch
-add-ability-to-keep-track-of-callers-of-symbol_getput.patch
-update-mtd-use-of-symbol_getput.patch
-update-dvb-use-of-symbol_getput.patch
-lguest-export-symbols-for-lguest-as-a-module.patch
-lguest-the-guest-code.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
 lguest-the-host-code.patch
-lguest-the-asm-offsets.patch
-lguest-the-makefile-and-kconfig.patch
-lguest-the-console-driver.patch
-lguest-the-net-driver.patch
-lguest-the-block-driver.patch
-lguest-the-documentation-example-launcher.patch
-lguest-documentation-and-example-updates.patch
-lguest-the-documentation-example-launcher-dont-use-paravirt_probe-its-dying-doc.patch
-lguest-use-standard-bootloader-format-fix-badly-sized-doc.patch
-lguest-two-net-bugfixes-doc.patch
 lguest-the-host-code-vs-futex-new-private-futexes.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+ntfs-use-zero_user_page.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
