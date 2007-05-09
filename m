@@ -1,87 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - input-fix-aux-port-detection-with-some-i8042-chips-fix.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:43:00 -0700
-Message-ID: <200705090243.l492h0kQ008402@shell0.pdx.osdl.net>
+Subject: - atl1-use-dev_printk-macros-fix.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:43:25 -0700
+Message-ID: <200705090243.l492hPQB008469@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46731 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969543AbXEICnZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:43:25 -0400
+	by vger.kernel.org with ESMTP id S969964AbXEICng (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:43:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dtor@mail.ru, sroland@tungstengraphics.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, csnook@redhat.com, jacliburn@bellsouth.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input-fix-aux-port-detection-with-some-i8042-chips-fix
+     atl1-use-dev_printk-macros-fix
 has been removed from the -mm tree.  Its filename was
-     input-fix-aux-port-detection-with-some-i8042-chips-fix.patch
+     atl1-use-dev_printk-macros-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: input-fix-aux-port-detection-with-some-i8042-chips-fix
+Subject: atl1-use-dev_printk-macros-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- no need to initialise `i'.
+drivers/net/atl1/atl1_param.c: In function 'atl1_validate_option':
+drivers/net/atl1/atl1_param.c:107: error: dereferencing pointer to incomplete type
 
-- 80-col fix
-
-- other accidental cleanups
-
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Roland Scheidegger <sroland@tungstengraphics.com>
+Cc: Jay Cliburn <jacliburn@bellsouth.net>
+Cc: Chris Snook <csnook@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/i8042.c |   18 +++++++++++-------
- 1 files changed, 11 insertions(+), 7 deletions(-)
+ drivers/net/atl1/atl1_param.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/serio/i8042.c~input-fix-aux-port-detection-with-some-i8042-chips-fix drivers/input/serio/i8042.c
---- a/drivers/input/serio/i8042.c~input-fix-aux-port-detection-with-some-i8042-chips-fix
-+++ a/drivers/input/serio/i8042.c
-@@ -537,7 +537,7 @@ static int __devinit i8042_check_aux(voi
- 	int retval = -1;
- 	int irq_registered = 0;
- 	int aux_loop_broken = 0;
--	int i = 0;
-+	int i;
- 	unsigned long flags;
- 	unsigned char param;
+diff -puN drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros-fix drivers/net/atl1/atl1_param.c
+--- a/drivers/net/atl1/atl1_param.c~atl1-use-dev_printk-macros-fix
++++ a/drivers/net/atl1/atl1_param.c
+@@ -23,6 +23,8 @@
  
-@@ -577,21 +577,25 @@ static int __devinit i8042_check_aux(voi
- 			aux_loop_broken = 1;
- 	}
- 
--/*
-- * Bit assignment test - filters out PS/2 i8042's in AT mode
-- */
-+	/*
-+	 * Bit assignment test - filters out PS/2 i8042's in AT mode
-+	 */
- 
- 	if (i8042_command(&param, I8042_CMD_AUX_DISABLE))
- 		return -1;
+ #include <linux/types.h>
+ #include <linux/moduleparam.h>
++#include <linux/pci.h>
 +
- 	/* some chips need some time to set the I8042_CTR_AUXDIS bit */
- 	for (i = 0; i < 100; i++) {
--		if (!i8042_command(&param, I8042_CMD_CTL_RCTR) && (param & I8042_CTR_AUXDIS))
-+		if (!i8042_command(&param, I8042_CMD_CTL_RCTR) &&
-+				(param & I8042_CTR_AUXDIS))
- 			break;
- 		udelay(50);
- 	}
- 	if (i == 100) {
--		printk(KERN_WARNING "Failed to disable AUX port, but continuing anyway... Is this a SiS?\n");
--		printk(KERN_WARNING "If AUX port is really absent please use the 'i8042.noaux' option.\n");
-+		printk(KERN_WARNING "Failed to disable AUX port, but continuing"
-+				" anyway... Is this a SiS?\n");
-+		printk(KERN_WARNING "If AUX port is really absent please use "
-+				"the 'i8042.noaux' option.\n");
- 	}
+ #include "atl1.h"
  
- 	if (i8042_command(&param, I8042_CMD_AUX_ENABLE))
+ /*
+@@ -93,7 +95,8 @@ struct atl1_option {
+ 	} arg;
+ };
+ 
+-static int __devinit atl1_validate_option(int *value, struct atl1_option *opt, struct pci_dev *pdev)
++static int __devinit atl1_validate_option(int *value, struct atl1_option *opt,
++					struct pci_dev *pdev)
+ {
+ 	if (*value == OPTION_UNSET) {
+ 		*value = opt->def;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
