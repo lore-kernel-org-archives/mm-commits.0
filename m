@@ -1,103 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-net-driver-lguest-2621-mm1-update-lguest-net-stats-inlinepatch.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:43:36 -0700
-Message-ID: <200705090943.l499hac0020222@shell0.pdx.osdl.net>
+Subject: - lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:43:04 -0700
+Message-ID: <200705090943.l499h5wH020203@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57976 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44033 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754720AbXEIJoJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:44:09 -0400
+	by vger.kernel.org with ESMTP id S1754689AbXEIJoH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:44:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ak@suse.de, jeff@garzik.org, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: 2.6.21-mm1 update: lguest-net-stats-inline.patch
+     lguest: use standard bootloader format, fix badly-sized initrds
 has been removed from the -mm tree.  Its filename was
-     lguest-the-net-driver-lguest-2621-mm1-update-lguest-net-stats-inlinepatch.patch
+     lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized.patch
 
-This patch was dropped because it was folded into lguest-the-net-driver.patch
+This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: lguest: 2.6.21-mm1 update: lguest-net-stats-inline.patch
+Subject: lguest: use standard bootloader format, fix badly-sized initrds
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Now inline net_device_stats is upstream, we can use it in the lguest net
-driver.
+Eric Biederman complained that lguest doesn't use the Linux standard boot
+header format.  He's got a good point.
+
+This also simplifies the code: the example launcher writes the header
+directly, rather than lguest writing into it during boot.
+
+While we're touching this code, we also fix the problem of initrd's which
+don't have a page-aligned size.
+
+This anticipates changing the paravirt-finding routines to use a "platform
+type" field from %esi, rather than a "probe all until one succeeds"
+routine, but doesn't actually change that code.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/lguest_net.c |   20 +++++---------------
- 1 files changed, 5 insertions(+), 15 deletions(-)
+ drivers/lguest/lguest.c         |   20 ++++++++------------
+ drivers/lguest/lguest_asm.S     |    5 ++++-
+ drivers/lguest/lguest_user.c    |    4 +---
+ include/linux/lguest.h          |    5 -----
+ include/linux/lguest_launcher.h |    8 --------
+ 5 files changed, 13 insertions(+), 29 deletions(-)
 
-diff -puN drivers/net/lguest_net.c~lguest-the-net-driver-lguest-2621-mm1-update-lguest-net-stats-inlinepatch drivers/net/lguest_net.c
---- a/drivers/net/lguest_net.c~lguest-the-net-driver-lguest-2621-mm1-update-lguest-net-stats-inlinepatch
-+++ a/drivers/net/lguest_net.c
-@@ -38,8 +38,6 @@ struct lguestnet_info
- 	/* My peerid. */
- 	unsigned int me;
+diff -puN /dev/null /dev/null
+diff -puN drivers/lguest/lguest.c~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized
++++ a/drivers/lguest/lguest.c
+@@ -52,7 +52,6 @@ struct lguest_data lguest_data = {
+ 	.blocked_interrupts = { 1 }, /* Block timer interrupts */
+ };
+ struct lguest_device_desc *lguest_devices;
+-static __initdata const struct lguest_boot_info *boot = __va(0);
  
--	struct net_device_stats stats;
--
- 	/* Receive queue. */
- 	struct sk_buff *skb[NUM_SKBS];
- 	struct lguest_dma dma[NUM_SKBS];
-@@ -120,13 +118,13 @@ static void transfer_packet(struct net_d
+ static enum paravirt_lazy_mode lazy_mode;
+ static void lguest_lazy_mode(enum paravirt_lazy_mode mode)
+@@ -377,8 +376,7 @@ static __init char *lguest_memory_setup(
+ 	/* We do this here because lockcheck barfs if before start_kernel */
+ 	atomic_notifier_chain_register(&panic_notifier_list, &paniced);
  
- 	hcall(LHCALL_SEND_DMA, peer_key(info,peernum), __pa(&dma), 0);
- 	if (dma.used_len != skb->len) {
--		info->stats.tx_carrier_errors++;
-+		dev->stats.tx_carrier_errors++;
- 		pr_debug("Bad xfer to peer %i: %i of %i (dma %p/%i)\n",
- 			 peernum, dma.used_len, skb->len,
- 			 (void *)dma.addr[0], dma.len[0]);
- 	} else {
--		info->stats.tx_bytes += skb->len;
--		info->stats.tx_packets++;
-+		dev->stats.tx_bytes += skb->len;
-+		dev->stats.tx_packets++;
- 	}
+-	e820.nr_map = 0;
+-	add_memory_region(0, PFN_PHYS(boot->max_pfn), E820_RAM);
++	add_memory_region(E820_MAP->addr, E820_MAP->size, E820_MAP->type);
+ 	return "LGUEST";
  }
  
-@@ -212,8 +210,8 @@ static irqreturn_t lguestnet_rcv(int irq
- 		pr_debug("Receiving skb proto 0x%04x len %i type %i\n",
- 			 ntohs(skb->protocol), skb->len, skb->pkt_type);
- 
--		info->stats.rx_bytes += skb->len;
--		info->stats.rx_packets++;
-+		dev->stats.rx_bytes += skb->len;
-+		dev->stats.rx_packets++;
- 		netif_rx(skb);
- 	}
- 	return done ? IRQ_HANDLED : IRQ_NONE;
-@@ -260,13 +258,6 @@ static int lguestnet_close(struct net_de
- 	return 0;
+@@ -409,8 +407,14 @@ static unsigned lguest_patch(u8 type, u1
+ 	return insn_len;
  }
  
--static struct net_device_stats *lguestnet_get_stats(struct net_device *dev)
--{
--	struct lguestnet_info *info = dev->priv;
--
--	return &info->stats;
--}
--
- static int lguestnet_probe(struct lguest_device *lgdev)
+-__init void lguest_init(void)
++__init void lguest_init(void *boot)
  {
- 	int err, irqf = IRQF_SHARED;
-@@ -295,7 +286,6 @@ static int lguestnet_probe(struct lguest
- 	dev->open = lguestnet_open;
- 	dev->stop = lguestnet_close;
- 	dev->hard_start_xmit = lguestnet_start_xmit;
--	dev->get_stats = lguestnet_get_stats;
++	/* Copy boot parameters first. */
++	memcpy(boot_params, boot, PARAM_SIZE);
++	memcpy(boot_command_line,
++	       __va(*(unsigned long *)(boot_params + NEW_CL_POINTER)),
++	       COMMAND_LINE_SIZE);
++
+ 	paravirt_ops.name = "lguest";
+ 	paravirt_ops.paravirt_enabled = 1;
+ 	paravirt_ops.kernel_rpl = 1;
+@@ -459,7 +463,6 @@ __init void lguest_init(void)
+ 	paravirt_ops.wbinvd = lguest_wbinvd;
  
- 	/* Turning on/off promisc will call dev->set_multicast_list.
- 	 * We don't actually support multicast yet */
+ 	hcall(LHCALL_LGUEST_INIT, __pa(&lguest_data), 0, 0);
+-	strncpy(boot_command_line, boot->cmdline, COMMAND_LINE_SIZE);
+ 
+ 	/* We use top of mem for initial pagetables. */
+ 	init_pg_tables_end = __pa(pg0);
+@@ -485,13 +488,6 @@ __init void lguest_init(void)
+ 
+ 	add_preferred_console("hvc", 0, NULL);
+ 
+-	if (boot->initrd_size) {
+-		/* We stash this at top of memory. */
+-		INITRD_START = boot->max_pfn*PAGE_SIZE - boot->initrd_size;
+-		INITRD_SIZE = boot->initrd_size;
+-		LOADER_TYPE = 0xFF;
+-	}
+-
+ 	pm_power_off = lguest_power_off;
+ 	start_kernel();
+ }
+diff -puN drivers/lguest/lguest_asm.S~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized drivers/lguest/lguest_asm.S
+--- a/drivers/lguest/lguest_asm.S~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized
++++ a/drivers/lguest/lguest_asm.S
+@@ -10,7 +10,8 @@
+  * This is where we begin: we have a magic signature which the launcher looks
+  * for.  The plan is that the Linux boot protocol will be extended with a
+  * "platform type" field which will guide us here from the normal entry point,
+- * but for the moment this suffices.
++ * but for the moment this suffices.  We pass the virtual address of the boot
++ * info to lguest_init().
+  *
+  * We put it in .init.text will be discarded after boot.
+  */
+@@ -18,6 +19,8 @@
+ .ascii "GenuineLguest"
+ 	/* Set up initial stack. */
+  	movl $(init_thread_union+THREAD_SIZE),%esp
++	movl %esi, %eax
++	addl $__PAGE_OFFSET, %eax
+ 	jmp lguest_init
+ 
+ /* The templates for inline patching. */
+diff -puN drivers/lguest/lguest_user.c~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized drivers/lguest/lguest_user.c
+--- a/drivers/lguest/lguest_user.c~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized
++++ a/drivers/lguest/lguest_user.c
+@@ -7,13 +7,11 @@
+ static void setup_regs(struct lguest_regs *regs, unsigned long start)
+ {
+ 	/* Write out stack in format lguest expects, so we can switch to it. */
+-	regs->edi = LGUEST_MAGIC_EDI;
+-	regs->ebp = LGUEST_MAGIC_EBP;
+-	regs->esi = LGUEST_MAGIC_ESI;
+ 	regs->ds = regs->es = regs->ss = __KERNEL_DS|GUEST_PL;
+ 	regs->cs = __KERNEL_CS|GUEST_PL;
+ 	regs->eflags = 0x202; 	/* Interrupts enabled. */
+ 	regs->eip = start;
++	/* esi points to our boot information (physical address 0) */
+ }
+ 
+ /* + addr */
+diff -puN include/linux/lguest.h~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized include/linux/lguest.h
+--- a/include/linux/lguest.h~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized
++++ a/include/linux/lguest.h
+@@ -3,11 +3,6 @@
+ #ifndef _ASM_LGUEST_H
+ #define _ASM_LGUEST_H
+ 
+-/* These are randomly chosen numbers which indicate we're an lguest at boot */
+-#define LGUEST_MAGIC_EBP 0x4C687970
+-#define LGUEST_MAGIC_EDI 0x652D4D65
+-#define LGUEST_MAGIC_ESI 0xFFFFFFFF
+-
+ #ifndef __ASSEMBLY__
+ #include <asm/irq.h>
+ 
+diff -puN include/linux/lguest_launcher.h~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized include/linux/lguest_launcher.h
+--- a/include/linux/lguest_launcher.h~lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized
++++ a/include/linux/lguest_launcher.h
+@@ -17,14 +17,6 @@ struct lguest_dma
+ 	u16 len[LGUEST_MAX_DMA_SECTIONS];
+ };
+ 
+-/* This is found at address 0. */
+-struct lguest_boot_info
+-{
+-	u32 max_pfn;
+-	u32 initrd_size;
+-	char cmdline[256];
+-};
+-
+ struct lguest_block_page
+ {
+ 	/* 0 is a read, 1 is a write. */
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -116,6 +199,7 @@ update-dvb-use-of-symbol_getput.patch
 lguest-export-symbols-for-lguest-as-a-module.patch
 lguest-the-guest-code.patch
 lguest-the-host-code.patch
+lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized.patch
 lguest-the-asm-offsets.patch
 lguest-the-makefile-and-kconfig.patch
 lguest-the-console-driver.patch
