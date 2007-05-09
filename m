@@ -1,51 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - laptop-mode-url-update.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:52:11 -0700
-Message-ID: <200705090252.l492qBtE009545@shell0.pdx.osdl.net>
+Subject: - update-the-list-information-for-kexec-and-kdump.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:52:18 -0700
+Message-ID: <200705090252.l492qI2u009558@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:42881 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032192AbXEICwR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:17 -0400
+	by vger.kernel.org with ESMTP id S1032211AbXEICwX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@zachcarter.com, bart@samwel.tk, mm-commits@vger.kernel.org
+To: horms@verge.net.au, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     laptop-mode URL update
+     Update the list information for kexec and kdump
 has been removed from the -mm tree.  Its filename was
-     laptop-mode-url-update.patch
+     update-the-list-information-for-kexec-and-kdump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: laptop-mode URL update
-From: Zach Carter <linux@zachcarter.com>
+Subject: Update the list information for kexec and kdump
+From: Simon Horman <horms@verge.net.au>
 
-Signed-off-by: Zach Carter <linux@zachcarter.com>
-Cc: Bart Samwel <bart@samwel.tk>
+There is a new list for kexec/kdump discussion.
+
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/laptop-mode.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/laptop-mode.txt~laptop-mode-url-update Documentation/laptop-mode.txt
---- a/Documentation/laptop-mode.txt~laptop-mode-url-update
-+++ a/Documentation/laptop-mode.txt
-@@ -33,7 +33,7 @@ or anything. Simply install all the file
- laptop mode will automatically be started when you're on battery. For
- your convenience, a tarball containing an installer can be downloaded at:
+diff -puN MAINTAINERS~update-the-list-information-for-kexec-and-kdump MAINTAINERS
+--- a/MAINTAINERS~update-the-list-information-for-kexec-and-kdump
++++ a/MAINTAINERS
+@@ -2030,7 +2030,7 @@ P:	Vivek Goyal
+ M:	vgoyal@in.ibm.com
+ P:	Haren Myneni
+ M:	hbabu@us.ibm.com
+-L:	fastboot@lists.linux-foundation.org
++L:	kexec@lists.infradead.org
+ L:	linux-kernel@vger.kernel.org
+ W:	http://lse.sourceforge.net/kdump/
+ S:	Maintained
+@@ -2080,7 +2080,7 @@ P:	Eric Biederman
+ M:	ebiederm@xmission.com
+ W:	http://www.xmission.com/~ebiederm/files/kexec/
+ L:	linux-kernel@vger.kernel.org
+-L:	fastboot@lists.linux-foundation.org
++L:	kexec@lists.infradead.org
+ S:	Maintained
  
--http://www.xs4all.nl/~bsamwel/laptop_mode/tools/
-+http://www.samwel.tk/laptop_mode/laptop_mode/
- 
- To configure laptop mode, you need to edit the configuration file, which is
- located in /etc/default/laptop-mode on Debian-based systems, or in
+ KPROBES
 _
 
-Patches currently in -mm which might be from linux@zachcarter.com are
+Patches currently in -mm which might be from horms@verge.net.au are
 
 origin.patch
+git-ia64.patch
+use-menuconfig-objects-ipvs.patch
