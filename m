@@ -1,98 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-display-class-fix.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:59:13 -0700
-Message-ID: <200705090259.l492xDMB010371@shell0.pdx.osdl.net>
+Subject: - git-block-fixup.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:59:24 -0700
+Message-ID: <200705090259.l492xOmT010400@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37673 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970220AbXEIC71 (ORCPT
+	by vger.kernel.org with ESMTP id S970218AbXEIC71 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:27 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l492xPXO023046
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 8 May 2007 19:59:26 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, adaplas@pol.net, greg@kroah.com, jsimmons@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make drivers/video/display/display-sysfs.c:display_class static
+     git-block-fixup
 has been removed from the -mm tree.  Its filename was
-     fbdev-display-class-fix.patch
+     git-block-fixup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: make drivers/video/display/display-sysfs.c:display_class static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: git-block-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: James Simmons <jsimmons@infradead.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/display/display-sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/dm-io.c |    2 +-
+ fs/bio.c           |    5 -----
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/video/display/display-sysfs.c~fbdev-display-class-fix drivers/video/display/display-sysfs.c
---- a/drivers/video/display/display-sysfs.c~fbdev-display-class-fix
-+++ a/drivers/video/display/display-sysfs.c
-@@ -127,7 +127,7 @@ static int display_resume(struct device 
+diff -puN drivers/md/dm-io.c~git-block-fixup drivers/md/dm-io.c
+--- a/drivers/md/dm-io.c~git-block-fixup
++++ a/drivers/md/dm-io.c
+@@ -55,7 +55,7 @@ struct dm_io_client *dm_io_client_create
+ 	if (!client->pool)
+ 		goto bad;
  
- static struct mutex allocated_dsp_lock;
- static DEFINE_IDR(allocated_dsp);
--struct class *display_class;
-+static struct class *display_class;
+-	client->bios = bioset_create(16, 16, 4);
++	client->bios = bioset_create(16, 16);
+ 	if (!client->bios)
+ 		goto bad;
  
- struct display_device *display_device_register(struct display_driver *driver,
- 						struct device *parent, void *devdata)
+diff -puN fs/bio.c~git-block-fixup fs/bio.c
+--- a/fs/bio.c~git-block-fixup
++++ a/fs/bio.c
+@@ -1193,12 +1193,7 @@ static void __init biovec_init_slabs(voi
+ 
+ static int __init init_bio(void)
+ {
+-<<<<<<< HEAD/fs/bio.c
+ 	bio_slab = KMEM_CACHE(bio, SLAB_HWCACHE_ALIGN|SLAB_PANIC);
+-=======
+-	bio_slab = kmem_cache_create("bio", sizeof(struct bio), 0,
+-				SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL, NULL);
+->>>>>>> /fs/bio.c
+ 
+ 	biovec_init_slabs();
+ 
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa.patch
-git-dvb.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
 git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
 git-kvm.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
 git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-ibmtr_cs-fix-hang-on-eject.patch
-git-battery.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
 git-scsi-misc.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-megaraid-fix-warnings-when-config_proc_fs=n.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-drivers-scsi-ipsc-remove-kernel-24-code.patch
-drivers-scsi-nsp32c-remove-kernel-24-code.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
 git-unionfs.patch
+auerswald-fix-file-release-handler.patch
 git-watchdog.patch
 git-wireless.patch
-git-ipwireless_cs.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-more-scheduled-oss-driver-removal.patch
-unexport-pci_proc_attach_device.patch
-ext2-reservations.patch
-remove-nfs4_acl_add_ace.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
 linux-kernel-markers-i386-optimization.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
