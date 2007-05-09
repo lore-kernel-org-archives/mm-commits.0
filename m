@@ -1,62 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:50:35 -0700
-Message-ID: <200705090250.l492oZ7s009369@shell0.pdx.osdl.net>
+Subject: - remove-redundant-check-from-proc_setattr.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:49:50 -0700
+Message-ID: <200705090249.l492noOx009267@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47441 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970002AbXEICur (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:50:47 -0400
+	by vger.kernel.org with ESMTP id S969994AbXEICus (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:50:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael@ellerman.id.au, mingo@elte.hu, mm-commits@vger.kernel.org
+To: jjohansen@suse.de, agruen@suse.de, chrisw@sous-sol.org, hch@lst.de, jmorris@namei.org, sds@tycho.nsa.gov, tonyj@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Document SPIN_LOCK_UNLOCKED/RW_LOCK_UNLOCKED deprecation
+     Remove redundant check from proc_setattr()
 has been removed from the -mm tree.  Its filename was
-     document-spin_lock_unlocked-rw_lock_unlocked-deprecation.patch
+     remove-redundant-check-from-proc_setattr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Document SPIN_LOCK_UNLOCKED/RW_LOCK_UNLOCKED deprecation
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: Remove redundant check from proc_setattr()
+From: John Johansen <jjohansen@suse.de>
 
-Apparently it's not cool anymore to use SPIN/RW_LOCK_UNLOCKED.  There's
-some mention of this in Documentation/spinlocks.txt, but that only talks
-about dynamic initialisation.
+notify_change() already calls security_inode_setattr() before
+calling iop->setattr.
 
-A comment in the code mentioning the preferred usage would be good IMHO.
-
-[akpm@linux-foundation.org: add reason for deprecation]
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Tony Jones <tonyj@suse.de>
+Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
+Signed-off-by: John Johansen <jjohansen@suse.de>
+Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spinlock_types.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/proc/base.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/spinlock_types.h~document-spin_lock_unlocked-rw_lock_unlocked-deprecation include/linux/spinlock_types.h
---- a/include/linux/spinlock_types.h~document-spin_lock_unlocked-rw_lock_unlocked-deprecation
-+++ a/include/linux/spinlock_types.h
-@@ -85,6 +85,12 @@ typedef struct {
- 				RW_DEP_MAP_INIT(lockname) }
- #endif
+diff -puN fs/proc/base.c~remove-redundant-check-from-proc_setattr fs/proc/base.c
+--- a/fs/proc/base.c~remove-redundant-check-from-proc_setattr
++++ a/fs/proc/base.c
+@@ -347,11 +347,8 @@ static int proc_setattr(struct dentry *d
+ 		return -EPERM;
  
-+/*
-+ * SPIN_LOCK_UNLOCKED and RW_LOCK_UNLOCKED defeat lockdep state tracking and
-+ * are hence deprecated.
-+ * Please use DEFINE_SPINLOCK()/DEFINE_RWLOCK() or
-+ * __SPIN_LOCK_UNLOCKED()/__RW_LOCK_UNLOCKED() as appropriate.
-+ */
- #define SPIN_LOCK_UNLOCKED	__SPIN_LOCK_UNLOCKED(old_style_spin_init)
- #define RW_LOCK_UNLOCKED	__RW_LOCK_UNLOCKED(old_style_rw_init)
+ 	error = inode_change_ok(inode, attr);
+-	if (!error) {
+-		error = security_inode_setattr(dentry, attr);
+-		if (!error)
+-			error = inode_setattr(inode, attr);
+-	}
++	if (!error)
++		error = inode_setattr(inode, attr);
+ 	return error;
+ }
  
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from jjohansen@suse.de are
 
 origin.patch
