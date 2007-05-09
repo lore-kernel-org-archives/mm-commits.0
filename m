@@ -1,81 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - knfsd-fix-resource-leak-resulting-in-module-refcount-leak-for-rpcsec_gss_krb5ko.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:53:07 -0700
-Message-ID: <200705092153.l49Lr7jS003050@shell0.pdx.osdl.net>
+Subject: - rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:52:56 -0700
+Message-ID: <200705092152.l49Lqudq003038@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53942 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759487AbXEIVxe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:34 -0400
+	by vger.kernel.org with ESMTP id S1758944AbXEIVxf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ffilzlnx@us.ibm.com, bfields@citi.umich.edu, neilb@suse.de, mm-commits@vger.kernel.org
+To: jlayton@redhat.com, bfields@citi.umich.edu, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     knfsd: fix resource leak resulting in module refcount leak for rpcsec_gss_krb5.ko
+     RPC: add wrapper for svc_reserve to account for checksum
 has been removed from the -mm tree.  Its filename was
-     knfsd-fix-resource-leak-resulting-in-module-refcount-leak-for-rpcsec_gss_krb5ko.patch
+     rpc-add-wrapper-for-svc_reserve-to-account-for-checksum.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: knfsd: fix resource leak resulting in module refcount leak for rpcsec_gss_krb5.ko
-From: Frank Filz <ffilzlnx@us.ibm.com>
+Subject: RPC: add wrapper for svc_reserve to account for checksum
+From: Jeff Layton <jlayton@redhat.com>
 
-I have been investigating a module reference count leak on the server for
-rpcsec_gss_krb5.ko.  It turns out the problem is a reference count leak for
-the security context in net/sunrpc/auth_gss/svcauth_gss.c.
+When the kernel calls svc_reserve to downsize the expected size of an RPC
+reply, it fails to account for the possibility of a checksum at the end of
+the packet.  If a client mounts a NFSv2/3 with sec=krb5i/p, and does I/O
+then you'll generally see messages similar to this in the server's ring
+buffer:
 
-The problem is that gss_write_init_verf() calls gss_svc_searchbyctx() which
-does a rsc_lookup() but never releases the reference to the context.  There is
-another issue that rpc.svcgssd sets an "end of time" expiration for the
-context
+RPC request reserved 164 but used 208
 
-By adding a cache_put() call in gss_svc_searchbyctx(), and setting an
-expiration timeout in the downcall, cache_clean() does clean up the context
-and the module reference count now goes to zero after unmount.
+While I was never able to verify it, I suspect that this problem is also
+the root cause of some oopses I've seen under these conditions:
 
-I also verified that if the context expires and then the client makes a new
-request, a new context is established.
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=227726
 
-Here is the patch to fix the kernel, I will start a separate thread to discuss
-what expiration time should be set by rpc.svcgssd.
+This is probably also a problem for other sec= types and for NFSv4.  The
+large reserved size for NFSv4 compound packets seems to generally paper
+over the problem, however.
 
-Acked-by: "J. Bruce Fields" <bfields@citi.umich.edu>
-Signed-off-by: Frank Filz <ffilzlnx@us.ibm.com>
-Signed-off-by: Neil Brown <neilb@suse.de>
+This patch adds a wrapper for svc_reserve that accounts for the possibility
+of a checksum.  It also fixes up the appropriate callers of svc_reserve to
+call the wrapper.  For now, it just uses a hardcoded value that I
+determined via testing.  That value may need to be revised upward as things
+change, or we may want to eventually add a new auth_op that attempts to
+calculate this somehow.
+
+Unfortunately, there doesn't seem to be a good way to reliably determine
+the expected checksum length prior to actually calculating it, particularly
+with schemes like spkm3.
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Acked-by: Neil Brown <neilb@suse.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Acked-by: J. Bruce Fields <bfields@citi.umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/auth_gss/svcauth_gss.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/nfsd/nfs3proc.c         |    2 +-
+ fs/nfsd/nfsproc.c          |    2 +-
+ include/linux/sunrpc/svc.h |   19 +++++++++++++++++++
+ net/sunrpc/svc.c           |    2 +-
+ 4 files changed, 22 insertions(+), 3 deletions(-)
 
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~knfsd-fix-resource-leak-resulting-in-module-refcount-leak-for-rpcsec_gss_krb5ko net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~knfsd-fix-resource-leak-resulting-in-module-refcount-leak-for-rpcsec_gss_krb5ko
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -924,6 +924,7 @@ static inline int
- gss_write_init_verf(struct svc_rqst *rqstp, struct rsi *rsip)
- {
- 	struct rsc *rsci;
-+	int        rc;
+diff -puN fs/nfsd/nfs3proc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum fs/nfsd/nfs3proc.c
+--- a/fs/nfsd/nfs3proc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum
++++ a/fs/nfsd/nfs3proc.c
+@@ -177,7 +177,7 @@ nfsd3_proc_read(struct svc_rqst *rqstp, 
+ 	if (max_blocksize < resp->count)
+ 		resp->count = max_blocksize;
  
- 	if (rsip->major_status != GSS_S_COMPLETE)
- 		return gss_write_null_verf(rqstp);
-@@ -932,7 +933,9 @@ gss_write_init_verf(struct svc_rqst *rqs
- 		rsip->major_status = GSS_S_NO_CONTEXT;
- 		return gss_write_null_verf(rqstp);
+-	svc_reserve(rqstp, ((1 + NFS3_POST_OP_ATTR_WORDS + 3)<<2) + resp->count +4);
++	svc_reserve_auth(rqstp, ((1 + NFS3_POST_OP_ATTR_WORDS + 3)<<2) + resp->count +4);
+ 
+ 	fh_copy(&resp->fh, &argp->fh);
+ 	nfserr = nfsd_read(rqstp, &resp->fh, NULL,
+diff -puN fs/nfsd/nfsproc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum fs/nfsd/nfsproc.c
+--- a/fs/nfsd/nfsproc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum
++++ a/fs/nfsd/nfsproc.c
+@@ -155,7 +155,7 @@ nfsd_proc_read(struct svc_rqst *rqstp, s
+ 				argp->count);
+ 		argp->count = NFSSVC_MAXBLKSIZE_V2;
  	}
--	return gss_write_verf(rqstp, rsci->mechctx, GSS_SEQ_WIN);
-+	rc = gss_write_verf(rqstp, rsci->mechctx, GSS_SEQ_WIN);
-+	cache_put(&rsci->h, &rsc_cache);
-+	return rc;
- }
+-	svc_reserve(rqstp, (19<<2) + argp->count + 4);
++	svc_reserve_auth(rqstp, (19<<2) + argp->count + 4);
  
- /*
+ 	resp->count = argp->count;
+ 	nfserr = nfsd_read(rqstp, fh_copy(&resp->fh, &argp->fh), NULL,
+diff -puN include/linux/sunrpc/svc.h~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum include/linux/sunrpc/svc.h
+--- a/include/linux/sunrpc/svc.h~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum
++++ a/include/linux/sunrpc/svc.h
+@@ -396,4 +396,23 @@ char *		   svc_print_addr(struct svc_rqs
+ 
+ #define	RPC_MAX_ADDRBUFLEN	(63U)
+ 
++/*
++ * When we want to reduce the size of the reserved space in the response
++ * buffer, we need to take into account the size of any checksum data that
++ * may be at the end of the packet. This is difficult to determine exactly
++ * for all cases without actually generating the checksum, so we just use a
++ * static value.
++ */
++static inline void
++svc_reserve_auth(struct svc_rqst *rqstp, int space)
++{
++	int			added_space = 0;
++
++	switch(rqstp->rq_authop->flavour) {
++		case RPC_AUTH_GSS:
++			added_space = RPC_MAX_AUTH_SIZE;
++	}
++	return svc_reserve(rqstp, space + added_space);
++}
++
+ #endif /* SUNRPC_SVC_H */
+diff -puN net/sunrpc/svc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~rpc-add-wrapper-for-svc_reserve-to-account-for-checksum
++++ a/net/sunrpc/svc.c
+@@ -907,7 +907,7 @@ svc_process(struct svc_rqst *rqstp)
+ 	 * better idea of reply size
+ 	 */
+ 	if (procp->pc_xdrressize)
+-		svc_reserve(rqstp, procp->pc_xdrressize<<2);
++		svc_reserve_auth(rqstp, procp->pc_xdrressize<<2);
+ 
+ 	/* Call the function that processes the request. */
+ 	if (!versp->vs_dispatch) {
 _
 
-Patches currently in -mm which might be from ffilzlnx@us.ibm.com are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
 origin.patch
