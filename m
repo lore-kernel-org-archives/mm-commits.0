@@ -1,79 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - wait_for_helper-remove-unneeded-do_sigaction.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:52:33 -0700
-Message-ID: <200705092152.l49LqXH1003009@shell0.pdx.osdl.net>
+Subject: - change-reparent_to_init-to-reparent_to_kthreadd.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:52:29 -0700
+Message-ID: <200705092152.l49LqT88003000@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33955 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758992AbXEIVw6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:58 -0400
+	by vger.kernel.org with ESMTP id S1758689AbXEIVxD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait_for_helper: remove unneeded do_sigaction()
+     Change reparent_to_init to reparent_to_kthreadd
 has been removed from the -mm tree.  Its filename was
-     wait_for_helper-remove-unneeded-do_sigaction.patch
+     change-reparent_to_init-to-reparent_to_kthreadd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: wait_for_helper: remove unneeded do_sigaction()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: Change reparent_to_init to reparent_to_kthreadd
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-allow_signal(SIGCHLD) does all necessary job, no need to call do_sigaction()
-prior to.
+When a kernel thread calls daemonize, instead of reparenting the thread to
+init reparent the thread to kthreadd next to the threads created by
+kthread_create.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+This is really just a stop gap until daemonize goes away, but it does
+ensure no kernel threads are under init and they are all in one place that
+is easy to find.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    5 -----
- 1 file changed, 5 deletions(-)
+ kernel/exit.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN kernel/kmod.c~wait_for_helper-remove-unneeded-do_sigaction kernel/kmod.c
---- a/kernel/kmod.c~wait_for_helper-remove-unneeded-do_sigaction
-+++ a/kernel/kmod.c
-@@ -185,14 +185,9 @@ static int wait_for_helper(void *data)
+diff -puN kernel/exit.c~change-reparent_to_init-to-reparent_to_kthreadd kernel/exit.c
+--- a/kernel/exit.c~change-reparent_to_init-to-reparent_to_kthreadd
++++ a/kernel/exit.c
+@@ -26,6 +26,7 @@
+ #include <linux/profile.h>
+ #include <linux/mount.h>
+ #include <linux/proc_fs.h>
++#include <linux/kthread.h>
+ #include <linux/mempolicy.h>
+ #include <linux/taskstats_kern.h>
+ #include <linux/delayacct.h>
+@@ -254,26 +255,25 @@ static int has_stopped_jobs(struct pid *
+ }
+ 
+ /**
+- * reparent_to_init - Reparent the calling kernel thread to the init task of the pid space that the thread belongs to.
++ * reparent_to_kthreadd - Reparent the calling kernel thread to kthreadd
+  *
+  * If a kernel thread is launched as a result of a system call, or if
+- * it ever exits, it should generally reparent itself to init so that
+- * it is correctly cleaned up on exit.
++ * it ever exits, it should generally reparent itself to kthreadd so it
++ * isn't in the way of other processes and is correctly cleaned up on exit.
+  *
+  * The various task state such as scheduling policy and priority may have
+  * been inherited from a user process, so we reset them to sane values here.
+  *
+- * NOTE that reparent_to_init() gives the caller full capabilities.
++ * NOTE that reparent_to_kthreadd() gives the caller full capabilities.
+  */
+-static void reparent_to_init(void)
++static void reparent_to_kthreadd(void)
  {
- 	struct subprocess_info *sub_info = data;
- 	pid_t pid;
--	struct k_sigaction sa;
+ 	write_lock_irq(&tasklist_lock);
  
- 	/* Install a handler: if SIGCLD isn't handled sys_wait4 won't
- 	 * populate the status, but will return -ECHILD. */
--	sa.sa.sa_handler = SIG_IGN;
--	sa.sa.sa_flags = 0;
--	siginitset(&sa.sa.sa_mask, sigmask(SIGCHLD));
--	do_sigaction(SIGCHLD, &sa, NULL);
- 	allow_signal(SIGCHLD);
+ 	ptrace_unlink(current);
+ 	/* Reparent to init */
+ 	remove_parent(current);
+-	current->parent = child_reaper(current);
+-	current->real_parent = child_reaper(current);
++	current->real_parent = current->parent = kthreadd_task;
+ 	add_parent(current);
  
- 	pid = kernel_thread(____call_usermodehelper, sub_info, SIGCHLD);
+ 	/* Set the exit signal to SIGCHLD so we signal init on exit */
+@@ -400,7 +400,7 @@ void daemonize(const char *name, ...)
+ 	current->files = init_task.files;
+ 	atomic_inc(&current->files->count);
+ 
+-	reparent_to_init();
++	reparent_to_kthreadd();
+ }
+ 
+ EXPORT_SYMBOL(daemonize);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
 fix-kthread_create-vs-freezer-theoretical-race.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
+iop13xx-msi-support-rev6.patch
+dvb_en_50221-convert-to-kthread-api.patch
+fix-i-oat-for-kexec.patch
+pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
+i386-irq-kill-irq-compression.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
+x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned.patch
 clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+statically-initialize-struct-pid-for-swapper.patch
+explicitly-set-pgid-and-sid-of-init-process.patch
+use-struct-pid-parameter-in-copy_process.patch
+use-task_pgrp-task_session-in-copy_process.patch
+kill-unused-sesssion-and-group-values-in-rocket-driver.patch
+fix-some-coding-style-errors-in-autofs.patch
+replace-pid_t-in-autofs-with-struct-pid-reference.patch
 dont-init-pgrp-and-__session-in-init_signals.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
