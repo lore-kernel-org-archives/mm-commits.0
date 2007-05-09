@@ -1,89 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - use-simple_read_from_buffer-in-kernel.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:50:02 -0700
-Message-ID: <200705092150.l49Lo2ZD002760@shell0.pdx.osdl.net>
+Subject: - nbd-check-the-return-value-of-sysfs_create_file.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:50:12 -0700
+Message-ID: <200705092150.l49LoCam002782@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:32983 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754747AbXEIVuG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:06 -0400
+	by vger.kernel.org with ESMTP id S1755123AbXEIVuQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, pj@sgi.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use simple_read_from_buffer in kernel/
+     nbd: check the return value of sysfs_create_file
 has been removed from the -mm tree.  Its filename was
-     use-simple_read_from_buffer-in-kernel.patch
+     nbd-check-the-return-value-of-sysfs_create_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use simple_read_from_buffer in kernel/
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: nbd: check the return value of sysfs_create_file
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Cleanup using simple_read_from_buffer() for /dev/cpuset/tasks and
-/proc/config.gz.
-
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+[akpm@linux-foundation.org: fix it]
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/configs.c |   15 +++------------
- kernel/cpuset.c  |    7 +------
- 2 files changed, 4 insertions(+), 18 deletions(-)
+ drivers/block/nbd.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN kernel/configs.c~use-simple_read_from_buffer-in-kernel kernel/configs.c
---- a/kernel/configs.c~use-simple_read_from_buffer-in-kernel
-+++ a/kernel/configs.c
-@@ -61,18 +61,9 @@ static ssize_t
- ikconfig_read_current(struct file *file, char __user *buf,
- 		      size_t len, loff_t * offset)
+diff -puN drivers/block/nbd.c~nbd-check-the-return-value-of-sysfs_create_file drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-check-the-return-value-of-sysfs_create_file
++++ a/drivers/block/nbd.c
+@@ -366,20 +366,25 @@ static struct disk_attribute pid_attr = 
+ 	.show = pid_show,
+ };
+ 
+-static void nbd_do_it(struct nbd_device *lo)
++static int nbd_do_it(struct nbd_device *lo)
  {
--	loff_t pos = *offset;
--	ssize_t count;
--
--	if (pos >= kernel_config_data_size)
--		return 0;
--
--	count = min(len, (size_t)(kernel_config_data_size - pos));
--	if (copy_to_user(buf, kernel_config_data + MAGIC_SIZE + pos, count))
--		return -EFAULT;
--
--	*offset += count;
--	return count;
-+	return simple_read_from_buffer(buf, len, offset,
-+				       kernel_config_data + MAGIC_SIZE,
-+				       kernel_config_data_size);
+ 	struct request *req;
++	int ret;
+ 
+ 	BUG_ON(lo->magic != LO_MAGIC);
+ 
+ 	lo->pid = current->pid;
+-	sysfs_create_file(&lo->disk->kobj, &pid_attr.attr);
++	ret = sysfs_create_file(&lo->disk->kobj, &pid_attr.attr);
++	if (ret) {
++		printk(KERN_ERR "nbd: sysfs_create_file failed!");
++		return ret;
++	}
+ 
+ 	while ((req = nbd_read_stat(lo)) != NULL)
+ 		nbd_end_request(req);
+ 
+ 	sysfs_remove_file(&lo->disk->kobj, &pid_attr.attr);
+-	return;
++	return 0;
  }
  
- static const struct file_operations ikconfig_file_ops = {
-diff -puN kernel/cpuset.c~use-simple_read_from_buffer-in-kernel kernel/cpuset.c
---- a/kernel/cpuset.c~use-simple_read_from_buffer-in-kernel
-+++ a/kernel/cpuset.c
-@@ -1772,12 +1772,7 @@ static ssize_t cpuset_tasks_read(struct 
- {
- 	struct ctr_struct *ctr = file->private_data;
- 
--	if (*ppos + nbytes > ctr->bufsz)
--		nbytes = ctr->bufsz - *ppos;
--	if (copy_to_user(buf, ctr->buf + *ppos, nbytes))
--		return -EFAULT;
--	*ppos += nbytes;
--	return nbytes;
-+	return simple_read_from_buffer(buf, nbytes, ppos, ctr->buf, ctr->bufsz);
- }
- 
- static int cpuset_tasks_release(struct inode *unused_inode, struct file *file)
+ static void nbd_clear_que(struct nbd_device *lo)
+@@ -569,7 +574,9 @@ static int nbd_ioctl(struct inode *inode
+ 	case NBD_DO_IT:
+ 		if (!lo->file)
+ 			return -EINVAL;
+-		nbd_do_it(lo);
++		error = nbd_do_it(lo);
++		if (error)
++			return error;
+ 		/* on return tidy up in case we have a signal */
+ 		/* Forcibly shutdown the socket causing all listeners
+ 		 * to error
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-git-alsa.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-disable-stacktrace-filter-for-x86-64.patch
+partitions-check-the-return-value-of-kobject_add-etc.patch
