@@ -1,124 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - dm-log-update-dm-io-interface.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:49:02 -0700
-Message-ID: <200705092149.l49Ln25M002656@shell0.pdx.osdl.net>
+Subject: - swsusp-clean-up-print.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:49:22 -0700
+Message-ID: <200705092149.l49LnMPL002691@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43650 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758761AbXEIVtj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:49:39 -0400
+	by vger.kernel.org with ESMTP id S1758497AbXEIVti (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:49:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heinzm@redhat.com, agk@redhat.com, mbroz@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm log: update dm io interface
+     swsusp: clean up printk
 has been removed from the -mm tree.  Its filename was
-     dm-log-update-dm-io-interface.patch
+     swsusp-clean-up-print.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm log: update dm io interface
-From: Heinz Mauelshagen <heinzm@redhat.com>
+Subject: swsusp: clean up printk
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch ports dm-log.c to the new dm-io interface in order to make it
-scalable to have a large number of persistent dirty logs active in parallel.
+Remove an inexplicable /
 
-Signed-off-by: Heinz Mauelshagen <heinzm@redhat.com>
-Cc: Milan Broz <mbroz@redhat.com>
-Signed-off-by: Alasdair G Kergon <agk@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-log.c |   31 ++++++++++++++++++++++++-------
- 1 file changed, 24 insertions(+), 7 deletions(-)
+ kernel/power/snapshot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-log.c~dm-log-update-dm-io-interface drivers/md/dm-log.c
---- a/drivers/md/dm-log.c~dm-log-update-dm-io-interface
-+++ a/drivers/md/dm-log.c
-@@ -149,6 +149,8 @@ struct log_c {
- 		FORCESYNC,	/* Force a sync to happen */
- 	} sync;
+diff -puN kernel/power/snapshot.c~swsusp-clean-up-print kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~swsusp-clean-up-print
++++ a/kernel/power/snapshot.c
+@@ -1227,7 +1227,7 @@ asmlinkage int swsusp_save(void)
+ 	nr_copy_pages = nr_pages;
+ 	nr_meta_pages = DIV_ROUND_UP(nr_pages * sizeof(long), PAGE_SIZE);
  
-+	struct dm_io_request io_req;
-+
- 	/*
- 	 * Disk log fields
- 	 */
-@@ -200,13 +202,20 @@ static void header_from_disk(struct log_
- 	core->nr_regions = le64_to_cpu(disk->nr_regions);
+-	printk("swsusp: critical section/: done (%d pages copied)\n", nr_pages);
++	printk("swsusp: critical section: done (%d pages copied)\n", nr_pages);
+ 
+ 	return 0;
  }
- 
-+static int rw_header(struct log_c *lc, int rw)
-+{
-+	lc->io_req.bi_rw = rw;
-+	lc->io_req.mem.ptr.vma = lc->disk_header;
-+	lc->io_req.notify.fn = NULL;
-+
-+	return dm_io(&lc->io_req, 1, &lc->header_location, NULL);
-+}
-+
- static int read_header(struct log_c *log)
- {
- 	int r;
--	unsigned long ebits;
- 
--	r = dm_io_sync_vm(1, &log->header_location, READ,
--			  log->disk_header, &ebits);
-+	r = rw_header(log, READ);
- 	if (r)
- 		return r;
- 
-@@ -234,11 +243,8 @@ static int read_header(struct log_c *log
- 
- static inline int write_header(struct log_c *log)
- {
--	unsigned long ebits;
--
- 	header_to_disk(&log->header, log->disk_header);
--	return dm_io_sync_vm(1, &log->header_location, WRITE,
--			     log->disk_header, &ebits);
-+	return rw_header(log, WRITE);
- }
- 
- /*----------------------------------------------------------------
-@@ -257,6 +263,7 @@ static int create_log_context(struct dir
- 	uint32_t region_size;
- 	unsigned int region_count;
- 	size_t bitset_size, buf_size;
-+	int r;
- 
- 	if (argc < 1 || argc > 2) {
- 		DMWARN("wrong number of arguments to mirror log");
-@@ -326,6 +333,15 @@ static int create_log_context(struct dir
- 		buf_size = dm_round_up((LOG_OFFSET << SECTOR_SHIFT) +
- 				       bitset_size, ti->limits.hardsect_size);
- 		lc->header_location.count = buf_size >> SECTOR_SHIFT;
-+		lc->io_req.mem.type = DM_IO_VMA;
-+		lc->io_req.client = dm_io_client_create(dm_div_up(buf_size,
-+								   PAGE_SIZE));
-+		if (IS_ERR(lc->io_req.client)) {
-+			r = PTR_ERR(lc->io_req.client);
-+			DMWARN("couldn't allocate disk io client");
-+			kfree(lc);
-+			return -ENOMEM;
-+		}
- 
- 		lc->disk_header = vmalloc(buf_size);
- 		if (!lc->disk_header) {
-@@ -426,6 +442,7 @@ static void disk_dtr(struct dirty_log *l
- 
- 	dm_put_device(lc->ti, lc->log_dev);
- 	vfree(lc->disk_header);
-+	dm_io_client_destroy(lc->io_req.client);
- 	destroy_log_context(lc);
- }
- 
 _
 
-Patches currently in -mm which might be from heinzm@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
