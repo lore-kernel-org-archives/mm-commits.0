@@ -1,170 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - use-slab_panic-flag-cleanup.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:43:40 -0700
-Message-ID: <200705090243.l492heJA008500@shell0.pdx.osdl.net>
+Subject: - uml-make-hostfs_setattr-support-operations-on-unlinked-open-files.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:43:43 -0700
+Message-ID: <200705090243.l492hhjn008505@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38043 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41138 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970024AbXEICoC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:44:02 -0400
+	by vger.kernel.org with ESMTP id S970023AbXEICns (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:43:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, ak@suse.de, benh@kernel.crashing.org, dhowells@redhat.com, lethal@linux-sh.org, paulus@samba.org, spyro@f2s.com, mm-commits@vger.kernel.org
+To: albertito@gmail.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use SLAB_PANIC flag cleanup
+     uml: make hostfs_setattr() support operations on unlinked open files
 has been removed from the -mm tree.  Its filename was
-     use-slab_panic-flag-cleanup.patch
+     uml-make-hostfs_setattr-support-operations-on-unlinked-open-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use SLAB_PANIC flag cleanup
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: uml: make hostfs_setattr() support operations on unlinked open files
+From: Alberto Bertogli <albertito@gmail.com>
 
-Use SLAB_PANIC and delete duplicated panic().
+This patch allows hostfs_setattr() to work on unlinked open files by calling
+set_attr() (the userspace part) with the inode's fd.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Ian Molton <spyro@f2s.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Without this, applications that depend on doing attribute changes to unlinked
+open files will fail.
+
+It works by using the fd versions instead of the path ones (for example
+fchmod() instead of chmod(), fchown() instead of chown()) when an fd is
+available.
+
+Signed-off-by: Alberto Bertogli <albertito@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm26/mm/memc.c          |    8 ++------
- arch/frv/mm/pgalloc.c         |    4 +---
- arch/i386/mm/init.c           |    9 ++-------
- arch/ia64/ia32/ia32_support.c |    6 ++----
- arch/powerpc/mm/init_64.c     |    5 +----
- arch/sh/mm/pmb.c              |    6 +++---
- 6 files changed, 11 insertions(+), 27 deletions(-)
+ fs/hostfs/hostfs.h      |    4 -
+ fs/hostfs/hostfs_kern.c |    6 +-
+ fs/hostfs/hostfs_user.c |  106 ++++++++++++++++++++++++--------------
+ 3 files changed, 73 insertions(+), 43 deletions(-)
 
-diff -puN arch/arm26/mm/memc.c~use-slab_panic-flag-cleanup arch/arm26/mm/memc.c
---- a/arch/arm26/mm/memc.c~use-slab_panic-flag-cleanup
-+++ a/arch/arm26/mm/memc.c
-@@ -176,13 +176,9 @@ void __init pgtable_cache_init(void)
+diff -puN fs/hostfs/hostfs.h~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files fs/hostfs/hostfs.h
+--- a/fs/hostfs/hostfs.h~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files
++++ a/fs/hostfs/hostfs.h
+@@ -55,7 +55,7 @@ extern int stat_file(const char *path, u
+ 		     int *mode_out, int *nlink_out, int *uid_out, int *gid_out,
+ 		     unsigned long long *size_out, struct timespec *atime_out,
+ 		     struct timespec *mtime_out, struct timespec *ctime_out,
+-		     int *blksize_out, unsigned long long *blocks_out);
++		     int *blksize_out, unsigned long long *blocks_out, int fd);
+ extern int access_file(char *path, int r, int w, int x);
+ extern int open_file(char *path, int r, int w, int append);
+ extern int file_type(const char *path, int *maj, int *min);
+@@ -71,7 +71,7 @@ extern int lseek_file(int fd, long long 
+ extern int fsync_file(int fd, int datasync);
+ extern int file_create(char *name, int ur, int uw, int ux, int gr,
+ 		       int gw, int gx, int or, int ow, int ox);
+-extern int set_attr(const char *file, struct hostfs_iattr *attrs);
++extern int set_attr(const char *file, struct hostfs_iattr *attrs, int fd);
+ extern int make_symlink(const char *from, const char *to);
+ extern int unlink_file(const char *file);
+ extern int do_mkdir(const char *file, int mode);
+diff -puN fs/hostfs/hostfs_kern.c~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files fs/hostfs/hostfs_kern.c
+--- a/fs/hostfs/hostfs_kern.c~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files
++++ a/fs/hostfs/hostfs_kern.c
+@@ -147,7 +147,7 @@ static int read_name(struct inode *ino, 
+ 
+ 	err = stat_file(name, &i_ino, &i_mode, &i_nlink, &ino->i_uid,
+ 			&ino->i_gid, &i_size, &ino->i_atime, &ino->i_mtime,
+-			&ino->i_ctime, &i_blksize, &i_blocks);
++			&ino->i_ctime, &i_blksize, &i_blocks, -1);
+ 	if(err)
+ 		return(err);
+ 
+@@ -820,6 +820,8 @@ int hostfs_setattr(struct dentry *dentry
+ 	char *name;
+ 	int err;
+ 
++	int fd = HOSTFS_I(dentry->d_inode)->fd;
++
+ 	err = inode_change_ok(dentry->d_inode, attr);
+ 	if (err)
+ 		return err;
+@@ -864,7 +866,7 @@ int hostfs_setattr(struct dentry *dentry
+ 	}
+ 	name = dentry_name(dentry, 0);
+ 	if(name == NULL) return(-ENOMEM);
+-	err = set_attr(name, &attrs);
++	err = set_attr(name, &attrs, fd);
+ 	kfree(name);
+ 	if(err)
+ 		return(err);
+diff -puN fs/hostfs/hostfs_user.c~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files fs/hostfs/hostfs_user.c
+--- a/fs/hostfs/hostfs_user.c~uml-make-hostfs_setattr-support-operations-on-unlinked-open-files
++++ a/fs/hostfs/hostfs_user.c
+@@ -21,12 +21,16 @@ int stat_file(const char *path, unsigned
+ 	      int *nlink_out, int *uid_out, int *gid_out,
+ 	      unsigned long long *size_out, struct timespec *atime_out,
+ 	      struct timespec *mtime_out, struct timespec *ctime_out,
+-	      int *blksize_out, unsigned long long *blocks_out)
++	      int *blksize_out, unsigned long long *blocks_out, int fd)
  {
- 	pte_cache = kmem_cache_create("pte-cache",
- 				sizeof(pte_t) * PTRS_PER_PTE,
--				0, 0, pte_cache_ctor, NULL);
--	if (!pte_cache)
--		BUG();
-+				0, SLAB_PANIC, pte_cache_ctor, NULL);
+ 	struct stat64 buf;
  
- 	pgd_cache = kmem_cache_create("pgd-cache", MEMC_TABLE_SIZE +
- 				sizeof(pgd_t) * PTRS_PER_PGD,
--				0, 0, pgd_cache_ctor, NULL);
--	if (!pgd_cache)
--		BUG();
-+				0, SLAB_PANIC, pgd_cache_ctor, NULL);
- }
-diff -puN arch/frv/mm/pgalloc.c~use-slab_panic-flag-cleanup arch/frv/mm/pgalloc.c
---- a/arch/frv/mm/pgalloc.c~use-slab_panic-flag-cleanup
-+++ a/arch/frv/mm/pgalloc.c
-@@ -151,9 +151,7 @@ void __init pgtable_cache_init(void)
- 	pgd_cache = kmem_cache_create("pgd",
- 				      PTRS_PER_PGD * sizeof(pgd_t),
- 				      PTRS_PER_PGD * sizeof(pgd_t),
--				      0,
-+				      SLAB_PANIC,
- 				      pgd_ctor,
- 				      pgd_dtor);
--	if (!pgd_cache)
--		panic("pgtable_cache_init(): Cannot create pgd cache");
- }
-diff -puN arch/i386/mm/init.c~use-slab_panic-flag-cleanup arch/i386/mm/init.c
---- a/arch/i386/mm/init.c~use-slab_panic-flag-cleanup
-+++ a/arch/i386/mm/init.c
-@@ -751,12 +751,9 @@ void __init pgtable_cache_init(void)
- 		pmd_cache = kmem_cache_create("pmd",
- 					PTRS_PER_PMD*sizeof(pmd_t),
- 					PTRS_PER_PMD*sizeof(pmd_t),
--					0,
-+					SLAB_PANIC,
- 					pmd_ctor,
- 					NULL);
--		if (!pmd_cache)
--			panic("pgtable_cache_init(): cannot create pmd cache");
--
- 		if (!SHARED_KERNEL_PMD) {
- 			/* If we're in PAE mode and have a non-shared
- 			   kernel pmd, then the pgd size must be a
-@@ -770,11 +767,9 @@ void __init pgtable_cache_init(void)
- 	pgd_cache = kmem_cache_create("pgd",
- 				pgd_size,
- 				pgd_size,
--				0,
-+				SLAB_PANIC,
- 				pgd_ctor,
- 				(!SHARED_KERNEL_PMD) ? pgd_dtor : NULL);
--	if (!pgd_cache)
--		panic("pgtable_cache_init(): Cannot create pgd cache");
+-	if(lstat64(path, &buf) < 0)
++	if(fd >= 0) {
++		if (fstat64(fd, &buf) < 0)
++			return(-errno);
++	} else if(lstat64(path, &buf) < 0) {
+ 		return(-errno);
++	}
+ 
+ 	if(inode_out != NULL) *inode_out = buf.st_ino;
+ 	if(mode_out != NULL) *mode_out = buf.st_mode;
+@@ -202,58 +206,82 @@ int file_create(char *name, int ur, int 
+ 	return(fd);
  }
  
- /*
-diff -puN arch/ia64/ia32/ia32_support.c~use-slab_panic-flag-cleanup arch/ia64/ia32/ia32_support.c
---- a/arch/ia64/ia32/ia32_support.c~use-slab_panic-flag-cleanup
-+++ a/arch/ia64/ia32/ia32_support.c
-@@ -252,10 +252,8 @@ ia32_init (void)
- 		extern struct kmem_cache *partial_page_cachep;
+-int set_attr(const char *file, struct hostfs_iattr *attrs)
++int set_attr(const char *file, struct hostfs_iattr *attrs, int fd)
+ {
+-	struct utimbuf buf;
++	struct timeval times[2];
++	struct timespec atime_ts, mtime_ts;
+ 	int err, ma;
  
- 		partial_page_cachep = kmem_cache_create("partial_page_cache",
--							sizeof(struct partial_page), 0, 0,
--							NULL, NULL);
--		if (!partial_page_cachep)
--			panic("Cannot create partial page SLAB cache");
-+						sizeof(struct partial_page),
-+						0, SLAB_PANIC, NULL, NULL);
+-	if(attrs->ia_valid & HOSTFS_ATTR_MODE){
+-		if(chmod(file, attrs->ia_mode) != 0) return(-errno);
+-	}
+-	if(attrs->ia_valid & HOSTFS_ATTR_UID){
+-		if(chown(file, attrs->ia_uid, -1)) return(-errno);
++	if (attrs->ia_valid & HOSTFS_ATTR_MODE) {
++		if (fd >= 0) {
++			if (fchmod(fd, attrs->ia_mode) != 0)
++				return (-errno);
++		} else if (chmod(file, attrs->ia_mode) != 0) {
++			return (-errno);
++		}
  	}
- #endif
- 	return 0;
-diff -puN arch/powerpc/mm/init_64.c~use-slab_panic-flag-cleanup arch/powerpc/mm/init_64.c
---- a/arch/powerpc/mm/init_64.c~use-slab_panic-flag-cleanup
-+++ a/arch/powerpc/mm/init_64.c
-@@ -183,11 +183,8 @@ void pgtable_cache_init(void)
- 		    "for size: %08x...\n", name, i, size);
- 		pgtable_cache[i] = kmem_cache_create(name,
- 						     size, size,
--						     0,
-+						     SLAB_PANIC,
- 						     zero_ctor,
- 						     NULL);
--		if (! pgtable_cache[i])
--			panic("pgtable_cache_init(): could not create %s!\n",
--			      name);
+-	if(attrs->ia_valid & HOSTFS_ATTR_GID){
+-		if(chown(file, -1, attrs->ia_gid)) return(-errno);
++	if (attrs->ia_valid & HOSTFS_ATTR_UID) {
++		if (fd >= 0) {
++			if (fchown(fd, attrs->ia_uid, -1))
++				return (-errno);
++		} else if(chown(file, attrs->ia_uid, -1)) {
++			return (-errno);
++		}
  	}
- }
-diff -puN arch/sh/mm/pmb.c~use-slab_panic-flag-cleanup arch/sh/mm/pmb.c
---- a/arch/sh/mm/pmb.c~use-slab_panic-flag-cleanup
-+++ a/arch/sh/mm/pmb.c
-@@ -311,9 +311,9 @@ static int __init pmb_init(void)
+-	if(attrs->ia_valid & HOSTFS_ATTR_SIZE){
+-		if(truncate(file, attrs->ia_size)) return(-errno);
++	if (attrs->ia_valid & HOSTFS_ATTR_GID) {
++		if (fd >= 0) {
++			if (fchown(fd, -1, attrs->ia_gid))
++				return (-errno);
++		} else if (chown(file, -1, attrs->ia_gid)) {
++			return (-errno);
++		}
+ 	}
+-	ma = HOSTFS_ATTR_ATIME_SET | HOSTFS_ATTR_MTIME_SET;
+-	if((attrs->ia_valid & ma) == ma){
+-		buf.actime = attrs->ia_atime.tv_sec;
+-		buf.modtime = attrs->ia_mtime.tv_sec;
+-		if(utime(file, &buf) != 0) return(-errno);
++	if (attrs->ia_valid & HOSTFS_ATTR_SIZE) {
++		if (fd >= 0) {
++			if (ftruncate(fd, attrs->ia_size))
++				return (-errno);
++		} else if (truncate(file, attrs->ia_size)) {
++			return (-errno);
++		}
+ 	}
+-	else {
+-		struct timespec ts;
  
- 	BUG_ON(unlikely(nr_entries >= NR_PMB_ENTRIES));
- 
--	pmb_cache = kmem_cache_create("pmb", sizeof(struct pmb_entry),
--				      0, 0, pmb_cache_ctor, pmb_cache_dtor);
--	BUG_ON(!pmb_cache);
-+	pmb_cache = kmem_cache_create("pmb", sizeof(struct pmb_entry), 0,
-+				      SLAB_PANIC, pmb_cache_ctor,
-+				      pmb_cache_dtor);
- 
- 	jump_to_P2();
- 
+-		if(attrs->ia_valid & HOSTFS_ATTR_ATIME_SET){
+-			err = stat_file(file, NULL, NULL, NULL, NULL, NULL,
+-					NULL, NULL, &ts, NULL, NULL, NULL);
+-			if(err != 0)
+-				return(err);
+-			buf.actime = attrs->ia_atime.tv_sec;
+-			buf.modtime = ts.tv_sec;
+-			if(utime(file, &buf) != 0)
+-				return(-errno);
++	/* Update accessed and/or modified time, in two parts: first set
++	 * times according to the changes to perform, and then call futimes()
++	 * or utimes() to apply them. */
++	ma = (HOSTFS_ATTR_ATIME_SET | HOSTFS_ATTR_MTIME_SET);
++	if (attrs->ia_valid & ma) {
++		err = stat_file(file, NULL, NULL, NULL, NULL, NULL, NULL,
++				&atime_ts, &mtime_ts, NULL, NULL, NULL, fd);
++		if (err != 0)
++			return err;
++
++		times[0].tv_sec = atime_ts.tv_sec;
++		times[0].tv_usec = atime_ts.tv_nsec * 1000;
++		times[1].tv_sec = mtime_ts.tv_sec;
++		times[1].tv_usec = mtime_ts.tv_nsec * 1000;
++
++		if (attrs->ia_valid & HOSTFS_ATTR_ATIME_SET) {
++			times[0].tv_sec = attrs->ia_atime.tv_sec;
++			times[0].tv_usec = attrs->ia_atime.tv_nsec * 1000;
+ 		}
+-		if(attrs->ia_valid & HOSTFS_ATTR_MTIME_SET){
+-			err = stat_file(file, NULL, NULL, NULL, NULL, NULL,
+-					NULL, &ts, NULL, NULL, NULL, NULL);
+-			if(err != 0)
+-				return(err);
+-			buf.actime = ts.tv_sec;
+-			buf.modtime = attrs->ia_mtime.tv_sec;
+-			if(utime(file, &buf) != 0)
+-				return(-errno);
++		if (attrs->ia_valid & HOSTFS_ATTR_MTIME_SET) {
++			times[1].tv_sec = attrs->ia_mtime.tv_sec;
++			times[1].tv_usec = attrs->ia_mtime.tv_nsec * 1000;
++		}
++
++		if (fd >= 0) {
++			if (futimes(fd, times) != 0)
++				return (-errno);
++		} else if (utimes(file, times) != 0) {
++			return (-errno);
+ 		}
+ 	}
++
+ 	if(attrs->ia_valid & HOSTFS_ATTR_CTIME) ;
+ 	if(attrs->ia_valid & (HOSTFS_ATTR_ATIME | HOSTFS_ATTR_MTIME)){
+ 		err = stat_file(file, NULL, NULL, NULL, NULL, NULL, NULL,
+ 				&attrs->ia_atime, &attrs->ia_mtime, NULL,
+-				NULL, NULL);
++				NULL, NULL, fd);
+ 		if(err != 0) return(err);
+ 	}
+ 	return(0);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from albertito@gmail.com are
 
 origin.patch
-git-alsa.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-disable-stacktrace-filter-for-x86-64.patch
-cm4000_cs-fix-error-paths.patch
-cm4000_cs-use-bitrev.patch
-use-simple_read_from_buffer-in-fs.patch
-use-simple_read_from_buffer-in-kernel.patch
-sunrpc-fix-error-path-in-module_init.patch
