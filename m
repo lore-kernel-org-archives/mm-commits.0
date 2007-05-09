@@ -1,68 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - slub-use-check_valid_pointer-in-kmem_ptr_validate.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:47:53 -0700
-Message-ID: <200705092147.l49LlrJa002522@shell0.pdx.osdl.net>
+Subject: - slub-clean-up-krealloc.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:47:55 -0700
+Message-ID: <200705092147.l49LltlV002525@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52517 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757070AbXEIVrz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:47:55 -0400
+	by vger.kernel.org with ESMTP id S1757203AbXEIVr5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:47:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: use check_valid_pointer in kmem_ptr_validate
+     SLUB: clean up krealloc
 has been removed from the -mm tree.  Its filename was
-     slub-use-check_valid_pointer-in-kmem_ptr_validate.patch
+     slub-clean-up-krealloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: use check_valid_pointer in kmem_ptr_validate
+Subject: SLUB: clean up krealloc
 From: Christoph Lameter <clameter@sgi.com>
 
-We needlessly duplicate code. Also make check_valid_pointer inline.
+We really do not need all this gaga there.
 
-Signed-off-by: Christoph LAemter <clameter@sgi.com>
+ksize gives us all the information we need to figure out if the object can
+cope with the new size.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ mm/slub.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN mm/slub.c~slub-use-check_valid_pointer-in-kmem_ptr_validate mm/slub.c
---- a/mm/slub.c~slub-use-check_valid_pointer-in-kmem_ptr_validate
+diff -puN mm/slub.c~slub-clean-up-krealloc mm/slub.c
+--- a/mm/slub.c~slub-clean-up-krealloc
 +++ a/mm/slub.c
-@@ -405,9 +405,8 @@ static int check_bytes(u8 *start, unsign
- 	return 1;
- }
- 
--
--static int check_valid_pointer(struct kmem_cache *s, struct page *page,
--					 void *object)
-+static inline int check_valid_pointer(struct kmem_cache *s,
-+				struct page *page, const void *object)
+@@ -2199,9 +2199,8 @@ EXPORT_SYMBOL(kmem_cache_shrink);
+  */
+ void *krealloc(const void *p, size_t new_size, gfp_t flags)
  {
- 	void *base;
+-	struct kmem_cache *new_cache;
+ 	void *ret;
+-	struct page *page;
++	size_t ks;
  
-@@ -1796,13 +1795,7 @@ int kmem_ptr_validate(struct kmem_cache 
- 		/* No slab or wrong slab */
- 		return 0;
+ 	if (unlikely(!p))
+ 		return kmalloc(new_size, flags);
+@@ -2211,19 +2210,13 @@ void *krealloc(const void *p, size_t new
+ 		return NULL;
+ 	}
  
--	addr = page_address(page);
--	if (object < addr || object >= addr + s->objects * s->size)
--		/* Out of bounds */
--		return 0;
+-	page = virt_to_head_page(p);
 -
--	if ((object - addr) % s->size)
--		/* Improperly aligned */
-+	if (!check_valid_pointer(s, page, object))
- 		return 0;
+-	new_cache = get_slab(new_size, flags);
+-
+-	/*
+- 	 * If new size fits in the current cache, bail out.
+- 	 */
+-	if (likely(page->slab == new_cache))
++	ks = ksize(p);
++	if (ks >= new_size)
+ 		return (void *)p;
  
- 	/*
+ 	ret = kmalloc(new_size, flags);
+ 	if (ret) {
+-		memcpy(ret, p, min(new_size, ksize(p)));
++		memcpy(ret, p, min(new_size, ks));
+ 		kfree(p);
+ 	}
+ 	return ret;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
