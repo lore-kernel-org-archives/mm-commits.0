@@ -1,69 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:49:12 -0700
-Message-ID: <200705090249.l492nC7w009199@shell0.pdx.osdl.net>
+Subject: - fix-kevents-childs-priority-greediness.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:48:31 -0700
+Message-ID: <200705090248.l492mV3D009120@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35660 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54702 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966385AbXEICtQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:16 -0400
+	by vger.kernel.org with ESMTP id S967076AbXEICtV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bbpetkov@yahoo.de, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, chrisw@sous-sol.org, jengelh@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: handle arrays with arithmetic expressions as initializers
+     Fix kevent's childs priority greediness
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-handle-arrays-with-arithmetic-expressions-as.patch
+     fix-kevents-childs-priority-greediness.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel-doc: handle arrays with arithmetic expressions as initializers
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: Fix kevent's childs priority greediness
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-In a different approach here's a patch that handles the special case of
-composite arithmetic expressions in array size initializers.  With it,
-prior to pushing the split strings on the @first_arg array, I split the
-keywords before the array name as before and then keep the array name along
-with the subscript expression as a single whole element which gets pushed
-last.  In this manner, kernel-doc produces correct output without removing
-whitespaces which makes the array subscripts unreadable in the docs.
+Fix kevent's childs priority greediness.  Such tasks were always scheduled
+at nice level -5 and, at that time, udev stole us the CPU time with -5.
 
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Already posted at http://lkml.org/lkml/2005/1/10/85
+
+[akpm@linux-foundation.org: add comment]
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ kernel/kmod.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN scripts/kernel-doc~kernel-doc-handle-arrays-with-arithmetic-expressions-as scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-handle-arrays-with-arithmetic-expressions-as
-+++ a/scripts/kernel-doc
-@@ -1456,7 +1456,16 @@ sub create_parameterlist($$$) {
- 	    if ($args[0] =~ m/\*/) {
- 		$args[0] =~ s/(\*+)\s*/ $1/;
- 	    }
--	    my @first_arg = split('\s+', shift @args);
-+
-+	    my @first_arg;
-+	    if ($args[0] =~ /^(.*\s+)(.*?\[.*\].*)$/) {
-+		    shift @args;
-+		    push(@first_arg, split('\s+', $1));
-+		    push(@first_arg, $2);
-+	    } else {
-+		    @first_arg = split('\s+', shift @args);
-+	    }
-+
- 	    unshift(@args, pop @first_arg);
- 	    $type = join " ", @first_arg;
+diff -puN kernel/kmod.c~fix-kevents-childs-priority-greediness kernel/kmod.c
+--- a/kernel/kmod.c~fix-kevents-childs-priority-greediness
++++ a/kernel/kmod.c
+@@ -165,6 +165,12 @@ static int ____call_usermodehelper(void 
+ 	/* We can run anywhere, unlike our parent keventd(). */
+ 	set_cpus_allowed(current, CPU_MASK_ALL);
  
++	/*
++	 * Our parent is keventd, which runs with elevated scheduling priority.
++	 * Avoid propagating that into the userspace child.
++	 */
++	set_user_nice(current, 0);
++
+ 	retval = -EPERM;
+ 	if (current->fs->root)
+ 		retval = kernel_execve(sub_info->path,
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-kernel-doc-small-kernel-doc-optimization.patch
+git-dvb.patch
+git-watchdog.patch
+use-menuconfig-objects-acpi.patch
+use-menuconfig-objects-libata.patch
+use-menuconfig-objects-block-layer.patch
+use-menuconfig-objects-connector.patch
+use-menuconfig-objects-crypto.patch
+use-menuconfig-objects-crypto-hw.patch
+use-menuconfig-objects-dccp.patch
+use-menuconfig-objects-i2o.patch
+use-menuconfig-objects-ide.patch
+use-menuconfig-objects-ipvs.patch
+use-menuconfig-objects-sctp.patch
+use-menuconfig-objects-tipc.patch
+use-menuconfig-objects-arcnet.patch
+use-menuconfig-objects-phy.patch
+use-menuconfig-objects-toeknring.patch
+use-menuconfig-objects-netdev.patch
+use-menuconfig-objects-oldcd.patch
+use-menuconfig-objects-parport.patch
+use-menuconfig-objects-pcmcia.patch
+use-menuconfig-objects-pnp.patch
+use-menuconfig-objects-w1.patch
