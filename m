@@ -1,60 +1,280 @@
 From: akpm@linux-foundation.org
-Subject: - atyfb-increase-spll-delay.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:02:17 -0700
-Message-ID: <200705090302.l4932H06010816@shell0.pdx.osdl.net>
+Subject: - nvidiafb-prevent-triggering-of-softlockup.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:02:06 -0700
+Message-ID: <200705090302.l49326dg010792@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60121 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032935AbXEIDC0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:26 -0400
+	by vger.kernel.org with ESMTP id S1033241AbXEIDCU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: syrjala@sci.fi, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: davej@redhat.com, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atyfb: increase SPLL delay
+     nvidiafb: prevent triggering of softlockup
 has been removed from the -mm tree.  Its filename was
-     atyfb-increase-spll-delay.patch
+     nvidiafb-prevent-triggering-of-softlockup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atyfb: increase SPLL delay
-From: Ville Syrjala <syrjala@sci.fi>
+Subject: nvidiafb: prevent triggering of softlockup
+From: Dave Jones <davej@redhat.com>
 
-Wait 5 ms instead of 500 us for the SPLL to lock.  This matches the
-recommendation in mach64 programmer's guide.
+If the chip locks up, we get into a long polling loop,
+where the softlockup detector kicks in.
+See https://bugzilla.redhat.com/bugzilla/attachment.cgi?id=151878
+for an example.
 
+[adaplas]
+Chip lockup can occur at 3 points (flush, sync, and wait). Consolidate and
+allow the driver to go to safe mode cleanly.
+
+Signed-off-by: Dave Jones <davej@redhat.com>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/mach64_ct.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/video/nvidia/nv_accel.c |   76 ++++++++++++++++++------------
+ drivers/video/nvidia/nv_local.h |    4 -
+ 2 files changed, 48 insertions(+), 32 deletions(-)
 
-diff -puN drivers/video/aty/mach64_ct.c~atyfb-increase-spll-delay drivers/video/aty/mach64_ct.c
---- a/drivers/video/aty/mach64_ct.c~atyfb-increase-spll-delay
-+++ a/drivers/video/aty/mach64_ct.c
-@@ -608,12 +608,10 @@ static void aty_resume_pll_ct(const stru
- 		aty_st_pll_ct(SCLK_FB_DIV, pll->ct.sclk_fb_div, par);
- 		aty_st_pll_ct(SPLL_CNTL2, pll->ct.spll_cntl2, par);
- 		/*
--		 * The sclk has been started. However, I believe the first clock
--		 * ticks it generates are not very stable. Hope this primitive loop
--		 * helps for Rage Mobilities that sometimes crash when
--		 * we switch to sclk. (Daniel Mantione, 13-05-2003)
-+		 * SCLK has been started. Wait for the PLL to lock. 5 ms
-+		 * should be enough according to mach64 programmer's guide.
- 		 */
--		udelay(500);
-+		mdelay(5);
+diff -puN drivers/video/nvidia/nv_accel.c~nvidiafb-prevent-triggering-of-softlockup drivers/video/nvidia/nv_accel.c
+--- a/drivers/video/nvidia/nv_accel.c~nvidiafb-prevent-triggering-of-softlockup
++++ a/drivers/video/nvidia/nv_accel.c
+@@ -69,27 +69,38 @@ static const int NVCopyROP_PM[16] = {
+ 	0x5A,			/* invert */
+ };
+ 
+-static inline void NVFlush(struct nvidia_par *par)
++static inline void nvidiafb_safe_mode(struct fb_info *info)
+ {
++	struct nvidia_par *par = info->par;
++
++	touch_softlockup_watchdog();
++	info->pixmap.scan_align = 1;
++	par->lockup = 1;
++}
++
++static inline void NVFlush(struct fb_info *info)
++{
++	struct nvidia_par *par = info->par;
+ 	int count = 1000000000;
+ 
+ 	while (--count && READ_GET(par) != par->dmaPut) ;
+ 
+ 	if (!count) {
+ 		printk("nvidiafb: DMA Flush lockup\n");
+-		par->lockup = 1;
++		nvidiafb_safe_mode(info);
+ 	}
+ }
+ 
+-static inline void NVSync(struct nvidia_par *par)
++static inline void NVSync(struct fb_info *info)
+ {
++	struct nvidia_par *par = info->par;
+ 	int count = 1000000000;
+ 
+ 	while (--count && NV_RD32(par->PGRAPH, 0x0700)) ;
+ 
+ 	if (!count) {
+ 		printk("nvidiafb: DMA Sync lockup\n");
+-		par->lockup = 1;
++		nvidiafb_safe_mode(info);
+ 	}
+ }
+ 
+@@ -101,8 +112,9 @@ static void NVDmaKickoff(struct nvidia_p
+ 	}
+ }
+ 
+-static void NVDmaWait(struct nvidia_par *par, int size)
++static void NVDmaWait(struct fb_info *info, int size)
+ {
++	struct nvidia_par *par = info->par;
+ 	int dmaGet;
+ 	int count = 1000000000, cnt;
+ 	size++;
+@@ -135,34 +147,38 @@ static void NVDmaWait(struct nvidia_par 
  	}
  
- 	aty_st_pll_ct(PLL_REF_DIV, pll->ct.pll_ref_div, par);
+ 	if (!count) {
+-		printk("DMA Wait Lockup\n");
+-		par->lockup = 1;
++		printk("nvidiafb: DMA Wait Lockup\n");
++		nvidiafb_safe_mode(info);
+ 	}
+ }
+ 
+-static void NVSetPattern(struct nvidia_par *par, u32 clr0, u32 clr1,
++static void NVSetPattern(struct fb_info *info, u32 clr0, u32 clr1,
+ 			 u32 pat0, u32 pat1)
+ {
+-	NVDmaStart(par, PATTERN_COLOR_0, 4);
++	struct nvidia_par *par = info->par;
++
++	NVDmaStart(info, par, PATTERN_COLOR_0, 4);
+ 	NVDmaNext(par, clr0);
+ 	NVDmaNext(par, clr1);
+ 	NVDmaNext(par, pat0);
+ 	NVDmaNext(par, pat1);
+ }
+ 
+-static void NVSetRopSolid(struct nvidia_par *par, u32 rop, u32 planemask)
++static void NVSetRopSolid(struct fb_info *info, u32 rop, u32 planemask)
+ {
++	struct nvidia_par *par = info->par;
++
+ 	if (planemask != ~0) {
+-		NVSetPattern(par, 0, planemask, ~0, ~0);
++		NVSetPattern(info, 0, planemask, ~0, ~0);
+ 		if (par->currentRop != (rop + 32)) {
+-			NVDmaStart(par, ROP_SET, 1);
++			NVDmaStart(info, par, ROP_SET, 1);
+ 			NVDmaNext(par, NVCopyROP_PM[rop]);
+ 			par->currentRop = rop + 32;
+ 		}
+ 	} else if (par->currentRop != rop) {
+ 		if (par->currentRop >= 16)
+-			NVSetPattern(par, ~0, ~0, ~0, ~0);
+-		NVDmaStart(par, ROP_SET, 1);
++			NVSetPattern(info, ~0, ~0, ~0, ~0);
++		NVDmaStart(info, par, ROP_SET, 1);
+ 		NVDmaNext(par, NVCopyROP[rop]);
+ 		par->currentRop = rop;
+ 	}
+@@ -175,7 +191,7 @@ static void NVSetClippingRectangle(struc
+ 	int h = y2 - y1 + 1;
+ 	int w = x2 - x1 + 1;
+ 
+-	NVDmaStart(par, CLIP_POINT, 2);
++	NVDmaStart(info, par, CLIP_POINT, 2);
+ 	NVDmaNext(par, (y1 << 16) | x1);
+ 	NVDmaNext(par, (h << 16) | w);
+ }
+@@ -237,23 +253,23 @@ void NVResetGraphics(struct fb_info *inf
+ 		break;
+ 	}
+ 
+-	NVDmaStart(par, SURFACE_FORMAT, 4);
++	NVDmaStart(info, par, SURFACE_FORMAT, 4);
+ 	NVDmaNext(par, surfaceFormat);
+ 	NVDmaNext(par, pitch | (pitch << 16));
+ 	NVDmaNext(par, 0);
+ 	NVDmaNext(par, 0);
+ 
+-	NVDmaStart(par, PATTERN_FORMAT, 1);
++	NVDmaStart(info, par, PATTERN_FORMAT, 1);
+ 	NVDmaNext(par, patternFormat);
+ 
+-	NVDmaStart(par, RECT_FORMAT, 1);
++	NVDmaStart(info, par, RECT_FORMAT, 1);
+ 	NVDmaNext(par, rectFormat);
+ 
+-	NVDmaStart(par, LINE_FORMAT, 1);
++	NVDmaStart(info, par, LINE_FORMAT, 1);
+ 	NVDmaNext(par, lineFormat);
+ 
+ 	par->currentRop = ~0;	/* set to something invalid */
+-	NVSetRopSolid(par, ROP_COPY, ~0);
++	NVSetRopSolid(info, ROP_COPY, ~0);
+ 
+ 	NVSetClippingRectangle(info, 0, 0, info->var.xres_virtual,
+ 			       info->var.yres_virtual);
+@@ -269,10 +285,10 @@ int nvidiafb_sync(struct fb_info *info)
+ 		return 0;
+ 
+ 	if (!par->lockup)
+-		NVFlush(par);
++		NVFlush(info);
+ 
+ 	if (!par->lockup)
+-		NVSync(par);
++		NVSync(info);
+ 
+ 	return 0;
+ }
+@@ -287,7 +303,7 @@ void nvidiafb_copyarea(struct fb_info *i
+ 	if (par->lockup)
+ 		return cfb_copyarea(info, region);
+ 
+-	NVDmaStart(par, BLIT_POINT_SRC, 3);
++	NVDmaStart(info, par, BLIT_POINT_SRC, 3);
+ 	NVDmaNext(par, (region->sy << 16) | region->sx);
+ 	NVDmaNext(par, (region->dy << 16) | region->dx);
+ 	NVDmaNext(par, (region->height << 16) | region->width);
+@@ -312,19 +328,19 @@ void nvidiafb_fillrect(struct fb_info *i
+ 		color = ((u32 *) info->pseudo_palette)[rect->color];
+ 
+ 	if (rect->rop != ROP_COPY)
+-		NVSetRopSolid(par, rect->rop, ~0);
++		NVSetRopSolid(info, rect->rop, ~0);
+ 
+-	NVDmaStart(par, RECT_SOLID_COLOR, 1);
++	NVDmaStart(info, par, RECT_SOLID_COLOR, 1);
+ 	NVDmaNext(par, color);
+ 
+-	NVDmaStart(par, RECT_SOLID_RECTS(0), 2);
++	NVDmaStart(info, par, RECT_SOLID_RECTS(0), 2);
+ 	NVDmaNext(par, (rect->dx << 16) | rect->dy);
+ 	NVDmaNext(par, (rect->width << 16) | rect->height);
+ 
+ 	NVDmaKickoff(par);
+ 
+ 	if (rect->rop != ROP_COPY)
+-		NVSetRopSolid(par, ROP_COPY, ~0);
++		NVSetRopSolid(info, ROP_COPY, ~0);
+ }
+ 
+ static void nvidiafb_mono_color_expand(struct fb_info *info,
+@@ -346,7 +362,7 @@ static void nvidiafb_mono_color_expand(s
+ 		bg = ((u32 *) info->pseudo_palette)[image->bg_color] | mask;
+ 	}
+ 
+-	NVDmaStart(par, RECT_EXPAND_TWO_COLOR_CLIP, 7);
++	NVDmaStart(info, par, RECT_EXPAND_TWO_COLOR_CLIP, 7);
+ 	NVDmaNext(par, (image->dy << 16) | (image->dx & 0xffff));
+ 	NVDmaNext(par, ((image->dy + image->height) << 16) |
+ 		  ((image->dx + image->width) & 0xffff));
+@@ -357,7 +373,7 @@ static void nvidiafb_mono_color_expand(s
+ 	NVDmaNext(par, (image->dy << 16) | (image->dx & 0xffff));
+ 
+ 	while (dsize >= RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS) {
+-		NVDmaStart(par, RECT_EXPAND_TWO_COLOR_DATA(0),
++		NVDmaStart(info, par, RECT_EXPAND_TWO_COLOR_DATA(0),
+ 			   RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS);
+ 
+ 		for (j = RECT_EXPAND_TWO_COLOR_DATA_MAX_DWORDS; j--;) {
+@@ -370,7 +386,7 @@ static void nvidiafb_mono_color_expand(s
+ 	}
+ 
+ 	if (dsize) {
+-		NVDmaStart(par, RECT_EXPAND_TWO_COLOR_DATA(0), dsize);
++		NVDmaStart(info, par, RECT_EXPAND_TWO_COLOR_DATA(0), dsize);
+ 
+ 		for (j = dsize; j--;) {
+ 			tmp = data[k++];
+diff -puN drivers/video/nvidia/nv_local.h~nvidiafb-prevent-triggering-of-softlockup drivers/video/nvidia/nv_local.h
+--- a/drivers/video/nvidia/nv_local.h~nvidiafb-prevent-triggering-of-softlockup
++++ a/drivers/video/nvidia/nv_local.h
+@@ -73,9 +73,9 @@
+ #define NVDmaNext(par, data) \
+      NV_WR32(&(par)->dmaBase[(par)->dmaCurrent++], 0, (data))
+ 
+-#define NVDmaStart(par, tag, size) {          \
++#define NVDmaStart(info, par, tag, size) {    \
+      if((par)->dmaFree <= (size))             \
+-        NVDmaWait(par, size);                 \
++        NVDmaWait(info, size);                \
+      NVDmaNext(par, ((size) << 18) | (tag));  \
+      (par)->dmaFree -= ((size) + 1);          \
+ }
 _
 
-Patches currently in -mm which might be from syrjala@sci.fi are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
