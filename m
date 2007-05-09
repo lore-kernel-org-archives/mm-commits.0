@@ -1,71 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - is_power_of_2-in-fat.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:44:46 -0700
-Message-ID: <200705090244.l492iki9008624@shell0.pdx.osdl.net>
+Subject: - is_power_of_2-in-fs-block_devc.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:44:52 -0700
+Message-ID: <200705090244.l492iqnB008643@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53620 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:38246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754320AbXEICov (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:44:51 -0400
+	by vger.kernel.org with ESMTP id S970017AbXEICoy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:44:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vignesh.babu@wipro.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: vignesh.babu@wipro.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     is_power_of_2 in fat
+     is_power_of_2 in fs/block_dev.c
 has been removed from the -mm tree.  Its filename was
-     is_power_of_2-in-fat.patch
+     is_power_of_2-in-fs-block_devc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: is_power_of_2 in fat
+Subject: is_power_of_2 in fs/block_dev.c
 From: Vignesh Babu BM <vignesh.babu@wipro.com>
 
-Replacing (n & (n-1)) in the context of power of 2 checks with
-is_power_of_2
+Replace (n & (n-1)) in the context of power of 2 checks with is_power_of_2
 
 Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/block_dev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/fat/inode.c~is_power_of_2-in-fat fs/fat/inode.c
---- a/fs/fat/inode.c~is_power_of_2-in-fat
-+++ a/fs/fat/inode.c
-@@ -25,6 +25,7 @@
- #include <linux/parser.h>
+diff -puN fs/block_dev.c~is_power_of_2-in-fs-block_devc fs/block_dev.c
+--- a/fs/block_dev.c~is_power_of_2-in-fs-block_devc
++++ a/fs/block_dev.c
+@@ -22,6 +22,7 @@
+ #include <linux/mount.h>
  #include <linux/uio.h>
- #include <linux/writeback.h>
+ #include <linux/namei.h>
 +#include <linux/log2.h>
- #include <asm/unaligned.h>
+ #include <asm/uaccess.h>
+ #include "internal.h"
  
- #ifndef CONFIG_FAT_DEFAULT_IOCHARSET
-@@ -1217,8 +1218,7 @@ int fat_fill_super(struct super_block *s
- 	}
- 	logical_sector_size =
- 		le16_to_cpu(get_unaligned((__le16 *)&b->sector_size));
--	if (!logical_sector_size
--	    || (logical_sector_size & (logical_sector_size - 1))
-+	if (!is_power_of_2(logical_sector_size)
- 	    || (logical_sector_size < 512)
- 	    || (PAGE_CACHE_SIZE < logical_sector_size)) {
- 		if (!silent)
-@@ -1228,8 +1228,7 @@ int fat_fill_super(struct super_block *s
- 		goto out_invalid;
- 	}
- 	sbi->sec_per_clus = b->sec_per_clus;
--	if (!sbi->sec_per_clus
--	    || (sbi->sec_per_clus & (sbi->sec_per_clus - 1))) {
-+	if (!is_power_of_2(sbi->sec_per_clus)) {
- 		if (!silent)
- 			printk(KERN_ERR "FAT: bogus sectors per cluster %u\n",
- 			       sbi->sec_per_clus);
+@@ -67,7 +68,7 @@ static void kill_bdev(struct block_devic
+ int set_blocksize(struct block_device *bdev, int size)
+ {
+ 	/* Size must be a power of two, and between 512 and PAGE_SIZE */
+-	if (size > PAGE_SIZE || size < 512 || (size & (size-1)))
++	if (size > PAGE_SIZE || size < 512 || !is_power_of_2(size))
+ 		return -EINVAL;
+ 
+ 	/* Size cannot be smaller than the size supported by the device */
 _
 
 Patches currently in -mm which might be from vignesh.babu@wipro.com are
