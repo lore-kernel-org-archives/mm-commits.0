@@ -1,111 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - dm-crypt-fix-call-to-clone_init.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:31 -0700
-Message-ID: <200705092148.l49LmVKP002599@shell0.pdx.osdl.net>
+Subject: - dm-log-fault-detection.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:46 -0700
+Message-ID: <200705092148.l49Lmkqu002625@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:53702 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754348AbXEIVso (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:44 -0400
+	by vger.kernel.org with ESMTP id S1759366AbXEIVsy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf.kirch@oracle.com, agk@redhat.com, mm-commits@vger.kernel.org
+To: jbrassow@redhat.com, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm crypt: fix call to clone_init
+     dm log: fault detection
 has been removed from the -mm tree.  Its filename was
-     dm-crypt-fix-call-to-clone_init.patch
+     dm-log-fault-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm crypt: fix call to clone_init
-From: Olaf Kirch <olaf.kirch@oracle.com>
+Subject: dm log: fault detection
+From: Jonathan E Brassow <jbrassow@redhat.com>
 
-Call clone_init early
+This patch gives the disk logging code the ability to store the fact that an
+error occured on the log device.  In addition, an event is raised when an
+error is encountered during I/O to the log device.
 
-We need to call clone_init as early as possible - at least before call
-bio_put(clone) in any error path.  Otherwise, the destructor will try to
-dereference bi_private, which may still be NULL.
-
-Signed-off-by: Olaf Kirch <olaf.kirch@oracle.com>
+Signed-off-by: Jonathan E Brassow <jbrassow@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/md/dm-log.c |   30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/dm-crypt.c~dm-crypt-fix-call-to-clone_init drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~dm-crypt-fix-call-to-clone_init
-+++ a/drivers/md/dm-crypt.c
-@@ -107,6 +107,8 @@ struct crypt_config {
+diff -puN drivers/md/dm-log.c~dm-log-fault-detection drivers/md/dm-log.c
+--- a/drivers/md/dm-log.c~dm-log-fault-detection
++++ a/drivers/md/dm-log.c
+@@ -152,6 +152,7 @@ struct log_c {
+ 	/*
+ 	 * Disk log fields
+ 	 */
++	int log_dev_failed;
+ 	struct dm_dev *log_dev;
+ 	struct log_header header;
  
- static struct kmem_cache *_crypt_io_pool;
+@@ -315,6 +316,7 @@ static int create_log_context(struct dir
+ 		lc->disk_header = NULL;
+ 	} else {
+ 		lc->log_dev = dev;
++		lc->log_dev_failed = 0;
+ 		lc->header_location.bdev = lc->log_dev->bdev;
+ 		lc->header_location.sector = 0;
  
-+static void clone_init(struct crypt_io *, struct bio *);
-+
- /*
-  * Different IV generation algorithms:
-  *
-@@ -379,9 +381,10 @@ static int crypt_convert(struct crypt_co
-  * May return a smaller bio when running out of pages
-  */
- static struct bio *
--crypt_alloc_buffer(struct crypt_config *cc, unsigned int size,
-+crypt_alloc_buffer(struct crypt_io *io, unsigned int size,
-                    struct bio *base_bio, unsigned int *bio_vec_idx)
- {
-+	struct crypt_config *cc = io->target->private;
- 	struct bio *clone;
- 	unsigned int nr_iovecs = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	gfp_t gfp_mask = GFP_NOIO | __GFP_HIGHMEM;
-@@ -396,7 +399,7 @@ crypt_alloc_buffer(struct crypt_config *
- 	if (!clone)
- 		return NULL;
- 
--	clone->bi_destructor = dm_crypt_bio_destructor;
-+	clone_init(io, clone);
- 
- 	/* if the last bio was not complete, continue where that one ended */
- 	clone->bi_idx = *bio_vec_idx;
-@@ -562,6 +565,7 @@ static void clone_init(struct crypt_io *
- 	clone->bi_end_io  = crypt_endio;
- 	clone->bi_bdev    = cc->dev->bdev;
- 	clone->bi_rw      = io->base_bio->bi_rw;
-+	clone->bi_destructor = dm_crypt_bio_destructor;
+@@ -437,6 +439,15 @@ static int count_bits32(uint32_t *addr, 
+ 	return count;
  }
  
- static void process_read(struct crypt_io *io)
-@@ -585,7 +589,6 @@ static void process_read(struct crypt_io
- 	}
++static void fail_log_device(struct log_c *lc)
++{
++	if (lc->log_dev_failed)
++		return;
++
++	lc->log_dev_failed = 1;
++	dm_table_event(lc->ti->table);
++}
++
+ static int disk_resume(struct dirty_log *log)
+ {
+ 	int r;
+@@ -446,8 +457,12 @@ static int disk_resume(struct dirty_log 
  
- 	clone_init(io, clone);
--	clone->bi_destructor = dm_crypt_bio_destructor;
- 	clone->bi_idx = 0;
- 	clone->bi_vcnt = bio_segments(base_bio);
- 	clone->bi_size = base_bio->bi_size;
-@@ -615,7 +618,7 @@ static void process_write(struct crypt_i
- 	 * so repeat the whole process until all the data can be handled.
- 	 */
- 	while (remaining) {
--		clone = crypt_alloc_buffer(cc, base_bio->bi_size,
-+		clone = crypt_alloc_buffer(io, base_bio->bi_size,
- 					   io->first_clone, &bvec_idx);
- 		if (unlikely(!clone)) {
- 			dec_pending(io, -ENOMEM);
-@@ -631,7 +634,6 @@ static void process_write(struct crypt_i
- 			return;
- 		}
+ 	/* read the disk header */
+ 	r = read_header(lc);
+-	if (r)
++	if (r) {
++		DMWARN("%s: Failed to read header on mirror log device",
++		       lc->log_dev->name);
++		fail_log_device(lc);
+ 		return r;
++	}
  
--		clone_init(io, clone);
- 		clone->bi_sector = cc->start + sector;
+ 	/* set or clear any new bits -- device has grown */
+ 	if (lc->sync == NOSYNC)
+@@ -472,7 +487,14 @@ static int disk_resume(struct dirty_log 
+ 	lc->header.nr_regions = lc->region_count;
  
- 		if (!io->first_clone) {
+ 	/* write the new header */
+-	return write_header(lc);
++	r = write_header(lc);
++	if (r) {
++		DMWARN("%s: Failed to write header on mirror log device",
++		       lc->log_dev->name);
++		fail_log_device(lc);
++	}
++
++	return r;
+ }
+ 
+ static uint32_t core_get_region_size(struct dirty_log *log)
+@@ -516,7 +538,9 @@ static int disk_flush(struct dirty_log *
+ 		return 0;
+ 
+ 	r = write_header(lc);
+-	if (!r)
++	if (r)
++		fail_log_device(lc);
++	else
+ 		lc->touched = 0;
+ 
+ 	return r;
 _
 
-Patches currently in -mm which might be from olaf.kirch@oracle.com are
+Patches currently in -mm which might be from jbrassow@redhat.com are
 
 origin.patch
