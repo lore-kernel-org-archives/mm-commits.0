@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + dm-io-prepare-for-new-interface.patch added to -mm tree
-Date: Tue, 08 May 2007 17:54:58 -0700
-Message-ID: <200705090054.l490swdZ006401@shell0.pdx.osdl.net>
+Subject: + dm-io-new-interface.patch added to -mm tree
+Date: Tue, 08 May 2007 17:55:00 -0700
+Message-ID: <200705090055.l490t068006406@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60663 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966745AbXEIAzI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:55:08 -0400
+	by vger.kernel.org with ESMTP id S968397AbXEIAzL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 20:55:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hjm@redhat.com, agk@redhat.com, mbroz@redhat.com
 
 
 The patch titled
-     dm io: prepare for new interface
+     dm io: new interface
 has been added to the -mm tree.  Its filename is
-     dm-io-prepare-for-new-interface.patch
+     dm-io-new-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,15 +25,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dm io: prepare for new interface
+Subject: dm io: new interface
 From: Heinz Mauelshagen <hjm@redhat.com>
 
-Introduce struct dm_io_client to prepare for per-client mempools and bio_sets.
+Add a new API to dm-io.c that uses a private mempool and bio_set for each
+client.
 
-Temporary functions bios() and io_pool() choose between the per-client
-structures and the global ones so the old and new interfaces can co-exist.
-
-Make error_bits optional.
+The new functions to use are dm_io_client_create(), dm_io_client_destroy(),
+dm_io_client_resize() and dm_io().
 
 Signed-off-by: Heinz Mauelshagen <hjm@redhat.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
@@ -41,199 +40,243 @@ Cc: Milan Broz <mbroz@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-io.c |   61 +++++++++++++++++++++++++++++++------------
- 1 files changed, 44 insertions(+), 17 deletions(-)
+ drivers/md/dm-io.c |  122 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/md/dm-io.h |   52 +++++++++++++++++-
+ 2 files changed, 173 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-io.c~dm-io-prepare-for-new-interface drivers/md/dm-io.c
---- a/drivers/md/dm-io.c~dm-io-prepare-for-new-interface
+diff -puN drivers/md/dm-io.c~dm-io-new-interface drivers/md/dm-io.c
+--- a/drivers/md/dm-io.c~dm-io-new-interface
 +++ a/drivers/md/dm-io.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (C) 2003 Sistina Software
-+ * Copyright (C) 2006 Red Hat GmbH
-  *
-  * This file is released under the GPL.
-  */
-@@ -14,11 +15,17 @@
- 
- static struct bio_set *_bios;
- 
-+struct dm_io_client {
-+	mempool_t *pool;
-+	struct bio_set *bios;
-+};
-+
- /* FIXME: can we shrink this ? */
- struct io {
- 	unsigned long error;
- 	atomic_t count;
- 	struct task_struct *sleeper;
-+	struct dm_io_client *client;
- 	io_notify_fn callback;
- 	void *context;
- };
-@@ -26,12 +33,24 @@ struct io {
- /*
-  * io contexts are only dynamically allocated for asynchronous
-  * io.  Since async io is likely to be the majority of io we'll
-- * have the same number of io contexts as buffer heads ! (FIXME:
-- * must reduce this).
-+ * have the same number of io contexts as bios! (FIXME: must reduce this).
-  */
- static unsigned _num_ios;
- static mempool_t *_io_pool;
+@@ -103,6 +103,51 @@ void dm_io_put(unsigned int num_pages)
+ 	resize_pool(_num_ios - pages_to_ios(num_pages));
+ }
  
 +/*
-+ * Temporary functions to allow old and new interfaces to co-exist.
++ * Create a client with mempool and bioset.
 + */
-+static struct bio_set *bios(struct dm_io_client *client)
++struct dm_io_client *dm_io_client_create(unsigned num_pages)
 +{
-+	return client ? client->bios : _bios;
-+}
++	unsigned ios = pages_to_ios(num_pages);
++	struct dm_io_client *client;
 +
-+static mempool_t *io_pool(struct dm_io_client *client)
++	client = kmalloc(sizeof(*client), GFP_KERNEL);
++	if (!client)
++		return ERR_PTR(-ENOMEM);
++
++	client->pool = mempool_create_kmalloc_pool(ios, sizeof(struct io));
++	if (!client->pool)
++		goto bad;
++
++	client->bios = bioset_create(16, 16);
++	if (!client->bios)
++		goto bad;
++
++	return client;
++
++   bad:
++	if (client->pool)
++		mempool_destroy(client->pool);
++	kfree(client);
++	return ERR_PTR(-ENOMEM);
++}
++EXPORT_SYMBOL(dm_io_client_create);
++
++int dm_io_client_resize(unsigned num_pages, struct dm_io_client *client)
 +{
-+	return client ? client->pool : _io_pool;
++	return mempool_resize(client->pool, pages_to_ios(num_pages),
++			      GFP_KERNEL);
 +}
++EXPORT_SYMBOL(dm_io_client_resize);
 +
- static unsigned int pages_to_ios(unsigned int pages)
- {
- 	return 4 * pages;	/* too many ? */
-@@ -118,7 +137,7 @@ static void dec_count(struct io *io, uns
- 			io_notify_fn fn = io->callback;
- 			void *context = io->context;
- 
--			mempool_free(io, _io_pool);
-+			mempool_free(io, io_pool(io->client));
- 			fn(r, context);
- 		}
- 	}
-@@ -241,7 +260,9 @@ static void vm_dp_init(struct dpages *dp
- 
- static void dm_bio_destructor(struct bio *bio)
- {
--	bio_free(bio, _bios);
-+	struct io *io = bio->bi_private;
++void dm_io_client_destroy(struct dm_io_client *client)
++{
++	mempool_destroy(client->pool);
++	bioset_free(client->bios);
++	kfree(client);
++}
++EXPORT_SYMBOL(dm_io_client_destroy);
 +
-+	bio_free(bio, bios(io->client));
- }
- 
  /*-----------------------------------------------------------------
-@@ -264,7 +285,7 @@ static void do_region(int rw, unsigned i
- 		 * to hide it from bio_add_page().
- 		 */
- 		num_bvecs = (remaining / (PAGE_SIZE >> SECTOR_SHIFT)) + 2;
--		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, _bios);
-+		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, bios(io->client));
- 		bio->bi_sector = where->sector + (where->count - remaining);
- 		bio->bi_bdev = where->bdev;
- 		bio->bi_end_io = endio;
-@@ -319,8 +340,9 @@ static void dispatch_io(int rw, unsigned
- 	dec_count(io, 0, 0);
+  * We need to keep track of which region a bio is doing io for.
+  * In order to save a memory allocation we store this the last
+@@ -236,6 +281,9 @@ static void bvec_dp_init(struct dpages *
+ 	dp->context_ptr = bvec;
  }
  
--static int sync_io(unsigned int num_regions, struct io_region *where,
--	    int rw, struct dpages *dp, unsigned long *error_bits)
-+static int sync_io(struct dm_io_client *client, unsigned int num_regions,
-+		   struct io_region *where, int rw, struct dpages *dp,
-+		   unsigned long *error_bits)
++/*
++ * Functions for getting the pages from a VMA.
++ */
+ static void vm_get_page(struct dpages *dp,
+ 		 struct page **p, unsigned long *len, unsigned *offset)
  {
- 	struct io io;
+@@ -265,6 +313,31 @@ static void dm_bio_destructor(struct bio
+ 	bio_free(bio, bios(io->client));
+ }
  
-@@ -332,6 +354,7 @@ static int sync_io(unsigned int num_regi
- 	io.error = 0;
- 	atomic_set(&io.count, 1); /* see dispatch_io() */
- 	io.sleeper = current;
-+	io.client = client;
- 
- 	dispatch_io(rw, num_regions, where, dp, &io, 1);
- 
-@@ -348,12 +371,15 @@ static int sync_io(unsigned int num_regi
- 	if (atomic_read(&io.count))
- 		return -EINTR;
- 
--	*error_bits = io.error;
-+	if (error_bits)
-+		*error_bits = io.error;
++/*
++ * Functions for getting the pages from kernel memory.
++ */
++static void km_get_page(struct dpages *dp, struct page **p, unsigned long *len,
++			unsigned *offset)
++{
++	*p = virt_to_page(dp->context_ptr);
++	*offset = dp->context_u;
++	*len = PAGE_SIZE - dp->context_u;
++}
 +
- 	return io.error ? -EIO : 0;
++static void km_next_page(struct dpages *dp)
++{
++	dp->context_ptr += PAGE_SIZE - dp->context_u;
++	dp->context_u = 0;
++}
++
++static void km_dp_init(struct dpages *dp, void *data)
++{
++	dp->get_page = km_get_page;
++	dp->next_page = km_next_page;
++	dp->context_u = ((unsigned long) data) & (PAGE_SIZE - 1);
++	dp->context_ptr = data;
++}
++
+ /*-----------------------------------------------------------------
+  * IO routines that accept a list of pages.
+  *---------------------------------------------------------------*/
+@@ -451,6 +524,55 @@ int dm_io_async_vm(unsigned int num_regi
+ 	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
  }
  
--static int async_io(unsigned int num_regions, struct io_region *where, int rw,
--	     struct dpages *dp, io_notify_fn fn, void *context)
-+static int async_io(struct dm_io_client *client, unsigned int num_regions,
-+		    struct io_region *where, int rw, struct dpages *dp,
-+		    io_notify_fn fn, void *context)
- {
- 	struct io *io;
- 
-@@ -363,10 +389,11 @@ static int async_io(unsigned int num_reg
- 		return -EIO;
- 	}
- 
--	io = mempool_alloc(_io_pool, GFP_NOIO);
-+	io = mempool_alloc(io_pool(client), GFP_NOIO);
- 	io->error = 0;
- 	atomic_set(&io->count, 1); /* see dispatch_io() */
- 	io->sleeper = NULL;
-+	io->client = client;
- 	io->callback = fn;
- 	io->context = context;
- 
-@@ -380,7 +407,7 @@ int dm_io_sync(unsigned int num_regions,
- {
- 	struct dpages dp;
- 	list_dp_init(&dp, pl, offset);
--	return sync_io(num_regions, where, rw, &dp, error_bits);
-+	return sync_io(NULL, num_regions, where, rw, &dp, error_bits);
- }
- 
- int dm_io_sync_bvec(unsigned int num_regions, struct io_region *where, int rw,
-@@ -388,7 +415,7 @@ int dm_io_sync_bvec(unsigned int num_reg
- {
- 	struct dpages dp;
- 	bvec_dp_init(&dp, bvec);
--	return sync_io(num_regions, where, rw, &dp, error_bits);
-+	return sync_io(NULL, num_regions, where, rw, &dp, error_bits);
- }
- 
- int dm_io_sync_vm(unsigned int num_regions, struct io_region *where, int rw,
-@@ -396,7 +423,7 @@ int dm_io_sync_vm(unsigned int num_regio
- {
- 	struct dpages dp;
- 	vm_dp_init(&dp, data);
--	return sync_io(num_regions, where, rw, &dp, error_bits);
-+	return sync_io(NULL, num_regions, where, rw, &dp, error_bits);
- }
- 
- int dm_io_async(unsigned int num_regions, struct io_region *where, int rw,
-@@ -405,7 +432,7 @@ int dm_io_async(unsigned int num_regions
- {
- 	struct dpages dp;
- 	list_dp_init(&dp, pl, offset);
--	return async_io(num_regions, where, rw, &dp, fn, context);
-+	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
- }
- 
- int dm_io_async_bvec(unsigned int num_regions, struct io_region *where, int rw,
-@@ -413,7 +440,7 @@ int dm_io_async_bvec(unsigned int num_re
- {
- 	struct dpages dp;
- 	bvec_dp_init(&dp, bvec);
--	return async_io(num_regions, where, rw, &dp, fn, context);
-+	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
- }
- 
- int dm_io_async_vm(unsigned int num_regions, struct io_region *where, int rw,
-@@ -421,7 +448,7 @@ int dm_io_async_vm(unsigned int num_regi
- {
- 	struct dpages dp;
- 	vm_dp_init(&dp, data);
--	return async_io(num_regions, where, rw, &dp, fn, context);
-+	return async_io(NULL, num_regions, where, rw, &dp, fn, context);
- }
- 
++static int dp_init(struct dm_io_request *io_req, struct dpages *dp)
++{
++	/* Set up dpages based on memory type */
++	switch (io_req->mem.type) {
++	case DM_IO_PAGE_LIST:
++		list_dp_init(dp, io_req->mem.ptr.pl, io_req->mem.offset);
++		break;
++
++	case DM_IO_BVEC:
++		bvec_dp_init(dp, io_req->mem.ptr.bvec);
++		break;
++
++	case DM_IO_VMA:
++		vm_dp_init(dp, io_req->mem.ptr.vma);
++		break;
++
++	case DM_IO_KMEM:
++		km_dp_init(dp, io_req->mem.ptr.addr);
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++/*
++ * New collapsed (a)synchronous interface
++ */
++int dm_io(struct dm_io_request *io_req, unsigned num_regions,
++	  struct io_region *where, unsigned long *sync_error_bits)
++{
++	int r;
++	struct dpages dp;
++
++	r = dp_init(io_req, &dp);
++	if (r)
++		return r;
++
++	if (!io_req->notify.fn)
++		return sync_io(io_req->client, num_regions, where,
++			       io_req->bi_rw, &dp, sync_error_bits);
++
++	return async_io(io_req->client, num_regions, where, io_req->bi_rw,
++			&dp, io_req->notify.fn, io_req->notify.context);
++}
++EXPORT_SYMBOL(dm_io);
++
  EXPORT_SYMBOL(dm_io_get);
+ EXPORT_SYMBOL(dm_io_put);
+ EXPORT_SYMBOL(dm_io_sync);
+diff -puN drivers/md/dm-io.h~dm-io-new-interface drivers/md/dm-io.h
+--- a/drivers/md/dm-io.h~dm-io-new-interface
++++ a/drivers/md/dm-io.h
+@@ -20,13 +20,47 @@ struct page_list {
+ 	struct page *page;
+ };
+ 
+-
+ /*
+  * 'error' is a bitset, with each bit indicating whether an error
+  * occurred doing io to the corresponding region.
+  */
+ typedef void (*io_notify_fn)(unsigned long error, void *context);
+ 
++enum dm_io_mem_type {
++	DM_IO_PAGE_LIST,/* Page list */
++	DM_IO_BVEC,	/* Bio vector */
++	DM_IO_VMA,	/* Virtual memory area */
++	DM_IO_KMEM,	/* Kernel memory */
++};
++
++struct dm_io_memory {
++	enum dm_io_mem_type type;
++
++	union {
++		struct page_list *pl;
++		struct bio_vec *bvec;
++		void *vma;
++		void *addr;
++	} ptr;
++
++	unsigned offset;
++};
++
++struct dm_io_notify {
++	io_notify_fn fn;	/* Callback for asynchronous requests */
++	void *context;		/* Passed to callback */
++};
++
++/*
++ * IO request structure
++ */
++struct dm_io_client;
++struct dm_io_request {
++	int bi_rw;			/* READ|WRITE - not READA */
++	struct dm_io_memory mem;	/* Memory to use for io */
++	struct dm_io_notify notify;	/* Synchronous if notify.fn is NULL */
++	struct dm_io_client *client;	/* Client memory handler */
++};
+ 
+ /*
+  * Before anyone uses the IO interface they should call
+@@ -39,6 +73,16 @@ int dm_io_get(unsigned int num_pages);
+ void dm_io_put(unsigned int num_pages);
+ 
+ /*
++ * For async io calls, users can alternatively use the dm_io() function below
++ * and dm_io_client_create() to create private mempools for the client.
++ *
++ * Create/destroy may block.
++ */
++struct dm_io_client *dm_io_client_create(unsigned num_pages);
++int dm_io_client_resize(unsigned num_pages, struct dm_io_client *client);
++void dm_io_client_destroy(struct dm_io_client *client);
++
++/*
+  * Synchronous IO.
+  *
+  * Please ensure that the rw flag in the next two functions is
+@@ -71,4 +115,10 @@ int dm_io_async_bvec(unsigned int num_re
+ int dm_io_async_vm(unsigned int num_regions, struct io_region *where, int rw,
+ 		   void *data, io_notify_fn fn, void *context);
+ 
++/*
++ * IO interface using private per-client pools.
++ */
++int dm_io(struct dm_io_request *io_req, unsigned num_regions,
++	  struct io_region *region, unsigned long *sync_error_bits);
++
+ #endif
 _
 
 Patches currently in -mm which might be from hjm@redhat.com are
