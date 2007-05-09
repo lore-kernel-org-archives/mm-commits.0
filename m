@@ -1,113 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:50:58 -0700
-Message-ID: <200705092150.l49LowIE002844@shell0.pdx.osdl.net>
+Subject: - define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:51:25 -0700
+Message-ID: <200705092151.l49LpPks002875@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45916 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751580AbXEIVvi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:51:38 -0400
+	by vger.kernel.org with ESMTP id S1751580AbXEIVvv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:51:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ego@in.ibm.com, oleg@tv-sign.ru, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: ego@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flush_workqueue(): use preempt_disable to hold off cpu hotplug
+     Define and use new events,CPU_LOCK_ACQUIRE and CPU_LOCK_RELEASE
 has been removed from the -mm tree.  Its filename was
-     flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
+     define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: flush_workqueue(): use preempt_disable to hold off cpu hotplug
-From: Andrew Morton <akpm@osdl.org>
+Subject: Define and use new events,CPU_LOCK_ACQUIRE and CPU_LOCK_RELEASE
+From: Gautham R Shenoy <ego@in.ibm.com>
 
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
-Cc: Gautham Shenoy <ego@in.ibm.com>
+This is an attempt to provide an alternate mechanism for postponing
+a hotplug event instead of using a global mechanism like lock_cpu_hotplug.
+
+The proposal is to add two new events namely CPU_LOCK_ACQUIRE and
+CPU_LOCK_RELEASE. The notification for these two events would be sent
+out before and after a cpu_hotplug event respectively.
+
+During the CPU_LOCK_ACQUIRE event, a cpu-hotplug-aware subsystem is
+supposed to acquire any per-subsystem hotcpu mutex ( Eg. workqueue_mutex
+in kernel/workqueue.c ).
+
+During the CPU_LOCK_RELEASE release event the cpu-hotplug-aware subsystem
+is supposed to release the per-subsystem hotcpu mutex.
+
+The reasons for defining new events as opposed to reusing the existing events
+like CPU_UP_PREPARE/CPU_UP_FAILED/CPU_ONLINE for locking/unlocking of
+per-subsystem hotcpu mutexes are as follow:
+
+	- CPU_LOCK_ACQUIRE: All hotcpu mutexes are taken before subsystems
+	start handling pre-hotplug events like CPU_UP_PREPARE/CPU_DOWN_PREPARE
+	etc, thus ensuring a clean handling of these events.
+
+	- CPU_LOCK_RELEASE: The hotcpu mutexes will be released only after
+	all subsystems have handled post-hotplug events like CPU_DOWN_FAILED,
+	CPU_DEAD,CPU_ONLINE etc thereby ensuring that there are no subsequent
+	clashes amongst the interdependent subsystems after a cpu hotplugs.
+
+This patch also uses __raw_notifier_call chain in _cpu_up to take care
+of the dependency between the two consequetive calls to
+raw_notifier_call_chain.
+
+[akpm@linux-foundation.org: fix a bug]
+Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ include/linux/notifier.h |    2 ++
+ kernel/cpu.c             |   19 ++++++++++++++-----
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN kernel/workqueue.c~flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug kernel/workqueue.c
---- a/kernel/workqueue.c~flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug
-+++ a/kernel/workqueue.c
-@@ -419,18 +419,22 @@ static void flush_cpu_workqueue(struct c
- 		 * Probably keventd trying to flush its own queue. So simply run
- 		 * it by hand rather than deadlocking.
- 		 */
--		mutex_unlock(&workqueue_mutex);
-+		preempt_enable();
-+		/*
-+		 * We can still touch *cwq here because we are keventd, and
-+		 * hot-unplug will be waiting us to exit.
-+		 */
- 		run_workqueue(cwq);
--		mutex_lock(&workqueue_mutex);
-+		preempt_disable();
- 	} else {
- 		struct wq_barrier barr;
+diff -puN include/linux/notifier.h~define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release include/linux/notifier.h
+--- a/include/linux/notifier.h~define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release
++++ a/include/linux/notifier.h
+@@ -194,6 +194,8 @@ extern int __srcu_notifier_call_chain(st
+ #define CPU_DOWN_PREPARE	0x0005 /* CPU (unsigned)v going down */
+ #define CPU_DOWN_FAILED		0x0006 /* CPU (unsigned)v NOT going down */
+ #define CPU_DEAD		0x0007 /* CPU (unsigned)v dead */
++#define CPU_LOCK_ACQUIRE	0x0008 /* Acquire all hotcpu locks */
++#define CPU_LOCK_RELEASE	0x0009 /* Release all hotcpu locks */
  
- 		init_wq_barrier(&barr);
- 		__queue_work(cwq, &barr.work);
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_NOTIFIER_H */
+diff -puN kernel/cpu.c~define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release kernel/cpu.c
+--- a/kernel/cpu.c~define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release
++++ a/kernel/cpu.c
+@@ -132,12 +132,15 @@ static int _cpu_down(unsigned int cpu)
+ 	if (!cpu_online(cpu))
+ 		return -EINVAL;
  
--		mutex_unlock(&workqueue_mutex);
-+		preempt_enable();	/* Can no longer touch *cwq */
- 		wait_for_completion(&barr.done);
--		mutex_lock(&workqueue_mutex);
-+		preempt_disable();
++	raw_notifier_call_chain(&cpu_chain, CPU_LOCK_ACQUIRE,
++						(void *)(long)cpu);
+ 	err = raw_notifier_call_chain(&cpu_chain, CPU_DOWN_PREPARE,
+ 						(void *)(long)cpu);
+ 	if (err == NOTIFY_BAD) {
+ 		printk("%s: attempt to take down CPU %u failed\n",
+ 				__FUNCTION__, cpu);
+-		return -EINVAL;
++		err = -EINVAL;
++		goto out_release;
  	}
+ 
+ 	/* Ensure that we are not runnable on dying cpu */
+@@ -185,6 +188,9 @@ out_thread:
+ 	err = kthread_stop(p);
+ out_allowed:
+ 	set_cpus_allowed(current, old_allowed);
++out_release:
++	raw_notifier_call_chain(&cpu_chain, CPU_LOCK_RELEASE,
++						(void *)(long)cpu);
+ 	return err;
  }
  
-@@ -449,7 +453,7 @@ static void flush_cpu_workqueue(struct c
-  */
- void fastcall flush_workqueue(struct workqueue_struct *wq)
+@@ -206,13 +212,15 @@ int cpu_down(unsigned int cpu)
+ /* Requires cpu_add_remove_lock to be held */
+ static int __cpuinit _cpu_up(unsigned int cpu)
  {
--	mutex_lock(&workqueue_mutex);
-+	preempt_disable();		/* CPU hotplug */
- 	if (is_single_threaded(wq)) {
- 		/* Always use first cpu's area. */
- 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
-@@ -459,7 +463,7 @@ void fastcall flush_workqueue(struct wor
- 		for_each_online_cpu(cpu)
- 			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
- 	}
--	mutex_unlock(&workqueue_mutex);
-+	preempt_enable();
- }
- EXPORT_SYMBOL_GPL(flush_workqueue);
+-	int ret;
++	int ret, nr_calls = 0;
+ 	void *hcpu = (void *)(long)cpu;
  
+ 	if (cpu_online(cpu) || !cpu_present(cpu))
+ 		return -EINVAL;
+ 
+-	ret = raw_notifier_call_chain(&cpu_chain, CPU_UP_PREPARE, hcpu);
++	raw_notifier_call_chain(&cpu_chain, CPU_LOCK_ACQUIRE, hcpu);
++	ret = __raw_notifier_call_chain(&cpu_chain, CPU_UP_PREPARE, hcpu,
++							-1, &nr_calls);
+ 	if (ret == NOTIFY_BAD) {
+ 		printk("%s: attempt to bring up CPU %u failed\n",
+ 				__FUNCTION__, cpu);
+@@ -233,8 +241,9 @@ static int __cpuinit _cpu_up(unsigned in
+ 
+ out_notify:
+ 	if (ret != 0)
+-		raw_notifier_call_chain(&cpu_chain,
+-				CPU_UP_CANCELED, hcpu);
++		__raw_notifier_call_chain(&cpu_chain,
++				CPU_UP_CANCELED, hcpu, nr_calls, NULL);
++	raw_notifier_call_chain(&cpu_chain, CPU_LOCK_RELEASE, hcpu);
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from ego@in.ibm.com are
 
 origin.patch
-git-ieee1394.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-net-ns83820c-add-paramter-to-disable-auto.patch
-git-ioat-vs-git-md-accel.patch
-ioat-warning-fix.patch
-scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
-git-ipwireless_cs.patch
-lumpy-reclaim-v4.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-sync_sb_inodes-propagate-errors.patch
-move-page-writeback-acounting-out-of-macros.patch
-ext2-reservations.patch
-mm-implement-swap-prefetching.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-device-suspend-debug.patch
-slab-leaks3-default-y.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
-restore-rogue-readahead-printk.patch
-put_bh-debug.patch
-acpi_format_exception-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-squash-ipc-warnings.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-frozen_process-to-kernel-power-processc.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
