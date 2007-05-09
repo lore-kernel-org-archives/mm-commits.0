@@ -1,77 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - invalid-return-value-of-execve-resulting-in-oopses.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:52:40 -0700
-Message-ID: <200705090252.l492qehB009597@shell0.pdx.osdl.net>
+Subject: - add-taskstatsh-to-kbuild.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:52:31 -0700
+Message-ID: <200705090252.l492qVTx009581@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44192 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:44860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969996AbXEICwn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:43 -0400
+	by vger.kernel.org with ESMTP id S1031555AbXEICwr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexey@openvz.org, dev@openvz.org, xemul@openvz.org, mm-commits@vger.kernel.org
+To: dwmw2@infradead.org, balbir@linux.vnet.ibm.com, dzickus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Invalid return value of execve() resulting in oopses
+     Add taskstats.h to kbuild
 has been removed from the -mm tree.  Its filename was
-     invalid-return-value-of-execve-resulting-in-oopses.patch
+     add-taskstatsh-to-kbuild.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Invalid return value of execve() resulting in oopses
-From: Alexey Kuznetsov <alexey@openvz.org>
+Subject: Add taskstats.h to kbuild
+From: David Woodhouse <dwmw2@infradead.org>
 
-When elf loader fails to map executable (due to memory shortage or because
-binary is malformed), it can return 0.  Normally, this is invisible because
-process is killed with SIGKILL and it never returns to user space.
+Add taskstats.h to include/linux/Kbuild, make headers_install would then
+pickup taskstats.h.  This needs to be done as taskstats.h is a user
+interface header.
 
-But if exec() is called from kernel thread (hotplug, whatever)
-consequences are more interesting and vary depending on architecture.
-
-i386.   Nothing especially interesting, execve() just returns
-        with "success"  :-)
-
-x86_64. Fake zero frame is used on way to caller, RSP/RIP are loaded
-        with zeros, ergo... double fault.
-
-ia64.   Similar to i386, but r32...r95 are corrupted. Sometimes it
-        oopses due to return to zero PC, sometimes it sees NaT in
-        rXX and oopses due to NaT consumption.
-
-Signed-off-by: Alexey Kuznetsov <alexey@openvz.org>
-Signed-off-by: Kirill Korotaev <dev@openvz.org>
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Cc: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/Kbuild |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/binfmt_elf.c~invalid-return-value-of-execve-resulting-in-oopses fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~invalid-return-value-of-execve-resulting-in-oopses
-+++ a/fs/binfmt_elf.c
-@@ -871,6 +871,8 @@ static int load_elf_binary(struct linux_
- 				elf_prot, elf_flags);
- 		if (BAD_ADDR(error)) {
- 			send_sig(SIGKILL, current, 0);
-+			retval = IS_ERR((void *)error) ?
-+				PTR_ERR((void*)error) : -EINVAL;
- 			goto out_free_dentry;
- 		}
- 
-@@ -900,6 +902,7 @@ static int load_elf_binary(struct linux_
- 		    TASK_SIZE - elf_ppnt->p_memsz < k) {
- 			/* set_brk can never work. Avoid overflows. */
- 			send_sig(SIGKILL, current, 0);
-+			retval = -EINVAL;
- 			goto out_free_dentry;
- 		}
- 
+diff -puN include/linux/Kbuild~add-taskstatsh-to-kbuild include/linux/Kbuild
+--- a/include/linux/Kbuild~add-taskstatsh-to-kbuild
++++ a/include/linux/Kbuild
+@@ -141,6 +141,7 @@ header-y += sockios.h
+ header-y += som.h
+ header-y += sound.h
+ header-y += synclink.h
++header-y += taskstats.h
+ header-y += telephony.h
+ header-y += termios.h
+ header-y += ticable.h
 _
 
-Patches currently in -mm which might be from alexey@openvz.org are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
 origin.patch
+git-mtd.patch
+dont-force-uclinux-mtd-map-to-be-root-dev.patch
+git-battery.patch
+add-ability-to-keep-track-of-callers-of-symbol_getput.patch
+update-mtd-use-of-symbol_getput.patch
+update-dvb-use-of-symbol_getput.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+introduce-freezer-flags-rev-2.patch
