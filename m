@@ -1,294 +1,480 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-delay-the-dentry-name-generation-on-sockets-and.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:46:34 -0700
-Message-ID: <200705090246.l492kYcP008877@shell0.pdx.osdl.net>
+Subject: - rtc-add-rtc-rs5c313-driver.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:46:54 -0700
+Message-ID: <200705090246.l492ksAh008911@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58638 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:51972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934472AbXEICrH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:07 -0400
+	by vger.kernel.org with ESMTP id S934475AbXEICrL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, hch@infradead.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: iwamatsu@nigauri.org, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     VFS: delay the dentry name generation on sockets and pipes
+     RTC: add rtc-rs5c313 driver
 has been removed from the -mm tree.  Its filename was
-     vfs-delay-the-dentry-name-generation-on-sockets-and.patch
+     rtc-add-rtc-rs5c313-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: VFS: delay the dentry name generation on sockets and pipes
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: RTC: add rtc-rs5c313 driver
+From: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
 
-1) Introduces a new method in 'struct dentry_operations'.  This method
-   called d_dname() might be called from d_path() to build a pathname for
-   special filesystems.  It is called without locks.
+Add an RTC driver for Ricoh RS5C313 RTC chip.
 
-   Future patches (if we succeed in having one common dentry for all
-   pipes/sockets) may need to change prototype of this method, but we now
-   use : char *d_dname(struct dentry *dentry, char *buffer, int buflen);
-
-2) Adds a dynamic_dname() helper function that eases d_dname() implementations
-
-3) Defines d_dname method for sockets : No more sprintf() at socket
-   creation.  This is delayed up to the moment someone does an access to
-   /proc/pid/fd/...
-
-4) Defines d_dname method for pipes : No more sprintf() at pipe
-   creation.  This is delayed up to the moment someone does an access to
-   /proc/pid/fd/...
-
-A benchmark consisting of 1.000.000 calls to pipe()/close()/close() gives a
-*nice* speedup on my Pentium(M) 1.6 Ghz :
-
-3.090 s instead of 3.450 s
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Acked-by: Christoph Hellwig <hch@infradead.org>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+[akpm@linux-foundation.org: Zillions of coding-style fixes]
+[akpm@linux-foundation.org: build fixes]
+Signed-off-by: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/Locking |    2 +
- Documentation/filesystems/vfs.txt |   23 +++++++++++++++++++-
- fs/dcache.c                       |   31 ++++++++++++++++++++++++++++
- fs/pipe.c                         |   18 ++++++++++------
- include/linux/dcache.h            |    6 +++++
- net/socket.c                      |   20 +++++++++++-------
- 6 files changed, 86 insertions(+), 14 deletions(-)
+ drivers/rtc/Kconfig       |    6 
+ drivers/rtc/Makefile      |    1 
+ drivers/rtc/rtc-rs5c313.c |  405 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 412 insertions(+)
 
-diff -puN Documentation/filesystems/Locking~vfs-delay-the-dentry-name-generation-on-sockets-and Documentation/filesystems/Locking
---- a/Documentation/filesystems/Locking~vfs-delay-the-dentry-name-generation-on-sockets-and
-+++ a/Documentation/filesystems/Locking
-@@ -15,6 +15,7 @@ prototypes:
- 	int (*d_delete)(struct dentry *);
- 	void (*d_release)(struct dentry *);
- 	void (*d_iput)(struct dentry *, struct inode *);
-+	char *(*d_dname)((struct dentry *dentry, char *buffer, int buflen);
+diff -puN drivers/rtc/Kconfig~rtc-add-rtc-rs5c313-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-rtc-rs5c313-driver
++++ a/drivers/rtc/Kconfig
+@@ -364,4 +364,10 @@ config RTC_DRV_BFIN
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-bfin.
  
- locking rules:
- 	none have BKL
-@@ -25,6 +26,7 @@ d_compare:	no		yes		no		no 
- d_delete:	yes		no		yes		no
- d_release:	no		no		no		yes
- d_iput:		no		no		no		yes
-+d_dname:	no		no		no		no
- 
- --------------------------- inode_operations --------------------------- 
- prototypes:
-diff -puN Documentation/filesystems/vfs.txt~vfs-delay-the-dentry-name-generation-on-sockets-and Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~vfs-delay-the-dentry-name-generation-on-sockets-and
-+++ a/Documentation/filesystems/vfs.txt
-@@ -827,7 +827,7 @@ This describes how a filesystem can over
- operations. Dentries and the dcache are the domain of the VFS and the
- individual filesystem implementations. Device drivers have no business
- here. These methods may be set to NULL, as they are either optional or
--the VFS uses a default. As of kernel 2.6.13, the following members are
-+the VFS uses a default. As of kernel 2.6.22, the following members are
- defined:
- 
- struct dentry_operations {
-@@ -837,6 +837,7 @@ struct dentry_operations {
- 	int (*d_delete)(struct dentry *);
- 	void (*d_release)(struct dentry *);
- 	void (*d_iput)(struct dentry *, struct inode *);
-+	char *(*d_dname)(struct dentry *, char *, int);
- };
- 
-   d_revalidate: called when the VFS needs to revalidate a dentry. This
-@@ -859,6 +860,26 @@ struct dentry_operations {
- 	VFS calls iput(). If you define this method, you must call
- 	iput() yourself
- 
-+  d_dname: called when the pathname of a dentry should be generated.
-+	Usefull for some pseudo filesystems (sockfs, pipefs, ...) to delay
-+	pathname generation. (Instead of doing it when dentry is created,
-+	its done only when the path is needed.). Real filesystems probably
-+	dont want to use it, because their dentries are present in global
-+	dcache hash, so their hash should be an invariant. As no lock is
-+	held, d_dname() should not try to modify the dentry itself, unless
-+	appropriate SMP safety is used. CAUTION : d_path() logic is quite
-+	tricky. The correct way to return for example "Hello" is to put it
-+	at the end of the buffer, and returns a pointer to the first char.
-+	dynamic_dname() helper function is provided to take care of this.
++config RTC_DRV_RS5C313
++	tristate "Ricoh RS5C313"
++	depends on RTC_CLASS && BROKEN
++	help
++	  If you say yes here you get support for the Ricoh RS5C313 RTC chips.
 +
-+Example :
+ endmenu
+diff -puN drivers/rtc/Makefile~rtc-add-rtc-rs5c313-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-rtc-rs5c313-driver
++++ a/drivers/rtc/Makefile
+@@ -30,6 +30,7 @@ obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
+ obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
+ obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
+ obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
++obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
+ obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93xx.o
+ obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
+ obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
+diff -puN /dev/null drivers/rtc/rtc-rs5c313.c
+--- /dev/null
++++ a/drivers/rtc/rtc-rs5c313.c
+@@ -0,0 +1,405 @@
++/*
++ * Ricoh RS5C313 RTC device/driver
++ *  Copyright (C) 2007 Nobuhiro Iwamatsu
++ *
++ *  2005-09-19 modifed by kogiidena
++ *
++ * Based on the old drivers/char/rs5c313_rtc.c  by:
++ *  Copyright (C) 2000 Philipp Rumpf <prumpf@tux.org>
++ *  Copyright (C) 1999 Tetsuya Okada & Niibe Yutaka
++ *
++ * Based on code written by Paul Gortmaker.
++ *  Copyright (C) 1996 Paul Gortmaker
++ *
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Based on other minimal char device drivers, like Alan's
++ * watchdog, Ted's random, etc. etc.
++ *
++ *	1.07	Paul Gortmaker.
++ *	1.08	Miquel van Smoorenburg: disallow certain things on the
++ *		DEC Alpha as the CMOS clock is also used for other things.
++ *	1.09	Nikita Schmidt: epoch support and some Alpha cleanup.
++ *	1.09a	Pete Zaitcev: Sun SPARC
++ *	1.09b	Jeff Garzik: Modularize, init cleanup
++ *	1.09c	Jeff Garzik: SMP cleanup
++ *	1.10    Paul Barton-Davis: add support for async I/O
++ *	1.10a	Andrea Arcangeli: Alpha updates
++ *	1.10b	Andrew Morton: SMP lock fix
++ *	1.10c	Cesar Barros: SMP locking fixes and cleanup
++ *	1.10d	Paul Gortmaker: delete paranoia check in rtc_exit
++ *	1.10e	Maciej W. Rozycki: Handle DECstation's year weirdness.
++ *      1.11    Takashi Iwai: Kernel access functions
++ *			      rtc_register/rtc_unregister/rtc_control
++ *      1.11a   Daniele Bellucci: Audit create_proc_read_entry in rtc_init
++ *	1.12	Venkatesh Pallipadi: Hooks for emulating rtc on HPET base-timer
++ *		CONFIG_HPET_EMULATE_RTC
++ *	1.13	Nobuhiro Iwamatsu: Updata driver.
++ */
 +
-+static char *pipefs_dname(struct dentry *dent, char *buffer, int buflen)
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/rtc.h>
++#include <linux/platform_device.h>
++#include <linux/bcd.h>
++#include <linux/delay.h>
++#include <asm/io.h>
++
++#define DRV_NAME	"rs5c313"
++#define DRV_VERSION 	"1.13"
++
++#ifdef CONFIG_SH_LANDISK
++/*****************************************************/
++/* LANDISK dependence part of RS5C313                */
++/*****************************************************/
++
++#define SCSMR1		0xFFE00000
++#define SCSCR1		0xFFE00008
++#define SCSMR1_CA	0x80
++#define SCSCR1_CKE	0x03
++#define SCSPTR1		0xFFE0001C
++#define SCSPTR1_EIO	0x80
++#define SCSPTR1_SPB1IO	0x08
++#define SCSPTR1_SPB1DT	0x04
++#define SCSPTR1_SPB0IO	0x02
++#define SCSPTR1_SPB0DT	0x01
++
++#define SDA_OEN		SCSPTR1_SPB1IO
++#define SDA		SCSPTR1_SPB1DT
++#define SCL_OEN		SCSPTR1_SPB0IO
++#define SCL		SCSPTR1_SPB0DT
++
++/* RICOH RS5C313 CE port */
++#define RS5C313_CE	0xB0000003
++
++/* RICOH RS5C313 CE port bit */
++#define RS5C313_CE_RTCCE	0x02
++
++/* SCSPTR1 data */
++unsigned char scsptr1_data;
++
++#define RS5C313_CEENABLE    ctrl_outb(RS5C313_CE_RTCCE, RS5C313_CE);
++#define RS5C313_CEDISABLE   ctrl_outb(0x00, RS5C313_CE)
++#define RS5C313_MISCOP      ctrl_outb(0x02, 0xB0000008)
++
++static void rs5c313_init_port(void)
 +{
-+	return dynamic_dname(dentry, buffer, buflen, "pipe:[%lu]",
-+				dentry->d_inode->i_ino);
++	/* Set SCK as I/O port and Initialize SCSPTR1 data & I/O port. */
++	ctrl_outb(ctrl_inb(SCSMR1) & ~SCSMR1_CA, SCSMR1);
++	ctrl_outb(ctrl_inb(SCSCR1) & ~SCSCR1_CKE, SCSCR1);
++
++	/* And Initialize SCL for RS5C313 clock */
++	scsptr1_data = ctrl_inb(SCSPTR1) | SCL;	/* SCL:H */
++	ctrl_outb(scsptr1_data, SCSPTR1);
++	scsptr1_data = ctrl_inb(SCSPTR1) | SCL_OEN;	/* SCL output enable */
++	ctrl_outb(scsptr1_data, SCSPTR1);
++	RS5C313_CEDISABLE;	/* CE:L */
 +}
 +
- Each dentry has a pointer to its parent dentry, as well as a hash list
- of child dentries. Child dentries are basically like files in a
- directory.
-diff -puN fs/dcache.c~vfs-delay-the-dentry-name-generation-on-sockets-and fs/dcache.c
---- a/fs/dcache.c~vfs-delay-the-dentry-name-generation-on-sockets-and
-+++ a/fs/dcache.c
-@@ -1853,6 +1853,16 @@ char * d_path(struct dentry *dentry, str
- 	struct vfsmount *rootmnt;
- 	struct dentry *root;
- 
-+	/*
-+	 * We have various synthetic filesystems that never get mounted.  On
-+	 * these filesystems dentries are never used for lookup purposes, and
-+	 * thus don't need to be hashed.  They also don't need a name until a
-+	 * user wants to identify the object in /proc/pid/fd/.  The little hack
-+	 * below allows us to generate a name for these objects on demand:
-+	 */
-+	if (dentry->d_op && dentry->d_op->d_dname)
-+		return dentry->d_op->d_dname(dentry, buf, buflen);
-+
- 	read_lock(&current->fs->lock);
- 	rootmnt = mntget(current->fs->rootmnt);
- 	root = dget(current->fs->root);
-@@ -1866,6 +1876,27 @@ char * d_path(struct dentry *dentry, str
- }
- 
- /*
-+ * Helper function for dentry_operations.d_dname() members
-+ */
-+char *dynamic_dname(struct dentry *dentry, char *buffer, int buflen,
-+			const char *fmt, ...)
++static void rs5c313_write_data(unsigned char data)
 +{
-+	va_list args;
-+	char temp[64];
-+	int sz;
++	int i;
 +
-+	va_start(args, fmt);
-+	sz = vsnprintf(temp, sizeof(temp), fmt, args) + 1;
-+	va_end(args);
++	for (i = 0; i < 8; i++) {
++		/* SDA:Write Data */
++		scsptr1_data = (scsptr1_data & ~SDA) |
++				((((0x80 >> i) & data) >> (7 - i)) << 2);
++		ctrl_outb(scsptr1_data, SCSPTR1);
++		if (i == 0) {
++			scsptr1_data |= SDA_OEN;	/* SDA:output enable */
++			ctrl_outb(scsptr1_data, SCSPTR1);
++		}
++		ndelay(700);
++		scsptr1_data &= ~SCL;	/* SCL:L */
++		ctrl_outb(scsptr1_data, SCSPTR1);
++		ndelay(700);
++		scsptr1_data |= SCL;	/* SCL:H */
++		ctrl_outb(scsptr1_data, SCSPTR1);
++	}
 +
-+	if (sz > sizeof(temp) || sz > buflen)
-+		return ERR_PTR(-ENAMETOOLONG);
-+
-+	buffer += buflen - sz;
-+	return memcpy(buffer, temp, sz);
++	scsptr1_data &= ~SDA_OEN;	/* SDA:output disable */
++	ctrl_outb(scsptr1_data, SCSPTR1);
 +}
 +
-+/*
-  * NOTE! The user-level library version returns a
-  * character pointer. The kernel system call just
-  * returns the length of the buffer filled (which
-diff -puN fs/pipe.c~vfs-delay-the-dentry-name-generation-on-sockets-and fs/pipe.c
---- a/fs/pipe.c~vfs-delay-the-dentry-name-generation-on-sockets-and
-+++ a/fs/pipe.c
-@@ -841,8 +841,18 @@ static int pipefs_delete_dentry(struct d
- 	return 0;
- }
- 
-+/*
-+ * pipefs_dname() is called from d_path().
-+ */
-+static char *pipefs_dname(struct dentry *dentry, char *buffer, int buflen)
++static unsigned char rs5c313_read_data(void)
 +{
-+	return dynamic_dname(dentry, buffer, buflen, "pipe:[%lu]",
-+				dentry->d_inode->i_ino);
++	int i;
++	unsigned char data;
++
++	for (i = 0; i < 8; i++) {
++		ndelay(700);
++		/* SDA:Read Data */
++		data |= ((ctrl_inb(SCSPTR1) & SDA) >> 2) << (7 - i);
++		scsptr1_data &= ~SCL;	/* SCL:L */
++		ctrl_outb(scsptr1_data, SCSPTR1);
++		ndelay(700);
++		scsptr1_data |= SCL;	/* SCL:H */
++		ctrl_outb(scsptr1_data, SCSPTR1);
++	}
++	return data & 0x0F;
 +}
 +
- static struct dentry_operations pipefs_dentry_operations = {
- 	.d_delete	= pipefs_delete_dentry,
-+	.d_dname	= pipefs_dname,
- };
- 
- static struct inode * get_pipe_inode(void)
-@@ -888,8 +898,7 @@ struct file *create_write_pipe(void)
- 	struct inode *inode;
- 	struct file *f;
- 	struct dentry *dentry;
--	char name[32];
--	struct qstr this;
-+	struct qstr name = { .name = "" };
- 
- 	f = get_empty_filp();
- 	if (!f)
-@@ -899,11 +908,8 @@ struct file *create_write_pipe(void)
- 	if (!inode)
- 		goto err_file;
- 
--	this.len = sprintf(name, "[%lu]", inode->i_ino);
--	this.name = name;
--	this.hash = 0;
- 	err = -ENOMEM;
--	dentry = d_alloc(pipe_mnt->mnt_sb->s_root, &this);
-+	dentry = d_alloc(pipe_mnt->mnt_sb->s_root, &name);
- 	if (!dentry)
- 		goto err_inode;
- 
-diff -puN include/linux/dcache.h~vfs-delay-the-dentry-name-generation-on-sockets-and include/linux/dcache.h
---- a/include/linux/dcache.h~vfs-delay-the-dentry-name-generation-on-sockets-and
-+++ a/include/linux/dcache.h
-@@ -133,6 +133,7 @@ struct dentry_operations {
- 	int (*d_delete)(struct dentry *);
- 	void (*d_release)(struct dentry *);
- 	void (*d_iput)(struct dentry *, struct inode *);
-+	char *(*d_dname)(struct dentry *, char *, int);
- };
- 
- /* the dentry parameter passed to d_hash and d_compare is the parent
-@@ -293,6 +294,11 @@ extern struct dentry * d_hash_and_lookup
- /* validate "insecure" dentry pointer */
- extern int d_validate(struct dentry *, struct dentry *);
- 
-+/*
-+ * helper function for dentry_operations.d_dname() members
-+ */
-+extern char *dynamic_dname(struct dentry *, char *, int, const char *, ...);
++#endif /* CONFIG_SH_LANDISK */
 +
- extern char * d_path(struct dentry *, struct vfsmount *, char *, int);
-   
- /* Allocation counts.. */
-diff -puN net/socket.c~vfs-delay-the-dentry-name-generation-on-sockets-and net/socket.c
---- a/net/socket.c~vfs-delay-the-dentry-name-generation-on-sockets-and
-+++ a/net/socket.c
-@@ -313,8 +313,19 @@ static int sockfs_delete_dentry(struct d
- 	dentry->d_flags |= DCACHE_UNHASHED;
- 	return 0;
- }
++/*****************************************************/
++/* machine independence part of RS5C313              */
++/*****************************************************/
 +
-+/*
-+ * sockfs_dname() is called from d_path().
-+ */
-+static char *sockfs_dname(struct dentry *dentry, char *buffer, int buflen)
++/* RICOH RS5C313 address */
++#define RS5C313_ADDR_SEC	0x00
++#define RS5C313_ADDR_SEC10	0x01
++#define RS5C313_ADDR_MIN	0x02
++#define RS5C313_ADDR_MIN10	0x03
++#define RS5C313_ADDR_HOUR	0x04
++#define RS5C313_ADDR_HOUR10	0x05
++#define RS5C313_ADDR_WEEK	0x06
++#define RS5C313_ADDR_INTINTVREG	0x07
++#define RS5C313_ADDR_DAY	0x08
++#define RS5C313_ADDR_DAY10	0x09
++#define RS5C313_ADDR_MON	0x0A
++#define RS5C313_ADDR_MON10	0x0B
++#define RS5C313_ADDR_YEAR	0x0C
++#define RS5C313_ADDR_YEAR10	0x0D
++#define RS5C313_ADDR_CNTREG	0x0E
++#define RS5C313_ADDR_TESTREG	0x0F
++
++/* RICOH RS5C313 control register */
++#define RS5C313_CNTREG_ADJ_BSY	0x01
++#define RS5C313_CNTREG_WTEN_XSTP	0x02
++#define RS5C313_CNTREG_12_24	0x04
++#define RS5C313_CNTREG_CTFG	0x08
++
++/* RICOH RS5C313 test register */
++#define RS5C313_TESTREG_TEST	0x01
++
++/* RICOH RS5C313 control bit */
++#define RS5C313_CNTBIT_READ	0x40
++#define RS5C313_CNTBIT_AD	0x20
++#define RS5C313_CNTBIT_DT	0x10
++
++static unsigned char rs5c313_read_reg(unsigned char addr)
 +{
-+	return dynamic_dname(dentry, buffer, buflen, "socket:[%lu]",
-+				dentry->d_inode->i_ino);
++
++	rs5c313_write_data(addr | RS5C313_CNTBIT_READ | RS5C313_CNTBIT_AD);
++	return rs5c313_read_data();
 +}
 +
- static struct dentry_operations sockfs_dentry_operations = {
- 	.d_delete = sockfs_delete_dentry,
-+	.d_dname  = sockfs_dname,
- };
- 
- /*
-@@ -354,14 +365,9 @@ static int sock_alloc_fd(struct file **f
- 
- static int sock_attach_fd(struct socket *sock, struct file *file)
- {
--	struct qstr this;
--	char name[32];
--
--	this.len = sprintf(name, "[%lu]", SOCK_INODE(sock)->i_ino);
--	this.name = name;
--	this.hash = 0;
-+	struct qstr name = { .name = "" };
- 
--	file->f_path.dentry = d_alloc(sock_mnt->mnt_sb->s_root, &this);
-+	file->f_path.dentry = d_alloc(sock_mnt->mnt_sb->s_root, &name);
- 	if (unlikely(!file->f_path.dentry))
- 		return -ENOMEM;
- 
++static void rs5c313_write_reg(unsigned char addr, unsigned char data)
++{
++	data &= 0x0f;
++	rs5c313_write_data(addr | RS5C313_CNTBIT_AD);
++	rs5c313_write_data(data | RS5C313_CNTBIT_DT);
++	return;
++}
++
++static inline unsigned char rs5c313_read_cntreg(unsigned char addr)
++{
++	return rs5c313_read_reg(RS5C313_ADDR_CNTREG);
++}
++
++static inline void rs5c313_write_cntreg(unsigned char data)
++{
++	rs5c313_write_reg(RS5C313_ADDR_CNTREG, data);
++}
++
++static inline void rs5c313_write_intintvreg(unsigned char data)
++{
++	rs5c313_write_reg(RS5C313_ADDR_INTINTVREG, data);
++}
++
++static int rs5c313_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	int data;
++
++	while (1) {
++		RS5C313_CEENABLE;	/* CE:H */
++
++		/* Initialize control reg. 24 hour */
++		rs5c313_write_cntreg(0x04);
++
++		if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY))
++			break;
++
++		RS5C313_CEDISABLE;
++		ndelay(700);	/* CE:L */
++
++	}
++
++	data = rs5c313_read_reg(RS5C313_ADDR_SEC);
++	data |= (rs5c313_read_reg(RS5C313_ADDR_SEC10) << 4);
++	tm->tm_sec = BCD2BIN(data);
++
++	data = rs5c313_read_reg(RS5C313_ADDR_MIN);
++	data |= (rs5c313_read_reg(RS5C313_ADDR_MIN10) << 4);
++	tm->tm_min = BCD2BIN(data);
++
++	data = rs5c313_read_reg(RS5C313_ADDR_HOUR);
++	data |= (rs5c313_read_reg(RS5C313_ADDR_HOUR10) << 4);
++	tm->tm_hour = BCD2BIN(data);
++
++	data = rs5c313_read_reg(RS5C313_ADDR_DAY);
++	data |= (rs5c313_read_reg(RS5C313_ADDR_DAY10) << 4);
++	tm->tm_mday = BCD2BIN(data);
++
++	data = rs5c313_read_reg(RS5C313_ADDR_MON);
++	data |= (rs5c313_read_reg(RS5C313_ADDR_MON10) << 4);
++	tm->tm_mon = BCD2BIN(data) - 1;
++
++	data = rs5c313_read_reg(RS5C313_ADDR_YEAR);
++	data |= (rs5c313_read_reg(RS5C313_ADDR_YEAR10) << 4);
++	tm->tm_year = BCD2BIN(data);
++
++	if (tm->tm_year < 70)
++		tm->tm_year += 100;
++
++	data = rs5c313_read_reg(RS5C313_ADDR_WEEK);
++	tm->tm_wday = BCD2BIN(data);
++
++	RS5C313_CEDISABLE;
++	ndelay(700);		/* CE:L */
++
++	return 0;
++}
++
++static int rs5c313_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	int data;
++
++	/* busy check. */
++	while (1) {
++		RS5C313_CEENABLE;	/* CE:H */
++
++		/* Initiatlize control reg. 24 hour */
++		rs5c313_write_cntreg(0x04);
++
++		if (!(rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY))
++			break;
++		RS5C313_MISCOP;
++		RS5C313_CEDISABLE;
++		ndelay(700);	/* CE:L */
++	}
++
++	data = BIN2BCD(tm->tm_sec);
++	rs5c313_write_reg(RS5C313_ADDR_SEC, data);
++	rs5c313_write_reg(RS5C313_ADDR_SEC10, (data >> 4));
++
++	data = BIN2BCD(tm->tm_min);
++	rs5c313_write_reg(RS5C313_ADDR_MIN, data );
++	rs5c313_write_reg(RS5C313_ADDR_MIN10, (data >> 4));
++
++	data = BIN2BCD(tm->tm_hour);
++	rs5c313_write_reg(RS5C313_ADDR_HOUR, data);
++	rs5c313_write_reg(RS5C313_ADDR_HOUR10, (data >> 4));
++
++	data = BIN2BCD(tm->tm_mday);
++	rs5c313_write_reg(RS5C313_ADDR_DAY, data);
++	rs5c313_write_reg(RS5C313_ADDR_DAY10, (data>> 4));
++
++	data = BIN2BCD(tm->tm_mon + 1);
++	rs5c313_write_reg(RS5C313_ADDR_MON, data);
++	rs5c313_write_reg(RS5C313_ADDR_MON10, (data >> 4));
++
++	data = BIN2BCD(tm->tm_year % 100);
++	rs5c313_write_reg(RS5C313_ADDR_YEAR, data);
++	rs5c313_write_reg(RS5C313_ADDR_YEAR10, (data >> 4));
++
++	data = BIN2BCD(tm->tm_wday);
++	rs5c313_write_reg(RS5C313_ADDR_WEEK, data);
++
++	RS5C313_CEDISABLE;	/* CE:H */
++	ndelay(700);
++
++	return 0;
++}
++
++static void rs5c313_check_xstp_bit(void)
++{
++	struct rtc_time tm;
++
++	RS5C313_CEENABLE;	/* CE:H */
++	if (rs5c313_read_cntreg() & RS5C313_CNTREG_WTEN_XSTP) {
++		/* INT interval reg. OFF */
++		rs5c313_write_intintvreg(0x00);
++		/* Initialize control reg. 24 hour & adjust */
++		rs5c313_write_cntreg(0x07);
++
++		/* busy check. */
++		while (rs5c313_read_cntreg() & RS5C313_CNTREG_ADJ_BSY)
++			RS5C313_MISCOP;
++
++		memset(&tm, 0, sizeof(struct rtc_time));
++		tm.tm_mday 	= 1;
++		tm.tm_mon 	= 1;
++
++		rs5c313_rtc_set_time(NULL, &tm);
++		printk(KERN_ERR "RICHO RS5C313: invalid value, resetting to "
++				"1 Jan 2000\n");
++	}
++	RS5C313_CEDISABLE;
++	ndelay(700);		/* CE:L */
++}
++
++static const struct rtc_class_ops rs5c313_rtc_ops = {
++	.read_time = rs5c313_rtc_read_time,
++	.set_time = rs5c313_rtc_set_time,
++};
++
++static int rs5c313_rtc_probe(struct platform_device *pdev)
++{
++	struct rtc_device *rtc = rtc_device_register("rs5c313", &pdev->dev,
++				&rs5c313_rtc_ops, THIS_MODULE);
++
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++
++	platform_set_drvdata(pdev, rtc);
++
++	return err;
++}
++
++static int __devexit rs5c313_rtc_remove(struct platform_device *pdev)
++{
++	struct rtc_device *rtc = platform_get_drvdata( pdev );
++
++	rtc_device_unregister(rtc);
++
++	return 0;
++}
++
++static struct platform_driver rs5c313_rtc_platform_driver = {
++	.driver         = {
++		.name   = DRV_NAME,
++		.owner  = THIS_MODULE,
++	},
++	.probe 	= rs5c313_rtc_probe,
++	.remove = __devexit_p( rs5c313_rtc_remove ),
++};
++
++static int __init rs5c313_rtc_init(void)
++{
++	int err;
++
++	err = platform_driver_register(&rs5c313_rtc_platform_driver);
++	if (err)
++		return err;
++
++	rs5c313_init_port();
++	rs5c313_check_xstp_bit();
++
++	return 0;
++}
++
++static void __exit rs5c313_rtc_exit(void)
++{
++	platform_driver_unregister( &rs5c313_rtc_platform_driver );
++}
++
++module_init(rs5c313_rtc_init);
++module_exit(rs5c313_rtc_exit);
++
++MODULE_VERSION(DRV_VERSION);
++MODULE_AUTHOR("kogiidena , Nobuhiro Iwamatsu <iwamatsu@nigauri.org>");
++MODULE_DESCRIPTION("Ricoh RS5C313 RTC device driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from iwamatsu@nigauri.org are
 
 origin.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-splice-and-readahead-interaction.patch
-futex-new-private-futexes.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
