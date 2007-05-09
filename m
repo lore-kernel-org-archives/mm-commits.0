@@ -1,90 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:55:00 -0700
-Message-ID: <200705090255.l492t0A7009874@shell0.pdx.osdl.net>
+Subject: - local_t-ia64-extension.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:55:21 -0700
+Message-ID: <200705090255.l492tLpP009916@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39063 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58076 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032307AbXEICzS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:18 -0400
+	by vger.kernel.org with ESMTP id S1032307AbXEICz3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atomic.h: add atomic64 cmpxchg, xchg and add_unless to mips
+     local_t: ia64 extension
 has been removed from the -mm tree.  Its filename was
-     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips.patch
+     local_t-ia64-extension.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atomic.h: add atomic64 cmpxchg, xchg and add_unless to mips
+Subject: local_t: ia64 extension
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/atomic.h |   29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ include/asm-ia64/local.h |   51 -------------------------------------
+ 1 file changed, 1 insertion(+), 50 deletions(-)
 
-diff -puN include/asm-mips/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips include/asm-mips/atomic.h
---- a/include/asm-mips/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-mips
-+++ a/include/asm-mips/atomic.h
-@@ -306,8 +306,8 @@ static __inline__ int atomic_sub_if_posi
- 	return result;
- }
- 
--#define atomic_cmpxchg(v, o, n) ((int)cmpxchg(&((v)->counter), (o), (n)))
--#define atomic_xchg(v, new) (xchg(&((v)->counter), new))
-+#define atomic_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
-+#define atomic_xchg(v, new) (xchg(&((v)->counter), (new)))
- 
- /**
-  * atomic_add_unless - add unless the number is a given value
-@@ -320,7 +320,7 @@ static __inline__ int atomic_sub_if_posi
-  */
- #define atomic_add_unless(v, a, u)				\
- ({								\
--	int c, old;						\
-+	__typeof__((v)->counter) c, old;			\
- 	c = atomic_read(v);					\
- 	while (c != (u) && (old = atomic_cmpxchg((v), c, c + (a))) != c) \
- 		c = old;					\
-@@ -681,6 +681,29 @@ static __inline__ long atomic64_sub_if_p
- 	return result;
- }
- 
-+#define atomic64_cmpxchg(v, o, n) \
-+	(((__typeof__((v)->counter)))cmpxchg(&((v)->counter), (o), (n)))
-+#define atomic64_xchg(v, new) (xchg(&((v)->counter), (new)))
-+
-+/**
-+ * atomic64_add_unless - add unless the number is a given value
-+ * @v: pointer of type atomic64_t
-+ * @a: the amount to add to v...
-+ * @u: ...unless v is equal to u.
-+ *
-+ * Atomically adds @a to @v, so long as it was not @u.
-+ * Returns non-zero if @v was not @u, and zero otherwise.
-+ */
-+#define atomic64_add_unless(v, a, u)				\
-+({								\
-+	__typeof__((v)->counter) c, old;			\
-+	c = atomic_read(v);					\
-+	while (c != (u) && (old = atomic64_cmpxchg((v), c, c + (a))) != c) \
-+		c = old;					\
-+	c != (u);						\
-+})
-+#define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
-+
- #define atomic64_dec_return(v) atomic64_sub_return(1,(v))
- #define atomic64_inc_return(v) atomic64_add_return(1,(v))
- 
+diff -puN include/asm-ia64/local.h~local_t-ia64-extension include/asm-ia64/local.h
+--- a/include/asm-ia64/local.h~local_t-ia64-extension
++++ a/include/asm-ia64/local.h
+@@ -1,50 +1 @@
+-#ifndef _ASM_IA64_LOCAL_H
+-#define _ASM_IA64_LOCAL_H
+-
+-/*
+- * Copyright (C) 2003 Hewlett-Packard Co
+- *	David Mosberger-Tang <davidm@hpl.hp.com>
+- */
+-
+-#include <linux/percpu.h>
+-
+-typedef struct {
+-	atomic64_t val;
+-} local_t;
+-
+-#define LOCAL_INIT(i)	((local_t) { { (i) } })
+-#define local_read(l)	atomic64_read(&(l)->val)
+-#define local_set(l, i)	atomic64_set(&(l)->val, i)
+-#define local_inc(l)	atomic64_inc(&(l)->val)
+-#define local_dec(l)	atomic64_dec(&(l)->val)
+-#define local_add(i, l)	atomic64_add((i), &(l)->val)
+-#define local_sub(i, l)	atomic64_sub((i), &(l)->val)
+-
+-/* Non-atomic variants, i.e., preemption disabled and won't be touched in interrupt, etc.  */
+-
+-#define __local_inc(l)		(++(l)->val.counter)
+-#define __local_dec(l)		(--(l)->val.counter)
+-#define __local_add(i,l)	((l)->val.counter += (i))
+-#define __local_sub(i,l)	((l)->val.counter -= (i))
+-
+-/*
+- * Use these for per-cpu local_t variables.  Note they take a variable (eg. mystruct.foo),
+- * not an address.
+- */
+-#define cpu_local_read(v)	local_read(&__ia64_per_cpu_var(v))
+-#define cpu_local_set(v, i)	local_set(&__ia64_per_cpu_var(v), (i))
+-#define cpu_local_inc(v)	local_inc(&__ia64_per_cpu_var(v))
+-#define cpu_local_dec(v)	local_dec(&__ia64_per_cpu_var(v))
+-#define cpu_local_add(i, v)	local_add((i), &__ia64_per_cpu_var(v))
+-#define cpu_local_sub(i, v)	local_sub((i), &__ia64_per_cpu_var(v))
+-
+-/*
+- * Non-atomic increments, i.e., preemption disabled and won't be touched in interrupt,
+- * etc.
+- */
+-#define __cpu_local_inc(v)	__local_inc(&__ia64_per_cpu_var(v))
+-#define __cpu_local_dec(v)	__local_dec(&__ia64_per_cpu_var(v))
+-#define __cpu_local_add(i, v)	__local_add((i), &__ia64_per_cpu_var(v))
+-#define __cpu_local_sub(i, v)	__local_sub((i), &__ia64_per_cpu_var(v))
+-
+-#endif /* _ASM_IA64_LOCAL_H */
++#include <asm-generic/local.h>
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
