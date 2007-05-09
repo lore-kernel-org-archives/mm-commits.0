@@ -1,194 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: - integrity-ima-integrity_measure-support-tidy.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:01:00 -0700
-Message-ID: <200705091001.l49A10qt020678@shell0.pdx.osdl.net>
+Subject: - integrity-tpm-internal-kernel-interface-tidy.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:02:12 -0700
+Message-ID: <200705091002.l49A2DXs020719@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33105 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756014AbXEIKBc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:01:32 -0400
+	by vger.kernel.org with ESMTP id S1754819AbXEIKCg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@linux.vnet.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     integrity-ima-integrity_measure-support-tidy
+     integrity-tpm-internal-kernel-interface-tidy
 has been removed from the -mm tree.  Its filename was
-     integrity-ima-integrity_measure-support-tidy.patch
+     integrity-tpm-internal-kernel-interface-tidy.patch
 
-This patch was dropped because it was folded into integrity-ima-integrity_measure-support.patch
+This patch was dropped because it was folded into integrity-tpm-internal-kernel-interface.patch
 
 ------------------------------------------------------
-Subject: integrity-ima-integrity_measure-support-tidy
+Subject: integrity-tpm-internal-kernel-interface-tidy
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Kylene Hall <kjhall@us.ibm.com>
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/evm/evm_secfs.c     |    1 -
- security/evm/ima/ima.h       |    3 +--
- security/evm/ima/ima_fs.c    |   17 ++++++-----------
- security/evm/ima/ima_init.c  |   10 +++++-----
- security/evm/ima/ima_queue.c |   10 +++++-----
- 5 files changed, 17 insertions(+), 24 deletions(-)
+ drivers/char/tpm/tpm.c |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-diff -puN security/evm/evm_secfs.c~integrity-ima-integrity_measure-support-tidy security/evm/evm_secfs.c
---- a/security/evm/evm_secfs.c~integrity-ima-integrity_measure-support-tidy
-+++ a/security/evm/evm_secfs.c
-@@ -103,7 +103,6 @@ static ssize_t evm_write_secfs(struct fi
- 	size_t rc = buflen;
- 	char *data;
- 	int error;
--
- 	struct evm_xattr_config *evm_data = NULL;
- 	int evm_datasize;
- 
-diff -puN security/evm/ima/ima.h~integrity-ima-integrity_measure-support-tidy security/evm/ima/ima.h
---- a/security/evm/ima/ima.h~integrity-ima-integrity_measure-support-tidy
-+++ a/security/evm/ima/ima.h
-@@ -97,8 +97,7 @@ static inline void ima_pcrread(int idx, 
- 	if (!ima_used_chip)
- 		return;
- 
--	if (tpm_pcr_read(IMA_TPM, idx, pcr, pcr_size) != 0) {
-+	if (tpm_pcr_read(IMA_TPM, idx, pcr, pcr_size) != 0)
- 		ima_error("Error Communicating to TPM chip\n");
--	}
+diff -puN drivers/char/tpm/tpm.c~integrity-tpm-internal-kernel-interface-tidy drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~integrity-tpm-internal-kernel-interface-tidy
++++ a/drivers/char/tpm/tpm.c
+@@ -365,7 +365,6 @@ unsigned long tpm_calc_ordinal_duration(
+ 	else
+ 		return duration;
  }
- #endif
-diff -puN security/evm/ima/ima_fs.c~integrity-ima-integrity_measure-support-tidy security/evm/ima/ima_fs.c
---- a/security/evm/ima/ima_fs.c~integrity-ima-integrity_measure-support-tidy
-+++ a/security/evm/ima/ima_fs.c
-@@ -172,7 +172,6 @@ static struct file_operations ima_measur
- 	.release = seq_release,
- };
- 
 -
- /* print in ascii */
- static int ima_ascii_measurements_show(struct seq_file *m, void *v)
- {
-@@ -221,21 +220,18 @@ static struct file_operations ima_ascii_
- 	.release = seq_release,
- };
+ EXPORT_SYMBOL_GPL(tpm_calc_ordinal_duration);
  
--static struct dentry
--		*ima_dir = NULL,
--		*binary_runtime_measurements = NULL,
--    		*ascii_runtime_measurements = NULL,
--		*runtime_measurements_count = NULL,
--		*violations = NULL;
-+static struct dentry *ima_dir;
-+static struct dentry *binary_runtime_measurements;
-+static struct dentry *ascii_runtime_measurements;
-+static struct dentry *runtime_measurements_count;
-+static struct dentry *violations;
- 
- int ima_fs_init(void)
- {
+ /*
+@@ -427,7 +426,6 @@ out:
+ 	up(&chip->tpm_mutex);
+ 	return rc;
+ }
 -
- 	ima_dir = securityfs_create_dir("ima", NULL);
- 	if (!ima_dir || IS_ERR(ima_dir))
- 		return -1;
+ EXPORT_SYMBOL_GPL(tpm_transmit);
  
+ #define TPM_DIGEST_SIZE 20
+@@ -504,7 +502,6 @@ void tpm_gen_interrupt(struct tpm_chip *
+ 	rc = transmit_cmd(chip, data, sizeof(data),
+ 			  "attempting to determine the timeouts");
+ }
 -
- 	binary_runtime_measurements =
- 	    securityfs_create_file("binary_runtime_measurements",
- 				   S_IRUSR | S_IRGRP, ima_dir, NULL,
-@@ -265,13 +261,12 @@ int ima_fs_init(void)
- 		goto out;
- 	return 0;
+ EXPORT_SYMBOL_GPL(tpm_gen_interrupt);
  
+ void tpm_get_timeouts(struct tpm_chip *chip)
+@@ -571,7 +568,6 @@ duration:
+ 			     (*((__be32 *) (data +
+ 					    TPM_GET_CAP_RET_UINT32_3_IDX))));
+ }
 -
+ EXPORT_SYMBOL_GPL(tpm_get_timeouts);
+ 
+ void tpm_continue_selftest(struct tpm_chip *chip)
+@@ -584,7 +580,6 @@ void tpm_continue_selftest(struct tpm_ch
+ 
+ 	tpm_transmit(chip, data, sizeof(data));
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_continue_selftest);
+ 
+ /*
+@@ -610,7 +605,6 @@ ssize_t tpm_show_enabled(struct device *
+ 		return 0;
+ 	return sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_DISABLE_IDX]);
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_show_enabled);
+ 
+ /*
+@@ -636,7 +630,6 @@ ssize_t tpm_show_active(struct device * 
+ 		return 0;
+ 	return sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_INACTIVE_IDX]);
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_show_active);
+ 
+ /*
+@@ -662,7 +655,6 @@ ssize_t tpm_show_owned(struct device * d
+ 		return 0;
+ 	return sprintf(buf, "%d\n", data[TPM_GET_CAP_RET_BOOL_1_IDX]);
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_show_owned);
+ 
+ /*
+@@ -688,7 +680,6 @@ ssize_t tpm_show_temp_deactivated(struct
+ 		return 0;
+ 	return sprintf(buf, "%d\n", data[TPM_GET_CAP_TEMP_INACTIVE_IDX]);
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_show_temp_deactivated);
+ 
+ #define READ_PCR_RESULT_SIZE 30
+@@ -739,7 +730,6 @@ ssize_t tpm_show_pcrs(struct device *dev
  out:
- 	securityfs_remove(runtime_measurements_count);
- 	securityfs_remove(ascii_runtime_measurements);
- 	securityfs_remove(binary_runtime_measurements);
- 	securityfs_remove(ima_dir);
--    return -1;
-+	return -1;
+ 	return str - buf;
  }
+-
+ EXPORT_SYMBOL_GPL(tpm_show_pcrs);
  
- void __exit ima_fs_cleanup(void)
-diff -puN security/evm/ima/ima_init.c~integrity-ima-integrity_measure-support-tidy security/evm/ima/ima_init.c
---- a/security/evm/ima/ima_init.c~integrity-ima-integrity_measure-support-tidy
-+++ a/security/evm/ima/ima_init.c
-@@ -21,9 +21,9 @@
- /* name for boot aggregate entry */
- static char *boot_aggregate_name = "boot_aggregate";
- static const char version[] = "v7.6 02/27/2007";
--static const char illegal_pcr[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-+static const char illegal_pcr[20];
+ /*
+@@ -798,7 +788,6 @@ int tpm_pcr_read(u32 chip_id, int pcr_id
+ 	return rc;
  
--int ima_used_chip = 0;
-+int ima_used_chip;
- 
- static void ima_add_boot_aggregate(void)
- {
-@@ -33,8 +33,7 @@ static void ima_add_boot_aggregate(void)
- 	int err;
- 
- 	/* create new entry for boot aggregate */
--	entry = (struct measure_entry *)
--	    kzalloc(sizeof(struct measure_entry), GFP_ATOMIC);
-+	entry = kzalloc(sizeof(struct measure_entry), GFP_ATOMIC);
- 	if (entry == NULL) {
- 		ima_invalidate_pcr("error allocating new measurement entry");
- 		return;
-@@ -101,7 +100,8 @@ int ima_init(void)
- 		ima_used_chip = 1;
- 
- 	if (!ima_used_chip)
--		ima_info("No TPM chip found(rc = %d), activating TPM-bypass!\n", rc);
-+		ima_info("No TPM chip found(rc = %d), activating TPM-bypass!\n",
-+			rc);
- 
- 	create_htable();	/* for measurements */
- 
-diff -puN security/evm/ima/ima_queue.c~integrity-ima-integrity_measure-support-tidy security/evm/ima/ima_queue.c
---- a/security/evm/ima/ima_queue.c~integrity-ima-integrity_measure-support-tidy
-+++ a/security/evm/ima/ima_queue.c
-@@ -32,7 +32,7 @@ DEFINE_SPINLOCK(ima_queue_lock);
-  * and extending the TPM PCR aggregate. Since tpm_extend can take
-  * long (and the tpm driver uses a mutex), we can't use the spinlock.
-  */
--static DECLARE_MUTEX(ima_extend_list_mutex);
-+static DEFINE_MUTEX(ima_extend_list_mutex);
- 
- void create_htable(void)
- {
-@@ -49,7 +49,7 @@ void create_htable(void)
- 		atomic_set(&ima_htable.queue_len[i], 0);
- 	}
- 
--	init_MUTEX(&ima_extend_list_mutex);
-+	mutex_init(&ima_extend_list_mutex);
- 	spin_unlock(&ima_queue_lock);
  }
+-
+ EXPORT_SYMBOL_GPL(tpm_pcr_read);
  
-@@ -95,7 +95,7 @@ int ima_add_measure_entry(struct measure
- 	struct queue_entry *qe;
- 	int error = 0;
- 
--	down(&ima_extend_list_mutex);
-+	mutex_lock(&ima_extend_list_mutex);
- 	spin_lock(&ima_queue_lock);
- 	if (ima_lookup_digest_entry(entry->digest)) {
- 		error = -EEXIST;
-@@ -122,7 +122,7 @@ int ima_add_measure_entry(struct measure
- 	}
- 	spin_unlock(&ima_queue_lock);
- 	ima_extend(entry->digest);
--      out:
--	up(&ima_extend_list_mutex);
-+out:
-+	mutex_unlock(&ima_extend_list_mutex);
- 	return error;
+ #define EXTEND_PCR_SIZE 34
+@@ -837,7 +826,6 @@ int tpm_pcr_extend(u32 chip_id, int pcr_
+ 		rc = be32_to_cpu(*((u32 *) (data + 6)));
+ 	return rc;
  }
+-
+ EXPORT_SYMBOL_GPL(tpm_pcr_extend);
+ 
+ #define  READ_PUBEK_RESULT_SIZE 314
+@@ -905,7 +893,6 @@ out:
+ 	kfree(data);
+ 	return rc;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_show_pubek);
+ 
+ #define CAP_VERSION_1_1 6
+@@ -962,7 +949,6 @@ ssize_t tpm_show_caps(struct device *dev
+ out:
+ 	return str - buf;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_show_caps);
+ 
+ /*
+@@ -1011,7 +997,6 @@ ssize_t tpm_show_caps_1_2(struct device 
+ out:
+ 	return str - buf;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_show_caps_1_2);
+ 
+ /*
+@@ -1027,7 +1012,6 @@ ssize_t tpm_store_cancel(struct device *
+ 	chip->vendor.cancel(chip);
+ 	return count;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_store_cancel);
+ 
+ /*
+@@ -1079,7 +1063,6 @@ err_out:
+ 	spin_unlock(&driver_lock);
+ 	return rc;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_open);
+ 
+ int tpm_release(struct inode *inode, struct file *file)
+@@ -1131,7 +1114,6 @@ ssize_t tpm_write(struct file *file, con
+ 
+ 	return in_size;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_write);
+ 
+ ssize_t tpm_read(struct file * file, char __user * buf,
+@@ -1156,7 +1138,6 @@ ssize_t tpm_read(struct file * file, cha
+ 
+ 	return ret_size;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_read);
+ 
+ void tpm_remove_hardware(struct device *dev)
+@@ -1187,7 +1168,6 @@ void tpm_remove_hardware(struct device *
+ 
+ 	put_device(dev);
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_remove_hardware);
+ 
+ static u8 savestate[] = {
+@@ -1209,7 +1189,6 @@ int tpm_pm_suspend(struct device *dev, p
+ 	tpm_transmit(chip, savestate, sizeof(savestate));
+ 	return 0;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_pm_suspend);
+ 
+ /*
+@@ -1225,7 +1204,6 @@ int tpm_pm_resume(struct device *dev)
+ 
+ 	return 0;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_pm_resume);
+ 
+ /*
+@@ -1316,7 +1294,6 @@ struct tpm_chip *tpm_register_hardware(s
+ 
+ 	return chip;
+ }
+-
+ EXPORT_SYMBOL_GPL(tpm_register_hardware);
+ 
+ MODULE_AUTHOR("Leendert van Doorn (leendert@watson.ibm.com)");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -263,8 +293,6 @@ reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 integrity-new-hooks.patch
 integrity-evm-as-an-integrity-service-provider.patch
 integrity-ima-integrity_measure-support.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface.patch
 integrity-tpm-internal-kernel-interface-tidy.patch
 w1-build-fix.patch
