@@ -1,216 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: - rivafb-nvidiafb-various-cleanups.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:00:25 -0700
-Message-ID: <200705090300.l4930PWg010563@shell0.pdx.osdl.net>
+Subject: - cirrusfb-convert-to-generic-boolean.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:00:39 -0700
+Message-ID: <200705090300.l4930doR010593@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55678 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49936 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032860AbXEIDAl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:00:41 -0400
+	by vger.kernel.org with ESMTP id S1032889AbXEIDAr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:00:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: ricknu-0@student.ltu.se, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rivafb/nvidiafb: Various cleanups
+     cirrusfb: convert to generic boolean
 has been removed from the -mm tree.  Its filename was
-     rivafb-nvidiafb-various-cleanups.patch
+     cirrusfb-convert-to-generic-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rivafb/nvidiafb: Various cleanups
-From: Jean Delvare <khali@linux-fr.org>
+Subject: cirrusfb: convert to generic boolean
+From: Richard Knutsson <ricknu-0@student.ltu.se>
 
-Various cleanups to rivafb/nvidiafb's I2C code:
-* Drop useless par->bus.
-* Refactor I2C bus deletion code.
-* Drop useless variable initialization.
-* Remove unneeded include of <linux/i2c-id.h>.
-* Simplify +1/-1.
-* Add __devinit tags where possible.
+Convert to generic boolean.
 
-[adaplas]
-The varible initialization are not useless. However, rivafb must
-check if i2c bus are created properly before reading the EDID
-block.
+Signed-off-by: Richard Knutsson <ricknu-0@student.ltu.se>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+DESC
+sm501fb-printk-warning-fixes
+EDESC
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+drivers/video/sm501fb.c: In function 'sm501fb_cursor':
+drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
+drivers/video/sm501fb.c:992: warning: format '%08x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
+
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nv_i2c.c   |   20 ++++++------------
- drivers/video/nvidia/nv_type.h  |    2 -
- drivers/video/riva/fbdev.c      |    4 +--
- drivers/video/riva/rivafb-i2c.c |   33 +++++++++++++-----------------
- drivers/video/riva/rivafb.h     |    2 -
- 5 files changed, 24 insertions(+), 37 deletions(-)
+ drivers/video/cirrusfb.c |   69 ++++++++++++++++---------------------
+ 1 file changed, 30 insertions(+), 39 deletions(-)
 
-diff -puN drivers/video/nvidia/nv_i2c.c~rivafb-nvidiafb-various-cleanups drivers/video/nvidia/nv_i2c.c
---- a/drivers/video/nvidia/nv_i2c.c~rivafb-nvidiafb-various-cleanups
-+++ a/drivers/video/nvidia/nv_i2c.c
-@@ -127,8 +127,6 @@ static int nvidia_setup_i2c_bus(struct n
+diff -puN drivers/video/cirrusfb.c~cirrusfb-convert-to-generic-boolean drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-convert-to-generic-boolean
++++ a/drivers/video/cirrusfb.c
+@@ -98,15 +98,6 @@
+ #define assert(expr)
+ #endif
  
- void nvidia_create_i2c_busses(struct nvidia_par *par)
- {
--	par->bus = 3;
+-#ifdef TRUE
+-#undef TRUE
+-#endif
+-#ifdef FALSE
+-#undef FALSE
+-#endif
+-#define TRUE  1
+-#define FALSE 0
 -
- 	par->chan[0].par = par;
- 	par->chan[1].par = par;
- 	par->chan[2].par = par;
-@@ -145,18 +143,14 @@ void nvidia_create_i2c_busses(struct nvi
+ #define MB_ (1024*1024)
+ #define KB_ (1024)
  
- void nvidia_delete_i2c_busses(struct nvidia_par *par)
- {
--	if (par->chan[0].par)
--		i2c_del_adapter(&par->chan[0].adapter);
--	par->chan[0].par = NULL;
--
--	if (par->chan[1].par)
--		i2c_del_adapter(&par->chan[1].adapter);
--	par->chan[1].par = NULL;
--
--	if (par->chan[2].par)
--		i2c_del_adapter(&par->chan[2].adapter);
--	par->chan[2].par = NULL;
-+	int i;
+@@ -146,9 +137,9 @@ static const struct cirrusfb_board_info_
+ 	char *name;		/* ASCII name of chipset */
+ 	long maxclock[5];		/* maximum video clock */
+ 	/* for  1/4bpp, 8bpp 15/16bpp, 24bpp, 32bpp - numbers from xorg code */
+-	unsigned init_sr07 : 1;	/* init SR07 during init_vgachip() */
+-	unsigned init_sr1f : 1; /* write SR1F during init_vgachip() */
+-	unsigned scrn_start_bit19 : 1; /* construct bit 19 of screen start address */
++	bool init_sr07 : 1; /* init SR07 during init_vgachip() */
++	bool init_sr1f : 1; /* write SR1F during init_vgachip() */
++	bool scrn_start_bit19 : 1; /* construct bit 19 of screen start address */
  
-+	for (i = 0; i < 3; i++) {
-+		if (!par->chan[i].par)
-+			continue;
-+		i2c_del_adapter(&par->chan[i].adapter);
-+		par->chan[i].par = NULL;
-+	}
- }
+ 	/* initial SR07 value, then for each mode */
+ 	unsigned char sr07;
+@@ -166,9 +157,9 @@ static const struct cirrusfb_board_info_
+ 			/* the SD64/P4 have a higher max. videoclock */
+ 			140000, 140000, 140000, 140000, 140000,
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= true,
+ 		.sr07			= 0xF0,
+ 		.sr07_1bpp		= 0xF0,
+ 		.sr07_8bpp		= 0xF1,
+@@ -180,9 +171,9 @@ static const struct cirrusfb_board_info_
+ 			/* guess */
+ 			90000, 90000, 90000, 90000, 90000
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= FALSE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= false,
+ 		.sr07			= 0x80,
+ 		.sr07_1bpp		= 0x80,
+ 		.sr07_8bpp		= 0x81,
+@@ -194,9 +185,9 @@ static const struct cirrusfb_board_info_
+ 			/* guess */
+ 			90000, 90000, 90000, 90000, 90000
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= FALSE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= false,
+ 		.sr07			= 0x20,
+ 		.sr07_1bpp		= 0x20,
+ 		.sr07_8bpp		= 0x21,
+@@ -208,9 +199,9 @@ static const struct cirrusfb_board_info_
+ 			/* guess */
+ 			90000, 90000, 90000, 90000, 90000
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= FALSE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= false,
+ 		.sr07			= 0x80,
+ 		.sr07_1bpp		= 0x80,
+ 		.sr07_8bpp		= 0x81,
+@@ -221,9 +212,9 @@ static const struct cirrusfb_board_info_
+ 		.maxclock		= {
+ 			135100, 135100, 85500, 85500, 0
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= FALSE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= true,
++		.init_sr1f		= false,
++		.scrn_start_bit19	= true,
+ 		.sr07			= 0x20,
+ 		.sr07_1bpp		= 0x20,
+ 		.sr07_8bpp		= 0x21,
+@@ -235,9 +226,9 @@ static const struct cirrusfb_board_info_
+ 			/* for the GD5430.  GD5446 can do more... */
+ 			85500, 85500, 50000, 28500, 0
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= true,
+ 		.sr07			= 0xA0,
+ 		.sr07_1bpp		= 0xA1,
+ 		.sr07_1bpp_mux		= 0xA7,
+@@ -250,9 +241,9 @@ static const struct cirrusfb_board_info_
+ 		.maxclock		= {
+ 			135100, 200000, 200000, 135100, 135100
+ 		},
+-		.init_sr07		= TRUE,
+-		.init_sr1f		= TRUE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= true,
++		.init_sr1f		= true,
++		.scrn_start_bit19	= true,
+ 		.sr07			= 0x10,
+ 		.sr07_1bpp		= 0x11,
+ 		.sr07_8bpp		= 0x11,
+@@ -264,9 +255,9 @@ static const struct cirrusfb_board_info_
+ 			/* guess */
+ 			135100, 135100, 135100, 135100, 135100,
+ 		},
+-		.init_sr07		= FALSE,
+-		.init_sr1f		= FALSE,
+-		.scrn_start_bit19	= TRUE,
++		.init_sr07		= false,
++		.init_sr1f		= false,
++		.scrn_start_bit19	= true,
+ 	}
+ };
  
- int nvidia_probe_i2c_connector(struct fb_info *info, int conn, u8 **out_edid)
-diff -puN drivers/video/nvidia/nv_type.h~rivafb-nvidiafb-various-cleanups drivers/video/nvidia/nv_type.h
---- a/drivers/video/nvidia/nv_type.h~rivafb-nvidiafb-various-cleanups
-+++ a/drivers/video/nvidia/nv_type.h
-@@ -4,7 +4,6 @@
- #include <linux/fb.h>
- #include <linux/types.h>
- #include <linux/i2c.h>
--#include <linux/i2c-id.h>
- #include <linux/i2c-algo-bit.h>
+@@ -815,7 +806,7 @@ static int cirrusfb_check_var(struct fb_
  
- #define NV_ARCH_04  0x04
-@@ -100,7 +99,6 @@ struct nvidia_par {
- 	u32 Architecture;
- 	u32 CursorStart;
- 	int Chipset;
--	int bus;
- 	unsigned long FbAddress;
- 	u8 __iomem *FbStart;
- 	u32 FbMapSize;
-diff -puN drivers/video/riva/fbdev.c~rivafb-nvidiafb-various-cleanups drivers/video/riva/fbdev.c
---- a/drivers/video/riva/fbdev.c~rivafb-nvidiafb-various-cleanups
-+++ a/drivers/video/riva/fbdev.c
-@@ -1788,10 +1788,10 @@ static int __devinit riva_get_EDID_i2c(s
+ 	default:
+ 		DPRINTK("Unsupported bpp size: %d\n", var->bits_per_pixel);
+-		assert (FALSE);
++		assert(false);
+ 		/* should never occur */
+ 		break;
+ 	}
+@@ -886,7 +877,7 @@ static int cirrusfb_decode_var (const st
  
- 	NVTRACE_ENTER();
- 	riva_create_i2c_busses(par);
--	for (i = 0; i < par->bus; i++) {
-+	for (i = 0; i < 3; i++) {
- 		if (!par->chan[i].par)
- 			continue;
--		riva_probe_i2c_connector(par, i+1, &par->EDID);
-+		riva_probe_i2c_connector(par, i, &par->EDID);
- 		if (par->EDID && !fb_parse_edid(par->EDID, &var)) {
- 			printk(PFX "Found EDID Block from BUS %i\n", i);
+ 	default:
+ 		DPRINTK("Unsupported bpp size: %d\n", var->bits_per_pixel);
+-		assert (FALSE);
++		assert(false);
+ 		/* should never occur */
+ 		break;
+ 	}
+@@ -3203,7 +3194,7 @@ void cirrusfb_dbg_print_regs (caddr_t re
  			break;
-diff -puN drivers/video/riva/rivafb-i2c.c~rivafb-nvidiafb-various-cleanups drivers/video/riva/rivafb-i2c.c
---- a/drivers/video/riva/rivafb-i2c.c~rivafb-nvidiafb-various-cleanups
-+++ a/drivers/video/riva/rivafb-i2c.c
-@@ -88,8 +88,9 @@ static int riva_gpio_getsda(void* data)
- 	return val;
- }
+ 		default:
+ 			/* should never occur */
+-			assert (FALSE);
++			assert(false);
+ 			break;
+ 		}
  
--static int riva_setup_i2c_bus(struct riva_i2c_chan *chan, const char *name,
--			      unsigned int i2c_class)
-+static int __devinit riva_setup_i2c_bus(struct riva_i2c_chan *chan,
-+					const char *name,
-+					unsigned int i2c_class)
- {
- 	int rc;
- 
-@@ -126,10 +127,8 @@ static int riva_setup_i2c_bus(struct riv
- 	return rc;
- }
- 
--void riva_create_i2c_busses(struct riva_par *par)
-+void __devinit riva_create_i2c_busses(struct riva_par *par)
- {
--	par->bus = 3;
--
- 	par->chan[0].par	= par;
- 	par->chan[1].par	= par;
- 	par->chan[2].par        = par;
-@@ -144,24 +143,22 @@ void riva_create_i2c_busses(struct riva_
- 
- void riva_delete_i2c_busses(struct riva_par *par)
- {
--	if (par->chan[0].par)
--		i2c_del_adapter(&par->chan[0].adapter);
--	par->chan[0].par = NULL;
--
--	if (par->chan[1].par)
--		i2c_del_adapter(&par->chan[1].adapter);
--	par->chan[1].par = NULL;
--
--	if (par->chan[2].par)
--		i2c_del_adapter(&par->chan[2].adapter);
--	par->chan[2].par = NULL;
-+	int i;
-+
-+	for (i = 0; i < 3; i++) {
-+		if (!par->chan[i].par)
-+			continue;
-+		i2c_del_adapter(&par->chan[i].adapter);
-+		par->chan[i].par = NULL;
-+	}
- }
- 
--int riva_probe_i2c_connector(struct riva_par *par, int conn, u8 **out_edid)
-+int __devinit riva_probe_i2c_connector(struct riva_par *par, int conn, u8 **out_edid)
- {
- 	u8 *edid = NULL;
- 
--	edid = fb_ddc_read(&par->chan[conn-1].adapter);
-+	if (par->chan[conn].par)
-+		edid = fb_ddc_read(&par->chan[conn].adapter);
- 
- 	if (out_edid)
- 		*out_edid = edid;
-diff -puN drivers/video/riva/rivafb.h~rivafb-nvidiafb-various-cleanups drivers/video/riva/rivafb.h
---- a/drivers/video/riva/rivafb.h~rivafb-nvidiafb-various-cleanups
-+++ a/drivers/video/riva/rivafb.h
-@@ -4,7 +4,6 @@
- #include <linux/fb.h>
- #include <video/vga.h>
- #include <linux/i2c.h>
--#include <linux/i2c-id.h>
- #include <linux/i2c-algo-bit.h>
- 
- #include "riva_hw.h"
-@@ -61,7 +60,6 @@ struct riva_par {
- 	Bool SecondCRTC;
- 	int FlatPanel;
- 	struct pci_dev *pdev;
--	int bus;
- 	int cursor_reset;
- #ifdef CONFIG_MTRR
- 	struct { int vram; int vram_valid; } mtrr;
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from ricknu-0@student.ltu.se are
 
 origin.patch
-applesmc-use-the-address-as-platform-device-id.patch
-applesmc-use-standard-sysfs-names-for-labels.patch
-git-alsa.patch
-git-dvb.patch
-scx200-use-mutex-instead-of-semaphore.patch
