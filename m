@@ -1,96 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-delay-screen-update-when-setting-the-mode-of.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:00:52 -0700
-Message-ID: <200705090300.l4930qgr010619@shell0.pdx.osdl.net>
+Subject: - arcfb-use-sys-instead-of-cfb-drawing-functions.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:16 -0700
+Message-ID: <200705090301.l4931GpV010671@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55528 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032902AbXEIDA4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:00:56 -0400
+	by vger.kernel.org with ESMTP id S1033133AbXEIDBT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon: delay screen update when setting the mode of all consoles
+     arcfb: use sys instead of cfb drawing functions
 has been removed from the -mm tree.  Its filename was
-     fbcon-delay-screen-update-when-setting-the-mode-of.patch
+     arcfb-use-sys-instead-of-cfb-drawing-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbcon: delay screen update when setting the mode of all consoles
+Subject: arcfb: use sys instead of cfb drawing functions
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-If the current framebuffer console is rotated (rotate != 0), doing an
-"fbset -a" will corrupt the current console.  Fix by updating the current
-console only after all non-visible consoles have been updated.
+Since arcfb's framebuffer is vmalloc'ed, use the sys_* drawing functions
+instead of cfb_*.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |   31 ++++++++++---------------------
- 1 file changed, 10 insertions(+), 21 deletions(-)
+ drivers/video/Kconfig |    6 +++---
+ drivers/video/arcfb.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-delay-screen-update-when-setting-the-mode-of drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-delay-screen-update-when-setting-the-mode-of
-+++ a/drivers/video/console/fbcon.c
-@@ -2849,7 +2849,7 @@ static void fbcon_set_all_vcs(struct fb_
- 	struct fbcon_ops *ops = info->fbcon_par;
- 	struct vc_data *vc;
- 	struct display *p;
--	int i, rows, cols;
-+	int i, rows, cols, fg = -1;
+diff -puN drivers/video/Kconfig~arcfb-use-sys-instead-of-cfb-drawing-functions drivers/video/Kconfig
+--- a/drivers/video/Kconfig~arcfb-use-sys-instead-of-cfb-drawing-functions
++++ a/drivers/video/Kconfig
+@@ -412,9 +412,9 @@ config FB_FM2
+ config FB_ARC
+ 	tristate "Arc Monochrome LCD board support"
+ 	depends on FB && X86
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
++	select FB_SYS_FILLRECT
++	select FB_SYS_COPYAREA
++	select FB_SYS_IMAGEBLIT
+ 	help
+ 	  This enables support for the Arc Monochrome LCD board. The board
+ 	  is based on the KS-108 lcd controller and is typically a matrix
+diff -puN drivers/video/arcfb.c~arcfb-use-sys-instead-of-cfb-drawing-functions drivers/video/arcfb.c
+--- a/drivers/video/arcfb.c~arcfb-use-sys-instead-of-cfb-drawing-functions
++++ a/drivers/video/arcfb.c
+@@ -369,7 +369,7 @@ static void arcfb_fillrect(struct fb_inf
+ {
+ 	struct arcfb_par *par = info->par;
  
- 	if (!ops || ops->currcon < 0)
- 		return;
-@@ -2860,34 +2860,23 @@ static void fbcon_set_all_vcs(struct fb_
- 		    registered_fb[con2fb_map[i]] != info)
- 			continue;
+-	cfb_fillrect(info, rect);
++	sys_fillrect(info, rect);
  
-+		if (CON_IS_VISIBLE(vc)) {
-+			fg = i;
-+			continue;
-+		}
-+
- 		p = &fb_display[vc->vc_num];
- 		set_blitting_type(vc, info);
- 		var_to_display(p, &info->var, info);
--		cols = FBCON_SWAP(ops->rotate, info->var.xres, info->var.yres);
--		rows = FBCON_SWAP(ops->rotate, info->var.yres, info->var.xres);
-+		cols = FBCON_SWAP(p->rotate, info->var.xres, info->var.yres);
-+		rows = FBCON_SWAP(p->rotate, info->var.yres, info->var.xres);
- 		cols /= vc->vc_font.width;
- 		rows /= vc->vc_font.height;
- 		vc_resize(vc, cols, rows);
--
--		if (CON_IS_VISIBLE(vc)) {
--			updatescrollmode(p, info, vc);
--			scrollback_max = 0;
--			scrollback_current = 0;
--
--			if (!fbcon_is_inactive(vc, info)) {
--			    ops->var.xoffset = ops->var.yoffset =
--				p->yscroll = 0;
--			    ops->update_start(info);
--			}
--
--			fbcon_set_palette(vc, color_table);
--			update_screen(vc);
--			if (softback_buf)
--				fbcon_update_softback(vc);
--		}
- 	}
+ 	/* update the physical lcd */
+ 	arcfb_lcd_update(par, rect->dx, rect->dy, rect->width, rect->height);
+@@ -380,7 +380,7 @@ static void arcfb_copyarea(struct fb_inf
+ {
+ 	struct arcfb_par *par = info->par;
  
--	ops->p = &fb_display[ops->currcon];
-+	if (fg != -1)
-+		fbcon_modechanged(info);
- }
+-	cfb_copyarea(info, area);
++	sys_copyarea(info, area);
  
- static int fbcon_mode_deleted(struct fb_info *info,
+ 	/* update the physical lcd */
+ 	arcfb_lcd_update(par, area->dx, area->dy, area->width, area->height);
+@@ -390,7 +390,7 @@ static void arcfb_imageblit(struct fb_in
+ {
+ 	struct arcfb_par *par = info->par;
+ 
+-	cfb_imageblit(info, image);
++	sys_imageblit(info, image);
+ 
+ 	/* update the physical lcd */
+ 	arcfb_lcd_update(par, image->dx, image->dy, image->width,
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
