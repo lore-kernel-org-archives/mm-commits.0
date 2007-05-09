@@ -1,76 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-advertise-limitation-of-drawing-engine.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:01:35 -0700
-Message-ID: <200705090301.l4931ZAH010721@shell0.pdx.osdl.net>
+Subject: - vfb-us-fb_sys_read-and-fb_sys_write.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:31 -0700
+Message-ID: <200705090301.l4931Vc9010705@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46062 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1033207AbXEIDBi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:38 -0400
+	by vger.kernel.org with ESMTP id S1033194AbXEIDBe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: advertise limitation of drawing engine
+     vfb: use fb_sys_read() and fb_sys_write()
 has been removed from the -mm tree.  Its filename was
-     fbdev-advertise-limitation-of-drawing-engine.patch
+     vfb-us-fb_sys_read-and-fb_sys_write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbdev: advertise limitation of drawing engine
+Subject: vfb: use fb_sys_read() and fb_sys_write()
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-A few drivers are not capable of blitting rectangles of any dimension.
-vga16fb can only blit 8-pixel wide rectangles, while s3fb (in tileblitting
-mode) can only blit 8x16 rectangles.  For example, loading a 12x22 font in
-vga16fb will result in a corrupt display.
-
-Advertise this limitation/capability in info->pixmap.blit_x and blit_y.  These
-fields are 32-bit arrays (font max is 32x32 only), ie, if bit 7 is set, then
-width/height of 7+1 is supported.
+Since vfb's framebuffer is vmalloc'ed, use the fb_sys_read() and
+fb_sys_write().
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    6 ++++++
- include/linux/fb.h    |    4 ++++
- 2 files changed, 10 insertions(+)
+ drivers/video/Kconfig |    1 +
+ drivers/video/vfb.c   |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN drivers/video/fbmem.c~fbdev-advertise-limitation-of-drawing-engine drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-advertise-limitation-of-drawing-engine
-+++ a/drivers/video/fbmem.c
-@@ -1321,6 +1321,12 @@ register_framebuffer(struct fb_info *fb_
- 	}	
- 	fb_info->pixmap.offset = 0;
+diff -puN drivers/video/Kconfig~vfb-us-fb_sys_read-and-fb_sys_write drivers/video/Kconfig
+--- a/drivers/video/Kconfig~vfb-us-fb_sys_read-and-fb_sys_write
++++ a/drivers/video/Kconfig
+@@ -1743,6 +1743,7 @@ config FB_VIRTUAL
+ 	select FB_SYS_FILLRECT
+ 	select FB_SYS_COPYAREA
+ 	select FB_SYS_IMAGEBLIT
++	select FB_SYS_FOPS
+ 	---help---
+ 	  This is a `virtual' frame buffer device. It operates on a chunk of
+ 	  unswappable kernel memory instead of on the memory of a graphics
+diff -puN drivers/video/vfb.c~vfb-us-fb_sys_read-and-fb_sys_write drivers/video/vfb.c
+--- a/drivers/video/vfb.c~vfb-us-fb_sys_read-and-fb_sys_write
++++ a/drivers/video/vfb.c
+@@ -84,6 +84,8 @@ static int vfb_mmap(struct fb_info *info
+ 		    struct vm_area_struct *vma);
  
-+	if (!fb_info->pixmap.blit_x)
-+		fb_info->pixmap.blit_x = ~(u32)0;
-+
-+	if (!fb_info->pixmap.blit_y)
-+		fb_info->pixmap.blit_y = ~(u32)0;
-+
- 	if (!fb_info->modelist.prev || !fb_info->modelist.next)
- 		INIT_LIST_HEAD(&fb_info->modelist);
- 
-diff -puN include/linux/fb.h~fbdev-advertise-limitation-of-drawing-engine include/linux/fb.h
---- a/include/linux/fb.h~fbdev-advertise-limitation-of-drawing-engine
-+++ a/include/linux/fb.h
-@@ -558,6 +558,10 @@ struct fb_pixmap {
- 	u32 scan_align;		/* alignment per scanline		*/
- 	u32 access_align;	/* alignment per read/write (bits)	*/
- 	u32 flags;		/* see FB_PIXMAP_*			*/
-+	u32 blit_x;             /* supported bit block dimensions (1-32)*/
-+	u32 blit_y;             /* Format: blit_x = 1 << (width - 1)    */
-+	                        /*         blit_y = 1 << (height - 1)   */
-+	                        /* if 0, will be set to 0xffffffff (all)*/
- 	/* access methods */
- 	void (*writeio)(struct fb_info *info, void __iomem *dst, void *src, unsigned int size);
- 	void (*readio) (struct fb_info *info, void *dst, void __iomem *src, unsigned int size);
+ static struct fb_ops vfb_ops = {
++	.fb_read        = fb_sys_read,
++	.fb_write       = fb_sys_write,
+ 	.fb_check_var	= vfb_check_var,
+ 	.fb_set_par	= vfb_set_par,
+ 	.fb_setcolreg	= vfb_setcolreg,
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
