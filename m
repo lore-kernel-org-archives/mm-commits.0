@@ -1,149 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - workqueue-fix-freezeable-workqueues-implementation.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:51:33 -0700
-Message-ID: <200705092151.l49LpX9D002891@shell0.pdx.osdl.net>
+Subject: - advansys-warning-workaround.patch removed from -mm tree
+Date: Wed, 09 May 2007 15:25:17 -0700
+Message-ID: <200705092225.l49MPHx0004223@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:46594 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758887AbXEIWKG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:10:06 -0400
+	by vger.kernel.org with ESMTP id S1755991AbXEIWZU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:25:20 -0400
+Received: from shell0.pdx.osdl.net (fw.osdl.org [65.172.181.6])
+	by smtp1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l49MPHq1009933
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 9 May 2007 15:25:18 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ego@in.ibm.com, vatsa@in.ibm.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueue: fix freezeable workqueues implementation
+     advansys-warning-workaround
 has been removed from the -mm tree.  Its filename was
-     workqueue-fix-freezeable-workqueues-implementation.patch
+     advansys-warning-workaround.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because I'm cleaning old stuff out of my patches directory
 
 ------------------------------------------------------
-Subject: workqueue: fix freezeable workqueues implementation
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: advansys-warning-workaround
+From: Andrew Morton <akpm@osdl.org>
 
-Currently ->freezeable is per-cpu, this is wrong. CPU_UP_PREPARE creates
-cwq->thread which is not freezeable. Move ->freezeable to workqueue_struct.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
-Cc: Gautham shenoy <ego@in.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- kernel/workqueue.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/scsi/advansys.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-fix-freezeable-workqueues-implementation kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-fix-freezeable-workqueues-implementation
-+++ a/kernel/workqueue.c
-@@ -49,8 +49,6 @@ struct cpu_workqueue_struct {
- 	struct work_struct *current_work;
- 
- 	int run_depth;		/* Detect run_workqueue() recursion depth */
--
--	int freezeable;		/* Freeze the thread during suspend */
- } ____cacheline_aligned;
- 
+diff -puN drivers/scsi/advansys.c~advansys-warning-workaround drivers/scsi/advansys.c
+--- devel/drivers/scsi/advansys.c~advansys-warning-workaround	2006-04-20 00:46:42.000000000 -0700
++++ devel-akpm/drivers/scsi/advansys.c	2006-04-20 00:46:42.000000000 -0700
+@@ -2056,11 +2056,12 @@ STATIC ASC_DCNT  AscGetMaxDmaCount(ushor
  /*
-@@ -61,6 +59,7 @@ struct workqueue_struct {
- 	struct cpu_workqueue_struct *cpu_wq;
- 	const char *name;
- 	struct list_head list; 	/* Empty if single thread */
-+	int freezeable;		/* Freeze threads during suspend */
- };
+  * Define Adv Library required memory access macros.
+  */
+-#define ADV_MEM_READB(addr) readb(addr)
+-#define ADV_MEM_READW(addr) readw(addr)
+-#define ADV_MEM_WRITEB(addr, byte) writeb(byte, addr)
+-#define ADV_MEM_WRITEW(addr, word) writew(word, addr)
+-#define ADV_MEM_WRITEDW(addr, dword) writel(dword, addr)
++#warning these typecasts need to go away
++#define ADV_MEM_READB(addr) readb((void __iomem *)addr)
++#define ADV_MEM_READW(addr) readw((void __iomem *)addr)
++#define ADV_MEM_WRITEB(addr, byte) writeb(byte, (void __iomem *)addr)
++#define ADV_MEM_WRITEW(addr, word) writew(word, (void __iomem *)addr)
++#define ADV_MEM_WRITEDW(addr, dword) writel(dword, (void __iomem *)addr)
  
- /* All the per-cpu workqueues on the system, for hotplug cpu to add/remove
-@@ -351,7 +350,7 @@ static int worker_thread(void *__cwq)
- 	struct k_sigaction sa;
- 	sigset_t blocked;
+ #define ADV_CARRIER_COUNT (ASC_DEF_MAX_HOST_QNG + 15)
  
--	if (!cwq->freezeable)
-+	if (!cwq->wq->freezeable)
- 		current->flags |= PF_NOFREEZE;
- 
- 	set_user_nice(current, -5);
-@@ -375,7 +374,7 @@ static int worker_thread(void *__cwq)
- 
- 	set_current_state(TASK_INTERRUPTIBLE);
- 	while (!kthread_should_stop()) {
--		if (cwq->freezeable)
-+		if (cwq->wq->freezeable)
- 			try_to_freeze();
- 
- 		add_wait_queue(&cwq->more_work, &wait);
-@@ -546,7 +545,7 @@ out:
- EXPORT_SYMBOL_GPL(flush_work);
- 
- static struct task_struct *create_workqueue_thread(struct workqueue_struct *wq,
--						   int cpu, int freezeable)
-+							int cpu)
- {
- 	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
- 	struct task_struct *p;
-@@ -554,7 +553,6 @@ static struct task_struct *create_workqu
- 	spin_lock_init(&cwq->lock);
- 	cwq->wq = wq;
- 	cwq->thread = NULL;
--	cwq->freezeable = freezeable;
- 	INIT_LIST_HEAD(&cwq->worklist);
- 	init_waitqueue_head(&cwq->more_work);
- 
-@@ -586,10 +584,12 @@ struct workqueue_struct *__create_workqu
- 	}
- 
- 	wq->name = name;
-+	wq->freezeable = freezeable;
-+
- 	mutex_lock(&workqueue_mutex);
- 	if (singlethread) {
- 		INIT_LIST_HEAD(&wq->list);
--		p = create_workqueue_thread(wq, singlethread_cpu, freezeable);
-+		p = create_workqueue_thread(wq, singlethread_cpu);
- 		if (!p)
- 			destroy = 1;
- 		else
-@@ -597,7 +597,7 @@ struct workqueue_struct *__create_workqu
- 	} else {
- 		list_add(&wq->list, &workqueues);
- 		for_each_online_cpu(cpu) {
--			p = create_workqueue_thread(wq, cpu, freezeable);
-+			p = create_workqueue_thread(wq, cpu);
- 			if (p) {
- 				kthread_bind(p, cpu);
- 				wake_up_process(p);
-@@ -854,7 +854,7 @@ static int __devinit workqueue_cpu_callb
- 		mutex_lock(&workqueue_mutex);
- 		/* Create a new workqueue thread for it. */
- 		list_for_each_entry(wq, &workqueues, list) {
--			if (!create_workqueue_thread(wq, hotcpu, 0)) {
-+			if (!create_workqueue_thread(wq, hotcpu)) {
- 				printk("workqueue for %i failed\n", hotcpu);
- 				return NOTIFY_BAD;
- 			}
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
+git-ieee1394.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-net-ns83820c-add-paramter-to-disable-auto.patch
+git-ioat-vs-git-md-accel.patch
+ioat-warning-fix.patch
+scsi-cover-up-bugs-fix-up-compiler-warnings-in-megaraid-driver.patch
+git-ipwireless_cs.patch
+lumpy-reclaim-v4.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+sync_sb_inodes-propagate-errors.patch
+move-page-writeback-acounting-out-of-macros.patch
+ext2-reservations.patch
+mm-implement-swap-prefetching.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+device-suspend-debug.patch
+slab-leaks3-default-y.patch
+vdso-print-fatal-signals-use-ctl_unnumbered.patch
+restore-rogue-readahead-printk.patch
+put_bh-debug.patch
+acpi_format_exception-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+squash-ipc-warnings.patch
