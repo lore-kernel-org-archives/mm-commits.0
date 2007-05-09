@@ -1,99 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - dm-crypt-add-null-iv.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:39 -0700
-Message-ID: <200705092148.l49Lmd8t002611@shell0.pdx.osdl.net>
+Subject: - dm-mpath-log-device-name.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:42 -0700
+Message-ID: <200705092148.l49Lmg1g002614@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54729 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759381AbXEIVs5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:57 -0400
+	by vger.kernel.org with ESMTP id S1759358AbXEIVsx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ludwig.nussel@suse.de, agk@redhat.com, christophe@saout.de, mm-commits@vger.kernel.org
+To: egoggin@emc.com, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm crypt: add null iv
+     dm mpath: log device name
 has been removed from the -mm tree.  Its filename was
-     dm-crypt-add-null-iv.patch
+     dm-mpath-log-device-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dm crypt: add null iv
-From: Ludwig Nussel <ludwig.nussel@suse.de>
+Subject: dm mpath: log device name
+From: Edward Goggin <egoggin@emc.com>
 
-Add a new IV generation method 'null' to read old filesystem images created
-with SuSE's loop_fish2 module.
+Make the mapped device structure accessible to hardware handlers so error
+messages can include the device name.
 
-Signed-off-by: Ludwig Nussel <ludwig.nussel@suse.de>
-Acked-By: Christophe Saout <christophe@saout.de>
+Signed-off-by: Edward Goggin <egoggin@emc.com>
 Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ drivers/md/dm-hw-handler.h |    1 +
+ drivers/md/dm-mpath.c      |    3 +++
+ drivers/md/dm.c            |    1 +
+ 3 files changed, 5 insertions(+)
 
-diff -puN drivers/md/dm-crypt.c~dm-crypt-add-null-iv drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~dm-crypt-add-null-iv
-+++ a/drivers/md/dm-crypt.c
-@@ -121,6 +121,9 @@ static void clone_init(struct crypt_io *
-  * benbi: the 64-bit "big-endian 'narrow block'-count", starting at 1
-  *        (needed for LRW-32-AES and possible other narrow block modes)
-  *
-+ * null: the initial vector is always zero.  Provides compatibility with
-+ *       obsolete loop_fish2 devices.  Do not use for new devices.
-+ *
-  * plumb: unimplemented, see:
-  * http://article.gmane.org/gmane.linux.kernel.device-mapper.dm-crypt/454
-  */
-@@ -257,6 +260,13 @@ static int crypt_iv_benbi_gen(struct cry
- 	return 0;
+diff -puN drivers/md/dm-hw-handler.h~dm-mpath-log-device-name drivers/md/dm-hw-handler.h
+--- a/drivers/md/dm-hw-handler.h~dm-mpath-log-device-name
++++ a/drivers/md/dm-hw-handler.h
+@@ -16,6 +16,7 @@
+ struct hw_handler_type;
+ struct hw_handler {
+ 	struct hw_handler_type *type;
++	struct mapped_device *md;
+ 	void *context;
+ };
+ 
+diff -puN drivers/md/dm-mpath.c~dm-mpath-log-device-name drivers/md/dm-mpath.c
+--- a/drivers/md/dm-mpath.c~dm-mpath-log-device-name
++++ a/drivers/md/dm-mpath.c
+@@ -668,6 +668,9 @@ static int parse_hw_handler(struct arg_s
+ 		return -EINVAL;
+ 	}
+ 
++	m->hw_handler.md = dm_table_get_md(ti->table);
++	dm_put(m->hw_handler.md);
++
+ 	r = hwht->create(&m->hw_handler, hw_argc - 1, as->argv);
+ 	if (r) {
+ 		dm_put_hw_handler(hwht);
+diff -puN drivers/md/dm.c~dm-mpath-log-device-name drivers/md/dm.c
+--- a/drivers/md/dm.c~dm-mpath-log-device-name
++++ a/drivers/md/dm.c
+@@ -1236,6 +1236,7 @@ void dm_put(struct mapped_device *md)
+ 		free_dev(md);
+ 	}
  }
++EXPORT_SYMBOL_GPL(dm_put);
  
-+static int crypt_iv_null_gen(struct crypt_config *cc, u8 *iv, sector_t sector)
-+{
-+	memset(iv, 0, cc->iv_size);
-+
-+	return 0;
-+}
-+
- static struct crypt_iv_operations crypt_iv_plain_ops = {
- 	.generator = crypt_iv_plain_gen
- };
-@@ -273,6 +283,10 @@ static struct crypt_iv_operations crypt_
- 	.generator = crypt_iv_benbi_gen
- };
- 
-+static struct crypt_iv_operations crypt_iv_null_ops = {
-+	.generator = crypt_iv_null_gen
-+};
-+
- static int
- crypt_convert_scatterlist(struct crypt_config *cc, struct scatterlist *out,
-                           struct scatterlist *in, unsigned int length,
-@@ -803,6 +817,8 @@ static int crypt_ctr(struct dm_target *t
- 		cc->iv_gen_ops = &crypt_iv_essiv_ops;
- 	else if (strcmp(ivmode, "benbi") == 0)
- 		cc->iv_gen_ops = &crypt_iv_benbi_ops;
-+	else if (strcmp(ivmode, "null") == 0)
-+		cc->iv_gen_ops = &crypt_iv_null_ops;
- 	else {
- 		ti->error = "Invalid IV mode";
- 		goto bad2;
-@@ -1030,7 +1046,7 @@ error:
- 
- static struct target_type crypt_target = {
- 	.name   = "crypt",
--	.version= {1, 3, 0},
-+	.version= {1, 5, 0},
- 	.module = THIS_MODULE,
- 	.ctr    = crypt_ctr,
- 	.dtr    = crypt_dtr,
+ /*
+  * Process the deferred bios
 _
 
-Patches currently in -mm which might be from ludwig.nussel@suse.de are
+Patches currently in -mm which might be from egoggin@emc.com are
 
 origin.patch
