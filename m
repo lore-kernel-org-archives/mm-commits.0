@@ -1,97 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - char-cyclades-cy_init-error-handling.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:57:11 -0700
-Message-ID: <200705090257.l492vBmq010150@shell0.pdx.osdl.net>
+Subject: - add-irqf_irqpoll-flag-common-code.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:56:09 -0700
+Message-ID: <200705090256.l492u9qU010014@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44295 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032751AbXEIC5O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:57:14 -0400
+	by vger.kernel.org with ESMTP id S1032738AbXEIC5K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:57:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: bwalle@suse.de, alan@lxorguk.ukuu.org.uk, grundler@google.com, kyle@mcmartin.ca, lethal@linux-sh.org, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, tony.luck@intel.com, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: cyclades, cy_init error handling
+     Add IRQF_IRQPOLL flag (common code)
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-cy_init-error-handling.patch
+     add-irqf_irqpoll-flag-common-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: cyclades, cy_init error handling
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Add IRQF_IRQPOLL flag (common code)
+From: Bernhard Walle <bwalle@suse.de>
 
-- do not panic if tty_register_driver fails
-- handle fail paths properly
+irqpoll is broken on some architectures that don't use the IRQ 0 for the timer
+interrupt like IA64.  This patch adds a IRQF_IRQPOLL flag.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Each architecture is handled in a separate pach.  As I left the irq == 0 as
+condition, this should not break existing architectures that use timer_irq ==
+0 and that I did't address with that patch (because I don't know).
+
+
+This patch:
+
+This patch adds a IRQF_IRQPOLL flag that the interrupt registration code could
+use for the interrupt it wants to use for IRQ polling.
+
+Because this must not be the timer interrupt, an additional flag was added
+instead of re-using the IRQF_TIMER constant.  Until all architectures will
+have an IRQF_IRQPOLL interrupt, irq == 0 will stay as alternative as it should
+not break anything.
+
+Also, note_interrupt() is called on CPU-specific interrupts to be used as
+interrupt source for IRQ polling.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Matthew Wilcox <willy@debian.org>
+Cc: Grant Grundler <grundler@google.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ include/linux/interrupt.h |    4 ++++
+ kernel/irq/handle.c       |    2 ++
+ kernel/irq/spurious.c     |    4 +++-
+ 3 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-cy_init-error-handling drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-cy_init-error-handling
-+++ a/drivers/char/cyclades.c
-@@ -5460,10 +5460,11 @@ static const struct tty_operations cy_op
- static int __init cy_init(void)
- {
- 	unsigned int i, nboards;
-+	int retval = -ENOMEM;
+diff -puN include/linux/interrupt.h~add-irqf_irqpoll-flag-common-code include/linux/interrupt.h
+--- a/include/linux/interrupt.h~add-irqf_irqpoll-flag-common-code
++++ a/include/linux/interrupt.h
+@@ -44,6 +44,9 @@
+  * IRQF_TIMER - Flag to mark this interrupt as timer interrupt
+  * IRQF_PERCPU - Interrupt is per cpu
+  * IRQF_NOBALANCING - Flag to exclude this interrupt from irq balancing
++ * IRQF_IRQPOLL - Interrupt is used for polling (only the interrupt that is
++ *                registered first in an shared interrupt is considered for
++ *                performance reasons)
+  */
+ #define IRQF_DISABLED		0x00000020
+ #define IRQF_SAMPLE_RANDOM	0x00000040
+@@ -52,6 +55,7 @@
+ #define IRQF_TIMER		0x00000200
+ #define IRQF_PERCPU		0x00000400
+ #define IRQF_NOBALANCING	0x00000800
++#define IRQF_IRQPOLL		0x00001000
  
- 	cy_serial_driver = alloc_tty_driver(NR_PORTS);
- 	if (!cy_serial_driver)
--		return -ENOMEM;
-+		goto err;
- 	show_version();
+ /*
+  * Migration helpers. Scheduled for removal in 9/2007
+diff -puN kernel/irq/handle.c~add-irqf_irqpoll-flag-common-code kernel/irq/handle.c
+--- a/kernel/irq/handle.c~add-irqf_irqpoll-flag-common-code
++++ a/kernel/irq/handle.c
+@@ -180,6 +180,8 @@ fastcall unsigned int __do_IRQ(unsigned 
+ 		if (desc->chip->ack)
+ 			desc->chip->ack(irq);
+ 		action_ret = handle_IRQ_event(irq, desc->action);
++		if (!noirqdebug)
++			note_interrupt(irq, desc, action_ret);
+ 		desc->chip->end(irq);
+ 		return 1;
+ 	}
+diff -puN kernel/irq/spurious.c~add-irqf_irqpoll-flag-common-code kernel/irq/spurious.c
+--- a/kernel/irq/spurious.c~add-irqf_irqpoll-flag-common-code
++++ a/kernel/irq/spurious.c
+@@ -146,7 +146,9 @@ void note_interrupt(unsigned int irq, st
  
- 	/* Initialize the tty_driver structure */
-@@ -5481,8 +5482,11 @@ static int __init cy_init(void)
- 	cy_serial_driver->flags = TTY_DRIVER_REAL_RAW;
- 	tty_set_operations(cy_serial_driver, &cy_ops);
- 
--	if (tty_register_driver(cy_serial_driver))
--		panic("Couldn't register Cyclades serial driver\n");
-+	retval = tty_register_driver(cy_serial_driver);
-+	if (retval) {
-+		printk(KERN_ERR "Couldn't register Cyclades serial driver\n");
-+		goto err_frtty;
-+	}
- 
- 	for (i = 0; i < NR_CARDS; i++) {
- 		/* base_addr=0 indicates board not found */
-@@ -5508,7 +5512,18 @@ static int __init cy_init(void)
- 	/* look for pci boards */
- 	nboards += cy_detect_pci();
- 
--	return nboards ? 0 : -ENODEV;
-+	if (nboards == 0) {
-+		retval = -ENODEV;
-+		goto err_unr;
-+	}
-+
-+	return 0;
-+err_unr:
-+	tty_unregister_driver(cy_serial_driver);
-+err_frtty:
-+	put_tty_driver(cy_serial_driver);
-+err:
-+	return retval;
- }				/* cy_init */
- 
- static void __exit cy_cleanup_module(void)
+ 	if (unlikely(irqfixup)) {
+ 		/* Don't punish working computers */
+-		if ((irqfixup == 2 && irq == 0) || action_ret == IRQ_NONE) {
++		if ((irqfixup == 2 && ((irq == 0) ||
++				(desc->action->flags & IRQF_IRQPOLL))) ||
++				action_ret == IRQ_NONE) {
+ 			int ok = misrouted_irq(irq);
+ 			if (action_ret == IRQ_NONE)
+ 				desc->irqs_unhandled -= ok;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
-git-dvb.patch
-cinergyt2-fix-file-release-handler.patch
-auerswald-fix-file-release-handler.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-vmstat-use-our-own-timer-events-fix.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-r8169.patch
+use-unchecked_isa_dma-in-sd_revalidate_disk.patch
