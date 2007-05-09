@@ -1,60 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda-lguest-2621-mm1-update.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:41:53 -0700
-Message-ID: <200705090941.l499fr5E020167@shell0.pdx.osdl.net>
+Subject: - lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:41:57 -0700
+Message-ID: <200705090941.l499fv6p020172@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58815 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753827AbXEIJmU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:42:20 -0400
+	by vger.kernel.org with ESMTP id S1752057AbXEIJma (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:42:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest: 2.6.21-mm1 update: lguest-remove-unnecessary-gdt-load.patch
+     Update lguest's patch code for new paravirt patch architecture
 has been removed from the -mm tree.  Its filename was
-     lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda-lguest-2621-mm1-update.patch
+     lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
 
 This patch was dropped because it was folded into lguest-the-guest-code.patch
 
 ------------------------------------------------------
-Subject: lguest: 2.6.21-mm1 update: lguest-remove-unnecessary-gdt-load.patch
+Subject: Update lguest's patch code for new paravirt patch architecture
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-Andrew did a great job of merging in the PDA->percpu changes and
-lguest code for 2.6.21-mm1, but the load_gdt is now unnecessary.
+The new patching code means that we don't actually have to do as much
+work in lguest's patcher.
+
+We use paravirt_patch_default() for cases we don't want to patch
+inline, which automatically handles the "patch iret to use a direct
+jump" case.
+
+There's no measurable effect on lguest's virtbench scores tho.
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest.c |    4 ----
- 1 files changed, 4 deletions(-)
+ drivers/lguest/lguest.c     |   10 ++--------
+ drivers/lguest/lguest_asm.S |    1 -
+ 2 files changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN drivers/lguest/lguest.c~lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda-lguest-2621-mm1-update drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda-lguest-2621-mm1-update
+diff -puN drivers/lguest/lguest.c~lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch
 +++ a/drivers/lguest/lguest.c
-@@ -412,9 +412,6 @@ static unsigned lguest_patch(u8 type, u1
+@@ -387,7 +387,6 @@ static const struct lguest_insns
+ 	[PARAVIRT_PATCH(irq_enable)] = { lgstart_sti, lgend_sti },
+ 	[PARAVIRT_PATCH(restore_fl)] = { lgstart_popf, lgend_popf },
+ 	[PARAVIRT_PATCH(save_fl)] = { lgstart_pushf, lgend_pushf },
+-	[PARAVIRT_PATCH(iret)] = { lgstart_iret, lgend_iret },
+ };
+ static unsigned lguest_patch(u8 type, u16 clobber, void *insns, unsigned len)
+ {
+@@ -395,20 +394,15 @@ static unsigned lguest_patch(u8 type, u1
+ 
+ 	/* Don't touch it if we don't have a replacement */
+ 	if (type >= ARRAY_SIZE(lguest_insns) || !lguest_insns[type].start)
+-		return len;
++		return paravirt_patch_default(type, clobber, insns, len);
+ 
+ 	insn_len = lguest_insns[type].end - lguest_insns[type].start;
+ 
+ 	/* Similarly if we can't fit replacement. */
+ 	if (len < insn_len)
+-		return len;
++		return paravirt_patch_default(type, clobber, insns, len);
+ 
+ 	memcpy(insns, lguest_insns[type].start, insn_len);
+-	if (type == PARAVIRT_PATCH(iret)) {
+-		/* Jumps are relative. */
+-		u32 off = (u32)lguest_iret - ((u32)insns + insn_len);
+-		memcpy(insns+1, &off, sizeof(off));
+-	}
  	return insn_len;
  }
  
--/* From head.S */
--extern struct Xgt_desc_struct early_gdt_descr;
--
- __init void lguest_init(void)
- {
- 	paravirt_ops.name = "lguest";
-@@ -470,7 +467,6 @@ __init void lguest_init(void)
- 	/* We use top of mem for initial pagetables. */
- 	init_pg_tables_end = __pa(pg0);
+diff -puN drivers/lguest/lguest_asm.S~lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch drivers/lguest/lguest_asm.S
+--- a/drivers/lguest/lguest_asm.S~lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch
++++ a/drivers/lguest/lguest_asm.S
+@@ -34,7 +34,6 @@ LGUEST_PATCH(cli, movl $0, lguest_data+L
+ LGUEST_PATCH(sti, movl $X86_EFLAGS_IF, lguest_data+LGUEST_DATA_irq_enabled)
+ LGUEST_PATCH(popf, movl %eax, lguest_data+LGUEST_DATA_irq_enabled)
+ LGUEST_PATCH(pushf, movl lguest_data+LGUEST_DATA_irq_enabled, %eax)
+-LGUEST_PATCH(iret, .byte 0xE9,0,0,0,0) /* jmp <to-be-patched> */
  
--	load_gdt(&early_gdt_descr);
- 	asm volatile ("mov %0, %%fs" : : "r" (__KERNEL_DS) : "memory");
- 
- 	reserve_top_address(lguest_data.reserve_mem);
+ .text
+ /* These demark the EIP range where host should never deliver interrupts. */
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -72,7 +104,6 @@ update-mtd-use-of-symbol_getput.patch
 update-dvb-use-of-symbol_getput.patch
 lguest-export-symbols-for-lguest-as-a-module.patch
 lguest-the-guest-code.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda-lguest-2621-mm1-update.patch
 lguest-the-guest-code-update-lguests-patch-code-for-new-paravirt-patch.patch
 lguest-the-guest-code-handle-new-paravirt-lazy-mode-fix-userspace.patch
 lguest-the-guest-code-dont-use-paravirt_probe-its-dying.patch
