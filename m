@@ -1,88 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:49:46 -0700
-Message-ID: <200705092149.l49LnkKp002725@shell0.pdx.osdl.net>
+Subject: - pretend-cpuset-has-some-form-of-hugetlb-page-reservation.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:50:04 -0700
+Message-ID: <200705092150.l49Lo43H002769@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51275 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754441AbXEIVuF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:05 -0400
+	by vger.kernel.org with ESMTP id S1754516AbXEIVuL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fernando@oss.ntt.co.jp, ak@suse.de, ebiederm@xmission.com, tony.luck@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: kenchen@google.com, clameter@engr.sgi.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use the APIC to determine the hardware processor id - x86_64
+     pretend cpuset has some form of hugetlb page reservation
 has been removed from the -mm tree.  Its filename was
-     use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
+     pretend-cpuset-has-some-form-of-hugetlb-page-reservation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use the APIC to determine the hardware processor id - x86_64
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: pretend cpuset has some form of hugetlb page reservation
+From: "Ken Chen" <kenchen@google.com>
 
-hard_smp_processor_id used to be just a macro that hard-coded
-hard_smp_processor_id to 0 in the non SMP case.  When booting non SMP kernels
-on hardware where the boot ioapic id is not 0 this turns out to be a problem. 
-This is happens frequently in the case of kdump and once in a great while in
-the case of real hardware.
+When cpuset is configured, it breaks the strict hugetlb page reservation as
+the accounting is done on a global variable.  Such reservation is
+completely rubbish in the presence of cpuset because the reservation is not
+checked against page availability for the current cpuset.  Application can
+still potentially OOM'ed by kernel with lack of free htlb page in cpuset
+that the task is in.  Attempt to enforce strict accounting with cpuset is
+almost impossible (or too ugly) because cpuset is too fluid that task or
+memory node can be dynamically moved between cpusets.
 
-Use the APIC to determine the hardware processor id in both UP and SMP kernels
-to fix this issue.
+The change of semantics for shared hugetlb mapping with cpuset is
+undesirable.  However, in order to preserve some of the semantics, we fall
+back to check against current free page availability as a best attempt and
+hopefully to minimize the impact of changing semantics that cpuset has on
+hugetlb.
 
-Notice that hard_smp_processor_id is only used by SMP code or by code that
-works with apics so we do not need to handle the case when apics are not
-present and hard_smp_processor_id should never be called there.
-
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Acked-by: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/smp.h |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ mm/hugetlb.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff -puN include/asm-x86_64/smp.h~use-the-apic-to-determine-the-hardware-processor-id-x86_64 include/asm-x86_64/smp.h
---- a/include/asm-x86_64/smp.h~use-the-apic-to-determine-the-hardware-processor-id-x86_64
-+++ a/include/asm-x86_64/smp.h
-@@ -57,12 +57,6 @@ static inline int num_booting_cpus(void)
+diff -puN mm/hugetlb.c~pretend-cpuset-has-some-form-of-hugetlb-page-reservation mm/hugetlb.c
+--- a/mm/hugetlb.c~pretend-cpuset-has-some-form-of-hugetlb-page-reservation
++++ a/mm/hugetlb.c
+@@ -174,6 +174,17 @@ static int __init hugetlb_setup(char *s)
+ }
+ __setup("hugepages=", hugetlb_setup);
  
- #define raw_smp_processor_id() read_pda(cpunumber)
- 
--static inline int hard_smp_processor_id(void)
--{
--	/* we don't want to mark this access volatile - bad code generation */
--	return GET_APIC_ID(*(unsigned int *)(APIC_BASE+APIC_ID));
--}
--
- extern int __cpu_disable(void);
- extern void __cpu_die(unsigned int cpu);
- extern void prefill_possible_map(void);
-@@ -71,10 +65,14 @@ extern unsigned __cpuinitdata disabled_c
- 
- #define NO_PROC_ID		0xFF		/* No processor magic marker */
- 
--#else /* CONFIG_SMP */
--#define hard_smp_processor_id() 0
- #endif /* CONFIG_SMP */
- 
-+static inline int hard_smp_processor_id(void)
++static unsigned int cpuset_mems_nr(unsigned int *array)
 +{
-+	/* we don't want to mark this access volatile - bad code generation */
-+	return GET_APIC_ID(*(unsigned int *)(APIC_BASE+APIC_ID));
++	int node;
++	unsigned int nr = 0;
++
++	for_each_node_mask(node, cpuset_current_mems_allowed)
++		nr += array[node];
++
++	return nr;
 +}
 +
- /*
-  * Some lowlevel functions might want to know about
-  * the real APIC ID <-> CPU # mapping.
+ #ifdef CONFIG_SYSCTL
+ static void update_and_free_page(struct page *page)
+ {
+@@ -819,6 +830,26 @@ int hugetlb_reserve_pages(struct inode *
+ 	chg = region_chg(&inode->i_mapping->private_list, from, to);
+ 	if (chg < 0)
+ 		return chg;
++	/*
++	 * When cpuset is configured, it breaks the strict hugetlb page
++	 * reservation as the accounting is done on a global variable. Such
++	 * reservation is completely rubbish in the presence of cpuset because
++	 * the reservation is not checked against page availability for the
++	 * current cpuset. Application can still potentially OOM'ed by kernel
++	 * with lack of free htlb page in cpuset that the task is in.
++	 * Attempt to enforce strict accounting with cpuset is almost
++	 * impossible (or too ugly) because cpuset is too fluid that
++	 * task or memory node can be dynamically moved between cpusets.
++	 *
++	 * The change of semantics for shared hugetlb mapping with cpuset is
++	 * undesirable. However, in order to preserve some of the semantics,
++	 * we fall back to check against current free page availability as
++	 * a best attempt and hopefully to minimize the impact of changing
++	 * semantics that cpuset has.
++	 */
++	if (chg > cpuset_mems_nr(free_huge_pages_node))
++		return -ENOMEM;
++
+ 	ret = hugetlb_acct_memory(chg);
+ 	if (ret < 0)
+ 		return ret;
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from kenchen@google.com are
 
 origin.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
