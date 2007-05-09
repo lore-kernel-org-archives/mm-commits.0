@@ -1,153 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-use-zero_user_page.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:53:54 -0700
-Message-ID: <200705092153.l49Lrskq003121@shell0.pdx.osdl.net>
+Subject: - declare-struct-ktime.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:53:30 -0700
+Message-ID: <200705092153.l49LrUPr003087@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45110 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:50211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758944AbXEIVyN (ORCPT
+	by vger.kernel.org with ESMTP id S1758957AbXEIVyN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:54:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nate.diller@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: use zero_user_page
+     declare struct ktime
 has been removed from the -mm tree.  Its filename was
-     reiserfs-use-zero_user_page.patch
+     declare-struct-ktime.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reiserfs: use zero_user_page
-From: Nate Diller <nate.diller@gmail.com>
+Subject: declare struct ktime
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use zero_user_page() instead of open-coding it.
+Some smarty went and inflicted ktime_t as a typedef upon us, so we cannot
+forward declare it.
 
-Signed-off-by: Nate Diller <nate.diller@gmail.com>
+Create a new `union ktime', map ktime_t onto that.  Now we need to kill off
+this ktime_t thing.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/file.c  |   39 +++++++++++----------------------------
- fs/reiserfs/inode.c |   13 ++-----------
- 2 files changed, 13 insertions(+), 39 deletions(-)
+ include/linux/ktime.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiserfs/file.c~reiserfs-use-zero_user_page fs/reiserfs/file.c
---- a/fs/reiserfs/file.c~reiserfs-use-zero_user_page
-+++ a/fs/reiserfs/file.c
-@@ -1059,20 +1059,12 @@ static int reiserfs_prepare_file_region_
- 	   maping blocks, since there is none, so we just zero out remaining
- 	   parts of first and last pages in write area (if needed) */
- 	if ((pos & ~((loff_t) PAGE_CACHE_SIZE - 1)) > inode->i_size) {
--		if (from != 0) {	/* First page needs to be partially zeroed */
--			char *kaddr = kmap_atomic(prepared_pages[0], KM_USER0);
--			memset(kaddr, 0, from);
--			kunmap_atomic(kaddr, KM_USER0);
--			flush_dcache_page(prepared_pages[0]);
--		}
--		if (to != PAGE_CACHE_SIZE) {	/* Last page needs to be partially zeroed */
--			char *kaddr =
--			    kmap_atomic(prepared_pages[num_pages - 1],
--					KM_USER0);
--			memset(kaddr + to, 0, PAGE_CACHE_SIZE - to);
--			kunmap_atomic(kaddr, KM_USER0);
--			flush_dcache_page(prepared_pages[num_pages - 1]);
--		}
-+		if (from != 0)		/* First page needs to be partially zeroed */
-+			zero_user_page(prepared_pages[0], 0, from, KM_USER0);
+diff -puN include/linux/ktime.h~declare-struct-ktime include/linux/ktime.h
+--- a/include/linux/ktime.h~declare-struct-ktime
++++ a/include/linux/ktime.h
+@@ -43,7 +43,7 @@
+  * plain scalar nanosecond based representation can be selected by the
+  * config switch CONFIG_KTIME_SCALAR.
+  */
+-typedef union {
++union ktime {
+ 	s64	tv64;
+ #if BITS_PER_LONG != 64 && !defined(CONFIG_KTIME_SCALAR)
+ 	struct {
+@@ -54,7 +54,9 @@ typedef union {
+ # endif
+ 	} tv;
+ #endif
+-} ktime_t;
++};
 +
-+		if (to != PAGE_CACHE_SIZE)	/* Last page needs to be partially zeroed */
-+			zero_user_page(prepared_pages[num_pages-1], to,
-+					PAGE_CACHE_SIZE - to, KM_USER0);
++typedef union ktime ktime_t;		/* Kill this */
  
- 		/* Since all blocks are new - use already calculated value */
- 		return blocks;
-@@ -1199,13 +1191,9 @@ static int reiserfs_prepare_file_region_
- 					ll_rw_block(READ, 1, &bh);
- 					*wait_bh++ = bh;
- 				} else {	/* Not mapped, zero it */
--					char *kaddr =
--					    kmap_atomic(prepared_pages[0],
--							KM_USER0);
--					memset(kaddr + block_start, 0,
--					       from - block_start);
--					kunmap_atomic(kaddr, KM_USER0);
--					flush_dcache_page(prepared_pages[0]);
-+					zero_user_page(prepared_pages[0],
-+						       block_start,
-+						       from - block_start, KM_USER0);
- 					set_buffer_uptodate(bh);
- 				}
- 			}
-@@ -1237,13 +1225,8 @@ static int reiserfs_prepare_file_region_
- 					ll_rw_block(READ, 1, &bh);
- 					*wait_bh++ = bh;
- 				} else {	/* Not mapped, zero it */
--					char *kaddr =
--					    kmap_atomic(prepared_pages
--							[num_pages - 1],
--							KM_USER0);
--					memset(kaddr + to, 0, block_end - to);
--					kunmap_atomic(kaddr, KM_USER0);
--					flush_dcache_page(prepared_pages[num_pages - 1]);
-+					zero_user_page(prepared_pages[num_pages-1],
-+							to, block_end - to, KM_USER0);
- 					set_buffer_uptodate(bh);
- 				}
- 			}
-diff -puN fs/reiserfs/inode.c~reiserfs-use-zero_user_page fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiserfs-use-zero_user_page
-+++ a/fs/reiserfs/inode.c
-@@ -2148,13 +2148,8 @@ int reiserfs_truncate_file(struct inode 
- 		length = offset & (blocksize - 1);
- 		/* if we are not on a block boundary */
- 		if (length) {
--			char *kaddr;
--
- 			length = blocksize - length;
--			kaddr = kmap_atomic(page, KM_USER0);
--			memset(kaddr + offset, 0, length);
--			flush_dcache_page(page);
--			kunmap_atomic(kaddr, KM_USER0);
-+			zero_user_page(page, offset, length, KM_USER0);
- 			if (buffer_mapped(bh) && bh->b_blocknr != 0) {
- 				mark_buffer_dirty(bh);
- 			}
-@@ -2370,7 +2365,6 @@ static int reiserfs_write_full_page(stru
- 	 ** last byte in the file
- 	 */
- 	if (page->index >= end_index) {
--		char *kaddr;
- 		unsigned last_offset;
- 
- 		last_offset = inode->i_size & (PAGE_CACHE_SIZE - 1);
-@@ -2379,10 +2373,7 @@ static int reiserfs_write_full_page(stru
- 			unlock_page(page);
- 			return 0;
- 		}
--		kaddr = kmap_atomic(page, KM_USER0);
--		memset(kaddr + last_offset, 0, PAGE_CACHE_SIZE - last_offset);
--		flush_dcache_page(page);
--		kunmap_atomic(kaddr, KM_USER0);
-+		zero_user_page(page, last_offset, PAGE_CACHE_SIZE - last_offset, KM_USER0);
- 	}
- 	bh = head;
- 	block = page->index << (PAGE_CACHE_SHIFT - s->s_blocksize_bits);
+ #define KTIME_MAX			((s64)~((u64)1 << 63))
+ #if (BITS_PER_LONG == 64)
 _
 
-Patches currently in -mm which might be from nate.diller@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cifs-use-simple_prepare_write-to-zero-page-data.patch
-ext4-use-simple_prepare_write-to-zero-page-data.patch
-ecryptfs-use-zero_user_page.patch
-ext4-use-zero_user_page.patch
-gfs2-use-zero_user_page.patch
-nfs-use-zero_user_page.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
 ntfs-use-zero_user_page.patch
-ocfs2-use-zero_user_page.patch
-xfs-use-zero_user_page.patch
 reiser4.patch
-reiser4-use-zero_user_page.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
