@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:04:32 -0700
-Message-ID: <200705091004.l49A4W80020756@shell0.pdx.osdl.net>
+Subject: - fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:04:42 -0700
+Message-ID: <200705091004.l49A4gHd020774@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49652 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754812AbXEIKEt (ORCPT
+	by vger.kernel.org with ESMTP id S1754834AbXEIKEt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:04:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,35 +14,38 @@ To: akpm@linux-foundation.org, suparna@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix
+     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio fix
 has been removed from the -mm tree.  Its filename was
-     fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
+     fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix
+Subject: fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio fix
 From: Andrew Morton <akpm@osdl.org>
 
+fs/aio.c:665: warning: initialization from incompatible pointer type
+fs/aio.c:724: warning: assignment from incompatible pointer type
+
 Cc: Suparna Bhattacharya <suparna@in.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
 ---
 
- fs/gfs2/glock.c |    2 +-
+ fs/aio.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/gfs2/glock.c~fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix fs/gfs2/glock.c
---- a/fs/gfs2/glock.c~fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix
-+++ a/fs/gfs2/glock.c
-@@ -458,7 +458,7 @@ static void gfs2_holder_dispose_or_wake(
- 	wake_up_bit(&gh->gh_iflags, HIF_WAIT);
- }
- 
--static int holder_wait(void *word)
-+static int holder_wait(void *word, wait_queue_t *wait)
+diff -puN fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix fs/aio.c
+--- a/fs/aio.c~fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix
++++ a/fs/aio.c
+@@ -662,7 +662,7 @@ static ssize_t aio_run_iocb(struct kiocb
  {
-         schedule();
-         return 0;
+ 	struct kioctx	*ctx = iocb->ki_ctx;
+ 	ssize_t (*retry)(struct kiocb *);
+-	struct wait_queue_t *io_wait = current->io_wait;
++	wait_queue_t *io_wait = current->io_wait;
+ 	ssize_t ret;
+ 
+ 	if (!(retry = iocb->ki_retry)) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
@@ -72,7 +75,6 @@ deprecate-smbfs-in-favour-of-cifs.patch
 sync_sb_inodes-propagate-errors.patch
 move-page-writeback-acounting-out-of-macros.patch
 ext2-reservations.patch
-fsaio-add-a-wait-queue-arg-to-the-wait_bit-action-routine-gfs2-fix.patch
 fsaio-enable-wait-bit-based-filtered-wakeups-to-work-for-aio-fix.patch
 mm-implement-swap-prefetching.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
