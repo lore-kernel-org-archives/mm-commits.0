@@ -1,70 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - round_up-macro-cleanup-in-drivers-char-lpc.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:49:02 -0700
-Message-ID: <200705090249.l492n2Is009178@shell0.pdx.osdl.net>
+Subject: - i386-schedh-inclusion-from-moduleh-is-baack.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:49:04 -0700
+Message-ID: <200705090249.l492n44x009181@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56929 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966107AbXEICtE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:04 -0400
+	by vger.kernel.org with ESMTP id S968183AbXEICtH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:49:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: milindchoudhary@gmail.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ROUND_UP macro cleanup in drivers/char/lp.c
+     i386: sched.h inclusion from module.h is baack
 has been removed from the -mm tree.  Its filename was
-     round_up-macro-cleanup-in-drivers-char-lpc.patch
+     i386-schedh-inclusion-from-moduleh-is-baack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ROUND_UP macro cleanup in drivers/char/lp.c
-From: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Subject: i386: sched.h inclusion from module.h is baack
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-ROUND_UP macro cleanup use DIV_ROUND_UP
+  linux/module.h
+  -> linux/elf.h
+     -> asm-i386/elf.h
+        -> linux/utsname.h
+           -> linux/sched.h
 
-Signed-off-by: Milind Arun Choudhary <milindchoudhary@gmail.com>
+Noticeably cut the number of files which are rebuild upon touching sched.h
+and cut down pulled junk from every module.h inclusion.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/lp.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/char/i8k.c     |    1 +
+ fs/binfmt_elf.c        |    1 +
+ include/asm-i386/elf.h |    2 --
+ 3 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/lp.c~round_up-macro-cleanup-in-drivers-char-lpc drivers/char/lp.c
---- a/drivers/char/lp.c~round_up-macro-cleanup-in-drivers-char-lpc
-+++ a/drivers/char/lp.c
-@@ -138,9 +138,6 @@
- /* if you have more than 8 printers, remember to increase LP_NO */
- #define LP_NO 8
+diff -puN drivers/char/i8k.c~i386-schedh-inclusion-from-moduleh-is-baack drivers/char/i8k.c
+--- a/drivers/char/i8k.c~i386-schedh-inclusion-from-moduleh-is-baack
++++ a/drivers/char/i8k.c
+@@ -22,6 +22,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/dmi.h>
++#include <linux/capability.h>
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
  
--/* ROUND_UP macro from fs/select.c */
--#define ROUND_UP(x,y) (((x)+(y)-1)/(y))
+diff -puN fs/binfmt_elf.c~i386-schedh-inclusion-from-moduleh-is-baack fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~i386-schedh-inclusion-from-moduleh-is-baack
++++ a/fs/binfmt_elf.c
+@@ -38,6 +38,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/random.h>
+ #include <linux/elf.h>
++#include <linux/utsname.h>
+ #include <asm/uaccess.h>
+ #include <asm/param.h>
+ #include <asm/page.h>
+diff -puN include/asm-i386/elf.h~i386-schedh-inclusion-from-moduleh-is-baack include/asm-i386/elf.h
+--- a/include/asm-i386/elf.h~i386-schedh-inclusion-from-moduleh-is-baack
++++ a/include/asm-i386/elf.h
+@@ -9,8 +9,6 @@
+ #include <asm/user.h>
+ #include <asm/auxvec.h>
+ 
+-#include <linux/utsname.h>
 -
- static struct lp_struct lp_table[LP_NO];
- 
- static unsigned int lp_count = 0;
-@@ -651,7 +648,7 @@ static int lp_ioctl(struct inode *inode,
- 			    (par_timeout.tv_usec < 0)) {
- 				return -EINVAL;
- 			}
--			to_jiffies = ROUND_UP(par_timeout.tv_usec, 1000000/HZ);
-+			to_jiffies = DIV_ROUND_UP(par_timeout.tv_usec, 1000000/HZ);
- 			to_jiffies += par_timeout.tv_sec * (long) HZ;
- 			if (to_jiffies <= 0) {
- 				return -EINVAL;
+ #define R_386_NONE	0
+ #define R_386_32	1
+ #define R_386_PC32	2
 _
 
-Patches currently in -mm which might be from milindchoudhary@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-git-alsa.patch
-git-ia64.patch
-spin_lock_unlocked-macro-cleanup-in-arch-ia64.patch
-nfs-use-__set_current_state.patch
-round_up-macro-cleanup-in-drivers-parisc.patch
-round_up-macro-cleanup-in-drivers-pci.patch
-pcie-remove-spin_lock_unlocked.patch
-round_up-macro-cleanup-in-arch-sh64-kernel-pci_sh5c.patch
+git-dvb.patch
+pata_scc-fix-compilation.patch
+git-parisc.patch
+git-scsi-misc.patch
+megaraid-fix-warnings-when-config_proc_fs=n.patch
+git-watchdog.patch
