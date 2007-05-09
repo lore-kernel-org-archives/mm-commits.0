@@ -1,61 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - tty-add-compat_ioctl-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:33:46 -0700
-Message-ID: <200705091033.l49AXkCJ021493@shell0.pdx.osdl.net>
+Subject: - blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:35:20 -0700
+Message-ID: <200705091035.l49AZKxq021519@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:45726 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756645AbXEIKeG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:34:06 -0400
+	by vger.kernel.org with ESMTP id S1754833AbXEIKhA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:37:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, paulkf@microgate.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, guilherme@centralinf.com.br, johnstul@us.ibm.com, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty-add-compat_ioctl-fix
+     blacklist-dell-optiplex-320-from-using-the-hpet-fix
 has been removed from the -mm tree.  Its filename was
-     tty-add-compat_ioctl-fix.patch
+     blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
 
-This patch was dropped because it was folded into tty-add-compat_ioctl.patch
+This patch was dropped because it was folded into blacklist-dell-optiplex-320-from-using-the-hpet.patch
 
 ------------------------------------------------------
-Subject: tty-add-compat_ioctl-fix
+Subject: blacklist-dell-optiplex-320-from-using-the-hpet-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Paul Fulghum <paulkf@microgate.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Guilherme M. Schroeder" <guilherme@centralinf.com.br>
+Cc: <stable@kernel.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/i386/kernel/hpet.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-add-compat_ioctl-fix drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-add-compat_ioctl-fix
-+++ a/drivers/char/tty_io.c
-@@ -152,7 +152,8 @@ static int tty_release(struct inode *, s
- int tty_ioctl(struct inode * inode, struct file * file,
- 	      unsigned int cmd, unsigned long arg);
- #ifdef CONFIG_COMPAT
--long tty_compat_ioctl(struct file * file, unsigned int cmd, unsigned long arg);
-+static long tty_compat_ioctl(struct file * file, unsigned int cmd,
-+				unsigned long arg);
- #else
- #define tty_compat_ioctl NULL
- #endif
-@@ -3400,7 +3401,8 @@ int tty_ioctl(struct inode * inode, stru
+diff -puN arch/i386/kernel/hpet.c~blacklist-dell-optiplex-320-from-using-the-hpet-fix arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~blacklist-dell-optiplex-320-from-using-the-hpet-fix
++++ a/arch/i386/kernel/hpet.c
+@@ -60,7 +60,7 @@ static int __init dmi_mark_hpet_broken(s
  }
  
- #ifdef CONFIG_COMPAT
--long tty_compat_ioctl(struct file * file, unsigned int cmd, unsigned long arg)
-+static long tty_compat_ioctl(struct file * file, unsigned int cmd,
-+				unsigned long arg)
+ /* List of systems that have known HPETproblems */
+-static struct dmi_system_id bad_hpet_dmi_table[] = {
++static struct dmi_system_id __initdata bad_hpet_dmi_table[] = {
+ 	{
+ 	 .callback = dmi_mark_hpet_broken,
+ 	 .ident = "Dell OptiPlex 320",
+@@ -73,7 +73,6 @@ static struct dmi_system_id bad_hpet_dmi
+ 	 {}
+ };
+ 
+-
+ static inline int is_hpet_capable(void)
  {
- 	struct inode *inode = file->f_dentry->d_inode;
- 	struct tty_struct *tty = file->private_data;
+ 	return (!boot_hpet_disable && hpet_address);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,7 +118,7 @@ cache-pipe-buf-page-address-for-non-highmem-arch.patch
 upper-32-bits.patch
 lib-hexdump.patch
 tty-add-compat_ioctl.patch
-tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
 blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
 mpc52xx-psc-spi-master-driver-update-tidy.patch
 linux-kernel-markers-i386-optimization.patch
