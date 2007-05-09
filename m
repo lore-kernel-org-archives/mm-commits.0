@@ -1,51 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - integrity-evm-as-an-integrity-service-provider-tidy-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:00:15 -0700
-Message-ID: <200705091000.l49A0FKd020663@shell0.pdx.osdl.net>
+Subject: - integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:00:18 -0700
+Message-ID: <200705091000.l49A0IE5020666@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:55203 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756658AbXEIKAg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:00:36 -0400
+	by vger.kernel.org with ESMTP id S1756892AbXEIKAl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:00:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@linux.vnet.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     integrity-evm-as-an-integrity-service-provider-tidy-fix
+     integrity-evm-as-an-integrity-service-provider-tidy-fix-2
 has been removed from the -mm tree.  Its filename was
-     integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+     integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
 
 This patch was dropped because it was folded into integrity-evm-as-an-integrity-service-provider.patch
 
 ------------------------------------------------------
-Subject: integrity-evm-as-an-integrity-service-provider-tidy-fix
+Subject: integrity-evm-as-an-integrity-service-provider-tidy-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-security/evm/evm_crypto.c:94: warning: implicit declaration of function 'kernel_readlink'
+security/evm/evm_crypto.c: In function 'evm_init_integrity':
+security/evm/evm_crypto.c:187: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
 
 Cc: Kylene Hall <kjhall@us.ibm.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/namei.h |    1 +
- 1 file changed, 1 insertion(+)
+ security/evm/evm_crypto.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/namei.h~integrity-evm-as-an-integrity-service-provider-tidy-fix include/linux/namei.h
---- a/include/linux/namei.h~integrity-evm-as-an-integrity-service-provider-tidy-fix
-+++ a/include/linux/namei.h
-@@ -97,6 +97,7 @@ extern int follow_up(struct vfsmount **,
- 
- extern struct dentry *lock_rename(struct dentry *, struct dentry *);
- extern void unlock_rename(struct dentry *, struct dentry *);
-+extern int kernel_readlink(struct dentry *dentry, char **buffer, int *buflen);
- 
- static inline void nd_set_link(struct nameidata *nd, char *path)
- {
+diff -puN security/evm/evm_crypto.c~integrity-evm-as-an-integrity-service-provider-tidy-fix-2 security/evm/evm_crypto.c
+--- a/security/evm/evm_crypto.c~integrity-evm-as-an-integrity-service-provider-tidy-fix-2
++++ a/security/evm/evm_crypto.c
+@@ -184,7 +184,7 @@ int evm_init_integrity(struct inode *ino
+ 				return -ENOMEM;
+ 			}
+ 			memcpy(xattr_value, value, len);
+-			dprintk(EVM_CRYPTO, "%s: (%s) included (%d)\n",
++			dprintk(EVM_CRYPTO, "%s: (%s) included (%zd)\n",
+ 				__FUNCTION__, config_p->xattr_name, len);
+ 			sg[0].page = virt_to_page(xattr_value);
+ 			sg[0].offset = ((long)xattr_value & ~PAGE_MASK);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,7 +120,6 @@ ntfs-use-zero_user_page.patch
 reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 integrity-new-hooks.patch
 integrity-evm-as-an-integrity-service-provider.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
 integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
 integrity-ima-integrity_measure-support-tidy.patch
 integrity-ima-integrity_measure-support-fix.patch
