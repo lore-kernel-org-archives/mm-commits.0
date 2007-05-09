@@ -1,52 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - slub-clean-up-krealloc-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 01:46:05 -0700
-Message-ID: <200705090846.l498k5V7018339@shell0.pdx.osdl.net>
+Subject: - slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 01:46:26 -0700
+Message-ID: <200705090846.l498kQjQ018349@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:49369 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:36162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755800AbXEIIqI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:46:08 -0400
+	by vger.kernel.org with ESMTP id S1756053AbXEIIq3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:46:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: clean up krealloc (fix)
+     SLUB: include lifetime stats and sets of cpus / nodes in tracking output (fix)
 has been removed from the -mm tree.  Its filename was
-     slub-clean-up-krealloc-fix.patch
+     slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix.patch
 
-This patch was dropped because it was folded into slub-clean-up-krealloc.patch
+This patch was dropped because it was folded into slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output.patch
 
 ------------------------------------------------------
-Subject: SLUB: clean up krealloc (fix)
+Subject: SLUB: include lifetime stats and sets of cpus / nodes in tracking output (fix)
 From: Christoph Lameter <clameter@sgi.com>
 
-Hmmmm... Compile failure on 32bit.
+32 bit cannot perform 64 bit division.
 
-Use size_t in krealloc otherwise min() will complain.
+Replace division by div_long_long.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-clean-up-krealloc-fix mm/slub.c
---- a/mm/slub.c~slub-clean-up-krealloc-fix
+diff -puN mm/slub.c~slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix mm/slub.c
+--- a/mm/slub.c~slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output-fix
 +++ a/mm/slub.c
-@@ -2200,7 +2200,7 @@ EXPORT_SYMBOL(kmem_cache_shrink);
- void *krealloc(const void *p, size_t new_size, gfp_t flags)
- {
- 	void *ret;
--	unsigned long ks;
-+	size_t ks;
+@@ -2933,12 +2933,14 @@ static int list_locations(struct kmem_ca
+ 		else
+ 			n += sprintf(buf + n, "<not-available>");
  
- 	if (unlikely(!p))
- 		return kmalloc(new_size, flags);
+-		if (l->sum_time != l->min_time)
++		if (l->sum_time != l->min_time) {
++			unsigned long remainder;
++
+ 			n += sprintf(buf + n, " age=%ld/%ld/%ld",
+ 			l->min_time,
+-			(unsigned long)(l->sum_time / l->count),
++			div_long_long_rem(l->sum_time, l->count, &remainder),
+ 			l->max_time);
+-		else
++		} else
+ 			n += sprintf(buf + n, " age=%ld",
+ 				l->min_time);
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -57,7 +66,6 @@ slub-after-object-padding-only-needed-for-redzoning.patch
 slub-slabinfo-upgrade.patch
 slub-use-check_valid_pointer-in-kmem_ptr_validate.patch
 slub-clean-up-krealloc.patch
-slub-clean-up-krealloc-fix.patch
 slub-get-rid-of-finish_bootstrap.patch
 slub-update-comments.patch
 slub-add-macros-for-scanning-objects-in-a-slab.patch
