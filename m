@@ -1,1459 +1,567 @@
 From: akpm@linux-foundation.org
-Subject: - apple-smc-driver-hardware-monitoring-and-control.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:45:08 -0700
-Message-ID: <200705090245.l492j8Ut008707@shell0.pdx.osdl.net>
+Subject: - epoll-optimizations-and-cleanups.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:45:52 -0700
+Message-ID: <200705090245.l492jqPq008785@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50428 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59037 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030237AbXEICpo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:44 -0400
+	by vger.kernel.org with ESMTP id S1031576AbXEICp6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas@boichat.ch, bunk@stusta.de, dtor@mail.ru, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Apple SMC driver (hardware monitoring and control)
+     epoll: optimizations and cleanups
 has been removed from the -mm tree.  Its filename was
-     apple-smc-driver-hardware-monitoring-and-control.patch
+     epoll-optimizations-and-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Apple SMC driver (hardware monitoring and control)
-From: Nicolas Boichat <nicolas@boichat.ch>
+Subject: epoll: optimizations and cleanups
+From: Davide Libenzi <davidel@xmailserver.org>
 
-This driver provides support for the Apple System Management Controller, which
-provides an accelerometer (Apple Sudden Motion Sensor), light sensors,
-temperature sensors, keyboard backlight control and fan control. Only
-Intel-based Apple's computers are supported (MacBook Pro, MacBook, MacMini).
+Epoll is doing multiple passes over the ready set at the moment, because of
+the constraints over the f_op->poll() call.  Looking at the code again, I
+noticed that we already hold the epoll semaphore in read, and this
+(together with other locking conditions that hold while doing an
+epoll_wait()) can lead to a smarter way [1] to "ship" events to userspace
+(in a single pass).
 
-[bunk@stusta.de: make drivers/hwmon/applesmc.c:backlight_work stati]
-[khali@linux-fr.org: fix temperature attribute file names]
-Signed-off-by: Nicolas Boichat <nicolas@boichat.ch>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+This is a stress application that can be used to test the new code.  It
+spwans multiple thread and call epoll_wait() and epoll_ctl() from many
+threads.  Stress tested on my dual Opteron 254 w/out any problems.
+
+http://www.xmailserver.org/totalmess.c
+
+This is not a benchmark, just something that tries to stress and exploit
+possible problems with the new code.
+Also, I made a stupid micro-benchmark:
+
+http://www.xmailserver.org/epwbench.c
+
+[1] Considering that epoll must be thread-safe, there are five ways we can
+    be hit during an epoll_wait() transfer loop (ep_send_events()):
+
+    1) The epoll fd going away and calling ep_free
+       This just can't happen, since we did an fget() in sys_epoll_wait
+
+    2) An epoll_ctl(EPOLL_CTL_DEL)
+       This can't happen because epoll_ctl() gets ep->sem in write, and
+       we're holding it in read during ep_send_events()
+
+    3) An fd stored inside the epoll fd going away
+       This can't happen because in eventpoll_release_file() we get
+       ep->sem in write, and we're holding it in read during
+       ep_send_events()
+
+    4) Another epoll_wait() happening on another thread
+       They both can be inside ep_send_events() at the same time, we get
+       (splice) the ready-list under the spinlock, so each one will get
+       its own ready list. Note that an fd cannot be at the same time
+       inside more than one ready list, because ep_poll_callback() will
+       not re-queue it if it sees it already linked:
+
+       if (ep_is_linked(&epi->rdllink))
+                goto is_linked;
+
+       Another case that can happen, is two concurrent epoll_wait(),
+       coming in with a userspace event buffer of size, say, ten.
+       Suppose there are 50 event ready in the list. The first
+       epoll_wait() will "steal" the whole list, while the second, seeing
+       no events, will go to sleep. But at the end of ep_send_events() in
+       the first epoll_wait(), we will re-inject surplus ready fds, and we
+       will trigger the proper wake_up to the second epoll_wait().
+
+    5) ep_poll_callback() hitting us asyncronously
+       This is the tricky part. As I said above, the ep_is_linked() test
+       done inside ep_poll_callback(), will guarantee us that until the
+       item will result linked to a list, ep_poll_callback() will not try
+       to re-queue it again (read, write data on any of its members). When
+       we do a list_del() in ep_send_events(), the item will still satisfy
+       the ep_is_linked() test (whatever data is written in prev/next,
+       it'll never be its own pointer), so ep_poll_callback() will still
+       leave us alone. It's only after the eventual smp_mb()+INIT_LIST_HEAD(&epi->rdllink)
+       that it'll become visible to ep_poll_callback(), but at the point
+       we're already past it.
+
+[akpm@osdl.org: 80 cols]
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS              |    6 
- drivers/hwmon/Kconfig    |   24 
- drivers/hwmon/Makefile   |    1 
- drivers/hwmon/applesmc.c | 1339 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 1370 insertions(+)
+ fs/eventpoll.c |  235 +++++++++++++++++------------------------------
+ 1 file changed, 87 insertions(+), 148 deletions(-)
 
-diff -puN MAINTAINERS~apple-smc-driver-hardware-monitoring-and-control MAINTAINERS
---- a/MAINTAINERS~apple-smc-driver-hardware-monitoring-and-control
-+++ a/MAINTAINERS
-@@ -382,6 +382,12 @@ L:	linux-laptop@vger.kernel.org
- W:	http://www.canb.auug.org.au/~sfr/
- S:	Supported
+diff -puN fs/eventpoll.c~epoll-optimizations-and-cleanups fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-optimizations-and-cleanups
++++ a/fs/eventpoll.c
+@@ -185,7 +185,7 @@ struct eppoll_entry {
  
-+APPLE SMC DRIVER
-+P:	Nicolas Boichat
-+M:	nicolas@boichat.ch
-+L:	mactel-linux-devel@lists.sourceforge.net
-+S:	Maintained
-+
- APPLETALK NETWORK LAYER
- P:	Arnaldo Carvalho de Melo
- M:	acme@ghostprotocols.net
-diff -puN drivers/hwmon/Kconfig~apple-smc-driver-hardware-monitoring-and-control drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig~apple-smc-driver-hardware-monitoring-and-control
-+++ a/drivers/hwmon/Kconfig
-@@ -594,6 +594,30 @@ config SENSORS_HDAPS
- 	  Say Y here if you have an applicable laptop and want to experience
- 	  the awesome power of hdaps.
+ /*
+  * Each file descriptor added to the eventpoll interface will
+- * have an entry of this type linked to the hash.
++ * have an entry of this type linked to the "rbr" RB tree.
+  */
+ struct epitem {
+ 	/* RB-Tree node used to link this structure to the eventpoll rb-tree */
+@@ -217,15 +217,6 @@ struct epitem {
  
-+config SENSORS_APPLESMC
-+	tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)"
-+	depends on HWMON && INPUT && X86
-+	select NEW_LEDS
-+	select LEDS_CLASS
-+	default n
-+	help
-+	  This driver provides support for the Apple System Management
-+	  Controller, which provides an accelerometer (Apple Sudden Motion
-+	  Sensor), light sensors, temperature sensors, keyboard backlight
-+	  control and fan control.
-+
-+	  Only Intel-based Apple's computers are supported (MacBook Pro,
-+	  MacBook, MacMini).
-+
-+	  Data from the different sensors, keyboard backlight control and fan
-+	  control are accessible via sysfs.
-+
-+	  This driver also provides an absolute input class device, allowing
-+	  the laptop to act as a pinball machine-esque joystick.
-+
-+	  Say Y here if you have an applicable laptop and want to experience
-+	  the awesome power of applesmc.
-+
- config HWMON_DEBUG_CHIP
- 	bool "Hardware Monitoring Chip debugging messages"
- 	depends on HWMON
-diff -puN drivers/hwmon/Makefile~apple-smc-driver-hardware-monitoring-and-control drivers/hwmon/Makefile
---- a/drivers/hwmon/Makefile~apple-smc-driver-hardware-monitoring-and-control
-+++ a/drivers/hwmon/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026
- obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029.o
- obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
- obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
-+obj-$(CONFIG_SENSORS_APPLESMC)	+= applesmc.o
- obj-$(CONFIG_SENSORS_AMS)	+= ams/
- obj-$(CONFIG_SENSORS_ATXP1)	+= atxp1.o
- obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
-diff -puN /dev/null drivers/hwmon/applesmc.c
---- /dev/null
-+++ a/drivers/hwmon/applesmc.c
-@@ -0,0 +1,1339 @@
-+/*
-+ * drivers/hwmon/applesmc.c - driver for Apple's SMC (accelerometer, temperature
-+ * sensors, fan control, keyboard backlight control) used in Intel-based Apple
-+ * computers.
-+ *
-+ * Copyright (C) 2007 Nicolas Boichat <nicolas@boichat.ch>
-+ *
-+ * Based on hdaps.c driver:
-+ * Copyright (C) 2005 Robert Love <rml@novell.com>
-+ * Copyright (C) 2005 Jesper Juhl <jesper.juhl@gmail.com>
-+ *
-+ * Fan control based on smcFanControl:
-+ * Copyright (C) 2006 Hendrik Holtmann <holtmann@mac.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License v2 as published by the
-+ * Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program; if not, write to the Free Software Foundation, Inc.,
-+ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/input.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/timer.h>
-+#include <linux/dmi.h>
-+#include <linux/mutex.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <asm/io.h>
-+#include <linux/leds.h>
-+#include <linux/hwmon.h>
-+#include <linux/workqueue.h>
-+
-+/* data port used by Apple SMC */
-+#define APPLESMC_DATA_PORT	0x300
-+/* command/status port used by Apple SMC */
-+#define APPLESMC_CMD_PORT	0x304
-+
-+#define APPLESMC_NR_PORTS	32 /* 0x300-0x31f */
-+
-+#define APPLESMC_MAX_DATA_LENGTH 32
-+
-+#define APPLESMC_STATUS_MASK	0x0f
-+#define APPLESMC_READ_CMD	0x10
-+#define APPLESMC_WRITE_CMD	0x11
-+#define APPLESMC_GET_KEY_BY_INDEX_CMD	0x12
-+#define APPLESMC_GET_KEY_TYPE_CMD	0x13
-+
-+#define KEY_COUNT_KEY		"#KEY" /* r-o ui32 */
-+
-+#define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6 bytes) */
-+#define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6 bytes) */
-+#define BACKLIGHT_KEY 		"LKSB" /* w-o {lkb (2 bytes) */
-+
-+#define CLAMSHELL_KEY 		"MSLD" /* r-o ui8 (unused) */
-+
-+#define MOTION_SENSOR_X_KEY	"MO_X" /* r-o sp78 (2 bytes) */
-+#define MOTION_SENSOR_Y_KEY	"MO_Y" /* r-o sp78 (2 bytes) */
-+#define MOTION_SENSOR_Z_KEY	"MO_Z" /* r-o sp78 (2 bytes) */
-+#define MOTION_SENSOR_KEY	"MOCN" /* r/w ui16 */
-+
-+#define FANS_COUNT		"FNum" /* r-o ui8 */
-+#define FANS_MANUAL		"FS! " /* r-w ui16 */
-+#define FAN_ACTUAL_SPEED	"F0Ac" /* r-o fpe2 (2 bytes) */
-+#define FAN_MIN_SPEED		"F0Mn" /* r-o fpe2 (2 bytes) */
-+#define FAN_MAX_SPEED		"F0Mx" /* r-o fpe2 (2 bytes) */
-+#define FAN_SAFE_SPEED		"F0Sf" /* r-o fpe2 (2 bytes) */
-+#define FAN_TARGET_SPEED	"F0Tg" /* r-w fpe2 (2 bytes) */
-+#define FAN_POSITION		"F0ID" /* r-o char[16] */
-+
-+/*
-+ * Temperature sensors keys (sp78 - 2 bytes).
-+ * First set for Macbook(Pro), second for Macmini.
-+ */
-+static const char* temperature_sensors_sets[][13] = {
-+	{ "TA0P", "TB0T", "TC0D", "TC0P", "TG0H", "TG0P", "TG0T", "Th0H",
-+	  "Th1H", "Tm0P", "Ts0P", "Ts1P", NULL },
-+	{ "TC0D", "TC0P", NULL }
-+};
-+
-+/* List of keys used to read/write fan speeds */
-+static const char* fan_speed_keys[] = {
-+	FAN_ACTUAL_SPEED,
-+	FAN_MIN_SPEED,
-+	FAN_MAX_SPEED,
-+	FAN_SAFE_SPEED,
-+	FAN_TARGET_SPEED
-+};
-+
-+#define INIT_TIMEOUT_MSECS	5000	/* wait up to 5s for device init ... */
-+#define INIT_WAIT_MSECS		50	/* ... in 50ms increments */
-+
-+#define APPLESMC_POLL_PERIOD	(HZ/20)	/* poll for input every 1/20s */
-+#define APPLESMC_INPUT_FUZZ	4	/* input event threshold */
-+#define APPLESMC_INPUT_FLAT	4
-+
-+#define SENSOR_X 0
-+#define SENSOR_Y 1
-+#define SENSOR_Z 2
-+
-+/* Structure to be passed to DMI_MATCH function */
-+struct dmi_match_data {
-+/* Indicates whether this computer has an accelerometer. */
-+	int accelerometer;
-+/* Indicates whether this computer has light sensors and keyboard backlight. */
-+	int light;
-+/* Indicates which temperature sensors set to use. */
-+	int temperature_set;
-+};
-+
-+static const int debug;
-+static struct platform_device *pdev;
-+static s16 rest_x;
-+static s16 rest_y;
-+static struct timer_list applesmc_timer;
-+static struct input_dev *applesmc_idev;
-+static struct class_device *hwmon_class_dev;
-+
-+/* Indicates whether this computer has an accelerometer. */
-+static unsigned int applesmc_accelerometer;
-+
-+/* Indicates whether this computer has light sensors and keyboard backlight. */
-+static unsigned int applesmc_light;
-+
-+/* Indicates which temperature sensors set to use. */
-+static unsigned int applesmc_temperature_set;
-+
-+static struct mutex applesmc_lock;
-+
-+/*
-+ * Last index written to key_at_index sysfs file, and value to use for all other
-+ * key_at_index_* sysfs files.
-+ */
-+static unsigned int key_at_index;
-+
-+static struct workqueue_struct *applesmc_led_wq;
-+
-+/*
-+ * __wait_status - Wait up to 2ms for the status port to get a certain value
-+ * (masked with 0x0f), returning zero if the value is obtained.  Callers must
-+ * hold applesmc_lock.
-+ */
-+static int __wait_status(u8 val)
-+{
-+	unsigned int i;
-+
-+	val = val & APPLESMC_STATUS_MASK;
-+
-+	for (i = 0; i < 200; i++) {
-+		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) == val) {
-+			if (debug)
-+				printk(KERN_DEBUG
-+						"Waited %d us for status %x\n",
-+						i*10, val);
-+			return 0;
-+		}
-+		udelay(10);
-+	}
-+
-+	printk(KERN_WARNING "applesmc: wait status failed: %x != %x\n",
-+						val, inb(APPLESMC_CMD_PORT));
-+
-+	return -EIO;
-+}
-+
-+/*
-+ * applesmc_read_key - reads len bytes from a given key, and put them in buffer.
-+ * Returns zero on success or a negative error on failure. Callers must
-+ * hold applesmc_lock.
-+ */
-+static int applesmc_read_key(const char* key, u8* buffer, u8 len)
-+{
-+	int i;
-+
-+	if (len > APPLESMC_MAX_DATA_LENGTH) {
-+		printk(KERN_ERR	"applesmc_read_key: cannot read more than "
-+					"%d bytes\n", APPLESMC_MAX_DATA_LENGTH);
-+		return -EINVAL;
-+	}
-+
-+	outb(APPLESMC_READ_CMD, APPLESMC_CMD_PORT);
-+	if (__wait_status(0x0c))
-+		return -EIO;
-+
-+	for (i = 0; i < 4; i++) {
-+		outb(key[i], APPLESMC_DATA_PORT);
-+		if (__wait_status(0x04))
-+			return -EIO;
-+	}
-+	if (debug)
-+		printk(KERN_DEBUG "<%s", key);
-+
-+	outb(len, APPLESMC_DATA_PORT);
-+	if (debug)
-+		printk(KERN_DEBUG ">%x", len);
-+
-+	for (i = 0; i < len; i++) {
-+		if (__wait_status(0x05))
-+			return -EIO;
-+		buffer[i] = inb(APPLESMC_DATA_PORT);
-+		if (debug)
-+			printk(KERN_DEBUG "<%x", buffer[i]);
-+	}
-+	if (debug)
-+		printk(KERN_DEBUG "\n");
-+
-+	return 0;
-+}
-+
-+/*
-+ * applesmc_write_key - writes len bytes from buffer to a given key.
-+ * Returns zero on success or a negative error on failure. Callers must
-+ * hold applesmc_lock.
-+ */
-+static int applesmc_write_key(const char* key, u8* buffer, u8 len)
-+{
-+	int i;
-+
-+	if (len > APPLESMC_MAX_DATA_LENGTH) {
-+		printk(KERN_ERR	"applesmc_write_key: cannot write more than "
-+					"%d bytes\n", APPLESMC_MAX_DATA_LENGTH);
-+		return -EINVAL;
-+	}
-+
-+	outb(APPLESMC_WRITE_CMD, APPLESMC_CMD_PORT);
-+	if (__wait_status(0x0c))
-+		return -EIO;
-+
-+	for (i = 0; i < 4; i++) {
-+		outb(key[i], APPLESMC_DATA_PORT);
-+		if (__wait_status(0x04))
-+			return -EIO;
-+	}
-+
-+	outb(len, APPLESMC_DATA_PORT);
-+
-+	for (i = 0; i < len; i++) {
-+		if (__wait_status(0x04))
-+			return -EIO;
-+		outb(buffer[i], APPLESMC_DATA_PORT);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * applesmc_get_key_at_index - get key at index, and put the result in key
-+ * (char[6]). Returns zero on success or a negative error on failure. Callers
-+ * must hold applesmc_lock.
-+ */
-+static int applesmc_get_key_at_index(int index, char* key)
-+{
-+	int i;
-+	u8 readkey[4];
-+	readkey[0] = index >> 24;
-+	readkey[1] = index >> 16;
-+	readkey[2] = index >> 8;
-+	readkey[3] = index;
-+
-+	outb(APPLESMC_GET_KEY_BY_INDEX_CMD, APPLESMC_CMD_PORT);
-+	if (__wait_status(0x0c))
-+		return -EIO;
-+
-+	for (i = 0; i < 4; i++) {
-+		outb(readkey[i], APPLESMC_DATA_PORT);
-+		if (__wait_status(0x04))
-+			return -EIO;
-+	}
-+
-+	outb(4, APPLESMC_DATA_PORT);
-+
-+	for (i = 0; i < 4; i++) {
-+		if (__wait_status(0x05))
-+			return -EIO;
-+		key[i] = inb(APPLESMC_DATA_PORT);
-+	}
-+	key[4] = 0;
-+
-+	return 0;
-+}
-+
-+/*
-+ * applesmc_get_key_type - get key type, and put the result in type (char[6]).
-+ * Returns zero on success or a negative error on failure. Callers must
-+ * hold applesmc_lock.
-+ */
-+static int applesmc_get_key_type(char* key, char* type)
-+{
-+	int i;
-+
-+	outb(APPLESMC_GET_KEY_TYPE_CMD, APPLESMC_CMD_PORT);
-+	if (__wait_status(0x0c))
-+		return -EIO;
-+
-+	for (i = 0; i < 4; i++) {
-+		outb(key[i], APPLESMC_DATA_PORT);
-+		if (__wait_status(0x04))
-+			return -EIO;
-+	}
-+
-+	outb(5, APPLESMC_DATA_PORT);
-+
-+	for (i = 0; i < 6; i++) {
-+		if (__wait_status(0x05))
-+			return -EIO;
-+		type[i] = inb(APPLESMC_DATA_PORT);
-+	}
-+	type[5] = 0;
-+
-+	return 0;
-+}
-+
-+/*
-+ * applesmc_read_motion_sensor - Read motion sensor (X, Y or Z). Callers must
-+ * hold applesmc_lock.
-+ */
-+static int applesmc_read_motion_sensor(int index, s16* value)
-+{
-+	u8 buffer[2];
-+	int ret;
-+
-+	switch (index) {
-+	case SENSOR_X:
-+		ret = applesmc_read_key(MOTION_SENSOR_X_KEY, buffer, 2);
-+		break;
-+	case SENSOR_Y:
-+		ret = applesmc_read_key(MOTION_SENSOR_Y_KEY, buffer, 2);
-+		break;
-+	case SENSOR_Z:
-+		ret = applesmc_read_key(MOTION_SENSOR_Z_KEY, buffer, 2);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+
-+	*value = ((s16)buffer[0] << 8) | buffer[1];
-+
-+	return ret;
-+}
-+
-+/*
-+ * applesmc_device_init - initialize the accelerometer.  Returns zero on success
-+ * and negative error code on failure.  Can sleep.
-+ */
-+static int applesmc_device_init(void)
-+{
-+	int total, ret = -ENXIO;
-+	u8 buffer[2];
-+
-+	if (!applesmc_accelerometer)
-+		return 0;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	for (total = INIT_TIMEOUT_MSECS; total > 0; total -= INIT_WAIT_MSECS) {
-+		if (debug)
-+			printk(KERN_DEBUG "applesmc try %d\n", total);
-+		if (!applesmc_read_key(MOTION_SENSOR_KEY, buffer, 2) &&
-+				(buffer[0] != 0x00 || buffer[1] != 0x00)) {
-+			if (total == INIT_TIMEOUT_MSECS) {
-+				printk(KERN_DEBUG "applesmc: device has"
-+						" already been initialized"
-+						" (0x%02x, 0x%02x).\n",
-+						buffer[0], buffer[1]);
-+			} else {
-+				printk(KERN_DEBUG "applesmc: device"
-+						" successfully initialized"
-+						" (0x%02x, 0x%02x).\n",
-+						buffer[0], buffer[1]);
-+			}
-+			ret = 0;
-+			goto out;
-+		}
-+		buffer[0] = 0xe0;
-+		buffer[1] = 0x00;
-+		applesmc_write_key(MOTION_SENSOR_KEY, buffer, 2);
-+		msleep(INIT_WAIT_MSECS);
-+	}
-+
-+	printk(KERN_WARNING "applesmc: failed to init the device\n");
-+
-+out:
-+	mutex_unlock(&applesmc_lock);
-+	return ret;
-+}
-+
-+/*
-+ * applesmc_get_fan_count - get the number of fans. Callers must NOT hold
-+ * applesmc_lock.
-+ */
-+static int applesmc_get_fan_count(void)
-+{
-+	int ret;
-+	u8 buffer[1];
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_key(FANS_COUNT, buffer, 1);
-+
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return buffer[0];
-+}
-+
-+/* Device model stuff */
-+static int applesmc_probe(struct platform_device *dev)
-+{
-+	int ret;
-+
-+	ret = applesmc_device_init();
-+	if (ret)
-+		return ret;
-+
-+	printk(KERN_INFO "applesmc: device successfully initialized.\n");
-+	return 0;
-+}
-+
-+static int applesmc_resume(struct platform_device *dev)
-+{
-+	return applesmc_device_init();
-+}
-+
-+static struct platform_driver applesmc_driver = {
-+	.probe = applesmc_probe,
-+	.resume = applesmc_resume,
-+	.driver	= {
-+		.name = "applesmc",
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+/*
-+ * applesmc_calibrate - Set our "resting" values.  Callers must
-+ * hold applesmc_lock.
-+ */
-+static void applesmc_calibrate(void)
-+{
-+	applesmc_read_motion_sensor(SENSOR_X, &rest_x);
-+	applesmc_read_motion_sensor(SENSOR_Y, &rest_y);
-+	rest_x = -rest_x;
-+}
-+
-+static int applesmc_idev_open(struct input_dev *dev)
-+{
-+	add_timer(&applesmc_timer);
-+
-+	return 0;
-+}
-+
-+static void applesmc_idev_close(struct input_dev *dev)
-+{
-+	del_timer_sync(&applesmc_timer);
-+}
-+
-+static void applesmc_idev_poll(unsigned long unused)
-+{
-+	s16 x, y;
-+
-+	/* Cannot sleep.  Try nonblockingly.  If we fail, try again later. */
-+	if (!mutex_trylock(&applesmc_lock)) {
-+		mod_timer(&applesmc_timer, jiffies + APPLESMC_POLL_PERIOD);
-+		return;
-+	}
-+
-+	if (applesmc_read_motion_sensor(SENSOR_X, &x))
-+		goto out;
-+	if (applesmc_read_motion_sensor(SENSOR_Y, &y))
-+		goto out;
-+
-+	x = -x;
-+	input_report_abs(applesmc_idev, ABS_X, x - rest_x);
-+	input_report_abs(applesmc_idev, ABS_Y, y - rest_y);
-+	input_sync(applesmc_idev);
-+
-+out:
-+	mod_timer(&applesmc_timer, jiffies + APPLESMC_POLL_PERIOD);
-+
-+	mutex_unlock(&applesmc_lock);
-+}
-+
-+/* Sysfs Files */
-+
-+static ssize_t applesmc_position_show(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
-+{
-+	int ret;
-+	s16 x, y, z;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_motion_sensor(SENSOR_X, &x);
-+	if (ret)
-+		goto out;
-+	ret = applesmc_read_motion_sensor(SENSOR_Y, &y);
-+	if (ret)
-+		goto out;
-+	ret = applesmc_read_motion_sensor(SENSOR_Z, &z);
-+	if (ret)
-+		goto out;
-+
-+out:
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(buf, PAGE_SIZE, "(%d,%d,%d)\n", x, y, z);
-+}
-+
-+static ssize_t applesmc_light_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	int ret;
-+	u8 left = 0, right = 0;
-+	u8 buffer[6];
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_key(LIGHT_SENSOR_LEFT_KEY, buffer, 6);
-+	left = buffer[2];
-+	if (ret)
-+		goto out;
-+	ret = applesmc_read_key(LIGHT_SENSOR_RIGHT_KEY, buffer, 6);
-+	right = buffer[2];
-+
-+out:
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(sysfsbuf, PAGE_SIZE, "(%d,%d)\n", left, right);
-+}
-+
-+/* Displays degree Celsius * 1000 */
-+static ssize_t applesmc_show_temperature(struct device *dev,
-+			struct device_attribute *devattr, char *sysfsbuf)
-+{
-+	int ret;
-+	u8 buffer[2];
-+	unsigned int temp;
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	const char* key =
-+		temperature_sensors_sets[applesmc_temperature_set][attr->index];
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_key(key, buffer, 2);
-+	temp = buffer[0]*1000;
-+	temp += (buffer[1] >> 6) * 250;
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%u\n", temp);
-+}
-+
-+static ssize_t applesmc_show_fan_speed(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	int ret;
-+	unsigned int speed = 0;
-+	char newkey[5];
-+	u8 buffer[2];
-+	struct sensor_device_attribute_2 *sensor_attr =
-+						to_sensor_dev_attr_2(attr);
-+
-+	newkey[0] = fan_speed_keys[sensor_attr->nr][0];
-+	newkey[1] = '0' + sensor_attr->index;
-+	newkey[2] = fan_speed_keys[sensor_attr->nr][2];
-+	newkey[3] = fan_speed_keys[sensor_attr->nr][3];
-+	newkey[4] = 0;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_key(newkey, buffer, 2);
-+	speed = ((buffer[0] << 8 | buffer[1]) >> 2);
-+
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%u\n", speed);
-+}
-+
-+static ssize_t applesmc_store_fan_speed(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *sysfsbuf, size_t count)
-+{
-+	int ret;
-+	u32 speed;
-+	char newkey[5];
-+	u8 buffer[2];
-+	struct sensor_device_attribute_2 *sensor_attr =
-+						to_sensor_dev_attr_2(attr);
-+
-+	speed = simple_strtoul(sysfsbuf, NULL, 10);
-+
-+	if (speed > 0x4000) /* Bigger than a 14-bit value */
-+		return -EINVAL;
-+
-+	newkey[0] = fan_speed_keys[sensor_attr->nr][0];
-+	newkey[1] = '0' + sensor_attr->index;
-+	newkey[2] = fan_speed_keys[sensor_attr->nr][2];
-+	newkey[3] = fan_speed_keys[sensor_attr->nr][3];
-+	newkey[4] = 0;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	buffer[0] = (speed >> 6) & 0xff;
-+	buffer[1] = (speed << 2) & 0xff;
-+	ret = applesmc_write_key(newkey, buffer, 2);
-+
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return count;
-+}
-+
-+static ssize_t applesmc_show_fan_manual(struct device *dev,
-+			struct device_attribute *devattr, char *sysfsbuf)
-+{
-+	int ret;
-+	u16 manual = 0;
-+	u8 buffer[2];
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_key(FANS_MANUAL, buffer, 2);
-+	manual = ((buffer[0] << 8 | buffer[1]) >> attr->index) & 0x01;
-+
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%d\n", manual);
-+}
-+
-+static ssize_t applesmc_store_fan_manual(struct device *dev,
-+					 struct device_attribute *devattr,
-+					 const char *sysfsbuf, size_t count)
-+{
-+	int ret;
-+	u8 buffer[2];
-+	u32 input;
-+	u16 val;
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+
-+	input = simple_strtoul(sysfsbuf, NULL, 10);
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_key(FANS_MANUAL, buffer, 2);
-+	val = (buffer[0] << 8 | buffer[1]);
-+	if (ret)
-+		goto out;
-+
-+	if (input)
-+		val = val | (0x01 << attr->index);
-+	else
-+		val = val & ~(0x01 << attr->index);
-+
-+	buffer[0] = (val >> 8) & 0xFF;
-+	buffer[1] = val & 0xFF;
-+
-+	ret = applesmc_write_key(FANS_MANUAL, buffer, 2);
-+
-+out:
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return count;
-+}
-+
-+static ssize_t applesmc_show_fan_position(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	int ret;
-+	char newkey[5];
-+	u8 buffer[17];
-+	struct sensor_device_attribute_2 *sensor_attr =
-+						to_sensor_dev_attr_2(attr);
-+
-+	newkey[0] = FAN_POSITION[0];
-+	newkey[1] = '0' + sensor_attr->index;
-+	newkey[2] = FAN_POSITION[2];
-+	newkey[3] = FAN_POSITION[3];
-+	newkey[4] = 0;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_key(newkey, buffer, 16);
-+	buffer[16] = 0;
-+
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", buffer+4);
-+}
-+
-+static ssize_t applesmc_calibrate_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	return snprintf(sysfsbuf, PAGE_SIZE, "(%d,%d)\n", rest_x, rest_y);
-+}
-+
-+static ssize_t applesmc_calibrate_store(struct device *dev,
-+	struct device_attribute *attr, const char *sysfsbuf, size_t count)
-+{
-+	mutex_lock(&applesmc_lock);
-+	applesmc_calibrate();
-+	mutex_unlock(&applesmc_lock);
-+
-+	return count;
-+}
-+
-+/* Store the next backlight value to be written by the work */
-+static unsigned int backlight_value;
-+
-+static void applesmc_backlight_set(struct work_struct *work)
-+{
-+	u8 buffer[2];
-+
-+	mutex_lock(&applesmc_lock);
-+	buffer[0] = backlight_value;
-+	buffer[1] = 0x00;
-+	applesmc_write_key(BACKLIGHT_KEY, buffer, 2);
-+	mutex_unlock(&applesmc_lock);
-+}
-+static DECLARE_WORK(backlight_work, &applesmc_backlight_set);
-+
-+static void applesmc_brightness_set(struct led_classdev *led_cdev,
-+						enum led_brightness value)
-+{
-+	int ret;
-+
-+	backlight_value = value;
-+	ret = queue_work(applesmc_led_wq, &backlight_work);
-+
-+	if (debug && (!ret))
-+		printk(KERN_DEBUG "applesmc: work was already on the queue.\n");
-+}
-+
-+static ssize_t applesmc_key_count_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	int ret;
-+	u8 buffer[4];
-+	u32 count;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_read_key(KEY_COUNT_KEY, buffer, 4);
-+	count = ((u32)buffer[0]<<24) + ((u32)buffer[1]<<16) +
-+						((u32)buffer[2]<<8) + buffer[3];
-+
-+	mutex_unlock(&applesmc_lock);
-+	if (ret)
-+		return ret;
-+	else
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%d\n", count);
-+}
-+
-+static ssize_t applesmc_key_at_index_read_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	char key[5];
-+	char info[6];
-+	int ret;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_get_key_at_index(key_at_index, key);
-+
-+	if (ret || !key[0]) {
-+		mutex_unlock(&applesmc_lock);
-+
-+		return -EINVAL;
-+	}
-+
-+	ret = applesmc_get_key_type(key, info);
-+
-+	if (ret) {
-+		mutex_unlock(&applesmc_lock);
-+
-+		return ret;
-+	}
+ 	/* List header used to link this item to the "struct file" items list */
+ 	struct list_head fllink;
+-
+-	/* List header used to link the item to the transfer list */
+-	struct list_head txlink;
+-
+-	/*
+-	 * This is used during the collection/transfer of events to userspace
+-	 * to pin items empty events set.
+-	 */
+-	unsigned int revents;
+ };
+ 
+ /* Wrapper struct used by poll queueing */
+@@ -258,11 +249,8 @@ static int ep_remove(struct eventpoll *e
+ static int ep_poll_callback(wait_queue_t *wait, unsigned mode, int sync, void *key);
+ static int ep_eventpoll_close(struct inode *inode, struct file *file);
+ static unsigned int ep_eventpoll_poll(struct file *file, poll_table *wait);
+-static int ep_collect_ready_items(struct eventpoll *ep,
+-				  struct list_head *txlist, int maxevents);
+ static int ep_send_events(struct eventpoll *ep, struct list_head *txlist,
+-			  struct epoll_event __user *events);
+-static void ep_reinject_items(struct eventpoll *ep, struct list_head *txlist);
++			  struct epoll_event __user *events, int maxevents);
+ static int ep_events_transfer(struct eventpoll *ep,
+ 			      struct epoll_event __user *events,
+ 			      int maxevents);
+@@ -355,17 +343,6 @@ static inline int ep_rb_linked(struct rb
+ 	return rb_parent(n) != n;
+ }
+ 
+-/*
+- * Remove the item from the list and perform its initialization.
+- * This is useful for us because we can test if the item is linked
+- * using "ep_is_linked(p)".
+- */
+-static inline void ep_list_del(struct list_head *p)
+-{
+-	list_del(p);
+-	INIT_LIST_HEAD(p);
+-}
+-
+ /* Tells us if the item is currently linked */
+ static inline int ep_is_linked(struct list_head *p)
+ {
+@@ -385,7 +362,7 @@ static inline struct epitem * ep_item_fr
+ }
+ 
+ /* Tells if the epoll_ctl(2) operation needs an event copy from userspace */
+-static inline int ep_op_hash_event(int op)
++static inline int ep_op_has_event(int op)
+ {
+ 	return op != EPOLL_CTL_DEL;
+ }
+@@ -480,7 +457,7 @@ void eventpoll_release_file(struct file 
+ 		epi = list_entry(lsthead->next, struct epitem, fllink);
+ 
+ 		ep = epi->ep;
+-		ep_list_del(&epi->fllink);
++		list_del_init(&epi->fllink);
+ 		down_write(&ep->sem);
+ 		ep_remove(ep, epi);
+ 		up_write(&ep->sem);
+@@ -557,7 +534,7 @@ sys_epoll_ctl(int epfd, int op, int fd, 
+ 		     current, epfd, op, fd, event));
+ 
+ 	error = -EFAULT;
+-	if (ep_op_hash_event(op) &&
++	if (ep_op_has_event(op) &&
+ 	    copy_from_user(&epds, event, sizeof(struct epoll_event)))
+ 		goto eexit_1;
+ 
+@@ -594,7 +571,7 @@ sys_epoll_ctl(int epfd, int op, int fd, 
+ 
+ 	down_write(&ep->sem);
+ 
+-	/* Try to lookup the file inside our hash table */
++	/* Try to lookup the file inside our RB tree */
+ 	epi = ep_find(ep, tfile, fd);
+ 
+ 	error = -EINVAL;
+@@ -876,7 +853,7 @@ static void ep_free(struct eventpoll *ep
+ 	}
+ 
+ 	/*
+-	 * Walks through the whole hash by freeing each "struct epitem". At this
++	 * Walks through the whole tree by freeing each "struct epitem". At this
+ 	 * point we are sure no poll callbacks will be lingering around, and also by
+ 	 * write-holding "sem" we can be sure that no file cleanup code will hit
+ 	 * us during this operation. So we can avoid the lock on "ep->lock".
+@@ -891,7 +868,7 @@ static void ep_free(struct eventpoll *ep
+ 
+ 
+ /*
+- * Search the file inside the eventpoll hash. It add usage count to
++ * Search the file inside the eventpoll tree. It add usage count to
+  * the returned item, so the caller must call ep_release_epitem()
+  * after finished using the "struct epitem".
+  */
+@@ -1011,7 +988,6 @@ static int ep_insert(struct eventpoll *e
+ 	ep_rb_initnode(&epi->rbn);
+ 	INIT_LIST_HEAD(&epi->rdllink);
+ 	INIT_LIST_HEAD(&epi->fllink);
+-	INIT_LIST_HEAD(&epi->txlink);
+ 	INIT_LIST_HEAD(&epi->pwqlist);
+ 	epi->ep = ep;
+ 	ep_set_ffd(&epi->ffd, tfile, fd);
+@@ -1080,7 +1056,7 @@ eexit_2:
+ 	 */
+ 	write_lock_irqsave(&ep->lock, flags);
+ 	if (ep_is_linked(&epi->rdllink))
+-		ep_list_del(&epi->rdllink);
++		list_del_init(&epi->rdllink);
+ 	write_unlock_irqrestore(&ep->lock, flags);
+ 
+ 	kmem_cache_free(epi_cache, epi);
+@@ -1119,7 +1095,7 @@ static int ep_modify(struct eventpoll *e
+ 	epi->event.data = event->data;
+ 
+ 	/*
+-	 * If the item is not linked to the hash it means that it's on its
++	 * If the item is not linked to the RB tree it means that it's on its
+ 	 * way toward the removal. Do nothing in this case.
+ 	 */
+ 	if (ep_rb_linked(&epi->rbn)) {
+@@ -1170,7 +1146,7 @@ static void ep_unregister_pollwait(struc
+ 		while (!list_empty(lsthead)) {
+ 			pwq = list_entry(lsthead->next, struct eppoll_entry, llink);
+ 
+-			ep_list_del(&pwq->llink);
++			list_del_init(&pwq->llink);
+ 			remove_wait_queue(pwq->whead, &pwq->wait);
+ 			kmem_cache_free(pwq_cache, pwq);
+ 		}
+@@ -1213,7 +1189,7 @@ static int ep_unlink(struct eventpoll *e
+ 	 * we want to remove it from this list to avoid stale events.
+ 	 */
+ 	if (ep_is_linked(&epi->rdllink))
+-		ep_list_del(&epi->rdllink);
++		list_del_init(&epi->rdllink);
+ 
+ 	error = 0;
+ eexit_1:
+@@ -1226,7 +1202,7 @@ eexit_1:
+ 
+ 
+ /*
+- * Removes a "struct epitem" from the eventpoll hash and deallocates
++ * Removes a "struct epitem" from the eventpoll RB tree and deallocates
+  * all the associated resources.
+  */
+ static int ep_remove(struct eventpoll *ep, struct epitem *epi)
+@@ -1248,13 +1224,13 @@ static int ep_remove(struct eventpoll *e
+ 	/* Remove the current item from the list of epoll hooks */
+ 	spin_lock(&file->f_ep_lock);
+ 	if (ep_is_linked(&epi->fllink))
+-		ep_list_del(&epi->fllink);
++		list_del_init(&epi->fllink);
+ 	spin_unlock(&file->f_ep_lock);
+ 
+ 	/* We need to acquire the write IRQ lock before calling ep_unlink() */
+ 	write_lock_irqsave(&ep->lock, flags);
+ 
+-	/* Really unlink the item from the hash */
++	/* Really unlink the item from the RB tree */
+ 	error = ep_unlink(ep, epi);
+ 
+ 	write_unlock_irqrestore(&ep->lock, flags);
+@@ -1362,71 +1338,30 @@ static unsigned int ep_eventpoll_poll(st
+ 
+ 
+ /*
+- * Since we have to release the lock during the __copy_to_user() operation and
+- * during the f_op->poll() call, we try to collect the maximum number of items
+- * by reducing the irqlock/irqunlock switching rate.
+- */
+-static int ep_collect_ready_items(struct eventpoll *ep, struct list_head *txlist, int maxevents)
+-{
+-	int nepi;
+-	unsigned long flags;
+-	struct list_head *lsthead = &ep->rdllist, *lnk;
+-	struct epitem *epi;
+-
+-	write_lock_irqsave(&ep->lock, flags);
+-
+-	for (nepi = 0, lnk = lsthead->next; lnk != lsthead && nepi < maxevents;) {
+-		epi = list_entry(lnk, struct epitem, rdllink);
+-
+-		lnk = lnk->next;
+-
+-		/* If this file is already in the ready list we exit soon */
+-		if (!ep_is_linked(&epi->txlink)) {
+-			/*
+-			 * This is initialized in this way so that the default
+-			 * behaviour of the reinjecting code will be to push back
+-			 * the item inside the ready list.
+-			 */
+-			epi->revents = epi->event.events;
+-
+-			/* Link the ready item into the transfer list */
+-			list_add(&epi->txlink, txlist);
+-			nepi++;
+-
+-			/*
+-			 * Unlink the item from the ready list.
+-			 */
+-			ep_list_del(&epi->rdllink);
+-		}
+-	}
+-
+-	write_unlock_irqrestore(&ep->lock, flags);
+-
+-	return nepi;
+-}
+-
+-
+-/*
+  * This function is called without holding the "ep->lock" since the call to
+  * __copy_to_user() might sleep, and also f_op->poll() might reenable the IRQ
+  * because of the way poll() is traditionally implemented in Linux.
+  */
+ static int ep_send_events(struct eventpoll *ep, struct list_head *txlist,
+-			  struct epoll_event __user *events)
++			  struct epoll_event __user *events, int maxevents)
+ {
+-	int eventcnt = 0;
++	int eventcnt, error = -EFAULT, pwake = 0;
+ 	unsigned int revents;
+-	struct list_head *lnk;
++	unsigned long flags;
+ 	struct epitem *epi;
++	struct list_head injlist;
++
++	INIT_LIST_HEAD(&injlist);
+ 
+ 	/*
+ 	 * We can loop without lock because this is a task private list.
+-	 * The test done during the collection loop will guarantee us that
+-	 * another task will not try to collect this file. Also, items
+-	 * cannot vanish during the loop because we are holding "sem".
+-	 */
+-	list_for_each(lnk, txlist) {
+-		epi = list_entry(lnk, struct epitem, txlink);
++	 * We just splice'd out the ep->rdllist in ep_collect_ready_items().
++	 * Items cannot vanish during the loop because we are holding "sem" in
++	 * read.
++	 */
++	for (eventcnt = 0; !list_empty(txlist) && eventcnt < maxevents;) {
++		epi = list_entry(txlist->next, struct epitem, rdllink);
++		prefetch(epi->rdllink.next);
+ 
+ 		/*
+ 		 * Get the ready file event set. We can safely use the file
+@@ -1434,64 +1369,65 @@ static int ep_send_events(struct eventpo
+ 		 * guarantee that both the file and the item will not vanish.
+ 		 */
+ 		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
++		revents &= epi->event.events;
+ 
+ 		/*
+-		 * Set the return event set for the current file descriptor.
+-		 * Note that only the task task was successfully able to link
+-		 * the item to its "txlist" will write this field.
++		 * Is the event mask intersect the caller-requested one,
++		 * deliver the event to userspace. Again, we are holding
++		 * "sem" in read, so no operations coming from userspace
++		 * can change the item.
+ 		 */
+-		epi->revents = revents & epi->event.events;
+-
+-		if (epi->revents) {
+-			if (__put_user(epi->revents,
++		if (revents) {
++			if (__put_user(revents,
+ 				       &events[eventcnt].events) ||
+ 			    __put_user(epi->event.data,
+ 				       &events[eventcnt].data))
+-				return -EFAULT;
++				goto errxit;
+ 			if (epi->event.events & EPOLLONESHOT)
+ 				epi->event.events &= EP_PRIVATE_BITS;
+ 			eventcnt++;
+ 		}
+-	}
+-	return eventcnt;
+-}
+-
+-
+-/*
+- * Walk through the transfer list we collected with ep_collect_ready_items()
+- * and, if 1) the item is still "alive" 2) its event set is not empty 3) it's
+- * not already linked, links it to the ready list. Same as above, we are holding
+- * "sem" so items cannot vanish underneath our nose.
+- */
+-static void ep_reinject_items(struct eventpoll *ep, struct list_head *txlist)
+-{
+-	int ricnt = 0, pwake = 0;
+-	unsigned long flags;
+-	struct epitem *epi;
+-
+-	write_lock_irqsave(&ep->lock, flags);
+-
+-	while (!list_empty(txlist)) {
+-		epi = list_entry(txlist->next, struct epitem, txlink);
+-
+-		/* Unlink the current item from the transfer list */
+-		ep_list_del(&epi->txlink);
+ 
+ 		/*
+-		 * If the item is no more linked to the interest set, we don't
+-		 * have to push it inside the ready list because the following
+-		 * ep_release_epitem() is going to drop it. Also, if the current
+-		 * item is set to have an Edge Triggered behaviour, we don't have
+-		 * to push it back either.
++		 * This is tricky. We are holding the "sem" in read, and this
++		 * means that the operations that can change the "linked" status
++		 * of the epoll item (epi->rbn and epi->rdllink), cannot touch
++		 * them.  Also, since we are "linked" from a epi->rdllink POV
++		 * (the item is linked to our transmission list we just
++		 * spliced), the ep_poll_callback() cannot touch us either,
++		 * because of the check present in there. Another parallel
++		 * epoll_wait() will not get the same result set, since we
++		 * spliced the ready list before.  Note that list_del() still
++		 * shows the item as linked to the test in ep_poll_callback().
+ 		 */
+-		if (ep_rb_linked(&epi->rbn) && !(epi->event.events & EPOLLET) &&
+-		    (epi->revents & epi->event.events) && !ep_is_linked(&epi->rdllink)) {
+-			list_add_tail(&epi->rdllink, &ep->rdllist);
+-			ricnt++;
++		list_del(&epi->rdllink);
++		if (!(epi->event.events & EPOLLET) &&
++				(revents & epi->event.events))
++			list_add_tail(&epi->rdllink, &injlist);
++		else {
++			/*
++			 * Be sure the item is totally detached before re-init
++			 * the list_head. After INIT_LIST_HEAD() is committed,
++			 * the ep_poll_callback() can requeue the item again,
++			 * but we don't care since we are already past it.
++			 */
++			smp_mb();
++			INIT_LIST_HEAD(&epi->rdllink);
+ 		}
+ 	}
++	error = 0;
+ 
+-	if (ricnt) {
++	errxit:
 +
 +	/*
-+	 * info[0] maximum value (APPLESMC_MAX_DATA_LENGTH) is much lower than
-+	 * PAGE_SIZE, so we don't need any checks before writing to sysfsbuf.
++	 * If the re-injection list or the txlist are not empty, re-splice
++	 * them to the ready list and do proper wakeups.
 +	 */
-+	ret = applesmc_read_key(key, sysfsbuf, info[0]);
++	if (!list_empty(&injlist) || !list_empty(txlist)) {
++		write_lock_irqsave(&ep->lock, flags);
 +
-+	mutex_unlock(&applesmc_lock);
-+
-+	if (!ret) {
-+		return info[0];
++		list_splice(txlist, &ep->rdllist);
++		list_splice(&injlist, &ep->rdllist);
+ 		/*
+ 		 * Wake up ( if active ) both the eventpoll wait list and the ->poll()
+ 		 * wait list.
+@@ -1501,13 +1437,15 @@ static void ep_reinject_items(struct eve
+ 					 TASK_INTERRUPTIBLE);
+ 		if (waitqueue_active(&ep->poll_wait))
+ 			pwake++;
+-	}
+ 
+-	write_unlock_irqrestore(&ep->lock, flags);
++		write_unlock_irqrestore(&ep->lock, flags);
 +	}
-+	else {
-+		return ret;
-+	}
-+}
-+
-+static ssize_t applesmc_key_at_index_data_length_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	char key[5];
-+	char info[6];
-+	int ret;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_get_key_at_index(key_at_index, key);
-+
-+	if (ret || !key[0]) {
-+		mutex_unlock(&applesmc_lock);
-+
-+		return -EINVAL;
-+	}
-+
-+	ret = applesmc_get_key_type(key, info);
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	if (!ret)
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%d\n", info[0]);
-+	else
-+		return ret;
-+}
-+
-+static ssize_t applesmc_key_at_index_type_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	char key[5];
-+	char info[6];
-+	int ret;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_get_key_at_index(key_at_index, key);
-+
-+	if (ret || !key[0]) {
-+		mutex_unlock(&applesmc_lock);
-+
-+		return -EINVAL;
-+	}
-+
-+	ret = applesmc_get_key_type(key, info);
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	if (!ret)
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", info+1);
-+	else
-+		return ret;
-+}
-+
-+static ssize_t applesmc_key_at_index_name_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	char key[5];
-+	int ret;
-+
-+	mutex_lock(&applesmc_lock);
-+
-+	ret = applesmc_get_key_at_index(key_at_index, key);
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	if (!ret && key[0])
-+		return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", key);
-+	else
-+		return -EINVAL;
-+}
-+
-+static ssize_t applesmc_key_at_index_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	return snprintf(sysfsbuf, PAGE_SIZE, "%d\n", key_at_index);
-+}
-+
-+static ssize_t applesmc_key_at_index_store(struct device *dev,
-+	struct device_attribute *attr, const char *sysfsbuf, size_t count)
-+{
-+	mutex_lock(&applesmc_lock);
-+
-+	key_at_index = simple_strtoul(sysfsbuf, NULL, 10);
-+
-+	mutex_unlock(&applesmc_lock);
-+
-+	return count;
-+}
-+
-+static struct led_classdev applesmc_backlight = {
-+	.name			= "smc:kbd_backlight",
-+	.default_trigger	= "nand-disk",
-+	.brightness_set		= applesmc_brightness_set,
-+};
-+
-+static DEVICE_ATTR(position, 0444, applesmc_position_show, NULL);
-+static DEVICE_ATTR(calibrate, 0644,
-+			applesmc_calibrate_show, applesmc_calibrate_store);
-+
-+static struct attribute *accelerometer_attributes[] = {
-+	&dev_attr_position.attr,
-+	&dev_attr_calibrate.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group accelerometer_attributes_group =
-+	{ .attrs = accelerometer_attributes };
-+
-+static DEVICE_ATTR(light, 0444, applesmc_light_show, NULL);
-+
-+static DEVICE_ATTR(key_count, 0444, applesmc_key_count_show, NULL);
-+static DEVICE_ATTR(key_at_index, 0644,
-+		applesmc_key_at_index_show, applesmc_key_at_index_store);
-+static DEVICE_ATTR(key_at_index_name, 0444,
-+					applesmc_key_at_index_name_show, NULL);
-+static DEVICE_ATTR(key_at_index_type, 0444,
-+					applesmc_key_at_index_type_show, NULL);
-+static DEVICE_ATTR(key_at_index_data_length, 0444,
-+				applesmc_key_at_index_data_length_show, NULL);
-+static DEVICE_ATTR(key_at_index_data, 0444,
-+				applesmc_key_at_index_read_show, NULL);
-+
-+static struct attribute *key_enumeration_attributes[] = {
-+	&dev_attr_key_count.attr,
-+	&dev_attr_key_at_index.attr,
-+	&dev_attr_key_at_index_name.attr,
-+	&dev_attr_key_at_index_type.attr,
-+	&dev_attr_key_at_index_data_length.attr,
-+	&dev_attr_key_at_index_data.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group key_enumeration_group =
-+	{ .attrs = key_enumeration_attributes };
-+
-+/*
-+ * Macro defining SENSOR_DEVICE_ATTR for a fan sysfs entries.
-+ *  - show actual speed
-+ *  - show/store minimum speed
-+ *  - show maximum speed
-+ *  - show safe speed
-+ *  - show/store target speed
-+ *  - show/store manual mode
-+ */
-+#define sysfs_fan_speeds_offset(offset) \
-+static SENSOR_DEVICE_ATTR_2(fan##offset##_input, S_IRUGO, \
-+			applesmc_show_fan_speed, NULL, 0, offset-1); \
-+\
-+static SENSOR_DEVICE_ATTR_2(fan##offset##_min, S_IRUGO | S_IWUSR, \
-+	applesmc_show_fan_speed, applesmc_store_fan_speed, 1, offset-1); \
-+\
-+static SENSOR_DEVICE_ATTR_2(fan##offset##_max, S_IRUGO, \
-+			applesmc_show_fan_speed, NULL, 2, offset-1); \
-+\
-+static SENSOR_DEVICE_ATTR_2(fan##offset##_safe, S_IRUGO, \
-+			applesmc_show_fan_speed, NULL, 3, offset-1); \
-+\
-+static SENSOR_DEVICE_ATTR_2(fan##offset##_output, S_IRUGO | S_IWUSR, \
-+	applesmc_show_fan_speed, applesmc_store_fan_speed, 4, offset-1); \
-+\
-+static SENSOR_DEVICE_ATTR(fan##offset##_manual, S_IRUGO | S_IWUSR, \
-+	applesmc_show_fan_manual, applesmc_store_fan_manual, offset-1); \
-+\
-+static SENSOR_DEVICE_ATTR(fan##offset##_position, S_IRUGO, \
-+	applesmc_show_fan_position, NULL, offset-1); \
-+\
-+static struct attribute *fan##offset##_attributes[] = { \
-+	&sensor_dev_attr_fan##offset##_input.dev_attr.attr, \
-+	&sensor_dev_attr_fan##offset##_min.dev_attr.attr, \
-+	&sensor_dev_attr_fan##offset##_max.dev_attr.attr, \
-+	&sensor_dev_attr_fan##offset##_safe.dev_attr.attr, \
-+	&sensor_dev_attr_fan##offset##_output.dev_attr.attr, \
-+	&sensor_dev_attr_fan##offset##_manual.dev_attr.attr, \
-+	&sensor_dev_attr_fan##offset##_position.dev_attr.attr, \
-+	NULL \
-+};
-+
-+/*
-+ * Create the needed functions for each fan using the macro defined above
-+ * (2 fans are supported)
-+ */
-+sysfs_fan_speeds_offset(1);
-+sysfs_fan_speeds_offset(2);
-+
-+static const struct attribute_group fan_attribute_groups[] = {
-+	{ .attrs = fan1_attributes },
-+	{ .attrs = fan2_attributes }
-+};
-+
-+/*
-+ * Temperature sensors sysfs entries.
-+ */
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 0);
-+static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 3);
-+static SENSOR_DEVICE_ATTR(temp5_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 4);
-+static SENSOR_DEVICE_ATTR(temp6_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 5);
-+static SENSOR_DEVICE_ATTR(temp7_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 6);
-+static SENSOR_DEVICE_ATTR(temp8_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 7);
-+static SENSOR_DEVICE_ATTR(temp9_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 8);
-+static SENSOR_DEVICE_ATTR(temp10_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 9);
-+static SENSOR_DEVICE_ATTR(temp11_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 10);
-+static SENSOR_DEVICE_ATTR(temp12_input, S_IRUGO,
-+					applesmc_show_temperature, NULL, 11);
-+
-+static struct attribute *temperature_attributes[] = {
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp2_input.dev_attr.attr,
-+	&sensor_dev_attr_temp3_input.dev_attr.attr,
-+	&sensor_dev_attr_temp4_input.dev_attr.attr,
-+	&sensor_dev_attr_temp5_input.dev_attr.attr,
-+	&sensor_dev_attr_temp6_input.dev_attr.attr,
-+	&sensor_dev_attr_temp7_input.dev_attr.attr,
-+	&sensor_dev_attr_temp8_input.dev_attr.attr,
-+	&sensor_dev_attr_temp9_input.dev_attr.attr,
-+	&sensor_dev_attr_temp10_input.dev_attr.attr,
-+	&sensor_dev_attr_temp11_input.dev_attr.attr,
-+	&sensor_dev_attr_temp12_input.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group temperature_attributes_group =
-+	{ .attrs = temperature_attributes };
-+
-+/* Module stuff */
-+
-+/*
-+ * applesmc_dmi_match - found a match.  return one, short-circuiting the hunt.
-+ */
-+static int applesmc_dmi_match(struct dmi_system_id *id)
-+{
-+	int i = 0;
-+	struct dmi_match_data* dmi_data = id->driver_data;
-+	printk(KERN_INFO "applesmc: %s detected:\n", id->ident);
-+	applesmc_accelerometer = dmi_data->accelerometer;
-+	printk(KERN_INFO "applesmc:  - Model %s accelerometer\n",
-+				applesmc_accelerometer ? "with" : "without");
-+	applesmc_light = dmi_data->light;
-+	printk(KERN_INFO "applesmc:  - Model %s light sensors and backlight\n",
-+					applesmc_light ? "with" : "without");
-+
-+	applesmc_temperature_set =  dmi_data->temperature_set;
-+	while (temperature_sensors_sets[applesmc_temperature_set][i] != NULL)
-+		i++;
-+	printk(KERN_INFO "applesmc:  - Model with %d temperature sensors\n", i);
-+	return 1;
-+}
-+
-+/* Create accelerometer ressources */
-+static int applesmc_create_accelerometer(void)
-+{
-+	int ret;
-+
-+	ret = sysfs_create_group(&pdev->dev.kobj,
-+					&accelerometer_attributes_group);
-+	if (ret)
-+		goto out;
-+
-+	applesmc_idev = input_allocate_device();
-+	if (!applesmc_idev) {
-+		ret = -ENOMEM;
-+		goto out_sysfs;
-+	}
-+
-+	/* initial calibrate for the input device */
-+	applesmc_calibrate();
-+
-+	/* initialize the input class */
-+	applesmc_idev->name = "applesmc";
-+	applesmc_idev->id.bustype = BUS_HOST;
-+	applesmc_idev->cdev.dev = &pdev->dev;
-+	applesmc_idev->evbit[0] = BIT(EV_ABS);
-+	applesmc_idev->open = applesmc_idev_open;
-+	applesmc_idev->close = applesmc_idev_close;
-+	input_set_abs_params(applesmc_idev, ABS_X,
-+			-256, 256, APPLESMC_INPUT_FUZZ, APPLESMC_INPUT_FLAT);
-+	input_set_abs_params(applesmc_idev, ABS_Y,
-+			-256, 256, APPLESMC_INPUT_FUZZ, APPLESMC_INPUT_FLAT);
-+
-+	ret = input_register_device(applesmc_idev);
-+	if (ret)
-+		goto out_idev;
-+
-+	/* start up our timer for the input device */
-+	init_timer(&applesmc_timer);
-+	applesmc_timer.function = applesmc_idev_poll;
-+	applesmc_timer.expires = jiffies + APPLESMC_POLL_PERIOD;
-+
-+	return 0;
-+
-+out_idev:
-+	input_free_device(applesmc_idev);
-+
-+out_sysfs:
-+	sysfs_remove_group(&pdev->dev.kobj, &accelerometer_attributes_group);
-+
-+out:
-+	printk(KERN_WARNING "applesmc: driver init failed (ret=%d)!\n", ret);
-+	return ret;
-+}
-+
-+/* Release all ressources used by the accelerometer */
-+static void applesmc_release_accelerometer(void)
-+{
-+	del_timer_sync(&applesmc_timer);
-+	input_unregister_device(applesmc_idev);
-+	sysfs_remove_group(&pdev->dev.kobj, &accelerometer_attributes_group);
-+}
-+
-+static __initdata struct dmi_match_data applesmc_dmi_data[] = {
-+/* MacBook Pro: accelerometer, backlight and temperature set 0 */
-+	{ .accelerometer = 1, .light = 1, .temperature_set = 0 },
-+/* MacBook: accelerometer and temperature set 0 */
-+	{ .accelerometer = 1, .light = 0, .temperature_set = 0 },
-+/* MacBook: temperature set 1 */
-+	{ .accelerometer = 0, .light = 0, .temperature_set = 1 }
-+};
-+
-+/* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-+ * So we need to put "Apple MacBook Pro" before "Apple MacBook". */
-+static __initdata struct dmi_system_id applesmc_whitelist[] = {
-+	{ applesmc_dmi_match, "Apple MacBook Pro", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBookPro") },
-+		(void*)&applesmc_dmi_data[0]},
-+	{ applesmc_dmi_match, "Apple MacBook", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook") },
-+		(void*)&applesmc_dmi_data[1]},
-+	{ applesmc_dmi_match, "Apple Macmini", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME,"Macmini") },
-+		(void*)&applesmc_dmi_data[2]},
-+	{ .ident = NULL }
-+};
-+
-+static int __init applesmc_init(void)
-+{
-+	int ret;
-+	int count;
-+	int i;
-+
-+	mutex_init(&applesmc_lock);
-+
-+	if (!dmi_check_system(applesmc_whitelist)) {
-+		printk(KERN_WARNING "applesmc: supported laptop not found!\n");
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+
-+	if (!request_region(APPLESMC_DATA_PORT, APPLESMC_NR_PORTS,
-+								"applesmc")) {
-+		ret = -ENXIO;
-+		goto out;
-+	}
-+
-+	ret = platform_driver_register(&applesmc_driver);
-+	if (ret)
-+		goto out_region;
-+
-+	pdev = platform_device_register_simple("applesmc", -1, NULL, 0);
-+	if (IS_ERR(pdev)) {
-+		ret = PTR_ERR(pdev);
-+		goto out_driver;
-+	}
-+
-+	/* Create key enumeration sysfs files */
-+	ret = sysfs_create_group(&pdev->dev.kobj, &key_enumeration_group);
-+	if (ret)
-+		goto out_device;
-+
-+	/* create fan files */
-+	count = applesmc_get_fan_count();
-+	if (count < 0) {
-+		printk(KERN_ERR "applesmc: Cannot get the number of fans.\n");
-+	} else {
-+		printk(KERN_INFO "applesmc: %d fans found.\n", count);
-+
-+		switch (count) {
-+		default:
-+			printk(KERN_WARNING "applesmc: More than 2 fans found,"
-+					" but at most 2 fans are supported"
-+						" by the driver.\n");
-+		case 2:
-+			ret = sysfs_create_group(&pdev->dev.kobj,
-+						 &fan_attribute_groups[1]);
-+			if (ret)
-+				goto out_key_enumeration;
-+		case 1:
-+			ret = sysfs_create_group(&pdev->dev.kobj,
-+						 &fan_attribute_groups[0]);
-+			if (ret)
-+				goto out_fan_1;
-+		case 0:
-+			;
-+		}
-+	}
-+
-+	for (i = 0;
-+	     temperature_sensors_sets[applesmc_temperature_set][i] != NULL;
-+	     i++) {
-+		if (temperature_attributes[i] == NULL) {
-+			printk(KERN_ERR "applesmc: More temperature sensors "
-+				"in temperature_sensors_sets (at least %i)"
-+				"than available sysfs files in "
-+				"temperature_attributes (%i), please report "
-+				"this bug.\n", i, i-1);
-+			goto out_temperature;
-+		}
-+		ret = sysfs_create_file(&pdev->dev.kobj,
-+						temperature_attributes[i]);
-+		if (ret)
-+			goto out_temperature;
-+	}
-+
-+	if (applesmc_accelerometer) {
-+		ret = applesmc_create_accelerometer();
-+		if (ret)
-+			goto out_temperature;
-+	}
-+
-+	if (applesmc_light) {
-+		/* Add light sensor file */
-+		ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_light.attr);
-+		if (ret)
-+			goto out_accelerometer;
-+
-+		/* Create the workqueue */
-+		applesmc_led_wq = create_singlethread_workqueue("applesmc-led");
-+		if (!applesmc_led_wq) {
-+			ret = -ENOMEM;
-+			goto out_light_sysfs;
-+		}
-+
-+		/* register as a led device */
-+		ret = led_classdev_register(&pdev->dev, &applesmc_backlight);
-+		if (ret < 0)
-+			goto out_light_wq;
-+	}
-+
-+	hwmon_class_dev = hwmon_device_register(&pdev->dev);
-+	if (IS_ERR(hwmon_class_dev)) {
-+		ret = PTR_ERR(hwmon_class_dev);
-+		goto out_light_ledclass;
-+	}
-+
-+	printk(KERN_INFO "applesmc: driver successfully loaded.\n");
-+
-+	return 0;
-+
-+out_light_ledclass:
-+	if (applesmc_light)
-+		led_classdev_unregister(&applesmc_backlight);
-+out_light_wq:
-+	if (applesmc_light)
-+		destroy_workqueue(applesmc_led_wq);
-+out_light_sysfs:
-+	if (applesmc_light)
-+		sysfs_remove_file(&pdev->dev.kobj, &dev_attr_light.attr);
-+out_accelerometer:
-+	if (applesmc_accelerometer)
-+		applesmc_release_accelerometer();
-+out_temperature:
-+	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
-+	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
-+out_fan_1:
-+	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[1]);
-+out_key_enumeration:
-+	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
-+out_device:
-+	platform_device_unregister(pdev);
-+out_driver:
-+	platform_driver_unregister(&applesmc_driver);
-+out_region:
-+	release_region(APPLESMC_DATA_PORT, APPLESMC_NR_PORTS);
-+out:
-+	printk(KERN_WARNING "applesmc: driver init failed (ret=%d)!\n", ret);
-+	return ret;
-+}
-+
-+static void __exit applesmc_exit(void)
-+{
-+	hwmon_device_unregister(hwmon_class_dev);
-+	if (applesmc_light) {
-+		led_classdev_unregister(&applesmc_backlight);
-+		destroy_workqueue(applesmc_led_wq);
-+		sysfs_remove_file(&pdev->dev.kobj, &dev_attr_light.attr);
-+	}
-+	if (applesmc_accelerometer)
-+		applesmc_release_accelerometer();
-+	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
-+	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
-+	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[1]);
-+	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
-+	platform_device_unregister(pdev);
-+	platform_driver_unregister(&applesmc_driver);
-+	release_region(APPLESMC_DATA_PORT, APPLESMC_NR_PORTS);
-+
-+	printk(KERN_INFO "applesmc: driver unloaded.\n");
-+}
-+
-+module_init(applesmc_init);
-+module_exit(applesmc_exit);
-+
-+MODULE_AUTHOR("Nicolas Boichat");
-+MODULE_DESCRIPTION("Apple SMC");
-+MODULE_LICENSE("GPL v2");
+ 
+ 	/* We have to call this outside the lock */
+ 	if (pwake)
+ 		ep_poll_safewake(&psw, &ep->poll_wait);
++
++	return eventcnt == 0 ? error: eventcnt;
+ }
+ 
+ 
+@@ -1517,7 +1455,8 @@ static void ep_reinject_items(struct eve
+ static int ep_events_transfer(struct eventpoll *ep,
+ 			      struct epoll_event __user *events, int maxevents)
+ {
+-	int eventcnt = 0;
++	int eventcnt;
++	unsigned long flags;
+ 	struct list_head txlist;
+ 
+ 	INIT_LIST_HEAD(&txlist);
+@@ -1528,14 +1467,17 @@ static int ep_events_transfer(struct eve
+ 	 */
+ 	down_read(&ep->sem);
+ 
+-	/* Collect/extract ready items */
+-	if (ep_collect_ready_items(ep, &txlist, maxevents) > 0) {
+-		/* Build result set in userspace */
+-		eventcnt = ep_send_events(ep, &txlist, events);
++	/*
++	 * Steal the ready list, and re-init the original one to the
++	 * empty list.
++	 */
++	write_lock_irqsave(&ep->lock, flags);
++	list_splice(&ep->rdllist, &txlist);
++	INIT_LIST_HEAD(&ep->rdllist);
++	write_unlock_irqrestore(&ep->lock, flags);
+ 
+-		/* Reinject ready items into the ready list */
+-		ep_reinject_items(ep, &txlist);
+-	}
++	/* Build result set in userspace */
++	eventcnt = ep_send_events(ep, &txlist, events, maxevents);
+ 
+ 	up_read(&ep->sem);
+ 
+@@ -1612,14 +1554,12 @@ retry:
+ 	return res;
+ }
+ 
+-
+ static int eventpollfs_delete_dentry(struct dentry *dentry)
+ {
+ 
+ 	return 1;
+ }
+ 
+-
+ static struct inode *ep_eventpoll_inode(void)
+ {
+ 	int error = -ENOMEM;
+@@ -1647,7 +1587,6 @@ eexit_1:
+ 	return ERR_PTR(error);
+ }
+ 
+-
+ static int
+ eventpollfs_get_sb(struct file_system_type *fs_type, int flags,
+ 		   const char *dev_name, void *data, struct vfsmount *mnt)
 _
 
-Patches currently in -mm which might be from nicolas@boichat.ch are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-applesmc-use-the-address-as-platform-device-id.patch
-applesmc-use-standard-sysfs-names-for-labels.patch
-git-alsa.patch
+signal-timer-event-fds-v9-anonymous-inode-source.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-signalfd-wire-up-x86-arches.patch
+signal-timer-event-fds-v9-signalfd-compat-code.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-timerfd-wire-up-x86-arches.patch
+signal-timer-event-fds-v9-timerfd-compat-code.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+signal-timer-event-eventfd-wire-up-x86-arches.patch
+signal-timer-event-fds-v9-kaio-eventfd-support-example.patch
+epoll-use-anonymous-inodes.patch
+epoll-cleanups-epoll-no-module.patch
+epoll-cleanups-epoll-remove-static-pre-declarations-and-akpm-ize-the-code.patch
