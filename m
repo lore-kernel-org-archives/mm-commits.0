@@ -1,63 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - cap-shmmax-at-int_max-in-compat-shminfo.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:45:30 -0700
-Message-ID: <200705090245.l492jUl4008746@shell0.pdx.osdl.net>
+Subject: - freevxfs-possible-null-pointer-dereference-fix.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:44:54 -0700
+Message-ID: <200705090244.l492isPW008650@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50606 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37505 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968823AbXEICpj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:39 -0400
+	by vger.kernel.org with ESMTP id S967626AbXEICpk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: streeter@redhat.com, mm-commits@vger.kernel.org
+To: dmonakhov@sw.ru, dmonakhov@openvz.org, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Cap shmmax at INT_MAX in compat shminfo
+     freevxfs: possible null pointer dereference fix
 has been removed from the -mm tree.  Its filename was
-     cap-shmmax-at-int_max-in-compat-shminfo.patch
+     freevxfs-possible-null-pointer-dereference-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Cap shmmax at INT_MAX in compat shminfo
-From: Guy Streeter <streeter@redhat.com>
+Subject: freevxfs: possible null pointer dereference fix
+From: Dmitriy Monakhov <dmonakhov@sw.ru>
 
-The value of shmmax may be larger than will fit in the struct used by
-the 32bit compat version of sys_shmctl. This change mirrors what the
-normal sys_shmctl does when called with the old IPC_INFO command.
+sb_read may return NULL, so let's explicitly check it.
 
-Signed-off-by: Guy Streeter <streeter@redhat.com>
+Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/compat.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/freevxfs/vxfs_bmap.c  |    2 +-
+ fs/freevxfs/vxfs_inode.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/compat.c~cap-shmmax-at-int_max-in-compat-shminfo ipc/compat.c
---- a/ipc/compat.c~cap-shmmax-at-int_max-in-compat-shminfo
-+++ a/ipc/compat.c
-@@ -542,6 +542,8 @@ static inline int put_compat_shminfo64(s
+diff -puN fs/freevxfs/vxfs_bmap.c~freevxfs-possible-null-pointer-dereference-fix fs/freevxfs/vxfs_bmap.c
+--- a/fs/freevxfs/vxfs_bmap.c~freevxfs-possible-null-pointer-dereference-fix
++++ a/fs/freevxfs/vxfs_bmap.c
+@@ -137,7 +137,7 @@ vxfs_bmap_indir(struct inode *ip, long i
  
- 	if (!access_ok(VERIFY_WRITE, up64, sizeof(*up64)))
- 		return -EFAULT;
-+	if (smi->shmmax > INT_MAX)
-+		smi->shmmax = INT_MAX;
- 	err  = __put_user(smi->shmmax, &up64->shmmax);
- 	err |= __put_user(smi->shmmin, &up64->shmmin);
- 	err |= __put_user(smi->shmmni, &up64->shmmni);
-@@ -557,6 +559,8 @@ static inline int put_compat_shminfo(str
+ 		bp = sb_bread(ip->i_sb,
+ 				indir + (i / VXFS_TYPED_PER_BLOCK(ip->i_sb)));
+-		if (!buffer_mapped(bp))
++		if (!bp || !buffer_mapped(bp))
+ 			return 0;
  
- 	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)))
- 		return -EFAULT;
-+	if (smi->shmmax > INT_MAX)
-+		smi->shmmax = INT_MAX;
- 	err  = __put_user(smi->shmmax, &up->shmmax);
- 	err |= __put_user(smi->shmmin, &up->shmmin);
- 	err |= __put_user(smi->shmmni, &up->shmmni);
+ 		typ = ((struct vxfs_typed *)bp->b_data) +
+diff -puN fs/freevxfs/vxfs_inode.c~freevxfs-possible-null-pointer-dereference-fix fs/freevxfs/vxfs_inode.c
+--- a/fs/freevxfs/vxfs_inode.c~freevxfs-possible-null-pointer-dereference-fix
++++ a/fs/freevxfs/vxfs_inode.c
+@@ -99,7 +99,7 @@ vxfs_blkiget(struct super_block *sbp, u_
+ 	offset = ((ino % (sbp->s_blocksize / VXFS_ISIZE)) * VXFS_ISIZE);
+ 	bp = sb_bread(sbp, block);
+ 
+-	if (buffer_mapped(bp)) {
++	if (bp && buffer_mapped(bp)) {
+ 		struct vxfs_inode_info	*vip;
+ 		struct vxfs_dinode	*dip;
+ 
 _
 
-Patches currently in -mm which might be from streeter@redhat.com are
+Patches currently in -mm which might be from dmonakhov@sw.ru are
 
 origin.patch
