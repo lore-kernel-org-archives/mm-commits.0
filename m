@@ -1,136 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch removed from -mm tree
-Date: Wed, 09 May 2007 01:42:51 -0700
-Message-ID: <200705090842.l498gpGt018238@shell0.pdx.osdl.net>
+Subject: - slub-add-support-for-dynamic-cacheline-size-determination-fix-2.patch removed from -mm tree
+Date: Wed, 09 May 2007 01:45:29 -0700
+Message-ID: <200705090845.l498jTes018323@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35393 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752994AbXEIInd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:43:33 -0400
+	by vger.kernel.org with ESMTP id S1755927AbXEIIpf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 04:45:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dmitry.adamushko@gmail.com, kernel@kolivas.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert 'sched: redundant reschedule when set_user_nice() boosts a prio of a task from the "expired" array'
+     slub-add-support-for-dynamic-cacheline-size-determination-fix-2
 has been removed from the -mm tree.  Its filename was
-     revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+     slub-add-support-for-dynamic-cacheline-size-determination-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into slub-add-support-for-dynamic-cacheline-size-determination.patch
 
 ------------------------------------------------------
-Subject: revert 'sched: redundant reschedule when set_user_nice() boosts a prio of a task from the "expired" array'
+Subject: slub-add-support-for-dynamic-cacheline-size-determination-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Con says:
+Need to define it before we use it.
 
-This is no good, sorry. The one I saw originally was with the staircase
-deadline cpu scheduler in situ and was different.
-
-  #define TASK_PREEMPTS_CURR(p, rq) \
-     ((p)->prio < (rq)->curr->prio)
-     (((p)->prio < (rq)->curr->prio) && ((p)->array == (rq)->active))
-
-This will fail to wake up a runqueue for a task that has been migrated to the
-expired array of a runqueue which is otherwise idle which can happen with smp
-balancing,
-
-Cc: Dmitry Adamushko <dmitry.adamushko@gmail.com>
-Cc: Con Kolivas <kernel@kolivas.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ mm/slub.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array kernel/sched.c
---- a/kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array
-+++ a/kernel/sched.c
-@@ -169,7 +169,7 @@ unsigned long long __attribute__((weak))
- 		(MAX_BONUS / 2 + DELTA((p)) + 1) / MAX_BONUS - 1))
+diff -puN mm/slub.c~slub-add-support-for-dynamic-cacheline-size-determination-fix-2 mm/slub.c
+--- a/mm/slub.c~slub-add-support-for-dynamic-cacheline-size-determination-fix-2
++++ a/mm/slub.c
+@@ -157,6 +157,11 @@
+ /* Internal SLUB flags */
+ #define __OBJECT_POISON 0x80000000	/* Poison object */
  
- #define TASK_PREEMPTS_CURR(p, rq) \
--	(((p)->prio < (rq)->curr->prio) && ((p)->array == (rq)->active))
-+	((p)->prio < (rq)->curr->prio)
++/* Not all arches define cache_line_size */
++#ifndef cache_line_size
++#define cache_line_size()	L1_CACHE_BYTES
++#endif
++
+ static int kmem_size = sizeof(struct kmem_cache);
  
- #define SCALE_PRIO(x, prio) \
- 	max(x * (MAX_PRIO - prio) / (MAX_USER_PRIO / 2), MIN_TIMESLICE)
-@@ -4076,13 +4076,13 @@ void rt_mutex_setprio(struct task_struct
- 	struct prio_array *array;
- 	unsigned long flags;
- 	struct rq *rq;
--	int delta;
-+	int oldprio;
+ #ifdef CONFIG_SMP
+@@ -1777,11 +1782,6 @@ error:
+ }
+ EXPORT_SYMBOL(kmem_cache_open);
  
- 	BUG_ON(prio < 0 || prio > MAX_PRIO);
- 
- 	rq = task_rq_lock(p, &flags);
- 
--	delta = prio - p->prio;
-+	oldprio = p->prio;
- 	array = p->array;
- 	if (array)
- 		dequeue_task(p, array);
-@@ -4098,11 +4098,13 @@ void rt_mutex_setprio(struct task_struct
- 		enqueue_task(p, array);
- 		/*
- 		 * Reschedule if we are currently running on this runqueue and
--		 * our priority decreased, or if our priority became higher
--		 * than the current's.
-+		 * our priority decreased, or if we are not currently running on
-+		 * this runqueue and our priority is higher than the current's
- 		 */
--		if (TASK_PREEMPTS_CURR(p, rq) ||
--				(delta > 0 && task_running(rq, p)))
-+		if (task_running(rq, p)) {
-+			if (p->prio > oldprio)
-+				resched_task(rq->curr);
-+		} else if (TASK_PREEMPTS_CURR(p, rq))
- 			resched_task(rq->curr);
- 	}
- 	task_rq_unlock(rq, &flags);
-@@ -4150,12 +4152,10 @@ void set_user_nice(struct task_struct *p
- 		enqueue_task(p, array);
- 		inc_raw_weighted_load(rq, p);
- 		/*
--		 * Reschedule if we are currently running on this runqueue and
--		 * our priority decreased, or if our priority became higher
--		 * than the current's.
-+		 * If the task increased its priority or is running and
-+		 * lowered its priority, then reschedule its CPU:
- 		 */
--		if (TASK_PREEMPTS_CURR(p, rq) ||
--				(delta > 0 && task_running(rq, p)))
-+		if (delta < 0 || (delta > 0 && task_running(rq, p)))
- 			resched_task(rq->curr);
- 	}
- out_unlock:
-@@ -4382,11 +4382,13 @@ recheck:
- 		__activate_task(p, rq);
- 		/*
- 		 * Reschedule if we are currently running on this runqueue and
--		 * our priority decreased, or our priority became higher
--		 * than the current's.
-+		 * our priority decreased, or if we are not currently running on
-+		 * this runqueue and our priority is higher than the current's
- 		 */
--		if (TASK_PREEMPTS_CURR(p, rq) ||
--				(task_running(rq, p) && p->prio > oldprio))
-+		if (task_running(rq, p)) {
-+			if (p->prio > oldprio)
-+				resched_task(rq->curr);
-+		} else if (TASK_PREEMPTS_CURR(p, rq))
- 			resched_task(rq->curr);
- 	}
- 	__task_rq_unlock(rq);
+-/* Not all arches define cache_line_size */
+-#ifndef cache_line_size
+-#define cache_line_size()	L1_CACHE_BYTES
+-#endif
+-
+ /*
+  * Check if a given pointer is valid
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+slub-add-support-for-dynamic-cacheline-size-determination.patch
 slub-add-support-for-dynamic-cacheline-size-determination-fix-2.patch
 git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa.patch
