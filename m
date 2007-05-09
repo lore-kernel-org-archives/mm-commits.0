@@ -1,72 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - lib-hexdump-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:33:02 -0700
-Message-ID: <200705091033.l49AX22T021461@shell0.pdx.osdl.net>
+Subject: - tty-add-compat_ioctl-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:33:46 -0700
+Message-ID: <200705091033.l49AXkCJ021493@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57701 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755573AbXEIKdc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:33:32 -0400
+	by vger.kernel.org with ESMTP id S1756645AbXEIKeG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:34:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-hexdump-fix
+     tty-add-compat_ioctl-fix
 has been removed from the -mm tree.  Its filename was
-     lib-hexdump-fix.patch
+     tty-add-compat_ioctl-fix.patch
 
-This patch was dropped because it was folded into lib-hexdump.patch
+This patch was dropped because it was folded into tty-add-compat_ioctl.patch
 
 ------------------------------------------------------
-Subject: lib-hexdump-fix
+Subject: tty-add-compat_ioctl-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Paul Fulghum <paulkf@microgate.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    3 ++-
- lib/hexdump.c          |    5 ++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/tty_io.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kernel.h~lib-hexdump-fix include/linux/kernel.h
---- a/include/linux/kernel.h~lib-hexdump-fix
-+++ a/include/linux/kernel.h
-@@ -218,7 +218,8 @@ enum {
- 	DUMP_PREFIX_ADDRESS,
- 	DUMP_PREFIX_OFFSET
- };
--extern void hex_dumper(void *buf, size_t len, char *linebuf, size_t linebuflen);
-+extern void hex_dumper(const void *buf, size_t len, char *linebuf,
-+				size_t linebuflen);
- extern void print_hex_dump(const char *level, int prefix_type,
- 				void *buf, size_t len);
- #define hextoasc(x)	"0123456789abcdef"[x]
-diff -puN lib/hexdump.c~lib-hexdump-fix lib/hexdump.c
---- a/lib/hexdump.c~lib-hexdump-fix
-+++ a/lib/hexdump.c
-@@ -32,7 +32,7 @@
-  * Prints the offsets of the block of memory, not addresses:
-  * 0009ab42: 40414243 44454647 48494a4b 4c4d4e4f-@ABCDEFG HIJKLMNO
-  */
--void hex_dumper(void *buf, size_t len, char *linebuf, size_t linebuflen)
-+void hex_dumper(const void *buf, size_t len, char *linebuf, size_t linebuflen)
- {
- 	const u8 *ptr = buf;
- 	u8 ch;
-@@ -87,8 +87,7 @@ void print_hex_dump(const char *level, i
- 		remaining -= 16;
- 		hex_dumper(ptr + i, linelen, linebuf, sizeof(linebuf));
+diff -puN drivers/char/tty_io.c~tty-add-compat_ioctl-fix drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-add-compat_ioctl-fix
++++ a/drivers/char/tty_io.c
+@@ -152,7 +152,8 @@ static int tty_release(struct inode *, s
+ int tty_ioctl(struct inode * inode, struct file * file,
+ 	      unsigned int cmd, unsigned long arg);
+ #ifdef CONFIG_COMPAT
+-long tty_compat_ioctl(struct file * file, unsigned int cmd, unsigned long arg);
++static long tty_compat_ioctl(struct file * file, unsigned int cmd,
++				unsigned long arg);
+ #else
+ #define tty_compat_ioctl NULL
+ #endif
+@@ -3400,7 +3401,8 @@ int tty_ioctl(struct inode * inode, stru
+ }
  
--		switch (prefix_type)
--		{
-+		switch (prefix_type) {
- 		case DUMP_PREFIX_ADDRESS:
- 			printk("%s%*p: %s\n", level,
- 				(int)(2 * sizeof(void *)), ptr + i, linebuf);
+ #ifdef CONFIG_COMPAT
+-long tty_compat_ioctl(struct file * file, unsigned int cmd, unsigned long arg)
++static long tty_compat_ioctl(struct file * file, unsigned int cmd,
++				unsigned long arg)
+ {
+ 	struct inode *inode = file->f_dentry->d_inode;
+ 	struct tty_struct *tty = file->private_data;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,7 +117,7 @@ maps2-add-proc-pid-pagemap-interface.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
 upper-32-bits.patch
 lib-hexdump.patch
-lib-hexdump-fix.patch
+tty-add-compat_ioctl.patch
 tty-add-compat_ioctl-fix.patch
 blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
 mpc52xx-psc-spi-master-driver-update-tidy.patch
