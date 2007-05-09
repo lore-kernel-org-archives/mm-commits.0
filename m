@@ -1,53 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - usbatm_heavy_init-dont-use-clone_sighand.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:52:31 -0700
-Message-ID: <200705092152.l49LqVme003004@shell0.pdx.osdl.net>
+Subject: - wait_for_helper-remove-unneeded-do_sigaction.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:52:33 -0700
+Message-ID: <200705092152.l49LqXH1003009@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40452 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759179AbXEIVw6 (ORCPT
+	by vger.kernel.org with ESMTP id S1758992AbXEIVw6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, duncan.sands@free.fr, greg@kroah.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, ebiederm@xmission.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usbatm_heavy_init: don't use CLONE_SIGHAND
+     wait_for_helper: remove unneeded do_sigaction()
 has been removed from the -mm tree.  Its filename was
-     usbatm_heavy_init-dont-use-clone_sighand.patch
+     wait_for_helper-remove-unneeded-do_sigaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usbatm_heavy_init: don't use CLONE_SIGHAND
+Subject: wait_for_helper: remove unneeded do_sigaction()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-usbatm_do_heavy_init() calls allow_signal() which plays with parent process's
-->sighand.
+allow_signal(SIGCHLD) does all necessary job, no need to call do_sigaction()
+prior to.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Duncan Sands <duncan.sands@free.fr>
-Cc: Greg KH <greg@kroah.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/atm/usbatm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kmod.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/usb/atm/usbatm.c~usbatm_heavy_init-dont-use-clone_sighand drivers/usb/atm/usbatm.c
---- a/drivers/usb/atm/usbatm.c~usbatm_heavy_init-dont-use-clone_sighand
-+++ a/drivers/usb/atm/usbatm.c
-@@ -1033,7 +1033,7 @@ static int usbatm_do_heavy_init(void *ar
- 
- static int usbatm_heavy_init(struct usbatm_data *instance)
+diff -puN kernel/kmod.c~wait_for_helper-remove-unneeded-do_sigaction kernel/kmod.c
+--- a/kernel/kmod.c~wait_for_helper-remove-unneeded-do_sigaction
++++ a/kernel/kmod.c
+@@ -185,14 +185,9 @@ static int wait_for_helper(void *data)
  {
--	int ret = kernel_thread(usbatm_do_heavy_init, instance, CLONE_KERNEL);
-+	int ret = kernel_thread(usbatm_do_heavy_init, instance, CLONE_FS | CLONE_FILES);
+ 	struct subprocess_info *sub_info = data;
+ 	pid_t pid;
+-	struct k_sigaction sa;
  
- 	if (ret < 0) {
- 		usb_err(instance, "%s: failed to create kernel_thread (%d)!\n", __func__, ret);
+ 	/* Install a handler: if SIGCLD isn't handled sys_wait4 won't
+ 	 * populate the status, but will return -ECHILD. */
+-	sa.sa.sa_handler = SIG_IGN;
+-	sa.sa.sa_flags = 0;
+-	siginitset(&sa.sa.sa_mask, sigmask(SIGCHLD));
+-	do_sigaction(SIGCHLD, &sa, NULL);
+ 	allow_signal(SIGCHLD);
+ 
+ 	pid = kernel_thread(____call_usermodehelper, sub_info, SIGCHLD);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
