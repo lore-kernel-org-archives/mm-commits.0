@@ -1,83 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - sanitize-linux-isdn_divertifh-for-userspace.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:53:24 -0700
-Message-ID: <200705090253.l492rOoP009692@shell0.pdx.osdl.net>
+Subject: - isdn-spinlock-initializer-cleanup.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:53:29 -0700
+Message-ID: <200705090253.l492rTGb009704@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58968 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032226AbXEICxc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:32 -0400
+	by vger.kernel.org with ESMTP id S1032229AbXEICxg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:53:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, dwmw2@infradead.org, kkeil@suse.de, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sanitize linux/isdn_divertif.h for userspace
+     ISDN: Spinlock initializer cleanup
 has been removed from the -mm tree.  Its filename was
-     sanitize-linux-isdn_divertifh-for-userspace.patch
+     isdn-spinlock-initializer-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sanitize linux/isdn_divertif.h for userspace
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: ISDN: Spinlock initializer cleanup
+From: Thomas Gleixner <tglx@linutronix.de>
 
-the isdn_divertif contains kernel-only references so I've wrapped them in
-__KERNEL__ and add proper #include statements.
-
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Karsten Keil <kkeil@suse.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild          |    2 +-
- include/linux/isdn_divertif.h |    5 +++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ drivers/isdn/hysdn/boardergo.c   |    2 +-
+ drivers/isdn/isdnloop/isdnloop.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/Kbuild~sanitize-linux-isdn_divertifh-for-userspace include/linux/Kbuild
---- a/include/linux/Kbuild~sanitize-linux-isdn_divertifh-for-userspace
-+++ a/include/linux/Kbuild
-@@ -92,7 +92,6 @@ header-y += ip_mp_alg.h
- header-y += ipsec.h
- header-y += ipx.h
- header-y += irda.h
--header-y += isdn_divertif.h
- header-y += iso_fs.h
- header-y += ixjuser.h
- header-y += jffs2.h
-@@ -242,6 +241,7 @@ unifdef-y += ipv6.h
- unifdef-y += ipv6_route.h
- unifdef-y += isdn.h
- unifdef-y += isdnif.h
-+unifdef-y += isdn_divertif.h
- unifdef-y += isdn_ppp.h
- unifdef-y += isicom.h
- unifdef-y += jbd.h
-diff -puN include/linux/isdn_divertif.h~sanitize-linux-isdn_divertifh-for-userspace include/linux/isdn_divertif.h
---- a/include/linux/isdn_divertif.h~sanitize-linux-isdn_divertifh-for-userspace
-+++ a/include/linux/isdn_divertif.h
-@@ -24,6 +24,10 @@
- #define DIVERT_REL_ERR  0x04  /* module not registered */
- #define DIVERT_REG_NAME isdn_register_divert
+diff -puN drivers/isdn/hysdn/boardergo.c~isdn-spinlock-initializer-cleanup drivers/isdn/hysdn/boardergo.c
+--- a/drivers/isdn/hysdn/boardergo.c~isdn-spinlock-initializer-cleanup
++++ a/drivers/isdn/hysdn/boardergo.c
+@@ -443,7 +443,7 @@ ergo_inithardware(hysdn_card * card)
+ 	card->waitpofready = ergo_waitpofready;
+ 	card->set_errlog_state = ergo_set_errlog_state;
+ 	INIT_WORK(&card->irq_queue, ergo_irq_bh);
+-	card->hysdn_lock = SPIN_LOCK_UNLOCKED;
++	spin_lock_init(&card->hysdn_lock);
  
-+#ifdef __KERNEL__
-+#include <linux/isdnif.h>
-+#include <linux/types.h>
-+
- /***************************************************************/
- /* structure exchanging data between isdn hl and divert module */
- /***************************************************************/ 
-@@ -40,3 +44,4 @@ typedef struct
- /* function register */
- /*********************/
- extern int DIVERT_REG_NAME(isdn_divert_if *);
-+#endif
+ 	return (0);
+ }				/* ergo_inithardware */
+diff -puN drivers/isdn/isdnloop/isdnloop.c~isdn-spinlock-initializer-cleanup drivers/isdn/isdnloop/isdnloop.c
+--- a/drivers/isdn/isdnloop/isdnloop.c~isdn-spinlock-initializer-cleanup
++++ a/drivers/isdn/isdnloop/isdnloop.c
+@@ -1462,7 +1462,7 @@ isdnloop_initcard(char *id)
+ 		skb_queue_head_init(&card->bqueue[i]);
+ 	}
+ 	skb_queue_head_init(&card->dqueue);
+-	card->isdnloop_lock = SPIN_LOCK_UNLOCKED;
++	spin_lock_init(&card->isdnloop_lock);
+ 	card->next = cards;
+ 	cards = card;
+ 	if (!register_isdn(&card->interface)) {
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-dont-force-uclinux-mtd-map-to-be-root-dev.patch
+arm-spinlock-initializer-cleanup.patch
+git-avr32.patch
+drm-spinlock-initializer-cleanup.patch
+git-dvb.patch
+git-ieee1394.patch
+git-mtd.patch
+s390-spinlock-initializer-cleanup.patch
+fix-printk-format-warnings-in-timer_listc.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+declare-struct-ktime.patch
+timer-parenthesis-fix-in-tbase_get_deferrable-etc.patch
+clocksource-fix-resume-logic.patch
+clockevents-fix-resume-logic-updated-version.patch
+timer_stats-slimmed-down-using-statistics-infrastucture.patch
