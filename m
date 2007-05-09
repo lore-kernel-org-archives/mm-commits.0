@@ -1,157 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: - s390-fix-subsystem-removal-fallout.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:55:18 -0700
-Message-ID: <200705092155.l49LtIxq003258@shell0.pdx.osdl.net>
+Subject: - make-queue_delayed_work-friendly-to-flush_fork.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:51:57 -0700
+Message-ID: <200705092151.l49LpvK0002945@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33255 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758874AbXEIWI2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:08:28 -0400
+	by vger.kernel.org with ESMTP id S1759679AbXEIWJA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:09:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390: fix subsystem removal fallout
+     make queue_delayed_work() friendly to flush_fork()
 has been removed from the -mm tree.  Its filename was
-     s390-fix-subsystem-removal-fallout.patch
+     make-queue_delayed_work-friendly-to-flush_fork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s390: fix subsystem removal fallout
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
+Subject: make queue_delayed_work() friendly to flush_fork()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This patch fixes compilation on s390 in the current driver tree. It
-should probably be merged into
-remove-struct-subsystem-as-it-is-no-longer-needed.patch.
+Currently typeof(delayed_work->work.data) is
 
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
+	"struct workqueue_struct" when the timer is pending
+
+	"struct cpu_workqueue_struct" whe the work is queued
+
+This makes impossible to use flush_fork(delayed_work->work) in addition
+to cancel_delayed_work/cancel_rearming_delayed_work, not good.
+
+Change queue_delayed_work/delayed_work_timer_fn to use cwq, not wq. This
+complicates (and uglifies) these functions a little bit, but alows us to
+use flush_fork(dwork) and imho makes the whole code more consistent.
+
+Also, document the fact that cancel_rearming_delayed_work() doesn't garantee
+the completion of work->func() upon return.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/hypfs/inode.c |    2 +-
- arch/s390/kernel/ipl.c  |   26 +++++++++++++-------------
- 2 files changed, 14 insertions(+), 14 deletions(-)
+ kernel/workqueue.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN arch/s390/hypfs/inode.c~s390-fix-subsystem-removal-fallout arch/s390/hypfs/inode.c
---- a/arch/s390/hypfs/inode.c~s390-fix-subsystem-removal-fallout
-+++ a/arch/s390/hypfs/inode.c
-@@ -477,7 +477,7 @@ static int __init hypfs_init(void)
- 			goto fail_diag;
- 		}
- 	}
--	kset_set_kset_s(&s390_subsys, hypervisor_subsys);
-+	kobj_set_kset_s(&s390_subsys, hypervisor_subsys);
- 	rc = subsystem_register(&s390_subsys);
- 	if (rc)
- 		goto fail_sysfs;
-diff -puN arch/s390/kernel/ipl.c~s390-fix-subsystem-removal-fallout arch/s390/kernel/ipl.c
---- a/arch/s390/kernel/ipl.c~s390-fix-subsystem-removal-fallout
-+++ a/arch/s390/kernel/ipl.c
-@@ -814,23 +814,23 @@ static int __init ipl_register_fcp_files
+diff -puN kernel/workqueue.c~make-queue_delayed_work-friendly-to-flush_fork kernel/workqueue.c
+--- a/kernel/workqueue.c~make-queue_delayed_work-friendly-to-flush_fork
++++ a/kernel/workqueue.c
+@@ -90,18 +90,20 @@ static const cpumask_t *wq_cpu_map(struc
+  * Set the workqueue on which a work item is to be run
+  * - Must *only* be called if the pending flag is set
+  */
+-static inline void set_wq_data(struct work_struct *work, void *wq)
++static inline void set_wq_data(struct work_struct *work,
++				struct cpu_workqueue_struct *cwq)
  {
- 	int rc;
+ 	unsigned long new;
  
--	rc = sysfs_create_group(&ipl_subsys.kset.kobj,
-+	rc = sysfs_create_group(&ipl_subsys.kobj,
- 				&ipl_fcp_attr_group);
- 	if (rc)
- 		goto out;
--	rc = sysfs_create_bin_file(&ipl_subsys.kset.kobj,
-+	rc = sysfs_create_bin_file(&ipl_subsys.kobj,
- 				   &ipl_parameter_attr);
- 	if (rc)
- 		goto out_ipl_parm;
--	rc = sysfs_create_bin_file(&ipl_subsys.kset.kobj,
-+	rc = sysfs_create_bin_file(&ipl_subsys.kobj,
- 				   &ipl_scp_data_attr);
- 	if (!rc)
- 		goto out;
+ 	BUG_ON(!work_pending(work));
  
--	sysfs_remove_bin_file(&ipl_subsys.kset.kobj, &ipl_parameter_attr);
-+	sysfs_remove_bin_file(&ipl_subsys.kobj, &ipl_parameter_attr);
- 
- out_ipl_parm:
--	sysfs_remove_group(&ipl_subsys.kset.kobj, &ipl_fcp_attr_group);
-+	sysfs_remove_group(&ipl_subsys.kobj, &ipl_fcp_attr_group);
- out:
- 	return rc;
+-	new = (unsigned long) wq | (1UL << WORK_STRUCT_PENDING);
++	new = (unsigned long) cwq | (1UL << WORK_STRUCT_PENDING);
+ 	new |= WORK_STRUCT_FLAG_MASK & *work_data_bits(work);
+ 	atomic_long_set(&work->data, new);
  }
-@@ -844,7 +844,7 @@ static int __init ipl_init(void)
- 		return rc;
- 	switch (ipl_info.type) {
- 	case IPL_TYPE_CCW:
--		rc = sysfs_create_group(&ipl_subsys.kset.kobj,
-+		rc = sysfs_create_group(&ipl_subsys.kobj,
- 					&ipl_ccw_attr_group);
- 		break;
- 	case IPL_TYPE_FCP:
-@@ -852,11 +852,11 @@ static int __init ipl_init(void)
- 		rc = ipl_register_fcp_files();
- 		break;
- 	case IPL_TYPE_NSS:
--		rc = sysfs_create_group(&ipl_subsys.kset.kobj,
-+		rc = sysfs_create_group(&ipl_subsys.kobj,
- 					&ipl_nss_attr_group);
- 		break;
- 	default:
--		rc = sysfs_create_group(&ipl_subsys.kset.kobj,
-+		rc = sysfs_create_group(&ipl_subsys.kobj,
- 					&ipl_unknown_attr_group);
- 		break;
- 	}
-@@ -883,7 +883,7 @@ static int __init reipl_nss_init(void)
  
- 	if (!MACHINE_IS_VM)
- 		return 0;
--	rc = sysfs_create_group(&reipl_subsys.kset.kobj, &reipl_nss_attr_group);
-+	rc = sysfs_create_group(&reipl_subsys.kobj, &reipl_nss_attr_group);
- 	if (rc)
- 		return rc;
- 	strncpy(reipl_nss_name, kernel_nss_name, NSS_NAME_SIZE + 1);
-@@ -898,7 +898,7 @@ static int __init reipl_ccw_init(void)
- 	reipl_block_ccw = (void *) get_zeroed_page(GFP_KERNEL);
- 	if (!reipl_block_ccw)
- 		return -ENOMEM;
--	rc = sysfs_create_group(&reipl_subsys.kset.kobj, &reipl_ccw_attr_group);
-+	rc = sysfs_create_group(&reipl_subsys.kobj, &reipl_ccw_attr_group);
- 	if (rc) {
- 		free_page((unsigned long)reipl_block_ccw);
- 		return rc;
-@@ -936,7 +936,7 @@ static int __init reipl_fcp_init(void)
- 	reipl_block_fcp = (void *) get_zeroed_page(GFP_KERNEL);
- 	if (!reipl_block_fcp)
- 		return -ENOMEM;
--	rc = sysfs_create_group(&reipl_subsys.kset.kobj, &reipl_fcp_attr_group);
-+	rc = sysfs_create_group(&reipl_subsys.kobj, &reipl_fcp_attr_group);
- 	if (rc) {
- 		free_page((unsigned long)reipl_block_fcp);
- 		return rc;
-@@ -988,7 +988,7 @@ static int __init dump_ccw_init(void)
- 	dump_block_ccw = (void *) get_zeroed_page(GFP_KERNEL);
- 	if (!dump_block_ccw)
- 		return -ENOMEM;
--	rc = sysfs_create_group(&dump_subsys.kset.kobj, &dump_ccw_attr_group);
-+	rc = sysfs_create_group(&dump_subsys.kobj, &dump_ccw_attr_group);
- 	if (rc) {
- 		free_page((unsigned long)dump_block_ccw);
- 		return rc;
-@@ -1012,7 +1012,7 @@ static int __init dump_fcp_init(void)
- 	dump_block_fcp = (void *) get_zeroed_page(GFP_KERNEL);
- 	if (!dump_block_fcp)
- 		return -ENOMEM;
--	rc = sysfs_create_group(&dump_subsys.kset.kobj, &dump_fcp_attr_group);
-+	rc = sysfs_create_group(&dump_subsys.kobj, &dump_fcp_attr_group);
- 	if (rc) {
- 		free_page((unsigned long)dump_block_fcp);
- 		return rc;
+-static inline void *get_wq_data(struct work_struct *work)
++static inline
++struct cpu_workqueue_struct *get_wq_data(struct work_struct *work)
+ {
+ 	return (void *) (atomic_long_read(&work->data) & WORK_STRUCT_WQ_DATA_MASK);
+ }
+@@ -157,7 +159,8 @@ EXPORT_SYMBOL_GPL(queue_work);
+ void delayed_work_timer_fn(unsigned long __data)
+ {
+ 	struct delayed_work *dwork = (struct delayed_work *)__data;
+-	struct workqueue_struct *wq = get_wq_data(&dwork->work);
++	struct cpu_workqueue_struct *cwq = get_wq_data(&dwork->work);
++	struct workqueue_struct *wq = cwq->wq;
+ 	int cpu = smp_processor_id();
+ 
+ 	if (unlikely(is_single_threaded(wq)))
+@@ -189,8 +192,9 @@ int fastcall queue_delayed_work(struct w
+ 		BUG_ON(timer_pending(timer));
+ 		BUG_ON(!list_empty(&work->entry));
+ 
+-		/* This stores wq for the moment, for the timer_fn */
+-		set_wq_data(work, wq);
++		/* This stores cwq for the moment, for the timer_fn */
++		set_wq_data(work,
++			per_cpu_ptr(wq->cpu_wq, raw_smp_processor_id()));
+ 		timer->expires = jiffies + delay;
+ 		timer->data = (unsigned long)dwork;
+ 		timer->function = delayed_work_timer_fn;
+@@ -221,8 +225,9 @@ int queue_delayed_work_on(int cpu, struc
+ 		BUG_ON(timer_pending(timer));
+ 		BUG_ON(!list_empty(&work->entry));
+ 
+-		/* This stores wq for the moment, for the timer_fn */
+-		set_wq_data(work, wq);
++		/* This stores cwq for the moment, for the timer_fn */
++		set_wq_data(work,
++			per_cpu_ptr(wq->cpu_wq, raw_smp_processor_id()));
+ 		timer->expires = jiffies + delay;
+ 		timer->data = (unsigned long)dwork;
+ 		timer->function = delayed_work_timer_fn;
+@@ -562,9 +567,12 @@ void flush_work_keventd(struct work_stru
+ EXPORT_SYMBOL(flush_work_keventd);
+ 
+ /**
+- * cancel_rearming_delayed_workqueue - reliably kill off a delayed work whose handler rearms the delayed work.
++ * cancel_rearming_delayed_workqueue - kill off a delayed work whose handler rearms the delayed work.
+  * @wq:   the controlling workqueue structure
+  * @dwork: the delayed work struct
++ *
++ * Note that the work callback function may still be running on return from
++ * cancel_delayed_work(). Run flush_workqueue() or flush_work() to wait on it.
+  */
+ void cancel_rearming_delayed_workqueue(struct workqueue_struct *wq,
+ 				       struct delayed_work *dwork)
+@@ -579,7 +587,7 @@ void cancel_rearming_delayed_workqueue(s
+ EXPORT_SYMBOL(cancel_rearming_delayed_workqueue);
+ 
+ /**
+- * cancel_rearming_delayed_work - reliably kill off a delayed keventd work whose handler rearms the delayed work.
++ * cancel_rearming_delayed_work - kill off a delayed keventd work whose handler rearms the delayed work.
+  * @dwork: the delayed work struct
+  */
+ void cancel_rearming_delayed_work(struct delayed_work *dwork)
 _
 
-Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-s390.patch
-partitions-check-the-return-value-of-kobject_add-etc.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-frozen_process-to-kernel-power-processc.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+libata-core-convert-to-use-cancel_rearming_delayed_work.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
