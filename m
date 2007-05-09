@@ -1,202 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:52:48 -0700
-Message-ID: <200705092152.l49Lqme5003029@shell0.pdx.osdl.net>
+Subject: - knfsd-rename-sk_defer_lock-to-sk_lock.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:52:51 -0700
+Message-ID: <200705092152.l49Lqpn9003032@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44696 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46814 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759441AbXEIVxT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:19 -0400
+	by vger.kernel.org with ESMTP id S1759463AbXEIVxX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: staubach@redhat.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     The NFSv2/NFSv3 server does not handle zero length WRITE requests correctly
+     knfsd: rename sk_defer_lock to sk_lock
 has been removed from the -mm tree.  Its filename was
-     the-nfsv2-nfsv3-server-does-not-handle-zero-length-write.patch
+     knfsd-rename-sk_defer_lock-to-sk_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: The NFSv2/NFSv3 server does not handle zero length WRITE requests correctly
-From: Peter Staubach <staubach@redhat.com>
+Subject: knfsd: rename sk_defer_lock to sk_lock
+From: NeilBrown <neilb@suse.de>
 
-The NFSv2 and NFSv3 servers do not handle WRITE requests for 0 bytes
-correctly.  The specifications indicate that the server should accept the
-request, but it should mostly turn into a no-op.  Currently, the server
-will return an XDR decode error, which it should not.
+Now that sk_defer_lock protects two different things, make the name more
+generic.
 
-Attached is a patch which addresses this issue.  It also adds some boundary
-checking to ensure that the request contains as much data as was requested
-to be written.  It also correctly handles an NFSv3 request which requests
-to write more data than the server has stated that it is prepared to
-handle.  Previously, there was some support which looked like it should
-work, but wasn't quite right.
+Also don't bother with disabling _bh as the lock is only ever taken from
+process context.
 
-Signed-off-by: Peter Staubach <staubach@redhat.com>
-Acked-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs3xdr.c |   48 ++++++++++++++++++++++++++++++++++----------
- fs/nfsd/nfsxdr.c  |   46 +++++++++++++++++++++++++++++++++++-------
- 2 files changed, 77 insertions(+), 17 deletions(-)
+ include/linux/sunrpc/svcsock.h |    3 ++-
+ net/sunrpc/svcauth_unix.c      |   10 +++++-----
+ net/sunrpc/svcsock.c           |   13 +++++++------
+ 3 files changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN fs/nfsd/nfs3xdr.c~the-nfsv2-nfsv3-server-does-not-handle-zero-length-write fs/nfsd/nfs3xdr.c
---- a/fs/nfsd/nfs3xdr.c~the-nfsv2-nfsv3-server-does-not-handle-zero-length-write
-+++ a/fs/nfsd/nfs3xdr.c
-@@ -369,7 +369,7 @@ int
- nfs3svc_decode_writeargs(struct svc_rqst *rqstp, __be32 *p,
- 					struct nfsd3_writeargs *args)
+diff -puN include/linux/sunrpc/svcsock.h~knfsd-rename-sk_defer_lock-to-sk_lock include/linux/sunrpc/svcsock.h
+--- a/include/linux/sunrpc/svcsock.h~knfsd-rename-sk_defer_lock-to-sk_lock
++++ a/include/linux/sunrpc/svcsock.h
+@@ -37,7 +37,8 @@ struct svc_sock {
+ 
+ 	atomic_t    	    	sk_reserved;	/* space on outq that is reserved */
+ 
+-	spinlock_t		sk_defer_lock;	/* protects sk_deferred */
++	spinlock_t		sk_lock;	/* protects sk_deferred and
++						 * sk_info_authunix */
+ 	struct list_head	sk_deferred;	/* deferred requests that need to
+ 						 * be revisted */
+ 	struct mutex		sk_mutex;	/* to serialize sending data */
+diff -puN net/sunrpc/svcauth_unix.c~knfsd-rename-sk_defer_lock-to-sk_lock net/sunrpc/svcauth_unix.c
+--- a/net/sunrpc/svcauth_unix.c~knfsd-rename-sk_defer_lock-to-sk_lock
++++ a/net/sunrpc/svcauth_unix.c
+@@ -385,7 +385,7 @@ ip_map_cached_get(struct svc_rqst *rqstp
  {
--	unsigned int len, v, hdr;
-+	unsigned int len, v, hdr, dlen;
- 	u32 max_blocksize = svc_max_payload(rqstp);
- 
- 	if (!(p = decode_fh(p, &args->fh))
-@@ -379,18 +379,47 @@ nfs3svc_decode_writeargs(struct svc_rqst
- 	args->count = ntohl(*p++);
- 	args->stable = ntohl(*p++);
- 	len = args->len = ntohl(*p++);
-+	/*
-+	 * The count must equal the amount of data passed.
-+	 */
-+	if (args->count != args->len)
-+		return 0;
- 
-+	/*
-+	 * Check to make sure that we got the right number of
-+	 * bytes.
-+	 *
-+	 * If more than one page was used, then compute the length
-+	 * of the data in the request as the total size of the
-+	 * request minus the transport protocol headers minus the
-+	 * RPC protocol headers minus the NFS protocol fields
-+	 * already consumed.  If the request fits into a single
-+	 * page, then compete the length of the data as the size
-+	 * of the NFS portion of the request minus the NFS
-+	 * protocol fields already consumed.
-+	 */
- 	hdr = (void*)p - rqstp->rq_arg.head[0].iov_base;
--	if (rqstp->rq_arg.len < hdr ||
--	    rqstp->rq_arg.len - hdr < len)
-+	if (rqstp->rq_respages != rqstp->rq_pages + 1) {
-+		dlen = rqstp->rq_arg.len -
-+			(PAGE_SIZE - rqstp->rq_arg.head[0].iov_len) - hdr;
-+	} else {
-+		dlen = rqstp->rq_arg.head[0].iov_len - hdr;
-+	}
-+	/*
-+	 * Round the length of the data which was specified up to
-+	 * the next multiple of XDR units and then compare that
-+	 * against the length which was actually received.
-+	 */
-+	if (dlen != ((len + 3) & ~0x3))
- 		return 0;
- 
-+	if (args->count > max_blocksize) {
-+		args->count = max_blocksize;
-+		len = args->len = max_blocksize;
-+	}
- 	rqstp->rq_vec[0].iov_base = (void*)p;
- 	rqstp->rq_vec[0].iov_len = rqstp->rq_arg.head[0].iov_len - hdr;
--
--	if (len > max_blocksize)
--		len = max_blocksize;
--	v=  0;
-+	v = 0;
- 	while (len > rqstp->rq_vec[v].iov_len) {
- 		len -= rqstp->rq_vec[v].iov_len;
- 		v++;
-@@ -398,9 +427,8 @@ nfs3svc_decode_writeargs(struct svc_rqst
- 		rqstp->rq_vec[v].iov_len = PAGE_SIZE;
+ 	struct ip_map *ipm;
+ 	struct svc_sock *svsk = rqstp->rq_sock;
+-	spin_lock_bh(&svsk->sk_defer_lock);
++	spin_lock(&svsk->sk_lock);
+ 	ipm = svsk->sk_info_authunix;
+ 	if (ipm != NULL) {
+ 		if (!cache_valid(&ipm->h)) {
+@@ -395,13 +395,13 @@ ip_map_cached_get(struct svc_rqst *rqstp
+ 			 * same IP address.
+ 			 */
+ 			svsk->sk_info_authunix = NULL;
+-			spin_unlock_bh(&svsk->sk_defer_lock);
++			spin_unlock(&svsk->sk_lock);
+ 			cache_put(&ipm->h, &ip_map_cache);
+ 			return NULL;
+ 		}
+ 		cache_get(&ipm->h);
  	}
- 	rqstp->rq_vec[v].iov_len = len;
--	args->vlen = v+1;
--
--	return args->count == args->len && rqstp->rq_vec[0].iov_len > 0;
-+	args->vlen = v + 1;
-+	return 1;
+-	spin_unlock_bh(&svsk->sk_defer_lock);
++	spin_unlock(&svsk->sk_lock);
+ 	return ipm;
  }
  
- int
-diff -puN fs/nfsd/nfsxdr.c~the-nfsv2-nfsv3-server-does-not-handle-zero-length-write fs/nfsd/nfsxdr.c
---- a/fs/nfsd/nfsxdr.c~the-nfsv2-nfsv3-server-does-not-handle-zero-length-write
-+++ a/fs/nfsd/nfsxdr.c
-@@ -284,8 +284,9 @@ int
- nfssvc_decode_writeargs(struct svc_rqst *rqstp, __be32 *p,
- 					struct nfsd_writeargs *args)
+@@ -410,14 +410,14 @@ ip_map_cached_put(struct svc_rqst *rqstp
  {
--	unsigned int len;
-+	unsigned int len, hdr, dlen;
- 	int v;
-+
- 	if (!(p = decode_fh(p, &args->fh)))
- 		return 0;
+ 	struct svc_sock *svsk = rqstp->rq_sock;
  
-@@ -293,11 +294,42 @@ nfssvc_decode_writeargs(struct svc_rqst 
- 	args->offset = ntohl(*p++);	/* offset */
- 	p++;				/* totalcount */
- 	len = args->len = ntohl(*p++);
--	rqstp->rq_vec[0].iov_base = (void*)p;
--	rqstp->rq_vec[0].iov_len = rqstp->rq_arg.head[0].iov_len -
--				(((void*)p) - rqstp->rq_arg.head[0].iov_base);
-+	/*
-+	 * The protocol specifies a maximum of 8192 bytes.
-+	 */
- 	if (len > NFSSVC_MAXBLKSIZE_V2)
--		len = NFSSVC_MAXBLKSIZE_V2;
-+		return 0;
-+
-+	/*
-+	 * Check to make sure that we got the right number of
-+	 * bytes.
-+	 *
-+	 * If more than one page was used, then compute the length
-+	 * of the data in the request as the total size of the
-+	 * request minus the transport protocol headers minus the
-+	 * RPC protocol headers minus the NFS protocol fields
-+	 * already consumed.  If the request fits into a single
-+	 * page, then compete the length of the data as the size
-+	 * of the NFS portion of the request minus the NFS
-+	 * protocol fields already consumed.
-+	 */
-+	hdr = (void*)p - rqstp->rq_arg.head[0].iov_base;
-+	if (rqstp->rq_respages != rqstp->rq_pages + 1) {
-+		dlen = rqstp->rq_arg.len -
-+			(PAGE_SIZE - rqstp->rq_arg.head[0].iov_len) - hdr;
-+	} else {
-+		dlen = rqstp->rq_arg.head[0].iov_len - hdr;
-+	}
-+	/*
-+	 * Round the length of the data which was specified up to
-+	 * the next multiple of XDR units and then compare that
-+	 * against the length which was actually received.
-+	 */
-+	if (dlen != ((len + 3) & ~0x3))
-+		return 0;
-+
-+	rqstp->rq_vec[0].iov_base = (void*)p;
-+	rqstp->rq_vec[0].iov_len = rqstp->rq_arg.head[0].iov_len - hdr;
- 	v = 0;
- 	while (len > rqstp->rq_vec[v].iov_len) {
- 		len -= rqstp->rq_vec[v].iov_len;
-@@ -306,8 +338,8 @@ nfssvc_decode_writeargs(struct svc_rqst 
- 		rqstp->rq_vec[v].iov_len = PAGE_SIZE;
+-	spin_lock_bh(&svsk->sk_defer_lock);
++	spin_lock(&svsk->sk_lock);
+ 	if (svsk->sk_sock->type == SOCK_STREAM &&
+ 	    svsk->sk_info_authunix == NULL) {
+ 		/* newly cached, keep the reference */
+ 		svsk->sk_info_authunix = ipm;
+ 		ipm = NULL;
  	}
- 	rqstp->rq_vec[v].iov_len = len;
--	args->vlen = v+1;
--	return rqstp->rq_vec[0].iov_len > 0;
-+	args->vlen = v + 1;
-+	return 1;
+-	spin_unlock_bh(&svsk->sk_defer_lock);
++	spin_unlock(&svsk->sk_lock);
+ 	if (ipm)
+ 		cache_put(&ipm->h, &ip_map_cache);
  }
+diff -puN net/sunrpc/svcsock.c~knfsd-rename-sk_defer_lock-to-sk_lock net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-rename-sk_defer_lock-to-sk_lock
++++ a/net/sunrpc/svcsock.c
+@@ -53,7 +53,8 @@
+  * 	svc_serv->sv_lock protects sv_tempsocks, sv_permsocks, sv_tmpcnt.
+  *	when both need to be taken (rare), svc_serv->sv_lock is first.
+  *	BKL protects svc_serv->sv_nrthread.
+- *	svc_sock->sk_defer_lock protects the svc_sock->sk_deferred list
++ *	svc_sock->sk_lock protects the svc_sock->sk_deferred list
++ *             and the ->sk_info_authunix cache.
+  *	svc_sock->sk_flags.SK_BUSY prevents a svc_sock being enqueued multiply.
+  *
+  *	Some flags can be set to certain values at any time
+@@ -1633,7 +1634,7 @@ static struct svc_sock *svc_setup_socket
+ 	svsk->sk_server = serv;
+ 	atomic_set(&svsk->sk_inuse, 1);
+ 	svsk->sk_lastrecv = get_seconds();
+-	spin_lock_init(&svsk->sk_defer_lock);
++	spin_lock_init(&svsk->sk_lock);
+ 	INIT_LIST_HEAD(&svsk->sk_deferred);
+ 	INIT_LIST_HEAD(&svsk->sk_ready);
+ 	mutex_init(&svsk->sk_mutex);
+@@ -1857,9 +1858,9 @@ static void svc_revisit(struct cache_def
+ 	dprintk("revisit queued\n");
+ 	svsk = dr->svsk;
+ 	dr->svsk = NULL;
+-	spin_lock_bh(&svsk->sk_defer_lock);
++	spin_lock(&svsk->sk_lock);
+ 	list_add(&dr->handle.recent, &svsk->sk_deferred);
+-	spin_unlock_bh(&svsk->sk_defer_lock);
++	spin_unlock(&svsk->sk_lock);
+ 	set_bit(SK_DEFERRED, &svsk->sk_flags);
+ 	svc_sock_enqueue(svsk);
+ 	svc_sock_put(svsk);
+@@ -1925,7 +1926,7 @@ static struct svc_deferred_req *svc_defe
  
- int
+ 	if (!test_bit(SK_DEFERRED, &svsk->sk_flags))
+ 		return NULL;
+-	spin_lock_bh(&svsk->sk_defer_lock);
++	spin_lock(&svsk->sk_lock);
+ 	clear_bit(SK_DEFERRED, &svsk->sk_flags);
+ 	if (!list_empty(&svsk->sk_deferred)) {
+ 		dr = list_entry(svsk->sk_deferred.next,
+@@ -1934,6 +1935,6 @@ static struct svc_deferred_req *svc_defe
+ 		list_del_init(&dr->handle.recent);
+ 		set_bit(SK_DEFERRED, &svsk->sk_flags);
+ 	}
+-	spin_unlock_bh(&svsk->sk_defer_lock);
++	spin_unlock(&svsk->sk_lock);
+ 	return dr;
+ }
 _
 
-Patches currently in -mm which might be from staubach@redhat.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+introduce-freezer-flags-rev-2.patch
+git-md-accel.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
