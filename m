@@ -1,175 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-dirindex-error-pointer-issues.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:45:47 -0700
-Message-ID: <200705090245.l492jlLR008776@shell0.pdx.osdl.net>
+Subject: - drivers-char-synclinkc-check-kmalloc-return-value.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:46:28 -0700
+Message-ID: <200705090246.l492kSsp008856@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37680 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49966 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754662AbXEICq3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:29 -0400
+	by vger.kernel.org with ESMTP id S1755176AbXEICqd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@sw.ru, adilger@clusterfs.com, dmonakhov@openvz.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: amit2030@gmail.com, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: dirindex error pointer issues
+     drivers/char/synclink.c: check kmalloc() return value
 has been removed from the -mm tree.  Its filename was
-     ext3-dirindex-error-pointer-issues.patch
+     drivers-char-synclinkc-check-kmalloc-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext3: dirindex error pointer issues
-From: Dmitriy Monakhov <dmonakhov@sw.ru>
+Subject: drivers/char/synclink.c: check kmalloc() return value
+From: Amit Choudhary <amit2030@gmail.com>
 
-- ext3_dx_find_entry() exit with out setting proper error pointer
-
-- do_split() exit with out setting proper error pointer
-  it is realy painful because many callers contain folowing code:
-
-          de = do_split(handle,dir, &bh, frame, &hinfo, &retval);
-          if (!(de))
-                       return retval;
-          <<< WOW retval wasn't changed by do_split(), so caller failed
-          <<< but return SUCCESS :)
-
-- Rearrange do_split() error path. Current error path is realy ugly, all
-  this up and down jump stuff doesn't make code easy to understand.
-
-[dmonakhov@sw.ru: fix annoying fake error messages]
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
-Cc: Andreas Dilger <adilger@clusterfs.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Signed-off-by: Monakhov Dmitriy <dmonakhov@openvz.org>
+Signed-off-by: Amit Choudhary <amit2030@gmail.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |   26 +++++++++++++++-----------
- fs/ext4/namei.c |   26 +++++++++++++++-----------
- 2 files changed, 30 insertions(+), 22 deletions(-)
+ drivers/char/synclink.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext3/namei.c~ext3-dirindex-error-pointer-issues fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-dirindex-error-pointer-issues
-+++ a/fs/ext3/namei.c
-@@ -969,6 +969,7 @@ static struct buffer_head * ext3_dx_find
- 				  (block<<EXT3_BLOCK_SIZE_BITS(sb))
- 					  +((char *)de - bh->b_data))) {
- 				brelse (bh);
-+				*err = ERR_BAD_DX_DIR;
- 				goto errout;
- 			}
- 			*res_dir = de;
-@@ -1134,9 +1135,9 @@ static struct ext3_dir_entry_2 *do_split
- 	char *data1 = (*bh)->b_data, *data2;
- 	unsigned split;
- 	struct ext3_dir_entry_2 *de = NULL, *de2;
--	int	err;
-+	int	err = 0;
+diff -puN drivers/char/synclink.c~drivers-char-synclinkc-check-kmalloc-return-value drivers/char/synclink.c
+--- a/drivers/char/synclink.c~drivers-char-synclinkc-check-kmalloc-return-value
++++ a/drivers/char/synclink.c
+@@ -4010,8 +4010,13 @@ static int mgsl_alloc_intermediate_txbuf
+ 	for ( i=0; i<info->num_tx_holding_buffers; ++i) {
+ 		info->tx_holding_buffers[i].buffer =
+ 			kmalloc(info->max_frame_size, GFP_KERNEL);
+-		if ( info->tx_holding_buffers[i].buffer == NULL )
++		if (info->tx_holding_buffers[i].buffer == NULL) {
++			for (--i; i >= 0; i--) {
++				kfree(info->tx_holding_buffers[i].buffer);
++				info->tx_holding_buffers[i].buffer = NULL;
++			}
+ 			return -ENOMEM;
++		}
+ 	}
  
--	bh2 = ext3_append (handle, dir, &newblock, error);
-+	bh2 = ext3_append (handle, dir, &newblock, &err);
- 	if (!(bh2)) {
- 		brelse(*bh);
- 		*bh = NULL;
-@@ -1145,14 +1146,9 @@ static struct ext3_dir_entry_2 *do_split
- 
- 	BUFFER_TRACE(*bh, "get_write_access");
- 	err = ext3_journal_get_write_access(handle, *bh);
--	if (err) {
--	journal_error:
--		brelse(*bh);
--		brelse(bh2);
--		*bh = NULL;
--		ext3_std_error(dir->i_sb, err);
--		goto errout;
--	}
-+	if (err)
-+		goto journal_error;
-+
- 	BUFFER_TRACE(frame->bh, "get_write_access");
- 	err = ext3_journal_get_write_access(handle, frame->bh);
- 	if (err)
-@@ -1195,8 +1191,16 @@ static struct ext3_dir_entry_2 *do_split
- 		goto journal_error;
- 	brelse (bh2);
- 	dxtrace(dx_show_index ("frame", frame->entries));
--errout:
- 	return de;
-+
-+journal_error:
-+	brelse(*bh);
-+	brelse(bh2);
-+	*bh = NULL;
-+	ext3_std_error(dir->i_sb, err);
-+errout:
-+	*error = err;
-+	return NULL;
- }
- #endif
- 
-diff -puN fs/ext4/namei.c~ext3-dirindex-error-pointer-issues fs/ext4/namei.c
---- a/fs/ext4/namei.c~ext3-dirindex-error-pointer-issues
-+++ a/fs/ext4/namei.c
-@@ -967,6 +967,7 @@ static struct buffer_head * ext4_dx_find
- 				  (block<<EXT4_BLOCK_SIZE_BITS(sb))
- 					  +((char *)de - bh->b_data))) {
- 				brelse (bh);
-+				*err = ERR_BAD_DX_DIR;
- 				goto errout;
- 			}
- 			*res_dir = de;
-@@ -1132,9 +1133,9 @@ static struct ext4_dir_entry_2 *do_split
- 	char *data1 = (*bh)->b_data, *data2;
- 	unsigned split;
- 	struct ext4_dir_entry_2 *de = NULL, *de2;
--	int	err;
-+	int	err = 0;
- 
--	bh2 = ext4_append (handle, dir, &newblock, error);
-+	bh2 = ext4_append (handle, dir, &newblock, &err);
- 	if (!(bh2)) {
- 		brelse(*bh);
- 		*bh = NULL;
-@@ -1143,14 +1144,9 @@ static struct ext4_dir_entry_2 *do_split
- 
- 	BUFFER_TRACE(*bh, "get_write_access");
- 	err = ext4_journal_get_write_access(handle, *bh);
--	if (err) {
--	journal_error:
--		brelse(*bh);
--		brelse(bh2);
--		*bh = NULL;
--		ext4_std_error(dir->i_sb, err);
--		goto errout;
--	}
-+	if (err)
-+		goto journal_error;
-+
- 	BUFFER_TRACE(frame->bh, "get_write_access");
- 	err = ext4_journal_get_write_access(handle, frame->bh);
- 	if (err)
-@@ -1193,8 +1189,16 @@ static struct ext4_dir_entry_2 *do_split
- 		goto journal_error;
- 	brelse (bh2);
- 	dxtrace(dx_show_index ("frame", frame->entries));
--errout:
- 	return de;
-+
-+journal_error:
-+	brelse(*bh);
-+	brelse(bh2);
-+	*bh = NULL;
-+	ext4_std_error(dir->i_sb, err);
-+errout:
-+	*error = err;
-+	return NULL;
- }
- #endif
- 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from dmonakhov@sw.ru are
+Patches currently in -mm which might be from amit2030@gmail.com are
 
 origin.patch
