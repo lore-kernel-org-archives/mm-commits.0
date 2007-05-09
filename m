@@ -1,321 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:47:09 -0700
-Message-ID: <200705090247.l492l9IL008938@shell0.pdx.osdl.net>
+Subject: - layered-parport-code-uses-parport-dev.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:47:54 -0700
+Message-ID: <200705090247.l492lsZH009032@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36087 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934804AbXEICsN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:48:13 -0400
+	by vger.kernel.org with ESMTP id S934870AbXEICsT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kraxel@suse.de, ak@suse.de, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, ink@jurassic.park.msu.ru, jeremy@goop.org, kraxel@exsuse.de, lethal@linux-sh.org, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fixes and cleanups for earlyprintk aka boot console
+     layered parport code uses parport->dev
 has been removed from the -mm tree.  Its filename was
-     fixes-and-cleanups-for-earlyprintk-aka-boot-console.patch
+     layered-parport-code-uses-parport-dev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fixes and cleanups for earlyprintk aka boot console
-From: Gerd Hoffmann <kraxel@suse.de>
+Subject: layered parport code uses parport->dev
+From: David Brownell <david-b@pacbell.net>
 
-The console subsystem already has an idea of a boot console, using the
-CON_BOOT flag.  The implementation has some flaws though.  The major
-problem is that presence of a boot console makes register_console() ignore
-any other console devices (unless explicitly specified on the kernel
-command line).
+Update some of the layered parport_driver code to use parport->dev:
 
-This patch fixes the console selection code to *not* consider a boot
-console a full-featured one, so the first non-boot console registering will
-become the default console instead.  This way the unregister call for the
-boot console in the register_console() function actually triggers and the
-handover from the boot console to the real console device works smoothly. 
-Added a printk for the handover, so you know which console device the
-output goes to when the boot console stops printing messages.
+	- i2c-parport (parent of i2c_adapter)
+	- spi_butterfly (parent of spi_master, allowing cruft removal)
+	- lp (creating class_device)
+	- ppdev (parent of parportN device)
+	- tipar (creating class_device)
 
-The disable_early_printk() call is obsolete with that patch, explicitly
-disabling the early console isn't needed any more as it works automagically
-with that patch.
+There are still drivers that should be updated, like some of the input
+drivers; but they won't be any worse off than they are today.
 
-I've walked through the tree, dropped all disable_early_printk() instances
-found below arch/ and tagged the consoles with CON_BOOT if needed.  The
-code is tested on x86, sh (thanks to Paul) and mips (thanks to Ralf).
-
-Changes to last version: Rediffed against -rc3, adapted to mips cleanups by
-Ralf, fixed "udbg-immortal" cmd line arg on powerpc.
-
-Signed-off-by: Gerd Hoffmann <kraxel@exsuse.de>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/setup.c         |    9 ---------
- arch/alpha/kernel/srmcons.c       |    2 +-
- arch/mips/kernel/early_printk.c   |    5 -----
- arch/powerpc/kernel/udbg.c        |   19 ++++++-------------
- arch/sh/kernel/early_printk.c     |   18 ++++++------------
- arch/sh64/kernel/early_printk.c   |    8 +-------
- arch/x86_64/kernel/early_printk.c |   20 +++++---------------
- drivers/char/tty_io.c             |    5 -----
- kernel/printk.c                   |   26 ++++++++++++++++----------
- 9 files changed, 35 insertions(+), 77 deletions(-)
+ drivers/char/lp.c                |    2 +-
+ drivers/char/ppdev.c             |    2 +-
+ drivers/char/tipar.c             |    2 +-
+ drivers/i2c/busses/i2c-parport.c |    1 +
+ drivers/spi/spi_butterfly.c      |   21 ++++-----------------
+ 5 files changed, 8 insertions(+), 20 deletions(-)
 
-diff -puN arch/alpha/kernel/setup.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/alpha/kernel/setup.c
---- a/arch/alpha/kernel/setup.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
-+++ a/arch/alpha/kernel/setup.c
-@@ -744,15 +744,6 @@ setup_arch(char **cmdline_p)
- 	paging_init();
- }
+diff -puN drivers/char/lp.c~layered-parport-code-uses-parport-dev drivers/char/lp.c
+--- a/drivers/char/lp.c~layered-parport-code-uses-parport-dev
++++ a/drivers/char/lp.c
+@@ -803,7 +803,7 @@ static int lp_register(int nr, struct pa
+ 	if (reset)
+ 		lp_reset(nr);
  
--void __init
--disable_early_printk(void)
--{
--	if (alpha_using_srm && srmcons_output) {
--		unregister_srm_console();
--		srmcons_output = 0;
--	}
--}
--
- static char sys_unknown[] = "Unknown";
- static char systype_names[][16] = {
- 	"0",
-diff -puN arch/alpha/kernel/srmcons.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/alpha/kernel/srmcons.c
---- a/arch/alpha/kernel/srmcons.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
-+++ a/arch/alpha/kernel/srmcons.c
-@@ -300,7 +300,7 @@ static struct console srmcons = {
- 	.write		= srm_console_write,
- 	.device		= srm_console_device,
- 	.setup		= srm_console_setup,
--	.flags		= CON_PRINTBUFFER,
-+	.flags		= CON_PRINTBUFFER | CON_BOOT,
- 	.index		= -1,
- };
+-	class_device_create(lp_class, NULL, MKDEV(LP_MAJOR, nr), NULL,
++	class_device_create(lp_class, NULL, MKDEV(LP_MAJOR, nr), port->dev,
+ 				"lp%d", nr);
  
-diff -puN arch/mips/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/mips/kernel/early_printk.c
---- a/arch/mips/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
-+++ a/arch/mips/kernel/early_printk.c
-@@ -33,8 +33,3 @@ void __init setup_early_printk(void)
+ 	printk(KERN_INFO "lp%d: using %s (%s).\n", nr, port->name, 
+diff -puN drivers/char/ppdev.c~layered-parport-code-uses-parport-dev drivers/char/ppdev.c
+--- a/drivers/char/ppdev.c~layered-parport-code-uses-parport-dev
++++ a/drivers/char/ppdev.c
+@@ -752,7 +752,7 @@ static const struct file_operations pp_f
+ 
+ static void pp_attach(struct parport *port)
  {
- 	register_console(&early_console);
+-	device_create(ppdev_class, NULL, MKDEV(PP_MAJOR, port->number),
++	device_create(ppdev_class, port->dev, MKDEV(PP_MAJOR, port->number),
+ 			"parport%d", port->number);
  }
--
--void __init disable_early_printk(void)
--{
--	unregister_console(&early_console);
--}
-diff -puN arch/powerpc/kernel/udbg.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/powerpc/kernel/udbg.c
---- a/arch/powerpc/kernel/udbg.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
-+++ a/arch/powerpc/kernel/udbg.c
-@@ -142,29 +142,22 @@ static void udbg_console_write(struct co
- static struct console udbg_console = {
- 	.name	= "udbg",
- 	.write	= udbg_console_write,
--	.flags	= CON_PRINTBUFFER | CON_ENABLED,
-+	.flags	= CON_PRINTBUFFER | CON_ENABLED | CON_BOOT,
- 	.index	= -1,
- };
  
- static int early_console_initialized;
- 
--void __init disable_early_printk(void)
--{
--	if (!early_console_initialized)
--		return;
--	if (strstr(boot_command_line, "udbg-immortal")) {
--		printk(KERN_INFO "early console immortal !\n");
--		return;
--	}
--	unregister_console(&udbg_console);
--	early_console_initialized = 0;
--}
--
- /* called by setup_system */
- void register_early_udbg_console(void)
- {
- 	if (early_console_initialized)
- 		return;
-+
-+	if (strstr(boot_command_line, "udbg-immortal")) {
-+		printk(KERN_INFO "early console immortal !\n");
-+		udbg_console.flags &= ~CON_BOOT;
-+	}
- 	early_console_initialized = 1;
- 	register_console(&udbg_console);
- }
-diff -puN arch/sh/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/sh/kernel/early_printk.c
---- a/arch/sh/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
-+++ a/arch/sh/kernel/early_printk.c
-@@ -192,20 +192,14 @@ int __init setup_early_printk(char *buf)
+diff -puN drivers/char/tipar.c~layered-parport-code-uses-parport-dev drivers/char/tipar.c
+--- a/drivers/char/tipar.c~layered-parport-code-uses-parport-dev
++++ a/drivers/char/tipar.c
+@@ -442,7 +442,7 @@ tipar_register(int nr, struct parport *p
  	}
- #endif
  
--	if (likely(early_console))
-+	if (likely(early_console)) {
-+		if (keep_early)
-+			early_console->flags &= ~CON_BOOT;
-+		else
-+			early_console->flags |= CON_BOOT;
- 		register_console(early_console);
-+	}
+ 	class_device_create(tipar_class, NULL, MKDEV(TIPAR_MAJOR,
+-			TIPAR_MINOR + nr), NULL, "par%d", nr);
++			TIPAR_MINOR + nr), port->dev, "par%d", nr);
  
- 	return 0;
- }
- early_param("earlyprintk", setup_early_printk);
--
--void __init disable_early_printk(void)
--{
--	if (!early_console_initialized || !early_console)
--		return;
--	if (!keep_early) {
--		printk("disabling early console\n");
--		unregister_console(early_console);
--	} else
--		printk("keeping early console\n");
--}
-diff -puN arch/sh64/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/sh64/kernel/early_printk.c
---- a/arch/sh64/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
-+++ a/arch/sh64/kernel/early_printk.c
-@@ -79,7 +79,7 @@ static struct console sh_console = {
- 	.name		= "scifcon",
- 	.write		= sh_console_write,
- 	.setup		= sh_console_setup,
--	.flags		= CON_PRINTBUFFER,
-+	.flags		= CON_PRINTBUFFER | CON_BOOT,
- 	.index		= -1,
- };
- 
-@@ -97,9 +97,3 @@ void __init enable_early_printk(void)
- 
- 	register_console(&sh_console);
- }
--
--void disable_early_printk(void)
--{
--	unregister_console(&sh_console);
--}
--
-diff -puN arch/x86_64/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console arch/x86_64/kernel/early_printk.c
---- a/arch/x86_64/kernel/early_printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
-+++ a/arch/x86_64/kernel/early_printk.c
-@@ -243,22 +243,12 @@ static int __init setup_early_printk(cha
-  		early_console = &simnow_console;
-  		keep_early = 1;
+ 	/* Display informations */
+ 	pr_info("tipar%d: using %s (%s)\n", nr, port->name, (port->irq ==
+diff -puN drivers/i2c/busses/i2c-parport.c~layered-parport-code-uses-parport-dev drivers/i2c/busses/i2c-parport.c
+--- a/drivers/i2c/busses/i2c-parport.c~layered-parport-code-uses-parport-dev
++++ a/drivers/i2c/busses/i2c-parport.c
+@@ -175,6 +175,7 @@ static void i2c_parport_attach (struct p
  	}
-+
-+	if (keep_early)
-+		early_console->flags &= ~CON_BOOT;
-+	else
-+		early_console->flags |= CON_BOOT;
- 	register_console(early_console);
- 	return 0;
- }
--
- early_param("earlyprintk", setup_early_printk);
--
--void __init disable_early_printk(void)
--{
--	if (!early_console_initialized || !early_console)
--		return;
--	if (!keep_early) {
--		printk("disabling early console\n");
--		unregister_console(early_console);
--		early_console_initialized = 0;
--	} else {
--		printk("keeping early console\n");
--	}
--}
--
-diff -puN drivers/char/tty_io.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
-+++ a/drivers/char/tty_io.c
-@@ -141,8 +141,6 @@ static DECLARE_MUTEX(allocated_ptys_lock
- static int ptmx_open(struct inode *, struct file *);
- #endif
+ 	adapter->algo_data.data = port;
+ 	adapter->adapter.algo_data = &adapter->algo_data;
++	adapter->adapter.dev.parent = port->physport->dev;
  
--extern void disable_early_printk(void);
--
- static void initialize_tty_struct(struct tty_struct *tty);
+ 	if (parport_claim_or_block(adapter->pdev) < 0) {
+ 		printk(KERN_ERR "i2c-parport: Could not claim parallel port\n");
+diff -puN drivers/spi/spi_butterfly.c~layered-parport-code-uses-parport-dev drivers/spi/spi_butterfly.c
+--- a/drivers/spi/spi_butterfly.c~layered-parport-code-uses-parport-dev
++++ a/drivers/spi/spi_butterfly.c
+@@ -20,7 +20,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+-#include <linux/platform_device.h>
++#include <linux/device.h>
+ #include <linux/parport.h>
  
- static ssize_t tty_read(struct file *, char __user *, size_t, loff_t *);
-@@ -3897,9 +3895,6 @@ void __init console_init(void)
- 	 * set up the console device so that later boot sequences can 
- 	 * inform about problems etc..
- 	 */
--#ifdef CONFIG_EARLY_PRINTK
--	disable_early_printk();
--#endif
- 	call = __con_initcall_start;
- 	while (call < __con_initcall_end) {
- 		(*call)();
-diff -puN kernel/printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console kernel/printk.c
---- a/kernel/printk.c~fixes-and-cleanups-for-earlyprintk-aka-boot-console
-+++ a/kernel/printk.c
-@@ -931,8 +931,16 @@ void register_console(struct console *co
- {
- 	int i;
- 	unsigned long flags;
-+	struct console *bootconsole = NULL;
+ #include <linux/sched.h>
+@@ -237,24 +237,16 @@ static void butterfly_attach(struct parp
+ 	int			status;
+ 	struct butterfly	*pp;
+ 	struct spi_master	*master;
+-	struct platform_device	*pdev;
++	struct device		*dev = p->physport->dev;
  
--	if (preferred_console < 0)
-+	if (console_drivers) {
-+		if (console->flags & CON_BOOT)
-+			return;
-+		if (console_drivers->flags & CON_BOOT)
-+			bootconsole = console_drivers;
-+	}
-+
-+	if (preferred_console < 0 || bootconsole || !console_drivers)
- 		preferred_console = selected_console;
- 
- 	/*
-@@ -978,8 +986,11 @@ void register_console(struct console *co
- 	if (!(console->flags & CON_ENABLED))
+-	if (butterfly)
++	if (butterfly || !dev)
  		return;
  
--	if (console_drivers && (console_drivers->flags & CON_BOOT)) {
--		unregister_console(console_drivers);
-+	if (bootconsole) {
-+		printk(KERN_INFO "console handover: boot [%s%d] -> real [%s%d]\n",
-+		       bootconsole->name, bootconsole->index,
-+		       console->name, console->index);
-+		unregister_console(bootconsole);
- 		console->flags &= ~CON_PRINTBUFFER;
- 	}
- 
-@@ -1030,16 +1041,11 @@ int unregister_console(struct console *c
- 		}
- 	}
- 
--	/* If last console is removed, we re-enable picking the first
--	 * one that gets registered. Without that, pmac early boot console
--	 * would prevent fbcon from taking over.
--	 *
-+	/*
- 	 * If this isn't the last console and it has CON_CONSDEV set, we
- 	 * need to set it on the next preferred console.
+ 	/* REVISIT:  this just _assumes_ a butterfly is there ... no probe,
+ 	 * and no way to be selective about what it binds to.
  	 */
--	if (console_drivers == NULL)
--		preferred_console = selected_console;
--	else if (console->flags & CON_CONSDEV)
-+	if (console_drivers != NULL && console->flags & CON_CONSDEV)
- 		console_drivers->flags |= CON_CONSDEV;
  
- 	release_console_sem();
+-	/* FIXME where should master->cdev.dev come from?
+-	 * e.g. /sys/bus/pnp0/00:0b, some PCI thing, etc
+-	 * setting up a platform device like this is an ugly kluge...
+-	 */
+-	pdev = platform_device_register_simple("butterfly", -1, NULL, 0);
+-	if (IS_ERR(pdev))
+-		return;
+-
+-	master = spi_alloc_master(&pdev->dev, sizeof *pp);
++	master = spi_alloc_master(dev, sizeof *pp);
+ 	if (!master) {
+ 		status = -ENOMEM;
+ 		goto done;
+@@ -366,14 +358,12 @@ clean1:
+ clean0:
+ 	(void) spi_master_put(pp->bitbang.master);
+ done:
+-	platform_device_unregister(pdev);
+ 	pr_debug("%s: butterfly probe, fail %d\n", p->name, status);
+ }
+ 
+ static void butterfly_detach(struct parport *p)
+ {
+ 	struct butterfly	*pp;
+-	struct platform_device	*pdev;
+ 	int			status;
+ 
+ 	/* FIXME this global is ugly ... but, how to quickly get from
+@@ -386,7 +376,6 @@ static void butterfly_detach(struct parp
+ 	butterfly = NULL;
+ 
+ 	/* stop() unregisters child devices too */
+-	pdev = to_platform_device(pp->bitbang.master->cdev.dev);
+ 	status = spi_bitbang_stop(&pp->bitbang);
+ 
+ 	/* turn off VCC */
+@@ -397,8 +386,6 @@ static void butterfly_detach(struct parp
+ 	parport_unregister_device(pp->pd);
+ 
+ 	(void) spi_master_put(pp->bitbang.master);
+-
+-	platform_device_unregister(pdev);
+ }
+ 
+ static struct parport_driver butterfly_driver = {
 _
 
-Patches currently in -mm which might be from kraxel@suse.de are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+use-common-cpu_is_xxx-macros-on-at91-and-avr32.patch
+atmel_spi-remove-unnecessary-and-wrong-ifdefs.patch
