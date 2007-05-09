@@ -1,98 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - vgacon-disallow-console-operations-when-in-kd_graphics.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:02:45 -0700
-Message-ID: <200705090302.l4932jZh010875@shell0.pdx.osdl.net>
+Subject: - skeletonfb-more-corrections.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:02:49 -0700
+Message-ID: <200705090302.l4932nEu010884@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41113 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:57335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1033327AbXEIDCs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:48 -0400
+	by vger.kernel.org with ESMTP id S1033337AbXEIDC4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:02:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vgacon: disallow console operations when in KD_GRAPHICS  mode
+     skeletonfb: more corrections
 has been removed from the -mm tree.  Its filename was
-     vgacon-disallow-console-operations-when-in-kd_graphics.patch
+     skeletonfb-more-corrections.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vgacon: disallow console operations when in KD_GRAPHICS  mode
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: skeletonfb: more corrections
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Reported by James Pearson as:
+More corrections to skeletonfb.c file:
+- fixed types of more arguments
+- removed returned values in void functions
+- removed not existing fb_poll function
+- fixed closing comment typo
+- corrected misleading constant name ADDR
 
-	 boot to run level 3
-
-	 if not root, then make sure /dev/console is writeable
-
-	 login and type:
-
-	 setterm -blank 0
-
-	 start X
-
-	 type into an xterm:
-
-	 while true; do echo "" > /dev/console; usleep 100000; done
-
-	 while the above loop is running switch to the text console and back
-	 again (Ctrl-Alt-F1 then Ctrl-Alt-F7)
-
-	 ... and the screen will be shifting (and wrapping) to the left.
-
-This problem stems from continuously writing text to the system console (which
-is in KD_TEXT mode) while the foreground console is in KD_GRAPHICS
-mode. Somewhere along the way, console printing got confused and omitted the
-KD_GRAPHICS/KD_TEXT test.  Thus, vgacon attempted to scroll the screen of X,
-which causes X to shift.
-
-Fix by disallowing vgacon to touch the hardware when the vc is in KD_GRAPHICS
-mode. A definitive fix entails a full audit of the console code.
-
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Acked-By: James Simmons <jsimmons@infradead.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/vgacon.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/video/skeletonfb.c |   26 +++++---------------------
+ 1 file changed, 5 insertions(+), 21 deletions(-)
 
-diff -puN drivers/video/console/vgacon.c~vgacon-disallow-console-operations-when-in-kd_graphics drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~vgacon-disallow-console-operations-when-in-kd_graphics
-+++ a/drivers/video/console/vgacon.c
-@@ -660,6 +660,9 @@ static void vgacon_set_cursor_size(int x
- 
- static void vgacon_cursor(struct vc_data *c, int mode)
+diff -puN drivers/video/skeletonfb.c~skeletonfb-more-corrections drivers/video/skeletonfb.c
+--- a/drivers/video/skeletonfb.c~skeletonfb-more-corrections
++++ a/drivers/video/skeletonfb.c
+@@ -148,7 +148,7 @@ int xxxfb_setup(char*);
+  *
+  *	Returns negative errno on error, or zero on success.
+  */
+-static int xxxfb_open(const struct fb_info *info, int user)
++static int xxxfb_open(struct fb_info *info, int user)
  {
-+	if (c->vc_mode != KD_TEXT)
-+		return;
-+
- 	vgacon_restore_screen(c);
+     return 0;
+ }
+@@ -167,7 +167,7 @@ static int xxxfb_open(const struct fb_in
+  *
+  *	Returns negative errno on error, or zero on success.
+  */
+-static int xxxfb_release(const struct fb_info *info, int user)
++static int xxxfb_release(struct fb_info *info, int user)
+ {
+     return 0;
+ }
+@@ -629,19 +629,6 @@ void xxxfb_rotate(struct fb_info *info, 
+ }
  
- 	switch (mode) {
-@@ -1318,7 +1321,7 @@ static int vgacon_scroll(struct vc_data 
- 	unsigned long oldo;
- 	unsigned int delta;
+ /**
+- *	xxxfb_poll - NOT a required function. The purpose of this
+- *		     function is to provide a way for some process
+- *		     to wait until a specific hardware event occurs
+- *		     for the framebuffer device.
+- * 				 
+- *      @info: frame buffer structure that represents a single frame buffer
+- *	@wait: poll table where we store process that await a event.     
+- */
+-void xxxfb_poll(struct fb_info *info, poll_table *wait)
+-{
+-}
+-
+-/**
+  *	xxxfb_sync - NOT a required function. Normally the accel engine 
+  *		     for a graphics card take a specific amount of time.
+  *		     Often we have to wait for the accelerator to finish
+@@ -678,7 +665,6 @@ static struct fb_ops xxxfb_ops = {
+ 	.fb_imageblit	= xxxfb_imageblit,	/* Needed !!! */
+ 	.fb_cursor	= xxxfb_cursor,		/* Optional !!! */
+ 	.fb_rotate	= xxxfb_rotate,
+-	.fb_poll	= xxxfb_poll,
+ 	.fb_sync	= xxxfb_sync,
+ 	.fb_ioctl	= xxxfb_ioctl,
+ 	.fb_mmap	= xxxfb_mmap,
+@@ -692,7 +678,7 @@ static struct fb_ops xxxfb_ops = {
  
--	if (t || b != c->vc_rows || vga_is_gfx)
-+	if (t || b != c->vc_rows || vga_is_gfx || c->vc_mode != KD_TEXT)
- 		return 0;
+ /* static int __init xxfb_probe (struct device *device) -- for platform devs */
+ static int __devinit xxxfb_probe(struct pci_dev *dev,
+-			      const_struct pci_device_id *ent)
++			      const struct pci_device_id *ent)
+ {
+     struct fb_info *info;
+     struct xxx_par *par;
+@@ -858,8 +844,6 @@ static void __devexit xxxfb_remove(struc
+ 		/* ... */
+ 		framebuffer_release(info);
+ 	}
+-
+-	return 0;
+ }
  
- 	if (!vga_hardscroll_enabled || lines >= c->vc_rows / 2)
+ #ifdef CONFIG_PCI
+@@ -902,7 +886,7 @@ static int xxxfb_resume(struct pci_dev *
+ static struct pci_device_id xxxfb_id_table[] = {
+ 	{ PCI_VENDOR_ID_XXX, PCI_DEVICE_ID_XXX,
+ 	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
+-	  ADDR, 0 },
++	  PCI_CLASS_MASK, 0 },
+ 	{ 0, }
+ };
+ 
+@@ -1033,7 +1017,7 @@ int __init xxxfb_setup(char *options)
+ {
+     /* Parse user speficied options (`video=xxxfb:') */
+ }
+-#endif /* MODULE *?
++#endif /* MODULE */
+ 
+ /* ------------------------------------------------------------------------- */
+ 
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
-vt8623fb-fix-compile-warnings.patch
-vt8623fb-fix-compile-error-if-config_mtrr=n.patch
-arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
-arkfb-fix-compiler-warnings.patch
-arkfb-fix-compile-error-if-config_mtrr=n.patch
-arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
-svgalib-move-fb_get_caps-to-svgalib.patch
