@@ -1,200 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - natsemi-allow-users-to-disable-workaround-for-dspcfg-reset.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:43:17 -0700
-Message-ID: <200705090243.l492hHCM008446@shell0.pdx.osdl.net>
+Subject: - remove-do_sync_file_range.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:47:31 -0700
+Message-ID: <200705090247.l492lV3F008983@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60331 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934475AbXEICrm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:42 -0400
+	by vger.kernel.org with ESMTP id S1755301AbXEICrn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@sirena.org.uk, jeff@garzik.org, thockin@hockin.org, mm-commits@vger.kernel.org
+To: mark.fasheh@oracle.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     natsemi: Allow users to disable workaround for DspCfg reset
+     Remove do_sync_file_range()
 has been removed from the -mm tree.  Its filename was
-     natsemi-allow-users-to-disable-workaround-for-dspcfg-reset.patch
+     remove-do_sync_file_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: natsemi: Allow users to disable workaround for DspCfg reset
-From: Mark Brown <broonie@sirena.org.uk>
+Subject: Remove do_sync_file_range()
+From: Mark Fasheh <mark.fasheh@oracle.com>
 
-The natsemi driver contains a workaround for broken hardware which can
-partially reset the chip at unpredictable times, detected by checking for
-spontaneous changes in the DspCfg register.  The effects of the hardware bug
-appear to be variable and can range from minor problems like small numbers of
-corrupted packets to major ones such as the chip becoming non-functional.  In
-the case of minor problems the chip reconfiguration required to work around
-the hardware can cause more problems than the bug itself.
+Remove do_sync_file_range() and convert callers to just use
+do_sync_mapping_range().
 
-Since we have no way of automatically determining how badly the problem
-manifests on any given system provide an option in sysfs allowing users to
-disable the workaround at runtime and provides a module option to set the
-default.
-
-Signed-off-by: Mark Brown <broonie@sirena.org.uk>
-Cc: Tim Hockin <thockin@hockin.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/natsemi.c |   68 ++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 66 insertions(+), 2 deletions(-)
+ drivers/md/bitmap.c |    8 ++++----
+ fs/sync.c           |    2 +-
+ include/linux/fs.h  |    5 -----
+ mm/filemap.c        |    8 ++++----
+ 4 files changed, 9 insertions(+), 14 deletions(-)
 
-diff -puN drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset drivers/net/natsemi.c
---- a/drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset
-+++ a/drivers/net/natsemi.c
-@@ -81,6 +81,8 @@ static const int multicast_filter_limit 
-    Setting to > 1518 effectively disables this feature. */
- static int rx_copybreak;
- 
-+static int dspcfg_workaround = 1;
-+
- /* Used to pass the media type, etc.
-    Both 'options[]' and 'full_duplex[]' should exist for driver
-    interoperability.
-@@ -139,12 +141,14 @@ MODULE_LICENSE("GPL");
- module_param(mtu, int, 0);
- module_param(debug, int, 0);
- module_param(rx_copybreak, int, 0);
-+module_param(dspcfg_workaround, int, 1);
- module_param_array(options, int, NULL, 0);
- module_param_array(full_duplex, int, NULL, 0);
- MODULE_PARM_DESC(mtu, "DP8381x MTU (all boards)");
- MODULE_PARM_DESC(debug, "DP8381x default debug level");
- MODULE_PARM_DESC(rx_copybreak,
- 	"DP8381x copy breakpoint for copy-only-tiny-frames");
-+MODULE_PARM_DESC(dspcfg_workaround, "DP8381x: control DspCfg workaround");
- MODULE_PARM_DESC(options,
- 	"DP8381x: Bits 0-3: media type, bit 17: full duplex");
- MODULE_PARM_DESC(full_duplex, "DP8381x full duplex setting(s) (1)");
-@@ -590,6 +594,7 @@ struct netdev_private {
- 	u32 srr;
- 	/* expected DSPCFG value */
- 	u16 dspcfg;
-+	int dspcfg_workaround;
- 	/* parms saved in ethtool format */
- 	u16	speed;		/* The forced speed, 10Mb, 100Mb, gigabit */
- 	u8	duplex;		/* Duplex, half or full */
-@@ -656,6 +661,56 @@ static int netdev_get_regs(struct net_de
- static int netdev_get_eeprom(struct net_device *dev, u8 *buf);
- static const struct ethtool_ops ethtool_ops;
- 
-+#define NATSEMI_ATTR(_name) \
-+static ssize_t natsemi_show_##_name(struct device *dev, \
-+         struct device_attribute *attr, char *buf); \
-+	 static ssize_t natsemi_set_##_name(struct device *dev, \
-+		struct device_attribute *attr, \
-+	        const char *buf, size_t count); \
-+	 static DEVICE_ATTR(_name, 0644, natsemi_show_##_name, natsemi_set_##_name)
-+
-+#define NATSEMI_CREATE_FILE(_dev, _name) \
-+         device_create_file(&_dev->dev, &dev_attr_##_name)
-+#define NATSEMI_REMOVE_FILE(_dev, _name) \
-+         device_create_file(&_dev->dev, &dev_attr_##_name)
-+
-+NATSEMI_ATTR(dspcfg_workaround);
-+
-+static ssize_t natsemi_show_dspcfg_workaround(struct device *dev,
-+				  	      struct device_attribute *attr,
-+					      char *buf)
-+{
-+	struct netdev_private *np = netdev_priv(to_net_dev(dev));
-+
-+	return sprintf(buf, "%s\n", np->dspcfg_workaround ? "on" : "off");
-+}
-+
-+static ssize_t natsemi_set_dspcfg_workaround(struct device *dev,
-+					     struct device_attribute *attr,
-+					     const char *buf, size_t count)
-+{
-+	struct netdev_private *np = netdev_priv(to_net_dev(dev));
-+	int new_setting;
-+	u32 flags;
-+
-+        /* Find out the new setting */
-+        if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
-+                new_setting = 1;
-+        else if (!strncmp("off", buf, count - 1)
-+                 || !strncmp("0", buf, count - 1))
-+		new_setting = 0;
-+	else
-+                 return count;
-+
-+	spin_lock_irqsave(&np->lock, flags);
-+
-+	np->dspcfg_workaround = new_setting;
-+
-+	spin_unlock_irqrestore(&np->lock, flags);
-+
-+	return count;
-+}
-+
- static inline void __iomem *ns_ioaddr(struct net_device *dev)
- {
- 	return (void __iomem *) dev->base_addr;
-@@ -820,6 +875,7 @@ static int __devinit natsemi_probe1 (str
- 		np->ignore_phy = 1;
- 	else
- 		np->ignore_phy = 0;
-+	np->dspcfg_workaround = dspcfg_workaround;
- 
- 	/* Initial port:
- 	 * - If configured to ignore the PHY set up for external.
-@@ -899,6 +955,9 @@ static int __devinit natsemi_probe1 (str
- 	if (i)
- 		goto err_register_netdev;
- 
-+	if (NATSEMI_CREATE_FILE(pdev, dspcfg_workaround))
-+		goto err_create_file;
-+
- 	if (netif_msg_drv(np)) {
- 		printk(KERN_INFO "natsemi %s: %s at %#08lx (%s), ",
- 			dev->name, natsemi_pci_info[chip_idx].name, iostart,
-@@ -915,6 +974,9 @@ static int __devinit natsemi_probe1 (str
+diff -puN drivers/md/bitmap.c~remove-do_sync_file_range drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~remove-do_sync_file_range
++++ a/drivers/md/bitmap.c
+@@ -1456,10 +1456,10 @@ int bitmap_create(mddev_t *mddev)
+ 	bitmap->offset = mddev->bitmap_offset;
+ 	if (file) {
+ 		get_file(file);
+-		do_sync_file_range(file, 0, LLONG_MAX,
+-				   SYNC_FILE_RANGE_WAIT_BEFORE |
+-				   SYNC_FILE_RANGE_WRITE |
+-				   SYNC_FILE_RANGE_WAIT_AFTER);
++		do_sync_mapping_range(file->f_mapping, 0, LLONG_MAX,
++				      SYNC_FILE_RANGE_WAIT_BEFORE |
++				      SYNC_FILE_RANGE_WRITE |
++				      SYNC_FILE_RANGE_WAIT_AFTER);
  	}
- 	return 0;
+ 	/* read superblock from bitmap file (this sets bitmap->chunksize) */
+ 	err = bitmap_read_sb(bitmap);
+diff -puN fs/sync.c~remove-do_sync_file_range fs/sync.c
+--- a/fs/sync.c~remove-do_sync_file_range
++++ a/fs/sync.c
+@@ -229,7 +229,7 @@ asmlinkage long sys_sync_file_range(int 
+ 			!S_ISLNK(i_mode))
+ 		goto out_put;
  
-+ err_create_file:
-+ 	unregister_netdev(dev);
-+
-  err_register_netdev:
- 	iounmap(ioaddr);
+-	ret = do_sync_file_range(file, offset, endbyte, flags);
++	ret = do_sync_mapping_range(file->f_mapping, offset, endbyte, flags);
+ out_put:
+ 	fput_light(file, fput_needed);
+ out:
+diff -puN include/linux/fs.h~remove-do_sync_file_range include/linux/fs.h
+--- a/include/linux/fs.h~remove-do_sync_file_range
++++ a/include/linux/fs.h
+@@ -849,11 +849,6 @@ extern int fcntl_getlease(struct file *f
+ /* fs/sync.c */
+ extern int do_sync_mapping_range(struct address_space *mapping, loff_t offset,
+ 			loff_t endbyte, unsigned int flags);
+-static inline int do_sync_file_range(struct file *file, loff_t offset,
+-			loff_t endbyte, unsigned int flags)
+-{
+-	return do_sync_mapping_range(file->f_mapping, offset, endbyte, flags);
+-}
  
-@@ -1727,7 +1789,8 @@ static void init_registers(struct net_de
-  *    It seems that a reference set for this chip went out with incorrect info,
-  *    and there exist boards that aren't quite right.  An unexpected voltage
-  *    drop can cause the PHY to get itself in a weird state (basically reset).
-- *    NOTE: this only seems to affect revC chips.
-+ *    NOTE: this only seems to affect revC chips.  The user can disable
-+ *    this check via dspcfg_workaround sysfs option.
-  * 3) check of death of the RX path due to OOM
-  */
- static void netdev_timer(unsigned long data)
-@@ -1753,7 +1816,7 @@ static void netdev_timer(unsigned long d
- 		writew(1, ioaddr+PGSEL);
- 		dspcfg = readw(ioaddr+DSPCFG);
- 		writew(0, ioaddr+PGSEL);
--		if (dspcfg != np->dspcfg) {
-+		if (np->dspcfg_workaround && dspcfg != np->dspcfg) {
- 			if (!netif_queue_stopped(dev)) {
- 				spin_unlock_irq(&np->lock);
- 				if (netif_msg_drv(np))
-@@ -3157,6 +3220,7 @@ static void __devexit natsemi_remove1 (s
- 	struct net_device *dev = pci_get_drvdata(pdev);
- 	void __iomem * ioaddr = ns_ioaddr(dev);
- 
-+	NATSEMI_REMOVE_FILE(pdev, dspcfg_workaround);
- 	unregister_netdev (dev);
- 	pci_release_regions (pdev);
- 	iounmap(ioaddr);
+ /* fs/locks.c */
+ extern void locks_init_lock(struct file_lock *);
+diff -puN mm/filemap.c~remove-do_sync_file_range mm/filemap.c
+--- a/mm/filemap.c~remove-do_sync_file_range
++++ a/mm/filemap.c
+@@ -2309,10 +2309,10 @@ __generic_file_aio_write_nolock(struct k
+ 		 * semantics.
+ 		 */
+ 		endbyte = pos + written_buffered - written - 1;
+-		err = do_sync_file_range(file, pos, endbyte,
+-					 SYNC_FILE_RANGE_WAIT_BEFORE|
+-					 SYNC_FILE_RANGE_WRITE|
+-					 SYNC_FILE_RANGE_WAIT_AFTER);
++		err = do_sync_mapping_range(file->f_mapping, pos, endbyte,
++					    SYNC_FILE_RANGE_WAIT_BEFORE|
++					    SYNC_FILE_RANGE_WRITE|
++					    SYNC_FILE_RANGE_WAIT_AFTER);
+ 		if (err == 0) {
+ 			written = written_buffered;
+ 			invalidate_mapping_pages(mapping,
 _
 
-Patches currently in -mm which might be from broonie@sirena.org.uk are
+Patches currently in -mm which might be from mark.fasheh@oracle.com are
 
 origin.patch
