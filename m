@@ -1,34 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:56:44 -0700
-Message-ID: <200705090256.l492uiGi010088@shell0.pdx.osdl.net>
+Subject: - smsc-ircc2-tidy-up-module-parameter-checking.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:56:47 -0700
+Message-ID: <200705090256.l492ulqj010093@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59551 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56609 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970205AbXEIC6i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:58:38 -0400
+	by vger.kernel.org with ESMTP id S970211AbXEIC6j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:58:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, castet.matthieu@free.fr, jt@hpl.hp.com, kaos@ocs.com.au, lenb@kernel.org, mjg59@srcf.ucam.org, rmk+serial@arm.linux.org.uk, samuel@sortiz.org, syrjala@sci.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: workaround HP BIOS defect that leaves SMCF010 device partly enabled
+     smsc-ircc2: tidy up module parameter checking
 has been removed from the -mm tree.  Its filename was
-     pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled.patch
+     smsc-ircc2-tidy-up-module-parameter-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PNP: workaround HP BIOS defect that leaves SMCF010 device partly enabled
+Subject: smsc-ircc2: tidy up module parameter checking
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Some HP/Compaq firmware reports via ACPI that the SMCF010 IR device is
-enabled, but in fact, it leaves the device partly disabled.
-
-HP nw8240 BIOS 68DTV Ver.  F.0F, released 9/15/2005 is one BIOS that has this
-problem.
+To determine whether the user specified a module parameter, use some #defines
+instead of checking for bare magic numbers.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Keith Owens <kaos@ocs.com.au>
@@ -43,63 +40,58 @@ Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ drivers/net/irda/smsc-ircc2.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-workaround-hp-bios-defect-that-leaves-smcf010-device-partly-enabled
-+++ a/drivers/pnp/quirks.c
-@@ -16,6 +16,7 @@
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/pnp.h>
-+#include <linux/io.h>
- #include "base.h"
+diff -puN drivers/net/irda/smsc-ircc2.c~smsc-ircc2-tidy-up-module-parameter-checking drivers/net/irda/smsc-ircc2.c
+--- a/drivers/net/irda/smsc-ircc2.c~smsc-ircc2-tidy-up-module-parameter-checking
++++ a/drivers/net/irda/smsc-ircc2.c
+@@ -79,11 +79,13 @@ MODULE_AUTHOR("Daniele Peri <peri@csai.u
+ MODULE_DESCRIPTION("SMC IrCC SIR/FIR controller driver");
+ MODULE_LICENSE("GPL");
  
+-static int ircc_dma = 255;
++#define DMA_INVAL 255
++static int ircc_dma = DMA_INVAL;
+ module_param(ircc_dma, int, 0);
+ MODULE_PARM_DESC(ircc_dma, "DMA channel");
  
-@@ -106,6 +107,34 @@ static void quirk_sb16audio_resources(st
- 	return;
- }
+-static int ircc_irq = 255;
++#define IRQ_INVAL 255
++static int ircc_irq = IRQ_INVAL;
+ module_param(ircc_irq, int, 0);
+ MODULE_PARM_DESC(ircc_irq, "IRQ line");
  
-+static void quirk_smc_enable(struct pnp_dev *dev)
-+{
-+	unsigned int firbase;
-+
-+	if (!dev->active || !pnp_port_valid(dev, 1))
-+		return;
-+
-+	/*
-+	 * On the HP/Compaq nw8240 (and probably other similar machines),
-+	 * there is an SMCF010 device with two I/O port regions:
-+	 *
-+	 *	0x3e8-0x3ef SIR
-+	 *	0x100-0x10f FIR
-+	 *
-+	 * _STA reports the device is enabled, but in fact, the BIOS
-+	 * neglects to enable the FIR range.  Fortunately, it does fully
-+	 * enable the device if we call _SRS.
-+	 */
-+	firbase = pnp_port_start(dev, 1);
-+	if (inb(firbase + 0x7 /* IRCC_MASTER */) == 0xff) {
-+		pnp_err("%s (%s) enabled but not responding, disabling and "
-+			"re-enabling", dev->dev.bus_id, pnp_dev_name(dev));
-+		pnp_disable_dev(dev);
-+		pnp_activate_dev(dev);
-+	}
-+}
-+
-+
- /*
-  *  PnP Quirks
-  *  Cards or devices that need some tweaking due to incomplete resource info
-@@ -126,6 +155,7 @@ static struct pnp_fixup pnp_fixups[] = {
- 	{ "CTL0043", quirk_sb16audio_resources },
- 	{ "CTL0044", quirk_sb16audio_resources },
- 	{ "CTL0045", quirk_sb16audio_resources },
-+	{ "SMCf010", quirk_smc_enable },
- 	{ "" }
- };
+@@ -646,7 +648,7 @@ static void smsc_ircc_setup_io(struct sm
+ 	self->io.fifo_size = SMSC_IRCC2_FIFO_SIZE;
+ 	self->io.speed = SMSC_IRCC2_C_IRDA_FALLBACK_SPEED;
  
+-	if (irq < 255) {
++	if (irq != IRQ_INVAL) {
+ 		if (irq != chip_irq)
+ 			IRDA_MESSAGE("%s, Overriding IRQ - chip says %d, using %d\n",
+ 				     driver_name, chip_irq, irq);
+@@ -654,7 +656,7 @@ static void smsc_ircc_setup_io(struct sm
+ 	} else
+ 		self->io.irq = chip_irq;
+ 
+-	if (dma < 255) {
++	if (dma != DMA_INVAL) {
+ 		if (dma != chip_dma)
+ 			IRDA_MESSAGE("%s, Overriding DMA - chip says %d, using %d\n",
+ 				     driver_name, chip_dma, dma);
+@@ -2836,9 +2838,9 @@ static int __init smsc_ircc_preconfigure
+ 					tmpconf.fir_io = ircc_fir;
+ 				if (ircc_sir != 0)
+ 					tmpconf.sir_io = ircc_sir;
+-				if (ircc_dma != 0xff)
++				if (ircc_dma != DMA_INVAL)
+ 					tmpconf.fir_dma = ircc_dma;
+-				if (ircc_irq != 0xff)
++				if (ircc_irq != IRQ_INVAL)
+ 					tmpconf.fir_irq = ircc_irq;
+ 
+ 				IRDA_MESSAGE("Detected unconfigured %s SMSC IrDA chip, pre-configuring device.\n", conf->name);
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
