@@ -1,134 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:55:44 -0700
-Message-ID: <200705090955.l499tiqw020521@shell0.pdx.osdl.net>
+Subject: - revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:56:01 -0700
+Message-ID: <200705090956.l499u1u3020545@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44134 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755519AbXEIJ4G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:56:06 -0400
+	by vger.kernel.org with ESMTP id S1757271AbXEIJ4Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:56:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/revoke.c: cleanups (and bugfix for 64bit systems)
+     slab allocators: Remove multiple alignment specifications (revoke)
 has been removed from the -mm tree.  Its filename was
-     revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
+     revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
 
 This patch was dropped because it was folded into revoke-core-code.patch
 
 ------------------------------------------------------
-Subject: fs/revoke.c: cleanups (and bugfix for 64bit systems)
-From: Adrian Bunk <bunk@stusta.de>
+Subject: slab allocators: Remove multiple alignment specifications (revoke)
+From: Christoph Lameter <clameter@sgi.com>
 
-On Mon, Mar 19, 2007 at 08:56:23PM -0800, Andrew Morton wrote:
->...
-> Changes since 2.6.21-rc3-mm1:
->...
-> +revoke-core-code.patch
->...
->  revoke() syscall
->...
 
-This patch contains the following:
-- every file should #include the headers containing the prototypes for
-  it's global functions
-- fix the wrong return value of sys_frevoke() gcc was now able to detect
-- make 2 needlessly global structs static
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/revoke.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/revoke.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/revoke.c~revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems fs/revoke.c
---- a/fs/revoke.c~revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems
+diff -puN fs/revoke.c~revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke fs/revoke.c
+--- a/fs/revoke.c~revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke
 +++ a/fs/revoke.c
-@@ -16,6 +16,7 @@
- #include <linux/mount.h>
- #include <linux/sched.h>
- #include <linux/revoked_fs_i.h>
-+#include <linux/syscalls.h>
- 
- /*
-  * This is used for pre-allocating an array of file pointers so that we don't
-@@ -28,7 +29,7 @@ struct revoke_table {
- 	unsigned long restore_start;
- };
- 
--struct kmem_cache *revokefs_inode_cache;
-+static struct kmem_cache *revokefs_inode_cache;
- 
- /*
-  * Revoked file descriptors point to inodes in the revokefs filesystem.
-@@ -551,7 +552,7 @@ asmlinkage long sys_revokeat(int dfd, co
- 	return err;
- }
- 
--asmlinkage int sys_frevoke(unsigned int fd)
-+asmlinkage long sys_frevoke(unsigned int fd)
+@@ -709,8 +709,7 @@ static void revokefs_init_inode(void *ob
  {
- 	struct file *file = fget(fd);
- 	int err = -EBADF;
-@@ -618,7 +619,7 @@ static int revokefs_get_sb(struct file_s
- 			     REVOKEFS_MAGIC, mnt);
- }
+ 	struct revokefs_inode_info *info = obj;
  
--struct file_system_type revokefs_fs_type = {
-+static struct file_system_type revokefs_fs_type = {
- 	.name = "revokefs",
- 	.get_sb = revokefs_get_sb,
- 	.kill_sb = kill_anon_super
+-	if ((flags & (SLAB_CTOR_VERIFY | SLAB_CTOR_CONSTRUCTOR)) ==
+-	    SLAB_CTOR_CONSTRUCTOR) {
++	if (flags & SLAB_CTOR_CONSTRUCTOR) {
+ 		info->owner = NULL;
+ 		inode_init_once(&info->vfs_inode);
+ 	}
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-remove-nfs4_acl_add_ace.patch
-compiler-introduce-__used-and-__maybe_unused.patch
-git-alsa.patch
-git-dvb.patch
-git-ieee1394.patch
-testing-patch-for-ali-pata-fixes-hopefully-for-the-problems-with-atapi-dma.patch
-git-mtd.patch
-nommu-make-it-possible-for-romfs-to-use-mtd-devices.patch
-drivers-mtd-maps-nettelc-possible-cleanups.patch
-ibmtr_cs-fix-hang-on-eject.patch
-git-battery.patch
-drivers-scsi-small-cleanups.patch
-drivers-scsi-advansysc-cleanups.patch
-drivers-scsi-wd33c93c-cleanups.patch
-make-seagate_st0x_detect-static.patch
-remove-the-broken-scsi_acornscsi_3-driver.patch
-scsi-lpfc-lpfc_initc-remove-unused-variable.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-drivers-scsi-ipsc-remove-kernel-24-code.patch
-drivers-scsi-nsp32c-remove-kernel-24-code.patch
-git-unionfs.patch
-git-watchdog.patch
-git-wireless.patch
-git-ipwireless_cs.patch
-make-arch-i386-kernel-setupcremapped_pgdat_init-static.patch
-arch-i386-kernel-i8253c-should-include-asm-timerh.patch
-make-arch-i386-kernel-io_apicctimer_irq_works-static-again.patch
-maps2-add-proc-kpagemap-interface.patch
-lumpy-reclaim-v4.patch
-more-scheduled-oss-driver-removal.patch
-unexport-pci_proc_attach_device.patch
-ext2-reservations.patch
-linux-kernel-markers-kconfig-menus.patch
-linux-kernel-markers-architecture-independant-code.patch
-linux-kernel-markers-i386-optimization.patch
+slub-add-support-for-dynamic-cacheline-size-determination.patch
+slub-after-object-padding-only-needed-for-redzoning.patch
+slub-slabinfo-upgrade.patch
+slub-use-check_valid_pointer-in-kmem_ptr_validate.patch
+slub-clean-up-krealloc.patch
+slub-get-rid-of-finish_bootstrap.patch
+slub-update-comments.patch
+slub-add-macros-for-scanning-objects-in-a-slab.patch
+slub-move-resiliency-check-into-sysfs-section.patch
+slub-introduce-debugslabpage.patch
+slub-consolidate-trace-code.patch
+slub-move-tracking-definitions-and-check_valid_pointer-away-from-debug-code.patch
+slub-add-config_slub_debug.patch
+slub-include-lifetime-stats-and-sets-of-cpus--nodes-in-tracking-output.patch
+slub-rework-slab-order-determination.patch
+krealloc-fix-kerneldoc-comments.patch
+fix-spellings-of-slab-allocator-section-in-init-kconfig.patch
+frv-replace-pgd-management-via-slabs-through-quicklists.patch
+disable-slub-on-powerpc.patch
+slab-shutdown-cache_reaper-when-cpu-goes-down.patch
+vmstat-use-our-own-timer-events.patch
+make-vm-statistics-update-interval-configurable.patch
+move-remote-node-draining-out-of-slab-allocators.patch
+md-remove-the-slash-from-the-name-of-a-kmem_cache-used-by-raid5.patch
+slub-support-concurrent-local-and-remote-frees-and-allocs-on-a-slab.patch
+quicklist-support-for-ia64.patch
+quicklist-support-for-x86_64.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-mm-only-make-slub-the-default-slab-allocator.patch
+slub-reduce-antifrag-max-order.patch
+slub-i386-support.patch
+remove-constructor-from-buffer_head.patch
+mm-implement-swap-prefetching.patch
 revoke-core-code.patch
-revoke-core-code-fs-revokec-cleanups-and-bugfix-for-64bit-systems.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-slim-main-patch.patch
-slim-debug-output.patch
-mutex-subsystem-synchro-test-module.patch
+revoke-core-code-slab-allocators-remove-slab_debug_initial-flag-revoke.patch
