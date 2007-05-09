@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + frame-buffer-geforce-7300-gt.patch added to -mm tree
-Date: Tue, 08 May 2007 20:07:35 -0700
-Message-ID: <200705090307.l4937ZjQ011202@shell0.pdx.osdl.net>
+Subject: + revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch added to -mm tree
+Date: Tue, 08 May 2007 20:08:33 -0700
+Message-ID: <200705090308.l4938XqU011263@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56015 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750992AbXEIDHj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:07:39 -0400
+	by vger.kernel.org with ESMTP id S1755092AbXEIDJQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:09:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michal.k.k.piotrowski@gmail.com, adaplas@pol.net
+Cc: akpm@linux-foundation.org, dmitry.adamushko@gmail.com, kernel@kolivas.org, mingo@elte.hu
 
 
 The patch titled
-     frame buffer: geforce 7300 gt
+     revert 'sched: redundant reschedule when set_user_nice() boosts a prio of a task from the "expired" array'
 has been added to the -mm tree.  Its filename is
-     frame-buffer-geforce-7300-gt.patch
+     revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,115 +25,195 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: frame buffer: geforce 7300 gt
-From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: revert 'sched: redundant reschedule when set_user_nice() boosts a prio of a task from the "expired" array'
+From: Andrew Morton <akpm@linux-foundation.org>
 
-My geforce isn't supported by nvidia frame buffer.
+Con says:
 
-/sbin/lspci
-01:00.0 VGA compatible controller: nVidia Corporation Unknown device 02e2 (rev a2)
+This is no good, sorry. The one I saw originally was with the staircase
+deadline cpu scheduler in situ and was different.
 
-/usr/sbin/fbset -i
+  #define TASK_PREEMPTS_CURR(p, rq) \
+     ((p)->prio < (rq)->curr->prio)
+     (((p)->prio < (rq)->curr->prio) && ((p)->array == (rq)->active))
 
-mode "1024x768-60"
-    # D: 65.003 MHz, H: 48.365 kHz, V: 60.006 Hz
-    geometry 1024 768 1024 32767 8
-    timings 15384 160 24 29 3 136 6
-    accel true
-    rgba 8/0,8/0,8/0,0/0
-endmode
+This will fail to wake up a runqueue for a task that has been migrated to the
+expired array of a runqueue which is otherwise idle which can happen with smp
+balancing,
 
-Frame buffer device information:
-    Name        : NV2e
-    Address     : 0xe0000000
-    Size        : 134217728
-    Type        : PACKED PIXELS
-    Visual      : PSEUDOCOLOR
-    XPanStep    : 8
-    YPanStep    : 1
-    YWrapStep   : 0
-    LineLength  : 1024
-    MMIO Address: 0xf6000000
-    MMIO Size   : 16777216
-    Accelerator : Unknown (46)
-
-Here is a patch for this problem.
-
-Signed-off-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Cc: Con Kolivas <kernel@kolivas.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nv_hw.c  |    7 +++++--
- drivers/video/nvidia/nvidia.c |    1 +
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ kernel/sched.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN drivers/video/nvidia/nv_hw.c~frame-buffer-geforce-7300-gt drivers/video/nvidia/nv_hw.c
---- a/drivers/video/nvidia/nv_hw.c~frame-buffer-geforce-7300-gt
-+++ a/drivers/video/nvidia/nv_hw.c
-@@ -149,8 +149,7 @@ static void nvGetClocks(struct nvidia_pa
- 		pll = NV_RD32(par->PMC, 0x4024);
- 		M = pll & 0xFF;
- 		N = (pll >> 8) & 0xFF;
--		if (((par->Chipset & 0xfff0) == 0x0290) ||
--				((par->Chipset & 0xfff0) == 0x0390)) {
-+		if (((par->Chipset & 0xfff0) == 0x0290) || ((par->Chipset & 0xfff0) == 0x0390) || ((par->Chipset & 0xfff0) == 0x02E0)) {
- 			MB = 1;
- 			NB = 1;
- 		} else {
-@@ -963,6 +962,7 @@ void NVLoadStateExt(struct nvidia_par *p
+diff -puN kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array kernel/sched.c
+--- a/kernel/sched.c~revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array
++++ a/kernel/sched.c
+@@ -169,7 +169,7 @@ unsigned long long __attribute__((weak))
+ 		(MAX_BONUS / 2 + DELTA((p)) + 1) / MAX_BONUS - 1))
  
- 		if (((par->Chipset & 0xfff0) == 0x0090) ||
- 		    ((par->Chipset & 0xfff0) == 0x01D0) ||
-+		    ((par->Chipset & 0xfff0) == 0x02E0) ||
- 		    ((par->Chipset & 0xfff0) == 0x0290))
- 			regions = 15;
- 		for(i = 0; i < regions; i++) {
-@@ -1275,6 +1275,7 @@ void NVLoadStateExt(struct nvidia_par *p
- 						0x00100000);
- 					break;
- 				case 0x0090:
-+				case 0x02E0:
- 				case 0x0290:
- 					NV_WR32(par->PRAMDAC, 0x0608,
- 						NV_RD32(par->PRAMDAC, 0x0608) |
-@@ -1352,6 +1353,7 @@ void NVLoadStateExt(struct nvidia_par *p
- 			} else {
- 				if (((par->Chipset & 0xfff0) == 0x0090) ||
- 				    ((par->Chipset & 0xfff0) == 0x01D0) ||
-+				    ((par->Chipset & 0xfff0) == 0x02E0) ||
- 				    ((par->Chipset & 0xfff0) == 0x0290)) {
- 					for (i = 0; i < 60; i++) {
- 						NV_WR32(par->PGRAPH,
-@@ -1403,6 +1405,7 @@ void NVLoadStateExt(struct nvidia_par *p
- 				} else {
- 					if ((par->Chipset & 0xfff0) == 0x0090 ||
- 					    (par->Chipset & 0xfff0) == 0x01D0 ||
-+					    (par->Chipset & 0xfff0) == 0x02E0 ||
- 					    (par->Chipset & 0xfff0) == 0x0290) {
- 						NV_WR32(par->PGRAPH, 0x0DF0,
- 							NV_RD32(par->PFB, 0x0200));
-diff -puN drivers/video/nvidia/nvidia.c~frame-buffer-geforce-7300-gt drivers/video/nvidia/nvidia.c
---- a/drivers/video/nvidia/nvidia.c~frame-buffer-geforce-7300-gt
-+++ a/drivers/video/nvidia/nvidia.c
-@@ -1243,6 +1243,7 @@ static u32 __devinit nvidia_get_arch(str
- 	case 0x0140:		/* GeForce 6600 */
- 	case 0x0160:		/* GeForce 6200 */
- 	case 0x01D0:		/* GeForce 7200, 7300, 7400 */
-+	case 0x02E0:		/* GeForce 7300 GT */
- 	case 0x0090:		/* GeForce 7800 */
- 	case 0x0210:		/* GeForce 6800 */
- 	case 0x0220:		/* GeForce 6200 */
+ #define TASK_PREEMPTS_CURR(p, rq) \
+-	(((p)->prio < (rq)->curr->prio) && ((p)->array == (rq)->active))
++	((p)->prio < (rq)->curr->prio)
+ 
+ #define SCALE_PRIO(x, prio) \
+ 	max(x * (MAX_PRIO - prio) / (MAX_USER_PRIO / 2), MIN_TIMESLICE)
+@@ -4076,13 +4076,13 @@ void rt_mutex_setprio(struct task_struct
+ 	struct prio_array *array;
+ 	unsigned long flags;
+ 	struct rq *rq;
+-	int delta;
++	int oldprio;
+ 
+ 	BUG_ON(prio < 0 || prio > MAX_PRIO);
+ 
+ 	rq = task_rq_lock(p, &flags);
+ 
+-	delta = prio - p->prio;
++	oldprio = p->prio;
+ 	array = p->array;
+ 	if (array)
+ 		dequeue_task(p, array);
+@@ -4098,11 +4098,13 @@ void rt_mutex_setprio(struct task_struct
+ 		enqueue_task(p, array);
+ 		/*
+ 		 * Reschedule if we are currently running on this runqueue and
+-		 * our priority decreased, or if our priority became higher
+-		 * than the current's.
++		 * our priority decreased, or if we are not currently running on
++		 * this runqueue and our priority is higher than the current's
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) ||
+-				(delta > 0 && task_running(rq, p)))
++		if (task_running(rq, p)) {
++			if (p->prio > oldprio)
++				resched_task(rq->curr);
++		} else if (TASK_PREEMPTS_CURR(p, rq))
+ 			resched_task(rq->curr);
+ 	}
+ 	task_rq_unlock(rq, &flags);
+@@ -4150,12 +4152,10 @@ void set_user_nice(struct task_struct *p
+ 		enqueue_task(p, array);
+ 		inc_raw_weighted_load(rq, p);
+ 		/*
+-		 * Reschedule if we are currently running on this runqueue and
+-		 * our priority decreased, or if our priority became higher
+-		 * than the current's.
++		 * If the task increased its priority or is running and
++		 * lowered its priority, then reschedule its CPU:
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) ||
+-				(delta > 0 && task_running(rq, p)))
++		if (delta < 0 || (delta > 0 && task_running(rq, p)))
+ 			resched_task(rq->curr);
+ 	}
+ out_unlock:
+@@ -4382,11 +4382,13 @@ recheck:
+ 		__activate_task(p, rq);
+ 		/*
+ 		 * Reschedule if we are currently running on this runqueue and
+-		 * our priority decreased, or our priority became higher
+-		 * than the current's.
++		 * our priority decreased, or if we are not currently running on
++		 * this runqueue and our priority is higher than the current's
+ 		 */
+-		if (TASK_PREEMPTS_CURR(p, rq) ||
+-				(task_running(rq, p) && p->prio > oldprio))
++		if (task_running(rq, p)) {
++			if (p->prio > oldprio)
++				resched_task(rq->curr);
++		} else if (TASK_PREEMPTS_CURR(p, rq))
+ 			resched_task(rq->curr);
+ 	}
+ 	__task_rq_unlock(rq);
 _
 
-Patches currently in -mm which might be from michal.k.k.piotrowski@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-ia64.patch
+revert-sched-redundant-reschedule-when-set_user_nice-boosts-a-prio-of-a-task-from-the-expired-array.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
 git-kvm.patch
-i386-irq-kill-irq-compression.patch
-xfs-fix-unmount-race.patch
-extend-notifier_call_chain-to-count-nr_calls-made.patch
-revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
-reiser4.patch
-frame-buffer-geforce-7300-gt.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
+kthread-dont-depend-on-work-queues-take-2.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
