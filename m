@@ -1,49 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - make-vm-statistics-update-interval-configurable-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:04:08 -0700
-Message-ID: <200705090904.l49948Sf018715@shell0.pdx.osdl.net>
+Subject: - rename-thread_info-to-stack-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:05:10 -0700
+Message-ID: <200705090905.l4995Avu018733@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43363 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753643AbXEIJEL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:04:11 -0400
+	by vger.kernel.org with ESMTP id S1754640AbXEIJFZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:05:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make-vm-statistics-update-interval-configurable-fix
+     rename-thread_info-to-stack-fix
 has been removed from the -mm tree.  Its filename was
-     make-vm-statistics-update-interval-configurable-fix.patch
+     rename-thread_info-to-stack-fix.patch
 
-This patch was dropped because it was folded into make-vm-statistics-update-interval-configurable.patch
+This patch was dropped because it was folded into rename-thread_info-to-stack.patch
 
 ------------------------------------------------------
-Subject: make-vm-statistics-update-interval-configurable-fix
+Subject: rename-thread_info-to-stack-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
+ include/asm-x86_64/system.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sysctl.h~make-vm-statistics-update-interval-configurable-fix include/linux/sysctl.h
-diff -puN kernel/sysctl.c~make-vm-statistics-update-interval-configurable-fix kernel/sysctl.c
---- a/kernel/sysctl.c~make-vm-statistics-update-interval-configurable-fix
-+++ a/kernel/sysctl.c
-@@ -860,7 +860,7 @@ static ctl_table vm_table[] = {
- #endif
- #ifdef CONFIG_SMP
- 	{
--		.ctl_name	= VM_STAT_INTERVAL,
-+		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "stat_interval",
- 		.data		= &sysctl_stat_interval,
- 		.maxlen		= sizeof(sysctl_stat_interval),
+diff -puN include/asm-x86_64/system.h~rename-thread_info-to-stack-fix include/asm-x86_64/system.h
+--- a/include/asm-x86_64/system.h~rename-thread_info-to-stack-fix
++++ a/include/asm-x86_64/system.h
+@@ -39,7 +39,7 @@
+ 		       [threadrsp] "i" (offsetof(struct task_struct, thread.rsp)), \
+ 		       [ti_flags] "i" (offsetof(struct thread_info, flags)),\
+ 		       [tif_fork] "i" (TIF_FORK),			  \
+-		       [thread_info] "i" (offsetof(struct task_struct, thread_info)), \
++		       [thread_info] "i" (offsetof(struct task_struct, stack)), \
+ 		       [pda_pcurrent] "i" (offsetof(struct x8664_pda, pcurrent))   \
+ 		     : "memory", "cc" __EXTRA_CLOBBER)
+     
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,8 +65,7 @@ make-futex_wait-use-an-hrtimer-for-timeout.patch
 fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
 fs-convert-core-functions-to-zero_user_page-fix-2.patch
 ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable.patch
-make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack.patch
 rename-thread_info-to-stack-fix.patch
 reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 integrity-new-hooks-fix.patch
