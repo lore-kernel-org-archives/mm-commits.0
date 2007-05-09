@@ -1,61 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:42:50 -0700
-Message-ID: <200705090942.l499gokp020184@shell0.pdx.osdl.net>
+Subject: - lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:42:58 -0700
+Message-ID: <200705090942.l499gwEx020196@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:36210 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754505AbXEIJnY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:43:24 -0400
+	by vger.kernel.org with ESMTP id S1754348AbXEIJnr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:43:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix lguest oops when guest dies while receiving I/O
+     lguest: fix obscure but nasty cow bug
 has been removed from the -mm tree.  Its filename was
-     lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch
+     lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch
 
 This patch was dropped because it was folded into lguest-the-host-code.patch
 
 ------------------------------------------------------
-Subject: Fix lguest oops when guest dies while receiving I/O
+Subject: lguest: fix obscure but nasty cow bug
 From: Rusty Russell <rusty@rustcorp.com.au>
 
-lguest needs to hold a reference to its task in case it exits while another
-Guest is sending it I/O.  Otherwise we can oops in
-access_process_vm->get_task_mm->task_lock().
+Nasty bug where the host is the first to write a MAP_PRIVATE page: the
+guest still references the old one and won't see the write.  This can
+happen with just the wrong data layouts for the initial setup hypercall
+(the other places in the code are always written guest-first).
 
 Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest_user.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/lguest/hypercalls.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN drivers/lguest/lguest_user.c~lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o drivers/lguest/lguest_user.c
---- a/drivers/lguest/lguest_user.c~lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o
-+++ a/drivers/lguest/lguest_user.c
-@@ -107,7 +107,8 @@ static int initialize(struct file *file,
- 	setup_regs(lg->regs, args[2]);
- 	setup_guest_gdt(lg);
- 	lg->tsk = current;
--	lg->mm = get_task_mm(current);
-+	get_task_struct(lg->tsk);
-+	lg->mm = get_task_mm(lg->tsk);
- 	lg->last_pages = NULL;
- 	mutex_unlock(&lguest_lock);
+diff -puN drivers/lguest/hypercalls.c~lguest-the-host-code-fix-obscure-but-nasty-cow-bug drivers/lguest/hypercalls.c
+--- a/drivers/lguest/hypercalls.c~lguest-the-host-code-fix-obscure-but-nasty-cow-bug
++++ a/drivers/lguest/hypercalls.c
+@@ -155,6 +155,12 @@ static void initialize(struct lguest *lg
+ 	    || put_user(4U*1024*1024, &lg->lguest_data->reserve_mem)
+ 	    || put_user(lg->guestid, &lg->lguest_data->guestid))
+ 		kill_guest(lg, "bad guest page %p", lg->lguest_data);
++
++	/* This is the one case where the above accesses might have
++	 * been the first write to a Guest page.  This may have caused
++	 * a copy-on-write fault, but the Guest might be referring to
++	 * the old (read-only) page. */
++	guest_pagetable_clear_all(lg);
+ }
  
-@@ -160,6 +161,7 @@ static int close(struct inode *inode, st
- 	mutex_lock(&lguest_lock);
- 	release_all_dma(lg);
- 	free_guest_pagetable(lg);
-+	put_task_struct(lg->tsk);
- 	mmput(lg->mm);
- 	if (!IS_ERR(lg->dead))
- 		kfree(lg->dead);
+ /* Even if we go out to userspace and come back, we don't want to do
 _
 
 Patches currently in -mm which might be from rusty@rustcorp.com.au are
@@ -74,10 +70,6 @@ update-dvb-use-of-symbol_getput.patch
 lguest-export-symbols-for-lguest-as-a-module.patch
 lguest-the-guest-code.patch
 lguest-the-host-code.patch
-lguest-the-host-code-fix-lguest-oops-when-guest-dies-while-receiving-i-o.patch
-lguest-the-host-code-simplification-dont-pin-guest-trap-handlers.patch
-lguest-the-host-code-properly-kill-guest-userspace-programs-accessing-kernel-mem.patch
-lguest-the-host-code-remove-put_user-etc-warnings-add-bloat.patch
 lguest-the-host-code-fix-obscure-but-nasty-cow-bug.patch
 lguest-the-host-code-lguest-use-standard-bootloader-format-fix-badly-sized.patch
 lguest-the-asm-offsets.patch
