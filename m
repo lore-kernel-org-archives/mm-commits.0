@@ -1,89 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - allow-access-to-proc-pid-fd-after-setuid.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:43:58 -0700
-Message-ID: <200705090243.l492hwA5008531@shell0.pdx.osdl.net>
+Subject: - reiserfs-correct-misspelled-reiserfs_proc_info-to.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:45:16 -0700
+Message-ID: <200705090245.l492jGkA008721@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47836 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968776AbXEICpF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:05 -0400
+	by vger.kernel.org with ESMTP id S967812AbXEICpU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@openvz.org, chrisw@sous-sol.org, dev@openvz.org, drepper@redhat.com, ebiederm@xmission.com, hch@lst.de, jmorris@namei.org, oleg@tv-sign.ru, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Allow access to /proc/$PID/fd after setuid()
+     reiserfs: correct misspelled "REISERFS_PROC_INFO" to "CONFIG_REISERFS_PROC_INFO"
 has been removed from the -mm tree.  Its filename was
-     allow-access-to-proc-pid-fd-after-setuid.patch
+     reiserfs-correct-misspelled-reiserfs_proc_info-to.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Allow access to /proc/$PID/fd after setuid()
-From: Alexey Dobriyan <adobriyan@openvz.org>
+Subject: reiserfs: correct misspelled "REISERFS_PROC_INFO" to "CONFIG_REISERFS_PROC_INFO"
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-/proc/$PID/fd has r-x------ permissions, so if process does setuid(), it
-will not be able to access /proc/*/fd/. This breaks fstatat() emulation
-in glibc.
+Correct the misspelling of the preprocessor check of a Kconfig option to refer
+to CONFIG_REISERFS_PROC_INFO and not just the incorrect REISERFS_PROC_INFO.
 
-open("foo", O_RDONLY|O_DIRECTORY)       = 4
-setuid32(65534)                         = 0
-stat64("/proc/self/fd/4/bar", 0xbfafb298) = -1 EACCES (Permission denied)
-
-Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-By: Kirill Korotaev <dev@openvz.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ fs/reiserfs/procfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~allow-access-to-proc-pid-fd-after-setuid fs/proc/base.c
---- a/fs/proc/base.c~allow-access-to-proc-pid-fd-after-setuid
-+++ a/fs/proc/base.c
-@@ -1448,10 +1448,28 @@ static const struct file_operations proc
- };
+diff -puN fs/reiserfs/procfs.c~reiserfs-correct-misspelled-reiserfs_proc_info-to fs/reiserfs/procfs.c
+--- a/fs/reiserfs/procfs.c~reiserfs-correct-misspelled-reiserfs_proc_info-to
++++ a/fs/reiserfs/procfs.c
+@@ -20,7 +20,7 @@
+ #include <linux/init.h>
+ #include <linux/proc_fs.h>
+ 
+-#if defined( REISERFS_PROC_INFO )
++#ifdef CONFIG_REISERFS_PROC_INFO
  
  /*
-+ * /proc/pid/fd needs a special permission handler so that a process can still
-+ * access /proc/self/fd after it has executed a setuid().
-+ */
-+static int proc_fd_permission(struct inode *inode, int mask,
-+				struct nameidata *nd)
-+{
-+	int rv;
-+
-+	rv = generic_permission(inode, mask, NULL);
-+	if (rv == 0)
-+		return 0;
-+	if (task_pid(current) == proc_pid(inode))
-+		rv = 0;
-+	return rv;
-+}
-+
-+/*
-  * proc directories can do almost nothing..
-  */
- static const struct inode_operations proc_fd_inode_operations = {
- 	.lookup		= proc_lookupfd,
-+	.permission	= proc_fd_permission,
- 	.setattr	= proc_setattr,
- };
- 
+  * LOCKING:
 _
 
-Patches currently in -mm which might be from adobriyan@openvz.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-git-ia64.patch
-git-parisc.patch
-x86-msr-add-support-for-safe-variants.patch
+git-alsa.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+arm-remove-useless-config-option-generic_bust_spinlock.patch
+git-avr32.patch
+git-dvb.patch
+git-ieee1394.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
