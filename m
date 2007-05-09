@@ -1,101 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - char-cyclades-unexport-struct-cyclades_card.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:57:28 -0700
-Message-ID: <200705090257.l492vSYg010194@shell0.pdx.osdl.net>
+Subject: - char-cyclades-use-is_cyc_z-macro.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:57:22 -0700
+Message-ID: <200705090257.l492vM04010179@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52672 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032754AbXEIC5b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:57:31 -0400
+	by vger.kernel.org with ESMTP id S1032772AbXEIC50 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:57:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: cyclades, unexport struct cyclades_card
+     Char: cyclades, use IS_CYC_Z macro
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-unexport-struct-cyclades_card.patch
+     char-cyclades-use-is_cyc_z-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: cyclades, unexport struct cyclades_card
+Subject: Char: cyclades, use IS_CYC_Z macro
 From: Jiri Slaby <jirislaby@gmail.com>
-
-Do not export internal card data to userspace. cytune doesn't use this
-anyway.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c  |    8 --------
- include/linux/cyclades.h |   15 ++-------------
- 2 files changed, 2 insertions(+), 21 deletions(-)
+ drivers/char/cyclades.c |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-unexport-struct-cyclades_card drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-unexport-struct-cyclades_card
+diff -puN drivers/char/cyclades.c~char-cyclades-use-is_cyc_z-macro drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-use-is_cyc_z-macro
 +++ a/drivers/char/cyclades.c
-@@ -4049,14 +4049,6 @@ cy_ioctl(struct tty_struct *tty, struct 
- 	case CYGETRTSDTR_INV:
- 		ret_val = info->rtsdtr_inv;
- 		break;
--	case CYGETCARDINFO:
--		if (copy_to_user(argp, &cy_card[info->card],
--				 sizeof(struct cyclades_card))) {
--			ret_val = -EFAULT;
--			break;
+@@ -3616,11 +3616,6 @@ static int cy_tiocmget(struct tty_struct
+ 			((status & CyCTS) ? TIOCM_CTS : 0);
+ 	} else {
+ 		base_addr = cy_card[card].base_addr;
+-
+-		if (cy_card[card].num_chips != -1) {
+-			return -EINVAL;
 -		}
--		ret_val = 0;
--		break;
- 	case CYGETCD1400VER:
- 		ret_val = info->chip_rev;
- 		break;
-diff -puN include/linux/cyclades.h~char-cyclades-unexport-struct-cyclades_card include/linux/cyclades.h
---- a/include/linux/cyclades.h~char-cyclades-unexport-struct-cyclades_card
-+++ a/include/linux/cyclades.h
-@@ -110,7 +110,6 @@ struct cyclades_idle_stats {
- #define CYZSETPOLLCYCLE		0x43590e
- #define CYZGETPOLLCYCLE		0x43590f
- #define CYGETCD1400VER		0x435910
--#define CYGETCARDINFO		0x435911
- #define	CYSETWAIT		0x435912
- #define	CYGETWAIT		0x435913
+-
+ 		firm_id = cy_card[card].base_addr + ID_ADDRESS;
+ 		if (ISZLOADED(cy_card[card])) {
+ 			zfw_ctrl = cy_card[card].base_addr +
+@@ -4513,7 +4508,7 @@ static void __devinit cy_init_card(struc
+ 	unsigned short chip_number;
+ 	int index, port;
  
-@@ -506,8 +505,9 @@ struct ZFW_CTRL {
- /****************** ****************** *******************/
+-	if (cinfo->num_chips == -1) {	/* Cyclades-Z */
++	if (IS_CYC_Z(*cinfo)) {	/* Cyclades-Z */
+ 		mailbox = readl(&((struct RUNTIME_9060 __iomem *)
+ 				     cinfo->ctl_addr)->mail_box_0);
+ 		nports = (mailbox == ZE_V1) ? ZE_V1_NPORTS : 8;
+@@ -5346,12 +5341,12 @@ static void __devexit cy_pci_release(str
+ 	unsigned int i;
+ 
+ 	/* non-Z with old PLX */
+-	if (cinfo->num_chips != -1 && (readb(cinfo->base_addr + CyPLX_VER) &
+-				0x0f) == PLX_9050)
++	if (!IS_CYC_Z(*cinfo) && (readb(cinfo->base_addr + CyPLX_VER) & 0x0f) ==
++			PLX_9050)
+ 		cy_writeb(cinfo->ctl_addr + 0x4c, 0);
+ 	else
+ #ifndef CONFIG_CYZ_INTR
+-		if (cinfo->num_chips != -1)
++		if (!IS_CYC_Z(*cinfo))
  #endif
- 
-+#ifdef __KERNEL__
-+
- /* Per card data structure */
--struct resource;
- struct cyclades_card {
-     unsigned long base_phys;
-     unsigned long ctl_phys;
-@@ -520,20 +520,9 @@ struct cyclades_card {
-     int bus_index;	/* address shift - 0 for ISA, 1 for PCI */
-     int	intr_enabled;	/* FW Interrupt flag - 0 disabled, 1 enabled */
-     struct pci_dev *pdev;
--#ifdef __KERNEL__
-     spinlock_t card_lock;
--#else
--    unsigned long filler;
--#endif
- };
- 
--struct cyclades_chip {
--  int filler;
--};
--
--
--#ifdef __KERNEL__
--
- /***************************************
-  * Memory access functions/macros      *
-  * (required to support Alpha systems) *
+ 		cy_writew(cinfo->ctl_addr + 0x68,
+ 				readw(cinfo->ctl_addr + 0x68) & ~0x0900);
+@@ -5361,7 +5356,7 @@ static void __devexit cy_pci_release(str
+ 		pci_iounmap(pdev, cinfo->ctl_addr);
+ 	if (cinfo->irq
+ #ifndef CONFIG_CYZ_INTR
+-		&& cinfo->num_chips != -1 /* not a Z card */
++		&& !IS_CYC_Z(*cinfo)
+ #endif /* CONFIG_CYZ_INTR */
+ 		)
+ 		free_irq(cinfo->irq, cinfo);
+@@ -5582,7 +5577,7 @@ static void __exit cy_cleanup_module(voi
+ 				iounmap(cy_card[i].ctl_addr);
+ 			if (cy_card[i].irq
+ #ifndef CONFIG_CYZ_INTR
+-				&& cy_card[i].num_chips != -1 /* not a Z card */
++				&& !IS_CYC_Z(cy_card[i])
+ #endif /* CONFIG_CYZ_INTR */
+ 				)
+ 				free_irq(cy_card[i].irq, &cy_card[i]);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
