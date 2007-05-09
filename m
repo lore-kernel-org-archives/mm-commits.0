@@ -1,135 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:56:40 -0700
-Message-ID: <200705090256.l492uexC010083@shell0.pdx.osdl.net>
+Subject: - aty128fb-fix-blanking.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:59:03 -0700
+Message-ID: <200705090259.l492x318010349@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40546 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970216AbXEIC6t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:58:49 -0400
+	by vger.kernel.org with ESMTP id S970119AbXEIC7P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, castet.matthieu@free.fr, jt@hpl.hp.com, kaos@ocs.com.au, lenb@kernel.org, mjg59@srcf.ucam.org, rmk+serial@arm.linux.org.uk, samuel@sortiz.org, syrjala@sci.fi, mm-commits@vger.kernel.org
+To: witekfl@poczta.onet.pl, benh@kernel.crashing.org, jsimmons@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: notice whether we have PNP devices (PNPBIOS or PNPACPI)
+     aty128fb: fix blanking
 has been removed from the -mm tree.  Its filename was
-     pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi.patch
+     aty128fb-fix-blanking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PNP: notice whether we have PNP devices (PNPBIOS or PNPACPI)
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: aty128fb: fix blanking
+From: Witold Filipczyk <witekfl@poczta.onet.pl>
 
-This series converts i386 and x86_64 legacy serial ports to be platform
-devices and prevents probing for them if we have PNP.
+I have a problem with blanking. The soundcard uses speakers of the monitor.
+Sound is muted when the screen blanks due to a bug in aty128fb.c.
 
-This prevents double discovery, where a device was found both by the legacy
-probe and by 8250_pnp.
-
-This also prevents the serial driver from claiming IRDA devices (unless they
-have a UART PNP ID).  The serial legacy probe sometimes assumed the wrong IRQ,
-so the user had to use "setserial" to fix it.
-
-Removing the need for setserial to make IRDA devices work seems good, but it
-does break some things.  In particular, you may need to keep setserial from
-poking legacy UART stuff back in by doing something like "dpkg-reconfigure
-setserial" with the "kernel" option.  Otherwise, the setserial-discovered
-"UART" will claim resources and prevent the IRDA driver from loading.
+Here is a fragment of linux/fb.h
+/* VESA Blanking Levels */
+#define VESA_NO_BLANKING        0
+#define VESA_VSYNC_SUSPEND      1
+#define VESA_HSYNC_SUSPEND      2
+#define VESA_POWERDOWN          3
 
 
+enum {
+        /* screen: unblanked, hsync: on,  vsync: on */
+        FB_BLANK_UNBLANK       = VESA_NO_BLANKING,
 
-This patch:
+        /* screen: blanked,   hsync: on,  vsync: on */
+        FB_BLANK_NORMAL        = VESA_NO_BLANKING + 1,
 
-If we can discover devices using PNP, we can skip some legacy probes.  This
-flag ("pnp_platform_devices") indicates that PNPBIOS or PNPACPI is enabled and
-should tell us about builtin devices.
+        /* screen: blanked,   hsync: on,  vsync: off */
+        FB_BLANK_VSYNC_SUSPEND = VESA_VSYNC_SUSPEND + 1,
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Keith Owens <kaos@ocs.com.au>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Matthieu CASTET <castet.matthieu@free.fr>
-Cc: Jean Tourrilhes <jt@hpl.hp.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Ville Syrjala <syrjala@sci.fi>
-Cc: Russell King <rmk+serial@arm.linux.org.uk>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+        /* screen: blanked,   hsync: off, vsync: on */
+        FB_BLANK_HSYNC_SUSPEND = VESA_HSYNC_SUSPEND + 1,
+
+        /* screen: blanked,   hsync: off, vsync: off */
+        FB_BLANK_POWERDOWN     = VESA_POWERDOWN + 1
+};
+
+So FB_BLANK_NORMAL is 1, FB_BLANK_VSYNC_SUSPEND is 2,
+FB_BLANK_HSYNC_SUSPEND is 3, FB_BLANK_POWERDOWN is 4.
+And now:
+blank = FB_BLANK_NORMAL (1)
+blank & FB_BLANK_HSYNC_SUSPEND (1 & 3) is true,
+so normal blank caused hsync suspend and sound is muted.
+
+Cc: James Simmons <jsimmons@infradead.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/core.c         |    8 ++++++++
- drivers/pnp/pnpacpi/core.c |    1 +
- drivers/pnp/pnpbios/core.c |    1 +
- include/linux/pnp.h        |    2 ++
- 4 files changed, 12 insertions(+)
+ drivers/video/aty/aty128fb.c |   29 ++++++++++++++++++++---------
+ 1 file changed, 20 insertions(+), 9 deletions(-)
 
-diff -puN drivers/pnp/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi drivers/pnp/core.c
---- a/drivers/pnp/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
-+++ a/drivers/pnp/core.c
-@@ -23,6 +23,14 @@ static LIST_HEAD(pnp_protocols);
- LIST_HEAD(pnp_global);
- DEFINE_SPINLOCK(pnp_lock);
- 
-+/*
-+ * ACPI or PNPBIOS should tell us about all platform devices, so we can
-+ * skip some blind probes.  ISAPNP typically enumerates only plug-in ISA
-+ * devices, not built-in things like COM ports.
-+ */
-+int pnp_platform_devices;
-+EXPORT_SYMBOL(pnp_platform_devices);
-+
- void *pnp_alloc(long size)
+diff -puN drivers/video/aty/aty128fb.c~aty128fb-fix-blanking drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~aty128fb-fix-blanking
++++ a/drivers/video/aty/aty128fb.c
+@@ -2165,18 +2165,29 @@ static void __devexit aty128_remove(stru
+ static int aty128fb_blank(int blank, struct fb_info *fb)
  {
- 	void *result;
-diff -puN drivers/pnp/pnpacpi/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -285,6 +285,7 @@ static int __init pnpacpi_init(void)
- 	acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
- 	pnp_info("PnP ACPI: found %d devices", num);
- 	unregister_acpi_bus_type(&acpi_pnp_bus);
-+	pnp_platform_devices = 1;
- 	return 0;
- }
- subsys_initcall(pnpacpi_init);
-diff -puN drivers/pnp/pnpbios/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi drivers/pnp/pnpbios/core.c
---- a/drivers/pnp/pnpbios/core.c~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
-+++ a/drivers/pnp/pnpbios/core.c
-@@ -570,6 +570,7 @@ static int __init pnpbios_init(void)
- 	/* scan for pnpbios devices */
- 	build_devlist();
+ 	struct aty128fb_par *par = fb->par;
+-	u8 state = 0;
++	u8 state;
  
-+	pnp_platform_devices = 1;
- 	return 0;
- }
+ 	if (par->lock_blank || par->asleep)
+ 		return 0;
  
-diff -puN include/linux/pnp.h~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi include/linux/pnp.h
---- a/include/linux/pnp.h~pnp-notice-whether-we-have-pnp-devices-pnpbios-or-pnpacpi
-+++ a/include/linux/pnp.h
-@@ -364,6 +364,7 @@ int pnp_add_device(struct pnp_dev *dev);
- int pnp_device_attach(struct pnp_dev *pnp_dev);
- void pnp_device_detach(struct pnp_dev *pnp_dev);
- extern struct list_head pnp_global;
-+extern int pnp_platform_devices;
+-	if (blank & FB_BLANK_VSYNC_SUSPEND)
+-		state |= 2;
+-	if (blank & FB_BLANK_HSYNC_SUSPEND)
+-		state |= 1;
+-	if (blank & FB_BLANK_POWERDOWN)
+-		state |= 4;
+-
++	switch (blank) {
++	case FB_BLANK_NORMAL:
++		state = 4;
++		break;
++	case FB_BLANK_VSYNC_SUSPEND:
++		state = 6;
++		break;
++	case FB_BLANK_HSYNC_SUSPEND:
++		state = 5;
++		break;
++	case FB_BLANK_POWERDOWN:
++		state = 7;
++		break;
++	case FB_BLANK_UNBLANK:
++	default:
++		state = 0;
++		break;
++	}
+ 	aty_st_8(CRTC_EXT_CNTL+1, state);
  
- /* multidevice card support */
- int pnp_add_card(struct pnp_card *card);
-@@ -411,6 +412,7 @@ static inline int pnp_init_device(struct
- static inline int pnp_add_device(struct pnp_dev *dev) { return -ENODEV; }
- static inline int pnp_device_attach(struct pnp_dev *pnp_dev) { return -ENODEV; }
- static inline void pnp_device_detach(struct pnp_dev *pnp_dev) { ; }
-+#define pnp_platform_devices 0
+ 	if (par->chip_gen == rage_M3) {
+@@ -2430,7 +2441,7 @@ static int aty128_pci_suspend(struct pci
+ 	wait_for_idle(par);
  
- /* multidevice card support */
- static inline int pnp_add_card(struct pnp_card *card) { return -ENODEV; }
+ 	/* Blank display and LCD */
+-	aty128fb_blank(VESA_POWERDOWN, info);
++	aty128fb_blank(FB_BLANK_POWERDOWN, info);
+ 
+ 	/* Sleep */
+ 	par->asleep = 1;
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from witekfl@poczta.onet.pl are
 
 origin.patch
-move-free-pages-between-lists-on-steal.patch
-use-menuconfig-objects-pnp.patch
