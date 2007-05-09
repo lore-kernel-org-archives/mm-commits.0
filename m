@@ -1,108 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:51:29 -0700
-Message-ID: <200705092151.l49LpT8l002883@shell0.pdx.osdl.net>
+Subject: - workqueue-dont-clear-cwq-thread-until-it-exits.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:51:38 -0700
+Message-ID: <200705092151.l49LpcoF002899@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38690 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47173 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758580AbXEIVwC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:02 -0400
+	by vger.kernel.org with ESMTP id S1758688AbXEIVwG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, ego@in.ibm.com, oleg@tv-sign.ru, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, ego@in.ibm.com, vatsa@in.ibm.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     call cpu_chain with CPU_DOWN_FAILED if CPU_DOWN_PREPARE failed
+     workqueue: don't clear cwq->thread until it exits
 has been removed from the -mm tree.  Its filename was
-     call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
+     workqueue-dont-clear-cwq-thread-until-it-exits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: call cpu_chain with CPU_DOWN_FAILED if CPU_DOWN_PREPARE failed
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: workqueue: don't clear cwq->thread until it exits
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This makes cpu hotplug symmetrical: if CPU_UP_PREPARE fails we get
-CPU_UP_CANCELED, so we can undo what ever happened on PREPARE.  The same
-should happen for CPU_DOWN_PREPARE.
+Pointed out by Srivatsa Vaddagiri.
 
-[akpm@linux-foundation.org: fix for reduce-size-of-task_struct-on-64-bit-machines]
+cleanup_workqueue_thread() sets cwq->thread = NULL and does kthread_stop().
+This breaks the "if (cwq->thread == current)" logic in flush_cpu_workqueue()
+and leads to deadlock.
+
+Kill the thead first, then clear cwq->thread. workqueue_mutex protects us
+from create_workqueue_thread() so we don't need cwq->lock.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
-Cc: Gautham Shenoy <ego@in.ibm.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>
+Cc: Gautham shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ kernel/workqueue.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN kernel/cpu.c~call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed kernel/cpu.c
---- a/kernel/cpu.c~call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed
-+++ a/kernel/cpu.c
-@@ -97,7 +97,7 @@ static inline void check_for_tasks(int c
- 		    (!cputime_eq(p->utime, cputime_zero) ||
- 		     !cputime_eq(p->stime, cputime_zero)))
- 			printk(KERN_WARNING "Task %s (pid = %d) is on cpu %d\
--				(state = %ld, flags = %lx) \n",
-+				(state = %ld, flags = %x) \n",
- 				 p->comm, p->pid, cpu, p->state, p->flags);
- 	}
- 	write_unlock_irq(&tasklist_lock);
-@@ -122,9 +122,10 @@ static int take_cpu_down(void *unused)
- /* Requires cpu_add_remove_lock to be held */
- static int _cpu_down(unsigned int cpu)
+diff -puN kernel/workqueue.c~workqueue-dont-clear-cwq-thread-until-it-exits kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-dont-clear-cwq-thread-until-it-exits
++++ a/kernel/workqueue.c
+@@ -625,17 +625,12 @@ EXPORT_SYMBOL_GPL(__create_workqueue);
+ 
+ static void cleanup_workqueue_thread(struct workqueue_struct *wq, int cpu)
  {
--	int err;
-+	int err, nr_calls = 0;
- 	struct task_struct *p;
- 	cpumask_t old_allowed, tmp;
-+	void *hcpu = (void *)(long)cpu;
+-	struct cpu_workqueue_struct *cwq;
+-	unsigned long flags;
+-	struct task_struct *p;
++	struct cpu_workqueue_struct *cwq = per_cpu_ptr(wq->cpu_wq, cpu);
  
- 	if (num_online_cpus() == 1)
- 		return -EBUSY;
-@@ -132,11 +133,12 @@ static int _cpu_down(unsigned int cpu)
- 	if (!cpu_online(cpu))
- 		return -EINVAL;
+-	cwq = per_cpu_ptr(wq->cpu_wq, cpu);
+-	spin_lock_irqsave(&cwq->lock, flags);
+-	p = cwq->thread;
+-	cwq->thread = NULL;
+-	spin_unlock_irqrestore(&cwq->lock, flags);
+-	if (p)
+-		kthread_stop(p);
++	if (cwq->thread) {
++		kthread_stop(cwq->thread);
++		cwq->thread = NULL;
++	}
+ }
  
--	raw_notifier_call_chain(&cpu_chain, CPU_LOCK_ACQUIRE,
--						(void *)(long)cpu);
--	err = raw_notifier_call_chain(&cpu_chain, CPU_DOWN_PREPARE,
--						(void *)(long)cpu);
-+	raw_notifier_call_chain(&cpu_chain, CPU_LOCK_ACQUIRE, hcpu);
-+	err = __raw_notifier_call_chain(&cpu_chain, CPU_DOWN_PREPARE,
-+					hcpu, -1, &nr_calls);
- 	if (err == NOTIFY_BAD) {
-+		__raw_notifier_call_chain(&cpu_chain, CPU_DOWN_FAILED, hcpu,
-+					  nr_calls, NULL);
- 		printk("%s: attempt to take down CPU %u failed\n",
- 				__FUNCTION__, cpu);
- 		err = -EINVAL;
-@@ -156,7 +158,7 @@ static int _cpu_down(unsigned int cpu)
- 	if (IS_ERR(p) || cpu_online(cpu)) {
- 		/* CPU didn't die: tell everyone.  Can't complain. */
- 		if (raw_notifier_call_chain(&cpu_chain, CPU_DOWN_FAILED,
--				(void *)(long)cpu) == NOTIFY_BAD)
-+					    hcpu) == NOTIFY_BAD)
- 			BUG();
- 
- 		if (IS_ERR(p)) {
-@@ -178,8 +180,7 @@ static int _cpu_down(unsigned int cpu)
- 	put_cpu();
- 
- 	/* CPU is completely dead: tell everyone.  Too late to complain. */
--	if (raw_notifier_call_chain(&cpu_chain, CPU_DEAD,
--			(void *)(long)cpu) == NOTIFY_BAD)
-+	if (raw_notifier_call_chain(&cpu_chain, CPU_DEAD, hcpu) == NOTIFY_BAD)
- 		BUG();
- 
- 	check_for_tasks(cpu);
+ /**
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-s390.patch
-s390-spinlock-initializer-cleanup.patch
+freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
+freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
+freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
+freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+freezer-fix-vfork-problem.patch
+freezer-take-kernel_execve-into-consideration.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+fix-pf_nofreeze-and-freezeable-race-2.patch
+freezer-document-task_lock-in-thaw_process.patch
+move-frozen_process-to-kernel-power-processc.patch
+separate-freezer-from-pm-code-rev-2.patch
+introduce-freezer-flags-rev-2.patch
+libata-core-convert-to-use-cancel_rearming_delayed_work.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+getrusage-fill-ru_inblock-and-ru_oublock-fields-if-possible.patch
+dont-init-pgrp-and-__session-in-init_signals.patch
