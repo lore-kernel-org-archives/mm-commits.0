@@ -1,78 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - slub-clean-up-krealloc.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:47:55 -0700
-Message-ID: <200705092147.l49LltlV002525@shell0.pdx.osdl.net>
+Subject: - slub-get-rid-of-finish_bootstrap.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:47:57 -0700
+Message-ID: <200705092147.l49LlvWF002530@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40990 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757203AbXEIVr5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:47:57 -0400
+	by vger.kernel.org with ESMTP id S1757124AbXEIVsA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: clean up krealloc
+     SLUB: get rid of finish_bootstrap
 has been removed from the -mm tree.  Its filename was
-     slub-clean-up-krealloc.patch
+     slub-get-rid-of-finish_bootstrap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: clean up krealloc
+Subject: SLUB: get rid of finish_bootstrap
 From: Christoph Lameter <clameter@sgi.com>
 
-We really do not need all this gaga there.
-
-ksize gives us all the information we need to figure out if the object can
-cope with the new size.
+Its only purpose was to bring some sort of symmetry to sysfs usage when
+dealing with bootstrapping per cpu flushing.  Since we do not time out slabs
+anymore we have no need to run finish_bootstrap even without sysfs.  Fold it
+back into slab_sysfs_init and drop the initcall for the !SYFS case.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ mm/slub.c |   30 ++++++++++--------------------
+ 1 file changed, 10 insertions(+), 20 deletions(-)
 
-diff -puN mm/slub.c~slub-clean-up-krealloc mm/slub.c
---- a/mm/slub.c~slub-clean-up-krealloc
+diff -puN mm/slub.c~slub-get-rid-of-finish_bootstrap mm/slub.c
+--- a/mm/slub.c~slub-get-rid-of-finish_bootstrap
 +++ a/mm/slub.c
-@@ -2199,9 +2199,8 @@ EXPORT_SYMBOL(kmem_cache_shrink);
-  */
- void *krealloc(const void *p, size_t new_size, gfp_t flags)
+@@ -1704,23 +1704,6 @@ static int calculate_sizes(struct kmem_c
+ 
+ }
+ 
+-static int __init finish_bootstrap(void)
+-{
+-	struct list_head *h;
+-	int err;
+-
+-	slab_state = SYSFS;
+-
+-	list_for_each(h, &slab_caches) {
+-		struct kmem_cache *s =
+-			container_of(h, struct kmem_cache, list);
+-
+-		err = sysfs_slab_add(s);
+-		BUG_ON(err);
+-	}
+-	return 0;
+-}
+-
+ static int kmem_cache_open(struct kmem_cache *s, gfp_t gfpflags,
+ 		const char *name, size_t size,
+ 		size_t align, unsigned long flags,
+@@ -3482,6 +3465,7 @@ static int sysfs_slab_alias(struct kmem_
+ 
+ static int __init slab_sysfs_init(void)
  {
--	struct kmem_cache *new_cache;
- 	void *ret;
--	struct page *page;
-+	size_t ks;
++	struct list_head *h;
+ 	int err;
  
- 	if (unlikely(!p))
- 		return kmalloc(new_size, flags);
-@@ -2211,19 +2210,13 @@ void *krealloc(const void *p, size_t new
- 		return NULL;
+ 	err = subsystem_register(&slab_subsys);
+@@ -3490,7 +3474,15 @@ static int __init slab_sysfs_init(void)
+ 		return -ENOSYS;
  	}
  
--	page = virt_to_head_page(p);
--
--	new_cache = get_slab(new_size, flags);
--
--	/*
-- 	 * If new size fits in the current cache, bail out.
-- 	 */
--	if (likely(page->slab == new_cache))
-+	ks = ksize(p);
-+	if (ks >= new_size)
- 		return (void *)p;
+-	finish_bootstrap();
++	slab_state = SYSFS;
++
++	list_for_each(h, &slab_caches) {
++		struct kmem_cache *s =
++			container_of(h, struct kmem_cache, list);
++
++		err = sysfs_slab_add(s);
++		BUG_ON(err);
++	}
  
- 	ret = kmalloc(new_size, flags);
- 	if (ret) {
--		memcpy(ret, p, min(new_size, ksize(p)));
-+		memcpy(ret, p, min(new_size, ks));
- 		kfree(p);
- 	}
- 	return ret;
+ 	while (alias_list) {
+ 		struct saved_alias *al = alias_list;
+@@ -3506,6 +3498,4 @@ static int __init slab_sysfs_init(void)
+ }
+ 
+ __initcall(slab_sysfs_init);
+-#else
+-__initcall(finish_bootstrap);
+ #endif
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
