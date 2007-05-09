@@ -1,137 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: - virtual_eisa_root_init-should-be-__init.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:46:19 -0700
-Message-ID: <200705090246.l492kJ3K008836@shell0.pdx.osdl.net>
+Subject: - remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:46:24 -0700
+Message-ID: <200705090246.l492kOK7008847@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37992 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:34272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755244AbXEICqe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:34 -0400
+	by vger.kernel.org with ESMTP id S1031797AbXEICqg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:46:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, Markus.Lidel@shadowconnect.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     virtual_eisa_root_init() should be __init
+     remove unused header file: drivers/message/i2o/i2o_lan.h
 has been removed from the -mm tree.  Its filename was
-     virtual_eisa_root_init-should-be-__init.patch
+     remove-unused-header-file-drivers-message-i2o-i2o_lanh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: virtual_eisa_root_init() should be __init
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove unused header file: drivers/message/i2o/i2o_lan.h
+=46rom: "Robert P. J. Day" <rpjday@mindspring.com>
 
-WARNING: vmlinux - Section mismatch: reference to
-.init.text:eisa_root_register from .text between 'virtual_eisa_root_init' (at
-offset 0xc026b80f) and 'cpufreq_debug_disable_ratelimit'
-
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Markus Lidel <Markus.Lidel@shadowconnect.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/eisa/virtual_root.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/message/i2o/i2o_lan.h |  159 --------------------------------
+ 1 file changed, 159 deletions(-)
 
-diff -puN drivers/eisa/virtual_root.c~virtual_eisa_root_init-should-be-__init drivers/eisa/virtual_root.c
---- a/drivers/eisa/virtual_root.c~virtual_eisa_root_init-should-be-__init
-+++ a/drivers/eisa/virtual_root.c
-@@ -47,7 +47,7 @@ static void virtual_eisa_release (struct
- 	/* nothing really to do here */
- }
- 
--static int virtual_eisa_root_init (void)
-+static int __init virtual_eisa_root_init (void)
- {
- 	int r;
- 	
+diff -puN drivers/message/i2o/i2o_lan.h~remove-unused-header-file-drive=
+rs-message-i2o-i2o_lanh /dev/null
+--- a/drivers/message/i2o/i2o_lan.h
++++ /dev/null
+@@ -1,159 +0,0 @@
+-/*
+- *   	i2o_lan.h			I2O LAN Class definitions
+- *
+- *      I2O LAN CLASS OSM       	May 26th 2000
+- *
+- *      (C) Copyright 1999, 2000	University of Helsinki,
+- *					Department of Computer Science
+- *
+- *      This code is still under development / test.
+- *
+- *	Author:		Auvo H=E4kkinen <Auvo.Hakkinen@cs.Helsinki.FI>
+- *			Juha Siev=E4nen <Juha.Sievanen@cs.Helsinki.FI>
+- *			Taneli V=E4h=E4kangas <Taneli.Vahakangas@cs.Helsinki.FI>
+- */
+-
+-#ifndef _I2O_LAN_H
+-#define _I2O_LAN_H
+-
+-/* Default values for tunable parameters first */
+-
+-#define I2O_LAN_MAX_BUCKETS_OUT 96
+-#define I2O_LAN_BUCKET_THRESH	18	/* 9 buckets in one message */
+-#define I2O_LAN_RX_COPYBREAK	200
+-#define I2O_LAN_TX_TIMEOUT 	(1*HZ)
+-#define I2O_LAN_TX_BATCH_MODE	2	/* 2=3Dautomatic, 1=3Don, 0=3Doff */
+-#define I2O_LAN_EVENT_MASK	0	/* 0=3DNone, 0xFFC00002=3DAll */
+-
+-/* LAN types */
+-#define I2O_LAN_ETHERNET	0x0030
+-#define I2O_LAN_100VG		0x0040
+-#define I2O_LAN_TR		0x0050
+-#define I2O_LAN_FDDI		0x0060
+-#define I2O_LAN_FIBRE_CHANNEL	0x0070
+-#define I2O_LAN_UNKNOWN		0x00000000
+-
+-/* Connector types */
+-
+-/* Ethernet */
+-#define I2O_LAN_AUI		(I2O_LAN_ETHERNET << 4) + 0x00000001
+-#define I2O_LAN_10BASE5		(I2O_LAN_ETHERNET << 4) + 0x00000002
+-#define I2O_LAN_FIORL		(I2O_LAN_ETHERNET << 4) + 0x00000003
+-#define I2O_LAN_10BASE2		(I2O_LAN_ETHERNET << 4) + 0x00000004
+-#define I2O_LAN_10BROAD36	(I2O_LAN_ETHERNET << 4) + 0x00000005
+-#define I2O_LAN_10BASE_T	(I2O_LAN_ETHERNET << 4) + 0x00000006
+-#define I2O_LAN_10BASE_FP	(I2O_LAN_ETHERNET << 4) + 0x00000007
+-#define I2O_LAN_10BASE_FB	(I2O_LAN_ETHERNET << 4) + 0x00000008
+-#define I2O_LAN_10BASE_FL	(I2O_LAN_ETHERNET << 4) + 0x00000009
+-#define I2O_LAN_100BASE_TX	(I2O_LAN_ETHERNET << 4) + 0x0000000A
+-#define I2O_LAN_100BASE_FX	(I2O_LAN_ETHERNET << 4) + 0x0000000B
+-#define I2O_LAN_100BASE_T4	(I2O_LAN_ETHERNET << 4) + 0x0000000C
+-#define I2O_LAN_1000BASE_SX	(I2O_LAN_ETHERNET << 4) + 0x0000000D
+-#define I2O_LAN_1000BASE_LX	(I2O_LAN_ETHERNET << 4) + 0x0000000E
+-#define I2O_LAN_1000BASE_CX	(I2O_LAN_ETHERNET << 4) + 0x0000000F
+-#define I2O_LAN_1000BASE_T	(I2O_LAN_ETHERNET << 4) + 0x00000010
+-
+-/* AnyLAN */
+-#define I2O_LAN_100VG_ETHERNET	(I2O_LAN_100VG << 4) + 0x00000001
+-#define I2O_LAN_100VG_TR	(I2O_LAN_100VG << 4) + 0x00000002
+-
+-/* Token Ring */
+-#define I2O_LAN_4MBIT		(I2O_LAN_TR << 4) + 0x00000001
+-#define I2O_LAN_16MBIT		(I2O_LAN_TR << 4) + 0x00000002
+-
+-/* FDDI */
+-#define I2O_LAN_125MBAUD	(I2O_LAN_FDDI << 4) + 0x00000001
+-
+-/* Fibre Channel */
+-#define I2O_LAN_POINT_POINT	(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000001
+-#define I2O_LAN_ARB_LOOP	(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000002
+-#define I2O_LAN_PUBLIC_LOOP	(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000003
+-#define I2O_LAN_FABRIC		(I2O_LAN_FIBRE_CHANNEL << 4) + 0x00000004
+-
+-#define I2O_LAN_EMULATION	0x00000F00
+-#define I2O_LAN_OTHER		0x00000F01
+-#define I2O_LAN_DEFAULT		0xFFFFFFFF
+-
+-/* LAN class functions */
+-
+-#define LAN_PACKET_SEND		0x3B
+-#define LAN_SDU_SEND		0x3D
+-#define LAN_RECEIVE_POST	0x3E
+-#define LAN_RESET		0x35
+-#define LAN_SUSPEND		0x37
+-
+-/* LAN DetailedStatusCode defines */
+-#define I2O_LAN_DSC_SUCCESS			0x00
+-#define I2O_LAN_DSC_DEVICE_FAILURE		0x01
+-#define I2O_LAN_DSC_DESTINATION_NOT_FOUND	0x02
+-#define	I2O_LAN_DSC_TRANSMIT_ERROR		0x03
+-#define I2O_LAN_DSC_TRANSMIT_ABORTED		0x04
+-#define I2O_LAN_DSC_RECEIVE_ERROR		0x05
+-#define I2O_LAN_DSC_RECEIVE_ABORTED		0x06
+-#define I2O_LAN_DSC_DMA_ERROR			0x07
+-#define I2O_LAN_DSC_BAD_PACKET_DETECTED		0x08
+-#define I2O_LAN_DSC_OUT_OF_MEMORY		0x09
+-#define I2O_LAN_DSC_BUCKET_OVERRUN		0x0A
+-#define I2O_LAN_DSC_IOP_INTERNAL_ERROR		0x0B
+-#define I2O_LAN_DSC_CANCELED			0x0C
+-#define I2O_LAN_DSC_INVALID_TRANSACTION_CONTEXT	0x0D
+-#define I2O_LAN_DSC_DEST_ADDRESS_DETECTED	0x0E
+-#define I2O_LAN_DSC_DEST_ADDRESS_OMITTED	0x0F
+-#define I2O_LAN_DSC_PARTIAL_PACKET_RETURNED	0x10
+-#define I2O_LAN_DSC_SUSPENDED			0x11
+-
+-struct i2o_packet_info {
+-	u32 offset:24;
+-	u32 flags:8;
+-	u32 len:24;
+-	u32 status:8;
+-};
+-
+-struct i2o_bucket_descriptor {
+-	u32 context;		/* FIXME: 64bit support */
+-	struct i2o_packet_info packet_info[1];
+-};
+-
+-/* Event Indicator Mask Flags for LAN OSM */
+-
+-#define I2O_LAN_EVT_LINK_DOWN		0x01
+-#define I2O_LAN_EVT_LINK_UP		0x02
+-#define I2O_LAN_EVT_MEDIA_CHANGE 	0x04
+-
+-#include <linux/netdevice.h>
+-#include <linux/fddidevice.h>
+-
+-struct i2o_lan_local {
+-	u8 unit;
+-	struct i2o_device *i2o_dev;
+-
+-	struct fddi_statistics stats;	/* see also struct net_device_stats */
+-	unsigned short (*type_trans) (struct sk_buff *, struct net_device *);
+-	atomic_t buckets_out;	/* nbr of unused buckets on DDM */
+-	atomic_t tx_out;	/* outstanding TXes */
+-	u8 tx_count;		/* packets in one TX message frame */
+-	u16 tx_max_out;		/* DDM's Tx queue len */
+-	u8 sgl_max;		/* max SGLs in one message frame */
+-	u32 m;			/* IOP address of the batch msg frame */
+-
+-	struct work_struct i2o_batch_send_task;
+-	int send_active;
+-	struct sk_buff **i2o_fbl;	/* Free bucket list (to reuse skbs) */
+-	int i2o_fbl_tail;
+-	spinlock_t fbl_lock;
+-
+-	spinlock_t tx_lock;
+-
+-	u32 max_size_mc_table;	/* max number of multicast addresses */
+-
+-	/* LAN OSM configurable parameters are here: */
+-
+-	u16 max_buckets_out;	/* max nbr of buckets to send to DDM */
+-	u16 bucket_thresh;	/* send more when this many used */
+-	u16 rx_copybreak;
+-
+-	u8 tx_batch_mode;	/* Set when using batch mode sends */
+-	u32 i2o_event_mask;	/* To turn on interesting event flags */
+-};
+-
+-#endif				/* _I2O_LAN_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+remove-unused-header-file-arch-arm-mach-s3c2410-basth.patch
+arm-remove-useless-config-option-generic_bust_spinlock.patch
 git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-dvb.patch
 git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-kvm.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-battery-fix.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-swsusp-clean-up-print.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-upper-32-bits.patch
-lib-hexdump-fix.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-mutex_lock_interruptible-add-__must_check.patch
-mutex_lock_interruptible-add-__must_check-must-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-rename-thread_info-to-stack-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+scsi-fix-obvious-typo-spin_lock_irqrestore-in-gdthc.patch
