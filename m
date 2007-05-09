@@ -1,90 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - md-cleanup-use-seq_release_private-where-appropriate.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:54:52 -0700
-Message-ID: <200705092154.l49Lsqkf003206@shell0.pdx.osdl.net>
+Subject: - frame-buffer-geforce-7300-gt.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:54:48 -0700
+Message-ID: <200705092154.l49LsmQD003200@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41426 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759106AbXEIWJU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:09:20 -0400
+	by vger.kernel.org with ESMTP id S1759102AbXEIWJZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 18:09:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mp3@de.ibm.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: michal.k.k.piotrowski@gmail.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: cleanup: use seq_release_private() where appropriate
+     frame buffer: geforce 7300 gt
 has been removed from the -mm tree.  Its filename was
-     md-cleanup-use-seq_release_private-where-appropriate.patch
+     frame-buffer-geforce-7300-gt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: cleanup: use seq_release_private() where appropriate
-From: Martin Peschke <mp3@de.ibm.com>
+Subject: frame buffer: geforce 7300 gt
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 
-We can save some lines of code by using seq_release_private().
+My geforce isn't supported by nvidia frame buffer.
 
-Signed-off-by: Martin Peschke <mp3@de.ibm.com>
-Acked-by: Neil Brown <neilb@suse.de>
+/sbin/lspci
+01:00.0 VGA compatible controller: nVidia Corporation Unknown device 02e2 (rev a2)
+
+/usr/sbin/fbset -i
+
+mode "1024x768-60"
+    # D: 65.003 MHz, H: 48.365 kHz, V: 60.006 Hz
+    geometry 1024 768 1024 32767 8
+    timings 15384 160 24 29 3 136 6
+    accel true
+    rgba 8/0,8/0,8/0,0/0
+endmode
+
+Frame buffer device information:
+    Name        : NV2e
+    Address     : 0xe0000000
+    Size        : 134217728
+    Type        : PACKED PIXELS
+    Visual      : PSEUDOCOLOR
+    XPanStep    : 8
+    YPanStep    : 1
+    YWrapStep   : 0
+    LineLength  : 1024
+    MMIO Address: 0xf6000000
+    MMIO Size   : 16777216
+    Accelerator : Unknown (46)
+
+Here is a patch for this problem.
+
+Signed-off-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ drivers/video/nvidia/nv_hw.c  |    7 +++++--
+ drivers/video/nvidia/nvidia.c |    1 +
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/md.c~md-cleanup-use-seq_release_private-where-appropriate drivers/md/md.c
---- a/drivers/md/md.c~md-cleanup-use-seq_release_private-where-appropriate
-+++ a/drivers/md/md.c
-@@ -4943,15 +4943,6 @@ static int md_seq_open(struct inode *ino
- 	return error;
- }
+diff -puN drivers/video/nvidia/nv_hw.c~frame-buffer-geforce-7300-gt drivers/video/nvidia/nv_hw.c
+--- a/drivers/video/nvidia/nv_hw.c~frame-buffer-geforce-7300-gt
++++ a/drivers/video/nvidia/nv_hw.c
+@@ -149,8 +149,7 @@ static void nvGetClocks(struct nvidia_pa
+ 		pll = NV_RD32(par->PMC, 0x4024);
+ 		M = pll & 0xFF;
+ 		N = (pll >> 8) & 0xFF;
+-		if (((par->Chipset & 0xfff0) == 0x0290) ||
+-				((par->Chipset & 0xfff0) == 0x0390)) {
++		if (((par->Chipset & 0xfff0) == 0x0290) || ((par->Chipset & 0xfff0) == 0x0390) || ((par->Chipset & 0xfff0) == 0x02E0)) {
+ 			MB = 1;
+ 			NB = 1;
+ 		} else {
+@@ -963,6 +962,7 @@ void NVLoadStateExt(struct nvidia_par *p
  
--static int md_seq_release(struct inode *inode, struct file *file)
--{
--	struct seq_file *m = file->private_data;
--	struct mdstat_info *mi = m->private;
--	m->private = NULL;
--	kfree(mi);
--	return seq_release(inode, file);
--}
--
- static unsigned int mdstat_poll(struct file *filp, poll_table *wait)
- {
- 	struct seq_file *m = filp->private_data;
-@@ -4973,7 +4964,7 @@ static const struct file_operations md_s
- 	.open           = md_seq_open,
- 	.read           = seq_read,
- 	.llseek         = seq_lseek,
--	.release	= md_seq_release,
-+	.release	= seq_release_private,
- 	.poll		= mdstat_poll,
- };
- 
+ 		if (((par->Chipset & 0xfff0) == 0x0090) ||
+ 		    ((par->Chipset & 0xfff0) == 0x01D0) ||
++		    ((par->Chipset & 0xfff0) == 0x02E0) ||
+ 		    ((par->Chipset & 0xfff0) == 0x0290))
+ 			regions = 15;
+ 		for(i = 0; i < regions; i++) {
+@@ -1275,6 +1275,7 @@ void NVLoadStateExt(struct nvidia_par *p
+ 						0x00100000);
+ 					break;
+ 				case 0x0090:
++				case 0x02E0:
+ 				case 0x0290:
+ 					NV_WR32(par->PRAMDAC, 0x0608,
+ 						NV_RD32(par->PRAMDAC, 0x0608) |
+@@ -1352,6 +1353,7 @@ void NVLoadStateExt(struct nvidia_par *p
+ 			} else {
+ 				if (((par->Chipset & 0xfff0) == 0x0090) ||
+ 				    ((par->Chipset & 0xfff0) == 0x01D0) ||
++				    ((par->Chipset & 0xfff0) == 0x02E0) ||
+ 				    ((par->Chipset & 0xfff0) == 0x0290)) {
+ 					for (i = 0; i < 60; i++) {
+ 						NV_WR32(par->PGRAPH,
+@@ -1403,6 +1405,7 @@ void NVLoadStateExt(struct nvidia_par *p
+ 				} else {
+ 					if ((par->Chipset & 0xfff0) == 0x0090 ||
+ 					    (par->Chipset & 0xfff0) == 0x01D0 ||
++					    (par->Chipset & 0xfff0) == 0x02E0 ||
+ 					    (par->Chipset & 0xfff0) == 0x0290) {
+ 						NV_WR32(par->PGRAPH, 0x0DF0,
+ 							NV_RD32(par->PFB, 0x0200));
+diff -puN drivers/video/nvidia/nvidia.c~frame-buffer-geforce-7300-gt drivers/video/nvidia/nvidia.c
+--- a/drivers/video/nvidia/nvidia.c~frame-buffer-geforce-7300-gt
++++ a/drivers/video/nvidia/nvidia.c
+@@ -1243,6 +1243,7 @@ static u32 __devinit nvidia_get_arch(str
+ 	case 0x0140:		/* GeForce 6600 */
+ 	case 0x0160:		/* GeForce 6200 */
+ 	case 0x01D0:		/* GeForce 7200, 7300, 7400 */
++	case 0x02E0:		/* GeForce 7300 GT */
+ 	case 0x0090:		/* GeForce 7800 */
+ 	case 0x0210:		/* GeForce 6800 */
+ 	case 0x0220:		/* GeForce 6200 */
 _
 
-Patches currently in -mm which might be from mp3@de.ibm.com are
+Patches currently in -mm which might be from michal.k.k.piotrowski@gmail.com are
 
 origin.patch
-statistics-infrastructure-prerequisite-list.patch
-statistics-infrastructure-prerequisite-parser.patch
-statistics-infrastructure-prerequisite-parser-fix.patch
-add-for_each_substring-and-match_substring.patch
-statistics-infrastructure-prerequisite-timestamp.patch
-statistics-infrastructure-make-printk_clock-a-generic-kernel-wide-nsec-resolution.patch
-statistics-infrastructure-documentation.patch
-statistics-infrastructure.patch
-statistics-infrastructure-add-for_each_substring-and-match_substring-exploitation.patch
-statistics-infrastructure-fix-parsing-of-statistics-type-attribute.patch
-statistics-infrastructure-simplify-statistics-debugfs-write-function.patch
-statistics-infrastructure-simplify-statistics-debugfs-read-functions.patch
-statistics-infrastructure-fix-string-termination.patch
-statistics-infrastructure-small-cleanup-in-debugfs-write-function.patch
-statistics-infrastructure-fix-cpu-hot-unplug-related-memory-leak.patch
-statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-cleanup.patch
-statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-labels.patch
-statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-keys.patch
-statistics-infrastructure-statistics-fix-sorted-list.patch
-statistics-infrastructure-exploitation-zfcp.patch
-timer_stats-slimmed-down-using-statistics-infrastucture.patch
+i386-irq-kill-irq-compression.patch
+xfs-fix-unmount-race.patch
+revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
+reiser4.patch
