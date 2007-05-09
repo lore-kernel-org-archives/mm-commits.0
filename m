@@ -1,118 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - rivafb-nvidiafb-enable-hardware-monitoring.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:00:21 -0700
-Message-ID: <200705090300.l4930LNu010552@shell0.pdx.osdl.net>
+Subject: - vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:00:11 -0700
+Message-ID: <200705090300.l4930Bi2010534@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:35139 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:39074 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032813AbXEIDAX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:00:23 -0400
+	by vger.kernel.org with ESMTP id S1032828AbXEIDAY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:00:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, hpa@zytor.com, jengelh@linux01.gwdg.de, leonerd@leonerd.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rivafb/nvidiafb: Enable hardware monitoring
+     vt: expose system-wide UTF-8 default setting via sysfs
 has been removed from the -mm tree.  Its filename was
-     rivafb-nvidiafb-enable-hardware-monitoring.patch
+     vt-expose-system-wide-utf-8-default-setting-via-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rivafb/nvidiafb: Enable hardware monitoring
-From: Jean Delvare <khali@linux-fr>
+Subject: vt: expose system-wide UTF-8 default setting via sysfs
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Let the hardware monitoring drivers probe the second rivafb/nvidiafb I2C bus
-for devices.
+Create a variable, default_utf8, that defines the system-wide default UTF-8
+setting.  This variable can be altered via sysfs. If the variable is properly
+set, this should mimimize breakage of UTF-8 encoded consoles when doing a
+reset or echo -e '\033c' and of newly opened/allocated consoles.
 
-Signed-off-by: Jean Delvare <khali@linux-fr>
+This is based from patches by Jan Engelhardt and Paul LeoNerd Evans.
+
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Cc: Paul LeoNerd Evans <leonerd@leonerd.org.uk>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nv_i2c.c   |   10 ++++++----
- drivers/video/riva/rivafb-i2c.c |   10 ++++++----
- 2 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/char/vt.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/nvidia/nv_i2c.c~rivafb-nvidiafb-enable-hardware-monitoring drivers/video/nvidia/nv_i2c.c
---- a/drivers/video/nvidia/nv_i2c.c~rivafb-nvidiafb-enable-hardware-monitoring
-+++ a/drivers/video/nvidia/nv_i2c.c
-@@ -86,13 +86,15 @@ static int nvidia_gpio_getsda(void *data
- 	return val;
- }
+diff -puN drivers/char/vt.c~vt-expose-system-wide-utf-8-default-setting-via-sysfs drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-expose-system-wide-utf-8-default-setting-via-sysfs
++++ a/drivers/char/vt.c
+@@ -157,6 +157,8 @@ static void blank_screen_t(unsigned long
+ static void set_palette(struct vc_data *vc);
  
--static int nvidia_setup_i2c_bus(struct nvidia_i2c_chan *chan, const char *name)
-+static int nvidia_setup_i2c_bus(struct nvidia_i2c_chan *chan, const char *name,
-+				unsigned int i2c_class)
- {
- 	int rc;
+ static int printable;		/* Is console ready for printing? */
++static int default_utf8;
++module_param(default_utf8, int, S_IRUGO | S_IWUSR);
  
- 	strcpy(chan->adapter.name, name);
- 	chan->adapter.owner = THIS_MODULE;
- 	chan->adapter.id = I2C_HW_B_NVIDIA;
-+	chan->adapter.class = i2c_class;
- 	chan->adapter.algo_data = &chan->algo;
- 	chan->adapter.dev.parent = &chan->par->pci_dev->dev;
- 	chan->algo.setsda = nvidia_gpio_setsda;
-@@ -132,13 +134,13 @@ void nvidia_create_i2c_busses(struct nvi
- 	par->chan[2].par = par;
+ /*
+  * ignore_poke: don't unblank the screen when things are typed.  This is
+@@ -1517,7 +1519,7 @@ static void reset_terminal(struct vc_dat
+ 	vc->vc_charset		= 0;
+ 	vc->vc_need_wrap	= 0;
+ 	vc->vc_report_mouse	= 0;
+-	vc->vc_utf		= 0;
++	vc->vc_utf              = default_utf8;
+ 	vc->vc_utf_count	= 0;
  
- 	par->chan[0].ddc_base = 0x36;
--	nvidia_setup_i2c_bus(&par->chan[0], "nvidia #0");
-+ 	nvidia_setup_i2c_bus(&par->chan[0], "nvidia #0", I2C_CLASS_HWMON);
- 
- 	par->chan[1].ddc_base = 0x3e;
--	nvidia_setup_i2c_bus(&par->chan[1], "nvidia #1");
-+ 	nvidia_setup_i2c_bus(&par->chan[1], "nvidia #1", 0);
- 
- 	par->chan[2].ddc_base = 0x50;
--	nvidia_setup_i2c_bus(&par->chan[2], "nvidia #2");
-+ 	nvidia_setup_i2c_bus(&par->chan[2], "nvidia #2", 0);
- }
- 
- void nvidia_delete_i2c_busses(struct nvidia_par *par)
-diff -puN drivers/video/riva/rivafb-i2c.c~rivafb-nvidiafb-enable-hardware-monitoring drivers/video/riva/rivafb-i2c.c
---- a/drivers/video/riva/rivafb-i2c.c~rivafb-nvidiafb-enable-hardware-monitoring
-+++ a/drivers/video/riva/rivafb-i2c.c
-@@ -88,13 +88,15 @@ static int riva_gpio_getsda(void* data)
- 	return val;
- }
- 
--static int riva_setup_i2c_bus(struct riva_i2c_chan *chan, const char *name)
-+static int riva_setup_i2c_bus(struct riva_i2c_chan *chan, const char *name,
-+			      unsigned int i2c_class)
- {
- 	int rc;
- 
- 	strcpy(chan->adapter.name, name);
- 	chan->adapter.owner		= THIS_MODULE;
- 	chan->adapter.id		= I2C_HW_B_RIVA;
-+	chan->adapter.class		= i2c_class;
- 	chan->adapter.algo_data		= &chan->algo;
- 	chan->adapter.dev.parent	= &chan->par->pdev->dev;
- 	chan->algo.setsda		= riva_gpio_setsda;
-@@ -135,9 +137,9 @@ void riva_create_i2c_busses(struct riva_
- 	par->chan[0].ddc_base = 0x3e;
- 	par->chan[1].ddc_base = 0x36;
- 	par->chan[2].ddc_base = 0x50;
--	riva_setup_i2c_bus(&par->chan[0], "BUS1");
--	riva_setup_i2c_bus(&par->chan[1], "BUS2");
--	riva_setup_i2c_bus(&par->chan[2], "BUS3");
-+	riva_setup_i2c_bus(&par->chan[0], "BUS1", 0);
-+	riva_setup_i2c_bus(&par->chan[1], "BUS2", I2C_CLASS_HWMON);
-+	riva_setup_i2c_bus(&par->chan[2], "BUS3", 0);
- }
- 
- void riva_delete_i2c_busses(struct riva_par *par)
+ 	vc->vc_disp_ctrl	= 0;
 _
 
-Patches currently in -mm which might be from khali@linux-fr are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-applesmc-use-the-address-as-platform-device-id.patch
-applesmc-use-standard-sysfs-names-for-labels.patch
-git-alsa.patch
-git-dvb.patch
-scx200-use-mutex-instead-of-semaphore.patch
+vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
+vt8623fb-fix-compile-warnings.patch
+vt8623fb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
+arkfb-fix-compiler-warnings.patch
+arkfb-fix-compile-error-if-config_mtrr=n.patch
+arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
+svgalib-move-fb_get_caps-to-svgalib.patch
