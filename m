@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch added to -mm tree
-Date: Wed, 09 May 2007 16:13:20 -0700
-Message-ID: <200705092313.l49NDK2j005305@shell0.pdx.osdl.net>
+Subject: + x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch added to -mm tree
+Date: Wed, 09 May 2007 16:13:24 -0700
+Message-ID: <200705092313.l49NDOXa005311@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52642 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756608AbXEIXNa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 19:13:30 -0400
+	by vger.kernel.org with ESMTP id S1757315AbXEIXNf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 19:13:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, rientjes@google.com
+Cc: akpm@linux-foundation.org, ak@suse.de, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     x86_64-rename-and-export-bad_srat-to-kernel-code-fix
+     x86_64-extract-helper-function-from-e820_register_active_regions-fix
 has been added to the -mm tree.  Its filename is
-     x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
+     x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-rename-and-export-bad_srat-to-kernel-code-fix
+Subject: x86_64-extract-helper-function-from-e820_register_active_regions-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I tend to think that if we're going to implement one version in C then we
-might as well implement both in C.  Plus static inlines are generally nicer
-than macros - typechecking and stuff.
+We usually put the storage thingy after the type.
 
 Cc: Andi Kleen <ak@suse.de>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/numa.h |    2 +-
+ arch/x86_64/kernel/e820.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-x86_64/numa.h~x86_64-rename-and-export-bad_srat-to-kernel-code-fix include/asm-x86_64/numa.h
---- a/include/asm-x86_64/numa.h~x86_64-rename-and-export-bad_srat-to-kernel-code-fix
-+++ a/include/asm-x86_64/numa.h
-@@ -36,7 +36,7 @@ static inline void clear_node_cpumask(in
- #ifdef CONFIG_ACPI_NUMA
- extern void __init disable_srat(void);
- #else
--#define disable_srat()	do {} while (0)
-+static inline void disable_srat(void) { }
- #endif
- 
- #define NUMA_NO_NODE 0xff
+diff -puN arch/x86_64/kernel/e820.c~x86_64-extract-helper-function-from-e820_register_active_regions-fix arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~x86_64-extract-helper-function-from-e820_register_active_regions-fix
++++ a/arch/x86_64/kernel/e820.c
+@@ -293,7 +293,7 @@ void __init e820_mark_nosave_regions(voi
+  * Finds an active region in the address range from start_pfn to end_pfn and
+  * returns its range in ei_startpfn and ei_endpfn for the e820 entry.
+  */
+-static __init int e820_find_active_region(const struct e820entry *ei,
++static int __init e820_find_active_region(const struct e820entry *ei,
+ 					  unsigned long start_pfn,
+ 					  unsigned long end_pfn,
+ 					  unsigned long *ei_startpfn,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
