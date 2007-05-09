@@ -1,61 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - arcfb-us-fb_sys_read.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:01:27 -0700
-Message-ID: <200705090301.l4931RNg010695@shell0.pdx.osdl.net>
+Subject: - fbcon-check-if-the-character-count-can-be-handled.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:48 -0700
+Message-ID: <200705090301.l4931mZh010756@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:33394 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032789AbXEIDB3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:29 -0400
+	by vger.kernel.org with ESMTP id S1032501AbXEIDBu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arcfb: use fb_sys_read()
+     fbcon: check if the character count can be handled
 has been removed from the -mm tree.  Its filename was
-     arcfb-us-fb_sys_read.patch
+     fbcon-check-if-the-character-count-can-be-handled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arcfb: use fb_sys_read()
+Subject: fbcon: check if the character count can be handled
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Since arcfb's framebuffer is vmalloc'ed, use the fb_sys_read().
+Fontmaps can be 256 or 512 in length. The only driver that can do tileblitting
+can only handle 256 characters.  Check for this when setting the font.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    1 +
- drivers/video/arcfb.c |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/video/console/fbcon.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN drivers/video/Kconfig~arcfb-us-fb_sys_read drivers/video/Kconfig
---- a/drivers/video/Kconfig~arcfb-us-fb_sys_read
-+++ a/drivers/video/Kconfig
-@@ -420,6 +420,7 @@ config FB_ARC
- 	select FB_SYS_FILLRECT
- 	select FB_SYS_COPYAREA
- 	select FB_SYS_IMAGEBLIT
-+	select FB_SYS_FOPS
- 	help
- 	  This enables support for the Arc Monochrome LCD board. The board
- 	  is based on the KS-108 lcd controller and is typically a matrix
-diff -puN drivers/video/arcfb.c~arcfb-us-fb_sys_read drivers/video/arcfb.c
---- a/drivers/video/arcfb.c~arcfb-us-fb_sys_read
-+++ a/drivers/video/arcfb.c
-@@ -494,6 +494,7 @@ static ssize_t arcfb_write(struct fb_inf
- static struct fb_ops arcfb_ops = {
- 	.owner		= THIS_MODULE,
- 	.fb_open	= arcfb_open,
-+	.fb_read        = fb_sys_read,
- 	.fb_write	= arcfb_write,
- 	.fb_release	= arcfb_release,
- 	.fb_pan_display	= arcfb_pan_display,
+diff -puN drivers/video/console/fbcon.c~fbcon-check-if-the-character-count-can-be-handled drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-check-if-the-character-count-can-be-handled
++++ a/drivers/video/console/fbcon.c
+@@ -685,6 +685,17 @@ static void set_blitting_type(struct vc_
+ 		fbcon_set_bitops(ops);
+ 	}
+ }
++
++static int fbcon_invalid_charcount(struct fb_info *info, unsigned charcount)
++{
++	int err = 0;
++
++	if (info->flags & FBINFO_MISC_TILEBLITTING &&
++	    info->tileops->fb_get_tilemax(info) < charcount)
++		err = 1;
++
++	return err;
++}
+ #else
+ static void set_blitting_type(struct vc_data *vc, struct fb_info *info)
+ {
+@@ -695,6 +706,12 @@ static void set_blitting_type(struct vc_
+ 	fbcon_set_rotation(info);
+ 	fbcon_set_bitops(ops);
+ }
++
++static int fbcon_invalid_charcount(struct fb_info *info, unsigned charcount)
++{
++	return 0;
++}
++
+ #endif /* CONFIG_MISC_TILEBLITTING */
+ 
+ 
+@@ -2518,6 +2535,10 @@ static int fbcon_set_font(struct vc_data
+ 	    !(info->pixmap.blit_y & (1 << (font->height - 1))))
+ 		return -EINVAL;
+ 
++	/* Make sure driver can handle the font length */
++	if (fbcon_invalid_charcount(info, charcount))
++		return -EINVAL;
++
+ 	size = h * pitch * charcount;
+ 
+ 	new_data = kmalloc(FONT_EXTRA_WORDS * sizeof(int) + size, GFP_USER);
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
