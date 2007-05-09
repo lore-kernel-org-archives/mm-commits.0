@@ -1,102 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - workqueue-introduce-wq_per_cpu-helper.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:52:01 -0700
-Message-ID: <200705092152.l49Lq1Ue002955@shell0.pdx.osdl.net>
+Subject: - ipvs-flush-defense_work-before-module-unload.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:52:05 -0700
+Message-ID: <200705092152.l49Lq5ia002964@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43885 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:56843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754756AbXEIVwX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:23 -0400
+	by vger.kernel.org with ESMTP id S1758761AbXEIVwZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:52:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueue: introduce wq_per_cpu() helper
+     ipvs: flush defense_work before module unload
 has been removed from the -mm tree.  Its filename was
-     workqueue-introduce-wq_per_cpu-helper.patch
+     ipvs-flush-defense_work-before-module-unload.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: workqueue: introduce wq_per_cpu() helper
+Subject: ipvs: flush defense_work before module unload
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Cleanup.  A number of per_cpu_ptr(wq->cpu_wq, cpu) users have to check that
-cpu is valid for this wq.  Make a simple helper.
+net/ipv4/ipvs/ip_vs_core.c
+
+	module_exit
+	    ip_vs_cleanup
+		ip_vs_control_cleanup
+		    cancel_rearming_delayed_work
+	// done
+
+This is unsafe.  The module may be unloaded and the memory may be freed
+while defense_work's handler is still running/preempted.
+
+Do flush_work(&defense_work.work) after cancel_rearming_delayed_work().
+
+Alternatively, we could add flush_work() to cancel_rearming_delayed_work(),
+but note that we can't change cancel_delayed_work() in the same manner
+because it may be called from atomic context.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ net/ipv4/ipvs/ip_vs_ctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/workqueue.c~workqueue-introduce-wq_per_cpu-helper kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-introduce-wq_per_cpu-helper
-+++ a/kernel/workqueue.c
-@@ -86,6 +86,14 @@ static const cpumask_t *wq_cpu_map(struc
- 		? &cpu_singlethread_map : &cpu_populated_map;
- }
- 
-+static
-+struct cpu_workqueue_struct *wq_per_cpu(struct workqueue_struct *wq, int cpu)
-+{
-+	if (unlikely(is_single_threaded(wq)))
-+		cpu = singlethread_cpu;
-+	return per_cpu_ptr(wq->cpu_wq, cpu);
-+}
-+
- /*
-  * Set the workqueue on which a work item is to be run
-  * - Must *only* be called if the pending flag is set
-@@ -142,16 +150,14 @@ static void __queue_work(struct cpu_work
-  */
- int fastcall queue_work(struct workqueue_struct *wq, struct work_struct *work)
- {
--	int ret = 0, cpu = get_cpu();
-+	int ret = 0;
- 
- 	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
--		if (unlikely(is_single_threaded(wq)))
--			cpu = singlethread_cpu;
- 		BUG_ON(!list_empty(&work->entry));
--		__queue_work(per_cpu_ptr(wq->cpu_wq, cpu), work);
-+		__queue_work(wq_per_cpu(wq, get_cpu()), work);
-+		put_cpu();
- 		ret = 1;
- 	}
--	put_cpu();
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(queue_work);
-@@ -161,12 +167,8 @@ void delayed_work_timer_fn(unsigned long
- 	struct delayed_work *dwork = (struct delayed_work *)__data;
- 	struct cpu_workqueue_struct *cwq = get_wq_data(&dwork->work);
- 	struct workqueue_struct *wq = cwq->wq;
--	int cpu = smp_processor_id();
--
--	if (unlikely(is_single_threaded(wq)))
--		cpu = singlethread_cpu;
- 
--	__queue_work(per_cpu_ptr(wq->cpu_wq, cpu), &dwork->work);
-+	__queue_work(wq_per_cpu(wq, smp_processor_id()), &dwork->work);
- }
- 
- /**
-@@ -209,9 +211,7 @@ int queue_delayed_work_on(int cpu, struc
- 		BUG_ON(!list_empty(&work->entry));
- 
- 		/* This stores cwq for the moment, for the timer_fn */
--		set_wq_data(work,
--			per_cpu_ptr(wq->cpu_wq, wq->singlethread ?
--				singlethread_cpu : raw_smp_processor_id()));
-+		set_wq_data(work, wq_per_cpu(wq, raw_smp_processor_id()));
- 		timer->expires = jiffies + delay;
- 		timer->data = (unsigned long)dwork;
- 		timer->function = delayed_work_timer_fn;
+diff -puN net/ipv4/ipvs/ip_vs_ctl.c~ipvs-flush-defense_work-before-module-unload net/ipv4/ipvs/ip_vs_ctl.c
+--- a/net/ipv4/ipvs/ip_vs_ctl.c~ipvs-flush-defense_work-before-module-unload
++++ a/net/ipv4/ipvs/ip_vs_ctl.c
+@@ -2387,6 +2387,7 @@ void ip_vs_control_cleanup(void)
+ 	EnterFunction(2);
+ 	ip_vs_trash_cleanup();
+ 	cancel_rearming_delayed_work(&defense_work);
++	flush_work_keventd(&defense_work.work);
+ 	ip_vs_kill_estimator(&ip_vs_stats);
+ 	unregister_sysctl_table(sysctl_header);
+ 	proc_net_remove("ip_vs_stats");
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
