@@ -1,455 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - udf-support-files-larger-than-1g.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:56:05 -0700
-Message-ID: <200705090256.l492u5jN010004@shell0.pdx.osdl.net>
+Subject: - local_t-parisc-cleanup.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:55:25 -0700
+Message-ID: <200705090255.l492tPKc009927@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43182 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:43471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032407AbXEIC4T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:56:19 -0400
+	by vger.kernel.org with ESMTP id S1032418AbXEIC4Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:56:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, hch@infradead.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, grundler@parisc-linux.org, kyle@mcmartin.ca, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     udf: support files larger than 1G
+     local_t: parisc cleanup
 has been removed from the -mm tree.  Its filename was
-     udf-support-files-larger-than-1g.patch
+     local_t-parisc-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: udf: support files larger than 1G
-From: Jan Kara <jack@suse.cz>
+Subject: local_t: parisc cleanup
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Make UDF work correctly for files larger than 1GB.  As no extent can be
-longer than (1<<30)-blocksize bytes, we have to create several extents if a
-big hole is being created.  As a side-effect, we now don't discard
-preallocated blocks when creating a hole.
+parisc architecture local_t cleanup : use asm-generic/local.h.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Matthew Wilcox <willy@debian.org>
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c    |  192 +++++++++++++++++++++++++++++++++++---------
- fs/udf/super.c    |    2 
- fs/udf/truncate.c |   68 +++++----------
- 3 files changed, 180 insertions(+), 82 deletions(-)
+ include/asm-parisc/local.h |   41 -----------------------------------
+ 1 file changed, 1 insertion(+), 40 deletions(-)
 
-diff -puN fs/udf/inode.c~udf-support-files-larger-than-1g fs/udf/inode.c
---- a/fs/udf/inode.c~udf-support-files-larger-than-1g
-+++ a/fs/udf/inode.c
-@@ -356,9 +356,106 @@ udf_getblk(struct inode *inode, long blo
- 	return NULL;
- }
- 
-+/* Extend the file by 'blocks' blocks, return the number of extents added */
-+int udf_extend_file(struct inode *inode, struct extent_position *last_pos,
-+	kernel_long_ad *last_ext, sector_t blocks)
-+{
-+	sector_t add;
-+	int count = 0, fake = !(last_ext->extLength & UDF_EXTENT_LENGTH_MASK);
-+	struct super_block *sb = inode->i_sb;
-+	kernel_lb_addr prealloc_loc = {0, 0};
-+	int prealloc_len = 0;
-+
-+	/* The previous extent is fake and we should not extend by anything
-+	 * - there's nothing to do... */
-+	if (!blocks && fake)
-+		return 0;
-+	/* Round the last extent up to a multiple of block size */
-+	if (last_ext->extLength & (sb->s_blocksize - 1)) {
-+		last_ext->extLength =
-+			(last_ext->extLength & UDF_EXTENT_FLAG_MASK) |
-+			(((last_ext->extLength & UDF_EXTENT_LENGTH_MASK) +
-+				sb->s_blocksize - 1) & ~(sb->s_blocksize - 1));
-+		UDF_I_LENEXTENTS(inode) =
-+			(UDF_I_LENEXTENTS(inode) + sb->s_blocksize - 1) &
-+				~(sb->s_blocksize - 1);
-+	}
-+	/* Last extent are just preallocated blocks? */
-+	if ((last_ext->extLength & UDF_EXTENT_FLAG_MASK) == EXT_NOT_RECORDED_ALLOCATED) {
-+		/* Save the extent so that we can reattach it to the end */
-+		prealloc_loc = last_ext->extLocation;
-+		prealloc_len = last_ext->extLength;
-+		/* Mark the extent as a hole */
-+		last_ext->extLength = EXT_NOT_RECORDED_NOT_ALLOCATED |
-+			(last_ext->extLength & UDF_EXTENT_LENGTH_MASK);
-+		last_ext->extLocation.logicalBlockNum = 0;
-+       		last_ext->extLocation.partitionReferenceNum = 0;
-+	}
-+	/* Can we merge with the previous extent? */
-+	if ((last_ext->extLength & UDF_EXTENT_FLAG_MASK) == EXT_NOT_RECORDED_NOT_ALLOCATED) {
-+		add = ((1<<30) - sb->s_blocksize - (last_ext->extLength &
-+			UDF_EXTENT_LENGTH_MASK)) >> sb->s_blocksize_bits;
-+		if (add > blocks)
-+			add = blocks;
-+		blocks -= add;
-+		last_ext->extLength += add << sb->s_blocksize_bits;
-+	}
-+
-+	if (fake) {
-+		udf_add_aext(inode, last_pos, last_ext->extLocation,
-+			last_ext->extLength, 1);
-+		count++;
-+	}
-+	else
-+		udf_write_aext(inode, last_pos, last_ext->extLocation, last_ext->extLength, 1);
-+	/* Managed to do everything necessary? */
-+	if (!blocks)
-+		goto out;
-+
-+	/* All further extents will be NOT_RECORDED_NOT_ALLOCATED */
-+	last_ext->extLocation.logicalBlockNum = 0;
-+       	last_ext->extLocation.partitionReferenceNum = 0;
-+	add = (1 << (30-sb->s_blocksize_bits)) - 1;
-+	last_ext->extLength = EXT_NOT_RECORDED_NOT_ALLOCATED | (add << sb->s_blocksize_bits);
-+	/* Create enough extents to cover the whole hole */
-+	while (blocks > add) {
-+		blocks -= add;
-+		if (udf_add_aext(inode, last_pos, last_ext->extLocation,
-+			last_ext->extLength, 1) == -1)
-+			return -1;
-+		count++;
-+	}
-+	if (blocks) {
-+		last_ext->extLength = EXT_NOT_RECORDED_NOT_ALLOCATED |
-+			(blocks << sb->s_blocksize_bits);
-+		if (udf_add_aext(inode, last_pos, last_ext->extLocation,
-+			last_ext->extLength, 1) == -1)
-+			return -1;
-+		count++;
-+	}
-+out:
-+	/* Do we have some preallocated blocks saved? */
-+	if (prealloc_len) {
-+		if (udf_add_aext(inode, last_pos, prealloc_loc, prealloc_len, 1) == -1)
-+			return -1;
-+		last_ext->extLocation = prealloc_loc;
-+		last_ext->extLength = prealloc_len;
-+		count++;
-+	}
-+	/* last_pos should point to the last written extent... */
-+	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
-+		last_pos->offset -= sizeof(short_ad);
-+	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
-+		last_pos->offset -= sizeof(long_ad);
-+	else
-+		return -1;
-+	return count;
-+}
-+
- static struct buffer_head * inode_getblk(struct inode * inode, sector_t block,
- 	int *err, long *phys, int *new)
- {
-+	static sector_t last_block;
- 	struct buffer_head *result = NULL;
- 	kernel_long_ad laarr[EXTENT_MERGE_SIZE];
- 	struct extent_position prev_epos, cur_epos, next_epos;
-@@ -371,7 +468,7 @@ static struct buffer_head * inode_getblk
- 	sector_t offset = 0;
- 	int8_t etype;
- 	int goal = 0, pgoal = UDF_I_LOCATION(inode).logicalBlockNum;
--	char lastblock = 0;
-+	int lastblock = 0;
- 
- 	prev_epos.offset = udf_file_entry_alloc_offset(inode);
- 	prev_epos.block = UDF_I_LOCATION(inode);
-@@ -423,6 +520,8 @@ static struct buffer_head * inode_getblk
- 
- 	b_off -= lbcount;
- 	offset = b_off >> inode->i_sb->s_blocksize_bits;
-+	/* Move into indirect extent if we are at a pointer to it */
-+	udf_next_aext(inode, &prev_epos, &eloc, &elen, 0);
- 
- 	/* if the extent is allocated and recorded, return the block
-        if the extent is not a multiple of the blocksize, round up */
-@@ -444,43 +543,66 @@ static struct buffer_head * inode_getblk
- 		return NULL;
- 	}
- 
-+	last_block = block;
-+	/* Are we beyond EOF? */
- 	if (etype == -1)
- 	{
--		endnum = startnum = ((count > 1) ? 1 : count);
--		if (laarr[c].extLength & (inode->i_sb->s_blocksize - 1))
--		{
--			laarr[c].extLength =
--				(laarr[c].extLength & UDF_EXTENT_FLAG_MASK) |
--				(((laarr[c].extLength & UDF_EXTENT_LENGTH_MASK) +
--					inode->i_sb->s_blocksize - 1) &
--				~(inode->i_sb->s_blocksize - 1));
--			UDF_I_LENEXTENTS(inode) =
--				(UDF_I_LENEXTENTS(inode) + inode->i_sb->s_blocksize - 1) &
--					~(inode->i_sb->s_blocksize - 1);
-+		int ret;
-+
-+		if (count) {
-+			if (c)
-+				laarr[0] = laarr[1];
-+			startnum = 1;
-+		}
-+		else {
-+			/* Create a fake extent when there's not one */
-+			memset(&laarr[0].extLocation, 0x00, sizeof(kernel_lb_addr));
-+			laarr[0].extLength = EXT_NOT_RECORDED_NOT_ALLOCATED;
-+			/* Will udf_extend_file() create real extent from a fake one? */
-+			startnum = (offset > 0);
-+		}
-+		/* Create extents for the hole between EOF and offset */
-+		ret = udf_extend_file(inode, &prev_epos, laarr, offset);
-+		if (ret == -1) {
-+			brelse(prev_epos.bh);
-+			brelse(cur_epos.bh);
-+			brelse(next_epos.bh);
-+			/* We don't really know the error here so we just make
-+			 * something up */
-+			*err = -ENOSPC;
-+			return NULL;
- 		}
--		c = !c;
--		laarr[c].extLength = EXT_NOT_RECORDED_NOT_ALLOCATED |
--			((offset + 1) << inode->i_sb->s_blocksize_bits);
--		memset(&laarr[c].extLocation, 0x00, sizeof(kernel_lb_addr));
--		count ++;
--		endnum ++;
-+		c = 0;
-+		offset = 0;
-+		count += ret;
-+		/* We are not covered by a preallocated extent? */
-+		if ((laarr[0].extLength & UDF_EXTENT_FLAG_MASK) != EXT_NOT_RECORDED_ALLOCATED) {
-+			/* Is there any real extent? - otherwise we overwrite
-+			 * the fake one... */
-+			if (count)
-+				c = !c;
-+			laarr[c].extLength = EXT_NOT_RECORDED_NOT_ALLOCATED |
-+				inode->i_sb->s_blocksize;
-+			memset(&laarr[c].extLocation, 0x00, sizeof(kernel_lb_addr));
-+			count ++;
-+			endnum ++;
-+		}
-+		endnum = c+1;
- 		lastblock = 1;
- 	}
--	else
-+	else {
- 		endnum = startnum = ((count > 2) ? 2 : count);
- 
--	/* if the current extent is in position 0, swap it with the previous */
--	if (!c && count != 1)
--	{
--		laarr[2] = laarr[0];
--		laarr[0] = laarr[1];
--		laarr[1] = laarr[2];
--		c = 1;
--	}
-+		/* if the current extent is in position 0, swap it with the previous */
-+		if (!c && count != 1)
-+		{
-+			laarr[2] = laarr[0];
-+			laarr[0] = laarr[1];
-+			laarr[1] = laarr[2];
-+			c = 1;
-+		}
- 
--	/* if the current block is located in a extent, read the next extent */
--	if (etype != -1)
--	{
-+		/* if the current block is located in an extent, read the next extent */
- 		if ((etype = udf_next_aext(inode, &next_epos, &eloc, &elen, 0)) != -1)
- 		{
- 			laarr[c+1].extLength = (etype << 30) | elen;
-@@ -489,11 +611,10 @@ static struct buffer_head * inode_getblk
- 			startnum ++;
- 			endnum ++;
- 		}
--		else
-+		else {
- 			lastblock = 1;
-+		}
- 	}
--	brelse(cur_epos.bh);
--	brelse(next_epos.bh);
- 
- 	/* if the current extent is not recorded but allocated, get the
- 		block in the extent corresponding to the requested block */
-@@ -534,8 +655,8 @@ static struct buffer_head * inode_getblk
- 	udf_merge_extents(inode, laarr, &endnum);
- 
- 	/* write back the new extents, inserting new extents if the new number
--       of extents is greater than the old number, and deleting extents if
--       the new number of extents is less than the old number */
-+	of extents is greater than the old number, and deleting extents if
-+	the new number of extents is less than the old number */
- 	udf_update_extents(inode, laarr, startnum, endnum, &prev_epos);
- 
- 	brelse(prev_epos.bh);
-@@ -991,6 +1112,7 @@ __udf_read_inode(struct inode *inode)
- 		return;
- 	}
- 	udf_fill_inode(inode, bh);
-+
- 	brelse(bh);
- }
- 
-diff -puN fs/udf/super.c~udf-support-files-larger-than-1g fs/udf/super.c
---- a/fs/udf/super.c~udf-support-files-larger-than-1g
-+++ a/fs/udf/super.c
-@@ -1661,7 +1661,7 @@ static int udf_fill_super(struct super_b
- 		iput(inode);
- 		goto error_out;
- 	}
--	sb->s_maxbytes = 1<<30;
-+	sb->s_maxbytes = MAX_LFS_FILESIZE;
- 	return 0;
- 
- error_out:
-diff -puN fs/udf/truncate.c~udf-support-files-larger-than-1g fs/udf/truncate.c
---- a/fs/udf/truncate.c~udf-support-files-larger-than-1g
-+++ a/fs/udf/truncate.c
-@@ -130,7 +130,8 @@ void udf_truncate_extents(struct inode *
- 	kernel_lb_addr eloc, neloc = { 0, 0 };
- 	uint32_t elen, nelen = 0, indirect_ext_len = 0, lenalloc;
- 	int8_t etype;
--	sector_t first_block = inode->i_size >> inode->i_sb->s_blocksize_bits, offset;
-+	struct super_block *sb = inode->i_sb;
-+	sector_t first_block = inode->i_size >> sb->s_blocksize_bits, offset;
- 	loff_t byte_offset;
- 	int adsize;
- 
-@@ -142,7 +143,7 @@ void udf_truncate_extents(struct inode *
- 		BUG();
- 
- 	etype = inode_bmap(inode, first_block, &epos, &eloc, &elen, &offset);
--	byte_offset = (offset << inode->i_sb->s_blocksize_bits) + (inode->i_size & (inode->i_sb->s_blocksize-1));
-+	byte_offset = (offset << sb->s_blocksize_bits) + (inode->i_size & (sb->s_blocksize-1));
- 	if (etype != -1)
- 	{
- 		epos.offset -= adsize;
-@@ -169,7 +170,7 @@ void udf_truncate_extents(struct inode *
- 					 * indirect extent - free it too */
- 					if (!epos.bh)
- 						BUG();
--					udf_free_blocks(inode->i_sb, inode, epos.block, 0, indirect_ext_len);
-+					udf_free_blocks(sb, inode, epos.block, 0, indirect_ext_len);
- 				}
- 				else
- 				{
-@@ -182,7 +183,7 @@ void udf_truncate_extents(struct inode *
- 					{
- 						struct allocExtDesc *aed = (struct allocExtDesc *)(epos.bh->b_data);
- 						aed->lengthAllocDescs = cpu_to_le32(lenalloc);
--						if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
-+						if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(sb) >= 0x0201)
- 							udf_update_tag(epos.bh->b_data, lenalloc +
- 								sizeof(struct allocExtDesc));
- 						else
-@@ -193,11 +194,11 @@ void udf_truncate_extents(struct inode *
- 				brelse(epos.bh);
- 				epos.offset = sizeof(struct allocExtDesc);
- 				epos.block = eloc;
--				epos.bh = udf_tread(inode->i_sb, udf_get_lb_pblock(inode->i_sb, eloc, 0));
-+				epos.bh = udf_tread(sb, udf_get_lb_pblock(sb, eloc, 0));
- 				if (elen)
- 					indirect_ext_len = (elen +
--						inode->i_sb->s_blocksize - 1) >>
--						inode->i_sb->s_blocksize_bits;
-+						sb->s_blocksize - 1) >>
-+						sb->s_blocksize_bits;
- 				else
- 					indirect_ext_len = 1;
- 			}
-@@ -212,7 +213,7 @@ void udf_truncate_extents(struct inode *
- 		{
- 			if (!epos.bh)
- 				BUG();
--			udf_free_blocks(inode->i_sb, inode, epos.block, 0, indirect_ext_len);
-+			udf_free_blocks(sb, inode, epos.block, 0, indirect_ext_len);
- 		}
- 		else
- 		{
-@@ -225,7 +226,7 @@ void udf_truncate_extents(struct inode *
- 			{
- 				struct allocExtDesc *aed = (struct allocExtDesc *)(epos.bh->b_data);
- 				aed->lengthAllocDescs = cpu_to_le32(lenalloc);
--				if (!UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(inode->i_sb) >= 0x0201)
-+				if (!UDF_QUERY_FLAG(sb, UDF_FLAG_STRICT) || UDF_SB_UDFREV(sb) >= 0x0201)
- 					udf_update_tag(epos.bh->b_data, lenalloc +
- 						sizeof(struct allocExtDesc));
- 				else
-@@ -238,53 +239,28 @@ void udf_truncate_extents(struct inode *
- 	{
- 		if (byte_offset)
- 		{
-+			kernel_long_ad extent;
-+
- 			/*
- 			 *  OK, there is not extent covering inode->i_size and
- 			 *  no extent above inode->i_size => truncate is
--			 *  extending the file by 'offset'.
-+			 *  extending the file by 'offset' blocks.
- 			 */
- 			if ((!epos.bh && epos.offset == udf_file_entry_alloc_offset(inode)) ||
- 			    (epos.bh && epos.offset == sizeof(struct allocExtDesc))) {
--				/* File has no extents at all! */
--				memset(&eloc, 0x00, sizeof(kernel_lb_addr));
--				elen = EXT_NOT_RECORDED_NOT_ALLOCATED | byte_offset;
--				udf_add_aext(inode, &epos, eloc, elen, 1);
-+				/* File has no extents at all or has empty last
-+				 * indirect extent! Create a fake extent... */
-+				extent.extLocation.logicalBlockNum = 0;
-+				extent.extLocation.partitionReferenceNum = 0;
-+				extent.extLength = EXT_NOT_RECORDED_NOT_ALLOCATED;
- 			}
- 			else {
- 				epos.offset -= adsize;
--				etype = udf_next_aext(inode, &epos, &eloc, &elen, 1);
+diff -puN include/asm-parisc/local.h~local_t-parisc-cleanup include/asm-parisc/local.h
+--- a/include/asm-parisc/local.h~local_t-parisc-cleanup
++++ a/include/asm-parisc/local.h
+@@ -1,40 +1 @@
+-#ifndef _ARCH_PARISC_LOCAL_H
+-#define _ARCH_PARISC_LOCAL_H
 -
--				if (etype == (EXT_NOT_RECORDED_NOT_ALLOCATED >> 30))
--				{
--					epos.offset -= adsize;
--					elen = EXT_NOT_RECORDED_NOT_ALLOCATED | (elen + byte_offset);
--					udf_write_aext(inode, &epos, eloc, elen, 0);
--				}
--				else if (etype == (EXT_NOT_RECORDED_ALLOCATED >> 30))
--				{
--					kernel_lb_addr neloc = { 0, 0 };
--					epos.offset -= adsize;
--					nelen = EXT_NOT_RECORDED_NOT_ALLOCATED |
--						((elen + byte_offset + inode->i_sb->s_blocksize - 1) &
--						~(inode->i_sb->s_blocksize - 1));
--					udf_write_aext(inode, &epos, neloc, nelen, 1);
--					udf_add_aext(inode, &epos, eloc, (etype << 30) | elen, 1);
--				}
--				else
--				{
--					if (elen & (inode->i_sb->s_blocksize - 1))
--					{
--						epos.offset -= adsize;
--						elen = EXT_RECORDED_ALLOCATED |
--							((elen + inode->i_sb->s_blocksize - 1) &
--							~(inode->i_sb->s_blocksize - 1));
--						udf_write_aext(inode, &epos, eloc, elen, 1);
--					}
--					memset(&eloc, 0x00, sizeof(kernel_lb_addr));
--					elen = EXT_NOT_RECORDED_NOT_ALLOCATED | byte_offset;
--					udf_add_aext(inode, &epos, eloc, elen, 1);
--				}
-+				etype = udf_next_aext(inode, &epos,
-+					&extent.extLocation, &extent.extLength, 0);
-+				extent.extLength |= etype << 30;
- 			}
-+			udf_extend_file(inode, &epos, &extent, offset+((inode->i_size & (sb->s_blocksize-1)) != 0));
- 		}
- 	}
- 	UDF_I_LENEXTENTS(inode) = inode->i_size;
+-#include <linux/percpu.h>
+-#include <asm/atomic.h>
+-
+-typedef atomic_long_t local_t;
+-
+-#define LOCAL_INIT(i)	ATOMIC_LONG_INIT(i)
+-#define local_read(v)	atomic_long_read(v)
+-#define local_set(v,i)	atomic_long_set(v,i)
+-
+-#define local_inc(v)	atomic_long_inc(v)
+-#define local_dec(v)	atomic_long_dec(v)
+-#define local_add(i, v)	atomic_long_add(i, v)
+-#define local_sub(i, v)	atomic_long_sub(i, v)
+-
+-#define __local_inc(v)		((v)->counter++)
+-#define __local_dec(v)		((v)->counter--)
+-#define __local_add(i,v)	((v)->counter+=(i))
+-#define __local_sub(i,v)	((v)->counter-=(i))
+-
+-/* Use these for per-cpu local_t variables: on some archs they are
+- * much more efficient than these naive implementations.  Note they take
+- * a variable, not an address.
+- */
+-#define cpu_local_read(v)	local_read(&__get_cpu_var(v))
+-#define cpu_local_set(v, i)	local_set(&__get_cpu_var(v), (i))
+-
+-#define cpu_local_inc(v)	local_inc(&__get_cpu_var(v))
+-#define cpu_local_dec(v)	local_dec(&__get_cpu_var(v))
+-#define cpu_local_add(i, v)	local_add((i), &__get_cpu_var(v))
+-#define cpu_local_sub(i, v)	local_sub((i), &__get_cpu_var(v))
+-
+-#define __cpu_local_inc(v)	__local_inc(&__get_cpu_var(v))
+-#define __cpu_local_dec(v)	__local_dec(&__get_cpu_var(v))
+-#define __cpu_local_add(i, v)	__local_add((i), &__get_cpu_var(v))
+-#define __cpu_local_sub(i, v)	__local_sub((i), &__get_cpu_var(v))
+-
+-#endif /* _ARCH_PARISC_LOCAL_H */
++#include <asm-generic/local.h>
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-ext4-copy-i_flags-to-inode-flags-on-write.patch
+git-avr32.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
+linux-kernel-markers-non-optimized-architectures.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+linux-kernel-markers-documentation.patch
+markers-define-the-linker-macro-extra_rwdata.patch
+markers-use-extra_rwdata-in-architectures.patch
