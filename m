@@ -1,69 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - s3fb-add-sparse-annotations.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:01:04 -0700
-Message-ID: <200705090301.l49314ch010645@shell0.pdx.osdl.net>
+Subject: - i810fb-fix-incorrect-frequency-mask.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:08 -0700
+Message-ID: <200705090301.l49318wF010653@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60990 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032929AbXEIDBH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:07 -0400
+	by vger.kernel.org with ESMTP id S1033015AbXEIDBL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3fb: add sparse annotations
+     i810fb: fix incorrect frequency mask
 has been removed from the -mm tree.  Its filename was
-     s3fb-add-sparse-annotations.patch
+     i810fb-fix-incorrect-frequency-mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s3fb: add sparse annotations
+Subject: i810fb: fix incorrect frequency mask
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Add sparse annotations and use fb_read/fb_write and family to access the
-framebuffer.
+Fix a long-standing bug.  The mask used to detect a 100Mhz or 133Mhz chipset
+is incorrect. (The only side effect of this bug is that it will choose an
+incorrect watermark).
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3fb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/i810/i810.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/s3fb.c~s3fb-add-sparse-annotations drivers/video/s3fb.c
---- a/drivers/video/s3fb.c~s3fb-add-sparse-annotations
-+++ a/drivers/video/s3fb.c
-@@ -164,7 +164,7 @@ MODULE_PARM_DESC(fasttext, "Enable S3 fa
- static void s3fb_settile_fast(struct fb_info *info, struct fb_tilemap *map)
- {
- 	const u8 *font = map->data;
--	u8* fb = (u8 *) info->screen_base;
-+	u8 __iomem *fb = (u8 __iomem *) info->screen_base;
- 	int i, c;
- 
- 	if ((map->width != 8) || (map->height != 16) ||
-@@ -177,7 +177,7 @@ static void s3fb_settile_fast(struct fb_
- 	fb += 2;
- 	for (i = 0; i < map->height; i++) {
- 		for (c = 0; c < map->length; c++) {
--			fb[c * 4] = font[c * map->height + i];
-+			fb_writeb(font[c * map->height + i], fb + c * 4);
- 		}
- 		fb += 1024;
- 	}
-@@ -656,7 +656,7 @@ static int s3fb_set_par(struct fb_info *
- 	value = ((value * hmul) / 8) - 5;
- 	vga_wcrt(NULL, 0x3C, (value + 1) / 2);
- 
--	memset((u8*)info->screen_base, 0x00, screen_size);
-+	memset_io(info->screen_base, 0x00, screen_size);
- 	/* Device and screen back on */
- 	svga_wcrt_mask(0x17, 0x80, 0x80);
- 	svga_wseq_mask(0x01, 0x00, 0x20);
+diff -puN drivers/video/i810/i810.h~i810fb-fix-incorrect-frequency-mask drivers/video/i810/i810.h
+--- a/drivers/video/i810/i810.h~i810fb-fix-incorrect-frequency-mask
++++ a/drivers/video/i810/i810.h
+@@ -133,7 +133,7 @@
+ /* Masks (AND ops) and OR's */
+ #define FB_START_MASK               (0x3f << (32 - 6))
+ #define MMIO_ADDR_MASK              (0x1FFF << (32 - 13))
+-#define FREQ_MASK                   0x1EF
++#define FREQ_MASK                   (1 << 4)
+ #define SCR_OFF                     0x20
+ #define DRAM_ON                     0x08            
+ #define DRAM_OFF                    0xE7
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
