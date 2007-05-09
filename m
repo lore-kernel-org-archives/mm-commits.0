@@ -1,83 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - tty-remove-unnecessary-export-of-proc_clear_tty.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:47:11 -0700
-Message-ID: <200705090247.l492lBXx008942@shell0.pdx.osdl.net>
+Subject: - enlarge-console-name.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:47:07 -0700
+Message-ID: <200705090247.l492l7ea008934@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37430 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:33326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969324AbXEICrP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:15 -0400
+	by vger.kernel.org with ESMTP id S934465AbXEICrQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kraxel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: remove unnecessary export of proc_clear_tty
+     enlarge console.name
 has been removed from the -mm tree.  Its filename was
-     tty-remove-unnecessary-export-of-proc_clear_tty.patch
+     enlarge-console-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: remove unnecessary export of proc_clear_tty
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: enlarge console.name
+From: Andrew Morton <akpm@linux-foundation.org>
 
-All of the users of proc_clear_tty are compiled into the kernel so exporting
-this symbol appears gratuitous.
+console.name[] is eight chars, but so is "earlyvga".  So when we try to print
+console->name when using earlyvga it runs off the end of the string.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Make it bigger.
+
+Diagnosed-by: Gerd Hoffmann <kraxel@redhat.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/console.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-remove-unnecessary-export-of-proc_clear_tty drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-remove-unnecessary-export-of-proc_clear_tty
-+++ a/drivers/char/tty_io.c
-@@ -3834,7 +3834,6 @@ void proc_clear_tty(struct task_struct *
- 	p->signal->tty = NULL;
- 	spin_unlock_irq(&p->sighand->siglock);
- }
--EXPORT_SYMBOL(proc_clear_tty);
+diff -puN include/linux/console.h~enlarge-console-name include/linux/console.h
+--- a/include/linux/console.h~enlarge-console-name
++++ a/include/linux/console.h
+@@ -92,9 +92,8 @@ void give_up_console(const struct consw 
+ #define CON_BOOT	(8)
+ #define CON_ANYTIME	(16) /* Safe to call when cpu is offline */
  
- static struct pid *__proc_set_tty(struct task_struct *tsk, struct tty_struct *tty)
- {
+-struct console
+-{
+-	char	name[8];
++struct console {
++	char	name[16];
+ 	void	(*write)(struct console *, const char *, unsigned);
+ 	int	(*read)(struct console *, char *, unsigned);
+ 	struct tty_driver *(*device)(struct console *, int *);
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-iop13xx-msi-support-rev6.patch
-dvb_en_50221-convert-to-kthread-api.patch
-fix-i-oat-for-kexec.patch
-pci-disable-msi-by-default-on-systems-with-serverworks-ht1000-chips.patch
-i386-irq-kill-irq-compression.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
+git-dvb-fixup.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+git-kvm.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-mtd.patch
+git-e1000.patch
+git-e1000-fixup-2.patch
+git-battery-fix.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+git-scsi-misc.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
 i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-efi-fix-proc-iomem-type-for-kexec-tools.patch
-x86_64-display-more-intutive-error-message-if-kernel-is-not-2mb-aligned.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-remove-hardcoding-of-hard_smp_processor_id-on-up.patch
-use-the-apic-to-determine-the-hardware-processor-id-i386.patch
-use-the-apic-to-determine-the-hardware-processor-id-x86_64.patch
-always-ask-the-hardware-to-obtain-hardware-processor-id-ia64.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+swsusp-clean-up-print.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+upper-32-bits.patch
+lib-hexdump-fix.patch
+pasemi-hardware-rng-driver-tidy.patch
+nbd-check-the-return-value-of-sysfs_create_file-fix.patch
+mutex_lock_interruptible-add-__must_check.patch
+mutex_lock_interruptible-add-__must_check-must-fix.patch
+tty-add-compat_ioctl-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
+call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
 kthread-dont-depend-on-work-queues-take-2.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-worker_thread-dont-play-with-sigchld-and-numa-policy.patch
-change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
 fix-kthread_create-vs-freezer-theoretical-race.patch
-remvoe-kthread_bind-call-from-_cpu_down.patch
-nfsd-nfs4state-remove-unnecessary-daemonize-call.patch
-statically-initialize-struct-pid-for-swapper.patch
-explicitly-set-pgid-and-sid-of-init-process.patch
-use-struct-pid-parameter-in-copy_process.patch
-use-task_pgrp-task_session-in-copy_process.patch
-kill-unused-sesssion-and-group-values-in-rocket-driver.patch
-fix-some-coding-style-errors-in-autofs.patch
-replace-pid_t-in-autofs-with-struct-pid-reference.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-vdso-print-fatal-signals-use-ctl_unnumbered.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
