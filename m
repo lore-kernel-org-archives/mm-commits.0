@@ -1,143 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - mm-shrink-parent-dentries-when-shrinking-slab.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:44:10 -0700
-Message-ID: <200705090244.l492iAFF008554@shell0.pdx.osdl.net>
+Subject: - reduce-size-of-task_struct-on-64-bit-machines.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:44:04 -0700
+Message-ID: <200705090244.l492i4kH008542@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:59566 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:54791 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970080AbXEICoQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:44:16 -0400
+	by vger.kernel.org with ESMTP id S970064AbXEICoN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:44:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: wcohen@redhat.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: shrink parent dentries when shrinking slab
+     reduce size of task_struct on 64-bit machines
 has been removed from the -mm tree.  Its filename was
-     mm-shrink-parent-dentries-when-shrinking-slab.patch
+     reduce-size-of-task_struct-on-64-bit-machines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: shrink parent dentries when shrinking slab
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reduce size of task_struct on 64-bit machines
+From: William Cohen <wcohen@redhat.com>
 
-Teach the dentry slab shrinker to aggressively shrink parent dentries when
-shrinking the dentry cache.
+This past week I was playing around with that pahole tool
+(http://oops.ghostprotocols.net:81/acme/dwarves/) and looking at the size
+of various struct in the kernel.  I was surprised by the size of the
+task_struct on x86_64, approaching 4K.  I looked through the fields in
+task_struct and found that a number of them were declared as "unsigned
+long" rather than "unsigned int" despite them appearing okay as 32-bit
+sized fields.  On x86_64 "unsigned long" ends up being 8 bytes in size and
+forces 8 byte alignment.  Is there a reason there a reason they are
+"unsigned long"?
 
-This is done to attempt to improve the situation where the dentry slab cache
-gets a lot of internal fragmentation due to pages containing directory
-dentries.  It is expected that this change will cause some of those dentries
-to be reaped earlier, and with less scanning.
+The patch below drops the size of the struct from 3808 bytes (60 64-byte
+cachelines) to 3760 bytes (59 64-byte cachelines).  A couple other fields
+in the task struct take a signficant amount of space:
 
-Needs careful testing.
+struct thread_struct       thread;               688
+struct held_lock           held_locks[30];       1680
 
-Cc: Miklos Szeredi <mszeredi@suse.cz>
+CONFIG_LOCKDEP is turned on in the .config
+
+[akpm@linux-foundation.org: fix printk warnings]
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/array.c       |    4 ++--
+ include/linux/sched.h |   12 ++++++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/dcache.c~mm-shrink-parent-dentries-when-shrinking-slab fs/dcache.c
---- a/fs/dcache.c~mm-shrink-parent-dentries-when-shrinking-slab
-+++ a/fs/dcache.c
-@@ -879,7 +879,7 @@ static int shrink_dcache_memory(int nr, 
- 	if (nr) {
- 		if (!(gfp_mask & __GFP_FS))
- 			return -1;
--		prune_dcache(nr, NULL, 0);
-+		prune_dcache(nr, NULL, 1);
- 	}
- 	return (dentry_stat.nr_unused / 100) * sysctl_vfs_cache_pressure;
- }
+diff -puN fs/proc/array.c~reduce-size-of-task_struct-on-64-bit-machines fs/proc/array.c
+--- a/fs/proc/array.c~reduce-size-of-task_struct-on-64-bit-machines
++++ a/fs/proc/array.c
+@@ -410,9 +410,9 @@ static int do_task_stat(struct task_stru
+ 	/* convert nsec -> ticks */
+ 	start_time = nsec_to_clock_t(start_time);
+ 
+-	res = sprintf(buffer,"%d (%s) %c %d %d %d %d %d %lu %lu \
++	res = sprintf(buffer,"%d (%s) %c %d %d %d %d %d %u %lu \
+ %lu %lu %lu %lu %lu %ld %ld %ld %ld %d 0 %llu %lu %ld %lu %lu %lu %lu %lu \
+-%lu %lu %lu %lu %lu %lu %lu %lu %d %d %lu %lu %llu\n",
++%lu %lu %lu %lu %lu %lu %lu %lu %d %d %u %u %llu\n",
+ 		task->pid,
+ 		tcomm,
+ 		state,
+diff -puN include/linux/sched.h~reduce-size-of-task_struct-on-64-bit-machines include/linux/sched.h
+--- a/include/linux/sched.h~reduce-size-of-task_struct-on-64-bit-machines
++++ a/include/linux/sched.h
+@@ -801,8 +801,8 @@ struct task_struct {
+ 	volatile long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
+ 	struct thread_info *thread_info;
+ 	atomic_t usage;
+-	unsigned long flags;	/* per process flags, defined below */
+-	unsigned long ptrace;
++	unsigned int flags;	/* per process flags, defined below */
++	unsigned int ptrace;
+ 
+ 	int lock_depth;		/* BKL lock depth */
+ 
+@@ -825,7 +825,7 @@ struct task_struct {
+ 	unsigned long long sched_time; /* sched_clock time spent running */
+ 	enum sleep_type sleep_type;
+ 
+-	unsigned long policy;
++	unsigned int policy;
+ 	cpumask_t cpus_allowed;
+ 	unsigned int time_slice, first_time_slice;
+ 
+@@ -845,11 +845,11 @@ struct task_struct {
+ 
+ /* task state */
+ 	struct linux_binfmt *binfmt;
+-	long exit_state;
++	int exit_state;
+ 	int exit_code, exit_signal;
+ 	int pdeath_signal;  /*  The signal sent when the parent dies  */
+ 	/* ??? */
+-	unsigned long personality;
++	unsigned int personality;
+ 	unsigned did_exec:1;
+ 	pid_t pid;
+ 	pid_t tgid;
+@@ -881,7 +881,7 @@ struct task_struct {
+ 	int __user *set_child_tid;		/* CLONE_CHILD_SETTID */
+ 	int __user *clear_child_tid;		/* CLONE_CHILD_CLEARTID */
+ 
+-	unsigned long rt_priority;
++	unsigned int rt_priority;
+ 	cputime_t utime, stime;
+ 	unsigned long nvcsw, nivcsw; /* context switch counts */
+ 	struct timespec start_time;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wcohen@redhat.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
-git-dvb-fixup.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-kvm.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-battery-fix.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-swsusp-clean-up-print.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-upper-32-bits.patch
-lib-hexdump-fix.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-mutex_lock_interruptible-add-__must_check.patch
-mutex_lock_interruptible-add-__must_check-must-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-rename-thread_info-to-stack-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
