@@ -1,28 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - integrity-new-hooks-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:59:44 -0700
-Message-ID: <200705090959.l499xipC020621@shell0.pdx.osdl.net>
+Subject: - integrity-evm-as-an-integrity-service-provider-tidy-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:00:15 -0700
+Message-ID: <200705091000.l49A0FKd020663@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:58180 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:55203 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754600AbXEIKAR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:00:17 -0400
+	by vger.kernel.org with ESMTP id S1756658AbXEIKAg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:00:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, kjhall@us.ibm.com, zohar@linux.vnet.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     integrity-new-hooks-fix
+     integrity-evm-as-an-integrity-service-provider-tidy-fix
 has been removed from the -mm tree.  Its filename was
-     integrity-new-hooks-fix.patch
+     integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
 
-This patch was dropped because it was folded into integrity-new-hooks.patch
+This patch was dropped because it was folded into integrity-evm-as-an-integrity-service-provider.patch
 
 ------------------------------------------------------
-Subject: integrity-new-hooks-fix
+Subject: integrity-evm-as-an-integrity-service-provider-tidy-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+security/evm/evm_crypto.c:94: warning: implicit declaration of function 'kernel_readlink'
 
 Cc: Kylene Hall <kjhall@us.ibm.com>
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
@@ -30,20 +32,20 @@ Cc: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity_dummy.c |    1 +
+ include/linux/namei.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN security/integrity_dummy.c~integrity-new-hooks-fix security/integrity_dummy.c
---- a/security/integrity_dummy.c~integrity-new-hooks-fix
-+++ a/security/integrity_dummy.c
-@@ -14,6 +14,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/capability.h>
- #include <linux/integrity.h>
- #include <linux/xattr.h>
+diff -puN include/linux/namei.h~integrity-evm-as-an-integrity-service-provider-tidy-fix include/linux/namei.h
+--- a/include/linux/namei.h~integrity-evm-as-an-integrity-service-provider-tidy-fix
++++ a/include/linux/namei.h
+@@ -97,6 +97,7 @@ extern int follow_up(struct vfsmount **,
  
+ extern struct dentry *lock_rename(struct dentry *, struct dentry *);
+ extern void unlock_rename(struct dentry *, struct dentry *);
++extern int kernel_readlink(struct dentry *dentry, char **buffer, int *buflen);
+ 
+ static inline void nd_set_link(struct nameidata *nd, char *path)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,8 +118,7 @@ lguest-the-host-code.patch
 ntfs-use-zero_user_page.patch
 reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
 integrity-new-hooks.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider.patch
 integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
 integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
 integrity-ima-integrity_measure-support-tidy.patch
