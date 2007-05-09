@@ -1,79 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - fix-leaky-resv_huge_pages-when-cpuset-is-in-use.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:49:18 -0700
-Message-ID: <200705092149.l49LnIQk002688@shell0.pdx.osdl.net>
+Subject: - atmel_spi-remove-unnecessary-and-wrong-ifdefs.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:50:48 -0700
+Message-ID: <200705092150.l49Lom9w002832@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:52136 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751076AbXEIVuz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:55 -0400
+	by vger.kernel.org with ESMTP id S1756567AbXEIVvN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:51:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenchen@google.com, agl@us.ibm.com, david@gibson.dropbear.id.au, dwg@au1.ibm.com, mbligh@google.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: hskinnemoen@atmel.com, andrew@sanpeople.com, david-b@pacbell.net, nicolas.ferre@rfo.atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix leaky resv_huge_pages when cpuset is in use
+     atmel_spi: remove unnecessary (and wrong) #ifdefs
 has been removed from the -mm tree.  Its filename was
-     fix-leaky-resv_huge_pages-when-cpuset-is-in-use.patch
+     atmel_spi-remove-unnecessary-and-wrong-ifdefs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix leaky resv_huge_pages when cpuset is in use
-From: "Ken Chen" <kenchen@google.com>
+Subject: atmel_spi: remove unnecessary (and wrong) #ifdefs
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-The internal hugetlb resv_huge_pages variable can permanently leak nonzero
-value in the error path of hugetlb page fault handler when hugetlb page is
-used in combination of cpuset.  The leaked count can permanently trap N
-number of hugetlb pages in unusable "reserved" state.
+Now that the cpu_is_xxx() macros are available both on AVR32 and AT91, we can
+remove a couple of #ifdefs from this driver.  One of them is actually wrong --
+new_1 should be set on AVR32 but isn't.  This causes the bus clock to run at
+twice the speed it is configured to.
 
-Steps to reproduce the bug:
-
-  (1) create two cpuset, user1 and user2
-  (2) reserve 50 htlb pages in cpuset user1
-  (3) attempt to shmget/shmat 50 htlb page inside cpuset user2
-  (4) kernel oom the user process in step 3
-  (5) ipcrm the shm segment
-
-At this point resv_huge_pages will have a count of 49, even though
-there are no active hugetlbfs file nor hugetlb shared memory segment
-in the system.  The leak is permanent and there is no recovery method
-other than system reboot. The leaked count will hold up all future use
-of that many htlb pages in all cpusets.
-
-The culprit is that the error path of alloc_huge_page() did not
-properly undo the change it made to resv_huge_page, causing
-inconsistent state.
-
-Signed-off-by: Ken Chen <kenchen@google.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Martin Bligh <mbligh@google.com>
-Acked-by: David Gibson <dwg@au1.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: David Brownell <david-b@pacbell.net>
+Acked-by: Andrew Victor <andrew@sanpeople.com>
+Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/spi/atmel_spi.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/hugetlb.c~fix-leaky-resv_huge_pages-when-cpuset-is-in-use mm/hugetlb.c
---- a/mm/hugetlb.c~fix-leaky-resv_huge_pages-when-cpuset-is-in-use
-+++ a/mm/hugetlb.c
-@@ -140,6 +140,8 @@ static struct page *alloc_huge_page(stru
- 	return page;
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-remove-unnecessary-and-wrong-ifdefs drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-remove-unnecessary-and-wrong-ifdefs
++++ a/drivers/spi/atmel_spi.c
+@@ -22,10 +22,7 @@
+ #include <asm/io.h>
+ #include <asm/arch/board.h>
+ #include <asm/arch/gpio.h>
+-
+-#ifdef CONFIG_ARCH_AT91
+ #include <asm/arch/cpu.h>
+-#endif
  
- fail:
-+	if (vma->vm_flags & VM_MAYSHARE)
-+		resv_huge_pages++;
- 	spin_unlock(&hugetlb_lock);
- 	return NULL;
- }
+ #include "atmel_spi.h"
+ 
+@@ -552,10 +549,8 @@ static int __init atmel_spi_probe(struct
+ 		goto out_free_buffer;
+ 	as->irq = irq;
+ 	as->clk = clk;
+-#ifdef CONFIG_ARCH_AT91
+ 	if (!cpu_is_at91rm9200())
+ 		as->new_1 = 1;
+-#endif
+ 
+ 	ret = request_irq(irq, atmel_spi_interrupt, 0,
+ 			pdev->dev.bus_id, master);
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
+git-avr32.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
