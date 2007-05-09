@@ -1,67 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - integrity-service-api-and-dummy-provider-integrity_dummy_verify_metadata.patch removed from -mm tree
-Date: Wed, 09 May 2007 03:02:42 -0700
-Message-ID: <200705091002.l49A2gBB020727@shell0.pdx.osdl.net>
+Subject: - slim-main-lsm-getprocattr-hook-api-change.patch removed from -mm tree
+Date: Wed, 09 May 2007 03:03:20 -0700
+Message-ID: <200705091003.l49A3K6k020744@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:48703 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754798AbXEIKDP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:03:15 -0400
+	by vger.kernel.org with ESMTP id S1756724AbXEIKDr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 06:03:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zohar@linux.vnet.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     integrity: integrity_dummy_verify_metadata
+     SLIM LSM getprocattr hook API change
 has been removed from the -mm tree.  Its filename was
-     integrity-service-api-and-dummy-provider-integrity_dummy_verify_metadata.patch
+     slim-main-lsm-getprocattr-hook-api-change.patch
 
-This patch was dropped because it was folded into integrity-service-api-and-dummy-provider.patch
+This patch was dropped because it was folded into slim-main-patch.patch
 
 ------------------------------------------------------
-Subject: integrity: integrity_dummy_verify_metadata
+Subject: SLIM LSM getprocattr hook API change
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
 
-The following patch addresses the missing initialization values bug.
+This patch addresses the 2.6.21-rc4 LSM getprocattr hook API change.
 
 Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity_dummy.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ security/slim/slm_main.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN security/integrity_dummy.c~integrity-service-api-and-dummy-provider-integrity_dummy_verify_metadata security/integrity_dummy.c
---- a/security/integrity_dummy.c~integrity-service-api-and-dummy-provider-integrity_dummy_verify_metadata
-+++ a/security/integrity_dummy.c
-@@ -18,15 +18,15 @@
- #include <linux/xattr.h>
+diff -puN security/slim/slm_main.c~slim-main-lsm-getprocattr-hook-api-change security/slim/slm_main.c
+--- a/security/slim/slm_main.c~slim-main-lsm-getprocattr-hook-api-change
++++ a/security/slim/slm_main.c
+@@ -1057,25 +1057,29 @@ static int slm_setprocattr(struct task_s
+ }
+ 
+ static int slm_getprocattr(struct task_struct *tsk,
+-				  char *name, void *value, size_t size)
++				  char *name, char **value)
+ {
+ 	struct slm_tsec_data *tsec = tsk->security;
+ 	size_t len = 0;
++	int buf_size = 31;
++	char buf[buf_size];
+ 
+ 	if (is_kernel_thread(tsk))
+-		len = snprintf(value, size, "KERNEL");
++		len = snprintf(buf, buf_size, "KERNEL");
+ 	else {
+ 		spin_lock(&tsec->lock);
+ 		if (tsec->iac_wx != tsec->iac_r)
+-			len = snprintf(value, size, "GUARD wx:%s r:%s",
++			len = snprintf(buf, buf_size, "GUARD wx:%s r:%s",
+ 				       slm_iac_str[tsec->iac_wx],
+ 				       slm_iac_str[tsec->iac_r]);
+ 		else
+-			len = snprintf(value, size, "%s",
++			len = snprintf(buf, buf_size, "%s",
+ 				       slm_iac_str[tsec->iac_wx]);
+ 		spin_unlock(&tsec->lock);
+ 	}
+-	return min(len, size);
++	*value = kzalloc(len, GFP_KERNEL);
++	memcpy(*value, buf, len);
++	return len;
+ }
  
  /*
-- *  Return the extended attribute
-+ *  Return the extended attribute, if requested.
-  */
- static int dummy_verify_metadata(struct dentry *dentry, char *xattr_name,
- 				 char **xattr_value, int *xattr_value_len,
- 				 int *status)
- {
--	char *value;
--	int size;
--	int error;
-+	char *value = NULL;
-+	int size = 0;
-+	int error = 0;
- 
- 	if (!xattr_value || !xattr_value_len || !status)
- 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
 integrity-service-api-and-dummy-provider.patch
-integrity-service-api-and-dummy-provider-integrity_dummy_verify_metadata.patch
+slim-main-patch.patch
 slim-main-lsm-getprocattr-hook-api-change.patch
 slim-integrity-patch.patch
 integrity-new-hooks.patch
