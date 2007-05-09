@@ -1,72 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:59:22 -0700
-Message-ID: <200705090259.l492xM8k010390@shell0.pdx.osdl.net>
+Subject: - intelfb-fix-ring-space-calculation.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:59:17 -0700
+Message-ID: <200705090259.l492xHrB010379@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51188 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:47318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S970208AbXEIC7Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:25 -0400
+	by vger.kernel.org with ESMTP id S970185AbXEIC7Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: juergen.orczykowski@siemens.com, adaplas@gmail.com, airlied@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: ignore VESA modes if framebuffer is disabled
+     intelfb: fix ring space calculation
 has been removed from the -mm tree.  Its filename was
-     fbdev-ignore-vesa-modes-if-framebuffer-is-disabled.patch
+     intelfb-fix-ring-space-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbdev: ignore VESA modes if framebuffer is disabled
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: intelfb: fix ring space calculation
+From: Orczykowski, Juergen <juergen.orczykowski@siemens.com>
 
-If the option vga=<VESA graphics mode> is added to the boot parameter, it will
-activate graphics mode, but without any framebuffer support, the user is left
-with an unusable display.
+If there is less then RING_MIN_FREE available in the ring buffer,
+dinfo->ring_space is set to a big value forcing wait_ring to return.
 
-Change the behavior such that the user is instead prompted for another mode
-(ala vga=ask).
+Fix by making ring space = 0 if ring space < RING_MIN_FREE.
 
-NOTE: People can always use vbetool to set a graphics mode if this is really
-desired, but the number of people doing this approaches zero.
-
-Signed-off-by: Antonino Daplas <adaplas@pol.net>
+Signed-off-by: Dave Airlie <airlied@gmail.com>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/boot/video.S |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/video/intelfb/intelfbhw.c |   34 +++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 13 deletions(-)
 
-diff -puN arch/i386/boot/video.S~fbdev-ignore-vesa-modes-if-framebuffer-is-disabled arch/i386/boot/video.S
---- a/arch/i386/boot/video.S~fbdev-ignore-vesa-modes-if-framebuffer-is-disabled
-+++ a/arch/i386/boot/video.S
-@@ -496,9 +496,11 @@ mode_set:
- 	cmpb	$VIDEO_FIRST_V7>>8, %ah
- 	jz	setv7
- 	
-+#ifdef CONFIG_FB
- 	cmpb	$VIDEO_FIRST_VESA>>8, %ah
- 	jnc	check_vesa
--	
-+#endif
+diff -puN drivers/video/intelfb/intelfbhw.c~intelfb-fix-ring-space-calculation drivers/video/intelfb/intelfbhw.c
+--- a/drivers/video/intelfb/intelfbhw.c~intelfb-fix-ring-space-calculation
++++ a/drivers/video/intelfb/intelfbhw.c
+@@ -1428,6 +1428,24 @@ static void refresh_ring(struct intelfb_
+ static void reset_state(struct intelfb_info *dinfo);
+ static void do_flush(struct intelfb_info *dinfo);
+ 
++static  u32 get_ring_space(struct intelfb_info *dinfo)
++{
++	u32 ring_space;
 +
- 	orb	%ah, %ah
- 	jz	setmenu
- 	
++	if (dinfo->ring_tail >= dinfo->ring_head)
++		ring_space = dinfo->ring.size -
++			(dinfo->ring_tail - dinfo->ring_head);
++	else
++		ring_space = dinfo->ring_head - dinfo->ring_tail;
++
++	if (ring_space > RING_MIN_FREE)
++		ring_space -= RING_MIN_FREE;
++	else
++		ring_space = 0;
++
++	return ring_space;
++}
++
+ static int
+ wait_ring(struct intelfb_info *dinfo, int n)
+ {
+@@ -1442,13 +1460,8 @@ wait_ring(struct intelfb_info *dinfo, in
+ 	end = jiffies + (HZ * 3);
+ 	while (dinfo->ring_space < n) {
+ 		dinfo->ring_head = INREG(PRI_RING_HEAD) & RING_HEAD_MASK;
+-		if (dinfo->ring_tail + RING_MIN_FREE < dinfo->ring_head)
+-			dinfo->ring_space = dinfo->ring_head
+-				- (dinfo->ring_tail + RING_MIN_FREE);
+-		else
+-			dinfo->ring_space = (dinfo->ring.size +
+-					     dinfo->ring_head)
+-				- (dinfo->ring_tail + RING_MIN_FREE);
++		dinfo->ring_space = get_ring_space(dinfo);
++
+ 		if (dinfo->ring_head != last_head) {
+ 			end = jiffies + (HZ * 3);
+ 			last_head = dinfo->ring_head;
+@@ -1513,12 +1526,7 @@ refresh_ring(struct intelfb_info *dinfo)
+ 
+ 	dinfo->ring_head = INREG(PRI_RING_HEAD) & RING_HEAD_MASK;
+ 	dinfo->ring_tail = INREG(PRI_RING_TAIL) & RING_TAIL_MASK;
+-	if (dinfo->ring_tail + RING_MIN_FREE < dinfo->ring_head)
+-		dinfo->ring_space = dinfo->ring_head
+-			- (dinfo->ring_tail + RING_MIN_FREE);
+-	else
+-		dinfo->ring_space = (dinfo->ring.size + dinfo->ring_head)
+-			- (dinfo->ring_tail + RING_MIN_FREE);
++	dinfo->ring_space = get_ring_space(dinfo);
+ }
+ 
+ static void
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from juergen.orczykowski@siemens.com are
 
 origin.patch
-vt8623fb-new-framebuffer-driver-for-via-vt8623.patch
-vt8623fb-fix-compile-warnings.patch
-vt8623fb-fix-compile-error-if-config_mtrr=n.patch
-arkfb-new-framebuffer-driver-for-ark-logic-cards.patch
-arkfb-fix-compiler-warnings.patch
-arkfb-fix-compile-error-if-config_mtrr=n.patch
-arkfb-new-framebuffer-driver-for-ark-logic-cards-fix.patch
-svgalib-move-fb_get_caps-to-svgalib.patch
