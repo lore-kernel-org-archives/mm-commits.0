@@ -1,150 +1,283 @@
 From: akpm@linux-foundation.org
-Subject: - rcutorture-style-cleanup-avoid-=-null-in-boolean-tests.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:53:51 -0700
-Message-ID: <200705090253.l492rpdt009742@shell0.pdx.osdl.net>
+Subject: - atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:55:05 -0700
+Message-ID: <200705090255.l492t5Di009883@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:56347 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:40019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969854AbXEICzP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:15 -0400
+	by vger.kernel.org with ESMTP id S970009AbXEICzQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:55:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josh@kernel.org, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rcutorture: style cleanup: avoid != NULL in boolean tests
+     atomic.h: add atomic64 cmpxchg, xchg and add_unless to powerpc
 has been removed from the -mm tree.  Its filename was
-     rcutorture-style-cleanup-avoid-=-null-in-boolean-tests.patch
+     atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rcutorture: style cleanup: avoid != NULL in boolean tests
-From: Josh Triplett <josh@kernel.org>
+Subject: atomic.h: add atomic64 cmpxchg, xchg and add_unless to powerpc
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Signed-off-by: Josh Triplett <josh@kernel.org>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+[akpm@linux-foundation.org: build fixes]
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcutorture.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ include/asm-powerpc/atomic.h |    6 -
+ include/asm-powerpc/bitops.h |    1 
+ include/asm-powerpc/system.h |  130 ++++++++++++++++++++++++++++++++-
+ 3 files changed, 131 insertions(+), 6 deletions(-)
 
-diff -puN kernel/rcutorture.c~rcutorture-style-cleanup-avoid-=-null-in-boolean-tests kernel/rcutorture.c
---- a/kernel/rcutorture.c~rcutorture-style-cleanup-avoid-=-null-in-boolean-tests
-+++ a/kernel/rcutorture.c
-@@ -534,7 +534,7 @@ rcu_torture_writer(void *arg)
- 		rp->rtort_mbtest = 1;
- 		rcu_assign_pointer(rcu_torture_current, rp);
- 		smp_wmb();
--		if (old_rp != NULL) {
-+		if (old_rp) {
- 			i = old_rp->rtort_pipe_count;
- 			if (i > RCU_TORTURE_PIPE_LEN)
- 				i = RCU_TORTURE_PIPE_LEN;
-@@ -685,7 +685,7 @@ rcu_torture_printk(char *page)
- 			       atomic_read(&rcu_torture_wcount[i]));
- 	}
- 	cnt += sprintf(&page[cnt], "\n");
--	if (cur_ops->stats != NULL)
-+	if (cur_ops->stats)
- 		cnt += cur_ops->stats(&page[cnt]);
- 	return cnt;
+diff -puN include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc include/asm-powerpc/atomic.h
+--- a/include/asm-powerpc/atomic.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc
++++ a/include/asm-powerpc/atomic.h
+@@ -165,8 +165,7 @@ static __inline__ int atomic_dec_return(
+ 	return t;
  }
-@@ -749,13 +749,13 @@ static void rcu_torture_shuffle_tasks(vo
  
- 	set_cpus_allowed(current, tmp_mask);
+-#define atomic_cmpxchg(v, o, n) \
+-	((__typeof__((v)->counter))cmpxchg(&((v)->counter), (o), (n)))
++#define atomic_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
+ #define atomic_xchg(v, new) (xchg(&((v)->counter), new))
  
--	if (reader_tasks != NULL) {
-+	if (reader_tasks) {
- 		for (i = 0; i < nrealreaders; i++)
- 			if (reader_tasks[i])
- 				set_cpus_allowed(reader_tasks[i], tmp_mask);
- 	}
+ /**
+@@ -414,8 +413,7 @@ static __inline__ long atomic64_dec_if_p
+ 	return t;
+ }
  
--	if (fakewriter_tasks != NULL) {
-+	if (fakewriter_tasks) {
- 		for (i = 0; i < nfakewriters; i++)
- 			if (fakewriter_tasks[i])
- 				set_cpus_allowed(fakewriter_tasks[i], tmp_mask);
-@@ -808,21 +808,21 @@ rcu_torture_cleanup(void)
- 	int i;
+-#define atomic64_cmpxchg(v, o, n) \
+-	((__typeof__((v)->counter))cmpxchg(&((v)->counter), (o), (n)))
++#define atomic64_cmpxchg(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
+ #define atomic64_xchg(v, new) (xchg(&((v)->counter), new))
  
- 	fullstop = 1;
--	if (shuffler_task != NULL) {
-+	if (shuffler_task) {
- 		VERBOSE_PRINTK_STRING("Stopping rcu_torture_shuffle task");
- 		kthread_stop(shuffler_task);
- 	}
- 	shuffler_task = NULL;
+ /**
+diff -puN include/asm-powerpc/bitops.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc include/asm-powerpc/bitops.h
+--- a/include/asm-powerpc/bitops.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc
++++ a/include/asm-powerpc/bitops.h
+@@ -39,7 +39,6 @@
+ #ifdef __KERNEL__
  
--	if (writer_task != NULL) {
-+	if (writer_task) {
- 		VERBOSE_PRINTK_STRING("Stopping rcu_torture_writer task");
- 		kthread_stop(writer_task);
- 	}
- 	writer_task = NULL;
+ #include <linux/compiler.h>
+-#include <asm/atomic.h>
+ #include <asm/asm-compat.h>
+ #include <asm/synch.h>
  
--	if (reader_tasks != NULL) {
-+	if (reader_tasks) {
- 		for (i = 0; i < nrealreaders; i++) {
--			if (reader_tasks[i] != NULL) {
-+			if (reader_tasks[i]) {
- 				VERBOSE_PRINTK_STRING(
- 					"Stopping rcu_torture_reader task");
- 				kthread_stop(reader_tasks[i]);
-@@ -834,9 +834,9 @@ rcu_torture_cleanup(void)
- 	}
- 	rcu_torture_current = NULL;
+diff -puN include/asm-powerpc/system.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc include/asm-powerpc/system.h
+--- a/include/asm-powerpc/system.h~atomich-add-atomic64-cmpxchg-xchg-and-add_unless-to-powerpc
++++ a/include/asm-powerpc/system.h
+@@ -7,7 +7,6 @@
+ #include <linux/kernel.h>
  
--	if (fakewriter_tasks != NULL) {
-+	if (fakewriter_tasks) {
- 		for (i = 0; i < nfakewriters; i++) {
--			if (fakewriter_tasks[i] != NULL) {
-+			if (fakewriter_tasks[i]) {
- 				VERBOSE_PRINTK_STRING(
- 					"Stopping rcu_torture_fakewriter task");
- 				kthread_stop(fakewriter_tasks[i]);
-@@ -847,7 +847,7 @@ rcu_torture_cleanup(void)
- 		fakewriter_tasks = NULL;
- 	}
+ #include <asm/hw_irq.h>
+-#include <asm/atomic.h>
  
--	if (stats_task != NULL) {
-+	if (stats_task) {
- 		VERBOSE_PRINTK_STRING("Stopping rcu_torture_stats task");
- 		kthread_stop(stats_task);
- 	}
-@@ -858,7 +858,7 @@ rcu_torture_cleanup(void)
+ /*
+  * Memory barrier.
+@@ -227,6 +226,29 @@ __xchg_u32(volatile void *p, unsigned lo
+ 	return prev;
+ }
  
- 	rcu_torture_stats_print();  /* -After- the stats thread is stopped! */
++/*
++ * Atomic exchange
++ *
++ * Changes the memory location '*ptr' to be val and returns
++ * the previous value stored there.
++ */
++static __inline__ unsigned long
++__xchg_u32_local(volatile void *p, unsigned long val)
++{
++	unsigned long prev;
++
++	__asm__ __volatile__(
++"1:	lwarx	%0,0,%2 \n"
++	PPC405_ERR77(0,%2)
++"	stwcx.	%3,0,%2 \n\
++	bne-	1b"
++	: "=&r" (prev), "+m" (*(volatile unsigned int *)p)
++	: "r" (p), "r" (val)
++	: "cc", "memory");
++
++	return prev;
++}
++
+ #ifdef CONFIG_PPC64
+ static __inline__ unsigned long
+ __xchg_u64(volatile void *p, unsigned long val)
+@@ -246,6 +268,23 @@ __xchg_u64(volatile void *p, unsigned lo
  
--	if (cur_ops->cleanup != NULL)
-+	if (cur_ops->cleanup)
- 		cur_ops->cleanup();
- 	if (atomic_read(&n_rcu_torture_error))
- 		rcu_torture_print_module_parms("End of test: FAILURE");
-@@ -875,7 +875,7 @@ rcu_torture_init(void)
+ 	return prev;
+ }
++
++static __inline__ unsigned long
++__xchg_u64_local(volatile void *p, unsigned long val)
++{
++	unsigned long prev;
++
++	__asm__ __volatile__(
++"1:	ldarx	%0,0,%2 \n"
++	PPC405_ERR77(0,%2)
++"	stdcx.	%3,0,%2 \n\
++	bne-	1b"
++	: "=&r" (prev), "+m" (*(volatile unsigned long *)p)
++	: "r" (p), "r" (val)
++	: "cc", "memory");
++
++	return prev;
++}
+ #endif
  
- 	/* Process args and tell the world that the torturer is on the job. */
+ /*
+@@ -269,12 +308,33 @@ __xchg(volatile void *ptr, unsigned long
+ 	return x;
+ }
  
--	for (i = 0; cur_ops = torture_ops[i], cur_ops != NULL; i++) {
-+	for (i = 0; cur_ops = torture_ops[i], cur_ops; i++) {
- 		cur_ops = torture_ops[i];
- 		if (strcmp(torture_type, cur_ops->name) == 0) {
- 			break;
-@@ -886,7 +886,7 @@ rcu_torture_init(void)
- 		       torture_type);
- 		return (-EINVAL);
- 	}
--	if (cur_ops->init != NULL)
-+	if (cur_ops->init)
- 		cur_ops->init(); /* no "goto unwind" prior to this point!!! */
++static __inline__ unsigned long
++__xchg_local(volatile void *ptr, unsigned long x, unsigned int size)
++{
++	switch (size) {
++	case 4:
++		return __xchg_u32_local(ptr, x);
++#ifdef CONFIG_PPC64
++	case 8:
++		return __xchg_u64_local(ptr, x);
++#endif
++	}
++	__xchg_called_with_bad_pointer();
++	return x;
++}
+ #define xchg(ptr,x)							     \
+   ({									     \
+      __typeof__(*(ptr)) _x_ = (x);					     \
+      (__typeof__(*(ptr))) __xchg((ptr), (unsigned long)_x_, sizeof(*(ptr))); \
+   })
  
- 	if (nreaders >= 0)
++#define xchg_local(ptr,x)						     \
++  ({									     \
++     __typeof__(*(ptr)) _x_ = (x);					     \
++     (__typeof__(*(ptr))) __xchg_local((ptr),				     \
++     		(unsigned long)_x_, sizeof(*(ptr))); 			     \
++  })
++
+ #define tas(ptr) (xchg((ptr),1))
+ 
+ /*
+@@ -306,6 +366,28 @@ __cmpxchg_u32(volatile unsigned int *p, 
+ 	return prev;
+ }
+ 
++static __inline__ unsigned long
++__cmpxchg_u32_local(volatile unsigned int *p, unsigned long old,
++			unsigned long new)
++{
++	unsigned int prev;
++
++	__asm__ __volatile__ (
++"1:	lwarx	%0,0,%2		# __cmpxchg_u32\n\
++	cmpw	0,%0,%3\n\
++	bne-	2f\n"
++	PPC405_ERR77(0,%2)
++"	stwcx.	%4,0,%2\n\
++	bne-	1b"
++	"\n\
++2:"
++	: "=&r" (prev), "+m" (*p)
++	: "r" (p), "r" (old), "r" (new)
++	: "cc", "memory");
++
++	return prev;
++}
++
+ #ifdef CONFIG_PPC64
+ static __inline__ unsigned long
+ __cmpxchg_u64(volatile unsigned long *p, unsigned long old, unsigned long new)
+@@ -328,6 +410,27 @@ __cmpxchg_u64(volatile unsigned long *p,
+ 
+ 	return prev;
+ }
++
++static __inline__ unsigned long
++__cmpxchg_u64_local(volatile unsigned long *p, unsigned long old,
++			unsigned long new)
++{
++	unsigned long prev;
++
++	__asm__ __volatile__ (
++"1:	ldarx	%0,0,%2		# __cmpxchg_u64\n\
++	cmpd	0,%0,%3\n\
++	bne-	2f\n\
++	stdcx.	%4,0,%2\n\
++	bne-	1b"
++	"\n\
++2:"
++	: "=&r" (prev), "+m" (*p)
++	: "r" (p), "r" (old), "r" (new)
++	: "cc", "memory");
++
++	return prev;
++}
+ #endif
+ 
+ /* This function doesn't exist, so you'll get a linker error
+@@ -350,6 +453,22 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 	return old;
+ }
+ 
++static __inline__ unsigned long
++__cmpxchg_local(volatile void *ptr, unsigned long old, unsigned long new,
++	  unsigned int size)
++{
++	switch (size) {
++	case 4:
++		return __cmpxchg_u32_local(ptr, old, new);
++#ifdef CONFIG_PPC64
++	case 8:
++		return __cmpxchg_u64_local(ptr, old, new);
++#endif
++	}
++	__cmpxchg_called_with_bad_pointer();
++	return old;
++}
++
+ #define cmpxchg(ptr,o,n)						 \
+   ({									 \
+      __typeof__(*(ptr)) _o_ = (o);					 \
+@@ -358,6 +477,15 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 				    (unsigned long)_n_, sizeof(*(ptr))); \
+   })
+ 
++
++#define cmpxchg_local(ptr,o,n)						 \
++  ({									 \
++     __typeof__(*(ptr)) _o_ = (o);					 \
++     __typeof__(*(ptr)) _n_ = (n);					 \
++     (__typeof__(*(ptr))) __cmpxchg_local((ptr), (unsigned long)_o_,	 \
++				    (unsigned long)_n_, sizeof(*(ptr))); \
++  })
++
+ #ifdef CONFIG_PPC64
+ /*
+  * We handle most unaligned accesses in hardware. On the other hand 
 _
 
-Patches currently in -mm which might be from josh@kernel.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
+git-avr32.patch
+linux-kernel-markers-kconfig-menus.patch
+linux-kernel-markers-architecture-independant-code.patch
+linux-kernel-markers-powerpc-optimization.patch
+linux-kernel-markers-i386-optimization.patch
+markers-add-instrumentation-markers-menus-to-avr32.patch
+linux-kernel-markers-non-optimized-architectures.patch
+markers-alpha-and-avr32-supportadd-alpha-markerh-add-arm26-markerh.patch
+linux-kernel-markers-documentation.patch
+markers-define-the-linker-macro-extra_rwdata.patch
+markers-use-extra_rwdata-in-architectures.patch
