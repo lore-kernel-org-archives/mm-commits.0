@@ -1,28 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-mm-deferred-io-support-fix.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:59:32 -0700
-Message-ID: <200705090259.l492xW3n010416@shell0.pdx.osdl.net>
+Subject: - fbdev-hecuba-framebuffer-driver-fix.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:59:38 -0700
+Message-ID: <200705090259.l492xcHv010430@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:51439 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:46056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032719AbXEIC7p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:45 -0400
+	by vger.kernel.org with ESMTP id S1032742AbXEIC7t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:59:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, adaplas@gmail.com, jayakumar.lkml@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make fb_deferred_io_mkwrite() static
+     drivers/video/hecubafb.c: make 4 functions static
 has been removed from the -mm tree.  Its filename was
-     fbdev-mm-deferred-io-support-fix.patch
+     fbdev-hecuba-framebuffer-driver-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make fb_deferred_io_mkwrite() static
+Subject: drivers/video/hecubafb.c: make 4 functions static
 From: Adrian Bunk <bunk@stusta.de>
+
+This patch makes the following needlessly global functions static:
+- hcb_wait_for_ack()
+- hcb_wait_for_ack_clear()
+- apollo_send_data()
+- apollo_send_command()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
@@ -30,23 +36,48 @@ Cc: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fb_defio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/hecubafb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/fb_defio.c~fbdev-mm-deferred-io-support-fix drivers/video/fb_defio.c
---- a/drivers/video/fb_defio.c~fbdev-mm-deferred-io-support-fix
-+++ a/drivers/video/fb_defio.c
-@@ -48,8 +48,8 @@ static struct page* fb_deferred_io_nopag
+diff -puN drivers/video/hecubafb.c~fbdev-hecuba-framebuffer-driver-fix drivers/video/hecubafb.c
+--- a/drivers/video/hecubafb.c~fbdev-hecuba-framebuffer-driver-fix
++++ a/drivers/video/hecubafb.c
+@@ -145,7 +145,7 @@ static int __devinit apollo_init_control
+ 	return 0;
  }
  
- /* vm_ops->page_mkwrite handler */
--int fb_deferred_io_mkwrite(struct vm_area_struct *vma,
--					struct page *page)
-+static int fb_deferred_io_mkwrite(struct vm_area_struct *vma,
-+				  struct page *page)
+-void hcb_wait_for_ack(struct hecubafb_par *par)
++static void hcb_wait_for_ack(struct hecubafb_par *par)
  {
- 	struct fb_info *info = vma->vm_private_data;
- 	struct fb_deferred_io *fbdefio = info->fbdefio;
+ 
+ 	int timeout;
+@@ -161,7 +161,7 @@ void hcb_wait_for_ack(struct hecubafb_pa
+ 	printk(KERN_ERR "timed out waiting for ack\n");
+ }
+ 
+-void hcb_wait_for_ack_clear(struct hecubafb_par *par)
++static void hcb_wait_for_ack_clear(struct hecubafb_par *par)
+ {
+ 
+ 	int timeout;
+@@ -177,7 +177,7 @@ void hcb_wait_for_ack_clear(struct hecub
+ 	printk(KERN_ERR "timed out waiting for clear\n");
+ }
+ 
+-void apollo_send_data(struct hecubafb_par *par, unsigned char data)
++static void apollo_send_data(struct hecubafb_par *par, unsigned char data)
+ {
+ 	/* set data */
+ 	hcb_set_data(par, data);
+@@ -195,7 +195,7 @@ void apollo_send_data(struct hecubafb_pa
+ 	hcb_wait_for_ack_clear(par);
+ }
+ 
+-void apollo_send_command(struct hecubafb_par *par, unsigned char data)
++static void apollo_send_command(struct hecubafb_par *par, unsigned char data)
+ {
+ 	/* command so set CD to high */
+ 	par->ctl &= ~(HCB_NCD_BIT);
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
