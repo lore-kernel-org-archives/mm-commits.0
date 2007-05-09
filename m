@@ -1,100 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - flush_cpu_workqueue-dont-flush-an-empty-worklist.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:51:00 -0700
-Message-ID: <200705092151.l49Lp0PW002847@shell0.pdx.osdl.net>
+Subject: - reimplement-flush_workqueue.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:50:53 -0700
+Message-ID: <200705092150.l49LorVN002838@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:54021 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755285AbXEIVva (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:51:30 -0400
+	by vger.kernel.org with ESMTP id S1758396AbXEIVvc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:51:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ego@in.ibm.com, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flush_cpu_workqueue: don't flush an empty ->worklist
+     reimplement flush_workqueue()
 has been removed from the -mm tree.  Its filename was
-     flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
+     reimplement-flush_workqueue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: flush_cpu_workqueue: don't flush an empty ->worklist
+Subject: reimplement flush_workqueue()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Now when we have ->current_work we can avoid adding a barrier and waiting
-for its completition when cwq's queue is empty.
+Remove ->remove_sequence, ->insert_sequence, and ->work_done from struct
+cpu_workqueue_struct.  To implement flush_workqueue() we can queue a
+barrier work on each CPU and wait for its completition.
 
-Note: this change is also useful if we change flush_workqueue() to also
-check the dead CPUs.
+The barrier is queued under workqueue_mutex to ensure that per cpu
+wq->cpu_wq is alive, we drop this mutex before going to sleep.  If CPU goes
+down while we are waiting for completition, take_over_work() will move the
+barrier on another CPU, and the handler will wake up us eventually.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
-Cc: Gautham Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ kernel/workqueue.c |   70 +++++++++++++++++++------------------------
+ 1 file changed, 31 insertions(+), 39 deletions(-)
 
-diff -puN kernel/workqueue.c~flush_cpu_workqueue-dont-flush-an-empty-worklist kernel/workqueue.c
---- a/kernel/workqueue.c~flush_cpu_workqueue-dont-flush-an-empty-worklist
+diff -puN kernel/workqueue.c~reimplement-flush_workqueue kernel/workqueue.c
+--- a/kernel/workqueue.c~reimplement-flush_workqueue
 +++ a/kernel/workqueue.c
-@@ -404,12 +404,15 @@ static void wq_barrier_func(struct work_
- 	complete(&barr->done);
+@@ -36,23 +36,13 @@
+ /*
+  * The per-CPU workqueue (if single thread, we always use the first
+  * possible cpu).
+- *
+- * The sequence counters are for flush_scheduled_work().  It wants to wait
+- * until all currently-scheduled works are completed, but it doesn't
+- * want to be livelocked by new, incoming ones.  So it waits until
+- * remove_sequence is >= the insert_sequence which pertained when
+- * flush_scheduled_work() was called.
+  */
+ struct cpu_workqueue_struct {
+ 
+ 	spinlock_t lock;
+ 
+-	long remove_sequence;	/* Least-recently added (next to run) */
+-	long insert_sequence;	/* Next to add */
+-
+ 	struct list_head worklist;
+ 	wait_queue_head_t more_work;
+-	wait_queue_head_t work_done;
+ 
+ 	struct workqueue_struct *wq;
+ 	struct task_struct *thread;
+@@ -138,8 +128,6 @@ static int __run_work(struct cpu_workque
+ 		f(work);
+ 
+ 		spin_lock_irqsave(&cwq->lock, flags);
+-		cwq->remove_sequence++;
+-		wake_up(&cwq->work_done);
+ 		ret = 1;
+ 	}
+ 	spin_unlock_irqrestore(&cwq->lock, flags);
+@@ -187,7 +175,6 @@ static void __queue_work(struct cpu_work
+ 	spin_lock_irqsave(&cwq->lock, flags);
+ 	set_wq_data(work, cwq);
+ 	list_add_tail(&work->entry, &cwq->worklist);
+-	cwq->insert_sequence++;
+ 	wake_up(&cwq->more_work);
+ 	spin_unlock_irqrestore(&cwq->lock, flags);
+ }
+@@ -338,8 +325,6 @@ static void run_workqueue(struct cpu_wor
+ 		}
+ 
+ 		spin_lock_irqsave(&cwq->lock, flags);
+-		cwq->remove_sequence++;
+-		wake_up(&cwq->work_done);
+ 	}
+ 	cwq->run_depth--;
+ 	spin_unlock_irqrestore(&cwq->lock, flags);
+@@ -394,6 +379,25 @@ static int worker_thread(void *__cwq)
+ 	return 0;
  }
  
--static inline void init_wq_barrier(struct wq_barrier *barr)
-+static void insert_wq_barrier(struct cpu_workqueue_struct *cwq,
-+					struct wq_barrier *barr, int tail)
- {
- 	INIT_WORK(&barr->work, wq_barrier_func);
- 	__set_bit(WORK_STRUCT_PENDING, work_data_bits(&barr->work));
- 
- 	init_completion(&barr->done);
++struct wq_barrier {
++	struct work_struct	work;
++	struct completion	done;
++};
 +
-+	insert_work(cwq, &barr->work, tail);
- }
- 
++static void wq_barrier_func(struct work_struct *work)
++{
++	struct wq_barrier *barr = container_of(work, struct wq_barrier, work);
++	complete(&barr->done);
++}
++
++static inline void init_wq_barrier(struct wq_barrier *barr)
++{
++	INIT_WORK(&barr->work, wq_barrier_func);
++	__set_bit(WORK_STRUCT_PENDING, work_data_bits(&barr->work));
++
++	init_completion(&barr->done);
++}
++
  static void flush_cpu_workqueue(struct cpu_workqueue_struct *cwq)
-@@ -428,13 +431,20 @@ static void flush_cpu_workqueue(struct c
- 		preempt_disable();
+ {
+ 	if (cwq->thread == current) {
+@@ -401,23 +405,18 @@ static void flush_cpu_workqueue(struct c
+ 		 * Probably keventd trying to flush its own queue. So simply run
+ 		 * it by hand rather than deadlocking.
+ 		 */
++		mutex_unlock(&workqueue_mutex);
+ 		run_workqueue(cwq);
++		mutex_lock(&workqueue_mutex);
  	} else {
- 		struct wq_barrier barr;
-+		int active = 0;
+-		DEFINE_WAIT(wait);
+-		long sequence_needed;
++		struct wq_barrier barr;
  
--		init_wq_barrier(&barr);
--		__queue_work(cwq, &barr.work);
-+		spin_lock_irq(&cwq->lock);
-+		if (!list_empty(&cwq->worklist) || cwq->current_work != NULL) {
-+			insert_wq_barrier(cwq, &barr, 1);
-+			active = 1;
-+		}
-+		spin_unlock_irq(&cwq->lock);
+-		spin_lock_irq(&cwq->lock);
+-		sequence_needed = cwq->insert_sequence;
++		init_wq_barrier(&barr);
++		__queue_work(cwq, &barr.work);
  
--		preempt_enable();	/* Can no longer touch *cwq */
--		wait_for_completion(&barr.done);
--		preempt_disable();
-+		if (active) {
-+			preempt_enable();
-+			wait_for_completion(&barr.done);
-+			preempt_disable();
-+		}
+-		while (sequence_needed - cwq->remove_sequence > 0) {
+-			prepare_to_wait(&cwq->work_done, &wait,
+-					TASK_UNINTERRUPTIBLE);
+-			spin_unlock_irq(&cwq->lock);
+-			schedule();
+-			spin_lock_irq(&cwq->lock);
+-		}
+-		finish_wait(&cwq->work_done, &wait);
+-		spin_unlock_irq(&cwq->lock);
++		mutex_unlock(&workqueue_mutex);
++		wait_for_completion(&barr.done);
++		mutex_lock(&workqueue_mutex);
  	}
  }
  
-@@ -475,8 +485,7 @@ static void wait_on_work(struct cpu_work
+@@ -428,29 +427,25 @@ static void flush_cpu_workqueue(struct c
+  * Forces execution of the workqueue and blocks until its completion.
+  * This is typically used in driver shutdown handlers.
+  *
+- * This function will sample each workqueue's current insert_sequence number and
+- * will sleep until the head sequence is greater than or equal to that.  This
+- * means that we sleep until all works which were queued on entry have been
+- * handled, but we are not livelocked by new incoming ones.
++ * We sleep until all works which were queued on entry have been handled,
++ * but we are not livelocked by new incoming ones.
+  *
+  * This function used to run the workqueues itself.  Now we just wait for the
+  * helper threads to do it.
+  */
+ void fastcall flush_workqueue(struct workqueue_struct *wq)
+ {
+-	might_sleep();
+-
++	mutex_lock(&workqueue_mutex);
+ 	if (is_single_threaded(wq)) {
+ 		/* Always use first cpu's area. */
+ 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, singlethread_cpu));
+ 	} else {
+ 		int cpu;
  
- 	spin_lock_irq(&cwq->lock);
- 	if (unlikely(cwq->current_work == work)) {
--		init_wq_barrier(&barr);
--		insert_work(cwq, &barr.work, 0);
-+		insert_wq_barrier(cwq, &barr, 0);
- 		running = 1;
+-		mutex_lock(&workqueue_mutex);
+ 		for_each_online_cpu(cpu)
+ 			flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
+-		mutex_unlock(&workqueue_mutex);
  	}
- 	spin_unlock_irq(&cwq->lock);
++	mutex_unlock(&workqueue_mutex);
+ }
+ EXPORT_SYMBOL_GPL(flush_workqueue);
+ 
+@@ -463,12 +458,9 @@ static struct task_struct *create_workqu
+ 	spin_lock_init(&cwq->lock);
+ 	cwq->wq = wq;
+ 	cwq->thread = NULL;
+-	cwq->insert_sequence = 0;
+-	cwq->remove_sequence = 0;
+ 	cwq->freezeable = freezeable;
+ 	INIT_LIST_HEAD(&cwq->worklist);
+ 	init_waitqueue_head(&cwq->more_work);
+-	init_waitqueue_head(&cwq->work_done);
+ 
+ 	if (is_single_threaded(wq))
+ 		p = kthread_create(worker_thread, cwq, "%s", wq->name);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
