@@ -1,61 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - maintainers-add-cxacru-website-mailing-list.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:55:20 -0700
-Message-ID: <200705092155.l49LtK9J003261@shell0.pdx.osdl.net>
+Subject: - link_watch-always-schedule-urgent-events.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:55:14 -0700
+Message-ID: <200705092155.l49LtEd0003248@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:44229 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:41754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759509AbXEIV4E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:56:04 -0400
+	by vger.kernel.org with ESMTP id S1759142AbXEIV4Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:56:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: simon@fire.lp0.eu, duncan.sands@math.u-psud.fr, mm-commits@vger.kernel.org
+To: herbert@gondor.apana.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: Add cxacru website/mailing list
+     link_watch: Always schedule urgent events
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-cxacru-website-mailing-list.patch
+     link_watch-always-schedule-urgent-events.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Add cxacru website/mailing list
-From: Simon Arlott <simon@fire.lp0.eu>
+Subject: link_watch: Always schedule urgent events
+From: Herbert Xu <herbert@gondor.apana.org.au>
 
-I've not made any contact with the developers of the sourceforge project,
-but it would be useful for users to able to find the mailing list and the
-website for firmware information even if the driver page is very out of
-date right now.
+Urgent events may be delayed if we already have a non-urgent event queued
+for that device.  This patch changes this by making sure that an urgent
+event is always looked at immediately.
 
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Acked-by: Duncan Sands <duncan.sands@math.u-psud.fr>
+I've replaced the LW_RUNNING flag by LW_URGENT since whether work is
+scheduled is already kept track by the work queue system.
+
+The only complication is that we have to provide some exclusion for the
+setting linkwatch_nextevent which is available in the actual work function.
+
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ net/core/link_watch.c |   60 +++++++++++++++++++++++++++-------------
+ 1 file changed, 41 insertions(+), 19 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-cxacru-website-mailing-list MAINTAINERS
---- a/MAINTAINERS~maintainers-add-cxacru-website-mailing-list
-+++ a/MAINTAINERS
-@@ -1038,6 +1038,8 @@ S:	Maintained
- CONEXANT ACCESSRUNNER USB DRIVER
- P:	Simon Arlott
- M:	cxacru@fire.lp0.eu
-+L:	accessrunner-general@lists.sourceforge.net
-+W:	http://accessrunner.sourceforge.net/
- S:	Maintained
+diff -puN net/core/link_watch.c~link_watch-always-schedule-urgent-events net/core/link_watch.c
+--- a/net/core/link_watch.c~link_watch-always-schedule-urgent-events
++++ a/net/core/link_watch.c
+@@ -26,7 +26,7 @@
  
- CORETEMP HARDWARE MONITORING DRIVER
+ 
+ enum lw_bits {
+-	LW_RUNNING = 0,
++	LW_URGENT = 0,
+ };
+ 
+ static unsigned long linkwatch_flags;
+@@ -95,18 +95,41 @@ static void linkwatch_add_event(struct n
+ }
+ 
+ 
+-static void linkwatch_schedule_work(unsigned long delay)
++static void linkwatch_schedule_work(int urgent)
+ {
+-	if (test_and_set_bit(LW_RUNNING, &linkwatch_flags))
++	unsigned long delay = linkwatch_nextevent - jiffies;
++
++	if (test_bit(LW_URGENT, &linkwatch_flags))
+ 		return;
+ 
+-	/* If we wrap around we'll delay it by at most HZ. */
+-	if (delay > HZ) {
+-		linkwatch_nextevent = jiffies;
++	/* Minimise down-time: drop delay for up event. */
++	if (urgent) {
++		if (test_and_set_bit(LW_URGENT, &linkwatch_flags))
++			return;
+ 		delay = 0;
+ 	}
+ 
+-	schedule_delayed_work(&linkwatch_work, delay);
++	/* If we wrap around we'll delay it by at most HZ. */
++	if (delay > HZ)
++		delay = 0;
++
++	/*
++	 * This is true if we've scheduled it immeditately or if we don't
++	 * need an immediate execution and it's already pending.
++	 */
++	if (schedule_delayed_work(&linkwatch_work, delay) == !delay)
++		return;
++
++	/* Don't bother if there is nothing urgent. */
++	if (!test_bit(LW_URGENT, &linkwatch_flags))
++		return;
++
++	/* It's already running which is good enough. */
++	if (!cancel_delayed_work(&linkwatch_work))
++		return;
++
++	/* Otherwise we reschedule it again for immediate exection. */
++	schedule_delayed_work(&linkwatch_work, 0);
+ }
+ 
+ 
+@@ -123,7 +146,11 @@ static void __linkwatch_run_queue(int ur
+ 	 */
+ 	if (!urgent_only)
+ 		linkwatch_nextevent = jiffies + HZ;
+-	clear_bit(LW_RUNNING, &linkwatch_flags);
++	/* Limit wrap-around effect on delay. */
++	else if (time_after(linkwatch_nextevent, jiffies + HZ))
++		linkwatch_nextevent = jiffies;
++
++	clear_bit(LW_URGENT, &linkwatch_flags);
+ 
+ 	spin_lock_irq(&lweventlist_lock);
+ 	next = lweventlist;
+@@ -166,7 +193,7 @@ static void __linkwatch_run_queue(int ur
+ 	}
+ 
+ 	if (lweventlist)
+-		linkwatch_schedule_work(linkwatch_nextevent - jiffies);
++		linkwatch_schedule_work(0);
+ }
+ 
+ 
+@@ -187,21 +214,16 @@ static void linkwatch_event(struct work_
+ 
+ void linkwatch_fire_event(struct net_device *dev)
+ {
+-	if (!test_and_set_bit(__LINK_STATE_LINKWATCH_PENDING, &dev->state)) {
+-		unsigned long delay;
++	int urgent = linkwatch_urgent_event(dev);
+ 
++	if (!test_and_set_bit(__LINK_STATE_LINKWATCH_PENDING, &dev->state)) {
+ 		dev_hold(dev);
+ 
+ 		linkwatch_add_event(dev);
++	} else if (!urgent)
++		return;
+ 
+-		delay = linkwatch_nextevent - jiffies;
+-
+-		/* Minimise down-time: drop delay for up event. */
+-		if (linkwatch_urgent_event(dev))
+-			delay = 0;
+-
+-		linkwatch_schedule_work(delay);
+-	}
++	linkwatch_schedule_work(urgent);
+ }
+ 
+ EXPORT_SYMBOL(linkwatch_fire_event);
 _
 
-Patches currently in -mm which might be from simon@fire.lp0.eu are
+Patches currently in -mm which might be from herbert@gondor.apana.org.au are
 
 origin.patch
-git-dvb.patch
-cxacru-add-documentation-file.patch
-cxacru-cleanup-sysfs-attribute-code.patch
-cxacru-create-sysfs-attributes-in-atm_start-instead-of-bind.patch
-cxacru-ignore-error-trying-to-start-adsl-in-atm_start.patch
+git-net.patch
+git-wireless.patch
+use-menuconfig-objects-crypto.patch
