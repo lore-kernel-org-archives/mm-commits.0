@@ -1,69 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - hecubafb-kill-sparse-warnings.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:01:06 -0700
-Message-ID: <200705090301.l493163M010650@shell0.pdx.osdl.net>
+Subject: - s3fb-add-sparse-annotations.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:01:04 -0700
+Message-ID: <200705090301.l49314ch010645@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39865 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032775AbXEIDBJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:09 -0400
+	by vger.kernel.org with ESMTP id S1032929AbXEIDBH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hecubafb: kill sparse warnings
+     s3fb: add sparse annotations
 has been removed from the -mm tree.  Its filename was
-     hecubafb-kill-sparse-warnings.patch
+     s3fb-add-sparse-annotations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hecubafb: kill sparse warnings
+Subject: s3fb: add sparse annotations
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-The framebuffer memory is allocated from system RAM (vmalloc'ed).  Add __force
-annotations.
+Add sparse annotations and use fb_read/fb_write and family to access the
+framebuffer.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/hecubafb.c |    6 +++---
+ drivers/video/s3fb.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/hecubafb.c~hecubafb-kill-sparse-warnings drivers/video/hecubafb.c
---- a/drivers/video/hecubafb.c~hecubafb-kill-sparse-warnings
-+++ a/drivers/video/hecubafb.c
-@@ -214,7 +214,7 @@ static void apollo_send_command(struct h
- static void hecubafb_dpy_update(struct hecubafb_par *par)
+diff -puN drivers/video/s3fb.c~s3fb-add-sparse-annotations drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~s3fb-add-sparse-annotations
++++ a/drivers/video/s3fb.c
+@@ -164,7 +164,7 @@ MODULE_PARM_DESC(fasttext, "Enable S3 fa
+ static void s3fb_settile_fast(struct fb_info *info, struct fb_tilemap *map)
  {
- 	int i;
--	unsigned char *buf = par->info->screen_base;
-+	unsigned char *buf = (unsigned char __force *)par->info->screen_base;
+ 	const u8 *font = map->data;
+-	u8* fb = (u8 *) info->screen_base;
++	u8 __iomem *fb = (u8 __iomem *) info->screen_base;
+ 	int i, c;
  
- 	apollo_send_command(par, 0xA0);
- 
-@@ -303,7 +303,7 @@ static ssize_t hecubafb_write(struct fil
- 	if (count) {
- 		char *base_addr;
- 
--		base_addr = info->screen_base;
-+		base_addr = (char __force *)info->screen_base;
- 		count -= copy_from_user(base_addr + p, buf, count);
- 		*ppos += count;
- 		err = -EFAULT;
-@@ -409,7 +409,7 @@ static int __devexit hecubafb_remove(str
- 	if (info) {
- 		fb_deferred_io_cleanup(info);
- 		unregister_framebuffer(info);
--		vfree(info->screen_base);
-+		vfree((void __force *)info->screen_base);
- 		framebuffer_release(info);
+ 	if ((map->width != 8) || (map->height != 16) ||
+@@ -177,7 +177,7 @@ static void s3fb_settile_fast(struct fb_
+ 	fb += 2;
+ 	for (i = 0; i < map->height; i++) {
+ 		for (c = 0; c < map->length; c++) {
+-			fb[c * 4] = font[c * map->height + i];
++			fb_writeb(font[c * map->height + i], fb + c * 4);
+ 		}
+ 		fb += 1024;
  	}
- 	return 0;
+@@ -656,7 +656,7 @@ static int s3fb_set_par(struct fb_info *
+ 	value = ((value * hmul) / 8) - 5;
+ 	vga_wcrt(NULL, 0x3C, (value + 1) / 2);
+ 
+-	memset((u8*)info->screen_base, 0x00, screen_size);
++	memset_io(info->screen_base, 0x00, screen_size);
+ 	/* Device and screen back on */
+ 	svga_wcrt_mask(0x17, 0x80, 0x80);
+ 	svga_wseq_mask(0x01, 0x00, 0x20);
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
