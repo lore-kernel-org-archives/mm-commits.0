@@ -1,170 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:43:20 -0700
-Message-ID: <200705090243.l492hKHk008454@shell0.pdx.osdl.net>
+Subject: - char-cs5535_gpio-add-module_device_table.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:47:28 -0700
+Message-ID: <200705090247.l492lS6K008978@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:39359 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58039 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031793AbXEICr0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:26 -0400
+	by vger.kernel.org with ESMTP id S1031868AbXEICrf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, broonie@sirena.org.uk, jeff@garzik.org, thockin@hockin.org, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, bgardner@wabtec.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix
+     Char: cs5535_gpio, add MODULE_DEVICE_TABLE
 has been removed from the -mm tree.  Its filename was
-     natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix.patch
+     char-cs5535_gpio-add-module_device_table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Char: cs5535_gpio, add MODULE_DEVICE_TABLE
+From: Jiri Slaby <jirislaby@gmail.com>
 
-whitespace bustage
+cs5535_gpio, add MODULE_DEVICE_TABLE
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Mark Brown <broonie@sirena.org.uk>
-Cc: Tim Hockin <thockin@hockin.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Ben Gardner <bgardner@wabtec.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/natsemi.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/char/cs5535_gpio.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix drivers/net/natsemi.c
---- a/drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset-fix
-+++ a/drivers/net/natsemi.c
-@@ -661,13 +661,13 @@ static int netdev_get_regs(struct net_de
- static int netdev_get_eeprom(struct net_device *dev, u8 *buf);
- static const struct ethtool_ops ethtool_ops;
+diff -puN drivers/char/cs5535_gpio.c~char-cs5535_gpio-add-module_device_table drivers/char/cs5535_gpio.c
+--- a/drivers/char/cs5535_gpio.c~char-cs5535_gpio-add-module_device_table
++++ a/drivers/char/cs5535_gpio.c
+@@ -44,6 +44,7 @@ static struct pci_device_id divil_pci[] 
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
+ 	{ } /* NULL entry */
+ };
++MODULE_DEVICE_TABLE(pci, divil_pci);
  
--#define NATSEMI_ATTR(_name) \
--static ssize_t natsemi_show_##_name(struct device *dev, \
--         struct device_attribute *attr, char *buf); \
--	 static ssize_t natsemi_set_##_name(struct device *dev, \
--		struct device_attribute *attr, \
--	        const char *buf, size_t count); \
--	 static DEVICE_ATTR(_name, 0644, natsemi_show_##_name, natsemi_set_##_name)
-+#define NATSEMI_ATTR(_name)						\
-+static ssize_t natsemi_show_##_name(struct device *dev,			\
-+	struct device_attribute *attr, char *buf);			\
-+	static ssize_t natsemi_set_##_name(struct device *dev,		\
-+		struct device_attribute *attr,				\
-+		const char *buf, size_t count);				\
-+	static DEVICE_ATTR(_name, 0644, natsemi_show_##_name, natsemi_set_##_name)
- 
- #define NATSEMI_CREATE_FILE(_dev, _name) \
-          device_create_file(&_dev->dev, &dev_attr_##_name)
-@@ -693,14 +693,14 @@ static ssize_t natsemi_set_dspcfg_workar
- 	int new_setting;
- 	u32 flags;
- 
--        /* Find out the new setting */
--        if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
--                new_setting = 1;
--        else if (!strncmp("off", buf, count - 1)
--                 || !strncmp("0", buf, count - 1))
-+	/* Find out the new setting */
-+	if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
-+		new_setting = 1;
-+	else if (!strncmp("off", buf, count - 1) ||
-+			!strncmp("0", buf, count - 1))
- 		new_setting = 0;
- 	else
--                 return count;
-+		return count;
- 
- 	spin_lock_irqsave(&np->lock, flags);
+ static struct cdev cs5535_gpio_cdev;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-gregkh-driver-remove-struct-subsystem-as-it-is-no-longer-needed-powerpc-fixes.patch
-git-dvb-fixup.patch
+git-dvb.patch
 cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-git-kvm.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-mtd.patch
-git-e1000.patch
-git-e1000-fixup-2.patch
-git-battery-fix.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-git-scsi-misc.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
 auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-swsusp-clean-up-print.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
-upper-32-bits.patch
-lib-hexdump-fix.patch
-pasemi-hardware-rng-driver-tidy.patch
-nbd-check-the-return-value-of-sysfs_create_file-fix.patch
-mutex_lock_interruptible-add-__must_check.patch
-mutex_lock_interruptible-add-__must_check-must-fix.patch
-tty-add-compat_ioctl-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet-fix.patch
-define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
-call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed-vs-reduce-size-of-task_struct-on-64-bit-machines.patch
-kthread-dont-depend-on-work-queues-take-2.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-make-cancel_rearming_delayed_work-reliable-spelling.patch
-declare-struct-ktime.patch
-make-futex_wait-use-an-hrtimer-for-timeout.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-core-code-fix-shared-mapping-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
-lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
-lguest-the-host-code-vs-futex-new-private-futexes.patch
-fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
-fs-convert-core-functions-to-zero_user_page-fix-2.patch
-ntfs-use-zero_user_page-fix.patch
-make-vm-statistics-update-interval-configurable-fix.patch
-rename-thread_info-to-stack-fix.patch
-reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
-integrity-new-hooks-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
-integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
-integrity-ima-integrity_measure-support-tidy.patch
-integrity-ima-integrity_measure-support-fix.patch
-integrity-ima-integrity_measure-support-fix-2.patch
-integrity-tpm-internal-kernel-interface-tidy.patch
-w1-build-fix.patch
+unify-queue_delayed_work-and-queue_delayed_work_on.patch
+vmstat-use-our-own-timer-events-fix.patch
+shrink_slab-handle-bad-shrinkers.patch
