@@ -1,104 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - pretend-cpuset-has-some-form-of-hugetlb-page-reservation.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:50:04 -0700
-Message-ID: <200705092150.l49Lo43H002769@shell0.pdx.osdl.net>
+Subject: - cm4000_cs-fix-error-paths.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:49:55 -0700
+Message-ID: <200705092149.l49LntTp002743@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47874 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60235 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754516AbXEIVuL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:11 -0400
+	by vger.kernel.org with ESMTP id S1754348AbXEIVuG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenchen@google.com, clameter@engr.sgi.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, laforge@gnumonks.org, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pretend cpuset has some form of hugetlb page reservation
+     cm4000_cs: fix error paths
 has been removed from the -mm tree.  Its filename was
-     pretend-cpuset-has-some-form-of-hugetlb-page-reservation.patch
+     cm4000_cs-fix-error-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pretend cpuset has some form of hugetlb page reservation
-From: "Ken Chen" <kenchen@google.com>
+Subject: cm4000_cs: fix error paths
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-When cpuset is configured, it breaks the strict hugetlb page reservation as
-the accounting is done on a global variable.  Such reservation is
-completely rubbish in the presence of cpuset because the reservation is not
-checked against page availability for the current cpuset.  Application can
-still potentially OOM'ed by kernel with lack of free htlb page in cpuset
-that the task is in.  Attempt to enforce strict accounting with cpuset is
-almost impossible (or too ugly) because cpuset is too fluid that task or
-memory node can be dynamically moved between cpusets.
+This patch fixes error paths in module_init and probe functions in cm4000_cs
+and cm4040_cs drivers.
 
-The change of semantics for shared hugetlb mapping with cpuset is
-undesirable.  However, in order to preserve some of the semantics, we fall
-back to check against current free page availability as a best attempt and
-hopefully to minimize the impact of changing semantics that cpuset has on
-hugetlb.
-
-Signed-off-by: Ken Chen <kenchen@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Harald Welte <laforge@gnumonks.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ drivers/char/pcmcia/cm4000_cs.c |    9 +++++++--
+ drivers/char/pcmcia/cm4040_cs.c |    7 ++++++-
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN mm/hugetlb.c~pretend-cpuset-has-some-form-of-hugetlb-page-reservation mm/hugetlb.c
---- a/mm/hugetlb.c~pretend-cpuset-has-some-form-of-hugetlb-page-reservation
-+++ a/mm/hugetlb.c
-@@ -174,6 +174,17 @@ static int __init hugetlb_setup(char *s)
- }
- __setup("hugepages=", hugetlb_setup);
+diff -puN drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-fix-error-paths drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~cm4000_cs-fix-error-paths
++++ a/drivers/char/pcmcia/cm4000_cs.c
+@@ -1881,8 +1881,11 @@ static int cm4000_probe(struct pcmcia_de
+ 	init_waitqueue_head(&dev->readq);
  
-+static unsigned int cpuset_mems_nr(unsigned int *array)
-+{
-+	int node;
-+	unsigned int nr = 0;
-+
-+	for_each_node_mask(node, cpuset_current_mems_allowed)
-+		nr += array[node];
-+
-+	return nr;
-+}
-+
- #ifdef CONFIG_SYSCTL
- static void update_and_free_page(struct page *page)
- {
-@@ -819,6 +830,26 @@ int hugetlb_reserve_pages(struct inode *
- 	chg = region_chg(&inode->i_mapping->private_list, from, to);
- 	if (chg < 0)
- 		return chg;
-+	/*
-+	 * When cpuset is configured, it breaks the strict hugetlb page
-+	 * reservation as the accounting is done on a global variable. Such
-+	 * reservation is completely rubbish in the presence of cpuset because
-+	 * the reservation is not checked against page availability for the
-+	 * current cpuset. Application can still potentially OOM'ed by kernel
-+	 * with lack of free htlb page in cpuset that the task is in.
-+	 * Attempt to enforce strict accounting with cpuset is almost
-+	 * impossible (or too ugly) because cpuset is too fluid that
-+	 * task or memory node can be dynamically moved between cpusets.
-+	 *
-+	 * The change of semantics for shared hugetlb mapping with cpuset is
-+	 * undesirable. However, in order to preserve some of the semantics,
-+	 * we fall back to check against current free page availability as
-+	 * a best attempt and hopefully to minimize the impact of changing
-+	 * semantics that cpuset has.
-+	 */
-+	if (chg > cpuset_mems_nr(free_huge_pages_node))
-+		return -ENOMEM;
-+
- 	ret = hugetlb_acct_memory(chg);
- 	if (ret < 0)
+ 	ret = cm4000_config(link, i);
+-	if (ret)
++	if (ret) {
++		dev_table[i] = NULL;
++		kfree(dev);
  		return ret;
++	}
+ 
+ 	class_device_create(cmm_class, NULL, MKDEV(major, i), NULL,
+ 			    "cmm%d", i);
+@@ -1907,7 +1910,7 @@ static void cm4000_detach(struct pcmcia_
+ 	cm4000_release(link);
+ 
+ 	dev_table[devno] = NULL;
+- 	kfree(dev);
++	kfree(dev);
+ 
+ 	class_device_destroy(cmm_class, MKDEV(major, devno));
+ 
+@@ -1956,12 +1959,14 @@ static int __init cmm_init(void)
+ 	if (major < 0) {
+ 		printk(KERN_WARNING MODULE_NAME
+ 			": could not get major number\n");
++		class_destroy(cmm_class);
+ 		return major;
+ 	}
+ 
+ 	rc = pcmcia_register_driver(&cm4000_driver);
+ 	if (rc < 0) {
+ 		unregister_chrdev(major, DEVICE_NAME);
++		class_destroy(cmm_class);
+ 		return rc;
+ 	}
+ 
+diff -puN drivers/char/pcmcia/cm4040_cs.c~cm4000_cs-fix-error-paths drivers/char/pcmcia/cm4040_cs.c
+--- a/drivers/char/pcmcia/cm4040_cs.c~cm4000_cs-fix-error-paths
++++ a/drivers/char/pcmcia/cm4040_cs.c
+@@ -636,8 +636,11 @@ static int reader_probe(struct pcmcia_de
+ 	setup_timer(&dev->poll_timer, cm4040_do_poll, 0);
+ 
+ 	ret = reader_config(link, i);
+-	if (ret)
++	if (ret) {
++		dev_table[i] = NULL;
++		kfree(dev);
+ 		return ret;
++	}
+ 
+ 	class_device_create(cmx_class, NULL, MKDEV(major, i), NULL,
+ 			    "cmx%d", i);
+@@ -708,12 +711,14 @@ static int __init cm4040_init(void)
+ 	if (major < 0) {
+ 		printk(KERN_WARNING MODULE_NAME
+ 			": could not get major number\n");
++		class_destroy(cmx_class);
+ 		return major;
+ 	}
+ 
+ 	rc = pcmcia_register_driver(&reader_driver);
+ 	if (rc < 0) {
+ 		unregister_chrdev(major, DEVICE_NAME);
++		class_destroy(cmx_class);
+ 		return rc;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
+git-alsa.patch
+auth_gss-unregister-gss_domain-when-unloading-module.patch
+fault-injection-disable-stacktrace-filter-for-x86-64.patch
