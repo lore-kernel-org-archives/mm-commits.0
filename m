@@ -1,99 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - fix-compilation-of-drivers-with-o0.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:45:05 -0700
-Message-ID: <200705090245.l492j5JY008702@shell0.pdx.osdl.net>
+Subject: - rcutorture-mark-rcu_torture_init-as-__init.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:45:39 -0700
+Message-ID: <200705090245.l492jdoW008761@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38386 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:53512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S969574AbXEICp3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:29 -0400
+	by vger.kernel.org with ESMTP id S1031543AbXEICpn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:45:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xschmi00@stud.feec.vutbr.cz, mschmidt@redhat.com, mm-commits@vger.kernel.org
+To: josh@freedesktop.org, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix compilation of drivers with -O0
+     rcutorture: Mark rcu_torture_init as __init
 has been removed from the -mm tree.  Its filename was
-     fix-compilation-of-drivers-with-o0.patch
+     rcutorture-mark-rcu_torture_init-as-__init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix compilation of drivers with -O0
-From: Michal Schmidt <xschmi00@stud.feec.vutbr.cz>
+Subject: rcutorture: Mark rcu_torture_init as __init
+From: Josh Triplett <josh@freedesktop.org>
 
-It is sometimes useful to compile individual drivers with optimization
-disabled for easier debugging.  Currently drivers which use htonl() and
-similar functions don't compile with -O0.  This patch fixes it.  It also
-removes obsolete and misleading comments.  This header is not for
-userspace, so we don't have to care about strange programs these comments
-mention.
+The corresponding rcu_torture_cleanup cannot get marked as __exit, because
+rcu_torture_init uses it to clean up if init fails.
 
-(akpm: -O0 probably isn't a good idea, but this code looks pretty crufty and
-unuseful)
-
-Signed-off-by: Michal Schmidt <mschmidt@redhat.com>
+Signed-off-by: Josh Triplett <josh@freedesktop.org>
+Acked-by: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/byteorder/generic.h |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ kernel/rcutorture.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/byteorder/generic.h~fix-compilation-of-drivers-with-o0 include/linux/byteorder/generic.h
---- a/include/linux/byteorder/generic.h~fix-compilation-of-drivers-with-o0
-+++ a/include/linux/byteorder/generic.h
-@@ -124,19 +124,8 @@
- #define be32_to_cpus __be32_to_cpus
- #define cpu_to_be16s __cpu_to_be16s
- #define be16_to_cpus __be16_to_cpus
--#endif
+diff -puN kernel/rcutorture.c~rcutorture-mark-rcu_torture_init-as-__init kernel/rcutorture.c
+--- a/kernel/rcutorture.c~rcutorture-mark-rcu_torture_init-as-__init
++++ a/kernel/rcutorture.c
+@@ -866,7 +866,7 @@ rcu_torture_cleanup(void)
+ 		rcu_torture_print_module_parms("End of test: SUCCESS");
+ }
  
--
--#if defined(__KERNEL__)
- /*
-- * Handle ntohl and suches. These have various compatibility
-- * issues - like we want to give the prototype even though we
-- * also have a macro for them in case some strange program
-- * wants to take the address of the thing or something..
-- *
-- * Note that these used to return a "long" in libc5, even though
-- * long is often 64-bit these days.. Thus the casts.
-- *
-  * They have to be macros in order to do the constant folding
-  * correctly - if the argument passed into a inline function
-  * it is no longer constant according to gcc..
-@@ -147,17 +136,6 @@
- #undef htonl
- #undef htons
- 
--/*
-- * Do the prototypes. Somebody might want to take the
-- * address or some such sick thing..
-- */
--extern __u32			ntohl(__be32);
--extern __be32			htonl(__u32);
--extern __u16			ntohs(__be16);
--extern __be16			htons(__u16);
--
--#if defined(__GNUC__) && defined(__OPTIMIZE__)
--
- #define ___htonl(x) __cpu_to_be32(x)
- #define ___htons(x) __cpu_to_be16(x)
- #define ___ntohl(x) __be32_to_cpu(x)
-@@ -168,9 +146,6 @@ extern __be16			htons(__u16);
- #define htons(x) ___htons(x)
- #define ntohs(x) ___ntohs(x)
- 
--#endif /* OPTIMIZE */
--
- #endif /* KERNEL */
- 
--
- #endif /* _LINUX_BYTEORDER_GENERIC_H */
+-static int
++static int __init
+ rcu_torture_init(void)
+ {
+ 	int i;
 _
 
-Patches currently in -mm which might be from xschmi00@stud.feec.vutbr.cz are
+Patches currently in -mm which might be from josh@freedesktop.org are
 
 origin.patch
