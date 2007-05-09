@@ -1,93 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - sunrpc-fix-error-path-in-module_init.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:52:59 -0700
-Message-ID: <200705092152.l49LqxKI003041@shell0.pdx.osdl.net>
+Subject: - knfsd-simplify-a-while-condition-in-svcsockc.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:53:13 -0700
+Message-ID: <200705092153.l49LrDdq003066@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:34174 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:49093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759470AbXEIVx2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:28 -0400
+	by vger.kernel.org with ESMTP id S1759465AbXEIVxg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:53:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sunrpc: fix error path in module_init
+     knfsd: simplify a 'while' condition in svcsock.c
 has been removed from the -mm tree.  Its filename was
-     sunrpc-fix-error-path-in-module_init.patch
+     knfsd-simplify-a-while-condition-in-svcsockc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sunrpc: fix error path in module_init
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: knfsd: simplify a 'while' condition in svcsock.c
+From: NeilBrown <neilb@suse.de>
 
-register_rpc_pipefs() needs to clean up rpc_inode_cache
-by kmem_cache_destroy() on register_filesystem() failure.
+This while loop has an overly complex condition, which performs a couple of
+assignments.  This hurts readability.
 
-init_sunrpc() needs to unregister rpc_pipe_fs by unregister_rpc_pipefs()
-when rpc_init_mempool() returns error.
+We don't really need a loop at all.  We can just return -EAGAIN and (providing
+we set SK_DATA), the function will be called again.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+So discard the loop, make the complex conditional become a few clear function
+calls, and hopefully improve readability.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/rpc_pipe.c    |    9 ++++++++-
- net/sunrpc/sunrpc_syms.c |    6 ++++--
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ net/sunrpc/svcsock.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN net/sunrpc/rpc_pipe.c~sunrpc-fix-error-path-in-module_init net/sunrpc/rpc_pipe.c
---- a/net/sunrpc/rpc_pipe.c~sunrpc-fix-error-path-in-module_init
-+++ a/net/sunrpc/rpc_pipe.c
-@@ -845,6 +845,8 @@ init_once(void * foo, struct kmem_cache 
+diff -puN net/sunrpc/svcsock.c~knfsd-simplify-a-while-condition-in-svcsockc net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~knfsd-simplify-a-while-condition-in-svcsockc
++++ a/net/sunrpc/svcsock.c
+@@ -788,15 +788,20 @@ svc_udp_recvfrom(struct svc_rqst *rqstp)
+ 	}
  
- int register_rpc_pipefs(void)
- {
-+	int err;
+ 	clear_bit(SK_DATA, &svsk->sk_flags);
+-	while ((err = kernel_recvmsg(svsk->sk_sock, &msg, NULL,
+-				     0, 0, MSG_PEEK | MSG_DONTWAIT)) < 0 ||
+-	       (skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err)) == NULL) {
+-		if (err == -EAGAIN) {
+-			svc_sock_received(svsk);
+-			return err;
++	skb = NULL;
++	err = kernel_recvmsg(svsk->sk_sock, &msg, NULL,
++			     0, 0, MSG_PEEK | MSG_DONTWAIT);
++	if (err >= 0)
++		skb = skb_recv_datagram(svsk->sk_sk, 0, 1, &err);
 +
- 	rpc_inode_cachep = kmem_cache_create("rpc_inode_cache",
- 				sizeof(struct rpc_inode),
- 				0, (SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
-@@ -852,7 +854,12 @@ int register_rpc_pipefs(void)
- 				init_once, NULL);
- 	if (!rpc_inode_cachep)
- 		return -ENOMEM;
--	register_filesystem(&rpc_pipe_fs_type);
-+	err = register_filesystem(&rpc_pipe_fs_type);
-+	if (err) {
-+		kmem_cache_destroy(rpc_inode_cachep);
-+		return err;
-+	}
-+
- 	return 0;
- }
- 
-diff -puN net/sunrpc/sunrpc_syms.c~sunrpc-fix-error-path-in-module_init net/sunrpc/sunrpc_syms.c
---- a/net/sunrpc/sunrpc_syms.c~sunrpc-fix-error-path-in-module_init
-+++ a/net/sunrpc/sunrpc_syms.c
-@@ -146,9 +146,11 @@ init_sunrpc(void)
- 	int err = register_rpc_pipefs();
- 	if (err)
- 		goto out;
--	err = rpc_init_mempool() != 0;
--	if (err)
-+	err = rpc_init_mempool();
-+	if (err) {
-+		unregister_rpc_pipefs();
- 		goto out;
-+	}
- #ifdef RPC_DEBUG
- 	rpc_register_sysctl();
- #endif
++	if (skb == NULL) {
++		if (err != -EAGAIN) {
++			/* possibly an icmp error */
++			dprintk("svc: recvfrom returned error %d\n", -err);
++			set_bit(SK_DATA, &svsk->sk_flags);
+ 		}
+-		/* possibly an icmp error */
+-		dprintk("svc: recvfrom returned error %d\n", -err);
++		svc_sock_received(svsk);
++		return -EAGAIN;
+ 	}
+ 	rqstp->rq_addrlen = sizeof(rqstp->rq_addr);
+ 	if (skb->tstamp.tv64 == 0) {
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-git-alsa.patch
-auth_gss-unregister-gss_domain-when-unloading-module.patch
-fault-injection-disable-stacktrace-filter-for-x86-64.patch
+freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
+nlmclnt_recovery-dont-use-clone_sighand.patch
+introduce-freezer-flags-rev-2.patch
+git-md-accel.patch
+md-dm-reduce-stack-usage-with-stacked-block-devices.patch
