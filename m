@@ -1,76 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - krealloc-fix-kerneldoc-comments.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:48:18 -0700
-Message-ID: <200705092148.l49LmICP002574@shell0.pdx.osdl.net>
+Subject: - dm-log-report-fault-status.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:48:48 -0700
+Message-ID: <200705092148.l49Lmmrs002628@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:37957 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759352AbXEIVsv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:51 -0400
+	by vger.kernel.org with ESMTP id S1757998AbXEIVs4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:48:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, clameter@sgi.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: jbrassow@redhat.com, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     krealloc: fix kerneldoc comments
+     dm log: report fault status
 has been removed from the -mm tree.  Its filename was
-     krealloc-fix-kerneldoc-comments.patch
+     dm-log-report-fault-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: krealloc: fix kerneldoc comments
-From: Pekka J Enberg <penberg@cs.helsinki.fi>
+Subject: dm log: report fault status
+From: Jonathan E Brassow <jbrassow@redhat.com>
 
-No "blank" (or "*") line is allowed between the function name and lines for
-it parameter(s).
+This patch reports the status of the log device so that userspace can detect
+the error and take appropriate action.
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Jonathan E Brassow <jbrassow@redhat.com>
+Signed-off-by: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    1 -
- mm/slub.c |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/md/dm-log.c   |    7 ++++---
+ drivers/md/dm-raid1.c |   11 +++++++----
+ 2 files changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN mm/slab.c~krealloc-fix-kerneldoc-comments mm/slab.c
---- a/mm/slab.c~krealloc-fix-kerneldoc-comments
-+++ a/mm/slab.c
-@@ -3742,7 +3742,6 @@ EXPORT_SYMBOL(__kmalloc);
+diff -puN drivers/md/dm-log.c~dm-log-report-fault-status drivers/md/dm-log.c
+--- a/drivers/md/dm-log.c~dm-log-report-fault-status
++++ a/drivers/md/dm-log.c
+@@ -615,6 +615,7 @@ static int core_status(struct dirty_log 
  
- /**
-  * krealloc - reallocate memory. The contents will remain unchanged.
-- *
-  * @p: object to reallocate memory for.
-  * @new_size: how many bytes of memory are required.
-  * @flags: the type of memory to allocate.
-diff -puN mm/slub.c~krealloc-fix-kerneldoc-comments mm/slub.c
---- a/mm/slub.c~krealloc-fix-kerneldoc-comments
-+++ a/mm/slub.c
-@@ -2286,7 +2286,6 @@ EXPORT_SYMBOL(kmem_cache_shrink);
+ 	switch(status) {
+ 	case STATUSTYPE_INFO:
++		DMEMIT("1 %s", log->type->name);
+ 		break;
  
- /**
-  * krealloc - reallocate memory. The contents will remain unchanged.
-- *
-  * @p: object to reallocate memory for.
-  * @new_size: how many bytes of memory are required.
-  * @flags: the type of memory to allocate.
+ 	case STATUSTYPE_TABLE:
+@@ -630,17 +631,17 @@ static int disk_status(struct dirty_log 
+ 		       char *result, unsigned int maxlen)
+ {
+ 	int sz = 0;
+-	char buffer[16];
+ 	struct log_c *lc = log->context;
+ 
+ 	switch(status) {
+ 	case STATUSTYPE_INFO:
++		DMEMIT("3 %s %s %c", log->type->name, lc->log_dev->name,
++		       lc->log_dev_failed ? 'D' : 'A');
+ 		break;
+ 
+ 	case STATUSTYPE_TABLE:
+-		format_dev_t(buffer, lc->log_dev->bdev->bd_dev);
+ 		DMEMIT("%s %u %s %u ", log->type->name,
+-		       lc->sync == DEFAULTSYNC ? 2 : 3, buffer,
++		       lc->sync == DEFAULTSYNC ? 2 : 3, lc->log_dev->name,
+ 		       lc->region_size);
+ 		DMEMIT_SYNC;
+ 	}
+diff -puN drivers/md/dm-raid1.c~dm-log-report-fault-status drivers/md/dm-raid1.c
+--- a/drivers/md/dm-raid1.c~dm-log-report-fault-status
++++ a/drivers/md/dm-raid1.c
+@@ -1205,11 +1205,9 @@ static void mirror_resume(struct dm_targ
+ static int mirror_status(struct dm_target *ti, status_type_t type,
+ 			 char *result, unsigned int maxlen)
+ {
+-	unsigned int m, sz;
++	unsigned int m, sz = 0;
+ 	struct mirror_set *ms = (struct mirror_set *) ti->private;
+ 
+-	sz = ms->rh.log->type->status(ms->rh.log, type, result, maxlen);
+-
+ 	switch (type) {
+ 	case STATUSTYPE_INFO:
+ 		DMEMIT("%d ", ms->nr_mirrors);
+@@ -1220,9 +1218,14 @@ static int mirror_status(struct dm_targe
+ 			(unsigned long long)ms->rh.log->type->
+ 				get_sync_count(ms->rh.log),
+ 			(unsigned long long)ms->nr_regions);
++
++		sz = ms->rh.log->type->status(ms->rh.log, type, result, maxlen);
++
+ 		break;
+ 
+ 	case STATUSTYPE_TABLE:
++		sz = ms->rh.log->type->status(ms->rh.log, type, result, maxlen);
++
+ 		DMEMIT("%d", ms->nr_mirrors);
+ 		for (m = 0; m < ms->nr_mirrors; m++)
+ 			DMEMIT(" %s %llu", ms->mirror[m].dev->name,
+@@ -1234,7 +1237,7 @@ static int mirror_status(struct dm_targe
+ 
+ static struct target_type mirror_target = {
+ 	.name	 = "mirror",
+-	.version = {1, 0, 2},
++	.version = {1, 0, 3},
+ 	.module	 = THIS_MODULE,
+ 	.ctr	 = mirror_ctr,
+ 	.dtr	 = mirror_dtr,
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from jbrassow@redhat.com are
 
 origin.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
-unionfs-fix-slab-abuses-with-krealloc.patch
-revoke-special-mmap-handling.patch
-revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-slab-leaks3-default-y.patch
