@@ -1,66 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - rivafb-fix-io-access.patch removed from -mm tree
-Date: Tue, 08 May 2007 20:00:56 -0700
-Message-ID: <200705090300.l4930u70010627@shell0.pdx.osdl.net>
+Subject: - fbdev-kill-sparse-warning-in-deferred-io.patch removed from -mm tree
+Date: Tue, 08 May 2007 20:00:58 -0700
+Message-ID: <200705090300.l4930wL0010632@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:60951 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45554 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032929AbXEIDA7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:00:59 -0400
+	by vger.kernel.org with ESMTP id S1032933AbXEIDBA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 23:01:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rivafb: fix IO access
+     fbdev: kill sparse warning in deferred IO
 has been removed from the -mm tree.  Its filename was
-     rivafb-fix-io-access.patch
+     fbdev-kill-sparse-warning-in-deferred-io.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rivafb: fix IO access
+Subject: fbdev: kill sparse warning in deferred IO
 From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Fix IO access, with the following sparse warnings:
+Kill the following in fb_defio.c:
 
-drivers/video/riva/fbdev.c:320:25: warning: dereference of noderef expression
-drivers/video/riva/fbdev.c:321:29: warning: dereference of noderef expression
-drivers/video/riva/fbdev.c:327:18: warning: dereference of noderef expression
-drivers/video/riva/fbdev.c:328:15: warning: dereference of noderef expression
+drivers/video/fb_defio.c:40:43: warning: incorrect type in argument 1 (different address spaces)
+drivers/video/fb_defio.c:40:43:    expected void *addr
+drivers/video/fb_defio.c:40:43:    got char [noderef] *screen_base<asn:2>
+
+The framebuffer memory of these types of devices are allocated from system
+RAM.
 
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/riva/fbdev.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/fb_defio.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/riva/fbdev.c~rivafb-fix-io-access drivers/video/riva/fbdev.c
---- a/drivers/video/riva/fbdev.c~rivafb-fix-io-access
-+++ a/drivers/video/riva/fbdev.c
-@@ -317,15 +317,15 @@ static int riva_bl_update_status(struct 
- 	else
- 		level = bd->props.brightness;
+diff -puN drivers/video/fb_defio.c~fbdev-kill-sparse-warning-in-deferred-io drivers/video/fb_defio.c
+--- a/drivers/video/fb_defio.c~fbdev-kill-sparse-warning-in-deferred-io
++++ a/drivers/video/fb_defio.c
+@@ -32,12 +32,14 @@ static struct page* fb_deferred_io_nopag
+ 	unsigned long offset;
+ 	struct page *page;
+ 	struct fb_info *info = vma->vm_private_data;
++	/* info->screen_base is in System RAM */
++	void *screen_base = (void __force *) info->screen_base;
  
--	tmp_pmc = par->riva.PMC[0x10F0/4] & 0x0000FFFF;
--	tmp_pcrt = par->riva.PCRTC0[0x081C/4] & 0xFFFFFFFC;
-+	tmp_pmc = NV_RD32(par->riva.PMC, 0x10F0) & 0x0000FFFF;
-+	tmp_pcrt = NV_RD32(par->riva.PCRTC0, 0x081C) & 0xFFFFFFFC;
- 	if(level > 0) {
- 		tmp_pcrt |= 0x1;
- 		tmp_pmc |= (1 << 31); /* backlight bit */
- 		tmp_pmc |= riva_bl_get_level_brightness(par, level) << 16; /* level */
- 	}
--	par->riva.PCRTC0[0x081C/4] = tmp_pcrt;
--	par->riva.PMC[0x10F0/4] = tmp_pmc;
-+	NV_WR32(par->riva.PCRTC0, 0x081C, tmp_pcrt);
-+	NV_WR32(par->riva.PMC, 0x10F0, tmp_pmc);
+ 	offset = (vaddr - vma->vm_start) + (vma->vm_pgoff << PAGE_SHIFT);
+ 	if (offset >= info->fix.smem_len)
+ 		return NOPAGE_SIGBUS;
  
- 	return 0;
- }
+-	page = vmalloc_to_page(info->screen_base + offset);
++	page = vmalloc_to_page(screen_base + offset);
+ 	if (!page)
+ 		return NOPAGE_OOM;
+ 
 _
 
 Patches currently in -mm which might be from adaplas@gmail.com are
