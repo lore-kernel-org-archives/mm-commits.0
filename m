@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-rename-and-export-bad_srat-to-kernel-code.patch added to -mm tree
-Date: Wed, 09 May 2007 16:13:18 -0700
-Message-ID: <200705092313.l49NDIu9005298@shell0.pdx.osdl.net>
+Subject: + x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch added to -mm tree
+Date: Wed, 09 May 2007 16:13:20 -0700
+Message-ID: <200705092313.l49NDK2j005305@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57021 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:52642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756142AbXEIXN0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 19:13:26 -0400
+	by vger.kernel.org with ESMTP id S1756608AbXEIXNa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 19:13:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, ak@suse.de
+Cc: akpm@linux-foundation.org, ak@suse.de, rientjes@google.com
 
 
 The patch titled
-     x86_64: rename and export bad_srat to kernel code
+     x86_64-rename-and-export-bad_srat-to-kernel-code-fix
 has been added to the -mm tree.  Its filename is
-     x86_64-rename-and-export-bad_srat-to-kernel-code.patch
+     x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,140 +25,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: rename and export bad_srat to kernel code
-From: David Rientjes <rientjes@google.com>
+Subject: x86_64-rename-and-export-bad_srat-to-kernel-code-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Rename bad_srat() to disable_srat() and include it in asm-x86_64/numa.h so
-that it can be referenced from generic x86-64 boot code.  It's needed for NUMA
-emulation disabling of active SRAT regions and apicid_to_node[] population.
+I tend to think that if we're going to implement one version in C then we
+might as well implement both in C.  Plus static inlines are generally nicer
+than macros - typechecking and stuff.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/srat.c     |   16 ++++++++--------
- include/asm-x86_64/numa.h |    6 ++++++
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ include/asm-x86_64/numa.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/mm/srat.c~x86_64-rename-and-export-bad_srat-to-kernel-code arch/x86_64/mm/srat.c
---- a/arch/x86_64/mm/srat.c~x86_64-rename-and-export-bad_srat-to-kernel-code
-+++ a/arch/x86_64/mm/srat.c
-@@ -74,7 +74,7 @@ static __init void cutoff_node(int i, un
- 	}
- }
- 
--static __init void bad_srat(void)
-+void __init disable_srat(void)
- {
- 	int i;
- 	printk(KERN_ERR "SRAT: SRAT not used.\n");
-@@ -133,7 +133,7 @@ acpi_numa_processor_affinity_init(struct
- 	if (srat_disabled())
- 		return;
- 	if (pa->header.length != sizeof(struct acpi_srat_cpu_affinity)) {
--		bad_srat();
-+		disable_srat();
- 		return;
- 	}
- 	if ((pa->flags & ACPI_SRAT_CPU_ENABLED) == 0)
-@@ -142,7 +142,7 @@ acpi_numa_processor_affinity_init(struct
- 	node = setup_node(pxm);
- 	if (node < 0) {
- 		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
--		bad_srat();
-+		disable_srat();
- 		return;
- 	}
- 	apicid_to_node[pa->apic_id] = node;
-@@ -289,7 +289,7 @@ acpi_numa_memory_affinity_init(struct ac
- 	if (srat_disabled())
- 		return;
- 	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
--		bad_srat();
-+		disable_srat();
- 		return;
- 	}
- 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
-@@ -303,7 +303,7 @@ acpi_numa_memory_affinity_init(struct ac
- 	node = setup_node(pxm);
- 	if (node < 0) {
- 		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
--		bad_srat();
-+		disable_srat();
- 		return;
- 	}
- 	i = conflicting_nodes(start, end);
-@@ -316,7 +316,7 @@ acpi_numa_memory_affinity_init(struct ac
- 		       "SRAT: PXM %d (%lx-%lx) overlaps with PXM %d (%Lx-%Lx)\n",
- 		       pxm, start, end, node_to_pxm(i),
- 			nodes[i].start, nodes[i].end);
--		bad_srat();
-+		disable_srat();
- 		return;
- 	}
- 	nd = &nodes[node];
-@@ -407,7 +407,7 @@ int __init acpi_scan_nodes(unsigned long
- 		return -1;
- 
- 	if (!nodes_cover_memory()) {
--		bad_srat();
-+		disable_srat();
- 		return -1;
- 	}
- 
-@@ -415,7 +415,7 @@ int __init acpi_scan_nodes(unsigned long
- 	if (memnode_shift < 0) {
- 		printk(KERN_ERR
- 		     "SRAT: No NUMA node hash function found. Contact maintainer\n");
--		bad_srat();
-+		disable_srat();
- 		return -1;
- 	}
- 
-diff -puN include/asm-x86_64/numa.h~x86_64-rename-and-export-bad_srat-to-kernel-code include/asm-x86_64/numa.h
---- a/include/asm-x86_64/numa.h~x86_64-rename-and-export-bad_srat-to-kernel-code
+diff -puN include/asm-x86_64/numa.h~x86_64-rename-and-export-bad_srat-to-kernel-code-fix include/asm-x86_64/numa.h
+--- a/include/asm-x86_64/numa.h~x86_64-rename-and-export-bad_srat-to-kernel-code-fix
 +++ a/include/asm-x86_64/numa.h
-@@ -33,6 +33,12 @@ static inline void clear_node_cpumask(in
- #define clear_node_cpumask(cpu) do {} while (0)
+@@ -36,7 +36,7 @@ static inline void clear_node_cpumask(in
+ #ifdef CONFIG_ACPI_NUMA
+ extern void __init disable_srat(void);
+ #else
+-#define disable_srat()	do {} while (0)
++static inline void disable_srat(void) { }
  #endif
  
-+#ifdef CONFIG_ACPI_NUMA
-+extern void __init disable_srat(void);
-+#else
-+#define disable_srat()	do {} while (0)
-+#endif
-+
  #define NUMA_NO_NODE 0xff
- 
- #endif
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa.patch
-powerpc-ps3-use-__maybe_unused.patch
-mips-excite-use-__maybe_unused.patch
-mips-tlbex-use-__maybe_unused.patch
-scsi-fix-ambiguous-gdthtable-definition.patch
-x86_64-rename-and-export-bad_srat-to-kernel-code.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
 x86_64-rename-and-export-bad_srat-to-kernel-code-fix.patch
-x86_64-extract-helper-function-from-e820_register_active_regions.patch
 x86_64-extract-helper-function-from-e820_register_active_regions-fix.patch
-x86_64-fix-e820_hole_size-based-on-address-ranges.patch
-x86_64-fix-fake-numa-for-machines-with-true-srat.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
 maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-frv-gdb-use-__maybe_unused.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
