@@ -1,134 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - make-cancel_rearming_delayed_work-reliable-fix.patch removed from -mm tree
-Date: Wed, 09 May 2007 02:00:33 -0700
-Message-ID: <200705090900.l4990XDI018651@shell0.pdx.osdl.net>
+Subject: - make-cancel_rearming_delayed_work-reliable-spelling.patch removed from -mm tree
+Date: Wed, 09 May 2007 02:00:30 -0700
+Message-ID: <200705090900.l4990UKC018648@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:57357 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:37763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752097AbXEIJAj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:00:39 -0400
+	by vger.kernel.org with ESMTP id S1756610AbXEIJA7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 05:00:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dgc@sgi.com, dhowells@redhat.com, ego@in.ibm.com, jarkao2@o2.pl, oleg@tv-sign.ru, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make-cancel_rearming_delayed_work-reliable fix
+     make-cancel_rearming_delayed_work-reliable-spelling
 has been removed from the -mm tree.  Its filename was
-     make-cancel_rearming_delayed_work-reliable-fix.patch
+     make-cancel_rearming_delayed_work-reliable-spelling.patch
 
 This patch was dropped because it was folded into make-cancel_rearming_delayed_work-reliable.patch
 
 ------------------------------------------------------
-Subject: make-cancel_rearming_delayed_work-reliable fix
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: make-cancel_rearming_delayed_work-reliable-spelling
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add cpu-relax() into spinloops, and a comments update.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: David Chinner <dgc@sgi.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Gautham Shenoy <ego@in.ibm.com>
+Cc: Jarek Poplawski <jarkao2@o2.pl>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ kernel/workqueue.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/workqueue.c~make-cancel_rearming_delayed_work-reliable-fix kernel/workqueue.c
---- a/kernel/workqueue.c~make-cancel_rearming_delayed_work-reliable-fix
+diff -puN kernel/workqueue.c~make-cancel_rearming_delayed_work-reliable-spelling kernel/workqueue.c
+--- a/kernel/workqueue.c~make-cancel_rearming_delayed_work-reliable-spelling
 +++ a/kernel/workqueue.c
-@@ -477,13 +477,16 @@ static void wait_on_work(struct work_str
-  * case it only guarantees that work->func() has completed on the last queued
+@@ -389,7 +389,7 @@ void fastcall flush_workqueue(struct wor
+ EXPORT_SYMBOL_GPL(flush_workqueue);
+ 
+ /*
+- * Upon a successfull return, the caller "owns" WORK_STRUCT_PENDING bit,
++ * Upon a successful return, the caller "owns" WORK_STRUCT_PENDING bit,
+  * so this work can't be re-armed in any way.
+  */
+ static int try_to_grab_pending(struct work_struct *work)
+@@ -474,7 +474,7 @@ static void wait_on_work(struct work_str
+  *
+  * It is possible to use this function if the work re-queues itself. It can
+  * cancel the work even if it migrates to another workqueue, however in that
+- * case it only garantees that work->func() has completed on the last queued
++ * case it only guarantees that work->func() has completed on the last queued
   * workqueue.
   *
-+ * cancel_work_sync(&delayed_work->work) should be used only if ->timer is not
-+ * pending, otherwise it goes into a busy-wait loop until the timer expires.
-+ *
   * The caller must ensure that workqueue_struct on which this work was last
-  * queued can't be destroyed before this function returns.
+@@ -493,7 +493,7 @@ EXPORT_SYMBOL_GPL(cancel_work_sync);
+  * cancel_rearming_delayed_work - reliably kill off a delayed work.
+  * @dwork: the delayed work struct
+  *
+- * It is possible to use this function if dwork rearms itself via queue_work()
++ * It is possible to use this function if @dwork rearms itself via queue_work()
+  * or queue_delayed_work(). See also the comment for cancel_work_sync().
   */
- void cancel_work_sync(struct work_struct *work)
- {
- 	while (!try_to_grab_pending(work))
--		;
-+		cpu_relax();
- 	wait_on_work(work);
- 	work_clear_pending(work);
- }
-@@ -500,7 +503,7 @@ void cancel_rearming_delayed_work(struct
- {
- 	while (!del_timer(&dwork->timer) &&
- 	       !try_to_grab_pending(&dwork->work))
--		;
-+		cpu_relax();
- 	wait_on_work(&dwork->work);
- 	work_clear_pending(&dwork->work);
- }
+ void cancel_rearming_delayed_work(struct delayed_work *dwork)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-dm-raid1-one-kmirrord-per-mirror.patch
-reimplement-flush_workqueue.patch
-implement-flush_work.patch
-flush_workqueue-use-preempt_disable-to-hold-off-cpu-hotplug.patch
-flush_cpu_workqueue-dont-flush-an-empty-worklist.patch
-aio-use-flush_work.patch
-kblockd-use-flush_work.patch
-tg3-use-flush_keventd_work.patch
-e1000-use-flush_keventd_work.patch
-libata-use-flush_work.patch
-phy-use-flush_work.patch
-relay-use-plain-timer-instead-of-delayed-work.patch
+slub-add-support-for-dynamic-cacheline-size-determination.patch
+swsusp-clean-up-print.patch
+display-all-possible-partitions-when-the-root-filesystem-failed-to-mount.patch
+nbd-check-the-return-value-of-sysfs_create_file.patch
+mutex_lock_interruptible-add-__must_check.patch
+afs-implement-basic-file-write-support.patch
+define-and-use-new-eventscpu_lock_acquire-and-cpu_lock_release.patch
 call-cpu_chain-with-cpu_down_failed-if-cpu_down_prepare-failed.patch
-slab-use-cpu_lock_.patch
-workqueue-fix-freezeable-workqueues-implementation.patch
-workqueue-fix-flush_workqueue-vs-cpu_dead-race.patch
-workqueue-dont-clear-cwq-thread-until-it-exits.patch
-workqueue-dont-migrate-pending-works-from-the-dead-cpu.patch
-workqueue-kill-run_scheduled_work.patch
-workqueue-dont-save-interrupts-in-run_workqueue.patch
-workqueue-make-cancel_rearming_delayed_workqueue-work-on-idle-dwork.patch
-workqueue-introduce-cpu_singlethread_map.patch
-workqueue-introduce-workqueue_struct-singlethread.patch
-workqueue-make-init_workqueues-__init.patch
-workqueues-shift-kthread_bind-from-cpu_up_prepare-to-cpu_online.patch
-make-queue_delayed_work-friendly-to-flush_fork.patch
-unify-queue_delayed_work-and-queue_delayed_work_on.patch
-workqueue-introduce-wq_per_cpu-helper.patch
-make-cancel_rearming_delayed_work-work-on-any-workqueue-not-just-keventd_wq.patch
-ipvs-flush-defense_work-before-module-unload.patch
-workqueue-kill-noautorel-works.patch
-worker_thread-dont-play-with-signals.patch
-worker_thread-fix-racy-try_to_freeze-usage.patch
-zap_other_threads-remove-unneeded-exit_signal-change.patch
-slab-shutdown-cache_reaper-when-cpu-goes-down.patch
-unify-flush_work-flush_work_keventd-and-rename-it-to-cancel_work_sync.patch
-____call_usermodehelper-dont-flush_signals.patch
-freezer-read-pf_borrowed_mm-in-a-nonracy-way.patch
-freezer-close-theoretical-race-between-refrigerator-and-thaw_tasks.patch
-freezer-remove-pf_nofreeze-from-rcutorture-thread.patch
-freezer-remove-pf_nofreeze-from-bluetooth-threads.patch
-freezer-add-try_to_freeze-calls-to-all-kernel-threads.patch
-freezer-fix-vfork-problem.patch
-freezer-take-kernel_execve-into-consideration.patch
 kthread-dont-depend-on-work-queues-take-2.patch
-change-reparent_to_init-to-reparent_to_kthreadd.patch
-nlmclnt_recovery-dont-use-clone_sighand.patch
-usbatm_heavy_init-dont-use-clone_sighand.patch
-wait_for_helper-remove-unneeded-do_sigaction.patch
-worker_thread-dont-play-with-sigchld-and-numa-policy.patch
-change-kernel-threads-to-ignore-signals-instead-of-blocking-them.patch
 fix-kthread_create-vs-freezer-theoretical-race.patch
-fix-pf_nofreeze-and-freezeable-race-2.patch
-freezer-document-task_lock-in-thaw_process.patch
-move-frozen_process-to-kernel-power-processc.patch
-remvoe-kthread_bind-call-from-_cpu_down.patch
-separate-freezer-from-pm-code-rev-2.patch
-introduce-freezer-flags-rev-2.patch
 make-cancel_rearming_delayed_work-reliable.patch
-make-cancel_rearming_delayed_work-reliable-fix.patch
-libata-core-convert-to-use-cancel_rearming_delayed_work.patch
-dont-init-pgrp-and-__session-in-init_signals.patch
-add-suspend-related-notifications-for-cpu-hotplug-cleanup.patch
-vmstat-use-our-own-timer-events-fix.patch
+make-cancel_rearming_delayed_work-reliable-spelling.patch
+declare-struct-ktime.patch
+make-futex_wait-use-an-hrtimer-for-timeout.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-core-code-fix-shared-mapping-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-vs-x86_64-mm-use-per-cpu-variables-for-gdt-pda.patch
+lguest-the-host-code-vs-x86_64-mm-i386-separate-hardware-defined-tss-from-linux-additions.patch
+lguest-the-host-code-vs-futex-new-private-futexes.patch
+fs-convert-core-functions-to-zero_user_page-pass-kmap-type.patch
+fs-convert-core-functions-to-zero_user_page-fix-2.patch
+ntfs-use-zero_user_page-fix.patch
+make-vm-statistics-update-interval-configurable-fix.patch
+rename-thread_info-to-stack-fix.patch
+reiser4-slab-allocators-remove-slab_debug_initial-flag.patch
+integrity-new-hooks-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix.patch
+integrity-evm-as-an-integrity-service-provider-tidy-fix-2.patch
+integrity-ima-integrity_measure-support-tidy.patch
+integrity-ima-integrity_measure-support-fix.patch
+integrity-ima-integrity_measure-support-fix-2.patch
+integrity-tpm-internal-kernel-interface-tidy.patch
+w1-build-fix.patch
