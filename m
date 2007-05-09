@@ -1,116 +1,309 @@
 From: akpm@linux-foundation.org
-Subject: - mutex_lock_interruptible-add-__must_check.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:50:18 -0700
-Message-ID: <200705092150.l49LoInQ002793@shell0.pdx.osdl.net>
+Subject: - move-sig_kernel_-et-al-macros-to-linux-signalh.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:50:14 -0700
+Message-ID: <200705092150.l49LoEaa002787@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:41085 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:45822 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756690AbXEIVuX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:23 -0400
+	by vger.kernel.org with ESMTP id S1757114AbXEIVuY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:50:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mutex_lock_interruptible(): add __must_check
+     Move sig_kernel_* et al macros to linux/signal.h
 has been removed from the -mm tree.  Its filename was
-     mutex_lock_interruptible-add-__must_check.patch
+     move-sig_kernel_-et-al-macros-to-linux-signalh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mutex_lock_interruptible(): add __must_check
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Move sig_kernel_* et al macros to linux/signal.h
+From: Roland McGrath <roland@redhat.com>
 
-It's not sane to use mutex_lock_interruptible() and to then ignore the result.
+This patch moves the sig_kernel_* and related macros from kernel/signal.c
+to linux/signal.h, and cleans them up slightly.  I need the sig_kernel_*
+macros for default signal behavior in the utrace code, and want to avoid
+duplication or overhead to share the knowledge.
 
-Ditto down_interruptible(), but I'm lazy.
-
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mutex.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/signal.h |  125 +++++++++++++++++++++++++++++++++++++++
+ kernel/signal.c        |  119 -------------------------------------
+ 2 files changed, 125 insertions(+), 119 deletions(-)
 
-diff -puN include/linux/mutex.h~mutex_lock_interruptible-add-__must_check include/linux/mutex.h
---- a/include/linux/mutex.h~mutex_lock_interruptible-add-__must_check
-+++ a/include/linux/mutex.h
-@@ -121,11 +121,12 @@ static inline int fastcall mutex_is_lock
-  * Also see Documentation/mutex-design.txt.
-  */
- extern void fastcall mutex_lock(struct mutex *lock);
--extern int fastcall mutex_lock_interruptible(struct mutex *lock);
-+extern int __must_check fastcall mutex_lock_interruptible(struct mutex *lock);
+diff -puN include/linux/signal.h~move-sig_kernel_-et-al-macros-to-linux-signalh include/linux/signal.h
+--- a/include/linux/signal.h~move-sig_kernel_-et-al-macros-to-linux-signalh
++++ a/include/linux/signal.h
+@@ -243,6 +243,131 @@ extern int get_signal_to_deliver(siginfo
  
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- extern void mutex_lock_nested(struct mutex *lock, unsigned int subclass);
--extern int mutex_lock_interruptible_nested(struct mutex *lock, unsigned int subclass);
-+extern int __must_check mutex_lock_interruptible_nested(struct mutex *lock,
-+					unsigned int subclass);
- #else
- # define mutex_lock_nested(lock, subclass) mutex_lock(lock)
- # define mutex_lock_interruptible_nested(lock, subclass) mutex_lock_interruptible(lock)
+ extern struct kmem_cache *sighand_cachep;
+ 
++/*
++ * In POSIX a signal is sent either to a specific thread (Linux task)
++ * or to the process as a whole (Linux thread group).  How the signal
++ * is sent determines whether it's to one thread or the whole group,
++ * which determines which signal mask(s) are involved in blocking it
++ * from being delivered until later.  When the signal is delivered,
++ * either it's caught or ignored by a user handler or it has a default
++ * effect that applies to the whole thread group (POSIX process).
++ *
++ * The possible effects an unblocked signal set to SIG_DFL can have are:
++ *   ignore	- Nothing Happens
++ *   terminate	- kill the process, i.e. all threads in the group,
++ * 		  similar to exit_group.  The group leader (only) reports
++ *		  WIFSIGNALED status to its parent.
++ *   coredump	- write a core dump file describing all threads using
++ *		  the same mm and then kill all those threads
++ *   stop 	- stop all the threads in the group, i.e. TASK_STOPPED state
++ *
++ * SIGKILL and SIGSTOP cannot be caught, blocked, or ignored.
++ * Other signals when not blocked and set to SIG_DFL behaves as follows.
++ * The job control signals also have other special effects.
++ *
++ *	+--------------------+------------------+
++ *	|  POSIX signal      |  default action  |
++ *	+--------------------+------------------+
++ *	|  SIGHUP            |  terminate	|
++ *	|  SIGINT            |	terminate	|
++ *	|  SIGQUIT           |	coredump 	|
++ *	|  SIGILL            |	coredump 	|
++ *	|  SIGTRAP           |	coredump 	|
++ *	|  SIGABRT/SIGIOT    |	coredump 	|
++ *	|  SIGBUS            |	coredump 	|
++ *	|  SIGFPE            |	coredump 	|
++ *	|  SIGKILL           |	terminate(+)	|
++ *	|  SIGUSR1           |	terminate	|
++ *	|  SIGSEGV           |	coredump 	|
++ *	|  SIGUSR2           |	terminate	|
++ *	|  SIGPIPE           |	terminate	|
++ *	|  SIGALRM           |	terminate	|
++ *	|  SIGTERM           |	terminate	|
++ *	|  SIGCHLD           |	ignore   	|
++ *	|  SIGCONT           |	ignore(*)	|
++ *	|  SIGSTOP           |	stop(*)(+)  	|
++ *	|  SIGTSTP           |	stop(*)  	|
++ *	|  SIGTTIN           |	stop(*)  	|
++ *	|  SIGTTOU           |	stop(*)  	|
++ *	|  SIGURG            |	ignore   	|
++ *	|  SIGXCPU           |	coredump 	|
++ *	|  SIGXFSZ           |	coredump 	|
++ *	|  SIGVTALRM         |	terminate	|
++ *	|  SIGPROF           |	terminate	|
++ *	|  SIGPOLL/SIGIO     |	terminate	|
++ *	|  SIGSYS/SIGUNUSED  |	coredump 	|
++ *	|  SIGSTKFLT         |	terminate	|
++ *	|  SIGWINCH          |	ignore   	|
++ *	|  SIGPWR            |	terminate	|
++ *	|  SIGRTMIN-SIGRTMAX |	terminate       |
++ *	+--------------------+------------------+
++ *	|  non-POSIX signal  |  default action  |
++ *	+--------------------+------------------+
++ *	|  SIGEMT            |  coredump	|
++ *	+--------------------+------------------+
++ *
++ * (+) For SIGKILL and SIGSTOP the action is "always", not just "default".
++ * (*) Special job control effects:
++ * When SIGCONT is sent, it resumes the process (all threads in the group)
++ * from TASK_STOPPED state and also clears any pending/queued stop signals
++ * (any of those marked with "stop(*)").  This happens regardless of blocking,
++ * catching, or ignoring SIGCONT.  When any stop signal is sent, it clears
++ * any pending/queued SIGCONT signals; this happens regardless of blocking,
++ * catching, or ignored the stop signal, though (except for SIGSTOP) the
++ * default action of stopping the process may happen later or never.
++ */
++
++#ifdef SIGEMT
++#define SIGEMT_MASK	rt_sigmask(SIGEMT)
++#else
++#define SIGEMT_MASK	0
++#endif
++
++#if SIGRTMIN > BITS_PER_LONG
++#define rt_sigmask(sig)	(1ULL << ((sig)-1))
++#else
++#define rt_sigmask(sig)	sigmask(sig)
++#endif
++#define siginmask(sig, mask) (rt_sigmask(sig) & (mask))
++
++#define SIG_KERNEL_ONLY_MASK (\
++	rt_sigmask(SIGKILL)   |  rt_sigmask(SIGSTOP))
++
++#define SIG_KERNEL_STOP_MASK (\
++	rt_sigmask(SIGSTOP)   |  rt_sigmask(SIGTSTP)   | \
++	rt_sigmask(SIGTTIN)   |  rt_sigmask(SIGTTOU)   )
++
++#define SIG_KERNEL_COREDUMP_MASK (\
++        rt_sigmask(SIGQUIT)   |  rt_sigmask(SIGILL)    | \
++	rt_sigmask(SIGTRAP)   |  rt_sigmask(SIGABRT)   | \
++        rt_sigmask(SIGFPE)    |  rt_sigmask(SIGSEGV)   | \
++	rt_sigmask(SIGBUS)    |  rt_sigmask(SIGSYS)    | \
++        rt_sigmask(SIGXCPU)   |  rt_sigmask(SIGXFSZ)   | \
++	SIGEMT_MASK				       )
++
++#define SIG_KERNEL_IGNORE_MASK (\
++        rt_sigmask(SIGCONT)   |  rt_sigmask(SIGCHLD)   | \
++	rt_sigmask(SIGWINCH)  |  rt_sigmask(SIGURG)    )
++
++#define sig_kernel_only(sig) \
++	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_ONLY_MASK))
++#define sig_kernel_coredump(sig) \
++	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_COREDUMP_MASK))
++#define sig_kernel_ignore(sig) \
++	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_IGNORE_MASK))
++#define sig_kernel_stop(sig) \
++	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_STOP_MASK))
++
++#define sig_needs_tasklist(sig)	((sig) == SIGCONT)
++
++#define sig_user_defined(t, signr) \
++	(((t)->sighand->action[(signr)-1].sa.sa_handler != SIG_DFL) &&	\
++	 ((t)->sighand->action[(signr)-1].sa.sa_handler != SIG_IGN))
++
++#define sig_fatal(t, signr) \
++	(!siginmask(signr, SIG_KERNEL_IGNORE_MASK|SIG_KERNEL_STOP_MASK) && \
++	 (t)->sighand->action[(signr)-1].sa.sa_handler == SIG_DFL)
++
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _LINUX_SIGNAL_H */
+diff -puN kernel/signal.c~move-sig_kernel_-et-al-macros-to-linux-signalh kernel/signal.c
+--- a/kernel/signal.c~move-sig_kernel_-et-al-macros-to-linux-signalh
++++ a/kernel/signal.c
+@@ -38,125 +38,6 @@
+ 
+ static struct kmem_cache *sigqueue_cachep;
+ 
+-/*
+- * In POSIX a signal is sent either to a specific thread (Linux task)
+- * or to the process as a whole (Linux thread group).  How the signal
+- * is sent determines whether it's to one thread or the whole group,
+- * which determines which signal mask(s) are involved in blocking it
+- * from being delivered until later.  When the signal is delivered,
+- * either it's caught or ignored by a user handler or it has a default
+- * effect that applies to the whole thread group (POSIX process).
+- *
+- * The possible effects an unblocked signal set to SIG_DFL can have are:
+- *   ignore	- Nothing Happens
+- *   terminate	- kill the process, i.e. all threads in the group,
+- * 		  similar to exit_group.  The group leader (only) reports
+- *		  WIFSIGNALED status to its parent.
+- *   coredump	- write a core dump file describing all threads using
+- *		  the same mm and then kill all those threads
+- *   stop 	- stop all the threads in the group, i.e. TASK_STOPPED state
+- *
+- * SIGKILL and SIGSTOP cannot be caught, blocked, or ignored.
+- * Other signals when not blocked and set to SIG_DFL behaves as follows.
+- * The job control signals also have other special effects.
+- *
+- *	+--------------------+------------------+
+- *	|  POSIX signal      |  default action  |
+- *	+--------------------+------------------+
+- *	|  SIGHUP            |  terminate	|
+- *	|  SIGINT            |	terminate	|
+- *	|  SIGQUIT           |	coredump 	|
+- *	|  SIGILL            |	coredump 	|
+- *	|  SIGTRAP           |	coredump 	|
+- *	|  SIGABRT/SIGIOT    |	coredump 	|
+- *	|  SIGBUS            |	coredump 	|
+- *	|  SIGFPE            |	coredump 	|
+- *	|  SIGKILL           |	terminate(+)	|
+- *	|  SIGUSR1           |	terminate	|
+- *	|  SIGSEGV           |	coredump 	|
+- *	|  SIGUSR2           |	terminate	|
+- *	|  SIGPIPE           |	terminate	|
+- *	|  SIGALRM           |	terminate	|
+- *	|  SIGTERM           |	terminate	|
+- *	|  SIGCHLD           |	ignore   	|
+- *	|  SIGCONT           |	ignore(*)	|
+- *	|  SIGSTOP           |	stop(*)(+)  	|
+- *	|  SIGTSTP           |	stop(*)  	|
+- *	|  SIGTTIN           |	stop(*)  	|
+- *	|  SIGTTOU           |	stop(*)  	|
+- *	|  SIGURG            |	ignore   	|
+- *	|  SIGXCPU           |	coredump 	|
+- *	|  SIGXFSZ           |	coredump 	|
+- *	|  SIGVTALRM         |	terminate	|
+- *	|  SIGPROF           |	terminate	|
+- *	|  SIGPOLL/SIGIO     |	terminate	|
+- *	|  SIGSYS/SIGUNUSED  |	coredump 	|
+- *	|  SIGSTKFLT         |	terminate	|
+- *	|  SIGWINCH          |	ignore   	|
+- *	|  SIGPWR            |	terminate	|
+- *	|  SIGRTMIN-SIGRTMAX |	terminate       |
+- *	+--------------------+------------------+
+- *	|  non-POSIX signal  |  default action  |
+- *	+--------------------+------------------+
+- *	|  SIGEMT            |  coredump	|
+- *	+--------------------+------------------+
+- *
+- * (+) For SIGKILL and SIGSTOP the action is "always", not just "default".
+- * (*) Special job control effects:
+- * When SIGCONT is sent, it resumes the process (all threads in the group)
+- * from TASK_STOPPED state and also clears any pending/queued stop signals
+- * (any of those marked with "stop(*)").  This happens regardless of blocking,
+- * catching, or ignoring SIGCONT.  When any stop signal is sent, it clears
+- * any pending/queued SIGCONT signals; this happens regardless of blocking,
+- * catching, or ignored the stop signal, though (except for SIGSTOP) the
+- * default action of stopping the process may happen later or never.
+- */
+-
+-#ifdef SIGEMT
+-#define M_SIGEMT	M(SIGEMT)
+-#else
+-#define M_SIGEMT	0
+-#endif
+-
+-#if SIGRTMIN > BITS_PER_LONG
+-#define M(sig) (1ULL << ((sig)-1))
+-#else
+-#define M(sig) (1UL << ((sig)-1))
+-#endif
+-#define T(sig, mask) (M(sig) & (mask))
+-
+-#define SIG_KERNEL_ONLY_MASK (\
+-	M(SIGKILL)   |  M(SIGSTOP)                                   )
+-
+-#define SIG_KERNEL_STOP_MASK (\
+-	M(SIGSTOP)   |  M(SIGTSTP)   |  M(SIGTTIN)   |  M(SIGTTOU)   )
+-
+-#define SIG_KERNEL_COREDUMP_MASK (\
+-        M(SIGQUIT)   |  M(SIGILL)    |  M(SIGTRAP)   |  M(SIGABRT)   | \
+-        M(SIGFPE)    |  M(SIGSEGV)   |  M(SIGBUS)    |  M(SIGSYS)    | \
+-        M(SIGXCPU)   |  M(SIGXFSZ)   |  M_SIGEMT                     )
+-
+-#define SIG_KERNEL_IGNORE_MASK (\
+-        M(SIGCONT)   |  M(SIGCHLD)   |  M(SIGWINCH)  |  M(SIGURG)    )
+-
+-#define sig_kernel_only(sig) \
+-		(((sig) < SIGRTMIN)  && T(sig, SIG_KERNEL_ONLY_MASK))
+-#define sig_kernel_coredump(sig) \
+-		(((sig) < SIGRTMIN)  && T(sig, SIG_KERNEL_COREDUMP_MASK))
+-#define sig_kernel_ignore(sig) \
+-		(((sig) < SIGRTMIN)  && T(sig, SIG_KERNEL_IGNORE_MASK))
+-#define sig_kernel_stop(sig) \
+-		(((sig) < SIGRTMIN)  && T(sig, SIG_KERNEL_STOP_MASK))
+-
+-#define sig_needs_tasklist(sig)	((sig) == SIGCONT)
+-
+-#define sig_user_defined(t, signr) \
+-	(((t)->sighand->action[(signr)-1].sa.sa_handler != SIG_DFL) &&	\
+-	 ((t)->sighand->action[(signr)-1].sa.sa_handler != SIG_IGN))
+-
+-#define sig_fatal(t, signr) \
+-	(!T(signr, SIG_KERNEL_IGNORE_MASK|SIG_KERNEL_STOP_MASK) && \
+-	 (t)->sighand->action[(signr)-1].sa.sa_handler == SIG_DFL)
+ 
+ static int sig_ignored(struct task_struct *t, int sig)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-fix-kthread_create-vs-freezer-theoretical-race.patch
-git-acpi.patch
-git-acpi-export-acpi_set_cstate_limit.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
-git-avr32.patch
-fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
-cinergyt2-fix-file-release-handler.patch
-git-hid-fixup.patch
-git-ia64-sa_interrupt-is-deprecated.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
-sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
-git-ieee1394.patch
-sbp2-include-fixes.patch
-ieee1394-iso-needs-schedh.patch
-pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
-git-battery.patch
-git-parisc.patch
-fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
-git-pciseg.patch
-scsi-fix-config_scsi_wait_scan=m.patch
-git-block-fixup.patch
-git-unionfs.patch
-auerswald-fix-file-release-handler.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
-i386-add-support-for-picopower-irq-router-fix.patch
-blacklist-dell-optiplex-320-from-using-the-hpet.patch
-xfs-clean-up-shrinker-games.patch
-lazy-freeing-of-memory-through-madv_free.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
-mm-merge-nopfn-into-fault.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-upper-32-bits.patch
-lib-hexdump.patch
-tty-add-compat_ioctl.patch
-mpc52xx-psc-spi-master-driver-update-tidy.patch
-linux-kernel-markers-i386-optimization.patch
-signal-timer-event-fds-v9-signalfd-core.patch
-signal-timer-event-fds-v9-timerfd-core.patch
-signal-timer-event-fds-v9-eventfd-core.patch
-revoke-wire-up-i386-system-calls.patch
-lguest-the-host-code.patch
-ntfs-use-zero_user_page.patch
-reiser4.patch
-integrity-new-hooks.patch
-integrity-evm-as-an-integrity-service-provider.patch
-integrity-ima-integrity_measure-support.patch
-integrity-tpm-internal-kernel-interface.patch
-w1-build-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
