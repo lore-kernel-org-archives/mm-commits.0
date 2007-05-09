@@ -1,65 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - fs-deprecate-memclear_highpage_flush.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:53:58 -0700
-Message-ID: <200705092153.l49LrwOo003125@shell0.pdx.osdl.net>
+Subject: - timer-parenthesis-fix-in-tbase_get_deferrable-etc.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:53:44 -0700
+Message-ID: <200705092153.l49Lrih9003107@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:38878 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:48469 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754757AbXEIVyR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:54:17 -0400
+	by vger.kernel.org with ESMTP id S1758944AbXEIVyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nate.diller@gmail.com, mm-commits@vger.kernel.org
+To: jarkao2@o2.pl, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: deprecate memclear_highpage_flush
+     timer: parenthesis fix in tbase_get_deferrable() etc
 has been removed from the -mm tree.  Its filename was
-     fs-deprecate-memclear_highpage_flush.patch
+     timer-parenthesis-fix-in-tbase_get_deferrable-etc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: deprecate memclear_highpage_flush
-From: Nate Diller <nate.diller@gmail.com>
+Subject: timer: parenthesis fix in tbase_get_deferrable() etc
+From: Jarek Poplawski <jarkao2@o2.pl>
 
-Now that all the in-tree users are converted over to zero_user_page(),
-deprecate the old memclear_highpage_flush() call.
-
-Signed-off-by: Nate Diller <nate.diller@gmail.com>
+Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/timer.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/highmem.h~fs-deprecate-memclear_highpage_flush include/linux/highmem.h
---- a/include/linux/highmem.h~fs-deprecate-memclear_highpage_flush
-+++ a/include/linux/highmem.h
-@@ -110,8 +110,7 @@ static inline void clear_highpage(struct
- 		kunmap_atomic(kaddr, (km_type));		\
- 	} while (0)
- 
--
--static inline void memclear_highpage_flush(struct page *page,
-+static inline void __deprecated memclear_highpage_flush(struct page *page,
- 			unsigned int offset, unsigned int size)
+diff -puN kernel/timer.c~timer-parenthesis-fix-in-tbase_get_deferrable-etc kernel/timer.c
+--- a/kernel/timer.c~timer-parenthesis-fix-in-tbase_get_deferrable-etc
++++ a/kernel/timer.c
+@@ -92,24 +92,24 @@ static DEFINE_PER_CPU(tvec_base_t *, tve
+ /* Functions below help us manage 'deferrable' flag */
+ static inline unsigned int tbase_get_deferrable(tvec_base_t *base)
  {
- 	zero_user_page(page, offset, size, KM_USER0);
+-	return ((unsigned int)(unsigned long)base & TBASE_DEFERRABLE_FLAG);
++	return (unsigned int)((unsigned long)base & TBASE_DEFERRABLE_FLAG);
+ }
+ 
+ static inline tvec_base_t *tbase_get_base(tvec_base_t *base)
+ {
+-	return ((tvec_base_t *)((unsigned long)base & ~TBASE_DEFERRABLE_FLAG));
++	return (tvec_base_t *)((unsigned long)base & ~TBASE_DEFERRABLE_FLAG);
+ }
+ 
+ static inline void timer_set_deferrable(struct timer_list *timer)
+ {
+-	timer->base = ((tvec_base_t *)((unsigned long)(timer->base) |
+-	                               TBASE_DEFERRABLE_FLAG));
++	timer->base = (tvec_base_t *)((unsigned long)timer->base |
++	                               TBASE_DEFERRABLE_FLAG);
+ }
+ 
+ static inline void
+ timer_set_base(struct timer_list *timer, tvec_base_t *new_base)
+ {
+-	timer->base = (tvec_base_t *)((unsigned long)(new_base) |
++	timer->base = (tvec_base_t *)((unsigned long)new_base |
+ 	                              tbase_get_deferrable(timer->base));
+ }
+ 
 _
 
-Patches currently in -mm which might be from nate.diller@gmail.com are
+Patches currently in -mm which might be from jarkao2@o2.pl are
 
 origin.patch
-cifs-use-simple_prepare_write-to-zero-page-data.patch
-ext4-use-simple_prepare_write-to-zero-page-data.patch
-ecryptfs-use-zero_user_page.patch
-ext4-use-zero_user_page.patch
-gfs2-use-zero_user_page.patch
-nfs-use-zero_user_page.patch
-ntfs-use-zero_user_page.patch
-ocfs2-use-zero_user_page.patch
-xfs-use-zero_user_page.patch
-reiser4.patch
-reiser4-use-zero_user_page.patch
+ppp_generic-fix-lockdep-warning.patch
