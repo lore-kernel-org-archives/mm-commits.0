@@ -1,77 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - proc-oom_score-oops-re-badness.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:47:04 -0700
-Message-ID: <200705090247.l492l4jA008929@shell0.pdx.osdl.net>
+Subject: - natsemi-allow-users-to-disable-workaround-for-dspcfg-reset.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:43:17 -0700
+Message-ID: <200705090243.l492hHCM008446@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43534 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:60331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934528AbXEICrm (ORCPT
+	by vger.kernel.org with ESMTP id S934475AbXEICrm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:47:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: broonie@sirena.org.uk, jeff@garzik.org, thockin@hockin.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     /proc/*/oom_score oops re badness
+     natsemi: Allow users to disable workaround for DspCfg reset
 has been removed from the -mm tree.  Its filename was
-     proc-oom_score-oops-re-badness.patch
+     natsemi-allow-users-to-disable-workaround-for-dspcfg-reset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: /proc/*/oom_score oops re badness
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: natsemi: Allow users to disable workaround for DspCfg reset
+From: Mark Brown <broonie@sirena.org.uk>
 
-Eternal quest to make
+The natsemi driver contains a workaround for broken hardware which can
+partially reset the chip at unpredictable times, detected by checking for
+spontaneous changes in the DspCfg register.  The effects of the hardware bug
+appear to be variable and can range from minor problems like small numbers of
+corrupted packets to major ones such as the chip becoming non-functional.  In
+the case of minor problems the chip reconfiguration required to work around
+the hardware can cause more problems than the bug itself.
 
-	while true; do cat /proc/fs/xfs/stat >/dev/null 2>/dev/null; done
-	while true; do find /proc -type f 2>/dev/null | xargs cat >/dev/null 2>/dev/null; done
-	while true; do modprobe xfs; rmmod xfs; done
+Since we have no way of automatically determining how badly the problem
+manifests on any given system provide an option in sysfs allowing users to
+disable the workaround at runtime and provides a module option to set the
+default.
 
-work reliably continues and now kernel oopses in the following way:
-
-BUG: unable to handle ... at virtual address 6b6b6b6b
-EIP is at badness
-process: cat
-	proc_oom_score
-	proc_info_read
-	sys_fstat64
-	vfs_read
-	proc_info_read
-	sys_read
-
-Failing code is prefetch hidden in list_for_each_entry() in badness().
-badness() is reachable from two points. One is proc_oom_score, another
-is out_of_memory() => select_bad_process() => badness().
-
-Second path grabs tasklist_lock, while first doesn't.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Mark Brown <broonie@sirena.org.uk>
+Cc: Tim Hockin <thockin@hockin.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/natsemi.c |   68 ++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 66 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~proc-oom_score-oops-re-badness fs/proc/base.c
---- a/fs/proc/base.c~proc-oom_score-oops-re-badness
-+++ a/fs/proc/base.c
-@@ -314,7 +314,9 @@ static int proc_oom_score(struct task_st
- 	struct timespec uptime;
+diff -puN drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-allow-users-to-disable-workaround-for-dspcfg-reset
++++ a/drivers/net/natsemi.c
+@@ -81,6 +81,8 @@ static const int multicast_filter_limit 
+    Setting to > 1518 effectively disables this feature. */
+ static int rx_copybreak;
  
- 	do_posix_clock_monotonic_gettime(&uptime);
-+	read_lock(&tasklist_lock);
- 	points = badness(task, uptime.tv_sec);
-+	read_unlock(&tasklist_lock);
- 	return sprintf(buffer, "%lu\n", points);
- }
++static int dspcfg_workaround = 1;
++
+ /* Used to pass the media type, etc.
+    Both 'options[]' and 'full_duplex[]' should exist for driver
+    interoperability.
+@@ -139,12 +141,14 @@ MODULE_LICENSE("GPL");
+ module_param(mtu, int, 0);
+ module_param(debug, int, 0);
+ module_param(rx_copybreak, int, 0);
++module_param(dspcfg_workaround, int, 1);
+ module_param_array(options, int, NULL, 0);
+ module_param_array(full_duplex, int, NULL, 0);
+ MODULE_PARM_DESC(mtu, "DP8381x MTU (all boards)");
+ MODULE_PARM_DESC(debug, "DP8381x default debug level");
+ MODULE_PARM_DESC(rx_copybreak,
+ 	"DP8381x copy breakpoint for copy-only-tiny-frames");
++MODULE_PARM_DESC(dspcfg_workaround, "DP8381x: control DspCfg workaround");
+ MODULE_PARM_DESC(options,
+ 	"DP8381x: Bits 0-3: media type, bit 17: full duplex");
+ MODULE_PARM_DESC(full_duplex, "DP8381x full duplex setting(s) (1)");
+@@ -590,6 +594,7 @@ struct netdev_private {
+ 	u32 srr;
+ 	/* expected DSPCFG value */
+ 	u16 dspcfg;
++	int dspcfg_workaround;
+ 	/* parms saved in ethtool format */
+ 	u16	speed;		/* The forced speed, 10Mb, 100Mb, gigabit */
+ 	u8	duplex;		/* Duplex, half or full */
+@@ -656,6 +661,56 @@ static int netdev_get_regs(struct net_de
+ static int netdev_get_eeprom(struct net_device *dev, u8 *buf);
+ static const struct ethtool_ops ethtool_ops;
  
++#define NATSEMI_ATTR(_name) \
++static ssize_t natsemi_show_##_name(struct device *dev, \
++         struct device_attribute *attr, char *buf); \
++	 static ssize_t natsemi_set_##_name(struct device *dev, \
++		struct device_attribute *attr, \
++	        const char *buf, size_t count); \
++	 static DEVICE_ATTR(_name, 0644, natsemi_show_##_name, natsemi_set_##_name)
++
++#define NATSEMI_CREATE_FILE(_dev, _name) \
++         device_create_file(&_dev->dev, &dev_attr_##_name)
++#define NATSEMI_REMOVE_FILE(_dev, _name) \
++         device_create_file(&_dev->dev, &dev_attr_##_name)
++
++NATSEMI_ATTR(dspcfg_workaround);
++
++static ssize_t natsemi_show_dspcfg_workaround(struct device *dev,
++				  	      struct device_attribute *attr,
++					      char *buf)
++{
++	struct netdev_private *np = netdev_priv(to_net_dev(dev));
++
++	return sprintf(buf, "%s\n", np->dspcfg_workaround ? "on" : "off");
++}
++
++static ssize_t natsemi_set_dspcfg_workaround(struct device *dev,
++					     struct device_attribute *attr,
++					     const char *buf, size_t count)
++{
++	struct netdev_private *np = netdev_priv(to_net_dev(dev));
++	int new_setting;
++	u32 flags;
++
++        /* Find out the new setting */
++        if (!strncmp("on", buf, count - 1) || !strncmp("1", buf, count - 1))
++                new_setting = 1;
++        else if (!strncmp("off", buf, count - 1)
++                 || !strncmp("0", buf, count - 1))
++		new_setting = 0;
++	else
++                 return count;
++
++	spin_lock_irqsave(&np->lock, flags);
++
++	np->dspcfg_workaround = new_setting;
++
++	spin_unlock_irqrestore(&np->lock, flags);
++
++	return count;
++}
++
+ static inline void __iomem *ns_ioaddr(struct net_device *dev)
+ {
+ 	return (void __iomem *) dev->base_addr;
+@@ -820,6 +875,7 @@ static int __devinit natsemi_probe1 (str
+ 		np->ignore_phy = 1;
+ 	else
+ 		np->ignore_phy = 0;
++	np->dspcfg_workaround = dspcfg_workaround;
+ 
+ 	/* Initial port:
+ 	 * - If configured to ignore the PHY set up for external.
+@@ -899,6 +955,9 @@ static int __devinit natsemi_probe1 (str
+ 	if (i)
+ 		goto err_register_netdev;
+ 
++	if (NATSEMI_CREATE_FILE(pdev, dspcfg_workaround))
++		goto err_create_file;
++
+ 	if (netif_msg_drv(np)) {
+ 		printk(KERN_INFO "natsemi %s: %s at %#08lx (%s), ",
+ 			dev->name, natsemi_pci_info[chip_idx].name, iostart,
+@@ -915,6 +974,9 @@ static int __devinit natsemi_probe1 (str
+ 	}
+ 	return 0;
+ 
++ err_create_file:
++ 	unregister_netdev(dev);
++
+  err_register_netdev:
+ 	iounmap(ioaddr);
+ 
+@@ -1727,7 +1789,8 @@ static void init_registers(struct net_de
+  *    It seems that a reference set for this chip went out with incorrect info,
+  *    and there exist boards that aren't quite right.  An unexpected voltage
+  *    drop can cause the PHY to get itself in a weird state (basically reset).
+- *    NOTE: this only seems to affect revC chips.
++ *    NOTE: this only seems to affect revC chips.  The user can disable
++ *    this check via dspcfg_workaround sysfs option.
+  * 3) check of death of the RX path due to OOM
+  */
+ static void netdev_timer(unsigned long data)
+@@ -1753,7 +1816,7 @@ static void netdev_timer(unsigned long d
+ 		writew(1, ioaddr+PGSEL);
+ 		dspcfg = readw(ioaddr+DSPCFG);
+ 		writew(0, ioaddr+PGSEL);
+-		if (dspcfg != np->dspcfg) {
++		if (np->dspcfg_workaround && dspcfg != np->dspcfg) {
+ 			if (!netif_queue_stopped(dev)) {
+ 				spin_unlock_irq(&np->lock);
+ 				if (netif_msg_drv(np))
+@@ -3157,6 +3220,7 @@ static void __devexit natsemi_remove1 (s
+ 	struct net_device *dev = pci_get_drvdata(pdev);
+ 	void __iomem * ioaddr = ns_ioaddr(dev);
+ 
++	NATSEMI_REMOVE_FILE(pdev, dspcfg_workaround);
+ 	unregister_netdev (dev);
+ 	pci_release_regions (pdev);
+ 	iounmap(ioaddr);
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from broonie@sirena.org.uk are
 
 origin.patch
-2621-rc5-mm3-fix-e1000-compilation.patch
-fix-rmmod-read-write-races-in-proc-entries.patch
