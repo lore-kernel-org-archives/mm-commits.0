@@ -1,104 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - copy-i_flags-to-ext2-inode-flags-on-write.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:51:32 -0700
-Message-ID: <200705090251.l492pWKV009471@shell0.pdx.osdl.net>
+Subject: - clean-up-mutex_trylock-noise.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:51:05 -0700
+Message-ID: <200705090251.l492p5Wo009422@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:50545 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:35524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032175AbXEICvh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:37 -0400
+	by vger.kernel.org with ESMTP id S1032159AbXEICvd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:51:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, dwmw2@infradead.org, mchehab@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: copy i_flags to inode flags on write
+     Clean up mutex_trylock noise
 has been removed from the -mm tree.  Its filename was
-     copy-i_flags-to-ext2-inode-flags-on-write.patch
+     clean-up-mutex_trylock-noise.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext3: copy i_flags to inode flags on write
-From: Jan Kara <jack@suse.cz>
+Subject: Clean up mutex_trylock noise
+From: Jean Delvare <khali@linux-fr.org>
 
-Propagate flags such as S_APPEND, S_IMMUTABLE, etc.  from i_flags into
-ext2-specific i_flags.  Hence, when someone sets these flags via a different
-interface than ioctl, they are stored correctly.
+Ingo Molnar's semaphore to mutex conversions left some noise on a few
+trylock calls. Clean it up.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ext2.h  |    1 +
- fs/ext2/inode.c |   20 ++++++++++++++++++++
- fs/ext2/ioctl.c |    1 +
- 3 files changed, 22 insertions(+)
+ drivers/media/video/zoran_driver.c |    2 +-
+ drivers/mtd/mtd_blkdevs.c          |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext2/ext2.h~copy-i_flags-to-ext2-inode-flags-on-write fs/ext2/ext2.h
---- a/fs/ext2/ext2.h~copy-i_flags-to-ext2-inode-flags-on-write
-+++ a/fs/ext2/ext2.h
-@@ -133,6 +133,7 @@ extern int ext2_get_block(struct inode *
- extern void ext2_truncate (struct inode *);
- extern int ext2_setattr (struct dentry *, struct iattr *);
- extern void ext2_set_inode_flags(struct inode *inode);
-+extern void ext2_get_inode_flags(struct ext2_inode_info *);
+diff -puN drivers/media/video/zoran_driver.c~clean-up-mutex_trylock-noise drivers/media/video/zoran_driver.c
+--- a/drivers/media/video/zoran_driver.c~clean-up-mutex_trylock-noise
++++ a/drivers/media/video/zoran_driver.c
+@@ -2034,7 +2034,7 @@ zoran_do_ioctl (struct inode *inode,
+ 	 * but moving the free code outside the munmap() handler fixes
+ 	 * all this... If someone knows why, please explain me (Ronald)
+ 	 */
+-	if (!!mutex_trylock(&zr->resource_lock)) {
++	if (mutex_trylock(&zr->resource_lock)) {
+ 		/* we obtained it! Let's try to free some things */
+ 		if (fh->jpg_buffers.ready_to_be_freed)
+ 			jpg_fbuffer_free(file);
+diff -puN drivers/mtd/mtd_blkdevs.c~clean-up-mutex_trylock-noise drivers/mtd/mtd_blkdevs.c
+--- a/drivers/mtd/mtd_blkdevs.c~clean-up-mutex_trylock-noise
++++ a/drivers/mtd/mtd_blkdevs.c
+@@ -216,7 +216,7 @@ int add_mtd_blktrans_dev(struct mtd_blkt
+ 	int last_devnum = -1;
+ 	struct gendisk *gd;
  
- /* ioctl.c */
- extern int ext2_ioctl (struct inode *, struct file *, unsigned int,
-diff -puN fs/ext2/inode.c~copy-i_flags-to-ext2-inode-flags-on-write fs/ext2/inode.c
---- a/fs/ext2/inode.c~copy-i_flags-to-ext2-inode-flags-on-write
-+++ a/fs/ext2/inode.c
-@@ -1055,6 +1055,25 @@ void ext2_set_inode_flags(struct inode *
- 		inode->i_flags |= S_DIRSYNC;
- }
+-	if (!!mutex_trylock(&mtd_table_mutex)) {
++	if (mutex_trylock(&mtd_table_mutex)) {
+ 		mutex_unlock(&mtd_table_mutex);
+ 		BUG();
+ 	}
+@@ -294,7 +294,7 @@ int add_mtd_blktrans_dev(struct mtd_blkt
  
-+/* Propagate flags from i_flags to EXT2_I(inode)->i_flags */
-+void ext2_get_inode_flags(struct ext2_inode_info *ei)
-+{
-+	unsigned int flags = ei->vfs_inode.i_flags;
-+
-+	ei->i_flags &= ~(EXT2_SYNC_FL|EXT2_APPEND_FL|
-+			EXT2_IMMUTABLE_FL|EXT2_NOATIME_FL|EXT2_DIRSYNC_FL);
-+	if (flags & S_SYNC)
-+		ei->i_flags |= EXT2_SYNC_FL;
-+	if (flags & S_APPEND)
-+		ei->i_flags |= EXT2_APPEND_FL;
-+	if (flags & S_IMMUTABLE)
-+		ei->i_flags |= EXT2_IMMUTABLE_FL;
-+	if (flags & S_NOATIME)
-+		ei->i_flags |= EXT2_NOATIME_FL;
-+	if (flags & S_DIRSYNC)
-+		ei->i_flags |= EXT2_DIRSYNC_FL;
-+}
-+
- void ext2_read_inode (struct inode * inode)
+ int del_mtd_blktrans_dev(struct mtd_blktrans_dev *old)
  {
- 	struct ext2_inode_info *ei = EXT2_I(inode);
-@@ -1188,6 +1207,7 @@ static int ext2_update_inode(struct inod
- 	if (ei->i_state & EXT2_STATE_NEW)
- 		memset(raw_inode, 0, EXT2_SB(sb)->s_inode_size);
- 
-+	ext2_get_inode_flags(ei);
- 	raw_inode->i_mode = cpu_to_le16(inode->i_mode);
- 	if (!(test_opt(sb, NO_UID32))) {
- 		raw_inode->i_uid_low = cpu_to_le16(low_16_bits(uid));
-diff -puN fs/ext2/ioctl.c~copy-i_flags-to-ext2-inode-flags-on-write fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~copy-i_flags-to-ext2-inode-flags-on-write
-+++ a/fs/ext2/ioctl.c
-@@ -27,6 +27,7 @@ int ext2_ioctl (struct inode * inode, st
- 
- 	switch (cmd) {
- 	case EXT2_IOC_GETFLAGS:
-+		ext2_get_inode_flags(ei);
- 		flags = ei->i_flags & EXT2_FL_USER_VISIBLE;
- 		return put_user(flags, (int __user *) arg);
- 	case EXT2_IOC_SETFLAGS: {
+-	if (!!mutex_trylock(&mtd_table_mutex)) {
++	if (mutex_trylock(&mtd_table_mutex)) {
+ 		mutex_unlock(&mtd_table_mutex);
+ 		BUG();
+ 	}
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
-ext4-copy-i_flags-to-inode-flags-on-write.patch
+applesmc-use-the-address-as-platform-device-id.patch
+applesmc-use-standard-sysfs-names-for-labels.patch
+git-alsa.patch
+git-dvb.patch
+scx200-use-mutex-instead-of-semaphore.patch
+x86-msr-add-support-for-safe-variants.patch
