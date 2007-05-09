@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-fix-kprobes-reentrancy.patch added to -mm tree
-Date: Wed, 09 May 2007 10:38:35 -0700
-Message-ID: <200705091738.l49HcZt0029387@shell0.pdx.osdl.net>
+Subject: + i2c-at91-supports-new-style-i2c-drivers.patch added to -mm tree
+Date: Wed, 09 May 2007 11:09:37 -0700
+Message-ID: <200705091809.l49I9bNP030024@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:47458 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:59705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755900AbXEIRjK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 13:39:10 -0400
+	by vger.kernel.org with ESMTP id S1752844AbXEISKU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 14:10:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anil.s.keshavamurthy@intel.com, tony.luck@intel.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     ia64: fix Kprobes reentrancy
+     i2c-at91 supports new-style i2c drivers
 has been added to the -mm tree.  Its filename is
-     ia64-fix-kprobes-reentrancy.patch
+     i2c-at91-supports-new-style-i2c-drivers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64: fix Kprobes reentrancy
-From: "Anil S Keshvamurthy@intel.com" <anil.s.keshavamurthy@intel.com>
+Subject: i2c-at91 supports new-style i2c drivers
+From: David Brownell <david-b@pacbell.net>
 
-In case of reentrance i.e when a probe handler calls a functions which
-inturn has a probe, we save a previous kprobe information and just single
-step the reentrant probe without calling the actual probe handler.  During
-this reentracy period, if an interrupt occurs and if probe happens to
-trigger in the inturrupt path, then we were corrupting the previous kprobe(
-as we were overriding the previous kprobe info) info their by crashing the
-system.  This patch fixes this issues by having a an array of previous
-kprobe info struct(with the array size of 2).
+Make i2c-at91 register as i2c adapter zero (none of these chips seem to
+have more than one TWI controllers) to let it kick in any board-specific
+device declarations; also make it hotplug/coldplug.
 
-This similar technique is not needed on i386 and x86_64 because by default
-interrupts are turn off in the break/int3 exception handler.
-
-Signed-off-by: "Anil S Keshavamurthy" <anil.s.keshavamurthy@intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/kprobes.c |   12 ++++++++----
- include/asm-ia64/kprobes.h |    4 +++-
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ drivers/i2c/busses/i2c-at91.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/kprobes.c~ia64-fix-kprobes-reentrancy arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~ia64-fix-kprobes-reentrancy
-+++ a/arch/ia64/kernel/kprobes.c
-@@ -370,14 +370,18 @@ static int __kprobes valid_kprobe_addr(i
+diff -puN drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers drivers/i2c/busses/i2c-at91.c
+--- a/drivers/i2c/busses/i2c-at91.c~i2c-at91-supports-new-style-i2c-drivers
++++ a/drivers/i2c/busses/i2c-at91.c
+@@ -226,13 +226,14 @@ static int __devinit at91_i2c_probe(stru
+ 	adapter->algo = &at91_algorithm;
+ 	adapter->class = I2C_CLASS_HWMON;
+ 	adapter->dev.parent = &pdev->dev;
++	/* adapter->id == 0 ... only one TWI controller for now */
  
- static void __kprobes save_previous_kprobe(struct kprobe_ctlblk *kcb)
- {
--	kcb->prev_kprobe.kp = kprobe_running();
--	kcb->prev_kprobe.status = kcb->kprobe_status;
-+	unsigned int i;
-+	i = atomic_add_return(1, &kcb->prev_kprobe_index);
-+	kcb->prev_kprobe[i-1].kp = kprobe_running();
-+	kcb->prev_kprobe[i-1].status = kcb->kprobe_status;
- }
+ 	platform_set_drvdata(pdev, adapter);
  
- static void __kprobes restore_previous_kprobe(struct kprobe_ctlblk *kcb)
- {
--	__get_cpu_var(current_kprobe) = kcb->prev_kprobe.kp;
--	kcb->kprobe_status = kcb->prev_kprobe.status;
-+	unsigned int i;
-+	i = atomic_sub_return(1, &kcb->prev_kprobe_index);
-+	__get_cpu_var(current_kprobe) = kcb->prev_kprobe[i].kp;
-+	kcb->kprobe_status = kcb->prev_kprobe[i].status;
- }
+ 	clk_enable(twi_clk);		/* enable peripheral clock */
+ 	at91_twi_hwinit();		/* initialize TWI controller */
  
- static void __kprobes set_current_kprobe(struct kprobe *p,
-diff -puN include/asm-ia64/kprobes.h~ia64-fix-kprobes-reentrancy include/asm-ia64/kprobes.h
---- a/include/asm-ia64/kprobes.h~ia64-fix-kprobes-reentrancy
-+++ a/include/asm-ia64/kprobes.h
-@@ -71,13 +71,15 @@ struct prev_kprobe {
+-	rc = i2c_add_adapter(adapter);
++	rc = i2c_add_numbered_adapter(adapter);
+ 	if (rc) {
+ 		dev_err(&pdev->dev, "Adapter %s registration failed\n",
+ 				adapter->name);
+@@ -295,6 +296,9 @@ static int at91_i2c_resume(struct platfo
+ #define at91_i2c_resume		NULL
+ #endif
  
- #define	MAX_PARAM_RSE_SIZE	(0x60+0x60/0x3f)
- /* per-cpu kprobe control block */
-+#define ARCH_PREV_KPROBE_SZ 2
- struct kprobe_ctlblk {
- 	unsigned long kprobe_status;
- 	struct pt_regs jprobe_saved_regs;
- 	unsigned long jprobes_saved_stacked_regs[MAX_PARAM_RSE_SIZE];
- 	unsigned long *bsp;
- 	unsigned long cfm;
--	struct prev_kprobe prev_kprobe;
-+	atomic_t prev_kprobe_index;
-+	struct prev_kprobe prev_kprobe[ARCH_PREV_KPROBE_SZ];
- };
- 
- #define JPROBE_ENTRY(pentry)	(kprobe_opcode_t *)pentry
++/* work with "modprobe at91_i2c" from hotplugging or coldplugging */
++MODULE_ALIAS("at91_i2c");
++
+ static struct platform_driver at91_i2c_driver = {
+ 	.probe		= at91_i2c_probe,
+ 	.remove		= __devexit_p(at91_i2c_remove),
 _
 
-Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-ia64-fix-kprobes-reentrancy.patch
+use-common-cpu_is_xxx-macros-on-at91-and-avr32.patch
+atmel_spi-remove-unnecessary-and-wrong-ifdefs.patch
+acpi-driver-model-flags-and-platform_enable_wake.patch
+update-documentation-driver-model-platformtxt.patch
+i2c-at91-supports-new-style-i2c-drivers.patch
+leds-gpio-handles-timer-unsafe-gpios.patch
+mpc52xx-psc-spi-master-driver-update.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
