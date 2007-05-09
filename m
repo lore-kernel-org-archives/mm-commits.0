@@ -1,156 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - compiler-introduce-__used-and-__maybe_unused.patch removed from -mm tree
-Date: Wed, 09 May 2007 14:54:30 -0700
-Message-ID: <200705092154.l49LsUEC003166@shell0.pdx.osdl.net>
+Subject: - git-battery-fix.patch removed from -mm tree
+Date: Wed, 09 May 2007 14:55:16 -0700
+Message-ID: <200705092155.l49LtGVT003252@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:40318 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:58390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759336AbXEIVzY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:55:24 -0400
+	by vger.kernel.org with ESMTP id S1759325AbXEIVzj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2007 17:55:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, bunk@stusta.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cbou@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     compiler: introduce __used and __maybe_unused
+     git-battery-fix
 has been removed from the -mm tree.  Its filename was
-     compiler-introduce-__used-and-__maybe_unused.patch
+     git-battery-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: compiler: introduce __used and __maybe_unused
-From: David Rientjes <rientjes@google.com>
+Subject: git-battery-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-__used is defined to be __attribute__((unused)) for all pre-3.3 gcc
-compilers to suppress warnings for unused functions because perhaps they
-are referenced only in inline assembly.  It is defined to be
-__attribute__((used)) for gcc 3.3 and later so that the code is still
-emitted for such functions.
-
-__maybe_unused is defined to be __attribute__((unused)) for both function
-and variable use if it could possibly be unreferenced due to the evaluation
-of preprocessor macros.  Function prototypes shall be marked with
-__maybe_unused if the actual definition of the function is dependant on
-preprocessor macros.
-
-No update to compiler-intel.h is necessary because ICC supports both
-__attribute__((used)) and __attribute__((unused)) as specified by the gcc
-manual.
-
-__attribute_used__ is deprecated and will be removed once all current
-code is converted to using __used.
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Adrian Bunk <bunk@stusta.de>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Anton Vorontsov <cbou@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h  |    1 +
- include/linux/compiler-gcc3.h |    6 ++++--
- include/linux/compiler-gcc4.h |    3 ++-
- include/linux/compiler.h      |   21 ++++++++++++++++++---
- 4 files changed, 25 insertions(+), 6 deletions(-)
+ drivers/base/bus.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-introduce-__used-and-__maybe_unused include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-introduce-__used-and-__maybe_unused
-+++ a/include/linux/compiler-gcc.h
-@@ -40,3 +40,4 @@
- #define  noinline			__attribute__((noinline))
- #define __attribute_pure__		__attribute__((pure))
- #define __attribute_const__		__attribute__((__const__))
-+#define __maybe_unused			__attribute__((unused))
-diff -puN include/linux/compiler-gcc3.h~compiler-introduce-__used-and-__maybe_unused include/linux/compiler-gcc3.h
---- a/include/linux/compiler-gcc3.h~compiler-introduce-__used-and-__maybe_unused
-+++ a/include/linux/compiler-gcc3.h
-@@ -4,9 +4,11 @@
- #include <linux/compiler-gcc.h>
+diff -puN drivers/base/bus.c~git-battery-fix drivers/base/bus.c
+--- a/drivers/base/bus.c~git-battery-fix
++++ a/drivers/base/bus.c
+@@ -740,7 +740,7 @@ void put_bus(struct bus_type * bus)
  
- #if __GNUC_MINOR__ >= 3
--# define __attribute_used__	__attribute__((__used__))
-+# define __used			__attribute__((__used__))
-+# define __attribute_used__	__used				/* deprecated */
- #else
--# define __attribute_used__	__attribute__((__unused__))
-+# define __used			__attribute__((__unused__))
-+# define __attribute_used__	__used				/* deprecated */
- #endif
- 
- #if __GNUC_MINOR__ >= 4
-diff -puN include/linux/compiler-gcc4.h~compiler-introduce-__used-and-__maybe_unused include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~compiler-introduce-__used-and-__maybe_unused
-+++ a/include/linux/compiler-gcc4.h
-@@ -12,7 +12,8 @@
- # define __inline		__inline	__attribute__((always_inline))
- #endif
- 
--#define __attribute_used__	__attribute__((__used__))
-+#define __used			__attribute__((__used__))
-+#define __attribute_used__	__used			/* deprecated */
- #define __must_check 		__attribute__((warn_unused_result))
- #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
- #define __always_inline		inline __attribute__((always_inline))
-diff -puN include/linux/compiler.h~compiler-introduce-__used-and-__maybe_unused include/linux/compiler.h
---- a/include/linux/compiler.h~compiler-introduce-__used-and-__maybe_unused
-+++ a/include/linux/compiler.h
-@@ -108,15 +108,30 @@ extern void __chk_io_ptr(const void __io
-  * Allow us to avoid 'defined but not used' warnings on functions and data,
-  * as well as force them to be emitted to the assembly file.
-  *
-- * As of gcc 3.3, static functions that are not marked with attribute((used))
-- * may be elided from the assembly file.  As of gcc 3.3, static data not so
-+ * As of gcc 3.4, static functions that are not marked with attribute((used))
-+ * may be elided from the assembly file.  As of gcc 3.4, static data not so
-  * marked will not be elided, but this may change in a future gcc version.
-  *
-+ * NOTE: Because distributions shipped with a backported unit-at-a-time
-+ * compiler in gcc 3.3, we must define __used to be __attribute__((used))
-+ * for gcc >=3.3 instead of 3.4.
-+ *
-  * In prior versions of gcc, such functions and data would be emitted, but
-  * would be warned about except with attribute((unused)).
-+ *
-+ * Mark functions that are referenced only in inline assembly as __used so
-+ * the code is emitted even though it appears to be unreferenced.
-  */
- #ifndef __attribute_used__
--# define __attribute_used__	/* unimplemented */
-+# define __attribute_used__	/* deprecated */
-+#endif
-+
-+#ifndef __used
-+# define __used			/* unimplemented */
-+#endif
-+
-+#ifndef __maybe_unused
-+# define __maybe_unused		/* unimplemented */
- #endif
- 
- /*
+ struct bus_type * find_bus(char * name)
+ {
+-	struct kobject * k = kset_find_obj(&bus_subsys.kset, name);
++	struct kobject * k = kset_find_obj(&bus_subsys, name);
+ 	return k ? to_bus(k) : NULL;
+ }
+ EXPORT_SYMBOL_GPL(find_bus);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+fix-kthread_create-vs-freezer-theoretical-race.patch
+git-acpi.patch
+git-acpi-export-acpi_set_cstate_limit.patch
 git-alsa.patch
-powerpc-ps3-use-__maybe_unused.patch
-mips-excite-use-__maybe_unused.patch
-mips-tlbex-use-__maybe_unused.patch
-scsi-fix-ambiguous-gdthtable-definition.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip-tidy.patch
+git-avr32.patch
+fix-gregkh-driver-sysfs-fix-error-handling-in-binattr-write.patch
+cinergyt2-fix-file-release-handler.patch
+git-hid-fixup.patch
+git-ia64-sa_interrupt-is-deprecated.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix.patch
+sn-validate-smp_affinity-mask-on-intr-redirect-fix-2.patch
+git-ieee1394.patch
+sbp2-include-fixes.patch
+ieee1394-iso-needs-schedh.patch
+pata_acpi-restore-driver-vs-libata-clean-up-sff-init-mess-fix.patch
+git-battery.patch
+git-parisc.patch
+fix-gregkh-pci-pci-remove-the-broken-pci_multithread_probe-option.patch
+git-pciseg.patch
+scsi-fix-config_scsi_wait_scan=m.patch
+git-block-fixup.patch
+git-unionfs.patch
+auerswald-fix-file-release-handler.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+i386-map-enough-initial-memory-to-create-lowmem-mappings-fix.patch
+i386-add-support-for-picopower-irq-router-fix.patch
+blacklist-dell-optiplex-320-from-using-the-hpet.patch
+xfs-clean-up-shrinker-games.patch
+lazy-freeing-of-memory-through-madv_free.patch
+add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+mm-merge-populate-and-nopage-into-fault-fixes-nonlinear.patch
+mm-merge-nopfn-into-fault.patch
 maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-frv-gdb-use-__maybe_unused.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+upper-32-bits.patch
+lib-hexdump.patch
+tty-add-compat_ioctl.patch
+mpc52xx-psc-spi-master-driver-update-tidy.patch
+linux-kernel-markers-i386-optimization.patch
+signal-timer-event-fds-v9-signalfd-core.patch
+signal-timer-event-fds-v9-timerfd-core.patch
+signal-timer-event-fds-v9-eventfd-core.patch
+revoke-wire-up-i386-system-calls.patch
+lguest-the-host-code.patch
+ntfs-use-zero_user_page.patch
+reiser4.patch
+integrity-new-hooks.patch
+integrity-evm-as-an-integrity-service-provider.patch
+integrity-ima-integrity_measure-support.patch
+integrity-tpm-internal-kernel-interface.patch
+w1-build-fix.patch
