@@ -1,55 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - fix-error-handling-in-hdio_getgeo-compat-wrapper.patch removed from -mm tree
-Date: Tue, 08 May 2007 19:52:14 -0700
-Message-ID: <200705090252.l492qEk2009548@shell0.pdx.osdl.net>
+Subject: - laptop-mode-url-update.patch removed from -mm tree
+Date: Tue, 08 May 2007 19:52:11 -0700
+Message-ID: <200705090252.l492qBtE009545@shell0.pdx.osdl.net>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([65.172.181.25]:43508 "EHLO
+Received: from smtp1.linux-foundation.org ([65.172.181.25]:42881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032208AbXEICwS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:18 -0400
+	by vger.kernel.org with ESMTP id S1032192AbXEICwR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2007 22:52:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schwab@suse.de, mm-commits@vger.kernel.org
+To: linux@zachcarter.com, bart@samwel.tk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix error handling in HDIO_GETGEO compat wrapper
+     laptop-mode URL update
 has been removed from the -mm tree.  Its filename was
-     fix-error-handling-in-hdio_getgeo-compat-wrapper.patch
+     laptop-mode-url-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix error handling in HDIO_GETGEO compat wrapper
-From: Andreas Schwab <schwab@suse.de>
+Subject: laptop-mode URL update
+From: Zach Carter <linux@zachcarter.com>
 
-Don't clobber error from sys_ioctl in HDIO_GETGEO compat wrapper.
-
-Signed-off-by: Andreas Schwab <schwab@suse.de>
+Signed-off-by: Zach Carter <linux@zachcarter.com>
+Cc: Bart Samwel <bart@samwel.tk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Documentation/laptop-mode.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/compat_ioctl.c~fix-error-handling-in-hdio_getgeo-compat-wrapper fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~fix-error-handling-in-hdio_getgeo-compat-wrapper
-+++ a/fs/compat_ioctl.c
-@@ -684,8 +684,10 @@ static int hdio_getgeo(unsigned int fd, 
- 	if (!err) {
- 		err = copy_to_user (ugeo, &geo, 4);
- 		err |= __put_user (geo.start, &ugeo->start);
-+		if (err)
-+			err = -EFAULT;
- 	}
--	return err ? -EFAULT : 0;
-+	return err;
- }
+diff -puN Documentation/laptop-mode.txt~laptop-mode-url-update Documentation/laptop-mode.txt
+--- a/Documentation/laptop-mode.txt~laptop-mode-url-update
++++ a/Documentation/laptop-mode.txt
+@@ -33,7 +33,7 @@ or anything. Simply install all the file
+ laptop mode will automatically be started when you're on battery. For
+ your convenience, a tarball containing an installer can be downloaded at:
  
- static int hdio_ioctl_trans(unsigned int fd, unsigned int cmd, unsigned long arg)
+-http://www.xs4all.nl/~bsamwel/laptop_mode/tools/
++http://www.samwel.tk/laptop_mode/laptop_mode/
+ 
+ To configure laptop mode, you need to edit the configuration file, which is
+ located in /etc/default/laptop-mode on Debian-based systems, or in
 _
 
-Patches currently in -mm which might be from schwab@suse.de are
+Patches currently in -mm which might be from linux@zachcarter.com are
 
 origin.patch
